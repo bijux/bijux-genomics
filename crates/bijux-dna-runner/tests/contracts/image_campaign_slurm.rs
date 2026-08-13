@@ -1,6 +1,11 @@
 use std::path::Path;
 use std::process::Command;
 
+use bijux_dna_containers::api::{
+    freeze_repository, ContainerGovernance, ContainerPathPolicy, ContainerPreflightPolicy,
+    ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy, RepositoryFreezeRequest,
+    RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
+};
 use bijux_dna_runner::api::{
     collect_image_campaign_slurm_job, observe_image_campaign_slurm_job,
     prepare_image_campaign_slurm_job, submit_prepared_image_campaign_job,
@@ -28,15 +33,12 @@ fn fixture() -> anyhow::Result<Fixture> {
         crate::support::repo_root()?.join("containers/contracts/catalog.toml"),
         repository.join("containers/contracts/catalog.toml"),
     )?;
-    let executable = repository.join("bijux-dna-dev");
-    let apptainer = repository.join("apptainer");
+    let executable = canonical_root.join("bijux-dna-dev");
+    let apptainer = canonical_root.join("apptainer");
     write_executable(&executable, "#!/bin/sh\nexit 0\n")?;
     write_executable(&apptainer, "#!/bin/sh\nexit 0\n")?;
     run_git(&repository, &["init", "-q"])?;
-    run_git(
-        &repository,
-        &["add", "containers/contracts/catalog.toml", "bijux-dna-dev", "apptainer"],
-    )?;
+    run_git(&repository, &["add", "containers/contracts/catalog.toml"])?;
     run_git(
         &repository,
         &[
@@ -117,6 +119,16 @@ fn image_campaign_preparation_rejects_intermediate_study_symlinks() -> anyhow::R
 
 #[cfg(unix)]
 #[test]
+fn image_campaign_preparation_rejects_executable_drift() -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    write_executable(&fixture.spec.executable_path, "#!/bin/sh\nexit 1\n")?;
+    assert!(prepare_image_campaign_slurm_job(&fixture.spec, "2026-08-09T07:30:00Z")
+        .is_err_and(|error| error.to_string().contains("digest differs")));
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
 fn submission_is_duplicate_safe_and_observation_is_non_waiting() -> anyhow::Result<()> {
     let fixture = fixture()?;
     let prepared = prepare_image_campaign_slurm_job(&fixture.spec, "2026-08-09T07:30:00Z")?;
@@ -133,16 +145,37 @@ fn submission_is_duplicate_safe_and_observation_is_non_waiting() -> anyhow::Resu
     assert_eq!(first, recovered);
     assert_eq!(std::fs::read_to_string(calls)?, "x");
     assert_eq!(observation.state, SlurmJobState::Running);
+    write_executable(&fixture.spec.executable_path, "#!/bin/sh\nexit 1\n")?;
+    let after_executable_advance =
+        observe_image_campaign_slurm_job(&scheduler, &fixture.spec, "2026-08-09T07:31:20Z")?;
+    assert_eq!(after_executable_advance.state, SlurmJobState::Running);
+    let mut conflicting = fixture.spec.clone();
+    conflicting.resources.memory_mb += 1;
+    assert!(observe_image_campaign_slurm_job(&scheduler, &conflicting, "2026-08-09T07:31:30Z")
+        .is_err_and(|error| error.to_string().contains("immutable attempt evidence")));
     Ok(())
 }
 
 #[cfg(unix)]
 #[test]
-fn terminal_scheduler_failure_publishes_complete_immutable_evidence() -> anyhow::Result<()> {
+fn submission_rejects_a_source_advance_after_preparation() -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    let prepared = prepare_image_campaign_slurm_job(&fixture.spec, "2026-08-09T07:30:00Z")?;
+    advance_source(&fixture.spec.repository_path)?;
+    let scheduler = scheduler(fixture.root.path(), "printf '456789\\n'\n")?;
+    assert!(submit_prepared_image_campaign_job(&scheduler, &prepared)
+        .is_err_and(|error| error.to_string().contains("repository commit differs")));
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn terminal_scheduler_failure_survives_source_advance() -> anyhow::Result<()> {
     let fixture = fixture()?;
     let prepared = prepare_image_campaign_slurm_job(&fixture.spec, "2026-08-09T07:30:00Z")?;
     let scheduler = scheduler(fixture.root.path(), "printf '456789\\n'\n")?;
     let handle = submit_prepared_image_campaign_job(&scheduler, &prepared)?;
+    advance_source(&fixture.spec.repository_path)?;
     std::fs::write(&handle.stdout_path, b"campaign stdout\n")?;
     std::fs::write(&handle.stderr_path, b"campaign failed\n")?;
     write_executable(&scheduler.squeue, "#!/bin/sh\nexit 0\n")?;
@@ -161,6 +194,93 @@ fn terminal_scheduler_failure_publishes_complete_immutable_evidence() -> anyhow:
     assert_eq!(evidence.accounting.exit_code, 42);
     assert!(evidence.failure.as_deref().is_some_and(|value| value.contains("scheduler state")));
     assert!(fixture.spec.attempt_root.join("scheduler/collection.json").is_file());
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn completed_scheduler_attempt_uses_frozen_source_after_advance() -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    let prepared = prepare_image_campaign_slurm_job(&fixture.spec, "2026-08-09T07:30:00Z")?;
+    let scheduler = scheduler(fixture.root.path(), "printf '456789\\n'\n")?;
+    let handle = submit_prepared_image_campaign_job(&scheduler, &prepared)?;
+    advance_source(&fixture.spec.repository_path)?;
+    freeze_source_snapshot(&fixture.spec)?;
+    std::fs::write(&handle.stdout_path, b"campaign stdout\n")?;
+    std::fs::write(&handle.stderr_path, b"")?;
+    write_executable(&scheduler.squeue, "#!/bin/sh\nexit 0\n")?;
+    write_executable(
+        &scheduler.sacct,
+        "#!/bin/sh\nprintf '%s\\n' '456789|COMPLETED|0:0|8|00:00:06|32M|cn001|'\n",
+    )?;
+
+    let collection =
+        collect_image_campaign_slurm_job(&scheduler, &fixture.spec, "2026-08-09T07:32:00Z")?;
+    let evidence = collection.evidence.ok_or_else(|| anyhow::anyhow!("missing evidence"))?;
+    assert_eq!(evidence.status, ImageCampaignEvidenceStatus::Failed);
+    assert!(evidence
+        .failure
+        .as_deref()
+        .is_some_and(|value| value.contains("campaign receipt admission failed")));
+    Ok(())
+}
+
+fn advance_source(repository: &Path) -> anyhow::Result<()> {
+    std::fs::write(repository.join("advanced.txt"), b"advanced\n")?;
+    run_git(repository, &["add", "advanced.txt"])?;
+    run_git(
+        repository,
+        &[
+            "-c",
+            "user.name=Bijux Test",
+            "-c",
+            "user.email=bijux@example.invalid",
+            "commit",
+            "-qm",
+            "advance source",
+        ],
+    )
+}
+
+fn freeze_source_snapshot(spec: &ImageCampaignSlurmSpec) -> anyhow::Result<()> {
+    freeze_repository(&RepositoryFreezeRequest {
+        governance: ContainerGovernance {
+            schema_version: CONTAINER_GOVERNANCE_SCHEMA_V1.to_owned(),
+            site: ContainerSitePolicy {
+                id: "test-site".to_owned(),
+                hostname_regex: "^test-host$".to_owned(),
+            },
+            paths: ContainerPathPolicy {
+                study_root: spec.study_root.clone(),
+                containers_root: spec.study_root.join("containers"),
+                data_root: spec.study_root.join("data"),
+                results_root: spec.study_root.join("results"),
+                finalization_root: spec.study_root.join("evidence/finalization"),
+                active_repository: spec.repository_path.clone(),
+                frozen_repositories: spec.study_root.join("data/evidence/source-checkouts"),
+            },
+            runtime: ContainerRuntimePolicy { apptainer_architecture: "linux/amd64".to_owned() },
+            slurm: ContainerSlurmPolicy {
+                account: "science".to_owned(),
+                scratch_environment: Some("TEST_SCRATCH".to_owned()),
+                scratch_root: None,
+                partitions: vec!["compute".to_owned()],
+                quota_command: vec!["true".to_owned()],
+            },
+            preflight: ContainerPreflightPolicy {
+                minimum_available_bytes: 1,
+                minimum_available_inodes: 1,
+                maximum_clock_skew_seconds: 30,
+                required_commands: vec!["git".to_owned()],
+                required_contracts: vec!["containers/contracts/catalog.toml".to_owned()],
+            },
+        },
+        hostname: "test-host".to_owned(),
+        commit: spec.repository_commit.clone(),
+        scope: RepositoryFreezeScope::Complete,
+        checkout_paths: Vec::new(),
+        source_namespace: "source-freezes".to_owned(),
+    })?;
     Ok(())
 }
 

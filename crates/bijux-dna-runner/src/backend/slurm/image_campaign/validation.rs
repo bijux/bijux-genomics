@@ -48,9 +48,24 @@ pub(super) fn validate_specification(spec: &ImageCampaignSlurmSpec) -> Result<()
     {
         bail!("image campaign worker count must equal requested CPUs and be between 1 and 32");
     }
-    let repository = canonical_directory(&spec.repository_path, "frozen repository")?;
-    let observed_commit = bijux_dna_containers::api::clean_repository_head_commit(&repository)?;
-    if observed_commit != spec.repository_commit {
+    let repository = canonical_directory(&spec.repository_path, "image campaign repository")?;
+    if !bijux_dna_containers::api::repository_commit_is_ancestor_of_head(
+        &repository,
+        &spec.repository_commit,
+    )? {
+        bail!("image campaign repository commit is not retained in source history");
+    }
+    let study_root = canonical_directory(&spec.study_root, "governed STUDY root")?;
+    validate_attempt_root(spec, &study_root)?;
+    validate_tool_identifiers(&spec.selected_tools)?;
+    Ok(())
+}
+
+pub(super) fn validate_submission_authorities(spec: &ImageCampaignSlurmSpec) -> Result<()> {
+    let repository = canonical_directory(&spec.repository_path, "image campaign repository")?;
+    if bijux_dna_containers::api::clean_repository_head_commit(&repository)?
+        != spec.repository_commit
+    {
         bail!("image campaign repository commit differs from scheduler specification");
     }
     require_exact_file(
@@ -60,8 +75,6 @@ pub(super) fn validate_specification(spec: &ImageCampaignSlurmSpec) -> Result<()
         true,
     )?;
     require_exact_file(&spec.apptainer_path, &spec.apptainer_sha256, "Apptainer executable", true)?;
-    let study_root = canonical_directory(&spec.study_root, "governed STUDY root")?;
-    validate_attempt_root(spec, &study_root)?;
     validate_tool_selection(spec, &repository)?;
     Ok(())
 }
@@ -111,6 +124,27 @@ fn validate_tool_selection(spec: &ImageCampaignSlurmSpec, repository: &Path) -> 
         .collect::<Vec<_>>();
     if selected != spec.selected_tools {
         bail!("image campaign tools must be unique retained tools in canonical catalog order");
+    }
+    Ok(())
+}
+
+fn validate_tool_identifiers(tools: &[String]) -> Result<()> {
+    if tools.is_empty() {
+        bail!("image campaign selected tool closure is empty");
+    }
+    let mut observed = std::collections::BTreeSet::new();
+    for tool in tools {
+        if tool.is_empty()
+            || tool.len() > 96
+            || !tool.bytes().all(|byte| {
+                byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'-' | b'_')
+            })
+        {
+            bail!("image campaign tool identity is invalid");
+        }
+        if !observed.insert(tool) {
+            bail!("image campaign selected tools are duplicated");
+        }
     }
     Ok(())
 }
