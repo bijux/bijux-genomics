@@ -31,6 +31,17 @@ Required metrics include damage, contamination, authenticity, sex inference, gen
 
 Defaults are chosen for aDNA sensitivity and deterministic contract generation.
 
+## Invariant applicability
+
+Invariant evaluation is stage-scoped. Coverage thresholds apply to `bam.coverage`, contamination
+and contamination-versus-damage checks apply to `bam.contamination`, duplicate checks apply to
+markdup/duplication/complexity stages, complexity and saturation checks apply to `bam.complexity`,
+damage checks apply to `bam.damage`, and declared-versus-inferred library checks apply to
+`bam.authenticity`. Interpretive sufficiency remains scoped to sex, contamination, haplogroup, and
+kinship stages, where insufficient data is a failure rather than admissible evidence. A stage
+verdict is always the maximum status of the invariants actually emitted for that stage; absent
+metrics owned by a different stage cannot fail an otherwise valid stage output.
+
 ## Effects
 
 The crate is allowed to perform pure deterministic computation over source-controlled data and explicit fixture files.
