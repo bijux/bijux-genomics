@@ -942,9 +942,9 @@ fn full_shard_roots(
     let artifact_root = ci_output_path(workspace, &contract.shard_artifact_root)?.join(&shard.id);
     Ok(FullShardRoots {
         archive_extract: artifact_root.join("nextest/archive"),
-        cargo_target: artifact_root.join("target/cargo"),
-        test_target: artifact_root.join("target/test"),
-        coverage_target: artifact_root.join("target/coverage"),
+        cargo_target: isolated_build_tree(&artifact_root, "cargo"),
+        test_target: isolated_build_tree(&artifact_root, "test"),
+        coverage_target: isolated_build_tree(&artifact_root, "coverage"),
         test_tmp: artifact_root.join("tmp/test"),
         coverage_tmp: artifact_root.join("tmp/coverage"),
         test_profraw: artifact_root.join("coverage/profraw-test"),
@@ -959,11 +959,15 @@ fn full_archive_roots(
 ) -> Result<FullArchiveRoots> {
     let artifact_root = ci_output_path(workspace, &contract.archive_root)?;
     Ok(FullArchiveRoots {
-        cargo_target: artifact_root.join("target/cargo"),
+        cargo_target: isolated_build_tree(&artifact_root, "cargo"),
         archive_file: artifact_root.join("workspace-tests.tar.zst"),
         build_log: artifact_root.join("build.log"),
         artifact_root,
     })
+}
+
+fn isolated_build_tree(artifact_root: &Path, consumer: &str) -> PathBuf {
+    artifact_root.join("build").join(consumer)
 }
 
 fn ci_output_path(workspace: &Workspace, configured: &str) -> Result<PathBuf> {
@@ -1469,13 +1473,13 @@ mod tests {
     use super::{
         artifact_root_path, ci_output_path, ci_output_path_under, full_archive_args,
         full_archive_roots, full_shard_args, full_shard_env, full_shard_root_receipt,
-        full_shard_roots, materialize_full_shard_workspace, percentile, read_ci_build_authority,
-        reference_timing_samples, remove_full_shard_ephemera, set_full_archive_readonly,
-        validate_ci_test_executor_observation, validate_fast_group_contract,
-        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
-        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
-        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
-        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
+        full_shard_roots, isolated_build_tree, materialize_full_shard_workspace, percentile,
+        read_ci_build_authority, reference_timing_samples, remove_full_shard_ephemera,
+        set_full_archive_readonly, validate_ci_test_executor_observation,
+        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
+        validate_full_shard_root_set, FastGroup, FastGroupContract, FastReferenceRunner,
+        FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract,
+        FullShardCoverage, FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -1729,13 +1733,16 @@ mod tests {
         let archive_root = report_root.join("archive");
         let shard_root = report_root.join("shards/hash-1-of-4");
         std::fs::create_dir_all(report_root.join("workspaces/hash-1-of-4"))?;
-        std::fs::create_dir_all(archive_root.join("target/cargo"))?;
+        std::fs::create_dir_all(isolated_build_tree(&archive_root, "cargo"))?;
         std::fs::create_dir_all(&shard_root)?;
         std::fs::write(report_root.join("hash-1-of-4.log"), b"test failure\n")?;
         std::fs::write(report_root.join("full-gate-timing.json"), b"{}\n")?;
         std::fs::write(archive_root.join("build.log"), b"archive build\n")?;
         std::fs::write(archive_root.join("workspace-tests.tar.zst"), b"archive\n")?;
-        std::fs::write(archive_root.join("target/cargo/output"), b"cargo output\n")?;
+        std::fs::write(
+            isolated_build_tree(&archive_root, "cargo").join("output"),
+            b"cargo output\n",
+        )?;
         std::fs::write(shard_root.join("output"), b"shard output\n")?;
         let extracted = shard_root.join("nextest/archive/read-only");
         std::fs::create_dir_all(&extracted)?;
@@ -1761,16 +1768,16 @@ mod tests {
 
         let archive_roots = FullArchiveRoots {
             artifact_root: archive_root.clone(),
-            cargo_target: archive_root.join("target/cargo"),
+            cargo_target: isolated_build_tree(&archive_root, "cargo"),
             archive_file: archive_root.join("workspace-tests.tar.zst"),
             build_log: archive_root.join("build.log"),
         };
         let shard_roots = vec![FullShardRoots {
             artifact_root: shard_root.clone(),
             archive_extract: shard_root.join("nextest/archive"),
-            cargo_target: shard_root.join("target/cargo"),
-            test_target: shard_root.join("target/test"),
-            coverage_target: shard_root.join("target/coverage"),
+            cargo_target: isolated_build_tree(&shard_root, "cargo"),
+            test_target: isolated_build_tree(&shard_root, "test"),
+            coverage_target: isolated_build_tree(&shard_root, "coverage"),
             test_tmp: shard_root.join("tmp/test"),
             coverage_tmp: shard_root.join("tmp/coverage"),
             test_profraw: shard_root.join("coverage/profraw-test"),
@@ -1780,7 +1787,7 @@ mod tests {
         ephemera.retain_bounded_evidence()?;
 
         assert!(!report_root.join("workspaces").exists());
-        assert!(!archive_root.join("target").exists());
+        assert!(!archive_root.join("build").exists());
         assert!(!archive_root.join("workspace-tests.tar.zst").exists());
         assert!(!shard_root.exists());
         assert!(archive_root.join("build.log").is_file());
