@@ -188,7 +188,8 @@ pub(crate) fn handle_analyze_command(args: &crate::cli::AnalyzeRootArgs) -> Resu
         AnalyzeCommand::Evidence(args) => match &args.command {
             AnalyzeEvidenceCommand::Verify(args) => {
                 let bundle_path = resolve_evidence_bundle_path(args)?;
-                let verification = bijux_dna_analyze::verify_evidence_bundle(&bundle_path)?;
+                let verification =
+                    bijux_dna_api::v1::api::report::verify_evidence_bundle(&bundle_path)?;
                 if let Some(parent) = bundle_path.parent() {
                     bijux_dna_infra::atomic_write_json(
                         &parent.join("evidence_verification.json"),
@@ -198,8 +199,10 @@ pub(crate) fn handle_analyze_command(args: &crate::cli::AnalyzeRootArgs) -> Resu
                 render::json::print_pretty(&verification)?;
             }
             AnalyzeEvidenceCommand::Compare(args) => {
-                let comparison =
-                    bijux_dna_analyze::compare_evidence_bundles(&args.left, &args.right)?;
+                let comparison = bijux_dna_api::v1::api::report::compare_evidence_bundles(
+                    &args.left,
+                    &args.right,
+                )?;
                 render::json::print_pretty(&comparison)?;
             }
         },
