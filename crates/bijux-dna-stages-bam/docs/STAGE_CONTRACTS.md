@@ -44,6 +44,10 @@ in sync with `bijux-dna-domain-bam` when adding, renaming, or removing stages.
 - Missing required fields must fail with a parser error that identifies the tool
   or field closely enough for fixture debugging.
 - Metric discovery must prefer stage-specific output names before generic names.
+- Plugin normalization must preserve every declared output identity and artifact contract, record
+  whether each output materialized, project the BAM-domain invariant evaluation, and emit a
+  fail-closed `StageVerdictV1`. Missing or authority-drifted outputs are scientific failures, not
+  successful empty observations.
 
 ## Supported Observer Outputs
 

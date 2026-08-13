@@ -3,9 +3,12 @@ use std::path::PathBuf;
 
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
+use bijux_dna_core::prelude::invariants::InvariantStatusV1;
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
-use bijux_dna_stage_contract::StagePlugin;
-use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
+use bijux_dna_stage_contract::{
+    canonical_downstream_probes, canonical_tool_bindings, evaluate_downstream_probe,
+    validate_report_parts, PlanDecisionReason, StagePlanV1, StagePlugin, ToolBinding,
+};
 use bijux_dna_stages_bam::BamStagePlugin;
 
 fn stage_plan(stage_id: &str) -> StagePlanV1 {
@@ -113,6 +116,104 @@ fn bam_stage_plugin_preserves_reported_output_artifacts() -> anyhow::Result<()> 
 }
 
 #[test]
+fn bam_stage_plugin_fails_closed_when_declared_outputs_are_not_materialized() -> anyhow::Result<()>
+{
+    let plugin = BamStagePlugin;
+    let plan = stage_plan("bam.mapping_summary");
+
+    let parsed = plugin.parse_outputs(&plan, &[])?;
+
+    assert_eq!(parsed.artifacts, plan.io.outputs);
+    assert!(parsed.invariants.iter().any(|invariant| {
+        invariant.id == "bam_stage_outputs_materialized"
+            && invariant.status == InvariantStatusV1::Fail
+    }));
+    assert_eq!(
+        parsed.verdict.as_ref().map(|verdict| &verdict.verdict),
+        Some(&InvariantStatusV1::Fail)
+    );
+    assert!(parsed.warnings.iter().any(|warning| warning.contains("not materialized")));
+    validate_report_parts(&parsed.report_parts)?;
+    Ok(())
+}
+
+#[test]
+fn bam_stage_plugin_preserves_output_authority_drift_as_failure_evidence() -> anyhow::Result<()> {
+    let plugin = BamStagePlugin;
+    let plan = stage_plan("bam.mapping_summary");
+    let mut outputs = plan.io.outputs.clone();
+    outputs[0].name = ArtifactId::new("unexpected_output");
+
+    let parsed = plugin.parse_outputs(&plan, &outputs)?;
+
+    assert!(parsed.invariants.iter().any(|invariant| {
+        invariant.id == "bam_stage_output_contract_exact"
+            && invariant.status == InvariantStatusV1::Fail
+    }));
+    assert_eq!(
+        parsed.verdict.as_ref().map(|verdict| &verdict.verdict),
+        Some(&InvariantStatusV1::Fail)
+    );
+    assert!(parsed.warnings.iter().any(|warning| warning.contains("differs")));
+    Ok(())
+}
+
+#[test]
+fn bam_stage_plugin_preserves_stage_scoped_scientific_failure() -> anyhow::Result<()> {
+    let plugin = BamStagePlugin;
+    let temp = bijux_dna_infra::temp_dir("bijux-bam-plugin-scientific-failure")?;
+    let mut plan = stage_plan("bam.coverage");
+    plan.out_dir = temp.path().to_path_buf();
+    plan.io.outputs[0].path = temp.path().join("flagstat.txt");
+    bijux_dna_infra::write_bytes(
+        &plan.io.outputs[0].path,
+        include_bytes!("../fixtures/observer/default/flagstat.txt"),
+    )?;
+
+    let parsed = plugin.parse_outputs(&plan, &plan.io.outputs)?;
+
+    assert!(parsed.invariants.iter().any(|invariant| {
+        invariant.id == "bam_stage_outputs_materialized"
+            && invariant.status == InvariantStatusV1::Pass
+    }));
+    assert!(parsed.invariants.iter().any(|invariant| {
+        invariant.id == "coverage_mean" && invariant.status == InvariantStatusV1::Fail
+    }));
+    assert_eq!(
+        parsed.verdict.as_ref().map(|verdict| &verdict.verdict),
+        Some(&InvariantStatusV1::Fail)
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_bam_output_closes_stage_owned_downstream_evaluation() -> anyhow::Result<()> {
+    let bindings = canonical_tool_bindings()?;
+    let binding = bindings
+        .binding(&StageId::new("bam.qc_pre"), &ToolId::new("samtools"))
+        .ok_or_else(|| anyhow::anyhow!("missing canonical BAM qc_pre/samtools binding"))?;
+    let temp = bijux_dna_infra::temp_dir("bijux-bam-plugin-downstream")?;
+    let plan = canonical_plan(binding, temp.path());
+    materialize_qc_fixture(&plan.io.outputs)?;
+
+    let parsed = BamStagePlugin.parse_outputs(&plan, &plan.io.outputs)?;
+    let probes = canonical_downstream_probes()?;
+    let probe = probes
+        .probe_for_stage(&plan.stage_id)
+        .ok_or_else(|| anyhow::anyhow!("missing canonical BAM qc_pre probe"))?;
+    let downstream = evaluate_downstream_probe(probe, binding, &parsed)?;
+
+    assert!(parsed.invariants.iter().all(|invariant| invariant.status != InvariantStatusV1::Fail));
+    assert_ne!(
+        parsed.verdict.as_ref().map(|verdict| &verdict.verdict),
+        Some(&InvariantStatusV1::Fail)
+    );
+    assert!(downstream.passed);
+    validate_report_parts(&parsed.report_parts)?;
+    Ok(())
+}
+
+#[test]
 fn bam_stage_plugin_reads_plan_out_dir_when_outputs_are_empty() -> anyhow::Result<()> {
     let plugin = BamStagePlugin;
     let temp = bijux_dna_infra::temp_dir("bijux-bam-plugin-out-dir")?;
@@ -185,6 +286,11 @@ fn bam_stage_plugin_metric_discovery_is_stable_for_reordered_outputs() -> anyhow
 
     assert_eq!(first.metrics.metrics["alignment"]["total"], 10);
     assert_eq!(first.metrics.metrics, second.metrics.metrics);
+    assert_eq!(first.artifacts, second.artifacts);
+    assert_eq!(
+        serde_json::to_value(&first.report_parts)?,
+        serde_json::to_value(&second.report_parts)?
+    );
     Ok(())
 }
 
@@ -197,5 +303,61 @@ fn bam_stage_plugin_trims_tool_version_in_metrics_envelope() -> anyhow::Result<(
     let parsed = plugin.parse_outputs(&plan, &[])?;
 
     assert_eq!(parsed.metrics.tool_version, "1.17");
+    Ok(())
+}
+
+fn canonical_plan(binding: &impl ToolBinding, out_dir: &std::path::Path) -> StagePlanV1 {
+    let outputs = binding
+        .outputs()
+        .iter()
+        .map(|output| {
+            let file_name = match output.name.as_str() {
+                "flagstat" => "flagstat.txt",
+                "idxstats" => "idxstats.txt",
+                "stats" => "samtools_stats.txt",
+                other => other,
+            };
+            ArtifactRef::required(
+                ArtifactId::new(&output.name),
+                out_dir.join(file_name),
+                ArtifactRole::ReportJson,
+            )
+            .with_artifact_contract(&output.artifact_contract_id)
+        })
+        .collect();
+    StagePlanV1 {
+        stage_id: binding.stage_id().clone(),
+        stage_instance_id: None,
+        stage_version: StageVersion(1),
+        tool_id: binding.tool_id().clone(),
+        tool_version: "test-version".to_string(),
+        image: ContainerImageRefV1 {
+            image: binding.tool_id().as_str().to_string(),
+            digest: Some("sha256:test".to_string()),
+        },
+        command: CommandSpecV1 { template: binding.command_template().to_vec() },
+        resources: ToolConstraints::default(),
+        io: StageIO { inputs: Vec::new(), outputs },
+        out_dir: out_dir.to_path_buf(),
+        params: serde_json::json!({}),
+        effective_params: serde_json::json!({}),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::default(),
+        aux_images: BTreeMap::new(),
+        canonical_contract: None,
+        provenance: None,
+        reason: PlanDecisionReason::default(),
+    }
+}
+
+fn materialize_qc_fixture(outputs: &[ArtifactRef]) -> anyhow::Result<()> {
+    for output in outputs {
+        let bytes: &[u8] = match output.name.as_str() {
+            "flagstat" => include_bytes!("../fixtures/observer/default/flagstat.txt"),
+            "idxstats" => include_bytes!("../fixtures/observer/default/idxstats.txt"),
+            "stats" => include_bytes!("../fixtures/observer/default/stats.txt"),
+            other => anyhow::bail!("unexpected qc_pre output {other}"),
+        };
+        bijux_dna_infra::write_bytes(&output.path, bytes)?;
+    }
     Ok(())
 }
