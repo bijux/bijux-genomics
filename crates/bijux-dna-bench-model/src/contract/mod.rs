@@ -24,6 +24,7 @@ mod dossier_index;
 mod essential_pipeline_readiness;
 mod execution;
 mod full_benchmark_report;
+mod full_benchmark_result_collector;
 mod interfaces;
 mod lifecycle;
 mod local_benchmark_summary;
@@ -104,6 +105,10 @@ pub use essential_pipeline_readiness::validate_benchmark_essential_pipeline_read
 pub use execution::validate_execution_spec;
 pub use full_benchmark_report::{
     validate_full_benchmark_report, FullBenchmarkReportAdmissionContext,
+};
+pub use full_benchmark_result_collector::{
+    validate_full_benchmark_result_collector, FullBenchmarkResultBinding,
+    FullBenchmarkResultCollectorAdmissionContext,
 };
 pub use interfaces::{
     validate_defined_interface_campaign_alignment, validate_interface_parameter_alignment,
@@ -273,6 +278,7 @@ pub use schema_versions::{
     DECISION_SCHEMA_V1, FASTQ_COMPARABLE_METRICS_SCHEMA_V1, FASTQ_CORPUS_SOURCE_SCHEMA_V1,
     FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
     FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, FULL_BENCHMARK_REPORT_SCHEMA_V1,
+    FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
     GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, OBSERVATION_SCHEMA_V1,

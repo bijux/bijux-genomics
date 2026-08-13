@@ -137,6 +137,13 @@ sections. The benchmark model owns its records, generated schema, source-count
 closure, identity and path invariants, and admission verdict; the CLI collects
 the governed inputs and materializes JSON and Markdown presentations.
 
+`schemas/full-benchmark-result-collector.schema.json` defines the canonical
+row-level union of expected, simulated, real-smoke, missing-result,
+insufficient-data, and unsupported-pair evidence consumed by aggregate reports.
+The benchmark model owns its records, generated schema, source/status/domain
+closure, binding distinctions, safe evidence paths, and admission verdict; the
+CLI only collects governed source surfaces and materializes the admitted JSON.
+
 `schemas/local-stage-inventory.schema.json` and
 `schemas/local-all-domain-stage-inventory.schema.json` define the domain-local
 and aggregate local benchmark stage inventories. The benchmark model owns

@@ -22,6 +22,7 @@ pub mod dossier_index;
 pub mod essential_pipeline_readiness;
 pub mod execution;
 pub mod full_benchmark_report;
+pub mod full_benchmark_result_collector;
 pub mod graph;
 pub mod interfaces;
 pub mod lifecycle;
@@ -225,6 +226,11 @@ pub use full_benchmark_report::{
     FullBenchmarkReport, FullBenchmarkReportRow, FullBenchmarkReportRowStatus,
     FullBenchmarkRuntimeRow, FullBenchmarkStageSectionRow, FullBenchmarkToolSectionRow,
     FullBenchmarkUnsupportedPairRow,
+};
+#[allow(unused_imports)]
+pub use full_benchmark_result_collector::{
+    full_benchmark_result_collector_schema, FullBenchmarkResultCollectorReport,
+    FullBenchmarkResultCollectorRow, FullBenchmarkResultStatus, FullBenchmarkResultSurfaceKind,
 };
 #[allow(unused_imports)]
 pub use graph::{
