@@ -32,6 +32,7 @@ mod fastq_expectations;
 mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
 mod fastq_validate_reads;
+mod full_benchmark_report;
 mod hardening_campaign;
 mod options;
 mod parameter_authority;
@@ -208,6 +209,11 @@ pub use fastq_validate_reads::{
     prepare_fastq_validate_reads_material_from_expectations,
     publish_fastq_validate_reads_stage_report, render_fastq_validate_reads_markdown,
     FastqValidateReadsMaterial, FastqValidateReadsStageReportPublication,
+};
+pub use full_benchmark_report::{
+    build_full_benchmark_corpus_rows, build_full_benchmark_memory_rows,
+    build_full_benchmark_pipeline_rows, build_full_benchmark_runtime_rows,
+    build_full_benchmark_stage_rows, build_full_benchmark_tool_rows,
 };
 pub use hardening_campaign::{
     derive_hardening_benchmark_campaign, load_hardening_benchmark_campaign_report,

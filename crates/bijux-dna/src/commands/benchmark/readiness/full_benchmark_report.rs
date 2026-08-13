@@ -5,15 +5,16 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
+    build_full_benchmark_corpus_rows, build_full_benchmark_memory_rows,
+    build_full_benchmark_pipeline_rows, build_full_benchmark_runtime_rows,
+    build_full_benchmark_stage_rows, build_full_benchmark_tool_rows,
     validate_full_benchmark_report, FullBenchmarkReportAdmissionContext,
     FULL_BENCHMARK_REPORT_SCHEMA_V1,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
-    FullBenchmarkComparableMetricRow, FullBenchmarkCorpusSectionRow, FullBenchmarkFailureRow,
-    FullBenchmarkFailuresSection, FullBenchmarkMemoryRow, FullBenchmarkMissingResultRow,
-    FullBenchmarkPipelineSection, FullBenchmarkPipelineSectionRow, FullBenchmarkReport,
-    FullBenchmarkReportRow, FullBenchmarkReportRowStatus, FullBenchmarkRuntimeRow,
-    FullBenchmarkStageSectionRow, FullBenchmarkToolSectionRow, FullBenchmarkUnsupportedPairRow,
+    FullBenchmarkComparableMetricRow, FullBenchmarkFailureRow, FullBenchmarkFailuresSection,
+    FullBenchmarkMissingResultRow, FullBenchmarkReport, FullBenchmarkReportRow,
+    FullBenchmarkReportRowStatus, FullBenchmarkUnsupportedPairRow,
 };
 use serde_json::Value;
 
@@ -288,12 +289,12 @@ pub(crate) fn render_full_benchmark_report(
             .then_with(|| left.report_row_id.cmp(&right.report_row_id))
     });
 
-    let stage_centric = build_stage_centric_rows(&rows);
-    let tool_centric = build_tool_centric_rows(&rows);
-    let corpus_centric = build_corpus_centric_rows(&rows);
-    let pipeline_centric = build_pipeline_centric_rows(&rows);
-    let runtime = build_runtime_rows(&rows);
-    let memory = build_memory_rows(&rows);
+    let stage_centric = build_full_benchmark_stage_rows(&rows);
+    let tool_centric = build_full_benchmark_tool_rows(&rows);
+    let corpus_centric = build_full_benchmark_corpus_rows(&rows);
+    let pipeline_centric = build_full_benchmark_pipeline_rows(&rows);
+    let runtime = build_full_benchmark_runtime_rows(&rows);
+    let memory = build_full_benchmark_memory_rows(&rows);
     let failures = build_failures_section(&collector_report, &failure_classification_report)?;
     let missing_results = build_missing_result_rows(&rows);
     let unsupported_pairs = build_unsupported_pair_rows(&rows);
@@ -440,249 +441,6 @@ fn collect_real_smoke_runtime_by_binding(
         );
     }
     Ok(rows)
-}
-
-fn build_stage_centric_rows(rows: &[FullBenchmarkReportRow]) -> Vec<FullBenchmarkStageSectionRow> {
-    let mut grouped = BTreeMap::<(String, String), Vec<&FullBenchmarkReportRow>>::new();
-    for row in rows {
-        grouped.entry((row.domain.clone(), row.stage_id.clone())).or_default().push(row);
-    }
-
-    grouped
-        .into_iter()
-        .map(|((domain, stage_id), grouped_rows)| FullBenchmarkStageSectionRow {
-            domain,
-            stage_id,
-            row_count: grouped_rows.len(),
-            present_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::Present)
-                .count(),
-            missing_result_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-                .count(),
-            unsupported_pair_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-                .count(),
-            tool_ids: grouped_rows
-                .iter()
-                .map(|row| row.tool_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            corpus_ids: grouped_rows
-                .iter()
-                .map(|row| row.corpus_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            pipeline_ids: grouped_rows
-                .iter()
-                .flat_map(|row| row.pipeline_ids.iter().cloned())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            report_sections: grouped_rows
-                .iter()
-                .map(|row| row.report_section.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-        })
-        .collect()
-}
-
-fn build_tool_centric_rows(rows: &[FullBenchmarkReportRow]) -> Vec<FullBenchmarkToolSectionRow> {
-    let mut grouped = BTreeMap::<String, Vec<&FullBenchmarkReportRow>>::new();
-    for row in rows {
-        grouped.entry(row.tool_id.clone()).or_default().push(row);
-    }
-
-    grouped
-        .into_iter()
-        .map(|(tool_id, grouped_rows)| FullBenchmarkToolSectionRow {
-            tool_id,
-            row_count: grouped_rows.len(),
-            present_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::Present)
-                .count(),
-            missing_result_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-                .count(),
-            unsupported_pair_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-                .count(),
-            domains: grouped_rows
-                .iter()
-                .map(|row| row.domain.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            stage_ids: grouped_rows
-                .iter()
-                .map(|row| row.stage_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            corpus_ids: grouped_rows
-                .iter()
-                .map(|row| row.corpus_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            pipeline_ids: grouped_rows
-                .iter()
-                .flat_map(|row| row.pipeline_ids.iter().cloned())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-        })
-        .collect()
-}
-
-fn build_corpus_centric_rows(
-    rows: &[FullBenchmarkReportRow],
-) -> Vec<FullBenchmarkCorpusSectionRow> {
-    let mut grouped = BTreeMap::<String, Vec<&FullBenchmarkReportRow>>::new();
-    for row in rows {
-        grouped.entry(row.corpus_id.clone()).or_default().push(row);
-    }
-
-    grouped
-        .into_iter()
-        .map(|(corpus_id, grouped_rows)| FullBenchmarkCorpusSectionRow {
-            corpus_id,
-            row_count: grouped_rows.len(),
-            present_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::Present)
-                .count(),
-            missing_result_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-                .count(),
-            unsupported_pair_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-                .count(),
-            domains: grouped_rows
-                .iter()
-                .map(|row| row.domain.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            stage_ids: grouped_rows
-                .iter()
-                .map(|row| row.stage_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            tool_ids: grouped_rows
-                .iter()
-                .map(|row| row.tool_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            pipeline_ids: grouped_rows
-                .iter()
-                .flat_map(|row| row.pipeline_ids.iter().cloned())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-        })
-        .collect()
-}
-
-fn build_pipeline_centric_rows(rows: &[FullBenchmarkReportRow]) -> FullBenchmarkPipelineSection {
-    let mut grouped = BTreeMap::<String, Vec<&FullBenchmarkReportRow>>::new();
-    let mut unmapped_row_count = 0usize;
-    for row in rows {
-        if row.pipeline_ids.is_empty() {
-            unmapped_row_count += 1;
-            continue;
-        }
-        for pipeline_id in &row.pipeline_ids {
-            grouped.entry(pipeline_id.clone()).or_default().push(row);
-        }
-    }
-
-    let rows = grouped
-        .into_iter()
-        .map(|(pipeline_id, grouped_rows)| FullBenchmarkPipelineSectionRow {
-            pipeline_id,
-            row_count: grouped_rows.len(),
-            present_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::Present)
-                .count(),
-            missing_result_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-                .count(),
-            unsupported_pair_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-                .count(),
-            domains: grouped_rows
-                .iter()
-                .map(|row| row.domain.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            stage_ids: grouped_rows
-                .iter()
-                .map(|row| row.stage_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            tool_ids: grouped_rows
-                .iter()
-                .map(|row| row.tool_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-        })
-        .collect::<Vec<_>>();
-
-    FullBenchmarkPipelineSection { row_count: rows.len(), unmapped_row_count, rows }
-}
-
-fn build_runtime_rows(rows: &[FullBenchmarkReportRow]) -> Vec<FullBenchmarkRuntimeRow> {
-    rows.iter()
-        .map(|row| FullBenchmarkRuntimeRow {
-            report_row_id: row.report_row_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            row_status: row.row_status,
-            simulated_elapsed_seconds: row.simulated_elapsed_seconds,
-            real_smoke_execution_id: row.real_smoke_execution_id.clone(),
-            real_smoke_elapsed_seconds: row.real_smoke_elapsed_seconds,
-            runtime_source: runtime_source_label(row).to_string(),
-        })
-        .collect()
-}
-
-fn build_memory_rows(rows: &[FullBenchmarkReportRow]) -> Vec<FullBenchmarkMemoryRow> {
-    rows.iter()
-        .map(|row| FullBenchmarkMemoryRow {
-            report_row_id: row.report_row_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            row_status: row.row_status,
-            declared_memory_mb: row.declared_memory_mb,
-            declared_cpu_threads: row.declared_cpu_threads,
-            real_smoke_memory_mb: row.real_smoke_memory_mb,
-            real_smoke_cpu_threads: row.real_smoke_cpu_threads,
-            memory_source: memory_source_label(row).to_string(),
-        })
-        .collect()
 }
 
 fn build_failures_section(
@@ -1104,28 +862,6 @@ fn render_full_benchmark_report_markdown(report: &FullBenchmarkReport) -> String
     }
 
     rendered
-}
-
-fn runtime_source_label(row: &FullBenchmarkReportRow) -> &'static str {
-    if row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair {
-        "not_applicable"
-    } else if row.real_smoke_execution_id.is_some() || row.real_smoke_elapsed_seconds.is_some() {
-        "fake_run_and_real_smoke"
-    } else {
-        "fake_run_simulated"
-    }
-}
-
-fn memory_source_label(row: &FullBenchmarkReportRow) -> &'static str {
-    if row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair {
-        "not_applicable"
-    } else if row.real_smoke_memory_mb.is_some() || row.real_smoke_cpu_threads.is_some() {
-        "real_smoke_manifest"
-    } else if row.declared_memory_mb.is_some() || row.declared_cpu_threads.is_some() {
-        "declared_stage_tool_resource"
-    } else {
-        "not_available"
-    }
 }
 
 fn full_benchmark_result_status_label(status: FullBenchmarkResultStatus) -> &'static str {

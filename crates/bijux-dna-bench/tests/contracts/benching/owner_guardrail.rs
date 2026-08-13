@@ -141,6 +141,31 @@ fn thin_cli_uses_model_owned_full_benchmark_report_contract() {
     assert!(!contents.contains("enum FullBenchmarkReportRowStatus {"));
     assert!(!contents.contains("ensure_full_benchmark_report_contract"));
     assert!(!contents.contains("\"bijux.bench.readiness.full_benchmark_report.v1\""));
+    for projection in [
+        "fn build_stage_centric_rows",
+        "fn build_tool_centric_rows",
+        "fn build_corpus_centric_rows",
+        "fn build_pipeline_centric_rows",
+        "fn build_runtime_rows",
+        "fn build_memory_rows",
+    ] {
+        assert!(!contents.contains(projection), "thin CLI reintroduced {projection}");
+    }
+
+    let workflow_source =
+        repo_root.join("crates/bijux-dna-bench/src/workflow/full_benchmark_report.rs");
+    let workflow = fs::read_to_string(&workflow_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", workflow_source.display()));
+    for projection in [
+        "build_full_benchmark_stage_rows",
+        "build_full_benchmark_tool_rows",
+        "build_full_benchmark_corpus_rows",
+        "build_full_benchmark_pipeline_rows",
+        "build_full_benchmark_runtime_rows",
+        "build_full_benchmark_memory_rows",
+    ] {
+        assert!(workflow.contains(projection), "benchmark owner is missing {projection}");
+    }
 }
 
 #[test]

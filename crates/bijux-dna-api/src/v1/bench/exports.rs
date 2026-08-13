@@ -68,7 +68,10 @@ use bijux_dna_bench::{
 pub use bijux_dna_bench::{
     all_domain_active_stage_tool_matrix_schema, all_domain_retained_tools_schema,
     bam_comparable_metrics_schema, benchmark_corpus_dossier_summary_schema,
-    corpus_centric_report_schema, fastq_comparable_metrics_schema, full_benchmark_report_schema,
+    build_full_benchmark_corpus_rows, build_full_benchmark_memory_rows,
+    build_full_benchmark_pipeline_rows, build_full_benchmark_runtime_rows,
+    build_full_benchmark_stage_rows, build_full_benchmark_tool_rows, corpus_centric_report_schema,
+    fastq_comparable_metrics_schema, full_benchmark_report_schema,
     full_benchmark_result_collector_schema, load_fastq_corpus_source_spec,
     stage_centric_report_schema, stage_registry_extra_pairs_schema, tool_centric_report_schema,
     validate_active_scope_fast_validation_report, validate_all_domain_active_stage_tool_matrix,
