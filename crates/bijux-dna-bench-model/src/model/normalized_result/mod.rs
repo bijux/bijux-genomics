@@ -24,6 +24,13 @@ pub struct BenchmarkDownstreamProbeRecord {
     #[schemars(schema_with = "probe_input_contract")]
     pub input_contract: String,
     pub complete: bool,
+    #[serde(
+        default,
+        deserialize_with = "deserialize_optional_false",
+        skip_serializing_if = "Option::is_none"
+    )]
+    #[schemars(schema_with = "optional_false_schema")]
+    pub authenticity_certified: Option<bool>,
 }
 
 #[must_use]
@@ -41,6 +48,7 @@ fn probe_stage_id(_: &mut SchemaGenerator) -> Schema {
         "enum": [
             "benchmark.bam.align.compare",
             "benchmark.bam.coverage.compare",
+            "benchmark.bam.damage.consume",
             "benchmark.bam.duplication_metrics.compare",
             "benchmark.bam.endogenous_content.consume",
             "benchmark.bam.genotyping.consume",
@@ -57,6 +65,7 @@ fn probe_input_contract(_: &mut SchemaGenerator) -> Schema {
         "enum": [
             bam::BAM_ALIGN_RESULT_SCHEMA_V1,
             bam::BAM_COVERAGE_RESULT_SCHEMA_V1,
+            bam::BAM_DAMAGE_RESULT_SCHEMA_V1,
             bam::BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1,
             bam::BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1,
             bam::BAM_GENOTYPING_RESULT_SCHEMA_V1,
@@ -65,6 +74,10 @@ fn probe_input_contract(_: &mut SchemaGenerator) -> Schema {
             bam::BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1
         ]
     })
+}
+
+fn optional_false_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": ["boolean", "null"], "enum": [false, null]})
 }
 
 fn deserialize_probe_schema_version<'de, D>(deserializer: D) -> Result<String, D::Error>
@@ -83,6 +96,7 @@ where
         &[
             "benchmark.bam.align.compare",
             "benchmark.bam.coverage.compare",
+            "benchmark.bam.damage.consume",
             "benchmark.bam.duplication_metrics.compare",
             "benchmark.bam.endogenous_content.consume",
             "benchmark.bam.genotyping.consume",
@@ -102,6 +116,7 @@ where
         &[
             bam::BAM_ALIGN_RESULT_SCHEMA_V1,
             bam::BAM_COVERAGE_RESULT_SCHEMA_V1,
+            bam::BAM_DAMAGE_RESULT_SCHEMA_V1,
             bam::BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1,
             bam::BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1,
             bam::BAM_GENOTYPING_RESULT_SCHEMA_V1,
@@ -121,5 +136,17 @@ where
         Ok(value)
     } else {
         Err(D::Error::custom(format!("unsupported normalized BAM probe identity: {value}")))
+    }
+}
+
+fn deserialize_optional_false<'de, D>(deserializer: D) -> Result<Option<bool>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    match Option::<bool>::deserialize(deserializer)? {
+        Some(true) => Err(D::Error::custom(
+            "BAM downstream qualification cannot certify biological authenticity",
+        )),
+        value => Ok(value),
     }
 }

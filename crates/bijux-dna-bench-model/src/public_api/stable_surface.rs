@@ -15,6 +15,7 @@ pub use crate::model::output_declarations::{
     all_domain_output_declarations_schema, AllDomainOutputDeclarationRow,
     AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport,
 };
+pub use crate::model::persisted_schema::{persisted_benchmark_schemas, PersistedBenchmarkSchema};
 pub use crate::model::stage_tool_assets::{
     stage_tool_assets_config_schema, stage_tool_assets_report_schema, StageToolAssetRow,
     StageToolAssetsConfig, StageToolAssetsReport, STAGE_TOOL_ASSETS_DECLARATION_ORIGIN,

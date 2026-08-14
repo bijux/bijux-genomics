@@ -1,18 +1,20 @@
 use bijux_dna_bench_model::normalized_result::bam::{
     bam_align_cohort_metrics_schema, bam_align_metrics_schema, bam_align_result_schema,
-    bam_coverage_metrics_schema, bam_coverage_result_schema,
-    bam_duplication_metrics_measurements_schema, bam_duplication_metrics_result_schema,
-    bam_endogenous_content_metrics_schema, bam_endogenous_content_result_schema,
-    bam_gc_bias_cohort_metrics_schema, bam_gc_bias_metrics_schema, bam_gc_bias_result_schema,
-    bam_genotyping_metrics_schema, bam_genotyping_result_schema,
-    bam_insert_size_cohort_metrics_schema, bam_insert_size_metrics_schema,
-    bam_insert_size_result_schema, bam_mapping_summary_metrics_schema,
-    bam_mapping_summary_result_schema, BenchmarkBamAlignCohortMetrics, BenchmarkBamAlignMetrics,
-    BenchmarkBamAlignResult, BenchmarkBamCoverageMetrics, BenchmarkBamCoverageResult,
-    BenchmarkBamDuplicationMetricsResult, BenchmarkBamEndogenousContentResult,
-    BenchmarkBamGcBiasCohortMetrics, BenchmarkBamGcBiasMetrics, BenchmarkBamGcBiasResult,
-    BenchmarkBamGenotypingResult, BenchmarkBamInsertSizeCohortMetrics,
-    BenchmarkBamInsertSizeMetrics, BenchmarkBamInsertSizeResult, BenchmarkBamMappingSummaryResult,
+    bam_coverage_metrics_schema, bam_coverage_result_schema, bam_damage_metrics_schema,
+    bam_damage_result_schema, bam_duplication_metrics_measurements_schema,
+    bam_duplication_metrics_result_schema, bam_endogenous_content_metrics_schema,
+    bam_endogenous_content_result_schema, bam_gc_bias_cohort_metrics_schema,
+    bam_gc_bias_metrics_schema, bam_gc_bias_result_schema, bam_genotyping_metrics_schema,
+    bam_genotyping_result_schema, bam_insert_size_cohort_metrics_schema,
+    bam_insert_size_metrics_schema, bam_insert_size_result_schema,
+    bam_mapping_summary_metrics_schema, bam_mapping_summary_result_schema,
+    BenchmarkBamAlignCohortMetrics, BenchmarkBamAlignMetrics, BenchmarkBamAlignResult,
+    BenchmarkBamCoverageMetrics, BenchmarkBamCoverageResult, BenchmarkBamDamageMetrics,
+    BenchmarkBamDamageResult, BenchmarkBamDuplicationMetricsResult,
+    BenchmarkBamEndogenousContentResult, BenchmarkBamGcBiasCohortMetrics,
+    BenchmarkBamGcBiasMetrics, BenchmarkBamGcBiasResult, BenchmarkBamGenotypingResult,
+    BenchmarkBamInsertSizeCohortMetrics, BenchmarkBamInsertSizeMetrics,
+    BenchmarkBamInsertSizeResult, BenchmarkBamMappingSummaryResult,
 };
 use bijux_dna_bench_model::normalized_result::bam_envelope::{
     bam_normalized_metrics_stage_contracts, render_bam_normalized_metrics_schema,
@@ -325,6 +327,8 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
             "bam-duplication-metrics-result.schema.json",
             serde_json::to_value(bam_duplication_metrics_result_schema())?,
         ),
+        ("bam-damage-result.schema.json", serde_json::to_value(bam_damage_result_schema())?),
+        ("bam-damage-metrics.schema.json", serde_json::to_value(bam_damage_metrics_schema())?),
         (
             "bam-duplication-metrics-measurements.schema.json",
             serde_json::to_value(bam_duplication_metrics_measurements_schema())?,
@@ -424,6 +428,33 @@ fn normalized_bam_measurements_and_probes_fail_closed() -> anyhow::Result<()> {
         serde_json::json!("bijux.benchmark.bam.coverage.metrics.v2");
     assert!(serde_json::from_value::<BenchmarkBamCoverageMetrics>(unsupported_metrics).is_err());
 
+    let damage_result = serde_json::json!({
+        "schema_version": "bijux.benchmark.bam.damage.bundle.v1",
+        "stage_id": "bam.damage",
+        "tool_id": "ngsbriggs",
+        "sample_id": "ERR2112767",
+        "normalization_complete": 1,
+        "native_file_count": 2,
+        "native_output_bytes": 128,
+        "authenticity_certified": false
+    });
+    serde_json::from_value::<BenchmarkBamDamageResult>(damage_result.clone())?;
+    let mut unsupported_damage = damage_result;
+    unsupported_damage["authenticity_certified"] = serde_json::json!(true);
+    assert!(serde_json::from_value::<BenchmarkBamDamageResult>(unsupported_damage).is_err());
+
+    serde_json::from_value::<BenchmarkBamDamageMetrics>(serde_json::json!({
+        "schema_version": "bijux.benchmark.bam.damage.metrics.v1",
+        "normalization_complete": 1,
+        "native_file_count": 2,
+        "native_output_bytes": 128,
+        "bam_input_bytes": 100,
+        "bam_index_input_bytes": 10,
+        "reference_input_bytes": 80,
+        "input_bytes": 190,
+        "output_bytes": 128
+    }))?;
+
     let insert_size_metrics = serde_json::json!({
         "schema_version": "bijux.benchmark.bam.insert_size.metrics.v1",
         "median_insert_size": 62.0,
@@ -468,6 +499,18 @@ fn normalized_bam_measurements_and_probes_fail_closed() -> anyhow::Result<()> {
     let mut unsupported_probe = probe;
     unsupported_probe["stage_id"] = serde_json::json!("benchmark.bam.invented.consume");
     assert!(serde_json::from_value::<BenchmarkDownstreamProbeRecord>(unsupported_probe).is_err());
+
+    let damage_probe = serde_json::json!({
+        "schema_version": "bijux.benchmark.downstream_probe.v1",
+        "stage_id": "benchmark.bam.damage.consume",
+        "input_contract": "bijux.benchmark.bam.damage.bundle.v1",
+        "complete": true,
+        "authenticity_certified": false
+    });
+    serde_json::from_value::<BenchmarkDownstreamProbeRecord>(damage_probe.clone())?;
+    let mut invalid_damage_probe = damage_probe;
+    invalid_damage_probe["authenticity_certified"] = serde_json::json!(true);
+    assert!(serde_json::from_value::<BenchmarkDownstreamProbeRecord>(invalid_damage_probe).is_err());
     Ok(())
 }
 

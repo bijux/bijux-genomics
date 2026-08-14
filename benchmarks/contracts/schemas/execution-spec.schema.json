@@ -318,6 +318,7 @@
           "type": "string"
         },
         "required_files": {
+          "description": "Required artifact paths in canonical order. An entry may resolve to one regular file or a\nnonempty directory whose complete regular-file tree is manifest-bound at completion.",
           "items": {
             "type": "string"
           },

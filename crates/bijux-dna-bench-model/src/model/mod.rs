@@ -58,6 +58,7 @@ pub mod materialization;
 pub mod normalized_result;
 pub mod observation;
 pub mod output_declarations;
+pub mod persisted_schema;
 pub mod planning;
 pub mod protocol;
 pub mod publication;

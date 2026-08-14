@@ -1,22 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
+  "description": "Tool-independent normalized evidence for one BAM damage execution.",
   "properties": {
     "authenticity_certified": {
       "const": false,
       "type": "boolean"
-    },
-    "sample_id": {
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
-      "type": "string"
-    },
-    "schema_version": {
-      "const": "bijux.benchmark.bam.damage.bundle.v1",
-      "type": "string"
-    },
-    "stage_id": {
-      "const": "bam.damage",
-      "type": "string"
     },
     "native_file_count": {
       "minimum": 1,
@@ -29,6 +18,18 @@
     "normalization_complete": {
       "const": 1,
       "type": "integer"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.damage.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.damage",
+      "type": "string"
     },
     "tool_id": {
       "enum": [
