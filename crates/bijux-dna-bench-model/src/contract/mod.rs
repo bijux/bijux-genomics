@@ -54,6 +54,7 @@ mod local_stage_completion;
 mod local_stage_fake_run;
 mod local_stage_inventory;
 mod local_vcf_smoke;
+mod local_vcf_stage_catalog;
 mod local_vcf_stage_matrix;
 mod materialization;
 mod output_declarations;
@@ -180,6 +181,9 @@ pub use local_stage_inventory::{
     validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_stage_inventory,
 };
 pub use local_vcf_smoke::validate_benchmark_local_vcf_smoke_suite;
+pub use local_vcf_stage_catalog::{
+    validate_local_vcf_stage_catalog_config, validate_local_vcf_stage_catalog_report,
+};
 pub use local_vcf_stage_matrix::{
     validate_local_vcf_stage_matrix_config, validate_local_vcf_stage_matrix_report,
     validate_vcf_stage_matrix_validation_report,
@@ -303,7 +307,8 @@ pub use schema_versions::{
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
     GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
     LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
-    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1,
+    LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1,
     LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
     SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1,
     STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,

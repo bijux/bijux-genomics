@@ -23,6 +23,12 @@ pub use bijux_dna_bench_model::{
     VCF_STAGE_TOOL_RESOURCE_ORIGIN,
 };
 pub use bijux_dna_bench_model::{
+    local_vcf_stage_catalog_config_schema, local_vcf_stage_catalog_report_schema,
+    validate_local_vcf_stage_catalog_config, validate_local_vcf_stage_catalog_report,
+    LocalVcfStageCatalogConfig, LocalVcfStageCatalogReport, VcfStageCatalogRow,
+    LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1, LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1,
+};
+pub use bijux_dna_bench_model::{
     local_vcf_stage_matrix_config_schema, local_vcf_stage_matrix_report_schema,
     validate_local_vcf_stage_matrix_config, validate_local_vcf_stage_matrix_report,
     validate_vcf_stage_matrix_report_schema, validate_vcf_stage_matrix_validation_report,

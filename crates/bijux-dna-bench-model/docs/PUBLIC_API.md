@@ -97,6 +97,9 @@ Model contracts:
 - `BenchmarkLocalVcfSmokeGoalContract`
 - `BenchmarkLocalVcfSmokeGoalCheck`
 - `BenchmarkLocalVcfSmokeSuiteReport`
+- `LocalVcfStageCatalogConfig`
+- `VcfStageCatalogRow`
+- `LocalVcfStageCatalogReport`
 - `LocalVcfStageMatrixConfig`
 - `VcfStageMatrixRow`
 - `LocalVcfStageMatrixReport`

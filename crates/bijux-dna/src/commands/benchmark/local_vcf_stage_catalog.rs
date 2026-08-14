@@ -2,58 +2,28 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_local_vcf_stage_catalog_config, validate_local_vcf_stage_catalog_report,
+    LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1, LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    LocalVcfStageCatalogConfig, LocalVcfStageCatalogReport, VcfStageCatalogRow,
+};
 use bijux_dna_domain_vcf::contracts::stage_io_contract;
 use bijux_dna_domain_vcf::{DomainSupportStatus, VcfDomainStage, VCF_STAGE_ORDER_DOWNSTREAM};
 use bijux_dna_stages_vcf::stage_specs::{vcf_stage_catalog, VcfStageSpec};
-use serde::{Deserialize, Serialize};
-
-use crate::commands::cli::parse;
-use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_STAGE_CATALOG_PATH: &str =
     "configs/bench/local/vcf-stage-catalog.toml";
-const LOCAL_VCF_STAGE_CATALOG_SCHEMA_VERSION: &str = "bijux.bench.vcf.local_stage_catalog.v1";
-const LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_VERSION: &str =
-    "bijux.bench.local_vcf_stage_catalog.v1";
 const LOCAL_VCF_STAGE_CATALOG_HEADER: &str = "# schema_version = 1\n\
 # owner = bijux-dna-bench\n\
 # purpose = Governed VCF local benchmark stage catalog.\n\
 # authority = bijux-dna-bench\n\
 # stability = evolving\n\
 # last_updated = 2026-06-25\n\n";
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct LocalVcfStageCatalogConfig {
-    pub(crate) schema_version: String,
-    pub(crate) rows: Vec<VcfStageCatalogRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct VcfStageCatalogRow {
-    pub(crate) stage_id: String,
-    pub(crate) stage_name: String,
-    pub(crate) support_status: String,
-    pub(crate) default_tool_id: String,
-    pub(crate) metrics_schema_id: String,
-    pub(crate) input_types: Vec<String>,
-    pub(crate) output_types: Vec<String>,
-    pub(crate) required_assets: Vec<String>,
-    pub(crate) benchmark_category: String,
-    pub(crate) local_smoke_mode: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalVcfStageCatalogReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) config_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) supported_stage_count: usize,
-    pub(crate) planned_stage_count: usize,
-    pub(crate) rows: Vec<VcfStageCatalogRow>,
-}
 
 pub(crate) fn run_render_vcf_stage_catalog(
     args: &parse::BenchLocalRenderVcfStageCatalogArgs,
@@ -79,9 +49,10 @@ pub(crate) fn render_vcf_stage_catalog(
     let output_path = repo_relative_path(repo_root, &output_path);
     let rows = build_vcf_stage_catalog_rows()?;
     let config = LocalVcfStageCatalogConfig {
-        schema_version: LOCAL_VCF_STAGE_CATALOG_SCHEMA_VERSION.to_string(),
+        schema_version: LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1.to_string(),
         rows: rows.clone(),
     };
+    validate_local_vcf_stage_catalog_config(&config)?;
     let body = toml::to_string_pretty(&config).context("serialize VCF stage catalog TOML")?;
     let rendered = format!("{LOCAL_VCF_STAGE_CATALOG_HEADER}{body}");
 
@@ -93,14 +64,16 @@ pub(crate) fn render_vcf_stage_catalog(
     let supported_stage_count = rows.iter().filter(|row| row.support_status == "supported").count();
     let planned_stage_count = rows.iter().filter(|row| row.support_status == "planned").count();
 
-    Ok(LocalVcfStageCatalogReport {
-        schema_version: LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_VERSION,
+    let report = LocalVcfStageCatalogReport {
+        schema_version: LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1.to_string(),
         config_path: path_relative_to_repo(repo_root, &output_path),
         stage_count: rows.len(),
         supported_stage_count,
         planned_stage_count,
         rows,
-    })
+    };
+    validate_local_vcf_stage_catalog_report(&report)?;
+    Ok(report)
 }
 
 pub(crate) fn build_vcf_stage_catalog_rows() -> Result<Vec<VcfStageCatalogRow>> {
@@ -312,7 +285,7 @@ mod tests {
 
     use super::{
         build_vcf_stage_catalog_rows, render_vcf_stage_catalog, DEFAULT_VCF_STAGE_CATALOG_PATH,
-        LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_VERSION,
+        LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1,
     };
 
     fn repo_root() -> PathBuf {
@@ -393,7 +366,7 @@ mod tests {
             render_vcf_stage_catalog(&repo_root, PathBuf::from(DEFAULT_VCF_STAGE_CATALOG_PATH))
                 .expect("render VCF stage catalog");
 
-        assert_eq!(report.schema_version, LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1);
         assert_eq!(report.config_path, DEFAULT_VCF_STAGE_CATALOG_PATH);
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.supported_stage_count, 20);

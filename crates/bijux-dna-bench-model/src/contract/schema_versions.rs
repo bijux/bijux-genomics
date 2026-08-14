@@ -201,6 +201,8 @@ pub const BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_V1: &str =
 pub const BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1: &str = "bijux.bench.local_benchmark_summary.v1";
 pub const BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1: &str =
     "bijux.bench.local_vcf_smoke_suite_ready.v1";
+pub const LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1: &str = "bijux.bench.vcf.local_stage_catalog.v1";
+pub const LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1: &str = "bijux.bench.local_vcf_stage_catalog.v1";
 pub const LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1: &str = "bijux.bench.vcf.local_stage_matrix.v1";
 pub const LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1: &str = "bijux.bench.local_vcf_stage_matrix.v1";
 pub const VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1: &str = "bijux.bench.validate_matrix.v1";

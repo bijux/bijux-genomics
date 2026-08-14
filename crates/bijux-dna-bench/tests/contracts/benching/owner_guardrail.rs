@@ -736,6 +736,30 @@ fn thin_cli_uses_model_owned_stage_tool_benchmark_ready_contract() {
 }
 
 #[test]
+fn thin_cli_uses_model_owned_local_vcf_stage_catalog_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let source = fs::read_to_string(
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_vcf_stage_catalog.rs"),
+    )
+    .expect("read local VCF stage-catalog command");
+
+    for validator in
+        ["validate_local_vcf_stage_catalog_config", "validate_local_vcf_stage_catalog_report"]
+    {
+        assert!(source.contains(validator));
+    }
+    for forbidden in [
+        "struct LocalVcfStageCatalogConfig",
+        "struct VcfStageCatalogRow",
+        "struct LocalVcfStageCatalogReport",
+        "bijux.bench.vcf.local_stage_catalog.v1",
+        "bijux.bench.local_vcf_stage_catalog.v1",
+    ] {
+        assert!(!source.contains(forbidden));
+    }
+}
+
+#[test]
 fn thin_cli_uses_model_owned_local_vcf_stage_matrix_contracts() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let source = fs::read_to_string(

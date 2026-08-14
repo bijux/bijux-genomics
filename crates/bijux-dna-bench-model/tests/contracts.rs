@@ -99,6 +99,8 @@ mod mod_contracts_local_stage_fake_run_rs;
 mod mod_contracts_local_stage_inventory_rs;
 #[path = "contracts/local_vcf_smoke.rs"]
 mod mod_contracts_local_vcf_smoke_rs;
+#[path = "contracts/local_vcf_stage_catalog.rs"]
+mod mod_contracts_local_vcf_stage_catalog_rs;
 #[path = "contracts/local_vcf_stage_matrix.rs"]
 mod mod_contracts_local_vcf_stage_matrix_rs;
 #[path = "contracts/materialization.rs"]

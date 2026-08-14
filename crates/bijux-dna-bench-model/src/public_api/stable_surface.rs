@@ -182,6 +182,10 @@ pub use crate::contract::{
     TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
 };
 pub use crate::contract::{
+    validate_local_vcf_stage_catalog_config, validate_local_vcf_stage_catalog_report,
+    LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1, LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1,
+};
+pub use crate::contract::{
     validate_local_vcf_stage_matrix_config, validate_local_vcf_stage_matrix_report,
     validate_vcf_stage_matrix_validation_report, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1,
     LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1, VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1,
@@ -476,6 +480,10 @@ pub use crate::model::local_vcf_smoke::{
     benchmark_local_vcf_smoke_suite_schema, BenchmarkLocalVcfSmokeGoalCheck,
     BenchmarkLocalVcfSmokeGoalContract, BenchmarkLocalVcfSmokeSuiteReport,
     BENCHMARK_LOCAL_VCF_SMOKE_GOALS, BENCHMARK_LOCAL_VCF_SMOKE_OUTPUT_PATH,
+};
+pub use crate::model::local_vcf_stage_catalog::{
+    local_vcf_stage_catalog_config_schema, local_vcf_stage_catalog_report_schema,
+    LocalVcfStageCatalogConfig, LocalVcfStageCatalogReport, VcfStageCatalogRow,
 };
 pub use crate::model::local_vcf_stage_matrix::{
     local_vcf_stage_matrix_config_schema, local_vcf_stage_matrix_report_schema,

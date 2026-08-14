@@ -54,6 +54,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `validate_benchmark_local_stage_output_completion(report)` admits declared-output completeness evidence before publication.
 - `validate_benchmark_local_stage_inventory(inventory)` admits one domain-local stage inventory.
 - `validate_benchmark_local_all_domain_stage_inventory(report)` admits exact cross-domain inventory and count closure.
+- `validate_local_vcf_stage_catalog_config(config)` and `validate_local_vcf_stage_catalog_report(report)` admit the persisted VCF stage catalog and exact support-count closure.
 - `validate_local_vcf_stage_matrix_config(config)`, `validate_local_vcf_stage_matrix_report(report)`, and `validate_vcf_stage_matrix_validation_report(report)` admit the persisted VCF matrix and its exact aggregate reports.
 - `validate_benchmark_local_corpus_skip_report(report)` admits corpus replacement lineage and complete stage dispositions.
 - `validate_benchmark_local_hpc_job_graph(graph)` admits exact job identity, dependency, root, ordering, and counter closure.
@@ -188,6 +189,9 @@ including:
 - `BenchmarkLocalVcfSmokeGoalContract`
 - `BenchmarkLocalVcfSmokeGoalCheck`
 - `BenchmarkLocalVcfSmokeSuiteReport`
+- `LocalVcfStageCatalogConfig`
+- `VcfStageCatalogRow`
+- `LocalVcfStageCatalogReport`
 - `LocalVcfStageMatrixConfig`
 - `VcfStageMatrixRow`
 - `LocalVcfStageMatrixReport`
