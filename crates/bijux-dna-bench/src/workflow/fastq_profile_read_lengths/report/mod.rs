@@ -18,7 +18,7 @@ use super::super::{
     verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
 };
 use crate::workflow::stage_report::{
-    build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
+    build_stage_report, canonical_directory, is_selected_plan_attempt, publish_stage_report,
     require_complete_plan, BenchmarkStageReportPublication,
 };
 pub(super) use crate::workflow::stage_report::{hash_json, read_json, MAX_REPORT_INPUT_BYTES};
@@ -29,7 +29,7 @@ pub type FastqProfileReadLengthsStageReportPublication = BenchmarkStageReportPub
 
 /// Derive, validate, and no-clobber publish the stage report for admitted run-2042 attempts.
 ///
-/// The report is accepted only when every planned tool attempt is passed, its admission can be
+/// The report is accepted only when every selected lineage attempt is passed, its admission can be
 /// replayed against the complete output closure, scheduler accounting is terminal and successful,
 /// and all tools share one source, input, parameter, and stage-interface identity.
 ///
@@ -103,13 +103,13 @@ pub(crate) fn publish_fastq_profile_read_lengths_stage_report_with_presentation_
 
     let mut evidence_by_tool = BTreeMap::new();
     for tool in &campaign.tool_ids {
-        let planned = plan
+        let selected = plan
             .cycle
             .attempts
             .iter()
-            .filter(|attempt| is_active_plan_origin(attempt))
+            .filter(|attempt| is_selected_plan_attempt(attempt))
             .find(|attempt| attempt.identity.tool_id == *tool)
-            .with_context(|| format!("campaign plan omits tool attempt {tool}"))?;
+            .with_context(|| format!("campaign plan omits selected tool attempt {tool}"))?;
         let evidence = load_attempt_evidence(
             &repository_root,
             &study_root,
@@ -117,7 +117,7 @@ pub(crate) fn publish_fastq_profile_read_lengths_stage_report_with_presentation_
             campaign,
             interface,
             plan,
-            &planned.identity,
+            &selected.identity,
         )?;
         evidence_by_tool.insert(tool.clone(), evidence);
     }

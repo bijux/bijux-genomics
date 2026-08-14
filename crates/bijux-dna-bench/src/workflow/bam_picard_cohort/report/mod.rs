@@ -15,7 +15,7 @@ use super::super::{
     verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
 };
 use crate::workflow::stage_report::{
-    build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
+    build_stage_report, canonical_directory, is_selected_plan_attempt, publish_stage_report,
     require_complete_plan, BenchmarkStageReportPublication,
 };
 
@@ -171,11 +171,11 @@ fn publish(
         .iter()
         .find(|interface| interface.stage_id == policy.stage_id)
         .with_context(|| format!("benchmark interface omits {}", policy.stage_id))?;
-    let planned = plan
+    let selected = plan
         .cycle
         .attempts
         .iter()
-        .filter(|attempt| is_active_plan_origin(attempt))
+        .filter(|attempt| is_selected_plan_attempt(attempt))
         .find(|attempt| attempt.identity.tool_id == "picard")
         .context("Picard cohort plan omits its active attempt")?;
     let evidence = load_attempt_evidence(
@@ -185,7 +185,7 @@ fn publish(
         campaign,
         interface,
         plan,
-        &planned.identity,
+        &selected.identity,
         policy,
     )?;
     let report = build_stage_report(

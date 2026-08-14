@@ -19,7 +19,7 @@ use super::super::{
     verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
 };
 use crate::workflow::stage_report::{
-    build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
+    build_stage_report, canonical_directory, is_selected_plan_attempt, publish_stage_report,
     require_complete_plan, BenchmarkStageReportPublication,
 };
 
@@ -95,11 +95,11 @@ pub(crate) fn publish_bam_genotyping_stage_report_with_presentation_authority(
         .find(|interface| interface.stage_id == super::STAGE_ID)
         .context("benchmark stage interface omits BAM genotyping")?;
 
-    let planned = plan
+    let selected = plan
         .cycle
         .attempts
         .iter()
-        .filter(|attempt| is_active_plan_origin(attempt))
+        .filter(|attempt| is_selected_plan_attempt(attempt))
         .find(|attempt| attempt.identity.tool_id == "bcftools")
         .context("campaign plan omits bcftools attempt")?;
     let evidence = load_attempt_evidence(
@@ -109,7 +109,7 @@ pub(crate) fn publish_bam_genotyping_stage_report_with_presentation_authority(
         campaign,
         interface,
         plan,
-        &planned.identity,
+        &selected.identity,
     )?;
     let report = build_stage_report(
         &repository_root,

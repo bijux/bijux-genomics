@@ -18,7 +18,7 @@ use super::super::{
     verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
 };
 use crate::workflow::stage_report::{
-    build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
+    build_stage_report, canonical_directory, is_selected_plan_attempt, publish_stage_report,
     require_complete_plan, BenchmarkStageReportPublication,
 };
 pub(super) use crate::workflow::stage_report::{read_json, MAX_REPORT_INPUT_BYTES};
@@ -100,13 +100,13 @@ pub(crate) fn publish_fastq_detect_adapters_stage_report_with_presentation_autho
 
     let mut evidence_by_tool = BTreeMap::new();
     for tool in &campaign.tool_ids {
-        let planned = plan
+        let selected = plan
             .cycle
             .attempts
             .iter()
-            .filter(|attempt| is_active_plan_origin(attempt))
+            .filter(|attempt| is_selected_plan_attempt(attempt))
             .find(|attempt| attempt.identity.tool_id == *tool)
-            .with_context(|| format!("campaign plan omits tool attempt {tool}"))?;
+            .with_context(|| format!("campaign plan omits selected tool attempt {tool}"))?;
         evidence_by_tool.insert(
             tool.clone(),
             load_attempt_evidence(
@@ -116,7 +116,7 @@ pub(crate) fn publish_fastq_detect_adapters_stage_report_with_presentation_autho
                 campaign,
                 interface,
                 plan,
-                &planned.identity,
+                &selected.identity,
             )?,
         );
     }

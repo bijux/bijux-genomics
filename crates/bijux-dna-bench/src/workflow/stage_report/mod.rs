@@ -168,35 +168,76 @@ pub(super) fn require_complete_plan(
     campaign: &BenchmarkStageCampaignSpec,
     plan: &BenchmarkCampaignPlan,
 ) -> Result<()> {
-    let planned_tools = plan
+    let selected_attempts = plan
         .cycle
         .attempts
         .iter()
-        .filter(|attempt| is_active_plan_origin(attempt))
+        .filter(|attempt| is_selected_plan_attempt(attempt))
+        .collect::<Vec<_>>();
+    let selected_tools = selected_attempts
+        .iter()
         .map(|attempt| attempt.identity.tool_id.as_str())
         .collect::<BTreeSet<_>>();
     let declared_tools = campaign.tool_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();
-    if planned_tools != declared_tools
-        || plan.cycle.attempts.iter().filter(|attempt| is_active_plan_origin(attempt)).any(
-            |attempt| {
-                attempt.identity.run.run_id != campaign.run_id
-                    || attempt.identity.run.domain != campaign.domain
-                    || attempt.identity.run.stage_id != campaign.stage_id
-                    || attempt.identity.campaign_id != plan.cycle.campaign_id
-            },
-        )
+    if selected_attempts.len() != declared_tools.len()
+        || selected_tools != declared_tools
+        || selected_attempts.iter().any(|attempt| {
+            attempt.identity.run.run_id != campaign.run_id
+                || attempt.identity.run.domain != campaign.domain
+                || attempt.identity.run.stage_id != campaign.stage_id
+                || attempt.identity.campaign_id != plan.cycle.campaign_id
+        })
     {
         bail!("campaign plan does not close over the declared tools");
     }
     Ok(())
 }
 
-pub(super) fn is_active_plan_origin(
+/// Return whether a source-locked plan record selects evidence for report publication.
+///
+/// Initial plans select their planned attempts. Selective retry plans retain passed lineage tips
+/// and add planned replacements only for non-passing tips, so both states form the report closure.
+pub(super) fn is_selected_plan_attempt(
     attempt: &bijux_dna_bench_model::BenchmarkAttemptRecordV2,
 ) -> bool {
-    attempt.transitions.len() == 1
-        && attempt.current_status()
-            == Some(bijux_dna_bench_model::BenchmarkLifecycleStatus::Planned)
+    is_report_selected_status(attempt.current_status())
+}
+
+fn is_report_selected_status(
+    status: Option<bijux_dna_bench_model::BenchmarkLifecycleStatus>,
+) -> bool {
+    matches!(
+        status,
+        Some(
+            bijux_dna_bench_model::BenchmarkLifecycleStatus::Planned
+                | bijux_dna_bench_model::BenchmarkLifecycleStatus::Passed
+        )
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_report_selected_status;
+    use bijux_dna_bench_model::BenchmarkLifecycleStatus;
+
+    #[test]
+    fn report_selection_retains_passed_tips_and_planned_retries() {
+        assert!(is_report_selected_status(Some(BenchmarkLifecycleStatus::Passed)));
+        assert!(is_report_selected_status(Some(BenchmarkLifecycleStatus::Planned)));
+        for status in [
+            BenchmarkLifecycleStatus::Ready,
+            BenchmarkLifecycleStatus::Submitted,
+            BenchmarkLifecycleStatus::Running,
+            BenchmarkLifecycleStatus::Collecting,
+            BenchmarkLifecycleStatus::Failed,
+            BenchmarkLifecycleStatus::Cancelled,
+            BenchmarkLifecycleStatus::Superseded,
+            BenchmarkLifecycleStatus::BlockedExternal,
+        ] {
+            assert!(!is_report_selected_status(Some(status)));
+        }
+        assert!(!is_report_selected_status(None));
+    }
 }
 
 pub(super) fn validate_comparable_attempts(
