@@ -79,8 +79,9 @@ promoted merely because they remain replayable.
 - `ImageCampaignPlan` and `ImageCampaignExecution`: exact retained roster, commit, catalog, roots,
   worker policy, per-tool publications or failures, resumable progress, append-only invocation
   history, and an all-passed canonical terminal record.
-- `ImageActivationPlan`: a no-clobber, resumable, reversible publication of every selected
-  canonical campaign image into the active image root by verified same-filesystem hard link.
+- `ImageActivationPlan`: a no-clobber, resumable, reversible publication of every selected current
+  campaign image into the active image root by verified same-filesystem hard link. Missing tools
+  remain outside that resource-class frontier; historical or ambiguous selections still fail.
 - `ImageStoragePlan` and `ImageStorageReport`: a resumable, reversible migration of historical,
   unreferenced obsolete, and interrupted images out of the active top level while preserving
   exact file identity and historical run-reference authority through the source inventory.
