@@ -6,8 +6,27 @@
     "stage_id": "fastq.profile_read_lengths"
   },
   "protocol_sha256": "0a26dba2a05494983199517d323be9bad0f6bb56354b2da71f65b202123f53ff",
-  "cases": [],
+  "cases": [
+    {
+      "case_id": "run-2042--seqfu--human-short-read-diversity",
+      "tool_id": "seqfu",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2042/case-definition-run-2042--seqfu--human-short-read-diversity.json",
+        "sha256": "bdbfdfc26c1da9b6ffec7f703d4653a8515c971435da176503c0f09b7efe698c",
+        "size_bytes": 12939
+      }
+    },
+    {
+      "case_id": "run-2042--seqkit--human-short-read-diversity",
+      "tool_id": "seqkit",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2042/case-definition-run-2042--seqkit--human-short-read-diversity.json",
+        "sha256": "41afa97eab40daa65deae0bc395ddc835fa34e6953399468083efa45ec9ca920",
+        "size_bytes": 13113
+      }
+    }
+  ],
   "limitations": [
-    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+    "The publication covers one governed human short-read diversity cohort."
   ]
 }
