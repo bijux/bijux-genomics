@@ -743,17 +743,16 @@ fn thin_cli_uses_model_owned_local_vcf_stage_catalog_contracts() {
     )
     .expect("read local VCF stage-catalog command");
 
-    for validator in
-        ["validate_local_vcf_stage_catalog_config", "validate_local_vcf_stage_catalog_report"]
-    {
-        assert!(source.contains(validator));
-    }
+    assert!(source.contains("render_vcf_stage_catalog"));
+    assert!(source.contains("DEFAULT_VCF_STAGE_CATALOG_PATH"));
     for forbidden in [
         "struct LocalVcfStageCatalogConfig",
         "struct VcfStageCatalogRow",
         "struct LocalVcfStageCatalogReport",
         "bijux.bench.vcf.local_stage_catalog.v1",
         "bijux.bench.local_vcf_stage_catalog.v1",
+        "vcf_stage_catalog()",
+        "stage_io_contract",
     ] {
         assert!(!source.contains(forbidden));
     }
@@ -767,11 +766,7 @@ fn thin_cli_uses_model_owned_local_vcf_stage_matrix_contracts() {
     )
     .expect("read local VCF stage-matrix command");
 
-    for validator in [
-        "validate_local_vcf_stage_matrix_config",
-        "validate_local_vcf_stage_matrix_report",
-        "validate_vcf_stage_matrix_validation_report",
-    ] {
+    for validator in ["render_vcf_stage_matrix", "validate_vcf_stage_matrix"] {
         assert!(source.contains(validator));
     }
     for forbidden in [
@@ -782,6 +777,8 @@ fn thin_cli_uses_model_owned_local_vcf_stage_matrix_contracts() {
         "bijux.bench.vcf.local_stage_matrix.v1",
         "bijux.bench.local_vcf_stage_matrix.v1",
         "bijux.bench.validate_matrix.v1",
+        "vcf_domain_stage_adapter_id",
+        "load_required_tool_ids",
     ] {
         assert!(!source.contains(forbidden));
     }

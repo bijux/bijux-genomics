@@ -63,6 +63,8 @@ mod summary_fairness;
 mod summary_scope;
 mod summary_statistics;
 mod vcf_campaign;
+mod vcf_stage_catalog;
+mod vcf_stage_matrix;
 
 pub use alias_resolution::{
     choose_canonical_tool_id, legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases,
@@ -312,4 +314,11 @@ pub use summary::summarize;
 pub use vcf_campaign::{
     derive_vcf_benchmark_campaign, load_vcf_benchmark_campaign_report,
     publish_vcf_benchmark_campaign_report,
+};
+pub use vcf_stage_catalog::{
+    build_vcf_stage_catalog_rows, render_vcf_stage_catalog, DEFAULT_VCF_STAGE_CATALOG_PATH,
+};
+pub use vcf_stage_matrix::{
+    build_vcf_stage_matrix_rows, render_vcf_stage_matrix, validate_vcf_stage_matrix,
+    DEFAULT_VCF_STAGE_MATRIX_PATH,
 };

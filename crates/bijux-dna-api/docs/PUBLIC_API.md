@@ -47,6 +47,8 @@ enter through `bijux_dna_api::v1::api`.
   validation reports, generated schemas, and fail-closed validators.
 - The `bench` namespace exposes model-owned VCF stage-catalog declarations, render reports,
   generated schemas, and fail-closed validators.
+- The `bench` namespace exposes benchmark-owned local VCF catalog/matrix derivation, rendering,
+  and strict validation workflows used by thin CLI adapters.
 - The `bench` namespace exposes model-owned all-domain stage/tool scope, retained-tool,
   and registry-drift report contracts with explicit licensed-binding retention.
 - The `bench` namespace exposes benchmark-owned stage/tool closure derivation and checked-in run

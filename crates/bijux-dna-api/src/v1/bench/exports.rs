@@ -350,6 +350,11 @@ pub use bijux_dna_bench::{
     VCF_COMPARABLE_METRICS_SCHEMA_V1, VCF_STAGE_FAMILIES,
 };
 pub use bijux_dna_bench::{
+    build_vcf_stage_catalog_rows, build_vcf_stage_matrix_rows, render_vcf_stage_catalog,
+    render_vcf_stage_matrix, validate_vcf_stage_matrix, DEFAULT_VCF_STAGE_CATALOG_PATH,
+    DEFAULT_VCF_STAGE_MATRIX_PATH,
+};
+pub use bijux_dna_bench::{
     derive_supported_domain_stage_tool_pairs, publish_checked_in_benchmark_run_registry,
     BenchmarkRunRegistryWriteMode, BenchmarkStageToolClosureRow,
 };

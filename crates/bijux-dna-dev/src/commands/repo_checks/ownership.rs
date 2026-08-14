@@ -486,7 +486,15 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
     if path.starts_with("crates/bijux-dna/src/commands/benchmark/")
         || path.starts_with("crates/bijux-dna-api/")
     {
-        if path.ends_with("/mod.rs") || path.ends_with("/dispatch.rs") || path.contains("public") {
+        if path.ends_with("/mod.rs")
+            || path.ends_with("/dispatch.rs")
+            || path.contains("public")
+            || matches!(
+                path,
+                "crates/bijux-dna/src/commands/benchmark/local_vcf_stage_catalog.rs"
+                    | "crates/bijux-dna/src/commands/benchmark/local_vcf_stage_matrix.rs"
+            )
+        {
             return (
                 "thin external adapter",
                 "the public command/API surface may delegate to benchmark services",
@@ -1150,6 +1158,23 @@ mod tests {
             &BTreeMap::new(),
         );
         assert_eq!(row.classification, "thin external adapter");
+        Ok(())
+    }
+
+    #[test]
+    fn crate_owned_vcf_planning_commands_are_thin_adapters() -> anyhow::Result<()> {
+        let schema_pattern = Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?;
+        for path in [
+            "crates/bijux-dna/src/commands/benchmark/local_vcf_stage_catalog.rs",
+            "crates/bijux-dna/src/commands/benchmark/local_vcf_stage_matrix.rs",
+        ] {
+            let row = classify(
+                &SourceFile { path: path.to_string(), content: String::new() },
+                &schema_pattern,
+                &BTreeMap::new(),
+            );
+            assert_eq!(row.classification, "thin external adapter", "{path}");
+        }
         Ok(())
     }
 
