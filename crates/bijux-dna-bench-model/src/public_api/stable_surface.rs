@@ -597,7 +597,7 @@ pub use crate::model::{
     vcf_comparable_metrics_schema, AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet,
     AdmittedBamCohort, AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile,
     AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
-    AdmittedReferenceBundle, AllDomainActiveStageToolMatrixReport,
+    AdmittedIndexedReference, AdmittedReferenceBundle, AllDomainActiveStageToolMatrixReport,
     AllDomainActiveStageToolMatrixRow, AllDomainExpectedBenchmarkResultRow,
     AllDomainExpectedBenchmarkResultsReport, AllDomainRetainedToolRow,
     AllDomainRetainedToolsReport, BackendComparisonSpec, BamComparableMetricsReport,

@@ -149,12 +149,12 @@ pub use corpus::{
     benchmark_data_index_schema, fastq_profile_reads_expectations_schema,
     AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet, AdmittedBamCohort,
     AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
-    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedReferenceBundle,
-    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex,
-    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
-    BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusDatasetSpec,
-    CorpusDomain, CorpusScale, DataIntegrityStatus, DriftScenarioSpec,
-    FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
+    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedIndexedReference,
+    AdmittedReferenceBundle, BackendComparisonSpec, BenchmarkBundleManifest,
+    BenchmarkCorpusManifest, BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkDataIndexRecord,
+    BenchmarkDataIndexSummary, BenchmarkEligibility, BenchmarkFastqLayout,
+    BenchmarkTemporalProvenance, CorpusDatasetSpec, CorpusDomain, CorpusScale, DataIntegrityStatus,
+    DriftScenarioSpec, FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
     FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
 };
 #[allow(unused_imports)]

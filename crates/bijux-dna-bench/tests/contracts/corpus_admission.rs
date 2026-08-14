@@ -4,7 +4,8 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use bijux_dna_bench::{
     admit_bam_benchmark_cohort, admit_bam_benchmark_corpus, admit_bam_genotyping_corpus,
-    admit_benchmark_reference, admit_fastq_benchmark_corpus, BenchmarkFastqLayout,
+    admit_benchmark_indexed_reference, admit_benchmark_reference, admit_fastq_benchmark_corpus,
+    BenchmarkFastqLayout,
 };
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -289,6 +290,33 @@ fn admits_preserved_catalog_index_roles_for_genotyping_reference() -> Result<()>
     let admitted = admit_bam_genotyping_corpus(&fixture.study_root, &fixture.data_index)?;
     assert!(admitted.reference.path.ends_with("EquCab3.0.fna"));
     assert!(admitted.reference_index.path.ends_with("EquCab3.0.fna.fai"));
+    Ok(())
+}
+
+#[test]
+fn admits_indexed_reference_from_preserved_positional_roles() -> Result<()> {
+    let fixture = bam_genotyping_corpus_fixture()?;
+    let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
+    let reference = index["records"]
+        .as_array_mut()
+        .expect("records array")
+        .iter_mut()
+        .find(|record| record["id"] == "equcab3-gcf-002863925.1")
+        .expect("reference record");
+    for file in reference["files"].as_array_mut().expect("reference files") {
+        let role = file["role"].as_str().expect("reference role");
+        file["role"] = Value::String(role.replacen("catalog.", "catalog.preserved_catalog.", 1));
+    }
+    write_json(&fixture.data_index, &index)?;
+
+    let admitted = admit_benchmark_indexed_reference(
+        &fixture.study_root,
+        &fixture.data_index,
+        "equcab3-gcf-002863925.1",
+    )?;
+    assert!(admitted.fasta.path.ends_with("EquCab3.0.fna"));
+    assert!(admitted.fasta_index.path.ends_with("EquCab3.0.fna.fai"));
+    assert_eq!(admitted.input_bytes, 16);
     Ok(())
 }
 

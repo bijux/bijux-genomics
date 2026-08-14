@@ -9,7 +9,8 @@ use std::path::Path;
 use anyhow::{bail, Result};
 use bijux_dna_bench_model::{
     AdmittedAlignmentTruthSet, AdmittedBamCohort, AdmittedBamCorpus, AdmittedFastqCorpus,
-    AdmittedReferenceBundle, BenchmarkAttemptIdentity, BenchmarkCorpusSnapshotV1,
+    AdmittedIndexedReference, AdmittedReferenceBundle, BenchmarkAttemptIdentity,
+    BenchmarkCorpusSnapshotV1,
 };
 
 use super::{
@@ -26,8 +27,8 @@ use super::{
 };
 use crate::repo::{
     admit_alignment_truth_set, admit_bam_benchmark_cohort, admit_bam_benchmark_corpus,
-    admit_bam_genotyping_corpus, admit_benchmark_reference, admit_fastq_benchmark_corpus,
-    AdmittedBamGenotypingCorpus,
+    admit_bam_genotyping_corpus, admit_benchmark_indexed_reference, admit_benchmark_reference,
+    admit_fastq_benchmark_corpus, AdmittedBamGenotypingCorpus,
 };
 
 pub use report::{
@@ -58,7 +59,7 @@ pub enum BenchmarkCampaignEvidence {
     BamGenotyping(Box<AdmittedBamGenotypingCorpus>),
     BamDamage {
         corpus: AdmittedBamCorpus,
-        reference: AdmittedReferenceBundle,
+        reference: AdmittedIndexedReference,
     },
     BamPicardCohort {
         cohort: AdmittedBamCohort,
@@ -167,7 +168,7 @@ pub fn admit_benchmark_campaign_evidence(
                 data_index,
                 "ena-prjeb22390-err2112767-ngsbriggs-input",
             )?,
-            reference: admit_benchmark_reference(
+            reference: admit_benchmark_indexed_reference(
                 study_root,
                 data_index,
                 "equcab3-gcf-002863925.1",

@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_attempt_identity, AdmittedBamCorpus, AdmittedReferenceBundle,
+    validate_attempt_identity, AdmittedBamCorpus, AdmittedIndexedReference,
     BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator,
     BenchmarkAttemptIdentity, BenchmarkEffectiveParameterValue as EffectiveValue,
     BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism, BenchmarkExecutionInput,
@@ -35,7 +35,7 @@ const REFERENCE_MOUNT: &str = "/input/EquCab3.0.fna";
 pub struct BamDamageMaterial {
     pub execution: BenchmarkExecutionMaterial,
     pub admitted_corpus: AdmittedBamCorpus,
-    pub admitted_reference: AdmittedReferenceBundle,
+    pub admitted_reference: AdmittedIndexedReference,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -54,7 +54,7 @@ pub fn prepare_bam_damage_material_from_evidence(
     account: &str,
     partition: &str,
     corpus: &AdmittedBamCorpus,
-    reference: &AdmittedReferenceBundle,
+    reference: &AdmittedIndexedReference,
 ) -> Result<BamDamageMaterial> {
     validate_attempt_identity(identity).context("validate BAM damage attempt identity")?;
     if identity.run.run_id != RUN_ID
@@ -137,7 +137,7 @@ pub fn prepare_bam_damage_material_from_evidence(
 
 fn validate_evidence(
     corpus: &AdmittedBamCorpus,
-    reference: &AdmittedReferenceBundle,
+    reference: &AdmittedIndexedReference,
 ) -> Result<()> {
     let bam_bytes = corpus
         .bam
@@ -148,7 +148,6 @@ fn validate_evidence(
         .fasta
         .size_bytes
         .checked_add(reference.fasta_index.size_bytes)
-        .and_then(|value| value.checked_add(reference.sequence_dictionary.size_bytes))
         .context("BAM damage reference size overflow")?;
     if corpus.corpus_id != CORPUS_ID
         || corpus.sample_id != SAMPLE_ID
@@ -162,7 +161,6 @@ fn validate_evidence(
             corpus.bam_index.size_bytes,
             reference.fasta.size_bytes,
             reference.fasta_index.size_bytes,
-            reference.sequence_dictionary.size_bytes,
         ]
         .contains(&0)
     {
@@ -173,7 +171,7 @@ fn validate_evidence(
 
 fn execution_inputs(
     corpus: &AdmittedBamCorpus,
-    reference: &AdmittedReferenceBundle,
+    reference: &AdmittedIndexedReference,
 ) -> Vec<BenchmarkExecutionInput> {
     let mut inputs = vec![
         input(
@@ -224,13 +222,6 @@ fn execution_inputs(
             &reference.fasta_index.path,
             "/input/EquCab3.0.fna.fai",
             &reference.fasta_index.sha256,
-        ),
-        input(
-            "reference_dictionary",
-            BenchmarkExecutionInputKind::Reference,
-            &reference.sequence_dictionary.path,
-            "/input/EquCab3.0.dict",
-            &reference.sequence_dictionary.sha256,
         ),
     ];
     inputs.sort_by(|left, right| left.id.cmp(&right.id));
@@ -341,7 +332,7 @@ fn acceptance() -> BenchmarkExecutionAcceptance {
 mod tests {
     use std::collections::BTreeMap;
 
-    use bijux_dna_bench_model::{AdmittedBamCorpusFile, AdmittedReferenceBundle};
+    use bijux_dna_bench_model::{AdmittedBamCorpusFile, AdmittedIndexedReference};
 
     use super::{prepare_bam_damage_material_from_evidence, stage_plan_unit, AdmittedBamCorpus};
 
@@ -427,7 +418,7 @@ mod tests {
         Ok(())
     }
 
-    fn admitted_evidence(root: &std::path::Path) -> (AdmittedBamCorpus, AdmittedReferenceBundle) {
+    fn admitted_evidence(root: &std::path::Path) -> (AdmittedBamCorpus, AdmittedIndexedReference) {
         let data_index_path = root.join("data-index.json").display().to_string();
         let corpus = AdmittedBamCorpus {
             corpus_id: super::CORPUS_ID.to_string(),
@@ -440,7 +431,7 @@ mod tests {
             bam_index: file(root, "sample.bam.bai", 10, 'd'),
             input_bytes: 110,
         };
-        let reference = AdmittedReferenceBundle {
+        let reference = AdmittedIndexedReference {
             reference_id: super::REFERENCE_ID.to_string(),
             data_index_path,
             data_index_sha256: "a".repeat(64),
@@ -448,8 +439,7 @@ mod tests {
             catalog_sha256: "e".repeat(64),
             fasta: file(root, "reference.fasta", 200, 'f'),
             fasta_index: file(root, "reference.fasta.fai", 20, '1'),
-            sequence_dictionary: file(root, "reference.dict", 30, '2'),
-            input_bytes: 250,
+            input_bytes: 220,
         };
         (corpus, reference)
     }
