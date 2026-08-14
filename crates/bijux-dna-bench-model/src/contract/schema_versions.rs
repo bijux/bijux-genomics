@@ -125,6 +125,8 @@ pub const BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1: &str =
     "bijux.benchmark.run_publication_pointer.v1";
 pub const BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1: &str =
     "bijux.benchmark.publication_registry.v1";
+pub const BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V2: &str =
+    "bijux.benchmark.publication_registry.v2";
 pub const BENCHMARK_STAGE_INTERFACES_SCHEMA_V1: &str = "bijux.benchmark.stage_interfaces.v1";
 pub const BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1: &str = "bijux.benchmark.pipeline_parameters.v1";
 pub const BENCHMARK_STAGE_REPORT_SCHEMA_V1: &str = "bijux.benchmark.stage_report.v1";

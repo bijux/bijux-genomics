@@ -514,8 +514,8 @@ pub use publication_outcome::{
 pub use publication_registry::{
     benchmark_publication_registry_schema, BenchmarkCurrentPublication,
     BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
-    BenchmarkQuarantinedPublicationSurface, BenchmarkStagePublication,
-    BenchmarkStagePublicationDisposition,
+    BenchmarkQuarantinedPublicationSurface, BenchmarkRunReportDisposition,
+    BenchmarkRunReportIndexEntry, BenchmarkStagePublication, BenchmarkStagePublicationDisposition,
 };
 #[allow(unused_imports)]
 pub use publication_status::{

@@ -162,6 +162,9 @@ The benchmark product root owns declarations and reviewed publications such as c
 source definitions, permanent run protocols, citations, case indexes, current-publication
 pointers, report indexes, and thin workers. The container product root owns recipes, catalogs,
 licenses, permanent run protocols, report indexes, and reviewed evidence-book publications.
+The benchmark report index contains one typed disposition for every permanent run; current rows
+carry admitted report and publication-receipt identities, while missing, stale, failed,
+superseded, and source-addressed historical evidence remain explicit.
 
 Neither root may contain a copied checkout, an embedded absolute-workspace mirror, raw attempt
 logs, SIF bytes, private external artifacts, or scheduler state. The exact direct-root shape and

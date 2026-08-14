@@ -4,7 +4,32 @@
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
-use crate::contract::BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1;
+use crate::contract::BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V2;
+
+use super::BenchmarkRunIndexFileReference;
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkRunReportDisposition {
+    Current,
+    Missing,
+    Stale,
+    Failed,
+    Superseded,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkRunReportIndexEntry {
+    pub run_id: String,
+    pub stage_id: String,
+    pub disposition: BenchmarkRunReportDisposition,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub report: Option<BenchmarkRunIndexFileReference>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub publication_receipt: Option<BenchmarkRunIndexFileReference>,
+    pub limitations: Vec<String>,
+}
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -56,6 +81,11 @@ pub struct BenchmarkQuarantinedPublicationSurface {
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkPublicationRegistrySummary {
     pub current_product_count: usize,
+    pub current_run_report_count: usize,
+    pub missing_run_report_count: usize,
+    pub stale_run_report_count: usize,
+    pub failed_run_report_count: usize,
+    pub superseded_run_report_count: usize,
     pub active_stage_report_count: usize,
     pub historical_stage_report_count: usize,
     pub quarantined_surface_count: usize,
@@ -69,22 +99,25 @@ pub struct BenchmarkPublicationRegistry {
     pub schema_version: String,
     pub summary: BenchmarkPublicationRegistrySummary,
     pub current_products: Vec<BenchmarkCurrentPublication>,
+    pub run_reports: Vec<BenchmarkRunReportIndexEntry>,
     pub stage_reports: Vec<BenchmarkStagePublication>,
     pub quarantined_surfaces: Vec<BenchmarkQuarantinedPublicationSurface>,
 }
 
 impl BenchmarkPublicationRegistry {
     #[must_use]
-    pub fn v1(
+    pub fn v2(
         summary: BenchmarkPublicationRegistrySummary,
         current_products: Vec<BenchmarkCurrentPublication>,
+        run_reports: Vec<BenchmarkRunReportIndexEntry>,
         stage_reports: Vec<BenchmarkStagePublication>,
         quarantined_surfaces: Vec<BenchmarkQuarantinedPublicationSurface>,
     ) -> Self {
         Self {
-            schema_version: BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1.to_string(),
+            schema_version: BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V2.to_string(),
             summary,
             current_products,
+            run_reports,
             stage_reports,
             quarantined_surfaces,
         }
@@ -99,7 +132,7 @@ pub fn benchmark_publication_registry_schema() -> Schema {
 fn publication_registry_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1,
+        "const": BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V2,
     })
 }
 

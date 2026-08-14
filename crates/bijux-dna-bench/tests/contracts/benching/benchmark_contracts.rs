@@ -298,11 +298,42 @@ fn checked_in_publication_registry_has_no_drift() -> Result<()> {
         bijux_dna_bench::BenchmarkPublicationRegistryWriteMode::Check,
     )?;
     assert_eq!(registry.summary.current_product_count, 6);
+    assert_eq!(registry.summary.current_run_report_count, 3);
+    assert_eq!(registry.summary.missing_run_report_count, 68);
+    assert_eq!(registry.summary.stale_run_report_count, 0);
+    assert_eq!(registry.summary.failed_run_report_count, 0);
+    assert_eq!(registry.summary.superseded_run_report_count, 0);
+    assert_eq!(registry.run_reports.len(), 71);
     assert_eq!(registry.summary.active_stage_report_count, 0);
     assert_eq!(registry.summary.historical_stage_report_count, 11);
     assert_eq!(registry.summary.quarantined_surface_count, 0);
     assert_eq!(registry.summary.quarantined_file_count, 0);
     assert!(registry.quarantined_surfaces.is_empty());
+    Ok(())
+}
+
+#[test]
+fn derived_publication_registry_classifies_every_permanent_run() -> Result<()> {
+    let registry = bijux_dna_bench::derive_benchmark_publication_registry(&repository_root()?)?;
+    assert_eq!(registry.run_reports.len(), 71);
+    assert_eq!(registry.summary.current_run_report_count, 3);
+    assert_eq!(registry.summary.missing_run_report_count, 68);
+    assert_eq!(registry.summary.stale_run_report_count, 0);
+    assert_eq!(registry.summary.failed_run_report_count, 0);
+    assert_eq!(registry.summary.superseded_run_report_count, 0);
+    assert!(registry.run_reports.iter().all(|report| {
+        match report.disposition {
+            bijux_dna_bench::BenchmarkRunReportDisposition::Current => {
+                report.report.is_some() && report.publication_receipt.is_some()
+            }
+            bijux_dna_bench::BenchmarkRunReportDisposition::Missing => {
+                report.report.is_none()
+                    && report.publication_receipt.is_none()
+                    && !report.limitations.is_empty()
+            }
+            _ => false,
+        }
+    }));
     Ok(())
 }
 
