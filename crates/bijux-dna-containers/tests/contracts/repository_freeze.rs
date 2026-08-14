@@ -245,6 +245,39 @@ fn repository_freeze_rejects_unsafe_sources_and_dirty_authority() -> Result<()> 
 }
 
 #[test]
+fn repository_freeze_rejects_insufficient_governed_storage_before_cloning() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let (mut governance, commit) = fixture(root.path())?;
+    let target = governance.paths.frozen_repositories.join(&commit);
+
+    governance.preflight.minimum_available_bytes = u64::MAX;
+    let error = freeze_repository(&request(
+        &governance,
+        &commit,
+        RepositoryFreezeScope::Complete,
+        Vec::new(),
+    ))
+    .err()
+    .context("repository freeze ignored its byte reserve")?;
+    assert!(format!("{error:#}").contains("available bytes"));
+    assert!(!target.exists());
+
+    governance.preflight.minimum_available_bytes = 1;
+    governance.preflight.minimum_available_inodes = u64::MAX;
+    let error = freeze_repository(&request(
+        &governance,
+        &commit,
+        RepositoryFreezeScope::Complete,
+        Vec::new(),
+    ))
+    .err()
+    .context("repository freeze ignored its inode reserve")?;
+    assert!(format!("{error:#}").contains("available inodes"));
+    assert!(!target.exists());
+    Ok(())
+}
+
+#[test]
 fn repository_freeze_archive_proves_retirement_and_exact_restoration() -> Result<()> {
     let root = tempfile::tempdir()?;
     let (governance, commit) = fixture(root.path())?;
