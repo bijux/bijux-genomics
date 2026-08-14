@@ -201,7 +201,7 @@ fn load_execution_authorities_inner(
     let tool_binding_registry_sha256 = bijux_dna_infra::hash_bytes_sha256(&binding_bytes);
     if let Some(matrix) = matrix {
         verify_case_campaign_plan_source(plan, matrix)?;
-        validate_case_execution_authorities(
+        validate_case_source_authorities(
             matrix,
             plan,
             &registry,
@@ -267,7 +267,7 @@ fn load_execution_authorities_inner(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn validate_case_execution_authorities(
+pub(super) fn validate_case_source_authorities(
     matrix: &BenchmarkCaseMatrixV2,
     plan: &BenchmarkCampaignPlan,
     registry: &BenchmarkStageCampaignRegistry,

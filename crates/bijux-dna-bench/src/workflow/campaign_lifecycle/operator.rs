@@ -17,9 +17,13 @@ use super::{
     plan_benchmark_case_attempts, plan_stage_campaign_attempts, verify_campaign_plan_source,
     verify_case_campaign_plan_source,
 };
-use crate::workflow::{load_benchmark_case_matrix, load_stage_campaign_registry};
+use crate::workflow::{
+    load_benchmark_case_matrix, load_stage_campaign_registry,
+    load_stage_interface_catalog_from_repo,
+};
 
 const CAMPAIGN_REGISTRY_PATH: &str = "benchmarks/contracts/stage-campaigns.toml";
+const STAGE_INTERFACE_REGISTRY_PATH: &str = "benchmarks/contracts/stage-interfaces.toml";
 const MAX_PLAN_BYTES: u64 = 16 * 1024 * 1024;
 
 /// Inputs for one source-locked, idempotent benchmark campaign planning pass.
@@ -316,6 +320,25 @@ pub fn load_checked_in_benchmark_campaign_plan(
                 bail!("benchmark case matrix source identity is stale");
             }
             verify_case_campaign_plan_source(&plan, &matrix)?;
+            let registry =
+                load_stage_campaign_registry(&repository_root.join(CAMPAIGN_REGISTRY_PATH))?;
+            let interface_path = repository_root.join(STAGE_INTERFACE_REGISTRY_PATH);
+            let interfaces =
+                load_stage_interface_catalog_from_repo(&interface_path, &repository_root)?;
+            let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+            let binding_bytes =
+                serde_json::to_vec(&bindings.bindings().cloned().collect::<Vec<_>>())?;
+            super::authorities::validate_case_source_authorities(
+                &matrix,
+                &plan,
+                &registry,
+                &interfaces,
+                &bindings,
+                &repository_commit,
+                &campaign_registry_sha256,
+                &bijux_dna_infra::hash_file_sha256(&interface_path)?,
+                &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
+            )?;
         }
         (Some(_), None) => {
             bail!("case-scoped benchmark plan requires its case-matrix authority");

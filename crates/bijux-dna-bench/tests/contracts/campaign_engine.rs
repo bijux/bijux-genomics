@@ -131,12 +131,18 @@ fn case_scoped_plan_loading_requires_the_exact_matrix_authority() -> Result<()> 
     let campaign_registry_sha256 = bijux_dna_infra::hash_file_sha256(
         &repository.path().join("benchmarks/contracts/stage-campaigns.toml"),
     )?;
-    let fixture = planning_fixture()?;
+    let mut fixture = planning_fixture()?;
+    fixture.bindings = canonical_tool_bindings()?;
+    let interface_catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository.path().join("benchmarks/contracts/stage-interfaces.toml"),
+    )?;
+    let binding_bytes =
+        serde_json::to_vec(&fixture.bindings.bindings().cloned().collect::<Vec<_>>())?;
     let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
         repository_commit: &repository_commit,
         campaign_registry_sha256: &campaign_registry_sha256,
-        interface_catalog_sha256: &"3".repeat(64),
-        tool_binding_registry_sha256: &"4".repeat(64),
+        interface_catalog_sha256: &interface_catalog_sha256,
+        tool_binding_registry_sha256: &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
         campaigns: &fixture.campaigns,
         interfaces: &fixture.interfaces,
         bindings: &fixture.bindings,
@@ -159,6 +165,33 @@ fn case_scoped_plan_loading_requires_the_exact_matrix_authority() -> Result<()> 
         load_checked_in_benchmark_campaign_plan(repository.path(), &plan_path, Some(&matrix_path),)?,
         plan
     );
+
+    let stale_matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &repository_commit,
+        campaign_registry_sha256: &campaign_registry_sha256,
+        interface_catalog_sha256: &"9".repeat(64),
+        tool_binding_registry_sha256: &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
+        campaigns: &fixture.campaigns,
+        interfaces: &fixture.interfaces,
+        bindings: &fixture.bindings,
+        data_snapshots: &fixture.snapshots,
+    })?;
+    let stale_plan = plan_benchmark_case_attempts(
+        &stale_matrix,
+        "production-portfolio-20260814",
+        "attempt-001",
+        "2026-08-14T12:00:00Z",
+    )?;
+    let stale_matrix_path = output.path().join("stale-case-matrix.json");
+    let stale_plan_path = output.path().join("stale-campaign-plan.json");
+    ensure_benchmark_case_matrix(&stale_matrix_path, &stale_matrix)?;
+    fs::write(&stale_plan_path, serde_json::to_vec_pretty(&stale_plan)?)?;
+    assert!(load_checked_in_benchmark_campaign_plan(
+        repository.path(),
+        &stale_plan_path,
+        Some(&stale_matrix_path),
+    )
+    .is_err_and(|error| error.to_string().contains("current execution source authorities")));
     Ok(())
 }
 
@@ -931,23 +964,59 @@ fn planning_fixture() -> Result<PlanningFixture> {
 
 fn clean_source_repository() -> Result<tempfile::TempDir> {
     let repository = bijux_dna_infra::temp_dir("case-plan-source-repository")?;
-    let registry = repository.path().join("benchmarks/contracts/stage-campaigns.toml");
-    fs::create_dir_all(registry.parent().expect("campaign registry parent"))?;
-    fs::copy(
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../benchmarks/contracts/stage-campaigns.toml"),
-        &registry,
+    let source_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    copy_directory(
+        &source_root.join("benchmarks/contracts"),
+        &repository.path().join("benchmarks/contracts"),
     )?;
+    copy_directory(
+        &source_root.join("benchmarks/execution"),
+        &repository.path().join("benchmarks/execution"),
+    )?;
+    copy_directory(&source_root.join("domain"), &repository.path().join("domain"))?;
+    copy_interface_references(&source_root, repository.path())?;
     for arguments in [
         vec!["init", "--initial-branch=main"],
         vec!["config", "user.email", "tests@bijux.invalid"],
         vec!["config", "user.name", "Bijux Tests"],
-        vec!["add", "benchmarks/contracts/stage-campaigns.toml"],
+        vec!["add", "benchmarks/contracts", "benchmarks/execution", "crates", "domain"],
         vec!["commit", "-m", "test: seed campaign registry"],
     ] {
         git_stdout(repository.path(), &arguments)?;
     }
     Ok(repository)
+}
+
+fn copy_interface_references(source_root: &Path, destination_root: &Path) -> Result<()> {
+    let catalog =
+        fs::read_to_string(source_root.join("benchmarks/contracts/stage-interfaces.toml"))?;
+    for relative in catalog.split('"').skip(1).step_by(2).map(Path::new) {
+        let source = source_root.join(relative);
+        if !source.is_file() {
+            continue;
+        }
+        let destination = destination_root.join(relative);
+        fs::create_dir_all(destination.parent().expect("interface source parent"))?;
+        fs::copy(source, destination)?;
+    }
+    Ok(())
+}
+
+fn copy_directory(source: &Path, destination: &Path) -> Result<()> {
+    fs::create_dir_all(destination)?;
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let source_path = entry.path();
+        let destination_path = destination.join(entry.file_name());
+        let file_type = entry.file_type()?;
+        if file_type.is_dir() {
+            copy_directory(&source_path, &destination_path)?;
+        } else {
+            anyhow::ensure!(file_type.is_file(), "contract fixture source is not a regular file");
+            fs::copy(source_path, destination_path)?;
+        }
+    }
+    Ok(())
 }
 
 fn git_stdout(repository: &Path, arguments: &[&str]) -> Result<String> {
