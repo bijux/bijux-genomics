@@ -9,8 +9,100 @@
   "protocol_title": "FASTQ validate reads benchmark protocol",
   "protocol_version": "1.0.0",
   "protocol_sha256": "8c7ebd7825e6299a8c30f3c595c88f1ce87c919ebf47904f839ebe8aa3382023",
-  "status": "protocol_only",
+  "status": "published",
+  "selected_publication": {
+    "publication_id": "run-2051-production-74b7042739d9",
+    "selected_attempts": [
+      {
+        "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+        "run": {
+          "run_id": "run-2051",
+          "domain": "fastq",
+          "stage_id": "fastq.validate_reads"
+        },
+        "case_id": "run-2051--fastq_scan--human-short-read-diversity",
+        "attempt_id": "attempt-002",
+        "tool_id": "fastq_scan"
+      },
+      {
+        "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+        "run": {
+          "run_id": "run-2051",
+          "domain": "fastq",
+          "stage_id": "fastq.validate_reads"
+        },
+        "case_id": "run-2051--fastqc--human-short-read-diversity",
+        "attempt_id": "attempt-003",
+        "tool_id": "fastqc"
+      },
+      {
+        "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+        "run": {
+          "run_id": "run-2051",
+          "domain": "fastq",
+          "stage_id": "fastq.validate_reads"
+        },
+        "case_id": "run-2051--fastqvalidator--human-short-read-diversity",
+        "attempt_id": "attempt-003",
+        "tool_id": "fastqvalidator"
+      },
+      {
+        "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+        "run": {
+          "run_id": "run-2051",
+          "domain": "fastq",
+          "stage_id": "fastq.validate_reads"
+        },
+        "case_id": "run-2051--fqtools--human-short-read-diversity",
+        "attempt_id": "attempt-003",
+        "tool_id": "fqtools"
+      },
+      {
+        "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+        "run": {
+          "run_id": "run-2051",
+          "domain": "fastq",
+          "stage_id": "fastq.validate_reads"
+        },
+        "case_id": "run-2051--seqtk--human-short-read-diversity",
+        "attempt_id": "attempt-003",
+        "tool_id": "seqtk"
+      }
+    ],
+    "repository_commit": "74b7042739d93b2b1b504790d92d556f34be0d64",
+    "report": {
+      "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/run-2051-fastq-validate-reads.json",
+      "sha256": "bea171be40ace8d69919bbc534de9b1fb70132631b4f11962521df42a9b203d4",
+      "size_bytes": 62399
+    },
+    "evidence_book": {
+      "uri": "study://results/benchmarks/evidence-books/45c49ae3e9afb3445986fc31b41383b32418403b/candidate-publications.json",
+      "sha256": "5525e3caab74b61a15205c69df50c6a140cf582097f37fe435297bd3cc1dc2f4",
+      "size_bytes": 3258
+    },
+    "publication_receipt": {
+      "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/publication-receipt.json",
+      "sha256": "8559c615ac2d709c8a9c4c7bb5e709cf20cd660e81da41ccc14ca943bb88a621",
+      "size_bytes": 5657
+    },
+    "citation_record": {
+      "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/citation-record.json",
+      "sha256": "a552eb9a6d8e5c281696135813b26d7a138c349fb9fbf509e8c0b159f5c801ae",
+      "size_bytes": 4490
+    },
+    "replay_receipt": {
+      "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/semantic-identity.json",
+      "sha256": "c9b18e3864221b32c946a3ae2582d36559da4b21e4354bf70bdd2415eaab07b5",
+      "size_bytes": 5586
+    },
+    "limitations": [
+      "The publication covers one governed human short-read diversity cohort.",
+      "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+    ],
+    "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
+  },
   "limitations": [
-    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+    "The publication covers one governed human short-read diversity cohort.",
+    "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
   ]
 }

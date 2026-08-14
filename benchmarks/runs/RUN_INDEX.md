@@ -7,8 +7,8 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 - Registered protocols: **71**
 - Active protocols: **12**
 - Reserved protocols: **59**
-- Citable publications: **2**
-- Unpublished protocols: **69**
+- Citable publications: **3**
+- Unpublished protocols: **68**
 
 | Run | Citation key | Stage | Tools | Protocol | Publication |
 |---|---|---|---|---|---|
@@ -62,7 +62,7 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 | `run-2048` | `bijux-benchmark-run-2048` | `fastq.trim_polyg_tails` | `bbduk`, `fastp` | `reserved` | `not selected` |
 | `run-2049` | `bijux-benchmark-run-2049` | `fastq.trim_reads` | `adapterremoval`, `alientrimmer`, `atropos`, `bbduk`, `cutadapt`, `fastp`, `fastx_clipper`, `leehom`, `prinseq`, `seqkit`, `seqprep`, `skewer`, `trim_galore`, `trimmomatic` | `reserved` | `not selected` |
 | `run-2050` | `bijux-benchmark-run-2050` | `fastq.trim_terminal_damage` | `adapterremoval`, `cutadapt`, `seqkit` | `reserved` | `not selected` |
-| `run-2051` | `bijux-benchmark-run-2051` | `fastq.validate_reads` | `fastq_scan`, `fastqc`, `fastqvalidator`, `fqtools`, `seqtk` | `active` | `not selected` |
+| `run-2051` | `bijux-benchmark-run-2051` | `fastq.validate_reads` | `fastq_scan`, `fastqc`, `fastqvalidator`, `fqtools`, `seqtk` | `active` | `run-2051-production-74b7042739d9` |
 | `run-2052` | `bijux-benchmark-run-2052` | `vcf.admixture` | `plink`, `plink2` | `reserved` | `not selected` |
 | `run-2053` | `bijux-benchmark-run-2053` | `vcf.call` | `bcftools` | `reserved` | `not selected` |
 | `run-2054` | `bijux-benchmark-run-2054` | `vcf.call_diploid` | `bcftools` | `reserved` | `not selected` |
