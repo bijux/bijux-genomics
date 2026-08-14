@@ -264,6 +264,20 @@ pub(crate) fn handle_meta_commands(
                             )?;
                         crate::commands::cli::render::json::print_pretty(&status)?;
                     }
+                    cli::BenchCycleCommand::Supersede(args) => {
+                        let status =
+                            bijux_dna_api::v1::api::bench::supersede_checked_in_benchmark_campaign(
+                                &bijux_dna_api::v1::api::bench::BenchmarkCycleSupersedeRequest {
+                                    repository_root: args.repository_root.clone(),
+                                    benchmark_root: args.benchmark_root.clone(),
+                                    prior_plan: args.prior_plan.clone(),
+                                    prior_case_matrix: args.prior_case_matrix.clone(),
+                                    superseded_at_utc: args.superseded_at_utc.clone(),
+                                    reason: args.reason.clone(),
+                                },
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&status)?;
+                    }
                 },
                 BenchCommand::Config { command } => match command {
                     BenchConfigCommand::Validate(args) => {

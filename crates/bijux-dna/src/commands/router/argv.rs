@@ -261,6 +261,41 @@ mod tests {
     }
 
     #[test]
+    fn benchmark_cycle_supersede_retains_ancestor_case_authorities() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "supersede",
+            "--benchmark-root",
+            "artifacts/benchmark-cycle/evidence",
+            "--prior-plan",
+            "artifacts/benchmark-cycle/prior-plan.json",
+            "--prior-case-matrix",
+            "artifacts/benchmark-cycle/prior-cases.json",
+            "--superseded-at-utc",
+            "2026-08-10T00:02:00Z",
+            "--reason",
+            "source execution authority was replaced",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        let BenchCycleCommand::Supersede(args) = command else {
+            panic!("expected benchmark cycle supersede command");
+        };
+        assert_eq!(args.reason, "source execution authority was replaced");
+        assert_eq!(
+            args.prior_case_matrix,
+            std::path::Path::new("artifacts/benchmark-cycle/prior-cases.json")
+        );
+        Ok(())
+    }
+
+    #[test]
     fn benchmark_cycle_status_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",

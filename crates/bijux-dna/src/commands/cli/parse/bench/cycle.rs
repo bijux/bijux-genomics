@@ -22,6 +22,8 @@ pub enum BenchCycleCommand {
     Retry(BenchCycleRetryArgs),
     /// Read the persisted lifecycle state for every attempt in one campaign.
     Status(BenchCycleStatusArgs),
+    /// Terminalize non-active attempts from an ancestor case campaign.
+    Supersede(BenchCycleSupersedeArgs),
 }
 
 #[derive(Debug, Args)]
@@ -180,6 +182,22 @@ pub struct BenchCycleRetryArgs {
     pub observed_at_utc: String,
     #[arg(long)]
     pub output: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleSupersedeArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub benchmark_root: PathBuf,
+    #[arg(long)]
+    pub prior_plan: PathBuf,
+    #[arg(long)]
+    pub prior_case_matrix: PathBuf,
+    #[arg(long)]
+    pub superseded_at_utc: String,
+    #[arg(long)]
+    pub reason: String,
 }
 
 #[derive(Debug, Args)]
