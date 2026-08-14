@@ -15,9 +15,15 @@
         "$ref": "#/$defs/BenchmarkQuarantinedPublicationSurface"
       }
     },
+    "run_reports": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkRunReportIndexEntry"
+      }
+    },
     "schema_version": {
       "type": "string",
-      "const": "bijux.benchmark.publication_registry.v1"
+      "const": "bijux.benchmark.publication_registry.v2"
     },
     "stage_reports": {
       "type": "array",
@@ -34,6 +40,7 @@
     "schema_version",
     "summary",
     "current_products",
+    "run_reports",
     "stage_reports",
     "quarantined_surfaces"
   ],
@@ -81,7 +88,22 @@
           "format": "uint",
           "minimum": 0
         },
+        "current_run_report_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "failed_run_report_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
         "historical_stage_report_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "missing_run_report_count": {
           "type": "integer",
           "format": "uint",
           "minimum": 0
@@ -95,11 +117,26 @@
           "type": "integer",
           "format": "uint",
           "minimum": 0
+        },
+        "stale_run_report_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "superseded_run_report_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
         }
       },
       "additionalProperties": false,
       "required": [
         "current_product_count",
+        "current_run_report_count",
+        "missing_run_report_count",
+        "stale_run_report_count",
+        "failed_run_report_count",
+        "superseded_run_report_count",
         "active_stage_report_count",
         "historical_stage_report_count",
         "quarantined_surface_count",
@@ -135,6 +172,87 @@
         "tracked_file_count",
         "tree_sha256",
         "authority_policy"
+      ]
+    },
+    "BenchmarkRunIndexFileReference": {
+      "type": "object",
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "uri": {
+          "type": "string",
+          "pattern": "^(repo|study)://[^/].+$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "uri",
+        "sha256",
+        "size_bytes"
+      ]
+    },
+    "BenchmarkRunReportDisposition": {
+      "type": "string",
+      "enum": [
+        "current",
+        "missing",
+        "stale",
+        "failed",
+        "superseded"
+      ]
+    },
+    "BenchmarkRunReportIndexEntry": {
+      "type": "object",
+      "properties": {
+        "disposition": {
+          "$ref": "#/$defs/BenchmarkRunReportDisposition"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publication_receipt": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "report": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "stage_id",
+        "disposition",
+        "limitations"
       ]
     },
     "BenchmarkStagePublication": {
