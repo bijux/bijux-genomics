@@ -13,6 +13,7 @@ use bijux_dna_bench::{
     load_benchmark_case_aggregation_set, load_benchmark_case_matrix,
     load_checked_in_benchmark_campaign_plan, load_checked_in_benchmark_planning_contracts,
     plan_benchmark_case_attempts, plan_benchmark_case_matrix, plan_benchmark_case_retry_attempts,
+    publish_case_benchmark_campaign_report_with_presentation_authority,
     validate_benchmark_admitted_case_observation_set, validate_benchmark_case_aggregation_set,
     validate_benchmark_case_aggregations, validate_benchmark_case_matrix,
     verify_campaign_plan_source, verify_case_campaign_plan_source,
@@ -192,6 +193,68 @@ fn case_scoped_plan_loading_requires_the_exact_matrix_authority() -> Result<()> 
         Some(&stale_matrix_path),
     )
     .is_err_and(|error| error.to_string().contains("current execution source authorities")));
+    Ok(())
+}
+
+#[test]
+fn case_scoped_report_publication_preserves_matrix_authority_through_dispatch() -> Result<()> {
+    let repository = clean_source_repository()?;
+    let repository_commit = git_stdout(repository.path(), &["rev-parse", "HEAD"])?;
+    let campaign_registry_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository.path().join("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
+    let interface_catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository.path().join("benchmarks/contracts/stage-interfaces.toml"),
+    )?;
+    let mut fixture = planning_fixture()?;
+    fixture.campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2043");
+    fixture.interfaces.interfaces.retain(|interface| interface.stage_id == "fastq.profile_reads");
+    fixture.snapshots = campaign_snapshots(
+        fixture
+            .campaigns
+            .campaigns
+            .first()
+            .ok_or_else(|| anyhow::anyhow!("run-2043 campaign is absent"))?,
+    );
+    fixture.bindings = canonical_tool_bindings()?;
+    let binding_bytes =
+        serde_json::to_vec(&fixture.bindings.bindings().cloned().collect::<Vec<_>>())?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &repository_commit,
+        campaign_registry_sha256: &campaign_registry_sha256,
+        interface_catalog_sha256: &interface_catalog_sha256,
+        tool_binding_registry_sha256: &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
+        campaigns: &fixture.campaigns,
+        interfaces: &fixture.interfaces,
+        bindings: &fixture.bindings,
+        data_snapshots: &fixture.snapshots,
+    })?;
+    let plan = plan_benchmark_case_attempts(
+        &matrix,
+        "production-portfolio-20260814",
+        "attempt-001",
+        "2026-08-14T12:00:00Z",
+    )?;
+    let study = bijux_dna_infra::temp_dir("case-scoped-report-study")?;
+    let benchmark_root = study.path().join("results/benchmarks");
+    let output_root = study.path().join("reports/benchmarks");
+    fs::create_dir_all(&benchmark_root)?;
+    fs::create_dir_all(&output_root)?;
+
+    let error = publish_case_benchmark_campaign_report_with_presentation_authority(
+        repository.path(),
+        repository.path(),
+        study.path(),
+        &benchmark_root,
+        &plan,
+        &matrix,
+        &output_root,
+    )
+    .expect_err("publication without attempt evidence must fail closed");
+    let message = format!("{error:#}");
+    assert!(!message.contains("requires case-matrix source verification"), "{message}");
+    assert!(!message.contains("source identity is stale"), "{message}");
+    assert!(message.contains("benchmark attempt directory"), "{message}");
     Ok(())
 }
 

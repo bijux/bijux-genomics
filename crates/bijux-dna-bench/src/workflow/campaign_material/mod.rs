@@ -32,6 +32,8 @@ use crate::repo::{
 pub use report::{
     publish_benchmark_campaign_report,
     publish_benchmark_campaign_report_with_presentation_authority,
+    publish_case_benchmark_campaign_report,
+    publish_case_benchmark_campaign_report_with_presentation_authority,
     BenchmarkCampaignReportPublication,
 };
 

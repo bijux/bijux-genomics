@@ -20,7 +20,7 @@ pub(crate) use self::science::{
 };
 use super::super::{
     load_stage_campaign_registry, load_stage_interface_catalog_for_publication,
-    verify_campaign_plan_source,
+    verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
 };
 use crate::workflow::stage_report::{
     build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
@@ -42,12 +42,14 @@ pub(crate) struct BamObservationReportPolicy {
 
 pub type BamObservationStageReportPublication = BenchmarkStageReportPublication;
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn publish_bam_observation_stage_report(
     repository_root: &Path,
     presentation_repository_root: &Path,
     study_root: &Path,
     benchmark_root: &Path,
     plan: &BenchmarkCampaignPlan,
+    source_authority: BenchmarkCampaignPlanSource<'_>,
     output_root: &Path,
     policy: &BamObservationReportPolicy,
 ) -> Result<BamObservationStageReportPublication> {
@@ -60,7 +62,12 @@ pub(crate) fn publish_bam_observation_stage_report(
     let registry_path = repository_root.join("benchmarks/contracts/stage-campaigns.toml");
     let interface_path = repository_root.join("benchmarks/contracts/stage-interfaces.toml");
     let registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)?;
-    verify_campaign_plan_source(plan, &plan.repository_commit, &registry_sha256)?;
+    verify_campaign_plan_source_authority(
+        plan,
+        source_authority,
+        &plan.repository_commit,
+        &registry_sha256,
+    )?;
     let repository_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)?;
     if repository_commit != plan.repository_commit {
         bail!("benchmark report source worktree differs from campaign plan");

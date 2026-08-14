@@ -433,3 +433,32 @@ pub fn verify_case_campaign_plan_source(
     }
     Ok(())
 }
+
+#[derive(Clone, Copy)]
+pub(crate) enum BenchmarkCampaignPlanSource<'a> {
+    Legacy,
+    CaseMatrix(&'a BenchmarkCaseMatrixV2),
+}
+
+pub(crate) fn verify_campaign_plan_source_authority(
+    plan: &BenchmarkCampaignPlan,
+    authority: BenchmarkCampaignPlanSource<'_>,
+    repository_commit: &str,
+    campaign_registry_sha256: &str,
+) -> Result<()> {
+    match authority {
+        BenchmarkCampaignPlanSource::Legacy => {
+            verify_campaign_plan_source(plan, repository_commit, campaign_registry_sha256)
+        }
+        BenchmarkCampaignPlanSource::CaseMatrix(matrix) => {
+            verify_case_campaign_plan_source(plan, matrix)?;
+            if matrix.repository_commit != repository_commit {
+                bail!("benchmark case matrix repository commit is stale");
+            }
+            if matrix.campaign_registry_sha256 != campaign_registry_sha256 {
+                bail!("benchmark case matrix registry digest is stale");
+            }
+            Ok(())
+        }
+    }
+}

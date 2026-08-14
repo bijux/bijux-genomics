@@ -159,10 +159,15 @@ pub use campaign_lifecycle::{
     BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
     BenchmarkStagePlanUnitMaterial,
 };
+pub(crate) use campaign_lifecycle::{
+    verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
+};
 pub use campaign_material::{
     admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
     publish_benchmark_campaign_report,
-    publish_benchmark_campaign_report_with_presentation_authority, BenchmarkCampaignEvidence,
+    publish_benchmark_campaign_report_with_presentation_authority,
+    publish_case_benchmark_campaign_report,
+    publish_case_benchmark_campaign_report_with_presentation_authority, BenchmarkCampaignEvidence,
     BenchmarkCampaignMaterialRequest, BenchmarkCampaignReportPublication,
 };
 pub use container_report_portfolio::{

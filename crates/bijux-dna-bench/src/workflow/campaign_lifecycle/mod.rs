@@ -32,6 +32,7 @@ pub use planning::{
     plan_stage_campaign_retry_attempts, verify_campaign_plan_source,
     verify_case_campaign_plan_source,
 };
+pub(crate) use planning::{verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource};
 pub use preparation::{prepare_checked_in_benchmark_campaign, BenchmarkCyclePreparationRequest};
 pub use storage::{
     ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,

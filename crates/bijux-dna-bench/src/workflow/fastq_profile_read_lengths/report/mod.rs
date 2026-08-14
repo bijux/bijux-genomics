@@ -15,7 +15,7 @@ use self::evidence::load_attempt_evidence;
 pub use self::rendering::render_fastq_profile_read_lengths_markdown;
 use super::super::{
     load_stage_campaign_registry, load_stage_interface_catalog_for_publication,
-    verify_campaign_plan_source,
+    verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
 };
 use crate::workflow::stage_report::{
     build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
@@ -49,6 +49,7 @@ pub fn publish_fastq_profile_read_lengths_stage_report(
         study_root,
         benchmark_root,
         plan,
+        BenchmarkCampaignPlanSource::Legacy,
         output_root,
     )
 }
@@ -59,6 +60,7 @@ pub(crate) fn publish_fastq_profile_read_lengths_stage_report_with_presentation_
     study_root: &Path,
     benchmark_root: &Path,
     plan: &BenchmarkCampaignPlan,
+    source_authority: BenchmarkCampaignPlanSource<'_>,
     output_root: &Path,
 ) -> Result<FastqProfileReadLengthsStageReportPublication> {
     let repository_root = canonical_directory(repository_root, "benchmark repository")?;
@@ -70,7 +72,12 @@ pub(crate) fn publish_fastq_profile_read_lengths_stage_report_with_presentation_
     let registry_path = repository_root.join("benchmarks/contracts/stage-campaigns.toml");
     let interface_path = repository_root.join("benchmarks/contracts/stage-interfaces.toml");
     let registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)?;
-    verify_campaign_plan_source(plan, &plan.repository_commit, &registry_sha256)?;
+    verify_campaign_plan_source_authority(
+        plan,
+        source_authority,
+        &plan.repository_commit,
+        &registry_sha256,
+    )?;
     let repository_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)?;
     if repository_commit != plan.repository_commit {
         bail!("benchmark report source worktree differs from campaign plan");

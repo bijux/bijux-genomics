@@ -244,20 +244,37 @@ pub(crate) fn handle_meta_commands(
                                 crate::commands::cli::render::json::print_pretty(&plan)?;
                             }
                             cli::BenchCycleCommand::Publish(args) => {
+                                let case_matrix = args
+                                    .case_matrix
+                                    .as_deref()
+                                    .map(bijux_dna_api::v1::api::bench::load_benchmark_case_matrix)
+                                    .transpose()?;
                                 let plan =
                             bijux_dna_api::v1::api::bench::load_checked_in_benchmark_campaign_plan(
                                 &args.repository_root,
                                 &args.plan,
                                 args.case_matrix.as_deref(),
                             )?;
-                                let publication = bijux_dna_api::v1::api::bench::publish_benchmark_campaign_report_with_presentation_authority(
-                            &args.repository_root,
-                            &args.presentation_repository_root,
-                            &args.study_root,
-                            &args.benchmark_root,
-                            &plan,
-                            &args.output_root,
-                        )?;
+                                let publication = if let Some(case_matrix) = case_matrix.as_ref() {
+                                    bijux_dna_api::v1::api::bench::publish_case_benchmark_campaign_report_with_presentation_authority(
+                                        &args.repository_root,
+                                        &args.presentation_repository_root,
+                                        &args.study_root,
+                                        &args.benchmark_root,
+                                        &plan,
+                                        case_matrix,
+                                        &args.output_root,
+                                    )?
+                                } else {
+                                    bijux_dna_api::v1::api::bench::publish_benchmark_campaign_report_with_presentation_authority(
+                                        &args.repository_root,
+                                        &args.presentation_repository_root,
+                                        &args.study_root,
+                                        &args.benchmark_root,
+                                        &plan,
+                                        &args.output_root,
+                                    )?
+                                };
                                 crate::commands::cli::render::json::print_pretty(&publication)?;
                             }
                             cli::BenchCycleCommand::Replay(args) => {

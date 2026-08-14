@@ -62,6 +62,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `derive_container_report_portfolio_index(repository_root)` derives the current and historical container report portfolio while requiring the permanent run index to match its source authority.
 - `render_container_report_portfolio_index_json(index)` and `render_container_report_portfolio_index_markdown(index)` render the admitted portfolio deterministically.
 - `publish_benchmark_campaign_report_with_presentation_authority(source_repository_root, presentation_repository_root, study_root, benchmark_root, plan, output_root)` publishes a source-locked historical campaign and returns the exact presentation commit, catalog digest, and overlaid stage IDs in its receipt.
+- `publish_case_benchmark_campaign_report_with_presentation_authority(source_repository_root, presentation_repository_root, study_root, benchmark_root, plan, case_matrix, output_root)` preserves the exact verified case-matrix authority through generic dispatch and stage-owned publication.
 - `acquire_fastq_corpus(request)` resolves a reviewed corpus specification against exact ENA run metadata and atomically publishes a no-clobber acquisition plan.
 - `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` deterministically derives the same validated plan from typed offline ENA records.
 - `materialize_fastq_corpus(request)` re-verifies or transfers checksum-pinned ENA files, validates every gzip FASTQ record, makes the admitted files read-only, and atomically publishes a no-clobber governed catalog.

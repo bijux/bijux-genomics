@@ -5,7 +5,7 @@ use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_benchmark_campaign_report_publication, BenchmarkCampaignPlan,
+    validate_benchmark_campaign_report_publication, BenchmarkCampaignPlan, BenchmarkCaseMatrixV2,
     BENCHMARK_CAMPAIGN_REPORT_PUBLICATION_SCHEMA_V1,
 };
 
@@ -25,7 +25,7 @@ use crate::workflow::fastq_detect_adapters::publish_fastq_detect_adapters_stage_
 use crate::workflow::fastq_profile_read_lengths::publish_fastq_profile_read_lengths_stage_report_with_presentation_authority;
 use crate::workflow::fastq_profile_reads::publish_fastq_profile_reads_stage_report_with_presentation_authority;
 use crate::workflow::fastq_validate_reads::publish_fastq_validate_reads_stage_report_with_presentation_authority;
-use crate::workflow::BenchmarkStageReportPublication;
+use crate::workflow::{BenchmarkCampaignPlanSource, BenchmarkStageReportPublication};
 
 type CampaignReportPublisher = fn(
     &Path,
@@ -33,6 +33,7 @@ type CampaignReportPublisher = fn(
     &Path,
     &Path,
     &BenchmarkCampaignPlan,
+    BenchmarkCampaignPlanSource<'_>,
     &Path,
 ) -> Result<BenchmarkStageReportPublication>;
 
@@ -130,6 +131,75 @@ pub fn publish_benchmark_campaign_report_with_presentation_authority(
     plan: &BenchmarkCampaignPlan,
     output_root: &Path,
 ) -> Result<BenchmarkCampaignReportPublication> {
+    publish_benchmark_campaign_report_with_source_authority(
+        repository_root,
+        presentation_repository_root,
+        study_root,
+        benchmark_root,
+        plan,
+        BenchmarkCampaignPlanSource::Legacy,
+        output_root,
+    )
+}
+
+/// Derive and publish a case-scoped campaign report against its exact matrix authority.
+///
+/// # Errors
+/// Returns an error when the plan and matrix identities differ, or under the same evidence,
+/// science, source, and no-clobber conditions as [`publish_benchmark_campaign_report`].
+pub fn publish_case_benchmark_campaign_report(
+    repository_root: &Path,
+    study_root: &Path,
+    benchmark_root: &Path,
+    plan: &BenchmarkCampaignPlan,
+    case_matrix: &BenchmarkCaseMatrixV2,
+    output_root: &Path,
+) -> Result<BenchmarkCampaignReportPublication> {
+    publish_case_benchmark_campaign_report_with_presentation_authority(
+        repository_root,
+        repository_root,
+        study_root,
+        benchmark_root,
+        plan,
+        case_matrix,
+        output_root,
+    )
+}
+
+/// Publish a case-scoped campaign using exact matrix and render-only presentation authorities.
+///
+/// # Errors
+/// Returns an error under the same conditions as [`publish_case_benchmark_campaign_report`], or
+/// when the presentation repository cannot complete a historical interface catalog.
+pub fn publish_case_benchmark_campaign_report_with_presentation_authority(
+    repository_root: &Path,
+    presentation_repository_root: &Path,
+    study_root: &Path,
+    benchmark_root: &Path,
+    plan: &BenchmarkCampaignPlan,
+    case_matrix: &BenchmarkCaseMatrixV2,
+    output_root: &Path,
+) -> Result<BenchmarkCampaignReportPublication> {
+    publish_benchmark_campaign_report_with_source_authority(
+        repository_root,
+        presentation_repository_root,
+        study_root,
+        benchmark_root,
+        plan,
+        BenchmarkCampaignPlanSource::CaseMatrix(case_matrix),
+        output_root,
+    )
+}
+
+fn publish_benchmark_campaign_report_with_source_authority(
+    repository_root: &Path,
+    presentation_repository_root: &Path,
+    study_root: &Path,
+    benchmark_root: &Path,
+    plan: &BenchmarkCampaignPlan,
+    source_authority: BenchmarkCampaignPlanSource<'_>,
+    output_root: &Path,
+) -> Result<BenchmarkCampaignReportPublication> {
     let first = plan.cycle.attempts.first().context("benchmark campaign plan has no attempts")?;
     let run_id = first.identity.run.run_id.as_str();
     let stage_id = first.identity.run.stage_id.as_str();
@@ -149,6 +219,7 @@ pub fn publish_benchmark_campaign_report_with_presentation_authority(
         study_root,
         benchmark_root,
         plan,
+        source_authority,
         output_root,
     )?;
     let publication = BenchmarkCampaignReportPublication {
