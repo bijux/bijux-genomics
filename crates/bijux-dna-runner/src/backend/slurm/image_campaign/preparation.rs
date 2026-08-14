@@ -130,7 +130,7 @@ fn render_script(spec: &ImageCampaignSlurmSpec, specification_sha256: &str) -> S
     .join("\n")
 }
 
-fn ensure_attempt_root(spec: &ImageCampaignSlurmSpec) -> Result<PathBuf> {
+pub(super) fn ensure_attempt_root(spec: &ImageCampaignSlurmSpec) -> Result<PathBuf> {
     let mut current = spec.study_root.clone();
     for component in [
         "containers",

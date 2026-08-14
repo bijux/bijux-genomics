@@ -8,9 +8,10 @@ use bijux_dna_containers::api::{
 };
 use bijux_dna_runner::api::{
     collect_image_campaign_slurm_job, observe_image_campaign_slurm_job,
-    prepare_image_campaign_slurm_job, submit_prepared_image_campaign_job,
-    ImageCampaignEvidenceStatus, ImageCampaignSlurmResources, ImageCampaignSlurmSpec,
-    SlurmClientPaths, SlurmJobState, IMAGE_CAMPAIGN_SLURM_SPEC_SCHEMA_V1,
+    plan_image_campaign_slurm_spec, prepare_image_campaign_slurm_job,
+    submit_prepared_image_campaign_job, ImageCampaignEvidenceStatus, ImageCampaignSlurmPlanRequest,
+    ImageCampaignSlurmResources, ImageCampaignSlurmSpec, SlurmClientPaths, SlurmJobState,
+    IMAGE_CAMPAIGN_SLURM_SPEC_SCHEMA_V1,
 };
 
 #[cfg(unix)]
@@ -82,6 +83,39 @@ fn fixture() -> anyhow::Result<Fixture> {
         },
     };
     Ok(Fixture { root, spec })
+}
+
+#[cfg(unix)]
+#[test]
+fn image_campaign_planning_derives_source_and_catalog_authorities() -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    let request = ImageCampaignSlurmPlanRequest {
+        repository_path: fixture.spec.repository_path.clone(),
+        executable_path: fixture.spec.executable_path.clone(),
+        study_root: fixture.spec.study_root.clone(),
+        apptainer_path: fixture.spec.apptainer_path.clone(),
+        attempt_id: fixture.spec.attempt_id.clone(),
+        selected_tools: vec!["picard".to_string(), "bijux_dna".to_string()],
+        worker_count: fixture.spec.worker_count,
+        resources: fixture.spec.resources.clone(),
+    };
+
+    let planned = plan_image_campaign_slurm_spec(&request)?;
+    assert_eq!(planned, fixture.spec);
+    assert_eq!(plan_image_campaign_slurm_spec(&request)?, planned);
+    assert_eq!(
+        bijux_dna_runner::api::load_image_campaign_slurm_spec(
+            &planned.attempt_root.join("image-campaign-spec.json"),
+        )?,
+        planned
+    );
+
+    let mut invalid = request;
+    invalid.attempt_id = "attempt-unknown".to_string();
+    invalid.selected_tools = vec!["not-a-retained-tool".to_string()];
+    assert!(plan_image_campaign_slurm_spec(&invalid)
+        .is_err_and(|error| error.to_string().contains("unknown or non-retained")));
+    Ok(())
 }
 
 #[cfg(unix)]

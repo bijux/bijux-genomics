@@ -34,11 +34,12 @@ pub use super::corpus_materialization::{
 pub use super::image_campaign::{
     collect_image_campaign_slurm_job, load_image_campaign_slurm_job_handle,
     load_image_campaign_slurm_spec, load_prepared_image_campaign_slurm_job,
-    observe_image_campaign_slurm_job, prepare_image_campaign_slurm_job,
-    submit_prepared_image_campaign_job, ImageCampaignCollection, ImageCampaignEvidence,
-    ImageCampaignEvidenceStatus, ImageCampaignSlurmResources, ImageCampaignSlurmSpec,
-    PreparedImageCampaignSlurmJob, IMAGE_CAMPAIGN_EVIDENCE_SCHEMA_V1,
-    IMAGE_CAMPAIGN_PREPARED_JOB_SCHEMA_V1, IMAGE_CAMPAIGN_SLURM_SPEC_SCHEMA_V1,
+    observe_image_campaign_slurm_job, plan_image_campaign_slurm_spec,
+    prepare_image_campaign_slurm_job, submit_prepared_image_campaign_job, ImageCampaignCollection,
+    ImageCampaignEvidence, ImageCampaignEvidenceStatus, ImageCampaignSlurmPlanRequest,
+    ImageCampaignSlurmResources, ImageCampaignSlurmSpec, PreparedImageCampaignSlurmJob,
+    IMAGE_CAMPAIGN_EVIDENCE_SCHEMA_V1, IMAGE_CAMPAIGN_PREPARED_JOB_SCHEMA_V1,
+    IMAGE_CAMPAIGN_SLURM_SPEC_SCHEMA_V1,
 };
 pub use super::managed_job::{
     collect_managed_slurm_job, load_managed_slurm_job_handle, load_managed_slurm_job_spec,
