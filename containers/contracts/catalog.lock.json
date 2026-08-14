@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "7dc269495d5dcb614763e84b13751b1f7f5f7ff8f2c7d66c7a3485b63c8ac904",
+  "source_sha256": "7315eeaae2364f99df38ad66fa46d9a2b3e3dc64d8757619b714df94de9d780a",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -71,12 +71,12 @@
       "redistribution_permitted": true,
       "delivery_reason": "",
       "upstream": "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer",
-      "license": "GPL-3.0",
+      "license": "AGPL-3.0-only",
       "source_sha256": "5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730",
       "pinned_commit": "6ec40283b87f845dbb833342633258c8e7c18333",
       "apptainer_definition": "containers/apptainer/alientrimmer.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.alientrimmer",
-      "contract_sha256": "eacbe634ead932c67acb2536d9ea59390bfbd204604d6526045292a6a5a5c124"
+      "contract_sha256": "85ac7e52dae81ae94d9471c4a63a793f86dd8c8c503191293110d1d490a7b592"
     },
     {
       "id": "angsd",

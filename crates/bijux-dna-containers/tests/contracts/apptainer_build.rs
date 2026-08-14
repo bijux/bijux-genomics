@@ -103,6 +103,47 @@ fn alientrimmer_source_download_retries_transient_resets_within_a_bounded_build(
 }
 
 #[test]
+fn alientrimmer_license_authorities_preserve_upstream_agpl_identity() -> anyhow::Result<()> {
+    let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let catalog: toml::Value = toml::from_str(&std::fs::read_to_string(
+        workspace.join("containers/contracts/catalog.toml"),
+    )?)?;
+    let catalog_tool = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .and_then(|tools| {
+            tools
+                .iter()
+                .find(|tool| tool.get("id").and_then(toml::Value::as_str) == Some("alientrimmer"))
+        })
+        .ok_or_else(|| anyhow::anyhow!("canonical catalog omits alientrimmer"))?;
+    assert_eq!(catalog_tool.get("license").and_then(toml::Value::as_str), Some("AGPL-3.0-only"));
+
+    let versions: toml::Value = toml::from_str(&std::fs::read_to_string(
+        workspace.join("containers/versions/versions.toml"),
+    )?)?;
+    assert_eq!(
+        versions
+            .get("alientrimmer")
+            .and_then(|tool| tool.get("upstream_license"))
+            .and_then(toml::Value::as_str),
+        Some("AGPL-3.0-only")
+    );
+
+    for path in
+        ["containers/apptainer/alientrimmer.def", "containers/docker/Dockerfile.arm64.alientrimmer"]
+    {
+        let recipe = std::fs::read_to_string(workspace.join(path))?;
+        assert!(
+            recipe.contains("org.opencontainers.image.licenses AGPL-3.0-only")
+                || recipe.contains("org.opencontainers.image.licenses=\"AGPL-3.0-only\""),
+            "AlienTrimmer recipe does not preserve upstream AGPL identity: {path}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
 fn bowtie2_wrapper_derives_and_removes_a_scratch_reference_index() -> anyhow::Result<()> {
     let workspace = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let wrapper = std::fs::read_to_string(workspace.join("containers/tools/bowtie2/bowtie2"))?;

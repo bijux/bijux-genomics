@@ -20,7 +20,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 |---|---|---|---|---|---|---|---|---|
 | `adapterremoval` | `supported` | `redistributable_image` | `true` | `bijux` | `GPL-3.0` | `https://github.com/MikkelSchubert/adapterremoval` | `2.3.4` | `sha256:47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20` |
 | `addeam` | `supported` | `redistributable_image` | `true` | `bijux` | `GPL-3.0-only` | `https://github.com/LouisPwr/AdDeam` | `1.0.0` | `sha256:baf975b48cf42cf7f4c49428182f6faaf4996707984b353b7cccaa80daf7da40` |
-| `alientrimmer` | `supported` | `redistributable_image` | `true` | `bijux` | `GPL-3.0` | `https://gitlab.pasteur.fr/GIPhy/AlienTrimmer` | `3.2` | `sha256:5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730` |
+| `alientrimmer` | `supported` | `redistributable_image` | `true` | `bijux` | `AGPL-3.0-only` | `https://gitlab.pasteur.fr/GIPhy/AlienTrimmer` | `3.2` | `sha256:5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730` |
 | `angsd` | `supported` | `external_artifact` | `false` | `bijux` | `NOASSERTION` | `https://github.com/ANGSD/angsd` | `0.941` | `sha256:e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7` |
 | `atropos` | `supported` | `redistributable_image` | `true` | `bijux` | `MIT AND CC0-1.0` | `https://github.com/jdidion/atropos` | `1.1.31` | `sha256:7f23fc141336f508d4198cd491cf223082811d83a0607999c22dc80ca4ed4874` |
 | `authenticct` | `supported` | `redistributable_image` | `true` | `bijux` | `GPL-3.0-only` | `https://github.com/StephanePeyregne/AuthentiCT` | `1.0.0` | `sha256:179b79fa0e23ed18c2cc9338055a691575addc513a6e3765d912bb728c249834` |

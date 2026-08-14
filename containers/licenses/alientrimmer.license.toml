@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "alientrimmer"
 container_kind = "bijux"
-spdx = "GPL-3.0"
-upstream_license_id = "GPL-3.0"
+spdx = "AGPL-3.0-only"
+upstream_license_id = "AGPL-3.0-only"
 upstream_url = "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer"
 upstream_version = "3.2"
 upstream_checksum = "sha256:5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730"
