@@ -222,6 +222,45 @@ mod tests {
     }
 
     #[test]
+    fn benchmark_cycle_retry_retains_prior_and_current_case_authorities() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "retry",
+            "--benchmark-root",
+            "artifacts/benchmark-cycle/evidence",
+            "--case-matrix",
+            "artifacts/benchmark-cycle/current-cases.json",
+            "--prior-plan",
+            "artifacts/benchmark-cycle/prior-plan.json",
+            "--prior-case-matrix",
+            "artifacts/benchmark-cycle/prior-cases.json",
+            "--attempt-id",
+            "attempt-002",
+            "--observed-at-utc",
+            "2026-08-10T00:02:00Z",
+            "--output",
+            "artifacts/benchmark-cycle/retry-plan.json",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        let BenchCycleCommand::Retry(args) = command else {
+            panic!("expected benchmark cycle retry command");
+        };
+        assert_eq!(args.attempt_id, "attempt-002");
+        assert_eq!(
+            args.prior_case_matrix,
+            std::path::Path::new("artifacts/benchmark-cycle/prior-cases.json")
+        );
+        Ok(())
+    }
+
+    #[test]
     fn benchmark_cycle_status_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",

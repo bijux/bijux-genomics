@@ -18,6 +18,8 @@ pub enum BenchCycleCommand {
     Publish(BenchCyclePublishArgs),
     /// Compare regenerated semantic artifacts with a selected publication.
     Replay(BenchCycleReplayArgs),
+    /// Plan explicit retries from terminal case-scoped attempt lineage.
+    Retry(BenchCycleRetryArgs),
     /// Read the persisted lifecycle state for every attempt in one campaign.
     Status(BenchCycleStatusArgs),
 }
@@ -152,6 +154,26 @@ pub struct BenchCyclePlanArgs {
     pub case_matrix: Option<PathBuf>,
     #[arg(long)]
     pub campaign_id: String,
+    #[arg(long)]
+    pub attempt_id: String,
+    #[arg(long)]
+    pub observed_at_utc: String,
+    #[arg(long)]
+    pub output: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleRetryArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub benchmark_root: PathBuf,
+    #[arg(long)]
+    pub case_matrix: PathBuf,
+    #[arg(long)]
+    pub prior_plan: PathBuf,
+    #[arg(long)]
+    pub prior_case_matrix: PathBuf,
     #[arg(long)]
     pub attempt_id: String,
     #[arg(long)]
