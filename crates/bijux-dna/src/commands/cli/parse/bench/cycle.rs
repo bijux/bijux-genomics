@@ -141,6 +141,8 @@ pub struct BenchCyclePlanArgs {
     #[arg(long)]
     pub run_id: String,
     #[arg(long)]
+    pub case_matrix: Option<PathBuf>,
+    #[arg(long)]
     pub campaign_id: String,
     #[arg(long)]
     pub attempt_id: String,

@@ -180,6 +180,7 @@ pub(crate) fn handle_meta_commands(
                             &bijux_dna_api::v1::api::bench::BenchmarkCyclePlanRequest {
                                 repository_root: args.repository_root.clone(),
                                 run_id: args.run_id.clone(),
+                                case_matrix: args.case_matrix.clone(),
                                 campaign_id: args.campaign_id.clone(),
                                 attempt_id: args.attempt_id.clone(),
                                 observed_at_utc: args.observed_at_utc.clone(),

@@ -13,8 +13,10 @@ use bijux_dna_bench_model::{
     BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkLifecycleStatus,
 };
 
-use super::{plan_stage_campaign_attempts, verify_campaign_plan_source};
-use crate::workflow::load_stage_campaign_registry;
+use super::{
+    plan_benchmark_case_attempts, plan_stage_campaign_attempts, verify_campaign_plan_source,
+};
+use crate::workflow::{load_benchmark_case_matrix, load_stage_campaign_registry};
 
 const CAMPAIGN_REGISTRY_PATH: &str = "benchmarks/contracts/stage-campaigns.toml";
 const MAX_PLAN_BYTES: u64 = 16 * 1024 * 1024;
@@ -24,6 +26,7 @@ const MAX_PLAN_BYTES: u64 = 16 * 1024 * 1024;
 pub struct BenchmarkCyclePlanRequest {
     pub repository_root: PathBuf,
     pub run_id: String,
+    pub case_matrix: Option<PathBuf>,
     pub campaign_id: String,
     pub attempt_id: String,
     pub observed_at_utc: String,
@@ -70,16 +73,32 @@ pub fn plan_checked_in_benchmark_campaign(
             .context("require a clean benchmark cycle source repository")?;
     let campaign_registry_sha256 = bijux_dna_infra::hash_file_sha256(&campaign_registry_path)
         .context("hash benchmark campaign registry")?;
-    let registry = load_stage_campaign_registry(&campaign_registry_path)?;
-    let plan = plan_stage_campaign_attempts(
-        &registry,
-        &repository_commit,
-        &campaign_registry_sha256,
-        &request.run_id,
-        &request.campaign_id,
-        &request.attempt_id,
-        &request.observed_at_utc,
-    )?;
+    let plan = if let Some(case_matrix_path) = &request.case_matrix {
+        let matrix = load_benchmark_case_matrix(case_matrix_path)?;
+        if matrix.repository_commit != repository_commit
+            || matrix.campaign_registry_sha256 != campaign_registry_sha256
+            || matrix.cases.iter().any(|case| case.run_id != request.run_id)
+        {
+            bail!("benchmark case matrix differs from the requested source-locked run");
+        }
+        plan_benchmark_case_attempts(
+            &matrix,
+            &request.campaign_id,
+            &request.attempt_id,
+            &request.observed_at_utc,
+        )?
+    } else {
+        let registry = load_stage_campaign_registry(&campaign_registry_path)?;
+        plan_stage_campaign_attempts(
+            &registry,
+            &repository_commit,
+            &campaign_registry_sha256,
+            &request.run_id,
+            &request.campaign_id,
+            &request.attempt_id,
+            &request.observed_at_utc,
+        )?
+    };
     publish_plan(&request.output, &plan)?;
     Ok(plan)
 }
@@ -379,6 +398,7 @@ mod tests {
         let mut request = BenchmarkCyclePlanRequest {
             repository_root: repository.path().to_path_buf(),
             run_id: "run-2002".to_string(),
+            case_matrix: None,
             campaign_id: "campaign-run-2002".to_string(),
             attempt_id: "attempt-0001".to_string(),
             observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
@@ -402,6 +422,7 @@ mod tests {
         let plan = plan_checked_in_benchmark_campaign(&BenchmarkCyclePlanRequest {
             repository_root: repository.path().to_path_buf(),
             run_id: "run-2002".to_string(),
+            case_matrix: None,
             campaign_id: "campaign-run-2002".to_string(),
             attempt_id: "attempt-0001".to_string(),
             observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
@@ -437,6 +458,7 @@ mod tests {
         let result = plan_checked_in_benchmark_campaign(&BenchmarkCyclePlanRequest {
             repository_root: repository.path().to_path_buf(),
             run_id: "run-2002".to_string(),
+            case_matrix: None,
             campaign_id: "campaign-run-2002".to_string(),
             attempt_id: "attempt-0001".to_string(),
             observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
@@ -454,6 +476,7 @@ mod tests {
         let plan = plan_checked_in_benchmark_campaign(&BenchmarkCyclePlanRequest {
             repository_root: repository.path().to_path_buf(),
             run_id: "run-2002".to_string(),
+            case_matrix: None,
             campaign_id: "campaign-run-2002".to_string(),
             attempt_id: "attempt-0001".to_string(),
             observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
