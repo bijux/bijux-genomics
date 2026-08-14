@@ -368,6 +368,11 @@ pub fn build_execution_spec(
     }
     let mut acceptance = material.acceptance;
     acceptance.version_regex.clone_from(&tool.expected_version_regex);
+    let mut source_contract_sha256 = material.source_contract_sha256;
+    if let Some(admission_sha256) = &image.external_artifact_admission_sha256 {
+        source_contract_sha256
+            .insert("external_artifact_admission".to_string(), admission_sha256.clone());
+    }
     let spec = BenchmarkExecutionSpec {
         schema_version: BENCHMARK_EXECUTION_SPEC_SCHEMA_V1.to_string(),
         identity: identity.clone(),
@@ -376,7 +381,7 @@ pub fn build_execution_spec(
         source: BenchmarkExecutionSourceLock {
             repository_commit: plan.repository_commit.clone(),
             repository_path: material.repository_path.display().to_string(),
-            contract_sha256: material.source_contract_sha256,
+            contract_sha256: source_contract_sha256,
         },
         image: BenchmarkExecutionImage {
             path: image.path.display().to_string(),

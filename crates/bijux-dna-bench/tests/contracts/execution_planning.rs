@@ -62,6 +62,7 @@ fn image() -> CurrentApptainerImage {
         size_bytes: 42,
         repository_commit: "a".repeat(40),
         catalog_sha256: "d".repeat(64),
+        external_artifact_admission_sha256: None,
     }
 }
 
@@ -803,6 +804,21 @@ fn execution_builder_is_deterministic_for_identical_authorities() -> anyhow::Res
     let first = build(&catalog, &image())?;
     let second = build(&catalog, &image())?;
     assert_eq!(serde_json::to_vec(&first)?, serde_json::to_vec(&second)?);
+    Ok(())
+}
+
+#[test]
+fn execution_builder_persists_external_artifact_admission_identity() -> anyhow::Result<()> {
+    let (_, _, catalog) = authorities()?;
+    let mut selected = image();
+    selected.external_artifact_admission_sha256 = Some("e".repeat(64));
+
+    let spec = build(&catalog, &selected)?;
+
+    assert_eq!(
+        spec.source.contract_sha256.get("external_artifact_admission"),
+        Some(&"e".repeat(64))
+    );
     Ok(())
 }
 

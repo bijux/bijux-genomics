@@ -20,6 +20,7 @@ pub struct CurrentApptainerImage {
     pub size_bytes: u64,
     pub repository_commit: String,
     pub catalog_sha256: String,
+    pub external_artifact_admission_sha256: Option<String>,
 }
 
 /// Resolve one image only after binding the inventory to its catalog and repository source lock.
@@ -100,12 +101,20 @@ pub fn resolve_catalog_locked_apptainer_artifact(
         .join(repository_commit)
         .join(format!("{tool_id}.json"));
     let distributable_image_root = study_root.join("containers/current-images");
+    let external_artifact_admission_sha256 = bijux_dna_infra::hash_file_sha256(&admission_path)
+        .with_context(|| format!("hash external artifact admission for {tool_id}"))?;
     let admission = verify_external_artifact_admission(
         repository_root,
         &distributable_image_root,
         &admission_path,
     )
     .with_context(|| format!("verify external artifact admission for {tool_id}"))?;
+    if bijux_dna_infra::hash_file_sha256(&admission_path)
+        .with_context(|| format!("rehash external artifact admission for {tool_id}"))?
+        != external_artifact_admission_sha256
+    {
+        bail!("external artifact admission changed during verification for {tool_id}");
+    }
     if admission.repository_commit != repository_commit
         || admission.catalog.sha256 != catalog_sha256
         || admission.tool_id != tool_id
@@ -149,6 +158,7 @@ pub fn resolve_catalog_locked_apptainer_artifact(
         size_bytes: artifact.size_bytes,
         repository_commit: admission.repository_commit,
         catalog_sha256: admission.catalog.sha256,
+        external_artifact_admission_sha256: Some(external_artifact_admission_sha256),
     })
 }
 
@@ -220,6 +230,7 @@ fn resolve_current_apptainer_image(
         size_bytes: candidate.size_bytes,
         repository_commit: publication.repository_commit.clone(),
         catalog_sha256: publication.catalog_sha256.clone(),
+        external_artifact_admission_sha256: None,
     })
 }
 

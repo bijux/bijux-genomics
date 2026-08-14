@@ -202,6 +202,10 @@ fn delivery_aware_resolution_reverifies_external_apptainer_authority() -> anyhow
     assert_eq!(selected.path, artifact);
     assert_eq!(selected.sha256, artifact_sha256);
     assert_eq!(selected.repository_commit, repository_commit);
+    assert_eq!(
+        selected.external_artifact_admission_sha256,
+        Some(bijux_dna_infra::hash_file_sha256(&admission_root.join("seqkit.json"))?)
+    );
 
     let mut blocked = admission.clone();
     blocked.availability = ExternalArtifactAdmissionStatus::BlockedExternalAccess;
@@ -293,6 +297,7 @@ fn current_image_resolution_rechecks_absolute_file_identity() -> anyhow::Result<
     assert_eq!(selected.sha256, digest);
     assert_eq!(selected.repository_commit, "b".repeat(40));
     assert_eq!(selected.catalog_sha256, "a".repeat(64));
+    assert_eq!(selected.external_artifact_admission_sha256, None);
     Ok(())
 }
 
