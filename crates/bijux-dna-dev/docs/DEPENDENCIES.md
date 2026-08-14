@@ -12,7 +12,9 @@ This crate is allowed to depend on stable workspace primitives and developer-pol
 - `bijux-dna-runner` is used only through its stable facade to materialize or invoke typed,
   non-waiting scheduler effects; runner retains backend execution ownership.
 - `bijux-dna-policies` owns verdict derivation consumed by thin developer composition commands.
-- `clap`, `anyhow`, `serde`, `serde_json`, `toml`, `regex`, `sha2`, `chrono`, `walkdir`, and `reqwest` support CLI parsing, error context, structured data, checksums, deterministic traversal, and explicit automation workflows.
+- `clap`, `anyhow`, `serde`, `serde_json`, `toml`, `regex`, `aho-corasick`, `sha2`, `chrono`,
+  `walkdir`, and `reqwest` support CLI parsing, error context, structured data, checksums,
+  bounded multi-pattern caller analysis, deterministic traversal, and explicit automation workflows.
 
 ## Allowed direction
 - `bijux-dna-dev` may depend on low-level shared crates that do not depend back on it.

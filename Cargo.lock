@@ -494,6 +494,7 @@ dependencies = [
 name = "bijux-dna-dev"
 version = "0.1.0"
 dependencies = [
+ "aho-corasick",
  "anyhow",
  "bijux-dna-api",
  "bijux-dna-bench",

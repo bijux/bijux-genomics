@@ -38,6 +38,7 @@ license = "Apache-2.0"
 rust-version = "1.95"
 
 [workspace.dependencies]
+aho-corasick = "1"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }

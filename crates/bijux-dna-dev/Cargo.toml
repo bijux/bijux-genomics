@@ -6,6 +6,7 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+aho-corasick.workspace = true
 anyhow.workspace = true
 bijux-dna-api.workspace = true
 bijux-dna-bench.workspace = true
