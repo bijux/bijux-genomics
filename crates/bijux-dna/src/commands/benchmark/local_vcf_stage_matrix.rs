@@ -3,70 +3,32 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_local_vcf_stage_matrix_config, validate_local_vcf_stage_matrix_report,
+    validate_vcf_stage_matrix_validation_report, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1,
+    LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1, VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1,
+};
 use bijux_dna_domain_vcf::run::VcfBenchCorpusId;
 use bijux_dna_domain_vcf::VcfDomainStage;
 use bijux_dna_stages_vcf::stage_specs::{
     vcf_domain_stage_adapter_id, vcf_domain_stage_expected_output_ids, vcf_domain_stage_parser_id,
 };
-use serde::{Deserialize, Serialize};
 
 use super::local_vcf_stage_catalog::{build_vcf_stage_catalog_rows, VcfStageCatalogRow};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    LocalVcfStageMatrixConfig, LocalVcfStageMatrixReport, ValidateVcfStageMatrixReport,
+    VcfStageMatrixRow,
+};
 
 pub(crate) const DEFAULT_VCF_STAGE_MATRIX_PATH: &str = "configs/bench/local/vcf-stage-matrix.toml";
-const LOCAL_VCF_STAGE_MATRIX_SCHEMA_VERSION: &str = "bijux.bench.vcf.local_stage_matrix.v1";
-const LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_stage_matrix.v1";
-const VCF_STAGE_MATRIX_VALIDATION_SCHEMA_VERSION: &str = "bijux.bench.validate_matrix.v1";
 const LOCAL_VCF_STAGE_MATRIX_HEADER: &str = "# schema_version = 1\n\
 # owner = bijux-dna-bench\n\
 # purpose = Governed VCF local benchmark stage matrix.\n\
 # authority = bijux-dna-bench\n\
 # stability = evolving\n\
 # last_updated = 2026-06-25\n\n";
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct LocalVcfStageMatrixConfig {
-    pub(crate) schema_version: String,
-    pub(crate) rows: Vec<VcfStageMatrixRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct VcfStageMatrixRow {
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) adapter_id: String,
-    pub(crate) parser_id: String,
-    pub(crate) expected_outputs: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalVcfStageMatrixReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) config_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) supported_stage_count: usize,
-    pub(crate) planned_stage_count: usize,
-    pub(crate) rows: Vec<VcfStageMatrixRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct ValidateMatrixReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) domain: &'static str,
-    pub(crate) matrix_path: String,
-    pub(crate) strict: bool,
-    pub(crate) row_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) required_tool_count: usize,
-    pub(crate) registry_tool_count: usize,
-    pub(crate) rows: Vec<VcfStageMatrixRow>,
-}
 
 pub(crate) fn run_render_vcf_stage_matrix(
     args: &parse::BenchLocalRenderVcfStageMatrixArgs,
@@ -108,7 +70,7 @@ pub(crate) fn render_vcf_stage_matrix(
     let output_path = repo_relative_path(repo_root, &output_path);
     let rows = build_vcf_stage_matrix_rows()?;
     let config = LocalVcfStageMatrixConfig {
-        schema_version: LOCAL_VCF_STAGE_MATRIX_SCHEMA_VERSION.to_string(),
+        schema_version: LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1.to_string(),
         rows: rows.clone(),
     };
     let body = toml::to_string_pretty(&config).context("serialize VCF stage matrix TOML")?;
@@ -127,33 +89,36 @@ pub(crate) fn render_vcf_stage_matrix(
     let planned_stage_count =
         catalog_rows.iter().filter(|row| row_support_status(row) == "planned").count();
 
-    Ok(LocalVcfStageMatrixReport {
-        schema_version: LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_VERSION,
+    let report = LocalVcfStageMatrixReport {
+        schema_version: LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1.to_string(),
         config_path: path_relative_to_repo(repo_root, &output_path),
         row_count: rows.len(),
         stage_count,
         supported_stage_count,
         planned_stage_count,
         rows,
-    })
+    };
+    validate_local_vcf_stage_matrix_report(&report)?;
+    Ok(report)
 }
 
 pub(crate) fn validate_vcf_stage_matrix(
     repo_root: &Path,
     matrix_path: PathBuf,
     strict: bool,
-) -> Result<ValidateMatrixReport> {
+) -> Result<ValidateVcfStageMatrixReport> {
     let matrix_path = repo_relative_path(repo_root, &matrix_path);
     let raw = fs::read_to_string(&matrix_path)
         .with_context(|| format!("read {}", matrix_path.display()))?;
     let parsed: LocalVcfStageMatrixConfig =
         toml::from_str(&raw).context("parse VCF stage matrix TOML")?;
-    if parsed.schema_version != LOCAL_VCF_STAGE_MATRIX_SCHEMA_VERSION {
+    if parsed.schema_version != LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1 {
         bail!(
-            "VCF stage matrix schema drift: expected `{LOCAL_VCF_STAGE_MATRIX_SCHEMA_VERSION}`, found `{}`",
+            "VCF stage matrix schema drift: expected `{LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1}`, found `{}`",
             parsed.schema_version
         );
     }
+    validate_local_vcf_stage_matrix_config(&parsed)?;
 
     let expected_rows = build_vcf_stage_matrix_rows()?;
     if strict && parsed.rows != expected_rows {
@@ -168,9 +133,9 @@ pub(crate) fn validate_vcf_stage_matrix(
     validate_matrix_rows(&parsed.rows, &required_tools, &registry_tools)?;
     validate_stage_coverage(&parsed.rows, &expected_rows)?;
 
-    Ok(ValidateMatrixReport {
-        schema_version: VCF_STAGE_MATRIX_VALIDATION_SCHEMA_VERSION,
-        domain: "vcf",
+    let report = ValidateVcfStageMatrixReport {
+        schema_version: VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1.to_string(),
+        domain: "vcf".to_string(),
         matrix_path: path_relative_to_repo(repo_root, &matrix_path),
         strict,
         row_count: parsed.rows.len(),
@@ -183,7 +148,9 @@ pub(crate) fn validate_vcf_stage_matrix(
         required_tool_count: required_tools.len(),
         registry_tool_count: registry_tools.len(),
         rows: parsed.rows,
-    })
+    };
+    validate_vcf_stage_matrix_validation_report(&report)?;
+    Ok(report)
 }
 
 pub(crate) fn build_vcf_stage_matrix_rows() -> Result<Vec<VcfStageMatrixRow>> {
@@ -372,8 +339,8 @@ mod tests {
 
     use super::{
         build_vcf_stage_matrix_rows, render_vcf_stage_matrix, validate_vcf_stage_matrix,
-        DEFAULT_VCF_STAGE_MATRIX_PATH, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_VERSION,
-        LOCAL_VCF_STAGE_MATRIX_SCHEMA_VERSION, VCF_STAGE_MATRIX_VALIDATION_SCHEMA_VERSION,
+        DEFAULT_VCF_STAGE_MATRIX_PATH, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1,
+        LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1, VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1,
     };
 
     fn repo_root() -> PathBuf {
@@ -439,7 +406,7 @@ mod tests {
             render_vcf_stage_matrix(&repo_root, PathBuf::from(DEFAULT_VCF_STAGE_MATRIX_PATH))
                 .expect("render VCF stage matrix");
 
-        assert_eq!(report.schema_version, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1);
         assert_eq!(report.config_path, DEFAULT_VCF_STAGE_MATRIX_PATH);
         assert_eq!(report.row_count, 20);
         assert_eq!(report.stage_count, 20);
@@ -460,7 +427,7 @@ mod tests {
         )
         .expect("validate VCF stage matrix");
 
-        assert_eq!(report.schema_version, VCF_STAGE_MATRIX_VALIDATION_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1);
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.matrix_path, DEFAULT_VCF_STAGE_MATRIX_PATH);
         assert!(report.strict);
@@ -473,7 +440,7 @@ mod tests {
             .expect("read matrix file");
         let config: super::LocalVcfStageMatrixConfig =
             toml::from_str(&parsed).expect("parse matrix file");
-        assert_eq!(config.schema_version, LOCAL_VCF_STAGE_MATRIX_SCHEMA_VERSION);
+        assert_eq!(config.schema_version, LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1);
         assert_eq!(config.rows, report.rows);
     }
 }

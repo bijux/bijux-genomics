@@ -22,6 +22,14 @@ pub use bijux_dna_bench_model::{
     STAGE_TOOL_CONTAINERS_SCOPE, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_SCOPE,
     VCF_STAGE_TOOL_RESOURCE_ORIGIN,
 };
+pub use bijux_dna_bench_model::{
+    local_vcf_stage_matrix_config_schema, local_vcf_stage_matrix_report_schema,
+    validate_local_vcf_stage_matrix_config, validate_local_vcf_stage_matrix_report,
+    validate_vcf_stage_matrix_report_schema, validate_vcf_stage_matrix_validation_report,
+    LocalVcfStageMatrixConfig, LocalVcfStageMatrixReport, ValidateVcfStageMatrixReport,
+    VcfStageMatrixRow, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1, LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1,
+    VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1,
+};
 
 pub use crate::workflow::{
     appraise_matrix_report, build_full_benchmark_comparable_metric_rows,

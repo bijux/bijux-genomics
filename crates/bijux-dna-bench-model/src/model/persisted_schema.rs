@@ -520,6 +520,18 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
             super::benchmark_local_vcf_smoke_suite_schema,
         ),
         PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/local-vcf-stage-matrix.schema.json",
+            super::local_vcf_stage_matrix_config_schema,
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/local-vcf-stage-matrix-report.schema.json",
+            super::local_vcf_stage_matrix_report_schema,
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/validate-vcf-stage-matrix-report.schema.json",
+            super::validate_vcf_stage_matrix_report_schema,
+        ),
+        PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/stage-tool-benchmark-ready.schema.json",
             super::stage_tool_benchmark_ready_schema,
         ),

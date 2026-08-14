@@ -54,6 +54,7 @@ pub mod local_stage_completion;
 pub mod local_stage_fake_run;
 pub mod local_stage_inventory;
 pub mod local_vcf_smoke;
+pub mod local_vcf_stage_matrix;
 pub mod materialization;
 pub mod normalized_result;
 pub mod observation;
@@ -458,6 +459,12 @@ pub use local_vcf_smoke::{
     benchmark_local_vcf_smoke_suite_schema, BenchmarkLocalVcfSmokeGoalCheck,
     BenchmarkLocalVcfSmokeGoalContract, BenchmarkLocalVcfSmokeSuiteReport,
     BENCHMARK_LOCAL_VCF_SMOKE_GOALS, BENCHMARK_LOCAL_VCF_SMOKE_OUTPUT_PATH,
+};
+#[allow(unused_imports)]
+pub use local_vcf_stage_matrix::{
+    local_vcf_stage_matrix_config_schema, local_vcf_stage_matrix_report_schema,
+    validate_vcf_stage_matrix_report_schema, LocalVcfStageMatrixConfig, LocalVcfStageMatrixReport,
+    ValidateVcfStageMatrixReport, VcfStageMatrixRow,
 };
 #[allow(unused_imports)]
 pub use materialization::{
