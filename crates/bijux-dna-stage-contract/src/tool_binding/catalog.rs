@@ -1143,7 +1143,7 @@ fn validate_reads_binding(
         &[output("validation_report", JSON), output("validated_reads_manifest", JSON)],
         &["/bin/sh", "-c", &command],
         "bijux.benchmark.fastq.validate_reads.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::pre::validate_reads",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads",
         "benchmark.fastq.validate_reads.compare",
         resources(4, 8, 4),
         &[
@@ -1168,7 +1168,7 @@ fn seqfu_profile_read_lengths() -> ToolBindingV1 {
             "'${executable}' tab '${input:reads_r1}' | awk -F '\\t' '{print $1 \"\\t\" length($3)}' > '${output:length_distribution_tsv}'",
         ],
         "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths",
         "benchmark.fastq.profile_read_lengths.compare",
         resources(1, 4, 4),
         &[
@@ -1193,7 +1193,7 @@ fn seqfu_profile_reads() -> ToolBindingV1 {
             "'${executable}' stats --threads '${parameter:threads}' --gc '${input:reads_r1}' > '${output:qc_tsv}'",
         ],
         "bijux.benchmark.fastq.profile_reads.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads",
         "benchmark.fastq.profile_reads.compare",
         resources(4, 4, 4),
         &[
@@ -1217,7 +1217,7 @@ fn seqkit_profile_read_lengths() -> ToolBindingV1 {
             "'${executable}' fx2tab --name --only-id --length --threads '${parameter:threads}' '${input:reads_r1}' | awk -F '\\t' 'NF < 2 { exit 2 } { print $1 \"\\t\" $NF }' > '${output:length_distribution_tsv}'",
         ],
         "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths",
         "benchmark.fastq.profile_read_lengths.compare",
         resources(4, 4, 4),
         &[
@@ -1242,7 +1242,7 @@ fn seqkit_profile_reads() -> ToolBindingV1 {
             "'${executable}' stats -a -T -j '${parameter:threads}' '${input:reads_r1}' > '${output:qc_tsv}'",
         ],
         "bijux.benchmark.fastq.profile_reads.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads",
         "benchmark.fastq.profile_reads.compare",
         resources(4, 4, 4),
         &[
@@ -1266,7 +1266,7 @@ fn seqkit_stats_profile_reads() -> ToolBindingV1 {
             "'${executable}' -a -T -j '${parameter:threads}' '${input:reads_r1}' > '${output:qc_tsv}'",
         ],
         "bijux.benchmark.fastq.profile_reads.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads",
         "benchmark.fastq.profile_reads.compare",
         resources(4, 2, 2),
         &[

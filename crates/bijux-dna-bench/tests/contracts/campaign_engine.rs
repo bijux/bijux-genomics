@@ -70,6 +70,21 @@ fn checked_in_campaigns_plan_through_one_order_independent_engine() -> Result<()
 }
 
 #[test]
+fn checked_in_campaigns_close_the_canonical_binding_registry() -> Result<()> {
+    let mut fixture = planning_fixture()?;
+    fixture.bindings = canonical_tool_bindings()?;
+
+    let matrix = plan(&fixture)?;
+
+    assert_eq!(matrix.cases.len(), EXISTING_CASE_COUNT);
+    assert_eq!(
+        matrix.cases.iter().map(|case| case.run_id.as_str()).collect::<BTreeSet<_>>().len(),
+        EXISTING_CAMPAIGN_COUNT
+    );
+    Ok(())
+}
+
+#[test]
 fn generic_cases_have_collision_free_attempt_identities() -> Result<()> {
     let matrix = plan(&planning_fixture()?)?;
     let plan = plan_benchmark_case_attempts(

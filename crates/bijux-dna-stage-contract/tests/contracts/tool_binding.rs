@@ -1533,7 +1533,7 @@ fn canonical_fastq_profile_bindings_preserve_native_observations_for_shared_norm
         );
         assert_eq!(
             binding.normalizer_id,
-            "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths"
+            "bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths"
         );
         assert_eq!(binding.downstream_probe_id, "benchmark.fastq.profile_read_lengths.compare");
         assert_eq!(binding.outputs[0].name, "length_distribution_tsv");
@@ -1586,7 +1586,7 @@ fn canonical_fastq_profile_bindings_preserve_native_observations_for_shared_norm
         );
         assert_eq!(
             binding.normalizer_id,
-            "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads"
+            "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads"
         );
         assert_eq!(binding.downstream_probe_id, "benchmark.fastq.profile_reads.compare");
         assert_eq!(binding.outputs.len(), 1);
@@ -1640,7 +1640,7 @@ fn canonical_validate_reads_bindings_close_governed_single_stream_qualification(
         );
         assert_eq!(
             binding.normalizer_id,
-            "bijux_dna_planner_fastq::tool_adapters::stages::pre::validate_reads"
+            "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
         );
         assert_eq!(binding.downstream_probe_id, "benchmark.fastq.validate_reads.compare");
 
