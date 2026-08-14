@@ -144,8 +144,9 @@ pub use campaign_engine::{
 pub use campaign_lifecycle::{
     admit_checked_in_benchmark_campaign, build_benchmark_stage_plans, build_execution_spec,
     ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
-    load_checked_in_benchmark_campaign_plan, load_execution_authorities, load_execution_spec,
-    load_stage_plan_manifest, plan_benchmark_case_attempts, plan_benchmark_case_retry_attempts,
+    load_case_execution_authorities, load_checked_in_benchmark_campaign_plan,
+    load_execution_authorities, load_execution_spec, load_stage_plan_manifest,
+    plan_benchmark_case_attempts, plan_benchmark_case_retry_attempts,
     plan_checked_in_benchmark_campaign, plan_stage_campaign_attempts,
     plan_stage_campaign_retry_attempts, prepare_checked_in_benchmark_campaign,
     recover_stage_campaign_retry_lineage, status_checked_in_benchmark_campaign,

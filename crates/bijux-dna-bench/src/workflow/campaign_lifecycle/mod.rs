@@ -8,7 +8,9 @@ mod planning;
 mod preparation;
 mod storage;
 
-pub use authorities::{load_execution_authorities, BenchmarkExecutionAuthorities};
+pub use authorities::{
+    load_case_execution_authorities, load_execution_authorities, BenchmarkExecutionAuthorities,
+};
 pub use bijux_dna_bench_model::{
     BenchmarkCycleAdmission, BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit,
     BenchmarkCyclePreparation, BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit,

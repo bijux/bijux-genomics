@@ -5,10 +5,12 @@ use std::process::Command;
 use anyhow::Context;
 use bijux_dna_bench::{
     build_benchmark_stage_plans, build_execution_spec, ensure_execution_spec,
-    ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
+    ensure_stage_campaign_attempts, ensure_stage_plan_manifest, load_case_execution_authorities,
     load_checked_in_benchmark_planning_contracts, load_execution_authorities, load_execution_spec,
-    load_stage_plan_manifest, plan_stage_campaign_attempts, BenchmarkAcceptanceExpectedValue,
-    BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance,
+    load_stage_plan_manifest, plan_benchmark_case_attempts, plan_benchmark_case_matrix,
+    plan_stage_campaign_attempts, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
+    BenchmarkAcceptanceOperator, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV2,
+    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1, BenchmarkExecutionAcceptance,
     BenchmarkExecutionDeterminism, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
     BenchmarkExecutionMaterial, BenchmarkExecutionParameterEvidence, BenchmarkExecutionSpec,
     BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
@@ -23,10 +25,10 @@ use bijux_dna_core::ids::{ArtifactId, StageId, StepId, ToolId};
 use bijux_dna_core::prelude::ContainerImageRefV1;
 use bijux_dna_domain_fastq::params::stats::READ_LENGTH_PROFILE_SCHEMA_VERSION;
 use bijux_dna_stage_contract::{
-    build_binding_stage_plan, BindingInputV1, BindingOutputV1, BindingStagePlanRequest,
-    EffectiveToolParameterSourceV1, EffectiveToolParameterV1, EffectiveToolParametersV1,
-    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingV1, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1,
-    TOOL_BINDING_SCHEMA_V1,
+    build_binding_stage_plan, canonical_tool_bindings, BindingInputV1, BindingOutputV1,
+    BindingStagePlanRequest, EffectiveToolParameterSourceV1, EffectiveToolParameterV1,
+    EffectiveToolParametersV1, OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingV1,
+    EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
 };
 
 fn plan() -> anyhow::Result<bijux_dna_bench::BenchmarkCampaignPlan> {
@@ -171,6 +173,53 @@ fn source_locked_plan_for(
     )
 }
 
+fn case_matrix(
+    repository_root: &Path,
+    repository_commit: &str,
+    interface_digest: Option<&str>,
+) -> anyhow::Result<BenchmarkCaseMatrixV2> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2042");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "fastq.profile_read_lengths");
+    let campaign = campaigns.campaigns.first().context("run-2042 campaign")?;
+    let data_snapshots = [
+        (&campaign.corpus_catalog_ids, BenchmarkDataSnapshotRoleV1::Corpus),
+        (&campaign.reference_catalog_ids, BenchmarkDataSnapshotRoleV1::Reference),
+        (&campaign.database_catalog_ids, BenchmarkDataSnapshotRoleV1::Database),
+    ]
+    .into_iter()
+    .flat_map(|(ids, role)| {
+        ids.iter().map(move |id| BenchmarkDataSnapshotV1 {
+            catalog_id: id.clone(),
+            role,
+            catalog_sha256: "8".repeat(64),
+            sample_ids: if role == BenchmarkDataSnapshotRoleV1::Corpus {
+                vec!["sample-a".to_string()]
+            } else {
+                Vec::new()
+            },
+        })
+    })
+    .collect::<Vec<_>>();
+    let bindings = canonical_tool_bindings()?;
+    let binding_bytes = serde_json::to_vec(&bindings.bindings().cloned().collect::<Vec<_>>())?;
+    let current_interface_digest = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("benchmarks/contracts/stage-interfaces.toml"),
+    )?;
+    plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit,
+        campaign_registry_sha256: &bijux_dna_infra::hash_file_sha256(
+            &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
+        )?,
+        interface_catalog_sha256: interface_digest.unwrap_or(&current_interface_digest),
+        tool_binding_registry_sha256: &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &data_snapshots,
+    })
+}
+
 #[test]
 fn execution_authorities_bind_exact_source_files_and_reject_stale_inventory() -> anyhow::Result<()>
 {
@@ -211,6 +260,62 @@ fn execution_authorities_bind_exact_source_files_and_reject_stale_inventory() ->
     std::fs::write(&stale_path, serde_json::to_vec_pretty(&inventory)?)?;
     assert!(load_execution_authorities(&repository_root, &stale_path, &repository_commit, &plan,)
         .is_err_and(|error| error.to_string().contains("repository commit differs")));
+    Ok(())
+}
+
+#[test]
+fn case_execution_authorities_bind_the_canonical_matrix_closure() -> anyhow::Result<()> {
+    let repository_root = super::support::repo_root()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-case-execution-authorities");
+    let inventory_path = temporary.path().join("image-inventory.json");
+    let mut inventory = load_image_inventory_publication(
+        &repository_root.join("containers/reports/image-inventory.json"),
+    )?;
+    let repository_commit = "a".repeat(40);
+    inventory.repository_commit.clone_from(&repository_commit);
+    inventory.catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("containers/contracts/catalog.toml"),
+    )?;
+    std::fs::write(&inventory_path, serde_json::to_vec_pretty(&inventory)?)?;
+    let matrix = case_matrix(&repository_root, &repository_commit, None)?;
+    let plan = plan_benchmark_case_attempts(
+        &matrix,
+        "human-short-read-length-comparison",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+
+    let authorities = load_case_execution_authorities(
+        &repository_root,
+        &inventory_path,
+        &repository_commit,
+        &plan,
+        &matrix,
+    )?;
+    assert_eq!(
+        authorities.source_contract_sha256()["case_matrix"],
+        bijux_dna_bench::benchmark_case_matrix_sha256(&matrix)?
+    );
+    assert_eq!(
+        authorities.source_contract_sha256()["tool_binding_registry"],
+        matrix.tool_binding_registry_sha256
+    );
+
+    let stale = case_matrix(&repository_root, &repository_commit, Some(&"9".repeat(64)))?;
+    let stale_plan = plan_benchmark_case_attempts(
+        &stale,
+        "human-short-read-length-comparison",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+    assert!(load_case_execution_authorities(
+        &repository_root,
+        &inventory_path,
+        &repository_commit,
+        &stale_plan,
+        &stale,
+    )
+    .is_err_and(|error| error.to_string().contains("current execution source authorities")));
     Ok(())
 }
 

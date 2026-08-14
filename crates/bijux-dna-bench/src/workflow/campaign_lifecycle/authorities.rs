@@ -1,14 +1,14 @@
 //! Owner: bijux-dna-bench
 //! Exact source and container authority loading for executable benchmark attempts.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::validate_defined_interface_campaign_alignment;
 use bijux_dna_bench_model::{
-    BenchmarkAttemptIdentity, BenchmarkCampaignPlan, BenchmarkExecutionSpec,
-    BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
+    BenchmarkAttemptIdentity, BenchmarkCampaignPlan, BenchmarkCaseMatrixV2, BenchmarkExecutionSpec,
+    BenchmarkLifecycleStatus, BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
 };
 use bijux_dna_containers::api::{
     load_container_catalog, load_image_inventory_publication,
@@ -20,8 +20,11 @@ use bijux_dna_stage_contract::{
     canonical_tool_bindings, StagePlanV1, ToolBinding, ToolBindingRegistry,
 };
 
-use super::verify_campaign_plan_source;
-use crate::workflow::{load_stage_campaign_registry, load_stage_interface_catalog_from_repo};
+use super::{verify_campaign_plan_source, verify_case_campaign_plan_source};
+use crate::workflow::{
+    benchmark_case_matrix_sha256, load_stage_campaign_registry,
+    load_stage_interface_catalog_from_repo,
+};
 
 const CAMPAIGN_REGISTRY_PATH: &str = "benchmarks/contracts/stage-campaigns.toml";
 const CONTAINER_CATALOG_PATH: &str = "containers/contracts/catalog.toml";
@@ -139,6 +142,37 @@ pub fn load_execution_authorities(
     repository_commit: &str,
     plan: &BenchmarkCampaignPlan,
 ) -> Result<BenchmarkExecutionAuthorities> {
+    load_execution_authorities_inner(repository_root, inventory_path, repository_commit, plan, None)
+}
+
+/// Load source and image authorities for a case-scoped campaign plan.
+///
+/// # Errors
+/// Returns an error when the matrix differs from the plan, checked-in campaign/interface/tool
+/// authorities, or active planned case closure.
+pub fn load_case_execution_authorities(
+    repository_root: &Path,
+    inventory_path: &Path,
+    repository_commit: &str,
+    plan: &BenchmarkCampaignPlan,
+    matrix: &BenchmarkCaseMatrixV2,
+) -> Result<BenchmarkExecutionAuthorities> {
+    load_execution_authorities_inner(
+        repository_root,
+        inventory_path,
+        repository_commit,
+        plan,
+        Some(matrix),
+    )
+}
+
+fn load_execution_authorities_inner(
+    repository_root: &Path,
+    inventory_path: &Path,
+    repository_commit: &str,
+    plan: &BenchmarkCampaignPlan,
+    matrix: Option<&BenchmarkCaseMatrixV2>,
+) -> Result<BenchmarkExecutionAuthorities> {
     let repository_path = repository_root
         .canonicalize()
         .context("canonicalize benchmark execution repository root")?;
@@ -163,7 +197,24 @@ pub fn load_execution_authorities(
     let container_catalog_sha256 = source_digest(&catalog_path)?;
     let stage_interface_registry_sha256 = source_digest(&interface_path)?;
     let image_inventory_sha256 = source_digest(inventory_path)?;
-    verify_campaign_plan_source(plan, repository_commit, &campaign_registry_sha256)?;
+    let binding_bytes = serde_json::to_vec(&bindings.bindings().cloned().collect::<Vec<_>>())?;
+    let tool_binding_registry_sha256 = bijux_dna_infra::hash_bytes_sha256(&binding_bytes);
+    if let Some(matrix) = matrix {
+        verify_case_campaign_plan_source(plan, matrix)?;
+        validate_case_execution_authorities(
+            matrix,
+            plan,
+            &registry,
+            &interfaces,
+            &bindings,
+            repository_commit,
+            &campaign_registry_sha256,
+            &stage_interface_registry_sha256,
+            &tool_binding_registry_sha256,
+        )?;
+    } else {
+        verify_campaign_plan_source(plan, repository_commit, &campaign_registry_sha256)?;
+    }
     if image_inventory.repository_commit != repository_commit {
         bail!("image inventory repository commit differs from the campaign source lock");
     }
@@ -175,7 +226,12 @@ pub fn load_execution_authorities(
         ("container_catalog".to_string(), container_catalog_sha256.clone()),
         ("image_inventory".to_string(), image_inventory_sha256),
         ("stage_interface_registry".to_string(), stage_interface_registry_sha256),
+        ("tool_binding_registry".to_string(), tool_binding_registry_sha256),
     ]);
+    if let Some(matrix) = matrix {
+        source_contract_sha256
+            .insert("case_matrix".to_string(), benchmark_case_matrix_sha256(matrix)?);
+    }
     let stage_id = plan
         .cycle
         .attempts
@@ -208,6 +264,78 @@ pub fn load_execution_authorities(
         image_inventory,
         bindings,
     })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn validate_case_execution_authorities(
+    matrix: &BenchmarkCaseMatrixV2,
+    plan: &BenchmarkCampaignPlan,
+    registry: &BenchmarkStageCampaignRegistry,
+    interfaces: &BenchmarkStageInterfaceCatalog,
+    bindings: &ToolBindingRegistry,
+    repository_commit: &str,
+    campaign_registry_sha256: &str,
+    interface_registry_sha256: &str,
+    binding_registry_sha256: &str,
+) -> Result<()> {
+    if matrix.repository_commit != repository_commit
+        || matrix.campaign_registry_sha256 != campaign_registry_sha256
+        || matrix.interface_catalog_sha256 != interface_registry_sha256
+        || matrix.tool_binding_registry_sha256 != binding_registry_sha256
+    {
+        bail!("benchmark case matrix differs from current execution source authorities");
+    }
+    for case in &matrix.cases {
+        let campaign = registry
+            .campaigns
+            .iter()
+            .find(|campaign| campaign.run_id == case.run_id)
+            .context("benchmark case campaign is absent from current registry")?;
+        let interface = interfaces
+            .interfaces
+            .iter()
+            .find(|interface| interface.stage_id == case.stage_id)
+            .context("benchmark case interface is absent from current registry")?;
+        let binding = bindings
+            .bindings()
+            .find(|binding| binding.binding_id == case.binding.binding_id)
+            .context("benchmark case binding is absent from current registry")?;
+        if campaign != &case.campaign || interface != &case.interface || binding != &case.binding {
+            bail!("benchmark case embeds noncanonical execution authorities");
+        }
+    }
+    let expected = matrix
+        .cases
+        .iter()
+        .map(|case| {
+            (
+                case.case_id.as_str(),
+                case.run_id.as_str(),
+                case.domain.as_str(),
+                case.stage_id.as_str(),
+                case.tool_id.as_str(),
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    let planned = plan
+        .cycle
+        .attempts
+        .iter()
+        .filter(|attempt| attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned))
+        .map(|attempt| {
+            (
+                attempt.identity.case_id.as_deref().unwrap_or_default(),
+                attempt.identity.run.run_id.as_str(),
+                attempt.identity.run.domain.as_str(),
+                attempt.identity.run.stage_id.as_str(),
+                attempt.identity.tool_id.as_str(),
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    if planned != expected {
+        bail!("benchmark campaign active attempt closure differs from its case matrix");
+    }
+    Ok(())
 }
 
 fn validate_campaign_binding_resources(

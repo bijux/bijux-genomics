@@ -12,12 +12,12 @@ use bijux_dna_bench_model::{
 
 use super::{
     ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
-    load_checked_in_benchmark_campaign_plan, load_execution_authorities, load_execution_spec,
-    load_stage_plan_manifest,
+    load_case_execution_authorities, load_checked_in_benchmark_campaign_plan,
+    load_execution_authorities, load_execution_spec, load_stage_plan_manifest,
 };
 use crate::workflow::{
-    admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
-    BenchmarkCampaignMaterialRequest,
+    admit_benchmark_campaign_evidence, load_benchmark_case_matrix,
+    prepare_benchmark_campaign_material, BenchmarkCampaignMaterialRequest,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -55,8 +55,18 @@ pub fn prepare_checked_in_benchmark_campaign(
     )?;
     ensure_stage_campaign_attempts(&request.benchmark_root, &plan)?;
     let benchmark_root = request.benchmark_root.canonicalize()?;
-    let authorities =
-        load_execution_authorities(&repository_root, &inventory, &plan.repository_commit, &plan)?;
+    let case_matrix = request.case_matrix.as_deref().map(load_benchmark_case_matrix).transpose()?;
+    let authorities = if let Some(matrix) = &case_matrix {
+        load_case_execution_authorities(
+            &repository_root,
+            &inventory,
+            &plan.repository_commit,
+            &plan,
+            matrix,
+        )?
+    } else {
+        load_execution_authorities(&repository_root, &inventory, &plan.repository_commit, &plan)?
+    };
     let run_id = campaign_run_id(&plan)?;
     let evidence =
         admit_benchmark_campaign_evidence(&repository_root, &study_root, &data_index, run_id)?;
