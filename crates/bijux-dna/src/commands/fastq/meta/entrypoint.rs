@@ -84,6 +84,7 @@ pub(crate) fn handle_meta_commands(
                                     study_root: args.study_root.clone(),
                                     benchmark_root: args.benchmark_root.clone(),
                                     plan: args.plan.clone(),
+                                    case_matrix: args.case_matrix.clone(),
                                     admitted_at_utc: args.admitted_at_utc.clone(),
                                 },
                             )?;
@@ -94,6 +95,7 @@ pub(crate) fn handle_meta_commands(
                             bijux_dna_api::v1::api::bench::load_checked_in_benchmark_campaign_plan(
                                 &args.repository_root,
                                 &args.plan,
+                                args.case_matrix.as_deref(),
                             )?;
                         bijux_dna_api::v1::api::bench::ensure_stage_campaign_attempts(
                             &args.benchmark_root,
@@ -113,6 +115,7 @@ pub(crate) fn handle_meta_commands(
                                     study_root: args.study_root.clone(),
                                     benchmark_root: args.benchmark_root.clone(),
                                     plan: args.plan.clone(),
+                                    case_matrix: args.case_matrix.clone(),
                                     admitted_at_utc: args.advanced_at_utc.clone(),
                                 },
                             )?;
@@ -125,6 +128,7 @@ pub(crate) fn handle_meta_commands(
                                     inventory: args.inventory.clone(),
                                     benchmark_root: args.benchmark_root.clone(),
                                     plan: args.plan.clone(),
+                                    case_matrix: args.case_matrix.clone(),
                                     operator: args.operator.clone(),
                                     prepared_at_utc: args.advanced_at_utc.clone(),
                                     account: args.account.clone(),
@@ -165,6 +169,7 @@ pub(crate) fn handle_meta_commands(
                             bijux_dna_api::v1::api::bench::load_checked_in_benchmark_campaign_plan(
                                 &args.repository_root,
                                 &args.plan,
+                                args.case_matrix.as_deref(),
                             )?;
                         let collection =
                             bijux_dna_api::v1::api::bench::collect_benchmark_campaign_cycle(
@@ -194,6 +199,7 @@ pub(crate) fn handle_meta_commands(
                             bijux_dna_api::v1::api::bench::load_checked_in_benchmark_campaign_plan(
                                 &args.repository_root,
                                 &args.plan,
+                                args.case_matrix.as_deref(),
                             )?;
                         let publication = bijux_dna_api::v1::api::bench::publish_benchmark_campaign_report_with_presentation_authority(
                             &args.repository_root,
@@ -236,6 +242,7 @@ pub(crate) fn handle_meta_commands(
                                     repository_root: args.repository_root.clone(),
                                     benchmark_root: args.benchmark_root.clone(),
                                     plan: args.plan.clone(),
+                                    case_matrix: args.case_matrix.clone(),
                                     observed_at_utc: args.observed_at_utc.clone(),
                                 },
                             )?;

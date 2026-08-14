@@ -28,6 +28,7 @@ pub struct BenchmarkCyclePreparationRequest {
     pub inventory: PathBuf,
     pub benchmark_root: PathBuf,
     pub plan: PathBuf,
+    pub case_matrix: Option<PathBuf>,
     pub operator: String,
     pub prepared_at_utc: String,
     pub account: String,
@@ -47,7 +48,11 @@ pub fn prepare_checked_in_benchmark_campaign(
     let study_root = request.study_root.canonicalize()?;
     let data_index = request.data_index.canonicalize()?;
     let inventory = request.inventory.canonicalize()?;
-    let plan = load_checked_in_benchmark_campaign_plan(&repository_root, &request.plan)?;
+    let plan = load_checked_in_benchmark_campaign_plan(
+        &repository_root,
+        &request.plan,
+        request.case_matrix.as_deref(),
+    )?;
     ensure_stage_campaign_attempts(&request.benchmark_root, &plan)?;
     let benchmark_root = request.benchmark_root.canonicalize()?;
     let authorities =

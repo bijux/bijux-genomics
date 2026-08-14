@@ -37,6 +37,8 @@ pub struct BenchCycleAdvanceArgs {
     #[arg(long)]
     pub plan: PathBuf,
     #[arg(long)]
+    pub case_matrix: Option<PathBuf>,
+    #[arg(long)]
     pub operator: String,
     #[arg(long)]
     pub advanced_at_utc: String,
@@ -107,6 +109,8 @@ pub struct BenchCycleAdmitArgs {
     #[arg(long)]
     pub plan: PathBuf,
     #[arg(long)]
+    pub case_matrix: Option<PathBuf>,
+    #[arg(long)]
     pub admitted_at_utc: String,
 }
 
@@ -119,6 +123,8 @@ pub struct BenchCycleCollectArgs {
     #[arg(long)]
     pub plan: PathBuf,
     #[arg(long)]
+    pub case_matrix: Option<PathBuf>,
+    #[arg(long)]
     pub observed_at_utc: String,
 }
 
@@ -130,6 +136,8 @@ pub struct BenchCycleStatusArgs {
     pub benchmark_root: PathBuf,
     #[arg(long)]
     pub plan: PathBuf,
+    #[arg(long)]
+    pub case_matrix: Option<PathBuf>,
     #[arg(long)]
     pub observed_at_utc: String,
 }
@@ -164,6 +172,8 @@ pub struct BenchCyclePublishArgs {
     pub benchmark_root: PathBuf,
     #[arg(long)]
     pub plan: PathBuf,
+    #[arg(long)]
+    pub case_matrix: Option<PathBuf>,
     #[arg(long)]
     pub output_root: PathBuf,
 }

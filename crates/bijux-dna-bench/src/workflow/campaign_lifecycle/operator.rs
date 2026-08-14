@@ -15,6 +15,7 @@ use bijux_dna_bench_model::{
 
 use super::{
     plan_benchmark_case_attempts, plan_stage_campaign_attempts, verify_campaign_plan_source,
+    verify_case_campaign_plan_source,
 };
 use crate::workflow::{load_benchmark_case_matrix, load_stage_campaign_registry};
 
@@ -39,6 +40,7 @@ pub struct BenchmarkCycleStatusRequest {
     pub repository_root: PathBuf,
     pub benchmark_root: PathBuf,
     pub plan: PathBuf,
+    pub case_matrix: Option<PathBuf>,
     pub observed_at_utc: String,
 }
 
@@ -49,6 +51,7 @@ pub struct BenchmarkCycleAdmissionRequest {
     pub study_root: PathBuf,
     pub benchmark_root: PathBuf,
     pub plan: PathBuf,
+    pub case_matrix: Option<PathBuf>,
     pub admitted_at_utc: String,
 }
 
@@ -122,7 +125,11 @@ pub fn status_checked_in_benchmark_campaign(
         .benchmark_root
         .canonicalize()
         .context("canonicalize benchmark cycle evidence root")?;
-    let plan = load_checked_in_benchmark_campaign_plan(&repository_root, &request.plan)?;
+    let plan = load_checked_in_benchmark_campaign_plan(
+        &repository_root,
+        &request.plan,
+        request.case_matrix.as_deref(),
+    )?;
 
     let attempts = plan
         .cycle
@@ -172,7 +179,11 @@ pub fn admit_checked_in_benchmark_campaign(
         .benchmark_root
         .canonicalize()
         .context("canonicalize benchmark admission evidence root")?;
-    let plan = load_checked_in_benchmark_campaign_plan(&repository_root, &request.plan)?;
+    let plan = load_checked_in_benchmark_campaign_plan(
+        &repository_root,
+        &request.plan,
+        request.case_matrix.as_deref(),
+    )?;
     let mut attempts = plan
         .cycle
         .attempts
@@ -277,13 +288,15 @@ fn admission_failure(
     }
 }
 
-/// Load a campaign plan only when it matches the exact checked-out source and registry bytes.
+/// Load a campaign plan only when it matches the exact checked-out source, registry bytes, and
+/// case matrix when the plan is case-scoped.
 ///
 /// # Errors
 /// Returns an error when the plan is unsafe, malformed, invalid, or stale for the repository.
 pub fn load_checked_in_benchmark_campaign_plan(
     repository_root: &Path,
     plan_path: &Path,
+    case_matrix_path: Option<&Path>,
 ) -> Result<BenchmarkCampaignPlan> {
     let repository_root =
         repository_root.canonicalize().context("canonicalize benchmark cycle repository")?;
@@ -294,7 +307,26 @@ pub fn load_checked_in_benchmark_campaign_plan(
     let campaign_registry_sha256 =
         bijux_dna_infra::hash_file_sha256(&repository_root.join(CAMPAIGN_REGISTRY_PATH))
             .context("hash benchmark campaign registry")?;
-    verify_campaign_plan_source(&plan, &repository_commit, &campaign_registry_sha256)?;
+    match (plan.case_matrix_sha256.as_ref(), case_matrix_path) {
+        (Some(_), Some(path)) => {
+            let matrix = load_benchmark_case_matrix(path)?;
+            if matrix.repository_commit != repository_commit
+                || matrix.campaign_registry_sha256 != campaign_registry_sha256
+            {
+                bail!("benchmark case matrix source identity is stale");
+            }
+            verify_case_campaign_plan_source(&plan, &matrix)?;
+        }
+        (Some(_), None) => {
+            bail!("case-scoped benchmark plan requires its case-matrix authority");
+        }
+        (None, Some(_)) => {
+            bail!("legacy benchmark plan cannot be paired with a case-matrix authority");
+        }
+        (None, None) => {
+            verify_campaign_plan_source(&plan, &repository_commit, &campaign_registry_sha256)?;
+        }
+    }
     Ok(plan)
 }
 
@@ -437,6 +469,7 @@ mod tests {
             repository_root: repository.path().to_path_buf(),
             benchmark_root,
             plan: output,
+            case_matrix: None,
             observed_at_utc: "2026-08-10T00:02:00Z".to_string(),
         })?;
         assert_eq!(status.attempts.len(), 3);
@@ -492,6 +525,7 @@ mod tests {
             study_root,
             benchmark_root: benchmark_root.clone(),
             plan: output,
+            case_matrix: None,
             admitted_at_utc: "2026-08-10T00:01:00Z".to_string(),
         })?;
         assert_eq!(admission.units.len(), 3);
