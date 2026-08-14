@@ -10,20 +10,21 @@ use bijux_dna_bench_model::contract::{
     validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
-    benchmark_run_directory_name, validate_campaign_plan, validate_execution_spec,
-    BenchmarkAttemptIdentity, BenchmarkCampaignPlan, BenchmarkExecutionAcceptance,
-    BenchmarkExecutionCachePolicy, BenchmarkExecutionCommands, BenchmarkExecutionDeterminism,
-    BenchmarkExecutionDownstreamProbe, BenchmarkExecutionImage, BenchmarkExecutionInput,
-    BenchmarkExecutionInterface, BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs,
-    BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
-    BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
-    BenchmarkExecutionSpec, BenchmarkLifecycleStatus, BenchmarkStageCampaignRegistry,
-    BenchmarkStageInterfaceCatalog, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    validate_campaign_plan, validate_execution_spec, BenchmarkAttemptIdentity,
+    BenchmarkCampaignPlan, BenchmarkExecutionAcceptance, BenchmarkExecutionCachePolicy,
+    BenchmarkExecutionCommands, BenchmarkExecutionDeterminism, BenchmarkExecutionDownstreamProbe,
+    BenchmarkExecutionImage, BenchmarkExecutionInput, BenchmarkExecutionInterface,
+    BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs, BenchmarkExecutionParameterEvidence,
+    BenchmarkExecutionResources, BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy,
+    BenchmarkExecutionSourceLock, BenchmarkExecutionSpec, BenchmarkLifecycleStatus,
+    BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
+    BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
 };
 use bijux_dna_containers::api::{ContainerCatalog, ContainerCatalogTool, CurrentApptainerImage};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_dna_core::ids::{ArtifactId, StepId};
 use bijux_dna_core::prelude::ContainerImageRefV1;
+use bijux_dna_runtime::benchmark_attempt_directory;
 use bijux_dna_stage_contract::{
     build_binding_stage_plan, project_tool_parameters, BindingStagePlanRequest, StagePlanV1,
     ToolBinding, ToolBindingV1, ToolParameterProjectionRequest,
@@ -337,13 +338,7 @@ pub fn build_execution_spec(
         .copied()
         .or(campaign.threads)
         .context("campaign does not allocate threads for the attempt tool")?;
-    let result_root = material
-        .benchmark_root
-        .join(benchmark_run_directory_name(&identity.run)?)
-        .join(&identity.tool_id)
-        .join("attempts")
-        .join(&identity.campaign_id)
-        .join(&identity.attempt_id);
+    let result_root = benchmark_attempt_directory(&material.benchmark_root, identity)?;
     let cache_policy = match campaign.cache_policy {
         bijux_dna_bench_model::BenchmarkCachePolicy::Cold => BenchmarkExecutionCachePolicy::Cold,
         bijux_dna_bench_model::BenchmarkCachePolicy::Warm => BenchmarkExecutionCachePolicy::Warm,

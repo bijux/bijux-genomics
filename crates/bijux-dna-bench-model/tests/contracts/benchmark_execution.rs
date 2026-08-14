@@ -149,6 +149,22 @@ fn execution_spec_validates_and_round_trips() -> anyhow::Result<()> {
 }
 
 #[test]
+fn execution_spec_result_root_encodes_case_identity() -> anyhow::Result<()> {
+    let mut spec = specification();
+    let case_id = "run-2042-seqkit-real-fastq";
+    spec.identity.case_id = Some(case_id.to_string());
+    spec.outputs.result_root = format!(
+        "/study/results/benchmarks/run-2042-fastq-profile-read-lengths/seqkit/attempts/human-short-read-length-comparison/{case_id}/attempt-001"
+    );
+    validate_execution_spec(&spec)?;
+
+    spec.outputs.result_root = "/study/results/benchmarks/run-2042-fastq-profile-read-lengths/seqkit/attempts/human-short-read-length-comparison/attempt-001".to_string();
+    assert!(validate_execution_spec(&spec)
+        .is_err_and(|error| error.to_string().contains("immutable attempt identity")));
+    Ok(())
+}
+
+#[test]
 fn execution_spec_rejects_idle_cpu_allocation() {
     let mut spec = specification();
     spec.runtime.threads = spec.resources.cpus - 1;
