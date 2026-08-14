@@ -16,6 +16,7 @@ fn dependency_graph_matches_dev_boundary() {
         "bijux-dna-db-ena",
         "bijux-dna-db-ref",
         "bijux-dna-containers",
+        "bijux-dna-domain-compiler",
         "bijux-dna-infra",
         "bijux-dna-policies",
         "bijux-dna-runtime",

@@ -1,6 +1,8 @@
 use std::collections::BTreeSet;
+use std::path::Path;
 
 use anyhow::{Context, Result};
+use bijux_dna_domain_compiler::{compile_domain_configs, CompileOptions, DEFAULT_COMPILE_SCOPE};
 use walkdir::WalkDir;
 
 use crate::commands::command_support::{fail, has_extension, pass, read, regex, run_command};
@@ -213,69 +215,81 @@ pub(crate) fn check_generated_configs(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let compile = run_command(
-        workspace,
-        "cargo",
-        &[
-            "run",
-            "-p",
-            "bijux-dna-domain-compiler",
-            "--bin",
-            "compile_domain_configs",
-            "--",
-            "--domain-dir",
-            "domain",
-            "--configs-dir",
-            "configs",
-        ],
-    )?;
-    if !compile.status.success() {
+    let generated_root = workspace
+        .path(&format!("artifacts/checks/generated-configs/process-{}", std::process::id()));
+    if generated_root.exists() {
+        std::fs::remove_dir_all(&generated_root)
+            .with_context(|| format!("remove stale {}", generated_root.display()))?;
+    }
+    if let Err(error) = compile_domain_configs(&CompileOptions {
+        domain_dir: workspace.path("domain"),
+        configs_dir: generated_root.clone(),
+        scope: DEFAULT_COMPILE_SCOPE.to_string(),
+    }) {
         return fail(
             check,
-            format!(
-                "domain config generation failed:\n{}{}",
-                String::from_utf8_lossy(&compile.stdout),
-                String::from_utf8_lossy(&compile.stderr)
-            ),
+            format!("domain config generation failed in {}: {error:#}", generated_root.display()),
         );
     }
-    let diff = run_command(
-        workspace,
-        "git",
-        &[
-            "diff",
-            "--exit-code",
-            "--",
-            "configs/ci/registry/tool_registry.toml",
-            "configs/ci/registry/tool_registry_experimental.toml",
-            "configs/ci/registry/tool_registry_container_experimental.toml",
-            "configs/ci/registry/tool_registry_vcf.toml",
-            "configs/ci/registry/tool_registry_vcf_downstream.toml",
-            "configs/ci/registry/domain_registry_release_bundle.json",
-            "configs/ci/registry/domain_defaults_snapshot.json",
-            "configs/ci/registry/domain_artifact_contract_snapshots.json",
-            "configs/ci/registry/domain_metric_catalogs.json",
-            "configs/ci/registry/domain_deprecations_snapshot.json",
-            "configs/ci/registry/domain_invariant_catalogs.json",
-            "configs/ci/registry/domain_evidence_contracts.json",
-            "configs/ci/tools/required_tools.toml",
-            "configs/ci/tools/required_tools_vcf_downstream.toml",
-            "configs/ci/stages/stages.toml",
-            "configs/ci/stages/stages_vcf.toml",
-            "configs/ci/tools/images.toml",
-        ],
-    )?;
-    if diff.status.success() {
+    let drift = generated_config_drift(&workspace.root, &generated_root, GENERATED_CONFIG_PATHS)?;
+    if drift.is_empty() {
+        std::fs::remove_dir_all(&generated_root)
+            .with_context(|| format!("remove verified {}", generated_root.display()))?;
         return pass(check, "generated configs match committed outputs");
     }
     fail(
         check,
         format!(
-            "generated configs drift detected:\n{}{}",
-            String::from_utf8_lossy(&diff.stdout),
-            String::from_utf8_lossy(&diff.stderr)
+            "generated configs drift detected; rendered comparison retained at {}:\n{}",
+            generated_root.display(),
+            drift.join("\n")
         ),
     )
+}
+
+const GENERATED_CONFIG_PATHS: &[&str] = &[
+    "configs/ci/registry/tool_registry.toml",
+    "configs/ci/registry/tool_registry_experimental.toml",
+    "configs/ci/registry/tool_registry_container_experimental.toml",
+    "configs/ci/registry/tool_registry_vcf.toml",
+    "configs/ci/registry/tool_registry_vcf_downstream.toml",
+    "configs/ci/registry/domain_registry_release_bundle.json",
+    "configs/ci/registry/domain_defaults_snapshot.json",
+    "configs/ci/registry/domain_artifact_contract_snapshots.json",
+    "configs/ci/registry/domain_metric_catalogs.json",
+    "configs/ci/registry/domain_deprecations_snapshot.json",
+    "configs/ci/registry/domain_invariant_catalogs.json",
+    "configs/ci/registry/domain_evidence_contracts.json",
+    "configs/ci/tools/required_tools.toml",
+    "configs/ci/tools/required_tools_vcf_downstream.toml",
+    "configs/ci/stages/stages.toml",
+    "configs/ci/stages/stages_vcf.toml",
+    "configs/ci/tools/images.toml",
+];
+
+fn generated_config_drift(
+    repository_root: &Path,
+    generated_configs_root: &Path,
+    paths: &[&str],
+) -> Result<Vec<String>> {
+    let mut drift = Vec::new();
+    for relative in paths {
+        let generated_relative = relative.strip_prefix("configs/").with_context(|| {
+            format!("generated config path must begin with configs/: {relative}")
+        })?;
+        let committed_path = repository_root.join(relative);
+        let generated_path = generated_configs_root.join(generated_relative);
+        let committed = std::fs::read(&committed_path).with_context(|| {
+            format!("read committed generated config {}", committed_path.display())
+        })?;
+        let generated = std::fs::read(&generated_path).with_context(|| {
+            format!("read rendered generated config {}", generated_path.display())
+        })?;
+        if committed != generated {
+            drift.push((*relative).to_string());
+        }
+    }
+    Ok(drift)
 }
 
 pub(crate) fn check_gitignore_contract(
@@ -1082,6 +1096,47 @@ mod embedded_workspace_mirror_tests {
             CONTAINER_ROOT_FILES,
         )?
         .is_empty());
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod generated_config_tests {
+    use super::generated_config_drift;
+
+    #[test]
+    fn comparison_never_requires_source_tree_writes() -> anyhow::Result<()> {
+        let repository = tempfile::tempdir()?;
+        let generated = tempfile::tempdir()?;
+        let paths = ["configs/ci/registry/example.json", "configs/ci/tools/example.toml"];
+        for relative in paths {
+            let committed_path = repository.path().join(relative);
+            let rendered_relative = relative
+                .strip_prefix("configs/")
+                .ok_or_else(|| anyhow::anyhow!("test config path lacks configs/ prefix"))?;
+            let rendered_path = generated.path().join(rendered_relative);
+            let committed_parent = committed_path
+                .parent()
+                .ok_or_else(|| anyhow::anyhow!("test committed path lacks parent"))?;
+            let rendered_parent = rendered_path
+                .parent()
+                .ok_or_else(|| anyhow::anyhow!("test rendered path lacks parent"))?;
+            std::fs::create_dir_all(committed_parent)?;
+            std::fs::create_dir_all(rendered_parent)?;
+            std::fs::write(committed_path, b"same\n")?;
+            std::fs::write(rendered_path, b"same\n")?;
+        }
+
+        assert!(generated_config_drift(repository.path(), generated.path(), &paths)?.is_empty());
+        std::fs::write(generated.path().join("ci/tools/example.toml"), b"different\n")?;
+        assert_eq!(
+            generated_config_drift(repository.path(), generated.path(), &paths)?,
+            vec!["configs/ci/tools/example.toml"]
+        );
+        assert_eq!(
+            std::fs::read(repository.path().join("configs/ci/tools/example.toml"))?,
+            b"same\n"
+        );
         Ok(())
     }
 }
