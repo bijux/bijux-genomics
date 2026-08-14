@@ -53,13 +53,19 @@ pub fn attempt_layout_paths(
     ] {
         validate_identity_segment(value, label)?;
     }
+    if let Some(execution_unit_id) = &identity.execution_unit_id {
+        validate_identity_segment(execution_unit_id, "execution unit id")?;
+    }
     validate_owner_root(owner_root, "attempt owner root")?;
-    let attempt_dir = owner_root
+    let campaign_dir = owner_root
         .join(&identity.run_directory)
         .join(&identity.tool_id)
         .join(ATTEMPT_LAYOUT_CONTRACT.attempts_dir)
-        .join(&identity.campaign_id)
-        .join(&identity.attempt_id);
+        .join(&identity.campaign_id);
+    let attempt_dir = identity.execution_unit_id.as_ref().map_or_else(
+        || campaign_dir.join(&identity.attempt_id),
+        |execution_unit_id| campaign_dir.join(execution_unit_id).join(&identity.attempt_id),
+    );
     let manifests_dir = attempt_dir.join(ATTEMPT_LAYOUT_CONTRACT.manifests_dir);
     Ok(AttemptLayoutPaths {
         logs_dir: attempt_dir.join(ATTEMPT_LAYOUT_CONTRACT.logs_dir),
@@ -163,6 +169,9 @@ pub fn attempt_layout_schema() -> serde_json::Value {
             "campaign_id": {
                 "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
             },
+            "execution_unit_id": {
+                "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
             "attempt_id": {
                 "type": "string", "minLength": 1, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
             },
@@ -222,6 +231,7 @@ fn layout_manifest(
         run_directory: identity.run_directory.clone(),
         tool_id: identity.tool_id.clone(),
         campaign_id: identity.campaign_id.clone(),
+        execution_unit_id: identity.execution_unit_id.clone(),
         attempt_id: identity.attempt_id.clone(),
         directories: AttemptLayoutDirectoriesV1 {
             manifests: ATTEMPT_LAYOUT_CONTRACT.manifests_dir.to_string(),
@@ -251,12 +261,17 @@ pub(super) fn layout_from_attempt_dir(attempt_dir: &Path) -> AttemptLayoutPaths 
 }
 
 pub(super) fn attempt_lock_path(owner_root: &Path, identity: &AttemptLayoutIdentity) -> PathBuf {
-    owner_root
+    let campaign_lock_dir = owner_root
         .join(".attempt-layout-locks")
         .join(&identity.run_directory)
         .join(&identity.tool_id)
-        .join(&identity.campaign_id)
-        .join(format!("{}.lock", identity.attempt_id))
+        .join(&identity.campaign_id);
+    identity.execution_unit_id.as_ref().map_or_else(
+        || campaign_lock_dir.join(format!("{}.lock", identity.attempt_id)),
+        |execution_unit_id| {
+            campaign_lock_dir.join(execution_unit_id).join(format!("{}.lock", identity.attempt_id))
+        },
+    )
 }
 
 fn required_directories(layout: &AttemptLayoutPaths) -> [&Path; 7] {

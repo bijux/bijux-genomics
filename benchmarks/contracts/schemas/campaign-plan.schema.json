@@ -9,6 +9,12 @@
         "campaign_id": {
           "type": "string"
         },
+        "case_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "run": {
           "$ref": "#/$defs/BenchmarkRunIdentity"
         },
@@ -296,6 +302,12 @@
     "campaign_registry_sha256": {
       "pattern": "^[0-9a-f]{64}$",
       "type": "string"
+    },
+    "case_matrix_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "cycle": {
       "$ref": "#/$defs/BenchmarkCycleStatusV2"

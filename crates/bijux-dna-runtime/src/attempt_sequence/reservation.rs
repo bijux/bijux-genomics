@@ -97,6 +97,7 @@ pub fn reserve_attempt_sequence(
         run_directory: sequence.run_directory.clone(),
         tool_id: sequence.tool_id.clone(),
         campaign_id: sequence.campaign_id.clone(),
+        execution_unit_id: None,
         attempt_id,
     };
     let layout = bijux_dna_infra::ensure_attempt_layout(owner_root, owner, &identity)
@@ -392,6 +393,7 @@ mod tests {
             run_directory: "run-1150".to_string(),
             tool_id: "rcorrector".to_string(),
             campaign_id: "qualification".to_string(),
+            execution_unit_id: None,
             attempt_id: "attempt-004".to_string(),
         };
         bijux_dna_infra::ensure_attempt_layout(root.path(), owner, &identity)?;

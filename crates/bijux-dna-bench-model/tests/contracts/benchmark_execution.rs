@@ -30,6 +30,7 @@ fn specification() -> BenchmarkExecutionSpec {
                 domain: "fastq".to_string(),
                 stage_id: "fastq.profile_read_lengths".to_string(),
             },
+            case_id: None,
             attempt_id: "attempt-001".to_string(),
             tool_id: "seqkit".to_string(),
         },

@@ -36,12 +36,15 @@ pub fn benchmark_run_directory_name(identity: &BenchmarkRunIdentity) -> Result<S
 /// Validate the complete permanent identity of one benchmark attempt.
 ///
 /// # Errors
-/// Returns an error when campaign, run, attempt, or tool identity is malformed.
+/// Returns an error when campaign, run, optional case, attempt, or tool identity is malformed.
 pub fn validate_attempt_identity(
     identity: &crate::model::BenchmarkAttemptIdentity,
 ) -> Result<(), BenchError> {
     validate_component(&identity.campaign_id, "campaign_id")?;
     validate_run_identity(&identity.run)?;
+    if let Some(case_id) = &identity.case_id {
+        validate_component(case_id, "case_id")?;
+    }
     validate_attempt_id(&identity.attempt_id)?;
     validate_component(&identity.tool_id, "tool_id")
 }
@@ -184,7 +187,7 @@ pub fn validate_attempt_record_v2(record: &BenchmarkAttemptRecordV2) -> Result<(
 ///
 /// # Errors
 /// Returns an error for invalid cycle identity, attempts, lineage, duplicate attempts, or multiple
-/// active attempts for the same run and tool.
+/// active attempts for the same run, optional case, and tool.
 pub fn validate_cycle_status_v2(cycle: &BenchmarkCycleStatusV2) -> Result<(), BenchError> {
     if cycle.schema_version != BENCHMARK_CYCLE_STATUS_SCHEMA_V2 {
         return Err(invalid("benchmark cycle status v2 schema mismatch"));
@@ -206,6 +209,7 @@ pub fn validate_cycle_status_v2(cycle: &BenchmarkCycleStatusV2) -> Result<(), Be
             attempt.identity.run.run_id.as_str(),
             attempt.identity.run.domain.as_str(),
             attempt.identity.run.stage_id.as_str(),
+            attempt.identity.case_id.as_deref(),
             attempt.identity.tool_id.as_str(),
             attempt.identity.attempt_id.as_str(),
         )) {
@@ -220,11 +224,14 @@ pub fn validate_cycle_status_v2(cycle: &BenchmarkCycleStatusV2) -> Result<(), Be
             return Err(invalid("benchmark cycle predates an attempt transition"));
         }
         if !is_terminal(last.to_status)
-            && !active
-                .insert((attempt.identity.run.run_id.as_str(), attempt.identity.tool_id.as_str()))
+            && !active.insert((
+                attempt.identity.run.run_id.as_str(),
+                attempt.identity.case_id.as_deref(),
+                attempt.identity.tool_id.as_str(),
+            ))
         {
             return Err(invalid(
-                "benchmark cycle has multiple active attempts for one run and tool",
+                "benchmark cycle has multiple active attempts for one run, case, and tool",
             ));
         }
     }
@@ -238,6 +245,7 @@ pub fn validate_cycle_status_v2(cycle: &BenchmarkCycleStatusV2) -> Result<(), Be
             .find(|candidate| {
                 candidate.identity.attempt_id == superseded_id
                     && candidate.identity.run == attempt.identity.run
+                    && candidate.identity.case_id == attempt.identity.case_id
                     && candidate.identity.tool_id == attempt.identity.tool_id
             })
             .ok_or_else(|| invalid("benchmark attempt supersedes an unknown attempt"))?;
@@ -268,6 +276,7 @@ pub fn validate_cycle_preparation(
         }
         if !identities.insert((
             unit.identity.run.run_id.as_str(),
+            unit.identity.case_id.as_deref(),
             unit.identity.tool_id.as_str(),
             unit.identity.attempt_id.as_str(),
         )) {
@@ -331,6 +340,7 @@ pub fn validate_cycle_admission(admission: &BenchmarkCycleAdmission) -> Result<(
         }
         if !identities.insert((
             unit.identity.run.run_id.as_str(),
+            unit.identity.case_id.as_deref(),
             unit.identity.tool_id.as_str(),
             unit.identity.attempt_id.as_str(),
         )) {
@@ -390,6 +400,14 @@ pub fn validate_campaign_plan(plan: &BenchmarkCampaignPlan) -> Result<(), BenchE
         || plan.campaign_registry_sha256.bytes().all(|byte| byte == b'0')
     {
         return Err(invalid("benchmark campaign registry digest is malformed"));
+    }
+    if plan.case_matrix_sha256.as_deref().is_some_and(|digest| {
+        digest.len() != 64
+            || !digest.bytes().all(|byte| byte.is_ascii_hexdigit())
+            || digest.bytes().any(|byte| byte.is_ascii_uppercase())
+            || digest.bytes().all(|byte| byte == b'0')
+    }) {
+        return Err(invalid("benchmark case matrix digest is malformed"));
     }
     validate_cycle_status_v2(&plan.cycle)
 }
@@ -754,6 +772,9 @@ pub fn validate_attempt_archive(archive: &BenchmarkAttemptArchive) -> Result<(),
         (&archive.archived_at_utc, "archived_at_utc"),
     ] {
         require_text(value, field)?;
+    }
+    if let Some(case_id) = &archive.case_id {
+        validate_component(case_id, "archive case_id")?;
     }
     if !archive.slurm_job_id.bytes().all(|byte| byte.is_ascii_digit())
         || archive.attempt_id != format!("slurm-{}", archive.slurm_job_id)

@@ -35,6 +35,7 @@ fn receipt() -> BenchmarkReplayReceipt {
         selected_attempts: vec![BenchmarkAttemptIdentity {
             campaign_id: "all-domains-20260806".to_string(),
             run,
+            case_id: None,
             attempt_id: "attempt-001".to_string(),
             tool_id: "seqkit".to_string(),
         }],

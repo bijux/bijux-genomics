@@ -48,6 +48,8 @@ pub struct AttemptLayoutIdentity {
     pub run_directory: String,
     pub tool_id: String,
     pub campaign_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub execution_unit_id: Option<String>,
     pub attempt_id: String,
 }
 
@@ -134,6 +136,8 @@ pub struct AttemptLayoutManifestV1 {
     pub run_directory: String,
     pub tool_id: String,
     pub campaign_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub execution_unit_id: Option<String>,
     pub attempt_id: String,
     pub directories: AttemptLayoutDirectoriesV1,
 }

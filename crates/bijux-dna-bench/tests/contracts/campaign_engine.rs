@@ -8,15 +8,19 @@ use bijux_dna_bench::{
     ensure_benchmark_admitted_case_observation_set, ensure_benchmark_case_aggregation_set,
     ensure_benchmark_case_matrix, load_benchmark_admitted_case_observation_set,
     load_benchmark_case_aggregation_set, load_benchmark_case_matrix,
-    load_checked_in_benchmark_planning_contracts, plan_benchmark_case_matrix,
+    load_checked_in_benchmark_planning_contracts, plan_benchmark_case_attempts,
+    plan_benchmark_case_matrix, plan_benchmark_case_retry_attempts,
     validate_benchmark_admitted_case_observation_set, validate_benchmark_case_aggregation_set,
     validate_benchmark_case_aggregations, validate_benchmark_case_matrix,
-    BenchmarkAdmittedCaseObservationV2, BenchmarkCaseExecutionEvidenceV1,
-    BenchmarkCaseMatrixRequest, BenchmarkCaseRepetitionObservationV1, BenchmarkDataSnapshotRoleV1,
-    BenchmarkDataSnapshotV1, BenchmarkReportImage, BenchmarkReportInputLock,
+    verify_campaign_plan_source, verify_case_campaign_plan_source,
+    BenchmarkAdmittedCaseObservationV2, BenchmarkAttemptTransition,
+    BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest,
+    BenchmarkCaseRepetitionObservationV1, BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
+    BenchmarkLifecycleStatus, BenchmarkReportImage, BenchmarkReportInputLock,
     BenchmarkReportSlurmJob, BenchmarkScientificValue, BenchmarkStageCampaignRegistry,
     BenchmarkStageInterfaceCatalog, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
 };
+use bijux_dna_bench_model::append_attempt_transition;
 use bijux_dna_core::{
     contract::ToolConstraints,
     ids::{StageId, ToolId},
@@ -62,6 +66,89 @@ fn checked_in_campaigns_plan_through_one_order_independent_engine() -> Result<()
         serde_json::to_vec(&matrix)? == reordered_bytes,
         "case matrix bytes changed with semantically unordered authority input"
     );
+    Ok(())
+}
+
+#[test]
+fn generic_cases_have_collision_free_attempt_identities() -> Result<()> {
+    let matrix = plan(&planning_fixture()?)?;
+    let plan = plan_benchmark_case_attempts(
+        &matrix,
+        "production-portfolio-20260814",
+        "attempt-001",
+        "2026-08-14T12:00:00Z",
+    )?;
+
+    let matrix_sha256 = bijux_dna_bench::benchmark_case_matrix_sha256(&matrix)?;
+    assert_eq!(plan.case_matrix_sha256.as_deref(), Some(matrix_sha256.as_str()));
+    verify_case_campaign_plan_source(&plan, &matrix)?;
+    assert!(verify_campaign_plan_source(
+        &plan,
+        &matrix.repository_commit,
+        &matrix.campaign_registry_sha256,
+    )
+    .is_err());
+    assert_eq!(plan.cycle.attempts.len(), matrix.cases.len());
+    let identities = plan
+        .cycle
+        .attempts
+        .iter()
+        .map(|attempt| {
+            (
+                attempt.identity.case_id.as_deref(),
+                attempt.identity.tool_id.as_str(),
+                attempt.identity.attempt_id.as_str(),
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(identities.len(), matrix.cases.len());
+    assert!(plan.cycle.attempts.iter().all(|attempt| attempt.identity.case_id.is_some()));
+    Ok(())
+}
+
+#[test]
+fn generic_case_retries_preserve_the_complete_matrix_lineage() -> Result<()> {
+    let matrix = plan(&planning_fixture()?)?;
+    let initial = plan_benchmark_case_attempts(
+        &matrix,
+        "production-portfolio-20260814",
+        "attempt-001",
+        "2026-08-14T12:00:00Z",
+    )?;
+    let mut terminal = initial.cycle.attempts;
+    for attempt in &mut terminal {
+        append_attempt_transition(
+            attempt,
+            BenchmarkAttemptTransition {
+                sequence: 2,
+                from_status: Some(BenchmarkLifecycleStatus::Planned),
+                to_status: BenchmarkLifecycleStatus::BlockedExternal,
+                observed_at_utc: "2026-08-14T12:01:00Z".to_string(),
+                reason: Some("required execution artifact is not admitted".to_string()),
+                jobs: Vec::new(),
+                accounting: Vec::new(),
+                evidence: Vec::new(),
+            },
+        )?;
+    }
+
+    let retry = plan_benchmark_case_retry_attempts(
+        &matrix,
+        terminal,
+        "attempt-002",
+        "2026-08-14T12:02:00Z",
+    )?;
+    let active = retry
+        .cycle
+        .attempts
+        .iter()
+        .filter(|attempt| attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned))
+        .collect::<Vec<_>>();
+    assert_eq!(active.len(), matrix.cases.len());
+    assert!(active.iter().all(|attempt| {
+        attempt.supersedes_attempt_id.as_deref() == Some("attempt-001")
+            && attempt.identity.case_id.is_some()
+    }));
     Ok(())
 }
 

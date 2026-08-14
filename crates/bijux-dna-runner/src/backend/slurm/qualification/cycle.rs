@@ -459,6 +459,7 @@ fn archive_superseded_frontier(
                     .campaign_id
                     .clone()
                     .context("superseded qualification attempt omits campaign identity")?,
+                execution_unit_id: None,
                 attempt_id: spec
                     .attempt_id
                     .clone()

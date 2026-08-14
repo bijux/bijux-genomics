@@ -24,7 +24,9 @@ pub use operator::{
     BenchmarkCycleAdmissionRequest, BenchmarkCyclePlanRequest, BenchmarkCycleStatusRequest,
 };
 pub use planning::{
-    plan_stage_campaign_attempts, plan_stage_campaign_retry_attempts, verify_campaign_plan_source,
+    plan_benchmark_case_attempts, plan_benchmark_case_retry_attempts, plan_stage_campaign_attempts,
+    plan_stage_campaign_retry_attempts, verify_campaign_plan_source,
+    verify_case_campaign_plan_source,
 };
 pub use preparation::{prepare_checked_in_benchmark_campaign, BenchmarkCyclePreparationRequest};
 pub use storage::{

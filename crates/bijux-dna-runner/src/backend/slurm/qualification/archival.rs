@@ -110,6 +110,7 @@ fn archive_identity(
             .campaign_id
             .clone()
             .context("current qualification archive omits campaign identity")?,
+        execution_unit_id: None,
         attempt_id: spec
             .attempt_id
             .clone()

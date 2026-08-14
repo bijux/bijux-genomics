@@ -317,6 +317,7 @@ fn ensure_current_attempt_layout(
             run_directory: identity.run_id.clone(),
             tool_id: identity.tool_id.clone(),
             campaign_id: identity.campaign_id.clone(),
+            execution_unit_id: None,
             attempt_id: attempt_id.to_string(),
         },
     )

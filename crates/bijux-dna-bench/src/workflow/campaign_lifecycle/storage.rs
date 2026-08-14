@@ -56,6 +56,7 @@ pub fn recover_stage_campaign_retry_lineage(
         let tip = BenchmarkAttemptIdentity {
             campaign_id: campaign_id.to_string(),
             run: run.clone(),
+            case_id: None,
             attempt_id: tip_attempt_id.to_string(),
             tool_id,
         };

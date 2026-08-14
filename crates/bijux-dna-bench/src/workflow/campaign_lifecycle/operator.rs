@@ -163,7 +163,10 @@ pub fn admit_checked_in_benchmark_campaign(
                 && attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned)
         })
         .collect::<Vec<_>>();
-    attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
+    attempts.sort_by(|left, right| {
+        (left.identity.case_id.as_deref(), left.identity.tool_id.as_str())
+            .cmp(&(right.identity.case_id.as_deref(), right.identity.tool_id.as_str()))
+    });
 
     let units = attempts
         .into_iter()

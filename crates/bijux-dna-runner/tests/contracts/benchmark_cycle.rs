@@ -17,6 +17,7 @@ fn planned_campaign() -> BenchmarkCampaignPlan {
             domain: "bam".to_string(),
             stage_id: "bam.coverage".to_string(),
         },
+        case_id: None,
         attempt_id: "attempt-0001".to_string(),
         tool_id: "fastp".to_string(),
     };

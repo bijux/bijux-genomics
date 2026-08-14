@@ -213,6 +213,7 @@ fn qualification_attempt_roots(
                 run_directory: run_id.to_string(),
                 tool_id: tool_id.to_string(),
                 campaign_id: campaign_id.to_string(),
+                execution_unit_id: None,
                 attempt_id: attempt_id.to_string(),
             };
             let evidence_root =

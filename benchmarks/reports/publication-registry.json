@@ -11,14 +11,14 @@
     {
       "product_id": "permanent-run-registry",
       "json_path": "benchmarks/contracts/run-registry.json",
-      "json_sha256": "061282123ef2dbf4a9c71eb61f2d733fb8d2c394cac81029dd68730605f7f025",
+      "json_sha256": "e0b94149fd8efeae28a44859161d1cec3a74821d02d15605ba47be8900a08a67",
       "markdown_path": "benchmarks/reports/run-registry.md",
-      "markdown_sha256": "dda0f20dd62819e45a59426ff5974a64315a6dafb2ee02b36674b22416d7750e"
+      "markdown_sha256": "89512f4a40c5f36d8fa8dc24874bc4559baed2e017f8c2572d0a53b00750f168"
     },
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "fb30323bb0008458f956394fbaeb6e01eb855ae2c9e65a0e334dade4f6498a57",
+      "json_sha256": "be3d3157915b081bfdb27c2a5ef2f4cb68b2d426c9309e81ae66efe770671c95",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
       "markdown_sha256": "2e67175e321329027c0a2584b9918481b85b1386668b9592a679846a2c245d86"
     },
