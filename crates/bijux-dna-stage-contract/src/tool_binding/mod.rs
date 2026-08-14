@@ -1,5 +1,6 @@
 mod catalog;
 mod model;
+mod output_closure;
 mod projection;
 mod registry;
 mod rendering;
@@ -15,6 +16,7 @@ pub use model::{
     OutputSidecarDiscoveryV1, ToolArtifactSourceV1, ToolBinding, ToolBindingRenderContext,
     ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
 };
+pub use output_closure::required_binding_output_paths;
 pub use projection::{
     project_tool_parameters, validate_effective_tool_parameters, EffectiveToolParameterSourceV1,
     EffectiveToolParameterV1, EffectiveToolParametersV1, ToolParameterProjectionRequest,

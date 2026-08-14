@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Result};
 
-use crate::{BindingOutputV1, OutputDiscoveryV1, OutputSidecarDiscoveryV1};
+use super::{BindingOutputV1, OutputDiscoveryV1, OutputSidecarDiscoveryV1};
 
 /// Expand one primary artifact path to every exact file declared by its binding.
 ///
