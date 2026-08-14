@@ -9,6 +9,20 @@ fn repository_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
+fn collect_rust_sources(root: &std::path::Path, sources: &mut String) -> Result<()> {
+    for entry in fs::read_dir(root).with_context(|| format!("read {}", root.display()))? {
+        let path = entry?.path();
+        if path.is_dir() {
+            collect_rust_sources(&path, sources)?;
+        } else if path.extension().is_some_and(|extension| extension == "rs") {
+            sources.push_str(
+                &fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?,
+            );
+        }
+    }
+    Ok(())
+}
+
 #[test]
 fn checked_in_persisted_schemas_match_the_model_authority() -> Result<()> {
     let root = repository_root();
@@ -41,5 +55,35 @@ fn checked_in_persisted_schemas_match_the_model_authority() -> Result<()> {
     }
 
     assert_eq!(paths.len(), persisted_benchmark_schemas().len());
+    Ok(())
+}
+
+#[test]
+fn every_checked_in_benchmark_schema_has_model_crate_authority() -> Result<()> {
+    let root = repository_root();
+    let mut model_sources = String::new();
+    collect_rust_sources(&root.join("crates/bijux-dna-bench-model/src"), &mut model_sources)?;
+    collect_rust_sources(&root.join("crates/bijux-dna-bench-model/tests"), &mut model_sources)?;
+
+    let schema_root = root.join("benchmarks/contracts/schemas");
+    let mut schema_count = 0_usize;
+    for entry in
+        fs::read_dir(&schema_root).with_context(|| format!("read {}", schema_root.display()))?
+    {
+        let path = entry?.path();
+        if path.extension().is_none_or(|extension| extension != "json") {
+            continue;
+        }
+        let name = path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .with_context(|| format!("schema path is not UTF-8: {}", path.display()))?;
+        assert!(
+            model_sources.contains(name),
+            "checked-in benchmark schema lacks bijux-dna-bench-model authority: {name}"
+        );
+        schema_count += 1;
+    }
+    assert!(schema_count > 0, "benchmark schema inventory is empty");
     Ok(())
 }

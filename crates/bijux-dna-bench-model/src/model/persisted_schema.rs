@@ -56,7 +56,10 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
             bam::{bam_damage_metrics_schema, bam_damage_result_schema},
             bam_downstream_probe_schema,
         },
-        planning::benchmark_run_registry_schema,
+        planning::{
+            benchmark_run_registry_schema, benchmark_scientific_readiness_schema,
+            benchmark_stage_coverage_schema,
+        },
         protocol::{benchmark_case_definition_schema, benchmark_run_definition_schema},
         publication::{
             benchmark_citation_record_schema, benchmark_evidence_book_schema,
@@ -239,6 +242,14 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
         PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/stage-report.schema.json",
             benchmark_stage_report_schema,
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/scientific-readiness.schema.json",
+            benchmark_scientific_readiness_schema,
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/stage-coverage.schema.json",
+            benchmark_stage_coverage_schema,
         ),
     ];
 
