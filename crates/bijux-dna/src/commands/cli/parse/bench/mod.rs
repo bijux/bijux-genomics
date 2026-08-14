@@ -31,7 +31,7 @@ pub use self::config::{
 pub use self::corpus_fastq::BenchCorpusFastqArgs;
 pub use self::cycle::{
     BenchCycleAdmitArgs, BenchCycleBookArgs, BenchCycleCollectArgs, BenchCycleCommand,
-    BenchCyclePlanArgs, BenchCycleReplayArgs, BenchCycleStatusArgs,
+    BenchCyclePlanArgs, BenchCycleReceiptArgs, BenchCycleReplayArgs, BenchCycleStatusArgs,
 };
 pub use self::data_index::{
     BenchCatalogRegistryCommand, BenchCatalogRegistryPublishArgs, BenchDataIndexArgs,

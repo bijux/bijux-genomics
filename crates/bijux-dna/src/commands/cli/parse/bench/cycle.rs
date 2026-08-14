@@ -16,6 +16,8 @@ pub enum BenchCycleCommand {
     Plan(BenchCyclePlanArgs),
     /// Publish one source-locked campaign report from admitted attempt evidence.
     Publish(BenchCyclePublishArgs),
+    /// Issue one immutable publication receipt from a passing campaign closure.
+    Receipt(BenchCycleReceiptArgs),
     /// Compare regenerated semantic artifacts with a selected publication.
     Replay(BenchCycleReplayArgs),
     /// Retry only non-passing terminal tips from case-scoped attempt lineage.
@@ -216,4 +218,30 @@ pub struct BenchCyclePublishArgs {
     pub case_matrix: Option<PathBuf>,
     #[arg(long)]
     pub output_root: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleReceiptArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub study_root: PathBuf,
+    #[arg(long)]
+    pub benchmark_root: PathBuf,
+    #[arg(long)]
+    pub plan_uri: String,
+    #[arg(long)]
+    pub case_matrix_uri: String,
+    #[arg(long)]
+    pub report_uri: String,
+    #[arg(long)]
+    pub decision_uri: String,
+    #[arg(long)]
+    pub publication_id: String,
+    #[arg(long)]
+    pub published_at_utc: String,
+    #[arg(long, required = true)]
+    pub limitation: Vec<String>,
+    #[arg(long)]
+    pub output: PathBuf,
 }

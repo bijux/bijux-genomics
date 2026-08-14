@@ -36,6 +36,7 @@ mod full_benchmark_report;
 mod hardening_campaign;
 mod options;
 mod parameter_authority;
+mod publication_receipt;
 mod publication_registry;
 mod reference_materialization;
 mod replay;
@@ -235,6 +236,9 @@ pub use hardening_campaign::{
     publish_hardening_benchmark_campaign_report,
 };
 pub use options::BenchRunOptions;
+pub use publication_receipt::{
+    issue_benchmark_publication_receipt, BenchmarkPublicationReceiptRequest,
+};
 pub use publication_registry::{
     derive_benchmark_publication_registry, publish_checked_in_benchmark_publication_registry,
     render_benchmark_publication_registry_markdown, BenchmarkPublicationRegistryWriteMode,

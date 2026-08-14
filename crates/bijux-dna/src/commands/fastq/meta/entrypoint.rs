@@ -277,6 +277,24 @@ pub(crate) fn handle_meta_commands(
                                 };
                                 crate::commands::cli::render::json::print_pretty(&publication)?;
                             }
+                            cli::BenchCycleCommand::Receipt(args) => {
+                                let receipt = bijux_dna_api::v1::api::bench::issue_benchmark_publication_receipt(
+                                    &bijux_dna_api::v1::api::bench::BenchmarkPublicationReceiptRequest {
+                                        repository_root: args.repository_root.clone(),
+                                        study_root: args.study_root.clone(),
+                                        benchmark_root: args.benchmark_root.clone(),
+                                        plan_uri: args.plan_uri.clone(),
+                                        case_matrix_uri: args.case_matrix_uri.clone(),
+                                        report_uri: args.report_uri.clone(),
+                                        decision_uri: args.decision_uri.clone(),
+                                        publication_id: args.publication_id.clone(),
+                                        published_at_utc: args.published_at_utc.clone(),
+                                        limitations: args.limitation.clone(),
+                                        output: args.output.clone(),
+                                    },
+                                )?;
+                                crate::commands::cli::render::json::print_pretty(&receipt)?;
+                            }
                             cli::BenchCycleCommand::Replay(args) => {
                                 let receipt =
                             bijux_dna_api::v1::api::bench::replay_checked_in_benchmark_publication(

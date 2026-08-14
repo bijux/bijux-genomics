@@ -40,14 +40,14 @@ fn publication() -> BenchmarkPublicationReceipt {
             BenchmarkAttemptIdentity {
                 campaign_id: "all-domains-20260806".to_string(),
                 run: run.clone(),
-                case_id: None,
+                case_id: Some("run-2042-seqfu-real-fastq".to_string()),
                 attempt_id: "attempt-001".to_string(),
                 tool_id: "seqfu".to_string(),
             },
             BenchmarkAttemptIdentity {
                 campaign_id: "all-domains-20260806".to_string(),
                 run,
-                case_id: None,
+                case_id: Some("run-2042-seqkit-real-fastq".to_string()),
                 attempt_id: "attempt-001".to_string(),
                 tool_id: "seqkit".to_string(),
             },
@@ -175,6 +175,14 @@ fn publication_and_book_reject_ambiguous_selection() {
 
     let mut receipt = publication();
     receipt.report = receipt.decision.clone();
+    assert!(validate_benchmark_publication_receipt(&receipt).is_err());
+
+    let mut receipt = publication();
+    receipt.selected_attempts[0].case_id = Some("run-2042-untracked-case".to_string());
+    assert!(validate_benchmark_publication_receipt(&receipt).is_err());
+
+    let mut receipt = publication();
+    receipt.selected_attempts[0].case_id = None;
     assert!(validate_benchmark_publication_receipt(&receipt).is_err());
 
     let mut evidence_book = book();

@@ -117,6 +117,9 @@ attempt blocks only its own execution unit.
   specification.
 - Retry and supersession create new attempts and explicit lineage; they never rewrite history.
 - A publication selects admitted attempts without changing their evidence.
+- Publication receipts derive their selected attempts from the source-locked plan's passing
+  lineage tips and retain the immutable plan, case matrix, and admitted attempt evidence; callers
+  cannot nominate unrelated attempts or omit supersession authority.
 - A citation is the stable paper-facing record for a run protocol and its selected publication.
 - Scheduler job IDs are provenance, not run identities.
 - Current reports require exact source, catalog, stage/interface, data/truth, artifact, campaign,

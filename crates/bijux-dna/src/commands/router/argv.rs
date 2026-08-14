@@ -535,4 +535,44 @@ mod tests {
         assert!(matches!(command, BenchCycleCommand::Publish(_)));
         Ok(())
     }
+
+    #[test]
+    fn benchmark_cycle_receipt_uses_the_public_product_namespace() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "receipt",
+            "--repository-root",
+            "/source",
+            "--study-root",
+            "/study",
+            "--benchmark-root",
+            "/study/results/benchmarks",
+            "--plan-uri",
+            "study://data/evidence/benchmark-campaign-plans/source/run-2051.json",
+            "--case-matrix-uri",
+            "study://data/evidence/benchmark-case-matrices/source/run-2051.json",
+            "--report-uri",
+            "study://results/benchmarks/publications/source/run-2051/report.json",
+            "--decision-uri",
+            "study://results/benchmarks/publications/source/run-2051/report.md",
+            "--publication-id",
+            "run-2051-publication-source",
+            "--published-at-utc",
+            "2026-08-14T12:00:00Z",
+            "--limitation",
+            "The publication covers one governed FASTQ cohort.",
+            "--output",
+            "/study/results/benchmarks/publications/source/run-2051/publication-receipt.json",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        assert!(matches!(command, BenchCycleCommand::Receipt(_)));
+        Ok(())
+    }
 }
