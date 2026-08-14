@@ -1174,6 +1174,7 @@ fn sanitize_markdown_cell(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::benchmark::readiness::stage_tool_resources::FASTQ_STAGE_TOOL_RESOURCE_ORIGIN;
     use serde_json::json;
     use tempfile::tempdir;
 
@@ -1205,7 +1206,8 @@ declaration_origin = "test_contract"
         .expect("write thresholds");
         fs::write(
             repo_root.join(STAGE_TOOL_RESOURCES_PATH),
-            r#"
+            format!(
+                r#"
 schema_version = "bijux.bench.local_stage_tool_resources.v1"
 classification_scope = "benchmark_ready_command_resources"
 
@@ -1217,8 +1219,9 @@ threads = 1
 memory_gb = 1
 walltime_minutes = 1
 scratch_gb = 1
-resource_origin = "test_resource"
+resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
 "#,
+            ),
         )
         .expect("write resources");
 

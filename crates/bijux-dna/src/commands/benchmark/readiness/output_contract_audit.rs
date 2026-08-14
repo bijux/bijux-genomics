@@ -35,6 +35,7 @@ use crate::commands::benchmark::local_vcf_postprocess_smoke::run_local_vcf_postp
 use crate::commands::benchmark::local_vcf_prepare_reference_panel_smoke::run_local_vcf_prepare_reference_panel_smoke;
 use crate::commands::benchmark::local_vcf_qc_smoke::run_local_vcf_qc_smoke;
 use crate::commands::benchmark::local_vcf_roh_smoke::run_local_vcf_roh_smoke;
+use crate::commands::benchmark::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::benchmark::local_vcf_stats_smoke::run_local_vcf_stats_smoke;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -787,7 +788,10 @@ fn collect_vcf_tool_proofs(
                     observed_ids: BTreeSet::new(),
                     observed_paths_by_id: BTreeMap::new(),
                     independent_execution_proven: false,
-                    execution_blocker: None,
+                    execution_blocker: Some(format!(
+                        "missing_direct_execution: `{}` / `{}` has no tool-specific local smoke; active-default evidence is not reusable",
+                        row.stage_id, row.tool_id
+                    )),
                 },
             );
             continue;
@@ -1125,6 +1129,14 @@ fn local_vcf_stage_result_manifest_path(
     stage_id: &str,
     tool_id: &str,
 ) -> Result<Option<String>> {
+    let default_tool_id = build_vcf_stage_matrix_rows()?
+        .into_iter()
+        .find(|row| row.stage_id == stage_id)
+        .map(|row| row.tool_id)
+        .ok_or_else(|| anyhow!("VCF stage matrix is missing `{stage_id}`"))?;
+    if tool_id != default_tool_id {
+        return Ok(None);
+    }
     Ok(match stage_id {
         "vcf.admixture" => {
             Some(run_local_vcf_admixture_smoke(repo_root, tool_id)?.stage_result_manifest_path)
@@ -1207,7 +1219,7 @@ mod tests {
 
     use super::{
         build_output_contract_audit_report, local_stage_proof_output_path,
-        DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
+        local_vcf_stage_result_manifest_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
     };
     use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
@@ -1245,6 +1257,15 @@ mod tests {
         assert!(plan_path.is_file(), "sibling plan evidence must remain untouched");
         assert_eq!(fs::read(&output_path).expect("read declared output"), b"stale output");
         assert!(proof_output.starts_with(proof_root));
+    }
+
+    #[test]
+    fn non_default_vcf_tool_does_not_borrow_default_smoke_evidence() {
+        let root = repo_root();
+        let proof = local_vcf_stage_result_manifest_path(&root, "vcf.admixture", "plink")
+            .expect("resolve non-default VCF tool proof");
+
+        assert_eq!(proof, None);
     }
 
     #[test]
@@ -1296,11 +1317,28 @@ mod tests {
             .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "bcftools")
             .expect("bam.genotyping row");
         assert_eq!(report.failed_row_count, 0);
-        assert_eq!(report.blocked_row_count, 11);
+        assert_eq!(report.blocked_row_count, 25);
         assert_eq!(report.passed_row_count + report.blocked_row_count, report.row_count);
         assert_eq!(
             report.blocked_tool_ids,
-            ["angsd", "fastuniq", "germline", "ibdne", "ibdseq", "impute5", "ngsbriggs"]
+            [
+                "angsd",
+                "bcftools",
+                "beagle",
+                "eagle",
+                "eigensoft",
+                "fastuniq",
+                "germline",
+                "glimpse",
+                "ibdhap",
+                "ibdne",
+                "ibdseq",
+                "impute5",
+                "minimac4",
+                "ngsbriggs",
+                "plink",
+                "shapeit",
+            ]
         );
         assert!(report.failed_stage_ids.is_empty());
         assert!(report.failed_tool_ids.is_empty());
