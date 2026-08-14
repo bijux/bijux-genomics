@@ -147,6 +147,70 @@ fn publishes_native_derived_catalog_with_verified_source_and_file_closure() -> R
 }
 
 #[test]
+fn appends_changed_derived_snapshot_and_retains_unchanged_history() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let derived_path = fixture.data_root.join("catalog/ancient-horse-derived-bam.json");
+    write_derived_catalog(&fixture, &derived_path, None)?;
+    let first = publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: "4".repeat(40),
+        preserved_at_utc: "2026-08-14T00:00:00Z".to_string(),
+        previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+    })?;
+    let first_record = first
+        .registry
+        .records
+        .iter()
+        .find(|record| record.id == "ancient-horse-derived-bam")
+        .expect("first derived registry record");
+    let first_snapshot = first_record.snapshots[0].clone();
+    let first_snapshot_path = fixture
+        .data_root
+        .join(first_snapshot.catalog_path.strip_prefix("study://data/").expect("snapshot URI"));
+    let first_bytes = fs::read(&first_snapshot_path)?;
+
+    mutate_catalog(&derived_path, |catalog| {
+        catalog["allowed_uses"] = json!(["comparative_benchmarking", "scientific_validation"]);
+    })?;
+    let second = publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: "6".repeat(40),
+        preserved_at_utc: "2026-08-15T00:00:00Z".to_string(),
+        previous_registry_path: Some(first.candidate_registry_path.clone()),
+    })?;
+    assert_eq!(second.preserved_snapshot_count, 1);
+    assert_eq!(second.retained_snapshot_count, 1);
+    let second_record = second
+        .registry
+        .records
+        .iter()
+        .find(|record| record.id == "ancient-horse-derived-bam")
+        .expect("second derived registry record");
+    assert_eq!(second_record.snapshots.len(), 2);
+    assert_eq!(second_record.snapshots[0], first_snapshot);
+    assert_ne!(second_record.current_catalog_sha256, first_record.current_catalog_sha256);
+    assert_eq!(fs::read(&first_snapshot_path)?, first_bytes);
+
+    let third = publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: "7".repeat(40),
+        preserved_at_utc: "2026-08-16T00:00:00Z".to_string(),
+        previous_registry_path: Some(second.candidate_registry_path.clone()),
+    })?;
+    assert_eq!(third.preserved_snapshot_count, 0);
+    assert_eq!(third.retained_snapshot_count, 2);
+    let third_record = third
+        .registry
+        .records
+        .iter()
+        .find(|record| record.id == "ancient-horse-derived-bam")
+        .expect("third derived registry record");
+    assert_eq!(third_record, second_record);
+    assert_eq!(fs::read(first_snapshot_path)?, first_bytes);
+    Ok(())
+}
+
+#[test]
 fn rejects_derived_catalog_with_drifted_source_snapshot() -> Result<()> {
     let fixture = data_index_fixture()?;
     let derived_path = fixture.data_root.join("catalog/ancient-horse-derived-bam.json");
