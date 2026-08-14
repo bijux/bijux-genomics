@@ -139,7 +139,7 @@ fn admits_bam_from_native_derived_catalog() -> Result<()> {
                 "contig_dictionary_sha256": "c".repeat(64)
             },
             "samples": [{
-                "sample_id": "err2112767",
+                "sample_id": "ERR2112767",
                 "source_accessions": ["ERR2112767"],
                 "library_context": "ancient single-end shotgun library",
                 "assay_context": "whole-genome sequencing",
@@ -155,7 +155,7 @@ fn admits_bam_from_native_derived_catalog() -> Result<()> {
                     "sha256": index_sha256,
                     "size_bytes": 5,
                     "kind": "bam-index",
-                    "sample_id": "err2112767",
+                    "sample_id": "ERR2112767",
                     "source_sha256s": ["d".repeat(64)]
                 },
                 {
@@ -163,7 +163,7 @@ fn admits_bam_from_native_derived_catalog() -> Result<()> {
                     "sha256": bam_sha256,
                     "size_bytes": 9,
                     "kind": "coordinate-sorted-deduplicated-bam",
-                    "sample_id": "err2112767",
+                    "sample_id": "ERR2112767",
                     "source_sha256s": ["e".repeat(64)]
                 }
             ]
@@ -176,7 +176,7 @@ fn admits_bam_from_native_derived_catalog() -> Result<()> {
 
     let admitted =
         admit_bam_benchmark_corpus(&fixture.study_root, &fixture.data_index, "horse-bam")?;
-    assert_eq!(admitted.sample_id, "err2112767");
+    assert_eq!(admitted.sample_id, "ERR2112767");
     assert_eq!(admitted.input_bytes, 14);
     Ok(())
 }

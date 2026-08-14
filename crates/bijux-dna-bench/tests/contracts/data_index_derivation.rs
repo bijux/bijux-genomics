@@ -216,7 +216,7 @@ fn derives_verified_index_from_native_derived_catalog() -> Result<()> {
                 "contig_dictionary_sha256": "c".repeat(64)
             },
             "samples": [{
-                "sample_id": "err2112767",
+                "sample_id": "ERR2112767",
                 "source_accessions": ["ERR2112767"],
                 "library_context": "ancient single-end shotgun library",
                 "assay_context": "whole-genome sequencing",
@@ -231,7 +231,7 @@ fn derives_verified_index_from_native_derived_catalog() -> Result<()> {
                 "sha256": file_sha256,
                 "size_bytes": file_size,
                 "kind": "coordinate-sorted-deduplicated-bam",
-                "sample_id": "err2112767",
+                "sample_id": "ERR2112767",
                 "source_sha256s": ["d".repeat(64)]
             }]
         }),

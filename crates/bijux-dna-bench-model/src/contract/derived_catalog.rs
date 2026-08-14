@@ -85,7 +85,7 @@ fn validate_samples_and_files(catalog: &GovernedDerivedDataCatalog) -> Result<()
     let mut samples = BTreeMap::<&str, &GovernedDerivedDataCatalogSample>::new();
     let mut previous_sample = None;
     for sample in &catalog.samples {
-        validate_identifier(&sample.sample_id, "derived sample")?;
+        validate_sample_identifier(&sample.sample_id)?;
         if previous_sample.is_some_and(|value: &str| value >= sample.sample_id.as_str()) {
             return Err(invalid("derived catalog samples are not strictly ordered"));
         }
@@ -162,6 +162,16 @@ fn validate_identifier(value: &str, label: &str) -> Result<(), BenchError> {
         })
     {
         return Err(invalid(&format!("{label} identity is malformed")));
+    }
+    Ok(())
+}
+
+fn validate_sample_identifier(value: &str) -> Result<(), BenchError> {
+    let mut bytes = value.bytes();
+    if !bytes.next().is_some_and(|byte| byte.is_ascii_alphanumeric())
+        || !bytes.all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b'-'))
+    {
+        return Err(invalid("derived sample identity is malformed"));
     }
     Ok(())
 }
@@ -262,7 +272,7 @@ mod tests {
                 contig_dictionary_sha256: digest('4'),
             },
             samples: vec![GovernedDerivedDataCatalogSample {
-                sample_id: "err769610".to_string(),
+                sample_id: "ERR769610".to_string(),
                 source_accessions: vec!["ERR769610".to_string()],
                 library_context: "ancient single-end shotgun library".to_string(),
                 assay_context: "whole-genome sequencing".to_string(),
@@ -277,7 +287,7 @@ mod tests {
                 sha256: digest('5'),
                 size_bytes: 1,
                 kind: "coordinate-sorted-deduplicated-bam".to_string(),
-                sample_id: "err769610".to_string(),
+                sample_id: "ERR769610".to_string(),
                 source_sha256s: vec![digest('6')],
             }],
         }
