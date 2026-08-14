@@ -90,7 +90,7 @@ fn tool_command_for_inputs(tool: &str, bam: &str, reference: &str, output: &str)
             "set -eu; mkdir -p '{output}'; samtools view -h '{bam}' | pmdtools --printDS --stats > '{output}/pmd-scores.tsv' 2> '{output}/pmd-statistics.txt'"
         ),
         "pydamage" => format!(
-            "set -eu; mkdir -p '{output}'; pydamage --outdir '{output}' analyze --group --process 2 '{bam}'"
+            "set -eu; pydamage --outdir '{output}' analyze --group --process 2 '{bam}'"
         ),
         _ => "false".to_string(),
     }
@@ -124,5 +124,21 @@ mod tests {
         }
         assert_eq!(required_files(3).len(), 21);
         Ok(())
+    }
+
+    #[test]
+    fn pydamage_creates_its_own_result_directory_without_an_interactive_reuse_prompt() {
+        let warmup = warmup_command("pydamage");
+        assert!(warmup[2].contains("pydamage --outdir '/scratch/bam-damage-warmup' analyze"));
+        assert!(!warmup[2].contains("mkdir -p '/scratch/bam-damage-warmup'"));
+
+        let negative = negative_command("pydamage");
+        assert!(!negative[2].contains("mkdir -p '/scratch/bam-damage-negative'"));
+
+        let measured = measured_command("pydamage", "ERR2112767", 10, 2, 20, 32);
+        assert!(measured[2].contains("rm -rf \"$native\""));
+        assert!(
+            !measured[2].contains("mkdir -p '/result/repetitions/repetition-{repetition}.native'")
+        );
     }
 }
