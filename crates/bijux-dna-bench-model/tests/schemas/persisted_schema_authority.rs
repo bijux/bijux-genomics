@@ -9,20 +9,6 @@ fn repository_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
-fn collect_rust_sources(root: &std::path::Path, sources: &mut String) -> Result<()> {
-    for entry in fs::read_dir(root).with_context(|| format!("read {}", root.display()))? {
-        let path = entry?.path();
-        if path.is_dir() {
-            collect_rust_sources(&path, sources)?;
-        } else if path.extension().is_some_and(|extension| extension == "rs") {
-            sources.push_str(
-                &fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?,
-            );
-        }
-    }
-    Ok(())
-}
-
 #[test]
 fn checked_in_persisted_schemas_match_the_model_authority() -> Result<()> {
     let root = repository_root();
@@ -61,12 +47,12 @@ fn checked_in_persisted_schemas_match_the_model_authority() -> Result<()> {
 #[test]
 fn every_checked_in_benchmark_schema_has_model_crate_authority() -> Result<()> {
     let root = repository_root();
-    let mut model_sources = String::new();
-    collect_rust_sources(&root.join("crates/bijux-dna-bench-model/src"), &mut model_sources)?;
-    collect_rust_sources(&root.join("crates/bijux-dna-bench-model/tests"), &mut model_sources)?;
-
     let schema_root = root.join("benchmarks/contracts/schemas");
-    let mut schema_count = 0_usize;
+    let registered = persisted_benchmark_schemas()
+        .iter()
+        .map(|schema| schema.repository_path)
+        .collect::<BTreeSet<_>>();
+    let mut checked_in = BTreeSet::new();
     for entry in
         fs::read_dir(&schema_root).with_context(|| format!("read {}", schema_root.display()))?
     {
@@ -74,16 +60,18 @@ fn every_checked_in_benchmark_schema_has_model_crate_authority() -> Result<()> {
         if path.extension().is_none_or(|extension| extension != "json") {
             continue;
         }
-        let name = path
-            .file_name()
-            .and_then(|value| value.to_str())
+        let relative = path
+            .strip_prefix(&root)
+            .with_context(|| format!("schema is outside repository: {}", path.display()))?
+            .to_str()
             .with_context(|| format!("schema path is not UTF-8: {}", path.display()))?;
-        assert!(
-            model_sources.contains(name),
-            "checked-in benchmark schema lacks bijux-dna-bench-model authority: {name}"
-        );
-        schema_count += 1;
+        checked_in.insert(relative.to_string());
     }
-    assert!(schema_count > 0, "benchmark schema inventory is empty");
+    assert!(!checked_in.is_empty(), "benchmark schema inventory is empty");
+    let checked_in_refs = checked_in.iter().map(String::as_str).collect::<BTreeSet<_>>();
+    assert_eq!(
+        registered, checked_in_refs,
+        "checked-in benchmark schemas must exactly match the bijux-dna-bench-model registry"
+    );
     Ok(())
 }
