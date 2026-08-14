@@ -75,6 +75,43 @@ pub(crate) fn handle_meta_commands(
                 bijux_dna_api::v1::api::bench::validate_benchmark_stage_plugin_composition()?;
             }
             match &args.command {
+                BenchCommand::Cases { command } => match command {
+                    cli::BenchCasesCommand::Plan(args) => {
+                        bijux_dna_api::v1::api::bench::validate_benchmark_stage_plugin_composition(
+                        )?;
+                        let matrix = bijux_dna_api::v1::api::bench::plan_benchmark_cases(
+                            &bijux_dna_api::v1::api::bench::BenchmarkCasePlanningRequest {
+                                repository_root: args.repository_root.clone(),
+                                study_root: args.study_root.clone(),
+                                data_index_path: args.data_index.clone(),
+                                run_id: args.run_id.clone(),
+                                output_path: args.output.clone(),
+                            },
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&matrix)?;
+                    }
+                    cli::BenchCasesCommand::Admit(args) => {
+                        let observations = bijux_dna_api::v1::api::bench::admit_benchmark_cases(
+                            &bijux_dna_api::v1::api::bench::BenchmarkCaseAdmissionRequest {
+                                matrix_path: args.matrix.clone(),
+                                observations_path: args.observations.clone(),
+                                output_path: args.output.clone(),
+                            },
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&observations)?;
+                    }
+                    cli::BenchCasesCommand::Aggregate(args) => {
+                        let aggregations =
+                            bijux_dna_api::v1::api::bench::aggregate_benchmark_cases(
+                                &bijux_dna_api::v1::api::bench::BenchmarkCaseAggregationRequest {
+                                    matrix_path: args.matrix.clone(),
+                                    observations_path: args.observations.clone(),
+                                    output_path: args.output.clone(),
+                                },
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&aggregations)?;
+                    }
+                },
                 BenchCommand::Cycle { command } => match command {
                     cli::BenchCycleCommand::Admit(args) => {
                         let admission =

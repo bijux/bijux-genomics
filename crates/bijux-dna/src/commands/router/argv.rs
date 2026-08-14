@@ -90,7 +90,7 @@ pub fn parse_process_cli(argv: &[String]) -> cli::Cli {
 #[cfg(test)]
 mod tests {
     use super::{normalize_cli_argv, parse_cli_from_argv};
-    use crate::commands::cli::{BenchCommand, BenchCycleCommand, DnaCommand};
+    use crate::commands::cli::{BenchCasesCommand, BenchCommand, BenchCycleCommand, DnaCommand};
 
     fn argv(values: &[&str]) -> Vec<String> {
         values.iter().map(|value| (*value).to_string()).collect()
@@ -256,6 +256,39 @@ mod tests {
         assert_eq!(
             args.prior_case_matrix,
             std::path::Path::new("artifacts/benchmark-cycle/prior-cases.json")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn benchmark_cases_plan_retains_data_and_output_authorities() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cases",
+            "plan",
+            "--study-root",
+            "/study",
+            "--data-index",
+            "/study/data/evidence/benchmark-data-index.json",
+            "--run-id",
+            "run-2042",
+            "--output",
+            "/study/data/evidence/benchmark-case-matrices/current/run-2042.json",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cases { command } = root.command else {
+            panic!("expected benchmark cases command");
+        };
+        let BenchCasesCommand::Plan(args) = command else {
+            panic!("expected benchmark cases plan command");
+        };
+        assert_eq!(args.run_id, "run-2042");
+        assert_eq!(
+            args.data_index,
+            std::path::Path::new("/study/data/evidence/benchmark-data-index.json")
         );
         Ok(())
     }
