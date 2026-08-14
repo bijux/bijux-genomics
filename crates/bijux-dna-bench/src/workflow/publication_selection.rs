@@ -18,6 +18,9 @@ use bijux_dna_bench_model::{
 use super::evidence_book::{
     load_indexed_receipt, read_json, study_reference, verify_study_reference,
 };
+use super::publication_registry::{
+    publish_checked_in_benchmark_publication_registry, BenchmarkPublicationRegistryWriteMode,
+};
 use super::run_index::{publish_checked_in_benchmark_run_index, BenchmarkRunIndexWriteMode};
 
 const RUN_INDEX_PATH: &str = "benchmarks/runs/RUN_INDEX.json";
@@ -34,7 +37,7 @@ pub struct BenchmarkPublicationSelectionRequest {
     pub replay_receipt_uri: String,
 }
 
-/// Select one publication and regenerate all paper-facing run surfaces.
+/// Select one publication and regenerate all paper-facing run and report-index surfaces.
 ///
 /// Existing selections are immutable: an identical selection is idempotent and a different
 /// selection is rejected. Case definitions are parsed and matched to selected attempts before the
@@ -155,7 +158,16 @@ pub fn select_checked_in_benchmark_publication(
     validate_existing_pointer(&pointer_path, &pointer)?;
     write_json(&case_index_path, &case_index, "benchmark run case index")?;
     write_json(&pointer_path, &pointer, "benchmark current publication pointer")?;
-    publish_checked_in_benchmark_run_index(&repository_root, BenchmarkRunIndexWriteMode::Write)
+    let index = publish_checked_in_benchmark_run_index(
+        &repository_root,
+        BenchmarkRunIndexWriteMode::Write,
+    )?;
+    publish_checked_in_benchmark_publication_registry(
+        &repository_root,
+        BenchmarkPublicationRegistryWriteMode::Write,
+    )
+    .context("regenerate benchmark report index after publication selection")?;
+    Ok(index)
 }
 
 fn validate_citation(
@@ -335,8 +347,13 @@ mod tests {
         });
         let temporary = tempfile::tempdir()?;
         let path = temporary.path().join("current-publication.json");
-        let protocol_only: BenchmarkRunPublicationPointer =
+        let mut protocol_only: BenchmarkRunPublicationPointer =
             read_json(&source, "benchmark selection pointer fixture")?;
+        protocol_only.selected_publication = None;
+        protocol_only.limitations = vec![
+            "This protocol-only fixture intentionally has no selected publication.".to_string(),
+        ];
+        validate_benchmark_run_publication_pointer(&protocol_only)?;
         write_json(&path, &protocol_only, "benchmark selection pointer fixture")?;
         validate_existing_pointer(&path, &expected)?;
 
