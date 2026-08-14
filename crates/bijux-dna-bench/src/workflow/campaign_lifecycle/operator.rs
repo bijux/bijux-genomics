@@ -135,7 +135,7 @@ pub fn plan_checked_in_benchmark_campaign(
     Ok(plan)
 }
 
-/// Plan one explicit retry for every terminal lineage tip in a case-scoped campaign.
+/// Plan one explicit retry for every non-passing terminal lineage tip in a case-scoped campaign.
 ///
 /// The prior plan and its matrix remain immutable authorities. Their source must be an ancestor of
 /// the clean current repository, while the new matrix must match the current source exactly.

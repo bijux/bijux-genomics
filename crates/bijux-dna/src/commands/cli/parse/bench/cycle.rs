@@ -18,7 +18,7 @@ pub enum BenchCycleCommand {
     Publish(BenchCyclePublishArgs),
     /// Compare regenerated semantic artifacts with a selected publication.
     Replay(BenchCycleReplayArgs),
-    /// Plan explicit retries from terminal case-scoped attempt lineage.
+    /// Retry only non-passing terminal tips from case-scoped attempt lineage.
     Retry(BenchCycleRetryArgs),
     /// Read the persisted lifecycle state for every attempt in one campaign.
     Status(BenchCycleStatusArgs),
