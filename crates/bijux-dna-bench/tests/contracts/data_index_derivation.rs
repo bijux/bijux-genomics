@@ -104,6 +104,66 @@ fn preserves_heterogeneous_catalogs_and_composes_complete_registry() -> Result<(
 }
 
 #[test]
+fn publishes_native_derived_catalog_with_verified_source_and_file_closure() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let source_commit = "4".repeat(40);
+    let derived_path = fixture.data_root.join("catalog/ancient-horse-derived-bam.json");
+    write_derived_catalog(&fixture, &derived_path, None)?;
+
+    let publication =
+        publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+            data_root: fixture.data_root.clone(),
+            source_commit: source_commit.clone(),
+            preserved_at_utc: "2026-08-14T00:00:00Z".to_string(),
+            previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+        })?;
+    let replay = publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: source_commit.clone(),
+        preserved_at_utc: "2026-08-14T00:00:00Z".to_string(),
+        previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+    })?;
+
+    assert_eq!(publication, replay);
+    assert_eq!(publication.preserved_snapshot_count, 1);
+    assert_eq!(publication.retained_snapshot_count, 1);
+    let record = publication
+        .registry
+        .records
+        .iter()
+        .find(|record| record.id == "ancient-horse-derived-bam")
+        .expect("derived registry record");
+    assert_eq!(record.snapshots.len(), 1);
+    assert_eq!(record.snapshots[0].catalog_schema_version, "bijux.data_catalog.derived.v1");
+    let snapshot_path = fixture
+        .data_root
+        .join("catalog/snapshots")
+        .join(source_commit)
+        .join("ancient-horse-derived-bam.json");
+    let snapshot: Value = serde_json::from_slice(&fs::read(snapshot_path)?)?;
+    assert_eq!(snapshot["schema_version"], "bijux.data_catalog.derived.v1");
+    assert!(snapshot.get("preserved_catalog").is_none());
+    Ok(())
+}
+
+#[test]
+fn rejects_derived_catalog_with_drifted_source_snapshot() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let derived_path = fixture.data_root.join("catalog/ancient-horse-derived-bam.json");
+    write_derived_catalog(&fixture, &derived_path, Some("f".repeat(64)))?;
+    let request = GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: "5".repeat(40),
+        preserved_at_utc: "2026-08-14T00:00:00Z".to_string(),
+        previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+    };
+
+    assert!(publish_governed_data_catalog_snapshots(&request)
+        .is_err_and(|error| format!("{error:#}").contains("source catalog digest drifted")));
+    Ok(())
+}
+
+#[test]
 fn registry_publication_rejects_snapshot_drift_and_invalid_commit_before_io() -> Result<()> {
     let fixture = data_index_fixture()?;
     let source_commit = "2".repeat(40);
@@ -444,6 +504,77 @@ fn request(fixture: &DataIndexFixture) -> BenchmarkDataIndexRequest {
         data_root: fixture.data_root.clone(),
         created_at_utc: "2026-08-06T00:00:00Z".to_string(),
     }
+}
+
+fn write_derived_catalog(
+    fixture: &DataIndexFixture,
+    path: &Path,
+    source_sha256: Option<String>,
+) -> Result<()> {
+    let file_sha256 = bijux_dna_infra::hash_file_sha256(&fixture.governed_file)?;
+    let file_size = fs::metadata(&fixture.governed_file)?.len();
+    let source_sha256 =
+        source_sha256.unwrap_or(bijux_dna_infra::hash_file_sha256(&fixture.catalog_path)?);
+    write_json(
+        path,
+        &json!({
+            "schema_version": "bijux.data_catalog.derived.v1",
+            "id": "ancient-horse-derived-bam",
+            "purpose": "real ancient horse alignment derived from governed reads",
+            "source": "governed source catalogs",
+            "class": "production_real",
+            "access_classification": "public",
+            "redistribution_classification": "derived-results-only",
+            "access_terms_url": "https://example.org/terms",
+            "attribution": "cite the source study",
+            "projected_storage_bytes": file_size,
+            "projected_cpu_hours": 1,
+            "projection_basis": "one bounded alignment",
+            "truth_roles": ["alignment_context"],
+            "truth_strategy": "observational_only",
+            "known_limitations": ["one sample does not represent a population"],
+            "sources": [{
+                "catalog_id": "ancient-horse-bam",
+                "catalog_path": format!(
+                    "study://data/catalog/snapshots/{}/ancient-horse-bam.json",
+                    "1".repeat(40)
+                ),
+                "catalog_sha256": source_sha256
+            }],
+            "admitted_at_utc": "2026-08-14T00:00:00Z",
+            "scientific_name": "Equus caballus",
+            "reference_assembly": "EquCab3.0",
+            "allowed_uses": ["comparative_benchmarking"],
+            "derivation": {
+                "pipeline_id": "horse-bam-materialization",
+                "pipeline_version": "1.0.0",
+                "source_commit": "9".repeat(40),
+                "parameter_sha256": "a".repeat(64),
+                "reference_id": "equcab3-reference",
+                "reference_catalog_sha256": "b".repeat(64),
+                "contig_dictionary_sha256": "c".repeat(64)
+            },
+            "samples": [{
+                "sample_id": "ERR2112767",
+                "source_accessions": ["ERR2112767"],
+                "library_context": "ancient single-end shotgun library",
+                "assay_context": "whole-genome sequencing",
+                "strata": {"era": "ancient"},
+                "control_roles": ["none"],
+                "truth_roles": ["alignment_context"],
+                "held_out_split": "evaluation",
+                "read_group_ids": ["ERR2112767"]
+            }],
+            "files": [{
+                "path": fixture.governed_file,
+                "sha256": file_sha256.clone(),
+                "size_bytes": file_size,
+                "kind": "coordinate-sorted-deduplicated-bam",
+                "sample_id": "ERR2112767",
+                "source_sha256s": [file_sha256]
+            }]
+        }),
+    )
 }
 
 fn mutate_registered_catalog(

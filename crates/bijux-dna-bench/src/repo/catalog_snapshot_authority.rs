@@ -8,10 +8,12 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_governed_data_catalog_registry, validate_governed_data_catalog_snapshot_publication,
-    validate_governed_preserved_data_catalog, validate_utc_timestamp, GovernedDataCatalogRegistry,
-    GovernedDataCatalogRegistryRecord, GovernedDataCatalogSnapshot, GovernedPreservedDataCatalog,
+    validate_governed_derived_data_catalog, validate_governed_preserved_data_catalog,
+    validate_utc_timestamp, GovernedDataCatalogRegistry, GovernedDataCatalogRegistryRecord,
+    GovernedDataCatalogSnapshot, GovernedDerivedDataCatalog, GovernedPreservedDataCatalog,
     GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V2, GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1,
+    GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
 };
 
 pub use bijux_dna_bench_model::GovernedDataCatalogSnapshotPublication;
@@ -27,10 +29,12 @@ pub struct GovernedDataCatalogSnapshotRequest {
     pub previous_registry_path: Option<PathBuf>,
 }
 
-/// Preserve every flat v1 authority under a source-addressed v2 envelope and compose a registry.
+/// Publish every flat authority under a source-addressed snapshot and compose a registry.
 ///
-/// Existing current v2 records are retained from the explicit prior registry. Publications are
-/// immutable and replay-safe: matching bytes are accepted, while conflicts are rejected.
+/// Flat v1 authorities receive a preservation envelope; native derived catalogs retain their
+/// schema after their source and file closure is reverified. Existing native records are retained
+/// from the explicit prior registry. Publications are immutable and replay-safe: matching bytes
+/// are accepted, while conflicts are rejected.
 ///
 /// # Errors
 /// Returns an error for invalid identities, unsafe paths, malformed catalogs, drifted prior
@@ -75,34 +79,43 @@ pub fn publish_governed_data_catalog_snapshots(
             continue;
         }
 
-        let preserved = GovernedPreservedDataCatalog {
-            schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(),
-            id: catalog.id.clone(),
-            source_catalog_path: format!("study://data/catalog/{}.json", catalog.id),
-            source_catalog_sha256: catalog.sha256,
-            source_catalog_size_bytes: catalog.size_bytes,
-            source_catalog_schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V1.to_string(),
-            preserved_at_utc: request.preserved_at_utc.clone(),
-            preserved_catalog: catalog.value,
+        let (snapshot_schema_version, snapshot_value) = match catalog.schema_version.as_str() {
+            GOVERNED_DATA_CATALOG_SCHEMA_V1 => {
+                let preserved = GovernedPreservedDataCatalog {
+                    schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(),
+                    id: catalog.id.clone(),
+                    source_catalog_path: format!("study://data/catalog/{}.json", catalog.id),
+                    source_catalog_sha256: catalog.sha256,
+                    source_catalog_size_bytes: catalog.size_bytes,
+                    source_catalog_schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V1.to_string(),
+                    preserved_at_utc: request.preserved_at_utc.clone(),
+                    preserved_catalog: catalog.value,
+                };
+                validate_governed_preserved_data_catalog(&preserved)
+                    .with_context(|| format!("validate preserved catalog {}", preserved.id))?;
+                (GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(), serde_json::to_value(preserved)?)
+            }
+            GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1 => {
+                (GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1.to_string(), catalog.value)
+            }
+            _ => bail!("flat catalog schema is unsupported: {}", catalog.id),
         };
-        validate_governed_preserved_data_catalog(&preserved)
-            .with_context(|| format!("validate preserved catalog {}", preserved.id))?;
         let snapshot_path = data_root
             .join("catalog/snapshots")
             .join(&request.source_commit)
-            .join(format!("{}.json", preserved.id));
-        write_immutable_json(&snapshot_path, &preserved, "catalog snapshot")?;
+            .join(format!("{}.json", catalog.id));
+        write_immutable_json(&snapshot_path, &snapshot_value, "catalog snapshot")?;
         let snapshot_sha256 = bijux_dna_infra::hash_file_sha256(&snapshot_path)?;
         records.push(GovernedDataCatalogRegistryRecord {
-            id: preserved.id.clone(),
+            id: catalog.id.clone(),
             current_catalog_sha256: snapshot_sha256.clone(),
             snapshots: vec![GovernedDataCatalogSnapshot {
                 catalog_path: format!(
                     "study://data/catalog/snapshots/{}/{}.json",
-                    request.source_commit, preserved.id
+                    request.source_commit, catalog.id
                 ),
                 catalog_sha256: snapshot_sha256,
-                catalog_schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(),
+                catalog_schema_version: snapshot_schema_version,
                 source_commit: request.source_commit.clone(),
                 created_at_utc: request.preserved_at_utc.clone(),
             }],
@@ -138,6 +151,7 @@ pub fn publish_governed_data_catalog_snapshots(
 
 struct FlatCatalog {
     id: String,
+    schema_version: String,
     sha256: String,
     size_bytes: u64,
     value: serde_json::Value,
@@ -164,24 +178,35 @@ fn load_flat_catalogs(data_root: &Path) -> Result<Vec<FlatCatalog>> {
         let value: serde_json::Value = serde_json::from_slice(&bytes)
             .with_context(|| format!("parse flat catalog {}", path.display()))?;
         let object = value.as_object().context("flat catalog root is not an object")?;
-        if object.get("schema_version").and_then(serde_json::Value::as_str)
-            == Some(GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1)
-        {
+        let schema_version = object
+            .get("schema_version")
+            .and_then(serde_json::Value::as_str)
+            .context("flat catalog lacks a schema version")?;
+        if schema_version == GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1 {
             continue;
         }
         let id = object
             .get("id")
             .and_then(serde_json::Value::as_str)
             .context("flat catalog lacks an ID")?;
-        if object.get("schema_version").and_then(serde_json::Value::as_str)
-            != Some(GOVERNED_DATA_CATALOG_SCHEMA_V1)
-            || path.file_stem().and_then(|value| value.to_str()) != Some(id)
+        if !matches!(
+            schema_version,
+            GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1
+        ) || path.file_stem().and_then(|value| value.to_str()) != Some(id)
             || !ids.insert(id.to_string())
         {
             bail!("flat catalog identity or schema is invalid: {}", path.display());
         }
+        if schema_version == GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1 {
+            let derived: GovernedDerivedDataCatalog = serde_json::from_value(value.clone())
+                .with_context(|| format!("parse derived catalog {}", path.display()))?;
+            validate_governed_derived_data_catalog(&derived)
+                .with_context(|| format!("validate derived catalog {}", path.display()))?;
+            verify_derived_catalog_closure(&derived, data_root)?;
+        }
         catalogs.push(FlatCatalog {
             id: id.to_string(),
+            schema_version: schema_version.to_string(),
             sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
             size_bytes: metadata.len(),
             value,
@@ -191,6 +216,31 @@ fn load_flat_catalogs(data_root: &Path) -> Result<Vec<FlatCatalog>> {
         bail!("governed data root contains no flat catalog authorities");
     }
     Ok(catalogs)
+}
+
+fn verify_derived_catalog_closure(
+    catalog: &GovernedDerivedDataCatalog,
+    data_root: &Path,
+) -> Result<()> {
+    for source in &catalog.sources {
+        let relative = source
+            .catalog_path
+            .strip_prefix("study://data/")
+            .context("derived source catalog URI escapes governed data root")?;
+        let path = canonical_file(&data_root.join(relative), data_root, "derived source catalog")?;
+        if bijux_dna_infra::hash_file_sha256(&path)? != source.catalog_sha256 {
+            bail!("derived source catalog digest drifted: {}", path.display());
+        }
+    }
+    for file in &catalog.files {
+        let path = canonical_file(Path::new(&file.path), data_root, "derived catalog file")?;
+        if fs::metadata(&path)?.len() != file.size_bytes
+            || bijux_dna_infra::hash_file_sha256(&path)? != file.sha256
+        {
+            bail!("derived catalog file identity drifted: {}", path.display());
+        }
+    }
+    Ok(())
 }
 
 fn load_prior_registry(path: &Path, data_root: &Path) -> Result<GovernedDataCatalogRegistry> {
