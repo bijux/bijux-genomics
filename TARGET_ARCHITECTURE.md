@@ -124,7 +124,10 @@ attempt blocks only its own execution unit.
   exists; the receipt must match the permanent protocol, and the checked-in pointer is selected
   only after book, replay, and citation evidence close without a circular dependency.
 - Replay accepts that receipt only together with the immutable candidate evidence book that admits
-  it; mixed candidate/indexed authority is rejected before semantic comparison.
+  it; mixed candidate/indexed authority is rejected before semantic comparison. The benchmark
+  engine validates the source-locked case matrix, selects exactly one case for every admitted
+  attempt, publishes those case definitions immutably beside the replay receipt, and retains the
+  matrix as an input lock. Callers do not assemble or approximate the selected case closure.
 - A citation is the stable paper-facing record for a run protocol and its selected publication.
 - Scheduler job IDs are provenance, not run identities.
 - Current reports require exact source, catalog, stage/interface, data/truth, artifact, campaign,

@@ -310,7 +310,7 @@ pub(crate) fn handle_meta_commands(
                                                 .clone(),
                                             evidence_book_uri: args.evidence_book_uri.clone(),
                                             run_definition_uri: args.run_definition_uri.clone(),
-                                            case_definition_uris: args.case_definition_uri.clone(),
+                                            case_matrix_uri: args.case_matrix_uri.clone(),
                                             immutable_input_uris: args.immutable_input_uri.clone(),
                                             observed_decision_uri: args.observed_decision_uri.clone(),
                                             observed_report_uri: args.observed_report_uri.clone(),

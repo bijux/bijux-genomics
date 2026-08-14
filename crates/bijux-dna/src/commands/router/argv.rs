@@ -497,8 +497,8 @@ mod tests {
             "study://results/benchmarks/evidence-books/source/candidate-publications.json",
             "--run-definition-uri",
             "study://contracts/run-2002.json",
-            "--case-definition-uri",
-            "study://contracts/run-2002-bedtools.json",
+            "--case-matrix-uri",
+            "study://contracts/run-2002-cases.json",
             "--immutable-input-uri",
             "study://data/bam/input.json",
             "--difference",
@@ -527,6 +527,7 @@ mod tests {
             args.evidence_book_uri.as_deref(),
             Some("study://results/benchmarks/evidence-books/source/candidate-publications.json")
         );
+        assert_eq!(args.case_matrix_uri, "study://contracts/run-2002-cases.json");
         Ok(())
     }
 

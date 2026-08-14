@@ -76,8 +76,9 @@ pub struct BenchCycleReplayArgs {
     pub evidence_book_uri: Option<String>,
     #[arg(long)]
     pub run_definition_uri: String,
-    #[arg(long, required = true)]
-    pub case_definition_uri: Vec<String>,
+    /// Canonical case matrix from which selected case definitions are materialized.
+    #[arg(long)]
+    pub case_matrix_uri: String,
     #[arg(long, required = true)]
     pub immutable_input_uri: Vec<String>,
     #[arg(long)]

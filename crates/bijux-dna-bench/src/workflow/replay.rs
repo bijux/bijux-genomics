@@ -1,6 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Semantic replay receipts for current benchmark publication selections.
 
+use std::collections::BTreeSet;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
@@ -11,7 +12,8 @@ use bijux_dna_bench_model::contract::{
 };
 use bijux_dna_bench_model::{
     validate_benchmark_evidence_book, validate_benchmark_replay_receipt,
-    validate_benchmark_run_index, BenchmarkEvidenceBook, BenchmarkEvidenceReference,
+    validate_benchmark_run_index, BenchmarkAttemptIdentity, BenchmarkCaseDefinitionV1,
+    BenchmarkCaseMatrixV2, BenchmarkEvidenceBook, BenchmarkEvidenceReference,
     BenchmarkPublicationReceipt, BenchmarkReplayOutcome, BenchmarkReplayReceipt,
     BenchmarkReplaySemanticIdentity, BenchmarkRunDefinition, BenchmarkRunIdentity,
     BenchmarkRunIndex, BenchmarkRunIndexEntry, BenchmarkRunIndexFileReference,
@@ -36,7 +38,7 @@ pub struct BenchmarkReplayRequest {
     pub publication_receipt_uri: Option<String>,
     pub evidence_book_uri: Option<String>,
     pub run_definition_uri: String,
-    pub case_definition_uris: Vec<String>,
+    pub case_matrix_uri: String,
     pub immutable_input_uris: Vec<String>,
     pub observed_decision_uri: Option<String>,
     pub observed_report_uri: Option<String>,
@@ -102,16 +104,21 @@ pub fn replay_checked_in_benchmark_publication(
     let definition: BenchmarkRunDefinition =
         read_json(&study_root.join(relative), "benchmark replay run definition")?;
     validate_replay_run_definition(&definition, &source.run, &source.run_definition_sha256)?;
-    let case_definitions = request
-        .case_definition_uris
-        .iter()
-        .map(|uri| study_reference(&study_root, uri, "benchmark replay case definition"))
-        .collect::<Result<Vec<_>>>()?;
-    let immutable_inputs = request
+    let (case_definitions, case_matrix) = materialize_selected_case_definitions(
+        &study_root,
+        &output,
+        &request.case_matrix_uri,
+        &source.repository_commit,
+        &source.selected_attempts,
+    )?;
+    let mut immutable_inputs = request
         .immutable_input_uris
         .iter()
         .map(|uri| study_reference(&study_root, uri, "benchmark replay immutable input"))
         .collect::<Result<Vec<_>>>()?;
+    immutable_inputs.push(case_matrix);
+    immutable_inputs.sort_by(|left, right| left.uri.cmp(&right.uri));
+    immutable_inputs.dedup_by(|left, right| left.uri == right.uri);
     let expected = BenchmarkReplaySemanticIdentity {
         decision_sha256: source.decision.sha256,
         report_sha256: source.report.sha256,
@@ -147,6 +154,121 @@ pub fn replay_checked_in_benchmark_publication(
     validate_benchmark_replay_receipt(&receipt).context("validate benchmark replay receipt")?;
     publish_identity(&output, &receipt)?;
     Ok(receipt)
+}
+
+fn materialize_selected_case_definitions(
+    study_root: &Path,
+    output: &Path,
+    matrix_uri: &str,
+    source_repository_commit: &str,
+    selected_attempts: &[BenchmarkAttemptIdentity],
+) -> Result<(Vec<BenchmarkEvidenceReference>, BenchmarkEvidenceReference)> {
+    let matrix_reference = study_reference(study_root, matrix_uri, "benchmark replay case matrix")?;
+    let relative = matrix_reference
+        .uri
+        .strip_prefix("study://")
+        .context("validated benchmark case-matrix URI lost its prefix")?;
+    let matrix: BenchmarkCaseMatrixV2 =
+        read_json(&study_root.join(relative), "benchmark replay case matrix")?;
+    super::campaign_engine::validate_benchmark_case_matrix(&matrix)
+        .context("validate benchmark replay case matrix")?;
+    if matrix.repository_commit != source_repository_commit {
+        bail!("benchmark replay case matrix differs from the publication source commit");
+    }
+    let indexes = selected_case_indexes(&matrix.cases, selected_attempts)?;
+    let parent = output.parent().context("benchmark replay output has no parent")?;
+    let mut references = Vec::with_capacity(indexes.len());
+    for index in indexes {
+        let case = &matrix.cases[index];
+        let path = parent.join(format!("case-definition-{}.json", case.case_id));
+        publish_case_definition(&path, case)?;
+        let relative = path
+            .strip_prefix(study_root)
+            .context("benchmark replay case-definition output escapes governed STUDY")?;
+        let uri = format!("study://{}", relative.to_string_lossy());
+        references.push(study_reference(
+            study_root,
+            &uri,
+            "benchmark replay materialized case definition",
+        )?);
+    }
+    Ok((references, matrix_reference))
+}
+
+fn selected_case_indexes(
+    cases: &[BenchmarkCaseDefinitionV1],
+    selected_attempts: &[BenchmarkAttemptIdentity],
+) -> Result<Vec<usize>> {
+    selected_case_indexes_from_identities(
+        cases.iter().map(|case| {
+            (
+                case.case_id.as_str(),
+                case.run_id.as_str(),
+                case.domain.as_str(),
+                case.stage_id.as_str(),
+                case.tool_id.as_str(),
+            )
+        }),
+        selected_attempts,
+    )
+}
+
+fn selected_case_indexes_from_identities<'a>(
+    cases: impl IntoIterator<Item = (&'a str, &'a str, &'a str, &'a str, &'a str)>,
+    selected_attempts: &[BenchmarkAttemptIdentity],
+) -> Result<Vec<usize>> {
+    let cases = cases.into_iter().collect::<Vec<_>>();
+    if cases.len() != selected_attempts.len() {
+        bail!("benchmark replay case matrix differs from selected attempt closure");
+    }
+    let indexes = selected_attempts
+        .iter()
+        .map(|attempt| {
+            let case_id = attempt
+                .case_id
+                .as_deref()
+                .context("benchmark replay selected attempt omits its case identity")?;
+            cases
+                .iter()
+                .position(|(candidate_id, run_id, domain, stage_id, tool_id)| {
+                    *candidate_id == case_id
+                        && *run_id == attempt.run.run_id
+                        && *domain == attempt.run.domain
+                        && *stage_id == attempt.run.stage_id
+                        && *tool_id == attempt.tool_id
+                })
+                .context("benchmark replay case matrix omits a selected attempt")
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if indexes.iter().collect::<BTreeSet<_>>().len() != indexes.len() {
+        bail!("benchmark replay selected attempts reuse one case definition");
+    }
+    Ok(indexes)
+}
+
+fn publish_case_definition(path: &Path, case: &BenchmarkCaseDefinitionV1) -> Result<()> {
+    let mut expected =
+        serde_json::to_vec_pretty(case).context("serialize benchmark replay case definition")?;
+    expected.push(b'\n');
+    match fs::symlink_metadata(path) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() || !metadata.is_file() {
+                bail!("benchmark replay case-definition output is not a regular file");
+            }
+            if metadata.len() > MAX_REPLAY_RECEIPT_BYTES {
+                bail!("existing benchmark replay case definition exceeds the bounded size limit");
+            }
+            if fs::read(path)? != expected {
+                bail!("refusing to replace a different benchmark replay case definition");
+            }
+            Ok(())
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => {
+            bijux_dna_infra::atomic_create_bytes(path, &expected)?;
+            Ok(())
+        }
+        Err(error) => Err(error).context("inspect benchmark replay case-definition output"),
+    }
 }
 
 fn validate_replay_run_definition(
@@ -430,6 +552,52 @@ mod tests {
         let semantic_sha256 = benchmark_run_definition_sha256(&definition)?;
         assert_ne!(bijux_dna_infra::hash_file_sha256(&path)?, semantic_sha256);
         validate_replay_run_definition(&definition, &definition.identity, &semantic_sha256)?;
+        Ok(())
+    }
+
+    #[test]
+    fn replay_selects_one_exact_case_definition_per_attempt() -> Result<()> {
+        let run = BenchmarkRunIdentity {
+            run_id: "run-2042".to_string(),
+            domain: "fastq".to_string(),
+            stage_id: "fastq.profile_read_lengths".to_string(),
+        };
+        let attempts = vec![
+            BenchmarkAttemptIdentity {
+                campaign_id: "production-run-2042".to_string(),
+                run: run.clone(),
+                case_id: Some("run-2042--seqfu--corpus".to_string()),
+                attempt_id: "attempt-003".to_string(),
+                tool_id: "seqfu".to_string(),
+            },
+            BenchmarkAttemptIdentity {
+                campaign_id: "production-run-2042".to_string(),
+                run,
+                case_id: Some("run-2042--seqkit--corpus".to_string()),
+                attempt_id: "attempt-002".to_string(),
+                tool_id: "seqkit".to_string(),
+            },
+        ];
+        let cases = [
+            (
+                "run-2042--seqkit--corpus",
+                "run-2042",
+                "fastq",
+                "fastq.profile_read_lengths",
+                "seqkit",
+            ),
+            ("run-2042--seqfu--corpus", "run-2042", "fastq", "fastq.profile_read_lengths", "seqfu"),
+        ];
+        assert_eq!(selected_case_indexes_from_identities(cases, &attempts)?, [1, 0]);
+
+        let incomplete = &cases[..1];
+        assert!(
+            selected_case_indexes_from_identities(incomplete.iter().copied(), &attempts).is_err()
+        );
+        let mut reused = attempts.clone();
+        reused[1].case_id = reused[0].case_id.clone();
+        reused[1].tool_id = reused[0].tool_id.clone();
+        assert!(selected_case_indexes_from_identities(cases, &reused).is_err());
         Ok(())
     }
 }
