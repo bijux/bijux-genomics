@@ -852,14 +852,43 @@ fn validate_bam_pair(
     bam_index: &AdmittedBamCorpusFile,
     sample_id: &str,
 ) -> Result<()> {
-    let expected_bam = format!("{sample_id}.sorted.bam");
-    let expected_bai = format!("{expected_bam}.bai");
-    if file_name(&bam.path, BAM_ROLE)? != expected_bam
-        || file_name(&bam_index.path, BAI_ROLE)? != expected_bai
+    let bam_name = file_name(&bam.path, BAM_ROLE)?;
+    let bai_name = file_name(&bam_index.path, BAI_ROLE)?;
+    let sample_prefix = format!("{sample_id}.");
+    if !bam_name.starts_with(&sample_prefix)
+        || !bam_name.ends_with(".bam")
+        || bai_name != format!("{bam_name}.bai")
     {
         bail!("BAM and BAI names do not close over sample {sample_id}");
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod bam_pair_tests {
+    use super::*;
+
+    fn file(path: &str) -> AdmittedBamCorpusFile {
+        AdmittedBamCorpusFile { path: path.to_string(), sha256: "a".repeat(64), size_bytes: 1 }
+    }
+
+    #[test]
+    fn admits_sample_owned_identity_addressed_bam_projection() {
+        let bam = file("/study/ERR2112767.ngsbriggs-input.bam");
+        let bai = file("/study/ERR2112767.ngsbriggs-input.bam.bai");
+
+        validate_bam_pair(&bam, &bai, "ERR2112767").expect("paired BAM projection must be valid");
+    }
+
+    #[test]
+    fn rejects_index_that_does_not_name_its_bam() {
+        let bam = file("/study/ERR2112767.ngsbriggs-input.bam");
+        let bai = file("/study/ERR2112767.other.bam.bai");
+
+        let error = validate_bam_pair(&bam, &bai, "ERR2112767")
+            .expect_err("unpaired BAM index must be rejected");
+        assert!(error.to_string().contains("do not close"));
+    }
 }
 
 fn validate_reference_file_names(
