@@ -194,7 +194,7 @@ fn catalog_locked_resolution_rejects_stale_and_unselectable_authorities() -> any
     external_catalog.tools[0].artifact_delivery = ContainerArtifactDelivery::ExternalArtifact;
     external_catalog.tools[0].redistribution_permitted = false;
     external_catalog.tools[0].apptainer_supported = false;
-    assert!(resolve_catalog_locked_apptainer_image(
+    let error = resolve_catalog_locked_apptainer_image(
         &external,
         &external.catalog_sha256,
         &external_catalog,
@@ -202,7 +202,11 @@ fn catalog_locked_resolution_rejects_stale_and_unselectable_authorities() -> any
         temporary.path(),
         "seqkit",
     )
-    .is_err());
+    .expect_err("external artifact must resolve through its admission authority");
+    assert_eq!(
+        error.to_string(),
+        "tool seqkit requires admitted external_artifact execution authority"
+    );
 
     let mut ambiguous = inventory.clone();
     ambiguous.tools[0].state = ContainerImageState::Ambiguous;

@@ -42,6 +42,17 @@ pub fn resolve_catalog_locked_apptainer_image(
             publication.repository_commit
         );
     }
+    let catalog_tool = catalog
+        .tools
+        .iter()
+        .find(|tool| tool.id == tool_id)
+        .with_context(|| format!("container catalog does not declare tool {tool_id}"))?;
+    if !catalog_tool.is_redistributable_image() {
+        bail!(
+            "tool {tool_id} requires admitted {} execution authority",
+            catalog_tool.artifact_delivery.as_str()
+        );
+    }
     resolve_current_apptainer_image(publication, study_root, tool_id)
 }
 
