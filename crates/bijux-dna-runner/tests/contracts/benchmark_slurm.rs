@@ -315,6 +315,7 @@ fn benchmark_slurm_material_is_isolated_complete_and_restart_safe() -> anyhow::R
     let script = std::fs::read_to_string(&first.request.script_path)?;
     assert!(script.contains("#SBATCH --account=lu2024-12-24"));
     assert!(script.contains("--containall' '--cleanenv' '--net' '--network' 'none'"));
+    assert!(script.contains("'--env' 'TMPDIR=/scratch'"));
     assert!(script.contains(":/repository:ro"));
     assert!(script.contains(":/input/ERR1.fastq.gz:ro"));
     assert!(script.contains("repetition-3.resource.tsv.partial"));

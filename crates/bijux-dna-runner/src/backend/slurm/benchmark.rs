@@ -407,6 +407,8 @@ fn container_invocation(spec: &BenchmarkExecutionSpec, command: &[String]) -> St
         "LC_ALL=C".to_string(),
         "--env".to_string(),
         "TZ=UTC".to_string(),
+        "--env".to_string(),
+        "TMPDIR=/scratch".to_string(),
         "--bind".to_string(),
         format!("{}:/repository:ro", spec.source.repository_path),
     ];
