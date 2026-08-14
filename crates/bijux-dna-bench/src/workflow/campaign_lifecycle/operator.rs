@@ -267,19 +267,9 @@ pub fn supersede_checked_in_benchmark_campaign(
     for attempt in &attempts {
         if matches!(
             attempt.current_status(),
-            Some(
-                BenchmarkLifecycleStatus::Submitted
-                    | BenchmarkLifecycleStatus::Running
-                    | BenchmarkLifecycleStatus::Collecting
-            )
+            Some(BenchmarkLifecycleStatus::Submitted | BenchmarkLifecycleStatus::Running)
         ) {
             bail!("benchmark supersession refuses an active scheduler attempt");
-        }
-        if attempt.current_status() == Some(BenchmarkLifecycleStatus::Superseded)
-            && attempt.transitions.last().and_then(|event| event.reason.as_deref())
-                != Some(request.reason.as_str())
-        {
-            bail!("benchmark supersession conflicts with a retained terminal reason");
         }
         let last_observed_at = attempt
             .transitions
@@ -299,7 +289,11 @@ pub fn supersede_checked_in_benchmark_campaign(
     for attempt in attempts {
         if matches!(
             attempt.current_status(),
-            Some(BenchmarkLifecycleStatus::Planned | BenchmarkLifecycleStatus::Ready)
+            Some(
+                BenchmarkLifecycleStatus::Planned
+                    | BenchmarkLifecycleStatus::Ready
+                    | BenchmarkLifecycleStatus::Collecting
+            )
         ) || (attempt.current_status() == Some(BenchmarkLifecycleStatus::Superseded)
             && attempt.transitions.last().and_then(|event| event.reason.as_deref())
                 == Some(request.reason.as_str()))
@@ -838,6 +832,11 @@ mod tests {
             attempt.current_status() == Some(BenchmarkLifecycleStatus::Superseded)
                 && attempt.transitions.len() == 2
         }));
+        let mut replacement = request;
+        replacement.superseded_at_utc = "2026-08-10T00:02:00Z".to_string();
+        replacement.reason = "a different retained supersession classification".to_string();
+        let retained = supersede_checked_in_benchmark_campaign(&replacement)?;
+        assert_eq!(retained.attempts, superseded.attempts);
         Ok(())
     }
 
