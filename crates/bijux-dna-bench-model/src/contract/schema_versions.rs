@@ -59,6 +59,7 @@ pub const BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1: &str =
     "bijux.benchmark.corpus_materialization_publication.v1";
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V1: &str = "bijux.data_catalog.v1";
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V2: &str = "bijux.data_catalog.v2";
+pub const GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1: &str = "bijux.data_catalog.derived.v1";
 pub const GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1: &str = "bijux.data_catalog_registry.v1";
 pub const GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1: &str =
     "bijux.data_catalog_snapshot_publication.v1";

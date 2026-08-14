@@ -10,7 +10,7 @@ use bijux_dna_bench_model::{
     AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedReferenceBundle,
     BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkEligibility,
     DataIntegrityStatus, GovernedDataCatalogDocument, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SCHEMA_V2, GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
 };
 use serde::Deserialize;
 
@@ -137,7 +137,9 @@ pub fn admit_bam_benchmark_corpus(
     let catalog = parse_bam_catalog(&catalog_bytes, &catalog_path)?;
     if !matches!(
         catalog.schema_version.as_str(),
-        GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
+        GOVERNED_DATA_CATALOG_SCHEMA_V1
+            | GOVERNED_DATA_CATALOG_SCHEMA_V2
+            | GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1
     ) || catalog.id != corpus_id
     {
         bail!("BAM corpus catalog identity is unsupported");
@@ -230,7 +232,9 @@ pub fn admit_bam_benchmark_cohort(
     let catalog = parse_bam_cohort_catalog(&catalog_bytes, &catalog_path)?;
     if !matches!(
         catalog.schema_version.as_str(),
-        GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
+        GOVERNED_DATA_CATALOG_SCHEMA_V1
+            | GOVERNED_DATA_CATALOG_SCHEMA_V2
+            | GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1
     ) || catalog.id != corpus_id
     {
         bail!("BAM cohort catalog identity differs from the requested corpus");
@@ -399,7 +403,7 @@ fn parse_bam_catalog(bytes: &[u8], path: &Path) -> Result<DataCatalog> {
     match value.get("schema_version").and_then(serde_json::Value::as_str) {
         Some(GOVERNED_DATA_CATALOG_SCHEMA_V1) => serde_json::from_value(value)
             .with_context(|| format!("parse legacy BAM corpus catalog {}", path.display())),
-        Some(GOVERNED_DATA_CATALOG_SCHEMA_V2) => {
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V2 | GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1) => {
             let document: GovernedDataCatalogDocument = serde_json::from_value(value)
                 .with_context(|| format!("parse governed BAM corpus catalog {}", path.display()))?;
             validate_governed_data_catalog_document(&document)
@@ -430,6 +434,26 @@ fn parse_bam_catalog(bytes: &[u8], path: &Path) -> Result<DataCatalog> {
                             .collect(),
                     })
                 }
+                GovernedDataCatalogDocument::Derived(catalog) => {
+                    let [sample] = catalog.samples.as_slice() else {
+                        bail!("derived BAM corpus catalog must contain exactly one sample")
+                    };
+                    Ok(DataCatalog {
+                        schema_version: catalog.schema_version,
+                        id: catalog.id,
+                        run_accession: sample.sample_id.clone(),
+                        files: catalog
+                            .files
+                            .into_iter()
+                            .map(|file| CatalogFile {
+                                path: file.path,
+                                kind: file.kind,
+                                sha256: file.sha256,
+                                size_bytes: file.size_bytes,
+                            })
+                            .collect(),
+                    })
+                }
             }
         }
         _ => bail!("BAM corpus catalog schema is unsupported"),
@@ -442,7 +466,7 @@ fn parse_bam_cohort_catalog(bytes: &[u8], path: &Path) -> Result<BamCohortCatalo
     match value.get("schema_version").and_then(serde_json::Value::as_str) {
         Some(GOVERNED_DATA_CATALOG_SCHEMA_V1) => serde_json::from_value(value)
             .with_context(|| format!("parse legacy BAM cohort catalog {}", path.display())),
-        Some(GOVERNED_DATA_CATALOG_SCHEMA_V2) => {
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V2 | GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1) => {
             let document: GovernedDataCatalogDocument = serde_json::from_value(value)
                 .with_context(|| format!("parse governed BAM cohort catalog {}", path.display()))?;
             validate_governed_data_catalog_document(&document)
@@ -466,6 +490,26 @@ fn parse_bam_cohort_catalog(bytes: &[u8], path: &Path) -> Result<BamCohortCatalo
                         .into_iter()
                         .map(|file| BamCohortCatalogFile {
                             accession: file.accession,
+                            path: file.path,
+                            kind: file.kind,
+                            sha256: file.sha256,
+                            size_bytes: file.size_bytes,
+                        })
+                        .collect(),
+                }),
+                GovernedDataCatalogDocument::Derived(catalog) => Ok(BamCohortCatalog {
+                    schema_version: catalog.schema_version,
+                    id: catalog.id,
+                    samples: catalog
+                        .samples
+                        .into_iter()
+                        .map(|sample| BamCohortCatalogSample { accession: sample.sample_id })
+                        .collect(),
+                    files: catalog
+                        .files
+                        .into_iter()
+                        .map(|file| BamCohortCatalogFile {
+                            accession: file.sample_id,
                             path: file.path,
                             kind: file.kind,
                             sha256: file.sha256,
@@ -574,7 +618,9 @@ fn admit_record_catalog(
     let catalog = parse_generic_data_catalog(&bytes, &path)?;
     if !matches!(
         catalog.schema_version.as_str(),
-        GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
+        GOVERNED_DATA_CATALOG_SCHEMA_V1
+            | GOVERNED_DATA_CATALOG_SCHEMA_V2
+            | GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1
     ) || catalog.id != record.id
     {
         bail!("genotyping catalog identity is unsupported: {}", record.id);
@@ -593,7 +639,7 @@ fn parse_generic_data_catalog(bytes: &[u8], path: &Path) -> Result<GenericDataCa
     match value.get("schema_version").and_then(serde_json::Value::as_str) {
         Some(GOVERNED_DATA_CATALOG_SCHEMA_V1) => serde_json::from_value(value)
             .with_context(|| format!("parse legacy governed catalog {}", path.display())),
-        Some(GOVERNED_DATA_CATALOG_SCHEMA_V2) => {
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V2 | GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1) => {
             let document: GovernedDataCatalogDocument = serde_json::from_value(value)
                 .with_context(|| format!("parse v2 governed catalog {}", path.display()))?;
             validate_governed_data_catalog_document(&document)
@@ -605,6 +651,23 @@ fn parse_generic_data_catalog(bytes: &[u8], path: &Path) -> Result<GenericDataCa
                     })
                 }
                 GovernedDataCatalogDocument::Materialized(catalog) => Ok(GenericDataCatalog {
+                    schema_version: catalog.schema_version,
+                    id: catalog.id,
+                    files: catalog
+                        .files
+                        .into_iter()
+                        .map(|file| GenericCatalogFile {
+                            path: Some(file.path),
+                            kind: Some(file.kind),
+                            sha256: Some(file.sha256),
+                            size_bytes: Some(file.size_bytes),
+                            governed_path: None,
+                            governed_sha256: None,
+                            governed_size_bytes: None,
+                        })
+                        .collect(),
+                }),
+                GovernedDataCatalogDocument::Derived(catalog) => Ok(GenericDataCatalog {
                     schema_version: catalog.schema_version,
                     id: catalog.id,
                     files: catalog

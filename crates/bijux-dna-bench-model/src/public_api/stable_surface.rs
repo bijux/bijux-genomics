@@ -96,9 +96,10 @@ pub use crate::contract::{
     validate_full_benchmark_report, validate_full_benchmark_result_collector,
     validate_governed_data_catalog, validate_governed_data_catalog_document,
     validate_governed_data_catalog_registry, validate_governed_data_catalog_registry_publication,
-    validate_governed_data_catalog_snapshot_publication, validate_governed_preserved_data_catalog,
-    validate_hardening_benchmark_campaign_report, validate_hardening_queue_report,
-    validate_scheduler_observation, validate_scientific_acceptance_thresholds_config,
+    validate_governed_data_catalog_snapshot_publication, validate_governed_derived_data_catalog,
+    validate_governed_preserved_data_catalog, validate_hardening_benchmark_campaign_report,
+    validate_hardening_queue_report, validate_scheduler_observation,
+    validate_scientific_acceptance_thresholds_config,
     validate_scientific_acceptance_thresholds_report, validate_scientific_readiness,
     validate_stage_centric_report, validate_stage_plan_manifest,
     validate_stage_registry_extra_pairs, validate_stage_universe, validate_tool_centric_report,
@@ -172,11 +173,11 @@ pub use crate::contract::{
     FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
-    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
-    REQUIRED_ALL_DOMAIN_FAILURE_CLASSES, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1,
-    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1,
-    STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
-    TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
+    OBSERVATION_SCHEMA_V1, REQUIRED_ALL_DOMAIN_FAILURE_CLASSES,
+    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1,
+    STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, SUITE_SCHEMA_V1,
+    SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
 };
 pub use crate::contract::{
     FullBenchmarkResultBinding, FullBenchmarkResultCollectorAdmissionContext,
@@ -246,6 +247,10 @@ pub use crate::model::data_portfolio_audit::{
     benchmark_data_portfolio_audit_schema, BenchmarkCorpusDataAudit, BenchmarkDataPortfolioAudit,
     BenchmarkDataPortfolioAuditSummary, BenchmarkDataSourceSpecIdentity,
     BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset,
+};
+pub use crate::model::derived_catalog::{
+    governed_derived_data_catalog_schema, GovernedDataDerivation, GovernedDerivedDataCatalog,
+    GovernedDerivedDataCatalogFile, GovernedDerivedDataCatalogSample, GovernedDerivedDataSource,
 };
 pub use crate::model::domain_campaign::{
     bam_benchmark_campaign_report_schema, fastq_benchmark_campaign_report_schema,

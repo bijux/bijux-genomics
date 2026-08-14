@@ -93,6 +93,95 @@ fn admits_bam_from_source_addressed_catalog_snapshot() -> Result<()> {
 }
 
 #[test]
+fn admits_bam_from_native_derived_catalog() -> Result<()> {
+    let fixture = bam_corpus_fixture()?;
+    let catalog_path = fixture.study_root.join("data/catalog/horse-bam.json");
+    let bam_index = fixture.bam.with_extension("bam.bai");
+    let bam_sha256 = bijux_dna_infra::hash_file_sha256(&fixture.bam)?;
+    let index_sha256 = bijux_dna_infra::hash_file_sha256(&bam_index)?;
+    write_json(
+        &catalog_path,
+        &json!({
+            "schema_version": "bijux.data_catalog.derived.v1",
+            "id": "horse-bam",
+            "purpose": "admit a derived real-data BAM benchmark input",
+            "source": "governed source catalogs",
+            "class": "production_real",
+            "access_classification": "public",
+            "redistribution_classification": "derived-results-only",
+            "access_terms_url": "https://example.org/terms",
+            "attribution": "cite the source study",
+            "projected_storage_bytes": 14,
+            "projected_cpu_hours": 1,
+            "projection_basis": "one bounded alignment",
+            "truth_roles": ["alignment_context"],
+            "truth_strategy": "observational_only",
+            "known_limitations": ["synthetic bytes exercise contract plumbing only"],
+            "sources": [{
+                "catalog_id": "horse-fastq",
+                "catalog_path": format!(
+                    "study://data/catalog/snapshots/{}/horse-fastq.json",
+                    "7".repeat(40)
+                ),
+                "catalog_sha256": "8".repeat(64)
+            }],
+            "admitted_at_utc": "2026-08-14T00:00:00Z",
+            "scientific_name": "Equus caballus",
+            "reference_assembly": "EquCab3.0",
+            "allowed_uses": ["comparative_benchmarking"],
+            "derivation": {
+                "pipeline_id": "horse-bam-materialization",
+                "pipeline_version": "1.0.0",
+                "source_commit": "9".repeat(40),
+                "parameter_sha256": "a".repeat(64),
+                "reference_id": "equcab3-reference",
+                "reference_catalog_sha256": "b".repeat(64),
+                "contig_dictionary_sha256": "c".repeat(64)
+            },
+            "samples": [{
+                "sample_id": "err2112767",
+                "source_accessions": ["ERR2112767"],
+                "library_context": "ancient single-end shotgun library",
+                "assay_context": "whole-genome sequencing",
+                "strata": {"era": "ancient"},
+                "control_roles": ["none"],
+                "truth_roles": ["alignment_context"],
+                "held_out_split": "evaluation",
+                "read_group_ids": ["ERR2112767"]
+            }],
+            "files": [
+                {
+                    "path": bam_index,
+                    "sha256": index_sha256,
+                    "size_bytes": 5,
+                    "kind": "bam-index",
+                    "sample_id": "err2112767",
+                    "source_sha256s": ["d".repeat(64)]
+                },
+                {
+                    "path": fixture.bam,
+                    "sha256": bam_sha256,
+                    "size_bytes": 9,
+                    "kind": "coordinate-sorted-deduplicated-bam",
+                    "sample_id": "err2112767",
+                    "source_sha256s": ["e".repeat(64)]
+                }
+            ]
+        }),
+    )?;
+    let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
+    index["records"][0]["catalog_sha256"] =
+        Value::String(bijux_dna_infra::hash_file_sha256(&catalog_path)?);
+    write_json(&fixture.data_index, &index)?;
+
+    let admitted =
+        admit_bam_benchmark_corpus(&fixture.study_root, &fixture.data_index, "horse-bam")?;
+    assert_eq!(admitted.sample_id, "err2112767");
+    assert_eq!(admitted.input_bytes, 14);
+    Ok(())
+}
+
+#[test]
 fn rejects_bam_bytes_that_drift_after_index_publication() -> Result<()> {
     let fixture = bam_corpus_fixture()?;
     fs::write(&fixture.bam, b"tampered BAM bytes")?;

@@ -128,13 +128,16 @@ fn verify_registry_closure(registry: &GovernedDataCatalogRegistry, data_root: &P
             {
                 bail!("catalog snapshot identity or schema drifted: {}", path.display());
             }
-            if snapshot.catalog_schema_version
-                == bijux_dna_bench_model::GOVERNED_DATA_CATALOG_SCHEMA_V2
-            {
+            if matches!(
+                snapshot.catalog_schema_version.as_str(),
+                bijux_dna_bench_model::GOVERNED_DATA_CATALOG_SCHEMA_V2
+                    | bijux_dna_bench_model::GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1
+            ) {
                 let document: GovernedDataCatalogDocument = serde_json::from_slice(&bytes)
-                    .with_context(|| format!("parse v2 catalog snapshot {}", path.display()))?;
-                validate_governed_data_catalog_document(&document)
-                    .with_context(|| format!("validate v2 catalog snapshot {}", path.display()))?;
+                    .with_context(|| format!("parse native catalog snapshot {}", path.display()))?;
+                validate_governed_data_catalog_document(&document).with_context(|| {
+                    format!("validate native catalog snapshot {}", path.display())
+                })?;
             }
         }
     }

@@ -3,7 +3,7 @@ use bijux_dna_bench_model::{
     validate_governed_data_catalog_registry, GovernedDataCatalogRegistry,
     GovernedDataCatalogRegistryRecord, GovernedDataCatalogSnapshot,
     GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SCHEMA_V2, GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
 };
 
 #[test]
@@ -16,7 +16,7 @@ fn registry_rejects_legacy_current_and_identity_drift() {
     let mut value = registry();
     value.records[0].current_catalog_sha256 = "a".repeat(64);
     assert!(validate_governed_data_catalog_registry(&value)
-        .is_err_and(|error| error.to_string().contains("not schema v2")));
+        .is_err_and(|error| error.to_string().contains("not a native publication schema")));
 
     let mut value = registry();
     value.records[0].snapshots[1].catalog_path =
@@ -28,6 +28,14 @@ fn registry_rejects_legacy_current_and_identity_drift() {
     value.records[0].snapshots[1].catalog_sha256 = "a".repeat(64);
     assert!(validate_governed_data_catalog_registry(&value)
         .is_err_and(|error| error.to_string().contains("repeats a snapshot")));
+}
+
+#[test]
+fn registry_accepts_a_current_derived_catalog_snapshot() {
+    let mut value = registry();
+    value.records[0].snapshots[1].catalog_schema_version =
+        GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1.to_string();
+    assert!(validate_governed_data_catalog_registry(&value).is_ok());
 }
 
 #[test]

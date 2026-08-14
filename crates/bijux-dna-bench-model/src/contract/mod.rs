@@ -19,6 +19,7 @@ mod data_catalog_registry;
 mod data_fitness;
 mod data_index;
 mod data_portfolio_audit;
+mod derived_catalog;
 mod domain_campaign;
 mod dossier_index;
 mod essential_pipeline_readiness;
@@ -102,6 +103,7 @@ pub use data_catalog_registry::validate_governed_data_catalog_registry;
 pub use data_fitness::{validate_data_fitness_portfolio_alignment, validate_data_fitness_rubric};
 pub use data_index::validate_benchmark_data_index;
 pub use data_portfolio_audit::validate_benchmark_data_portfolio_audit;
+pub use derived_catalog::validate_governed_derived_data_catalog;
 pub use domain_campaign::{
     validate_bam_benchmark_campaign_report, validate_fastq_benchmark_campaign_report,
     validate_hardening_benchmark_campaign_report, validate_vcf_benchmark_campaign_report,
@@ -293,13 +295,14 @@ pub use schema_versions::{
     FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
-    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
-    LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
-    OBSERVATION_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1,
-    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1,
-    STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1,
-    STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1, SUITE_SCHEMA_V1,
-    SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
+    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1,
+    STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
+    STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1,
+    STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
 };
 pub use scientific_acceptance::{
     validate_scientific_acceptance_thresholds_config,

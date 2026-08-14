@@ -172,6 +172,89 @@ fn derives_verified_path_stable_index_and_report() -> Result<()> {
 }
 
 #[test]
+fn derives_verified_index_from_native_derived_catalog() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let file_sha256 = bijux_dna_infra::hash_file_sha256(&fixture.governed_file)?;
+    let file_size = fs::metadata(&fixture.governed_file)?.len();
+    write_json(
+        &fixture.catalog_path,
+        &json!({
+            "schema_version": "bijux.data_catalog.derived.v1",
+            "id": "ancient-horse-bam",
+            "purpose": "real ancient horse alignment derived from governed reads",
+            "source": "governed source catalogs",
+            "class": "production_real",
+            "access_classification": "public",
+            "redistribution_classification": "derived-results-only",
+            "access_terms_url": "https://example.org/terms",
+            "attribution": "cite the source study",
+            "projected_storage_bytes": file_size,
+            "projected_cpu_hours": 1,
+            "projection_basis": "one bounded alignment",
+            "truth_roles": ["alignment_context"],
+            "truth_strategy": "observational_only",
+            "known_limitations": ["one sample does not represent a population"],
+            "sources": [{
+                "catalog_id": "ancient-horse-fastq",
+                "catalog_path": format!(
+                    "study://data/catalog/snapshots/{}/ancient-horse-fastq.json",
+                    "7".repeat(40)
+                ),
+                "catalog_sha256": "8".repeat(64)
+            }],
+            "admitted_at_utc": "2026-08-07T00:00:00Z",
+            "scientific_name": "Equus caballus",
+            "reference_assembly": "EquCab3.0",
+            "allowed_uses": ["comparative_benchmarking"],
+            "derivation": {
+                "pipeline_id": "horse-bam-materialization",
+                "pipeline_version": "1.0.0",
+                "source_commit": "9".repeat(40),
+                "parameter_sha256": "a".repeat(64),
+                "reference_id": "equcab3-reference",
+                "reference_catalog_sha256": "b".repeat(64),
+                "contig_dictionary_sha256": "c".repeat(64)
+            },
+            "samples": [{
+                "sample_id": "err2112767",
+                "source_accessions": ["ERR2112767"],
+                "library_context": "ancient single-end shotgun library",
+                "assay_context": "whole-genome sequencing",
+                "strata": {"era": "ancient"},
+                "control_roles": ["none"],
+                "truth_roles": ["alignment_context"],
+                "held_out_split": "evaluation",
+                "read_group_ids": ["ERR2112767"]
+            }],
+            "files": [{
+                "path": fixture.governed_file,
+                "sha256": file_sha256,
+                "size_bytes": file_size,
+                "kind": "coordinate-sorted-deduplicated-bam",
+                "sample_id": "err2112767",
+                "source_sha256s": ["d".repeat(64)]
+            }]
+        }),
+    )?;
+    let mut registry: Value = serde_json::from_slice(&fs::read(&fixture.catalog_registry_path)?)?;
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&fixture.catalog_path)?;
+    registry["records"][0]["current_catalog_sha256"] = catalog_sha256.clone().into();
+    registry["records"][0]["snapshots"][0]["catalog_sha256"] = catalog_sha256.into();
+    registry["records"][0]["snapshots"][0]["catalog_schema_version"] =
+        "bijux.data_catalog.derived.v1".into();
+    write_json(&fixture.catalog_registry_path, &registry)?;
+
+    let index = build_benchmark_data_index(&request(&fixture))?;
+    assert_eq!(index.records.len(), 1);
+    assert_eq!(index.records[0].benchmark_eligibility, BenchmarkEligibility::Eligible);
+    assert_eq!(index.records[0].integrity_status, bijux_dna_bench::DataIntegrityStatus::Verified);
+    assert_eq!(index.records[0].files.len(), 1);
+    assert_eq!(index.records[0].files[0].role, "coordinate-sorted-deduplicated-bam");
+    assert_eq!(index.records[0].source_identities, ["source:governed source catalogs"]);
+    Ok(())
+}
+
+#[test]
 fn exposes_missing_temporal_provenance_without_fabrication() -> Result<()> {
     let fixture = data_index_fixture()?;
     mutate_registered_catalog(&fixture, |record| {

@@ -9,9 +9,10 @@ use crate::model::{GovernedDataCatalogRegistry, GovernedDataCatalogSnapshot};
 use super::{
     validate_utc_timestamp, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
 };
 
-/// Validate registry ordering, immutable snapshot identity, and current-v2 selection.
+/// Validate registry ordering, immutable snapshot identity, and native-publication selection.
 ///
 /// # Errors
 /// Returns an error when any registry identity is ambiguous, mutable, or malformed.
@@ -58,9 +59,11 @@ pub fn validate_governed_data_catalog_registry(
             }
         }
         match current_schema {
-            Some(GOVERNED_DATA_CATALOG_SCHEMA_V2) => {}
+            Some(GOVERNED_DATA_CATALOG_SCHEMA_V2 | GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1) => {}
             Some(_) => {
-                return Err(invalid("governed data catalog current snapshot is not schema v2"));
+                return Err(invalid(
+                    "governed data catalog current snapshot is not a native publication schema",
+                ));
             }
             None => {
                 return Err(invalid("governed data catalog current snapshot is not registered"));
@@ -74,7 +77,9 @@ fn validate_snapshot(id: &str, snapshot: &GovernedDataCatalogSnapshot) -> Result
     validate_sha256(&snapshot.catalog_sha256, "catalog snapshot")?;
     if !matches!(
         snapshot.catalog_schema_version.as_str(),
-        GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
+        GOVERNED_DATA_CATALOG_SCHEMA_V1
+            | GOVERNED_DATA_CATALOG_SCHEMA_V2
+            | GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1
     ) {
         return Err(invalid("governed data catalog snapshot schema is unsupported"));
     }

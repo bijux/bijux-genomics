@@ -17,6 +17,7 @@ pub mod cross_campaign;
 pub mod data_catalog_registry;
 pub mod data_fitness;
 pub mod data_portfolio_audit;
+pub mod derived_catalog;
 pub mod domain_campaign;
 pub mod dossier_index;
 pub mod essential_pipeline_readiness;
@@ -184,6 +185,11 @@ pub use data_portfolio_audit::{
     benchmark_data_portfolio_audit_schema, BenchmarkCorpusDataAudit, BenchmarkDataPortfolioAudit,
     BenchmarkDataPortfolioAuditSummary, BenchmarkDataSourceSpecIdentity,
     BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset,
+};
+#[allow(unused_imports)]
+pub use derived_catalog::{
+    governed_derived_data_catalog_schema, GovernedDataDerivation, GovernedDerivedDataCatalog,
+    GovernedDerivedDataCatalogFile, GovernedDerivedDataCatalogSample, GovernedDerivedDataSource,
 };
 #[allow(unused_imports)]
 pub use domain_campaign::{
