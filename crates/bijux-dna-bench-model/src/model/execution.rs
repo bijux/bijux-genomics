@@ -133,6 +133,8 @@ pub struct BenchmarkExecutionMeasurement {
 pub struct BenchmarkExecutionOutputs {
     pub result_root: String,
     pub mount_path: String,
+    /// Required artifact paths in canonical order. An entry may resolve to one regular file or a
+    /// nonempty directory whose complete regular-file tree is manifest-bound at completion.
     pub required_files: Vec<String>,
 }
 

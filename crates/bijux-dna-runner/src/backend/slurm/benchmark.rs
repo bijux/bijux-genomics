@@ -181,7 +181,9 @@ fn script_preflight(
         "trap cleanup EXIT".to_string(),
         "command -v apptainer >/dev/null".to_string(),
         "test -x /usr/bin/time".to_string(),
+        "command -v find >/dev/null".to_string(),
         "command -v sha256sum >/dev/null".to_string(),
+        "command -v sort >/dev/null".to_string(),
         "command -v git >/dev/null".to_string(),
         "test \"$(git -C \"${REPOSITORY_ROOT}\" rev-parse HEAD)\" = ".to_string()
             + &shell_quote(&spec.source.repository_commit),
@@ -209,7 +211,8 @@ fn script_preflight(
     }
     for output in &spec.outputs.required_files {
         let path = result_shell_path(output);
-        lines.push(format!("test ! -e {path} && test ! -L {path}"));
+        lines.push(format!("test ! -e {path}"));
+        lines.push(format!("test ! -L {path}"));
     }
     lines
 }
@@ -373,12 +376,34 @@ fn append_completion_commands(
     lines.push(": > \"${SCHEDULER_ROOT}/output-sha256.tsv.partial\"".to_string());
     for output in &spec.outputs.required_files {
         let path = result_shell_path(output);
-        lines.push(format!("test -f {path} && test ! -L {path}"));
+        lines.push(format!("if test -f {path}; then"));
+        lines.push(format!("  test ! -L {path}"));
+        lines.push(format!("  output_digest=$(sha256sum {path} | awk '{{print $1}}')"));
         lines.push(format!(
-            "printf '%s\\t%s\\n' {} \"$(sha256sum {} | awk '{{print $1}}')\" >> \"${{SCHEDULER_ROOT}}/output-sha256.tsv.partial\"",
-            shell_quote(output),
-            path
+            "  printf '%s\\t%s\\n' {} \"${{output_digest}}\" >> \"${{SCHEDULER_ROOT}}/output-sha256.tsv.partial\"",
+            shell_quote(output)
         ));
+        lines.push(format!("elif test -d {path}; then"));
+        lines.push(format!("  test ! -L {path}"));
+        lines.push(format!("  test -n \"$(find {path} -type f -print -quit)\""));
+        lines.push(format!("  test -z \"$(find {path} -type l -print -quit)\""));
+        lines.push(format!(
+            "  test -z \"$(find {path} ! -type d ! -type f ! -type l -print -quit)\""
+        ));
+        lines.push(format!(
+            "  find {path} -type f -print0 | LC_ALL=C sort -z | while IFS= read -r -d '' discovered_output; do"
+        ));
+        lines.extend([
+            "    relative_output=${discovered_output#\"${RESULT_ROOT}/\"}".to_string(),
+            "    case \"${relative_output}\" in *$'\\n'*|*$'\\t'*) exit 70 ;; esac".to_string(),
+            "    output_digest=$(sha256sum \"${discovered_output}\" | awk '{print $1}')".to_string(),
+            "    printf '%s\\t%s\\n' \"${relative_output}\" \"${output_digest}\" >> \"${SCHEDULER_ROOT}/output-sha256.tsv.partial\"".to_string(),
+            "  done".to_string(),
+            "else".to_string(),
+            format!("  printf 'required benchmark output is absent: %s\\n' {} >&2", shell_quote(output)),
+            "  exit 70".to_string(),
+            "fi".to_string(),
+        ]);
     }
     lines.extend([
         "mv \"${SCHEDULER_ROOT}/output-sha256.tsv.partial\" \"${SCHEDULER_ROOT}/output-sha256.tsv\"".to_string(),
