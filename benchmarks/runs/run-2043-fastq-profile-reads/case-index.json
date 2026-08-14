@@ -6,8 +6,36 @@
     "stage_id": "fastq.profile_reads"
   },
   "protocol_sha256": "0e8e8e09131f489b2d2058a76db86c2e3f3bc6b70753dafbaed4d9b366a0ff07",
-  "cases": [],
+  "cases": [
+    {
+      "case_id": "run-2043--seqfu--human-short-read-diversity",
+      "tool_id": "seqfu",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2043/case-definition-run-2043--seqfu--human-short-read-diversity.json",
+        "sha256": "5b719fd32c2d03dd54f35fcd6ef21c4f5aee2f357a1193f0f5bb9c1c0bb56024",
+        "size_bytes": 11665
+      }
+    },
+    {
+      "case_id": "run-2043--seqkit--human-short-read-diversity",
+      "tool_id": "seqkit",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2043/case-definition-run-2043--seqkit--human-short-read-diversity.json",
+        "sha256": "885ccf9780bba152e052a99a5ad5783be2c9659d2149d2583301f1b23e78ba2d",
+        "size_bytes": 11690
+      }
+    },
+    {
+      "case_id": "run-2043--seqkit_stats--human-short-read-diversity",
+      "tool_id": "seqkit_stats",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2043/case-definition-run-2043--seqkit_stats--human-short-read-diversity.json",
+        "sha256": "2cc79809f6d08da4f6acc3230b206e03417b59304502392b0a48ec6b07d3762c",
+        "size_bytes": 11693
+      }
+    }
+  ],
   "limitations": [
-    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+    "The publication covers one governed human short-read diversity cohort."
   ]
 }

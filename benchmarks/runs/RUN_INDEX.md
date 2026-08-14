@@ -7,8 +7,8 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 - Registered protocols: **71**
 - Active protocols: **12**
 - Reserved protocols: **59**
-- Citable publications: **1**
-- Unpublished protocols: **70**
+- Citable publications: **2**
+- Unpublished protocols: **69**
 
 | Run | Citation key | Stage | Tools | Protocol | Publication |
 |---|---|---|---|---|---|
@@ -54,7 +54,7 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 | `run-2040` | `bijux-benchmark-run-2040` | `fastq.normalize_primers` | `cutadapt` | `reserved` | `not selected` |
 | `run-2041` | `bijux-benchmark-run-2041` | `fastq.profile_overrepresented_sequences` | `fastq_scan`, `fastqc`, `seqkit` | `reserved` | `not selected` |
 | `run-2042` | `bijux-benchmark-run-2042` | `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `active` | `run-2042-production-74b7042739d9` |
-| `run-2043` | `bijux-benchmark-run-2043` | `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `active` | `not selected` |
+| `run-2043` | `bijux-benchmark-run-2043` | `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `active` | `run-2043-production-74b7042739d9` |
 | `run-2044` | `bijux-benchmark-run-2044` | `fastq.remove_chimeras` | `vsearch` | `reserved` | `not selected` |
 | `run-2045` | `bijux-benchmark-run-2045` | `fastq.remove_duplicates` | `clumpify`, `fastuniq` | `reserved` | `not selected` |
 | `run-2046` | `bijux-benchmark-run-2046` | `fastq.report_qc` | `multiqc` | `reserved` | `not selected` |
