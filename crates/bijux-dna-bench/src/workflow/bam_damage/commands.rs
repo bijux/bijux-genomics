@@ -5,16 +5,19 @@ const BAM: &str = "/input/ERR2112767.sorted.bam";
 const REFERENCE: &str = "/input/EquCab3.0.fna";
 
 pub(super) fn warmup_command(tool: &str) -> Vec<String> {
-    shell(tool_command(tool, "/scratch/bam-damage-warmup"))
+    shell_for_tool(tool, tool_command(tool, "/scratch/bam-damage-warmup"))
 }
 
 pub(super) fn negative_command(tool: &str) -> Vec<String> {
-    shell(tool_command_for_inputs(
+    shell_for_tool(
         tool,
-        "/input/missing.bam",
-        REFERENCE,
-        "/scratch/bam-damage-negative",
-    ))
+        tool_command_for_inputs(
+            tool,
+            "/input/missing.bam",
+            REFERENCE,
+            "/scratch/bam-damage-negative",
+        ),
+    )
 }
 
 pub(super) fn measured_command(
@@ -27,7 +30,7 @@ pub(super) fn measured_command(
 ) -> Vec<String> {
     let native = "/result/repetitions/repetition-{repetition}.native";
     let command = tool_command(tool, native);
-    shell(format!(
+    shell_for_tool(tool, format!(
         "set -eu
 mkdir -p /result/repetitions
 prefix=\"/result/repetitions/repetition-{{repetition}}\"
@@ -100,6 +103,20 @@ fn shell(command: String) -> Vec<String> {
     vec!["sh".to_string(), "-c".to_string(), command]
 }
 
+fn shell_for_tool(tool: &str, command: String) -> Vec<String> {
+    if tool == "pmdtools" {
+        vec![
+            "bash".to_string(),
+            "-o".to_string(),
+            "pipefail".to_string(),
+            "-c".to_string(),
+            command,
+        ]
+    } else {
+        shell(command)
+    }
+}
+
 fn shell_quote(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\\''"))
 }
@@ -112,13 +129,16 @@ mod tests {
     fn commands_preserve_native_output_for_every_damage_tool() -> anyhow::Result<()> {
         for tool in ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
         {
-            assert_ne!(warmup_command(tool)[2], "false");
-            assert!(negative_command(tool)[2].contains("/input/missing.bam"));
+            assert_ne!(warmup_command(tool).last().map(String::as_str), Some("false"));
+            assert!(negative_command(tool)
+                .last()
+                .is_some_and(|command| command.contains("/input/missing.bam")));
             let measured = measured_command(tool, "ERR2112767", 10, 2, 20, 32);
-            assert!(measured[2].contains("bam_damage.awk"));
-            assert!(measured[2].contains("native_file_count"));
+            let script = measured.last().expect("measured shell script");
+            assert!(script.contains("bam_damage.awk"));
+            assert!(script.contains("native_file_count"));
             assert!(std::process::Command::new("sh")
-                .args(["-n", "-c", &measured[2]])
+                .args(["-n", "-c", script])
                 .status()?
                 .success());
         }
@@ -129,16 +149,32 @@ mod tests {
     #[test]
     fn pydamage_creates_its_own_result_directory_without_an_interactive_reuse_prompt() {
         let warmup = warmup_command("pydamage");
-        assert!(warmup[2].contains("pydamage --outdir '/scratch/bam-damage-warmup' analyze"));
-        assert!(!warmup[2].contains("mkdir -p '/scratch/bam-damage-warmup'"));
+        let warmup_script = warmup.last().expect("pyDamage warmup shell script");
+        assert!(warmup_script.contains("pydamage --outdir '/scratch/bam-damage-warmup' analyze"));
+        assert!(!warmup_script.contains("mkdir -p '/scratch/bam-damage-warmup'"));
 
         let negative = negative_command("pydamage");
-        assert!(!negative[2].contains("mkdir -p '/scratch/bam-damage-negative'"));
+        assert!(!negative
+            .last()
+            .expect("pyDamage negative shell script")
+            .contains("mkdir -p '/scratch/bam-damage-negative'"));
 
         let measured = measured_command("pydamage", "ERR2112767", 10, 2, 20, 32);
-        assert!(measured[2].contains("rm -rf \"$native\""));
-        assert!(
-            !measured[2].contains("mkdir -p '/result/repetitions/repetition-{repetition}.native'")
-        );
+        let measured_script = measured.last().expect("pyDamage measured shell script");
+        assert!(measured_script.contains("rm -rf \"$native\""));
+        assert!(!measured_script
+            .contains("mkdir -p '/result/repetitions/repetition-{repetition}.native'"));
+    }
+
+    #[test]
+    fn pmdtools_commands_propagate_pipeline_producer_failures() {
+        for command in [
+            warmup_command("pmdtools"),
+            negative_command("pmdtools"),
+            measured_command("pmdtools", "ERR2112767", 10, 2, 20, 32),
+        ] {
+            assert_eq!(&command[..4], ["bash", "-o", "pipefail", "-c"]);
+            assert!(command.last().expect("PMDtools shell script").contains("samtools view -h"));
+        }
     }
 }

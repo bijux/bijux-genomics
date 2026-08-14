@@ -254,14 +254,9 @@ fn mapdamage2_damage() -> ToolBindingV1 {
         &[],
         &[output("mapdamage2_reports", DIRECTORY)],
         &[
-            "${executable}",
-            "analyze",
-            "--bam",
-            "${input:bam}",
-            "--reference",
-            "${input:reference}",
-            "--out-dir",
-            "${output:mapdamage2_reports}",
+            "/bin/sh",
+            "-c",
+            "set -eu; mkdir -p '${output:mapdamage2_reports}'; exec '${executable}' analyze --bam '${input:bam}' --reference '${input:reference}' --out-dir '${output:mapdamage2_reports}'",
         ],
         "bijux.benchmark.bam.damage.bundle.v1",
         "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
@@ -269,6 +264,7 @@ fn mapdamage2_damage() -> ToolBindingV1 {
         resources(1, 8, 4),
         &[
             "reference_identity_must_match_the_alignment_header",
+            "the_report_directory_is_created_before_the_non_overwriting_wrapper_runs",
             "native_misincorporation_composition_and_length_tables_are_preserved",
         ],
     )
@@ -335,7 +331,9 @@ fn pmdtools_binding(
         &[],
         &[output("pmd_scores", TABLE), output("pmd_statistics", FILE)],
         &[
-            "/bin/sh",
+            "/bin/bash",
+            "-o",
+            "pipefail",
             "-c",
             "set -eu; samtools view -h '${input:bam}' | '${executable}' --printDS --stats > '${output:pmd_scores}' 2> '${output:pmd_statistics}'",
         ],
@@ -345,6 +343,7 @@ fn pmdtools_binding(
         resources(1, 4, 2),
         &[
             "the_admitted_pmdtools_image_must_include_the_samtools_stream_adapter",
+            "the_samtools_producer_status_must_not_be_masked_by_the_pmdtools_consumer",
             "native_per_read_scores_and_statistics_are_preserved_before_normalization",
             "scientific_verdicts_are_derived_from_normalized_scores_not_process_success",
         ],

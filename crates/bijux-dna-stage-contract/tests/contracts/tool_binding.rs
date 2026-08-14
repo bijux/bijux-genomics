@@ -515,19 +515,12 @@ fn canonical_addeam_and_mapdamage2_bindings_render_native_profiles() -> Result<(
             ..ToolBindingRenderContext::default()
         },
     )?;
-    assert_eq!(
-        command,
-        [
-            "mapdamage2",
-            "analyze",
-            "--bam",
-            "/input/sample.bam",
-            "--reference",
-            "/input/reference.fa",
-            "--out-dir",
-            "/result/mapdamage2",
-        ]
-    );
+    assert_eq!(&command[..2], ["/bin/sh", "-c"]);
+    assert!(command[2].contains("mkdir -p '/result/mapdamage2'"));
+    assert!(command[2].contains("exec 'mapdamage2' analyze"));
+    assert!(command[2].contains("--bam '/input/sample.bam'"));
+    assert!(command[2].contains("--reference '/input/reference.fa'"));
+    assert!(command[2].contains("--out-dir '/result/mapdamage2'"));
     Ok(())
 }
 
@@ -641,6 +634,7 @@ fn canonical_pmdtools_bindings_share_native_score_evidence_across_stages() -> Re
                 ..ToolBindingRenderContext::default()
             },
         )?;
+        assert_eq!(&command[..4], ["/bin/bash", "-o", "pipefail", "-c"]);
         let rendered = command.join(" ");
         assert!(rendered.contains("samtools view -h '/input/sample.bam'"));
         assert!(rendered.contains("'pmdtools' --printDS --stats"));
