@@ -36,6 +36,8 @@ pub use report::{
 const RUN_ID: &str = "run-2042";
 const STAGE_ID: &str = "fastq.profile_read_lengths";
 const CORPUS_ID: &str = "human-short-read-diversity";
+const SEQFU_WALLTIME: &str = "01:30:00";
+const SEQKIT_WALLTIME: &str = "01:00:00";
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FastqProfileReadLengthsMaterial {
@@ -153,7 +155,7 @@ pub fn prepare_fastq_profile_read_lengths_material_from_expectations(
         account: account.to_string(),
         partition: partition.to_string(),
         memory_mb: 8192,
-        walltime: "01:00:00".to_string(),
+        walltime: execution_walltime(&identity.tool_id).to_string(),
         scratch_mb: 4096,
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
@@ -161,6 +163,14 @@ pub fn prepare_fastq_profile_read_lengths_material_from_expectations(
         stage_plan_units: Some(stage_plan_units),
     };
     Ok(FastqProfileReadLengthsMaterial { execution, expectations: expectations.clone() })
+}
+
+fn execution_walltime(tool_id: &str) -> &'static str {
+    if tool_id == "seqfu" {
+        SEQFU_WALLTIME
+    } else {
+        SEQKIT_WALLTIME
+    }
 }
 
 fn stage_plan_units(
@@ -252,7 +262,13 @@ fn metric(
 
 #[cfg(test)]
 mod tests {
-    use super::{stage_plan_units, CommandSample};
+    use super::{execution_walltime, stage_plan_units, CommandSample};
+
+    #[test]
+    fn production_walltime_is_bounded_per_tool() {
+        assert_eq!(execution_walltime("seqfu"), "01:30:00");
+        assert_eq!(execution_walltime("seqkit"), "01:00:00");
+    }
 
     #[test]
     fn stage_plan_units_close_each_admitted_fastq_file() {
