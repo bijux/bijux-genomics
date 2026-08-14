@@ -132,6 +132,10 @@ attempt blocks only its own execution unit.
   is derived only after exact replay, from the admitted receipt, evidence book, source catalog,
   report image identities, and case-matrix data snapshots; callers cannot nominate tool versions,
   image digests, or data checksums.
+- Final selection parses every replayed case definition, binds it to the selected attempt, writes
+  the case index before the publication pointer, rejects replacement of any different selection,
+  and regenerates the complete run index and paper-facing protocol citation in one idempotent Rust
+  workflow.
 - Scheduler job IDs are provenance, not run identities.
 - Current reports require exact source, catalog, stage/interface, data/truth, artifact, campaign,
   and report hash closure. A stale report remains historical and is never overwritten into

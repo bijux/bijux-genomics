@@ -39,6 +39,7 @@ mod options;
 mod parameter_authority;
 mod publication_receipt;
 mod publication_registry;
+mod publication_selection;
 mod reference_materialization;
 mod replay;
 mod report_load;
@@ -244,6 +245,9 @@ pub use publication_receipt::{
 pub use publication_registry::{
     derive_benchmark_publication_registry, publish_checked_in_benchmark_publication_registry,
     render_benchmark_publication_registry_markdown, BenchmarkPublicationRegistryWriteMode,
+};
+pub use publication_selection::{
+    select_checked_in_benchmark_publication, BenchmarkPublicationSelectionRequest,
 };
 pub use reference_materialization::{
     materialize_checked_in_reference_bundle, ReferenceBundleMaterializationRequest,

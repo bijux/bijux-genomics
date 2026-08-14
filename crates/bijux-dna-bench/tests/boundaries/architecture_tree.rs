@@ -126,6 +126,7 @@ fn bench_tree_matches_architecture_contract() {
             "parameter_authority.rs",
             "publication_receipt.rs",
             "publication_registry.rs",
+            "publication_selection.rs",
             "reference_materialization.rs",
             "replay.rs",
             "report_load.rs",

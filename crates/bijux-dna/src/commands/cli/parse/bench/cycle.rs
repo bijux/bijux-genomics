@@ -24,6 +24,8 @@ pub enum BenchCycleCommand {
     Replay(BenchCycleReplayArgs),
     /// Retry only non-passing terminal tips from case-scoped attempt lineage.
     Retry(BenchCycleRetryArgs),
+    /// Select one fully admitted publication and regenerate paper-facing run surfaces.
+    Select(BenchCycleSelectArgs),
     /// Read the persisted lifecycle state for every attempt in one campaign.
     Status(BenchCycleStatusArgs),
     /// Terminalize non-active attempts from an ancestor case campaign.
@@ -117,6 +119,24 @@ pub struct BenchCycleCiteArgs {
     pub access_statement: String,
     #[arg(long)]
     pub output: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleSelectArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub study_root: PathBuf,
+    #[arg(long)]
+    pub run_id: String,
+    #[arg(long)]
+    pub publication_receipt_uri: String,
+    #[arg(long)]
+    pub evidence_book_uri: String,
+    #[arg(long)]
+    pub citation_record_uri: String,
+    #[arg(long)]
+    pub replay_receipt_uri: String,
 }
 
 #[derive(Debug, Args)]

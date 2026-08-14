@@ -570,6 +570,40 @@ mod tests {
     }
 
     #[test]
+    fn benchmark_cycle_select_uses_the_public_product_namespace() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "select",
+            "--study-root",
+            "/study",
+            "--run-id",
+            "run-2042",
+            "--publication-receipt-uri",
+            "study://publications/run-2042/publication-receipt.json",
+            "--evidence-book-uri",
+            "study://evidence-books/candidate-publications.json",
+            "--citation-record-uri",
+            "study://publications/run-2042/citation-record.json",
+            "--replay-receipt-uri",
+            "study://replays/run-2042/semantic-identity.json",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        let BenchCycleCommand::Select(args) = command else {
+            panic!("expected benchmark selection command");
+        };
+        assert_eq!(args.run_id, "run-2042");
+        assert_eq!(args.citation_record_uri, "study://publications/run-2042/citation-record.json");
+        Ok(())
+    }
+
+    #[test]
     fn benchmark_cycle_publish_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
