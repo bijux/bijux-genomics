@@ -135,6 +135,8 @@ mod mod_contracts_source_authority_rs;
 mod mod_contracts_stage_result_rs;
 #[path = "contracts/stage_tool_assets.rs"]
 mod mod_contracts_stage_tool_assets_rs;
+#[path = "contracts/stage_tool_benchmark_ready.rs"]
+mod mod_contracts_stage_tool_benchmark_ready_rs;
 #[path = "contracts/stage_tool_closure.rs"]
 mod mod_contracts_stage_tool_closure_rs;
 #[path = "contracts/stage_tool_containers.rs"]

@@ -76,6 +76,11 @@ Model contracts:
 - `StageCentricReport`
 - `StageCentricStageReport`
 - `StageCentricToolRow`
+- `StageToolBenchmarkReadyReport`
+- `StageToolBenchmarkReadySurfaceSummary`
+- `StageToolBenchmarkReadySurfaceStatus`
+- `StageToolBenchmarkReadyFailingPair`
+- `StageToolBenchmarkReadyExcludedPair`
 - `ToolCentricReport`
 - `ToolCentricToolReport`
 - `ToolCentricStageRow`

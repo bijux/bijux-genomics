@@ -58,6 +58,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `validate_benchmark_local_hpc_job_graph(graph)` admits exact job identity, dependency, root, ordering, and counter closure.
 - `validate_fastq_comparable_metrics_report(report)`, `validate_bam_comparable_metrics_report(report)`, and `validate_vcf_comparable_metrics_report(report)` admit domain-specific comparable-metric readiness reports before a thin renderer persists them.
 - `validate_stage_centric_report(report)`, `validate_tool_centric_report(report)`, and `validate_corpus_centric_report(report)` admit complementary persisted readiness views with complete nested and top-level aggregate closure.
+- `validate_stage_tool_benchmark_ready_report(report)` admits the stage/tool readiness envelope only when pair identities, surface evidence, counters, and gate state close exactly.
 - `validate_all_domain_active_stage_tool_matrix(report)`, `validate_all_domain_retained_tools(report)`, and `validate_stage_registry_extra_pairs(report)` admit the persisted stage/tool scope, retained product roster, and registry-drift views while retaining all supported licensed bindings.
 - `derive_container_report_portfolio_index(repository_root)` derives the current and historical container report portfolio while requiring the permanent run index to match its source authority.
 - `render_container_report_portfolio_index_json(index)` and `render_container_report_portfolio_index_markdown(index)` render the admitted portfolio deterministically.
@@ -176,6 +177,7 @@ including:
 - `BamComparableMetricsReport`
 - `VcfComparableMetricsReport`
 - `StageCentricReport`
+- `StageToolBenchmarkReadyReport`
 - `ToolCentricReport`
 - `CorpusCentricReport`
 - `ReadinessComparisonContractStatus`

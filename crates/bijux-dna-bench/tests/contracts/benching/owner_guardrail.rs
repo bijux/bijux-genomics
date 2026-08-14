@@ -714,6 +714,28 @@ fn thin_cli_uses_model_owned_readiness_view_contracts() {
 }
 
 #[test]
+fn thin_cli_uses_model_owned_stage_tool_benchmark_ready_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let source =
+        fs::read_to_string(repo_root.join(
+            "crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_benchmark_ready.rs",
+        ))
+        .expect("read stage/tool benchmark-ready command");
+
+    assert!(source.contains("validate_stage_tool_benchmark_ready_report"));
+    assert!(source.contains("STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1"));
+    for forbidden in [
+        "struct StageToolBenchmarkReadySurfaceSummary",
+        "struct StageToolBenchmarkReadyFailingPair",
+        "struct StageToolBenchmarkReadyExcludedPair",
+        "struct StageToolBenchmarkReadyReport",
+        "bijux.bench.readiness.fastq_bam_stage_tool_benchmark_ready.v1",
+    ] {
+        assert!(!source.contains(forbidden));
+    }
+}
+
+#[test]
 fn thin_cli_uses_model_owned_scope_view_contracts() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_root = repo_root.join("crates/bijux-dna/src/commands/benchmark/readiness");

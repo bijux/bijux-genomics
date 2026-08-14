@@ -41,6 +41,8 @@ enter through `bijux_dna_api::v1::api`.
   fail-closed validators used by thin CLI renderers.
 - The `bench` namespace exposes model-owned stage-, tool-, and corpus-centric readiness
   view contracts, schemas, and fail-closed aggregate validators.
+- The `bench` namespace exposes the model-owned stage/tool benchmark-readiness envelope,
+  generated schema, and fail-closed validator used by the thin CLI renderer.
 - The `bench` namespace exposes model-owned all-domain stage/tool scope, retained-tool,
   and registry-drift report contracts with explicit licensed-binding retention.
 - The `bench` namespace exposes benchmark-owned stage/tool closure derivation and checked-in run

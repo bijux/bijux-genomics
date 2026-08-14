@@ -22,6 +22,8 @@ pub const BAM_COMPARABLE_METRICS_SCHEMA_V1: &str =
 pub const VCF_COMPARABLE_METRICS_SCHEMA_V1: &str =
     "bijux.bench.readiness.vcf_comparable_metrics.v1";
 pub const STAGE_CENTRIC_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.stage_centric_report.v1";
+pub const STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1: &str =
+    "bijux.bench.readiness.fastq_bam_stage_tool_benchmark_ready.v1";
 pub const TOOL_CENTRIC_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.tool_centric_report.v1";
 pub const CORPUS_CENTRIC_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.corpus_centric_report.v1";
 pub const ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1: &str =
