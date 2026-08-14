@@ -68,6 +68,12 @@ pub struct BenchCycleReplayArgs {
     pub replay_id: String,
     #[arg(long)]
     pub replayed_at_utc: String,
+    /// Candidate publication receipt used before final tracked selection.
+    #[arg(long, requires = "evidence_book_uri")]
+    pub publication_receipt_uri: Option<String>,
+    /// Candidate evidence book that admits the explicit publication receipt.
+    #[arg(long, requires = "publication_receipt_uri")]
+    pub evidence_book_uri: Option<String>,
     #[arg(long)]
     pub run_definition_uri: String,
     #[arg(long, required = true)]

@@ -123,6 +123,8 @@ attempt blocks only its own execution unit.
 - Evidence books may admit an explicit immutable receipt before the final tracked run pointer
   exists; the receipt must match the permanent protocol, and the checked-in pointer is selected
   only after book, replay, and citation evidence close without a circular dependency.
+- Replay accepts that receipt only together with the immutable candidate evidence book that admits
+  it; mixed candidate/indexed authority is rejected before semantic comparison.
 - A citation is the stable paper-facing record for a run protocol and its selected publication.
 - Scheduler job IDs are provenance, not run identities.
 - Current reports require exact source, catalog, stage/interface, data/truth, artifact, campaign,

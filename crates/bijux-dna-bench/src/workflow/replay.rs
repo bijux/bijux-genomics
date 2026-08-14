@@ -6,10 +6,16 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::contract::{
+    benchmark_run_definition_sha256, validate_benchmark_run_definition,
+};
 use bijux_dna_bench_model::{
-    validate_benchmark_replay_receipt, validate_benchmark_run_index, BenchmarkEvidenceReference,
-    BenchmarkReplayOutcome, BenchmarkReplayReceipt, BenchmarkReplaySemanticIdentity,
-    BenchmarkRunIndex, BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1,
+    validate_benchmark_evidence_book, validate_benchmark_replay_receipt,
+    validate_benchmark_run_index, BenchmarkEvidenceBook, BenchmarkEvidenceReference,
+    BenchmarkPublicationReceipt, BenchmarkReplayOutcome, BenchmarkReplayReceipt,
+    BenchmarkReplaySemanticIdentity, BenchmarkRunDefinition, BenchmarkRunIdentity,
+    BenchmarkRunIndex, BenchmarkRunIndexEntry, BenchmarkRunIndexFileReference,
+    BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1,
 };
 
 use super::evidence_book::{
@@ -27,6 +33,8 @@ pub struct BenchmarkReplayRequest {
     pub run_id: String,
     pub replay_id: String,
     pub replayed_at_utc: String,
+    pub publication_receipt_uri: Option<String>,
+    pub evidence_book_uri: Option<String>,
     pub run_definition_uri: String,
     pub case_definition_uris: Vec<String>,
     pub immutable_input_uris: Vec<String>,
@@ -38,14 +46,16 @@ pub struct BenchmarkReplayRequest {
     pub output: PathBuf,
 }
 
-/// Compare regenerated semantic outputs with one current selected publication and publish a receipt.
+/// Compare regenerated semantics with a selected or candidate publication and publish a receipt.
 ///
 /// Scheduler identifiers and timing are intentionally excluded from semantic equality. All source,
-/// input, case, and observed artifacts are independently hashed from governed STUDY paths.
+/// input, case, and observed artifacts are independently hashed from governed STUDY paths. An
+/// explicit receipt and candidate book may be used together before the final tracked pointer exists;
+/// mixed explicit/indexed selection is rejected.
 ///
 /// # Errors
-/// Returns an error when the current selection or immutable closure is invalid, observed semantics
-/// are partial or contradictory, or immutable receipt publication conflicts.
+/// Returns an error when the selected or candidate closure is invalid, observed semantics are
+/// partial or contradictory, or immutable receipt publication conflicts.
 pub fn replay_checked_in_benchmark_publication(
     request: &BenchmarkReplayRequest,
 ) -> Result<BenchmarkReplayReceipt> {
@@ -67,22 +77,17 @@ pub fn replay_checked_in_benchmark_publication(
         .iter()
         .find(|run| run.run_id == request.run_id)
         .context("benchmark replay run is absent from the run index")?;
-    let selected = run
-        .selected_publication
-        .as_ref()
-        .context("benchmark replay run has no selected publication")?;
-    let source = load_indexed_receipt(&study_root, &selected.publication_receipt)?;
-    if source.publication_id != selected.publication_id
-        || source.run.run_id != run.run_id
-        || source.repository_commit != selected.repository_commit
-        || source.selected_attempts != selected.selected_attempts
-    {
-        bail!("benchmark replay source receipt differs from the selected publication");
+    let ReplaySourceClosure { receipt: source, publication: source_publication, evidence_book } =
+        load_replay_source(request, &study_root, run)?;
+    let source_catalog = bijux_dna_containers::api::catalog_identity_at_commit(
+        &repository_root,
+        &source.repository_commit,
+    )?;
+    if source.catalog_sha256 != source_catalog {
+        bail!("benchmark replay source catalog differs from its repository commit");
     }
-    let source_publication = indexed_reference(&selected.publication_receipt);
     verify_study_reference(&study_root, &source.report, "benchmark replay source report")?;
     verify_study_reference(&study_root, &source.decision, "benchmark replay source decision")?;
-    let evidence_book = indexed_reference(&selected.evidence_book);
     verify_study_reference(&study_root, &evidence_book, "benchmark replay source evidence book")?;
 
     let run_definition = study_reference(
@@ -90,9 +95,13 @@ pub fn replay_checked_in_benchmark_publication(
         &request.run_definition_uri,
         "benchmark replay run definition",
     )?;
-    if run_definition.sha256 != source.run_definition_sha256 {
-        bail!("benchmark replay run definition differs from the publication receipt");
-    }
+    let relative = run_definition
+        .uri
+        .strip_prefix("study://")
+        .context("validated benchmark run-definition URI lost its prefix")?;
+    let definition: BenchmarkRunDefinition =
+        read_json(&study_root.join(relative), "benchmark replay run definition")?;
+    validate_replay_run_definition(&definition, &source.run, &source.run_definition_sha256)?;
     let case_definitions = request
         .case_definition_uris
         .iter()
@@ -138,6 +147,124 @@ pub fn replay_checked_in_benchmark_publication(
     validate_benchmark_replay_receipt(&receipt).context("validate benchmark replay receipt")?;
     publish_identity(&output, &receipt)?;
     Ok(receipt)
+}
+
+fn validate_replay_run_definition(
+    definition: &BenchmarkRunDefinition,
+    run: &BenchmarkRunIdentity,
+    expected_sha256: &str,
+) -> Result<()> {
+    validate_benchmark_run_definition(definition)
+        .context("validate benchmark replay run definition")?;
+    if definition.identity != *run
+        || benchmark_run_definition_sha256(definition)? != expected_sha256
+    {
+        bail!("benchmark replay run definition differs from the publication receipt");
+    }
+    Ok(())
+}
+
+struct ReplaySourceClosure {
+    receipt: BenchmarkPublicationReceipt,
+    publication: BenchmarkEvidenceReference,
+    evidence_book: BenchmarkEvidenceReference,
+}
+
+fn load_replay_source(
+    request: &BenchmarkReplayRequest,
+    study_root: &Path,
+    run: &BenchmarkRunIndexEntry,
+) -> Result<ReplaySourceClosure> {
+    match candidate_source_uris(
+        request.publication_receipt_uri.as_deref(),
+        request.evidence_book_uri.as_deref(),
+    )? {
+        Some((receipt_uri, book_uri)) => {
+            load_explicit_replay_source(study_root, run, receipt_uri, book_uri)
+        }
+        None => load_selected_replay_source(study_root, run),
+    }
+}
+
+fn candidate_source_uris<'a>(
+    publication_receipt_uri: Option<&'a str>,
+    evidence_book_uri: Option<&'a str>,
+) -> Result<Option<(&'a str, &'a str)>> {
+    match (publication_receipt_uri, evidence_book_uri) {
+        (Some(receipt_uri), Some(book_uri)) => Ok(Some((receipt_uri, book_uri))),
+        (None, None) => Ok(None),
+        _ => bail!("benchmark replay candidate selection requires both receipt and evidence book"),
+    }
+}
+
+fn load_selected_replay_source(
+    study_root: &Path,
+    run: &BenchmarkRunIndexEntry,
+) -> Result<ReplaySourceClosure> {
+    let selected = run
+        .selected_publication
+        .as_ref()
+        .context("benchmark replay run has no selected publication")?;
+    let receipt = load_indexed_receipt(study_root, &selected.publication_receipt)?;
+    if receipt.publication_id != selected.publication_id
+        || receipt.run.run_id != run.run_id
+        || receipt.repository_commit != selected.repository_commit
+        || receipt.selected_attempts != selected.selected_attempts
+    {
+        bail!("benchmark replay source receipt differs from the selected publication");
+    }
+    Ok(ReplaySourceClosure {
+        receipt,
+        publication: indexed_reference(&selected.publication_receipt),
+        evidence_book: indexed_reference(&selected.evidence_book),
+    })
+}
+
+fn load_explicit_replay_source(
+    study_root: &Path,
+    run: &BenchmarkRunIndexEntry,
+    receipt_uri: &str,
+    book_uri: &str,
+) -> Result<ReplaySourceClosure> {
+    let publication =
+        study_reference(study_root, receipt_uri, "benchmark replay candidate publication receipt")?;
+    let receipt = load_indexed_receipt(
+        study_root,
+        &BenchmarkRunIndexFileReference {
+            uri: publication.uri.clone(),
+            sha256: publication.sha256.clone(),
+            size_bytes: publication.size_bytes,
+        },
+    )?;
+    if receipt.run.run_id != run.run_id
+        || receipt.run.stage_id != run.stage_id
+        || receipt.run_definition_sha256 != run.protocol_sha256
+    {
+        bail!("benchmark replay candidate receipt differs from its permanent run protocol");
+    }
+
+    let evidence_book =
+        study_reference(study_root, book_uri, "benchmark replay candidate evidence book")?;
+    let relative = evidence_book
+        .uri
+        .strip_prefix("study://")
+        .context("validated benchmark evidence-book URI lost its prefix")?;
+    let book: BenchmarkEvidenceBook =
+        read_json(&study_root.join(relative), "benchmark replay candidate evidence book")?;
+    validate_benchmark_evidence_book(&book)
+        .context("validate benchmark replay candidate evidence book")?;
+    let entry = book
+        .entries
+        .iter()
+        .find(|entry| entry.run.run_id == run.run_id)
+        .context("benchmark replay candidate evidence book omits the requested run")?;
+    if entry.publication_id != receipt.publication_id
+        || entry.run != receipt.run
+        || entry.publication_receipt != publication
+    {
+        bail!("benchmark replay candidate evidence book differs from its publication receipt");
+    }
+    Ok(ReplaySourceClosure { receipt, publication, evidence_book })
 }
 
 fn observed_semantics(
@@ -276,6 +403,33 @@ mod tests {
         let differences =
             replay_differences(BenchmarkReplayOutcome::Mismatch, &expected, Some(&observed), &[])?;
         assert_eq!(differences.len(), 3);
+        Ok(())
+    }
+
+    #[test]
+    fn candidate_replay_requires_receipt_and_book_together() -> Result<()> {
+        assert!(candidate_source_uris(Some("study://receipt.json"), None).is_err());
+        assert!(candidate_source_uris(None, Some("study://book.json")).is_err());
+        assert_eq!(
+            candidate_source_uris(Some("study://receipt.json"), Some("study://book.json"))?,
+            Some(("study://receipt.json", "study://book.json"))
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn replay_compares_semantic_protocol_identity_not_file_formatting() -> Result<()> {
+        let repository_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .context("benchmark replay crate is outside the repository")?;
+        let path =
+            repository_root.join("benchmarks/runs/run-2043-fastq-profile-reads/definition.json");
+        let definition: BenchmarkRunDefinition =
+            read_json(&path, "benchmark replay protocol fixture")?;
+        let semantic_sha256 = benchmark_run_definition_sha256(&definition)?;
+        assert_ne!(bijux_dna_infra::hash_file_sha256(&path)?, semantic_sha256);
+        validate_replay_run_definition(&definition, &definition.identity, &semantic_sha256)?;
         Ok(())
     }
 }

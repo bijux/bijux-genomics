@@ -491,6 +491,10 @@ mod tests {
             "run-2002-replay-20260810",
             "--replayed-at-utc",
             "2026-08-10T00:00:00Z",
+            "--publication-receipt-uri",
+            "study://results/benchmarks/publications/source/run-2043/publication-receipt.json",
+            "--evidence-book-uri",
+            "study://results/benchmarks/evidence-books/source/candidate-publications.json",
             "--run-definition-uri",
             "study://contracts/run-2002.json",
             "--case-definition-uri",
@@ -510,7 +514,19 @@ mod tests {
         let BenchCommand::Cycle { command } = root.command else {
             panic!("expected benchmark cycle command");
         };
-        assert!(matches!(command, BenchCycleCommand::Replay(_)));
+        let BenchCycleCommand::Replay(args) = command else {
+            panic!("expected benchmark replay command");
+        };
+        assert_eq!(
+            args.publication_receipt_uri.as_deref(),
+            Some(
+                "study://results/benchmarks/publications/source/run-2043/publication-receipt.json"
+            )
+        );
+        assert_eq!(
+            args.evidence_book_uri.as_deref(),
+            Some("study://results/benchmarks/evidence-books/source/candidate-publications.json")
+        );
         Ok(())
     }
 

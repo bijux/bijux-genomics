@@ -298,26 +298,30 @@ pub(crate) fn handle_meta_commands(
                             }
                             cli::BenchCycleCommand::Replay(args) => {
                                 let receipt =
-                            bijux_dna_api::v1::api::bench::replay_checked_in_benchmark_publication(
-                                &bijux_dna_api::v1::api::bench::BenchmarkReplayRequest {
-                                    repository_root: args.repository_root.clone(),
-                                    study_root: args.study_root.clone(),
-                                    run_id: args.run_id.clone(),
-                                    replay_id: args.replay_id.clone(),
-                                    replayed_at_utc: args.replayed_at_utc.clone(),
-                                    run_definition_uri: args.run_definition_uri.clone(),
-                                    case_definition_uris: args.case_definition_uri.clone(),
-                                    immutable_input_uris: args.immutable_input_uri.clone(),
-                                    observed_decision_uri: args.observed_decision_uri.clone(),
-                                    observed_report_uri: args.observed_report_uri.clone(),
-                                    observed_evidence_book_uri: args
-                                        .observed_evidence_book_uri
-                                        .clone(),
-                                    differences: args.difference.clone(),
-                                    limitations: args.limitation.clone(),
-                                    output: args.output.clone(),
-                                },
-                            )?;
+                                    bijux_dna_api::v1::api::bench::replay_checked_in_benchmark_publication(
+                                        &bijux_dna_api::v1::api::bench::BenchmarkReplayRequest {
+                                            repository_root: args.repository_root.clone(),
+                                            study_root: args.study_root.clone(),
+                                            run_id: args.run_id.clone(),
+                                            replay_id: args.replay_id.clone(),
+                                            replayed_at_utc: args.replayed_at_utc.clone(),
+                                            publication_receipt_uri: args
+                                                .publication_receipt_uri
+                                                .clone(),
+                                            evidence_book_uri: args.evidence_book_uri.clone(),
+                                            run_definition_uri: args.run_definition_uri.clone(),
+                                            case_definition_uris: args.case_definition_uri.clone(),
+                                            immutable_input_uris: args.immutable_input_uri.clone(),
+                                            observed_decision_uri: args.observed_decision_uri.clone(),
+                                            observed_report_uri: args.observed_report_uri.clone(),
+                                            observed_evidence_book_uri: args
+                                                .observed_evidence_book_uri
+                                                .clone(),
+                                            differences: args.difference.clone(),
+                                            limitations: args.limitation.clone(),
+                                            output: args.output.clone(),
+                                        },
+                                    )?;
                                 crate::commands::cli::render::json::print_pretty(&receipt)?;
                             }
                             cli::BenchCycleCommand::Retry(args) => {
