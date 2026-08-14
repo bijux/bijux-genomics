@@ -18,9 +18,9 @@
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "be3d3157915b081bfdb27c2a5ef2f4cb68b2d426c9309e81ae66efe770671c95",
+      "json_sha256": "c2d18ac88977a624f5c67d48f3b3056e907371613cf9fff508e8f92e8857c2d3",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
-      "markdown_sha256": "2e67175e321329027c0a2584b9918481b85b1386668b9592a679846a2c245d86"
+      "markdown_sha256": "ae5a96cd80090ee4b2adac2f1d9a987ea2bf91616ba6e17044cb02bdf24593f3"
     },
     {
       "product_id": "stage-universe",
