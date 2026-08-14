@@ -270,13 +270,18 @@ fn checked_in_run_index_covers_every_protocol_without_hidden_publications() -> R
         bijux_dna_bench::BenchmarkRunIndexWriteMode::Check,
     )?;
     assert_eq!(index.summary.registered_run_count, 71);
-    assert_eq!(index.summary.citable_publication_count, 0);
-    assert_eq!(index.summary.unpublished_run_count, 71);
-    assert!(index.runs.iter().all(|run| {
-        run.selected_publication.is_none()
-            && !run.limitations.is_empty()
-            && run.citation_key == format!("bijux-benchmark-{}", run.run_id)
-    }));
+    assert_eq!(index.summary.citable_publication_count, 3);
+    assert_eq!(index.summary.unpublished_run_count, 68);
+    for run in &index.runs {
+        assert_eq!(run.citation_key, format!("bijux-benchmark-{}", run.run_id));
+        if ["run-2042", "run-2043", "run-2051"].contains(&run.run_id.as_str()) {
+            assert!(run.selected_publication.is_some());
+            assert!(run.limitations.is_empty());
+        } else {
+            assert!(run.selected_publication.is_none());
+            assert!(!run.limitations.is_empty());
+        }
+    }
     assert!(index.runs.iter().any(|run| {
         run.run_id == "run-2062"
             && run.stage_id == "vcf.imputation_metrics"
