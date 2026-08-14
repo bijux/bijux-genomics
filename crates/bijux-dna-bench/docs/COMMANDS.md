@@ -85,6 +85,7 @@ These operations are exported through the crate root and `public_api`.
 | `plan-benchmark-cases` | `plan_benchmark_cases(request)` | Select one permanent run, close its governed data and tool authorities, and immutably publish its generic case matrix. |
 | `admit-benchmark-cases` | `admit_benchmark_cases(request)` | Validate normalized observations against their exact case matrix and publish an immutable admitted set. |
 | `aggregate-benchmark-cases` | `aggregate_benchmark_cases(request)` | Validate admitted observations and immutably publish deterministic case aggregations. |
+| `issue-benchmark-citation-record` | `issue_benchmark_citation_record(request)` | Derive an immutable paper citation from an admitted receipt, evidence book, exact replay, source catalog, report images, and case-matrix data snapshots. |
 | `benchmark-attempt-directory` | `benchmark_attempt_directory(root, identity)` | Derive the permanent `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>` storage path from validated identity. |
 | `initialize-attempt-lifecycle` | `initialize_attempt_lifecycle(root, record)` | Delegate atomic publication of an immutable planned attempt record to `bijux-dna-runtime`. |
 | `append-attempt-lifecycle-transition` | `append_attempt_lifecycle_transition(root, identity, transition)` | Delegate validation and no-clobber publication of one sequence-addressed transition to `bijux-dna-runtime`. |

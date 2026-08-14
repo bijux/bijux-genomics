@@ -296,6 +296,25 @@ pub(crate) fn handle_meta_commands(
                                 )?;
                                 crate::commands::cli::render::json::print_pretty(&receipt)?;
                             }
+                            cli::BenchCycleCommand::Cite(args) => {
+                                let citation =
+                                    bijux_dna_api::v1::api::bench::issue_benchmark_citation_record(
+                                        &bijux_dna_api::v1::api::bench::BenchmarkCitationRequest {
+                                            repository_root: args.repository_root.clone(),
+                                            study_root: args.study_root.clone(),
+                                            publication_receipt_uri: args
+                                                .publication_receipt_uri
+                                                .clone(),
+                                            evidence_book_uri: args.evidence_book_uri.clone(),
+                                            replay_receipt_uri: args.replay_receipt_uri.clone(),
+                                            case_matrix_uri: args.case_matrix_uri.clone(),
+                                            limitations: args.limitation.clone(),
+                                            access_statement: args.access_statement.clone(),
+                                            output: args.output.clone(),
+                                        },
+                                    )?;
+                                crate::commands::cli::render::json::print_pretty(&citation)?;
+                            }
                             cli::BenchCycleCommand::Replay(args) => {
                                 let receipt =
                                     bijux_dna_api::v1::api::bench::replay_checked_in_benchmark_publication(

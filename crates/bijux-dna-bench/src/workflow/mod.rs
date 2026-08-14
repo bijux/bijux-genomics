@@ -19,6 +19,7 @@ mod campaign_cases;
 mod campaign_engine;
 mod campaign_lifecycle;
 mod campaign_material;
+mod citation;
 mod container_report_portfolio;
 mod corpus_acquisition;
 mod corpus_materialization;
@@ -171,6 +172,7 @@ pub use campaign_material::{
     publish_case_benchmark_campaign_report_with_presentation_authority, BenchmarkCampaignEvidence,
     BenchmarkCampaignMaterialRequest, BenchmarkCampaignReportPublication,
 };
+pub use citation::{issue_benchmark_citation_record, BenchmarkCitationRequest};
 pub use container_report_portfolio::{
     derive_container_report_portfolio_index, render_container_report_portfolio_index_json,
     render_container_report_portfolio_index_markdown,

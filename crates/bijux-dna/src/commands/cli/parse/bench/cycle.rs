@@ -10,6 +10,8 @@ pub enum BenchCycleCommand {
     Advance(BenchCycleAdvanceArgs),
     /// Publish a reviewer-facing book from current admitted publication receipts.
     Book(BenchCycleBookArgs),
+    /// Issue a paper-facing citation from admitted publication and replay evidence.
+    Cite(BenchCycleCiteArgs),
     /// Observe scheduler-active attempts once and collect accounting-ready transitions.
     Collect(BenchCycleCollectArgs),
     /// Plan every declared tool attempt for one permanent benchmark run.
@@ -91,6 +93,28 @@ pub struct BenchCycleReplayArgs {
     pub difference: Vec<String>,
     #[arg(long, required = true)]
     pub limitation: Vec<String>,
+    #[arg(long)]
+    pub output: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleCiteArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub study_root: PathBuf,
+    #[arg(long)]
+    pub publication_receipt_uri: String,
+    #[arg(long)]
+    pub evidence_book_uri: String,
+    #[arg(long)]
+    pub replay_receipt_uri: String,
+    #[arg(long)]
+    pub case_matrix_uri: String,
+    #[arg(long, required = true)]
+    pub limitation: Vec<String>,
+    #[arg(long)]
+    pub access_statement: String,
     #[arg(long)]
     pub output: PathBuf,
 }

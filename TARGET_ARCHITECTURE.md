@@ -128,7 +128,10 @@ attempt blocks only its own execution unit.
   engine validates the source-locked case matrix, selects exactly one case for every admitted
   attempt, publishes those case definitions immutably beside the replay receipt, and retains the
   matrix as an input lock. Callers do not assemble or approximate the selected case closure.
-- A citation is the stable paper-facing record for a run protocol and its selected publication.
+- A citation is the stable paper-facing record for a run protocol and its selected publication. It
+  is derived only after exact replay, from the admitted receipt, evidence book, source catalog,
+  report image identities, and case-matrix data snapshots; callers cannot nominate tool versions,
+  image digests, or data checksums.
 - Scheduler job IDs are provenance, not run identities.
 - Current reports require exact source, catalog, stage/interface, data/truth, artifact, campaign,
   and report hash closure. A stale report remains historical and is never overwritten into

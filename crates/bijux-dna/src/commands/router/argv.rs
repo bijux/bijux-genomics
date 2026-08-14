@@ -532,6 +532,44 @@ mod tests {
     }
 
     #[test]
+    fn benchmark_cycle_cite_uses_the_public_product_namespace() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "cite",
+            "--study-root",
+            "/study",
+            "--publication-receipt-uri",
+            "study://publications/run-2042/publication-receipt.json",
+            "--evidence-book-uri",
+            "study://evidence-books/candidate-publications.json",
+            "--replay-receipt-uri",
+            "study://replays/run-2042/semantic-identity.json",
+            "--case-matrix-uri",
+            "study://case-matrices/run-2042.json",
+            "--limitation",
+            "The citation covers the admitted FASTQ cohort only.",
+            "--access-statement",
+            "Public corpus access is governed by the cited source archive terms.",
+            "--output",
+            "/study/publications/run-2042/citation-record.json",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        let BenchCycleCommand::Cite(args) = command else {
+            panic!("expected benchmark citation command");
+        };
+        assert_eq!(args.replay_receipt_uri, "study://replays/run-2042/semantic-identity.json");
+        assert_eq!(args.case_matrix_uri, "study://case-matrices/run-2042.json");
+        Ok(())
+    }
+
+    #[test]
     fn benchmark_cycle_publish_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
