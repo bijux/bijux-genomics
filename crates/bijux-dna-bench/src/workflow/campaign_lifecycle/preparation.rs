@@ -70,6 +70,12 @@ pub fn prepare_checked_in_benchmark_campaign(
     let run_id = campaign_run_id(&plan)?;
     let evidence =
         admit_benchmark_campaign_evidence(&repository_root, &study_root, &data_index, run_id)?;
+    if let Some(matrix) = &case_matrix {
+        let admitted_corpus = evidence.primary_corpus_snapshot();
+        if matrix.cases.iter().any(|case| case.corpus != admitted_corpus) {
+            bail!("benchmark case corpus differs from admitted campaign execution evidence");
+        }
+    }
     let mut attempts = plan
         .cycle
         .attempts
