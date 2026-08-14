@@ -426,13 +426,19 @@ fn required_qualification_files(
                 .iter()
                 .find(|value| value.name == output.binding_output)
                 .context("qualification output disappeared from its binding")?;
-            Ok(match binding_output.discovery {
-                OutputDiscoveryV1::ExactPath => output.path.clone(),
-                OutputDiscoveryV1::Glob { .. } => glob_manifest_path(&output.path),
+            Ok(match &binding_output.discovery {
+                OutputDiscoveryV1::ExactPath | OutputDiscoveryV1::ExactPathWithSidecars { .. } => {
+                    bijux_dna_stage_contract::required_binding_output_paths(
+                        binding_output,
+                        &output.path,
+                    )?
+                }
+                OutputDiscoveryV1::Glob { .. } => vec![glob_manifest_path(&output.path)],
             })
         })
         .collect::<Result<Vec<_>>>()?
         .into_iter()
+        .flatten()
         .chain([PathBuf::from("qualification-metrics.json")])
         .collect())
 }

@@ -2,7 +2,10 @@ use std::collections::BTreeSet;
 
 use anyhow::{anyhow, bail, Result};
 
-use super::{OutputDiscoveryV1, ToolArtifactSourceV1, ToolBinding, TOOL_BINDING_SCHEMA_V1};
+use super::{
+    OutputDiscoveryV1, OutputSidecarDiscoveryV1, ToolArtifactSourceV1, ToolBinding,
+    TOOL_BINDING_SCHEMA_V1,
+};
 use crate::canonical_artifact_contract_catalog;
 
 /// Validates that a binding is complete and its template references declared projections.
@@ -47,8 +50,35 @@ pub fn validate_tool_binding(binding: &impl ToolBinding) -> Result<()> {
         &artifact_catalog,
     )?;
     for output in binding.outputs() {
-        if let OutputDiscoveryV1::Glob { pattern } = &output.discovery {
-            require_text(pattern, "output glob pattern")?;
+        match &output.discovery {
+            OutputDiscoveryV1::ExactPath => {}
+            OutputDiscoveryV1::ExactPathWithSidecars { sidecars } => {
+                if sidecars.is_empty() {
+                    bail!("binding exact sidecar discovery has no sidecars");
+                }
+                for sidecar in sidecars {
+                    match sidecar {
+                        OutputSidecarDiscoveryV1::AppendSuffix { suffix }
+                            if suffix.is_empty()
+                                || !suffix.starts_with('.')
+                                || suffix.contains(['/', '\\']) =>
+                        {
+                            bail!("binding exact sidecar suffix is not canonical");
+                        }
+                        OutputSidecarDiscoveryV1::ReplaceExtension { extension }
+                            if extension.is_empty()
+                                || extension.starts_with('.')
+                                || extension.contains(['/', '\\']) =>
+                        {
+                            bail!("binding exact sidecar extension is not canonical");
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            OutputDiscoveryV1::Glob { pattern } => {
+                require_text(pattern, "output glob pattern")?;
+            }
         }
     }
     let references = validate_template(binding.command_template(), &inputs, &parameters, &outputs)?;
@@ -65,9 +95,12 @@ pub fn validate_tool_binding(binding: &impl ToolBinding) -> Result<()> {
     for parameter in binding.parameters().iter().filter(|value| value.required) {
         require_reference(&references, &format!("parameter:{}", parameter.name))?;
     }
-    for output in
-        binding.outputs().iter().filter(|value| value.discovery == OutputDiscoveryV1::ExactPath)
-    {
+    for output in binding.outputs().iter().filter(|value| {
+        matches!(
+            value.discovery,
+            OutputDiscoveryV1::ExactPath | OutputDiscoveryV1::ExactPathWithSidecars { .. }
+        )
+    }) {
         require_reference(&references, &format!("output:{}", output.name))?;
     }
     Ok(())

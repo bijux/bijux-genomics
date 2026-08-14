@@ -3,8 +3,9 @@ use bijux_dna_core::contract::ToolConstraints;
 use bijux_dna_core::ids::{StageId, ToolId};
 
 use super::{
-    BindingInputV1, BindingOutputV1, BindingParameterV1, OutputDiscoveryV1, ToolArtifactSourceV1,
-    ToolBindingRegistry, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
+    BindingInputV1, BindingOutputV1, BindingParameterV1, OutputDiscoveryV1,
+    OutputSidecarDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingV1,
+    TOOL_BINDING_SCHEMA_V1,
 };
 
 mod bam;
@@ -1569,7 +1570,10 @@ fn picard_duplication_metrics() -> ToolBindingV1 {
         &["bam_input", "duplicate_detection", "native_duplication_metrics"],
         &[input("bam", BAM)],
         &[],
-        &[output("duplication_metrics", TABLE), output("marked_bam", BAM)],
+        &[
+            output("duplication_metrics", TABLE),
+            output_with_replaced_extension_sidecar("marked_bam", BAM, "bai"),
+        ],
         &[
             "${executable}",
             "MarkDuplicates",
@@ -1596,7 +1600,10 @@ fn samtools_duplication_metrics() -> ToolBindingV1 {
         &["bam_input", "duplicate_detection", "native_markdup_statistics"],
         &[input("bam", BAM)],
         &[],
-        &[output("markdup_statistics", TABLE), output("marked_bam", BAM)],
+        &[
+            output("markdup_statistics", TABLE),
+            output_with_appended_sidecars("marked_bam", BAM, &[".bai"]),
+        ],
         &[
             "/bin/sh",
             "-c",
@@ -1906,7 +1913,7 @@ fn bcftools_genotyping() -> ToolBindingV1 {
             input("candidate_alleles", TABLE),
         ],
         &[],
-        &[output("called_vcf", VCF)],
+        &[output_with_appended_sidecars("called_vcf", VCF, &[".csi"])],
         &[
             "/bin/sh",
             "-c",
@@ -2225,6 +2232,41 @@ fn output(name: &str, artifact_contract_id: &str) -> BindingOutputV1 {
         name: name.to_string(),
         artifact_contract_id: artifact_contract_id.to_string(),
         discovery: OutputDiscoveryV1::ExactPath,
+    }
+}
+
+fn output_with_appended_sidecars(
+    name: &str,
+    artifact_contract_id: &str,
+    suffixes: &[&str],
+) -> BindingOutputV1 {
+    BindingOutputV1 {
+        name: name.to_string(),
+        artifact_contract_id: artifact_contract_id.to_string(),
+        discovery: OutputDiscoveryV1::ExactPathWithSidecars {
+            sidecars: suffixes
+                .iter()
+                .map(|suffix| OutputSidecarDiscoveryV1::AppendSuffix {
+                    suffix: (*suffix).to_owned(),
+                })
+                .collect(),
+        },
+    }
+}
+
+fn output_with_replaced_extension_sidecar(
+    name: &str,
+    artifact_contract_id: &str,
+    extension: &str,
+) -> BindingOutputV1 {
+    BindingOutputV1 {
+        name: name.to_string(),
+        artifact_contract_id: artifact_contract_id.to_string(),
+        discovery: OutputDiscoveryV1::ExactPathWithSidecars {
+            sidecars: vec![OutputSidecarDiscoveryV1::ReplaceExtension {
+                extension: extension.to_owned(),
+            }],
+        },
     }
 }
 

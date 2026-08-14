@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, ToolConstraints};
@@ -7,10 +8,11 @@ use bijux_dna_core::prelude::ContainerImageRefV1;
 use bijux_dna_stage_contract::{
     build_binding_stage_plan, canonical_external_artifact_tool_bindings,
     canonical_retained_tool_bindings, canonical_tool_bindings, project_tool_parameters,
-    render_tool_command, validate_tool_binding, BindingInputV1, BindingOutputV1,
-    BindingParameterV1, BindingStagePlanRequest, EffectiveToolParameterSourceV1, OutputDiscoveryV1,
-    ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext, ToolBindingV1,
-    ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
+    render_tool_command, required_binding_output_paths, validate_tool_binding, BindingInputV1,
+    BindingOutputV1, BindingParameterV1, BindingStagePlanRequest, EffectiveToolParameterSourceV1,
+    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext,
+    ToolBindingV1, ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1,
+    TOOL_BINDING_SCHEMA_V1,
 };
 
 const ALIGN_STAGE: &str = "bam.align";
@@ -1945,7 +1947,7 @@ fn canonical_duplication_metrics_bindings_close_run_2011_native_reports() -> Res
     );
     assert_eq!(bindings[0].resources.threads, 1);
     assert_eq!(bindings[1].resources.threads, 4);
-    for binding in bindings {
+    for binding in &bindings {
         assert_eq!(
             binding.normalized_output_contract_id,
             "bijux.benchmark.bam.duplication_metrics.bundle.v1"
@@ -1957,6 +1959,24 @@ fn canonical_duplication_metrics_bindings_close_run_2011_native_reports() -> Res
         assert_eq!(binding.downstream_probe_id, "benchmark.bam.duplication_metrics.compare");
         assert!(binding.outputs.iter().any(|output| output.name == "marked_bam"));
     }
+    let picard_bam = bindings[0]
+        .outputs
+        .iter()
+        .find(|output| output.name == "marked_bam")
+        .expect("picard marked BAM output");
+    assert_eq!(
+        required_binding_output_paths(picard_bam, Path::new("marked.bam"))?,
+        [PathBuf::from("marked.bam"), PathBuf::from("marked.bai")]
+    );
+    let samtools_bam = bindings[1]
+        .outputs
+        .iter()
+        .find(|output| output.name == "marked_bam")
+        .expect("samtools marked BAM output");
+    assert_eq!(
+        required_binding_output_paths(samtools_bam, Path::new("marked.bam"))?,
+        [PathBuf::from("marked.bam"), PathBuf::from("marked.bam.bai")]
+    );
     Ok(())
 }
 
@@ -2080,6 +2100,10 @@ fn canonical_genotyping_binding_closes_run_2001_native_execution() -> Result<()>
     assert_eq!(
         binding.outputs[0].artifact_contract_id,
         "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+    );
+    assert_eq!(
+        required_binding_output_paths(&binding.outputs[0], Path::new("called.vcf.gz"))?,
+        [PathBuf::from("called.vcf.gz"), PathBuf::from("called.vcf.gz.csi")]
     );
     assert!(binding.command_template[2].contains("mpileup"));
     assert!(binding.command_template[2].contains("index -f"));
