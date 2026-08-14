@@ -39,8 +39,9 @@ promoted merely because they remain replayable.
   every tracked pipeline declaration. Source and target hashes make interrupted atomic-per-file
   application resumable and reject unplanned content drift.
 - `ContainerImageInventoryPublication`: immutable image selection and build identity evidence.
-- `CurrentApptainerImage`: absolute current retained SIF identity reverified against the selected
-  inventory candidate at consumption time.
+- `CurrentApptainerImage`: absolute SIF identity reverified at consumption time through either the
+  selected repository-distributable inventory candidate or an exact commit-addressed external
+  artifact admission. Blocked access and admitted binaries remain explicit non-image outcomes.
 - `ImageInventoryDerivationRequest`: governed repository, study, image, build-evidence, and run-lock
   roots used to derive a portable publication without delegating selection to contract scripts.
 - `ImageInventoryScan`: complete typed identities for scanned SIFs, build-evidence sources, and

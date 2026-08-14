@@ -136,7 +136,10 @@ pub use security_toolchain::{
     SecurityScannerToolchainContract, SECURITY_SCANNER_TOOLCHAIN_COMPLETION_SCHEMA_V1,
     SECURITY_SCANNER_TOOLCHAIN_CONTRACT_SCHEMA_V1,
 };
-pub use selection::{resolve_catalog_locked_apptainer_image, CurrentApptainerImage};
+pub use selection::{
+    resolve_catalog_locked_apptainer_artifact, resolve_catalog_locked_apptainer_image,
+    CurrentApptainerImage,
+};
 pub(crate) use tool_contract::repository_commit_is_ancestor;
 pub use tool_contract::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,

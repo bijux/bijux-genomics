@@ -12,8 +12,8 @@ use bijux_dna_bench_model::{
 };
 use bijux_dna_containers::api::{
     load_container_catalog, load_image_inventory_publication,
-    resolve_catalog_locked_apptainer_image, validate_container_inventory_catalog, ContainerCatalog,
-    ContainerImageInventoryPublication, CurrentApptainerImage,
+    resolve_catalog_locked_apptainer_artifact, validate_container_inventory_catalog,
+    ContainerCatalog, ContainerImageInventoryPublication, CurrentApptainerImage,
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
@@ -60,11 +60,12 @@ impl BenchmarkExecutionAuthorities {
         study_root: &Path,
         tool_id: &str,
     ) -> Result<CurrentApptainerImage> {
-        resolve_catalog_locked_apptainer_image(
+        resolve_catalog_locked_apptainer_artifact(
             &self.image_inventory,
             &self.catalog_sha256,
             &self.catalog,
             &self.repository_commit,
+            &self.repository_path,
             study_root,
             tool_id,
         )
