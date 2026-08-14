@@ -260,6 +260,54 @@ limitations = [
 ]
 
 [[campaigns]]
+run_id = "run-2010"
+slug = "bam-damage"
+domain = "bam"
+stage_id = "bam.damage"
+evidence_tier = "qualification"
+profile_id = "bam-ancient-authentication"
+corpus_ids = ["ancient-dna-bam-diversity"]
+scientific_question = "Can all six retained BAM damage implementations produce nonempty native evidence through one governed lifecycle on the same real ancient-horse single-end alignment projection?"
+comparison_scope = "one checksum-admitted real ancient-horse alignment projected to the common single-end input supported by every retained implementation"
+tool_ids = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+corpus_catalog_ids = ["ena-prjeb22390-err2112767-ngsbriggs-input"]
+reference_catalog_ids = ["equcab3-gcf-002863925.1"]
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes", "reference_input_bytes"]
+result_artifact = "damage-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads_by_tool = { addeam = 1, damageprofiler = 1, mapdamage2 = 1, ngsbriggs = 8, pmdtools = 1, pydamage = 2 }
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "none_execution_and_interoperability_qualification_only"
+interpretation = "This qualification compares execution, native output closure, and runtime behavior for all retained tools on one real alignment projection. Native tool-specific damage estimates are preserved but are not forced into a false common scientific metric. Damage-model accuracy and biological authenticity remain blocked until the declared multi-study orthogonal panel and controls are admitted."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "peak_rss_kib",
+  "input_bytes",
+  "output_bytes",
+]
+scientific_metrics = [
+  "normalization_complete",
+  "native_file_count",
+  "native_output_bytes",
+]
+comparison_metrics = [
+  {id = "normalization_complete", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+]
+limitations = [
+  "The qualification corpus contains one ancient-horse library and cannot satisfy the permanent profile requirement for ten real samples from at least two studies.",
+  "The single-end projection makes tool inputs interoperable but excludes paired alignments and may change the evidence distribution relative to the complete source BAM.",
+  "No authenticated positive, modern negative, blank control, or independent orthogonal assay is admitted, so this execution cannot support accuracy or authenticity claims.",
+  "ngsBriggs remains in the planned comparison but its execution unit is blocked until a checksum-bound licensed external artifact is admitted.",
+]
+
+[[campaigns]]
 run_id = "run-2011"
 slug = "bam-duplication-metrics"
 domain = "bam"

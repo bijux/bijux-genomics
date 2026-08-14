@@ -8,10 +8,9 @@
   },
   "protocol_title": "BAM damage benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "eca6943f570905aacc7c06f79df23e7e9fcd1d6406eb99ab057f850c56048d57",
+  "protocol_sha256": "79575a3ea25b13f65dbbc6c4fcd4ab428c4900e3f34948242ac399f95e01486f",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

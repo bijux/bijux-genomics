@@ -36,8 +36,8 @@ use bijux_dna_stage_contract::{
     TOOL_BINDING_SCHEMA_V1,
 };
 
-const EXISTING_CAMPAIGN_COUNT: usize = 12;
-const EXISTING_CASE_COUNT: usize = 24;
+const EXISTING_CAMPAIGN_COUNT: usize = 13;
+const EXISTING_CASE_COUNT: usize = 30;
 const COVERAGE_STAGE: &str = "bam.coverage";
 
 struct PlanningFixture {

@@ -5,8 +5,8 @@
 Run IDs identify permanent protocols. A citation key is stable, but a run is citable as executed evidence only when this index names its selected publication and replay receipt.
 
 - Registered protocols: **71**
-- Active protocols: **12**
-- Reserved protocols: **59**
+- Active protocols: **13**
+- Reserved protocols: **58**
 - Citable publications: **3**
 - Unpublished protocols: **68**
 
@@ -21,7 +21,7 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 | `run-2007` | `bijux-benchmark-run-2007` | `bam.bias_mitigation` | `mapdamage2` | `reserved` | `not selected` |
 | `run-2008` | `bijux-benchmark-run-2008` | `bam.complexity` | `preseq` | `reserved` | `not selected` |
 | `run-2009` | `bijux-benchmark-run-2009` | `bam.contamination` | `contammix`, `schmutzi`, `verifybamid2` | `reserved` | `not selected` |
-| `run-2010` | `bijux-benchmark-run-2010` | `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, `pydamage` | `reserved` | `not selected` |
+| `run-2010` | `bijux-benchmark-run-2010` | `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, `pydamage` | `active` | `not selected` |
 | `run-2011` | `bijux-benchmark-run-2011` | `bam.duplication_metrics` | `picard`, `samtools` | `active` | `not selected` |
 | `run-2012` | `bijux-benchmark-run-2012` | `bam.filter` | `bamtools`, `bedtools`, `samtools` | `reserved` | `not selected` |
 | `run-2013` | `bijux-benchmark-run-2013` | `bam.gc_bias` | `picard` | `active` | `not selected` |
