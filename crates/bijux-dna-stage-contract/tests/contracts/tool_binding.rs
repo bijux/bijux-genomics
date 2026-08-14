@@ -546,6 +546,15 @@ fn canonical_damageprofiler_and_pydamage_bindings_render_native_directories() ->
         ),
         (
             DAMAGE_STAGE,
+            "damageprofiler",
+            "bam",
+            "/input/sample.bam",
+            "damageprofiler_reports",
+            "/result/damageprofiler",
+            ["damageprofiler' -i", "-title bijux-sample"],
+        ),
+        (
+            DAMAGE_STAGE,
             "pydamage",
             "bam",
             "/input/sample.bam",
