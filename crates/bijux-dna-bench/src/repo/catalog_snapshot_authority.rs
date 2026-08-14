@@ -29,6 +29,114 @@ pub struct GovernedDataCatalogSnapshotRequest {
     pub previous_registry_path: Option<PathBuf>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GovernedDerivedDataCatalogAdmissionRequest {
+    pub data_root: PathBuf,
+    pub candidate_path: PathBuf,
+    pub previous_registry_path: PathBuf,
+    pub expected_previous_catalog_sha256: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GovernedDerivedDataCatalogAdmission {
+    pub catalog_path: PathBuf,
+    pub catalog_sha256: String,
+    pub replaced_catalog_sha256: Option<String>,
+}
+
+/// Admit one checksum-closed derived catalog as the flat current authority.
+///
+/// The candidate must be inside the governed data root and every source snapshot must already be
+/// present in the explicit prior registry. Replacing an authority requires both its exact current
+/// digest and proof that those bytes were preserved by that registry. Replays with identical
+/// canonical bytes are idempotent.
+///
+/// # Errors
+/// Returns an error for malformed catalogs, source or file drift, an unpreserved predecessor,
+/// unsafe paths, or a compare-and-replace digest mismatch.
+pub fn admit_governed_derived_data_catalog(
+    request: &GovernedDerivedDataCatalogAdmissionRequest,
+) -> Result<GovernedDerivedDataCatalogAdmission> {
+    if let Some(expected) = &request.expected_previous_catalog_sha256 {
+        require_sha256(expected, "expected previous catalog")?;
+    }
+    let data_root = canonical_directory(&request.data_root, "governed data root")?;
+    let candidate_path =
+        canonical_file(&request.candidate_path, &data_root, "derived catalog candidate")?;
+    let candidate_bytes = bijux_dna_infra::read_to_end_bounded(&candidate_path, MAX_CATALOG_BYTES)?;
+    let catalog: GovernedDerivedDataCatalog = serde_json::from_slice(&candidate_bytes)
+        .with_context(|| format!("parse derived catalog candidate {}", candidate_path.display()))?;
+    validate_governed_derived_data_catalog(&catalog)
+        .context("validate derived catalog candidate")?;
+    verify_derived_catalog_closure(&catalog, &data_root)?;
+
+    let registry = load_prior_registry(&request.previous_registry_path, &data_root)?;
+    verify_derived_sources_are_registered(&catalog, &registry)?;
+    let catalog_path = data_root.join("catalog").join(format!("{}.json", catalog.id));
+    if candidate_path == catalog_path {
+        bail!("derived catalog candidate must be distinct from the flat authority");
+    }
+    let mut canonical_bytes = serde_json::to_vec_pretty(&catalog)?;
+    canonical_bytes.push(b'\n');
+    let catalog_sha256 = bijux_dna_infra::hash_bytes_sha256(&canonical_bytes);
+
+    let replaced_catalog_sha256 = match fs::symlink_metadata(&catalog_path) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() || !metadata.is_file() {
+                bail!(
+                    "existing flat catalog is not a regular non-symlink file: {}",
+                    catalog_path.display()
+                );
+            }
+            let existing_bytes =
+                bijux_dna_infra::read_to_end_bounded(&catalog_path, MAX_CATALOG_BYTES)?;
+            let existing_sha256 = bijux_dna_infra::hash_bytes_sha256(&existing_bytes);
+            if existing_bytes == canonical_bytes {
+                return Ok(GovernedDerivedDataCatalogAdmission {
+                    catalog_path,
+                    catalog_sha256,
+                    replaced_catalog_sha256: request.expected_previous_catalog_sha256.clone(),
+                });
+            }
+            let expected = request
+                .expected_previous_catalog_sha256
+                .as_deref()
+                .context("replacing a flat catalog requires its expected previous SHA-256")?;
+            if existing_sha256 != expected {
+                bail!(
+                    "flat catalog compare-and-replace digest mismatch: expected {expected}, got {existing_sha256}"
+                );
+            }
+            verify_registry_preserves_flat_authority(
+                &registry,
+                &catalog.id,
+                &existing_sha256,
+                &data_root,
+            )?;
+            bijux_dna_infra::atomic_write_bytes(&catalog_path, &canonical_bytes)
+                .with_context(|| format!("replace flat catalog {}", catalog_path.display()))?;
+            Some(existing_sha256)
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            if request.expected_previous_catalog_sha256.is_some() {
+                bail!("expected previous flat catalog is absent: {}", catalog_path.display());
+            }
+            bijux_dna_infra::atomic_create_bytes(&catalog_path, &canonical_bytes)
+                .with_context(|| format!("publish flat catalog {}", catalog_path.display()))?;
+            None
+        }
+        Err(error) => {
+            return Err(error)
+                .with_context(|| format!("inspect flat catalog {}", catalog_path.display()))
+        }
+    };
+    Ok(GovernedDerivedDataCatalogAdmission {
+        catalog_path,
+        catalog_sha256,
+        replaced_catalog_sha256,
+    })
+}
+
 /// Publish every flat authority under a source-addressed snapshot and compose a registry.
 ///
 /// Flat v1 authorities receive a preservation envelope; native derived catalogs retain their
@@ -306,6 +414,69 @@ fn verify_derived_catalog_closure(
     Ok(())
 }
 
+fn verify_derived_sources_are_registered(
+    catalog: &GovernedDerivedDataCatalog,
+    registry: &GovernedDataCatalogRegistry,
+) -> Result<()> {
+    for source in &catalog.sources {
+        let record =
+            registry.records.iter().find(|record| record.id == source.catalog_id).with_context(
+                || {
+                    format!(
+                        "derived source catalog is absent from prior registry: {}",
+                        source.catalog_id
+                    )
+                },
+            )?;
+        if !record.snapshots.iter().any(|snapshot| {
+            snapshot.catalog_path == source.catalog_path
+                && snapshot.catalog_sha256 == source.catalog_sha256
+        }) {
+            bail!(
+                "derived source catalog identity is absent from prior registry: {}",
+                source.catalog_id
+            );
+        }
+    }
+    Ok(())
+}
+
+fn verify_registry_preserves_flat_authority(
+    registry: &GovernedDataCatalogRegistry,
+    catalog_id: &str,
+    flat_sha256: &str,
+    data_root: &Path,
+) -> Result<()> {
+    let record = registry
+        .records
+        .iter()
+        .find(|record| record.id == catalog_id)
+        .context("prior registry does not preserve the flat catalog identity")?;
+    for snapshot in &record.snapshots {
+        let relative = snapshot
+            .catalog_path
+            .strip_prefix("study://data/")
+            .context("prior snapshot URI escapes governed data root")?;
+        let path = canonical_file(&data_root.join(relative), data_root, "prior snapshot")?;
+        let bytes = bijux_dna_infra::read_to_end_bounded(&path, MAX_CATALOG_BYTES)?;
+        if snapshot.catalog_schema_version == GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1
+            && bijux_dna_infra::hash_bytes_sha256(&bytes) == flat_sha256
+        {
+            return Ok(());
+        }
+        if snapshot.catalog_schema_version == GOVERNED_DATA_CATALOG_SCHEMA_V2 {
+            let value: serde_json::Value = serde_json::from_slice(&bytes)
+                .with_context(|| format!("parse prior preserved catalog {}", path.display()))?;
+            if value.get("source_catalog_sha256").and_then(serde_json::Value::as_str)
+                == Some(flat_sha256)
+            {
+                return Ok(());
+            }
+        }
+    }
+    bail!("prior registry does not preserve the expected flat catalog bytes")
+}
+
 fn load_prior_registry(path: &Path, data_root: &Path) -> Result<GovernedDataCatalogRegistry> {
     let path = canonical_file(path, data_root, "prior catalog registry")?;
     let bytes = bijux_dna_infra::read_to_end_bounded(&path, MAX_CATALOG_BYTES)?;
@@ -378,6 +549,16 @@ fn require_commit(value: &str) -> Result<()> {
         || !value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
     {
         bail!("source commit must be a lowercase 40-character Git commit");
+    }
+    Ok(())
+}
+
+fn require_sha256(value: &str, label: &str) -> Result<()> {
+    if value.len() != 64
+        || !value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        || value.bytes().all(|byte| byte == b'0')
+    {
+        bail!("{label} must be a nonzero lowercase SHA-256");
     }
     Ok(())
 }

@@ -3,10 +3,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_dna_bench::{
-    build_benchmark_data_index, publish_benchmark_data_index,
+    admit_governed_derived_data_catalog, build_benchmark_data_index, publish_benchmark_data_index,
     publish_governed_data_catalog_registry, publish_governed_data_catalog_snapshots,
     BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest, BenchmarkEligibility,
     GovernedDataCatalogRegistryPublicationRequest, GovernedDataCatalogSnapshotRequest,
+    GovernedDerivedDataCatalogAdmissionRequest,
 };
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -207,6 +208,79 @@ fn appends_changed_derived_snapshot_and_retains_unchanged_history() -> Result<()
         .expect("third derived registry record");
     assert_eq!(third_record, second_record);
     assert_eq!(fs::read(first_snapshot_path)?, first_bytes);
+    Ok(())
+}
+
+#[test]
+fn admits_derived_flat_authority_only_after_preserving_its_predecessor() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let candidate = fixture.data_root.join("evidence/candidates/ancient-horse-bam.json");
+    fs::create_dir_all(candidate.parent().expect("candidate parent"))?;
+    write_derived_catalog(&fixture, &candidate, None)?;
+    mutate_catalog(&candidate, |catalog| {
+        catalog["id"] = "ancient-horse-bam".into();
+    })?;
+    let flat_path = fixture.data_root.join("catalog/ancient-horse-bam.json");
+    let predecessor_sha256 = bijux_dna_infra::hash_file_sha256(&flat_path)?;
+    let request = GovernedDerivedDataCatalogAdmissionRequest {
+        data_root: fixture.data_root.clone(),
+        candidate_path: candidate,
+        previous_registry_path: fixture.catalog_registry_path.clone(),
+        expected_previous_catalog_sha256: Some(predecessor_sha256.clone()),
+    };
+
+    let admission = admit_governed_derived_data_catalog(&request)?;
+    let replay = admit_governed_derived_data_catalog(&request)?;
+
+    assert_eq!(admission, replay);
+    assert_eq!(admission.replaced_catalog_sha256.as_deref(), Some(predecessor_sha256.as_str()));
+    assert_eq!(admission.catalog_sha256, bijux_dna_infra::hash_file_sha256(&flat_path)?);
+    let admitted: Value = serde_json::from_slice(&fs::read(&flat_path)?)?;
+    assert_eq!(admitted["schema_version"], "bijux.data_catalog.derived.v1");
+
+    let publication =
+        publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+            data_root: fixture.data_root.clone(),
+            source_commit: "8".repeat(40),
+            preserved_at_utc: "2026-08-17T00:00:00Z".to_string(),
+            previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+        })?;
+    let record = publication
+        .registry
+        .records
+        .iter()
+        .find(|record| record.id == "ancient-horse-bam")
+        .expect("replaced catalog registry record");
+    assert_eq!(record.snapshots.len(), 2);
+    assert_eq!(record.snapshots[0].catalog_schema_version, "bijux.data_catalog.v2");
+    assert_eq!(record.snapshots[1].catalog_schema_version, "bijux.data_catalog.derived.v1");
+    Ok(())
+}
+
+#[test]
+fn rejects_derived_replacement_when_registry_does_not_preserve_observed_bytes() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let candidate = fixture.data_root.join("evidence/candidates/ancient-horse-bam.json");
+    fs::create_dir_all(candidate.parent().expect("candidate parent"))?;
+    write_derived_catalog(&fixture, &candidate, None)?;
+    mutate_catalog(&candidate, |catalog| {
+        catalog["id"] = "ancient-horse-bam".into();
+    })?;
+    let flat_path = fixture.data_root.join("catalog/ancient-horse-bam.json");
+    mutate_catalog(&flat_path, |catalog| {
+        catalog["purpose"] = "drifted unpreserved authority".into();
+    })?;
+    let unpreserved_sha256 = bijux_dna_infra::hash_file_sha256(&flat_path)?;
+
+    let error = admit_governed_derived_data_catalog(&GovernedDerivedDataCatalogAdmissionRequest {
+        data_root: fixture.data_root.clone(),
+        candidate_path: candidate,
+        previous_registry_path: fixture.catalog_registry_path.clone(),
+        expected_previous_catalog_sha256: Some(unpreserved_sha256),
+    })
+    .expect_err("unpreserved predecessor must be rejected");
+
+    assert!(format!("{error:#}").contains("does not preserve the expected flat catalog bytes"));
     Ok(())
 }
 

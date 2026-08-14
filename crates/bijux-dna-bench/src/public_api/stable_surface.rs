@@ -301,16 +301,17 @@ pub use crate::artifacts::{
 pub use crate::repo::{
     admit_alignment_truth_set, admit_bam_benchmark_cohort, admit_bam_benchmark_corpus,
     admit_bam_genotyping_corpus, admit_benchmark_reference, admit_fastq_benchmark_corpus,
-    bench_bam_local_stage_matrix_path, bench_bundles_dir, bench_contracts_dir, bench_corpora_dir,
-    bench_data_dir, bench_data_fitness_path, bench_fastq_local_stage_matrix_path,
-    bench_local_config_dir, bench_portfolio_path, bench_reports_dir, bench_stage_campaigns_path,
-    bench_stage_interfaces_path, bench_suites_dir, build_benchmark_data_index,
-    derive_benchmark_data_snapshots, publish_benchmark_data_index,
+    admit_governed_derived_data_catalog, bench_bam_local_stage_matrix_path, bench_bundles_dir,
+    bench_contracts_dir, bench_corpora_dir, bench_data_dir, bench_data_fitness_path,
+    bench_fastq_local_stage_matrix_path, bench_local_config_dir, bench_portfolio_path,
+    bench_reports_dir, bench_stage_campaigns_path, bench_stage_interfaces_path, bench_suites_dir,
+    build_benchmark_data_index, derive_benchmark_data_snapshots, publish_benchmark_data_index,
     publish_governed_data_catalog_registry, publish_governed_data_catalog_snapshots,
     render_benchmark_data_index_markdown, AdmittedBamGenotypingCorpus,
     BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
     GovernedDataCatalogRegistryPublication, GovernedDataCatalogRegistryPublicationRequest,
     GovernedDataCatalogSnapshotPublication, GovernedDataCatalogSnapshotRequest,
+    GovernedDerivedDataCatalogAdmission, GovernedDerivedDataCatalogAdmissionRequest,
 };
 pub use crate::workflow::{
     acquire_fastq_corpus, admit_benchmark_campaign_evidence, admit_benchmark_cases,

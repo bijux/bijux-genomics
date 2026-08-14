@@ -362,7 +362,7 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
         ),
         native(
             "benchmark-data-catalog-snapshots",
-            "Preserve flat catalog authorities and publish a complete source-addressed registry.",
+            "Admit derived catalog authorities and publish complete source-addressed registries.",
             NativeOpsCommandKey::ToolingBenchmarkDataCatalogSnapshots,
         ),
         native(
