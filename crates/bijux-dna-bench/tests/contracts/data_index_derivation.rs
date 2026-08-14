@@ -285,6 +285,30 @@ fn rejects_derived_replacement_when_registry_does_not_preserve_observed_bytes() 
 }
 
 #[test]
+fn rejects_idempotent_derived_replay_with_fabricated_predecessor() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let candidate = fixture.data_root.join("evidence/candidates/ancient-horse-derived-bam.json");
+    fs::create_dir_all(candidate.parent().expect("candidate parent"))?;
+    write_derived_catalog(&fixture, &candidate, None)?;
+    let initial = GovernedDerivedDataCatalogAdmissionRequest {
+        data_root: fixture.data_root.clone(),
+        candidate_path: candidate.clone(),
+        previous_registry_path: fixture.catalog_registry_path.clone(),
+        expected_previous_catalog_sha256: None,
+    };
+    admit_governed_derived_data_catalog(&initial)?;
+
+    let error = admit_governed_derived_data_catalog(&GovernedDerivedDataCatalogAdmissionRequest {
+        expected_previous_catalog_sha256: Some("a".repeat(64)),
+        ..initial
+    })
+    .expect_err("idempotent replay must not invent predecessor lineage");
+
+    assert!(format!("{error:#}").contains("does not preserve the flat catalog identity"));
+    Ok(())
+}
+
+#[test]
 fn rejects_derived_catalog_with_drifted_source_snapshot() -> Result<()> {
     let fixture = data_index_fixture()?;
     let derived_path = fixture.data_root.join("catalog/ancient-horse-derived-bam.json");

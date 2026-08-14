@@ -92,6 +92,14 @@ pub fn admit_governed_derived_data_catalog(
                 bijux_dna_infra::read_to_end_bounded(&catalog_path, MAX_CATALOG_BYTES)?;
             let existing_sha256 = bijux_dna_infra::hash_bytes_sha256(&existing_bytes);
             if existing_bytes == canonical_bytes {
+                if let Some(expected) = &request.expected_previous_catalog_sha256 {
+                    verify_registry_preserves_flat_authority(
+                        &registry,
+                        &catalog.id,
+                        expected,
+                        &data_root,
+                    )?;
+                }
                 return Ok(GovernedDerivedDataCatalogAdmission {
                     catalog_path,
                     catalog_sha256,
