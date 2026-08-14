@@ -1,6 +1,7 @@
 //! Owner: bijux-dna-bench
 //! Reviewer-facing evidence books derived from admitted publication receipts.
 
+use std::collections::BTreeMap;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Component, Path, PathBuf};
@@ -10,7 +11,8 @@ use bijux_dna_bench_model::{
     validate_benchmark_evidence_book, validate_benchmark_publication_receipt,
     validate_benchmark_run_index, BenchmarkEvidenceBook, BenchmarkEvidenceBookEntry,
     BenchmarkEvidenceBookStatus, BenchmarkEvidenceReference, BenchmarkPublicationReceipt,
-    BenchmarkRunIndex, BenchmarkRunIndexFileReference, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
+    BenchmarkRunIndex, BenchmarkRunIndexEntry, BenchmarkRunIndexFileReference,
+    BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
 };
 
 const RUN_INDEX_PATH: &str = "benchmarks/runs/RUN_INDEX.json";
@@ -23,15 +25,18 @@ pub struct BenchmarkEvidenceBookRequest {
     pub study_root: PathBuf,
     pub book_id: String,
     pub generated_at_utc: String,
+    pub publication_receipt_uris: Vec<String>,
     pub limitations: Vec<String>,
     pub output: PathBuf,
 }
 
-/// Build an evidence book from every current publication selected by the checked-in run index.
+/// Build an evidence book from current selections plus explicitly admitted candidate receipts.
 ///
-/// Every selected publication receipt is reloaded from its immutable STUDY URI and checked against
-/// its indexed size, digest, source commit, catalog, run, publication, and attempt identities.
-/// Existing byte-identical books are accepted; a different book cannot replace one in place.
+/// Explicit receipts let a newly admitted publication enter an immutable candidate evidence book
+/// before its final checked-in pointer exists, removing the pointer/book dependency cycle. Every
+/// receipt is reloaded from its immutable STUDY URI and checked against the permanent protocol.
+/// Explicit candidates take precedence for their run; existing byte-identical books are accepted,
+/// while a different book cannot replace one in place.
 ///
 /// # Errors
 /// Returns an error when source or STUDY authorities are invalid, a selected receipt is stale or
@@ -59,36 +64,43 @@ pub fn publish_checked_in_benchmark_evidence_book(
         read_json(&repository_root.join(RUN_INDEX_PATH), "benchmark run index")?;
     validate_benchmark_run_index(&index)
         .context("validate benchmark run index for evidence book")?;
+    let explicit_receipts = load_explicit_receipts(&study_root, &request.publication_receipt_uris)?;
+    for run_id in explicit_receipts.keys() {
+        if !index.runs.iter().any(|run| &run.run_id == run_id) {
+            bail!("explicit benchmark publication receipt is absent from the permanent run index");
+        }
+    }
 
     let mut entries = Vec::new();
     let mut missing_run_ids = Vec::new();
     for run in &index.runs {
+        if let Some((reference, receipt)) = explicit_receipts.get(&run.run_id) {
+            validate_receipt_for_run(&repository_root, receipt, run)?;
+            entries.push(evidence_book_entry(run, receipt, reference));
+            continue;
+        }
         let Some(selected) = &run.selected_publication else {
             missing_run_ids.push(run.run_id.clone());
             continue;
         };
-        if selected.repository_commit != repository_commit {
-            bail!("benchmark run index selects a publication from a different source commit");
-        }
         let receipt = load_indexed_receipt(&study_root, &selected.publication_receipt)?;
         if receipt.publication_id != selected.publication_id
             || receipt.run.run_id != run.run_id
-            || receipt.repository_commit != repository_commit
-            || receipt.catalog_sha256 != catalog_sha256
+            || receipt.repository_commit != selected.repository_commit
             || receipt.selected_attempts != selected.selected_attempts
         {
             bail!("benchmark publication receipt differs from its selected run-index identity");
         }
-        entries.push(BenchmarkEvidenceBookEntry {
-            publication_id: receipt.publication_id,
-            run: receipt.run,
-            citation_key: run.citation_key.clone(),
-            publication_receipt: BenchmarkEvidenceReference {
+        validate_receipt_for_run(&repository_root, &receipt, run)?;
+        entries.push(evidence_book_entry(
+            run,
+            &receipt,
+            &BenchmarkEvidenceReference {
                 uri: selected.publication_receipt.uri.clone(),
                 sha256: selected.publication_receipt.sha256.clone(),
                 size_bytes: selected.publication_receipt.size_bytes,
             },
-        });
+        ));
     }
     let status = if missing_run_ids.is_empty() {
         BenchmarkEvidenceBookStatus::Complete
@@ -109,6 +121,60 @@ pub fn publish_checked_in_benchmark_evidence_book(
     validate_benchmark_evidence_book(&book).context("validate benchmark evidence book")?;
     publish_identity(&output, &book)?;
     Ok(book)
+}
+
+fn load_explicit_receipts(
+    study_root: &Path,
+    uris: &[String],
+) -> Result<BTreeMap<String, (BenchmarkEvidenceReference, BenchmarkPublicationReceipt)>> {
+    let mut receipts = BTreeMap::new();
+    for uri in uris {
+        let reference = study_reference(study_root, uri, "explicit benchmark publication receipt")?;
+        let indexed_reference = BenchmarkRunIndexFileReference {
+            uri: reference.uri.clone(),
+            sha256: reference.sha256.clone(),
+            size_bytes: reference.size_bytes,
+        };
+        let receipt = load_indexed_receipt(study_root, &indexed_reference)?;
+        if receipts.insert(receipt.run.run_id.clone(), (reference, receipt)).is_some() {
+            bail!("more than one explicit benchmark publication receipt targets the same run");
+        }
+    }
+    Ok(receipts)
+}
+
+fn validate_receipt_for_run(
+    repository_root: &Path,
+    receipt: &BenchmarkPublicationReceipt,
+    run: &BenchmarkRunIndexEntry,
+) -> Result<()> {
+    if receipt.run.run_id != run.run_id
+        || receipt.run.stage_id != run.stage_id
+        || receipt.run_definition_sha256 != run.protocol_sha256
+    {
+        bail!("benchmark publication receipt differs from its permanent run protocol");
+    }
+    let source_catalog = bijux_dna_containers::api::catalog_identity_at_commit(
+        repository_root,
+        &receipt.repository_commit,
+    )?;
+    if receipt.catalog_sha256 != source_catalog {
+        bail!("benchmark publication receipt catalog differs from its source commit");
+    }
+    Ok(())
+}
+
+fn evidence_book_entry(
+    run: &BenchmarkRunIndexEntry,
+    receipt: &BenchmarkPublicationReceipt,
+    reference: &BenchmarkEvidenceReference,
+) -> BenchmarkEvidenceBookEntry {
+    BenchmarkEvidenceBookEntry {
+        publication_id: receipt.publication_id.clone(),
+        run: receipt.run.clone(),
+        citation_key: run.citation_key.clone(),
+        publication_receipt: reference.clone(),
+    }
 }
 
 pub(super) fn governed_output_path(study_root: &Path, output: &Path) -> Result<PathBuf> {

@@ -206,6 +206,7 @@ pub(crate) fn handle_meta_commands(
                                     study_root: args.study_root.clone(),
                                     book_id: args.book_id.clone(),
                                     generated_at_utc: args.generated_at_utc.clone(),
+                                    publication_receipt_uris: args.publication_receipt_uri.clone(),
                                     limitations: args.limitation.clone(),
                                     output: args.output.clone(),
                                 },

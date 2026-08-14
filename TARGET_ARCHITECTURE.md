@@ -120,6 +120,9 @@ attempt blocks only its own execution unit.
 - Publication receipts derive their selected attempts from the source-locked plan's passing
   lineage tips and retain the immutable plan, case matrix, and admitted attempt evidence; callers
   cannot nominate unrelated attempts or omit supersession authority.
+- Evidence books may admit an explicit immutable receipt before the final tracked run pointer
+  exists; the receipt must match the permanent protocol, and the checked-in pointer is selected
+  only after book, replay, and citation evidence close without a circular dependency.
 - A citation is the stable paper-facing record for a run protocol and its selected publication.
 - Scheduler job IDs are provenance, not run identities.
 - Current reports require exact source, catalog, stage/interface, data/truth, artifact, campaign,

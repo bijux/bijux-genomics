@@ -98,6 +98,9 @@ pub struct BenchCycleBookArgs {
     pub book_id: String,
     #[arg(long)]
     pub generated_at_utc: String,
+    /// Immutable candidate publication receipts to include before final pointer selection.
+    #[arg(long)]
+    pub publication_receipt_uri: Vec<String>,
     #[arg(long, required = true)]
     pub limitation: Vec<String>,
     #[arg(long)]

@@ -453,6 +453,8 @@ mod tests {
             "benchmark-book-2026-08-10",
             "--generated-at-utc",
             "2026-08-10T00:00:00Z",
+            "--publication-receipt-uri",
+            "study://results/benchmarks/publications/source/run-2043/publication-receipt.json",
             "--limitation",
             "Only independently admitted current publications are included.",
             "--output",
@@ -464,7 +466,13 @@ mod tests {
         let BenchCommand::Cycle { command } = root.command else {
             panic!("expected benchmark cycle command");
         };
-        assert!(matches!(command, BenchCycleCommand::Book(_)));
+        let BenchCycleCommand::Book(args) = command else {
+            panic!("expected benchmark evidence-book command");
+        };
+        assert_eq!(
+            args.publication_receipt_uri,
+            ["study://results/benchmarks/publications/source/run-2043/publication-receipt.json"]
+        );
         Ok(())
     }
 
