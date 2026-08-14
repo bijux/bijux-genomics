@@ -20,11 +20,12 @@ use bijux_dna_bench::{
     BenchmarkAdmittedCaseObservationV2, BenchmarkAttemptTransition,
     BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest,
     BenchmarkCaseRepetitionObservationV1, BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
-    BenchmarkLifecycleStatus, BenchmarkReportImage, BenchmarkReportInputLock,
-    BenchmarkReportSlurmJob, BenchmarkScientificValue, BenchmarkStageCampaignRegistry,
+    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkReportImage,
+    BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkSchedulerAccounting,
+    BenchmarkSchedulerTerminalState, BenchmarkScientificValue, BenchmarkStageCampaignRegistry,
     BenchmarkStageInterfaceCatalog, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
 };
-use bijux_dna_bench_model::append_attempt_transition;
+use bijux_dna_bench_model::{append_attempt_transition, BenchmarkEvidenceReference};
 use bijux_dna_core::{
     contract::ToolConstraints,
     ids::{StageId, ToolId},
@@ -165,6 +166,81 @@ fn case_scoped_plan_loading_requires_the_exact_matrix_authority() -> Result<()> 
     assert_eq!(
         load_checked_in_benchmark_campaign_plan(repository.path(), &plan_path, Some(&matrix_path),)?,
         plan
+    );
+
+    let evidence_root = output.path().join("selective-retry-evidence");
+    bijux_dna_bench::ensure_stage_campaign_attempts(&evidence_root, &plan)?;
+    let passed = &plan.cycle.attempts[0];
+    let job =
+        BenchmarkJobReference { scheduler: "slurm".to_string(), job_id: "3461201".to_string() };
+    bijux_dna_runtime::record_attempt_ready(
+        &evidence_root,
+        &passed.identity,
+        "2026-08-14T12:01:00Z",
+    )?;
+    bijux_dna_runtime::record_attempt_submission(
+        &evidence_root,
+        &passed.identity,
+        "2026-08-14T12:02:00Z",
+        vec![job.clone()],
+    )?;
+    bijux_dna_runtime::record_attempt_accounting(
+        &evidence_root,
+        &passed.identity,
+        "2026-08-14T12:03:00Z",
+        BenchmarkSchedulerAccounting {
+            scheduler: "slurm".to_string(),
+            job_id: job.job_id,
+            state: BenchmarkSchedulerTerminalState::Completed,
+            raw_state: "COMPLETED".to_string(),
+            exit_code: 0,
+            signal: 0,
+            elapsed_seconds: 60,
+            total_cpu_seconds: 40,
+            max_rss_bytes: Some(1024),
+            node_list: "cn001".to_string(),
+            reason: None,
+        },
+    )?;
+    bijux_dna_runtime::record_attempt_acceptance(
+        &evidence_root,
+        &passed.identity,
+        "2026-08-14T12:04:00Z",
+        vec![BenchmarkEvidenceReference {
+            uri: "study://results/benchmarks/selective-retry/acceptance.json".to_string(),
+            sha256: "7".repeat(64),
+            size_bytes: 42,
+        }],
+    )?;
+    for attempt in &plan.cycle.attempts[1..] {
+        bijux_dna_runtime::record_attempt_superseded(
+            &evidence_root,
+            &attempt.identity,
+            "2026-08-14T12:01:00Z",
+            "execution authority requires a selective retry",
+        )?;
+    }
+    let terminal = plan
+        .cycle
+        .attempts
+        .iter()
+        .map(|attempt| bijux_dna_runtime::load_attempt_lifecycle(&evidence_root, &attempt.identity))
+        .collect::<Result<Vec<_>>>()?;
+    let retry = plan_benchmark_case_retry_attempts(
+        &matrix,
+        terminal,
+        "attempt-002",
+        "2026-08-14T12:05:00Z",
+    )?;
+    let retry_path = output.path().join("selective-retry-plan.json");
+    fs::write(&retry_path, serde_json::to_vec_pretty(&retry)?)?;
+    assert_eq!(
+        load_checked_in_benchmark_campaign_plan(
+            repository.path(),
+            &retry_path,
+            Some(&matrix_path),
+        )?,
+        retry
     );
 
     let stale_matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
