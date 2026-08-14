@@ -58,6 +58,43 @@ fn thin_cli_delegates_stage_result_admission_to_benchmark_owners() {
 }
 
 #[test]
+fn thin_cli_delegates_dossier_index_publication_to_benchmark_owner() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/publication/dossier_index.rs");
+    let cli = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+    for service in [
+        "build_benchmark_dossier_stage_entry",
+        "publish_benchmark_dossier_index",
+        "benchmark_dossier_path",
+    ] {
+        assert!(cli.contains(service), "thin CLI must invoke {service}");
+    }
+    for forbidden in [
+        "fs::read",
+        "fs::write",
+        "serde_json::from_",
+        "validate_benchmark_dossier_index",
+        "fn render_dossier_index_markdown",
+        "fn classify_run_root_source",
+    ] {
+        assert!(!cli.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+
+    let owner_source = repo_root.join("crates/bijux-dna-bench/src/workflow/dossier_index.rs");
+    let owner = fs::read_to_string(&owner_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", owner_source.display()));
+    for service in [
+        "pub fn build_benchmark_dossier_stage_entry",
+        "pub fn publish_benchmark_dossier_index",
+        "pub fn render_benchmark_dossier_index_markdown",
+    ] {
+        assert!(owner.contains(service), "benchmark owner is missing {service}");
+    }
+}
+
+#[test]
 fn thin_cli_uses_model_owned_local_runtime_metrics_contract() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source =

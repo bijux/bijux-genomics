@@ -26,6 +26,7 @@ mod corpus_acquisition;
 mod corpus_materialization;
 mod cross_campaign;
 mod data_portfolio_audit;
+mod dossier_index;
 mod evaluation;
 mod evidence_book;
 mod fastq_campaign;
@@ -195,6 +196,11 @@ pub use data_portfolio_audit::{
     derive_benchmark_data_portfolio_audit, publish_benchmark_data_portfolio_audit,
     render_benchmark_data_portfolio_audit_markdown, BenchmarkDataPortfolioAuditPublicationRequest,
     BenchmarkDataPortfolioAuditRequest,
+};
+pub use dossier_index::{
+    benchmark_dossier_path, build_benchmark_dossier_stage_entry, publish_benchmark_dossier_index,
+    render_benchmark_dossier_index_markdown, BenchmarkDossierIndexPublicationRequest,
+    BenchmarkDossierStagePublicationRequest,
 };
 pub use evaluation::{compare, gate};
 pub use evidence_book::{publish_checked_in_benchmark_evidence_book, BenchmarkEvidenceBookRequest};
