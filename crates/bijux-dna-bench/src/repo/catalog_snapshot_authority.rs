@@ -455,6 +455,17 @@ fn verify_registry_preserves_flat_authority(
     flat_sha256: &str,
     data_root: &Path,
 ) -> Result<()> {
+    let flat_path = canonical_file(
+        &data_root.join("catalog").join(format!("{catalog_id}.json")),
+        data_root,
+        "flat catalog authority",
+    )?;
+    let flat_bytes = bijux_dna_infra::read_to_end_bounded(&flat_path, MAX_CATALOG_BYTES)?;
+    if bijux_dna_infra::hash_bytes_sha256(&flat_bytes) != flat_sha256 {
+        bail!("observed flat catalog digest differs from compare-and-replace authority");
+    }
+    let flat_value: serde_json::Value = serde_json::from_slice(&flat_bytes)
+        .with_context(|| format!("parse flat catalog authority {}", flat_path.display()))?;
     let record = registry
         .records
         .iter()
@@ -468,7 +479,9 @@ fn verify_registry_preserves_flat_authority(
         let path = canonical_file(&data_root.join(relative), data_root, "prior snapshot")?;
         let bytes = bijux_dna_infra::read_to_end_bounded(&path, MAX_CATALOG_BYTES)?;
         if snapshot.catalog_schema_version == GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1
-            && bijux_dna_infra::hash_bytes_sha256(&bytes) == flat_sha256
+            && (bijux_dna_infra::hash_bytes_sha256(&bytes) == flat_sha256
+                || serde_json::from_slice::<serde_json::Value>(&bytes)
+                    .is_ok_and(|snapshot_value| snapshot_value == flat_value))
         {
             return Ok(());
         }

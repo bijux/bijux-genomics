@@ -285,6 +285,55 @@ fn rejects_derived_replacement_when_registry_does_not_preserve_observed_bytes() 
 }
 
 #[test]
+fn accepts_semantically_preserved_derived_predecessor_after_json_reserialization() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let initial_candidate =
+        fixture.data_root.join("evidence/candidates/ancient-horse-derived-initial.json");
+    fs::create_dir_all(initial_candidate.parent().expect("candidate parent"))?;
+    write_derived_catalog(&fixture, &initial_candidate, None)?;
+    mutate_catalog(&initial_candidate, |catalog| {
+        catalog["id"] = "ancient-horse-bam".into();
+    })?;
+    let flat_path = fixture.data_root.join("catalog/ancient-horse-bam.json");
+    let predecessor_sha256 = bijux_dna_infra::hash_file_sha256(&flat_path)?;
+    admit_governed_derived_data_catalog(&GovernedDerivedDataCatalogAdmissionRequest {
+        data_root: fixture.data_root.clone(),
+        candidate_path: initial_candidate,
+        previous_registry_path: fixture.catalog_registry_path.clone(),
+        expected_previous_catalog_sha256: Some(predecessor_sha256),
+    })?;
+    let publication =
+        publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+            data_root: fixture.data_root.clone(),
+            source_commit: "8".repeat(40),
+            preserved_at_utc: "2026-08-17T00:00:00Z".to_string(),
+            previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+        })?;
+
+    let flat_value: Value = serde_json::from_slice(&fs::read(&flat_path)?)?;
+    fs::write(&flat_path, serde_json::to_vec(&flat_value)?)?;
+    let reserialized_sha256 = bijux_dna_infra::hash_file_sha256(&flat_path)?;
+    let successor_candidate =
+        fixture.data_root.join("evidence/candidates/ancient-horse-derived-successor.json");
+    write_derived_catalog(&fixture, &successor_candidate, None)?;
+    mutate_catalog(&successor_candidate, |catalog| {
+        catalog["id"] = "ancient-horse-bam".into();
+        catalog["purpose"] = "successor with an indexed alignment closure".into();
+    })?;
+
+    let admission =
+        admit_governed_derived_data_catalog(&GovernedDerivedDataCatalogAdmissionRequest {
+            data_root: fixture.data_root.clone(),
+            candidate_path: successor_candidate,
+            previous_registry_path: publication.candidate_registry_path,
+            expected_previous_catalog_sha256: Some(reserialized_sha256.clone()),
+        })?;
+
+    assert_eq!(admission.replaced_catalog_sha256.as_deref(), Some(reserialized_sha256.as_str()));
+    Ok(())
+}
+
+#[test]
 fn rejects_idempotent_derived_replay_with_fabricated_predecessor() -> Result<()> {
     let fixture = data_index_fixture()?;
     let candidate = fixture.data_root.join("evidence/candidates/ancient-horse-derived-bam.json");
