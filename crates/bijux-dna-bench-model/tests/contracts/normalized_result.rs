@@ -392,7 +392,7 @@ fn checked_normalized_bam_schemas_match_model_authority() -> anyhow::Result<()> 
 }
 
 #[test]
-fn normalized_bam_measurements_and_probes_fail_closed() -> anyhow::Result<()> {
+fn normalized_bam_alignment_and_coverage_metrics_fail_closed() -> anyhow::Result<()> {
     let align_metrics = serde_json::json!({
         "schema_version": "bijux.benchmark.bam.align.metrics.v1",
         "total_reads": 10,
@@ -427,7 +427,11 @@ fn normalized_bam_measurements_and_probes_fail_closed() -> anyhow::Result<()> {
     unsupported_metrics["schema_version"] =
         serde_json::json!("bijux.benchmark.bam.coverage.metrics.v2");
     assert!(serde_json::from_value::<BenchmarkBamCoverageMetrics>(unsupported_metrics).is_err());
+    Ok(())
+}
 
+#[test]
+fn normalized_bam_damage_technical_measurements_and_probes_fail_closed() -> anyhow::Result<()> {
     let damage_result = serde_json::json!({
         "schema_version": "bijux.benchmark.bam.damage.bundle.v1",
         "stage_id": "bam.damage",

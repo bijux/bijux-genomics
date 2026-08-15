@@ -34,25 +34,27 @@ fn ready_report() -> StageToolBenchmarkReadyReport {
 }
 
 #[test]
-fn stage_tool_readiness_contract_accepts_closed_ready_report() {
-    validate_stage_tool_benchmark_ready_report(&ready_report()).expect("valid readiness report");
+fn stage_tool_readiness_contract_accepts_closed_ready_report() -> anyhow::Result<()> {
+    validate_stage_tool_benchmark_ready_report(&ready_report())?;
+    Ok(())
 }
 
 #[test]
-fn stage_tool_readiness_contract_rejects_gate_drift() {
+fn stage_tool_readiness_contract_rejects_gate_drift() -> anyhow::Result<()> {
     let mut report = ready_report();
     report.passes_gate = false;
-    let error = validate_stage_tool_benchmark_ready_report(&report)
-        .expect_err("gate state must close against failing pairs");
+    let result = validate_stage_tool_benchmark_ready_report(&report);
+    let error = result.err().ok_or_else(|| anyhow::anyhow!("gate drift was admitted"))?;
     assert!(error.to_string().contains("gate state disagrees"));
+    Ok(())
 }
 
 #[test]
-fn stage_tool_readiness_schema_pins_the_protocol_version() {
-    let schema = serde_json::to_value(bijux_dna_bench_model::stage_tool_benchmark_ready_schema())
-        .expect("serialize schema");
+fn stage_tool_readiness_schema_pins_the_protocol_version() -> anyhow::Result<()> {
+    let schema = serde_json::to_value(bijux_dna_bench_model::stage_tool_benchmark_ready_schema())?;
     assert_eq!(
         schema.pointer("/properties/schema_version/const"),
         Some(&serde_json::json!(STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1))
     );
+    Ok(())
 }

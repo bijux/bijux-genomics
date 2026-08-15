@@ -19,13 +19,12 @@ fn row() -> VcfStageMatrixRow {
 }
 
 #[test]
-fn local_vcf_stage_matrix_contracts_admit_closed_reports() {
+fn local_vcf_stage_matrix_contracts_admit_closed_reports() -> anyhow::Result<()> {
     let rows = vec![row()];
     validate_local_vcf_stage_matrix_config(&LocalVcfStageMatrixConfig {
         schema_version: LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1.to_string(),
         rows: rows.clone(),
-    })
-    .expect("valid config");
+    })?;
     validate_local_vcf_stage_matrix_report(&LocalVcfStageMatrixReport {
         schema_version: LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1.to_string(),
         config_path: "configs/bench/local/vcf-stage-matrix.toml".to_string(),
@@ -34,8 +33,7 @@ fn local_vcf_stage_matrix_contracts_admit_closed_reports() {
         supported_stage_count: 1,
         planned_stage_count: 0,
         rows: rows.clone(),
-    })
-    .expect("valid render report");
+    })?;
     validate_vcf_stage_matrix_validation_report(&ValidateVcfStageMatrixReport {
         schema_version: VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1.to_string(),
         domain: "vcf".to_string(),
@@ -46,17 +44,19 @@ fn local_vcf_stage_matrix_contracts_admit_closed_reports() {
         required_tool_count: 2,
         registry_tool_count: 2,
         rows,
-    })
-    .expect("valid validation report");
+    })?;
+    Ok(())
 }
 
 #[test]
-fn local_vcf_stage_matrix_contract_rejects_duplicate_stage_identity() {
+fn local_vcf_stage_matrix_contract_rejects_duplicate_stage_identity() -> anyhow::Result<()> {
     let duplicate = row();
-    let error = validate_local_vcf_stage_matrix_config(&LocalVcfStageMatrixConfig {
+    let result = validate_local_vcf_stage_matrix_config(&LocalVcfStageMatrixConfig {
         schema_version: LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1.to_string(),
         rows: vec![duplicate.clone(), duplicate],
-    })
-    .expect_err("duplicate stage must fail");
+    });
+    let error =
+        result.err().ok_or_else(|| anyhow::anyhow!("duplicate stage identity was admitted"))?;
     assert!(error.to_string().contains("repeats a stage identity"));
+    Ok(())
 }

@@ -294,8 +294,8 @@ mod tests {
     }
 
     #[test]
-    fn accepts_complete_derived_scientific_lineage() {
-        validate_governed_derived_data_catalog(&catalog()).expect("valid derived catalog");
+    fn accepts_complete_derived_scientific_lineage() -> Result<(), crate::diagnostics::BenchError> {
+        validate_governed_derived_data_catalog(&catalog())
     }
 
     #[test]

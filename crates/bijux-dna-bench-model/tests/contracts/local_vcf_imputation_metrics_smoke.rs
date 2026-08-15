@@ -53,10 +53,10 @@ fn report() -> BenchmarkLocalVcfImputationMetricsSmokeReport {
 }
 
 #[test]
-fn imputation_metrics_smoke_contract_accepts_complete_and_explicit_missing_evidence() {
+fn imputation_metrics_smoke_contract_accepts_complete_and_explicit_missing_evidence(
+) -> anyhow::Result<()> {
     let complete = report();
-    validate_benchmark_local_vcf_imputation_metrics_smoke_report(&complete)
-        .expect("complete imputation evidence should validate");
+    validate_benchmark_local_vcf_imputation_metrics_smoke_report(&complete)?;
 
     let mut missing = complete;
     missing.concordance = None;
@@ -75,8 +75,8 @@ fn imputation_metrics_smoke_contract_accepts_complete_and_explicit_missing_evide
             .map(str::to_string)
             .collect();
     missing.status = "explicit_missing_quality_fields".to_string();
-    validate_benchmark_local_vcf_imputation_metrics_smoke_report(&missing)
-        .expect("explicit missing-quality evidence should validate");
+    validate_benchmark_local_vcf_imputation_metrics_smoke_report(&missing)?;
+    Ok(())
 }
 
 #[test]

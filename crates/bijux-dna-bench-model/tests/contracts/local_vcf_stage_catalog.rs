@@ -20,13 +20,12 @@ fn row() -> VcfStageCatalogRow {
 }
 
 #[test]
-fn local_vcf_stage_catalog_contracts_admit_closed_reports() {
+fn local_vcf_stage_catalog_contracts_admit_closed_reports() -> anyhow::Result<()> {
     let rows = vec![row()];
     validate_local_vcf_stage_catalog_config(&LocalVcfStageCatalogConfig {
         schema_version: LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1.to_string(),
         rows: rows.clone(),
-    })
-    .expect("valid config");
+    })?;
     validate_local_vcf_stage_catalog_report(&LocalVcfStageCatalogReport {
         schema_version: LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1.to_string(),
         config_path: "configs/bench/local/vcf-stage-catalog.toml".to_string(),
@@ -34,18 +33,20 @@ fn local_vcf_stage_catalog_contracts_admit_closed_reports() {
         supported_stage_count: 1,
         planned_stage_count: 0,
         rows,
-    })
-    .expect("valid report");
+    })?;
+    Ok(())
 }
 
 #[test]
-fn local_vcf_stage_catalog_contract_rejects_unknown_support_status() {
+fn local_vcf_stage_catalog_contract_rejects_unknown_support_status() -> anyhow::Result<()> {
     let mut invalid = row();
     invalid.support_status = "redistributable".to_string();
-    let error = validate_local_vcf_stage_catalog_config(&LocalVcfStageCatalogConfig {
+    let result = validate_local_vcf_stage_catalog_config(&LocalVcfStageCatalogConfig {
         schema_version: LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1.to_string(),
         rows: vec![invalid],
-    })
-    .expect_err("unknown support status must fail");
+    });
+    let error =
+        result.err().ok_or_else(|| anyhow::anyhow!("unknown support status was admitted"))?;
     assert!(error.to_string().contains("unsupported support_status"));
+    Ok(())
 }
