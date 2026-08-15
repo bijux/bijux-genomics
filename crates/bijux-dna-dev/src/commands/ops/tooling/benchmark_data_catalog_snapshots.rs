@@ -39,13 +39,13 @@ fn publish_snapshots(
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
     require_publish_options(options)?;
-    let data_root = resolve_path(workspace, required(&options, "--data-root")?);
-    let source_commit = required(&options, "--source-commit")?.to_string();
+    let data_root = resolve_path(workspace, required(options, "--data-root")?);
+    let source_commit = required(options, "--source-commit")?.to_string();
     let snapshots = bijux_dna_bench::publish_governed_data_catalog_snapshots(
         &bijux_dna_bench::GovernedDataCatalogSnapshotRequest {
             data_root: data_root.clone(),
             source_commit: source_commit.clone(),
-            preserved_at_utc: required(&options, "--preserved-at-utc")?.to_string(),
+            preserved_at_utc: required(options, "--preserved-at-utc")?.to_string(),
             previous_registry_path: options
                 .get("--previous-registry")
                 .map(|path| resolve_path(workspace, path)),
