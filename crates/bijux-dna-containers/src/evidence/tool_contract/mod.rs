@@ -36,11 +36,11 @@ pub use model::{
 };
 pub(crate) use preparation::prepare_apptainer_tool_contract_for_publication;
 pub use preparation::{derive_apptainer_tool_contract, prepare_apptainer_tool_contract};
-pub(crate) use recipe_identity::repository_commit_is_ancestor;
 pub use recipe_identity::{
     apptainer_recipe_identity_at_commit, clean_repository_head_commit,
     container_build_evidence_matches_recipe, repository_changed_paths_since,
-    repository_commit_is_ancestor_of_head, repository_head_commit, ApptainerRecipeIdentity,
+    repository_commit_is_ancestor, repository_commit_is_ancestor_of_head, repository_head_commit,
+    ApptainerRecipeIdentity,
 };
 pub use registry_projection::{
     derive_container_registry_projection_report, ContainerRegistryProjectionReport,

@@ -14,6 +14,7 @@ use bijux_dna_bench_model::{
     BenchmarkRunIndexFileReference, BenchmarkRunIndexPublication, BenchmarkRunPublicationPointer,
     BENCHMARK_RUN_CASE_INDEX_SCHEMA_V1, BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1,
 };
+use chrono::DateTime;
 
 use super::evidence_book::{
     load_indexed_receipt, read_json, study_reference, verify_study_reference,
@@ -39,10 +40,12 @@ pub struct BenchmarkPublicationSelectionRequest {
 
 /// Select one publication and regenerate all paper-facing run and report-index surfaces.
 ///
-/// Existing selections are immutable: an identical selection is idempotent and a different
-/// selection is rejected. Case definitions are parsed and matched to selected attempts before the
-/// case index is written. The case index is written before the pointer so interruption cannot
-/// expose a selected publication without its case closure.
+/// Immutable publication artifacts remain untouched. The checked-in current pointer may advance
+/// to a later publication whose source descends from the selected source; equal or older
+/// publication timestamps and divergent source histories are rejected. Case definitions are
+/// parsed and matched to selected attempts before the case index is written. The case index is
+/// written before the pointer so interruption cannot expose a selected publication without its
+/// case closure.
 ///
 /// # Errors
 /// Returns an error when any receipt, book, citation, replay, protocol, case, or existing selection
@@ -154,8 +157,14 @@ pub fn select_checked_in_benchmark_publication(
         repository_root.join("benchmarks/runs").join(format!("{}-{}", run.run_id, run.slug));
     let case_index_path = run_directory.join("case-index.json");
     let pointer_path = run_directory.join("current-publication.json");
-    validate_existing_case_index(&case_index_path, &case_index)?;
-    validate_existing_pointer(&pointer_path, &pointer)?;
+    let supersedes_selection = validate_existing_pointer(
+        &repository_root,
+        &study_root,
+        &pointer_path,
+        &pointer,
+        &publication,
+    )?;
+    validate_existing_case_index(&case_index_path, &case_index, supersedes_selection)?;
     write_json(&case_index_path, &case_index, "benchmark run case index")?;
     write_json(&pointer_path, &pointer, "benchmark current publication pointer")?;
     let index = publish_checked_in_benchmark_run_index(
@@ -256,21 +265,74 @@ fn derive_case_index(
     Ok(index)
 }
 
-fn validate_existing_case_index(path: &Path, expected: &BenchmarkRunCaseIndex) -> Result<()> {
+fn validate_existing_case_index(
+    path: &Path,
+    expected: &BenchmarkRunCaseIndex,
+    supersedes_selection: bool,
+) -> Result<()> {
     let current: BenchmarkRunCaseIndex = read_json(path, "existing benchmark case index")?;
     validate_benchmark_run_case_index(&current)?;
-    if !current.cases.is_empty() && current != *expected {
+    if current.run != expected.run || current.protocol_sha256 != expected.protocol_sha256 {
+        bail!("existing benchmark case index differs from the permanent protocol");
+    }
+    if !current.cases.is_empty() && current != *expected && !supersedes_selection {
         bail!("refusing to replace a different populated benchmark case index");
     }
     Ok(())
 }
 
-fn validate_existing_pointer(path: &Path, expected: &BenchmarkRunPublicationPointer) -> Result<()> {
+fn validate_existing_pointer(
+    repository_root: &Path,
+    study_root: &Path,
+    path: &Path,
+    expected: &BenchmarkRunPublicationPointer,
+    incoming_receipt: &BenchmarkPublicationReceipt,
+) -> Result<bool> {
     let current: BenchmarkRunPublicationPointer =
         read_json(path, "existing benchmark publication pointer")?;
     validate_benchmark_run_publication_pointer(&current)?;
-    if current.selected_publication.is_some() && current != *expected {
-        bail!("refusing to replace a different benchmark publication selection");
+    if current.run != expected.run || current.protocol_sha256 != expected.protocol_sha256 {
+        bail!("existing benchmark publication pointer differs from the permanent protocol");
+    }
+    if current == *expected {
+        return Ok(false);
+    }
+    let Some(previous) = current.selected_publication else {
+        return Ok(true);
+    };
+    let next = expected
+        .selected_publication
+        .as_ref()
+        .context("incoming benchmark publication pointer omits its selection")?;
+    if !bijux_dna_containers::api::repository_commit_is_ancestor(
+        repository_root,
+        &previous.repository_commit,
+        &next.repository_commit,
+    )? {
+        bail!("benchmark publication selection source does not descend from the current source");
+    }
+    let previous_receipt = load_indexed_receipt(study_root, &previous.publication_receipt)?;
+    if previous_receipt.publication_id != previous.publication_id
+        || previous_receipt.run != current.run
+        || previous_receipt.repository_commit != previous.repository_commit
+        || previous_receipt.selected_attempts != previous.selected_attempts
+    {
+        bail!("current benchmark publication pointer differs from its immutable receipt");
+    }
+    validate_publication_order(
+        &previous_receipt.published_at_utc,
+        &incoming_receipt.published_at_utc,
+    )?;
+    Ok(true)
+}
+
+fn validate_publication_order(previous: &str, incoming: &str) -> Result<()> {
+    let previous = DateTime::parse_from_rfc3339(previous)
+        .context("parse current benchmark publication timestamp")?;
+    let incoming = DateTime::parse_from_rfc3339(incoming)
+        .context("parse incoming benchmark publication timestamp")?;
+    if incoming <= previous {
+        bail!("benchmark publication selection does not advance publication time");
     }
     Ok(())
 }
@@ -308,64 +370,37 @@ fn read_study_json<T: serde::de::DeserializeOwned>(
 mod tests {
     use super::*;
 
-    fn reference(uri: &str, value: char) -> BenchmarkRunIndexFileReference {
-        BenchmarkRunIndexFileReference {
-            uri: uri.to_string(),
-            sha256: value.to_string().repeat(64),
-            size_bytes: 1,
-        }
+    #[test]
+    fn publication_selection_order_rejects_stale_and_equal_receipts() -> Result<()> {
+        validate_publication_order("2026-08-14T13:53:00Z", "2026-08-14T13:54:00Z")?;
+        assert!(validate_publication_order("2026-08-14T13:53:00Z", "2026-08-14T13:53:00Z").is_err());
+        assert!(validate_publication_order("2026-08-14T13:53:00Z", "2026-08-14T13:52:59Z").is_err());
+        Ok(())
     }
 
     #[test]
-    fn populated_publication_selection_is_immutable_and_idempotent() -> Result<()> {
+    fn populated_case_index_requires_an_authorized_selection_supersession() -> Result<()> {
         let repository_root = Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .and_then(Path::parent)
             .context("benchmark selection crate is outside the repository")?;
         let source = repository_root
             .join("benchmarks/runs/run-2042-fastq-profile-read-lengths/current-publication.json");
-        let mut expected: BenchmarkRunPublicationPointer =
+        let pointer: BenchmarkRunPublicationPointer =
             read_json(&source, "benchmark selection pointer fixture")?;
-        let run = expected.run.clone();
-        expected.selected_publication = Some(BenchmarkRunIndexPublication {
-            publication_id: "run-2042-publication".to_string(),
-            selected_attempts: vec![bijux_dna_bench_model::BenchmarkAttemptIdentity {
-                campaign_id: "production-run-2042".to_string(),
-                run,
-                case_id: Some("run-2042--seqfu--cohort".to_string()),
-                attempt_id: "attempt-003".to_string(),
-                tool_id: "seqfu".to_string(),
-            }],
-            repository_commit: "a".repeat(40),
-            report: reference("study://report.json", '1'),
-            evidence_book: reference("study://book.json", '2'),
-            publication_receipt: reference("study://publication.json", '3'),
-            citation_record: reference("study://citation.json", '4'),
-            replay_receipt: reference("study://replay.json", '5'),
-            limitations: vec!["The selection is a contract fixture only.".to_string()],
-            access_statement: "Fixture access remains governed by source terms.".to_string(),
-        });
+        let case_source = repository_root
+            .join("benchmarks/runs/run-2042-fastq-profile-read-lengths/case-index.json");
+        let expected: BenchmarkRunCaseIndex =
+            read_json(&case_source, "benchmark case-index fixture")?;
         let temporary = tempfile::tempdir()?;
-        let path = temporary.path().join("current-publication.json");
-        let mut protocol_only: BenchmarkRunPublicationPointer =
-            read_json(&source, "benchmark selection pointer fixture")?;
-        protocol_only.selected_publication = None;
-        protocol_only.limitations = vec![
-            "This protocol-only fixture intentionally has no selected publication.".to_string(),
-        ];
-        validate_benchmark_run_publication_pointer(&protocol_only)?;
-        write_json(&path, &protocol_only, "benchmark selection pointer fixture")?;
-        validate_existing_pointer(&path, &expected)?;
-
-        write_json(&path, &expected, "benchmark selection pointer fixture")?;
-        validate_existing_pointer(&path, &expected)?;
+        let path = temporary.path().join("case-index.json");
+        write_json(&path, &expected, "benchmark case-index fixture")?;
+        validate_existing_case_index(&path, &expected, false)?;
         let mut conflicting = expected.clone();
-        conflicting
-            .selected_publication
-            .as_mut()
-            .context("selection fixture lost publication")?
-            .publication_id = "run-2042-other-publication".to_string();
-        assert!(validate_existing_pointer(&path, &conflicting).is_err());
+        conflicting.limitations = vec!["A newer admitted publication has different cases.".into()];
+        assert!(validate_existing_case_index(&path, &conflicting, false).is_err());
+        validate_existing_case_index(&path, &conflicting, true)?;
+        assert_eq!(pointer.run, expected.run);
         Ok(())
     }
 }
