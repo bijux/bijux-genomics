@@ -6,7 +6,7 @@
     "ready_count": 0,
     "blocked_count": 71,
     "corpus_count": 14,
-    "admitted_comparative_corpus_count": 1,
+    "admitted_comparative_corpus_count": 2,
     "qualification_campaign_count": 7,
     "comparative_campaign_count": 6
   },
@@ -165,10 +165,10 @@
     },
     {
       "id": "ancient-dna-bam-diversity",
-      "status": "source_defined",
+      "status": "admitted",
       "evidence_scope": "comparative",
       "class": "production_real",
-      "sample_count": 0,
+      "sample_count": 10,
       "truth_strategy": "observational_alignment_diversity_with_separate_orthogonal_controls",
       "roles": [
         "bam_diversity"
@@ -176,11 +176,11 @@
     },
     {
       "id": "ancient-dna-damage-controls",
-      "status": "missing",
+      "status": "source_defined",
       "evidence_scope": "comparative",
       "class": "production_real",
       "sample_count": 0,
-      "truth_strategy": "independently_authenticated_positive_negative_and_blank_controls",
+      "truth_strategy": "paired_udg_treatment_labels_with_extraction_blank_and_observational_modern_negatives",
       "roles": [
         "ancient_damage_truth"
       ]
@@ -242,7 +242,7 @@
         "damageprofiler",
         "pmdtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2006",
       "campaign_tier": null,
@@ -250,9 +250,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
-        "available comparative sample count 0 is below 10",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=source_defined/comparative)",
         "no execution campaign is defined"
       ]
     },
@@ -263,7 +261,7 @@
       "retained_tools": [
         "mapdamage2"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2007",
       "campaign_tier": null,
@@ -271,9 +269,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -284,7 +280,7 @@
       "retained_tools": [
         "preseq"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2008",
       "campaign_tier": null,
@@ -292,8 +288,6 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -306,7 +300,7 @@
         "schmutzi",
         "verifybamid2"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2009",
       "campaign_tier": null,
@@ -314,10 +308,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -330,15 +322,13 @@
         "mosdepth",
         "samtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": "run-2002",
       "reserved_run_id": "run-2002",
       "campaign_tier": "qualification",
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
       ]
     },
@@ -354,16 +344,14 @@
         "pmdtools",
         "pydamage"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": "run-2010",
       "reserved_run_id": "run-2010",
       "campaign_tier": "qualification",
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
-        "available comparative sample count 0 is below 10",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=source_defined/comparative)",
         "active campaign is qualification-only"
       ]
     },
@@ -375,15 +363,13 @@
         "picard",
         "samtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": "run-2011",
       "reserved_run_id": "run-2011",
       "campaign_tier": "qualification",
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
       ]
     },
@@ -394,15 +380,13 @@
       "retained_tools": [
         "samtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": "run-2003",
       "reserved_run_id": "run-2003",
       "campaign_tier": "qualification",
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
       ]
     },
@@ -415,7 +399,7 @@
         "bedtools",
         "samtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2012",
       "campaign_tier": null,
@@ -423,9 +407,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -436,17 +418,13 @@
       "retained_tools": [
         "picard"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": "run-2013",
       "reserved_run_id": "run-2013",
       "campaign_tier": "comparative",
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
-        "campaign corpora are not comparative-ready: [\"ancient-dna-bam-diversity\"]",
-        "campaign real sample count 0 is below 10",
         "no admitted comparative execution evidence"
       ]
     },
@@ -457,17 +435,15 @@
       "retained_tools": [
         "bcftools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": "run-2001",
       "reserved_run_id": "run-2001",
       "campaign_tier": "qualification",
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
       ]
     },
@@ -478,7 +454,7 @@
       "retained_tools": [
         "yleaf"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2014",
       "campaign_tier": null,
@@ -486,10 +462,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -500,17 +474,13 @@
       "retained_tools": [
         "picard"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": "run-2015",
       "reserved_run_id": "run-2015",
       "campaign_tier": "comparative",
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
-        "campaign corpora are not comparative-ready: [\"ancient-dna-bam-diversity\"]",
-        "campaign real sample count 0 is below 10",
         "no admitted comparative execution evidence"
       ]
     },
@@ -522,7 +492,7 @@
         "angsd",
         "king"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2016",
       "campaign_tier": null,
@@ -530,10 +500,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -545,7 +513,7 @@
         "picard",
         "samtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2017",
       "campaign_tier": null,
@@ -553,9 +521,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -567,15 +533,13 @@
         "picard",
         "samtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": "run-2004",
       "reserved_run_id": "run-2004",
       "campaign_tier": "qualification",
       "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
       ]
     },
@@ -587,7 +551,7 @@
         "bamtools",
         "samtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2018",
       "campaign_tier": null,
@@ -595,9 +559,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -609,7 +571,7 @@
         "picard",
         "samtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2019",
       "campaign_tier": null,
@@ -617,9 +579,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -630,7 +590,7 @@
       "retained_tools": [
         "bamutil"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2020",
       "campaign_tier": null,
@@ -638,9 +598,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -652,7 +610,7 @@
         "multiqc",
         "samtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2021",
       "campaign_tier": null,
@@ -660,8 +618,6 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -672,7 +628,7 @@
       "retained_tools": [
         "gatk"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2022",
       "campaign_tier": null,
@@ -680,9 +636,7 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -695,7 +649,7 @@
         "rxy",
         "yleaf"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2023",
       "campaign_tier": null,
@@ -703,10 +657,8 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -719,7 +671,7 @@
         "bedtools",
         "samtools"
       ],
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 10,
       "campaign_run_id": null,
       "reserved_run_id": "run-2024",
       "campaign_tier": null,
@@ -727,8 +679,6 @@
       "readiness": "blocked",
       "blockers": [
         "no closed stage interface is defined",
-        "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
     },
@@ -1321,7 +1271,7 @@
       "blockers": [
         "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1342,7 +1292,7 @@
       "blockers": [
         "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1364,7 +1314,7 @@
       "blockers": [
         "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1386,7 +1336,7 @@
       "blockers": [
         "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=source_defined/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
