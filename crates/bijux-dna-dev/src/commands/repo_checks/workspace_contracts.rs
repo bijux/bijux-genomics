@@ -555,6 +555,7 @@ pub(crate) fn check_no_user_path_literals(
     ];
     let mut offenders = Vec::new();
     offenders.extend(embedded_workspace_mirror_roots(&workspace.root)?);
+    offenders.extend(product_user_path_literal_offenders(&workspace.root)?);
     for root in [workspace.path("crates"), workspace.path("makes")] {
         for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
             if !entry.file_type().is_file() {
@@ -601,6 +602,36 @@ fn embedded_workspace_mirror_roots(root: &std::path::Path) -> Result<Vec<String>
         }
     }
     offenders.sort();
+    Ok(offenders)
+}
+
+fn product_user_path_literal_offenders(root: &std::path::Path) -> Result<Vec<String>> {
+    let user_path_re = regex(r"/Users/|[A-Za-z]:\\\\Users\\\\")?;
+    let text_extensions =
+        ["json", "md", "mk", "py", "rs", "sha256", "sh", "toml", "tsv", "txt", "yaml", "yml"];
+    let mut offenders = Vec::new();
+    for product_root in ["benchmarks", "containers"] {
+        let path = root.join(product_root);
+        for entry in
+            WalkDir::new(&path).follow_links(false).into_iter().filter_map(std::result::Result::ok)
+        {
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            let extension = entry.path().extension().and_then(std::ffi::OsStr::to_str);
+            if !extension.is_some_and(|value| text_extensions.contains(&value)) {
+                continue;
+            }
+            let raw = read(entry.path())?;
+            if user_path_re.is_match(&raw) {
+                offenders.push(
+                    entry.path().strip_prefix(root).unwrap_or(entry.path()).display().to_string(),
+                );
+            }
+        }
+    }
+    offenders.sort();
+    offenders.dedup();
     Ok(offenders)
 }
 
@@ -1008,7 +1039,7 @@ fn source_like_scan_path(rel: &str) -> bool {
 mod embedded_workspace_mirror_tests {
     use super::{
         embedded_workspace_mirror_roots, governed_product_root_offenders,
-        CONTAINER_ROOT_DIRECTORIES, CONTAINER_ROOT_FILES,
+        product_user_path_literal_offenders, CONTAINER_ROOT_DIRECTORIES, CONTAINER_ROOT_FILES,
     };
 
     fn materialize_allowed_root(
@@ -1045,6 +1076,24 @@ mod embedded_workspace_mirror_tests {
                 "Users/: embedded absolute-workspace mirror root",
                 "home/: embedded absolute-workspace mirror root",
             ]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn product_manifests_reject_host_specific_absolute_paths() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        std::fs::create_dir_all(root.path().join("benchmarks/tests/fixtures"))?;
+        std::fs::create_dir(root.path().join("containers"))?;
+        std::fs::write(
+            root.path().join("benchmarks/tests/fixtures/CHECKSUMS.sha256"),
+            b"0000000000000000000000000000000000000000000000000000000000000000  /Users/example/repository/input.fastq\n",
+        )?;
+        std::fs::write(root.path().join("containers/catalog.toml"), b"path = \"portable\"\n")?;
+
+        assert_eq!(
+            product_user_path_literal_offenders(root.path())?,
+            vec!["benchmarks/tests/fixtures/CHECKSUMS.sha256"]
         );
         Ok(())
     }
