@@ -4148,13 +4148,16 @@ allowed_row_statuses = ["present"]
 domain = "vcf"
 stage_id = "vcf.admixture"
 readiness_kind = "smoke"
-decision_mode = "single_tool_acceptance"
-active_tool_count = 1
-benchmark_ready_tool_count = 1
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
 default_tool_id = "plink2"
-benchmark_ready_tool_ids = ["plink2"]
+benchmark_ready_tool_ids = [
+    "plink",
+    "plink2",
+]
 report_section_ids = ["population_structure"]
-recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.35
@@ -4175,7 +4178,7 @@ metric_ids = [
     "sample_count",
     "selected_k",
 ]
-minimum_present_result_rows = 1
+minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -4850,11 +4853,12 @@ domain = "vcf"
 stage_id = "vcf.ibd"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 2
-benchmark_ready_tool_count = 2
+active_tool_count = 3
+benchmark_ready_tool_count = 3
 default_tool_id = "germline"
 benchmark_ready_tool_ids = [
     "germline",
+    "ibdhap",
     "ibdseq",
 ]
 report_section_ids = ["identity_by_descent"]
@@ -4875,7 +4879,7 @@ source_report_paths = [
 ]
 signal = "scientific_comparable_metrics"
 metric_ids = ["pair_count"]
-minimum_present_result_rows = 2
+minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -4928,12 +4932,14 @@ domain = "vcf"
 stage_id = "vcf.imputation_metrics"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 2
-benchmark_ready_tool_count = 2
+active_tool_count = 4
+benchmark_ready_tool_count = 4
 default_tool_id = "beagle"
 benchmark_ready_tool_ids = [
     "beagle",
+    "glimpse",
     "impute5",
+    "minimac4",
 ]
 report_section_ids = ["imputation"]
 recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
@@ -4959,7 +4965,7 @@ metric_ids = [
     "masked_truth_sites",
     "mean_info_score",
 ]
-minimum_present_result_rows = 2
+minimum_present_result_rows = 4
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -5018,12 +5024,14 @@ domain = "vcf"
 stage_id = "vcf.impute"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 2
-benchmark_ready_tool_count = 2
+active_tool_count = 4
+benchmark_ready_tool_count = 4
 default_tool_id = "beagle"
 benchmark_ready_tool_ids = [
     "beagle",
+    "glimpse",
     "impute5",
+    "minimac4",
 ]
 report_section_ids = ["imputation"]
 recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
@@ -5050,7 +5058,7 @@ metric_ids = [
     "missing_before",
     "unresolved_count",
 ]
-minimum_present_result_rows = 2
+minimum_present_result_rows = 4
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -5193,13 +5201,18 @@ allowed_row_statuses = ["present"]
 domain = "vcf"
 stage_id = "vcf.phasing"
 readiness_kind = "smoke"
-decision_mode = "single_tool_acceptance"
-active_tool_count = 1
-benchmark_ready_tool_count = 1
+decision_mode = "multi_tool_ranking"
+active_tool_count = 4
+benchmark_ready_tool_count = 4
 default_tool_id = "shapeit5"
-benchmark_ready_tool_ids = ["shapeit5"]
+benchmark_ready_tool_ids = [
+    "beagle",
+    "eagle",
+    "shapeit",
+    "shapeit5",
+]
 report_section_ids = ["phasing"]
-recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.35
@@ -5219,7 +5232,7 @@ metric_ids = [
     "phase_block_n50",
     "switch_error_proxy",
 ]
-minimum_present_result_rows = 1
+minimum_present_result_rows = 4
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -5274,13 +5287,17 @@ allowed_row_statuses = ["present"]
 domain = "vcf"
 stage_id = "vcf.population_structure"
 readiness_kind = "smoke"
-decision_mode = "single_tool_acceptance"
-active_tool_count = 1
-benchmark_ready_tool_count = 1
+decision_mode = "multi_tool_ranking"
+active_tool_count = 3
+benchmark_ready_tool_count = 3
 default_tool_id = "plink2"
-benchmark_ready_tool_ids = ["plink2"]
+benchmark_ready_tool_ids = [
+    "eigensoft",
+    "plink",
+    "plink2",
+]
 report_section_ids = ["population_structure"]
-recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.35
@@ -5300,7 +5317,7 @@ metric_ids = [
     "pair_count",
     "sample_count",
 ]
-minimum_present_result_rows = 1
+minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
