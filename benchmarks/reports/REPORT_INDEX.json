@@ -23,7 +23,7 @@
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "894bc8c56e909c137525ea7183b6fdd5121d72fc52fe2e4fcd1298f2e067dc34",
+      "json_sha256": "053b79584b35d641f5a3184bf6af8729b16ed320f3c7475f99df1c77fa037e4a",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
       "markdown_sha256": "86beacbb4486d89389a535b20889a59f6b617aa1d7cc823e5abd5cf7ca90a87e"
     },

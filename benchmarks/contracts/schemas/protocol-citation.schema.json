@@ -1,7 +1,62 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkProtocolCitation",
+  "type": "object",
+  "properties": {
+    "citation_key": {
+      "type": "string"
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "protocol_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "protocol_title": {
+      "type": "string"
+    },
+    "protocol_version": {
+      "type": "string"
+    },
+    "run": {
+      "$ref": "#/$defs/BenchmarkRunIdentity"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.protocol_citation.v1"
+    },
+    "selected_publication": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BenchmarkRunIndexPublication"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "$ref": "#/$defs/BenchmarkProtocolCitationStatus"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "citation_key",
+    "run",
+    "protocol_title",
+    "protocol_version",
+    "protocol_sha256",
+    "status",
+    "limitations"
+  ],
   "$defs": {
     "BenchmarkAttemptIdentity": {
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
         "attempt_id": {
           "type": "string"
@@ -22,23 +77,23 @@
           "type": "string"
         }
       },
+      "additionalProperties": false,
       "required": [
         "campaign_id",
         "run",
         "attempt_id",
         "tool_id"
-      ],
-      "type": "object"
+      ]
     },
     "BenchmarkProtocolCitationStatus": {
+      "type": "string",
       "enum": [
         "protocol_only",
         "published"
-      ],
-      "type": "string"
+      ]
     },
     "BenchmarkRunIdentity": {
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
         "domain": {
           "type": "string"
@@ -50,39 +105,39 @@
           "type": "string"
         }
       },
+      "additionalProperties": false,
       "required": [
         "run_id",
         "domain",
         "stage_id"
-      ],
-      "type": "object"
+      ]
     },
     "BenchmarkRunIndexFileReference": {
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
         "sha256": {
-          "pattern": "^[0-9a-f]{64}$",
-          "type": "string"
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         },
         "size_bytes": {
+          "type": "integer",
           "format": "uint64",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         },
         "uri": {
-          "pattern": "^(repo|study)://[^/].+$",
-          "type": "string"
+          "type": "string",
+          "pattern": "^(repo|study)://[^/].+$"
         }
       },
+      "additionalProperties": false,
       "required": [
         "uri",
         "sha256",
         "size_bytes"
-      ],
-      "type": "object"
+      ]
     },
     "BenchmarkRunIndexPublication": {
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
         "access_statement": {
           "type": "string"
@@ -94,10 +149,10 @@
           "$ref": "#/$defs/BenchmarkRunIndexFileReference"
         },
         "limitations": {
+          "type": "array",
           "items": {
             "type": "string"
-          },
-          "type": "array"
+          }
         },
         "publication_id": {
           "type": "string"
@@ -112,16 +167,17 @@
           "$ref": "#/$defs/BenchmarkRunIndexFileReference"
         },
         "repository_commit": {
-          "pattern": "^[0-9a-f]{40}$",
-          "type": "string"
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
         },
         "selected_attempts": {
+          "type": "array",
           "items": {
             "$ref": "#/$defs/BenchmarkAttemptIdentity"
-          },
-          "type": "array"
+          }
         }
       },
+      "additionalProperties": false,
       "required": [
         "publication_id",
         "selected_attempts",
@@ -133,63 +189,7 @@
         "replay_receipt",
         "limitations",
         "access_statement"
-      ],
-      "type": "object"
-    }
-  },
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "properties": {
-    "citation_key": {
-      "type": "string"
-    },
-    "limitations": {
-      "items": {
-        "type": "string"
-      },
-      "type": "array"
-    },
-    "protocol_sha256": {
-      "pattern": "^[0-9a-f]{64}$",
-      "type": "string"
-    },
-    "protocol_title": {
-      "type": "string"
-    },
-    "protocol_version": {
-      "type": "string"
-    },
-    "run": {
-      "$ref": "#/$defs/BenchmarkRunIdentity"
-    },
-    "schema_version": {
-      "const": "bijux.benchmark.protocol_citation.v1",
-      "type": "string"
-    },
-    "selected_publication": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/BenchmarkRunIndexPublication"
-        },
-        {
-          "type": "null"
-        }
       ]
-    },
-    "status": {
-      "$ref": "#/$defs/BenchmarkProtocolCitationStatus"
     }
-  },
-  "required": [
-    "schema_version",
-    "citation_key",
-    "run",
-    "protocol_title",
-    "protocol_version",
-    "protocol_sha256",
-    "status",
-    "limitations"
-  ],
-  "title": "BenchmarkProtocolCitation",
-  "type": "object"
+  }
 }

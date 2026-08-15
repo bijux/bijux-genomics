@@ -1,7 +1,43 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkRunCaseIndex",
+  "type": "object",
+  "properties": {
+    "cases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkRunCaseIndexEntry"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "protocol_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "run": {
+      "$ref": "#/$defs/BenchmarkRunIdentity"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.run_case_index.v1"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run",
+    "protocol_sha256",
+    "cases",
+    "limitations"
+  ],
   "$defs": {
     "BenchmarkRunCaseIndexEntry": {
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
         "case_id": {
           "type": "string"
@@ -13,15 +49,15 @@
           "type": "string"
         }
       },
+      "additionalProperties": false,
       "required": [
         "case_id",
         "tool_id",
         "definition"
-      ],
-      "type": "object"
+      ]
     },
     "BenchmarkRunIdentity": {
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
         "domain": {
           "type": "string"
@@ -33,72 +69,36 @@
           "type": "string"
         }
       },
+      "additionalProperties": false,
       "required": [
         "run_id",
         "domain",
         "stage_id"
-      ],
-      "type": "object"
+      ]
     },
     "BenchmarkRunIndexFileReference": {
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
         "sha256": {
-          "pattern": "^[0-9a-f]{64}$",
-          "type": "string"
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         },
         "size_bytes": {
+          "type": "integer",
           "format": "uint64",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         },
         "uri": {
-          "pattern": "^(repo|study)://[^/].+$",
-          "type": "string"
+          "type": "string",
+          "pattern": "^(repo|study)://[^/].+$"
         }
       },
+      "additionalProperties": false,
       "required": [
         "uri",
         "sha256",
         "size_bytes"
-      ],
-      "type": "object"
+      ]
     }
-  },
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "properties": {
-    "cases": {
-      "items": {
-        "$ref": "#/$defs/BenchmarkRunCaseIndexEntry"
-      },
-      "type": "array"
-    },
-    "limitations": {
-      "items": {
-        "type": "string"
-      },
-      "type": "array"
-    },
-    "protocol_sha256": {
-      "pattern": "^[0-9a-f]{64}$",
-      "type": "string"
-    },
-    "run": {
-      "$ref": "#/$defs/BenchmarkRunIdentity"
-    },
-    "schema_version": {
-      "const": "bijux.benchmark.run_case_index.v1",
-      "type": "string"
-    }
-  },
-  "required": [
-    "schema_version",
-    "run",
-    "protocol_sha256",
-    "cases",
-    "limitations"
-  ],
-  "title": "BenchmarkRunCaseIndex",
-  "type": "object"
+  }
 }

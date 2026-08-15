@@ -229,7 +229,7 @@
       "stage_id": "bam.damage",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "79575a3ea25b13f65dbbc6c4fcd4ab428c4900e3f34948242ac399f95e01486f",
+      "protocol_sha256": "a1e7fb5dbfcb500646f6c137fb2a6197d3c295822bcedd82a794d04a939d837e",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2010",
       "tool_ids": [
         "addeam",

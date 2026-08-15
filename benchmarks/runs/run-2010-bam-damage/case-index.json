@@ -5,7 +5,7 @@
     "domain": "bam",
     "stage_id": "bam.damage"
   },
-  "protocol_sha256": "79575a3ea25b13f65dbbc6c4fcd4ab428c4900e3f34948242ac399f95e01486f",
+  "protocol_sha256": "a1e7fb5dbfcb500646f6c137fb2a6197d3c295822bcedd82a794d04a939d837e",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
