@@ -124,6 +124,7 @@ fn bench_tree_matches_architecture_contract() {
             "fastq_validate_reads/",
             "full_benchmark_report.rs",
             "hardening_campaign.rs",
+            "local_corpus_skip.rs",
             "mod.rs",
             "options.rs",
             "parameter_authority.rs",
@@ -163,6 +164,17 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow/corpus_materialization")),
         entries(["catalog.rs", "fastq.rs", "mod.rs"]),
         "corpus materialization must separate transfer orchestration, FASTQ validation, and catalog projection"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_damage")),
+        entries(["commands.rs", "mod.rs", "report/"]),
+        "BAM damage qualification must separate execution from reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_damage/report")),
+        entries(["mod.rs", "science.rs"]),
+        "BAM damage reporting must keep stage science separate"
     );
 
     assert_eq!(
