@@ -411,6 +411,7 @@ fn vcf_planner_renders_executable_imputation_stage_templates_for_supported_backe
                 assert!(joined.contains("panels/hsapiens_grch38_1kg_3202_chr22/panel.msav"));
                 assert!(!joined.contains("panels/1000g_phase3/panel.msav"));
                 assert!(joined.contains("--threads"));
+                assert!(joined.contains("--map"));
                 assert!(joined.contains("--output"));
             }
             other => panic!("unexpected imputation backend {other}"),

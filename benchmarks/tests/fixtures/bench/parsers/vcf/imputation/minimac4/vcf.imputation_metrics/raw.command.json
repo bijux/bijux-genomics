@@ -4,6 +4,6 @@
   "argv": [
     "sh",
     "-lc",
-    "minimac4 --threads 8 --output 'imputed.vcf.gz' 'panel.msav' 'target.vcf.gz' > 'logs.txt' 2>&1"
+    "minimac4 --threads 8 --map 'map.txt' --output 'imputed.vcf.gz' 'panel.msav' 'target.vcf.gz' > 'logs.txt' 2>&1"
   ]
 }

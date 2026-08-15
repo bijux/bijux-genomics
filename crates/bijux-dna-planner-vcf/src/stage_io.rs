@@ -523,7 +523,7 @@ fn imputation_stage_command(
         "minimac4" => {
             let panel_msav = input_path(inputs, "reference_panel_msav")?.display().to_string();
             format!(
-                "minimac4 --threads 8 --output '{imputed_vcf}' '{panel_msav}' '{input_vcf}' > '{log_path}' 2>&1 && bcftools index -t '{imputed_vcf}'"
+                "minimac4 --threads 8 --map '{genetic_map}' --output '{imputed_vcf}' '{panel_msav}' '{input_vcf}' > '{log_path}' 2>&1 && bcftools index -t '{imputed_vcf}'"
             )
         }
         _ => return Ok(None),

@@ -223,7 +223,7 @@ fn required_command_tokens(tool_id: &str) -> Result<&'static [&'static str]> {
             "--output",
         ]),
         "impute5" => Ok(&["impute5", "--g", "--h", "--m", "--r", "--o"]),
-        "minimac4" => Ok(&["minimac4", "--threads", "--output", "panel.msav"]),
+        "minimac4" => Ok(&["minimac4", "--threads", "--map", "--output", "panel.msav"]),
         _ => bail!("unsupported imputation tool `{tool_id}`"),
     }
 }

@@ -174,7 +174,11 @@ fn bcftools_transform(stage_id: &str, output_name: &str, arguments: &[&str]) -> 
 
 fn imputation_metrics(tool_id: &str) -> ToolBindingV1 {
     let inputs = if tool_id == "minimac4" {
-        vec![input("imputed_vcf", VCF), input("reference_panel_msav", VCF_PANEL)]
+        vec![
+            input("imputed_vcf", VCF),
+            input("reference_panel_msav", VCF_PANEL),
+            input("genetic_map", TABLE),
+        ]
     } else {
         vec![
             input("imputed_vcf", VCF),
@@ -206,6 +210,8 @@ fn imputation_metrics(tool_id: &str) -> ToolBindingV1 {
             "${executable}",
             "--threads",
             "8",
+            "--map",
+            "${input:genetic_map}",
             "--output",
             "${output:metrics_source}",
             "${input:reference_panel_msav}",
@@ -225,7 +231,11 @@ fn imputation_metrics(tool_id: &str) -> ToolBindingV1 {
 
 fn imputation(tool_id: &str) -> ToolBindingV1 {
     let inputs = if tool_id == "minimac4" {
-        vec![input("phased_vcf", VCF), input("reference_panel_msav", VCF_PANEL)]
+        vec![
+            input("phased_vcf", VCF),
+            input("reference_panel_msav", VCF_PANEL),
+            input("genetic_map", TABLE),
+        ]
     } else {
         vec![
             input("phased_vcf", VCF),
@@ -257,6 +267,8 @@ fn imputation(tool_id: &str) -> ToolBindingV1 {
             "${executable}",
             "--threads",
             "8",
+            "--map",
+            "${input:genetic_map}",
             "--output",
             "${output:imputed_vcf}",
             "${input:reference_panel_msav}",

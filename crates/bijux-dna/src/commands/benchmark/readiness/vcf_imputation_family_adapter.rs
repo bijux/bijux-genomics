@@ -287,13 +287,12 @@ fn build_imputation_family_row(
                 anyhow!("VCF minimac4 adapter row `{stage_id}` is missing panel.msav")
             })?,
         ));
-    } else {
-        required_inputs.push(artifact(
-            "genetic_map_tsv",
-            "reference",
-            &materialized_inputs.genetic_map_path,
-        ));
     }
+    required_inputs.push(artifact(
+        "genetic_map_tsv",
+        "reference",
+        &materialized_inputs.genetic_map_path,
+    ));
     validate_required_inputs(repo_root, stage_id, &required_inputs)?;
     let stage_output_ids = vcf_domain_stage_expected_output_ids(stage)
         .ok_or_else(|| anyhow!("VCF {stage_id} is missing expected output ids"))?
@@ -482,7 +481,8 @@ fn build_stage_contract(
                 "sh".to_string(),
                 "-lc".to_string(),
                 format!(
-                    "minimac4 --threads 8 --output '{}' '{}' '{}' > '{}' 2>&1",
+                    "minimac4 --threads 8 --map '{}' --output '{}' '{}' '{}' > '{}' 2>&1",
+                    materialized_inputs.genetic_map_path,
                     imputed_vcf_path,
                     materialized_inputs
                         .panel_msav_path
@@ -815,7 +815,7 @@ fn validate_command_steps(
             }
         }
         "minimac4" => {
-            for needle in ["minimac4", "--threads", "--output", "panel.msav"] {
+            for needle in ["minimac4", "--threads", "--map", "--output", "panel.msav"] {
                 if !joined.contains(needle) {
                     return Err(anyhow!(
                         "VCF minimac4 adapter row `{stage_id}` is missing `{needle}`: {joined}"

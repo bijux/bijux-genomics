@@ -186,7 +186,7 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
         .expect("minimac4 argv");
     let minimac_joined =
         minimac_argv.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>().join(" ");
-    for needle in ["minimac4", "--threads", "--output", "panel.msav"] {
+    for needle in ["minimac4", "--threads", "--map", "--output", "panel.msav"] {
         assert!(minimac_joined.contains(needle), "minimac4 row must retain {needle}");
     }
 }

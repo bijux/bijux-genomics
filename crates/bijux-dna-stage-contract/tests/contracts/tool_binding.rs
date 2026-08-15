@@ -415,9 +415,10 @@ fn canonical_vcf_bindings_render_native_command_profiles() -> Result<()> {
             BTreeMap::from([
                 ("phased_vcf".to_owned(), "/input/target.vcf.gz".to_owned()),
                 ("reference_panel_msav".to_owned(), "/input/panel.msav".to_owned()),
+                ("genetic_map".to_owned(), "/input/map.txt".to_owned()),
             ]),
             BTreeMap::from([("imputed_vcf".to_owned(), "/result/imputed.vcf.gz".to_owned())]),
-            ["--threads", "--output", "panel.msav"],
+            ["--threads", "--map", "panel.msav"],
         ),
         (
             "vcf.pca",
