@@ -106,6 +106,40 @@ fn repository_mutating_unit_tests_serialize_before_one_shot_process_lock() -> an
 }
 
 #[test]
+fn vcf_aggregate_readiness_writers_acquire_repository_lock_before_mutation() -> anyhow::Result<()> {
+    let _cwd_guard =
+        support::CWD_LOCK.lock().map_err(|error| anyhow::anyhow!("cwd lock: {error}"))?;
+    let repo_root = support::repo_root()?;
+    for (relative, mutation_marker) in [
+        (
+            "crates/bijux-dna/tests/bench_readiness_vcf_all_retained_tools_complete.rs",
+            "EnvGuard::new()",
+        ),
+        (
+            "crates/bijux-dna/tests/bench_readiness_vcf_all_retained_tools_complete_file.rs",
+            "EnvGuard::new()",
+        ),
+        (
+            "crates/bijux-dna/src/commands/benchmark/readiness/vcf_imputation_metrics_ready.rs",
+            "build_vcf_imputation_metrics_ready_report(",
+        ),
+    ] {
+        let source = std::fs::read_to_string(repo_root.join(relative))?;
+        let lock_position = source
+            .find("RepoProcessLock::acquire")
+            .ok_or_else(|| anyhow::anyhow!("{relative} does not acquire the repository lock"))?;
+        let mutation_position = source
+            .rfind(mutation_marker)
+            .ok_or_else(|| anyhow::anyhow!("{relative} no longer contains `{mutation_marker}`"))?;
+        assert!(
+            lock_position < mutation_position,
+            "{relative} acquires the repository lock after starting governed output mutation"
+        );
+    }
+    Ok(())
+}
+
+#[test]
 fn nextest_full_profile_serializes_benchmark_product_writers() -> anyhow::Result<()> {
     let _cwd_guard =
         support::CWD_LOCK.lock().map_err(|error| anyhow::anyhow!("cwd lock: {error}"))?;

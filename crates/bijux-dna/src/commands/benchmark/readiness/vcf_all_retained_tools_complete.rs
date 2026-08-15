@@ -6,6 +6,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use serde::Serialize;
 use serde_json::Value;
 
+use super::catalog::load_external_artifact_tool_contracts;
 use super::vcf_active_stage_tool_matrix;
 use super::vcf_admixture_ready;
 use super::vcf_call_diploid_ready;
@@ -894,72 +895,113 @@ fn render_and_validate_direct_vcf_ready_output(
     label: &str,
     expected_rows: u64,
 ) -> Result<()> {
-    match output_path {
-        vcf_call_ready::DEFAULT_VCF_CALL_READY_PATH => {
-            vcf_call_ready::render_vcf_call_ready(repo_root, PathBuf::from(output_path))?;
-        }
-        vcf_call_diploid_ready::DEFAULT_VCF_CALL_DIPLOID_READY_PATH => {
+    let (stage_id, render_result) = match output_path {
+        vcf_call_ready::DEFAULT_VCF_CALL_READY_PATH => (
+            "vcf.call",
+            vcf_call_ready::render_vcf_call_ready(repo_root, PathBuf::from(output_path))
+                .map(|_| ()),
+        ),
+        vcf_call_diploid_ready::DEFAULT_VCF_CALL_DIPLOID_READY_PATH => (
+            "vcf.call_diploid",
             vcf_call_diploid_ready::render_vcf_call_diploid_ready(
                 repo_root,
                 PathBuf::from(output_path),
-            )?;
-        }
-        vcf_call_pseudohaploid_ready::DEFAULT_VCF_CALL_PSEUDOHAPLOID_READY_PATH => {
+            )
+            .map(|_| ()),
+        ),
+        vcf_call_pseudohaploid_ready::DEFAULT_VCF_CALL_PSEUDOHAPLOID_READY_PATH => (
+            "vcf.call_pseudohaploid",
             vcf_call_pseudohaploid_ready::render_vcf_call_pseudohaploid_ready(
                 repo_root,
                 PathBuf::from(output_path),
-            )?;
-        }
-        vcf_call_gl_ready::DEFAULT_VCF_CALL_GL_READY_PATH => {
-            vcf_call_gl_ready::render_vcf_call_gl_ready(repo_root, PathBuf::from(output_path))?;
-        }
-        vcf_damage_filter_ready::DEFAULT_VCF_DAMAGE_FILTER_READY_PATH => {
+            )
+            .map(|_| ()),
+        ),
+        vcf_call_gl_ready::DEFAULT_VCF_CALL_GL_READY_PATH => (
+            "vcf.call_gl",
+            vcf_call_gl_ready::render_vcf_call_gl_ready(repo_root, PathBuf::from(output_path))
+                .map(|_| ()),
+        ),
+        vcf_damage_filter_ready::DEFAULT_VCF_DAMAGE_FILTER_READY_PATH => (
+            "vcf.damage_filter",
             vcf_damage_filter_ready::render_vcf_damage_filter_ready(
                 repo_root,
                 PathBuf::from(output_path),
-            )?;
-        }
-        vcf_gl_propagation_ready::DEFAULT_VCF_GL_PROPAGATION_READY_PATH => {
+            )
+            .map(|_| ()),
+        ),
+        vcf_gl_propagation_ready::DEFAULT_VCF_GL_PROPAGATION_READY_PATH => (
+            "vcf.gl_propagation",
             vcf_gl_propagation_ready::render_vcf_gl_propagation_ready(
                 repo_root,
                 PathBuf::from(output_path),
-            )?;
-        }
-        vcf_filter_ready::DEFAULT_VCF_FILTER_READY_PATH => {
-            vcf_filter_ready::render_vcf_filter_ready(repo_root, PathBuf::from(output_path))?;
-        }
-        vcf_stats_ready::DEFAULT_VCF_STATS_READY_PATH => {
-            vcf_stats_ready::render_vcf_stats_ready(repo_root, PathBuf::from(output_path))?;
-        }
-        vcf_qc_ready::DEFAULT_VCF_QC_READY_PATH => {
-            vcf_qc_ready::render_vcf_qc_ready(repo_root, PathBuf::from(output_path))?;
-        }
-        vcf_prepare_reference_panel_ready::DEFAULT_VCF_PREPARE_REFERENCE_PANEL_READY_PATH => {
+            )
+            .map(|_| ()),
+        ),
+        vcf_filter_ready::DEFAULT_VCF_FILTER_READY_PATH => (
+            "vcf.filter",
+            vcf_filter_ready::render_vcf_filter_ready(repo_root, PathBuf::from(output_path))
+                .map(|_| ()),
+        ),
+        vcf_stats_ready::DEFAULT_VCF_STATS_READY_PATH => (
+            "vcf.stats",
+            vcf_stats_ready::render_vcf_stats_ready(repo_root, PathBuf::from(output_path))
+                .map(|_| ()),
+        ),
+        vcf_qc_ready::DEFAULT_VCF_QC_READY_PATH => (
+            "vcf.qc",
+            vcf_qc_ready::render_vcf_qc_ready(repo_root, PathBuf::from(output_path)).map(|_| ()),
+        ),
+        vcf_prepare_reference_panel_ready::DEFAULT_VCF_PREPARE_REFERENCE_PANEL_READY_PATH => (
+            "vcf.prepare_reference_panel",
             vcf_prepare_reference_panel_ready::render_vcf_prepare_reference_panel_ready(
                 repo_root,
                 PathBuf::from(output_path),
-            )?;
-        }
-        vcf_imputation_metrics_ready::DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH => {
+            )
+            .map(|_| ()),
+        ),
+        vcf_imputation_metrics_ready::DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH => (
+            "vcf.imputation_metrics",
             vcf_imputation_metrics_ready::render_vcf_imputation_metrics_ready(
                 repo_root,
                 PathBuf::from(output_path),
-            )?;
-        }
-        vcf_pca_ready::DEFAULT_VCF_PCA_READY_PATH => {
-            vcf_pca_ready::render_vcf_pca_ready(repo_root, PathBuf::from(output_path))?;
-        }
-        vcf_admixture_ready::DEFAULT_VCF_ADMIXTURE_READY_PATH => {
-            vcf_admixture_ready::render_vcf_admixture_ready(repo_root, PathBuf::from(output_path))?;
-        }
-        vcf_population_structure_ready::DEFAULT_VCF_POPULATION_STRUCTURE_READY_PATH => {
+            )
+            .map(|_| ()),
+        ),
+        vcf_pca_ready::DEFAULT_VCF_PCA_READY_PATH => (
+            "vcf.pca",
+            vcf_pca_ready::render_vcf_pca_ready(repo_root, PathBuf::from(output_path)).map(|_| ()),
+        ),
+        vcf_admixture_ready::DEFAULT_VCF_ADMIXTURE_READY_PATH => (
+            "vcf.admixture",
+            vcf_admixture_ready::render_vcf_admixture_ready(repo_root, PathBuf::from(output_path))
+                .map(|_| ()),
+        ),
+        vcf_population_structure_ready::DEFAULT_VCF_POPULATION_STRUCTURE_READY_PATH => (
+            "vcf.population_structure",
             vcf_population_structure_ready::render_vcf_population_structure_ready(
                 repo_root,
                 PathBuf::from(output_path),
-            )?;
-        }
+            )
+            .map(|_| ()),
+        ),
         _ => bail!("unknown direct VCF readiness output `{output_path}`"),
+    };
+    let admission_blockers = load_external_artifact_tool_contracts(repo_root)?
+        .into_iter()
+        .filter(|contract| contract.stage_ids.iter().any(|candidate| candidate == stage_id))
+        .map(|contract| contract.tool_id)
+        .collect::<BTreeSet<_>>();
+    if !admission_blockers.is_empty() {
+        let structural_status = render_result
+            .as_ref()
+            .map_or_else(|error| format!("incomplete: {error}"), |()| "complete".to_string());
+        bail!(
+            "blocked_external_access: {label} lacks checksum-admitted execution evidence for {}; interface_smoke={structural_status}",
+            admission_blockers.into_iter().collect::<Vec<_>>().join(", ")
+        );
     }
+    render_result?;
     let payload = read_governed_json(repo_root, output_path)?;
     if json_u64(&payload, "retained_row_count") != Some(expected_rows)
         || json_u64(&payload, "active_row_count") != Some(expected_rows)

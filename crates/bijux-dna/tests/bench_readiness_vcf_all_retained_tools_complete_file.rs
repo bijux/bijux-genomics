@@ -9,6 +9,8 @@ mod support;
 #[test]
 fn bench_readiness_vcf_all_retained_tools_complete_writes_governed_json_file() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _process_guard = support::RepoProcessLock::acquire("benchmark-readiness-mutators")
+        .expect("repo process lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
