@@ -61,6 +61,7 @@ pub fn run_imputation_orchestration_stage(
                     species_id: params.species_id.clone(),
                     build_id: params.build_id.clone(),
                     backend: PhasingBackend::Auto,
+                    panel_id: params.panel_id.clone(),
                     map_id: params.map_id.clone(),
                     threads: params.threads,
                     seed: params.seed,

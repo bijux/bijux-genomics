@@ -25,7 +25,6 @@ const LOCAL_VCF_PHASING_SMOKE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_phasing_smoke.metrics.v1";
 const LOCAL_VCF_PHASING_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-phasing-smoke";
 const GOVERNED_VCF_PHASING_STAGE_ID: &str = "vcf.phasing";
-const GOVERNED_VCF_PHASING_TOOL_ID: &str = "shapeit5";
 const GOVERNED_VCF_PHASING_INPUT_FIXTURE_ID: &str = "cohort_unphased_two_sample";
 const DEFAULT_INPUT_VCF_NAME: &str = "phasing_input.vcf";
 const DEFAULT_OUTPUT_VCF_NAME: &str = "phased.vcf.gz";
@@ -41,9 +40,9 @@ const EXPECTED_INPUT_GENOTYPES: u64 = 8;
 const EXPECTED_PHASED_GENOTYPES: u64 = 8;
 const EXPECTED_UNPHASED_GENOTYPES: u64 = 0;
 const EXPECTED_PHASE_SET_COUNT: u64 = 2;
-const GOVERNED_SHAPEIT5_REGION: &str = "1:1-1000000";
-const GOVERNED_SHAPEIT5_SEED: u64 = 37;
-const GOVERNED_SHAPEIT5_THREADS: usize = 2;
+const GOVERNED_PHASING_REGION: &str = "1:1-1000000";
+const GOVERNED_PHASING_SEED: u64 = 37;
+const GOVERNED_PHASING_THREADS: usize = 2;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalVcfPhasingSmokeMetrics {
@@ -149,6 +148,13 @@ pub(crate) fn run_local_vcf_phasing_smoke(
     bijux_dna_infra::atomic_write_json(&panel_assets_path, &panel_assets_report)?;
 
     let species_context = governed_vcf_panel_species_context();
+    let backend = match contract.tool_id.as_str() {
+        "shapeit" => PhasingBackend::Shapeit,
+        "shapeit5" => PhasingBackend::Shapeit5,
+        "beagle" => PhasingBackend::Beagle,
+        "eagle" => PhasingBackend::Eagle,
+        other => bail!("unsupported governed VCF phasing backend `{other}`"),
+    };
     let started_at = timestamp_marker();
     let started = Instant::now();
     let stage_outputs = run_phasing_stage(
@@ -158,11 +164,12 @@ pub(crate) fn run_local_vcf_phasing_smoke(
         &PhasingStageParams {
             species_id: species_context.species_id.clone(),
             build_id: species_context.build_id.clone(),
-            backend: PhasingBackend::Shapeit5,
+            backend,
+            panel_id: Some(contract.panel_id.clone()),
             map_id: Some(contract.map_id.clone()),
-            threads: GOVERNED_SHAPEIT5_THREADS,
-            seed: GOVERNED_SHAPEIT5_SEED,
-            region: Some(GOVERNED_SHAPEIT5_REGION.to_string()),
+            threads: GOVERNED_PHASING_THREADS,
+            seed: GOVERNED_PHASING_SEED,
+            region: Some(GOVERNED_PHASING_REGION.to_string()),
             allow_gl_only_input: false,
         },
     )
@@ -259,12 +266,16 @@ pub(crate) fn run_local_vcf_phasing_smoke(
     }
 
     let phasing_qc = read_json(&phasing_qc_path)?;
-    if phasing_qc.get("backend").and_then(serde_json::Value::as_str) != Some("shapeit5") {
-        bail!("phasing QC report drifted away from shapeit5 backend");
+    if phasing_qc.get("backend").and_then(serde_json::Value::as_str)
+        != Some(contract.tool_id.as_str())
+    {
+        bail!("phasing QC report drifted away from requested backend `{}`", contract.tool_id);
     }
     let phasing_manifest = read_json(&phasing_manifest_path)?;
-    if phasing_manifest.get("backend").and_then(serde_json::Value::as_str) != Some("shapeit5") {
-        bail!("phasing manifest drifted away from shapeit5 backend");
+    if phasing_manifest.get("backend").and_then(serde_json::Value::as_str)
+        != Some(contract.tool_id.as_str())
+    {
+        bail!("phasing manifest drifted away from requested backend `{}`", contract.tool_id);
     }
     if phasing_manifest.pointer("/map/map_id").and_then(serde_json::Value::as_str)
         != Some(contract.map_id.as_str())

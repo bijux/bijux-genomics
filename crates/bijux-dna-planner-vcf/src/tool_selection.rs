@@ -78,7 +78,9 @@ pub fn validate_selected_tool(
                 stage.as_str()
             );
         }
-        if matches!(tool, "shapeit5" | "eagle") && resolved_coverage != CoverageRegime::Diploid {
+        if matches!(tool, "shapeit" | "shapeit5" | "eagle")
+            && resolved_coverage != CoverageRegime::Diploid
+        {
             bail!(
                 "planner refusal: tool {} requires diploid coverage regime for {}",
                 tool,

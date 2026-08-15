@@ -840,6 +840,7 @@ fn vcf_execution_blocker(
     manifest: &BenchStageResultManifestV1,
 ) -> Result<Option<String>> {
     let report_artifact_id = match manifest.stage_id.as_str() {
+        "vcf.phasing" => "phasing_manifest",
         "vcf.ibd" => "ibd_json",
         "vcf.demography" => "demography_json",
         _ => return Ok(None),
@@ -862,7 +863,18 @@ fn vcf_execution_blocker(
     )
     .with_context(|| format!("parse VCF execution proof {}", report_path.display()))?;
 
-    if manifest.stage_id == "vcf.ibd" {
+    if manifest.stage_id == "vcf.phasing" {
+        if !report
+            .get("backend_execution_attempted")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false)
+        {
+            return Ok(Some(format!(
+                "selected VCF tool `{}` was not executed; phasing smoke reported `backend_execution_attempted=false`",
+                manifest.tool.id
+            )));
+        }
+    } else if manifest.stage_id == "vcf.ibd" {
         let execution_mode =
             report.get("execution_mode").and_then(serde_json::Value::as_str).unwrap_or("missing");
         let tool_ok_field = format!("{}_tool_ok", manifest.tool.id);
@@ -1134,7 +1146,7 @@ fn local_vcf_stage_result_manifest_path(
         .find(|row| row.stage_id == stage_id)
         .map(|row| row.tool_id)
         .ok_or_else(|| anyhow!("VCF stage matrix is missing `{stage_id}`"))?;
-    if tool_id != default_tool_id {
+    if tool_id != default_tool_id && !(stage_id == "vcf.phasing" && tool_id == "shapeit") {
         return Ok(None);
     }
     Ok(match stage_id {

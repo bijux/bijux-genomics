@@ -3,11 +3,13 @@ use std::path::Path;
 use std::sync::{Mutex, OnceLock};
 
 use anyhow::{anyhow, bail, Result};
+use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_db_ref::public_api::{
     resolve_map, resolve_map_lock, resolve_panel, resolve_panel_lock,
     validate_imputation_tool_compatibility,
 };
 use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
+use bijux_dna_stage_contract::canonical_tool_bindings;
 use serde::Serialize;
 
 use super::local_stage_result_manifest::{
@@ -63,12 +65,27 @@ pub(crate) fn resolve_governed_vcf_panel_workflow_smoke_contract(
         .into_iter()
         .find(|row| row.stage_id == requested_stage_id)
         .ok_or_else(|| anyhow!("VCF stage matrix is missing `{requested_stage_id}`"))?;
-    if requested_tool_id != matrix_row.tool_id {
+    let bindings = canonical_tool_bindings()?;
+    if bindings
+        .binding(&StageId::new(requested_stage_id), &ToolId::new(requested_tool_id))
+        .is_none()
+    {
         bail!(
-            "VCF panel workflow smoke only retains tool `{}` for `{}`; requested `{requested_tool_id}`",
-            matrix_row.tool_id,
-            matrix_row.stage_id
+            "VCF panel workflow smoke has no canonical binding for `{requested_stage_id}` / `{requested_tool_id}`"
         );
+    }
+    if requested_stage_id == "vcf.phasing" {
+        let panel = resolve_panel(
+            GOVERNED_VCF_PANEL_SPECIES_ID,
+            GOVERNED_VCF_PANEL_BUILD_ID,
+            Some(GOVERNED_VCF_PANEL_ID),
+        )?;
+        let map = resolve_map(
+            GOVERNED_VCF_PANEL_SPECIES_ID,
+            GOVERNED_VCF_PANEL_BUILD_ID,
+            Some(GOVERNED_VCF_MAP_ID),
+        )?;
+        validate_imputation_tool_compatibility(requested_tool_id, &panel, &map)?;
     }
     if matrix_row.corpus_id != "vcf_production_regression" {
         bail!(
@@ -92,7 +109,7 @@ pub(crate) fn resolve_governed_vcf_panel_workflow_smoke_contract(
 
     Ok(GovernedVcfPanelWorkflowSmokeContract {
         stage_id: matrix_row.stage_id,
-        tool_id: matrix_row.tool_id,
+        tool_id: requested_tool_id.to_string(),
         corpus_id: matrix_row.corpus_id,
         panel_id: GOVERNED_VCF_PANEL_ID.to_string(),
         map_id: GOVERNED_VCF_MAP_ID.to_string(),
@@ -266,7 +283,7 @@ mod tests {
     };
 
     #[test]
-    fn governed_panel_workflow_contract_uses_matrix_row() {
+    fn governed_panel_workflow_contract_accepts_canonical_tool_substitution() {
         let contract = resolve_governed_vcf_panel_workflow_smoke_contract(
             "vcf.phasing",
             "shapeit5",
@@ -278,6 +295,26 @@ mod tests {
         assert_eq!(contract.corpus_id, "vcf_production_regression");
         assert_eq!(contract.panel_id, "hsapiens_grch38_1kg_3202_chr22");
         assert_eq!(contract.map_id, "hsapiens_grch38_glimpse_chr22");
+
+        let shapeit = resolve_governed_vcf_panel_workflow_smoke_contract(
+            "vcf.phasing",
+            "shapeit",
+            "phased_vcf",
+        )
+        .expect("resolve Shapeit4 contract");
+        assert_eq!(shapeit.stage_id, "vcf.phasing");
+        assert_eq!(shapeit.tool_id, "shapeit");
+    }
+
+    #[test]
+    fn governed_panel_workflow_contract_refuses_unknown_tool_binding() {
+        let error = resolve_governed_vcf_panel_workflow_smoke_contract(
+            "vcf.phasing",
+            "not-a-phasing-tool",
+            "phased_vcf",
+        )
+        .expect_err("unknown tool must be refused");
+        assert!(error.to_string().contains("has no canonical binding"));
     }
 
     #[test]

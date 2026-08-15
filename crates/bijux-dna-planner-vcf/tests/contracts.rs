@@ -258,7 +258,7 @@ fn vcf_planner_renders_executable_eigensoft_stage_templates_when_overridden() {
 
 #[test]
 fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends() {
-    let cases = [(CoverageRegime::Diploid, "shapeit5")];
+    let cases = [(CoverageRegime::Diploid, "shapeit"), (CoverageRegime::Diploid, "shapeit5")];
 
     for (regime, tool_id) in cases {
         let mut input = base_inputs(regime);
@@ -296,6 +296,15 @@ fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends(
         );
 
         match tool_id {
+            "shapeit" => {
+                assert!(
+                    joined.contains("shapeit --input"),
+                    "shapeit phasing must render SHAPEIT4 execution: {:?}",
+                    phasing_plan.command.template
+                );
+                assert!(joined.contains("--reference"));
+                assert!(joined.contains("--map"));
+            }
             "shapeit5" => {
                 assert!(
                     joined.contains("shapeit5 phase_common"),

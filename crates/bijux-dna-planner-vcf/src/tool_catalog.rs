@@ -13,7 +13,7 @@ pub(crate) fn stage_compat_tools(stage: VcfDomainStage) -> &'static [&'static st
         VcfDomainStage::Filter => &["bcftools"],
         VcfDomainStage::GlPropagation => &["bcftools", "angsd"],
         VcfDomainStage::PrepareReferencePanel => &["bcftools"],
-        VcfDomainStage::Phasing => &["beagle", "eagle", "shapeit5"],
+        VcfDomainStage::Phasing => &["beagle", "eagle", "shapeit", "shapeit5"],
         VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute => {
             &["glimpse", "impute5", "minimac4", "beagle"]
         }
@@ -52,6 +52,7 @@ pub(crate) fn default_tool(stage: VcfDomainStage, coverage: CoverageRegime) -> &
 pub(crate) fn image_for_tool(tool: &str) -> ContainerImageRefV1 {
     let image = match tool {
         "angsd" => "external-artifact://angsd",
+        "shapeit" => "bijuxdna/shapeit:4.2.2",
         "shapeit5" => "quay.io/biocontainers/shapeit5:5.1.1--h9948957_0",
         "eagle" => "quay.io/biocontainers/eagle:2.4.1--h8b12597_2",
         "beagle" => "quay.io/biocontainers/beagle:5.4--hdfd78af_0",

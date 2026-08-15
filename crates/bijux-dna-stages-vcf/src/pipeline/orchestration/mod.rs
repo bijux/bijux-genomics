@@ -336,7 +336,21 @@ fn run_phasing_stage_inner(
         );
     }
 
-    let map = if matches!(resolved_backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) {
+    let panel = if matches!(resolved_backend, PhasingBackend::Shapeit) {
+        let panel =
+            resolve_panel(&params.species_id, &params.build_id, params.panel_id.as_deref())?;
+        if !panel.compatibility.tool_tags.iter().any(|tag| tag == backend_tool) {
+            bail!("panel {} is not compatible with backend {}", panel.id, backend_tool);
+        }
+        Some(panel)
+    } else {
+        None
+    };
+
+    let map = if matches!(
+        resolved_backend,
+        PhasingBackend::Shapeit | PhasingBackend::Shapeit5 | PhasingBackend::Eagle
+    ) {
         Some(resolve_map(&params.species_id, &params.build_id, params.map_id.as_deref())?)
     } else {
         params
@@ -414,7 +428,11 @@ fn run_phasing_stage_inner(
     if !saw_records {
         bail!("phasing requires non-empty VCF records");
     }
-    if matches!(resolved_backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) && !has_gt {
+    if matches!(
+        resolved_backend,
+        PhasingBackend::Shapeit | PhasingBackend::Shapeit5 | PhasingBackend::Eagle
+    ) && !has_gt
+    {
         bail!("backend {} requires GT field", backend_tool);
     }
     if matches!(resolved_backend, PhasingBackend::Beagle) && !has_gt && !has_gl_or_gp {
@@ -427,7 +445,11 @@ fn run_phasing_stage_inner(
     {
         bail!("GL-only/GP-only inputs are refused for phasing unless allow_gl_only_input=true");
     }
-    if matches!(resolved_backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) && !diploid_ok {
+    if matches!(
+        resolved_backend,
+        PhasingBackend::Shapeit | PhasingBackend::Shapeit5 | PhasingBackend::Eagle
+    ) && !diploid_ok
+    {
         bail!("backend {} requires diploid GT genotypes", backend_tool);
     }
     if has_sex_chr && species_context.par_policy.eq_ignore_ascii_case("unsupported") {
@@ -451,6 +473,35 @@ fn run_phasing_stage_inner(
 
     let memory_mb = params.threads.saturating_mul(1024);
     let backend_argv = match resolved_backend {
+        PhasingBackend::Shapeit => {
+            let mut argv = vec![
+                "shapeit".to_string(),
+                "--input".to_string(),
+                input_vcf.to_string_lossy().to_string(),
+                "--reference".to_string(),
+                panel
+                    .as_ref()
+                    .and_then(|p| p.files.first())
+                    .map(|f| f.path.clone())
+                    .unwrap_or_else(|| "missing-reference-panel".to_string()),
+                "--map".to_string(),
+                map.as_ref()
+                    .and_then(|m| m.files.first())
+                    .map(|f| f.path.clone())
+                    .unwrap_or_else(|| "missing-map".to_string()),
+                "--thread".to_string(),
+                params.threads.to_string(),
+                "--seed".to_string(),
+                params.seed.to_string(),
+                "--output".to_string(),
+                out_dir.join("shapeit.out.vcf.gz").to_string_lossy().to_string(),
+            ];
+            if let Some(region) = &params.region {
+                argv.push("--region".to_string());
+                argv.push(region.clone());
+            }
+            argv
+        }
         PhasingBackend::Shapeit5 => {
             let mut argv = vec![
                 "shapeit5".to_string(),
@@ -567,6 +618,18 @@ fn run_phasing_stage_inner(
             "checksums": file_checksums,
         })
     });
+    let panel_entry = panel.as_ref().map(|p| {
+        let file_checksums = p
+            .files
+            .iter()
+            .map(|f| serde_json::json!({"name": f.name, "checksum_sha256": f.checksum_sha256}))
+            .collect::<Vec<_>>();
+        serde_json::json!({
+            "panel_id": p.id,
+            "panel_version": p.version,
+            "checksums": file_checksums,
+        })
+    });
     let tool_digest = resolve_tool_digest(backend_tool)?;
     let command_exact = backend_argv.join(" ");
     atomic_write_json(
@@ -589,10 +652,11 @@ fn run_phasing_stage_inner(
             "threads": params.threads,
             "memory_mb": memory_mb,
             "region": params.region,
+            "panel": panel_entry,
             "command_argv": backend_argv,
             "command_exact": command_exact,
             "input_contract": {
-                "requires_gt_for_backends": ["shapeit5", "eagle"],
+                "requires_gt_for_backends": ["shapeit", "shapeit5", "eagle"],
                 "beagle_allows_gl_or_gp": true,
                 "allow_gl_only_input": params.allow_gl_only_input,
             },
@@ -623,7 +687,10 @@ fn run_phasing_stage_inner(
             "backend={backend_tool}\nseed={}\nthreads={}\nmap_required={}\nbackend_attempted={}\n",
             params.seed,
             params.threads,
-            matches!(resolved_backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle),
+            matches!(
+                resolved_backend,
+                PhasingBackend::Shapeit | PhasingBackend::Shapeit5 | PhasingBackend::Eagle
+            ),
             phasing_backend_attempted
         )
         .as_bytes(),

@@ -127,7 +127,7 @@ pub(crate) fn stage_command(
             return Ok(CommandSpecV1 { template });
         }
     }
-    if matches!(tool, "shapeit5" | "eagle" | "beagle") {
+    if matches!(tool, "shapeit" | "shapeit5" | "eagle" | "beagle") {
         if let Some(template) = phasing_stage_command(stage, tool, inputs, outputs)? {
             return Ok(CommandSpecV1 { template });
         }
@@ -465,6 +465,9 @@ fn phasing_stage_command(
     let log_path = format!("{output_prefix}.log");
 
     let command = match tool {
+        "shapeit" => format!(
+            "shapeit --input '{input_vcf}' --reference '{panel_vcf}' --map '{genetic_map}' --region 1:1-1000000 --thread 8 --seed 42 --output '{phased_vcf}' > '{log_path}' 2>&1 && bcftools index -t '{phased_vcf}'"
+        ),
         "shapeit5" => format!(
             "shapeit5 phase_common --input '{input_vcf}' --reference '{panel_vcf}' --map '{genetic_map}' --region 1:1-1000000 --thread 8 --seed 42 --output '{phased_vcf}' > '{log_path}' 2>&1 && bcftools index -t '{phased_vcf}'"
         ),

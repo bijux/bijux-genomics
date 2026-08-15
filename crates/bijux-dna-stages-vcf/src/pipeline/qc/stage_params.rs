@@ -40,6 +40,7 @@ pub struct PrepareReferencePanelOutputs {
 #[serde(rename_all = "snake_case")]
 pub enum PhasingBackend {
     Auto,
+    Shapeit,
     Shapeit5,
     Beagle,
     Eagle,
@@ -50,6 +51,7 @@ impl PhasingBackend {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Auto => "auto",
+            Self::Shapeit => "shapeit",
             Self::Shapeit5 => "shapeit5",
             Self::Beagle => "beagle",
             Self::Eagle => "eagle",
@@ -62,6 +64,7 @@ pub struct PhasingStageParams {
     pub species_id: String,
     pub build_id: String,
     pub backend: PhasingBackend,
+    pub panel_id: Option<String>,
     pub map_id: Option<String>,
     pub threads: usize,
     pub seed: u64,

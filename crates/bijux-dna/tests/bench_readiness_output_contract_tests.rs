@@ -53,9 +53,9 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     );
     assert_eq!(
         payload.get("passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(rows.len() as u64 - 25)
+        Some(rows.len() as u64 - 26)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(25));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(26));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("blocked_tool_ids").and_then(serde_json::Value::as_array),
@@ -76,6 +76,7 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
             serde_json::Value::String("ngsbriggs".to_string()),
             serde_json::Value::String("plink".to_string()),
             serde_json::Value::String("shapeit".to_string()),
+            serde_json::Value::String("shapeit5".to_string()),
         ])
     );
     assert!(payload
@@ -138,7 +139,7 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                     .is_some_and(|reason| reason.contains("was not executed"))
         }));
     }
-    for blocked_tool_id in ["ibdhap", "ibdseq", "shapeit"] {
+    for blocked_tool_id in ["ibdhap", "ibdseq"] {
         assert!(rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some(blocked_tool_id)
                 && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
@@ -148,6 +149,18 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                     .get("execution_blocker")
                     .and_then(serde_json::Value::as_str)
                     .is_some_and(|reason| reason.starts_with("missing_direct_execution:"))
+        }));
+    }
+    for tool_id in ["shapeit", "shapeit5"] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
+                    == Some("direct_tool_smoke")
+                && row
+                    .get("execution_blocker")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|reason| reason.contains("backend_execution_attempted=false"))
         }));
     }
 
