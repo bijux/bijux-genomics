@@ -99,6 +99,10 @@ fn catalog() -> anyhow::Result<ContainerCatalog> {
 }
 
 #[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the end-to-end admission fixture verifies success, blocked access, and binary routing"
+)]
 fn delivery_aware_resolution_reverifies_external_apptainer_authority() -> anyhow::Result<()> {
     let temporary = bijux_dna_testkit::tempdir_for("external-sif-selection");
     let repository = temporary.path().join("repository");
@@ -223,16 +227,21 @@ fn delivery_aware_resolution_reverifies_external_apptainer_authority() -> anyhow
         &study,
         "seqkit",
     )
-    .expect_err("blocked external access must stop before execution");
+    .err()
+    .ok_or_else(|| anyhow::anyhow!("blocked external access resolved unexpectedly"))?;
     assert_eq!(
         blocked_error.to_string(),
         "external artifact access blocked for seqkit: licensed artifact not supplied"
     );
 
     let mut binary = admission;
-    binary.artifact.as_mut().expect("fixture artifact").kind = ExternalArtifactKind::Binary;
-    binary.version_probe.as_mut().expect("fixture version probe").command =
-        vec![artifact.display().to_string(), "version".to_string()];
+    binary.artifact.as_mut().ok_or_else(|| anyhow::anyhow!("fixture artifact is absent"))?.kind =
+        ExternalArtifactKind::Binary;
+    binary
+        .version_probe
+        .as_mut()
+        .ok_or_else(|| anyhow::anyhow!("fixture version probe is absent"))?
+        .command = vec![artifact.display().to_string(), "version".to_string()];
     std::fs::write(admission_root.join("seqkit.json"), serde_json::to_vec_pretty(&binary)?)?;
     let binary_error = resolve_catalog_locked_apptainer_artifact(
         &inventory,
@@ -243,7 +252,8 @@ fn delivery_aware_resolution_reverifies_external_apptainer_authority() -> anyhow
         &study,
         "seqkit",
     )
-    .expect_err("binary admission must use command-binding authority");
+    .err()
+    .ok_or_else(|| anyhow::anyhow!("binary admission resolved without command binding"))?;
     assert_eq!(
         binary_error.to_string(),
         "admitted external artifact for seqkit is a binary and requires command-binding authority"
@@ -302,6 +312,10 @@ fn current_image_resolution_rechecks_absolute_file_identity() -> anyhow::Result<
 }
 
 #[test]
+#[allow(
+    clippy::too_many_lines,
+    reason = "the resolution matrix keeps every stale and unselectable authority in one closure"
+)]
 fn catalog_locked_resolution_rejects_stale_and_unselectable_authorities() -> anyhow::Result<()> {
     let temporary = bijux_dna_testkit::tempdir_for("catalog-locked-image-selection");
     let image = temporary.path().join("containers/apptainer/seqkit.sif");
@@ -382,7 +396,8 @@ fn catalog_locked_resolution_rejects_stale_and_unselectable_authorities() -> any
         temporary.path(),
         "seqkit",
     )
-    .expect_err("external artifact must resolve through its admission authority");
+    .err()
+    .ok_or_else(|| anyhow::anyhow!("external artifact resolved without admission authority"))?;
     assert_eq!(
         error.to_string(),
         "tool seqkit requires admitted external_artifact execution authority"
