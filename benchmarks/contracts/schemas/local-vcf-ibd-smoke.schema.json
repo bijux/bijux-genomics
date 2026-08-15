@@ -1,0 +1,247 @@
+{
+  "$defs": {
+    "BenchmarkLocalVcfIbdInsufficientOverlapProbe": {
+      "additionalProperties": false,
+      "properties": {
+        "filtered_segment_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "ibd_status": {
+          "type": "string"
+        },
+        "input_vcf_path": {
+          "type": "string"
+        },
+        "insufficient_data_reason": {
+          "type": "string"
+        },
+        "overlap_marker_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source_ibd_filtered_segments_path": {
+          "type": "string"
+        },
+        "source_ibd_summary_path": {
+          "type": "string"
+        },
+        "source_roh_segments_path": {
+          "type": "string"
+        },
+        "source_roh_summary_path": {
+          "type": "string"
+        },
+        "unrelated_stage_id": {
+          "type": "string"
+        },
+        "unrelated_stage_segment_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unrelated_stage_status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "input_vcf_path",
+        "ibd_status",
+        "insufficient_data_reason",
+        "overlap_marker_count",
+        "filtered_segment_count",
+        "source_ibd_summary_path",
+        "source_ibd_filtered_segments_path",
+        "unrelated_stage_id",
+        "unrelated_stage_status",
+        "unrelated_stage_segment_count",
+        "source_roh_summary_path",
+        "source_roh_segments_path"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalVcfIbdSmokeRow": {
+      "additionalProperties": false,
+      "properties": {
+        "overlap_marker_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_a": {
+          "type": "string"
+        },
+        "sample_b": {
+          "type": "string"
+        },
+        "segment_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "status": {
+          "type": "string"
+        },
+        "total_length": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "sample_a",
+        "sample_b",
+        "segment_count",
+        "total_length",
+        "overlap_marker_count",
+        "status"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "command": {
+      "type": "string"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "elapsed_seconds": {
+      "format": "double",
+      "type": "number"
+    },
+    "execution_mode": {
+      "type": "string"
+    },
+    "exit_code": {
+      "format": "int32",
+      "type": "integer"
+    },
+    "finished_at": {
+      "type": "string"
+    },
+    "fixture_manifest_path": {
+      "type": "string"
+    },
+    "germline_tool_ok": {
+      "type": "boolean"
+    },
+    "ibd_json_path": {
+      "type": "string"
+    },
+    "ibd_tsv_path": {
+      "type": "string"
+    },
+    "ibdhap_tool_ok": {
+      "type": "boolean"
+    },
+    "ibdseq_tool_ok": {
+      "type": "boolean"
+    },
+    "input_fixture_id": {
+      "type": "string"
+    },
+    "input_vcf_path": {
+      "type": "string"
+    },
+    "insufficient_overlap_probe": {
+      "$ref": "#/$defs/BenchmarkLocalVcfIbdInsufficientOverlapProbe"
+    },
+    "output_root": {
+      "type": "string"
+    },
+    "pair_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalVcfIbdSmokeRow"
+      },
+      "type": "array"
+    },
+    "sample_metadata_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_vcf_ibd_smoke.v1",
+      "type": "string"
+    },
+    "source_ibd_filtered_segments_path": {
+      "type": "string"
+    },
+    "source_ibd_input_path": {
+      "type": "string"
+    },
+    "source_ibd_merged_segments_path": {
+      "type": "string"
+    },
+    "source_ibd_metrics_path": {
+      "type": "string"
+    },
+    "source_ibd_segments_path": {
+      "type": "string"
+    },
+    "source_ibd_summary_path": {
+      "type": "string"
+    },
+    "source_logs_path": {
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "stage_result_manifest_path": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "command",
+    "stage_id",
+    "tool_id",
+    "corpus_id",
+    "input_fixture_id",
+    "fixture_manifest_path",
+    "input_vcf_path",
+    "sample_metadata_path",
+    "output_root",
+    "ibd_tsv_path",
+    "ibd_json_path",
+    "source_ibd_input_path",
+    "source_ibd_segments_path",
+    "source_ibd_merged_segments_path",
+    "source_ibd_filtered_segments_path",
+    "source_ibd_summary_path",
+    "source_ibd_metrics_path",
+    "source_logs_path",
+    "stage_result_manifest_path",
+    "started_at",
+    "finished_at",
+    "elapsed_seconds",
+    "exit_code",
+    "execution_mode",
+    "germline_tool_ok",
+    "ibdseq_tool_ok",
+    "ibdhap_tool_ok",
+    "pair_count",
+    "rows",
+    "insufficient_overlap_probe",
+    "status"
+  ],
+  "title": "BenchmarkLocalVcfIbdSmokeReport",
+  "type": "object"
+}

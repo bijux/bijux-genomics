@@ -536,6 +536,10 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
             super::benchmark_local_vcf_smoke_suite_schema,
         ),
         PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/local-vcf-ibd-smoke.schema.json",
+            super::benchmark_local_vcf_ibd_smoke_schema,
+        ),
+        PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/local-vcf-imputation-metrics-smoke.schema.json",
             super::benchmark_local_vcf_imputation_metrics_smoke_schema,
         ),

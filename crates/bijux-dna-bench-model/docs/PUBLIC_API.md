@@ -97,6 +97,9 @@ Model contracts:
 - `BenchmarkLocalVcfSmokeGoalContract`
 - `BenchmarkLocalVcfSmokeGoalCheck`
 - `BenchmarkLocalVcfSmokeSuiteReport`
+- `BenchmarkLocalVcfIbdSmokeRow`
+- `BenchmarkLocalVcfIbdInsufficientOverlapProbe`
+- `BenchmarkLocalVcfIbdSmokeReport`
 - `BenchmarkImputationQualityFieldAvailability`
 - `BenchmarkLocalVcfImputationMetricsSmokeReport`
 - `LocalVcfStageCatalogConfig`
@@ -322,6 +325,7 @@ Schema derivation:
 - `all_domain_retained_tools_schema`
 - `stage_registry_extra_pairs_schema`
 - `benchmark_local_vcf_smoke_suite_schema`
+- `benchmark_local_vcf_ibd_smoke_schema`
 - `benchmark_local_vcf_imputation_metrics_smoke_schema`
 - `governed_data_catalog_schema`
 - `governed_data_catalog_registry_schema`
@@ -348,6 +352,7 @@ Schema derivation:
 - `validate_all_domain_retained_tools`
 - `validate_stage_registry_extra_pairs`
 - `validate_benchmark_local_vcf_smoke_suite`
+- `validate_benchmark_local_vcf_ibd_smoke_report`
 - `validate_benchmark_local_vcf_imputation_metrics_smoke_report`
 - `validate_governed_data_catalog`
 - `validate_governed_data_catalog_registry`
