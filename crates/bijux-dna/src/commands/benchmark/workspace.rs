@@ -47,7 +47,6 @@ pub(crate) const DEFAULT_BENCHMARK_CONFIG: &str = "configs/bench/benchmark.toml"
 #[allow(clippy::expect_used)]
 mod tests {
     use super::layout_normalization::plan_root_convergence;
-    use super::layout_status::{summarize_root_pair, workspace_layout_corpus_dir_name};
     use super::{
         benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_config_path,
         benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root,
@@ -57,7 +56,10 @@ mod tests {
         BenchmarkConfig, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
         BenchmarkWorkspaceLocal, BenchmarkWorkspaceStageRuns, BENCHMARK_CONFIG_ENV,
     };
-    use bijux_dna_api::v1::api::bench::benchmark_publication_corpus_key;
+    use bijux_dna_api::v1::api::bench::{
+        benchmark_publication_corpus_key, benchmark_workspace_layout_corpus_dir_name,
+        summarize_benchmark_workspace_root_pair,
+    };
     use std::collections::BTreeMap;
     use std::ffi::{OsStr, OsString};
     use std::path::Path;
@@ -264,7 +266,8 @@ spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
         std::fs::create_dir_all(canonical.join("results")).expect("create canonical");
         std::fs::create_dir_all(legacy.join("results")).expect("create legacy");
 
-        let summary = summarize_root_pair("remote-results", &canonical, &legacy);
+        let summary =
+            summarize_benchmark_workspace_root_pair("remote-results", &canonical, &legacy);
         assert_eq!(summary.status, "duplicate");
         assert!(summary.shared_entries.contains(&"results".to_string()));
     }
@@ -432,7 +435,7 @@ spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
         };
 
         assert_eq!(
-            workspace_layout_corpus_dir_name(&config).expect("corpus dir name"),
+            benchmark_workspace_layout_corpus_dir_name(&config).expect("corpus dir name"),
             "corpus_42"
         );
     }

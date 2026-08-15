@@ -66,6 +66,7 @@ mod summary_statistics;
 mod vcf_campaign;
 mod vcf_stage_catalog;
 mod vcf_stage_matrix;
+mod workspace_layout;
 
 pub use alias_resolution::{
     choose_canonical_tool_id, legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases,
@@ -331,4 +332,9 @@ pub use vcf_stage_catalog::{
 pub use vcf_stage_matrix::{
     build_vcf_stage_matrix_rows, render_vcf_stage_matrix, validate_vcf_stage_matrix,
     DEFAULT_VCF_STAGE_MATRIX_PATH,
+};
+pub use workspace_layout::{
+    benchmark_workspace_layout_corpus_dir_name, benchmark_workspace_layout_report,
+    publish_benchmark_workspace_layout_status, render_benchmark_workspace_layout_markdown,
+    summarize_benchmark_workspace_root_pair,
 };
