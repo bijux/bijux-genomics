@@ -1952,11 +1952,10 @@
         "imputation_acceptance_mode": "qc_gated",
         "map_coordinate_system": "bp",
         "map_id": "hsapiens_grch38_glimpse_chr22",
-        "ne": 20000,
+        "min_rsq": 0.3,
         "panel_build_required": "GRCh38",
         "panel_id": "1000g_phase3",
         "panel_identity_required": true,
-        "r2_threshold": 0.3,
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -1965,11 +1964,13 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
+        "rounds": 5,
         "schema_version": "bijux.vcf.impute.params.v1",
-        "tool": "impute5"
+        "states": 200,
+        "tool": "minimac4"
       },
-      "reason": "coverage regime Diploid selected tool impute5 for vcf.impute (shared_source_format_impute5)",
-      "selected_tool": "impute5",
+      "reason": "coverage regime Diploid selected tool minimac4 for vcf.impute (phased_gt_plus_msav_minimac4)",
+      "selected_tool": "minimac4",
       "stage_id": "vcf.impute"
     },
     {
