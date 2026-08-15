@@ -170,6 +170,14 @@ fn bench_readiness_input_preflight_audit_report_governed_retained_tool_coverage(
                 .is_some_and(|path| path.ends_with("phasing_input.vcf.gz.tbi"))
             && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
     }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit")
+            && row.get("contract_surface").and_then(serde_json::Value::as_str)
+                == Some("adapter_contract")
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
 }
 
 #[test]
