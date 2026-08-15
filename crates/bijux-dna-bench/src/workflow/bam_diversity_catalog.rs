@@ -18,6 +18,8 @@ use super::load_benchmark_data_source_spec;
 const PLAN_SCHEMA: &str = "bijux.genomics.bam_diversity_materialization_plan.v1";
 const RESULT_SCHEMA: &str = "bijux.genomics.bam_diversity_sample_result.v1";
 const PORTFOLIO_ID: &str = "ancient-dna-bam-diversity";
+const REFERENCE_INDEX_FILES: [&str; 5] =
+    ["grch38.amb", "grch38.ann", "grch38.bwt", "grch38.pac", "grch38.sa"];
 const MAX_JSON_BYTES: usize = 16 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -193,6 +195,7 @@ pub fn build_ancient_dna_bam_diversity_catalog(
     }
     let output_root =
         data_root.join("derived").join(PORTFOLIO_ID).join(format!("plan-{parameter_sha256}"));
+    verify_reference_index(&output_root, &data_root)?;
     let source_catalog = governed_file(&plan.source_catalog_path, &data_root, "source catalog")?;
     verify_file(&source_catalog, &plan.source_catalog_sha256, None, "source catalog")?;
     let reference_catalog =
@@ -461,6 +464,45 @@ fn verify_reference_catalog(plan: &Plan, catalog_path: &Path) -> Result<()> {
     Ok(())
 }
 
+fn verify_reference_index(output_root: &Path, data_root: &Path) -> Result<()> {
+    let index_root = canonical_directory(&output_root.join("reference-index"), "BWA index root")?;
+    if !index_root.starts_with(data_root) {
+        bail!("BWA index root escapes the governed data root");
+    }
+    let manifest_path =
+        governed_file(&index_root.join("SHA256SUMS"), data_root, "BWA index checksum manifest")?;
+    let manifest_bytes = bijux_dna_infra::read_to_end_bounded(&manifest_path, MAX_JSON_BYTES)?;
+    let manifest =
+        std::str::from_utf8(&manifest_bytes).context("BWA index manifest is not UTF-8")?;
+    let entries = parse_reference_index_manifest(manifest)?;
+    for name in REFERENCE_INDEX_FILES {
+        let sha256 = entries.get(name).context("BWA index manifest is incomplete")?;
+        let path = governed_file(&index_root.join(name), data_root, "BWA index artifact")?;
+        verify_file(&path, sha256, None, "BWA index artifact")?;
+    }
+    Ok(())
+}
+
+fn parse_reference_index_manifest(manifest: &str) -> Result<BTreeMap<&str, &str>> {
+    let mut entries = BTreeMap::new();
+    for line in manifest.lines() {
+        let mut fields = line.split_whitespace();
+        let sha256 = fields.next().context("BWA index manifest line lacks a digest")?;
+        let name = fields.next().context("BWA index manifest line lacks a file")?;
+        if fields.next().is_some()
+            || !valid_sha256(sha256)
+            || !REFERENCE_INDEX_FILES.contains(&name)
+            || entries.insert(name, sha256).is_some()
+        {
+            bail!("BWA index manifest contains an invalid or self-referential entry");
+        }
+    }
+    if entries.len() != REFERENCE_INDEX_FILES.len() {
+        bail!("BWA index manifest does not close the required artifacts");
+    }
+    Ok(entries)
+}
+
 fn validate_result(
     result: &SampleResult,
     sample: &PlanSample,
@@ -605,7 +647,7 @@ mod tests {
         load_benchmark_data_source_spec, validate_plan, validate_result,
         validate_source_catalog_metadata, Alignment, Plan, PlanRead, PlanSample, ResultFile,
         SampleResult, SourceCatalog, SourceFile, SourceSample, PLAN_SCHEMA, PORTFOLIO_ID,
-        RESULT_SCHEMA,
+        REFERENCE_INDEX_FILES, RESULT_SCHEMA,
     };
 
     #[test]
@@ -634,6 +676,20 @@ mod tests {
             ]
         );
         Ok(())
+    }
+
+    #[test]
+    fn reference_index_manifest_rejects_its_own_output() {
+        let valid = REFERENCE_INDEX_FILES
+            .iter()
+            .map(|name| format!("{}  {name}", "a".repeat(64)))
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(super::parse_reference_index_manifest(&valid).is_ok());
+
+        let self_referential = format!("{}\n{}  SHA256SUMS", valid, "b".repeat(64));
+        assert!(super::parse_reference_index_manifest(&self_referential)
+            .is_err_and(|error| error.to_string().contains("self-referential")));
     }
 
     #[test]
