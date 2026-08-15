@@ -1188,8 +1188,16 @@ fn local_vcf_stage_result_manifest_path(
         .find(|row| row.stage_id == stage_id)
         .map(|row| row.tool_id)
         .ok_or_else(|| anyhow!("VCF stage matrix is missing `{stage_id}`"))?;
-    let stage_worker_owns_tool_selection =
-        matches!(stage_id, "vcf.admixture" | "vcf.ibd" | "vcf.pca" | "vcf.phasing" | "vcf.qc");
+    let stage_worker_owns_tool_selection = matches!(
+        stage_id,
+        "vcf.admixture"
+            | "vcf.ibd"
+            | "vcf.imputation_metrics"
+            | "vcf.impute"
+            | "vcf.pca"
+            | "vcf.phasing"
+            | "vcf.qc"
+    );
     if tool_id != default_tool_id && !stage_worker_owns_tool_selection {
         return Ok(None);
     }
@@ -1398,6 +1406,26 @@ mod tests {
     }
 
     #[test]
+    fn vcf_imputation_workers_preserve_glimpse_and_refuse_incompatible_minimac() {
+        let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _lock = benchmark_readiness_test_lock(&root);
+        for stage_id in ["vcf.impute", "vcf.imputation_metrics"] {
+            let proof = local_vcf_stage_result_manifest_path(&root, stage_id, "glimpse")
+                .expect("resolve retained GLIMPSE proof")
+                .expect("imputation worker must own GLIMPSE selection");
+            let manifest = load_validated_stage_result_manifest_path(&root.join(proof))
+                .expect("load retained GLIMPSE stage result");
+            assert_eq!(manifest.stage_id, stage_id);
+            assert_eq!(manifest.tool.id, "glimpse");
+
+            let error = local_vcf_stage_result_manifest_path(&root, stage_id, "minimac4")
+                .expect_err("incompatible Minimac4 panel contract must fail during planning");
+            assert!(error.to_string().contains("not compatible with tool minimac4"));
+        }
+    }
+
+    #[test]
     fn build_output_contract_audit_report_records_governed_proof_surfaces() {
         let root = repo_root();
         let _cwd_lock = acquire_cwd_lock();
@@ -1446,7 +1474,7 @@ mod tests {
             .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "bcftools")
             .expect("bam.genotyping row");
         assert_eq!(report.failed_row_count, 0);
-        assert_eq!(report.blocked_row_count, 26);
+        assert_eq!(report.blocked_row_count, 24);
         assert_eq!(report.passed_row_count + report.blocked_row_count, report.row_count);
         assert_eq!(
             report.blocked_tool_ids,
@@ -1458,7 +1486,6 @@ mod tests {
                 "eigensoft",
                 "fastuniq",
                 "germline",
-                "glimpse",
                 "ibdhap",
                 "ibdne",
                 "ibdseq",

@@ -74,7 +74,10 @@ pub(crate) fn resolve_governed_vcf_panel_workflow_smoke_contract(
             "VCF panel workflow smoke has no canonical binding for `{requested_stage_id}` / `{requested_tool_id}`"
         );
     }
-    if requested_stage_id == "vcf.phasing" {
+    let requires_governed_map_compatibility = requested_stage_id == "vcf.phasing"
+        || (matches!(requested_stage_id, "vcf.impute" | "vcf.imputation_metrics")
+            && requested_tool_id != "beagle");
+    if requires_governed_map_compatibility {
         let panel = resolve_panel(
             GOVERNED_VCF_PANEL_SPECIES_ID,
             GOVERNED_VCF_PANEL_BUILD_ID,
@@ -315,6 +318,17 @@ mod tests {
         )
         .expect_err("unknown tool must be refused");
         assert!(error.to_string().contains("has no canonical binding"));
+    }
+
+    #[test]
+    fn governed_imputation_contract_refuses_incompatible_panel_backend() {
+        let error = resolve_governed_vcf_panel_workflow_smoke_contract(
+            "vcf.impute",
+            "minimac4",
+            "imputed_vcf",
+        )
+        .expect_err("Minimac4 must be refused for a panel without M3VCF support");
+        assert!(error.to_string().contains("not compatible with tool minimac4"));
     }
 
     #[test]

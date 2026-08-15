@@ -26,7 +26,6 @@ const LOCAL_VCF_IMPUTE_SMOKE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_impute_smoke.metrics.v1";
 const LOCAL_VCF_IMPUTE_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-impute-smoke";
 const GOVERNED_VCF_IMPUTE_STAGE_ID: &str = "vcf.impute";
-const GOVERNED_VCF_IMPUTE_TOOL_ID: &str = "beagle";
 const GOVERNED_VCF_IMPUTE_INPUT_FIXTURE_ID: &str = "masked_truth_two_sample";
 const DEFAULT_INPUT_VCF_NAME: &str = "impute_input.vcf";
 const DEFAULT_TRUTH_VCF_NAME: &str = "impute_truth.vcf";
@@ -54,8 +53,8 @@ const EXPECTED_LOW_CONFIDENCE_COUNT: u64 = 1;
 const EXPECTED_MASKED_TRUTH_SITE_COUNT: u64 = 1;
 const EXPECTED_MASKED_TRUTH_MATCH_COUNT: u64 = 1;
 const EXPECTED_UNRESOLVED_COUNT: u64 = 0;
-const GOVERNED_BEAGLE_SEED: u64 = 42;
-const GOVERNED_BEAGLE_THREADS: usize = 2;
+const GOVERNED_IMPUTE_SEED: u64 = 42;
+const GOVERNED_IMPUTE_THREADS: usize = 2;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct ImputeOutputSummary {
@@ -170,7 +169,9 @@ pub(crate) fn run_local_vcf_impute_smoke(
 
     let input_vcf_path = input_root.join(DEFAULT_INPUT_VCF_NAME);
     let truth_vcf_path = input_root.join(DEFAULT_TRUTH_VCF_NAME);
-    write_governed_impute_input_vcf(&input_vcf_path)?;
+    let backend = ImputeBackend::from_tool_id(&contract.tool_id)
+        .ok_or_else(|| anyhow!("unsupported imputation backend tool `{}`", contract.tool_id))?;
+    write_governed_impute_input_vcf(&input_vcf_path, backend)?;
     write_governed_impute_truth_vcf(&truth_vcf_path)?;
     let panel_assets_report = resolve_governed_vcf_panel_asset_contract()
         .context("resolve governed VCF panel asset contract")?;
@@ -187,11 +188,11 @@ pub(crate) fn run_local_vcf_impute_smoke(
         &ImputeStageParams {
             species_id: species_context.species_id.clone(),
             build_id: species_context.build_id.clone(),
-            backend: ImputeBackend::Beagle,
+            backend,
             panel_id: Some(contract.panel_id.clone()),
-            map_id: None,
-            threads: GOVERNED_BEAGLE_THREADS,
-            seed: GOVERNED_BEAGLE_SEED,
+            map_id: (!matches!(backend, ImputeBackend::Beagle)).then(|| contract.map_id.clone()),
+            threads: GOVERNED_IMPUTE_THREADS,
+            seed: GOVERNED_IMPUTE_SEED,
             emit_ds: true,
             emit_gp: true,
             truth_vcf: Some(truth_vcf_path.clone()),
@@ -322,8 +323,8 @@ pub(crate) fn run_local_vcf_impute_smoke(
     }
 
     let imputation_qc = read_json(&imputation_qc_path)?;
-    if imputation_qc.get("backend").and_then(serde_json::Value::as_str) != Some("beagle") {
-        bail!("imputation QC report drifted away from beagle backend");
+    if imputation_qc.get("backend").and_then(serde_json::Value::as_str) != Some(backend.as_str()) {
+        bail!("imputation QC report drifted away from selected `{}` backend", backend.as_str());
     }
     if imputation_qc.pointer("/concordance/truth_provided").and_then(serde_json::Value::as_bool)
         != Some(true)
@@ -537,18 +538,36 @@ pub(crate) fn run_local_vcf_impute_smoke(
     })
 }
 
-fn write_governed_impute_input_vcf(output_path: &Path) -> Result<()> {
+fn write_governed_impute_input_vcf(output_path: &Path, backend: ImputeBackend) -> Result<()> {
     let parent = output_path
         .parent()
         .ok_or_else(|| anyhow!("VCF impute smoke input path has no parent directory"))?;
     fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    let payload = "##fileformat=VCFv4.2\n\
+    let format_headers = if matches!(backend, ImputeBackend::Glimpse) {
+        "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n##FORMAT=<ID=GL,Number=G,Type=Float,Description=\"Genotype likelihoods\">\n"
+    } else {
+        "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n"
+    };
+    let (format, masked_first, donor_first, masked_second, donor_second) = match backend {
+        ImputeBackend::Glimpse => (
+            "GT:GL",
+            "./.:-1.0,-0.1,-2.0",
+            "0/1:-2.0,-0.1,-1.0",
+            "0/0:-0.1,-1.0,-2.0",
+            "0/0:-0.1,-1.0,-2.0",
+        ),
+        ImputeBackend::Minimac4 => ("GT", ".|.", "0|1", "0|0", "0|0"),
+        ImputeBackend::Beagle | ImputeBackend::Impute5 => ("GT", "./.", "0/1", "0/0", "0/0"),
+    };
+    let payload = format!(
+        "##fileformat=VCFv4.2\n\
 ##reference=GRCh38\n\
 ##contig=<ID=1,length=248956422>\n\
-##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+{format_headers}\
 #CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tmasked_sample\tdonor_sample\n\
-1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t./.\t0/1\n\
-1\t140\t.\tC\tT\t60\tPASS\t.\tGT\t0/0\t0/0\n";
+1\t100\t.\tA\tG\t60\tPASS\t.\t{format}\t{masked_first}\t{donor_first}\n\
+1\t140\t.\tC\tT\t60\tPASS\t.\t{format}\t{masked_second}\t{donor_second}\n"
+    );
     bijux_dna_infra::atomic_write_bytes(output_path, payload.as_bytes())?;
     Ok(())
 }
@@ -624,13 +643,14 @@ mod tests {
     use super::{
         summarize_imputed_output, write_governed_impute_input_vcf, write_governed_impute_truth_vcf,
     };
+    use bijux_dna_stages_vcf::pipeline::ImputeBackend;
 
     #[test]
     fn governed_impute_fixture_tracks_masked_input_and_truth() {
         let dir = tempfile::tempdir().expect("tempdir");
         let input_path = dir.path().join("input.vcf");
         let truth_path = dir.path().join("truth.vcf");
-        write_governed_impute_input_vcf(&input_path).expect("write input");
+        write_governed_impute_input_vcf(&input_path, ImputeBackend::Beagle).expect("write input");
         write_governed_impute_truth_vcf(&truth_path).expect("write truth");
 
         let input_summary = summarize_imputed_output(&input_path).expect("summarize input");
@@ -639,5 +659,16 @@ mod tests {
         assert_eq!(input_summary.masked_sample_gt, "./.");
         assert_eq!(truth_summary.masked_sample_gt, "0/1");
         assert_eq!(truth_summary.donor_sample_gt, "0/1");
+    }
+
+    #[test]
+    fn governed_glimpse_fixture_carries_likelihood_evidence() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let input_path = dir.path().join("glimpse.vcf");
+        write_governed_impute_input_vcf(&input_path, ImputeBackend::Glimpse)
+            .expect("write GLIMPSE input");
+        let payload = std::fs::read_to_string(input_path).expect("read GLIMPSE input");
+        assert!(payload.contains("##FORMAT=<ID=GL,"));
+        assert!(payload.contains("\tGT:GL\t"));
     }
 }

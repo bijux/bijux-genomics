@@ -251,7 +251,7 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
             check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(428)
                 && check.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
                 && check.get("detail").and_then(serde_json::Value::as_str).is_some_and(|detail| {
-                    detail.contains("blocked_row_count=25") && detail.contains("failed_row_count=0")
+                    detail.contains("blocked_row_count=23") && detail.contains("failed_row_count=0")
                 })
         }),
         "goal 428 must report the fail-closed output audit count: {payload:#}"
