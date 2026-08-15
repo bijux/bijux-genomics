@@ -80,6 +80,18 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
             super::benchmark_config_schema,
         ),
         PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/workspace-convergence-plan.schema.json",
+            super::workspace_convergence_plan_schema,
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/workspace-normalization-report.schema.json",
+            super::workspace_normalization_report_schema,
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/workspace-layout-report.schema.json",
+            super::workspace_layout_report_schema,
+        ),
+        PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/run-definition.schema.json",
             benchmark_run_definition_schema,
         ),

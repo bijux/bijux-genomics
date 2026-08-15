@@ -86,6 +86,7 @@ pub mod stage_tool_containers;
 pub mod stage_tool_resources;
 pub mod suite;
 pub mod summary;
+pub mod workspace_layout;
 
 #[allow(unused_imports)]
 pub use active_scope::{
@@ -663,3 +664,11 @@ pub use suite::{
 };
 #[allow(unused_imports)]
 pub use summary::{BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum};
+#[allow(unused_imports)]
+pub use workspace_layout::{
+    workspace_convergence_plan_schema, workspace_layout_report_schema,
+    workspace_normalization_report_schema, WorkspaceAuthoritativeRoots, WorkspaceConvergenceAction,
+    WorkspaceConvergencePlan, WorkspaceEntrySummary, WorkspaceLayoutIssue, WorkspaceLayoutReport,
+    WorkspaceLocalStageLayout, WorkspaceNormalizationReport, WorkspaceRootPairSummary,
+    WorkspaceStageNormalizationReport,
+};

@@ -4,71 +4,12 @@ use std::path::{Path, PathBuf};
 use std::time::UNIX_EPOCH;
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    WorkspaceConvergenceAction, WorkspaceConvergencePlan, WorkspaceEntrySummary,
+    WorkspaceNormalizationReport, WorkspaceStageNormalizationReport,
+};
 
 use super::BenchmarkWorkspaceConfig;
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-struct WorkspaceEntrySummary {
-    exists: bool,
-    kind: String,
-    file_count: u64,
-    total_size_bytes: u64,
-    mtime: Option<u64>,
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-pub(crate) struct WorkspaceConvergenceAction {
-    pub(crate) action: String,
-    pub(crate) entry_name: String,
-    source: String,
-    target: String,
-    legacy_summary: WorkspaceEntrySummary,
-    canonical_summary: WorkspaceEntrySummary,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    status: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-pub(crate) struct WorkspaceConvergencePlan {
-    canonical_root: String,
-    legacy_root: String,
-    pub(crate) actions: Vec<WorkspaceConvergenceAction>,
-    removable_legacy_root: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    legacy_root_removed: Option<bool>,
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-struct WorkspaceStageNormalizationReport {
-    stage_id: String,
-    action: String,
-    source: String,
-    target: String,
-    legacy_summary: WorkspaceEntrySummary,
-    canonical_summary: WorkspaceEntrySummary,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    status: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-pub(crate) struct WorkspaceNormalizationReport {
-    corpus_id: String,
-    corpus_dir_name: String,
-    canonical_corpus_root: String,
-    legacy_corpus_root: String,
-    archive_stage_ids: Vec<String>,
-    cache_stage_ids: Vec<String>,
-    shared_stage_ids: Vec<String>,
-    archive_only_stage_ids: Vec<String>,
-    cache_only_stage_ids: Vec<String>,
-    mode: String,
-    pub(crate) status: String,
-    stage_reports: Vec<WorkspaceStageNormalizationReport>,
-    pub(crate) moved_stage_ids: Vec<String>,
-    pub(crate) removed_duplicate_stage_ids: Vec<String>,
-    pub(crate) manual_review_stage_ids: Vec<String>,
-}
 
 pub(crate) fn normalize_workspace_layout_report(
     workspace: &BenchmarkWorkspaceConfig,
@@ -270,6 +211,7 @@ fn workspace_entry_summary(path: &Path) -> Result<WorkspaceEntrySummary> {
             file_count: 0,
             total_size_bytes: 0,
             mtime: None,
+            content_sha256: None,
         });
     }
 
@@ -281,6 +223,7 @@ fn workspace_entry_summary(path: &Path) -> Result<WorkspaceEntrySummary> {
             file_count: 1,
             total_size_bytes: metadata.len(),
             mtime: modified_secs(&metadata),
+            content_sha256: None,
         });
     }
 
@@ -300,6 +243,7 @@ fn workspace_entry_summary(path: &Path) -> Result<WorkspaceEntrySummary> {
         file_count,
         total_size_bytes,
         mtime: Some(newest_mtime),
+        content_sha256: None,
     })
 }
 

@@ -23,13 +23,17 @@ pub use bijux_dna_bench_model::{
     VCF_STAGE_TOOL_RESOURCE_ORIGIN,
 };
 pub use bijux_dna_bench_model::{
-    benchmark_config_schema, BenchmarkConfig, BenchmarkCorpusConfig,
+    benchmark_config_schema, workspace_convergence_plan_schema, workspace_layout_report_schema,
+    workspace_normalization_report_schema, BenchmarkConfig, BenchmarkCorpusConfig,
     BenchmarkCorpusPublicationConfig, BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig,
     BenchmarkReferenceInputConfig, BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig,
     BenchmarkWorkspaceArtifact, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
     BenchmarkWorkspaceLocal, BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns,
     BenchmarkWorkspaceSync, BenchmarkWorkspaceSyncDefaults, CorpusBenchmarkContract,
-    CorpusBenchmarkExclusion,
+    CorpusBenchmarkExclusion, WorkspaceAuthoritativeRoots, WorkspaceConvergenceAction,
+    WorkspaceConvergencePlan, WorkspaceEntrySummary, WorkspaceLayoutIssue, WorkspaceLayoutReport,
+    WorkspaceLocalStageLayout, WorkspaceNormalizationReport, WorkspaceRootPairSummary,
+    WorkspaceStageNormalizationReport,
 };
 pub use bijux_dna_bench_model::{
     local_vcf_stage_catalog_config_schema, local_vcf_stage_catalog_report_schema,

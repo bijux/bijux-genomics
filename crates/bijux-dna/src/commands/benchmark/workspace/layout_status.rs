@@ -3,64 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    WorkspaceAuthoritativeRoots, WorkspaceLayoutIssue, WorkspaceLayoutReport,
+    WorkspaceLocalStageLayout, WorkspaceRootPairSummary,
+};
 
 use super::{load_benchmark_config, BenchmarkConfig};
-
-#[derive(Debug, Serialize)]
-pub(crate) struct WorkspaceLayoutReport {
-    local_results_root: String,
-    local_cache_mirror_root: String,
-    remote_workspace_root: String,
-    authoritative_roots: WorkspaceAuthoritativeRoots,
-    root_pairs: Vec<WorkspaceRootPairSummary>,
-    unexpected_remote_siblings: Vec<String>,
-    local_stage_layout: WorkspaceLocalStageLayout,
-    status: String,
-    issue_count: usize,
-    issues: Vec<WorkspaceLayoutIssue>,
-}
-
-#[derive(Debug, Serialize)]
-#[allow(clippy::struct_field_names)]
-struct WorkspaceAuthoritativeRoots {
-    remote_results_root: String,
-    remote_reference_root: String,
-    local_stage_root: String,
-}
-
-#[derive(Debug, Serialize)]
-pub(crate) struct WorkspaceRootPairSummary {
-    scope: String,
-    canonical_root: String,
-    legacy_root: String,
-    canonical_exists: bool,
-    legacy_exists: bool,
-    canonical_entries: Vec<String>,
-    legacy_entries: Vec<String>,
-    pub(crate) shared_entries: Vec<String>,
-    canonical_only_entries: Vec<String>,
-    legacy_only_entries: Vec<String>,
-    pub(crate) status: String,
-}
-
-#[derive(Debug, Serialize)]
-struct WorkspaceLocalStageLayout {
-    archive_corpus_root: String,
-    cache_corpus_root: String,
-    archive_stage_ids: Vec<String>,
-    cache_stage_ids: Vec<String>,
-    shared_stage_ids: Vec<String>,
-    archive_only_stage_ids: Vec<String>,
-    cache_only_stage_ids: Vec<String>,
-    authoritative_stage_root: String,
-}
-
-#[derive(Debug, Serialize)]
-struct WorkspaceLayoutIssue {
-    issue_id: String,
-    detail: String,
-}
 
 pub(crate) fn write_workspace_layout_status(
     cwd: &Path,

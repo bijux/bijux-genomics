@@ -1,0 +1,114 @@
+{
+  "$defs": {
+    "WorkspaceConvergenceAction": {
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "canonical_summary": {
+          "$ref": "#/$defs/WorkspaceEntrySummary"
+        },
+        "entry_name": {
+          "type": "string"
+        },
+        "legacy_summary": {
+          "$ref": "#/$defs/WorkspaceEntrySummary"
+        },
+        "source": {
+          "type": "string"
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "entry_name",
+        "source",
+        "target",
+        "legacy_summary",
+        "canonical_summary"
+      ],
+      "type": "object"
+    },
+    "WorkspaceEntrySummary": {
+      "properties": {
+        "content_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "file_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "mtime": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "total_size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "exists",
+        "kind",
+        "file_count",
+        "total_size_bytes"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "actions": {
+      "items": {
+        "$ref": "#/$defs/WorkspaceConvergenceAction"
+      },
+      "type": "array"
+    },
+    "canonical_root": {
+      "type": "string"
+    },
+    "legacy_root": {
+      "type": "string"
+    },
+    "legacy_root_removed": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "removable_legacy_root": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "canonical_root",
+    "legacy_root",
+    "actions",
+    "removable_legacy_root"
+  ],
+  "title": "WorkspaceConvergencePlan",
+  "type": "object"
+}

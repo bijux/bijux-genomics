@@ -114,9 +114,14 @@ pub use bijux_dna_bench::{
     retry_checked_in_benchmark_campaign, select_checked_in_benchmark_publication,
     stage_set_contains_canonical_or_migration_alias, status_checked_in_benchmark_campaign,
     supersede_checked_in_benchmark_campaign, validate_benchmark_config_contract,
-    validate_benchmark_stage_result_path, BenchmarkConfigValidationRequest,
-    BenchmarkConfigValidationSummary, BenchmarkDossierIndexPublicationRequest,
-    BenchmarkDossierStagePublicationRequest, LegacyBenchmarkStageAlias,
+    validate_benchmark_stage_result_path, workspace_convergence_plan_schema,
+    workspace_layout_report_schema, workspace_normalization_report_schema,
+    BenchmarkConfigValidationRequest, BenchmarkConfigValidationSummary,
+    BenchmarkDossierIndexPublicationRequest, BenchmarkDossierStagePublicationRequest,
+    LegacyBenchmarkStageAlias, WorkspaceAuthoritativeRoots, WorkspaceConvergenceAction,
+    WorkspaceConvergencePlan, WorkspaceEntrySummary, WorkspaceLayoutIssue, WorkspaceLayoutReport,
+    WorkspaceLocalStageLayout, WorkspaceNormalizationReport, WorkspaceRootPairSummary,
+    WorkspaceStageNormalizationReport,
 };
 use bijux_dna_bench::{
     admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,

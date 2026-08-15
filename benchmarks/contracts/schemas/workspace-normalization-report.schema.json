@@ -1,0 +1,176 @@
+{
+  "$defs": {
+    "WorkspaceEntrySummary": {
+      "properties": {
+        "content_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "file_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "mtime": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "total_size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "exists",
+        "kind",
+        "file_count",
+        "total_size_bytes"
+      ],
+      "type": "object"
+    },
+    "WorkspaceStageNormalizationReport": {
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "canonical_summary": {
+          "$ref": "#/$defs/WorkspaceEntrySummary"
+        },
+        "legacy_summary": {
+          "$ref": "#/$defs/WorkspaceEntrySummary"
+        },
+        "source": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "action",
+        "source",
+        "target",
+        "legacy_summary",
+        "canonical_summary"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "archive_only_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "archive_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "cache_only_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "cache_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "canonical_corpus_root": {
+      "type": "string"
+    },
+    "corpus_dir_name": {
+      "type": "string"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "legacy_corpus_root": {
+      "type": "string"
+    },
+    "manual_review_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "mode": {
+      "type": "string"
+    },
+    "moved_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "removed_duplicate_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "shared_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "stage_reports": {
+      "items": {
+        "$ref": "#/$defs/WorkspaceStageNormalizationReport"
+      },
+      "type": "array"
+    },
+    "status": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "corpus_id",
+    "corpus_dir_name",
+    "canonical_corpus_root",
+    "legacy_corpus_root",
+    "archive_stage_ids",
+    "cache_stage_ids",
+    "shared_stage_ids",
+    "archive_only_stage_ids",
+    "cache_only_stage_ids",
+    "mode",
+    "status",
+    "stage_reports",
+    "moved_stage_ids",
+    "removed_duplicate_stage_ids",
+    "manual_review_stage_ids"
+  ],
+  "title": "WorkspaceNormalizationReport",
+  "type": "object"
+}
