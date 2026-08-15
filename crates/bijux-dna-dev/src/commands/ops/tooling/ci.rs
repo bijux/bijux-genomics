@@ -17,8 +17,8 @@ use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 
 const FULL_SHARDS_SCHEMA_V4: &str = "bijux.ci.full_shards.v4";
 const FAST_GROUPS_SCHEMA_V2: &str = "bijux.ci.fast_groups.v2";
-const FAST_TIMING_SCHEMA_V3: &str = "bijux.ci.fast_timing.v3";
-const FAST_TIMING_HISTORY_SCHEMA_V3: &str = "bijux.ci.fast_timing_history.v3";
+const FAST_TIMING_SCHEMA_V4: &str = "bijux.ci.fast_timing.v4";
+const FAST_TIMING_HISTORY_SCHEMA_V4: &str = "bijux.ci.fast_timing_history.v4";
 const FULL_SHARD_SCRATCH_ROOT_ENV: &str = "BIJUX_CI_FULL_SHARD_SCRATCH_ROOT";
 #[cfg(unix)]
 const SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES: usize = 107;
@@ -185,6 +185,8 @@ struct FastTimingObservation {
     build_authority: String,
     #[serde(default)]
     cache_hit_ratio_basis_points: u64,
+    #[serde(default)]
+    cache_reuse_mode: String,
     wall_time_milliseconds: u64,
 }
 
@@ -503,17 +505,14 @@ pub(in super::super) fn tooling_ci_fast(
         cache_delta.as_ref().is_some_and(|delta| !delta.cache_location.contains(&source_commit));
     let shared_build_authority = build_authority.shared
         && !build_authority.target.to_string_lossy().contains(&source_commit);
-    let observed_warm_cache = requested_cache_state == "warm"
-        && shared_cache_authority
-        && shared_build_authority
-        && cache_delta.as_ref().is_some_and(|delta| {
-            delta.requests_executed > 0
-                && delta.hit_ratio_basis_points >= contract.minimum_cache_hit_ratio_basis_points
-                && delta.cache_errors == 0
-                && delta.cache_timeouts == 0
-                && delta.cache_read_errors == 0
-                && delta.cache_write_errors == 0
-        });
+    let cache_reuse_mode = verified_warm_cache_mode(
+        &requested_cache_state,
+        shared_cache_authority,
+        shared_build_authority,
+        cache_delta.as_ref(),
+        contract.minimum_cache_hit_ratio_basis_points,
+    );
+    let observed_warm_cache = cache_reuse_mode.is_some();
     let cache_state = if observed_warm_cache { "warm_verified" } else { "unverified" };
     let eligible_reference_observation = all_passed
         && source_worktree_clean
@@ -542,6 +541,7 @@ pub(in super::super) fn tooling_ci_fast(
             cache_hit_ratio_basis_points: cache_delta
                 .as_ref()
                 .map_or(0, |delta| delta.hit_ratio_basis_points),
+            cache_reuse_mode: cache_reuse_mode.unwrap_or_default().to_string(),
             wall_time_milliseconds,
         });
         if history.observations.len() > contract.history_limit {
@@ -567,7 +567,7 @@ pub(in super::super) fn tooling_ci_fast(
     write_json_pretty(
         &ci_output_path(workspace, &contract.timing_report)?,
         &serde_json::json!({
-            "schema_version": FAST_TIMING_SCHEMA_V3,
+            "schema_version": FAST_TIMING_SCHEMA_V4,
             "source_commit": source_commit,
             "contract_sha256": bijux_dna_infra::hash_file_sha256(&contract_path)?,
             "observed_at_utc": chrono::Utc::now().to_rfc3339(),
@@ -581,6 +581,7 @@ pub(in super::super) fn tooling_ci_fast(
                 "sccache_runtime_tmpdir": sccache_runtime_env.iter().find_map(|(key, value)|
                     (key == "TMPDIR").then_some(value)),
                 "cache_state": cache_state,
+                "cache_reuse_mode": cache_reuse_mode,
                 "requested_cache_state": requested_cache_state,
                 "shared_cache_authority": shared_cache_authority,
                 "build_authority": build_authority.target,
@@ -1534,7 +1535,7 @@ fn validate_fast_group_contract(contract: &FastGroupContract) -> Result<()> {
 fn load_fast_timing_history(path: &Path) -> Result<FastTimingHistory> {
     if !path.try_exists()? {
         return Ok(FastTimingHistory {
-            schema_version: FAST_TIMING_HISTORY_SCHEMA_V3.to_string(),
+            schema_version: FAST_TIMING_HISTORY_SCHEMA_V4.to_string(),
             observations: Vec::new(),
         });
     }
@@ -1542,10 +1543,12 @@ fn load_fast_timing_history(path: &Path) -> Result<FastTimingHistory> {
         .with_context(|| format!("parse {}", path.display()))?;
     if matches!(
         history.schema_version.as_str(),
-        "bijux.ci.fast_timing_history.v1" | "bijux.ci.fast_timing_history.v2"
+        "bijux.ci.fast_timing_history.v1"
+            | "bijux.ci.fast_timing_history.v2"
+            | "bijux.ci.fast_timing_history.v3"
     ) {
-        history.schema_version = FAST_TIMING_HISTORY_SCHEMA_V3.to_string();
-    } else if history.schema_version != FAST_TIMING_HISTORY_SCHEMA_V3 {
+        history.schema_version = FAST_TIMING_HISTORY_SCHEMA_V4.to_string();
+    } else if history.schema_version != FAST_TIMING_HISTORY_SCHEMA_V4 {
         anyhow::bail!("unsupported ci-fast timing history schema");
     }
     Ok(history)
@@ -1693,6 +1696,32 @@ fn cache_stats_delta(
     })
 }
 
+fn verified_warm_cache_mode(
+    requested_cache_state: &str,
+    shared_cache_authority: bool,
+    shared_build_authority: bool,
+    cache_delta: Option<&FastCacheDelta>,
+    minimum_cache_hit_ratio_basis_points: u64,
+) -> Option<&'static str> {
+    if requested_cache_state != "warm" || !shared_cache_authority || !shared_build_authority {
+        return None;
+    }
+    let delta = cache_delta?;
+    if delta.cache_errors != 0
+        || delta.cache_timeouts != 0
+        || delta.cache_read_errors != 0
+        || delta.cache_write_errors != 0
+    {
+        return None;
+    }
+    if delta.compile_requests == 0 && delta.requests_executed == 0 {
+        return Some("build_target");
+    }
+    (delta.requests_executed > 0
+        && delta.hit_ratio_basis_points >= minimum_cache_hit_ratio_basis_points)
+        .then_some("compiler_cache")
+}
+
 fn duration_milliseconds(duration: Duration) -> u64 {
     u64::try_from(duration.as_millis()).unwrap_or(u64::MAX)
 }
@@ -1722,7 +1751,11 @@ fn reference_timing_samples(
                 && observation.cache_state == "warm_verified"
                 && !observation.cache_authority.is_empty()
                 && !observation.build_authority.is_empty()
-                && observation.cache_hit_ratio_basis_points > 0
+                && match observation.cache_reuse_mode.as_str() {
+                    "build_target" => true,
+                    "compiler_cache" | "" => observation.cache_hit_ratio_basis_points > 0,
+                    _ => false,
+                }
         })
         .map(|observation| observation.wall_time_milliseconds)
         .collect()
@@ -1874,10 +1907,10 @@ mod tests {
         resolve_full_shard_storage_roots, set_full_archive_readonly,
         validate_ci_test_executor_observation, validate_fast_group_contract,
         validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
-        FastCacheStats, FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
-        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
-        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V3,
-        FULL_SHARD_SCRATCH_ROOT_ENV,
+        verified_warm_cache_mode, FastCacheStats, FastGroup, FastGroupContract,
+        FastReferenceRunner, FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard,
+        FullShardContract, FullShardCoverage, FullShardEphemera, FullShardRoots,
+        FAST_TIMING_HISTORY_SCHEMA_V4, FULL_SHARD_SCRATCH_ROOT_ENV,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -2415,6 +2448,42 @@ mod tests {
     }
 
     #[test]
+    fn warm_cache_evidence_accepts_compiler_hits_or_a_reused_build_target() {
+        let delta =
+            |compile_requests, requests_executed, hit_ratio_basis_points| super::FastCacheDelta {
+                cache_location: "/shared/sccache".to_string(),
+                compile_requests,
+                requests_executed,
+                cache_hits: requests_executed,
+                cache_misses: 0,
+                cache_writes: 0,
+                cache_errors: 0,
+                cache_timeouts: 0,
+                cache_read_errors: 0,
+                cache_write_errors: 0,
+                hit_ratio_basis_points,
+            };
+        let compiler_cache = delta(10, 10, 10_000);
+        let build_target = delta(0, 0, 0);
+        let cold_compiler_cache = delta(10, 10, 0);
+
+        assert_eq!(
+            verified_warm_cache_mode("warm", true, true, Some(&compiler_cache), 8_000),
+            Some("compiler_cache")
+        );
+        assert_eq!(
+            verified_warm_cache_mode("warm", true, true, Some(&build_target), 8_000),
+            Some("build_target")
+        );
+        assert_eq!(
+            verified_warm_cache_mode("warm", true, true, Some(&cold_compiler_cache), 8_000),
+            None
+        );
+        assert_eq!(verified_warm_cache_mode("warm", false, true, Some(&build_target), 8_000), None);
+        assert_eq!(verified_warm_cache_mode("cold", true, true, Some(&build_target), 8_000), None);
+    }
+
+    #[test]
     fn sccache_json_parser_accepts_current_stats_envelope() -> anyhow::Result<()> {
         let stats = parse_sccache_stats(&serde_json::json!({
             "stats": {
@@ -2485,13 +2554,24 @@ mod tests {
                 } else {
                     0
                 },
+                cache_reuse_mode: if cache_state == "warm_verified" {
+                    "compiler_cache".to_string()
+                } else {
+                    String::new()
+                },
                 wall_time_milliseconds: 42,
             }
         };
+        let mut reused_build_target =
+            observation("linux", "x86_64", "1.95.0", "sccache", "warm_verified");
+        reused_build_target.cache_hit_ratio_basis_points = 0;
+        reused_build_target.cache_reuse_mode = "build_target".to_string();
+        reused_build_target.wall_time_milliseconds = 43;
         let history = FastTimingHistory {
-            schema_version: FAST_TIMING_HISTORY_SCHEMA_V3.to_string(),
+            schema_version: FAST_TIMING_HISTORY_SCHEMA_V4.to_string(),
             observations: vec![
                 observation("linux", "x86_64", "1.95.0", "sccache", "warm_verified"),
+                reused_build_target,
                 observation("linux", "x86_64", "1.95.0", "sccache", "warm"),
                 observation("macos", "aarch64", "1.95.0", "sccache", "warm_verified"),
                 observation("linux", "x86_64", "1.94.0", "sccache", "warm_verified"),
@@ -2500,6 +2580,6 @@ mod tests {
             ],
         };
 
-        assert_eq!(reference_timing_samples(&history, &reference), vec![42]);
+        assert_eq!(reference_timing_samples(&history, &reference), vec![42, 43]);
     }
 }
