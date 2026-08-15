@@ -66,9 +66,9 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     );
     assert_eq!(
         payload.get("passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(rows.len() as u64 - 25)
+        Some(rows.len() as u64 - 26)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(25));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(26));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("blocked_tool_ids").and_then(serde_json::Value::as_array),
@@ -155,13 +155,30 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     for blocked_tool_id in ["ibdhap", "ibdseq"] {
         assert!(rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some(blocked_tool_id)
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.ibd")
+                && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
+                    == Some("direct_tool_smoke")
                 && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
                 && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
                     == Some(false)
                 && row
                     .get("execution_blocker")
                     .and_then(serde_json::Value::as_str)
-                    .is_some_and(|reason| reason.starts_with("missing_direct_execution:"))
+                    .is_some_and(|reason| reason.contains("was not executed"))
+        }));
+    }
+    for tool_id in ["eigensoft", "plink2"] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.pca")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
+                    == Some("direct_tool_smoke")
+                && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
+                    == Some(false)
+                && row
+                    .get("execution_blocker")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|reason| reason.contains("tool_ok=false"))
         }));
     }
     for tool_id in ["shapeit", "shapeit5"] {
@@ -254,7 +271,7 @@ fn bench_readiness_output_contract_audit_write_governed_json_file() {
         Some(rows.len() as u64)
     );
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(25));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(26));
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")

@@ -843,6 +843,7 @@ fn vcf_execution_blocker(
         "vcf.admixture" => "admixture_json",
         "vcf.phasing" => "phasing_manifest",
         "vcf.ibd" => "ibd_json",
+        "vcf.pca" => "pca_json",
         "vcf.demography" => "demography_json",
         _ => return Ok(None),
     };
@@ -1147,7 +1148,8 @@ fn local_vcf_stage_result_manifest_path(
         .find(|row| row.stage_id == stage_id)
         .map(|row| row.tool_id)
         .ok_or_else(|| anyhow!("VCF stage matrix is missing `{stage_id}`"))?;
-    let stage_worker_owns_tool_selection = matches!(stage_id, "vcf.qc" | "vcf.admixture");
+    let stage_worker_owns_tool_selection =
+        matches!(stage_id, "vcf.admixture" | "vcf.ibd" | "vcf.pca" | "vcf.qc");
     let retained_non_default_worker = stage_id == "vcf.phasing" && tool_id == "shapeit";
     if tool_id != default_tool_id
         && !stage_worker_owns_tool_selection
@@ -1306,6 +1308,24 @@ mod tests {
     }
 
     #[test]
+    fn vcf_ibd_and_pca_workers_preserve_retained_tool_selection() {
+        let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _lock = benchmark_readiness_test_lock(&root);
+        for (stage_id, tool_id) in
+            [("vcf.ibd", "ibdseq"), ("vcf.ibd", "ibdhap"), ("vcf.pca", "eigensoft")]
+        {
+            let proof = local_vcf_stage_result_manifest_path(&root, stage_id, tool_id)
+                .expect("resolve retained VCF tool proof")
+                .expect("stage worker must own retained tool selection");
+            let manifest = load_validated_stage_result_manifest_path(&root.join(proof))
+                .expect("load retained VCF tool stage result");
+            assert_eq!(manifest.stage_id, stage_id);
+            assert_eq!(manifest.tool.id, tool_id);
+        }
+    }
+
+    #[test]
     fn build_output_contract_audit_report_records_governed_proof_surfaces() {
         let root = repo_root();
         let _cwd_lock = acquire_cwd_lock();
@@ -1354,7 +1374,7 @@ mod tests {
             .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "bcftools")
             .expect("bam.genotyping row");
         assert_eq!(report.failed_row_count, 0);
-        assert_eq!(report.blocked_row_count, 25);
+        assert_eq!(report.blocked_row_count, 26);
         assert_eq!(report.passed_row_count + report.blocked_row_count, report.row_count);
         assert_eq!(
             report.blocked_tool_ids,
@@ -1374,6 +1394,7 @@ mod tests {
                 "minimac4",
                 "ngsbriggs",
                 "plink",
+                "plink2",
                 "shapeit",
             ]
         );
