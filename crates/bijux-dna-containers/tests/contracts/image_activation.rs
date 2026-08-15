@@ -42,6 +42,17 @@ fn activation_is_no_clobber_resumable_verified_and_reversible() -> Result<()> {
     assert_eq!(rolled_back.state, ImageActivationPlanState::RolledBack);
     assert!(!fixture.active.join("alpha.sif").exists());
     assert!(fixture.staging.join("alpha.sif").exists());
+
+    let restored = apply_image_activation_plan(
+        &fixture.plan,
+        &fixture.staging,
+        &fixture.active,
+        "2026-08-05T10:02:00Z",
+    )?;
+    assert_eq!(restored.state, ImageActivationPlanState::Applied);
+    assert_eq!(restored.completed_at_utc.as_deref(), Some("2026-08-05T10:02:00Z"));
+    assert!(restored.rolled_back_at_utc.is_none());
+    verify_image_activation_plan(&fixture.plan, &fixture.staging, &fixture.active)?;
     Ok(())
 }
 

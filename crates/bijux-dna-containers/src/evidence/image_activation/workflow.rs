@@ -68,7 +68,8 @@ pub fn create_image_activation_plan(
     Ok(plan)
 }
 
-/// Apply or resume an activation plan and persist progress after every image publication.
+/// Apply, resume, or restore a rolled-back activation plan and persist progress after every image
+/// publication.
 ///
 /// # Errors
 /// Returns an error when evidence drifts, a destination conflicts, or hard-link publication fails.
@@ -82,11 +83,15 @@ pub fn apply_image_activation_plan(
     let mut plan = load_governed_plan(plan_path, source_root, active_root)?;
     if !matches!(
         plan.state,
-        ImageActivationPlanState::Previewed | ImageActivationPlanState::Applying
+        ImageActivationPlanState::Previewed
+            | ImageActivationPlanState::Applying
+            | ImageActivationPlanState::RolledBack
     ) {
         bail!("image-activation plan cannot be applied from {:?}", plan.state);
     }
     plan.state = ImageActivationPlanState::Applying;
+    plan.completed_at_utc = None;
+    plan.rolled_back_at_utc = None;
     persist_plan(plan_path, &plan)?;
     for index in 0..plan.publications.len() {
         let row = &plan.publications[index];
