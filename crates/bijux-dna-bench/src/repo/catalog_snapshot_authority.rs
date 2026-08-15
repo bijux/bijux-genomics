@@ -93,7 +93,7 @@ pub fn admit_governed_derived_data_catalog(
             let existing_sha256 = bijux_dna_infra::hash_bytes_sha256(&existing_bytes);
             if existing_bytes == canonical_bytes {
                 if let Some(expected) = &request.expected_previous_catalog_sha256 {
-                    verify_registry_preserves_flat_authority(
+                    verify_registry_preserves_recorded_digest(
                         &registry,
                         &catalog.id,
                         expected,
@@ -466,6 +466,37 @@ fn verify_registry_preserves_flat_authority(
     }
     let flat_value: serde_json::Value = serde_json::from_slice(&flat_bytes)
         .with_context(|| format!("parse flat catalog authority {}", flat_path.display()))?;
+    verify_registry_preserves_recorded_digest_with_value(
+        registry,
+        catalog_id,
+        flat_sha256,
+        Some(&flat_value),
+        data_root,
+    )
+}
+
+fn verify_registry_preserves_recorded_digest(
+    registry: &GovernedDataCatalogRegistry,
+    catalog_id: &str,
+    expected_sha256: &str,
+    data_root: &Path,
+) -> Result<()> {
+    verify_registry_preserves_recorded_digest_with_value(
+        registry,
+        catalog_id,
+        expected_sha256,
+        None,
+        data_root,
+    )
+}
+
+fn verify_registry_preserves_recorded_digest_with_value(
+    registry: &GovernedDataCatalogRegistry,
+    catalog_id: &str,
+    expected_sha256: &str,
+    expected_value: Option<&serde_json::Value>,
+    data_root: &Path,
+) -> Result<()> {
     let record = registry
         .records
         .iter()
@@ -479,9 +510,11 @@ fn verify_registry_preserves_flat_authority(
         let path = canonical_file(&data_root.join(relative), data_root, "prior snapshot")?;
         let bytes = bijux_dna_infra::read_to_end_bounded(&path, MAX_CATALOG_BYTES)?;
         if snapshot.catalog_schema_version == GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1
-            && (bijux_dna_infra::hash_bytes_sha256(&bytes) == flat_sha256
-                || serde_json::from_slice::<serde_json::Value>(&bytes)
-                    .is_ok_and(|snapshot_value| snapshot_value == flat_value))
+            && (bijux_dna_infra::hash_bytes_sha256(&bytes) == expected_sha256
+                || expected_value.is_some_and(|expected_value| {
+                    serde_json::from_slice::<serde_json::Value>(&bytes)
+                        .is_ok_and(|snapshot_value| &snapshot_value == expected_value)
+                }))
         {
             return Ok(());
         }
@@ -489,7 +522,7 @@ fn verify_registry_preserves_flat_authority(
             let value: serde_json::Value = serde_json::from_slice(&bytes)
                 .with_context(|| format!("parse prior preserved catalog {}", path.display()))?;
             if value.get("source_catalog_sha256").and_then(serde_json::Value::as_str)
-                == Some(flat_sha256)
+                == Some(expected_sha256)
             {
                 return Ok(());
             }

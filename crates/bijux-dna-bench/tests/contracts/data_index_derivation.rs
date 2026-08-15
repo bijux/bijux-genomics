@@ -347,13 +347,14 @@ fn rejects_idempotent_derived_replay_with_fabricated_predecessor() -> Result<()>
     };
     admit_governed_derived_data_catalog(&initial)?;
 
+    let fabricated_predecessor = "a".repeat(64);
     let error = admit_governed_derived_data_catalog(&GovernedDerivedDataCatalogAdmissionRequest {
-        expected_previous_catalog_sha256: Some("a".repeat(64)),
+        expected_previous_catalog_sha256: Some(fabricated_predecessor.clone()),
         ..initial
     })
     .expect_err("idempotent replay must not invent predecessor lineage");
 
-    assert!(format!("{error:#}").contains("does not preserve the flat catalog identity"));
+    assert_eq!(format!("{error:#}"), "prior registry does not preserve the flat catalog identity");
     Ok(())
 }
 
