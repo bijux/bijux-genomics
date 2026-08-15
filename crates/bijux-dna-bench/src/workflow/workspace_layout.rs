@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Benchmark workspace layout reporting and governed status publication.
 
 use std::collections::BTreeSet;

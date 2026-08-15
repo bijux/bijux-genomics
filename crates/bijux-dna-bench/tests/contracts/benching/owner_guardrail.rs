@@ -101,6 +101,45 @@ fn thin_cli_delegates_dossier_index_publication_to_benchmark_owner() {
 }
 
 #[test]
+fn thin_cli_delegates_workspace_stage_run_paths_to_benchmark_owner() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/workspace/stage_run_layout.rs");
+    let cli = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    for service in ["benchmark_runtime_corpus_dir_name", "benchmark_stage_run_relative_root"] {
+        assert!(cli.contains(service), "thin CLI must delegate to {service}");
+        assert!(!cli.contains(&format!("fn {service}")), "thin CLI must not implement {service}");
+    }
+    for forbidden in [
+        ".remote_results_template",
+        ".local_cache_results_template",
+        ".local_archive_results_template",
+        ".corpus_root",
+        ".replace(\"{corpus_id}\"",
+    ] {
+        assert!(!cli.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+
+    let owner_source = repo_root.join("crates/bijux-dna-bench/src/workflow/benchmark_config.rs");
+    let owner = fs::read_to_string(&owner_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", owner_source.display()));
+    for service in
+        ["pub fn benchmark_runtime_corpus_dir_name", "pub fn benchmark_stage_run_relative_root"]
+    {
+        assert!(owner.contains(service), "benchmark owner is missing {service}");
+    }
+
+    let api_source = repo_root.join("crates/bijux-dna-api/src/v1/bench/exports.rs");
+    let api = fs::read_to_string(&api_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", api_source.display()));
+    for service in ["benchmark_runtime_corpus_dir_name", "benchmark_stage_run_relative_root"] {
+        assert!(api.contains(service), "stable API is missing {service}");
+    }
+}
+
+#[test]
 fn thin_cli_uses_model_owned_local_runtime_metrics_contract() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source =

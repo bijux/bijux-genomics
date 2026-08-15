@@ -55,6 +55,7 @@ pub use crate::workflow::{
     benchmark_corpus_spec_path_from_config, benchmark_publication_contract_from_config,
     benchmark_publication_contracts_from_config, benchmark_publication_corpus_id,
     benchmark_publication_corpus_key, benchmark_publication_exclusions_from_config,
+    benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root,
     benchmark_workspace_config_value, benchmark_workspace_layout_corpus_dir_name,
     benchmark_workspace_layout_report, build_full_benchmark_comparable_metric_rows,
     build_full_benchmark_corpus_rows, build_full_benchmark_failures_section,

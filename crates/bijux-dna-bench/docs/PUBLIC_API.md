@@ -100,6 +100,8 @@ The `public_api` module itself is private. Stable exports are owned by
 - `apply_benchmark_workspace_convergence(plan)` moves exact duplicates into deterministic same-filesystem quarantine and verifies every resulting digest.
 - `rollback_benchmark_workspace_convergence(plan)` restores applied canonical and quarantine moves in reverse order after checksum validation.
 - `rollback_benchmark_workspace_layout_report(report)` uses an applied normalization report directly as the rollback receipt.
+- `benchmark_runtime_corpus_dir_name(workspace, corpus_id)` derives the runtime corpus directory identity from the admitted remote workspace root.
+- `benchmark_stage_run_relative_root(workspace, scope, corpus_dir_name, stage_id)` expands the admitted stage-run template for one supported storage scope.
 - `summarize(suite, observations, options)` builds a deterministic
   `BenchmarkSummary`.
 - `compare(summary_a, summary_b)` compares completed summaries.

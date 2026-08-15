@@ -125,6 +125,7 @@ pub use benchmark_config::{
     benchmark_corpus_spec_path_from_config, benchmark_publication_contract_from_config,
     benchmark_publication_contracts_from_config, benchmark_publication_corpus_id,
     benchmark_publication_corpus_key, benchmark_publication_exclusions_from_config,
+    benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root,
     benchmark_workspace_config_value, expand_benchmark_config_env_placeholders,
     normalize_benchmark_config, parse_benchmark_config, render_benchmark_config_section_json,
     validate_benchmark_config_contract, BenchmarkConfigValidationRequest,

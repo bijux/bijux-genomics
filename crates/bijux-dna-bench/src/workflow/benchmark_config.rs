@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Benchmark configuration validation and path admission.
 
 use std::path::{Path, PathBuf};
@@ -245,6 +246,56 @@ pub fn benchmark_workspace_config_value(
     value.ok_or_else(|| anyhow!("missing benchmark workspace value for `{key}`"))
 }
 
+/// Derive the runtime corpus directory name from the configured remote corpus root.
+///
+/// # Errors
+/// Returns an error when the remote corpus root is absent or has no usable final component.
+pub fn benchmark_runtime_corpus_dir_name(
+    workspace: &BenchmarkWorkspaceConfig,
+    _corpus_id: &str,
+) -> Result<String> {
+    workspace
+        .remote
+        .as_ref()
+        .and_then(|row| row.corpus_root.as_deref())
+        .map(Path::new)
+        .and_then(Path::file_name)
+        .and_then(|value| value.to_str())
+        .filter(|value| !value.trim().is_empty())
+        .map(ToOwned::to_owned)
+        .ok_or_else(|| anyhow!("benchmark config is missing workspace.remote.corpus_root"))
+}
+
+/// Render the configured stage-run relative root for one storage scope.
+///
+/// # Errors
+/// Returns an error when the scope is unsupported or its stage-run template is absent.
+pub fn benchmark_stage_run_relative_root(
+    workspace: &BenchmarkWorkspaceConfig,
+    scope: &str,
+    corpus_dir_name: &str,
+    stage_id: &str,
+) -> Result<PathBuf> {
+    let template = workspace
+        .layout
+        .as_ref()
+        .and_then(|row| row.stage_runs.as_ref())
+        .and_then(|row| match scope {
+            "remote" => row.remote_results_template.as_deref(),
+            "local-cache" => row.local_cache_results_template.as_deref(),
+            "local-archive" => row.local_archive_results_template.as_deref(),
+            _ => None,
+        })
+        .ok_or_else(|| {
+            anyhow!(
+                "benchmark config is missing workspace.layout.stage_runs template for scope `{scope}`"
+            )
+        })?;
+    Ok(PathBuf::from(
+        template.replace("{corpus_id}", corpus_dir_name).replace("{stage_id}", stage_id),
+    ))
+}
+
 /// Render one supported benchmark configuration section as pretty JSON.
 ///
 /// # Errors
@@ -471,5 +522,93 @@ fn absolutize(cwd: &Path, path: &Path) -> PathBuf {
         path.to_path_buf()
     } else {
         cwd.join(path)
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::{benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root};
+    use bijux_dna_bench_model::{
+        BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout, BenchmarkWorkspaceRemote,
+        BenchmarkWorkspaceStageRuns,
+    };
+    use std::path::PathBuf;
+
+    #[test]
+    fn runtime_corpus_dir_name_uses_remote_root_basename() {
+        let workspace = BenchmarkWorkspaceConfig {
+            remote: Some(BenchmarkWorkspaceRemote {
+                corpus_root: Some("/study/benchmark_corpus".to_string()),
+                ..BenchmarkWorkspaceRemote::default()
+            }),
+            ..BenchmarkWorkspaceConfig::default()
+        };
+
+        assert_eq!(
+            benchmark_runtime_corpus_dir_name(&workspace, "corpus-01").expect("corpus dir"),
+            "benchmark_corpus"
+        );
+    }
+
+    #[test]
+    fn runtime_corpus_dir_name_requires_remote_root() {
+        let error =
+            benchmark_runtime_corpus_dir_name(&BenchmarkWorkspaceConfig::default(), "corpus-01")
+                .expect_err("missing remote root");
+
+        assert!(error
+            .to_string()
+            .contains("benchmark config is missing workspace.remote.corpus_root"));
+    }
+
+    #[test]
+    fn stage_run_relative_root_expands_each_supported_scope() {
+        let workspace = BenchmarkWorkspaceConfig {
+            layout: Some(BenchmarkWorkspaceLayout {
+                stage_runs: Some(BenchmarkWorkspaceStageRuns {
+                    remote_results_template: Some("{corpus_id}/{stage_id}/cluster".to_string()),
+                    local_cache_results_template: Some(
+                        "results/{corpus_id}/{stage_id}/cluster".to_string(),
+                    ),
+                    local_archive_results_template: Some(
+                        "archive/{corpus_id}/{stage_id}/cluster".to_string(),
+                    ),
+                }),
+            }),
+            ..BenchmarkWorkspaceConfig::default()
+        };
+
+        for (scope, expected) in [
+            ("remote", "benchmark_corpus/fastq.validate_reads/cluster"),
+            ("local-cache", "results/benchmark_corpus/fastq.validate_reads/cluster"),
+            ("local-archive", "archive/benchmark_corpus/fastq.validate_reads/cluster"),
+        ] {
+            assert_eq!(
+                benchmark_stage_run_relative_root(
+                    &workspace,
+                    scope,
+                    "benchmark_corpus",
+                    "fastq.validate_reads"
+                )
+                .expect("stage run root"),
+                PathBuf::from(expected)
+            );
+        }
+    }
+
+    #[test]
+    fn stage_run_relative_root_rejects_unconfigured_scope() {
+        let error = benchmark_stage_run_relative_root(
+            &BenchmarkWorkspaceConfig::default(),
+            "unknown",
+            "benchmark_corpus",
+            "fastq.validate_reads",
+        )
+        .expect_err("unsupported scope");
+
+        assert!(error
+            .to_string()
+            .contains("workspace.layout.stage_runs template for scope `unknown`"));
     }
 }

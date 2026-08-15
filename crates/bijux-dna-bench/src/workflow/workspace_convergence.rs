@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Checksum-backed, reversible convergence of benchmark workspace roots.
 
 use std::collections::BTreeSet;
