@@ -5,7 +5,7 @@ use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
 use bijux_dna_core::prelude::{
     ArtifactRole, ArtifactSpec, StageIO, StageOperatingMode, ToolConstraints,
 };
-use bijux_dna_db_ref::{MapCatalogEntry, ReferenceBundle};
+use bijux_dna_db_ref::{MapCatalogEntry, PanelCatalogEntry, ReferenceBundle};
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 
@@ -53,6 +53,7 @@ pub fn build_stage_plan(
     reference_panel_vcf: Option<&Path>,
     coverage: CoverageRegime,
     selected_panel: Option<&VcfPanelLock>,
+    panel: &PanelCatalogEntry,
     map: &MapCatalogEntry,
     bundle: &ReferenceBundle,
     species_id: &str,
@@ -78,6 +79,7 @@ pub fn build_stage_plan(
         tool,
         reference_panel_vcf,
         selected_panel,
+        panel,
         map,
         species_id,
         build_id,
@@ -136,6 +138,7 @@ fn append_panel_workflow_inputs(
     tool: &str,
     reference_panel_vcf: Option<&Path>,
     selected_panel: Option<&VcfPanelLock>,
+    panel: &PanelCatalogEntry,
     map: &MapCatalogEntry,
     species_id: &str,
     build_id: &str,
@@ -168,15 +171,21 @@ fn append_panel_workflow_inputs(
         stage,
         VcfDomainStage::Phasing | VcfDomainStage::ImputationMetrics | VcfDomainStage::Impute
     ) {
-        let panel_id = selected_panel.map(|panel| panel.panel_id.as_str()).ok_or_else(|| {
+        let _ = selected_panel.ok_or_else(|| {
             anyhow!("planner refusal: {} requires resolved panel identity", stage.as_str())
         })?;
         let panel_vcf_path = match reference_panel_vcf {
             Some(path) => path.to_path_buf(),
-            None => reference_asset_root(species_id, build_id)
-                .join("panels")
-                .join(panel_id)
-                .join("panel.vcf.gz"),
+            None => {
+                let panel_file =
+                    panel.files.iter().find(|file| file.name == "panel_vcf").ok_or_else(|| {
+                        anyhow!("planner refusal: panel {} has no panel_vcf artifact", panel.id)
+                    })?;
+                reference_asset_root(species_id, build_id)
+                    .join("panels")
+                    .join(&panel.id)
+                    .join(&panel_file.path)
+            }
         };
         io_inputs.push(ArtifactSpec::required(
             ArtifactId::new("reference_panel_vcf"),
@@ -185,13 +194,17 @@ fn append_panel_workflow_inputs(
         ));
     }
     if tool == "minimac4" {
-        let panel_id = selected_panel.map(|panel| panel.panel_id.as_str()).ok_or_else(|| {
-            anyhow!("planner refusal: {} requires resolved panel identity", stage.as_str())
-        })?;
+        let panel_file = panel
+            .files
+            .iter()
+            .find(|file| file.name == "panel_msav" && file.format == "msav")
+            .ok_or_else(|| {
+                anyhow!("planner refusal: panel {} has no admitted panel_msav artifact", panel.id)
+            })?;
         let panel_msav_path = reference_asset_root(species_id, build_id)
             .join("panels")
-            .join(panel_id)
-            .join("panel.msav");
+            .join(&panel.id)
+            .join(&panel_file.path);
         io_inputs.push(ArtifactSpec::required(
             ArtifactId::new("reference_panel_msav"),
             panel_msav_path,

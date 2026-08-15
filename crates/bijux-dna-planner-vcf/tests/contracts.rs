@@ -326,6 +326,7 @@ fn vcf_planner_renders_executable_imputation_stage_templates_for_supported_backe
         (CoverageRegime::Diploid, "vcf.imputation_metrics", "impute5"),
         (CoverageRegime::LowCovGl, "vcf.impute", "glimpse"),
         (CoverageRegime::Diploid, "vcf.impute", "impute5"),
+        (CoverageRegime::Diploid, "vcf.impute", "minimac4"),
     ];
 
     for (regime, stage_id, tool_id) in cases {
@@ -407,7 +408,8 @@ fn vcf_planner_renders_executable_imputation_stage_templates_for_supported_backe
             }
             "minimac4" => {
                 assert!(joined.contains("minimac4"));
-                assert!(joined.contains("panel.msav"));
+                assert!(joined.contains("panels/hsapiens_grch38_1kg_3202_chr22/panel.msav"));
+                assert!(!joined.contains("panels/1000g_phase3/panel.msav"));
                 assert!(joined.contains("--threads"));
                 assert!(joined.contains("--output"));
             }
