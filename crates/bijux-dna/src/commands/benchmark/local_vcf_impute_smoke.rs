@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
-use bijux_dna_science::evidence::genotypes_equivalent_unphased;
+use bijux_dna_api::v1::api::qualification::genotypes_equivalent_unphased;
 use bijux_dna_stages_vcf::pipeline::{
     assert_bgzip_tabix_artifacts, run_impute_stage, ImputationAcceptMode, ImputeBackend,
     ImputeStageParams,

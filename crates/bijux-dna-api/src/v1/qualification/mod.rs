@@ -16,6 +16,7 @@ pub use bijux_dna_policies::{
     QualificationReportSummary, SupportDisposition, QUALIFICATION_ASSESSMENT_SCHEMA_V3,
     QUALIFICATION_REPORT_SCHEMA_V4, REQUIRED_EVIDENCE_DIMENSIONS,
 };
+pub use bijux_dna_science::evidence::genotypes_equivalent_unphased;
 
 pub use derivation::{
     derive_container_qualification_report, derive_container_qualification_report_with_release,
