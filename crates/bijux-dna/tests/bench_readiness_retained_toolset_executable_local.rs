@@ -246,15 +246,31 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|detail| detail.contains("unavailable_count=4"))
     }));
+    let output_contract_audit: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(
+            repo_root.join("artifacts/benchmark-smoke/readiness/tools/output-contract-tests.json"),
+        )
+        .expect("read governed output contract audit"),
+    )
+    .expect("parse governed output contract audit");
+    let expected_output_contract_detail = format!(
+        "row_count={}, passed_row_count={}, blocked_row_count={}, failed_row_count={}",
+        support::json_u64(&output_contract_audit, "row_count").expect("output audit row count"),
+        support::json_u64(&output_contract_audit, "passed_row_count")
+            .expect("output audit passed count"),
+        support::json_u64(&output_contract_audit, "blocked_row_count")
+            .expect("output audit blocked count"),
+        support::json_u64(&output_contract_audit, "failed_row_count")
+            .expect("output audit failed count"),
+    );
     assert!(
         checks.iter().any(|check| {
             check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(428)
                 && check.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
-                && check.get("detail").and_then(serde_json::Value::as_str).is_some_and(|detail| {
-                    detail.contains("blocked_row_count=23") && detail.contains("failed_row_count=0")
-                })
+                && check.get("detail").and_then(serde_json::Value::as_str)
+                    == Some(expected_output_contract_detail.as_str())
         }),
-        "goal 428 must report the fail-closed output audit count: {payload:#}"
+        "goal 428 must report the exact governed output audit counts: {payload:#}"
     );
 }
 
