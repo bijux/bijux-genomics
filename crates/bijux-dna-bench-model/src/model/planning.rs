@@ -60,20 +60,22 @@ pub enum BenchmarkCampaignMaterialDriver {
 impl BenchmarkCampaignMaterialDriver {
     #[must_use]
     pub const fn stage_id(self) -> &'static str {
+        use bijux_dna_core::id_catalog;
+
         match self {
-            Self::BamAlignment => "bam.align",
-            Self::BamCoverage => "bam.coverage",
-            Self::BamDamage => "bam.damage",
-            Self::BamDuplicationMetrics => "bam.duplication_metrics",
-            Self::BamEndogenousContent => "bam.endogenous_content",
-            Self::BamGcBias => "bam.gc_bias",
-            Self::BamGenotyping => "bam.genotyping",
-            Self::BamInsertSize => "bam.insert_size",
-            Self::BamMappingSummary => "bam.mapping_summary",
-            Self::FastqDetectAdapters => "fastq.detect_adapters",
-            Self::FastqProfileReadLengths => "fastq.profile_read_lengths",
-            Self::FastqProfileReads => "fastq.profile_reads",
-            Self::FastqValidateReads => "fastq.validate_reads",
+            Self::BamAlignment => id_catalog::BAM_ALIGN,
+            Self::BamCoverage => id_catalog::BAM_COVERAGE,
+            Self::BamDamage => id_catalog::BAM_DAMAGE,
+            Self::BamDuplicationMetrics => id_catalog::BAM_DUPLICATION_METRICS,
+            Self::BamEndogenousContent => id_catalog::BAM_ENDOGENOUS_CONTENT,
+            Self::BamGcBias => id_catalog::BAM_GC_BIAS,
+            Self::BamGenotyping => id_catalog::BAM_GENOTYPING,
+            Self::BamInsertSize => id_catalog::BAM_INSERT_SIZE,
+            Self::BamMappingSummary => id_catalog::BAM_MAPPING_SUMMARY,
+            Self::FastqDetectAdapters => id_catalog::FASTQ_DETECT_ADAPTERS,
+            Self::FastqProfileReadLengths => id_catalog::FASTQ_PROFILE_READ_LENGTHS,
+            Self::FastqProfileReads => id_catalog::FASTQ_STATS_NEUTRAL,
+            Self::FastqValidateReads => id_catalog::FASTQ_VALIDATE_READS,
         }
     }
 }
