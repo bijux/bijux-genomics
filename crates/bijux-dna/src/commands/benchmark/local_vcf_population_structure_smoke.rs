@@ -228,14 +228,21 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
 
     let source_population_structure_path =
         output_root.join(DEFAULT_OUTPUT_SOURCE_STAGE_REPORT_NAME);
-    fs::copy(&stage_outputs.population_structure_json, &source_population_structure_path)
-        .with_context(|| {
-            format!(
-                "copy {} to {}",
-                stage_outputs.population_structure_json.display(),
-                source_population_structure_path.display()
-            )
-        })?;
+    let mut source_population_structure_json = read_json(&stage_outputs.population_structure_json)?;
+    rebase_population_structure_paths(
+        &mut source_population_structure_json,
+        repo_root,
+        &published_stage_root,
+        &upstream_population_labels_manifest,
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &stage_outputs.population_structure_json,
+        &source_population_structure_json,
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &source_population_structure_path,
+        &source_population_structure_json,
+    )?;
     let source_pruned_variants_path = output_root.join(DEFAULT_OUTPUT_SOURCE_PRUNED_VARIANTS_NAME);
     fs::copy(&stage_outputs.pruned_variants_tsv, &source_pruned_variants_path).with_context(
         || {
@@ -278,7 +285,6 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
 
     let consumed_pca_json = read_json(&source_pca_report_path)?;
     let consumed_admixture_json = read_json(&source_admixture_report_path)?;
-    let source_population_structure_json = read_json(&source_population_structure_path)?;
     let selected_pca_tool_id = required_string_at(
         &source_population_structure_json,
         "/pca/tool_id",
@@ -575,6 +581,41 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
     let _ = staging_dir.keep();
 
     Ok(report)
+}
+
+fn rebase_population_structure_paths(
+    payload: &mut serde_json::Value,
+    repo_root: &Path,
+    published_stage_root: &Path,
+    population_labels_manifest: &Path,
+) -> Result<()> {
+    for (pointer, published_path) in [
+        ("/sample_labels/manifest", population_labels_manifest.to_path_buf()),
+        ("/pca/eigenvec_tsv", published_stage_root.join("eigenvec.tsv")),
+        ("/pca/eigenval_tsv", published_stage_root.join("eigenval.tsv")),
+        ("/pca/manifest_json", published_stage_root.join("pca_manifest.json")),
+        ("/admixture/q_matrix_tsv", published_stage_root.join("admixture_q_matrix.tsv")),
+        ("/admixture/k_selection_json", published_stage_root.join("admixture_k_selection.json")),
+        ("/outputs/pruned_variants_tsv", published_stage_root.join("pruned_variants.tsv")),
+        (
+            "/outputs/population_structure_json",
+            published_stage_root.join("population_structure.json"),
+        ),
+        ("/outputs/population_mds", published_stage_root.join("population_structure_mds.mds")),
+        ("/outputs/tool_log", published_stage_root.join("population_structure_mds.log")),
+    ] {
+        let Some(slot) = payload.pointer_mut(pointer) else {
+            continue;
+        };
+        if slot.is_null() {
+            continue;
+        }
+        if !slot.is_string() {
+            bail!("population-structure source path `{pointer}` must be a string or null");
+        }
+        *slot = serde_json::Value::String(path_relative_to_repo(repo_root, &published_path));
+    }
+    Ok(())
 }
 
 fn resolve_governed_vcf_population_structure_smoke_contract(
