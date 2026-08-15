@@ -309,13 +309,13 @@ pub(crate) fn run_local_vcf_impute_smoke(
             output_summary.sample_ids
         );
     }
-    if output_summary.masked_sample_gt != EXPECTED_MASKED_SAMPLE_GT {
+    if !genotypes_equivalent_unphased(EXPECTED_MASKED_SAMPLE_GT, &output_summary.masked_sample_gt) {
         bail!(
             "governed VCF impute smoke expected masked sample GT `{EXPECTED_MASKED_SAMPLE_GT}`, found `{}`",
             output_summary.masked_sample_gt
         );
     }
-    if output_summary.donor_sample_gt != EXPECTED_DONOR_SAMPLE_GT {
+    if !genotypes_equivalent_unphased(EXPECTED_DONOR_SAMPLE_GT, &output_summary.donor_sample_gt) {
         bail!(
             "governed VCF impute smoke expected donor sample GT `{EXPECTED_DONOR_SAMPLE_GT}`, found `{}`",
             output_summary.donor_sample_gt
@@ -620,6 +620,28 @@ fn format_index(fields: &[&str], name: &str) -> Option<usize> {
     fields.get(8)?.split(':').position(|field| field == name)
 }
 
+fn genotypes_equivalent_unphased(expected: &str, observed: &str) -> bool {
+    if expected == observed {
+        return true;
+    }
+    let Some(expected_alleles) = normalized_unphased_alleles(expected) else {
+        return false;
+    };
+    let Some(observed_alleles) = normalized_unphased_alleles(observed) else {
+        return false;
+    };
+    expected_alleles == observed_alleles
+}
+
+fn normalized_unphased_alleles(genotype: &str) -> Option<Vec<&str>> {
+    let mut alleles = genotype.split(['/', '|']).collect::<Vec<_>>();
+    if alleles.len() < 2 || alleles.iter().any(|allele| allele.is_empty() || *allele == ".") {
+        return None;
+    }
+    alleles.sort_unstable();
+    Some(alleles)
+}
+
 fn read_json(path: &Path) -> Result<serde_json::Value> {
     let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))
@@ -670,5 +692,13 @@ mod tests {
         let payload = std::fs::read_to_string(input_path).expect("read GLIMPSE input");
         assert!(payload.contains("##FORMAT=<ID=GL,"));
         assert!(payload.contains("\tGT:GL\t"));
+    }
+
+    #[test]
+    fn unphased_truth_accepts_equivalent_phased_backend_genotypes() {
+        assert!(genotypes_equivalent_unphased("0/1", "0|1"));
+        assert!(genotypes_equivalent_unphased("0/1", "1|0"));
+        assert!(!genotypes_equivalent_unphased("0/1", "0|0"));
+        assert!(!genotypes_equivalent_unphased("0/1", ".|."));
     }
 }
