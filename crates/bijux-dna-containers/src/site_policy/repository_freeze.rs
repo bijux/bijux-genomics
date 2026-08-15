@@ -489,7 +489,7 @@ mod tests {
         git(repository.path(), &["init", "--quiet"])?;
         git(repository.path(), &["config", "user.name", "Bijux Test"])?;
         git(repository.path(), &["config", "user.email", "test@bijux.invalid"])?;
-        std::fs::write(repository.path().join(".gitignore"), "artifacts/\n")?;
+        std::fs::write(repository.path().join(".gitignore"), "runtime-output/\n")?;
         std::fs::create_dir_all(repository.path().join("src"))?;
         std::fs::write(repository.path().join("src/lib.rs"), "pub fn tracked() {}\n")?;
         git(repository.path(), &["add", ".gitignore", "src/lib.rs"])?;
@@ -497,10 +497,10 @@ mod tests {
         let commit = git(repository.path(), &["rev-parse", "HEAD"])?;
         let before = estimated_snapshot_inodes(repository.path(), &commit, &[])?;
 
-        let artifacts = repository.path().join("artifacts/runtime");
-        std::fs::create_dir_all(&artifacts)?;
+        let runtime_output = repository.path().join("runtime-output");
+        std::fs::create_dir_all(&runtime_output)?;
         for index in 0..2_000 {
-            std::fs::write(artifacts.join(format!("entry-{index}.json")), "{}\n")?;
+            std::fs::write(runtime_output.join(format!("entry-{index}.json")), "{}\n")?;
         }
         let after = estimated_snapshot_inodes(repository.path(), &commit, &[])
             .context("estimate snapshot with ignored runtime artifacts")?;
