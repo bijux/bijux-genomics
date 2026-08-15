@@ -19,7 +19,12 @@ use super::source::{
     ImageInventoryScan, ImageInventoryScannedImage, IndexedBuildEvidence, RAW_INVENTORY_SCHEMA_V2,
 };
 
-type CandidateWithReference = (ContainerImageCandidate, bool);
+struct CandidateSelection {
+    candidate: ContainerImageCandidate,
+    referenced: bool,
+    admitted_commits: BTreeSet<String>,
+    current_recipe_commits: BTreeSet<String>,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DerivedImageInventory {
@@ -158,8 +163,7 @@ fn derive_tool(
     )?;
     let candidates =
         derive_candidates(request, tool, &recipe, images, evidence_by_digest, run_references)?;
-    let (state, selected, retained) =
-        select_candidates(&request.repository_root, &recipe, candidates)?;
+    let (state, selected, retained) = select_candidates(&request.repository_root, candidates)?;
     verify_historical_references(&retained)?;
     Ok(ContainerImageInventoryTool {
         tool: tool.id.clone(),
@@ -181,7 +185,7 @@ fn derive_candidates(
     images: &[(std::path::PathBuf, ImageInventoryScannedImage)],
     evidence_by_digest: &BTreeMap<String, Vec<IndexedBuildEvidence>>,
     run_references: &BTreeMap<String, Vec<String>>,
-) -> Result<Vec<CandidateWithReference>> {
+) -> Result<Vec<CandidateSelection>> {
     let prefix = format!("{}-{}-linux-amd64-", tool.id, tool.version);
     let mut candidates = Vec::new();
     for (image_path, identity) in images.iter().filter(|(path, _)| {
@@ -200,20 +204,34 @@ fn derive_candidates(
             .flatten()
             .filter(|evidence| evidence_matches_image(evidence, tool, filename, identity))
             .collect::<Vec<_>>();
-        let admitted = immutable_name
-            && matching.iter().any(|evidence| {
-                recipe_at_evidence_commit(request, tool, evidence).is_ok_and(|built_recipe| {
-                    container_build_evidence_matches_recipe(&evidence.evidence, &built_recipe)
-                })
-            });
-        let current_recipe = admitted
-            && matching
+        let admitted_evidence = if immutable_name {
+            matching
                 .iter()
-                .any(|evidence| evidence_matches_recipe_content(&evidence.evidence, recipe));
+                .filter(|evidence| {
+                    recipe_at_evidence_commit(request, tool, evidence).is_ok_and(|built_recipe| {
+                        container_build_evidence_matches_recipe(&evidence.evidence, &built_recipe)
+                    })
+                })
+                .copied()
+                .collect::<Vec<_>>()
+        } else {
+            Vec::new()
+        };
+        let admitted_commits = admitted_evidence
+            .iter()
+            .map(|evidence| evidence.evidence.repository_commit.clone())
+            .collect::<BTreeSet<_>>();
+        let current_recipe_commits = admitted_evidence
+            .iter()
+            .filter(|evidence| evidence_matches_recipe_content(&evidence.evidence, recipe))
+            .map(|evidence| evidence.evidence.repository_commit.clone())
+            .collect::<BTreeSet<_>>();
+        let admitted = !admitted_commits.is_empty();
+        let current_recipe = !current_recipe_commits.is_empty();
         let is_referenced = run_references.contains_key(&identity.sha256);
         let references = run_references.get(&identity.sha256).cloned().unwrap_or_default();
-        candidates.push((
-            ContainerImageCandidate {
+        candidates.push(CandidateSelection {
+            candidate: ContainerImageCandidate {
                 admitted,
                 current_recipe,
                 disposition: ImageCandidateDisposition::HistoricalRunDependency,
@@ -224,25 +242,32 @@ fn derive_candidates(
                 run_references: references,
                 build_evidence: matching.into_iter().map(|item| item.evidence.clone()).collect(),
             },
-            is_referenced,
-        ));
+            referenced: is_referenced,
+            admitted_commits,
+            current_recipe_commits,
+        });
     }
     Ok(candidates)
 }
 
 fn select_candidates(
     repository_root: &std::path::Path,
-    recipe: &crate::evidence::ApptainerRecipeIdentity,
-    mut candidates: Vec<CandidateWithReference>,
+    mut candidates: Vec<CandidateSelection>,
 ) -> Result<(ContainerImageState, Option<String>, Vec<ContainerImageCandidate>)> {
-    let current =
-        candidates.iter().filter(|(candidate, _)| candidate.current_recipe).collect::<Vec<_>>();
+    let current = candidates
+        .iter()
+        .filter(|candidate| candidate.candidate.current_recipe)
+        .collect::<Vec<_>>();
     let admitted =
-        candidates.iter().filter(|(candidate, _)| candidate.admitted).collect::<Vec<_>>();
+        candidates.iter().filter(|candidate| candidate.candidate.admitted).collect::<Vec<_>>();
     let selection_pool = if current.is_empty() { &admitted } else { &current };
-    let unreferenced =
-        selection_pool.iter().copied().filter(|(_, referenced)| !referenced).collect::<Vec<_>>();
-    let descendant = unique_descendant_candidate(repository_root, recipe, selection_pool)?;
+    let unreferenced = selection_pool
+        .iter()
+        .copied()
+        .filter(|candidate| !candidate.referenced)
+        .collect::<Vec<_>>();
+    let descendant =
+        unique_descendant_candidate(repository_root, selection_pool, !current.is_empty())?;
     let selected_candidate = if selection_pool.len() == 1 {
         selection_pool.first().copied()
     } else if descendant.is_some() {
@@ -253,15 +278,16 @@ fn select_candidates(
         None
     };
     let selection_pool_is_empty = selection_pool.is_empty();
-    let selected = selected_candidate.map(|(candidate, _)| candidate.sha256.clone());
-    for (candidate, _) in &mut candidates {
+    let selected = selected_candidate.map(|candidate| candidate.candidate.sha256.clone());
+    for selection in &mut candidates {
+        let candidate = &mut selection.candidate;
         if Some(candidate.sha256.as_str()) == selected.as_deref() {
             candidate.disposition = ImageCandidateDisposition::Canonical;
         } else if candidate.real_run_references == 0 {
             candidate.disposition = ImageCandidateDisposition::UnreferencedObsolete;
         }
     }
-    let retained = candidates.into_iter().map(|(candidate, _)| candidate).collect::<Vec<_>>();
+    let retained = candidates.into_iter().map(|selection| selection.candidate).collect::<Vec<_>>();
     let state = match selected.as_deref() {
         Some(digest)
             if retained
@@ -279,21 +305,21 @@ fn select_candidates(
 
 fn unique_descendant_candidate<'a>(
     repository_root: &std::path::Path,
-    recipe: &crate::evidence::ApptainerRecipeIdentity,
-    candidates: &[&'a CandidateWithReference],
-) -> Result<Option<&'a CandidateWithReference>> {
+    candidates: &[&'a CandidateSelection],
+    current_recipe_only: bool,
+) -> Result<Option<&'a CandidateSelection>> {
     if candidates.len() < 2 {
         return Ok(None);
     }
     let commits = candidates
         .iter()
-        .map(|(candidate, _)| {
-            candidate
-                .build_evidence
-                .iter()
-                .filter(|evidence| evidence_matches_recipe_content(evidence, recipe))
-                .map(|evidence| evidence.repository_commit.as_str())
-                .collect::<BTreeSet<_>>()
+        .map(|candidate| {
+            let commits = if current_recipe_only {
+                &candidate.current_recipe_commits
+            } else {
+                &candidate.admitted_commits
+            };
+            commits.iter().map(String::as_str).collect::<BTreeSet<_>>()
         })
         .collect::<Vec<_>>();
     let mut descendants = Vec::new();

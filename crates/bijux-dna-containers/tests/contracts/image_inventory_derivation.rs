@@ -752,6 +752,68 @@ fn preserves_one_admitted_image_as_historical_after_recipe_change() -> Result<()
 }
 
 #[test]
+fn selects_the_unique_descendant_when_multiple_images_become_historical() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let prior_digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
+    fs::write(fixture.repository.join("README.md"), "new source authority\n")?;
+    git(&fixture.repository, &["add", "README.md"])?;
+    git(&fixture.repository, &["commit", "-qm", "advance source authority"])?;
+    let descendant_digest = fixture.add_admitted_image(b"descendant current rebuild")?;
+    fs::write(
+        fixture.repository.join("containers/apptainer/example.def"),
+        "Bootstrap: docker\nFrom: scratch\n\n%files\n  containers/tools/example/example /usr/local/bin/example\n\n%post\n  true\n",
+    )?;
+    git(&fixture.repository, &["add", "containers/apptainer/example.def"])?;
+    git(&fixture.repository, &["commit", "-qm", "change example recipe"])?;
+
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let tool = publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Historical);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(descendant_digest.as_str()));
+    assert!(tool.candidates.iter().any(|candidate| {
+        candidate.sha256 == prior_digest
+            && candidate.disposition == ImageCandidateDisposition::UnreferencedObsolete
+    }));
+    bijux_dna_containers::evidence::validate_image_inventory_publication(&publication)?;
+    Ok(())
+}
+
+#[test]
+fn current_recipe_state_requires_the_same_evidence_to_be_admissible() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
+    fs::write(
+        fixture.repository.join("containers/apptainer/example.def"),
+        "Bootstrap: docker\nFrom: scratch\n\n%files\n  containers/tools/example/example /usr/local/bin/example\n\n%post\n  true\n",
+    )?;
+    git(&fixture.repository, &["add", "containers/apptainer/example.def"])?;
+    git(&fixture.repository, &["commit", "-qm", "change example recipe"])?;
+
+    let current_commit = repository_head_commit(&fixture.repository)?;
+    let current_recipe = apptainer_recipe_identity_at_commit(
+        &fixture.repository,
+        &current_commit,
+        "containers/apptainer/example.def",
+    )?;
+    let evidence_path =
+        fixture.study.join("containers/evidence").join(format!("{digest}.build.json"));
+    let mut forged_current: serde_json::Value = serde_json::from_slice(&fs::read(&evidence_path)?)?;
+    forged_current["definition"]["sha256"] = json!(current_recipe.definition_sha256);
+    forged_current["build_context"] = json!(current_recipe.build_context);
+    fs::write(
+        fixture.study.join("containers/evidence/forged-current.build.json"),
+        serde_json::to_vec_pretty(&forged_current)?,
+    )?;
+
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let tool = publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Historical);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(digest.as_str()));
+    assert!(!tool.candidates[0].current_recipe);
+    Ok(())
+}
+
+#[test]
 fn retains_repository_run_dependency_beside_new_current_image() -> Result<()> {
     let fixture = Fixture::current()?;
     let historical_digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
