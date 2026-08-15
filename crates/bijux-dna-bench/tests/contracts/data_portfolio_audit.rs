@@ -32,12 +32,12 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
     let audit = derive_benchmark_data_portfolio_audit(&request)?;
 
     assert_eq!(audit.summary.corpus_count, 14);
-    assert_eq!(audit.summary.admitted_corpus_count, 6);
-    assert_eq!(audit.summary.source_defined_corpus_count, 8);
+    assert_eq!(audit.summary.admitted_corpus_count, 7);
+    assert_eq!(audit.summary.source_defined_corpus_count, 7);
     assert_eq!(audit.summary.missing_corpus_count, 0);
     assert_eq!(audit.summary.publishable_data_ready_count, 1);
     assert_eq!(audit.summary.bound_catalog_count, 4);
-    assert_eq!(audit.summary.missing_catalog_binding_count, 19);
+    assert_eq!(audit.summary.missing_catalog_binding_count, 20);
     assert_eq!(audit.summary.unbound_catalog_count, 1);
     assert_eq!(audit.summary.suspected_nonproduction_asset_count, 1);
     assert_eq!(audit.summary.publishable_contamination_count, 0);
@@ -50,6 +50,19 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
                 && corpus.catalog_bindings.iter().any(|binding| {
                     binding.catalog_id == "grch38-reference" && binding.integrity_verified
                 })
+        }));
+    assert!(audit
+        .corpora
+        .iter()
+        .find(|corpus| corpus.corpus_id == "ancient-dna-bam-diversity")
+        .is_some_and(|corpus| {
+            !corpus.publishable_data_ready
+                && corpus.declared_sample_count == 10
+                && corpus.minimum_sample_count == 10
+                && corpus
+                    .blockers
+                    .iter()
+                    .any(|blocker| blocker.contains("governed data index lacks catalog"))
         }));
     assert!(audit
         .corpora

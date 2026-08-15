@@ -279,16 +279,20 @@ source_specs = ["benchmarks/corpora/alignment-truth-panel.toml"]
 
 [[corpora]]
 id = "ancient-dna-bam-diversity"
-status = "source_defined"
+status = "admitted"
 evidence_scope = "comparative"
 class = "production_real"
-sample_count = 0
+sample_count = 10
 minimum_sample_count = 10
 data_types = ["bam", "fasta"]
 roles = ["bam_diversity"]
+catalog_ids = ["ancient-dna-bam-diversity"]
 truth_strategy = "observational_alignment_diversity_with_separate_orthogonal_controls"
 scientific_rationale = "Multiple libraries spanning damage, depth, duplication, contamination, fragment length, and library preparation are required for defensible BAM-stage comparisons; independent damage controls are governed by a separate corpus authority."
-limitations = ["Only one ancient horse BAM is currently checksum-admitted for qualification, and this observational corpus cannot serve as its own damage truth."]
+limitations = [
+  "The ten checksum-admitted ancient-human BAMs are observational and cannot serve as their own damage truth.",
+  "Independent damage controls remain governed by the ancient-dna-damage-controls corpus.",
+]
 source_specs = ["benchmarks/corpora/ancient-dna-bam-diversity.toml"]
 
 [[corpora]]
