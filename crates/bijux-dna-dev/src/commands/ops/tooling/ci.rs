@@ -24,6 +24,8 @@ const FULL_SHARD_SCRATCH_ROOT_ENV: &str = "BIJUX_CI_FULL_SHARD_SCRATCH_ROOT";
 const SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES: usize = 107;
 #[cfg(unix)]
 const SCCACHE_UNIX_RUNTIME_TMPDIR: &str = "/tmp";
+#[cfg(unix)]
+const SCCACHE_RUSTC_WRAPPER: &str = "#!/bin/sh\ncompiler=$1\nshift\nif [ \"$#\" -eq 1 ] && [ \"$1\" = -vV ]; then\n  exec \"$compiler\" \"$@\"\nfi\nexec \"$BIJUX_CI_SCCACHE\" \"$compiler\" \"$@\"\n";
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -76,6 +78,23 @@ struct FullArchiveRoots {
     cargo_target: PathBuf,
     archive_file: PathBuf,
     build_log: PathBuf,
+}
+
+#[derive(Debug)]
+struct OwnedSccacheServer<'a> {
+    workspace: &'a Workspace,
+    wrapper: String,
+    runtime_env: Vec<(String, String)>,
+}
+
+impl Drop for OwnedSccacheServer<'_> {
+    fn drop(&mut self) {
+        let _ = ProcessRunner::new(self.workspace).run_owned_with_env(
+            &self.wrapper,
+            &["--stop-server".to_string()],
+            &self.runtime_env,
+        );
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -372,10 +391,20 @@ pub(in super::super) fn tooling_ci_fast(
     bijux_dna_infra::ensure_dir(&report_root)?;
     let build_authority = ci_fast_build_authority(workspace)?;
     let compiler_wrapper = compiler_wrapper_program(workspace)?;
+    let configured_sccache_socket = std::env::var_os("SCCACHE_SERVER_UDS").map(PathBuf::from);
     let sccache_runtime_env = resolve_ci_fast_sccache_runtime_env(
         compiler_wrapper.as_deref(),
-        std::env::var_os("SCCACHE_SERVER_UDS").map(PathBuf::from),
+        configured_sccache_socket.clone(),
     )?;
+    let _owned_sccache_server = start_owned_sccache_server(
+        workspace,
+        compiler_wrapper.as_deref(),
+        &sccache_runtime_env,
+        configured_sccache_socket.is_none(),
+    )?;
+    verify_sccache_compiler(workspace, compiler_wrapper.as_deref(), &sccache_runtime_env)?;
+    let group_compiler_env =
+        materialize_ci_fast_compiler_wrapper(&report_root, compiler_wrapper.as_deref())?;
     let cache_before = compiler_wrapper.as_deref().and_then(|wrapper| {
         read_sccache_stats(workspace, wrapper, &sccache_runtime_env).ok().flatten()
     });
@@ -440,7 +469,12 @@ pub(in super::super) fn tooling_ci_fast(
                     label: group.id.clone(),
                     program: group.program.clone(),
                     args: group.args.clone(),
-                    envs: ci_fast_group_env(workspace, &build_authority, &sccache_runtime_env)?,
+                    envs: ci_fast_group_env(
+                        workspace,
+                        &build_authority,
+                        &sccache_runtime_env,
+                        &group_compiler_env,
+                    )?,
                     current_dir: None,
                 })
             })
@@ -580,6 +614,8 @@ pub(in super::super) fn tooling_ci_fast(
                     (key == "SCCACHE_SERVER_UDS").then_some(value)),
                 "sccache_runtime_tmpdir": sccache_runtime_env.iter().find_map(|(key, value)|
                     (key == "TMPDIR").then_some(value)),
+                "sccache_rustc_wrapper": group_compiler_env.iter().find_map(|(key, value)|
+                    (key == "RUSTC_WRAPPER").then_some(value)),
                 "cache_state": cache_state,
                 "cache_reuse_mode": cache_reuse_mode,
                 "requested_cache_state": requested_cache_state,
@@ -620,12 +656,44 @@ fn ci_fast_group_env(
     workspace: &Workspace,
     authority: &FastBuildAuthority,
     sccache_runtime_env: &[(String, String)],
+    group_compiler_env: &[(String, String)],
 ) -> Result<Vec<(String, String)>> {
     let mut envs = artifact_env_with_common_test_env(workspace)?;
     envs.push(("CARGO_TARGET_DIR".to_string(), authority.target.display().to_string()));
     envs.push(("CARGO_NET_OFFLINE".to_string(), "true".to_string()));
     envs.extend_from_slice(sccache_runtime_env);
+    envs.extend_from_slice(group_compiler_env);
     Ok(envs)
+}
+
+fn materialize_ci_fast_compiler_wrapper(
+    report_root: &Path,
+    compiler_wrapper: Option<&str>,
+) -> Result<Vec<(String, String)>> {
+    let Some(wrapper) = compiler_wrapper.filter(|wrapper| {
+        Path::new(wrapper).file_name().and_then(|name| name.to_str()) == Some("sccache")
+    }) else {
+        return Ok(Vec::new());
+    };
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+
+        let proxy = report_root.join("sccache-rustc-wrapper");
+        bijux_dna_infra::write_bytes(&proxy, SCCACHE_RUSTC_WRAPPER.as_bytes())?;
+        std::fs::set_permissions(&proxy, std::fs::Permissions::from_mode(0o700))?;
+        Ok(vec![
+            ("BIJUX_CI_SCCACHE".to_string(), wrapper.to_string()),
+            ("RUSTC_WRAPPER".to_string(), proxy.display().to_string()),
+        ])
+    }
+
+    #[cfg(not(unix))]
+    {
+        let _ = report_root;
+        Ok(Vec::new())
+    }
 }
 
 fn resolve_ci_fast_sccache_runtime_env(
@@ -669,6 +737,63 @@ fn resolve_ci_fast_sccache_runtime_env(
         let _ = configured_socket;
         Ok(Vec::new())
     }
+}
+
+fn start_owned_sccache_server<'a>(
+    workspace: &'a Workspace,
+    compiler_wrapper: Option<&str>,
+    runtime_env: &[(String, String)],
+    manage_server: bool,
+) -> Result<Option<OwnedSccacheServer<'a>>> {
+    let Some(wrapper) = compiler_wrapper.filter(|wrapper| {
+        Path::new(wrapper).file_name().and_then(|name| name.to_str()) == Some("sccache")
+    }) else {
+        return Ok(None);
+    };
+    if !manage_server {
+        return Ok(None);
+    }
+
+    let output = ProcessRunner::new(workspace).run_owned_with_env(
+        wrapper,
+        &["--start-server".to_string()],
+        runtime_env,
+    )?;
+    if !output.status.success() {
+        anyhow::bail!(
+            "start ci-fast sccache server: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        );
+    }
+    Ok(Some(OwnedSccacheServer {
+        workspace,
+        wrapper: wrapper.to_string(),
+        runtime_env: runtime_env.to_vec(),
+    }))
+}
+
+fn verify_sccache_compiler(
+    workspace: &Workspace,
+    compiler_wrapper: Option<&str>,
+    runtime_env: &[(String, String)],
+) -> Result<()> {
+    let Some(wrapper) = compiler_wrapper.filter(|wrapper| {
+        Path::new(wrapper).file_name().and_then(|name| name.to_str()) == Some("sccache")
+    }) else {
+        return Ok(());
+    };
+    let output = ProcessRunner::new(workspace).run_owned_with_env(
+        wrapper,
+        &["rustc".to_string(), "-vV".to_string()],
+        runtime_env,
+    )?;
+    if !output.status.success() {
+        anyhow::bail!(
+            "verify ci-fast sccache compiler handshake: {}",
+            String::from_utf8_lossy(&output.stderr).trim()
+        );
+    }
+    Ok(())
 }
 
 fn ci_fast_build_authority(workspace: &Workspace) -> Result<FastBuildAuthority> {
@@ -1901,18 +2026,19 @@ mod tests {
         artifact_root_path, cache_stats_delta, ci_fast_group_env, ci_output_path_under,
         full_archive_args, full_archive_roots, full_shard_args, full_shard_env,
         full_shard_root_receipt, full_shard_roots, full_shard_storage_receipt, isolated_build_tree,
-        materialize_full_shard_workspace, parse_compiler_wrapper_identity, parse_sccache_stats,
-        percentile, read_ci_build_authority, reference_timing_samples, remove_full_shard_ephemera,
-        resolve_ci_fast_build_authority, resolve_ci_fast_sccache_runtime_env,
-        resolve_full_shard_storage_roots, set_full_archive_readonly,
+        materialize_ci_fast_compiler_wrapper, materialize_full_shard_workspace,
+        parse_compiler_wrapper_identity, parse_sccache_stats, percentile, read_ci_build_authority,
+        reference_timing_samples, remove_full_shard_ephemera, resolve_ci_fast_build_authority,
+        resolve_ci_fast_sccache_runtime_env, resolve_full_shard_storage_roots,
+        set_full_archive_readonly, start_owned_sccache_server,
         validate_ci_test_executor_observation, validate_fast_group_contract,
         validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
-        verified_warm_cache_mode, FastCacheStats, FastGroup, FastGroupContract,
-        FastReferenceRunner, FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard,
-        FullShardContract, FullShardCoverage, FullShardEphemera, FullShardRoots,
-        FAST_TIMING_HISTORY_SCHEMA_V4, FULL_SHARD_SCRATCH_ROOT_ENV,
+        verified_warm_cache_mode, verify_sccache_compiler, FastCacheStats, FastGroup,
+        FastGroupContract, FastReferenceRunner, FastTimingHistory, FastTimingObservation,
+        FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage, FullShardEphemera,
+        FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V4, FULL_SHARD_SCRATCH_ROOT_ENV,
     };
-    use crate::runtime::workspace::Workspace;
+    use crate::runtime::{process::ProcessRunner, workspace::Workspace};
 
     fn contract() -> FullShardContract {
         FullShardContract {
@@ -2332,8 +2458,8 @@ mod tests {
         let workspace = Workspace { root };
         let authority = resolve_ci_fast_build_authority(&workspace, None)?;
         let runtime_env = resolve_ci_fast_sccache_runtime_env(Some("sccache"), None)?;
-        let first = ci_fast_group_env(&workspace, &authority, &runtime_env)?;
-        let second = ci_fast_group_env(&workspace, &authority, &runtime_env)?;
+        let first = ci_fast_group_env(&workspace, &authority, &runtime_env, &[])?;
+        let second = ci_fast_group_env(&workspace, &authority, &runtime_env, &[])?;
 
         assert!(first.iter().any(|(key, value)| key == "CARGO_NET_OFFLINE" && value == "true"));
         assert!(first.iter().any(|(key, value)| key == "TZ" && value == "UTC"));
@@ -2382,7 +2508,7 @@ mod tests {
             Some("sccache"),
             Some(std::path::PathBuf::from("/tmp/bijux-sccache-test.sock")),
         )?;
-        let envs = ci_fast_group_env(&workspace, &authority, &runtime_env)?;
+        let envs = ci_fast_group_env(&workspace, &authority, &runtime_env, &[])?;
 
         let tmpdirs = envs
             .iter()
@@ -2390,6 +2516,99 @@ mod tests {
             .map(|(_, value)| value.as_str())
             .collect::<Vec<_>>();
         assert_eq!(tmpdirs, vec!["/tmp"]);
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn ci_fast_owns_only_its_automatically_allocated_sccache_server() -> anyhow::Result<()> {
+        use std::os::unix::fs::PermissionsExt;
+
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let artifact_root = workspace.path("artifacts");
+        bijux_dna_infra::ensure_dir(&artifact_root)?;
+        let fixture = tempfile::tempdir_in(&artifact_root)?;
+        let wrapper = fixture.path().join("sccache");
+        let log = fixture.path().join("server-events.log");
+        std::fs::write(
+            &wrapper,
+            "#!/bin/sh\nprintf '%s|%s\\n' \"$1\" \"$SCCACHE_SERVER_UDS\" >> \"$BIJUX_CI_TEST_SCCACHE_LOG\"\n",
+        )?;
+        std::fs::set_permissions(&wrapper, std::fs::Permissions::from_mode(0o700))?;
+        let runtime_env = vec![
+            ("SCCACHE_SERVER_UDS".to_string(), "/tmp/bijux-sccache-test.sock".to_string()),
+            ("BIJUX_CI_TEST_SCCACHE_LOG".to_string(), log.display().to_string()),
+        ];
+
+        let server = start_owned_sccache_server(&workspace, wrapper.to_str(), &runtime_env, true)?;
+        assert!(server.is_some());
+        verify_sccache_compiler(&workspace, wrapper.to_str(), &runtime_env)?;
+        drop(server);
+        assert_eq!(
+            std::fs::read_to_string(&log)?,
+            "--start-server|/tmp/bijux-sccache-test.sock\nrustc|/tmp/bijux-sccache-test.sock\n--stop-server|/tmp/bijux-sccache-test.sock\n"
+        );
+
+        std::fs::remove_file(&log)?;
+        assert!(start_owned_sccache_server(&workspace, wrapper.to_str(), &runtime_env, false,)?
+            .is_none());
+        verify_sccache_compiler(&workspace, wrapper.to_str(), &runtime_env)?;
+        assert_eq!(std::fs::read_to_string(&log)?, "rustc|/tmp/bijux-sccache-test.sock\n");
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn ci_fast_bypasses_sccache_only_for_parallel_cargo_version_probes() -> anyhow::Result<()> {
+        use std::os::unix::fs::PermissionsExt;
+
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let artifact_root = workspace.path("artifacts");
+        bijux_dna_infra::ensure_dir(&artifact_root)?;
+        let fixture = tempfile::tempdir_in(&artifact_root)?;
+        let compiler = fixture.path().join("rustc");
+        let sccache = fixture.path().join("sccache");
+        let log = fixture.path().join("wrapper-events.log");
+        std::fs::write(
+            &compiler,
+            "#!/bin/sh\nprintf 'rustc|%s\\n' \"$*\" >> \"$BIJUX_CI_TEST_WRAPPER_LOG\"\n",
+        )?;
+        std::fs::write(
+            &sccache,
+            "#!/bin/sh\nprintf 'sccache|%s\\n' \"$*\" >> \"$BIJUX_CI_TEST_WRAPPER_LOG\"\n",
+        )?;
+        std::fs::set_permissions(&compiler, std::fs::Permissions::from_mode(0o700))?;
+        std::fs::set_permissions(&sccache, std::fs::Permissions::from_mode(0o700))?;
+        let envs = materialize_ci_fast_compiler_wrapper(fixture.path(), sccache.to_str())?;
+        let Some(proxy) =
+            envs.iter().find_map(|(key, value)| (key == "RUSTC_WRAPPER").then_some(value.as_str()))
+        else {
+            anyhow::bail!("generated sccache Rust compiler wrapper is missing");
+        };
+        let proxy = proxy.to_string();
+        let mut invocation_env = envs;
+        invocation_env.push(("BIJUX_CI_TEST_WRAPPER_LOG".to_string(), log.display().to_string()));
+
+        let version = ProcessRunner::new(&workspace).run_owned_with_env(
+            &proxy,
+            &[compiler.display().to_string(), "-vV".to_string()],
+            &invocation_env,
+        )?;
+        assert!(version.status.success());
+        let compile = ProcessRunner::new(&workspace).run_owned_with_env(
+            &proxy,
+            &[compiler.display().to_string(), "--crate-name".to_string(), "example".to_string()],
+            &invocation_env,
+        )?;
+        assert!(compile.status.success());
+        assert_eq!(
+            std::fs::read_to_string(log)?,
+            format!("rustc|-vV\nsccache|{} --crate-name example\n", compiler.display())
+        );
         Ok(())
     }
 
