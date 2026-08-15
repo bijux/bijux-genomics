@@ -5,9 +5,9 @@
     "reserved_run_count": 71,
     "ready_count": 0,
     "blocked_count": 71,
-    "corpus_count": 13,
+    "corpus_count": 14,
     "admitted_comparative_corpus_count": 1,
-    "qualification_campaign_count": 6,
+    "qualification_campaign_count": 7,
     "comparative_campaign_count": 6
   },
   "domains": {
@@ -169,9 +169,19 @@
       "evidence_scope": "comparative",
       "class": "production_real",
       "sample_count": 0,
-      "truth_strategy": "real_ancient_libraries_with_orthogonal_authentication",
+      "truth_strategy": "observational_alignment_diversity_with_separate_orthogonal_controls",
       "roles": [
-        "bam_diversity",
+        "bam_diversity"
+      ]
+    },
+    {
+      "id": "ancient-dna-damage-controls",
+      "status": "missing",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "sample_count": 0,
+      "truth_strategy": "independently_authenticated_positive_negative_and_blank_controls",
+      "roles": [
         "ancient_damage_truth"
       ]
     },
@@ -241,7 +251,7 @@
       "blockers": [
         "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -345,17 +355,16 @@
         "pydamage"
       ],
       "available_comparative_samples": 0,
-      "campaign_run_id": null,
+      "campaign_run_id": "run-2010",
       "reserved_run_id": "run-2010",
-      "campaign_tier": null,
-      "interface_status": "missing",
+      "campaign_tier": "qualification",
+      "interface_status": "closed",
       "readiness": "blocked",
       "blockers": [
-        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
         "available comparative sample count 0 is below 10",
-        "no execution campaign is defined"
+        "active campaign is qualification-only"
       ]
     },
     {
@@ -1312,7 +1321,7 @@
       "blockers": [
         "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1333,7 +1342,7 @@
       "blockers": [
         "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1355,7 +1364,7 @@
       "blockers": [
         "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]
@@ -1377,7 +1386,7 @@
       "blockers": [
         "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=source_defined/comparative)",
-        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=source_defined/comparative)",
+        "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-damage-controls=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ]

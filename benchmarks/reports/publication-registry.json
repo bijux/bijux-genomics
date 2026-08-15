@@ -16,16 +16,16 @@
     {
       "product_id": "permanent-run-registry",
       "json_path": "benchmarks/contracts/run-registry.json",
-      "json_sha256": "e0b94149fd8efeae28a44859161d1cec3a74821d02d15605ba47be8900a08a67",
+      "json_sha256": "e098eddc58a8e8c8c5e04da604abd9eec4929751fd8297713945ed7d7e43853b",
       "markdown_path": "benchmarks/reports/run-registry.md",
-      "markdown_sha256": "89512f4a40c5f36d8fa8dc24874bc4559baed2e017f8c2572d0a53b00750f168"
+      "markdown_sha256": "aafe677ff6bbe4af8aa94451ce3a94b92d935a29544339d0b6a6e8f67434fe57"
     },
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "c2d18ac88977a624f5c67d48f3b3056e907371613cf9fff508e8f92e8857c2d3",
+      "json_sha256": "894bc8c56e909c137525ea7183b6fdd5121d72fc52fe2e4fcd1298f2e067dc34",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
-      "markdown_sha256": "ae5a96cd80090ee4b2adac2f1d9a987ea2bf91616ba6e17044cb02bdf24593f3"
+      "markdown_sha256": "86beacbb4486d89389a535b20889a59f6b617aa1d7cc823e5abd5cf7ca90a87e"
     },
     {
       "product_id": "stage-universe",
@@ -37,9 +37,9 @@
     {
       "product_id": "stage-benchmark-coverage",
       "json_path": "benchmarks/reports/stage-benchmark-coverage.json",
-      "json_sha256": "bcee2885fafc2059f10f0ec8bb17830e7384054babf5a33949f3c930bbaf5796",
+      "json_sha256": "4135764409dfda2e510deebdef7e2811d6cd4ad5bbf259eec77bd1e36645655f",
       "markdown_path": "benchmarks/reports/stage-benchmark-coverage.md",
-      "markdown_sha256": "e6ebf41f5b334e15e54fd8f7a06af3314b511715be9b1cbef0ab74f74c4e8bc9"
+      "markdown_sha256": "33e5128262360d1e3c15a61bf19765fc0fa0739914b45dd91d05082bd5f780c6"
     },
     {
       "product_id": "stage-tool-closure",
@@ -51,9 +51,9 @@
     {
       "product_id": "scientific-benchmark-readiness",
       "json_path": "benchmarks/reports/scientific-benchmark-readiness.json",
-      "json_sha256": "c821c0bba3e73a6aea75c8f6717dea184483beb5dbd00e9213e42694fcff9a79",
+      "json_sha256": "6c8960073de1fdde8f44f85e1f9bad6fec8de9d55f56561b26851dab5eec8890",
       "markdown_path": "benchmarks/reports/scientific-benchmark-readiness.md",
-      "markdown_sha256": "d7b99dc7fc6c04f05cd1d3471d671ef8c83952a0c839bf8dea067d224e0db3bb"
+      "markdown_sha256": "b86015320d38cfa92ca6bedab2f5648835ce9085d97a2d545b8db979e5b6b774"
     }
   ],
   "run_reports": [
@@ -138,8 +138,7 @@
       "stage_id": "bam.damage",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {

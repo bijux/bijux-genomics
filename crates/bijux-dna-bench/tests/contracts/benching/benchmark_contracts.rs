@@ -137,11 +137,26 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
             && row.retained_tools == ["seqfu", "seqkit"]
             && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted
     }));
-    for (stage_id, tool_id) in [
-        ("bam.damage", "ngsbriggs"),
-        ("bam.kinship", "angsd"),
-        ("fastq.remove_duplicates", "fastuniq"),
-        ("vcf.imputation_metrics", "impute5"),
+    for (stage_id, tool_id, campaign_run_id, execution_status) in [
+        (
+            "bam.damage",
+            "ngsbriggs",
+            Some("run-2010"),
+            bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted,
+        ),
+        ("bam.kinship", "angsd", None, bijux_dna_bench::BenchmarkStageExecutionStatus::NotDefined),
+        (
+            "fastq.remove_duplicates",
+            "fastuniq",
+            None,
+            bijux_dna_bench::BenchmarkStageExecutionStatus::NotDefined,
+        ),
+        (
+            "vcf.imputation_metrics",
+            "impute5",
+            None,
+            bijux_dna_bench::BenchmarkStageExecutionStatus::NotDefined,
+        ),
     ] {
         let stage = coverage
             .stages
@@ -149,10 +164,8 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
             .find(|row| row.stage_id == stage_id)
             .ok_or_else(|| anyhow::anyhow!("missing external-artifact benchmark stage"))?;
         assert!(stage.retained_tools.iter().any(|candidate| candidate == tool_id));
-        assert_eq!(
-            stage.execution_status,
-            bijux_dna_bench::BenchmarkStageExecutionStatus::NotDefined
-        );
+        assert_eq!(stage.campaign_run_id.as_deref(), campaign_run_id);
+        assert_eq!(stage.execution_status, execution_status);
     }
     Ok(())
 }

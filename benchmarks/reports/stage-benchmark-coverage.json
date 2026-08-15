@@ -2,13 +2,13 @@
   "schema_version": "bijux.benchmark.stage_coverage.v1",
   "summary": {
     "retained_stage_count": 71,
-    "defined_stage_count": 12,
-    "qualification_stage_count": 6,
+    "defined_stage_count": 13,
+    "qualification_stage_count": 7,
     "comparative_stage_count": 6,
     "admitted_stage_count": 0,
     "stale_stage_count": 0,
     "failed_stage_count": 0,
-    "missing_stage_count": 59
+    "missing_stage_count": 58
   },
   "stages": [
     {
@@ -78,8 +78,9 @@
         "pmdtools",
         "pydamage"
       ],
-      "definition_status": "missing",
-      "execution_status": "not_defined"
+      "campaign_run_id": "run-2010",
+      "definition_status": "qualification",
+      "execution_status": "not_admitted"
     },
     {
       "stage_id": "bam.duplication_metrics",
