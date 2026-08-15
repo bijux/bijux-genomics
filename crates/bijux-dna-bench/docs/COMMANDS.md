@@ -95,6 +95,10 @@ These operations are exported through the crate root and `public_api`.
 | `apply-attempt-migration` | `apply_attempt_migration(study_root, plan_path, ledger_path, updated_at_utc)` | Move planned attempts by same-filesystem rename while maintaining an interruption-safe ledger. |
 | `verify-attempt-migration` | `verify_attempt_migration(study_root, plan_path, ledger_path)` | Recompute every current source or target file size and SHA-256 against the exact plan. |
 | `rollback-attempt-migration` | `rollback_attempt_migration(study_root, plan_path, ledger_path, updated_at_utc)` | Verify and restore every applied attempt to its exact historical source path. |
+| `plan-workspace-convergence` | `plan_benchmark_workspace_convergence(canonical_root, legacy_root)` | Hash both roots, move unique legacy entries toward the canonical root, quarantine only byte-identical duplicates, and retain all differing entries for manual review. |
+| `apply-workspace-convergence` | `apply_benchmark_workspace_convergence(plan)` | Apply each planned move by verified same-filesystem rename without deleting legacy bytes. |
+| `rollback-workspace-convergence` | `rollback_benchmark_workspace_convergence(plan)` | Re-hash and restore every applied canonical or quarantine move to its exact legacy source. |
+| `rollback-workspace-layout-report` | `rollback_benchmark_workspace_layout_report(report)` | Treat an applied normalization report as the complete checksum-backed rollback receipt. |
 | `summarize` | `summarize(suite, observations, options)` | Build deterministic benchmark summaries from observations. |
 | `compare` | `compare(summary_a, summary_b)` | Compare two completed benchmark summaries. |
 | `gate` | `gate(policy, summary)` | Evaluate benchmark rows against a gate policy. |

@@ -66,6 +66,7 @@ mod summary_statistics;
 mod vcf_campaign;
 mod vcf_stage_catalog;
 mod vcf_stage_matrix;
+mod workspace_convergence;
 mod workspace_layout;
 
 pub use alias_resolution::{
@@ -332,6 +333,11 @@ pub use vcf_stage_catalog::{
 pub use vcf_stage_matrix::{
     build_vcf_stage_matrix_rows, render_vcf_stage_matrix, validate_vcf_stage_matrix,
     DEFAULT_VCF_STAGE_MATRIX_PATH,
+};
+pub use workspace_convergence::{
+    apply_benchmark_workspace_convergence, normalize_benchmark_workspace_layout_report,
+    plan_benchmark_workspace_convergence, rollback_benchmark_workspace_convergence,
+    rollback_benchmark_workspace_layout_report,
 };
 pub use workspace_layout::{
     benchmark_workspace_layout_corpus_dir_name, benchmark_workspace_layout_report,

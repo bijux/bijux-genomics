@@ -1,5 +1,74 @@
 {
   "$defs": {
+    "WorkspaceConvergenceAction": {
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "canonical_summary": {
+          "$ref": "#/$defs/WorkspaceEntrySummary"
+        },
+        "entry_name": {
+          "type": "string"
+        },
+        "legacy_summary": {
+          "$ref": "#/$defs/WorkspaceEntrySummary"
+        },
+        "source": {
+          "type": "string"
+        },
+        "status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "entry_name",
+        "source",
+        "target",
+        "legacy_summary",
+        "canonical_summary"
+      ],
+      "type": "object"
+    },
+    "WorkspaceConvergencePlan": {
+      "properties": {
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/WorkspaceConvergenceAction"
+          },
+          "type": "array"
+        },
+        "canonical_root": {
+          "type": "string"
+        },
+        "legacy_root": {
+          "type": "string"
+        },
+        "legacy_root_removed": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "removable_legacy_root": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "canonical_root",
+        "legacy_root",
+        "actions",
+        "removable_legacy_root"
+      ],
+      "type": "object"
+    },
     "WorkspaceEntrySummary": {
       "properties": {
         "content_sha256": {
@@ -108,6 +177,16 @@
     "canonical_corpus_root": {
       "type": "string"
     },
+    "convergence_plan": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WorkspaceConvergencePlan"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "corpus_dir_name": {
       "type": "string"
     },
@@ -132,7 +211,7 @@
       },
       "type": "array"
     },
-    "removed_duplicate_stage_ids": {
+    "quarantined_duplicate_stage_ids": {
       "items": {
         "type": "string"
       },
@@ -168,7 +247,7 @@
     "status",
     "stage_reports",
     "moved_stage_ids",
-    "removed_duplicate_stage_ids",
+    "quarantined_duplicate_stage_ids",
     "manual_review_stage_ids"
   ],
   "title": "WorkspaceNormalizationReport",

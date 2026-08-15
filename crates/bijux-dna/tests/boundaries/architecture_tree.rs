@@ -342,7 +342,6 @@ fn dna_tree_matches_architecture_contract() {
         "config_paths.rs",
         "config_queries.rs",
         "contracts.rs",
-        "layout_normalization.rs",
         "layout_status.rs",
         "publication_contracts.rs",
         "stage_run_layout.rs",

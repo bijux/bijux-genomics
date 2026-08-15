@@ -62,9 +62,12 @@ pub struct WorkspaceNormalizationReport {
     pub cache_only_stage_ids: Vec<String>,
     pub mode: String,
     pub status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub convergence_plan: Option<WorkspaceConvergencePlan>,
     pub stage_reports: Vec<WorkspaceStageNormalizationReport>,
     pub moved_stage_ids: Vec<String>,
-    pub removed_duplicate_stage_ids: Vec<String>,
+    #[serde(alias = "removed_duplicate_stage_ids")]
+    pub quarantined_duplicate_stage_ids: Vec<String>,
     pub manual_review_stage_ids: Vec<String>,
 }
 

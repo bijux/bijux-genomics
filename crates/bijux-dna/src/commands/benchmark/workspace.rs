@@ -4,7 +4,6 @@ mod config_loading;
 mod config_paths;
 mod config_queries;
 mod contracts;
-mod layout_normalization;
 mod layout_status;
 mod publication_contracts;
 mod stage_run_layout;
@@ -27,7 +26,6 @@ pub(crate) use self::contracts::{
     BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns, BenchmarkWorkspaceSync,
     BenchmarkWorkspaceSyncDefaults, CorpusBenchmarkContract, CorpusBenchmarkExclusion,
 };
-pub(crate) use self::layout_normalization::normalize_workspace_layout_report;
 pub(crate) use self::layout_status::write_workspace_layout_status;
 pub(crate) use self::publication_contracts::{
     benchmark_publication_contract, benchmark_publication_contracts,
@@ -46,18 +44,18 @@ pub(crate) const DEFAULT_BENCHMARK_CONFIG: &str = "configs/bench/benchmark.toml"
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use super::layout_normalization::plan_root_convergence;
     use super::{
         benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_config_path,
         benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root,
         benchmark_workspace_config_path, benchmark_workspace_value, expand_env_placeholders,
         load_benchmark_config, load_benchmark_publication_config, load_benchmark_workspace_config,
-        load_optional_benchmark_workspace_config, normalize_workspace_layout_report,
-        BenchmarkConfig, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
-        BenchmarkWorkspaceLocal, BenchmarkWorkspaceStageRuns, BENCHMARK_CONFIG_ENV,
+        load_optional_benchmark_workspace_config, BenchmarkConfig, BenchmarkWorkspaceConfig,
+        BenchmarkWorkspaceLayout, BenchmarkWorkspaceLocal, BenchmarkWorkspaceStageRuns,
+        BENCHMARK_CONFIG_ENV,
     };
     use bijux_dna_api::v1::api::bench::{
         benchmark_publication_corpus_key, benchmark_workspace_layout_corpus_dir_name,
+        normalize_benchmark_workspace_layout_report, plan_benchmark_workspace_convergence,
         summarize_benchmark_workspace_root_pair,
     };
     use std::collections::BTreeMap;
@@ -273,7 +271,7 @@ spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
     }
 
     #[test]
-    fn plan_root_convergence_moves_unique_entries_and_drops_stale_duplicates() {
+    fn convergence_planning_requires_digest_identity_for_duplicates() {
         let temp = tempfile::tempdir().expect("tempdir");
         let canonical_root = temp.path().join("results");
         let legacy_root = temp.path().join("bijux-dna-results");
@@ -283,21 +281,14 @@ spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
         write_text(canonical_root.join("fastq.trim_reads/new.txt"), "fresh");
         write_text(legacy_root.join("fastq.trim_reads/old.txt"), "old");
         write_text(legacy_root.join("fastq.filter_reads/report.json"), "{}");
-        let stale_time = filetime::FileTime::from_unix_time(1, 0);
-        filetime::set_file_times(
-            legacy_root.join("fastq.trim_reads/old.txt"),
-            stale_time,
-            stale_time,
-        )
-        .expect("stale legacy file");
-
-        let plan = plan_root_convergence(&canonical_root, &legacy_root).expect("plan");
+        let plan =
+            plan_benchmark_workspace_convergence(&canonical_root, &legacy_root).expect("plan");
         let actions = plan
             .actions
             .into_iter()
             .map(|action| (action.entry_name, action.action))
             .collect::<std::collections::BTreeMap<_, _>>();
-        assert_eq!(actions.get("fastq.trim_reads"), Some(&"remove-legacy-duplicate".to_string()));
+        assert_eq!(actions.get("fastq.trim_reads"), Some(&"manual-review-required".to_string()));
         assert_eq!(actions.get("fastq.filter_reads"), Some(&"move-legacy-entry".to_string()));
     }
 
@@ -326,7 +317,7 @@ spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
             "{\"completed_at_utc\": \"2026-03-27T00:00:00Z\"}",
         );
 
-        let report = normalize_workspace_layout_report(
+        let report = normalize_benchmark_workspace_layout_report(
             &sample_workspace(&results_root, &cache_mirror_root),
             "corpus-01",
             "benchmark_corpus",
@@ -334,7 +325,7 @@ spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
         )
         .expect("report");
 
-        assert!(!legacy_stage_root.exists());
+        assert!(legacy_stage_root.exists());
         assert!(canonical_stage_root.exists());
         assert!(!archive_only_stage_root.exists());
         assert!(cache_mirror_root
@@ -343,10 +334,10 @@ spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
             .join("fastq.validate_reads")
             .join("cluster-apptainer")
             .exists());
-        assert_eq!(report.status, "clear");
+        assert_eq!(report.status, "needs-review");
         assert_eq!(report.moved_stage_ids, vec!["fastq.validate_reads"]);
-        assert_eq!(report.removed_duplicate_stage_ids, vec!["fastq.trim_reads"]);
-        assert!(report.manual_review_stage_ids.is_empty());
+        assert!(report.quarantined_duplicate_stage_ids.is_empty());
+        assert_eq!(report.manual_review_stage_ids, vec!["fastq.trim_reads"]);
     }
 
     #[test]

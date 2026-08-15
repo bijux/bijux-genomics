@@ -96,6 +96,10 @@ The `public_api` module itself is private. Stable exports are owned by
 - `initialize_attempt_lifecycle(root, record)` delegates publication of one immutable planned attempt to runtime.
 - `append_attempt_lifecycle_transition(root, identity, transition)` delegates one no-clobber lifecycle event to runtime.
 - `load_attempt_lifecycle(root, identity)` delegates reconstruction and validation of the complete event chain to runtime.
+- `plan_benchmark_workspace_convergence(canonical_root, legacy_root)` uses content SHA-256 identity to distinguish byte-identical duplicates from conflicting content.
+- `apply_benchmark_workspace_convergence(plan)` moves exact duplicates into deterministic same-filesystem quarantine and verifies every resulting digest.
+- `rollback_benchmark_workspace_convergence(plan)` restores applied canonical and quarantine moves in reverse order after checksum validation.
+- `rollback_benchmark_workspace_layout_report(report)` uses an applied normalization report directly as the rollback receipt.
 - `summarize(suite, observations, options)` builds a deterministic
   `BenchmarkSummary`.
 - `compare(summary_a, summary_b)` compares completed summaries.
