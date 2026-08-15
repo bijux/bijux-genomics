@@ -76,6 +76,10 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
         PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/benchmark-config.schema.json",
+            super::benchmark_config_schema,
+        ),
+        PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/run-definition.schema.json",
             benchmark_run_definition_schema,
         ),

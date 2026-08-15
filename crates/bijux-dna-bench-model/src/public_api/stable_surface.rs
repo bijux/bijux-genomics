@@ -11,6 +11,15 @@ pub use crate::contract::{
     STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1,
     STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
 };
+pub use crate::model::benchmark_config::{
+    benchmark_config_schema, BenchmarkConfig, BenchmarkCorpusConfig,
+    BenchmarkCorpusPublicationConfig, BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig,
+    BenchmarkReferenceInputConfig, BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig,
+    BenchmarkWorkspaceArtifact, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
+    BenchmarkWorkspaceLocal, BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns,
+    BenchmarkWorkspaceSync, BenchmarkWorkspaceSyncDefaults, CorpusBenchmarkContract,
+    CorpusBenchmarkExclusion,
+};
 pub use crate::model::output_declarations::{
     all_domain_output_declarations_schema, AllDomainOutputDeclarationRow,
     AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport,

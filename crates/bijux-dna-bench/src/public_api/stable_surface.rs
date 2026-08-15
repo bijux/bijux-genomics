@@ -23,6 +23,15 @@ pub use bijux_dna_bench_model::{
     VCF_STAGE_TOOL_RESOURCE_ORIGIN,
 };
 pub use bijux_dna_bench_model::{
+    benchmark_config_schema, BenchmarkConfig, BenchmarkCorpusConfig,
+    BenchmarkCorpusPublicationConfig, BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig,
+    BenchmarkReferenceInputConfig, BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig,
+    BenchmarkWorkspaceArtifact, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
+    BenchmarkWorkspaceLocal, BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns,
+    BenchmarkWorkspaceSync, BenchmarkWorkspaceSyncDefaults, CorpusBenchmarkContract,
+    CorpusBenchmarkExclusion,
+};
+pub use bijux_dna_bench_model::{
     local_vcf_stage_catalog_config_schema, local_vcf_stage_catalog_report_schema,
     validate_local_vcf_stage_catalog_config, validate_local_vcf_stage_catalog_report,
     LocalVcfStageCatalogConfig, LocalVcfStageCatalogReport, VcfStageCatalogRow,

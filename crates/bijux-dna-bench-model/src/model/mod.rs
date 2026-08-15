@@ -7,6 +7,7 @@ pub mod admission;
 pub mod all_domain_failure_classification;
 pub mod all_domain_parser_collector;
 pub mod appraisal;
+pub mod benchmark_config;
 pub mod benchmark_matrix;
 pub mod campaign_engine;
 pub mod comparable_metrics;
@@ -113,6 +114,16 @@ pub use appraisal::{
     appraisal_report_schema, hardening_queue_report_schema, AppraisalFinding, AppraisalReport,
     AppraisalSummary, HardeningQueueEntry, HardeningQueueReport, APPRAISAL_REPORT_SCHEMA_V1,
     HARDENING_QUEUE_REPORT_SCHEMA_V1,
+};
+#[allow(unused_imports)]
+pub use benchmark_config::{
+    benchmark_config_schema, BenchmarkConfig, BenchmarkCorpusConfig,
+    BenchmarkCorpusPublicationConfig, BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig,
+    BenchmarkReferenceInputConfig, BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig,
+    BenchmarkWorkspaceArtifact, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
+    BenchmarkWorkspaceLocal, BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns,
+    BenchmarkWorkspaceSync, BenchmarkWorkspaceSyncDefaults, CorpusBenchmarkContract,
+    CorpusBenchmarkExclusion,
 };
 #[allow(unused_imports)]
 pub use benchmark_matrix::{

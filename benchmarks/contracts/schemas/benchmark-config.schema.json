@@ -1,0 +1,512 @@
+{
+  "$defs": {
+    "BenchmarkCorpusConfig": {
+      "properties": {
+        "spec_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkCorpusPublicationConfig": {
+      "properties": {
+        "contracts": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CorpusBenchmarkContract"
+          },
+          "type": "array"
+        },
+        "exclusions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/CorpusBenchmarkExclusion"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkDepleteRrnaInputConfig": {
+      "properties": {
+        "min_identity": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rrna_bundle_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rrna_db": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkPublicationConfig": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BenchmarkCorpusPublicationConfig"
+      },
+      "type": "object"
+    },
+    "BenchmarkReferenceInputConfig": {
+      "properties": {
+        "reference_catalog_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reference_index": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reference_index_backend": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkScreenTaxonomyInputConfig": {
+      "properties": {
+        "database_artifact_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "database_catalog_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "database_namespace": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "database_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "database_scope": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkStageInputConfig": {
+      "properties": {
+        "fastq_deplete_host": {
+          "$ref": "#/$defs/BenchmarkReferenceInputConfig",
+          "default": {
+            "reference_catalog_id": null,
+            "reference_index": null,
+            "reference_index_backend": null
+          }
+        },
+        "fastq_deplete_reference_contaminants": {
+          "$ref": "#/$defs/BenchmarkReferenceInputConfig",
+          "default": {
+            "reference_catalog_id": null,
+            "reference_index": null,
+            "reference_index_backend": null
+          }
+        },
+        "fastq_deplete_rrna": {
+          "$ref": "#/$defs/BenchmarkDepleteRrnaInputConfig",
+          "default": {
+            "min_identity": null,
+            "rrna_bundle_id": null,
+            "rrna_db": null
+          }
+        },
+        "fastq_screen_taxonomy": {
+          "$ref": "#/$defs/BenchmarkScreenTaxonomyInputConfig",
+          "default": {
+            "database_artifact_id": null,
+            "database_catalog_id": null,
+            "database_namespace": null,
+            "database_root": null,
+            "database_scope": null
+          }
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkWorkspaceArtifact": {
+      "properties": {
+        "database_root_template": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reference_index_template": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkWorkspaceConfig": {
+      "properties": {
+        "artifacts": {
+          "additionalProperties": {
+            "$ref": "#/$defs/BenchmarkWorkspaceArtifact"
+          },
+          "default": {},
+          "type": "object"
+        },
+        "layout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkWorkspaceLayout"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "local": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkWorkspaceLocal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "remote": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkWorkspaceRemote"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sync": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkWorkspaceSync"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkWorkspaceLayout": {
+      "properties": {
+        "stage_runs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkWorkspaceStageRuns"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkWorkspaceLocal": {
+      "properties": {
+        "cache_mirror_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extra_data_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reference_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "results_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkWorkspaceRemote": {
+      "properties": {
+        "cache_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "containers_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "corpus_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extra_data_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reference_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "repo_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "results_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ssh_host": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkWorkspaceStageRuns": {
+      "properties": {
+        "local_archive_results_template": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "local_cache_results_template": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "remote_results_template": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkWorkspaceSync": {
+      "properties": {
+        "defaults": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkWorkspaceSyncDefaults"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkWorkspaceSyncDefaults": {
+      "properties": {
+        "allow_dirty": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "clean_context": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "data_manifest_glob": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "exclude_profile": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "include_containers_manifest": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "include_profile": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pull_base": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pull_mode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "CorpusBenchmarkContract": {
+      "properties": {
+        "sample_scope": {
+          "default": "full",
+          "type": "string"
+        },
+        "scenario_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tools": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "stage_id",
+        "scenario_id"
+      ],
+      "type": "object"
+    },
+    "CorpusBenchmarkExclusion": {
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "reason"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "corpora": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BenchmarkCorpusConfig"
+      },
+      "default": {},
+      "type": "object"
+    },
+    "publication": {
+      "$ref": "#/$defs/BenchmarkPublicationConfig",
+      "default": {}
+    },
+    "stage_inputs": {
+      "$ref": "#/$defs/BenchmarkStageInputConfig",
+      "default": {
+        "fastq_deplete_host": {
+          "reference_catalog_id": null,
+          "reference_index": null,
+          "reference_index_backend": null
+        },
+        "fastq_deplete_reference_contaminants": {
+          "reference_catalog_id": null,
+          "reference_index": null,
+          "reference_index_backend": null
+        },
+        "fastq_deplete_rrna": {
+          "min_identity": null,
+          "rrna_bundle_id": null,
+          "rrna_db": null
+        },
+        "fastq_screen_taxonomy": {
+          "database_artifact_id": null,
+          "database_catalog_id": null,
+          "database_namespace": null,
+          "database_root": null,
+          "database_scope": null
+        }
+      }
+    },
+    "workspace": {
+      "$ref": "#/$defs/BenchmarkWorkspaceConfig",
+      "default": {
+        "artifacts": {},
+        "layout": null,
+        "local": null,
+        "remote": null,
+        "sync": null
+      }
+    }
+  },
+  "title": "BenchmarkConfig",
+  "type": "object"
+}
