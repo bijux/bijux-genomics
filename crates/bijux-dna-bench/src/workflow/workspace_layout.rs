@@ -398,11 +398,13 @@ mod tests {
 
     #[test]
     fn corpus_directory_selection_is_sorted_and_deterministic() -> anyhow::Result<()> {
-        let mut config = BenchmarkConfig::default();
-        config.corpora = BTreeMap::from([
-            ("zeta-corpus".to_string(), BenchmarkCorpusConfig::default()),
-            ("alpha-corpus".to_string(), BenchmarkCorpusConfig::default()),
-        ]);
+        let config = BenchmarkConfig {
+            corpora: BTreeMap::from([
+                ("zeta-corpus".to_string(), BenchmarkCorpusConfig::default()),
+                ("alpha-corpus".to_string(), BenchmarkCorpusConfig::default()),
+            ]),
+            ..BenchmarkConfig::default()
+        };
         assert_eq!(benchmark_workspace_layout_corpus_dir_name(&config)?, "alpha_corpus");
         Ok(())
     }

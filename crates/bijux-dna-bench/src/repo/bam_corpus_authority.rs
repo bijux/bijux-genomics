@@ -942,33 +942,6 @@ fn validate_bam_pair(
     Ok(())
 }
 
-#[cfg(test)]
-mod bam_pair_tests {
-    use super::*;
-
-    fn file(path: &str) -> AdmittedBamCorpusFile {
-        AdmittedBamCorpusFile { path: path.to_string(), sha256: "a".repeat(64), size_bytes: 1 }
-    }
-
-    #[test]
-    fn admits_sample_owned_identity_addressed_bam_projection() {
-        let bam = file("/study/ERR2112767.ngsbriggs-input.bam");
-        let bai = file("/study/ERR2112767.ngsbriggs-input.bam.bai");
-
-        validate_bam_pair(&bam, &bai, "ERR2112767").expect("paired BAM projection must be valid");
-    }
-
-    #[test]
-    fn rejects_index_that_does_not_name_its_bam() {
-        let bam = file("/study/ERR2112767.ngsbriggs-input.bam");
-        let bai = file("/study/ERR2112767.other.bam.bai");
-
-        let error = validate_bam_pair(&bam, &bai, "ERR2112767")
-            .expect_err("unpaired BAM index must be rejected");
-        assert!(error.to_string().contains("do not close"));
-    }
-}
-
 fn validate_reference_file_names(
     fasta: &AdmittedBamCorpusFile,
     fasta_index: &AdmittedBamCorpusFile,
@@ -1073,4 +1046,31 @@ fn file_name(path: &str, label: &str) -> Result<String> {
 
 fn path_string(path: &Path) -> Result<String> {
     path.to_str().map(str::to_string).context("governed path is not valid UTF-8")
+}
+
+#[cfg(test)]
+mod bam_pair_tests {
+    use super::*;
+
+    fn file(path: &str) -> AdmittedBamCorpusFile {
+        AdmittedBamCorpusFile { path: path.to_string(), sha256: "a".repeat(64), size_bytes: 1 }
+    }
+
+    #[test]
+    fn admits_sample_owned_identity_addressed_bam_projection() {
+        let bam = file("/study/ERR2112767.ngsbriggs-input.bam");
+        let bai = file("/study/ERR2112767.ngsbriggs-input.bam.bai");
+
+        validate_bam_pair(&bam, &bai, "ERR2112767").expect("paired BAM projection must be valid");
+    }
+
+    #[test]
+    fn rejects_index_that_does_not_name_its_bam() {
+        let bam = file("/study/ERR2112767.ngsbriggs-input.bam");
+        let bai = file("/study/ERR2112767.other.bam.bai");
+
+        let error = validate_bam_pair(&bam, &bai, "ERR2112767")
+            .expect_err("unpaired BAM index must be rejected");
+        assert!(error.to_string().contains("do not close"));
+    }
 }

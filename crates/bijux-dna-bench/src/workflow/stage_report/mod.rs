@@ -215,31 +215,6 @@ fn is_report_selected_status(
     )
 }
 
-#[cfg(test)]
-mod tests {
-    use super::is_report_selected_status;
-    use bijux_dna_bench_model::BenchmarkLifecycleStatus;
-
-    #[test]
-    fn report_selection_retains_passed_tips_and_planned_retries() {
-        assert!(is_report_selected_status(Some(BenchmarkLifecycleStatus::Passed)));
-        assert!(is_report_selected_status(Some(BenchmarkLifecycleStatus::Planned)));
-        for status in [
-            BenchmarkLifecycleStatus::Ready,
-            BenchmarkLifecycleStatus::Submitted,
-            BenchmarkLifecycleStatus::Running,
-            BenchmarkLifecycleStatus::Collecting,
-            BenchmarkLifecycleStatus::Failed,
-            BenchmarkLifecycleStatus::Cancelled,
-            BenchmarkLifecycleStatus::Superseded,
-            BenchmarkLifecycleStatus::BlockedExternal,
-        ] {
-            assert!(!is_report_selected_status(Some(status)));
-        }
-        assert!(!is_report_selected_status(None));
-    }
-}
-
 pub(super) fn validate_comparable_attempts(
     campaign: &BenchmarkStageCampaignSpec,
     evidence: &BTreeMap<String, ComparableAttemptEvidence>,
@@ -347,4 +322,29 @@ pub(super) fn read_json<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T
         .with_context(|| format!("read benchmark report input {}", path.display()))?;
     serde_json::from_slice(&bytes)
         .with_context(|| format!("parse benchmark report input {}", path.display()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_report_selected_status;
+    use bijux_dna_bench_model::BenchmarkLifecycleStatus;
+
+    #[test]
+    fn report_selection_retains_passed_tips_and_planned_retries() {
+        assert!(is_report_selected_status(Some(BenchmarkLifecycleStatus::Passed)));
+        assert!(is_report_selected_status(Some(BenchmarkLifecycleStatus::Planned)));
+        for status in [
+            BenchmarkLifecycleStatus::Ready,
+            BenchmarkLifecycleStatus::Submitted,
+            BenchmarkLifecycleStatus::Running,
+            BenchmarkLifecycleStatus::Collecting,
+            BenchmarkLifecycleStatus::Failed,
+            BenchmarkLifecycleStatus::Cancelled,
+            BenchmarkLifecycleStatus::Superseded,
+            BenchmarkLifecycleStatus::BlockedExternal,
+        ] {
+            assert!(!is_report_selected_status(Some(status)));
+        }
+        assert!(!is_report_selected_status(None));
+    }
 }
