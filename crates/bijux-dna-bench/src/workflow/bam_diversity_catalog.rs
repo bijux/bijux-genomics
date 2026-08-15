@@ -398,12 +398,11 @@ fn validate_source_catalog_metadata(plan: &Plan, catalog: &SourceCatalog) -> Res
         .iter()
         .map(|file| ((file.path.clone(), file.sha256.clone()), file))
         .collect::<BTreeMap<_, _>>();
-    let expected_file_count = plan.samples.iter().map(|sample| sample.reads.len()).sum::<usize>();
-    if samples.len() != plan.samples.len() || samples.len() != catalog.samples.len() {
-        bail!("BAM diversity source catalog selection differs from the plan");
+    if samples.len() != catalog.samples.len() {
+        bail!("BAM diversity source catalog contains duplicate samples");
     }
-    if files.len() != expected_file_count || files.len() != catalog.files.len() {
-        bail!("BAM diversity source catalog files differ from the plan");
+    if files.len() != catalog.files.len() {
+        bail!("BAM diversity source catalog contains duplicate files");
     }
     for sample in &plan.samples {
         let authority = samples
@@ -754,6 +753,29 @@ mod tests {
                 })
                 .collect(),
         };
+        assert!(validate_source_catalog_metadata(&plan, &catalog).is_ok());
+
+        catalog.samples.push(SourceSample {
+            accession: "ERR999999".to_string(),
+            sample_accession: "SAMEA999999".to_string(),
+            study_accession: "PRJEB999999".to_string(),
+            layout: "se".to_string(),
+            library_strategy: "WGS".to_string(),
+            library_selection: "RANDOM".to_string(),
+            size_band: "under_100mb".to_string(),
+            scientific_name: "Homo sapiens".to_string(),
+        });
+        catalog.files.push(SourceFile {
+            accession: "ERR999999".to_string(),
+            sample_accession: "SAMEA999999".to_string(),
+            study_accession: "PRJEB999999".to_string(),
+            layout: "se".to_string(),
+            mate: None,
+            kind: "raw-fastq".to_string(),
+            materialization_status: "downloaded".to_string(),
+            path: PathBuf::from("/study/raw/ERR999999.fastq.gz"),
+            sha256: "c".repeat(64),
+        });
         assert!(validate_source_catalog_metadata(&plan, &catalog).is_ok());
 
         catalog.samples[0].sample_accession = "SAMEA-drifted".to_string();
