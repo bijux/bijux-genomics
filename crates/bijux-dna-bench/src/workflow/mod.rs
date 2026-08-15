@@ -38,6 +38,7 @@ mod fastq_profile_reads;
 mod fastq_validate_reads;
 mod full_benchmark_report;
 mod hardening_campaign;
+mod local_corpus_skip;
 mod options;
 mod parameter_authority;
 mod publication_receipt;
@@ -260,6 +261,10 @@ pub use full_benchmark_report::{
 pub use hardening_campaign::{
     derive_hardening_benchmark_campaign, load_hardening_benchmark_campaign_report,
     publish_hardening_benchmark_campaign_report,
+};
+pub use local_corpus_skip::{
+    derive_benchmark_local_corpus_skip_report, publish_benchmark_local_corpus_skip_report,
+    BenchmarkLocalCorpusSkipPublicationRequest,
 };
 pub use options::BenchRunOptions;
 pub use publication_receipt::{

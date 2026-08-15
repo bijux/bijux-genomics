@@ -58,6 +58,8 @@ The `public_api` module itself is private. Stable exports are owned by
 - `build_vcf_stage_catalog_rows()`, `render_vcf_stage_catalog(...)`, `build_vcf_stage_matrix_rows()`, `render_vcf_stage_matrix(...)`, and `validate_vcf_stage_matrix(...)` own local VCF planning derivation, persistence, and strict registry admission.
 - `validate_local_vcf_stage_matrix_config(config)`, `validate_local_vcf_stage_matrix_report(report)`, and `validate_vcf_stage_matrix_validation_report(report)` admit the persisted VCF matrix and its exact aggregate reports.
 - `validate_benchmark_local_corpus_skip_report(report)` admits corpus replacement lineage and complete stage dispositions.
+- `derive_benchmark_local_corpus_skip_report(compatibility, output_path)` derives every fixture replacement, asset-backed stage, and planner-only disposition from one admitted compatibility report.
+- `publish_benchmark_local_corpus_skip_report(request)` validates and atomically publishes that derived report while retaining repository-relative output identity.
 - `validate_benchmark_local_hpc_job_graph(graph)` admits exact job identity, dependency, root, ordering, and counter closure.
 - `validate_fastq_comparable_metrics_report(report)`, `validate_bam_comparable_metrics_report(report)`, and `validate_vcf_comparable_metrics_report(report)` admit domain-specific comparable-metric readiness reports before a thin renderer persists them.
 - `validate_stage_centric_report(report)`, `validate_tool_centric_report(report)`, and `validate_corpus_centric_report(report)` admit complementary persisted readiness views with complete nested and top-level aggregate closure.

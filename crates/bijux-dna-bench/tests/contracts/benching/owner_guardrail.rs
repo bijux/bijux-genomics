@@ -140,6 +140,39 @@ fn thin_cli_delegates_workspace_stage_run_paths_to_benchmark_owner() {
 }
 
 #[test]
+fn thin_cli_delegates_corpus_skip_publication_to_benchmark_owner() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_corpus_skip_report.rs");
+    let cli = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(cli.contains("publish_benchmark_local_corpus_skip_report"));
+    for forbidden in [
+        "fn build_skip_report",
+        "BenchmarkLocalCorpusSkip {",
+        "BenchmarkLocalAssetBackedStage {",
+        "BenchmarkLocalPlannerOnlyStage {",
+        "std::fs::create_dir_all",
+        "atomic_write_json",
+    ] {
+        assert!(!cli.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+
+    let owner_source = repo_root.join("crates/bijux-dna-bench/src/workflow/local_corpus_skip.rs");
+    let owner = fs::read_to_string(&owner_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", owner_source.display()));
+    for service in [
+        "pub fn derive_benchmark_local_corpus_skip_report",
+        "pub fn publish_benchmark_local_corpus_skip_report",
+        "validate_benchmark_local_corpus_skip_report",
+        "bijux_dna_infra::atomic_write_json",
+    ] {
+        assert!(owner.contains(service), "benchmark owner is missing {service}");
+    }
+}
+
+#[test]
 fn thin_cli_uses_model_owned_local_runtime_metrics_contract() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source =

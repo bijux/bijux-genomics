@@ -2,24 +2,17 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use bijux_dna_api::v1::api::bench::{
-    validate_benchmark_local_corpus_skip_report, BenchmarkLocalAssetBackedStage,
-    BenchmarkLocalCorpusFixture, BenchmarkLocalCorpusSkip, BenchmarkLocalCorpusSkipReport,
-    BenchmarkLocalPlannerOnlyStage, BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
+    publish_benchmark_local_corpus_skip_report, BenchmarkLocalCorpusSkipPublicationRequest,
+    BenchmarkLocalCorpusSkipReport,
 };
 
-use crate::commands::benchmark::local_corpus_stage_compatibility::{
-    validate_corpus_stage_compatibility_path, LocalCorpusStageCompatibilityValidationReport,
-};
+use crate::commands::benchmark::local_corpus_stage_compatibility::validate_corpus_stage_compatibility_path;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORPUS_SKIP_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/corpus-skip-report.json";
 pub(crate) type LocalCorpusSkipReport = BenchmarkLocalCorpusSkipReport;
-type LocalCorpusSkipReportFixture = BenchmarkLocalCorpusFixture;
-type LocalCorpusSkipEntry = BenchmarkLocalCorpusSkip;
-type LocalPlannerOnlyStageReport = BenchmarkLocalPlannerOnlyStage;
-type LocalAssetBackedStageReport = BenchmarkLocalAssetBackedStage;
 
 pub(crate) fn run_render_corpus_skip_report(
     args: &parse::BenchLocalRenderCorpusSkipReportArgs,
@@ -53,96 +46,11 @@ pub(crate) fn render_corpus_skip_report_path(
     output_path: &Path,
 ) -> Result<LocalCorpusSkipReport> {
     let compatibility = validate_corpus_stage_compatibility_path(repo_root, matrix_path)?;
-    let report = build_skip_report(repo_root, output_path, &compatibility);
-    validate_benchmark_local_corpus_skip_report(&report)?;
-    if let Some(parent) = output_path.parent() {
-        std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    bijux_dna_infra::atomic_write_json(output_path, &report)
-        .with_context(|| format!("write {}", output_path.display()))?;
-    Ok(report)
-}
-
-fn build_skip_report(
-    repo_root: &Path,
-    output_path: &Path,
-    compatibility: &LocalCorpusStageCompatibilityValidationReport,
-) -> LocalCorpusSkipReport {
-    let fixtures = compatibility
-        .fixtures
-        .iter()
-        .map(|fixture| LocalCorpusSkipReportFixture {
-            corpus_id: fixture.fixture_id.clone(),
-            corpus_family_id: fixture.corpus_family_id.clone(),
-        })
-        .collect::<Vec<_>>();
-
-    let mut skips = Vec::new();
-    let mut asset_backed_stages = Vec::new();
-    let mut planner_only_stages = Vec::new();
-    for stage in &compatibility.stages {
-        match (
-            stage.fixture_id.as_deref(),
-            stage.corpus_family_id.as_deref(),
-            stage.benchmark_scope_id.as_deref(),
-            stage.compatibility_kind.as_str(),
-        ) {
-            (Some(replacement_corpus_id), Some(replacement_corpus_family_id), None, "fixture") => {
-                for fixture in &fixtures {
-                    if fixture.corpus_id == replacement_corpus_id {
-                        continue;
-                    }
-                    skips.push(LocalCorpusSkipEntry {
-                        stage_id: stage.stage_id.clone(),
-                        readiness_kind: stage.readiness_kind.clone(),
-                        corpus_id: fixture.corpus_id.clone(),
-                        corpus_family_id: fixture.corpus_family_id.clone(),
-                        reason: format!(
-                            "stage is governed against `{replacement_corpus_id}`; `{}` does not own the required local compatibility contract",
-                            fixture.corpus_id
-                        ),
-                        replacement_corpus_id: replacement_corpus_id.to_string(),
-                        replacement_corpus_family_id: replacement_corpus_family_id.to_string(),
-                    });
-                }
-            }
-            (None, None, Some(benchmark_scope_id), "asset_backed") => {
-                asset_backed_stages.push(LocalAssetBackedStageReport {
-                    stage_id: stage.stage_id.clone(),
-                    readiness_kind: stage.readiness_kind.clone(),
-                    benchmark_scope_id: benchmark_scope_id.to_string(),
-                    reason: stage.compatibility_note.clone(),
-                });
-            }
-            (None, None, None, "planner_only") => {
-                planner_only_stages.push(LocalPlannerOnlyStageReport {
-                    stage_id: stage.stage_id.clone(),
-                    readiness_kind: stage.readiness_kind.clone(),
-                    reason: stage.compatibility_note.clone(),
-                });
-            }
-            _ => {}
-        }
-    }
-
-    LocalCorpusSkipReport {
-        schema_version: BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1.to_string(),
-        matrix_path: compatibility.matrix_path.clone(),
-        output_path: path_relative_to_repo(repo_root, output_path),
-        fixture_count: fixtures.len(),
-        stage_count: compatibility.stage_count,
-        skip_count: skips.len(),
-        asset_backed_stage_count: asset_backed_stages.len(),
-        planner_only_stage_count: planner_only_stages.len(),
-        fixtures,
-        skips,
-        asset_backed_stages,
-        planner_only_stages,
-    }
-}
-
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+    publish_benchmark_local_corpus_skip_report(&BenchmarkLocalCorpusSkipPublicationRequest {
+        repository_root: repo_root,
+        output_path,
+        compatibility: &compatibility,
+    })
 }
 
 #[cfg(test)]
