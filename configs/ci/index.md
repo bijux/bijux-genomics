@@ -17,10 +17,12 @@ Layout:
   bounded development/test codegen, compiler-cache, and target-isolation authority.
 - `configs/ci/full-shards.json`: complete-workspace nextest coverage and exact hash partitions;
   the runner retains bounded logs and timing receipts while discarding scratch archives, build
-  targets, extracted shard artifacts, and isolated source clones before returning
-  executed concurrently by the Rust CI supervisor with disjoint per-shard compile, test,
+  targets, extracted shard artifacts, and isolated source clones before returning. Shards execute
+  concurrently through the Rust CI supervisor with disjoint per-shard compile, test,
   temporary, coverage, and profile-output roots under one declared build authority. Its
-  `artifacts/`-relative output declarations rebase as one closed tree beneath `ARTIFACT_ROOT`.
+  `report_root` rebases beneath `ARTIFACT_ROOT`; archive and shard declarations are logical paths
+  remapped beneath the absolute `BIJUX_CI_FULL_SHARD_SCRATCH_ROOT` when supplied, or a disjoint
+  local `artifacts/ci/full-shards-scratch` authority otherwise.
 - `configs/ci/fast-groups.json`: bounded independent fast-lane groups, reference runner and
   warm-cache timing target executed by the same event-driven supervisor.
 

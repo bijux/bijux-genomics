@@ -15,10 +15,11 @@ use super::{
 };
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 
-const FULL_SHARDS_SCHEMA_V3: &str = "bijux.ci.full_shards.v3";
+const FULL_SHARDS_SCHEMA_V4: &str = "bijux.ci.full_shards.v4";
 const FAST_GROUPS_SCHEMA_V2: &str = "bijux.ci.fast_groups.v2";
 const FAST_TIMING_SCHEMA_V3: &str = "bijux.ci.fast_timing.v3";
 const FAST_TIMING_HISTORY_SCHEMA_V3: &str = "bijux.ci.fast_timing_history.v3";
+const FULL_SHARD_SCRATCH_ROOT_ENV: &str = "BIJUX_CI_FULL_SHARD_SCRATCH_ROOT";
 #[cfg(unix)]
 const SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES: usize = 107;
 #[cfg(unix)]
@@ -77,44 +78,42 @@ struct FullArchiveRoots {
     build_log: PathBuf,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct FullShardStorageRoots {
+    retained_report_root: PathBuf,
+    scratch_root: PathBuf,
+}
+
 struct FullShardEphemera {
-    report_workspaces: PathBuf,
-    archive_file: PathBuf,
-    archive_target: PathBuf,
+    scratch_workspaces: PathBuf,
+    archive_root: PathBuf,
     shard_artifact_roots: Vec<PathBuf>,
     armed: bool,
 }
 
 impl FullShardEphemera {
     fn new(
-        report_root: &Path,
+        scratch_root: &Path,
         archive_roots: &FullArchiveRoots,
         shard_roots: &[FullShardRoots],
-    ) -> Result<Self> {
-        let archive_target = archive_roots
-            .cargo_target
-            .parent()
-            .context("full shard archive Cargo target has no parent")?
-            .to_path_buf();
-        Ok(Self {
-            report_workspaces: report_root.join("workspaces"),
-            archive_file: archive_roots.archive_file.clone(),
-            archive_target,
+    ) -> Self {
+        Self {
+            scratch_workspaces: scratch_root.join("workspaces"),
+            archive_root: archive_roots.artifact_root.clone(),
             shard_artifact_roots: shard_roots
                 .iter()
                 .map(|roots| roots.artifact_root.clone())
                 .collect(),
             armed: true,
-        })
+        }
     }
 
     fn retain_bounded_evidence(&mut self) -> Result<()> {
-        remove_full_shard_ephemera(&self.report_workspaces)?;
+        remove_full_shard_ephemera(&self.scratch_workspaces)?;
         for path in &self.shard_artifact_roots {
             remove_full_shard_ephemera(path)?;
         }
-        remove_full_shard_ephemera(&self.archive_target)?;
-        remove_full_shard_ephemera(&self.archive_file)?;
+        remove_full_shard_ephemera(&self.archive_root)?;
         self.armed = false;
         Ok(())
     }
@@ -767,7 +766,12 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .with_context(|| format!("parse {}", contract_path.display()))?;
     validate_full_shard_contract(&contract)?;
 
-    let report_root = ci_output_path(workspace, &contract.report_root)?;
+    let storage = resolve_full_shard_storage_roots(
+        workspace,
+        &contract,
+        std::env::var_os(FULL_SHARD_SCRATCH_ROOT_ENV).map(PathBuf::from),
+    )?;
+    let report_root = storage.retained_report_root.clone();
     let build_authority_path = workspace.path(&contract.build_authority);
     let build_authority = read_ci_build_authority(&build_authority_path)?;
     require_ci_test_executor(workspace, &build_authority)?;
@@ -775,18 +779,18 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     bijux_dna_infra::ensure_dir(&report_root)?;
     let started = Instant::now();
     let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
-    let archive_roots = full_archive_roots(workspace, &contract)?;
-    validate_full_archive_roots(workspace, &archive_roots)?;
+    let archive_roots = full_archive_roots(&storage, &contract)?;
+    validate_full_archive_roots(&storage, &archive_roots)?;
     let shard_roots = contract
         .shards
         .iter()
-        .map(|shard| full_shard_roots(workspace, &contract, shard))
+        .map(|shard| full_shard_roots(&storage, &contract, shard))
         .collect::<Result<Vec<_>>>()?;
-    validate_full_shard_root_set(workspace, &shard_roots)?;
-    let mut ephemera = FullShardEphemera::new(&report_root, &archive_roots, &shard_roots)?;
+    validate_full_shard_root_set(&storage, &shard_roots)?;
+    let mut ephemera = FullShardEphemera::new(&storage.scratch_root, &archive_roots, &shard_roots);
     prepare_full_archive_roots(&archive_roots)?;
     let archive_workspace =
-        materialize_full_shard_workspace(workspace, &report_root, "archive-build")?;
+        materialize_full_shard_workspace(workspace, &storage.scratch_root, "archive-build")?;
     let archive_spec = ParallelProcessSpec {
         label: "archive-build".to_string(),
         program: "cargo".to_string(),
@@ -837,6 +841,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     "isolated_workspaces_retained": false,
                     "shard_runtime_artifacts_retained": false,
                 },
+                "storage": full_shard_storage_receipt(&storage),
                 "wall_time_milliseconds": started.elapsed().as_millis(),
                 "all_passed": false,
                 "shards": [],
@@ -848,7 +853,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let shard_workspaces = contract
         .shards
         .iter()
-        .map(|shard| materialize_full_shard_workspace(workspace, &report_root, &shard.id))
+        .map(|shard| materialize_full_shard_workspace(workspace, &storage.scratch_root, &shard.id))
         .collect::<Result<Vec<_>>>()?;
     let specs = contract
         .shards
@@ -915,6 +920,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "isolated_workspaces_retained": false,
                 "shard_runtime_artifacts_retained": false,
             },
+            "storage": full_shard_storage_receipt(&storage),
             "coverage": {
                 "workspace": true,
                 "all_targets": true,
@@ -1130,11 +1136,16 @@ fn materialize_full_shard_workspace(
 }
 
 fn full_shard_roots(
-    workspace: &Workspace,
+    storage: &FullShardStorageRoots,
     contract: &FullShardContract,
     shard: &FullShard,
 ) -> Result<FullShardRoots> {
-    let artifact_root = ci_output_path(workspace, &contract.shard_artifact_root)?.join(&shard.id);
+    let artifact_root = full_shard_scratch_path(
+        &storage.scratch_root,
+        &contract.report_root,
+        &contract.shard_artifact_root,
+    )?
+    .join(&shard.id);
     Ok(FullShardRoots {
         archive_extract: artifact_root.join("nextest/archive"),
         cargo_target: isolated_build_tree(&artifact_root, "cargo"),
@@ -1149,14 +1160,18 @@ fn full_shard_roots(
 }
 
 fn full_archive_roots(
-    workspace: &Workspace,
+    storage: &FullShardStorageRoots,
     contract: &FullShardContract,
 ) -> Result<FullArchiveRoots> {
-    let artifact_root = ci_output_path(workspace, &contract.archive_root)?;
+    let artifact_root = full_shard_scratch_path(
+        &storage.scratch_root,
+        &contract.report_root,
+        &contract.archive_root,
+    )?;
     Ok(FullArchiveRoots {
         cargo_target: isolated_build_tree(&artifact_root, "cargo"),
         archive_file: artifact_root.join("workspace-tests.tar.zst"),
-        build_log: artifact_root.join("build.log"),
+        build_log: storage.retained_report_root.join("archive-build.log"),
         artifact_root,
     })
 }
@@ -1177,20 +1192,75 @@ fn ci_output_path_under(artifact_root: &Path, configured: &str) -> Result<PathBu
     Ok(artifact_root.join(suffix))
 }
 
-fn validate_full_archive_roots(workspace: &Workspace, roots: &FullArchiveRoots) -> Result<()> {
-    let governed_artifacts = artifact_root_path(workspace)?;
-    if roots
-        .all()
-        .into_iter()
-        .any(|root| !root.is_absolute() || !root.starts_with(&governed_artifacts))
+fn resolve_full_shard_storage_roots(
+    workspace: &Workspace,
+    contract: &FullShardContract,
+    configured_scratch_root: Option<PathBuf>,
+) -> Result<FullShardStorageRoots> {
+    let retained_report_root = ci_output_path(workspace, &contract.report_root)?;
+    let scratch_root = configured_scratch_root.map_or_else(
+        || artifact_root_path(workspace).map(|root| root.join("ci/full-shards-scratch")),
+        Ok,
+    )?;
+    validate_absolute_normalized_path(&scratch_root, FULL_SHARD_SCRATCH_ROOT_ENV)?;
+    if paths_overlap(&scratch_root, &retained_report_root) {
+        anyhow::bail!(
+            "full shard scratch root and retained report root overlap: {} and {}",
+            scratch_root.display(),
+            retained_report_root.display()
+        );
+    }
+    Ok(FullShardStorageRoots { retained_report_root, scratch_root })
+}
+
+fn full_shard_scratch_path(
+    scratch_root: &Path,
+    configured_report_root: &str,
+    configured_path: &str,
+) -> Result<PathBuf> {
+    let suffix = Path::new(configured_path)
+        .strip_prefix(configured_report_root)
+        .context("full shard scratch path is outside its declared report root")?;
+    if suffix.as_os_str().is_empty() {
+        anyhow::bail!("full shard scratch path must be a child of its declared report root");
+    }
+    Ok(scratch_root.join(suffix))
+}
+
+fn validate_absolute_normalized_path(path: &Path, authority: &str) -> Result<()> {
+    if !path.is_absolute()
+        || path
+            .components()
+            .any(|component| matches!(component, Component::ParentDir | Component::CurDir))
     {
-        anyhow::bail!("full shard archive root is outside artifacts");
+        anyhow::bail!("{authority} must be absolute and normalized");
+    }
+    Ok(())
+}
+
+fn paths_overlap(left: &Path, right: &Path) -> bool {
+    left.starts_with(right) || right.starts_with(left)
+}
+
+fn validate_full_archive_roots(
+    storage: &FullShardStorageRoots,
+    roots: &FullArchiveRoots,
+) -> Result<()> {
+    if roots
+        .scratch_all()
+        .into_iter()
+        .any(|root| !root.is_absolute() || !root.starts_with(&storage.scratch_root))
+    {
+        anyhow::bail!("full shard archive root is outside scratch authority");
+    }
+    if !roots.build_log.is_absolute() || !roots.build_log.starts_with(&storage.retained_report_root)
+    {
+        anyhow::bail!("full shard archive log is outside retained report authority");
     }
     if !roots.archive_file.starts_with(&roots.artifact_root)
-        || !roots.build_log.starts_with(&roots.artifact_root)
         || !roots.cargo_target.starts_with(&roots.artifact_root)
     {
-        anyhow::bail!("full shard archive paths escape the archive root");
+        anyhow::bail!("full shard archive paths escape the archive scratch root");
     }
     Ok(())
 }
@@ -1228,14 +1298,16 @@ fn full_archive_env(roots: &FullArchiveRoots, build_jobs: usize) -> Result<Vec<(
 }
 
 fn validate_full_shard_root_set(
-    workspace: &Workspace,
+    storage: &FullShardStorageRoots,
     shard_roots: &[FullShardRoots],
 ) -> Result<()> {
-    let governed_artifacts = artifact_root_path(workspace)?;
     for roots in shard_roots {
         for root in roots.all() {
-            if !root.is_absolute() || !root.starts_with(&governed_artifacts) {
-                anyhow::bail!("full shard output root is outside artifacts: {}", root.display());
+            if !root.is_absolute() || !root.starts_with(&storage.scratch_root) {
+                anyhow::bail!(
+                    "full shard output root is outside scratch authority: {}",
+                    root.display()
+                );
             }
         }
         let mut distinct = roots.all().into_iter().collect::<BTreeSet<_>>();
@@ -1304,6 +1376,15 @@ fn full_shard_root_receipt(roots: &FullShardRoots, shard_workspace: &Path) -> se
     })
 }
 
+fn full_shard_storage_receipt(storage: &FullShardStorageRoots) -> serde_json::Value {
+    serde_json::json!({
+        "retained_report_root": storage.retained_report_root.display().to_string(),
+        "scratch_root": storage.scratch_root.display().to_string(),
+        "scratch_root_environment": FULL_SHARD_SCRATCH_ROOT_ENV,
+        "scratch_retained": false,
+    })
+}
+
 impl FullShardRoots {
     fn all(&self) -> [&Path; 9] {
         [
@@ -1321,13 +1402,13 @@ impl FullShardRoots {
 }
 
 impl FullArchiveRoots {
-    fn all(&self) -> [&Path; 4] {
-        [&self.artifact_root, &self.cargo_target, &self.archive_file, &self.build_log]
+    fn scratch_all(&self) -> [&Path; 3] {
+        [&self.artifact_root, &self.cargo_target, &self.archive_file]
     }
 }
 
 fn validate_full_shard_contract(contract: &FullShardContract) -> Result<()> {
-    if contract.schema_version != FULL_SHARDS_SCHEMA_V3
+    if contract.schema_version != FULL_SHARDS_SCHEMA_V4
         || !contract.coverage.workspace
         || !contract.coverage.all_targets
         || !contract.coverage.all_features
@@ -1784,24 +1865,25 @@ pub(in super::super) fn tooling_ci_coverage(
 #[cfg(test)]
 mod tests {
     use super::{
-        artifact_root_path, cache_stats_delta, ci_fast_group_env, ci_output_path,
-        ci_output_path_under, full_archive_args, full_archive_roots, full_shard_args,
-        full_shard_env, full_shard_root_receipt, full_shard_roots, isolated_build_tree,
+        artifact_root_path, cache_stats_delta, ci_fast_group_env, ci_output_path_under,
+        full_archive_args, full_archive_roots, full_shard_args, full_shard_env,
+        full_shard_root_receipt, full_shard_roots, full_shard_storage_receipt, isolated_build_tree,
         materialize_full_shard_workspace, parse_compiler_wrapper_identity, parse_sccache_stats,
         percentile, read_ci_build_authority, reference_timing_samples, remove_full_shard_ephemera,
         resolve_ci_fast_build_authority, resolve_ci_fast_sccache_runtime_env,
-        set_full_archive_readonly, validate_ci_test_executor_observation,
-        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
-        validate_full_shard_root_set, FastCacheStats, FastGroup, FastGroupContract,
-        FastReferenceRunner, FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard,
-        FullShardContract, FullShardCoverage, FullShardEphemera, FullShardRoots,
-        FAST_TIMING_HISTORY_SCHEMA_V3,
+        resolve_full_shard_storage_roots, set_full_archive_readonly,
+        validate_ci_test_executor_observation, validate_fast_group_contract,
+        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
+        FastCacheStats, FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
+        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
+        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V3,
+        FULL_SHARD_SCRATCH_ROOT_ENV,
     };
     use crate::runtime::workspace::Workspace;
 
     fn contract() -> FullShardContract {
         FullShardContract {
-            schema_version: "bijux.ci.full_shards.v3".to_string(),
+            schema_version: "bijux.ci.full_shards.v4".to_string(),
             coverage: FullShardCoverage {
                 workspace: true,
                 all_targets: true,
@@ -1918,18 +2000,18 @@ mod tests {
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let workspace = Workspace { root };
         let contract = contract();
+        let storage = resolve_full_shard_storage_roots(&workspace, &contract, None)?;
         let roots = contract
             .shards
             .iter()
-            .map(|shard| full_shard_roots(&workspace, &contract, shard))
+            .map(|shard| full_shard_roots(&storage, &contract, shard))
             .collect::<anyhow::Result<Vec<_>>>()?;
-        validate_full_shard_root_set(&workspace, &roots)?;
+        validate_full_shard_root_set(&storage, &roots)?;
 
-        let shard_workspace = workspace.path("artifacts/ci/full-shards/workspaces/hash-1-of-4");
+        let shard_workspace = storage.scratch_root.join("workspaces/hash-1-of-4");
         let first_env = full_shard_env(&roots[0], &shard_workspace)?
             .into_iter()
             .collect::<std::collections::BTreeMap<_, _>>();
-        let governed_artifacts = artifact_root_path(&workspace)?;
         for name in [
             "ARTIFACT_ROOT",
             "ISO_ROOT",
@@ -1946,7 +2028,7 @@ mod tests {
                 .ok_or_else(|| anyhow::anyhow!("missing shard environment variable {name}"))?;
             let path = std::path::Path::new(value);
             assert!(path.is_absolute());
-            assert!(path.starts_with(&governed_artifacts));
+            assert!(path.starts_with(&storage.scratch_root));
         }
         assert_ne!(first_env["CARGO_TARGET_DIR"], first_env["TEST_TARGET_DIR"]);
         assert_ne!(first_env["TEST_TARGET_DIR"], first_env["COV_TARGET_DIR"]);
@@ -1974,6 +2056,13 @@ mod tests {
         assert_eq!(receipt["coverage_tmp_dir"], first_env["COV_TMP_DIR"]);
         assert_eq!(receipt["test_profraw_dir"], first_env["TEST_PROFRAW_DIR"]);
         assert_eq!(receipt["coverage_profraw_dir"], first_env["COV_PROFRAW_DIR"]);
+        let storage_receipt = full_shard_storage_receipt(&storage);
+        assert_eq!(storage_receipt["scratch_root"], storage.scratch_root.display().to_string());
+        assert_eq!(
+            storage_receipt["retained_report_root"],
+            storage.retained_report_root.display().to_string()
+        );
+        assert_eq!(storage_receipt["scratch_root_environment"], FULL_SHARD_SCRATCH_ROOT_ENV);
         Ok(())
     }
 
@@ -1983,8 +2072,9 @@ mod tests {
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let workspace = Workspace { root };
         let contract = contract();
-        let archive = full_archive_roots(&workspace, &contract)?;
-        validate_full_archive_roots(&workspace, &archive)?;
+        let storage = resolve_full_shard_storage_roots(&workspace, &contract, None)?;
+        let archive = full_archive_roots(&storage, &contract)?;
+        validate_full_archive_roots(&storage, &archive)?;
 
         let build_args = full_archive_args(&archive.archive_file);
         for required in ["archive", "--workspace", "--all-targets", "--all-features", "--locked"] {
@@ -1993,10 +2083,8 @@ mod tests {
         assert_eq!(build_args.iter().filter(|arg| arg.as_str() == "--archive-file").count(), 1);
 
         for shard in &contract.shards {
-            let roots = full_shard_roots(&workspace, &contract, shard)?;
-            let remap = ci_output_path(&workspace, &contract.report_root)?
-                .join("workspaces")
-                .join(&shard.id);
+            let roots = full_shard_roots(&storage, &contract, shard)?;
+            let remap = storage.scratch_root.join("workspaces").join(&shard.id);
             let args =
                 full_shard_args(shard, &archive.archive_file, &roots.archive_extract, &remap);
             for forbidden in ["--workspace", "--all-targets", "--all-features", "--locked"] {
@@ -2029,6 +2117,41 @@ mod tests {
     }
 
     #[test]
+    fn full_shard_scratch_authority_is_external_disjoint_and_fail_closed() -> anyhow::Result<()> {
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let contract = contract();
+        let external = std::path::PathBuf::from("/local/slurmtmp.1234/bijux-full-shards");
+        let storage =
+            resolve_full_shard_storage_roots(&workspace, &contract, Some(external.clone()))?;
+
+        assert_eq!(storage.scratch_root, external);
+        assert!(storage.retained_report_root.starts_with(artifact_root_path(&workspace)?));
+        assert!(!storage.scratch_root.starts_with(&storage.retained_report_root));
+        assert!(!storage.retained_report_root.starts_with(&storage.scratch_root));
+
+        let archive = full_archive_roots(&storage, &contract)?;
+        validate_full_archive_roots(&storage, &archive)?;
+        assert!(archive.artifact_root.starts_with(&storage.scratch_root));
+        assert!(archive.build_log.starts_with(&storage.retained_report_root));
+
+        assert!(resolve_full_shard_storage_roots(
+            &workspace,
+            &contract,
+            Some(std::path::PathBuf::from("relative/scratch")),
+        )
+        .is_err());
+        assert!(resolve_full_shard_storage_roots(
+            &workspace,
+            &contract,
+            Some(storage.retained_report_root.join("scratch")),
+        )
+        .is_err());
+        Ok(())
+    }
+
+    #[test]
     fn full_shard_archive_is_read_only_during_partition_execution() -> anyhow::Result<()> {
         let root =
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
@@ -2047,15 +2170,17 @@ mod tests {
     #[test]
     fn full_shards_retain_only_bounded_logs_and_receipts() -> anyhow::Result<()> {
         let root = tempfile::tempdir()?;
-        let report_root = root.path().join("full-shards");
-        let archive_root = report_root.join("archive");
-        let shard_root = report_root.join("shards/hash-1-of-4");
-        std::fs::create_dir_all(report_root.join("workspaces/hash-1-of-4"))?;
+        let report_root = root.path().join("retained/full-shards");
+        let scratch_root = root.path().join("scratch/full-shards");
+        let archive_root = scratch_root.join("archive");
+        let shard_root = scratch_root.join("shards/hash-1-of-4");
+        std::fs::create_dir_all(scratch_root.join("workspaces/hash-1-of-4"))?;
         std::fs::create_dir_all(isolated_build_tree(&archive_root, "cargo"))?;
         std::fs::create_dir_all(&shard_root)?;
+        std::fs::create_dir_all(&report_root)?;
         std::fs::write(report_root.join("hash-1-of-4.log"), b"test failure\n")?;
         std::fs::write(report_root.join("full-gate-timing.json"), b"{}\n")?;
-        std::fs::write(archive_root.join("build.log"), b"archive build\n")?;
+        std::fs::write(report_root.join("archive-build.log"), b"archive build\n")?;
         std::fs::write(archive_root.join("workspace-tests.tar.zst"), b"archive\n")?;
         std::fs::write(
             isolated_build_tree(&archive_root, "cargo").join("output"),
@@ -2088,7 +2213,7 @@ mod tests {
             artifact_root: archive_root.clone(),
             cargo_target: isolated_build_tree(&archive_root, "cargo"),
             archive_file: archive_root.join("workspace-tests.tar.zst"),
-            build_log: archive_root.join("build.log"),
+            build_log: report_root.join("archive-build.log"),
         };
         let shard_roots = vec![FullShardRoots {
             artifact_root: shard_root.clone(),
@@ -2101,14 +2226,13 @@ mod tests {
             test_profraw: shard_root.join("coverage/profraw-test"),
             coverage_profraw: shard_root.join("coverage/profraw-coverage"),
         }];
-        let mut ephemera = FullShardEphemera::new(&report_root, &archive_roots, &shard_roots)?;
+        let mut ephemera = FullShardEphemera::new(&scratch_root, &archive_roots, &shard_roots);
         ephemera.retain_bounded_evidence()?;
 
-        assert!(!report_root.join("workspaces").exists());
-        assert!(!archive_root.join("build").exists());
-        assert!(!archive_root.join("workspace-tests.tar.zst").exists());
+        assert!(!scratch_root.join("workspaces").exists());
+        assert!(!archive_root.exists());
         assert!(!shard_root.exists());
-        assert!(archive_root.join("build.log").is_file());
+        assert!(report_root.join("archive-build.log").is_file());
         assert!(report_root.join("hash-1-of-4.log").is_file());
         assert!(report_root.join("full-gate-timing.json").is_file());
         Ok(())
