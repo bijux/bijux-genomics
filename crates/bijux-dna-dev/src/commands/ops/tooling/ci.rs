@@ -797,15 +797,25 @@ fn verify_sccache_compiler(
 }
 
 fn ci_fast_build_authority(workspace: &Workspace) -> Result<FastBuildAuthority> {
-    resolve_ci_fast_build_authority(
+    resolve_ci_fast_build_authority_with_scratch_roots(
         workspace,
         std::env::var_os("BIJUX_CI_FAST_TARGET_DIR").map(PathBuf::from),
+        &scheduler_scratch_roots(),
     )
 }
 
+#[cfg(test)]
 fn resolve_ci_fast_build_authority(
     workspace: &Workspace,
     configured: Option<PathBuf>,
+) -> Result<FastBuildAuthority> {
+    resolve_ci_fast_build_authority_with_scratch_roots(workspace, configured, &[])
+}
+
+fn resolve_ci_fast_build_authority_with_scratch_roots(
+    workspace: &Workspace,
+    configured: Option<PathBuf>,
+    scratch_roots: &[PathBuf],
 ) -> Result<FastBuildAuthority> {
     let shared = configured.is_some();
     let target = configured.unwrap_or(artifact_root_path(workspace)?.join("ci/ci-fast-target"));
@@ -823,11 +833,40 @@ fn resolve_ci_fast_build_authority(
         anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must not traverse symbolic path aliases");
     }
     let target = canonical_target;
+    if shared
+        && scratch_roots.iter().any(|root| {
+            let canonical_root = root.canonicalize().unwrap_or_else(|_| root.clone());
+            target.starts_with(canonical_root)
+        })
+    {
+        anyhow::bail!(
+            "BIJUX_CI_FAST_TARGET_DIR must not use scheduler-local scratch for warm-cache evidence"
+        );
+    }
     let source = workspace.root.canonicalize().context("canonicalize ci-fast source root")?;
+    if shared
+        && scratch_roots.iter().any(|root| {
+            let canonical_root = root.canonicalize().unwrap_or_else(|_| root.clone());
+            source.starts_with(canonical_root)
+        })
+    {
+        anyhow::bail!(
+            "ci-fast source workspace must not use scheduler-local scratch for warm-cache evidence"
+        );
+    }
     if shared && (target.starts_with(&source) || source.starts_with(&target)) {
         anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must be disjoint from the source workspace");
     }
     Ok(FastBuildAuthority { target, shared })
+}
+
+fn scheduler_scratch_roots() -> Vec<PathBuf> {
+    ["SNIC_TMP", "SLURM_TMPDIR"]
+        .into_iter()
+        .filter_map(std::env::var_os)
+        .map(PathBuf::from)
+        .filter(|root| root.is_absolute())
+        .collect()
 }
 
 pub(in super::super) fn tooling_ci_slow(
@@ -2029,8 +2068,8 @@ mod tests {
         materialize_ci_fast_compiler_wrapper, materialize_full_shard_workspace,
         parse_compiler_wrapper_identity, parse_sccache_stats, percentile, read_ci_build_authority,
         reference_timing_samples, remove_full_shard_ephemera, resolve_ci_fast_build_authority,
-        resolve_ci_fast_sccache_runtime_env, resolve_full_shard_storage_roots,
-        set_full_archive_readonly, start_owned_sccache_server,
+        resolve_ci_fast_build_authority_with_scratch_roots, resolve_ci_fast_sccache_runtime_env,
+        resolve_full_shard_storage_roots, set_full_archive_readonly, start_owned_sccache_server,
         validate_ci_test_executor_observation, validate_fast_group_contract,
         validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
         verified_warm_cache_mode, verify_sccache_compiler, FastCacheStats, FastGroup,
@@ -2635,6 +2674,29 @@ mod tests {
             Some(std::path::PathBuf::from("relative-target"))
         )
         .is_err());
+
+        let scheduler_scratch = root.join("scheduler-scratch");
+        std::fs::create_dir_all(&scheduler_scratch)?;
+        let rejected = resolve_ci_fast_build_authority_with_scratch_roots(
+            &workspace,
+            Some(scheduler_scratch.join("ci-fast-target")),
+            std::slice::from_ref(&scheduler_scratch),
+        )
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("scheduler-local build authority was accepted"))?;
+        assert!(rejected.to_string().contains("scheduler-local scratch"));
+
+        let volatile_source = scheduler_scratch.join("source");
+        std::fs::create_dir_all(&volatile_source)?;
+        let volatile_workspace = Workspace { root: volatile_source };
+        let rejected = resolve_ci_fast_build_authority_with_scratch_roots(
+            &volatile_workspace,
+            Some(root.join("shared/stable-target")),
+            std::slice::from_ref(&scheduler_scratch),
+        )
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("scheduler-local source authority was accepted"))?;
+        assert!(rejected.to_string().contains("source workspace"));
         Ok(())
     }
 
