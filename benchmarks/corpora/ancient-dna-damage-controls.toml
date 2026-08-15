@@ -1,0 +1,75 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Source authorities for independently labeled ancient-DNA damage controls
+# authority = bijux-genomics-benchmarks
+# stability = stable
+# last_updated = 2026-08-15
+
+schema_version = "bijux.benchmark.data_source.v1"
+portfolio_id = "ancient-dna-damage-controls"
+class = "production_real"
+access_classification = "public"
+redistribution_classification = "accession-referenced-derived-alignments"
+access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
+attribution = "Cite the PRJEB19769 HLA study (doi:10.1038/s41598-020-64312-w), the PRJNA688065 dental-calculus decontamination study (doi:10.1038/s41598-021-86100-w), every contributing modern-read study, ENA, NCBI SRA, and the GRCh38 assembly."
+projected_storage_bytes = 100000000000
+projected_cpu_hours = 1500
+projection_basis = "The projection reserves 100 GB and 1,500 CPU-hours for ten exact UDG/non-UDG pairs (18.2 GB of archived reads), one shotgun extraction blank, ten observational modern controls already selected by the repository, GRCh38, common-protocol alignments, orthogonal expectation records, and validation outputs."
+truth_roles = ["ancient_damage_truth"]
+truth_strategy = "paired_udg_treatment_labels_with_extraction_blank_and_observational_modern_negatives"
+known_limitations = [
+  "UDG treatment labels and published aggregate misincorporation ranges provide paired expectations, not per-molecule damage truth.",
+  "UDG-treated libraries can retain terminal damage, and treatment, library construction, sequencing, and coverage differences can affect observed profiles.",
+  "The extraction blank is from a separate ancient dental-calculus study and is a contamination control, not a matched human-library damage negative.",
+  "Modern controls are observational negatives from different studies and library preparations, so analyses must remain stratified and may support false-positive checks but not matched effect-size estimates.",
+  "No archive bytes, derived alignments, checksums, sample metadata table, held-out split, or orthogonal expectation table are admitted by this source declaration.",
+]
+description = "Ten exact ancient-human UDG/non-UDG library pairs anchor treatment-labeled damage discrimination, complemented by a sequenced extraction blank, observational modern controls, and a common GRCh38 alignment authority."
+data_types = ["bam", "fasta", "fastq", "orthogonal_assay", "sample_metadata"]
+target_sample_count = 10
+
+[[collections]]
+id = "ena-prjeb19769-matched-udg-pairs"
+authority = "European Nucleotide Archive and the peer-reviewed PRJEB19769 study"
+accession = "PRJEB19769;ERR1883817+ERR1884189;ERR1884128+ERR1884165;ERR1884144+ERR1884198;ERR1884159+ERR1884210;ERR1884139+ERR1884186;ERR1883912+ERR1884180;ERR1883907+ERR1884171;ERR1884150+ERR1884204;ERR1884155+ERR1884207;ERR1883932+ERR1884201"
+source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJEB19769"
+access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
+data_types = ["fastq", "orthogonal_assay", "sample_metadata"]
+planned_sample_count = 10
+selection_scope = "Freeze the ten listed same-individual shotgun pairs in pair order: G189, G1042, G28, G914, G166, G154, G117, G417, G896, and G397. Within each pair, the first run is UDG-treated and the second is non-UDG; materialization must preserve run, BioSample, individual, treatment, layout, study, and file-checksum fields."
+truth_basis = "Each selected individual has paired UDG-treated and non-UDG shotgun libraries, and the source study independently reports terminal misincorporation profiles from mapDamage, including lower aggregate terminal damage after UDG treatment. The frozen supplementary expectation table is required before accuracy use."
+known_limitations = ["The paired treatment contrast supports damage-profile discrimination and calibration but does not identify which individual molecules carry authentic postmortem lesions."]
+
+[[collections]]
+id = "grch38-reference"
+authority = "NCBI Genome Reference Consortium assembly record"
+accession = "GCF_000001405.40"
+source_url = "https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+data_types = ["fasta"]
+selection_scope = "One exact GRCh38 assembly package and a declared alternate/decoy policy shared by every derived human alignment."
+truth_basis = "The assembly accession and checksummed package freeze the coordinate and base authority without supplying damage truth."
+known_limitations = ["Reference composition, alternate contigs, read trimming, and alignment parameters can alter terminal-damage observations."]
+
+[[collections]]
+id = "ncbi-prjna688065-extraction-blank"
+authority = "NCBI Sequence Read Archive and the peer-reviewed PRJNA688065 study"
+accession = "PRJNA688065;SAMN17168232;SRR13355795"
+source_url = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA688065"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+data_types = ["fastq", "orthogonal_assay", "sample_metadata"]
+planned_sample_count = 1
+selection_scope = "Freeze shotgun extraction blank AndrewDecon (SRR13355795), including the archive FASTQ checksum, study treatment metadata, library layout, and the study's declared blank interpretation."
+truth_basis = "The source study states that one extraction blank accompanied shotgun processing, providing an independently designated non-template control for contamination and spurious-signal checks."
+known_limitations = ["This dental-calculus extraction blank is not a matched control for the human UDG/non-UDG libraries and may contain too few alignable reads for a stable terminal-damage estimate."]
+
+[[collections]]
+id = "public-modern-human-observational-controls"
+authority = "European Nucleotide Archive studies already selected by the governed human short-read diversity source authority"
+accession = "PRJDA67461+PRJDB2640+PRJDA41121+PRJDA50447;DRR001066;DRR001059;DRR001076;DRR001083;DRR001073;DRR015568;DRR015482;DRR000093;DRR000095;DRR000550"
+source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJDA67461"
+access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
+data_types = ["fastq", "sample_metadata"]
+planned_sample_count = 10
+selection_scope = "Reuse exactly the ten listed modern public human runs selected by the human-short-read-diversity acquisition plan, retaining their four study accessions, single/paired layout, library strategy, selection, platform, and file checksums."
+truth_basis = "Modern biological libraries provide an observational low-damage comparison for false-positive checks when analyzed separately from the paired ancient treatment contrast."
+known_limitations = ["Different study, extraction, library, sequencing, and storage contexts prevent treating these modern libraries as matched negatives or exact no-damage truth."]

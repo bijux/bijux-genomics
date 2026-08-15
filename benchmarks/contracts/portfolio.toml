@@ -293,17 +293,17 @@ source_specs = ["benchmarks/corpora/ancient-dna-bam-diversity.toml"]
 
 [[corpora]]
 id = "ancient-dna-damage-controls"
-status = "missing"
+status = "source_defined"
 evidence_scope = "comparative"
 class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
-data_types = ["bam", "fasta", "orthogonal_assay", "sample_metadata"]
+data_types = ["bam", "fasta", "fastq", "orthogonal_assay", "sample_metadata"]
 roles = ["ancient_damage_truth"]
-truth_strategy = "independently_authenticated_positive_negative_and_blank_controls"
-scientific_rationale = "Damage-model accuracy requires controls whose expected state is established independently of every compared terminal-damage implementation."
-limitations = ["No checksum-admitted control panel with authenticated positives, modern negatives, blanks, and orthogonal assay evidence is currently available."]
-source_specs = []
+truth_strategy = "paired_udg_treatment_labels_with_extraction_blank_and_observational_modern_negatives"
+scientific_rationale = "Same-individual UDG/non-UDG library pairs provide independently labeled relative-damage expectations; an extraction blank and stratified modern libraries probe contamination and false-positive behavior without being misrepresented as per-molecule truth."
+limitations = ["The selected sources, common-protocol alignments, checksums, treatment metadata, held-out split, and orthogonal expectation table are not yet admitted, and the design cannot establish per-molecule damage truth."]
+source_specs = ["benchmarks/corpora/ancient-dna-damage-controls.toml"]
 
 [[corpora]]
 id = "variant-truth-panel"
