@@ -260,7 +260,7 @@
           "role": "variant"
         }
       ],
-      "cache_key": "49a501cf4fd5cbaaf9d22c2c322ca3e46b40bbbb1f6074a19e6d9a532658b746",
+      "cache_key": "dbb03015529a8a5b6ec8a9ffff40025c50330e0b372e75578a506c2752133e46",
       "dependencies": [
         "vcf.filter"
       ],
@@ -268,6 +268,7 @@
         "allow_gl_only_input": false,
         "boundary_contract": {
           "accepted_tools": [
+            "shapeit",
             "shapeit5",
             "eagle",
             "beagle"
@@ -2185,7 +2186,7 @@
     }
   ],
   "pipeline_id": "vcf-to-vcf__downstream_diploid_sctx_0a9734ff9d35__v2",
-  "plan_fingerprint": "44b7bddfb48fbddca56de30657258bddae1dd6ed0353aee220bb0611a7085bb4",
+  "plan_fingerprint": "d74c8b72c0afdbd4e613b67ff74c82d88b1aa90eae1a3d464a7972964b76909f",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "policy": "PreferAccuracy",
   "profile_id": "vcf-downstream",
