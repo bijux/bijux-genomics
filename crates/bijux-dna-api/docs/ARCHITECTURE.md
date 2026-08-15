@@ -26,9 +26,10 @@ runtime wiring, support helpers, and domain-specific adapters private.
   repository-relative or site-specific path.
 - `src/v1/bam/stage_planning/` isolates BAM stage argument planning from the
   public BAM namespace.
-- `src/v1/bench/` exposes the narrow benchmark namespace and composes the
-  concrete FASTQ, BAM, and VCF stage plugins without moving plugin semantics
-  into the API boundary. `src/v1/env/`, `src/v1/fastq/`, and
+- `src/v1/bench/` exposes the narrow benchmark namespace, groups persisted VCF
+  smoke contracts under `exports/`, and composes the concrete FASTQ, BAM, and
+  VCF stage plugins without moving plugin semantics into the API boundary.
+  `src/v1/env/`, `src/v1/fastq/`, and
   `src/v1/pipelines/` expose the other narrow v1 helper namespaces.
 - `src/surface/` owns stable request/response contracts and explainability
   contracts used by the public API.

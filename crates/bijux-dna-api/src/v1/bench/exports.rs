@@ -2,6 +2,10 @@
 //!
 //! Stability: v1 (stable).
 
+mod vcf_smoke_contracts;
+
+pub use vcf_smoke_contracts::*;
+
 pub use bijux_dna_bench::{
     all_domain_output_declarations_schema, stage_tool_assets_config_schema,
     stage_tool_assets_report_schema, stage_tool_containers_config_schema,
@@ -31,24 +35,6 @@ pub use bijux_dna_bench::{
     BenchmarkWorkspaceLocal, BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns,
     BenchmarkWorkspaceSync, BenchmarkWorkspaceSyncDefaults, CorpusBenchmarkContract,
     CorpusBenchmarkExclusion,
-};
-pub use bijux_dna_bench::{
-    benchmark_local_vcf_call_smoke_metrics_schema, benchmark_local_vcf_call_smoke_schema,
-    validate_benchmark_local_vcf_call_smoke_metrics,
-    validate_benchmark_local_vcf_call_smoke_report, BenchmarkLocalVcfCallSmokeMetrics,
-    BenchmarkLocalVcfCallSmokeReport, BENCHMARK_LOCAL_VCF_CALL_SMOKE_METRICS_SCHEMA_V1,
-    BENCHMARK_LOCAL_VCF_CALL_SMOKE_SCHEMA_V1,
-};
-pub use bijux_dna_bench::{
-    benchmark_local_vcf_ibd_smoke_schema, validate_benchmark_local_vcf_ibd_smoke_report,
-    BenchmarkLocalVcfIbdInsufficientOverlapProbe, BenchmarkLocalVcfIbdSmokeReport,
-    BenchmarkLocalVcfIbdSmokeRow, BENCHMARK_LOCAL_VCF_IBD_SMOKE_SCHEMA_V1,
-};
-pub use bijux_dna_bench::{
-    benchmark_local_vcf_imputation_metrics_smoke_schema,
-    validate_benchmark_local_vcf_imputation_metrics_smoke_report,
-    BenchmarkImputationQualityFieldAvailability, BenchmarkLocalVcfImputationMetricsSmokeReport,
-    BENCHMARK_LOCAL_VCF_IMPUTATION_METRICS_SMOKE_SCHEMA_V1,
 };
 pub use bijux_dna_bench::{
     local_vcf_stage_catalog_config_schema, local_vcf_stage_catalog_report_schema,

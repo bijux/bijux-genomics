@@ -36,6 +36,13 @@ pub use bijux_dna_bench_model::{
     WorkspaceStageNormalizationReport,
 };
 pub use bijux_dna_bench_model::{
+    benchmark_local_vcf_call_gl_smoke_metrics_schema, benchmark_local_vcf_call_gl_smoke_schema,
+    validate_benchmark_local_vcf_call_gl_smoke_metrics,
+    validate_benchmark_local_vcf_call_gl_smoke_report, BenchmarkLocalVcfCallGlSmokeMetrics,
+    BenchmarkLocalVcfCallGlSmokeReport, BENCHMARK_LOCAL_VCF_CALL_GL_SMOKE_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_VCF_CALL_GL_SMOKE_SCHEMA_V1,
+};
+pub use bijux_dna_bench_model::{
     benchmark_local_vcf_call_smoke_metrics_schema, benchmark_local_vcf_call_smoke_schema,
     validate_benchmark_local_vcf_call_smoke_metrics,
     validate_benchmark_local_vcf_call_smoke_report, BenchmarkLocalVcfCallSmokeMetrics,

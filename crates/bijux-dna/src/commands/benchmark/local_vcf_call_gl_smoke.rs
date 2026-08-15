@@ -1,13 +1,20 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
+pub(crate) use bijux_dna_api::v1::api::bench::BenchmarkLocalVcfCallGlSmokeReport as LocalVcfCallGlSmokeReport;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_vcf_call_gl_smoke_metrics,
+    validate_benchmark_local_vcf_call_gl_smoke_report,
+    BenchmarkLocalVcfCallGlSmokeMetrics as LocalVcfCallGlSmokeMetrics,
+    BENCHMARK_LOCAL_VCF_CALL_GL_SMOKE_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_VCF_CALL_GL_SMOKE_SCHEMA_V1,
+};
 use bijux_dna_domain_vcf::params::VcfCallParams;
 use bijux_dna_stages_vcf::pipeline::run_call_gl_stage;
 use bijux_dna_stages_vcf::vcf_io::{read_vcf_text, vcf_validate_input, VcfFieldRequirement};
-use serde::Serialize;
 
 use super::local_stage_result_manifest::{path_relative_to_repo, validate_stage_result_manifest};
 use super::local_vcf_call_bam_smoke_support::{
@@ -18,63 +25,10 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const DEFAULT_VCF_CALL_GL_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.call_gl";
-const LOCAL_VCF_CALL_GL_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_call_gl_smoke.v1";
-const LOCAL_VCF_CALL_GL_SMOKE_METRICS_SCHEMA_VERSION: &str =
-    "bijux.bench.local_vcf_call_gl_smoke.metrics.v1";
 const LOCAL_VCF_CALL_GL_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-call-gl-smoke";
 const GOVERNED_VCF_CALL_GL_STAGE_ID: &str = "vcf.call_gl";
 const DEFAULT_OUTPUT_VCF_NAME: &str = "gl.vcf.gz";
 const DEFAULT_OUTPUT_METRICS_NAME: &str = "metrics.json";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalVcfCallGlSmokeMetrics {
-    pub(crate) schema_version: &'static str,
-    pub(crate) stage_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) sample_id: String,
-    pub(crate) input_bam: String,
-    pub(crate) reference: String,
-    pub(crate) likelihood_field: String,
-    pub(crate) sites_with_likelihoods: u64,
-    pub(crate) samples_with_likelihoods: u64,
-    pub(crate) missing_likelihoods: u64,
-    pub(crate) sample_count: u64,
-    pub(crate) tool_id: String,
-    pub(crate) exit_code: i32,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) struct LocalVcfCallGlSmokeReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) command: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) sample_id: String,
-    pub(crate) sample_name: String,
-    pub(crate) input_bam: String,
-    pub(crate) input_bam_index: String,
-    pub(crate) reference: String,
-    pub(crate) materialized_reference_path: String,
-    pub(crate) output_root: String,
-    pub(crate) output_vcf_path: String,
-    pub(crate) output_tbi_path: String,
-    pub(crate) metrics_path: String,
-    pub(crate) stage_result_manifest_path: String,
-    pub(crate) started_at: String,
-    pub(crate) finished_at: String,
-    pub(crate) elapsed_seconds: f64,
-    pub(crate) exit_code: i32,
-    pub(crate) likelihood_field: String,
-    pub(crate) sites_with_likelihoods: u64,
-    pub(crate) samples_with_likelihoods: u64,
-    pub(crate) missing_likelihoods: u64,
-    pub(crate) sample_count: u64,
-    pub(crate) parseable: bool,
-    pub(crate) validation_checks: BTreeMap<String, bool>,
-    pub(crate) gt_present: bool,
-    pub(crate) gl_present: bool,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct LikelihoodSummary {
@@ -157,7 +111,7 @@ pub(crate) fn run_local_vcf_call_gl_smoke(
         .with_context(|| format!("count samples in {}", output_vcf.display()))?;
 
     let metrics = LocalVcfCallGlSmokeMetrics {
-        schema_version: LOCAL_VCF_CALL_GL_SMOKE_METRICS_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_VCF_CALL_GL_SMOKE_METRICS_SCHEMA_V1.to_string(),
         stage_id: contract.stage_id.clone(),
         corpus_id: contract.corpus_id.clone(),
         sample_id: contract.sample_id.clone(),
@@ -171,6 +125,7 @@ pub(crate) fn run_local_vcf_call_gl_smoke(
         tool_id: contract.tool_id.clone(),
         exit_code: 0,
     };
+    validate_benchmark_local_vcf_call_gl_smoke_metrics(&metrics)?;
     let metrics_path = output_root.join(DEFAULT_OUTPUT_METRICS_NAME);
     bijux_dna_infra::atomic_write_json(&metrics_path, &metrics)?;
 
@@ -208,8 +163,8 @@ pub(crate) fn run_local_vcf_call_gl_smoke(
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
 
-    Ok(LocalVcfCallGlSmokeReport {
-        schema_version: LOCAL_VCF_CALL_GL_SMOKE_SCHEMA_VERSION,
+    let report = LocalVcfCallGlSmokeReport {
+        schema_version: BENCHMARK_LOCAL_VCF_CALL_GL_SMOKE_SCHEMA_V1.to_string(),
         command: format!("{LOCAL_VCF_CALL_GL_SMOKE_COMMAND} --tool-id {}", contract.tool_id),
         stage_id: contract.stage_id,
         tool_id: contract.tool_id,
@@ -238,7 +193,9 @@ pub(crate) fn run_local_vcf_call_gl_smoke(
         validation_checks: validation.checks,
         gt_present: validation.gt_present,
         gl_present: validation.gl_present,
-    })
+    };
+    validate_benchmark_local_vcf_call_gl_smoke_report(&report)?;
+    Ok(report)
 }
 
 fn summarize_likelihood_fields(vcf_path: &Path) -> Result<LikelihoodSummary> {

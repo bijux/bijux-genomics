@@ -53,6 +53,7 @@ mod local_stage_commands;
 mod local_stage_completion;
 mod local_stage_fake_run;
 mod local_stage_inventory;
+mod local_vcf_call_gl_smoke;
 mod local_vcf_call_smoke;
 mod local_vcf_ibd_smoke;
 mod local_vcf_imputation_metrics_smoke;
@@ -182,6 +183,10 @@ pub use local_stage_fake_run::{
 };
 pub use local_stage_inventory::{
     validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_stage_inventory,
+};
+pub use local_vcf_call_gl_smoke::{
+    validate_benchmark_local_vcf_call_gl_smoke_metrics,
+    validate_benchmark_local_vcf_call_gl_smoke_report,
 };
 pub use local_vcf_call_smoke::{
     validate_benchmark_local_vcf_call_smoke_metrics, validate_benchmark_local_vcf_call_smoke_report,

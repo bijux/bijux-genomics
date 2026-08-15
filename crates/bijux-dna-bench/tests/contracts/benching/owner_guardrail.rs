@@ -260,6 +260,22 @@ fn thin_cli_uses_model_owned_local_vcf_call_smoke_contract() {
 }
 
 #[test]
+fn thin_cli_uses_model_owned_local_vcf_call_gl_smoke_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_vcf_call_gl_smoke.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_vcf_call_gl_smoke_metrics"));
+    assert!(contents.contains("validate_benchmark_local_vcf_call_gl_smoke_report"));
+    assert!(!contents.contains("struct LocalVcfCallGlSmokeMetrics"));
+    assert!(!contents.contains("struct LocalVcfCallGlSmokeReport"));
+    assert!(!contents.contains("bijux.bench.local_vcf_call_gl_smoke.metrics.v1"));
+    assert!(!contents.contains("bijux.bench.local_vcf_call_gl_smoke.v1"));
+}
+
+#[test]
 fn thin_cli_uses_model_owned_all_domain_parser_collector_contract() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source = repo_root
