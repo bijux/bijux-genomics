@@ -19,12 +19,13 @@ mod contracts {
             vcf_population_guardrail_contracts, ContigSpec, DamageAwareGenotypeLogicContract,
             DefaultPanelSelectionPolicy, EntryVcfInvariantState, PanelMapInvariantState,
             PanelSelectionContext, PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext,
-            VcfArtifactClass, VcfComparableMetricDirection, VcfInvariantState,
+            VcfArtifactClass, VcfComparableMetricDirection, VcfInvariantState, BAM_INDEX_DATA_TYPE,
             DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE, VCF_COHORT_VALIDATION_CONTRACT,
-            VCF_DAMAGE_FILTER_CONTRACT, VCF_FILTER_EVIDENCE_CONTRACT, VCF_NORMALIZATION_CONTRACT,
-            VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT, VCF_PRODUCTION_CORPUS_CONTRACT,
-            VCF_REFERENCE_CONTEXT_CONTRACT, VCF_REPORT_COVERAGE_CONTRACT,
-            VCF_SCIENTIFIC_DRIFT_CONTRACT, VCF_STATS_REPORT_CONTRACT, VCF_VALIDATION_CONTRACT,
+            VCF_DAMAGE_FILTER_CONTRACT, VCF_FILTER_EVIDENCE_CONTRACT, VCF_INDEX_DATA_TYPE,
+            VCF_NORMALIZATION_CONTRACT, VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT,
+            VCF_PRODUCTION_CORPUS_CONTRACT, VCF_REFERENCE_CONTEXT_CONTRACT,
+            VCF_REPORT_COVERAGE_CONTRACT, VCF_SCIENTIFIC_DRIFT_CONTRACT, VCF_STATS_REPORT_CONTRACT,
+            VCF_VALIDATION_CONTRACT,
         },
         coverage::{domain_coverage_report, VCF_DOMAIN_TOOL_CATALOG},
         param_registry_toml, required_tools_toml, required_vcf_bench_corpus_scenarios,
@@ -112,11 +113,16 @@ mod contracts {
 
     #[test]
     fn vcf_stage_contracts_expose_io_metrics_and_failure_modes() {
+        let Some(call_io) = stage_io_contract(VcfDomainStage::Call) else {
+            panic!("missing stage IO contract for calling");
+        };
+        assert!(call_io.required_indices.contains(&BAM_INDEX_DATA_TYPE));
+
         let Some(io) = stage_io_contract(VcfDomainStage::ImputationMetrics) else {
             panic!("missing stage IO contract for imputation");
         };
         assert!(io.required_inputs.contains(&"vcf"));
-        assert!(io.required_indices.contains(&"vcf.tbi"));
+        assert!(io.required_indices.contains(&VCF_INDEX_DATA_TYPE));
         assert_eq!(io.required_outputs, vec!["imputation_metrics_json"]);
 
         let metrics = stage_metrics_contract(VcfDomainStage::ImputationMetrics);

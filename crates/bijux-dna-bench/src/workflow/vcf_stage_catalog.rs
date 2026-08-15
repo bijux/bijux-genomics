@@ -10,7 +10,9 @@ use bijux_dna_bench_model::{
     LocalVcfStageCatalogConfig, LocalVcfStageCatalogReport, VcfStageCatalogRow,
     LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1, LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1,
 };
-use bijux_dna_domain_vcf::contracts::stage_io_contract;
+use bijux_dna_domain_vcf::contracts::{
+    stage_io_contract, BAM_INDEX_DATA_TYPE, VCF_INDEX_DATA_TYPE,
+};
 use bijux_dna_domain_vcf::{DomainSupportStatus, VcfDomainStage, VCF_STAGE_ORDER_DOWNSTREAM};
 use bijux_dna_stages_vcf::stage_specs::{vcf_stage_catalog, VcfStageSpec};
 
@@ -173,12 +175,12 @@ fn local_smoke_mode(stage: VcfDomainStage) -> &'static str {
 
 fn required_assets(stage: VcfDomainStage, required_indices: &[&str]) -> Vec<String> {
     let mut assets = BTreeSet::new();
-    if required_indices.contains(&"bam.bai") {
+    if required_indices.contains(&BAM_INDEX_DATA_TYPE) {
         for asset in ["bam_index", "reference_dict", "reference_fai", "reference_fasta"] {
             assets.insert(asset.to_string());
         }
     }
-    if required_indices.contains(&"vcf.tbi") {
+    if required_indices.contains(&VCF_INDEX_DATA_TYPE) {
         assets.insert("vcf_index".to_string());
     }
     match stage {
