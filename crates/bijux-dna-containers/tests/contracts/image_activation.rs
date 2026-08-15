@@ -79,6 +79,35 @@ fn activation_rejects_conflicts_and_source_drift() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn partially_applied_activation_can_roll_back_before_restoring_prior_authority() -> Result<()> {
+    let fixture = Fixture::new()?;
+    fixture.create_plan()?;
+    std::fs::write(fixture.staging.join("beta.sif"), b"drifted")?;
+
+    assert!(apply_image_activation_plan(
+        &fixture.plan,
+        &fixture.staging,
+        &fixture.active,
+        "2026-08-05T10:00:00Z",
+    )
+    .is_err());
+    assert!(fixture.active.join("alpha.sif").is_file());
+    assert!(!fixture.active.join("beta.sif").exists());
+
+    std::fs::write(fixture.staging.join("beta.sif"), b"beta")?;
+    let rolled_back = rollback_image_activation_plan(
+        &fixture.plan,
+        &fixture.staging,
+        &fixture.active,
+        "2026-08-05T10:01:00Z",
+    )?;
+    assert_eq!(rolled_back.state, ImageActivationPlanState::RolledBack);
+    assert!(!fixture.active.join("alpha.sif").exists());
+    assert!(!fixture.active.join("beta.sif").exists());
+    Ok(())
+}
+
 #[cfg(unix)]
 #[test]
 fn interrupted_application_accepts_only_the_planned_hard_link() -> Result<()> {

@@ -176,7 +176,9 @@ pub fn rollback_image_activation_plan(
     let mut plan = load_governed_plan(plan_path, source_root, active_root)?;
     if !matches!(
         plan.state,
-        ImageActivationPlanState::Applied | ImageActivationPlanState::RollingBack
+        ImageActivationPlanState::Applying
+            | ImageActivationPlanState::Applied
+            | ImageActivationPlanState::RollingBack
     ) {
         bail!("image-activation plan cannot be rolled back from {:?}", plan.state);
     }
