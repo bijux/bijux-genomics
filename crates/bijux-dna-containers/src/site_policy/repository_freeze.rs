@@ -65,12 +65,27 @@ fn ensure_freeze_storage_capacity(request: &RepositoryFreezeRequest) -> Result<(
         request.governance.preflight.minimum_available_bytes
     );
     let available_inodes = df_available(path, "-Pi")?;
+    let estimated_snapshot_inodes = WalkDir::new(&request.governance.paths.active_repository)
+        .follow_links(false)
+        .into_iter()
+        .try_fold(0_u64, |count, entry| {
+            entry.context("estimate repository snapshot inode footprint")?;
+            count.checked_add(1).context("estimated repository snapshot inode count overflowed")
+        })?;
+    let required_inodes = required_freeze_inodes(
+        request.governance.preflight.minimum_available_inodes,
+        estimated_snapshot_inodes,
+    );
     ensure!(
-        available_inodes >= request.governance.preflight.minimum_available_inodes,
-        "repository freeze requires at least {} available inodes but only {available_inodes} are available",
-        request.governance.preflight.minimum_available_inodes
+        available_inodes >= required_inodes,
+        "repository freeze requires at least {} reserve plus {estimated_snapshot_inodes} estimated snapshot inodes ({required_inodes} available inodes total) but only {available_inodes} are available",
+        request.governance.preflight.minimum_available_inodes,
     );
     Ok(())
+}
+
+fn required_freeze_inodes(reserve: u64, estimated_snapshot_inodes: u64) -> u64 {
+    reserve.saturating_add(estimated_snapshot_inodes)
 }
 
 fn existing_ancestor(path: &Path) -> Result<&Path> {
@@ -384,4 +399,15 @@ fn remove_incomplete_snapshot(target: &Path) -> bool {
         }
     }
     std::fs::remove_dir_all(target).is_ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::required_freeze_inodes;
+
+    #[test]
+    fn inode_preflight_preserves_reserve_after_snapshot_materialization() {
+        assert_eq!(required_freeze_inodes(1_000, 10_584), 11_584);
+        assert_eq!(required_freeze_inodes(u64::MAX, 1), u64::MAX);
+    }
 }
