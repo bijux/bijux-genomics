@@ -15,7 +15,6 @@ const NORMAL_DEPS: &[&str] = &[
     "bijux-dna-planner-bam",
     "bijux-dna-planner-fastq",
     "bijux-dna-planner-vcf",
-    "bijux-dna-science",
     "bijux-dna-stage-contract",
     "bijux-dna-stages-fastq",
     "bijux-dna-stages-vcf",

@@ -1710,8 +1710,9 @@ Visible aliases are part of the operator surface:
   smoke metrics (`sample_missingness`, `variant_missingness`, `maf_summary`, `heterozygosity`,
   `excluded_samples`, and `excluded_variants`) so reviewer evidence comes from the repo command
   instead of an implied parser contract.
-- `bijux-dna bench local run-vcf-admixture-smoke --tool-id <plink|plink2>`
-  `run-vcf-admixture-smoke` writes tool-addressed `admixture.tsv` and `admixture.json` artifacts
+- `bijux-dna bench local run-vcf-admixture-smoke`
+  `run-vcf-admixture-smoke` selects `plink` or `plink2` with `--tool-id` and writes tool-addressed
+  `admixture.tsv` and `admixture.json` artifacts
   under `runs/bench/local-smoke/vcf.admixture/<tool-id>/` from the matching governed
   `vcf.admixture` binding. The command materializes the owned `vcf-mini` multisample cohort plus
   population metadata contracts, runs the exact retained PLINK-family backend, keeps the source
