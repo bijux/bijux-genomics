@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use anyhow::{Context, Result};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, StageOperatingMode};
 use bijux_dna_core::ids::{ArtifactId, StageId, ToolId};
@@ -38,6 +36,7 @@ fn canonical_probes_close_every_stage_without_tool_dispatch() -> Result<()> {
 
 #[test]
 fn semantic_probe_accepts_a_complete_tool_independent_output() -> Result<()> {
+    let sandbox = bijux_dna_testkit::tempdir_for("downstream-probe-complete-output");
     let bindings = canonical_tool_bindings()?;
     let probes = canonical_downstream_probes()?;
     let binding = bindings
@@ -45,7 +44,8 @@ fn semantic_probe_accepts_a_complete_tool_independent_output() -> Result<()> {
         .context("missing FASTQ filter binding")?;
     let probe = probes.probe_for_stage(binding.stage_id()).context("missing FASTQ filter probe")?;
 
-    let evaluation = evaluate_downstream_probe(probe, binding, &passing_output(binding))?;
+    let evaluation =
+        evaluate_downstream_probe(probe, binding, &passing_output(binding, sandbox.path()))?;
     assert!(evaluation.passed);
     assert_eq!(evaluation.checks.len(), 4);
     assert!(evaluation.checks.iter().all(|check| check.passed));
@@ -54,13 +54,14 @@ fn semantic_probe_accepts_a_complete_tool_independent_output() -> Result<()> {
 
 #[test]
 fn semantic_probe_preserves_metric_artifact_and_verdict_failures() -> Result<()> {
+    let sandbox = bijux_dna_testkit::tempdir_for("downstream-probe-semantic-failures");
     let bindings = canonical_tool_bindings()?;
     let probes = canonical_downstream_probes()?;
     let binding = bindings
         .binding(&StageId::new("fastq.filter_reads"), &ToolId::new("fastp"))
         .context("missing FASTQ filter binding")?;
     let probe = probes.probe_for_stage(binding.stage_id()).context("missing FASTQ filter probe")?;
-    let mut output = passing_output(binding);
+    let mut output = passing_output(binding, sandbox.path());
     output.metrics.metrics = serde_json::Value::Null;
     output.artifacts.clear();
     output.invariants[0].status = InvariantStatusV1::Fail;
@@ -83,6 +84,7 @@ fn semantic_probe_preserves_metric_artifact_and_verdict_failures() -> Result<()>
 
 #[test]
 fn semantic_probe_rejects_incomplete_authority_and_undeclared_artifacts() -> Result<()> {
+    let sandbox = bijux_dna_testkit::tempdir_for("downstream-probe-authority-failures");
     let bindings = canonical_tool_bindings()?;
     let probes = canonical_downstream_probes()?;
     let binding = bindings
@@ -91,15 +93,15 @@ fn semantic_probe_rejects_incomplete_authority_and_undeclared_artifacts() -> Res
     let mut probe =
         probes.probe_for_stage(binding.stage_id()).context("missing FASTQ filter probe")?.clone();
     probe.assertions.pop();
-    assert!(evaluate_downstream_probe(&probe, binding, &passing_output(binding))
+    assert!(evaluate_downstream_probe(&probe, binding, &passing_output(binding, sandbox.path()))
         .is_err_and(|error| error.to_string().contains("complete semantic assertion set")));
 
     let probe = probes.probe_for_stage(binding.stage_id()).context("missing FASTQ filter probe")?;
-    let mut output = passing_output(binding);
+    let mut output = passing_output(binding, sandbox.path());
     output.artifacts.push(
         ArtifactRef::required(
             ArtifactId::new("undeclared_output"),
-            PathBuf::from("artifacts/undeclared-output"),
+            sandbox.path().join("undeclared-output"),
             ArtifactRole::Unknown,
         )
         .with_artifact_contract("bijux.auxiliary.artifact.json.v1"),
@@ -112,14 +114,17 @@ fn semantic_probe_rejects_incomplete_authority_and_undeclared_artifacts() -> Res
     Ok(())
 }
 
-fn passing_output(binding: &impl ToolBinding) -> StagePluginOutputV1 {
+fn passing_output(
+    binding: &impl ToolBinding,
+    output_root: &std::path::Path,
+) -> StagePluginOutputV1 {
     let artifacts = binding
         .outputs()
         .iter()
         .map(|output| {
             ArtifactRef::required(
                 ArtifactId::new(&output.name),
-                PathBuf::from(format!("artifacts/{}", output.name)),
+                output_root.join(&output.name),
                 ArtifactRole::Unknown,
             )
             .with_artifact_contract(&output.artifact_contract_id)

@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_bench::BenchmarkStagePluginRegistry;
@@ -102,13 +101,14 @@ fn plugin_ownership_must_be_complete_and_unambiguous() -> Result<()> {
 
 #[test]
 fn generic_normalization_preserves_scientific_failure_without_dispatch_error() -> Result<()> {
+    let sandbox = bijux_dna_testkit::tempdir_for("campaign-plugin-normalization");
     let bindings = canonical_tool_bindings()?;
     let plugin = PrefixPlugin { prefix: "vcf.", fail_semantics: true };
     let registry = BenchmarkStagePluginRegistry::new(vec![&plugin]);
     let binding = bindings
         .binding(&StageId::new("vcf.filter"), &ToolId::new("bcftools"))
         .ok_or_else(|| anyhow!("missing canonical VCF filter binding"))?;
-    let plan = plan_for_binding(binding);
+    let plan = plan_for_binding(binding, sandbox.path());
     let normalized = registry.normalize(&bindings, &plan, &plan.io.outputs)?;
     assert!(!normalized.downstream.passed);
     assert_eq!(
@@ -120,13 +120,14 @@ fn generic_normalization_preserves_scientific_failure_without_dispatch_error() -
 
 #[test]
 fn generic_materialization_rejects_output_authority_drift_before_plugin_call() -> Result<()> {
+    let sandbox = bijux_dna_testkit::tempdir_for("campaign-plugin-materialization");
     let bindings = canonical_tool_bindings()?;
     let plugin = PrefixPlugin { prefix: "vcf.", fail_semantics: false };
     let registry = BenchmarkStagePluginRegistry::new(vec![&plugin]);
     let binding = bindings
         .binding(&StageId::new("vcf.filter"), &ToolId::new("bcftools"))
         .ok_or_else(|| anyhow!("missing canonical VCF filter binding"))?;
-    let mut plan = plan_for_binding(binding);
+    let mut plan = plan_for_binding(binding, sandbox.path());
     plan.io.outputs[0].artifact_contract_id = Some("bijux.invalid.artifact.v1".to_string());
     assert!(registry
         .materialize(&bindings, &plan)
@@ -134,14 +135,14 @@ fn generic_materialization_rejects_output_authority_drift_before_plugin_call() -
     Ok(())
 }
 
-fn plan_for_binding(binding: &impl ToolBinding) -> StagePlanV1 {
+fn plan_for_binding(binding: &impl ToolBinding, output_root: &std::path::Path) -> StagePlanV1 {
     let outputs = binding
         .outputs()
         .iter()
         .map(|output| {
             ArtifactRef::required(
                 ArtifactId::new(&output.name),
-                PathBuf::from(format!("artifacts/plugin-test/{}", output.name)),
+                output_root.join(&output.name),
                 ArtifactRole::Unknown,
             )
             .with_artifact_contract(&output.artifact_contract_id)
@@ -160,7 +161,7 @@ fn plan_for_binding(binding: &impl ToolBinding) -> StagePlanV1 {
         command: CommandSpecV1 { template: binding.command_template().to_vec() },
         resources: ToolConstraints::default(),
         io: StageIO { inputs: Vec::new(), outputs },
-        out_dir: PathBuf::from("artifacts/plugin-test"),
+        out_dir: output_root.to_path_buf(),
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
         operating_mode: bijux_dna_core::contract::StageOperatingMode::default(),
