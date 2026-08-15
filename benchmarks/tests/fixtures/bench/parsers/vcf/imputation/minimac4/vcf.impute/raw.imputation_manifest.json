@@ -4,6 +4,6 @@
   "command_argv": [
     "sh",
     "-lc",
-    "minimac4 --refHaps 'panel.m3vcf.gz' --haps 'target.vcf.gz' --prefix 'imputed' --cpus 8 > 'logs.txt' 2>&1 && mv 'imputed.dose.vcf.gz' 'imputed.vcf.gz'"
+    "minimac4 --threads 8 --output 'imputed.vcf.gz' 'panel.msav' 'target.vcf.gz' > 'logs.txt' 2>&1"
   ]
 }

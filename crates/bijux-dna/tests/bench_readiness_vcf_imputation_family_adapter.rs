@@ -172,10 +172,10 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
         .expect("minimac4 impute row");
     assert!(
         minimac_impute
-            .get("panel_m3vcf_path")
+            .get("panel_msav_path")
             .and_then(serde_json::Value::as_str)
-            .is_some_and(|path| path.ends_with("panel.m3vcf.gz")),
-        "minimac4 row must retain the governed m3vcf panel path"
+            .is_some_and(|path| path.ends_with("panel.msav")),
+        "minimac4 row must retain the MSAV panel path"
     );
     let minimac_argv = minimac_impute
         .get("command_steps")
@@ -186,7 +186,7 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
         .expect("minimac4 argv");
     let minimac_joined =
         minimac_argv.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>().join(" ");
-    for needle in ["minimac4", "--refHaps", "--prefix"] {
+    for needle in ["minimac4", "--threads", "--output", "panel.msav"] {
         assert!(minimac_joined.contains(needle), "minimac4 row must retain {needle}");
     }
 }

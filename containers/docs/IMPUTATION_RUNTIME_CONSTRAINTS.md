@@ -18,7 +18,7 @@ Contract:
 |---|---:|---:|---:|---|
 | `glimpse` | 4 | 8 | 20 | lowcov chunk/ligate workflows; chunk fanout drives scratch. |
 | `impute5` | 4 | 12 | 30 | requires map + reference panel locality for stable throughput. |
-| `minimac4` | 4 | 12 | 30 | phased input required; m3vcf preparation may increase scratch. |
+| `minimac4` | 4 | 12 | 30 | phased input required; MSAV reference compression may increase scratch. |
 | `shapeit5` | 4 | 12 | 20 | map-backed phasing; PBWT depth can increase RAM pressure. |
 | `beagle` | 4 | 10 | 20 | joint phasing/imputation mode can increase walltime and IO. |
 | `eagle` | 4 | 10 | 20 | license and upstream constraints apply; only use when enabled. |

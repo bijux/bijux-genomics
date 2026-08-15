@@ -521,9 +521,9 @@ fn imputation_stage_command(
             "impute5 --g '{input_vcf}' --h '{panel_vcf}' --m '{genetic_map}' --r '{region}' --o '{imputed_vcf}' --threads 8 --seed 42 > '{log_path}' 2>&1 && bcftools index -t '{imputed_vcf}'"
         ),
         "minimac4" => {
-            let panel_m3vcf = input_path(inputs, "reference_panel_m3vcf")?.display().to_string();
+            let panel_msav = input_path(inputs, "reference_panel_msav")?.display().to_string();
             format!(
-                "minimac4 --refHaps '{panel_m3vcf}' --haps '{input_vcf}' --prefix '{output_prefix}' --cpus 8 > '{log_path}' 2>&1 && mv '{output_prefix}.dose.vcf.gz' '{imputed_vcf}' && bcftools index -t '{imputed_vcf}'"
+                "minimac4 --threads 8 --output '{imputed_vcf}' '{panel_msav}' '{input_vcf}' > '{log_path}' 2>&1 && bcftools index -t '{imputed_vcf}'"
             )
         }
         _ => return Ok(None),

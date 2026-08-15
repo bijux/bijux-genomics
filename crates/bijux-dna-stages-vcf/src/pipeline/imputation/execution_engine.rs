@@ -129,7 +129,10 @@ pub(crate) fn run_impute_stage_inner(
 
     let backend_evidence = if has_gl_or_gp {
         BackendEvidence::GlLikelihood
-    } else if has_phased_gt && panel.compatibility.supports_minimac_m3vcf && map.is_some() {
+    } else if has_phased_gt
+        && panel.compatibility.minimac_reference_format == "msav"
+        && map.is_some()
+    {
         BackendEvidence::PhasedWithMapMinimac
     } else if has_phased_gt && map.is_some() {
         BackendEvidence::PhasedWithMap
@@ -184,8 +187,8 @@ pub(crate) fn run_impute_stage_inner(
             if !has_phased_gt {
                 bail!("Minimac4 requires phased GT prerequisite");
             }
-            if !panel.compatibility.supports_minimac_m3vcf {
-                bail!("Minimac4 requires m3vcf-compatible panel representation");
+            if panel.compatibility.minimac_reference_format != "msav" {
+                bail!("Minimac4 requires an msav reference representation");
             }
             if map.is_none() {
                 bail!("Minimac4 requires map_id/map asset");

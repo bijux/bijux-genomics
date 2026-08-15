@@ -188,13 +188,13 @@ fn append_panel_workflow_inputs(
         let panel_id = selected_panel.map(|panel| panel.panel_id.as_str()).ok_or_else(|| {
             anyhow!("planner refusal: {} requires resolved panel identity", stage.as_str())
         })?;
-        let panel_m3vcf_path = reference_asset_root(species_id, build_id)
+        let panel_msav_path = reference_asset_root(species_id, build_id)
             .join("panels")
             .join(panel_id)
-            .join("panel.m3vcf.gz");
+            .join("panel.msav");
         io_inputs.push(ArtifactSpec::required(
-            ArtifactId::new("reference_panel_m3vcf"),
-            panel_m3vcf_path,
+            ArtifactId::new("reference_panel_msav"),
+            panel_msav_path,
             ArtifactRole::Variant,
         ));
     }

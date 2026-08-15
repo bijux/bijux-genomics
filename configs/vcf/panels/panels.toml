@@ -1,4 +1,4 @@
-# schema_version = 3
+# schema_version = 4
 # owner = bijux-dna-vcf
 # purpose = Species/build-keyed production panel source catalog.
 # authority = bijux-dna-vcf
@@ -44,5 +44,5 @@ required = true
 tool_tags = ["bcftools", "shapeit", "shapeit5", "eagle", "impute5", "glimpse", "beagle"]
 requires_phased = true
 supports_gl_input = true
-supports_minimac_m3vcf = false
+minimac_reference_format = ""
 glimpse_reference_format = "bcf+sites"

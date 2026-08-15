@@ -355,7 +355,7 @@ fn vcf_planner_renders_executable_imputation_stage_templates_for_supported_backe
         assert!(
             joined.contains("vcf_mini_reference_panel.vcf")
                 || joined.contains("reference_panel_vcf")
-                || (stage_id == "vcf.impute" && joined.contains("panel.m3vcf.gz")),
+                || (stage_id == "vcf.impute" && joined.contains("panel.msav")),
             "imputation backend {tool_id} on {stage_id} must keep panel input wiring: {:?}",
             stage_plan.command.template
         );
@@ -407,9 +407,9 @@ fn vcf_planner_renders_executable_imputation_stage_templates_for_supported_backe
             }
             "minimac4" => {
                 assert!(joined.contains("minimac4"));
-                assert!(joined.contains("panel.m3vcf.gz"));
-                assert!(joined.contains("--refHaps"));
-                assert!(joined.contains("--prefix"));
+                assert!(joined.contains("panel.msav"));
+                assert!(joined.contains("--threads"));
+                assert!(joined.contains("--output"));
             }
             other => panic!("unexpected imputation backend {other}"),
         }

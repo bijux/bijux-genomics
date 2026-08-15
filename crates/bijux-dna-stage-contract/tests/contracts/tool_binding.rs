@@ -410,6 +410,16 @@ fn canonical_vcf_bindings_render_native_command_profiles() -> Result<()> {
             ["--vcf", "--genetic-map", "--out"],
         ),
         (
+            "vcf.impute",
+            "minimac4",
+            BTreeMap::from([
+                ("phased_vcf".to_owned(), "/input/target.vcf.gz".to_owned()),
+                ("reference_panel_msav".to_owned(), "/input/panel.msav".to_owned()),
+            ]),
+            BTreeMap::from([("imputed_vcf".to_owned(), "/result/imputed.vcf.gz".to_owned())]),
+            ["--threads", "--output", "panel.msav"],
+        ),
+        (
             "vcf.pca",
             "eigensoft",
             BTreeMap::from([

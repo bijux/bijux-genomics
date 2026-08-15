@@ -6,7 +6,8 @@ pub struct CatalogCompatibility {
     pub tool_tags: Vec<String>,
     pub requires_phased: bool,
     pub supports_gl_input: bool,
-    pub supports_minimac_m3vcf: bool,
+    #[serde(default)]
+    pub minimac_reference_format: String,
     pub glimpse_reference_format: String,
 }
 

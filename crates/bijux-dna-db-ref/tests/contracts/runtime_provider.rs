@@ -93,7 +93,7 @@ fn invalid_lock_ref_is_rejected() {
             tool_tags: vec!["glimpse".to_string()],
             requires_phased: true,
             supports_gl_input: true,
-            supports_minimac_m3vcf: false,
+            minimac_reference_format: String::new(),
             glimpse_reference_format: "bcf+sites".to_string(),
         },
     };
