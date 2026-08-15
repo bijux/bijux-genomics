@@ -2,12 +2,12 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use bijux_dna_bench::{
-    validate_benchmark_config_contract, BenchmarkConfig, BenchmarkConfigValidationRequest,
-    BenchmarkCorpusConfig, BenchmarkCorpusPublicationConfig, BenchmarkDepleteRrnaInputConfig,
-    BenchmarkPublicationConfig, BenchmarkReferenceInputConfig, BenchmarkScreenTaxonomyInputConfig,
-    BenchmarkStageInputConfig, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
-    BenchmarkWorkspaceLocal, BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns,
-    CorpusBenchmarkContract,
+    normalize_benchmark_config, parse_benchmark_config, validate_benchmark_config_contract,
+    BenchmarkConfig, BenchmarkConfigValidationRequest, BenchmarkCorpusConfig,
+    BenchmarkCorpusPublicationConfig, BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig,
+    BenchmarkReferenceInputConfig, BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig,
+    BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout, BenchmarkWorkspaceLocal,
+    BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns, CorpusBenchmarkContract,
 };
 
 fn write_file(path: &Path) {
@@ -109,6 +109,46 @@ fn validate(
         config,
         check_paths,
     })
+}
+
+#[test]
+fn normalizes_optional_configuration_strings() {
+    let mut config = BenchmarkConfig::default();
+    config.workspace.local = Some(BenchmarkWorkspaceLocal {
+        results_root: Some("  /bench/results  ".to_string()),
+        cache_mirror_root: Some("  ".to_string()),
+        ..BenchmarkWorkspaceLocal::default()
+    });
+    config.corpora.insert(
+        "corpus-01".to_string(),
+        BenchmarkCorpusConfig {
+            spec_path: Some("  benchmarks/corpora/corpus-01.toml  ".to_string()),
+        },
+    );
+
+    let normalized = normalize_benchmark_config(config);
+    let local = normalized.workspace.local.expect("local workspace");
+    assert_eq!(local.results_root.as_deref(), Some("/bench/results"));
+    assert_eq!(local.cache_mirror_root, None);
+    assert_eq!(
+        normalized.corpora["corpus-01"].spec_path.as_deref(),
+        Some("benchmarks/corpora/corpus-01.toml")
+    );
+}
+
+#[test]
+fn parses_and_normalizes_benchmark_configuration_text() {
+    let config = parse_benchmark_config(
+        r#"[workspace.local]
+results_root = "  /bench/results  "
+"#,
+    )
+    .expect("parse benchmark config");
+
+    assert_eq!(
+        config.workspace.local.and_then(|row| row.results_root),
+        Some("/bench/results".to_string())
+    );
 }
 
 #[test]

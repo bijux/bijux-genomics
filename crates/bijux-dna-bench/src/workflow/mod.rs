@@ -120,6 +120,7 @@ pub use bam_picard_cohort::{
     publish_bam_insert_size_stage_report, BamPicardCohortMaterial,
 };
 pub use benchmark_config::{
+    expand_benchmark_config_env_placeholders, normalize_benchmark_config, parse_benchmark_config,
     validate_benchmark_config_contract, BenchmarkConfigValidationRequest,
     BenchmarkConfigValidationSummary,
 };
