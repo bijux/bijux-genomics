@@ -174,18 +174,17 @@ fn append_panel_workflow_inputs(
         let _ = selected_panel.ok_or_else(|| {
             anyhow!("planner refusal: {} requires resolved panel identity", stage.as_str())
         })?;
-        let panel_vcf_path = match reference_panel_vcf {
-            Some(path) => path.to_path_buf(),
-            None => {
-                let panel_file =
-                    panel.files.iter().find(|file| file.name == "panel_vcf").ok_or_else(|| {
-                        anyhow!("planner refusal: panel {} has no panel_vcf artifact", panel.id)
-                    })?;
-                reference_asset_root(species_id, build_id)
-                    .join("panels")
-                    .join(&panel.id)
-                    .join(&panel_file.path)
-            }
+        let panel_vcf_path = if let Some(path) = reference_panel_vcf {
+            path.to_path_buf()
+        } else {
+            let panel_file =
+                panel.files.iter().find(|file| file.name == "panel_vcf").ok_or_else(|| {
+                    anyhow!("planner refusal: panel {} has no panel_vcf artifact", panel.id)
+                })?;
+            reference_asset_root(species_id, build_id)
+                .join("panels")
+                .join(&panel.id)
+                .join(&panel_file.path)
         };
         io_inputs.push(ArtifactSpec::required(
             ArtifactId::new("reference_panel_vcf"),
