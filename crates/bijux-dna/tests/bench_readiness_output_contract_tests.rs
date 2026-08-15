@@ -53,20 +53,29 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     );
     assert_eq!(
         payload.get("passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(rows.len() as u64 - 11)
+        Some(rows.len() as u64 - 25)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(25));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("blocked_tool_ids").and_then(serde_json::Value::as_array),
         Some(&vec![
             serde_json::Value::String("angsd".to_string()),
+            serde_json::Value::String("bcftools".to_string()),
+            serde_json::Value::String("beagle".to_string()),
+            serde_json::Value::String("eagle".to_string()),
+            serde_json::Value::String("eigensoft".to_string()),
             serde_json::Value::String("fastuniq".to_string()),
             serde_json::Value::String("germline".to_string()),
+            serde_json::Value::String("glimpse".to_string()),
+            serde_json::Value::String("ibdhap".to_string()),
             serde_json::Value::String("ibdne".to_string()),
             serde_json::Value::String("ibdseq".to_string()),
             serde_json::Value::String("impute5".to_string()),
+            serde_json::Value::String("minimac4".to_string()),
             serde_json::Value::String("ngsbriggs".to_string()),
+            serde_json::Value::String("plink".to_string()),
+            serde_json::Value::String("shapeit".to_string()),
         ])
     );
     assert!(payload
@@ -117,7 +126,7 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|ids| ids.iter().any(|id| id.as_str() == Some("haplogroups")))
     }));
-    for blocked_tool_id in ["germline", "ibdne", "ibdseq"] {
+    for blocked_tool_id in ["germline", "ibdne"] {
         assert!(rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some(blocked_tool_id)
                 && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
@@ -127,6 +136,18 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                     .get("execution_blocker")
                     .and_then(serde_json::Value::as_str)
                     .is_some_and(|reason| reason.contains("was not executed"))
+        }));
+    }
+    for blocked_tool_id in ["ibdhap", "ibdseq", "shapeit"] {
+        assert!(rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some(blocked_tool_id)
+                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
+                && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
+                    == Some(false)
+                && row
+                    .get("execution_blocker")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|reason| reason.starts_with("missing_direct_execution:"))
         }));
     }
 
@@ -181,7 +202,7 @@ fn bench_readiness_output_contract_audit_write_governed_json_file() {
         Some(rows.len() as u64)
     );
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(11));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(25));
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")
