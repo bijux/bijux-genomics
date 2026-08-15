@@ -312,6 +312,33 @@ fn repository_freeze_archive_proves_retirement_and_exact_restoration() -> Result
 }
 
 #[test]
+fn repository_archive_can_precede_inode_expensive_snapshot_materialization() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let (governance, commit) = fixture(root.path())?;
+    std::fs::create_dir_all(&governance.paths.frozen_repositories)?;
+    let snapshot = governance.paths.frozen_repositories.join(&commit);
+    assert!(!snapshot.exists());
+    let request = RepositoryFreezeArchiveRequest {
+        governance,
+        hostname: "worker-7".to_string(),
+        snapshot: snapshot.clone(),
+        commit: commit.clone(),
+    };
+
+    let receipt = archive_frozen_repository(&request)?;
+    assert!(!snapshot.exists());
+    assert!(receipt.sparse_checkout_paths.is_empty());
+    assert!(receipt.restoration_verified);
+    verify_frozen_repository_archive(&request, &receipt)?;
+
+    let restored = restore_frozen_repository_archive(&request, &receipt)?;
+    assert_eq!(restored, snapshot);
+    verify_frozen_repository(&restored, &commit)?;
+    assert_eq!(std::fs::read_to_string(restored.join("other/source.txt"))?, "complete tree\n");
+    Ok(())
+}
+
+#[test]
 fn repository_freeze_archive_detaches_historical_alternate_objects() -> Result<()> {
     let root = tempfile::tempdir()?;
     let (governance, commit) = fixture(root.path())?;

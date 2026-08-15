@@ -16,12 +16,15 @@ use super::validation::validate_container_governance_host;
 
 const ARCHIVE_DIRECTORY: &str = "archives";
 
-/// Create a checksum-bound Git bundle and prove that it contains the frozen snapshot exactly.
+/// Create a checksum-bound Git bundle and prove that it contains the requested commit exactly.
 ///
-/// The source snapshot is never removed by this operation. Alternate-backed historical snapshots
-/// are accepted only while their referenced objects remain readable. The proof verifies the bundle
-/// against an empty bare repository, so missing prerequisite objects fail without duplicating a
-/// working tree on a storage-constrained governed filesystem.
+/// When the governed snapshot already exists, it remains the source authority and is never removed
+/// by this operation. When storage policy prevents materializing that snapshot, the exact clean
+/// active repository supplies the same complete bundle without first expanding another working
+/// tree. Alternate-backed historical snapshots are accepted only while their referenced objects
+/// remain readable. The proof verifies the bundle against an empty bare repository, so missing
+/// prerequisite objects fail without duplicating a working tree on a storage-constrained governed
+/// filesystem.
 ///
 /// # Errors
 /// Returns an error when the request escapes the governed root, repository identity differs, the
@@ -29,7 +32,7 @@ const ARCHIVE_DIRECTORY: &str = "archives";
 pub fn archive_frozen_repository(
     request: &RepositoryFreezeArchiveRequest,
 ) -> Result<RepositoryFreezeArchiveReceipt> {
-    let relative = validate_archive_request(request, true)?;
+    let relative = validate_archive_request(request, false)?;
     let archive_root = request.governance.paths.frozen_repositories.join(ARCHIVE_DIRECTORY);
     if archive_root.symlink_metadata().is_err() {
         std::fs::create_dir_all(&archive_root).with_context(|| {
@@ -62,21 +65,26 @@ pub fn archive_frozen_repository(
         return Ok(receipt);
     }
 
-    let sparse_checkout_paths = sparse_checkout_paths(&request.snapshot)?;
-    let tracked_index_sha256 = sha256_text(&git_text(&request.snapshot, &["ls-files", "-s"])?);
+    let source_repository = archive_source_repository(request)?;
+    let sparse_checkout_paths = if request.snapshot.is_dir() {
+        sparse_checkout_paths(&source_repository)?
+    } else {
+        Vec::new()
+    };
+    let tracked_index_sha256 = sha256_text(&git_text(&source_repository, &["ls-files", "-s"])?);
     let partial_bundle = archive_root.join(format!(".{identity}.bundle.partial"));
     ensure!(partial_bundle.symlink_metadata().is_err(), "repository archive staging bundle exists");
     let archive_result = (|| {
         let output = Command::new("git")
             .arg("-C")
-            .arg(&request.snapshot)
+            .arg(&source_repository)
             .args(["bundle", "create"])
             .arg(&partial_bundle)
             .arg("HEAD")
             .output()
             .context("create frozen repository bundle")?;
         ensure_command_succeeded(&output, "git bundle create")?;
-        verify_bundle(&request.snapshot, &partial_bundle)?;
+        verify_bundle(&source_repository, &partial_bundle)?;
         prove_self_contained_bundle(&archive_root, &identity, &partial_bundle, &request.commit)
     })();
     if let Err(error) = archive_result {
@@ -116,6 +124,28 @@ pub fn archive_frozen_repository(
     })?;
     make_path_read_only(&receipt_path)?;
     Ok(receipt)
+}
+
+fn archive_source_repository(request: &RepositoryFreezeArchiveRequest) -> Result<PathBuf> {
+    let source = if request.snapshot.is_dir() {
+        &request.snapshot
+    } else {
+        &request.governance.paths.active_repository
+    };
+    ensure!(source.is_dir(), "repository archive source does not exist: {}", source.display());
+    ensure!(
+        !source.symlink_metadata()?.file_type().is_symlink(),
+        "repository archive source cannot be a symlink"
+    );
+    ensure!(
+        git_text(source, &["rev-parse", "HEAD"])? == request.commit,
+        "repository archive source commit identity drifted"
+    );
+    ensure!(
+        git_text(source, &["status", "--porcelain"])?.is_empty(),
+        "repository archive source is dirty"
+    );
+    Ok(source.clone())
 }
 
 /// Verify an archive receipt, bundle checksum, source identity, and restoration feasibility.

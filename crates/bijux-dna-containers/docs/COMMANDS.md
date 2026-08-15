@@ -39,8 +39,10 @@ library can manage when callers invoke the matching API.
 - `freeze_repository()`: runs bounded Git inspection and worktree commands to materialize an
   immutable commit-addressed checkout under site-governed roots.
 - `archive_frozen_repository()` and `verify_frozen_repository_archive()`: create and verify a
-  checksum-bound Git bundle, then clone it into an isolated proof checkout to establish exact
-  commit, sparse-index, cleanliness, and self-contained object identity before publication.
+  checksum-bound Git bundle from either an existing governed snapshot or the exact clean active
+  repository when snapshot inode capacity is unavailable, then use an isolated bare proof
+  repository to establish commit, sparse-index, cleanliness, and self-contained object identity
+  before publication.
 - `retire_frozen_repository()` and `restore_frozen_repository_archive()`: remove only the exact
   receipt-bound checkout after archive verification and atomically reconstruct the same read-only
   sparse checkout when rollback is required.
@@ -99,9 +101,9 @@ library can manage when callers invoke the matching API.
   external admission; it never copies or publishes the restricted artifact.
 - `src/site_policy/repository_freeze.rs`: clean-source verification and commit-addressed Git
   worktree materialization under site-governed roots.
-- `src/site_policy/repository_archive.rs`: bounded Git-bundle creation, empty-bare-repository
-  completeness proof, receipt-gated checkout retirement, and atomic rollback under the same
-  governed root.
+- `src/site_policy/repository_archive.rs`: bounded Git-bundle creation from an existing snapshot or
+  exact clean active source, empty-bare-repository completeness proof, receipt-gated checkout
+  retirement, and atomic rollback under the same governed root.
 - `src/site_policy/repository_tracking.rs`: prefix-scoped tracked-file discovery for governed
   repository publications.
 - `src/execution_contract/pipeline/admission.rs`: execution-site repository identity and clean-state
