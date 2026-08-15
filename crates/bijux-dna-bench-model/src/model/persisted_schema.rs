@@ -72,6 +72,7 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
             benchmark_protocol_citation_schema, benchmark_run_case_index_schema,
             benchmark_run_index_schema, benchmark_run_publication_pointer_schema,
         },
+        slurm_submission::benchmark_slurm_submission_intent_schema,
     };
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
@@ -222,6 +223,10 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
         PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/stage-plan-manifest.schema.json",
             benchmark_stage_plan_manifest_schema,
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/benchmark-slurm-submission-intent.schema.json",
+            benchmark_slurm_submission_intent_schema,
         ),
         PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/bam-damage-result.schema.json",

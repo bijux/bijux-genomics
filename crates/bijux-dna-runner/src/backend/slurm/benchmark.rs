@@ -7,37 +7,38 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_execution_spec, validate_stage_plan_manifest, BenchmarkExecutionSpec,
-    BenchmarkStagePlanManifest,
+    validate_execution_spec, validate_execution_unit_manifest, BenchmarkExecutionSpec,
+    BenchmarkStagePlanManifest as BenchmarkExecutionUnitManifest,
+    BenchmarkStagePlanReference as BenchmarkExecutionUnitReference,
 };
 
 use super::{SlurmDependencyCondition, SlurmSubmitRequest};
 
 #[derive(Debug, serde::Deserialize)]
-struct ExecutableStagePlan {
+struct ExecutableExecutionUnit {
     stage_instance_id: Option<String>,
-    command: ExecutableStagePlanCommand,
-    io: ExecutableStagePlanIo,
+    command: ExecutableExecutionUnitCommand,
+    io: ExecutableExecutionUnitIo,
     out_dir: PathBuf,
 }
 
 #[derive(Debug, serde::Deserialize)]
-struct ExecutableStagePlanCommand {
+struct ExecutableExecutionUnitCommand {
     template: Vec<String>,
 }
 
 #[derive(Debug, serde::Deserialize)]
-struct ExecutableStagePlanIo {
-    outputs: Vec<ExecutableStagePlanOutput>,
+struct ExecutableExecutionUnitIo {
+    outputs: Vec<ExecutableExecutionUnitOutput>,
 }
 
 #[derive(Debug, serde::Deserialize)]
-struct ExecutableStagePlanOutput {
+struct ExecutableExecutionUnitOutput {
     path: PathBuf,
 }
 
 #[derive(Debug)]
-struct PreparedStagePlan {
+struct PreparedExecutionUnit {
     stage_instance_id: String,
     command: Vec<String>,
     resource_path: String,
@@ -50,7 +51,7 @@ const MAX_SPEC_BYTES: usize = 16 * 1024 * 1024;
 pub struct PreparedBenchmarkSlurmJob {
     pub request: SlurmSubmitRequest,
     pub execution_spec_sha256: String,
-    pub stage_plan_manifest_sha256: String,
+    pub execution_unit_manifest_sha256: String,
     pub script_sha256: String,
 }
 
@@ -98,14 +99,18 @@ pub fn prepare_benchmark_slurm_job(
 
     let execution_spec_path = result_root.join("execution-spec.json");
     let execution_spec_sha256 = require_persisted_spec(&execution_spec_path, spec)?;
-    let (stage_plan_manifest_sha256, stage_plans) =
-        require_stage_plan_manifest(&result_root, spec, &execution_spec_sha256)?;
+    let (execution_unit_manifest_sha256, execution_units) =
+        require_execution_unit_manifest(&result_root, spec, &execution_spec_sha256)?;
     let scheduler_directory = ensure_owned_directory(&result_root.join("scheduler"))?;
     let script_path = scheduler_directory.join("job.sbatch");
     let stdout_path = scheduler_directory.join("stdout.log");
     let stderr_path = scheduler_directory.join("stderr.log");
-    let script =
-        render_script(spec, &execution_spec_sha256, &stage_plan_manifest_sha256, &stage_plans);
+    let script = render_script(
+        spec,
+        &execution_spec_sha256,
+        &execution_unit_manifest_sha256,
+        &execution_units,
+    );
     ensure_file_identity(&script_path, script.as_bytes())?;
     let script_sha256 = bijux_dna_infra::hash_file_sha256(&script_path)
         .context("hash prepared benchmark Slurm script")?;
@@ -126,7 +131,7 @@ pub fn prepare_benchmark_slurm_job(
             submitted_at_utc: submitted_at_utc.to_string(),
         },
         execution_spec_sha256,
-        stage_plan_manifest_sha256,
+        execution_unit_manifest_sha256,
         script_sha256,
     })
 }
@@ -134,13 +139,13 @@ pub fn prepare_benchmark_slurm_job(
 fn render_script(
     spec: &BenchmarkExecutionSpec,
     execution_spec_sha256: &str,
-    stage_plan_manifest_sha256: &str,
-    stage_plans: &[PreparedStagePlan],
+    execution_unit_manifest_sha256: &str,
+    execution_units: &[PreparedExecutionUnit],
 ) -> String {
-    let mut lines = script_preflight(spec, execution_spec_sha256, stage_plan_manifest_sha256);
+    let mut lines = script_preflight(spec, execution_spec_sha256, execution_unit_manifest_sha256);
     append_validation_commands(&mut lines, spec);
     append_warmup_commands(&mut lines, spec);
-    append_stage_plan_commands(&mut lines, spec, stage_plans);
+    append_execution_unit_commands(&mut lines, spec, execution_units);
     append_measurement_commands(&mut lines, spec);
     append_completion_commands(&mut lines, spec, execution_spec_sha256);
     lines.push(String::new());
@@ -150,7 +155,7 @@ fn render_script(
 fn script_preflight(
     spec: &BenchmarkExecutionSpec,
     execution_spec_sha256: &str,
-    stage_plan_manifest_sha256: &str,
+    execution_unit_manifest_sha256: &str,
 ) -> Vec<String> {
     let result_root = shell_quote(&spec.outputs.result_root);
     let repository_path = shell_quote(&spec.source.repository_path);
@@ -195,7 +200,7 @@ fn script_preflight(
         ),
         format!(
             "test \"$(sha256sum \"${{RESULT_ROOT}}/stage-plan-manifest.json\" | awk '{{print $1}}')\" = {}",
-            shell_quote(stage_plan_manifest_sha256)
+            shell_quote(execution_unit_manifest_sha256)
         ),
         format!(
             "test \"$(sha256sum \"${{IMAGE_PATH}}\" | awk '{{print $1}}')\" = {}",
@@ -217,14 +222,15 @@ fn script_preflight(
     lines
 }
 
-fn require_stage_plan_manifest(
+fn require_execution_unit_manifest(
     result_root: &Path,
     spec: &BenchmarkExecutionSpec,
     execution_spec_sha256: &str,
-) -> Result<(String, Vec<PreparedStagePlan>)> {
+) -> Result<(String, Vec<PreparedExecutionUnit>)> {
     let manifest_path = result_root.join("stage-plan-manifest.json");
-    let manifest: BenchmarkStagePlanManifest = read_json_bounded(&manifest_path)?;
-    validate_stage_plan_manifest(&manifest).context("validate benchmark stage-plan manifest")?;
+    let manifest: BenchmarkExecutionUnitManifest = read_json_bounded(&manifest_path)?;
+    validate_execution_unit_manifest(&manifest)
+        .context("validate benchmark execution-unit manifest")?;
     if manifest.identity != spec.identity || manifest.execution_spec_sha256 != execution_spec_sha256
     {
         bail!("benchmark stage-plan manifest differs from execution specification");
@@ -233,20 +239,20 @@ fn require_stage_plan_manifest(
     for reference in &manifest.plans {
         let path = result_root.join(&reference.path);
         require_exact_file(&path, &reference.sha256, "benchmark stage plan")?;
-        let plan: ExecutableStagePlan = read_json_bounded(&path)?;
-        plans.push(validate_executable_stage_plan(result_root, spec, reference, plan)?);
+        let plan: ExecutableExecutionUnit = read_json_bounded(&path)?;
+        plans.push(validate_executable_execution_unit(result_root, spec, reference, plan)?);
     }
     let digest = bijux_dna_infra::hash_file_sha256(&manifest_path)
         .context("hash benchmark stage-plan manifest")?;
     Ok((digest, plans))
 }
 
-fn validate_executable_stage_plan(
+fn validate_executable_execution_unit(
     result_root: &Path,
     spec: &BenchmarkExecutionSpec,
-    reference: &bijux_dna_bench_model::BenchmarkStagePlanReference,
-    plan: ExecutableStagePlan,
-) -> Result<PreparedStagePlan> {
+    reference: &BenchmarkExecutionUnitReference,
+    plan: ExecutableExecutionUnit,
+) -> Result<PreparedExecutionUnit> {
     if plan.stage_instance_id.as_deref() != Some(reference.stage_instance_id.as_str())
         || plan.out_dir != result_root.join("repetitions").join(&reference.stage_instance_id)
         || plan.command.template.is_empty()
@@ -286,7 +292,7 @@ fn validate_executable_stage_plan(
     if !required.contains(resource_path.as_str()) {
         bail!("benchmark stage-plan resource evidence is not a required output");
     }
-    Ok(PreparedStagePlan {
+    Ok(PreparedExecutionUnit {
         stage_instance_id: reference.stage_instance_id.clone(),
         command: plan.command.template,
         resource_path,
@@ -315,13 +321,13 @@ fn append_warmup_commands(lines: &mut Vec<String>, spec: &BenchmarkExecutionSpec
     }
 }
 
-fn append_stage_plan_commands(
+fn append_execution_unit_commands(
     lines: &mut Vec<String>,
     spec: &BenchmarkExecutionSpec,
-    stage_plans: &[PreparedStagePlan],
+    execution_units: &[PreparedExecutionUnit],
 ) {
     let resource_format = "wall_seconds\tuser_seconds\tsystem_seconds\tmax_rss_kb\tfilesystem_inputs\tfilesystem_outputs\texit_code\n%e\t%U\t%S\t%M\t%I\t%O\t%x";
-    for plan in stage_plans {
+    for plan in execution_units {
         lines.push(format!(
             "test -d {} && test ! -L {}",
             result_shell_path(&format!("repetitions/{}", plan.stage_instance_id)),

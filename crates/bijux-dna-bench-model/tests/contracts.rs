@@ -141,6 +141,8 @@ mod mod_contracts_run_index_rs;
 mod mod_contracts_scientific_acceptance_rs;
 #[path = "contracts/scope_views.rs"]
 mod mod_contracts_scope_views_rs;
+#[path = "contracts/slurm_submission.rs"]
+mod mod_contracts_slurm_submission_rs;
 #[path = "contracts/source_authority.rs"]
 mod mod_contracts_source_authority_rs;
 #[path = "contracts/stage_result.rs"]

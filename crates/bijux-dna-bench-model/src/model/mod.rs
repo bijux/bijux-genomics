@@ -81,6 +81,7 @@ pub mod report;
 pub mod run_index;
 pub mod scientific_acceptance;
 pub mod scope_views;
+pub mod slurm_submission;
 pub mod source_authority;
 pub mod stage_result;
 pub mod stage_tool_assets;
@@ -640,6 +641,12 @@ pub use scope_views::{
     stage_registry_extra_pairs_schema, AllDomainActiveStageToolMatrixReport,
     AllDomainActiveStageToolMatrixRow, AllDomainRetainedToolRow, AllDomainRetainedToolsReport,
     StageRegistryExtraPairRow, StageRegistryExtraPairsReport,
+};
+#[allow(unused_imports)]
+pub use slurm_submission::{
+    benchmark_slurm_submission_intent_schema, BenchmarkSlurmArraySpec,
+    BenchmarkSlurmDependencyCondition, BenchmarkSlurmSubmissionIntent,
+    BenchmarkSlurmSubmissionMaterial,
 };
 #[allow(unused_imports)]
 pub use source_authority::{

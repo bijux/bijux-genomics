@@ -1521,7 +1521,7 @@ mod tests {
             historical_replay_source: None,
             run_id: "run-1098".to_string(),
             tool_id: "atropos".to_string(),
-            campaign_id: Some("public-fastq-adapter-trim-qualification".to_string()),
+            campaign_id: Some("public-stage-qualification".to_string()),
             attempt_id: Some("attempt-001".to_string()),
             job_name: "qualification-run-1098".to_string(),
             hostname: "lunarc".to_string(),

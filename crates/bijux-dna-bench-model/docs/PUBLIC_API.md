@@ -9,6 +9,10 @@ stable names and use namespaces only when they need grouped operations such as
 
 Model contracts:
 
+- `BenchmarkSlurmSubmissionIntent`
+- `BenchmarkSlurmSubmissionMaterial`
+- `BenchmarkSlurmArraySpec`
+- `BenchmarkSlurmDependencyCondition`
 - `AllDomainParserCollectorSourceKind`
 - `AllDomainParserCollectorRow`
 - `AllDomainParserCollectorReport`
@@ -308,6 +312,7 @@ Schema derivation:
 - `gate_decision_schema`
 - `benchmark_execution_spec_schema`
 - `benchmark_stage_plan_manifest_schema`
+- `benchmark_slurm_submission_intent_schema`
 - `benchmark_scheduler_observation_schema`
 - `benchmark_local_hpc_job_graph_schema`
 - `benchmark_local_corpus_skip_report_schema`
@@ -347,6 +352,7 @@ Schema derivation:
 - `validate_cross_benchmark_campaign_report`
 - `validate_benchmark_matrix_report`
 - `validate_execution_spec`
+- `validate_benchmark_slurm_submission_intent`
 - `validate_corpus_acquisition_plan`
 - `validate_fastq_corpus_source_spec`
 - `validate_fastq_comparable_metrics_report`

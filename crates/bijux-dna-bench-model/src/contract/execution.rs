@@ -111,6 +111,19 @@ pub fn validate_stage_plan_manifest(
     Ok(())
 }
 
+/// Validate an immutable execution-unit manifest before generic runner materialization.
+///
+/// This execution-facing alias preserves the stage-plan persistence protocol while keeping
+/// scheduler code independent of benchmark planning vocabulary.
+///
+/// # Errors
+/// Returns the same semantic validation errors as [`validate_stage_plan_manifest`].
+pub fn validate_execution_unit_manifest(
+    manifest: &BenchmarkStagePlanManifest,
+) -> Result<(), BenchError> {
+    validate_stage_plan_manifest(manifest)
+}
+
 fn validate_source(spec: &BenchmarkExecutionSpec) -> Result<(), BenchError> {
     validate_commit(&spec.source.repository_commit)?;
     require_absolute_path(&spec.source.repository_path, "repository path")?;
