@@ -47,6 +47,7 @@ const PROOF_SURFACE_SHARED_STAGE_SMOKE: &str = "shared_stage_smoke";
 const PROOF_SURFACE_DIRECT_TOOL_SMOKE: &str = "direct_tool_smoke";
 const PROOF_SURFACE_DIRECT_DECLARED_OUTPUT_PROOF: &str = "direct_declared_output_proof";
 const PROOF_SURFACE_EXTERNAL_ARTIFACT_ADMISSION: &str = "external_artifact_admission";
+const PROOF_SURFACE_TOOL_CONTRACT_BLOCKED: &str = "tool_contract_planning_refusal";
 const PROOF_SURFACE_PLAN_ONLY: &str = "local_ready_plan_only";
 const PROOF_SURFACE_MATERIALIZATION_BLOCKED: &str = "local_stage_materialization_blocked";
 const PROOF_SURFACE_MISSING_DIRECT_SMOKE: &str = "missing_direct_tool_smoke";
@@ -773,28 +774,63 @@ fn collect_vcf_tool_proofs(
             );
             continue;
         }
-        let Some(manifest_path) =
-            local_vcf_stage_result_manifest_path(repo_root, &row.stage_id, &row.tool_id)?
-        else {
-            proofs.insert(
-                row.result_id.clone(),
-                VcfToolProof {
-                    proof_surface: PROOF_SURFACE_MISSING_DIRECT_SMOKE,
-                    proof_path: format!(
-                        "missing direct smoke for {} / {}",
-                        row.stage_id, row.tool_id
-                    ),
-                    proof_tool_id: Some(row.tool_id.clone()),
-                    observed_ids: BTreeSet::new(),
-                    observed_paths_by_id: BTreeMap::new(),
-                    independent_execution_proven: false,
-                    execution_blocker: Some(format!(
-                        "missing_direct_execution: `{}` / `{}` has no tool-specific local smoke; active-default evidence is not reusable",
-                        row.stage_id, row.tool_id
-                    )),
-                },
-            );
-            continue;
+        let manifest_path = match local_vcf_stage_result_manifest_path(
+            repo_root,
+            &row.stage_id,
+            &row.tool_id,
+        ) {
+            Ok(Some(manifest_path)) => manifest_path,
+            Ok(None) => {
+                proofs.insert(
+                    row.result_id.clone(),
+                    VcfToolProof {
+                        proof_surface: PROOF_SURFACE_MISSING_DIRECT_SMOKE,
+                        proof_path: format!(
+                            "missing direct smoke for {} / {}",
+                            row.stage_id, row.tool_id
+                        ),
+                        proof_tool_id: Some(row.tool_id.clone()),
+                        observed_ids: BTreeSet::new(),
+                        observed_paths_by_id: BTreeMap::new(),
+                        independent_execution_proven: false,
+                        execution_blocker: Some(format!(
+                            "missing_direct_execution: `{}` / `{}` has no tool-specific local smoke; active-default evidence is not reusable",
+                            row.stage_id, row.tool_id
+                        )),
+                    },
+                );
+                continue;
+            }
+            Err(error) => {
+                let refusal = format!("{error:#}");
+                if !is_vcf_tool_contract_planning_refusal(&refusal) {
+                    return Err(error).with_context(|| {
+                        format!(
+                            "materialize direct VCF proof for `{}` / `{}`",
+                            row.stage_id, row.tool_id
+                        )
+                    });
+                }
+                proofs.insert(
+                    row.result_id.clone(),
+                    VcfToolProof {
+                        proof_surface: PROOF_SURFACE_TOOL_CONTRACT_BLOCKED,
+                        proof_path: format!(
+                            "planning refused {} / {}: {refusal}",
+                            row.stage_id, row.tool_id
+                        ),
+                        proof_tool_id: Some(row.tool_id.clone()),
+                        observed_ids: BTreeSet::new(),
+                        observed_paths_by_id: BTreeMap::new(),
+                        independent_execution_proven: false,
+                        execution_blocker: Some(format!(
+                            "invalid_tool_contract: `{}` / `{}` planning refused before execution: {refusal}",
+                            row.stage_id, row.tool_id
+                        )),
+                    },
+                );
+                continue;
+            }
         };
         let manifest = load_validated_stage_result_manifest_path(&repo_root.join(&manifest_path))
             .with_context(|| format!("load `{manifest_path}`"))?;
@@ -804,6 +840,10 @@ fn collect_vcf_tool_proofs(
         );
     }
     Ok(proofs)
+}
+
+fn is_vcf_tool_contract_planning_refusal(message: &str) -> bool {
+    message.contains("not compatible with tool") || message.contains("has no canonical binding")
 }
 
 fn vcf_tool_proof_from_manifest(
@@ -1149,12 +1189,8 @@ fn local_vcf_stage_result_manifest_path(
         .map(|row| row.tool_id)
         .ok_or_else(|| anyhow!("VCF stage matrix is missing `{stage_id}`"))?;
     let stage_worker_owns_tool_selection =
-        matches!(stage_id, "vcf.admixture" | "vcf.ibd" | "vcf.pca" | "vcf.qc");
-    let retained_non_default_worker = stage_id == "vcf.phasing" && tool_id == "shapeit";
-    if tool_id != default_tool_id
-        && !stage_worker_owns_tool_selection
-        && !retained_non_default_worker
-    {
+        matches!(stage_id, "vcf.admixture" | "vcf.ibd" | "vcf.pca" | "vcf.phasing" | "vcf.qc");
+    if tool_id != default_tool_id && !stage_worker_owns_tool_selection {
         return Ok(None);
     }
     Ok(match stage_id {
@@ -1238,9 +1274,9 @@ mod tests {
     use std::path::{Path, PathBuf};
 
     use super::{
-        build_output_contract_audit_report, load_validated_stage_result_manifest_path,
-        local_stage_proof_output_path, local_vcf_stage_result_manifest_path,
-        DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
+        build_output_contract_audit_report, is_vcf_tool_contract_planning_refusal,
+        load_validated_stage_result_manifest_path, local_stage_proof_output_path,
+        local_vcf_stage_result_manifest_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
     };
     use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
@@ -1278,6 +1314,20 @@ mod tests {
         assert!(plan_path.is_file(), "sibling plan evidence must remain untouched");
         assert_eq!(fs::read(&output_path).expect("read declared output"), b"stale output");
         assert!(proof_output.starts_with(proof_root));
+    }
+
+    #[test]
+    fn vcf_contract_refusal_classifier_does_not_hide_execution_failures() {
+        assert!(is_vcf_tool_contract_planning_refusal(
+            "map governed-map not compatible with tool beagle"
+        ));
+        assert!(is_vcf_tool_contract_planning_refusal(
+            "VCF panel workflow smoke has no canonical binding for vcf.phasing / unknown"
+        ));
+        assert!(!is_vcf_tool_contract_planning_refusal(
+            "permission denied while materializing direct VCF proof"
+        ));
+        assert!(!is_vcf_tool_contract_planning_refusal("stage worker exited 70"));
     }
 
     #[test]
@@ -1322,6 +1372,28 @@ mod tests {
                 .expect("load retained VCF tool stage result");
             assert_eq!(manifest.stage_id, stage_id);
             assert_eq!(manifest.tool.id, tool_id);
+        }
+    }
+
+    #[test]
+    fn vcf_phasing_worker_executes_compatible_backends_and_refuses_invalid_maps() {
+        let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _lock = benchmark_readiness_test_lock(&root);
+        for tool_id in ["shapeit", "shapeit5"] {
+            let proof = local_vcf_stage_result_manifest_path(&root, "vcf.phasing", tool_id)
+                .expect("resolve retained phasing proof")
+                .expect("phasing worker must own compatible retained backend");
+            let manifest = load_validated_stage_result_manifest_path(&root.join(proof))
+                .expect("load retained phasing stage result");
+            assert_eq!(manifest.stage_id, "vcf.phasing");
+            assert_eq!(manifest.tool.id, tool_id);
+        }
+        for tool_id in ["beagle", "eagle"] {
+            let error = local_vcf_stage_result_manifest_path(&root, "vcf.phasing", tool_id)
+                .expect_err("incompatible map contract must fail during planning");
+            assert!(error.to_string().contains("map hsapiens_grch38_glimpse_chr22"));
+            assert!(error.to_string().contains(&format!("not compatible with tool {tool_id}")));
         }
     }
 

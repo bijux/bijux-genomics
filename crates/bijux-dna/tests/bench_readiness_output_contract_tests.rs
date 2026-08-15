@@ -181,6 +181,21 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                     .is_some_and(|reason| reason.contains("tool_ok=false"))
         }));
     }
+    for tool_id in ["beagle", "eagle"] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
+                    == Some("tool_contract_planning_refusal")
+                && row.get("execution_blocker").and_then(serde_json::Value::as_str).is_some_and(
+                    |reason| {
+                        reason.starts_with("invalid_tool_contract:")
+                            && reason.contains("map hsapiens_grch38_glimpse_chr22")
+                            && reason.contains(&format!("not compatible with tool {tool_id}"))
+                    },
+                )
+        }));
+    }
     for tool_id in ["shapeit", "shapeit5"] {
         assert!(rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
