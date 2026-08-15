@@ -301,6 +301,7 @@ fn dna_tree_matches_architecture_contract() {
     let bench_parse_entries = dir_entries(&root.join("src/commands/cli/parse/bench"));
     let expected_bench_parse: BTreeSet<_> = [
         "active_scope.rs",
+        "cases.rs",
         "config.rs",
         "corpus_fastq.rs",
         "cycle.rs",
