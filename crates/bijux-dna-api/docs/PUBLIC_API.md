@@ -91,5 +91,8 @@ They may change when the v1 public contract remains stable.
 ## Stability Tiers
 
 - Stable: `pub mod v1`, `bijux_dna_api::v1::api`, and the contract types/operations documented above.
+- `BenchmarkStagePluginComposition` is the stable v1 application composition for exact
+  FASTQ/BAM/VCF plugin ownership; adding an implementation extends its canonical binding input
+  without changing the generic composition API.
 - Experimental: no experimental public namespace is exported today; any future one must be called out explicitly here before use.
 - Internal: `src/internal/`, `src/runtime/`, `src/support/`, `src/surface/`, and any item not re-exported through `v1::api`.
