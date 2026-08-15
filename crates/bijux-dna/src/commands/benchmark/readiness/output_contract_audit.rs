@@ -884,6 +884,7 @@ fn vcf_execution_blocker(
         "vcf.phasing" => "phasing_manifest",
         "vcf.ibd" => "ibd_json",
         "vcf.pca" => "pca_json",
+        "vcf.population_structure" => "source_population_structure_json",
         "vcf.demography" => "demography_json",
         _ => return Ok(None),
     };
@@ -905,6 +906,9 @@ fn vcf_execution_blocker(
     )
     .with_context(|| format!("parse VCF execution proof {}", report_path.display()))?;
 
+    if manifest.stage_id == "vcf.population_structure" {
+        return Ok(population_structure_execution_blocker(&manifest.tool.id, &report));
+    }
     if manifest.stage_id == "vcf.phasing" {
         if !report
             .get("backend_execution_attempted")
@@ -936,6 +940,51 @@ fn vcf_execution_blocker(
     }
 
     Ok(None)
+}
+
+fn population_structure_execution_blocker(
+    selected_tool_id: &str,
+    report: &serde_json::Value,
+) -> Option<String> {
+    let pca_tool_id = report.pointer("/pca/tool_id").and_then(serde_json::Value::as_str);
+    let pca_tool_ok = report.pointer("/pca/tool_ok").and_then(serde_json::Value::as_bool);
+    let expected_admixture_tool_id =
+        if selected_tool_id == "eigensoft" { "plink2" } else { selected_tool_id };
+    let admixture_tool_id =
+        report.pointer("/admixture/tool_id").and_then(serde_json::Value::as_str);
+    let admixture_tool_ok =
+        report.pointer("/admixture/tool_ok").and_then(serde_json::Value::as_bool);
+    let expected_prune_tool_id = if selected_tool_id == "plink" { "plink" } else { "plink2" };
+    let prune_tool_id =
+        report.pointer("/tool_attempts/prune/tool").and_then(serde_json::Value::as_str);
+    let prune_tool_ok =
+        report.pointer("/tool_attempts/prune/ok").and_then(serde_json::Value::as_bool);
+    let mds_tool_id = report.pointer("/tool_attempts/mds/tool").and_then(serde_json::Value::as_str);
+    let mds_tool_ok = report.pointer("/tool_attempts/mds/ok").and_then(serde_json::Value::as_bool);
+    let mds_plan_ok =
+        selected_tool_id != "plink" || (mds_tool_id == Some("plink") && mds_tool_ok == Some(true));
+    if report.get("toolchain").and_then(serde_json::Value::as_str) == Some(selected_tool_id)
+        && pca_tool_id == Some(selected_tool_id)
+        && pca_tool_ok == Some(true)
+        && admixture_tool_id == Some(expected_admixture_tool_id)
+        && admixture_tool_ok == Some(true)
+        && prune_tool_id == Some(expected_prune_tool_id)
+        && prune_tool_ok == Some(true)
+        && mds_plan_ok
+    {
+        return None;
+    }
+    Some(format!(
+        "selected VCF tool `{selected_tool_id}` did not complete its population-structure component plan; PCA `{}` ok={}, admixture `{}` ok={}, prune `{}` ok={}, MDS `{}` ok={}",
+        pca_tool_id.unwrap_or("missing"),
+        pca_tool_ok.unwrap_or(false),
+        admixture_tool_id.unwrap_or("missing"),
+        admixture_tool_ok.unwrap_or(false),
+        prune_tool_id.unwrap_or("missing"),
+        prune_tool_ok.unwrap_or(false),
+        mds_tool_id.unwrap_or("not_applicable"),
+        mds_tool_ok.unwrap_or(selected_tool_id != "plink"),
+    ))
 }
 
 fn build_row(
@@ -1196,6 +1245,7 @@ fn local_vcf_stage_result_manifest_path(
             | "vcf.impute"
             | "vcf.pca"
             | "vcf.phasing"
+            | "vcf.population_structure"
             | "vcf.qc"
     );
     if tool_id != default_tool_id && !stage_worker_owns_tool_selection {
@@ -1284,7 +1334,8 @@ mod tests {
     use super::{
         build_output_contract_audit_report, is_vcf_tool_contract_planning_refusal,
         load_validated_stage_result_manifest_path, local_stage_proof_output_path,
-        local_vcf_stage_result_manifest_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
+        local_vcf_stage_result_manifest_path, population_structure_execution_blocker,
+        DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
     };
     use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
@@ -1426,6 +1477,37 @@ mod tests {
     }
 
     #[test]
+    fn population_structure_admission_requires_exact_successful_component_plan() {
+        for (tool_id, admixture_tool_id, prune_tool_id) in [
+            ("eigensoft", "plink2", "plink2"),
+            ("plink", "plink", "plink"),
+            ("plink2", "plink2", "plink2"),
+        ] {
+            let report = serde_json::json!({
+                "toolchain": tool_id,
+                "tool_attempts": {
+                    "prune": {"tool": prune_tool_id, "ok": true},
+                    "mds": {
+                        "tool": if tool_id == "plink" { Some("plink") } else { None },
+                        "ok": if tool_id == "plink" { Some(true) } else { None }
+                    }
+                },
+                "pca": {"tool_id": tool_id, "tool_ok": true},
+                "admixture": {"tool_id": admixture_tool_id, "tool_ok": true}
+            });
+            assert_eq!(population_structure_execution_blocker(tool_id, &report), None);
+
+            let mut failed_report = report;
+            failed_report["admixture"]["tool_ok"] = serde_json::Value::Bool(false);
+            let blocker = population_structure_execution_blocker(tool_id, &failed_report)
+                .expect("failed component must block admission");
+            assert!(blocker.contains(&format!("selected VCF tool `{tool_id}`")));
+            assert!(blocker.contains("admixture"));
+            assert!(blocker.contains("ok=false"));
+        }
+    }
+
+    #[test]
     fn build_output_contract_audit_report_records_governed_proof_surfaces() {
         let root = repo_root();
         let _cwd_lock = acquire_cwd_lock();
@@ -1467,6 +1549,34 @@ mod tests {
         assert_eq!(vcf_postprocess.output_proof_surface, "direct_tool_smoke");
         assert!(vcf_postprocess.independent_execution_proven);
         assert!(vcf_postprocess.passed);
+        for tool_id in ["eigensoft", "plink", "plink2"] {
+            let row = report
+                .rows
+                .iter()
+                .find(|row| row.stage_id == "vcf.population_structure" && row.tool_id == tool_id)
+                .unwrap_or_else(|| panic!("vcf.population_structure / {tool_id} row"));
+            assert_eq!(row.output_proof_surface, "direct_tool_smoke");
+            assert_eq!(row.proof_tool_id.as_deref(), Some(tool_id));
+            if row.passed {
+                assert!(row.independent_execution_proven);
+                assert!(row.execution_blocker.is_none());
+            } else if row.independent_execution_proven {
+                assert!(row.execution_blocker.is_none());
+                assert!(
+                    !row.raw_outputs_matched
+                        || !row.normalized_metrics_matched
+                        || !row.index_outputs_matched
+                        || !row.logs_matched
+                        || !row.manifest_matched
+                        || !row.no_undeclared_outputs
+                );
+            } else {
+                assert!(row.execution_blocker.as_deref().is_some_and(|blocker| {
+                    blocker.contains(&format!("selected VCF tool `{tool_id}`"))
+                        && blocker.contains("population-structure component plan")
+                }));
+            }
+        }
 
         let bam_genotyping = report
             .rows
@@ -1474,29 +1584,21 @@ mod tests {
             .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "bcftools")
             .expect("bam.genotyping row");
         assert_eq!(report.failed_row_count, 0);
-        assert_eq!(report.blocked_row_count, 24);
         assert_eq!(report.passed_row_count + report.blocked_row_count, report.row_count);
-        assert_eq!(
-            report.blocked_tool_ids,
-            [
-                "angsd",
-                "bcftools",
-                "beagle",
-                "eagle",
-                "eigensoft",
-                "fastuniq",
-                "germline",
-                "ibdhap",
-                "ibdne",
-                "ibdseq",
-                "impute5",
-                "minimac4",
-                "ngsbriggs",
-                "plink",
-                "plink2",
-                "shapeit",
-            ]
-        );
+        let expected_blocked_tool_ids = report
+            .rows
+            .iter()
+            .filter(|row| !row.passed && row.execution_blocker.is_some())
+            .map(|row| row.tool_id.clone())
+            .collect::<std::collections::BTreeSet<_>>()
+            .into_iter()
+            .collect::<Vec<_>>();
+        assert_eq!(report.blocked_tool_ids, expected_blocked_tool_ids);
+        assert!(report
+            .rows
+            .iter()
+            .filter(|row| !row.passed)
+            .all(|row| { !row.independent_execution_proven && row.execution_blocker.is_some() }));
         assert!(report.failed_stage_ids.is_empty());
         assert!(report.failed_tool_ids.is_empty());
         let external_artifact_rows = report

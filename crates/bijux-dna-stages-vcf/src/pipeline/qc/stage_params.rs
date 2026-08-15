@@ -296,6 +296,8 @@ impl Default for PopulationStructureStageParams {
 pub struct PopulationStructureStageOutputs {
     pub pruned_variants_tsv: PathBuf,
     pub population_structure_json: PathBuf,
+    pub population_mds: Option<PathBuf>,
+    pub tool_log: Option<PathBuf>,
     pub logs_txt: PathBuf,
 }
 
