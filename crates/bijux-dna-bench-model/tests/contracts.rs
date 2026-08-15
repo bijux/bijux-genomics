@@ -97,6 +97,8 @@ mod mod_contracts_local_stage_completion_rs;
 mod mod_contracts_local_stage_fake_run_rs;
 #[path = "contracts/local_stage_inventory.rs"]
 mod mod_contracts_local_stage_inventory_rs;
+#[path = "contracts/local_vcf_call_smoke.rs"]
+mod mod_contracts_local_vcf_call_smoke_rs;
 #[path = "contracts/local_vcf_ibd_smoke.rs"]
 mod mod_contracts_local_vcf_ibd_smoke_rs;
 #[path = "contracts/local_vcf_imputation_metrics_smoke.rs"]

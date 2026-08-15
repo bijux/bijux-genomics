@@ -93,7 +93,8 @@ pub use crate::contract::{
     validate_benchmark_local_stage_fake_run_result, validate_benchmark_local_stage_inventory,
     validate_benchmark_local_stage_manifest_completion,
     validate_benchmark_local_stage_output_completion, validate_benchmark_local_summary,
-    validate_benchmark_local_vcf_ibd_smoke_report,
+    validate_benchmark_local_vcf_call_smoke_metrics,
+    validate_benchmark_local_vcf_call_smoke_report, validate_benchmark_local_vcf_ibd_smoke_report,
     validate_benchmark_local_vcf_imputation_metrics_smoke_report,
     validate_benchmark_local_vcf_smoke_suite, validate_benchmark_matrix_report,
     validate_benchmark_protocol_citation, validate_benchmark_publication_findings,
@@ -493,6 +494,11 @@ pub use crate::model::local_stage_inventory::{
     benchmark_local_all_domain_stage_inventory_schema, benchmark_local_stage_inventory_schema,
     BenchmarkLocalAllDomainStageInventory, BenchmarkLocalStageInventory,
     BenchmarkLocalStageInventoryEntry,
+};
+pub use crate::model::local_vcf_call_smoke::{
+    benchmark_local_vcf_call_smoke_metrics_schema, benchmark_local_vcf_call_smoke_schema,
+    BenchmarkLocalVcfCallSmokeMetrics, BenchmarkLocalVcfCallSmokeReport,
+    BENCHMARK_LOCAL_VCF_CALL_SMOKE_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_VCF_CALL_SMOKE_SCHEMA_V1,
 };
 pub use crate::model::local_vcf_ibd_smoke::{
     benchmark_local_vcf_ibd_smoke_schema, BenchmarkLocalVcfIbdInsufficientOverlapProbe,

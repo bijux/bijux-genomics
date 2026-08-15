@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "corpus_id": {
+      "type": "string"
+    },
+    "exit_code": {
+      "format": "int32",
+      "type": "integer"
+    },
+    "indel_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "input_bam": {
+      "type": "string"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "resolved_stage_id": {
+      "type": "string"
+    },
+    "sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "sample_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_vcf_call_smoke.metrics.v1",
+      "type": "string"
+    },
+    "snp_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    },
+    "variant_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "resolved_stage_id",
+    "corpus_id",
+    "sample_id",
+    "input_bam",
+    "reference",
+    "variant_count",
+    "snp_count",
+    "indel_count",
+    "sample_count",
+    "tool_id",
+    "exit_code"
+  ],
+  "title": "BenchmarkLocalVcfCallSmokeMetrics",
+  "type": "object"
+}

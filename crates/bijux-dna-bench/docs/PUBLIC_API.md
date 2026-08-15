@@ -198,6 +198,8 @@ including:
 - `BenchmarkLocalVcfSmokeGoalContract`
 - `BenchmarkLocalVcfSmokeGoalCheck`
 - `BenchmarkLocalVcfSmokeSuiteReport`
+- `BenchmarkLocalVcfCallSmokeMetrics`
+- `BenchmarkLocalVcfCallSmokeReport`
 - `BenchmarkLocalVcfIbdSmokeRow`
 - `BenchmarkLocalVcfIbdInsufficientOverlapProbe`
 - `BenchmarkLocalVcfIbdSmokeReport`
