@@ -1,7 +1,7 @@
 //! Owner: bijux-dna-bench
-//! Derivation, persistence, and admission of the governed local VCF stage matrix.
+//! Admission and persistence of the governed local VCF stage-matrix declaration.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -9,19 +9,16 @@ use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_local_vcf_stage_matrix_config, validate_local_vcf_stage_matrix_report,
     validate_vcf_stage_matrix_validation_report, LocalVcfStageMatrixConfig,
-    LocalVcfStageMatrixReport, ValidateVcfStageMatrixReport, VcfStageCatalogRow, VcfStageMatrixRow,
+    LocalVcfStageMatrixReport, ValidateVcfStageMatrixReport, VcfStageMatrixRow,
     LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1, LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1,
     VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1,
-};
-use bijux_dna_domain_vcf::run::VcfBenchCorpusId;
-use bijux_dna_domain_vcf::VcfDomainStage;
-use bijux_dna_stages_vcf::stage_specs::{
-    vcf_domain_stage_adapter_id, vcf_domain_stage_expected_output_ids, vcf_domain_stage_parser_id,
 };
 
 use super::vcf_stage_catalog::build_vcf_stage_catalog_rows;
 
 pub const DEFAULT_VCF_STAGE_MATRIX_PATH: &str = "configs/bench/local/vcf-stage-matrix.toml";
+const DECLARED_VCF_STAGE_MATRIX: &str =
+    include_str!("../../../../configs/bench/local/vcf-stage-matrix.toml");
 const LOCAL_VCF_STAGE_MATRIX_HEADER: &str = "# schema_version = 1\n\
 # owner = bijux-dna-bench\n\
 # purpose = Governed VCF local benchmark stage matrix.\n\
@@ -74,7 +71,7 @@ pub fn render_vcf_stage_matrix(
 /// Validate a persisted local VCF stage matrix against owned contracts and registries.
 ///
 /// # Errors
-/// Returns an error for schema, row, coverage, tool-registry, or strict derivation drift.
+/// Returns an error for schema, row, coverage, tool-registry, or strict declaration drift.
 pub fn validate_vcf_stage_matrix(
     repo_root: &Path,
     matrix_path: PathBuf,
@@ -121,34 +118,49 @@ pub fn validate_vcf_stage_matrix(
     Ok(report)
 }
 
-/// Derive ordered VCF stage-matrix rows from the owned stage catalog and stage bindings.
+/// Admit ordered VCF stage-matrix rows from the checked declaration.
 ///
 /// # Errors
-/// Returns an error when a stage lacks an adapter, parser, output, or domain identity.
+/// Returns an error when the declaration violates its model-owned schema or stage catalog.
 pub fn build_vcf_stage_matrix_rows() -> Result<Vec<VcfStageMatrixRow>> {
-    let catalog_rows = build_vcf_stage_catalog_rows()?;
-    let corpus_id = VcfBenchCorpusId::ProductionRegression.as_str().to_string();
-    catalog_rows.iter().map(|row| build_matrix_row(row, &corpus_id)).collect()
-}
+    let config: LocalVcfStageMatrixConfig =
+        toml::from_str(DECLARED_VCF_STAGE_MATRIX).context("parse declared VCF stage matrix")?;
+    validate_local_vcf_stage_matrix_config(&config)?;
 
-fn build_matrix_row(row: &VcfStageCatalogRow, corpus_id: &str) -> Result<VcfStageMatrixRow> {
-    let stage = resolve_stage(&row.stage_id)?;
-    let adapter_id = vcf_domain_stage_adapter_id(stage).ok_or_else(|| {
-        anyhow!("VCF stage `{}` is missing an adapter contract id", stage.as_str())
-    })?;
-    let parser_id = vcf_domain_stage_parser_id(stage)
-        .ok_or_else(|| anyhow!("VCF stage `{}` is missing a parser contract id", stage.as_str()))?;
-    let expected_outputs = vcf_domain_stage_expected_output_ids(stage)
-        .ok_or_else(|| anyhow!("VCF stage `{}` is missing expected output ids", stage.as_str()))?;
-    Ok(VcfStageMatrixRow {
-        stage_id: row.stage_id.clone(),
-        tool_id: row.default_tool_id.clone(),
-        corpus_id: corpus_id.to_string(),
-        asset_profile_id: row.local_smoke_mode.clone(),
-        adapter_id: adapter_id.to_string(),
-        parser_id: parser_id.to_string(),
-        expected_outputs: expected_outputs.iter().map(|value| (*value).to_string()).collect(),
-    })
+    let catalog_rows = build_vcf_stage_catalog_rows()?;
+    let declared_stages =
+        config.rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>();
+    let catalog_stages =
+        catalog_rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>();
+    if declared_stages != catalog_stages {
+        let missing = catalog_stages.difference(&declared_stages).copied().collect::<Vec<_>>();
+        let stale = declared_stages.difference(&catalog_stages).copied().collect::<Vec<_>>();
+        bail!("VCF stage matrix catalog coverage drifted; missing={missing:?} stale={stale:?}");
+    }
+    let catalog_by_stage =
+        catalog_rows.iter().map(|row| (row.stage_id.as_str(), row)).collect::<BTreeMap<_, _>>();
+    for row in &config.rows {
+        let catalog = catalog_by_stage
+            .get(row.stage_id.as_str())
+            .ok_or_else(|| anyhow!("VCF stage matrix has unknown stage `{}`", row.stage_id))?;
+        if row.tool_id != catalog.default_tool_id {
+            bail!(
+                "VCF stage matrix tool drift for `{}`: expected `{}`, found `{}`",
+                row.stage_id,
+                catalog.default_tool_id,
+                row.tool_id
+            );
+        }
+        if row.asset_profile_id != catalog.local_smoke_mode {
+            bail!(
+                "VCF stage matrix asset-profile drift for `{}`: expected `{}`, found `{}`",
+                row.stage_id,
+                catalog.local_smoke_mode,
+                row.asset_profile_id
+            );
+        }
+    }
+    Ok(config.rows)
 }
 
 fn validate_matrix_rows(
@@ -247,14 +259,6 @@ fn load_tool_ids(repo_root: &Path, paths: &[&str], key: &str) -> Result<BTreeSet
         ids.extend(entries.iter().filter_map(toml::Value::as_str).map(str::to_string));
     }
     Ok(ids)
-}
-
-fn resolve_stage(stage_id: &str) -> Result<VcfDomainStage> {
-    VcfDomainStage::all()
-        .iter()
-        .copied()
-        .find(|stage| stage.as_str() == stage_id)
-        .ok_or_else(|| anyhow!("unknown VCF stage `{stage_id}`"))
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {

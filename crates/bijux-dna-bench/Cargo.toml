@@ -25,8 +25,6 @@ walkdir.workspace = true
 bijux-dna-db-ena = { path = "../bijux-dna-db-ena" }
 bijux-dna-db-ref.workspace = true
 bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
-bijux-dna-domain-vcf.workspace = true
-bijux-dna-stages-vcf.workspace = true
 md5.workspace = true
 
 [dev-dependencies]

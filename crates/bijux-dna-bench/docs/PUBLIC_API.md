@@ -55,7 +55,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `validate_benchmark_local_stage_inventory(inventory)` admits one domain-local stage inventory.
 - `validate_benchmark_local_all_domain_stage_inventory(report)` admits exact cross-domain inventory and count closure.
 - `validate_local_vcf_stage_catalog_config(config)` and `validate_local_vcf_stage_catalog_report(report)` admit the persisted VCF stage catalog and exact support-count closure.
-- `build_vcf_stage_catalog_rows()`, `render_vcf_stage_catalog(...)`, `build_vcf_stage_matrix_rows()`, `render_vcf_stage_matrix(...)`, and `validate_vcf_stage_matrix(...)` own local VCF planning derivation, persistence, and strict registry admission.
+- `build_vcf_stage_catalog_rows()`, `render_vcf_stage_catalog(...)`, `build_vcf_stage_matrix_rows()`, `render_vcf_stage_matrix(...)`, and `validate_vcf_stage_matrix(...)` own local VCF declaration admission, persistence, catalog closure, and strict registry admission without importing execution-stage crates.
 - `validate_local_vcf_stage_matrix_config(config)`, `validate_local_vcf_stage_matrix_report(report)`, and `validate_vcf_stage_matrix_validation_report(report)` admit the persisted VCF matrix and its exact aggregate reports.
 - `validate_benchmark_local_corpus_skip_report(report)` admits corpus replacement lineage and complete stage dispositions.
 - `derive_benchmark_local_corpus_skip_report(compatibility, output_path)` derives every fixture replacement, asset-backed stage, and planner-only disposition from one admitted compatibility report.
