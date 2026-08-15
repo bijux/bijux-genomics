@@ -98,6 +98,10 @@ fn bench_local_vcf_admixture_smoke_writes_governed_files() {
         Some(2)
     );
     assert_eq!(source_manifest.get("sample_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(
+        source_manifest.get("allele_frequency_policy").and_then(serde_json::Value::as_str),
+        Some("allow_small_cohort_estimates")
+    );
 
     let manifest_raw = std::fs::read_to_string(&stage_result_path).expect("read stage result");
     let manifest: serde_json::Value = serde_json::from_str(&manifest_raw).expect("parse manifest");

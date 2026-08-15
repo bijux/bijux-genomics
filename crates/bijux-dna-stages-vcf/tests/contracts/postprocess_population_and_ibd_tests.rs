@@ -409,6 +409,10 @@ fn admixture_stage_emits_q_matrix_and_selection_artifacts() {
         Some("bijux.vcf.admixture.v1")
     );
     assert_eq!(manifest.get("toolchain").and_then(serde_json::Value::as_str), Some("plink2"));
+    assert_eq!(
+        manifest.get("allele_frequency_policy").and_then(serde_json::Value::as_str),
+        Some("allow_small_cohort_estimates")
+    );
     assert_eq!(manifest.get("status").and_then(serde_json::Value::as_str), Some("complete"));
     assert_eq!(manifest.get("insufficient_data_reason").and_then(serde_json::Value::as_str), None);
     assert_eq!(manifest.get("sample_count").and_then(serde_json::Value::as_u64), Some(2));
@@ -470,6 +474,10 @@ fn admixture_stage_preserves_requested_plink_backend_identity() {
     .unwrap_or_else(|err| panic!("parse admixture manifest: {err}"));
 
     assert_eq!(manifest.get("toolchain").and_then(serde_json::Value::as_str), Some("plink"));
+    assert_eq!(
+        manifest.get("allele_frequency_policy").and_then(serde_json::Value::as_str),
+        Some("tool_default")
+    );
     assert!(matches!(
         manifest.get("execution_mode").and_then(serde_json::Value::as_str),
         Some("tool_backed_proxy" | "fallback_proxy")

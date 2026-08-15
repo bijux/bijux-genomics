@@ -90,6 +90,7 @@ fn population_proxy_invocation(
                 input,
                 "--double-id".to_string(),
                 "--allow-extra-chr".to_string(),
+                "--bad-freqs".to_string(),
                 "--pca".to_string(),
                 "2".to_string(),
                 "--out".to_string(),
@@ -618,6 +619,8 @@ pub fn run_admixture_stage(
         .min()
         .ok_or_else(|| anyhow!("vcf.admixture refusal: unable to select K"))?;
     let tool = params.toolchain.to_ascii_lowercase();
+    let allele_frequency_policy =
+        if tool == "plink2" { "allow_small_cohort_estimates" } else { "tool_default" };
     if tool == "admixture" && !license_metadata_for_tool_exists("admixture") {
         bail!("vcf.admixture refusal: ADMIXTURE container/license metadata is not available");
     }
@@ -767,6 +770,7 @@ pub fn run_admixture_stage(
             "schema_version": "bijux.vcf.admixture.v1",
             "toolchain": tool,
             "execution_mode": execution_mode,
+            "allele_frequency_policy": allele_frequency_policy,
             "k_values": params.k_values,
             "selected_k": selected_k,
             "status": status,
@@ -791,7 +795,7 @@ pub fn run_admixture_stage(
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "toolchain={tool}\nexecution_mode={execution_mode}\ntool_success={tool_ok}\nselected_k={selected_k}\nstatus={status}\n"
+            "toolchain={tool}\nexecution_mode={execution_mode}\nallele_frequency_policy={allele_frequency_policy}\ntool_success={tool_ok}\nselected_k={selected_k}\nstatus={status}\n"
         )
         .as_bytes(),
     )?;
@@ -828,7 +832,7 @@ mod admixture_backend_tests {
     }
 
     #[test]
-    fn plink2_admixture_proxy_uses_plink2() {
+    fn plink2_admixture_proxy_acknowledges_small_contract_fixture_frequencies() {
         let invocation =
             population_proxy_invocation("plink2", Path::new("cohort.vcf"), Path::new("admixture"))
                 .unwrap_or_else(|error| panic!("PLINK2 invocation: {error}"));
@@ -841,6 +845,7 @@ mod admixture_backend_tests {
                 "cohort.vcf",
                 "--double-id",
                 "--allow-extra-chr",
+                "--bad-freqs",
                 "--pca",
                 "2",
                 "--out",
