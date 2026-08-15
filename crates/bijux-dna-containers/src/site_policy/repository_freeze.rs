@@ -13,6 +13,7 @@ use super::validation::{safe_checkout_path, validate_container_governance_host};
 
 const CONTRACT_CHECKOUT_PATHS: [&str; 3] =
     ["benchmarks/contracts", "benchmarks/execution", "containers/contracts"];
+const SNAPSHOT_INODE_MARGIN_MINIMUM: u64 = 1_024;
 
 /// Materialize or verify an immutable, self-contained repository snapshot under the governed root.
 ///
@@ -38,7 +39,7 @@ pub fn freeze_repository(request: &RepositoryFreezeRequest) -> Result<PathBuf> {
         verify_read_only_snapshot(&target)?;
         return Ok(target);
     }
-    ensure_freeze_storage_capacity(request)?;
+    ensure_freeze_storage_capacity(request, &checkout_paths)?;
     if let Some(parent) = target.parent() {
         std::fs::create_dir_all(parent)
             .with_context(|| format!("create frozen repository parent {}", parent.display()))?;
@@ -54,7 +55,10 @@ pub fn freeze_repository(request: &RepositoryFreezeRequest) -> Result<PathBuf> {
     Ok(target)
 }
 
-fn ensure_freeze_storage_capacity(request: &RepositoryFreezeRequest) -> Result<()> {
+fn ensure_freeze_storage_capacity(
+    request: &RepositoryFreezeRequest,
+    checkout_paths: &[PathBuf],
+) -> Result<()> {
     let path = existing_ancestor(&request.governance.paths.frozen_repositories)?;
     let available_bytes = df_available(path, "-Pk")?
         .checked_mul(1024)
@@ -65,13 +69,11 @@ fn ensure_freeze_storage_capacity(request: &RepositoryFreezeRequest) -> Result<(
         request.governance.preflight.minimum_available_bytes
     );
     let available_inodes = df_available(path, "-Pi")?;
-    let estimated_snapshot_inodes = WalkDir::new(&request.governance.paths.active_repository)
-        .follow_links(false)
-        .into_iter()
-        .try_fold(0_u64, |count, entry| {
-            entry.context("estimate repository snapshot inode footprint")?;
-            count.checked_add(1).context("estimated repository snapshot inode count overflowed")
-        })?;
+    let estimated_snapshot_inodes = estimated_snapshot_inodes(
+        &request.governance.paths.active_repository,
+        &request.commit,
+        checkout_paths,
+    )?;
     let required_inodes = required_freeze_inodes(
         request.governance.preflight.minimum_available_inodes,
         estimated_snapshot_inodes,
@@ -82,6 +84,61 @@ fn ensure_freeze_storage_capacity(request: &RepositoryFreezeRequest) -> Result<(
         request.governance.preflight.minimum_available_inodes,
     );
     Ok(())
+}
+
+fn estimated_snapshot_inodes(
+    active_repository: &Path,
+    commit: &str,
+    checkout_paths: &[PathBuf],
+) -> Result<u64> {
+    let git_metadata_inodes = WalkDir::new(active_repository.join(".git"))
+        .follow_links(false)
+        .into_iter()
+        .try_fold(0_u64, |count, entry| {
+            entry.context("estimate repository Git metadata inode footprint")?;
+            count.checked_add(1).context("estimated Git metadata inode count overflowed")
+        })?;
+    let output = git(
+        active_repository,
+        &[
+            "ls-tree".to_string(),
+            "-r".to_string(),
+            "-z".to_string(),
+            "--name-only".to_string(),
+            commit.to_string(),
+        ],
+    )?;
+    let mut files = 0_u64;
+    let mut directories = BTreeSet::new();
+    for raw in output.stdout.split(|byte| *byte == 0).filter(|path| !path.is_empty()) {
+        let relative = PathBuf::from(
+            std::str::from_utf8(raw).context("tracked repository path is not UTF-8")?,
+        );
+        if !checkout_paths.is_empty()
+            && !checkout_paths
+                .iter()
+                .any(|prefix| relative == *prefix || relative.starts_with(prefix))
+        {
+            continue;
+        }
+        files = files.checked_add(1).context("tracked snapshot file count overflowed")?;
+        let mut parent = relative.parent();
+        while let Some(path) = parent.filter(|path| !path.as_os_str().is_empty()) {
+            directories.insert(path.to_path_buf());
+            parent = path.parent();
+        }
+    }
+    let checkout_inodes = files
+        .checked_add(
+            u64::try_from(directories.len()).context("tracked directory count exceeds u64")?,
+        )
+        .and_then(|count| count.checked_add(1))
+        .context("tracked snapshot inode count overflowed")?;
+    let base = git_metadata_inodes
+        .checked_add(checkout_inodes)
+        .context("estimated repository snapshot inode count overflowed")?;
+    let margin = base.saturating_div(10).max(SNAPSHOT_INODE_MARGIN_MINIMUM);
+    base.checked_add(margin).context("snapshot inode safety margin overflowed")
 }
 
 fn required_freeze_inodes(reserve: u64, estimated_snapshot_inodes: u64) -> u64 {
@@ -403,11 +460,52 @@ fn remove_incomplete_snapshot(target: &Path) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::required_freeze_inodes;
+    use std::process::Command;
+
+    use anyhow::{ensure, Context, Result};
+
+    use super::{estimated_snapshot_inodes, required_freeze_inodes};
+
+    fn git(repository: &std::path::Path, arguments: &[&str]) -> Result<String> {
+        let output = Command::new("git").arg("-C").arg(repository).args(arguments).output()?;
+        ensure!(
+            output.status.success(),
+            "git {} failed: {}",
+            arguments.join(" "),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        Ok(String::from_utf8(output.stdout)?.trim().to_string())
+    }
 
     #[test]
     fn inode_preflight_preserves_reserve_after_snapshot_materialization() {
         assert_eq!(required_freeze_inodes(1_000, 10_584), 11_584);
         assert_eq!(required_freeze_inodes(u64::MAX, 1), u64::MAX);
+    }
+
+    #[test]
+    fn inode_estimate_excludes_ignored_runtime_artifacts() -> Result<()> {
+        let repository = tempfile::tempdir()?;
+        git(repository.path(), &["init", "--quiet"])?;
+        git(repository.path(), &["config", "user.name", "Bijux Test"])?;
+        git(repository.path(), &["config", "user.email", "test@bijux.invalid"])?;
+        std::fs::write(repository.path().join(".gitignore"), "artifacts/\n")?;
+        std::fs::create_dir_all(repository.path().join("src"))?;
+        std::fs::write(repository.path().join("src/lib.rs"), "pub fn tracked() {}\n")?;
+        git(repository.path(), &["add", ".gitignore", "src/lib.rs"])?;
+        git(repository.path(), &["commit", "--quiet", "-m", "fixture"])?;
+        let commit = git(repository.path(), &["rev-parse", "HEAD"])?;
+        let before = estimated_snapshot_inodes(repository.path(), &commit, &[])?;
+
+        let artifacts = repository.path().join("artifacts/runtime");
+        std::fs::create_dir_all(&artifacts)?;
+        for index in 0..2_000 {
+            std::fs::write(artifacts.join(format!("entry-{index}.json")), "{}\n")?;
+        }
+        let after = estimated_snapshot_inodes(repository.path(), &commit, &[])
+            .context("estimate snapshot with ignored runtime artifacts")?;
+
+        assert_eq!(after, before);
+        Ok(())
     }
 }
