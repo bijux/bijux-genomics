@@ -160,7 +160,10 @@ pub(crate) fn collect_fastq_tool_serving_map_rows(
                     binding.tool_id.as_str()
                 )
             })?;
-            if !include_fastq_readiness_binding(&binding.stage_id, &binding.tool_id) {
+            if !include_fastq_active_benchmark_pair(
+                binding.stage_id.as_str(),
+                binding.tool_id.as_str(),
+            ) {
                 continue;
             }
             tool_ids.insert(binding.tool_id.as_str().to_string());
@@ -180,10 +183,6 @@ pub(crate) fn collect_fastq_tool_serving_map_rows(
     ensure_fastq_amplicon_fixture_coverage(&rows)?;
 
     Ok((inventory.stage_count, tool_ids.len(), rows))
-}
-
-fn include_fastq_readiness_binding(stage_id: &StageId, tool_id: &ToolId) -> bool {
-    include_fastq_active_benchmark_pair(stage_id.as_str(), tool_id.as_str())
 }
 
 fn ensure_fastq_amplicon_fixture_coverage(rows: &[ToolServingMapRow]) -> Result<()> {
@@ -464,10 +463,15 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
     use std::path::PathBuf;
 
+    use bijux_dna_core::ids::StageId;
+    use bijux_dna_domain_fastq::{stage_tool_bindings_for_stage, ToolIntegrationLevel};
+
     use super::{
-        render_bam_tool_serving_map, render_fastq_tool_serving_map,
+        load_benchmark_integrated_container_tool_ids, load_local_stage_inventory,
+        render_bam_tool_serving_map, render_fastq_tool_serving_map, BenchLocalDomain,
         BAM_TOOL_SERVING_MAP_SCHEMA_VERSION, FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION,
     };
 
@@ -631,6 +635,35 @@ mod tests {
                     && row.corpus_status == "fixture:corpus-01-mini"
             }));
         }
+    }
+
+    #[test]
+    fn fastq_tool_serving_map_contains_every_governed_stage_tool_binding() {
+        let root = repo_root();
+        let output = tempfile::tempdir().expect("temporary output");
+        let report = render_fastq_tool_serving_map(&root, output.path().join("fastq.tsv"))
+            .expect("render FASTQ tool serving map");
+        let integrated = load_benchmark_integrated_container_tool_ids(&root)
+            .expect("load integrated container tools");
+        let inventory = load_local_stage_inventory(&root, BenchLocalDomain::Fastq)
+            .expect("load FASTQ stage inventory");
+        let expected = inventory
+            .stages
+            .iter()
+            .flat_map(|stage| stage_tool_bindings_for_stage(&StageId::new(&stage.stage_id)))
+            .filter(|binding| binding.integration_level == ToolIntegrationLevel::GovernedContract)
+            .filter(|binding| integrated.contains(binding.tool_id.as_str()))
+            .map(|binding| {
+                (binding.stage_id.as_str().to_string(), binding.tool_id.as_str().to_string())
+            })
+            .collect::<BTreeSet<_>>();
+        let actual = report
+            .rows
+            .iter()
+            .map(|row| (row.stage_id.clone(), row.tool_id.clone()))
+            .collect::<BTreeSet<_>>();
+
+        assert_eq!(actual, expected);
     }
 
     #[test]
