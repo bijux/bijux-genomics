@@ -198,6 +198,8 @@ including:
 - `BenchmarkLocalVcfSmokeGoalContract`
 - `BenchmarkLocalVcfSmokeGoalCheck`
 - `BenchmarkLocalVcfSmokeSuiteReport`
+- `BenchmarkImputationQualityFieldAvailability`
+- `BenchmarkLocalVcfImputationMetricsSmokeReport`
 - `LocalVcfStageCatalogConfig`
 - `VcfStageCatalogRow`
 - `LocalVcfStageCatalogReport`

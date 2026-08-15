@@ -36,6 +36,12 @@ pub use bijux_dna_bench_model::{
     WorkspaceStageNormalizationReport,
 };
 pub use bijux_dna_bench_model::{
+    benchmark_local_vcf_imputation_metrics_smoke_schema,
+    validate_benchmark_local_vcf_imputation_metrics_smoke_report,
+    BenchmarkImputationQualityFieldAvailability, BenchmarkLocalVcfImputationMetricsSmokeReport,
+    BENCHMARK_LOCAL_VCF_IMPUTATION_METRICS_SMOKE_SCHEMA_V1,
+};
+pub use bijux_dna_bench_model::{
     local_vcf_stage_catalog_config_schema, local_vcf_stage_catalog_report_schema,
     validate_local_vcf_stage_catalog_config, validate_local_vcf_stage_catalog_report,
     LocalVcfStageCatalogConfig, LocalVcfStageCatalogReport, VcfStageCatalogRow,

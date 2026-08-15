@@ -53,6 +53,7 @@ mod local_stage_commands;
 mod local_stage_completion;
 mod local_stage_fake_run;
 mod local_stage_inventory;
+mod local_vcf_imputation_metrics_smoke;
 mod local_vcf_smoke;
 mod local_vcf_stage_catalog;
 mod local_vcf_stage_matrix;
@@ -180,6 +181,7 @@ pub use local_stage_fake_run::{
 pub use local_stage_inventory::{
     validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_stage_inventory,
 };
+pub use local_vcf_imputation_metrics_smoke::validate_benchmark_local_vcf_imputation_metrics_smoke_report;
 pub use local_vcf_smoke::validate_benchmark_local_vcf_smoke_suite;
 pub use local_vcf_stage_catalog::{
     validate_local_vcf_stage_catalog_config, validate_local_vcf_stage_catalog_report,

@@ -1,0 +1,161 @@
+{
+  "$defs": {
+    "BenchmarkImputationQualityFieldAvailability": {
+      "additionalProperties": false,
+      "properties": {
+        "concordance": {
+          "type": "boolean"
+        },
+        "dosage_r2": {
+          "type": "boolean"
+        },
+        "maf_strata": {
+          "type": "boolean"
+        },
+        "masked_truth_sites": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "concordance",
+        "dosage_r2",
+        "maf_strata",
+        "masked_truth_sites"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "command": {
+      "type": "string"
+    },
+    "concordance": {
+      "format": "double",
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "dosage_r2": {
+      "format": "double",
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "elapsed_seconds": {
+      "format": "double",
+      "type": "number"
+    },
+    "exit_code": {
+      "format": "int32",
+      "type": "integer"
+    },
+    "finished_at": {
+      "type": "string"
+    },
+    "imputation_metrics_path": {
+      "type": "string"
+    },
+    "input_fixture_id": {
+      "type": "string"
+    },
+    "low_confidence_sites": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "map_id": {
+      "type": "string"
+    },
+    "masked_truth_sites": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "mean_info_score": {
+      "format": "double",
+      "type": "number"
+    },
+    "missing_quality_fields": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "output_root": {
+      "type": "string"
+    },
+    "panel_id": {
+      "type": "string"
+    },
+    "quality_field_availability": {
+      "$ref": "#/$defs/BenchmarkImputationQualityFieldAvailability"
+    },
+    "r2_available": {
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_vcf_imputation_metrics_smoke.v1",
+      "type": "string"
+    },
+    "source_imputation_manifest_path": {
+      "type": "string"
+    },
+    "source_imputation_qc_path": {
+      "type": "string"
+    },
+    "source_impute_smoke_metrics_path": {
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "stage_result_manifest_path": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "command",
+    "stage_id",
+    "tool_id",
+    "corpus_id",
+    "input_fixture_id",
+    "panel_id",
+    "map_id",
+    "output_root",
+    "imputation_metrics_path",
+    "source_imputation_qc_path",
+    "source_impute_smoke_metrics_path",
+    "source_imputation_manifest_path",
+    "stage_result_manifest_path",
+    "started_at",
+    "finished_at",
+    "elapsed_seconds",
+    "exit_code",
+    "mean_info_score",
+    "r2_available",
+    "low_confidence_sites",
+    "masked_truth_sites",
+    "quality_field_availability",
+    "missing_quality_fields",
+    "status"
+  ],
+  "title": "BenchmarkLocalVcfImputationMetricsSmokeReport",
+  "type": "object"
+}
