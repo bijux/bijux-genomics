@@ -23,6 +23,13 @@ known_limitations = [
   "Study-specific ethical, consent, and redistribution constraints must be reviewed at individual selection time.",
 ]
 description = "A release-addressed AADR cohort with independently published archaeological and biological metadata defines the real-data basis for sensitivity-driven ancient-population benchmarks."
+sample_context = "Release-frozen ancient individuals with archaeological, ancestry, sex, coverage, and relatedness context."
+assay_context = "Published ancient-human genotypes evaluated under missingness, coverage, and metadata perturbations."
+strata = ["ancestry", "coverage", "geography", "period", "relatedness", "sex"]
+controls = ["metadata_perturbation", "related_individual_exclusion", "replicate_analysis"]
+held_out_split = "Reserve geographic-period strata and relatedness groups before model selection; keep relatives in one partition."
+lineage = "AADR release and publications to checksummed genotypes and metadata to sensitivity and population evidence."
+allowed_uses = ["observational_consistency", "performance", "population_sensitivity", "robustness"]
 data_types = ["genotype_likelihoods", "sample_metadata", "vcf"]
 target_sample_count = 100
 

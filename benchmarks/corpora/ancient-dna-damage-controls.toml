@@ -24,6 +24,13 @@ known_limitations = [
   "No archive bytes, derived alignments, checksums, sample metadata table, held-out split, or orthogonal expectation table are admitted by this source declaration.",
 ]
 description = "Ten exact ancient-human UDG/non-UDG library pairs anchor treatment-labeled damage discrimination, complemented by a sequenced extraction blank, observational modern controls, and a common GRCh38 alignment authority."
+sample_context = "Ten same-individual ancient-human treatment pairs, one extraction blank, and ten stratified modern libraries."
+assay_context = "Paired-end shotgun reads evaluated through a common GRCh38 alignment and terminal-damage protocol."
+strata = ["individual", "library_treatment", "study", "truth_role"]
+controls = ["extraction_blank", "modern_observational_negative", "udg_treated_pair"]
+held_out_split = "Freeze six matched pairs for development, two for calibration, and two for final scoring; keep each pair in one partition."
+lineage = "ENA and SRA runs plus treatment evidence to checksummed reads, alignments, expectation tables, and damage evidence."
+allowed_uses = ["damage_discrimination", "false_positive_assessment", "performance", "robustness"]
 data_types = ["bam", "fasta", "fastq", "orthogonal_assay", "sample_metadata"]
 target_sample_count = 10
 

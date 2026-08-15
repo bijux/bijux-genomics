@@ -22,6 +22,13 @@ known_limitations = [
   "Orthogonal authentication observations and study-level ethical constraints must be bound before comparative use.",
 ]
 description = "The ten ancient human runs already selected across four ENA studies define a reproducible observational cohort for diverse low-coverage ancient-DNA BAM materialization; a separate authority must provide orthogonal damage controls."
+sample_context = "Ten public ancient-human libraries spanning four studies, layouts, and archive-size bands."
+assay_context = "Ancient-human short-read sequencing aligned under one declared GRCh38 protocol."
+strata = ["archive_size_band", "layout", "library_preparation", "study"]
+controls = ["damage_control_corpus", "shared_alignment_protocol"]
+held_out_split = "Freeze study-stratified development and evaluation samples before deriving common-protocol BAMs."
+lineage = "ENA runs to checksum-bound FASTQ catalogs to parameter-bound GRCh38 alignments and BAM observations."
+allowed_uses = ["interoperability", "observational_consistency", "performance", "robustness"]
 data_types = ["bam", "fasta"]
 target_sample_count = 10
 

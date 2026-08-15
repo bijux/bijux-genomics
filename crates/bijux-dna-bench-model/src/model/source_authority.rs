@@ -5,7 +5,7 @@ use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
 use crate::contract::BENCHMARK_DATA_SOURCE_SCHEMA_V1;
-use crate::model::CorpusSourcePolicy;
+use crate::model::{CorpusEvaluationDesign, CorpusSourcePolicy};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -30,6 +30,8 @@ pub struct BenchmarkDataSourceSpec {
     pub portfolio_id: String,
     #[serde(flatten)]
     pub policy: CorpusSourcePolicy,
+    #[serde(flatten)]
+    pub evaluation: CorpusEvaluationDesign,
     pub description: String,
     pub data_types: Vec<String>,
     pub target_sample_count: u64,

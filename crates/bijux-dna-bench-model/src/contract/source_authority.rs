@@ -4,8 +4,8 @@
 use std::collections::BTreeSet;
 
 use crate::contract::materialization::{
-    validate_https, validate_identifier, validate_nonempty, validate_nonempty_list,
-    validate_source_policy,
+    validate_corpus_evaluation_design, validate_https, validate_identifier, validate_nonempty,
+    validate_nonempty_list, validate_source_policy,
 };
 use crate::diagnostics::BenchError;
 use crate::model::BenchmarkDataSourceSpec;
@@ -24,6 +24,7 @@ pub fn validate_benchmark_data_source_spec(
     }
     validate_identifier(&spec.portfolio_id, "portfolio")?;
     validate_source_policy(&spec.policy)?;
+    validate_corpus_evaluation_design(&spec.evaluation)?;
     validate_nonempty(&spec.description, "data source description")?;
     validate_ordered_values(&spec.data_types, "data source type")?;
     if spec.target_sample_count == 0 || spec.collections.is_empty() {

@@ -61,6 +61,7 @@ pub(super) fn build_catalog(
         purpose: plan.description.clone(),
         source: plan.source_authority.clone(),
         policy: plan.policy.clone(),
+        evaluation: plan.evaluation.clone(),
         source_record,
         source_record_sha256,
         retrieved_at_utc: plan.retrieved_at_utc.clone(),
@@ -85,6 +86,7 @@ pub(super) fn validate_existing_catalog(
         || catalog.source != plan.source_authority
         || catalog.purpose != plan.description
         || catalog.policy != plan.policy
+        || catalog.evaluation != plan.evaluation
         || catalog.source_record != source_record
         || catalog.source_record_sha256 != source_record_sha256
         || catalog.scientific_name != plan.species

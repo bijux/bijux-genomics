@@ -1,6 +1,7 @@
 use bijux_dna_bench_model::{
     validate_benchmark_data_source_spec, BenchmarkCorpusClass, BenchmarkDataSourceCollection,
-    BenchmarkDataSourceSpec, CorpusSourcePolicy, BENCHMARK_DATA_SOURCE_SCHEMA_V1,
+    BenchmarkDataSourceSpec, CorpusEvaluationDesign, CorpusSourcePolicy,
+    BENCHMARK_DATA_SOURCE_SCHEMA_V1,
 };
 
 #[test]
@@ -17,6 +18,16 @@ fn generic_source_contract_requires_real_ordered_truth_authorities() {
     underfilled.target_sample_count = 11;
     assert!(validate_benchmark_data_source_spec(&underfilled)
         .is_err_and(|error| error.to_string().contains("target sample count")));
+
+    let mut missing_split = source.clone();
+    missing_split.evaluation.held_out_split.clear();
+    assert!(validate_benchmark_data_source_spec(&missing_split)
+        .is_err_and(|error| error.to_string().contains("held-out split")));
+
+    let mut unordered_uses = source.clone();
+    unordered_uses.evaluation.allowed_uses.reverse();
+    assert!(validate_benchmark_data_source_spec(&unordered_uses)
+        .is_err_and(|error| error.to_string().contains("strictly ordered")));
 
     let mut unknown_type = source;
     unknown_type.collections[0].data_types = vec!["fasta".to_string()];
@@ -60,6 +71,16 @@ fn source_spec() -> BenchmarkDataSourceSpec {
             truth_roles: vec!["variant_truth".to_string()],
             truth_strategy: "independent_reference_material".to_string(),
             known_limitations: vec!["The source is not population representative.".to_string()],
+        },
+        evaluation: CorpusEvaluationDesign {
+            sample_context: "Ten reference-material samples.".to_string(),
+            assay_context: "Whole-genome sequencing.".to_string(),
+            strata: vec!["pedigree_role".to_string(), "sequencing_center".to_string()],
+            controls: vec!["mendelian_consistency".to_string()],
+            held_out_split: "Mask truth genotypes after stratified sample assignment.".to_string(),
+            lineage: "Archive accession to admitted source catalog to derived truth panel."
+                .to_string(),
+            allowed_uses: vec!["accuracy".to_string(), "performance".to_string()],
         },
         description: "Public reference material for variant benchmarking.".to_string(),
         data_types: vec!["bam".to_string(), "vcf".to_string()],

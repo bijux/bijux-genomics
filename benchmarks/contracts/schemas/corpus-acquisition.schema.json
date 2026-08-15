@@ -159,11 +159,26 @@
     "access_terms_url": {
       "type": "string"
     },
+    "allowed_uses": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "assay_context": {
+      "type": "string"
+    },
     "attribution": {
       "type": "string"
     },
     "class": {
       "$ref": "#/$defs/BenchmarkCorpusClass"
+    },
+    "controls": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
     },
     "corpus_id": {
       "type": "string"
@@ -176,11 +191,17 @@
       "minimum": 0,
       "type": "integer"
     },
+    "held_out_split": {
+      "type": "string"
+    },
     "known_limitations": {
       "items": {
         "type": "string"
       },
       "type": "array"
+    },
+    "lineage": {
+      "type": "string"
     },
     "portfolio_id": {
       "type": "string"
@@ -202,6 +223,9 @@
       "type": "string"
     },
     "retrieved_at_utc": {
+      "type": "string"
+    },
+    "sample_context": {
       "type": "string"
     },
     "sample_count": {
@@ -230,6 +254,12 @@
     },
     "species": {
       "type": "string"
+    },
+    "strata": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
     },
     "total_size_bytes": {
       "format": "uint64",
@@ -265,6 +295,13 @@
     "truth_roles",
     "truth_strategy",
     "known_limitations",
+    "sample_context",
+    "assay_context",
+    "strata",
+    "controls",
+    "held_out_split",
+    "lineage",
+    "allowed_uses",
     "source_spec",
     "source_spec_sha256",
     "sample_count",
