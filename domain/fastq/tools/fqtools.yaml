@@ -40,7 +40,7 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "2.3"
 install_kind: "container"
-license: "GPL-3.0-only"
+license: "GPL-3.0"
 citation: "software:https://github.com/alastair-droop/fqtools/tree/63c6fa707fabc7569c2f256b8bcfc6ebb760f72a"
 stage_ids: ["fastq.validate_reads"]
 stage_contracts:

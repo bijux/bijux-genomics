@@ -52,7 +52,7 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "0.0.1"
 install_kind: "container"
-license: "GPL-3.0"
+license: "MIT"
 citation: "software:https://github.com/rpetit3/fastq-scan"
 stage_ids:
   - "fastq.validate_reads"

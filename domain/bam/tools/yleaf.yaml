@@ -7,7 +7,7 @@ default_version: "latest-pinned"
 install_kind: "container"
 container:
   image: "bijuxdna/yleaf"
-license: "GPL-3.0"
+license: "MIT"
 citation: "paper:https://academic.oup.com/mbe/article/35/5/1291/4922696"
 outputs:
   - name: "sex_report"
