@@ -1,5 +1,5 @@
 {
-  "schema": "bijux.ci.build_authority.v2",
+  "schema": "bijux.ci.build_authority.v3",
   "toolchain": {
     "manifest": "rust-toolchain.toml",
     "channel": "1.95.0",
@@ -17,6 +17,12 @@
     "manifest": "Cargo.lock",
     "metadata_mode": "locked",
     "dependency_resolution": "workspace_lock_only"
+  },
+  "compilation": {
+    "manifest": "Cargo.toml",
+    "dev_codegen_units": 16,
+    "test_codegen_units": 16,
+    "incremental": true
   },
   "cache": {
     "compiler_wrapper": "sccache",

@@ -14,7 +14,7 @@ Layout:
 - `configs/ci/dependency-graph.json`: source, crate, generated-asset, contract, and report
   dependency graph used for fail-closed change-impact planning.
 - `configs/ci/build-authority.json`: the single Rust toolchain, pinned test executor, lockfile,
-  compiler-cache, and target-isolation authority.
+  bounded development/test codegen, compiler-cache, and target-isolation authority.
 - `configs/ci/full-shards.json`: complete-workspace nextest coverage and exact hash partitions;
   the runner retains bounded logs and timing receipts while discarding scratch archives, build
   targets, extracted shard artifacts, and isolated source clones before returning

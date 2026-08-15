@@ -25,7 +25,7 @@ pub(crate) fn check_cargo_config_policy(
     }
     if regex(r"(?m)^rustflags\s*=")?.is_match(&config) {
         violations.push(
-            ".cargo/config.toml must not set rustflags; use configs/runtime/cargo_build.toml"
+            ".cargo/config.toml must not set host-specific rustflags in repository policy"
                 .to_string(),
         );
     }
