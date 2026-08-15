@@ -1,9 +1,11 @@
 //! Derivation of portable image-inventory publications from execution-site evidence.
 
+mod activation;
 mod derivation;
 mod report;
 mod source;
 
+pub use activation::image_inventory_request_from_activation_plan;
 pub use derivation::{
     derive_image_inventory_evidence, derive_image_inventory_publication, DerivedImageInventory,
 };

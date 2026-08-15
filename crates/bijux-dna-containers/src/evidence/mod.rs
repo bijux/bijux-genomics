@@ -51,9 +51,10 @@ pub use image_storage::{
 };
 pub use inventory::{
     derive_image_inventory_evidence, derive_image_inventory_publication,
-    render_image_inventory_markdown, DerivedImageInventory, ImageInventoryDerivationRequest,
-    ImageInventoryEvidenceRootIdentity, ImageInventoryEvidenceRoots, ImageInventoryScan,
-    ImageInventoryScannedImage, ImageInventorySourceFile,
+    image_inventory_request_from_activation_plan, render_image_inventory_markdown,
+    DerivedImageInventory, ImageInventoryDerivationRequest, ImageInventoryEvidenceRootIdentity,
+    ImageInventoryEvidenceRoots, ImageInventoryScan, ImageInventoryScannedImage,
+    ImageInventorySourceFile,
 };
 pub use load::{
     load_image_inventory_publication, load_image_inventory_scan,

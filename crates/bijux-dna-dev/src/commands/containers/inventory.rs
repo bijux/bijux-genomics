@@ -10,7 +10,7 @@ const PUBLICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/image-inventory-publication.v3.json";
 const PUBLICATION_PATH: &str = "containers/reports/image-inventory.json";
 const REPORT_PATH: &str = "containers/reports/image-inventory.md";
-const GENERATE_USAGE: &str = "Usage: cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- <repository-root> <study-root> <image-root> <build-evidence-root> <run-evidence-root> <scan-output> <publication-output> [<additional-image-root> <additional-build-evidence-root>]...";
+const GENERATE_USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- <repository-root> <study-root> <image-root> <build-evidence-root> <run-evidence-root> <scan-output> <publication-output> [<additional-image-root> <additional-build-evidence-root>]...\n  cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- --activation-plan <repository-root> <study-root> <activation-plan> <run-evidence-root> <scan-output> <publication-output>";
 
 pub(super) fn generate(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     if matches!(args, [single] if single == "--help" || single == "-h") {
@@ -42,6 +42,24 @@ fn parse_generate_args(
     std::path::PathBuf,
     std::path::PathBuf,
 )> {
+    if args.first().is_some_and(|mode| mode == "--activation-plan") {
+        let [_, repository_root, study_root, activation_plan, run_evidence_root, scan_output, publication_output] =
+            args
+        else {
+            anyhow::bail!(GENERATE_USAGE);
+        };
+        let request = bijux_dna_containers::evidence::image_inventory_request_from_activation_plan(
+            &path_from_arg(workspace, repository_root),
+            &path_from_arg(workspace, study_root),
+            &path_from_arg(workspace, activation_plan),
+            &path_from_arg(workspace, run_evidence_root),
+        )?;
+        return Ok((
+            request,
+            path_from_arg(workspace, scan_output),
+            path_from_arg(workspace, publication_output),
+        ));
+    }
     let [repository_root, study_root, image_root, build_evidence_root, run_evidence_root, scan_output, publication_output, additional_roots @ ..] =
         args
     else {

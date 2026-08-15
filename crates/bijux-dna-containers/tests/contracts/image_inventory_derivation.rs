@@ -5,9 +5,11 @@ use std::process::Command;
 use anyhow::{Context, Result};
 use bijux_dna_containers::evidence::{
     apptainer_recipe_identity_at_commit, derive_image_inventory_evidence,
-    derive_image_inventory_publication, repository_head_commit, ContainerImageState,
-    DetachedImageDisposition, ImageCandidateDisposition, ImageInventoryDerivationRequest,
-    ImageInventoryEvidenceRoots,
+    derive_image_inventory_publication, image_inventory_request_from_activation_plan,
+    repository_head_commit, ContainerImageState, DetachedImageDisposition, EvidenceSourceIdentity,
+    ImageActivationPlan, ImageActivationPlanState, ImageActivationPublication,
+    ImageCandidateDisposition, ImageInventoryDerivationRequest, ImageInventoryEvidenceRoots,
+    IMAGE_ACTIVATION_PLAN_SCHEMA_V1,
 };
 use serde_json::json;
 use tempfile::TempDir;
@@ -140,6 +142,76 @@ impl Fixture {
 }
 
 #[test]
+fn applied_activation_reconstructs_exact_campaign_evidence_pairs() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let staging_root = fixture.study.join("containers/staging");
+    let selected = Path::new("campaign-a/selected-one");
+    let source_root = staging_root.join(selected);
+    let build_root = fixture.study.join("containers/evidence/image-campaigns").join(selected);
+    fs::create_dir_all(&source_root)?;
+    fs::create_dir_all(&build_root)?;
+    let bytes = b"activated immutable image";
+    let digest = bijux_dna_infra::hash_bytes_sha256(bytes);
+    let filename = format!("example-1.0.0-linux-amd64-{digest:.12}.sif");
+    let source = source_root.join(&filename);
+    let target = fixture.study.join("containers/apptainer").join(&filename);
+    fs::write(&source, bytes)?;
+    fs::hard_link(&source, &target)?;
+
+    let inventory = fixture.study.join("activation-inventory.json");
+    fs::write(
+        &inventory,
+        serde_json::to_vec_pretty(&derive_image_inventory_publication(&fixture.request)?)?,
+    )?;
+    let plan = ImageActivationPlan {
+        schema_version: IMAGE_ACTIVATION_PLAN_SCHEMA_V1.to_string(),
+        state: ImageActivationPlanState::Applied,
+        created_at_utc: "2026-08-15T12:00:00Z".to_string(),
+        inventory: EvidenceSourceIdentity {
+            path: inventory.display().to_string(),
+            sha256: bijux_dna_infra::hash_file_sha256(&inventory)?,
+        },
+        source_root: staging_root.canonicalize()?.display().to_string(),
+        active_root: fixture
+            .study
+            .join("containers/apptainer")
+            .canonicalize()?
+            .display()
+            .to_string(),
+        file_count: 1,
+        size_bytes: u64::try_from(bytes.len())?,
+        publications: vec![ImageActivationPublication {
+            tool: "example".to_string(),
+            source: source.canonicalize()?.display().to_string(),
+            target: target.canonicalize()?.display().to_string(),
+            size_bytes: u64::try_from(bytes.len())?,
+            sha256: digest,
+            applied: true,
+            applied_at_utc: Some("2026-08-15T12:01:00Z".to_string()),
+        }],
+        completed_at_utc: Some("2026-08-15T12:01:00Z".to_string()),
+        rolled_back_at_utc: None,
+    };
+    let plan_path = fixture.study.join("activation-plan.json");
+    fs::write(&plan_path, serde_json::to_vec_pretty(&plan)?)?;
+
+    let request = image_inventory_request_from_activation_plan(
+        &fixture.repository,
+        &fixture.study,
+        &plan_path,
+        &fixture.repository.join("containers/runs"),
+    )?;
+
+    assert_eq!(request.evidence_roots.len(), 1);
+    assert_eq!(
+        request.evidence_roots[0].image_root,
+        fixture.study.join("containers/apptainer").canonicalize()?
+    );
+    assert_eq!(request.evidence_roots[0].build_evidence_root, build_root.canonicalize()?);
+    Ok(())
+}
+
+#[test]
 fn composes_current_single_tool_campaign_with_prior_campaign_evidence() -> Result<()> {
     let fixture = Fixture::current()?;
     let prior_digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
@@ -235,6 +307,39 @@ fn composes_multiple_campaigns_for_one_activated_image_root() -> Result<()> {
     assert_eq!(evidence.scan.images.len(), 2);
     assert_eq!(evidence.scan.build_evidence.len(), 2);
     assert_eq!(evidence.scan.evidence_roots.len(), 2);
+    Ok(())
+}
+
+#[test]
+fn activated_roster_ignores_superseded_builds_absent_from_active_images() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let obsolete_images = fixture.study.join("containers/staging/obsolete");
+    let obsolete_evidence = fixture.study.join("containers/evidence/image-campaigns/obsolete");
+    fixture.add_admitted_image_to(
+        b"superseded campaign image",
+        &obsolete_images,
+        &obsolete_evidence,
+    )?;
+    let request = ImageInventoryDerivationRequest {
+        repository_root: fixture.repository.clone(),
+        study_root: fixture.study.clone(),
+        evidence_roots: vec![
+            fixture.request.evidence_roots[0].clone(),
+            ImageInventoryEvidenceRoots {
+                image_root: fixture.study.join("containers/apptainer"),
+                build_evidence_root: obsolete_evidence,
+            },
+        ],
+        run_evidence_root: fixture.repository.join("containers/runs"),
+    };
+
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(tool.candidates.len(), 1);
+    assert_eq!(evidence.scan.images.len(), 1);
+    assert_eq!(evidence.scan.build_evidence.len(), 1);
     Ok(())
 }
 

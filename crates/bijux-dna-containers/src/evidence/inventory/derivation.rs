@@ -61,9 +61,9 @@ pub fn derive_image_inventory_evidence(
     let catalog = load_container_catalog(&request.repository_root)?;
     let images = scan_images(request)?;
     let staged_images = scan_staged_images(request)?;
-    let build_evidence = load_build_evidence(request)?;
     let scanned_digests =
         images.iter().map(|(_, image)| image.sha256.as_str()).collect::<BTreeSet<_>>();
+    let build_evidence = load_build_evidence(request, &scanned_digests)?;
     let run_references = load_run_references(request)?
         .into_iter()
         .filter(|(digest, _)| scanned_digests.contains(digest.as_str()))
