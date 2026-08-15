@@ -1457,22 +1457,20 @@ mod tests {
     }
 
     #[test]
-    fn vcf_imputation_workers_preserve_glimpse_and_refuse_incompatible_minimac() {
+    fn vcf_imputation_workers_preserve_glimpse_and_derived_minimac_panel() {
         let root = repo_root();
         let _cwd_lock = acquire_cwd_lock();
         let _lock = benchmark_readiness_test_lock(&root);
         for stage_id in ["vcf.impute", "vcf.imputation_metrics"] {
-            let proof = local_vcf_stage_result_manifest_path(&root, stage_id, "glimpse")
-                .expect("resolve retained GLIMPSE proof")
-                .expect("imputation worker must own GLIMPSE selection");
-            let manifest = load_validated_stage_result_manifest_path(&root.join(proof))
-                .expect("load retained GLIMPSE stage result");
-            assert_eq!(manifest.stage_id, stage_id);
-            assert_eq!(manifest.tool.id, "glimpse");
-
-            let error = local_vcf_stage_result_manifest_path(&root, stage_id, "minimac4")
-                .expect_err("incompatible Minimac4 panel contract must fail during planning");
-            assert!(error.to_string().contains("not compatible with tool minimac4"));
+            for tool_id in ["glimpse", "minimac4"] {
+                let proof = local_vcf_stage_result_manifest_path(&root, stage_id, tool_id)
+                    .expect("resolve retained imputation proof")
+                    .expect("imputation worker must own compatible retained backend");
+                let manifest = load_validated_stage_result_manifest_path(&root.join(proof))
+                    .expect("load retained imputation stage result");
+                assert_eq!(manifest.stage_id, stage_id);
+                assert_eq!(manifest.tool.id, tool_id);
+            }
         }
     }
 

@@ -379,14 +379,16 @@ mod tests {
     }
 
     #[test]
-    fn governed_imputation_contract_refuses_incompatible_panel_backend() {
-        let error = resolve_governed_vcf_panel_workflow_smoke_contract(
+    fn governed_imputation_contract_accepts_derived_minimac_panel() {
+        let contract = resolve_governed_vcf_panel_workflow_smoke_contract(
             "vcf.impute",
             "minimac4",
             "imputed_vcf",
         )
-        .expect_err("Minimac4 must be refused for a panel without M3VCF support");
-        assert!(error.to_string().contains("not compatible with tool minimac4"));
+        .expect("Minimac4 must accept the governed derived MSAV panel");
+        assert_eq!(contract.tool_id, "minimac4");
+        assert_eq!(contract.panel_id, "hsapiens_grch38_1kg_3202_chr22");
+        assert_eq!(contract.map_id, "hsapiens_grch38_glimpse_chr22");
     }
 
     #[test]
