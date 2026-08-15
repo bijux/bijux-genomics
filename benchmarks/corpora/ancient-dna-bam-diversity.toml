@@ -40,6 +40,18 @@ source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJEB8448"
 access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
 data_types = ["bam"]
 planned_sample_count = 10
+selected_accessions = [
+  "ERR15108349",
+  "ERR15886307",
+  "ERR15886310",
+  "ERR4210492",
+  "ERR4210542",
+  "ERR769585",
+  "ERR769590",
+  "ERR769591",
+  "ERR769594",
+  "ERR769610",
+]
 selection_scope = "ERR769610, ERR769594, ERR769585, ERR769590, ERR769591, ERR4210542, ERR4210492, ERR15108349, ERR15886307, and ERR15886310, materialized under one declared alignment protocol."
 truth_basis = "Study publications and archive metadata establish ancient provenance; independent mapDamage, endogenous-content, contamination, and library-context evidence must be admitted separately."
 known_limitations = ["Cross-study library preparation and capture differences require stratified analysis and prevent naive pooling."]

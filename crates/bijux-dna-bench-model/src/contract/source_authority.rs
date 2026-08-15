@@ -33,6 +33,7 @@ pub fn validate_benchmark_data_source_spec(
 
     let declared_types = spec.data_types.iter().map(String::as_str).collect::<BTreeSet<_>>();
     let mut collection_ids = BTreeSet::new();
+    let mut explicit_selected_accessions = BTreeSet::new();
     let mut previous_id = None;
     let mut planned_samples = 0_u64;
     for collection in &spec.collections {
@@ -65,6 +66,23 @@ pub fn validate_benchmark_data_source_spec(
         }
         if collection.planned_sample_count == Some(0) {
             return Err(invalid("source collection planned sample count is zero"));
+        }
+        if !collection.selected_accessions.is_empty() {
+            validate_ordered_values(&collection.selected_accessions, "selected source accession")?;
+            let explicit_count = u64::try_from(collection.selected_accessions.len())
+                .map_err(|_| invalid("selected source accession count overflows"))?;
+            if collection.planned_sample_count != Some(explicit_count) {
+                return Err(invalid(
+                    "selected source accessions differ from the planned sample count",
+                ));
+            }
+            if collection
+                .selected_accessions
+                .iter()
+                .any(|accession| !explicit_selected_accessions.insert(accession.as_str()))
+            {
+                return Err(invalid("selected source accession is declared more than once"));
+            }
         }
         validate_nonempty_list(&collection.known_limitations, "source collection limitation")?;
         if let Some(collection_samples) = collection.planned_sample_count {

@@ -9,6 +9,7 @@ mod bam_alignment;
 mod bam_campaign;
 mod bam_coverage;
 mod bam_damage;
+mod bam_diversity_catalog;
 mod bam_duplication_metrics;
 mod bam_endogenous_content;
 mod bam_genotyping;
@@ -100,6 +101,9 @@ pub use bam_coverage::{
 pub use bam_damage::{
     prepare_bam_damage_material_from_evidence, publish_bam_damage_stage_report,
     render_bam_damage_markdown, BamDamageStageReportPublication,
+};
+pub use bam_diversity_catalog::{
+    build_ancient_dna_bam_diversity_catalog, BamDiversityCatalogRequest,
 };
 pub use bam_duplication_metrics::{
     prepare_bam_duplication_metrics_material, prepare_bam_duplication_metrics_material_from_corpus,
