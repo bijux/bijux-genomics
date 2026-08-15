@@ -126,6 +126,22 @@ pub fn archive_frozen_repository(
     Ok(receipt)
 }
 
+/// Create and verify a self-contained archive, then retire its frozen checkout in one operation.
+///
+/// The archive receipt is durable before retirement starts. Retirement validates that receipt
+/// again and restores the checkout if removal fails, so callers cannot accidentally omit the
+/// storage-reclaiming half of the lifecycle.
+///
+/// # Errors
+/// Returns an error when archive publication, verification, or reversible retirement fails.
+pub fn archive_and_retire_frozen_repository(
+    request: &RepositoryFreezeArchiveRequest,
+) -> Result<RepositoryFreezeArchiveReceipt> {
+    let receipt = archive_frozen_repository(request)?;
+    retire_frozen_repository(request, &receipt)?;
+    Ok(receipt)
+}
+
 fn archive_source_repository(request: &RepositoryFreezeArchiveRequest) -> Result<PathBuf> {
     let source = if request.snapshot.is_dir() {
         &request.snapshot

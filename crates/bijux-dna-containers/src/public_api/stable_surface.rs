@@ -158,8 +158,8 @@ pub use crate::execution_contract::{
 };
 pub use crate::resolve::*;
 pub use crate::site_policy::{
-    archive_frozen_repository, container_governance_schema, freeze_repository,
-    load_container_governance, repository_freeze_archive_receipt_schema,
+    archive_and_retire_frozen_repository, archive_frozen_repository, container_governance_schema,
+    freeze_repository, load_container_governance, repository_freeze_archive_receipt_schema,
     restore_frozen_repository_archive, retire_frozen_repository, tracked_repository_files_under,
     validate_container_governance, validate_container_governance_host, verify_frozen_repository,
     verify_frozen_repository_archive, write_container_governance_schema,
