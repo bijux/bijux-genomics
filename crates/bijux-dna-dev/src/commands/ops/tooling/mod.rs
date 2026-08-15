@@ -1,11 +1,11 @@
 use super::examples::examples_run;
 use super::smoke::smoke_run;
 use super::{
-    anyhow, artifact_env, artifact_env_with_common_test_env, artifact_root_path,
-    assert_no_excess_float_precision, check_schema_doc, ci_test_env, collect_warning_strings_json,
-    compare_json_key_drift, config_snapshot_inputs_changed, config_tree_snapshot_text,
-    ensure_exists, ensure_help_only, env_flag, env_or_default, failure_lines,
-    find_first_named_file, fs, generate_compatibility_matrix,
+    admit_controlled_file, anyhow, artifact_env, artifact_env_with_common_test_env,
+    artifact_root_path, assert_no_excess_float_precision, check_schema_doc, ci_test_env,
+    collect_warning_strings_json, compare_json_key_drift, config_snapshot_inputs_changed,
+    config_tree_snapshot_text, ensure_exists, ensure_help_only, env_flag, env_or_default,
+    failure_lines, find_first_named_file, fs, generate_compatibility_matrix,
     generate_compatibility_reference_docs, generate_docs_graph, generate_domain_coverage_doc,
     generate_repo_root_map, generate_tool_index, id_catalog, json, json_u64,
     materialize_controlled_file, merge_outcomes, normalize_benchmark_html, path_from_arg,

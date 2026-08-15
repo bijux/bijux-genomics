@@ -1,12 +1,20 @@
 use super::{
-    artifact_root_path, assert_no_excess_float_precision, ensure_help_only, examples_run,
-    find_first_named_file, id_catalog, json, materialize_controlled_file, normalize_benchmark_html,
-    path_from_arg, read_json_value, read_utf8, relative_diff, run_program_with_env, sha256_hex,
-    sha256_hex_bytes, stable_now_utc_compact, stable_now_utc_string, success_line, toml_string,
-    toml_value_string, tooling_simulate_coverage_regime, value_string, write_json_pretty,
-    write_utf8, BTreeMap, Context, OpsCommandOutcome, PathBuf, Regex, Result, TomlValue, Value,
-    WalkDir, Workspace,
+    admit_controlled_file, artifact_root_path, assert_no_excess_float_precision, ensure_help_only,
+    examples_run, find_first_named_file, id_catalog, json, materialize_controlled_file,
+    normalize_benchmark_html, path_from_arg, read_json_value, read_utf8, relative_diff,
+    run_program_with_env, sha256_hex, sha256_hex_bytes, stable_now_utc_compact,
+    stable_now_utc_string, success_line, toml_string, toml_value_string,
+    tooling_simulate_coverage_regime, value_string, write_json_pretty, write_utf8, BTreeMap,
+    Context, OpsCommandOutcome, PathBuf, Regex, Result, TomlValue, Value, WalkDir, Workspace,
 };
+use bijux_dna_db_ref::{
+    plan_panel_file_materialization, CatalogFileMaterializationArea, PanelCatalogEntry,
+};
+
+#[derive(serde::Deserialize)]
+struct PanelCatalogDocument {
+    panel: Vec<PanelCatalogEntry>,
+}
 
 pub(in super::super) fn tooling_acquire_reference(
     workspace: &Workspace,
@@ -215,12 +223,13 @@ pub(in super::super) fn tooling_acquire_panels(
     let mut verbose = false;
     let mut panel_filter = String::new();
     let mut cache_root = workspace.path("artifacts/vcf/reference_store/panels");
+    let mut admission_root = None;
     let mut index = 0usize;
     while index < args.len() {
         match args[index].as_str() {
             "--help" | "-h" => {
                 return success_line(
-                    "Usage: cargo run -p bijux-dna-dev -- tooling run acquire-panels -- [--download] [--panel <panel-id>] [--cache-root <dir>] [--verbose]",
+                    "Usage: cargo run -p bijux-dna-dev -- tooling run acquire-panels -- [--download] [--panel <panel-id>] [--cache-root <dir>] [--admission-root <dir>] [--verbose]",
                 )
             }
             "--download" => {
@@ -242,6 +251,14 @@ pub(in super::super) fn tooling_acquire_panels(
                 );
                 index += 2;
             }
+            "--admission-root" => {
+                admission_root = Some(path_from_arg(
+                    workspace,
+                    args.get(index + 1)
+                        .context("missing value for --admission-root")?,
+                ));
+                index += 2;
+            }
             "--verbose" => {
                 verbose = true;
                 index += 1;
@@ -250,10 +267,9 @@ pub(in super::super) fn tooling_acquire_panels(
         }
     }
 
-    let cfg = toml::from_str::<TomlValue>(&read_utf8(
+    let cfg = toml::from_str::<PanelCatalogDocument>(&read_utf8(
         &workspace.path("configs/vcf/panels/panels.toml"),
     )?)?;
-    let panels = cfg.get("panel").and_then(TomlValue::as_array).cloned().unwrap_or_default();
     let acquire_log_root = workspace.path("artifacts/containers/smoke/panel-acquire");
     bijux_dna_infra::ensure_dir(&acquire_log_root)
         .with_context(|| format!("create {}", acquire_log_root.display()))?;
@@ -266,17 +282,16 @@ pub(in super::super) fn tooling_acquire_panels(
     let mut lock_rows = Vec::new();
     let mut log_rows = Vec::new();
 
-    for panel in panels {
-        let panel_id = toml_string(panel.get("id"))?;
+    for panel in cfg.panel {
+        let panel_id = panel.id;
         if !panel_filter.is_empty() && panel_filter != panel_id {
             continue;
         }
-        let species = toml_string(panel.get("species_id"))?;
-        let build = toml_string(panel.get("build_id"))?;
-        let version = toml_string(panel.get("version"))?;
-        let license = toml_string(panel.get("license"))?;
-        let citation = toml_string(panel.get("citation"))?;
-        let files = panel.get("files").and_then(TomlValue::as_array).cloned().unwrap_or_default();
+        let species = panel.species_id;
+        let build = panel.build_id;
+        let version = panel.version;
+        let license = panel.license;
+        let citation = panel.citation.unwrap_or_default();
         let panel_root = cache_root.join(&species).join(&build).join(&panel_id);
         let raw_dir = panel_root.join("raw");
         let normalized_dir = panel_root.join("normalized");
@@ -288,39 +303,60 @@ pub(in super::super) fn tooling_acquire_panels(
         bijux_dna_infra::ensure_dir(&derived_dir)
             .with_context(|| format!("create {}", derived_dir.display()))?;
         let mut manifest_files = Vec::new();
-        for file in files {
-            let name = toml_string(file.get("name"))?;
-            let rel_path = toml_string(file.get("path"))?;
-            let url = toml_string(file.get("url"))?;
-            let expected = toml_string(file.get("checksum_sha256"))?;
-            let expected_size_bytes = required_positive_u64(&file, "size_bytes")?;
-            let source_checksum_algorithm = toml_string(file.get("source_checksum_algorithm"))?;
-            let source_checksum = toml_string(file.get("source_checksum"))?;
-            let source_authority_url = toml_string(file.get("source_authority_url"))?;
-            let format_name = toml_string(file.get("format"))?;
-            let dest = raw_dir.join(&rel_path);
-            let materialized = materialize_controlled_file(
-                &dest,
-                &url,
-                &expected,
-                Some(expected_size_bytes),
-                download,
-                verbose,
-                &format!("{panel_id}:{name}"),
-                &mut stdout,
-            )?;
+        let mut derived_file_count = 0usize;
+        for file in panel.files {
+            let plan = plan_panel_file_materialization(&file)?;
+            let destination_root = match plan.area {
+                CatalogFileMaterializationArea::Raw => &raw_dir,
+                CatalogFileMaterializationArea::Derived => {
+                    derived_file_count += 1;
+                    &derived_dir
+                }
+            };
+            let dest = destination_root.join(&plan.relative_path);
+            let admission_source =
+                admission_root.as_ref().map(|root| root.join(&plan.relative_path));
+            let materialized = if let Some(source) =
+                admission_source.as_ref().filter(|path| path.is_file())
+            {
+                admit_controlled_file(
+                    source,
+                    &dest,
+                    &file.checksum_sha256,
+                    file.size_bytes,
+                    &format!("{panel_id}:{}", file.name),
+                )?
+            } else if plan.area == CatalogFileMaterializationArea::Raw {
+                materialize_controlled_file(
+                    &dest,
+                    &file.url,
+                    &file.checksum_sha256,
+                    Some(file.size_bytes),
+                    download,
+                    verbose,
+                    &format!("{panel_id}:{}", file.name),
+                    &mut stdout,
+                )?
+            } else {
+                return Err(anyhow::anyhow!(
+                    "derived panel artifact `{}` is not admitted; provide checksum-verified bytes with --admission-root",
+                    file.name
+                ));
+            };
             manifest_files.push(json!({
-                "name": name,
-                "path": rel_path,
+                "name": file.name,
+                "path": file.path,
                 "materialized_path": dest.strip_prefix(&cache_root).unwrap_or(&dest).display().to_string(),
-                "url": url,
-                "checksum_sha256": expected,
-                "size_bytes": expected_size_bytes,
-                "source_checksum_algorithm": source_checksum_algorithm,
-                "source_checksum": source_checksum,
-                "source_authority_url": source_authority_url,
+                "materialization_area": plan.area.as_str(),
+                "admission_source": admission_source.filter(|path| path.is_file()).map(|path| path.display().to_string()),
+                "url": file.url,
+                "checksum_sha256": file.checksum_sha256,
+                "size_bytes": file.size_bytes,
+                "source_checksum_algorithm": file.source_checksum_algorithm,
+                "source_checksum": file.source_checksum,
+                "source_authority_url": file.source_authority_url,
                 "observed_sha256": materialized.observed_sha256,
-                "format": format_name,
+                "format": file.format,
                 "action": materialized.action,
             }));
         }
@@ -333,7 +369,7 @@ pub(in super::super) fn tooling_acquire_panels(
             "license": license,
             "citation": citation,
             "files": manifest_files,
-            "derived_outputs_status": "pending_tool_execution",
+            "derived_outputs_status": if derived_file_count == 0 { "not_declared" } else { "admitted" },
             "storage_layout": {
                 "raw": raw_dir.strip_prefix(&cache_root).unwrap_or(&raw_dir).display().to_string(),
                 "normalized": normalized_dir.strip_prefix(&cache_root).unwrap_or(&normalized_dir).display().to_string(),
@@ -345,6 +381,7 @@ pub(in super::super) fn tooling_acquire_panels(
             "species_id": species,
             "build_id": build,
             "download": download,
+            "admission_root": admission_root.as_ref().map(|path| path.display().to_string()),
             "file_count": file_count,
         }));
     }

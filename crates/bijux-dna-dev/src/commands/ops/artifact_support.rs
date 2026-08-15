@@ -56,6 +56,62 @@ pub(super) fn materialize_controlled_file(
     Ok(MaterializedFile { action: "download".to_string(), observed_sha256: observed })
 }
 
+pub(super) fn admit_controlled_file(
+    source: &Path,
+    path: &Path,
+    expected_sha256: &str,
+    expected_size_bytes: u64,
+    label: &str,
+) -> Result<MaterializedFile> {
+    if path.exists() {
+        let observed_size =
+            std::fs::metadata(path).with_context(|| format!("inspect existing {label}"))?.len();
+        if observed_size != expected_size_bytes {
+            return Err(anyhow!(
+                "refusing to replace size-mismatched {label}: expected {expected_size_bytes} bytes, got {observed_size}"
+            ));
+        }
+        let observed = sha256_hex(path)?;
+        if observed != expected_sha256 {
+            return Err(anyhow!(
+                "refusing to replace checksum-mismatched {label}: expected {expected_sha256}, got {observed}"
+            ));
+        }
+        return Ok(MaterializedFile { action: "reuse".to_string(), observed_sha256: observed });
+    }
+    if !source.is_file() {
+        return Err(anyhow!("{label} admission source is not a file: {}", source.display()));
+    }
+    let source_size = std::fs::metadata(source)
+        .with_context(|| format!("inspect {label} admission source"))?
+        .len();
+    if source_size != expected_size_bytes {
+        return Err(anyhow!(
+            "refusing size-mismatched {label} admission: expected {expected_size_bytes} bytes, got {source_size}"
+        ));
+    }
+    let source_sha256 = sha256_hex(source)?;
+    if source_sha256 != expected_sha256 {
+        return Err(anyhow!(
+            "refusing checksum-mismatched {label} admission: expected {expected_sha256}, got {source_sha256}"
+        ));
+    }
+    let mut input = std::fs::File::open(source)
+        .with_context(|| format!("open {label} admission source {}", source.display()))?;
+    bijux_dna_infra::atomic_create_with(path, |output| {
+        std::io::copy(&mut input, output)?;
+        Ok(())
+    })
+    .with_context(|| format!("admit {label} to {}", path.display()))?;
+    let observed = sha256_hex(path)?;
+    if observed != expected_sha256 {
+        return Err(anyhow!(
+            "admitted {label} checksum changed during copy: expected {expected_sha256}, got {observed}"
+        ));
+    }
+    Ok(MaterializedFile { action: "admit".to_string(), observed_sha256: observed })
+}
+
 fn download_verified_file(
     path: &Path,
     url: &str,
@@ -214,7 +270,7 @@ pub(super) fn resolve_workspace_path(workspace: &Workspace, raw: &str) -> PathBu
 
 #[cfg(test)]
 mod tests {
-    use super::{materialize_controlled_file, select_compiler_wrapper};
+    use super::{admit_controlled_file, materialize_controlled_file, select_compiler_wrapper};
 
     #[test]
     fn explicit_empty_compiler_wrapper_disables_discovered_cache() {
@@ -284,6 +340,27 @@ mod tests {
 
         assert!(error.to_string().contains("refusing to replace"));
         assert_eq!(std::fs::read(path)?, b"existing evidence");
+        Ok(())
+    }
+
+    #[test]
+    fn controlled_file_admission_copies_only_checksum_verified_bytes() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let source = root.path().join("panel.msav.source");
+        let destination = root.path().join("derived/panel.msav");
+        std::fs::write(&source, b"checksum-bound derived panel")?;
+        let checksum = super::sha256_hex(&source)?;
+
+        let admitted = admit_controlled_file(
+            &source,
+            &destination,
+            &checksum,
+            std::fs::metadata(&source)?.len(),
+            "panel_msav",
+        )?;
+
+        assert_eq!(admitted.action, "admit");
+        assert_eq!(std::fs::read(destination)?, b"checksum-bound derived panel");
         Ok(())
     }
 }

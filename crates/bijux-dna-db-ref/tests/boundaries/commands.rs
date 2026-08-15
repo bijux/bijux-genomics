@@ -26,6 +26,7 @@ fn commands_doc_lists_managed_operations() {
         "resolve-map",
         "resolve-map-lock",
         "validate-imputation-tool-compatibility",
+        "plan-panel-file-materialization",
         "ref-service",
     ];
 
