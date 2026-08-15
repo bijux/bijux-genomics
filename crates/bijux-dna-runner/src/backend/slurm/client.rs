@@ -143,7 +143,7 @@ pub fn observe_slurm_job(
             "--jobs".to_string(),
             handle.job_id.clone(),
             "--format".to_string(),
-            "JobIDRaw,State,ExitCode,ElapsedRaw,TotalCPU,MaxRSS,NodeList,Reason".to_string(),
+            "JobID,State,ExitCode,ElapsedRaw,TotalCPU,MaxRSS,NodeList,Reason".to_string(),
         ],
     )?;
     let accounting = parse_accounting(&accounting_output, &handle.job_id, handle.array.as_ref())?;
