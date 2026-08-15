@@ -48,7 +48,7 @@ fn science_source_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/evidence")),
-        entries(["fastq_read_lengths.rs", "mod.rs"]),
+        entries(["fastq_read_lengths.rs", "genotypes.rs", "mod.rs"]),
         "science evidence derivation must stay isolated from pure domain types"
     );
     assert_eq!(

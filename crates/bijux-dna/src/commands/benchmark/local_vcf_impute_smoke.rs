@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_science::evidence::genotypes_equivalent_unphased;
 use bijux_dna_stages_vcf::pipeline::{
     assert_bgzip_tabix_artifacts, run_impute_stage, ImputationAcceptMode, ImputeBackend,
     ImputeStageParams,
@@ -620,28 +621,6 @@ fn format_index(fields: &[&str], name: &str) -> Option<usize> {
     fields.get(8)?.split(':').position(|field| field == name)
 }
 
-fn genotypes_equivalent_unphased(expected: &str, observed: &str) -> bool {
-    if expected == observed {
-        return true;
-    }
-    let Some(expected_alleles) = normalized_unphased_alleles(expected) else {
-        return false;
-    };
-    let Some(observed_alleles) = normalized_unphased_alleles(observed) else {
-        return false;
-    };
-    expected_alleles == observed_alleles
-}
-
-fn normalized_unphased_alleles(genotype: &str) -> Option<Vec<&str>> {
-    let mut alleles = genotype.split(['/', '|']).collect::<Vec<_>>();
-    if alleles.len() < 2 || alleles.iter().any(|allele| allele.is_empty() || *allele == ".") {
-        return None;
-    }
-    alleles.sort_unstable();
-    Some(alleles)
-}
-
 fn read_json(path: &Path) -> Result<serde_json::Value> {
     let raw = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))
@@ -663,7 +642,8 @@ fn timestamp_marker() -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        summarize_imputed_output, write_governed_impute_input_vcf, write_governed_impute_truth_vcf,
+        genotypes_equivalent_unphased, summarize_imputed_output, write_governed_impute_input_vcf,
+        write_governed_impute_truth_vcf,
     };
     use bijux_dna_stages_vcf::pipeline::ImputeBackend;
 

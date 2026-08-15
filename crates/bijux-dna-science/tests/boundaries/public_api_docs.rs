@@ -41,6 +41,7 @@ fn public_api_doc_matches_science_root_surface() {
         "compile::compile_loaded",
         "decision::evaluate_benchmark_gate_policy",
         "decision::validate_benchmark_gate_policy",
+        "evidence::genotypes_equivalent_unphased",
         "release::cut_release",
     ] {
         assert!(
