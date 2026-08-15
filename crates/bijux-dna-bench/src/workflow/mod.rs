@@ -97,7 +97,10 @@ pub use bam_coverage::{
     publish_bam_coverage_stage_report, render_bam_coverage_markdown, BamCoverageMaterial,
     BamCoverageStageReportPublication,
 };
-pub use bam_damage::prepare_bam_damage_material_from_evidence;
+pub use bam_damage::{
+    prepare_bam_damage_material_from_evidence, publish_bam_damage_stage_report,
+    render_bam_damage_markdown, BamDamageStageReportPublication,
+};
 pub use bam_duplication_metrics::{
     prepare_bam_duplication_metrics_material, prepare_bam_duplication_metrics_material_from_corpus,
     publish_bam_duplication_metrics_stage_report, render_bam_duplication_metrics_markdown,

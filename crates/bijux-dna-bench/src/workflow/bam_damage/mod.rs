@@ -2,6 +2,7 @@
 //! Executable material for the governed BAM damage qualification campaign.
 
 mod commands;
+mod report;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -30,6 +31,11 @@ const REFERENCE_ID: &str = "equcab3-gcf-002863925.1";
 const SAMPLE_ID: &str = "ERR2112767";
 const BAM_MOUNT: &str = "/input/ERR2112767.sorted.bam";
 const REFERENCE_MOUNT: &str = "/input/EquCab3.0.fna";
+
+pub(crate) use report::publish_bam_damage_stage_report_with_presentation_authority;
+pub use report::{
+    publish_bam_damage_stage_report, render_bam_damage_markdown, BamDamageStageReportPublication,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BamDamageMaterial {
@@ -375,7 +381,11 @@ mod tests {
                 &corpus,
                 &reference,
             )?;
-            assert!(material.execution.measured_command[2].contains("bam_damage.awk"));
+            assert!(material
+                .execution
+                .measured_command
+                .last()
+                .is_some_and(|command| command.contains("bam_damage.awk")));
             assert_eq!(material.execution.required_files.len(), 21);
             assert_eq!(material.execution.acceptance.metrics.len(), 3);
             assert_eq!(material.execution.stage_plan_units.as_ref().map(Vec::len), Some(1));

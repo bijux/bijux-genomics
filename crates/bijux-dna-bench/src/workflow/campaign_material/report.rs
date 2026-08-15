@@ -13,6 +13,7 @@ pub use bijux_dna_bench_model::BenchmarkCampaignReportPublication;
 
 use crate::workflow::bam_alignment::publish_bam_alignment_stage_report_with_presentation_authority;
 use crate::workflow::bam_coverage::publish_bam_coverage_stage_report_with_presentation_authority;
+use crate::workflow::bam_damage::publish_bam_damage_stage_report_with_presentation_authority;
 use crate::workflow::bam_duplication_metrics::publish_bam_duplication_metrics_stage_report_with_presentation_authority;
 use crate::workflow::bam_endogenous_content::publish_bam_endogenous_content_stage_report_with_presentation_authority;
 use crate::workflow::bam_genotyping::publish_bam_genotyping_stage_report_with_presentation_authority;
@@ -54,6 +55,10 @@ const REPORT_ADAPTERS: &[BenchmarkCampaignReportAdapter] = &[
     BenchmarkCampaignReportAdapter {
         stage_id: "bam.coverage",
         publish: publish_bam_coverage_stage_report_with_presentation_authority,
+    },
+    BenchmarkCampaignReportAdapter {
+        stage_id: "bam.damage",
+        publish: publish_bam_damage_stage_report_with_presentation_authority,
     },
     BenchmarkCampaignReportAdapter {
         stage_id: "bam.endogenous_content",
