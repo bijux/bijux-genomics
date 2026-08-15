@@ -10,7 +10,7 @@
   },
   "source_contract_sha256": {
     "benchmarks/contracts/portfolio.toml": "6f2ae70a6fd5ea53127d3e9c429c7d0a92b3e85d372027514aff5f2280d8e5fb",
-    "benchmarks/contracts/stage-campaigns.toml": "a656a9f31901aebd49096c7592e1a1ad3c2b526e965304a7e149e373eaaab7eb",
+    "benchmarks/contracts/stage-campaigns.toml": "7178aa0d34ae9c235ee9b05ad7028ac5d451db6ad71e8d4e19a68e3c1e9071ad",
     "benchmarks/contracts/stage-interfaces.toml": "069fceff18959c1b1da4d45af8f292fcb81304bca15e71e7cef68576c72b48b3",
     "containers/contracts/catalog.toml": "7315eeaae2364f99df38ad66fa46d9a2b3e3dc64d8757619b714df94de9d780a"
   },

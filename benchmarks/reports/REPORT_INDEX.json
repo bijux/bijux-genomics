@@ -16,14 +16,14 @@
     {
       "product_id": "permanent-run-registry",
       "json_path": "benchmarks/contracts/run-registry.json",
-      "json_sha256": "e098eddc58a8e8c8c5e04da604abd9eec4929751fd8297713945ed7d7e43853b",
+      "json_sha256": "97820335776bd3fb8e7cef0e65b7e0fb973226445d3e4a484bf781493688b608",
       "markdown_path": "benchmarks/reports/run-registry.md",
-      "markdown_sha256": "aafe677ff6bbe4af8aa94451ce3a94b92d935a29544339d0b6a6e8f67434fe57"
+      "markdown_sha256": "256f9fc4261bce0b394a1d4bd588b77439a4ef1481557ce96fa51be892666b86"
     },
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "053b79584b35d641f5a3184bf6af8729b16ed320f3c7475f99df1c77fa037e4a",
+      "json_sha256": "104e842ab0073ba86b9d06f9fa783d1787415bb912e886c9e7927f928a949e34",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
       "markdown_sha256": "86beacbb4486d89389a535b20889a59f6b617aa1d7cc823e5abd5cf7ca90a87e"
     },
@@ -44,7 +44,7 @@
     {
       "product_id": "stage-tool-closure",
       "json_path": "benchmarks/reports/STAGE_TOOL_CLOSURE.json",
-      "json_sha256": "a75a3b9f8a15855000d4f7340a08ad81f749a63d076eaf31cf4ff4ebe183cbea",
+      "json_sha256": "3739f2382513b7c4688e1bbc7002d84770059a800d81f3321faee2ba5b640a2b",
       "markdown_path": "benchmarks/reports/STAGE_TOOL_CLOSURE.md",
       "markdown_sha256": "98440128195721bffdb5f56f1214c85ef992c855137f1bee1a26042052623eaf"
     },

@@ -7,8 +7,8 @@ use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
-    validate_defined_campaign_portfolio_alignment, validate_report_admission,
-    validate_stage_campaign_registry, validate_stage_coverage, validate_stage_report_alignment,
+    validate_defined_campaign_portfolio_alignment, validate_executable_stage_campaign_registry,
+    validate_report_admission, validate_stage_coverage, validate_stage_report_alignment,
 };
 use bijux_dna_bench_model::{
     benchmark_stage_coverage_schema, AdmittedBenchmarkStageReport, BenchmarkEvidenceTier,
@@ -69,7 +69,8 @@ fn derive_stage_coverage_with_current_sources(
     {
         bail!("benchmark coverage requires a full repository commit identity");
     }
-    validate_stage_campaign_registry(registry).context("validate stage campaign registry")?;
+    validate_executable_stage_campaign_registry(registry)
+        .context("validate stage campaign registry")?;
     let runnable_stages = runnable_stage_tools(catalog)?;
     let campaigns = registry
         .campaigns

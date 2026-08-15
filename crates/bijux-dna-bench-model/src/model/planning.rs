@@ -37,6 +37,47 @@ pub enum BenchmarkCachePolicy {
     Warm,
 }
 
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkCampaignMaterialDriver {
+    BamAlignment,
+    BamCoverage,
+    BamDamage,
+    BamDuplicationMetrics,
+    BamEndogenousContent,
+    BamGcBias,
+    BamGenotyping,
+    BamInsertSize,
+    BamMappingSummary,
+    FastqDetectAdapters,
+    FastqProfileReadLengths,
+    FastqProfileReads,
+    FastqValidateReads,
+}
+
+impl BenchmarkCampaignMaterialDriver {
+    #[must_use]
+    pub const fn stage_id(self) -> &'static str {
+        match self {
+            Self::BamAlignment => "bam.align",
+            Self::BamCoverage => "bam.coverage",
+            Self::BamDamage => "bam.damage",
+            Self::BamDuplicationMetrics => "bam.duplication_metrics",
+            Self::BamEndogenousContent => "bam.endogenous_content",
+            Self::BamGcBias => "bam.gc_bias",
+            Self::BamGenotyping => "bam.genotyping",
+            Self::BamInsertSize => "bam.insert_size",
+            Self::BamMappingSummary => "bam.mapping_summary",
+            Self::FastqDetectAdapters => "fastq.detect_adapters",
+            Self::FastqProfileReadLengths => "fastq.profile_read_lengths",
+            Self::FastqProfileReads => "fastq.profile_reads",
+            Self::FastqValidateReads => "fastq.validate_reads",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkComparisonMetricTolerance {
@@ -52,6 +93,8 @@ pub struct BenchmarkStageCampaignSpec {
     pub slug: String,
     pub domain: String,
     pub stage_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub material_driver: Option<BenchmarkCampaignMaterialDriver>,
     pub evidence_tier: BenchmarkEvidenceTier,
     pub profile_id: String,
     pub corpus_ids: Vec<String>,

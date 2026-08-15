@@ -133,6 +133,7 @@ including:
 - `BenchmarkObservation`
 - `BenchmarkSummary`
 - `BenchmarkStageCampaignRegistry`
+- `BenchmarkCampaignMaterialDriver`
 - `BenchmarkStageCampaignSpec`
 - `BenchmarkStageCoverage`
 - `BenchmarkStageCoverageSummary`

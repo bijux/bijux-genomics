@@ -20,6 +20,7 @@ Model contracts:
 - `BenchmarkObservation`
 - `BenchmarkSummary`
 - `BenchmarkStageCampaignRegistry`
+- `BenchmarkCampaignMaterialDriver`
 - `BenchmarkStageCampaignSpec`
 - `BenchmarkStageCoverage`
 - `BenchmarkStageCoverageSummary`

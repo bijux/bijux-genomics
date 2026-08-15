@@ -303,6 +303,29 @@ pub fn validate_stage_campaign_registry(
     Ok(())
 }
 
+/// Validate a current executable campaign registry.
+///
+/// Historical v1 case matrices may omit the material driver and remain replayable through
+/// `validate_stage_campaign_registry`. New planning authorities must use this stricter validator.
+///
+/// # Errors
+/// Returns an error when the base registry is invalid or any campaign omits its stage-bound
+/// material driver.
+pub fn validate_executable_stage_campaign_registry(
+    registry: &BenchmarkStageCampaignRegistry,
+) -> Result<(), BenchError> {
+    validate_stage_campaign_registry(registry)?;
+    if let Some(campaign) =
+        registry.campaigns.iter().find(|campaign| campaign.material_driver.is_none())
+    {
+        return Err(BenchError::InvalidPolicy(format!(
+            "executable stage campaign omits its material driver: {}",
+            campaign.stage_id
+        )));
+    }
+    Ok(())
+}
+
 /// # Errors
 /// Returns an error if the portfolio shape or invariants are invalid.
 pub fn validate_benchmark_portfolio(portfolio: &BenchmarkPortfolio) -> Result<(), BenchError> {
@@ -1082,6 +1105,12 @@ fn validate_stage_campaign_identity(
         return Err(BenchError::InvalidPolicy(format!(
             "stage campaign slug {:?} must derive from stage {:?}",
             campaign.slug, campaign.stage_id
+        )));
+    }
+    if campaign.material_driver.is_some_and(|driver| driver.stage_id() != campaign.stage_id) {
+        return Err(BenchError::InvalidPolicy(format!(
+            "stage campaign material driver {:?} does not implement {}",
+            campaign.material_driver, campaign.stage_id
         )));
     }
 

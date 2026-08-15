@@ -16,8 +16,8 @@ use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_bundle_manifest, validate_corpus_manifest,
     validate_data_fitness_portfolio_alignment, validate_data_fitness_rubric,
     validate_defined_campaign_portfolio_alignment, validate_defined_interface_campaign_alignment,
-    validate_interface_parameter_alignment, validate_pipeline_parameter_config,
-    validate_stage_campaign_registry, validate_stage_interface_catalog,
+    validate_executable_stage_campaign_registry, validate_interface_parameter_alignment,
+    validate_pipeline_parameter_config, validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
     BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataFitnessRubric,
@@ -134,7 +134,7 @@ pub fn load_stage_campaign_registry(path: &Path) -> Result<BenchmarkStageCampaig
         .with_context(|| format!("read stage campaign registry {}", path.display()))?;
     let registry: BenchmarkStageCampaignRegistry = toml::from_str(&raw)
         .with_context(|| format!("parse stage campaign registry {}", path.display()))?;
-    validate_stage_campaign_registry(&registry)
+    validate_executable_stage_campaign_registry(&registry)
         .with_context(|| format!("validate stage campaign registry {}", path.display()))?;
     Ok(registry)
 }

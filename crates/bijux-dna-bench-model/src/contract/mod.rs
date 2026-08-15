@@ -215,8 +215,9 @@ pub use output_declarations::{
 pub use planning::{
     validate_benchmark_local_hpc_job_graph, validate_benchmark_portfolio,
     validate_benchmark_run_registry, validate_defined_campaign_portfolio_alignment,
-    validate_portfolio_campaign_alignment, validate_scientific_readiness,
-    validate_stage_campaign_registry, validate_stage_coverage, validate_stage_universe,
+    validate_executable_stage_campaign_registry, validate_portfolio_campaign_alignment,
+    validate_scientific_readiness, validate_stage_campaign_registry, validate_stage_coverage,
+    validate_stage_universe,
 };
 pub use protocol::{
     benchmark_run_definition_sha256, validate_benchmark_case_definition,

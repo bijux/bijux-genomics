@@ -6,7 +6,7 @@ use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
-    validate_defined_interface_campaign_alignment, validate_stage_campaign_registry,
+    validate_defined_interface_campaign_alignment, validate_executable_stage_campaign_registry,
     validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
@@ -271,7 +271,8 @@ pub fn build_execution_spec(
     image: &CurrentApptainerImage,
     mut material: BenchmarkExecutionMaterial,
 ) -> Result<BenchmarkExecutionSpec> {
-    validate_stage_campaign_registry(registry).context("validate stage campaign registry")?;
+    validate_executable_stage_campaign_registry(registry)
+        .context("validate stage campaign registry")?;
     validate_stage_interface_catalog(interfaces).context("validate stage interface catalog")?;
     validate_defined_interface_campaign_alignment(interfaces, registry)
         .context("align stage interfaces with campaign declarations")?;

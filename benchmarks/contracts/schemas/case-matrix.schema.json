@@ -7,6 +7,24 @@
       ],
       "type": "string"
     },
+    "BenchmarkCampaignMaterialDriver": {
+      "enum": [
+        "bam_alignment",
+        "bam_coverage",
+        "bam_damage",
+        "bam_duplication_metrics",
+        "bam_endogenous_content",
+        "bam_gc_bias",
+        "bam_genotyping",
+        "bam_insert_size",
+        "bam_mapping_summary",
+        "fastq_detect_adapters",
+        "fastq_profile_read_lengths",
+        "fastq_profile_reads",
+        "fastq_validate_reads"
+      ],
+      "type": "string"
+    },
     "BenchmarkCaseDefinitionV1": {
       "additionalProperties": false,
       "properties": {
@@ -407,6 +425,16 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "material_driver": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkCampaignMaterialDriver"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "measured_repetitions": {
           "format": "uint32",

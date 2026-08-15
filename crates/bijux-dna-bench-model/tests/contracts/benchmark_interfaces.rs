@@ -6,13 +6,13 @@ use bijux_dna_bench_model::contract::{
     BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
 };
 use bijux_dna_bench_model::{
-    BenchmarkCachePolicy, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
-    BenchmarkExecutionScheduler, BenchmarkParameterValue, BenchmarkPipelineParameterConfig,
-    BenchmarkReportComparisonPresentation, BenchmarkReportDeterminismPresentation,
-    BenchmarkReportMetricFormat, BenchmarkReportPerformanceColumn, BenchmarkReportPresentation,
-    BenchmarkReportTitleClass, BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
-    BenchmarkStageDownstreamProbe, BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec,
-    BenchmarkStageParameterConfig,
+    BenchmarkCachePolicy, BenchmarkCampaignMaterialDriver, BenchmarkEvidenceTier,
+    BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkParameterValue,
+    BenchmarkPipelineParameterConfig, BenchmarkReportComparisonPresentation,
+    BenchmarkReportDeterminismPresentation, BenchmarkReportMetricFormat,
+    BenchmarkReportPerformanceColumn, BenchmarkReportPresentation, BenchmarkReportTitleClass,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageDownstreamProbe,
+    BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
 };
 use bijux_dna_domain_fastq::params::stats::READ_LENGTH_PROFILE_SCHEMA_VERSION;
 
@@ -102,6 +102,7 @@ fn campaign_registry() -> BenchmarkStageCampaignRegistry {
             slug: "fastq-profile-read-lengths".to_string(),
             domain: "fastq".to_string(),
             stage_id: "fastq.profile_read_lengths".to_string(),
+            material_driver: Some(BenchmarkCampaignMaterialDriver::FastqProfileReadLengths),
             evidence_tier: BenchmarkEvidenceTier::Comparative,
             profile_id: "fastq-observational-qc".to_string(),
             corpus_ids: vec!["human-short-read-diversity".to_string()],

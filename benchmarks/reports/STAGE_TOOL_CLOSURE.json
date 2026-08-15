@@ -3,11 +3,11 @@
   "sources": [
     {
       "path": "benchmarks/contracts/portfolio.toml",
-      "sha256": "1a52e85a0c3ef8b2b2bfac1b4334db6dd2fb3641383bb2ba9ec6f96bce01871d"
+      "sha256": "6f2ae70a6fd5ea53127d3e9c429c7d0a92b3e85d372027514aff5f2280d8e5fb"
     },
     {
       "path": "containers/contracts/catalog.toml",
-      "sha256": "7dc269495d5dcb614763e84b13751b1f7f5f7ff8f2c7d66c7a3485b63c8ac904"
+      "sha256": "7315eeaae2364f99df38ad66fa46d9a2b3e3dc64d8757619b714df94de9d780a"
     },
     {
       "path": "domain/bam/index.yaml",
@@ -19,7 +19,7 @@
     },
     {
       "path": "domain/vcf/index.yaml",
-      "sha256": "88110e27370f44913bc8daa5055f8e7dc01855e99ddf3e92847d19e102936d96"
+      "sha256": "2c21483902fbebb4da95dec518228f86b33183ed55c1a7a4195da0966a2fb3a8"
     }
   ],
   "summary": {

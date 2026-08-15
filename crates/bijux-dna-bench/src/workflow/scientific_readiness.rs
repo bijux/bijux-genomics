@@ -8,8 +8,8 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_defined_campaign_portfolio_alignment,
-    validate_report_admission, validate_scientific_readiness, validate_stage_campaign_registry,
-    validate_stage_interface_catalog,
+    validate_executable_stage_campaign_registry, validate_report_admission,
+    validate_scientific_readiness, validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
     benchmark_scientific_readiness_schema, AdmittedBenchmarkStageReport, BenchmarkCorpusClass,
@@ -66,7 +66,8 @@ fn derive_scientific_readiness_with_current_sources(
     current_report_sources: &BTreeSet<String>,
 ) -> Result<BenchmarkScientificReadinessReport> {
     validate_benchmark_portfolio(portfolio).context("validate benchmark portfolio")?;
-    validate_stage_campaign_registry(registry).context("validate benchmark campaigns")?;
+    validate_executable_stage_campaign_registry(registry)
+        .context("validate benchmark campaigns")?;
     validate_defined_campaign_portfolio_alignment(registry, portfolio)
         .context("align defined campaigns with portfolio")?;
     validate_stage_interface_catalog(interfaces).context("validate benchmark interfaces")?;

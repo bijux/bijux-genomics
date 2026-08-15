@@ -8,7 +8,7 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_benchmark_run_registry,
-    validate_defined_campaign_portfolio_alignment, validate_stage_campaign_registry,
+    validate_defined_campaign_portfolio_alignment, validate_executable_stage_campaign_registry,
     validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
@@ -48,7 +48,8 @@ pub fn derive_benchmark_run_registry(
     source_contract_sha256: BTreeMap<String, String>,
 ) -> Result<BenchmarkRunRegistry> {
     validate_benchmark_portfolio(portfolio).context("validate benchmark portfolio")?;
-    validate_stage_campaign_registry(campaigns).context("validate benchmark campaigns")?;
+    validate_executable_stage_campaign_registry(campaigns)
+        .context("validate benchmark campaigns")?;
     validate_defined_campaign_portfolio_alignment(campaigns, portfolio)
         .context("align campaigns with permanent reservations")?;
     validate_stage_interface_catalog(interfaces).context("validate benchmark interfaces")?;
