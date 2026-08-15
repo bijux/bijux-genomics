@@ -40,9 +40,28 @@ source_checksum = "33a3d517ba4d93fe40fd6db4b78329a7"
 source_authority_url = "https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/20220804_manifest.txt"
 required = true
 
+[[panel.files]]
+name = "panel_msav"
+path = "panel.msav"
+format = "msav"
+url = ""
+checksum_sha256 = "fae1a16a3bccc8fa75052e82bd55baa04cc625529801b408a56e3e2da6fd9f9c"
+size_bytes = 74889892
+source_checksum_algorithm = "sha256"
+source_checksum = "91aeaf0d1e805cf4223c5cbf12e22afc28db1709054c42bd668337219f8fddcc"
+source_authority_url = "https://ftp.1000genomes.ebi.ac.uk/vol1/ftp/data_collections/1000G_2504_high_coverage/working/20220422_3202_phased_SNV_INDEL_SV/1kGP_high_coverage_Illumina.chr22.filtered.SNV_INDEL_SV_phased_panel.vcf.gz"
+required = true
+
+[panel.files.derivation]
+source_file_name = "panel_vcf"
+tool_id = "minimac4"
+tool_version = "4.1.6"
+tool_artifact_sha256 = "e627d6955c1c103caa0bd2ccc2ecf674cafc4a974694fc38b91c0a6bf000b478"
+argv = ["minimac4", "--compress-reference", "panel.vcf.gz", "--output", "panel.msav", "--threads", "8"]
+
 [panel.compatibility]
-tool_tags = ["bcftools", "shapeit", "shapeit5", "eagle", "impute5", "glimpse", "beagle"]
+tool_tags = ["bcftools", "shapeit", "shapeit5", "eagle", "impute5", "glimpse", "beagle", "minimac4"]
 requires_phased = true
 supports_gl_input = true
-minimac_reference_format = ""
+minimac_reference_format = "msav"
 glimpse_reference_format = "bcf+sites"

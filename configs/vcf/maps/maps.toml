@@ -1,4 +1,4 @@
-# schema_version = 2
+# schema_version = 3
 # owner = bijux-dna-vcf
 # purpose = Species/build/chromosome-keyed production recombination map source catalog.
 # authority = bijux-dna-vcf
@@ -27,5 +27,5 @@ source_authority_url = "https://api.github.com/repos/odelaneau/GLIMPSE/git/trees
 required = true
 
 [map.compatibility]
-tool_tags = ["shapeit", "shapeit5", "impute5", "glimpse"]
+tool_tags = ["shapeit", "shapeit5", "impute5", "glimpse", "minimac4"]
 coordinate_system = "bp"
