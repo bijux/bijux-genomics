@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, ToolConstraints};
 use bijux_dna_core::ids::{ArtifactId, StageId, StepId, ToolId};
 use bijux_dna_core::prelude::ContainerImageRefV1;
@@ -1966,7 +1966,7 @@ fn canonical_duplication_metrics_bindings_close_run_2011_native_reports() -> Res
         .outputs
         .iter()
         .find(|output| output.name == "marked_bam")
-        .expect("picard marked BAM output");
+        .context("picard binding is missing its marked BAM output")?;
     assert_eq!(
         required_binding_output_paths(picard_bam, Path::new("marked.bam"))?,
         [PathBuf::from("marked.bam"), PathBuf::from("marked.bai")]
@@ -1975,7 +1975,7 @@ fn canonical_duplication_metrics_bindings_close_run_2011_native_reports() -> Res
         .outputs
         .iter()
         .find(|output| output.name == "marked_bam")
-        .expect("samtools marked BAM output");
+        .context("samtools binding is missing its marked BAM output")?;
     assert_eq!(
         required_binding_output_paths(samtools_bam, Path::new("marked.bam"))?,
         [PathBuf::from("marked.bam"), PathBuf::from("marked.bam.bai")]
