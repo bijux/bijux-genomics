@@ -62,8 +62,11 @@ fn dossier_stage_request(
     Ok(BenchmarkDossierStagePublicationRequest {
         repository_root: repo_root.to_path_buf(),
         stage_docs_root: publication_stage_docs_root(docs_root, &contract.stage_id, corpus_id),
+        corpus_id: corpus_id.to_string(),
         stage_id: contract.stage_id.clone(),
+        scenario_id: contract.scenario_id.clone(),
         sample_scope: contract.sample_scope.clone(),
+        tool_ids: contract.tools.clone(),
         remote_corpus_root,
         expected_remote_run_root: workspace_remote_results_root(workspace)?
             .join(run_relative("remote")?),
