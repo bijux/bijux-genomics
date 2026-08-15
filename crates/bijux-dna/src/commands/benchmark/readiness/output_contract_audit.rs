@@ -1146,7 +1146,12 @@ fn local_vcf_stage_result_manifest_path(
         .find(|row| row.stage_id == stage_id)
         .map(|row| row.tool_id)
         .ok_or_else(|| anyhow!("VCF stage matrix is missing `{stage_id}`"))?;
-    if tool_id != default_tool_id && !(stage_id == "vcf.phasing" && tool_id == "shapeit") {
+    let stage_worker_owns_tool_selection = stage_id == "vcf.qc";
+    let retained_non_default_worker = stage_id == "vcf.phasing" && tool_id == "shapeit";
+    if tool_id != default_tool_id
+        && !stage_worker_owns_tool_selection
+        && !retained_non_default_worker
+    {
         return Ok(None);
     }
     Ok(match stage_id {
@@ -1230,8 +1235,9 @@ mod tests {
     use std::path::{Path, PathBuf};
 
     use super::{
-        build_output_contract_audit_report, local_stage_proof_output_path,
-        local_vcf_stage_result_manifest_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
+        build_output_contract_audit_report, load_validated_stage_result_manifest_path,
+        local_stage_proof_output_path, local_vcf_stage_result_manifest_path,
+        DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
     };
     use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
@@ -1278,6 +1284,20 @@ mod tests {
             .expect("resolve non-default VCF tool proof");
 
         assert_eq!(proof, None);
+    }
+
+    #[test]
+    fn vcf_qc_stage_worker_proves_each_governed_tool_independently() {
+        let root = tempfile::tempdir().expect("tempdir");
+        for tool_id in ["bcftools", "plink", "plink2"] {
+            let proof = local_vcf_stage_result_manifest_path(root.path(), "vcf.qc", tool_id)
+                .expect("resolve VCF QC tool proof")
+                .expect("VCF QC worker must own every governed tool");
+            let manifest = load_validated_stage_result_manifest_path(&root.path().join(proof))
+                .expect("load VCF QC stage result");
+            assert_eq!(manifest.stage_id, "vcf.qc");
+            assert_eq!(manifest.tool.id, tool_id);
+        }
     }
 
     #[test]
