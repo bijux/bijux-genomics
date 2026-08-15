@@ -89,9 +89,15 @@ fn thin_cli_delegates_dossier_index_publication_to_benchmark_owner() {
         "pub fn build_benchmark_dossier_stage_entry",
         "pub fn publish_benchmark_dossier_index",
         "pub fn render_benchmark_dossier_index_markdown",
+        "bijux_dna_infra::ensure_dir",
+        "bijux_dna_infra::atomic_write_bytes",
     ] {
         assert!(owner.contains(service), "benchmark owner is missing {service}");
     }
+    assert!(
+        !owner.contains("fs::create_dir_all(&request.docs_root)"),
+        "benchmark publication must use the shared filesystem authority"
+    );
 }
 
 #[test]

@@ -108,7 +108,7 @@ pub fn publish_benchmark_dossier_index(
         stages,
     };
     validate_benchmark_dossier_index(&index).context("validate benchmark dossier index")?;
-    fs::create_dir_all(&request.docs_root)
+    bijux_dna_infra::ensure_dir(&request.docs_root)
         .with_context(|| format!("create {}", request.docs_root.display()))?;
     let json_path = request.docs_root.join(format!("{}-dossier-index.json", request.corpus_id));
     let markdown_path = request.docs_root.join(format!("{}-dossier-index.md", request.corpus_id));
