@@ -125,7 +125,9 @@ Managed benchmark artifacts are:
 - `after-inventory.json`
 - `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/attempt.json`
 - `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/transitions/<sequence>.json`
-- `data/evidence/benchmark-expectations/<catalog-sha256>/fastq-profile-read-lengths/manifest.json`
+- `data/evidence/benchmark-expectations/<catalog-sha256>/data-indexes/`
+  `<data-index-sha256>/derivations/<derivation-sha256>/`
+  `fastq-profile-read-lengths/manifest.json`
 - `data/catalog/snapshots/<repository-commit>/<portfolio-id>.json`
 
 `bijux-dna-bench` writes suite, summary, decision, and migration artifacts only
