@@ -719,6 +719,7 @@ fn adding_a_tool_and_stage_changes_only_registry_data() -> Result<()> {
     added_campaign.run_id = "run-2999".to_string();
     added_campaign.slug = "bam-synthetic-summary".to_string();
     added_campaign.stage_id = "bam.synthetic_summary".to_string();
+    added_campaign.material_driver = None;
     added_campaign.tool_ids = vec!["synthetic-summary".to_string()];
     added_campaign.threads = Some(2);
     added_campaign.threads_by_tool.clear();
