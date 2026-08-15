@@ -2,12 +2,16 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use bijux_dna_bench::{
-    normalize_benchmark_config, parse_benchmark_config, validate_benchmark_config_contract,
-    BenchmarkConfig, BenchmarkConfigValidationRequest, BenchmarkCorpusConfig,
-    BenchmarkCorpusPublicationConfig, BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig,
-    BenchmarkReferenceInputConfig, BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig,
-    BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout, BenchmarkWorkspaceLocal,
-    BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns, CorpusBenchmarkContract,
+    benchmark_corpus_spec_path_from_config, benchmark_publication_contract_from_config,
+    benchmark_publication_contracts_from_config, benchmark_publication_corpus_id,
+    benchmark_publication_corpus_key, benchmark_publication_exclusions_from_config,
+    benchmark_workspace_config_value, normalize_benchmark_config, parse_benchmark_config,
+    render_benchmark_config_section_json, validate_benchmark_config_contract, BenchmarkConfig,
+    BenchmarkConfigValidationRequest, BenchmarkCorpusConfig, BenchmarkCorpusPublicationConfig,
+    BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig, BenchmarkReferenceInputConfig,
+    BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig, BenchmarkWorkspaceConfig,
+    BenchmarkWorkspaceLayout, BenchmarkWorkspaceLocal, BenchmarkWorkspaceRemote,
+    BenchmarkWorkspaceStageRuns, CorpusBenchmarkContract,
 };
 
 fn write_file(path: &Path) {
@@ -149,6 +153,56 @@ results_root = "  /bench/results  "
         config.workspace.local.and_then(|row| row.results_root),
         Some("/bench/results".to_string())
     );
+}
+
+#[test]
+fn resolves_corpus_and_publication_queries_from_the_typed_contract() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let config = valid_config(temp.path());
+
+    assert_eq!(
+        benchmark_corpus_spec_path_from_config(temp.path(), &config, "corpus-01")
+            .expect("corpus path"),
+        temp.path().join("benchmarks/corpora/corpus-01.toml")
+    );
+    assert_eq!(benchmark_publication_corpus_key("corpus-01"), "corpus_01");
+    assert_eq!(benchmark_publication_corpus_id("corpus_01"), "corpus-01");
+    assert_eq!(
+        benchmark_publication_contracts_from_config(&config.publication, "corpus-01")
+            .expect("publication contracts")
+            .len(),
+        1
+    );
+    assert_eq!(
+        benchmark_publication_contract_from_config(
+            &config.publication,
+            "corpus-01",
+            "fastq.validate_reads"
+        )
+        .expect("publication contract")
+        .tools,
+        vec!["fastqvalidator".to_string()]
+    );
+    assert!(benchmark_publication_exclusions_from_config(&config.publication, "corpus-01")
+        .expect("publication exclusions")
+        .is_empty());
+}
+
+#[test]
+fn resolves_workspace_values_and_renders_configuration_sections() {
+    let temp = tempfile::tempdir().expect("tempdir");
+    let config = valid_config(temp.path());
+
+    assert_eq!(
+        benchmark_workspace_config_value(&config.workspace, "remote.ssh_host")
+            .expect("workspace value"),
+        "cluster"
+    );
+    assert!(benchmark_workspace_config_value(&config.workspace, "remote.unknown").is_err());
+    let rendered =
+        render_benchmark_config_section_json(&config, "corpora").expect("render corpora");
+    assert!(rendered.contains("corpus-01"));
+    assert!(render_benchmark_config_section_json(&config, "unknown").is_err());
 }
 
 #[test]

@@ -3,7 +3,10 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_bench_model::BenchmarkConfig;
+use bijux_dna_bench_model::{
+    BenchmarkConfig, BenchmarkPublicationConfig, BenchmarkWorkspaceConfig, CorpusBenchmarkContract,
+    CorpusBenchmarkExclusion,
+};
 
 /// Expand `${NAME}` placeholders in raw benchmark configuration text from the process environment.
 ///
@@ -106,6 +109,165 @@ pub fn normalize_benchmark_config(mut config: BenchmarkConfig) -> BenchmarkConfi
     config
 }
 
+/// Convert a corpus identifier to its TOML publication-table key.
+#[must_use]
+pub fn benchmark_publication_corpus_key(corpus_id: &str) -> String {
+    corpus_id.replace('-', "_")
+}
+
+/// Convert a TOML publication-table key to its corpus identifier.
+#[must_use]
+pub fn benchmark_publication_corpus_id(publication_key: &str) -> String {
+    publication_key.replace('_', "-")
+}
+
+/// Resolve one configured corpus specification path relative to the workspace root.
+///
+/// # Errors
+/// Returns an error when the corpus is undeclared or has no specification path.
+pub fn benchmark_corpus_spec_path_from_config(
+    cwd: &Path,
+    config: &BenchmarkConfig,
+    corpus_id: &str,
+) -> Result<PathBuf> {
+    config
+        .corpora
+        .get(corpus_id)
+        .and_then(|row| row.spec_path.as_deref())
+        .map(|path| absolutize(cwd, Path::new(path)))
+        .ok_or_else(|| anyhow!("benchmark config is missing corpora.{corpus_id}.spec_path"))
+}
+
+/// Select all publication contracts for one declared corpus.
+///
+/// # Errors
+/// Returns an error when the publication configuration has no entry for the corpus.
+pub fn benchmark_publication_contracts_from_config(
+    publication: &BenchmarkPublicationConfig,
+    corpus_id: &str,
+) -> Result<Vec<CorpusBenchmarkContract>> {
+    let key = benchmark_publication_corpus_key(corpus_id);
+    publication
+        .corpora
+        .get(&key)
+        .cloned()
+        .map(|entry| entry.contracts)
+        .ok_or_else(|| anyhow!("benchmark publication config is missing [{key}]"))
+}
+
+/// Select one stage publication contract for a declared corpus.
+///
+/// # Errors
+/// Returns an error when the corpus publication entry or requested stage contract is missing.
+pub fn benchmark_publication_contract_from_config(
+    publication: &BenchmarkPublicationConfig,
+    corpus_id: &str,
+    stage_id: &str,
+) -> Result<CorpusBenchmarkContract> {
+    benchmark_publication_contracts_from_config(publication, corpus_id)?
+        .into_iter()
+        .find(|row| row.stage_id == stage_id)
+        .ok_or_else(|| anyhow!("missing {corpus_id} publication contract for {stage_id}"))
+}
+
+/// Select all scientific exclusions for one declared corpus.
+///
+/// # Errors
+/// Returns an error when the publication configuration has no entry for the corpus.
+pub fn benchmark_publication_exclusions_from_config(
+    publication: &BenchmarkPublicationConfig,
+    corpus_id: &str,
+) -> Result<Vec<CorpusBenchmarkExclusion>> {
+    let key = benchmark_publication_corpus_key(corpus_id);
+    publication
+        .corpora
+        .get(&key)
+        .cloned()
+        .map(|entry| entry.exclusions)
+        .ok_or_else(|| anyhow!("benchmark publication config is missing [{key}]"))
+}
+
+/// Resolve one supported benchmark workspace configuration value.
+///
+/// # Errors
+/// Returns an error for an unsupported key or a supported key whose value is absent.
+pub fn benchmark_workspace_config_value(
+    workspace: &BenchmarkWorkspaceConfig,
+    key: &str,
+) -> Result<String> {
+    let value = match key {
+        "local.results_root" => workspace.local.as_ref().and_then(|row| row.results_root.clone()),
+        "local.cache_mirror_root" => {
+            workspace.local.as_ref().and_then(|row| row.cache_mirror_root.clone())
+        }
+        "local.extra_data_root" => {
+            workspace.local.as_ref().and_then(|row| row.extra_data_root.clone())
+        }
+        "local.reference_root" => {
+            workspace.local.as_ref().and_then(|row| row.reference_root.clone())
+        }
+        "remote.ssh_host" => workspace.remote.as_ref().and_then(|row| row.ssh_host.clone()),
+        "remote.repo_root" => workspace.remote.as_ref().and_then(|row| row.repo_root.clone()),
+        "remote.cache_root" => workspace.remote.as_ref().and_then(|row| row.cache_root.clone()),
+        "remote.corpus_root" => workspace.remote.as_ref().and_then(|row| row.corpus_root.clone()),
+        "remote.results_root" => workspace.remote.as_ref().and_then(|row| row.results_root.clone()),
+        "remote.extra_data_root" => {
+            workspace.remote.as_ref().and_then(|row| row.extra_data_root.clone())
+        }
+        "remote.containers_root" => {
+            workspace.remote.as_ref().and_then(|row| row.containers_root.clone())
+        }
+        "remote.reference_root" => {
+            workspace.remote.as_ref().and_then(|row| row.reference_root.clone())
+        }
+        "sync.defaults.pull_base" => workspace_sync_value(workspace, |row| row.pull_base.clone()),
+        "sync.defaults.pull_mode" => workspace_sync_value(workspace, |row| row.pull_mode.clone()),
+        "sync.defaults.include_profile" => {
+            workspace_sync_value(workspace, |row| row.include_profile.clone())
+        }
+        "sync.defaults.exclude_profile" => {
+            workspace_sync_value(workspace, |row| row.exclude_profile.clone())
+        }
+        "sync.defaults.clean_context" => {
+            workspace_sync_value(workspace, |row| row.clean_context.map(|value| value.to_string()))
+        }
+        "sync.defaults.allow_dirty" => {
+            workspace_sync_value(workspace, |row| row.allow_dirty.map(|value| value.to_string()))
+        }
+        "sync.defaults.include_containers_manifest" => workspace_sync_value(workspace, |row| {
+            row.include_containers_manifest.map(|value| value.to_string())
+        }),
+        "sync.defaults.data_manifest_glob" => {
+            workspace_sync_value(workspace, |row| row.data_manifest_glob.clone())
+        }
+        other => return Err(anyhow!("unsupported benchmark workspace key `{other}`")),
+    };
+    value.ok_or_else(|| anyhow!("missing benchmark workspace value for `{key}`"))
+}
+
+/// Render one supported benchmark configuration section as pretty JSON.
+///
+/// # Errors
+/// Returns an error for an unsupported section or failed serialization.
+pub fn render_benchmark_config_section_json(
+    config: &BenchmarkConfig,
+    section: &str,
+) -> Result<String> {
+    match section {
+        "full" => serde_json::to_string_pretty(config),
+        "workspace" => serde_json::to_string_pretty(&config.workspace),
+        "publication" => serde_json::to_string_pretty(&config.publication),
+        "corpora" => serde_json::to_string_pretty(&config.corpora),
+        "stage_inputs" => serde_json::to_string_pretty(&config.stage_inputs),
+        other => {
+            return Err(anyhow!(
+                "unsupported benchmark config section `{other}`; expected one of: full, workspace, publication, corpora, stage_inputs"
+            ));
+        }
+    }
+    .context("serialize benchmark configuration section")
+}
+
 /// Inputs required to validate one loaded benchmark configuration.
 pub struct BenchmarkConfigValidationRequest<'a> {
     pub cwd: &'a Path,
@@ -195,7 +357,7 @@ pub fn validate_benchmark_config_contract(
             &format!("corpora.{corpus_id}.spec_path"),
             corpus.spec_path.as_deref(),
         );
-        let publication_key = corpus_id.replace('-', "_");
+        let publication_key = benchmark_publication_corpus_key(corpus_id);
         if config
             .publication
             .corpora
@@ -208,7 +370,7 @@ pub fn validate_benchmark_config_contract(
         }
     }
     for publication_key in config.publication.corpora.keys() {
-        let corpus_id = publication_key.replace('_', "-");
+        let corpus_id = benchmark_publication_corpus_id(publication_key);
         if !config.corpora.contains_key(&corpus_id) {
             errors.push(format!(
                 "publication.{publication_key} does not match any declared corpus under [corpora]"
@@ -278,6 +440,13 @@ fn normalize_optional_string(value: &mut Option<String>) {
     if !trimmed.is_empty() {
         *value = Some(trimmed.to_string());
     }
+}
+
+fn workspace_sync_value(
+    workspace: &BenchmarkWorkspaceConfig,
+    project: impl FnOnce(&bijux_dna_bench_model::BenchmarkWorkspaceSyncDefaults) -> Option<String>,
+) -> Option<String> {
+    workspace.sync.as_ref().and_then(|row| row.defaults.as_ref()).and_then(project)
 }
 
 fn require_value(errors: &mut Vec<String>, key: &str, value: Option<&str>) {

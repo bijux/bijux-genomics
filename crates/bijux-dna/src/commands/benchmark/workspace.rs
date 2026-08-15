@@ -43,14 +43,6 @@ pub(crate) const BENCHMARK_CONFIG_ENV: &str = "BIJUX_BENCHMARK_CONFIG";
 pub(crate) const BENCHMARK_CONFIG_JSON_ENV: &str = "BIJUX_BENCHMARK_CONFIG_JSON";
 pub(crate) const DEFAULT_BENCHMARK_CONFIG: &str = "configs/bench/benchmark.toml";
 
-pub(crate) fn benchmark_publication_corpus_key(corpus_id: &str) -> String {
-    corpus_id.replace('-', "_")
-}
-
-pub(crate) fn benchmark_publication_corpus_id(publication_key: &str) -> String {
-    publication_key.replace('_', "-")
-}
-
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
@@ -58,14 +50,14 @@ mod tests {
     use super::layout_status::{summarize_root_pair, workspace_layout_corpus_dir_name};
     use super::{
         benchmark_config_path, benchmark_corpus_spec_path, benchmark_publication_config_path,
-        benchmark_publication_corpus_key, benchmark_runtime_corpus_dir_name,
-        benchmark_stage_run_relative_root, benchmark_workspace_config_path,
-        benchmark_workspace_value, expand_env_placeholders, load_benchmark_config,
-        load_benchmark_publication_config, load_benchmark_workspace_config,
+        benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root,
+        benchmark_workspace_config_path, benchmark_workspace_value, expand_env_placeholders,
+        load_benchmark_config, load_benchmark_publication_config, load_benchmark_workspace_config,
         load_optional_benchmark_workspace_config, normalize_workspace_layout_report,
         BenchmarkConfig, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
         BenchmarkWorkspaceLocal, BenchmarkWorkspaceStageRuns, BENCHMARK_CONFIG_ENV,
     };
+    use bijux_dna_api::v1::api::bench::benchmark_publication_corpus_key;
     use std::collections::BTreeMap;
     use std::ffi::{OsStr, OsString};
     use std::path::Path;
