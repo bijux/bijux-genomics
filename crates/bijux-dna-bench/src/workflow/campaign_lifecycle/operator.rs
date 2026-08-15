@@ -86,8 +86,9 @@ pub struct BenchmarkCycleAdmissionRequest {
 
 /// Plan every declared tool attempt for one permanent run and publish the immutable plan.
 ///
-/// Repeating the request accepts byte-identical output. A different request cannot replace an
-/// existing plan, so retries and changed protocols must receive new identities.
+/// Repeating the same semantic request retains the first immutable plan, including its original
+/// observation timestamp. A different request cannot replace an existing plan, so retries and
+/// changed protocols must receive new identities.
 ///
 /// # Errors
 /// Returns an error when source identity, campaign declarations, request identity, or the output
@@ -131,6 +132,9 @@ pub fn plan_checked_in_benchmark_campaign(
             &request.observed_at_utc,
         )?
     };
+    if let Some(existing) = retain_equivalent_plan(&request.output, &plan)? {
+        return Ok(existing);
+    }
     publish_plan(&request.output, &plan)?;
     Ok(plan)
 }
@@ -577,6 +581,47 @@ fn load_plan(path: &Path) -> Result<BenchmarkCampaignPlan> {
     Ok(plan)
 }
 
+fn retain_equivalent_plan(
+    output: &Path,
+    requested: &BenchmarkCampaignPlan,
+) -> Result<Option<BenchmarkCampaignPlan>> {
+    match fs::symlink_metadata(output) {
+        Ok(_) => {
+            let existing = load_plan(output)?;
+            let mut normalized = requested.clone();
+            if normalized.cycle.attempts.len() != existing.cycle.attempts.len() {
+                bail!("refusing to replace a different benchmark cycle plan: {}", output.display());
+            }
+            normalized.cycle.generated_at_utc.clone_from(&existing.cycle.generated_at_utc);
+            for (requested_attempt, existing_attempt) in
+                normalized.cycle.attempts.iter_mut().zip(&existing.cycle.attempts)
+            {
+                if requested_attempt.transitions.len() != existing_attempt.transitions.len() {
+                    bail!(
+                        "refusing to replace a different benchmark cycle plan: {}",
+                        output.display()
+                    );
+                }
+                for (requested_transition, existing_transition) in
+                    requested_attempt.transitions.iter_mut().zip(&existing_attempt.transitions)
+                {
+                    requested_transition
+                        .observed_at_utc
+                        .clone_from(&existing_transition.observed_at_utc);
+                }
+            }
+            if normalized != existing {
+                bail!("refusing to replace a different benchmark cycle plan: {}", output.display());
+            }
+            Ok(Some(existing))
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => Ok(None),
+        Err(error) => {
+            Err(error).with_context(|| format!("inspect benchmark cycle plan {}", output.display()))
+        }
+    }
+}
+
 fn publish_plan(output: &Path, plan: &bijux_dna_bench_model::BenchmarkCampaignPlan) -> Result<()> {
     let mut expected = serde_json::to_vec_pretty(plan).context("serialize benchmark cycle plan")?;
     expected.push(b'\n');
@@ -719,12 +764,47 @@ mod tests {
             output,
         };
         let first = plan_checked_in_benchmark_campaign(&request)?;
+        let first_bytes = fs::read(&request.output)?;
+        request.observed_at_utc = "2026-08-10T00:01:00Z".to_string();
         let second = plan_checked_in_benchmark_campaign(&request)?;
         assert_eq!(first, second);
+        assert_eq!(fs::read(&request.output)?, first_bytes);
+        assert_eq!(second.cycle.generated_at_utc, "2026-08-10T00:00:00Z");
         assert_eq!(first.cycle.attempts.len(), 3);
 
         request.attempt_id = "attempt-0002".to_string();
         assert!(plan_checked_in_benchmark_campaign(&request).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn checked_in_case_plan_retains_first_observation_across_cycles() -> Result<()> {
+        let repository = clean_repository()?;
+        let repository_commit =
+            bijux_dna_containers::api::clean_repository_head_commit(repository.path())?;
+        let matrix = case_matrix_for(repository.path(), &repository_commit)?;
+        let temporary = bijux_dna_infra::temp_dir("benchmark-cycle-case-plan")?;
+        let matrix_path = temporary.path().join("case-matrix.json");
+        fs::write(&matrix_path, serde_json::to_vec_pretty(&matrix)?)?;
+        let output = temporary.path().join("case-plan.json");
+        let mut request = BenchmarkCyclePlanRequest {
+            repository_root: repository.path().to_path_buf(),
+            run_id: "run-2042".to_string(),
+            case_matrix: Some(matrix_path),
+            campaign_id: "human-short-read-length-comparison".to_string(),
+            attempt_id: "attempt-001".to_string(),
+            observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
+            output,
+        };
+
+        let first = plan_checked_in_benchmark_campaign(&request)?;
+        let first_bytes = fs::read(&request.output)?;
+        request.observed_at_utc = "2026-08-10T00:05:00Z".to_string();
+        let repeated = plan_checked_in_benchmark_campaign(&request)?;
+
+        assert_eq!(repeated, first);
+        assert_eq!(fs::read(&request.output)?, first_bytes);
+        assert_eq!(repeated.cycle.generated_at_utc, "2026-08-10T00:00:00Z");
         Ok(())
     }
 
