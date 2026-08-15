@@ -65,7 +65,6 @@ fn population_proxy_invocation(
     tool: &str,
     input_vcf: &Path,
     output_prefix: &Path,
-    plink_within: &Path,
 ) -> Result<PopulationProxyInvocation> {
     let input = input_vcf.to_string_lossy().to_string();
     let output = output_prefix.to_string_lossy().to_string();
@@ -77,14 +76,9 @@ fn population_proxy_invocation(
                 input,
                 "--double-id".to_string(),
                 "--allow-extra-chr".to_string(),
-                "--within".to_string(),
-                plink_within.to_string_lossy().to_string(),
-                "--cluster".to_string(),
-                "--mds-plot".to_string(),
-                "10".to_string(),
-                "--make-bed".to_string(),
-                "--freq".to_string(),
                 "--missing".to_string(),
+                "--freq".to_string(),
+                "--make-bed".to_string(),
                 "--out".to_string(),
                 output,
             ],
@@ -104,24 +98,6 @@ fn population_proxy_invocation(
         }),
         other => bail!("vcf.admixture refusal: unsupported toolchain `{other}`"),
     }
-}
-
-fn write_plink_within(
-    path: &Path,
-    samples: &[String],
-    labels: &std::collections::BTreeMap<String, String>,
-) -> Result<()> {
-    let rows = samples
-        .iter()
-        .map(|sample| {
-            let label = labels.get(sample).ok_or_else(|| {
-                anyhow!("vcf.admixture refusal: missing label for sample `{sample}`")
-            })?;
-            Ok(format!("{sample}\t{sample}\t{label}"))
-        })
-        .collect::<Result<Vec<_>>>()?;
-    atomic_write_bytes(path, format!("{}\n", rows.join("\n")).as_bytes())?;
-    Ok(())
 }
 
 fn parse_plink2_eigenvec(path: &Path, components: usize) -> Option<String> {
@@ -671,9 +647,7 @@ pub fn run_admixture_stage(
             }
         }
         "plink" | "plink2" => {
-            let plink_within = out_dir.join("admixture_populations.clst");
-            write_plink_within(&plink_within, &samples, &labels)?;
-            let invocation = population_proxy_invocation(&tool, input_vcf, &prefix, &plink_within)?;
+            let invocation = population_proxy_invocation(&tool, input_vcf, &prefix)?;
             let args = invocation.args.iter().map(String::as_str).collect::<Vec<_>>();
             run_tool(invocation.program, &args, None)
         }
@@ -832,13 +806,9 @@ mod admixture_backend_tests {
 
     #[test]
     fn plink_admixture_proxy_uses_plink_and_emits_declared_contract_outputs() {
-        let invocation = population_proxy_invocation(
-            "plink",
-            Path::new("cohort.vcf"),
-            Path::new("admixture"),
-            Path::new("populations.clst"),
-        )
-        .unwrap_or_else(|error| panic!("PLINK invocation: {error}"));
+        let invocation =
+            population_proxy_invocation("plink", Path::new("cohort.vcf"), Path::new("admixture"))
+                .unwrap_or_else(|error| panic!("PLINK invocation: {error}"));
 
         assert_eq!(invocation.program, "plink");
         assert_eq!(
@@ -848,14 +818,9 @@ mod admixture_backend_tests {
                 "cohort.vcf",
                 "--double-id",
                 "--allow-extra-chr",
-                "--within",
-                "populations.clst",
-                "--cluster",
-                "--mds-plot",
-                "10",
-                "--make-bed",
-                "--freq",
                 "--missing",
+                "--freq",
+                "--make-bed",
                 "--out",
                 "admixture",
             ]
@@ -864,13 +829,9 @@ mod admixture_backend_tests {
 
     #[test]
     fn plink2_admixture_proxy_uses_plink2() {
-        let invocation = population_proxy_invocation(
-            "plink2",
-            Path::new("cohort.vcf"),
-            Path::new("admixture"),
-            Path::new("unused.clst"),
-        )
-        .unwrap_or_else(|error| panic!("PLINK2 invocation: {error}"));
+        let invocation =
+            population_proxy_invocation("plink2", Path::new("cohort.vcf"), Path::new("admixture"))
+                .unwrap_or_else(|error| panic!("PLINK2 invocation: {error}"));
 
         assert_eq!(invocation.program, "plink2");
         assert_eq!(
@@ -894,7 +855,6 @@ mod admixture_backend_tests {
             "unknown",
             Path::new("cohort.vcf"),
             Path::new("admixture"),
-            Path::new("populations.clst"),
         ) {
             Ok(invocation) => panic!("unknown toolchain planned as {invocation:?}"),
             Err(error) => error,

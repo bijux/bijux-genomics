@@ -17,7 +17,7 @@ use super::local_stage_result_manifest::{
     BenchStageResultResourceMetricsV1, BenchStageResultRuntimeV1, BenchStageResultStatus,
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
-use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use super::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -25,7 +25,6 @@ const DEFAULT_VCF_ADMIXTURE_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.admix
 const LOCAL_VCF_ADMIXTURE_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_admixture_smoke.v1";
 const LOCAL_VCF_ADMIXTURE_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-admixture-smoke";
 const GOVERNED_VCF_ADMIXTURE_STAGE_ID: &str = "vcf.admixture";
-const GOVERNED_VCF_ADMIXTURE_TOOL_ID: &str = "plink2";
 const GOVERNED_VCF_ADMIXTURE_CORPUS_ID: &str = "vcf_production_regression";
 const GOVERNED_VCF_ADMIXTURE_ASSET_PROFILE_ID: &str = "vcf_cohort";
 const GOVERNED_VCF_ADMIXTURE_INPUT_FIXTURE_ID: &str = "vcf_mini_multisample_cohort";
@@ -346,7 +345,7 @@ pub(crate) fn run_local_vcf_admixture_smoke(
         rows,
     };
 
-    let outputs = vec![
+    let mut outputs = vec![
         BenchStageResultOutputV1 {
             artifact_id: "admixture_tsv".to_string(),
             declared_path: DEFAULT_OUTPUT_TSV_NAME.to_string(),
@@ -407,7 +406,7 @@ pub(crate) fn run_local_vcf_admixture_smoke(
             exists: true,
         },
         BenchStageResultOutputV1 {
-            artifact_id: "plink2_log".to_string(),
+            artifact_id: format!("{}_log", contract.tool_id),
             declared_path: DEFAULT_OUTPUT_SOURCE_LOGS_NAME.to_string(),
             realized_path: path_relative_to_repo(repo_root, &published_source_logs_path),
             role: "log_output".to_string(),
@@ -423,6 +422,29 @@ pub(crate) fn run_local_vcf_admixture_smoke(
             exists: true,
         },
     ];
+    if contract.tool_id == "plink" {
+        for (artifact_id, suffix, role) in [
+            ("bed_matrix", "bed", "binary_output"),
+            ("bim_index", "bim", "table_output"),
+            ("fam_samples", "fam", "table_output"),
+            ("allele_frequency_frq", "frq", "table_output"),
+            ("sample_missingness_imiss", "imiss", "table_output"),
+            ("variant_missingness_lmiss", "lmiss", "table_output"),
+        ] {
+            let staged_path = stage_root.join(format!("admixture_plink.{suffix}"));
+            outputs.push(BenchStageResultOutputV1 {
+                artifact_id: artifact_id.to_string(),
+                declared_path: format!("artifacts/stage/admixture_plink.{suffix}"),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_stage_root.join(format!("admixture_plink.{suffix}")),
+                ),
+                role: role.to_string(),
+                optional: false,
+                exists: staged_path.is_file(),
+            });
+        }
+    }
     let stage_result_manifest = BenchStageResultManifestV1 {
         schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
         stage_id: contract.stage_id.clone(),
@@ -483,25 +505,14 @@ fn build_admixture_proxy_eigenval(
 fn resolve_governed_vcf_admixture_smoke_contract(
     tool_id: &str,
 ) -> Result<GovernedVcfAdmixtureSmokeContract> {
-    let matrix_row = build_vcf_stage_matrix_rows()?
+    let matrix_row = collect_vcf_benchmark_binding_rows()?
         .into_iter()
-        .find(|row| row.stage_id == GOVERNED_VCF_ADMIXTURE_STAGE_ID)
+        .find(|row| row.stage_id == GOVERNED_VCF_ADMIXTURE_STAGE_ID && row.tool_id == tool_id)
         .ok_or_else(|| {
-            anyhow!("VCF stage matrix is missing `{GOVERNED_VCF_ADMIXTURE_STAGE_ID}`")
+            anyhow!(
+                "VCF admixture smoke has no governed binding for `{GOVERNED_VCF_ADMIXTURE_STAGE_ID}` / `{tool_id}`"
+            )
         })?;
-    if tool_id != matrix_row.tool_id {
-        bail!(
-            "VCF admixture smoke only retains tool `{}` for `{}`; requested `{tool_id}`",
-            matrix_row.tool_id,
-            matrix_row.stage_id
-        );
-    }
-    if matrix_row.tool_id != GOVERNED_VCF_ADMIXTURE_TOOL_ID {
-        bail!(
-            "VCF admixture smoke requires tool `{GOVERNED_VCF_ADMIXTURE_TOOL_ID}`, found `{}`",
-            matrix_row.tool_id
-        );
-    }
     if matrix_row.corpus_id != GOVERNED_VCF_ADMIXTURE_CORPUS_ID {
         bail!(
             "VCF admixture smoke requires corpus `{GOVERNED_VCF_ADMIXTURE_CORPUS_ID}`, found `{}`",

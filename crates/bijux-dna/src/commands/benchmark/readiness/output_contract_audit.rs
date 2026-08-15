@@ -840,6 +840,7 @@ fn vcf_execution_blocker(
     manifest: &BenchStageResultManifestV1,
 ) -> Result<Option<String>> {
     let report_artifact_id = match manifest.stage_id.as_str() {
+        "vcf.admixture" => "admixture_json",
         "vcf.phasing" => "phasing_manifest",
         "vcf.ibd" => "ibd_json",
         "vcf.demography" => "demography_json",
@@ -1146,7 +1147,7 @@ fn local_vcf_stage_result_manifest_path(
         .find(|row| row.stage_id == stage_id)
         .map(|row| row.tool_id)
         .ok_or_else(|| anyhow!("VCF stage matrix is missing `{stage_id}`"))?;
-    let stage_worker_owns_tool_selection = stage_id == "vcf.qc";
+    let stage_worker_owns_tool_selection = matches!(stage_id, "vcf.qc" | "vcf.admixture");
     let retained_non_default_worker = stage_id == "vcf.phasing" && tool_id == "shapeit";
     if tool_id != default_tool_id
         && !stage_worker_owns_tool_selection
@@ -1278,12 +1279,16 @@ mod tests {
     }
 
     #[test]
-    fn non_default_vcf_tool_does_not_borrow_default_smoke_evidence() {
+    fn vcf_admixture_stage_worker_proves_each_governed_tool_independently() {
         let root = repo_root();
         let proof = local_vcf_stage_result_manifest_path(&root, "vcf.admixture", "plink")
-            .expect("resolve non-default VCF tool proof");
+            .expect("resolve non-default VCF tool proof")
+            .expect("VCF admixture worker must own the governed PLINK backend");
+        let manifest = load_validated_stage_result_manifest_path(&root.join(proof))
+            .expect("load PLINK VCF admixture stage result");
 
-        assert_eq!(proof, None);
+        assert_eq!(manifest.stage_id, "vcf.admixture");
+        assert_eq!(manifest.tool.id, "plink");
     }
 
     #[test]

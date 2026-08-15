@@ -1,5 +1,7 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::os::unix::fs::PermissionsExt;
+
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
@@ -9,6 +11,16 @@ fn run_cli(args: &[&str]) -> (support::RepoSandbox, std::process::Output) {
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let sandbox = support::RepoSandbox::new("output-contract-audit-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
+    let unavailable_tools = tempfile::tempdir().expect("unavailable tool shims");
+    for tool_id in ["plink", "plink2"] {
+        let shim = unavailable_tools.path().join(tool_id);
+        std::fs::write(&shim, "#!/bin/sh\nexit 127\n").expect("write unavailable tool shim");
+        let mut permissions = std::fs::metadata(&shim).expect("tool shim metadata").permissions();
+        permissions.set_mode(0o755);
+        std::fs::set_permissions(&shim, permissions).expect("make tool shim executable");
+    }
+    let path =
+        format!("{}:{}", unavailable_tools.path().display(), std::env::var("PATH").expect("PATH"));
 
     let output = sandbox
         .bijux_dna_command()
@@ -16,6 +28,7 @@ fn run_cli(args: &[&str]) -> (support::RepoSandbox, std::process::Output) {
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .env("PATH", path)
         .args(args)
         .output()
         .expect("run cli");
@@ -53,9 +66,9 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     );
     assert_eq!(
         payload.get("passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(rows.len() as u64 - 24)
+        Some(rows.len() as u64 - 25)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(25));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("blocked_tool_ids").and_then(serde_json::Value::as_array),
@@ -74,6 +87,7 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
             serde_json::Value::String("minimac4".to_string()),
             serde_json::Value::String("ngsbriggs".to_string()),
             serde_json::Value::String("plink".to_string()),
+            serde_json::Value::String("plink2".to_string()),
             serde_json::Value::String("shapeit".to_string()),
             serde_json::Value::String("shapeit5".to_string()),
         ])
@@ -162,6 +176,20 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                     .is_some_and(|reason| reason.contains("backend_execution_attempted=false"))
         }));
     }
+    for tool_id in ["plink", "plink2"] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.admixture")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
+                    == Some("direct_tool_smoke")
+                && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
+                    == Some(false)
+                && row
+                    .get("execution_blocker")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|reason| reason.contains("tool_ok=false"))
+        }));
+    }
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
@@ -226,7 +254,7 @@ fn bench_readiness_output_contract_audit_write_governed_json_file() {
         Some(rows.len() as u64)
     );
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(25));
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")
