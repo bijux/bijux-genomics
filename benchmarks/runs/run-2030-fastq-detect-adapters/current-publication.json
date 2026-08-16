@@ -6,7 +6,57 @@
     "stage_id": "fastq.detect_adapters"
   },
   "protocol_sha256": "3d080eb36305a023c3dc9274d9922af968ee524c3583e36f56ab2803d9312de3",
+  "selected_publication": {
+    "publication_id": "run-2030-production-331014ca9f9c",
+    "selected_attempts": [
+      {
+        "campaign_id": "production-run-2030-331014ca9",
+        "run": {
+          "run_id": "run-2030",
+          "domain": "fastq",
+          "stage_id": "fastq.detect_adapters"
+        },
+        "case_id": "run-2030--fastqc--human-short-read-diversity",
+        "attempt_id": "attempt-0002",
+        "tool_id": "fastqc"
+      }
+    ],
+    "repository_commit": "331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec",
+    "report": {
+      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2030/run-2030-fastq-detect-adapters.json",
+      "sha256": "bcbeea8ae8bc164e1ba172edd26d439df97247810edb2a7afa093c1ef91434be",
+      "size_bytes": 15051
+    },
+    "evidence_book": {
+      "uri": "study://results/benchmarks/evidence-books/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/candidate-publications.json",
+      "sha256": "7007544c3bfb93569096fb8ebb6c35975ebd777afd491623002863bb4c798283",
+      "size_bytes": 3777
+    },
+    "publication_receipt": {
+      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2030/publication-receipt.json",
+      "sha256": "126b262af38aef0aebadbb0d66ab43beed0334c48024ae4d1314055c72130503",
+      "size_bytes": 2600
+    },
+    "citation_record": {
+      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2030/citation-record.json",
+      "sha256": "7a3e727405f7210418e6c088dd7923fdc22014ee82104811a5ab38d4a17bd14c",
+      "size_bytes": 2570
+    },
+    "replay_receipt": {
+      "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2030/semantic-identity.json",
+      "sha256": "9d435d2908b043b9bb877f5471719291992515437985e8ae3d89223d41ac810c",
+      "size_bytes": 2956
+    },
+    "limitations": [
+      "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
+      "The publication qualifies FastQC on one governed human short-read diversity cohort and does not establish a cross-tool ranking.",
+      "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
+    ],
+    "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
+  },
   "limitations": [
-    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+    "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
+    "The publication qualifies FastQC on one governed human short-read diversity cohort and does not establish a cross-tool ranking.",
+    "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
   ]
 }

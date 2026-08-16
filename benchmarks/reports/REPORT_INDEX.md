@@ -5,8 +5,8 @@
 Path presence does not confer current benchmark authority. Every permanent run is explicit below: current requires an admitted selected report and publication receipt, while absent evidence remains missing. Source-addressed legacy stage reports remain historical; tracked legacy readiness output is quarantined until removed.
 
 - Current governance products: **6**
-- Current run reports: **3**
-- Missing run reports: **68**
+- Current run reports: **4**
+- Missing run reports: **67**
 - Stale run reports: **0**
 - Failed run reports: **0**
 - Superseded run reports: **0**
@@ -58,7 +58,7 @@ Path presence does not confer current benchmark authority. Every permanent run i
 | `run-2027` | `fastq.deplete_host` | missing | `—` | `—` |
 | `run-2028` | `fastq.deplete_reference_contaminants` | missing | `—` | `—` |
 | `run-2029` | `fastq.deplete_rrna` | missing | `—` | `—` |
-| `run-2030` | `fastq.detect_adapters` | missing | `—` | `—` |
+| `run-2030` | `fastq.detect_adapters` | current | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2030/run-2030-fastq-detect-adapters.json` | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2030/publication-receipt.json` |
 | `run-2031` | `fastq.detect_duplicates_premerge` | missing | `—` | `—` |
 | `run-2032` | `fastq.estimate_library_complexity_prealign` | missing | `—` | `—` |
 | `run-2033` | `fastq.extract_umis` | missing | `—` | `—` |

@@ -6,8 +6,18 @@
     "stage_id": "fastq.detect_adapters"
   },
   "protocol_sha256": "3d080eb36305a023c3dc9274d9922af968ee524c3583e36f56ab2803d9312de3",
-  "cases": [],
+  "cases": [
+    {
+      "case_id": "run-2030--fastqc--human-short-read-diversity",
+      "tool_id": "fastqc",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2030/case-definition-run-2030--fastqc--human-short-read-diversity.json",
+        "sha256": "d9ed5250d36c4b80e1a2d3f3d23634eaacac8135900bf1a07368a423e6529242",
+        "size_bytes": 11052
+      }
+    }
+  ],
   "limitations": [
-    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+    "The publication qualifies FastQC on one governed human short-read diversity cohort and does not establish a cross-tool ranking."
   ]
 }

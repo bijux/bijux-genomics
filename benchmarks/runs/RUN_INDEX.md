@@ -7,8 +7,8 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 - Registered protocols: **71**
 - Active protocols: **71**
 - Reserved protocols: **0**
-- Citable publications: **3**
-- Unpublished protocols: **68**
+- Citable publications: **4**
+- Unpublished protocols: **67**
 
 | Run | Citation key | Stage | Tools | Protocol | Publication |
 |---|---|---|---|---|---|
@@ -41,7 +41,7 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 | `run-2027` | `bijux-benchmark-run-2027` | `fastq.deplete_host` | `bowtie2` | `active` | `not selected` |
 | `run-2028` | `bijux-benchmark-run-2028` | `fastq.deplete_reference_contaminants` | `bowtie2` | `active` | `not selected` |
 | `run-2029` | `bijux-benchmark-run-2029` | `fastq.deplete_rrna` | `sortmerna` | `active` | `not selected` |
-| `run-2030` | `bijux-benchmark-run-2030` | `fastq.detect_adapters` | `fastqc` | `active` | `not selected` |
+| `run-2030` | `bijux-benchmark-run-2030` | `fastq.detect_adapters` | `fastqc` | `active` | `run-2030-production-331014ca9f9c` |
 | `run-2031` | `bijux-benchmark-run-2031` | `fastq.detect_duplicates_premerge` | `bijux_dna` | `active` | `not selected` |
 | `run-2032` | `bijux-benchmark-run-2032` | `fastq.estimate_library_complexity_prealign` | `bijux_dna` | `active` | `not selected` |
 | `run-2033` | `bijux-benchmark-run-2033` | `fastq.extract_umis` | `umi_tools` | `active` | `not selected` |
