@@ -396,6 +396,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         root.join("containers/contracts/schemas/image-campaign-execution.v1.json");
     let catalog_path = root.join("containers/contracts/schemas/catalog.v1.json");
     let catalog_lock_path = root.join("containers/contracts/schemas/catalog-lock.v1.json");
+    let activation_path = root.join("containers/contracts/schemas/image-activation-plan.v1.json");
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_containers::evidence::write_image_inventory_publication_schema(&inventory_path)?;
         bijux_dna_containers::evidence::write_image_inventory_scan_schema(&scan_path)?;
@@ -424,6 +425,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         bijux_dna_containers::api::write_image_campaign_execution_schema(&campaign_execution_path)?;
         bijux_dna_containers::api::write_container_catalog_schema(&catalog_path)?;
         bijux_dna_containers::api::write_container_catalog_lock_schema(&catalog_lock_path)?;
+        bijux_dna_containers::api::write_image_activation_plan_schema(&activation_path)?;
     }
     let inventory = read_json(inventory_path)?;
     let scan = read_json(scan_path)?;
@@ -440,6 +442,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let campaign_execution = read_json(campaign_execution_path)?;
     let catalog = read_json(catalog_path)?;
     let catalog_lock = read_json(catalog_lock_path)?;
+    let activation = read_json(&activation_path)?;
     assert_eq!(inventory, bijux_dna_containers::evidence::image_inventory_publication_schema());
     assert_eq!(scan, bijux_dna_containers::evidence::image_inventory_scan_schema());
     assert_eq!(runtime, bijux_dna_containers::evidence::runtime_verification_publication_schema());
@@ -467,6 +470,14 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     assert_eq!(campaign_execution, bijux_dna_containers::api::image_campaign_execution_schema());
     assert_eq!(catalog, bijux_dna_containers::api::container_catalog_schema());
     assert_eq!(catalog_lock, bijux_dna_containers::api::container_catalog_lock_schema());
+    assert_eq!(activation, bijux_dna_containers::api::image_activation_plan_schema());
+    assert!(bijux_dna_containers::api::image_activation_plan_schema_matches(&activation_path)?);
+
+    let drifted_activation = tempfile::NamedTempFile::new()?;
+    std::fs::write(drifted_activation.path(), b"{}")?;
+    assert!(!bijux_dna_containers::api::image_activation_plan_schema_matches(
+        drifted_activation.path()
+    )?);
     Ok(())
 }
 

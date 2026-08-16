@@ -551,6 +551,7 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
 fn is_thin_container_operator(path: &str, content: &str) -> bool {
     const MIGRATED_SURFACES: &[&str] = &[
         "crates/bijux-dna-dev/src/commands/containers/external_artifact.rs",
+        "crates/bijux-dna-dev/src/commands/containers/image_activation.rs",
         "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs",
         "crates/bijux-dna-dev/src/commands/containers/qualification_slurm.rs",
     ];
@@ -1214,6 +1215,10 @@ mod tests {
             (
                 "crates/bijux-dna-dev/src/commands/containers/external_artifact.rs",
                 include_str!("../containers/external_artifact.rs"),
+            ),
+            (
+                "crates/bijux-dna-dev/src/commands/containers/image_activation.rs",
+                include_str!("../containers/image_activation.rs"),
             ),
             (
                 "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs",

@@ -36,7 +36,8 @@ pub use external_artifact::{
 };
 pub use image_activation::{
     apply_image_activation_plan, create_image_activation_plan, image_activation_plan_schema,
-    load_image_activation_plan, rollback_image_activation_plan, verify_image_activation_plan,
+    image_activation_plan_schema_matches, load_image_activation_plan,
+    rollback_image_activation_plan, verify_image_activation_plan,
     write_image_activation_plan_schema, ImageActivationPlan, ImageActivationPlanRequest,
     ImageActivationPlanState, ImageActivationPublication, IMAGE_ACTIVATION_PLAN_SCHEMA_V1,
 };
