@@ -23,9 +23,9 @@
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "6a134cc3a40834d753f7abdb344a5ee25923690ca84aee1e73186804653b3aa3",
+      "json_sha256": "6bd0d6b38af63132d98a9eacbae3e73d46976d352cef410ec6377a29706040fb",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
-      "markdown_sha256": "723a6c34743e449d9bbaa408b849e820a2eec3f735cbe451925fde21ae6cca4e"
+      "markdown_sha256": "efa38b494d686ebb8dd839e6f92150553d1c3775b18a82aa58322fa0e2f12cba"
     },
     {
       "product_id": "stage-universe",
@@ -338,14 +338,14 @@
       "stage_id": "fastq.detect_adapters",
       "disposition": "current",
       "report": {
-        "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2030/run-2030-fastq-detect-adapters.json",
-        "sha256": "bcbeea8ae8bc164e1ba172edd26d439df97247810edb2a7afa093c1ef91434be",
-        "size_bytes": 15051
+        "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/run-2030-fastq-detect-adapters.json",
+        "sha256": "1495b2cd98b94f26e8bbb5269b2a74df9349ddad6cd53090c92e30c16bbf8031",
+        "size_bytes": 15054
       },
       "publication_receipt": {
-        "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2030/publication-receipt.json",
-        "sha256": "126b262af38aef0aebadbb0d66ab43beed0334c48024ae4d1314055c72130503",
-        "size_bytes": 2600
+        "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/publication-receipt.json",
+        "sha256": "6137a6135b2292604978f739e25bbae230dd6a50ba22bca2fc526365ff21b1f8",
+        "size_bytes": 2613
       },
       "limitations": [
         "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",

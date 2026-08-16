@@ -7,45 +7,45 @@
   },
   "protocol_sha256": "3d080eb36305a023c3dc9274d9922af968ee524c3583e36f56ab2803d9312de3",
   "selected_publication": {
-    "publication_id": "run-2030-production-331014ca9f9c",
+    "publication_id": "run-2030-production-e6874f0d833c",
     "selected_attempts": [
       {
-        "campaign_id": "production-run-2030-331014ca9",
+        "campaign_id": "production-run-2030-e6874f0d8",
         "run": {
           "run_id": "run-2030",
           "domain": "fastq",
           "stage_id": "fastq.detect_adapters"
         },
         "case_id": "run-2030--fastqc--human-short-read-diversity",
-        "attempt_id": "attempt-0002",
+        "attempt_id": "attempt-0001",
         "tool_id": "fastqc"
       }
     ],
-    "repository_commit": "331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec",
+    "repository_commit": "e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd",
     "report": {
-      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2030/run-2030-fastq-detect-adapters.json",
-      "sha256": "bcbeea8ae8bc164e1ba172edd26d439df97247810edb2a7afa093c1ef91434be",
-      "size_bytes": 15051
+      "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/run-2030-fastq-detect-adapters.json",
+      "sha256": "1495b2cd98b94f26e8bbb5269b2a74df9349ddad6cd53090c92e30c16bbf8031",
+      "size_bytes": 15054
     },
     "evidence_book": {
-      "uri": "study://results/benchmarks/evidence-books/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/candidate-publications.json",
-      "sha256": "7007544c3bfb93569096fb8ebb6c35975ebd777afd491623002863bb4c798283",
+      "uri": "study://results/benchmarks/evidence-books/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/candidate-publications.json",
+      "sha256": "3d6313b6b43db4ac06ff8e5ae05268b4f7e5a29b253a08f1ede7bd5412b8d599",
       "size_bytes": 3777
     },
     "publication_receipt": {
-      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2030/publication-receipt.json",
-      "sha256": "126b262af38aef0aebadbb0d66ab43beed0334c48024ae4d1314055c72130503",
-      "size_bytes": 2600
+      "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/publication-receipt.json",
+      "sha256": "6137a6135b2292604978f739e25bbae230dd6a50ba22bca2fc526365ff21b1f8",
+      "size_bytes": 2613
     },
     "citation_record": {
-      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2030/citation-record.json",
-      "sha256": "7a3e727405f7210418e6c088dd7923fdc22014ee82104811a5ab38d4a17bd14c",
+      "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/citation-record.json",
+      "sha256": "7a4913960c0f76996812b0c9f21afb6f01450c1a02dd627f26bdc08dd55d2159",
       "size_bytes": 2570
     },
     "replay_receipt": {
-      "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2030/semantic-identity.json",
-      "sha256": "9d435d2908b043b9bb877f5471719291992515437985e8ae3d89223d41ac810c",
-      "size_bytes": 2956
+      "uri": "study://results/benchmarks/replays/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/semantic-identity.json",
+      "sha256": "7b38f201eff0bab5bee8166f92cd28f22d84eb3ee5c418092c1f8b983c5c7527",
+      "size_bytes": 3339
     },
     "limitations": [
       "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",

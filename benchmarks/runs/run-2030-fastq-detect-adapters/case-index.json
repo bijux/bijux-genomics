@@ -11,9 +11,9 @@
       "case_id": "run-2030--fastqc--human-short-read-diversity",
       "tool_id": "fastqc",
       "definition": {
-        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2030/case-definition-run-2030--fastqc--human-short-read-diversity.json",
-        "sha256": "d9ed5250d36c4b80e1a2d3f3d23634eaacac8135900bf1a07368a423e6529242",
-        "size_bytes": 11052
+        "uri": "study://results/benchmarks/replays/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/case-definition-run-2030--fastqc--human-short-read-diversity.json",
+        "sha256": "c35dc8ece4e18ba86fa5bae0f220a1d665dd101e8771b04c2c1a6bfdc620e308",
+        "size_bytes": 11080
       }
     }
   ],
