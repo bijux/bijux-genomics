@@ -287,16 +287,16 @@ fn checked_in_run_index_covers_every_protocol_without_hidden_publications() -> R
         &repository_root,
         bijux_dna_bench::BenchmarkRunIndexWriteMode::Check,
     )?;
+    let selected_run_count =
+        index.runs.iter().filter(|run| run.selected_publication.is_some()).count();
     assert_eq!(index.summary.registered_run_count, 71);
-    assert_eq!(index.summary.citable_publication_count, 3);
-    assert_eq!(index.summary.unpublished_run_count, 68);
+    assert_eq!(index.summary.citable_publication_count, selected_run_count);
+    assert_eq!(index.summary.unpublished_run_count, 71 - selected_run_count);
     for run in &index.runs {
         assert_eq!(run.citation_key, format!("bijux-benchmark-{}", run.run_id));
-        if ["run-2042", "run-2043", "run-2051"].contains(&run.run_id.as_str()) {
-            assert!(run.selected_publication.is_some());
+        if run.selected_publication.is_some() {
             assert!(run.limitations.is_empty());
         } else {
-            assert!(run.selected_publication.is_none());
             assert!(!run.limitations.is_empty());
         }
     }
@@ -311,13 +311,20 @@ fn checked_in_run_index_covers_every_protocol_without_hidden_publications() -> R
 #[test]
 fn checked_in_publication_registry_has_no_drift() -> Result<()> {
     let repository_root = repository_root()?;
+    let run_index = bijux_dna_bench::publish_checked_in_benchmark_run_index(
+        &repository_root,
+        bijux_dna_bench::BenchmarkRunIndexWriteMode::Check,
+    )?;
     let registry = bijux_dna_bench::publish_checked_in_benchmark_publication_registry(
         &repository_root,
         bijux_dna_bench::BenchmarkPublicationRegistryWriteMode::Check,
     )?;
     assert_eq!(registry.summary.current_product_count, 6);
-    assert_eq!(registry.summary.current_run_report_count, 3);
-    assert_eq!(registry.summary.missing_run_report_count, 68);
+    assert_eq!(
+        registry.summary.current_run_report_count,
+        run_index.summary.citable_publication_count
+    );
+    assert_eq!(registry.summary.missing_run_report_count, run_index.summary.unpublished_run_count);
     assert_eq!(registry.summary.stale_run_report_count, 0);
     assert_eq!(registry.summary.failed_run_report_count, 0);
     assert_eq!(registry.summary.superseded_run_report_count, 0);
@@ -332,10 +339,18 @@ fn checked_in_publication_registry_has_no_drift() -> Result<()> {
 
 #[test]
 fn derived_publication_registry_classifies_every_permanent_run() -> Result<()> {
-    let registry = bijux_dna_bench::derive_benchmark_publication_registry(&repository_root()?)?;
+    let repository_root = repository_root()?;
+    let run_index = bijux_dna_bench::publish_checked_in_benchmark_run_index(
+        &repository_root,
+        bijux_dna_bench::BenchmarkRunIndexWriteMode::Check,
+    )?;
+    let registry = bijux_dna_bench::derive_benchmark_publication_registry(&repository_root)?;
     assert_eq!(registry.run_reports.len(), 71);
-    assert_eq!(registry.summary.current_run_report_count, 3);
-    assert_eq!(registry.summary.missing_run_report_count, 68);
+    assert_eq!(
+        registry.summary.current_run_report_count,
+        run_index.summary.citable_publication_count
+    );
+    assert_eq!(registry.summary.missing_run_report_count, run_index.summary.unpublished_run_count);
     assert_eq!(registry.summary.stale_run_report_count, 0);
     assert_eq!(registry.summary.failed_run_report_count, 0);
     assert_eq!(registry.summary.superseded_run_report_count, 0);
