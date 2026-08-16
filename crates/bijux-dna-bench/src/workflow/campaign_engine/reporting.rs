@@ -224,8 +224,15 @@ fn case_repetition_observation(
             Ok((metric.clone(), reduce_scientific_values(&values)?))
         })
         .collect::<Result<BTreeMap<_, _>>>()?;
+    let normalized_result_identity = selected
+        .iter()
+        .map(|(execution_unit_id, unit)| {
+            ((*execution_unit_id).to_string(), unit.normalized_output_sha256.clone())
+        })
+        .collect::<Vec<_>>();
     let normalized_result_sha256 = bijux_dna_infra::hash_bytes_sha256(
-        &serde_json::to_vec(&unit_metrics).context("encode generic normalized result closure")?,
+        &serde_json::to_vec(&normalized_result_identity)
+            .context("encode generic normalized result identity closure")?,
     );
     Ok(BenchmarkCaseRepetitionObservationV1 {
         repetition,

@@ -229,8 +229,10 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow/campaign_lifecycle")),
         entries([
             "authorities.rs",
+            "binding_case_material.rs",
             "execution.rs",
             "mod.rs",
+            "normalization.rs",
             "operator.rs",
             "planning.rs",
             "preparation.rs",
