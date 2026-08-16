@@ -31,7 +31,9 @@ targets, and isolated concurrent target roots.
   `artifacts/ci/ci-fast-target` root. Cargo coordinates concurrent access to that root, so groups
   can reuse the same materialized dependency graph while retaining DAG concurrency. Groups also
   share the pinned toolchain, workspace lockfile, and sccache authority, and execute Cargo offline
-  after the launcher has resolved its own locked dependencies.
+  after the launcher has resolved its own locked dependencies. The critical-path baseline counts
+  Cargo's lock-wait diagnostics per target and publishes the sum of affected target wall times as
+  an explicit conservative upper bound; it never presents that bound as exact lock-held time.
 - On Unix, the `ci-fast` supervisor gives all groups in one invocation a single explicit
   `SCCACHE_SERVER_UDS` and a short `/tmp` runtime directory. Both the server socket and sccache's
   startup-notification socket are therefore bounded independently of the persistent cache and

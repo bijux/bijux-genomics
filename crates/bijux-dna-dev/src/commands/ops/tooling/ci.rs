@@ -1,5 +1,5 @@
 use super::super::suite_selection::governed_slow_expression;
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
 use std::time::{Duration, Instant};
 
@@ -16,8 +16,9 @@ use super::{
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 
 const FULL_SHARDS_SCHEMA_V4: &str = "bijux.ci.full_shards.v4";
-const FAST_GROUPS_SCHEMA_V2: &str = "bijux.ci.fast_groups.v2";
-const FAST_TIMING_SCHEMA_V4: &str = "bijux.ci.fast_timing.v4";
+const FAST_GROUPS_SCHEMA_V3: &str = "bijux.ci.fast_groups.v3";
+const FAST_TIMING_SCHEMA_V5: &str = "bijux.ci.fast_timing.v5";
+const CI_CRITICAL_PATH_BASELINE_SCHEMA_V1: &str = "bijux.ci.critical_path_baseline.v1";
 const FAST_TIMING_HISTORY_SCHEMA_V4: &str = "bijux.ci.fast_timing_history.v4";
 const FULL_SHARD_SCRATCH_ROOT_ENV: &str = "BIJUX_CI_FULL_SHARD_SCRATCH_ROOT";
 #[cfg(unix)]
@@ -157,8 +158,18 @@ struct FastGroupContract {
     report_root: String,
     timing_report: String,
     timing_history: String,
+    baseline_report: String,
     reference_runner: FastReferenceRunner,
+    excluded_lanes: Vec<FastExcludedLane>,
     groups: Vec<FastGroup>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct FastExcludedLane {
+    id: String,
+    reason: String,
+    evidence_command: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -416,7 +427,10 @@ pub(in super::super) fn tooling_ci_fast(
     let mut receipts = Vec::with_capacity(contract.groups.len());
     let mut stdout = String::new();
     let mut stderr = String::new();
-    let mut critical_path = None::<(String, u64)>;
+    let mut group_durations = BTreeMap::new();
+    let mut compiler_lock_wait_events = 0usize;
+    let mut compiler_lock_wait_duration_upper_bound_milliseconds = 0u64;
+    let mut compiler_lock_wait_targets = BTreeSet::new();
 
     while !pending.is_empty() {
         let blocked = contract
@@ -433,12 +447,17 @@ pub(in super::super) fn tooling_ci_fast(
         for group in blocked {
             pending.remove(group.id.as_str());
             failed.insert(group.id.as_str());
+            group_durations.insert(group.id.clone(), 0);
             stderr.push_str(&format!("ci-fast group {}: blocked by failed dependency\n", group.id));
             receipts.push(serde_json::json!({
                 "id": group.id,
                 "status": "blocked_dependency",
                 "dependencies": group.dependencies,
+                "command": std::iter::once(group.program.as_str())
+                    .chain(group.args.iter().map(String::as_str))
+                    .collect::<Vec<_>>(),
                 "duration_milliseconds": 0,
+                "compiler_lock_wait_events": 0,
                 "exit_code": 1,
                 "log": serde_json::Value::Null,
             }));
@@ -487,10 +506,13 @@ pub(in super::super) fn tooling_ci_fast(
             bijux_dna_infra::write_bytes(&log_path, &log)?;
             let exit_code = completed.output.status.code().unwrap_or(1);
             let duration_milliseconds = duration_milliseconds(completed.duration);
-            if critical_path.as_ref().is_none_or(|(_, duration)| duration_milliseconds > *duration)
-            {
-                critical_path = Some((group.id.clone(), duration_milliseconds));
+            let group_lock_wait_events = cargo_lock_wait_events(&log);
+            compiler_lock_wait_events += group_lock_wait_events;
+            if group_lock_wait_events > 0 {
+                compiler_lock_wait_duration_upper_bound_milliseconds += duration_milliseconds;
+                compiler_lock_wait_targets.insert(group.id.clone());
             }
+            group_durations.insert(group.id.clone(), duration_milliseconds);
             pending.remove(group.id.as_str());
             if exit_code == 0 {
                 passed.insert(group.id.as_str());
@@ -513,7 +535,11 @@ pub(in super::super) fn tooling_ci_fast(
                 "id": group.id,
                 "status": if exit_code == 0 { "passed" } else { "failed" },
                 "dependencies": group.dependencies,
+                "command": std::iter::once(group.program.as_str())
+                    .chain(group.args.iter().map(String::as_str))
+                    .collect::<Vec<_>>(),
                 "duration_milliseconds": duration_milliseconds,
+                "compiler_lock_wait_events": group_lock_wait_events,
                 "exit_code": exit_code,
                 "log": workspace.rel(&log_path).to_string_lossy(),
             }));
@@ -592,41 +618,66 @@ pub(in super::super) fn tooling_ci_fast(
     } else {
         None
     };
-    let critical_path = critical_path.map(|(group, duration_milliseconds)| {
-        serde_json::json!({
-            "group": group,
-            "duration_milliseconds": duration_milliseconds,
+    let critical_path = ci_fast_critical_path(&contract.groups, &group_durations).map(
+        |(groups, duration_milliseconds)| {
+            serde_json::json!({
+                "groups": groups,
+                "duration_milliseconds": duration_milliseconds,
+            })
+        },
+    );
+    let observed_at_utc = chrono::Utc::now().to_rfc3339();
+    let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
+    let dependency_graph = contract
+        .groups
+        .iter()
+        .map(|group| {
+            serde_json::json!({
+                "id": group.id,
+                "dependencies": group.dependencies,
+                "command": std::iter::once(group.program.as_str())
+                    .chain(group.args.iter().map(String::as_str))
+                    .collect::<Vec<_>>(),
+            })
         })
+        .collect::<Vec<_>>();
+    let compiler_lock_waits = serde_json::json!({
+        "measurement": "cargo diagnostic event count with conservative affected-target wall-time upper bound",
+        "event_count": compiler_lock_wait_events,
+        "affected_targets": compiler_lock_wait_targets,
+        "duration_upper_bound_milliseconds": compiler_lock_wait_duration_upper_bound_milliseconds,
+    });
+    let skipped_test_lanes = serde_json::to_value(&contract.excluded_lanes)?;
+    let runner = serde_json::json!({
+        "os": actual_os,
+        "architecture": actual_architecture,
+        "rust_toolchain": actual_rust_toolchain,
+        "compiler_wrapper": actual_compiler_wrapper,
+        "sccache_server_uds": sccache_runtime_env.iter().find_map(|(key, value)|
+            (key == "SCCACHE_SERVER_UDS").then_some(value)),
+        "sccache_runtime_tmpdir": sccache_runtime_env.iter().find_map(|(key, value)|
+            (key == "TMPDIR").then_some(value)),
+        "sccache_rustc_wrapper": group_compiler_env.iter().find_map(|(key, value)|
+            (key == "RUSTC_WRAPPER").then_some(value)),
+        "cache_state": cache_state,
+        "cache_reuse_mode": cache_reuse_mode,
+        "requested_cache_state": requested_cache_state,
+        "shared_cache_authority": shared_cache_authority,
+        "build_authority": build_authority.target,
+        "shared_build_authority": shared_build_authority,
+        "cache_before": cache_before,
+        "cache_after": cache_after,
+        "cache_delta": cache_delta,
+        "source_worktree_clean": source_worktree_clean,
     });
     write_json_pretty(
         &ci_output_path(workspace, &contract.timing_report)?,
         &serde_json::json!({
-            "schema_version": FAST_TIMING_SCHEMA_V4,
-            "source_commit": source_commit,
-            "contract_sha256": bijux_dna_infra::hash_file_sha256(&contract_path)?,
-            "observed_at_utc": chrono::Utc::now().to_rfc3339(),
-            "runner": {
-                "os": actual_os,
-                "architecture": actual_architecture,
-                "rust_toolchain": actual_rust_toolchain,
-                "compiler_wrapper": actual_compiler_wrapper,
-                "sccache_server_uds": sccache_runtime_env.iter().find_map(|(key, value)|
-                    (key == "SCCACHE_SERVER_UDS").then_some(value)),
-                "sccache_runtime_tmpdir": sccache_runtime_env.iter().find_map(|(key, value)|
-                    (key == "TMPDIR").then_some(value)),
-                "sccache_rustc_wrapper": group_compiler_env.iter().find_map(|(key, value)|
-                    (key == "RUSTC_WRAPPER").then_some(value)),
-                "cache_state": cache_state,
-                "cache_reuse_mode": cache_reuse_mode,
-                "requested_cache_state": requested_cache_state,
-                "shared_cache_authority": shared_cache_authority,
-                "build_authority": build_authority.target,
-                "shared_build_authority": shared_build_authority,
-                "cache_before": cache_before,
-                "cache_after": cache_after,
-                "cache_delta": cache_delta,
-                "source_worktree_clean": source_worktree_clean,
-            },
+            "schema_version": FAST_TIMING_SCHEMA_V5,
+            "source_commit": source_commit.clone(),
+            "contract_sha256": contract_sha256.clone(),
+            "observed_at_utc": observed_at_utc.clone(),
+            "runner": runner.clone(),
             "reference_runner": {
                 "os": contract.reference_runner.os,
                 "architecture": contract.reference_runner.architecture,
@@ -638,8 +689,11 @@ pub(in super::super) fn tooling_ci_fast(
             "eligible_reference_observation": eligible_reference_observation,
             "wall_time_milliseconds": wall_time_milliseconds,
             "all_passed": all_passed,
-            "critical_path": critical_path,
-            "groups": receipts,
+            "critical_path": critical_path.clone(),
+            "dependency_graph": dependency_graph.clone(),
+            "compiler_lock_waits": compiler_lock_waits.clone(),
+            "skipped_test_lanes": skipped_test_lanes.clone(),
+            "groups": receipts.clone(),
             "warm_reference_history": {
                 "sample_count": samples.len(),
                 "p50_milliseconds": p50,
@@ -649,7 +703,66 @@ pub(in super::super) fn tooling_ci_fast(
             },
         }),
     )?;
+    write_json_pretty(
+        &ci_output_path(workspace, &contract.baseline_report)?,
+        &serde_json::json!({
+            "schema_version": CI_CRITICAL_PATH_BASELINE_SCHEMA_V1,
+            "source_commit": source_commit,
+            "contract_sha256": contract_sha256,
+            "observed_at_utc": observed_at_utc,
+            "runner": runner,
+            "wall_time_milliseconds": wall_time_milliseconds,
+            "all_passed": all_passed,
+            "critical_path": critical_path,
+            "dependency_graph": dependency_graph,
+            "compiler_lock_waits": compiler_lock_waits,
+            "skipped_test_lanes": skipped_test_lanes,
+            "per_target_timings": receipts,
+        }),
+    )?;
     Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
+}
+
+fn cargo_lock_wait_events(log: &[u8]) -> usize {
+    String::from_utf8_lossy(log)
+        .to_ascii_lowercase()
+        .matches("blocking waiting for file lock")
+        .count()
+}
+
+fn ci_fast_critical_path(
+    groups: &[FastGroup],
+    durations: &BTreeMap<String, u64>,
+) -> Option<(Vec<String>, u64)> {
+    fn visit(
+        id: &str,
+        groups: &BTreeMap<&str, &FastGroup>,
+        durations: &BTreeMap<String, u64>,
+        memo: &mut BTreeMap<String, (Vec<String>, u64)>,
+    ) -> (Vec<String>, u64) {
+        if let Some(cached) = memo.get(id) {
+            return cached.clone();
+        }
+        let group = groups[id];
+        let mut path = group
+            .dependencies
+            .iter()
+            .map(|dependency| visit(dependency, groups, durations, memo))
+            .max_by_key(|(_, duration)| *duration)
+            .unwrap_or_default();
+        path.0.push(id.to_string());
+        path.1 += durations.get(id).copied().unwrap_or_default();
+        memo.insert(id.to_string(), path.clone());
+        path
+    }
+
+    let groups_by_id =
+        groups.iter().map(|group| (group.id.as_str(), group)).collect::<BTreeMap<_, _>>();
+    let mut memo = BTreeMap::new();
+    groups
+        .iter()
+        .map(|group| visit(&group.id, &groups_by_id, durations, &mut memo))
+        .max_by_key(|(_, duration)| *duration)
 }
 
 fn ci_fast_group_env(
@@ -1634,7 +1747,7 @@ fn validate_full_shard_contract(contract: &FullShardContract) -> Result<()> {
 }
 
 fn validate_fast_group_contract(contract: &FastGroupContract) -> Result<()> {
-    if contract.schema_version != FAST_GROUPS_SCHEMA_V2
+    if contract.schema_version != FAST_GROUPS_SCHEMA_V3
         || !(2..=16).contains(&contract.max_parallelism)
         || !(2..=16).contains(&contract.groups.len())
         || !(5..=100).contains(&contract.history_limit)
@@ -1650,6 +1763,31 @@ fn validate_fast_group_contract(contract: &FastGroupContract) -> Result<()> {
     validate_artifact_relative_path(&contract.report_root)?;
     validate_artifact_relative_path(&contract.timing_report)?;
     validate_artifact_relative_path(&contract.timing_history)?;
+    validate_artifact_relative_path(&contract.baseline_report)?;
+    if BTreeSet::from([
+        contract.timing_report.as_str(),
+        contract.timing_history.as_str(),
+        contract.baseline_report.as_str(),
+    ])
+    .len()
+        != 3
+    {
+        anyhow::bail!("ci-fast report paths must be distinct");
+    }
+
+    let excluded_lane_ids =
+        contract.excluded_lanes.iter().map(|lane| lane.id.as_str()).collect::<BTreeSet<_>>();
+    if excluded_lane_ids
+        != BTreeSet::from(["full-workspace", "lunarc-integration", "nightly-release"])
+        || excluded_lane_ids.len() != contract.excluded_lanes.len()
+        || contract.excluded_lanes.iter().any(|lane| {
+            lane.reason.trim().is_empty()
+                || lane.evidence_command.trim().is_empty()
+                || lane.evidence_command.contains(['\n', '\0'])
+        })
+    {
+        anyhow::bail!("ci-fast excluded lanes are incomplete");
+    }
 
     let mut ids = BTreeSet::new();
     for group in &contract.groups {
@@ -2061,21 +2199,25 @@ pub(in super::super) fn tooling_ci_coverage(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use super::{
-        artifact_root_path, cache_stats_delta, ci_fast_group_env, ci_output_path_under,
-        full_archive_args, full_archive_roots, full_shard_args, full_shard_env,
-        full_shard_root_receipt, full_shard_roots, full_shard_storage_receipt, isolated_build_tree,
-        materialize_ci_fast_compiler_wrapper, materialize_full_shard_workspace,
-        parse_compiler_wrapper_identity, parse_sccache_stats, percentile, read_ci_build_authority,
-        reference_timing_samples, remove_full_shard_ephemera, resolve_ci_fast_build_authority,
-        resolve_ci_fast_build_authority_with_scratch_roots, resolve_ci_fast_sccache_runtime_env,
-        resolve_full_shard_storage_roots, set_full_archive_readonly, start_owned_sccache_server,
+        artifact_root_path, cache_stats_delta, cargo_lock_wait_events, ci_fast_critical_path,
+        ci_fast_group_env, ci_output_path_under, full_archive_args, full_archive_roots,
+        full_shard_args, full_shard_env, full_shard_root_receipt, full_shard_roots,
+        full_shard_storage_receipt, isolated_build_tree, materialize_ci_fast_compiler_wrapper,
+        materialize_full_shard_workspace, parse_compiler_wrapper_identity, parse_sccache_stats,
+        percentile, read_ci_build_authority, reference_timing_samples, remove_full_shard_ephemera,
+        resolve_ci_fast_build_authority, resolve_ci_fast_build_authority_with_scratch_roots,
+        resolve_ci_fast_sccache_runtime_env, resolve_full_shard_storage_roots,
+        set_full_archive_readonly, start_owned_sccache_server,
         validate_ci_test_executor_observation, validate_fast_group_contract,
         validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
-        verified_warm_cache_mode, verify_sccache_compiler, FastCacheStats, FastGroup,
-        FastGroupContract, FastReferenceRunner, FastTimingHistory, FastTimingObservation,
-        FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage, FullShardEphemera,
-        FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V4, FULL_SHARD_SCRATCH_ROOT_ENV,
+        verified_warm_cache_mode, verify_sccache_compiler, FastCacheStats, FastExcludedLane,
+        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
+        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
+        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V4,
+        FULL_SHARD_SCRATCH_ROOT_ENV,
     };
     use crate::runtime::{process::ProcessRunner, workspace::Workspace};
 
@@ -2107,7 +2249,7 @@ mod tests {
 
     fn fast_contract() -> FastGroupContract {
         FastGroupContract {
-            schema_version: "bijux.ci.fast_groups.v2".to_string(),
+            schema_version: "bijux.ci.fast_groups.v3".to_string(),
             max_parallelism: 2,
             warm_cache_target_milliseconds: 300_000,
             minimum_cache_hit_ratio_basis_points: 8_000,
@@ -2115,12 +2257,25 @@ mod tests {
             report_root: "artifacts/ci/ci-fast-groups".to_string(),
             timing_report: "artifacts/ci/ci-fast-timing.json".to_string(),
             timing_history: "artifacts/ci/ci-fast-timing-history.json".to_string(),
+            baseline_report: "artifacts/ci/baseline-timing.json".to_string(),
             reference_runner: FastReferenceRunner {
                 os: "linux".to_string(),
                 architecture: "x86_64".to_string(),
                 rust_toolchain: "1.95.0".to_string(),
                 compiler_wrapper: "sccache".to_string(),
             },
+            excluded_lanes: [
+                ("full-workspace", "full", "make _ci-slow"),
+                ("lunarc-integration", "heavy", "bijux-dna benchmark cycle advance"),
+                ("nightly-release", "release", "make _ci-slow"),
+            ]
+            .into_iter()
+            .map(|(id, reason, evidence_command)| FastExcludedLane {
+                id: id.to_string(),
+                reason: reason.to_string(),
+                evidence_command: evidence_command.to_string(),
+            })
+            .collect(),
             groups: ["metadata", "unit"]
                 .into_iter()
                 .map(|id| FastGroup {
@@ -2488,6 +2643,61 @@ mod tests {
         let mut escaping = fast_contract();
         escaping.timing_report = "../ci-fast.json".to_string();
         assert!(validate_fast_group_contract(&escaping).is_err());
+
+        let mut omitted_lane = fast_contract();
+        omitted_lane.excluded_lanes.pop();
+        assert!(validate_fast_group_contract(&omitted_lane).is_err());
+
+        let mut duplicate_lane = fast_contract();
+        duplicate_lane.excluded_lanes.push(duplicate_lane.excluded_lanes[0].clone());
+        assert!(validate_fast_group_contract(&duplicate_lane).is_err());
+
+        let mut colliding_report = fast_contract();
+        colliding_report.baseline_report = colliding_report.timing_report.clone();
+        assert!(validate_fast_group_contract(&colliding_report).is_err());
+    }
+
+    #[test]
+    fn cargo_lock_wait_measurement_counts_diagnostics_without_inference() {
+        let log = b"Blocking waiting for file lock on build directory\n\
+                    Compiling example v0.1.0\n\
+                    blocking waiting for file lock on package cache\n";
+        assert_eq!(cargo_lock_wait_events(log), 2);
+        assert_eq!(cargo_lock_wait_events(b"Compiling without contention\n"), 0);
+    }
+
+    #[test]
+    fn critical_path_accumulates_dependency_chain_durations() {
+        let groups = vec![
+            FastGroup {
+                id: "source".to_string(),
+                dependencies: Vec::new(),
+                program: "true".to_string(),
+                args: Vec::new(),
+            },
+            FastGroup {
+                id: "dependent".to_string(),
+                dependencies: vec!["source".to_string()],
+                program: "true".to_string(),
+                args: Vec::new(),
+            },
+            FastGroup {
+                id: "independent".to_string(),
+                dependencies: Vec::new(),
+                program: "true".to_string(),
+                args: Vec::new(),
+            },
+        ];
+        let durations = BTreeMap::from([
+            ("source".to_string(), 40),
+            ("dependent".to_string(), 30),
+            ("independent".to_string(), 60),
+        ]);
+
+        assert_eq!(
+            ci_fast_critical_path(&groups, &durations),
+            Some((vec!["source".to_string(), "dependent".to_string()], 70))
+        );
     }
 
     #[test]

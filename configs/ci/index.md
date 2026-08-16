@@ -23,8 +23,9 @@ Layout:
   `report_root` rebases beneath `ARTIFACT_ROOT`; archive and shard declarations are logical paths
   remapped beneath the absolute `BIJUX_CI_FULL_SHARD_SCRATCH_ROOT` when supplied, or a disjoint
   local `artifacts/ci/full-shards-scratch` authority otherwise.
-- `configs/ci/fast-groups.json`: bounded independent fast-lane groups, reference runner and
-  warm-cache timing target executed by the same event-driven supervisor.
+- `configs/ci/fast-groups.json`: bounded independent fast-lane groups, reference runner,
+  warm-cache timing target, exact excluded-lane declarations, and current critical-path baseline
+  output executed by the same event-driven supervisor.
 
 Rule:
 - Keep governed config collections in named subdirectories with their own `index.md`.
