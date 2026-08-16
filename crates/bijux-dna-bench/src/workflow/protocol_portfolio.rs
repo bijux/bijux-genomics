@@ -66,6 +66,13 @@ pub struct BenchmarkProtocolPortfolio {
     pub derived_stage_count: usize,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum CatalogRole {
+    Corpus,
+    Reference,
+    Database,
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 #[allow(dead_code)]
@@ -190,6 +197,7 @@ pub fn derive_benchmark_protocol_portfolio(
     let definitions = load_run_definitions(repository_root)?;
     let bindings = canonical_tool_bindings()?;
     let probes = canonical_downstream_probes()?;
+    let catalog_roles = catalog_role_authority(&seed_campaigns)?;
 
     let reviewed_stage_ids = seed_campaigns
         .campaigns
@@ -247,7 +255,7 @@ pub fn derive_benchmark_protocol_portfolio(
         let campaign = if let Some(reviewed) = reviewed_campaigns.get(stage_id) {
             reviewed.clone()
         } else {
-            derive_campaign(definition, profile, &corpora, &stage, &stage_bindings)?
+            derive_campaign(definition, profile, &corpora, &stage, &stage_bindings, &catalog_roles)?
         };
         let interface = if let Some(reviewed) = reviewed_interfaces.get(stage_id) {
             reviewed.clone()
@@ -351,13 +359,14 @@ fn derive_campaign(
     corpora: &BTreeMap<&str, &bijux_dna_bench_model::BenchmarkCorpusContract>,
     stage: &DomainStageDeclaration,
     bindings: &[&bijux_dna_stage_contract::ToolBindingV1],
+    catalog_roles: &BTreeMap<String, CatalogRole>,
 ) -> Result<BenchmarkStageCampaignSpec> {
     let corpus_ids = definition
         .corpus_roles
         .iter()
         .flat_map(|role| role.corpus_ids.iter().cloned())
         .collect::<BTreeSet<_>>();
-    let corpus_catalog_ids = corpus_ids
+    let catalog_ids = corpus_ids
         .iter()
         .flat_map(|corpus_id| {
             corpora
@@ -366,6 +375,42 @@ fn derive_campaign(
                 .flat_map(|corpus| corpus.catalog_ids.clone())
         })
         .collect::<BTreeSet<_>>();
+    let requires_reference = bindings.iter().flat_map(|binding| binding.inputs()).any(|input| {
+        input.name.contains("reference")
+            || input.name.contains("genetic_map")
+            || input.artifact_contract_id.contains("reference")
+    });
+    let requires_database = bindings.iter().flat_map(|binding| binding.inputs()).any(|input| {
+        input.name.contains("database")
+            || input.name.contains("taxonomy")
+            || input.artifact_contract_id.contains("database")
+    });
+    let corpus_catalog_ids: Vec<String> = catalog_ids
+        .iter()
+        .filter(|catalog_id| {
+            catalog_roles.get(*catalog_id).copied().unwrap_or(CatalogRole::Corpus)
+                == CatalogRole::Corpus
+        })
+        .cloned()
+        .collect();
+    let reference_catalog_ids: Vec<String> = if requires_reference {
+        catalog_ids
+            .iter()
+            .filter(|catalog_id| catalog_roles.get(*catalog_id) == Some(&CatalogRole::Reference))
+            .cloned()
+            .collect()
+    } else {
+        Vec::new()
+    };
+    let database_catalog_ids: Vec<String> = if requires_database {
+        catalog_ids
+            .iter()
+            .filter(|catalog_id| catalog_roles.get(*catalog_id) == Some(&CatalogRole::Database))
+            .cloned()
+            .collect()
+    } else {
+        Vec::new()
+    };
     let mut limitations = corpus_ids
         .iter()
         .flat_map(|corpus_id| {
@@ -417,9 +462,9 @@ fn derive_campaign(
             profile.interchangeability, profile.downstream_probe
         ),
         tool_ids: definition.tool_ids.clone(),
-        corpus_catalog_ids: corpus_catalog_ids.into_iter().collect(),
-        reference_catalog_ids: Vec::new(),
-        database_catalog_ids: Vec::new(),
+        corpus_catalog_ids,
+        reference_catalog_ids,
+        database_catalog_ids,
         input_size_keys: input_size_keys.into_iter().collect(),
         result_artifact: "normalized-result.json".to_string(),
         runtime: BenchmarkExecutionRuntime::Apptainer,
@@ -441,6 +486,27 @@ fn derive_campaign(
         comparison_metrics,
         limitations: limitations.into_iter().collect(),
     })
+}
+
+fn catalog_role_authority(
+    campaigns: &BenchmarkStageCampaignRegistry,
+) -> Result<BTreeMap<String, CatalogRole>> {
+    let mut roles = BTreeMap::new();
+    for campaign in campaigns.campaigns.iter().filter(|campaign| campaign.material_driver.is_some())
+    {
+        for (ids, role) in [
+            (&campaign.corpus_catalog_ids, CatalogRole::Corpus),
+            (&campaign.reference_catalog_ids, CatalogRole::Reference),
+            (&campaign.database_catalog_ids, CatalogRole::Database),
+        ] {
+            for catalog_id in ids {
+                if roles.insert(catalog_id.clone(), role).is_some_and(|existing| existing != role) {
+                    bail!("reviewed campaigns assign conflicting roles to catalog {catalog_id}");
+                }
+            }
+        }
+    }
+    Ok(roles)
 }
 
 fn comparison_metric(metric: &DomainStageMetric) -> BenchmarkComparisonMetricTolerance {
@@ -774,6 +840,45 @@ mod tests {
             })
             .count();
         assert_eq!(licensed_pairs, 8);
+        let role_assignments = portfolio
+            .campaigns
+            .campaigns
+            .iter()
+            .flat_map(|campaign| {
+                [
+                    (&campaign.corpus_catalog_ids, CatalogRole::Corpus),
+                    (&campaign.reference_catalog_ids, CatalogRole::Reference),
+                    (&campaign.database_catalog_ids, CatalogRole::Database),
+                ]
+                .into_iter()
+                .flat_map(|(catalog_ids, role)| {
+                    catalog_ids.iter().map(move |catalog_id| (catalog_id.clone(), role))
+                })
+            })
+            .collect::<BTreeSet<_>>();
+        let role_counts = role_assignments.into_iter().fold(
+            BTreeMap::<String, BTreeSet<CatalogRole>>::new(),
+            |mut counts, (catalog_id, role)| {
+                counts.entry(catalog_id).or_default().insert(role);
+                counts
+            },
+        );
+        assert!(role_counts.values().all(|roles| roles.len() == 1));
+        let correct_errors = portfolio
+            .campaigns
+            .campaigns
+            .iter()
+            .find(|campaign| campaign.stage_id == "fastq.correct_errors")
+            .context("derived correction campaign is absent")?;
+        assert!(!correct_errors.corpus_catalog_ids.contains(&"grch38-reference".to_string()));
+        assert!(correct_errors.reference_catalog_ids.is_empty());
+        let deplete_host = portfolio
+            .campaigns
+            .campaigns
+            .iter()
+            .find(|campaign| campaign.stage_id == "fastq.deplete_host")
+            .context("derived host-depletion campaign is absent")?;
+        assert_eq!(deplete_host.reference_catalog_ids, ["grch38-reference"]);
         Ok(())
     }
 }
