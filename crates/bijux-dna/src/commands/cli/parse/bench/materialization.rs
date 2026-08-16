@@ -18,6 +18,9 @@ pub struct BenchAcquireSelectedFastqCollectionArgs {
     pub spec: PathBuf,
     #[arg(long)]
     pub collection_id: String,
+    /// Immutable ENA record fixture used when the live metadata service is unavailable.
+    #[arg(long)]
+    pub offline_fixture: Option<PathBuf>,
     #[arg(long)]
     pub output: PathBuf,
     #[arg(long)]

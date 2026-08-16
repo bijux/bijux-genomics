@@ -484,6 +484,7 @@ pub(crate) fn handle_meta_commands(
                             &bijux_dna_api::v1::api::bench::SelectedFastqCollectionAcquisitionRequest {
                                 spec_path: args.spec.clone(),
                                 collection_id: args.collection_id.clone(),
+                                offline_fixture_path: args.offline_fixture.clone(),
                                 output_path: args.output.clone(),
                                 retrieved_at_utc: args.retrieved_at_utc.clone(),
                             },

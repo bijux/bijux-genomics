@@ -12,10 +12,12 @@ use bijux_dna_bench_model::{
     FastqCorpusSourceSample, FastqCorpusSourceSpec, CORPUS_ACQUISITION_SCHEMA_V2,
 };
 use bijux_dna_db_ena::{
-    EnaClient, EnaFileSource, EnaQuery, EnaRecord, EnaResultKind, EnaSourcePreference,
+    fetch_records_from_offline_fixture, EnaClient, EnaFileSource, EnaQuery, EnaRecord,
+    EnaResultKind, EnaSourcePreference,
 };
 use chrono::{DateTime, FixedOffset};
 const MAX_CORPUS_SPEC_BYTES: usize = 4 * 1024 * 1024;
+const MAX_ENA_OFFLINE_FIXTURE_BYTES: usize = 64 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CorpusAcquisitionRequest {
@@ -28,6 +30,7 @@ pub struct CorpusAcquisitionRequest {
 pub struct SelectedFastqCollectionAcquisitionRequest {
     pub spec_path: PathBuf,
     pub collection_id: String,
+    pub offline_fixture_path: Option<PathBuf>,
     pub output_path: PathBuf,
     pub retrieved_at_utc: String,
 }
@@ -87,10 +90,7 @@ pub fn acquire_selected_fastq_collection(
         extra_accessions: collection.selected_accessions.clone(),
         result: EnaResultKind::ReadRun,
     };
-    let records = EnaClient::from_crate_identity()
-        .context("create ENA acquisition client")?
-        .fetch_records(&query)
-        .context("fetch selected collection metadata")?;
+    let records = selected_collection_records(request.offline_fixture_path.as_deref(), &query)?;
     let plan = derive_selected_fastq_collection_acquisition_plan(
         &request.spec_path,
         &request.collection_id,
@@ -100,6 +100,23 @@ pub fn acquire_selected_fastq_collection(
     bijux_dna_infra::atomic_create_json(&request.output_path, &plan)
         .with_context(|| format!("publish acquisition plan {}", request.output_path.display()))?;
     Ok(plan)
+}
+
+fn selected_collection_records(
+    offline_fixture_path: Option<&Path>,
+    query: &EnaQuery,
+) -> Result<Vec<EnaRecord>> {
+    let Some(path) = offline_fixture_path else {
+        return EnaClient::from_crate_identity()
+            .context("create ENA acquisition client")?
+            .fetch_records(query)
+            .context("fetch selected collection metadata");
+    };
+    let bytes = bijux_dna_infra::read_to_end_bounded(path, MAX_ENA_OFFLINE_FIXTURE_BYTES)
+        .with_context(|| format!("read offline ENA fixture {}", path.display()))?;
+    let raw = std::str::from_utf8(&bytes).context("offline ENA fixture is not UTF-8")?;
+    fetch_records_from_offline_fixture(raw, query)
+        .with_context(|| format!("load offline ENA fixture {}", path.display()))
 }
 
 /// Deterministically derive a selected-collection plan from caller-supplied ENA records.
@@ -519,8 +536,9 @@ mod tests {
     use bijux_dna_db_ena::EnaRecord;
 
     use super::{
-        derive_fastq_corpus_acquisition_plan, derive_selected_fastq_collection_acquisition_plan,
-        load_fastq_corpus_source_spec,
+        acquire_selected_fastq_collection, derive_fastq_corpus_acquisition_plan,
+        derive_selected_fastq_collection_acquisition_plan, load_fastq_corpus_source_spec,
+        SelectedFastqCollectionAcquisitionRequest,
     };
 
     #[test]
@@ -723,6 +741,39 @@ mod tests {
         assert_eq!(plan.samples[1].size_band, "under_1000mb");
         assert_eq!(plan.samples[1].files[0].mate, None);
         assert_eq!(plan.policy.truth_strategy, "orthogonal_expectations");
+        Ok(())
+    }
+
+    #[test]
+    fn selected_collection_acquisition_accepts_immutable_offline_fixture() -> anyhow::Result<()> {
+        let temporary = tempfile::tempdir()?;
+        let spec_path = temporary.path().join("source.toml");
+        let fixture_path = temporary.path().join("ena-records.json");
+        let output_path = temporary.path().join("acquisition-plan.json");
+        write_selected_collection_source(&spec_path)?;
+        fs::write(
+            &fixture_path,
+            serde_json::to_vec_pretty(&serde_json::json!({
+                "schema_version": "bijux.ena.offline_fixture.v1",
+                "runs": [
+                    record("ERR000001", "SINGLE", 'a', &[99_000_000]),
+                    record("ERR000002", "PAIRED", 'b', &[600_000_000]),
+                ],
+            }))?,
+        )?;
+
+        let plan = acquire_selected_fastq_collection(&SelectedFastqCollectionAcquisitionRequest {
+            spec_path,
+            collection_id: "selected-runs".to_string(),
+            offline_fixture_path: Some(fixture_path),
+            output_path: output_path.clone(),
+            retrieved_at_utc: "2026-08-16T00:00:00Z".to_string(),
+        })?;
+
+        assert_eq!(plan.sample_count, 2);
+        assert_eq!(plan.file_count, 2);
+        assert_eq!(plan.samples[1].files[0].mate, None);
+        assert!(output_path.is_file());
         Ok(())
     }
 
