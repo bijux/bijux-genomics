@@ -152,6 +152,8 @@ The production lifecycle is one-way and identity-addressed:
    identified collection plans. Every selected FASTQ collection declares its sample era as
    `ancient`, `modern`, or `not_applicable`; the resolver never infers this scientific context
    from names or accession prefixes.
+   Biological paired-end layout is preserved independently from archive file organization: a
+   paired run may resolve to one non-mate-addressed FASTQ or two explicitly mate-addressed FASTQs.
 4. Transfer or derive bytes into a staging root and validate format, record closure, sample
    identity, size, and checksum.
 5. Publish an immutable governed catalog and access receipt under STUDY.

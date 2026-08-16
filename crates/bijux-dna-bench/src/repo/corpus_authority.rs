@@ -400,7 +400,7 @@ fn parse_layout(layout: &str) -> Result<BenchmarkFastqLayout> {
 fn validate_mate(layout: BenchmarkFastqLayout, mate: Option<u8>, sample_id: &str) -> Result<()> {
     let valid = match layout {
         BenchmarkFastqLayout::SingleEnd => mate.is_none(),
-        BenchmarkFastqLayout::PairedEnd => matches!(mate, Some(1 | 2)),
+        BenchmarkFastqLayout::PairedEnd => mate.is_none() || matches!(mate, Some(1 | 2)),
     };
     if !valid {
         bail!("FASTQ mate declaration is invalid for sample {sample_id}");
@@ -413,18 +413,24 @@ fn validate_file_closure(
     files: &[AdmittedFastqCorpusFile],
     sample_id: &str,
 ) -> Result<()> {
-    let valid = match layout {
-        BenchmarkFastqLayout::SingleEnd => files.len() == 1 && files[0].mate.is_none(),
-        BenchmarkFastqLayout::PairedEnd => {
-            files.len() == 2
-                && files.iter().map(|file| file.mate).collect::<BTreeSet<_>>()
-                    == BTreeSet::from([Some(1), Some(2)])
-        }
-    };
+    let mates = files.iter().map(|file| file.mate).collect::<Vec<_>>();
+    let valid = valid_fastq_file_organization(layout, &mates);
     if !valid {
         bail!("FASTQ file closure disagrees with layout for sample {sample_id}");
     }
     Ok(())
+}
+
+fn valid_fastq_file_organization(layout: BenchmarkFastqLayout, mates: &[Option<u8>]) -> bool {
+    match layout {
+        BenchmarkFastqLayout::SingleEnd => mates == [None],
+        BenchmarkFastqLayout::PairedEnd => {
+            mates == [None]
+                || (mates.len() == 2
+                    && mates.iter().copied().collect::<BTreeSet<_>>()
+                        == BTreeSet::from([Some(1), Some(2)]))
+        }
+    }
 }
 
 fn governed_regular_file(study_root: &Path, path: &Path, label: &str) -> Result<PathBuf> {
@@ -517,7 +523,18 @@ fn path_string(path: &Path) -> Result<String> {
 mod tests {
     use serde_json::json;
 
-    use super::parse_data_catalog;
+    use super::{parse_data_catalog, valid_fastq_file_organization};
+    use bijux_dna_bench_model::BenchmarkFastqLayout;
+
+    #[test]
+    fn paired_fastq_admission_distinguishes_archive_file_organizations() {
+        assert!(valid_fastq_file_organization(BenchmarkFastqLayout::PairedEnd, &[None]));
+        assert!(valid_fastq_file_organization(
+            BenchmarkFastqLayout::PairedEnd,
+            &[Some(1), Some(2)]
+        ));
+        assert!(!valid_fastq_file_organization(BenchmarkFastqLayout::PairedEnd, &[Some(1)]));
+    }
 
     #[test]
     fn preserved_composite_catalog_retains_fastq_and_alignment_truth_rows() -> anyhow::Result<()> {

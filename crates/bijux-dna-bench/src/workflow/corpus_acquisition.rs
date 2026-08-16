@@ -472,13 +472,14 @@ fn resolve_record_files(
     record: &EnaRecord,
 ) -> Result<Vec<CorpusAcquisitionFile>> {
     let urls = record.preferred_urls(EnaFileSource::FastqFtp, EnaSourcePreference::Https);
-    let expected = match layout {
-        CorpusAcquisitionLayout::Se => 1,
-        CorpusAcquisitionLayout::Pe => 2,
+    let file_count = urls.len();
+    let layout_file_count_valid = match layout {
+        CorpusAcquisitionLayout::Se => file_count == 1,
+        CorpusAcquisitionLayout::Pe => matches!(file_count, 1 | 2),
     };
-    if urls.len() != expected
-        || record.fastq_md5.len() != expected
-        || record.fastq_bytes.len() != expected
+    if !layout_file_count_valid
+        || record.fastq_md5.len() != file_count
+        || record.fastq_bytes.len() != file_count
     {
         bail!("ENA FASTQ location, digest, size, or layout counts disagree for {}", accession);
     }
@@ -493,7 +494,8 @@ fn resolve_record_files(
                 .filter(|value| !value.is_empty())
                 .context("ENA FASTQ URL has no file name")?;
             Ok(CorpusAcquisitionFile {
-                mate: (expected == 2).then_some(u8::try_from(index + 1)?),
+                mate: (layout == CorpusAcquisitionLayout::Pe && file_count == 2)
+                    .then_some(u8::try_from(index + 1)?),
                 name: name.to_string(),
                 source_url,
                 source_md5: source_md5.clone(),
@@ -700,7 +702,7 @@ mod tests {
         write_selected_collection_source(&spec_path)?;
         let records = [
             record("ERR000001", "SINGLE", 'a', &[99_000_000]),
-            record("ERR000002", "PAIRED", 'b', &[300_000_000, 300_000_000]),
+            record("ERR000002", "PAIRED", 'b', &[600_000_000]),
         ];
 
         let plan = derive_selected_fastq_collection_acquisition_plan(
@@ -714,12 +716,12 @@ mod tests {
         assert_eq!(plan.portfolio_id, "stage-truth-panel");
         assert_eq!(plan.species, "Homo sapiens");
         assert_eq!(plan.sample_count, 2);
-        assert_eq!(plan.file_count, 3);
+        assert_eq!(plan.file_count, 2);
         assert_eq!(plan.total_size_bytes, 699_000_000);
         assert_eq!(plan.samples[0].era, "modern");
         assert_eq!(plan.samples[0].size_band, "under_100mb");
         assert_eq!(plan.samples[1].size_band, "under_1000mb");
-        assert_eq!(plan.samples[1].files[1].mate, Some(2));
+        assert_eq!(plan.samples[1].files[0].mate, None);
         assert_eq!(plan.policy.truth_strategy, "orthogonal_expectations");
         Ok(())
     }
