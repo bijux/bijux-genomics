@@ -64,16 +64,24 @@ pub fn validate_benchmark_data_source_spec(
                 "source collection data type is absent from the corpus declaration",
             ));
         }
-        if collection.planned_sample_count == Some(0) {
-            return Err(invalid("source collection planned sample count is zero"));
+        if collection.planned_sample_count == Some(0)
+            || collection.planned_accession_count == Some(0)
+        {
+            return Err(invalid("source collection planned count is zero"));
+        }
+        if collection.planned_accession_count.is_some() && collection.planned_sample_count.is_none()
+        {
+            return Err(invalid("source collection accession count lacks a planned sample count"));
         }
         if !collection.selected_accessions.is_empty() {
             validate_ordered_values(&collection.selected_accessions, "selected source accession")?;
             let explicit_count = u64::try_from(collection.selected_accessions.len())
                 .map_err(|_| invalid("selected source accession count overflows"))?;
-            if collection.planned_sample_count != Some(explicit_count) {
+            let planned_accessions =
+                collection.planned_accession_count.or(collection.planned_sample_count);
+            if planned_accessions != Some(explicit_count) {
                 return Err(invalid(
-                    "selected source accessions differ from the planned sample count",
+                    "selected source accessions differ from the planned accession count",
                 ));
             }
             if collection

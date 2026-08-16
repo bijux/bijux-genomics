@@ -39,6 +39,14 @@
           },
           "type": "array"
         },
+        "planned_accession_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
         "planned_sample_count": {
           "format": "uint64",
           "minimum": 0,

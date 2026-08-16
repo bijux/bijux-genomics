@@ -50,13 +50,28 @@ fn explicit_selected_accessions_bind_the_planned_collection_count() {
 
     source.collections[0].selected_accessions = vec!["SAMPLE-001".to_string()];
     assert!(validate_benchmark_data_source_spec(&source)
-        .is_err_and(|error| error.to_string().contains("planned sample count")));
+        .is_err_and(|error| error.to_string().contains("planned accession count")));
 
     source.collections[0].planned_sample_count = Some(1);
     source.collections[1].planned_sample_count = Some(1);
     source.collections[1].selected_accessions = vec!["SAMPLE-001".to_string()];
     assert!(validate_benchmark_data_source_spec(&source)
         .is_err_and(|error| error.to_string().contains("more than once")));
+}
+
+#[test]
+fn paired_treatment_samples_can_bind_multiple_run_accessions() {
+    let mut source = source_spec();
+    source.target_sample_count = 2;
+    source.collections[0].planned_sample_count = Some(2);
+    source.collections[0].planned_accession_count = Some(4);
+    source.collections[0].selected_accessions =
+        ["RUN-001-A", "RUN-001-B", "RUN-002-A", "RUN-002-B"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+
+    assert!(validate_benchmark_data_source_spec(&source).is_ok());
 }
 
 #[test]
@@ -118,6 +133,7 @@ fn source_spec() -> BenchmarkDataSourceSpec {
                 access_terms_url: "https://example.org/access".to_string(),
                 data_types: vec!["bam".to_string(), "vcf".to_string()],
                 planned_sample_count: Some(10),
+                planned_accession_count: None,
                 selected_accessions: Vec::new(),
                 selection_scope: "All ten independently characterized samples.".to_string(),
                 truth_basis: "Orthogonal measurements define benchmark genotypes.".to_string(),
@@ -133,6 +149,7 @@ fn source_spec() -> BenchmarkDataSourceSpec {
                 access_terms_url: "https://example.org/access".to_string(),
                 data_types: vec!["vcf".to_string()],
                 planned_sample_count: None,
+                planned_accession_count: None,
                 selected_accessions: Vec::new(),
                 selection_scope: "One immutable supporting map.".to_string(),
                 truth_basis: "The authority publishes the map independently of samples."

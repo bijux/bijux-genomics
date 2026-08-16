@@ -40,6 +40,7 @@ source_url = "https://www.ncbi.nlm.nih.gov/sra/SRX1478507"
 access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
 data_types = ["amplicon_reference", "fastq"]
 planned_sample_count = 1
+selected_accessions = ["SRR2990088"]
 selection_scope = "The single paired-end MiSeq run and its declared 27-isolate composition spanning six orders of abundance."
 truth_basis = "The archive record declares isolate membership, fine-scale 16S differences, and designed frequency range."
 known_limitations = ["One run cannot establish cross-batch or cross-laboratory repeatability."]

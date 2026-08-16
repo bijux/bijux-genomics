@@ -40,6 +40,18 @@ source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJEB8448"
 access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
 data_types = ["fastq"]
 planned_sample_count = 10
+selected_accessions = [
+  "ERR15108349",
+  "ERR15886307",
+  "ERR15886310",
+  "ERR4210492",
+  "ERR4210542",
+  "ERR769585",
+  "ERR769590",
+  "ERR769591",
+  "ERR769594",
+  "ERR769610",
+]
 selection_scope = "The ten ancient runs already declared in the human short-read diversity source authority, spanning single- and paired-end libraries and four studies."
 truth_basis = "Archive metadata and study evidence establish authentic ancient-library context; damage observations require an independent governed derivation."
 known_limitations = ["The collection has no calibrated adapter, UMI, or molecule-level duplicate truth."]

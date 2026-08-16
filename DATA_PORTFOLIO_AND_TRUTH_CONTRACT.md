@@ -82,6 +82,12 @@ Every corpus, reference, database, panel, or truth set must retain:
 Mutable URLs, live database names, local absolute workspace paths, and scheduler job IDs are
 provenance inputs, not stable data identities.
 
+Planned biological samples and planned archive accessions are separate counts. A treatment pair,
+technical replicate, or multi-run library may require multiple exact accessions for one sample;
+the source authority must freeze both counts and every selected accession without inflating the
+scientific sample count. An unfrozen sample-bearing collection is not acquisition-ready and must
+remain an explicit portfolio-audit blocker.
+
 ## Scientific Fitness
 
 The bound profile in

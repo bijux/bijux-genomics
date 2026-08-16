@@ -75,7 +75,35 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
                 && corpus.source_specs.len() == 1
                 && corpus.projected_storage_bytes == Some(100_000_000_000)
                 && corpus.projected_cpu_hours == Some(1_500)
+                && corpus.source_specs[0].planned_sample_count == Some(21)
+                && corpus.source_specs[0].planned_accession_count == Some(31)
+                && corpus.source_specs[0].selected_accession_count == Some(31)
+                && corpus.source_specs[0].selection_complete == Some(true)
                 && corpus.blockers == ["source-defined corpus has not been admitted"]
+        }));
+    assert!(audit
+        .corpora
+        .iter()
+        .find(|corpus| corpus.corpus_id == "read-processing-challenge")
+        .is_some_and(|corpus| {
+            corpus.source_specs[0].planned_sample_count == Some(20)
+                && corpus.source_specs[0].planned_accession_count == Some(20)
+                && corpus.source_specs[0].selected_accession_count == Some(10)
+                && corpus.source_specs[0].selection_complete == Some(false)
+                && corpus.blockers
+                    == [
+                        "source selection is not frozen by exact accessions",
+                        "source-defined corpus has not been admitted",
+                    ]
+        }));
+    assert!(audit
+        .corpora
+        .iter()
+        .find(|corpus| corpus.corpus_id == "amplicon-community-challenge")
+        .is_some_and(|corpus| {
+            corpus.source_specs[0].planned_sample_count == Some(11)
+                && corpus.source_specs[0].selected_accession_count == Some(1)
+                && corpus.source_specs[0].selection_complete == Some(false)
         }));
     assert!(audit
         .corpora
@@ -83,7 +111,11 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
         .find(|corpus| corpus.corpus_id == "variant-truth-panel")
         .is_some_and(|corpus| {
             !corpus.publishable_data_ready
-                && corpus.blockers == ["source-defined corpus has not been admitted"]
+                && corpus.blockers
+                    == [
+                        "source selection is not frozen by exact accessions",
+                        "source-defined corpus has not been admitted",
+                    ]
                 && corpus.source_specs.len() == 1
                 && corpus.projected_storage_bytes.is_some()
                 && corpus.projected_cpu_hours.is_some()
@@ -92,7 +124,11 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
         assert!(audit.corpora.iter().find(|corpus| corpus.corpus_id == corpus_id).is_some_and(
             |corpus| {
                 !corpus.publishable_data_ready
-                    && corpus.blockers == ["source-defined corpus has not been admitted"]
+                    && corpus.blockers
+                        == [
+                            "source selection is not frozen by exact accessions",
+                            "source-defined corpus has not been admitted",
+                        ]
                     && corpus.source_specs.len() == 1
                     && corpus.projected_storage_bytes.is_some()
                     && corpus.projected_cpu_hours.is_some()
@@ -113,6 +149,8 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
     let markdown = render_benchmark_data_portfolio_audit_markdown(&audit);
     assert!(markdown.contains("eligibility proves governed file identity"));
     assert!(markdown.contains("## Corpus inventory and projections"));
+    assert!(markdown.contains("## Source selection closure"));
+    assert!(markdown.contains("Selected/planned accessions"));
     assert!(markdown.contains("## Truth-role matrix"));
     assert!(markdown.contains("## Bound catalog access matrix"));
     assert!(markdown.contains("not declared by governed catalog"));

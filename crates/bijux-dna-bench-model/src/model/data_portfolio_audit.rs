@@ -15,6 +15,16 @@ pub struct BenchmarkDataSourceSpecIdentity {
     pub sha256: String,
     pub projected_storage_bytes: Option<u64>,
     pub projected_cpu_hours: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selection_group_count: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub planned_sample_count: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub planned_accession_count: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selected_accession_count: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selection_complete: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
