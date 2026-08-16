@@ -154,6 +154,22 @@ struct ReferenceFile {
     sha256: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum CatalogAuthority<T> {
+    Preserved { preserved_catalog: T },
+    Direct(T),
+}
+
+impl<T> CatalogAuthority<T> {
+    fn into_catalog(self) -> T {
+        match self {
+            Self::Preserved { preserved_catalog } => preserved_catalog,
+            Self::Direct(catalog) => catalog,
+        }
+    }
+}
+
 /// Build one derived-catalog candidate only after all declared sources and result bytes close.
 ///
 /// The worker plan is not trusted as scientific authority: this function binds it back to the
@@ -372,10 +388,8 @@ fn validate_plan(plan: &Plan, expected_samples: &[String], data_root: &Path) -> 
 }
 
 fn verify_source_reads(plan: &Plan, catalog_path: &Path, data_root: &Path) -> Result<()> {
-    let value: serde_json::Value = read_json(catalog_path, "source catalog")?;
-    let catalog: SourceCatalog =
-        serde_json::from_value(value.get("preserved_catalog").unwrap_or(&value).clone())
-            .context("parse source catalog authority")?;
+    let catalog = read_json::<CatalogAuthority<SourceCatalog>>(catalog_path, "source catalog")?
+        .into_catalog();
     validate_source_catalog_metadata(plan, &catalog)?;
     for read in plan.samples.iter().flat_map(|sample| &sample.reads) {
         let path = governed_file(&read.path, data_root, "source FASTQ")?;
@@ -438,10 +452,9 @@ fn validate_source_catalog_metadata(plan: &Plan, catalog: &SourceCatalog) -> Res
 }
 
 fn verify_reference_catalog(plan: &Plan, catalog_path: &Path) -> Result<()> {
-    let value: serde_json::Value = read_json(catalog_path, "reference catalog")?;
-    let catalog: ReferenceCatalog =
-        serde_json::from_value(value.get("preserved_catalog").unwrap_or(&value).clone())
-            .context("parse reference catalog authority")?;
+    let catalog =
+        read_json::<CatalogAuthority<ReferenceCatalog>>(catalog_path, "reference catalog")?
+            .into_catalog();
     if catalog.id != "grch38-reference" || catalog.reference_assembly != "GRCh38 / GCF_000001405.40"
     {
         bail!("BAM diversity reference catalog has the wrong identity");
