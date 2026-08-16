@@ -2,8 +2,8 @@
   "schema_version": "bijux.benchmark.publication_registry.v2",
   "summary": {
     "current_product_count": 6,
-    "current_run_report_count": 6,
-    "missing_run_report_count": 65,
+    "current_run_report_count": 7,
+    "missing_run_report_count": 64,
     "stale_run_report_count": 0,
     "failed_run_report_count": 0,
     "superseded_run_report_count": 0,
@@ -23,9 +23,9 @@
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "57961472c812a2658827cd382c851cf38a93d6aac04764e1573f2732bde49432",
+      "json_sha256": "fb61c909ec6ec8921198e441a31942bc8719c9d6364fdf354bfbdf851f971f6f",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
-      "markdown_sha256": "af0e1efdf8f0260398cd9274a2b782c6bdf6c51dff0b8c03046139d7a5e6b46d"
+      "markdown_sha256": "6b56ac0781c9d8bff88fdcd72094337a0f027e25674a02ae5b2f86ebe92db3cc"
     },
     {
       "product_id": "stage-universe",
@@ -98,9 +98,20 @@
     {
       "run_id": "run-2003",
       "stage_id": "bam.endogenous_content",
-      "disposition": "missing",
+      "disposition": "current",
+      "report": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/run-2003-bam-endogenous-content.json",
+        "sha256": "864fc7941c96b081bdf36b63837163a1356b1114d106edc038111af262c11a76",
+        "size_bytes": 6249
+      },
+      "publication_receipt": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/publication-receipt.json",
+        "sha256": "1f5c5f284ac972e7e5217126488cd3377bb6bc1bb8a49ed9b692121cf483d988",
+        "size_bytes": 2604
+      },
       "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+        "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure.",
+        "The citation is limited to the exact admitted cases, data authorities, artifacts, measurements, scientific verdicts, and downstream evidence selected by this source-locked publication."
       ]
     },
     {

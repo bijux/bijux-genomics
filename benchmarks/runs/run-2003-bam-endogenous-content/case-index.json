@@ -6,8 +6,18 @@
     "stage_id": "bam.endogenous_content"
   },
   "protocol_sha256": "846580c8637ff3495585410a7d6b38379a45ffc74696c3dc4113505756c38a48",
-  "cases": [],
+  "cases": [
+    {
+      "case_id": "run-2003--samtools--ena-prjeb22390-err2112767-bam",
+      "tool_id": "samtools",
+      "definition": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/case-definition-run-2003--samtools--ena-prjeb22390-err2112767-bam.json",
+        "sha256": "562ab072e2045ec7fa90701378d0055b5d98e0a9c1e08105a82f816bfe3bd724",
+        "size_bytes": 9502
+      }
+    }
+  ],
   "limitations": [
-    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+    "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure."
   ]
 }
