@@ -405,12 +405,18 @@ fn prepare_runtime_smoke_command(
 }
 
 fn current_smoke_executable(repo_root: &Path) -> Result<Option<String>> {
-    let dev_executable = repo_root.join("artifacts/rust/target/debug/bijux-dna-dev");
-    if dev_executable.is_file() {
-        return Ok(Some(path_relative_to_repo(repo_root, &dev_executable)));
-    }
     let executable = std::env::current_exe().context("resolve current executable")?;
-    Ok(Some(path_relative_to_repo(repo_root, &executable)))
+    Ok(resolve_smoke_executable(repo_root, &executable))
+}
+
+fn resolve_smoke_executable(repo_root: &Path, executable: &Path) -> Option<String> {
+    let dev_name = format!("bijux-dna-dev{}", std::env::consts::EXE_SUFFIX);
+    let dev_executable = repo_root.join("artifacts/rust/target/debug").join(&dev_name);
+    if dev_executable.is_file() {
+        return Some(path_relative_to_repo(repo_root, &dev_executable));
+    }
+    let sibling = executable.with_file_name(dev_name);
+    sibling.is_file().then(|| path_relative_to_repo(repo_root, &sibling))
 }
 
 fn governed_bijux_bin_env(repo_root: &Path) -> Result<Option<String>> {
@@ -592,6 +598,34 @@ mod tests {
             parsed.into_iter().collect::<Vec<_>>(),
             vec!["adapterremoval".to_string(), "shapeit5".to_string()]
         );
+    }
+
+    #[test]
+    fn smoke_executable_uses_dev_binary_beside_archived_bijux_binary() -> Result<()> {
+        let repo_root = tempfile::tempdir()?;
+        let archive = tempfile::tempdir()?;
+        let executable = archive.path().join(format!("bijux-dna{}", std::env::consts::EXE_SUFFIX));
+        let dev_executable =
+            archive.path().join(format!("bijux-dna-dev{}", std::env::consts::EXE_SUFFIX));
+        bijux_dna_infra::write_bytes(&executable, b"archived operator")?;
+        bijux_dna_infra::write_bytes(&dev_executable, b"archived developer operator")?;
+
+        let resolved = resolve_smoke_executable(repo_root.path(), &executable)
+            .context("resolve archived developer operator")?;
+
+        assert_eq!(resolved, dev_executable.to_string_lossy().replace('\\', "/"));
+        Ok(())
+    }
+
+    #[test]
+    fn smoke_executable_rejects_bijux_binary_as_dev_fallback() -> Result<()> {
+        let repo_root = tempfile::tempdir()?;
+        let archive = tempfile::tempdir()?;
+        let executable = archive.path().join(format!("bijux-dna{}", std::env::consts::EXE_SUFFIX));
+        bijux_dna_infra::write_bytes(&executable, b"archived operator")?;
+
+        assert_eq!(resolve_smoke_executable(repo_root.path(), &executable), None);
+        Ok(())
     }
 
     #[test]
