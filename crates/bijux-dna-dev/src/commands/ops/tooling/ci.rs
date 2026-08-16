@@ -2349,10 +2349,10 @@ mod tests {
             archive_root: "artifacts/ci/full-shards/archive".to_string(),
             shard_artifact_root: "artifacts/ci/full-shards/shards".to_string(),
             report_root: "artifacts/ci/full-shards".to_string(),
-            shards: (1..=4)
+            shards: (1..=5)
                 .map(|index| FullShard {
-                    id: format!("hash-{index}-of-4"),
-                    partition: format!("hash:{index}/4"),
+                    id: format!("hash-{index}-of-5"),
+                    partition: format!("hash:{index}/5"),
                 })
                 .collect(),
         }
@@ -2402,6 +2402,22 @@ mod tests {
     #[test]
     fn full_shard_contract_covers_hash_space_exactly_once() {
         assert!(validate_full_shard_contract(&contract()).is_ok());
+    }
+
+    #[test]
+    fn checked_in_full_shard_contract_uses_five_complete_partitions() -> anyhow::Result<()> {
+        let repository_root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let path = repository_root.join("configs/ci/full-shards.json");
+        let contract: FullShardContract = serde_json::from_slice(&std::fs::read(path)?)?;
+
+        validate_full_shard_contract(&contract)?;
+        assert_eq!(contract.shards.len(), 5);
+        assert_eq!(
+            contract.shards.iter().map(|shard| shard.partition.as_str()).collect::<Vec<_>>(),
+            ["hash:1/5", "hash:2/5", "hash:3/5", "hash:4/5", "hash:5/5"]
+        );
+        Ok(())
     }
 
     #[test]
@@ -2481,7 +2497,7 @@ mod tests {
     #[test]
     fn full_shard_contract_rejects_overlap_and_escaping_outputs() {
         let mut overlap = contract();
-        overlap.shards[3].partition = "hash:3/4".to_string();
+        overlap.shards[4].partition = "hash:4/5".to_string();
         assert!(validate_full_shard_contract(&overlap).is_err());
 
         let mut escaping = contract();
@@ -2524,7 +2540,7 @@ mod tests {
             .collect::<anyhow::Result<Vec<_>>>()?;
         validate_full_shard_root_set(&storage, &roots)?;
 
-        let shard_workspace = storage.scratch_root.join("workspaces/hash-1-of-4");
+        let shard_workspace = storage.scratch_root.join("workspaces/hash-1-of-5");
         let first_env = full_shard_env(&roots[0], &shard_workspace)?
             .into_iter()
             .collect::<std::collections::BTreeMap<_, _>>();
@@ -2689,12 +2705,12 @@ mod tests {
         let report_root = root.path().join("retained/full-shards");
         let scratch_root = root.path().join("scratch/full-shards");
         let archive_root = scratch_root.join("archive");
-        let shard_root = scratch_root.join("shards/hash-1-of-4");
-        std::fs::create_dir_all(scratch_root.join("workspaces/hash-1-of-4"))?;
+        let shard_root = scratch_root.join("shards/hash-1-of-5");
+        std::fs::create_dir_all(scratch_root.join("workspaces/hash-1-of-5"))?;
         std::fs::create_dir_all(isolated_build_tree(&archive_root, "cargo"))?;
         std::fs::create_dir_all(&shard_root)?;
         std::fs::create_dir_all(&report_root)?;
-        std::fs::write(report_root.join("hash-1-of-4.log"), b"test failure\n")?;
+        std::fs::write(report_root.join("hash-1-of-5.log"), b"test failure\n")?;
         std::fs::write(report_root.join("full-gate-timing.json"), b"{}\n")?;
         std::fs::write(report_root.join("archive-build.log"), b"archive build\n")?;
         std::fs::write(archive_root.join("workspace-tests.tar.zst"), b"archive\n")?;
@@ -2749,7 +2765,7 @@ mod tests {
         assert!(!archive_root.exists());
         assert!(!shard_root.exists());
         assert!(report_root.join("archive-build.log").is_file());
-        assert!(report_root.join("hash-1-of-4.log").is_file());
+        assert!(report_root.join("hash-1-of-5.log").is_file());
         assert!(report_root.join("full-gate-timing.json").is_file());
         Ok(())
     }
@@ -2782,7 +2798,7 @@ mod tests {
         bijux_dna_infra::ensure_dir(&artifact_root)?;
         let report_root = tempfile::tempdir_in(&artifact_root)?;
         let shard =
-            FullShard { id: "isolation-proof".to_string(), partition: "hash:1/4".to_string() };
+            FullShard { id: "isolation-proof".to_string(), partition: "hash:1/5".to_string() };
 
         let isolated = materialize_full_shard_workspace(&workspace, report_root.path(), &shard.id)?;
         assert!(isolated.join(".git").is_dir());

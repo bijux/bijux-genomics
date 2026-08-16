@@ -28,20 +28,24 @@
   "report_root": "artifacts/ci/full-shards",
   "shards": [
     {
-      "id": "hash-1-of-4",
-      "partition": "hash:1/4"
+      "id": "hash-1-of-5",
+      "partition": "hash:1/5"
     },
     {
-      "id": "hash-2-of-4",
-      "partition": "hash:2/4"
+      "id": "hash-2-of-5",
+      "partition": "hash:2/5"
     },
     {
-      "id": "hash-3-of-4",
-      "partition": "hash:3/4"
+      "id": "hash-3-of-5",
+      "partition": "hash:3/5"
     },
     {
-      "id": "hash-4-of-4",
-      "partition": "hash:4/4"
+      "id": "hash-4-of-5",
+      "partition": "hash:4/5"
+    },
+    {
+      "id": "hash-5-of-5",
+      "partition": "hash:5/5"
     }
   ]
 }
