@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.ci.full_shards.v4",
+  "schema_version": "bijux.ci.full_shards.v5",
   "coverage": {
     "workspace": true,
     "all_targets": true,
@@ -10,6 +10,18 @@
   "partition_strategy": "hash",
   "workspace_isolation": "tracked_source_clones_with_shared_immutable_archive",
   "build_authority": "configs/ci/build-authority.json",
+  "runtime_dependency_report": "artifacts/ci/full-shards/runtime-dependencies.json",
+  "runtime_dependencies": [
+    {
+      "id": "bcftools",
+      "executable": "bcftools",
+      "version_args": [
+        "--version"
+      ],
+      "expected_version_line": "bcftools 1.21",
+      "provisioning": "caller-supplied PATH; LUNARC loads GCC/13.3.0 then BCFtools/1.21"
+    }
+  ],
   "archive_build_jobs": 4,
   "archive_root": "artifacts/ci/full-shards/archive",
   "shard_artifact_root": "artifacts/ci/full-shards/shards",
