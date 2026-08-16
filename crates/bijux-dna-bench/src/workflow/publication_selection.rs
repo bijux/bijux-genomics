@@ -20,7 +20,8 @@ use super::evidence_book::{
     load_indexed_receipt, read_json, study_reference, verify_study_reference,
 };
 use super::publication_registry::{
-    publish_checked_in_benchmark_publication_registry, BenchmarkPublicationRegistryWriteMode,
+    derive_benchmark_publication_registry, publish_checked_in_benchmark_publication_registry,
+    BenchmarkPublicationRegistryWriteMode,
 };
 use super::run_index::{publish_checked_in_benchmark_run_index, BenchmarkRunIndexWriteMode};
 
@@ -165,6 +166,8 @@ pub fn select_checked_in_benchmark_publication(
         &publication,
     )?;
     validate_existing_case_index(&case_index_path, &case_index, supersedes_selection)?;
+    preflight_publication_selection(&repository_root)
+        .context("preflight generated benchmark publication surfaces")?;
     write_json(&case_index_path, &case_index, "benchmark run case index")?;
     write_json(&pointer_path, &pointer, "benchmark current publication pointer")?;
     let index = publish_checked_in_benchmark_run_index(
@@ -177,6 +180,14 @@ pub fn select_checked_in_benchmark_publication(
     )
     .context("regenerate benchmark report index after publication selection")?;
     Ok(index)
+}
+
+fn preflight_publication_selection(repository_root: &Path) -> Result<()> {
+    publish_checked_in_benchmark_run_index(repository_root, BenchmarkRunIndexWriteMode::Check)
+        .context("preflight benchmark run index")?;
+    derive_benchmark_publication_registry(repository_root)
+        .context("preflight benchmark publication registry")?;
+    Ok(())
 }
 
 fn validate_citation(
@@ -369,6 +380,16 @@ fn read_study_json<T: serde::de::DeserializeOwned>(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn publication_selection_preflights_every_generated_surface_before_writing() -> Result<()> {
+        let repository_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .context("benchmark selection crate is outside the repository")?;
+
+        preflight_publication_selection(repository_root)
+    }
 
     #[test]
     fn publication_selection_order_rejects_stale_and_equal_receipts() -> Result<()> {
