@@ -8,11 +8,11 @@ use bijux_dna_core::prelude::ContainerImageRefV1;
 use bijux_dna_stage_contract::{
     build_binding_stage_plan, canonical_external_artifact_tool_bindings,
     canonical_retained_tool_bindings, canonical_tool_bindings, project_tool_parameters,
-    render_tool_command, required_binding_output_paths, validate_tool_binding, BindingInputV1,
-    BindingOutputV1, BindingParameterV1, BindingStagePlanRequest, EffectiveToolParameterSourceV1,
-    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext,
-    ToolBindingV1, ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1,
-    TOOL_BINDING_SCHEMA_V1,
+    render_tool_command, required_binding_output_paths, validate_tool_binding,
+    BindingInputSourceV1, BindingInputV1, BindingOutputV1, BindingParameterV1,
+    BindingStagePlanRequest, EffectiveToolParameterSourceV1, OutputDiscoveryV1,
+    ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext, ToolBindingV1,
+    ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
 };
 
 const ALIGN_STAGE: &str = "bam.align";
@@ -75,6 +75,20 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let all = canonical_tool_bindings()?;
     assert_eq!(all.bindings().len(), 159);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_registry_assigns_an_explicit_authority_to_every_input() -> Result<()> {
+    let registry = canonical_tool_bindings()?;
+    let inputs = registry.bindings().flat_map(|binding| binding.inputs.iter()).collect::<Vec<_>>();
+
+    assert!(!inputs.is_empty());
+    assert!(inputs.iter().all(|input| input.source != BindingInputSourceV1::LegacyUnspecified));
+    assert!(inputs.iter().any(|input| input.source == BindingInputSourceV1::Corpus));
+    assert!(inputs.iter().any(|input| input.source == BindingInputSourceV1::Reference));
+    assert!(inputs.iter().any(|input| input.source == BindingInputSourceV1::Database));
+    assert!(inputs.iter().any(|input| input.source == BindingInputSourceV1::UpstreamResult));
     Ok(())
 }
 
@@ -2363,6 +2377,7 @@ fn external_artifacts_use_the_same_binding_interface() -> Result<()> {
     external.inputs = vec![BindingInputV1 {
         name: "alignment".to_string(),
         artifact_contract_id: "bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string(),
+        source: bijux_dna_stage_contract::BindingInputSourceV1::Corpus,
         required: true,
     }];
     external.outputs = vec![BindingOutputV1 {
@@ -2767,6 +2782,7 @@ fn binding(stage_id: &str, artifact_source: ToolArtifactSourceV1) -> ToolBinding
         inputs: vec![BindingInputV1 {
             name: "reads".to_string(),
             artifact_contract_id: "bijux.fastq.artifact.reads.v1".to_string(),
+            source: bijux_dna_stage_contract::BindingInputSourceV1::Corpus,
             required: true,
         }],
         parameters: vec![BindingParameterV1 { name: "threads".to_string(), required: true }],

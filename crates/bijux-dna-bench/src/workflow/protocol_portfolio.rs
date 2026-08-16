@@ -376,14 +376,10 @@ fn derive_campaign(
         })
         .collect::<BTreeSet<_>>();
     let requires_reference = bindings.iter().flat_map(|binding| binding.inputs()).any(|input| {
-        input.name.contains("reference")
-            || input.name.contains("genetic_map")
-            || input.artifact_contract_id.contains("reference")
+        input.required && input.source == bijux_dna_stage_contract::BindingInputSourceV1::Reference
     });
     let requires_database = bindings.iter().flat_map(|binding| binding.inputs()).any(|input| {
-        input.name.contains("database")
-            || input.name.contains("taxonomy")
-            || input.artifact_contract_id.contains("database")
+        input.required && input.source == bijux_dna_stage_contract::BindingInputSourceV1::Database
     });
     let corpus_catalog_ids: Vec<String> = catalog_ids
         .iter()

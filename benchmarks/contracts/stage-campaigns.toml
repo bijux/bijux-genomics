@@ -438,6 +438,7 @@ scientific_question = "How accurately, reproducibly, and efficiently do all prod
 comparison_scope = "canonical_coordinate_sorted_bam_contract; downstream criterion: run validation, QC, and variant calling on every transformed BAM"
 tool_ids = ["mapdamage2"]
 corpus_catalog_ids = ["ancient-dna-bam-diversity"]
+reference_catalog_ids = ["grch38-reference"]
 input_size_keys = [
     "bam_input_bytes",
     "reference_input_bytes",
@@ -546,6 +547,7 @@ tool_ids = [
     "verifybamid2",
 ]
 corpus_catalog_ids = ["ancient-dna-bam-diversity"]
+reference_catalog_ids = ["grch38-reference"]
 input_size_keys = [
     "bam_input_bytes",
     "reference_input_bytes",
@@ -888,6 +890,7 @@ scientific_question = "How accurately, reproducibly, and efficiently do all prod
 comparison_scope = "canonical_inference_report_contract; downstream criterion: consume every result through the governed cohort aggregation and publication stages"
 tool_ids = ["yleaf"]
 corpus_catalog_ids = ["ancient-dna-bam-diversity"]
+reference_catalog_ids = ["grch38-reference"]
 input_size_keys = [
     "bam_input_bytes",
     "reference_input_bytes",
@@ -1005,6 +1008,7 @@ tool_ids = [
     "king",
 ]
 corpus_catalog_ids = ["ancient-dna-bam-diversity"]
+reference_catalog_ids = ["grch38-reference"]
 input_size_keys = [
     "bam_input_bytes",
     "reference_input_bytes",
@@ -1431,6 +1435,7 @@ scientific_question = "How accurately, reproducibly, and efficiently do all prod
 comparison_scope = "canonical_coordinate_sorted_bam_contract; downstream criterion: run validation, QC, and variant calling on every transformed BAM"
 tool_ids = ["gatk"]
 corpus_catalog_ids = ["ancient-dna-bam-diversity"]
+reference_catalog_ids = ["grch38-reference"]
 input_size_keys = [
     "bam_input_bytes",
     "known_sites_input_bytes",
@@ -1492,6 +1497,7 @@ tool_ids = [
     "yleaf",
 ]
 corpus_catalog_ids = ["ancient-dna-bam-diversity"]
+reference_catalog_ids = ["grch38-reference"]
 input_size_keys = [
     "bam_input_bytes",
     "reference_input_bytes",

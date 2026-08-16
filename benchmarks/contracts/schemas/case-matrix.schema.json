@@ -677,6 +677,25 @@
       ],
       "type": "object"
     },
+    "BindingInputSourceV1": {
+      "description": "Declares which governed authority supplies a binding input for standalone execution.",
+      "oneOf": [
+        {
+          "enum": [
+            "corpus",
+            "reference",
+            "database",
+            "upstream_result"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "legacy_unspecified",
+          "description": "A binding serialized before source authorities were persisted.\n\nThis value exists only so frozen evidence remains readable. New planning must refuse it.",
+          "type": "string"
+        }
+      ]
+    },
     "BindingInputV1": {
       "description": "One named input projected into a tool command.",
       "properties": {
@@ -688,6 +707,10 @@
         },
         "required": {
           "type": "boolean"
+        },
+        "source": {
+          "$ref": "#/$defs/BindingInputSourceV1",
+          "default": "legacy_unspecified"
         }
       },
       "required": [

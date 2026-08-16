@@ -150,7 +150,8 @@ The production lifecycle is one-way and identity-addressed:
 7. Audit portfolio bindings, sample counts, source-spec hashes, file integrity, fitness, and
    suspected nonproduction contamination.
 8. Bind each benchmark case to exact data-index, corpus, truth, reference, database, and held-out
-   split identities.
+   split identities. Every required `ToolBinding` input must resolve through its declared corpus,
+   reference, database, or upstream-result source role before the case can be allocated.
 9. Admit execution evidence only when the complete input and scientific contract remains current.
 
 Materialization may run concurrently for independent assets. A blocked acquisition blocks only

@@ -71,14 +71,17 @@ One lifecycle handles every admitted stage/tool pair:
    declared product-support dimensions.
 2. `bijux-dna-stage-contract` validates the `StageContract`, `ArtifactContract`, `ToolBinding`,
    parameter projection, result normalizer, and downstream probe before execution is allocated. It
-   constructs the immutable `StagePlanV1` from those admitted authorities; lifecycle owners do not
-   reconstruct tool commands or artifact mappings independently.
+   requires every binding input to declare whether corpus, reference, database, or upstream-result
+   authority supplies it, then constructs the immutable `StagePlanV1`; lifecycle owners do not
+   reconstruct tool commands, source roles, or artifact mappings independently.
 3. `bijux-dna-bench` derives every dependency-ready case and execution unit without waiting for
    unrelated tools, stages, images, or campaigns. Preparation projects each unit's admitted paths
-   and parameter provenance through the canonical binding and the model-owned campaign material
-   driver to build the full measured-repetition plan matrix. The driver is validated against the
-   declared stage before planning; lifecycle code never selects material semantics from a literal
-   run ID. Catalog executable/version identity and the binding's thread allocation must match the
+   and parameter provenance through the canonical binding and either generic contract material or
+   a reviewed model-owned campaign material driver to build the full measured-repetition plan
+   matrix. A reviewed driver is validated against the declared stage before planning; lifecycle
+   code never selects material semantics from a literal run ID. An independent case is rejected
+   before allocation when a required source role has no admitted authority or requires an upstream
+   result. Catalog executable/version identity and the binding's thread allocation must match the
    immutable execution specification before the attempt can become ready.
 4. `bijux-dna-runner` submits the declared execution once and returns its durable backend identity.
 5. `bijux-dna-runtime` appends the attempt transition and retry or supersession lineage.

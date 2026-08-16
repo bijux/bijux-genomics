@@ -727,6 +727,7 @@ fn stage_plan_binding(spec: &BenchmarkExecutionSpec) -> ToolBindingV1 {
         inputs: vec![BindingInputV1 {
             name: "reads_r1".to_owned(),
             artifact_contract_id: "bijux.fastq.artifact.paired_end.v1".to_owned(),
+            source: bijux_dna_stage_contract::BindingInputSourceV1::Corpus,
             required: true,
         }],
         parameters: vec![bijux_dna_stage_contract::BindingParameterV1 {

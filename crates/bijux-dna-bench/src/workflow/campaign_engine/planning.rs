@@ -11,7 +11,8 @@ use bijux_dna_bench_model::contract::{
 use bijux_dna_bench_model::{BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog};
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
-    downstream_probes_for_bindings, DownstreamProbe, ToolBinding, ToolBindingRegistry,
+    downstream_probes_for_bindings, BindingInputSourceV1, DownstreamProbe, ToolBinding,
+    ToolBindingRegistry,
 };
 
 use super::{
@@ -97,12 +98,16 @@ pub fn plan_benchmark_case_matrix(
         tools.sort();
         let mut corpora = campaign.corpus_catalog_ids.clone();
         corpora.sort();
+        if corpora.is_empty() {
+            continue;
+        }
         for tool in tools {
             let tool_id = ToolId::new(&tool);
             let binding = request.bindings.binding(&stage_id, &tool_id).with_context(|| {
                 format!("campaign {} lacks binding for tool {tool}", campaign.run_id)
             })?;
             validate_binding_interface_join(binding, interface)?;
+            validate_binding_data_join(binding, campaign, &snapshots)?;
             let allocated_cpus =
                 campaign.threads_by_tool.get(&tool).copied().or(campaign.threads).with_context(
                     || format!("campaign {} lacks CPU allocation", campaign.run_id),
@@ -170,6 +175,45 @@ pub fn plan_benchmark_case_matrix(
         data_snapshots,
         cases,
     })
+}
+
+fn validate_binding_data_join(
+    binding: &impl ToolBinding,
+    campaign: &bijux_dna_bench_model::BenchmarkStageCampaignSpec,
+    snapshots: &BTreeMap<&str, &BenchmarkDataSnapshotV1>,
+) -> Result<()> {
+    for input in binding.inputs().iter().filter(|input| input.required) {
+        let catalog_ids = match input.source {
+            BindingInputSourceV1::LegacyUnspecified => {
+                bail!(
+                    "binding {} required input `{}` lacks an explicit data source authority",
+                    binding.binding_id(),
+                    input.name
+                );
+            }
+            BindingInputSourceV1::Corpus => &campaign.corpus_catalog_ids,
+            BindingInputSourceV1::Reference => &campaign.reference_catalog_ids,
+            BindingInputSourceV1::Database => &campaign.database_catalog_ids,
+            BindingInputSourceV1::UpstreamResult => {
+                bail!(
+                    "binding {} requires upstream result input `{}` and cannot be planned as an independent stage case",
+                    binding.binding_id(),
+                    input.name
+                );
+            }
+        };
+        if catalog_ids.is_empty()
+            || catalog_ids.iter().all(|id| !snapshots.contains_key(id.as_str()))
+        {
+            bail!(
+                "binding {} required input `{}` has no admitted {:?} data authority",
+                binding.binding_id(),
+                input.name,
+                input.source
+            );
+        }
+    }
+    Ok(())
 }
 
 /// Reconstruct every case authority and require exact pure-planner replay.
@@ -287,12 +331,10 @@ fn validate_binding_interface_join(
     if binding.downstream_probe_id() != interface.downstream_probe.consumer_stage_id {
         bail!("binding {} uses a non-interface downstream probe", binding.binding_id());
     }
-    if !binding
-        .inputs()
-        .iter()
-        .any(|input| interface.accepted_input_contracts.contains(&input.artifact_contract_id))
-    {
-        bail!("binding {} accepts no declared stage input", binding.binding_id());
+    if binding.inputs().iter().any(|input| {
+        input.required && !interface.accepted_input_contracts.contains(&input.artifact_contract_id)
+    }) {
+        bail!("binding {} requires an undeclared stage input", binding.binding_id());
     }
     if binding.normalized_output_contract_id() != interface.output_contract {
         bail!("binding {} emits no declared stage output", binding.binding_id());
