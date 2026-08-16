@@ -41,6 +41,14 @@ fn planning_derives_source_plan_catalog_and_command_authorities() -> anyhow::Res
             "fixture",
         ],
     )?;
+    let repository_commit = git_stdout(&fixture.spec.repository_path, &["rev-parse", "HEAD"])?;
+    let mut command_arguments = fixture.spec.command_arguments.clone();
+    let commit_index = command_arguments
+        .iter()
+        .position(|argument| argument == "--repository-commit")
+        .ok_or_else(|| anyhow::anyhow!("fixture command omits repository commit"))?
+        + 1;
+    command_arguments[commit_index] = repository_commit.clone();
     let request = CorpusMaterializationSlurmPlanRequest {
         repository_path: fixture.spec.repository_path.clone(),
         executable_path: fixture.spec.executable_path.clone(),
@@ -57,11 +65,20 @@ fn planning_derives_source_plan_catalog_and_command_authorities() -> anyhow::Res
 
     let mut unsafe_request = request.clone();
     unsafe_request.attempt_id = "../escape".to_string();
-    assert!(plan_corpus_materialization_slurm_spec(&unsafe_request)
-        .is_err_and(|error| { format!("{error:#}").contains("attempt identity is invalid") }));
+    assert!(plan_corpus_materialization_slurm_spec(
+        &unsafe_request,
+        &repository_commit,
+        &command_arguments
+    )
+    .is_err_and(|error| { format!("{error:#}").contains("attempt identity is invalid") }));
     assert!(!fixture.spec.data_root.join("evidence/materializations/escape").exists());
+    assert!(plan_corpus_materialization_slurm_spec(&request, &repository_commit, &[])
+        .is_err_and(|error| format!("{error:#}").contains("command must contain")));
+    assert!(plan_corpus_materialization_slurm_spec(&request, &"f".repeat(40), &command_arguments)
+        .is_err_and(|error| format!("{error:#}").contains("after product command projection")));
 
-    let planned = plan_corpus_materialization_slurm_spec(&request)?;
+    let planned =
+        plan_corpus_materialization_slurm_spec(&request, &repository_commit, &command_arguments)?;
     assert_eq!(planned.corpus_id, fixture.plan.corpus_id);
     assert_eq!(planned.portfolio_id, fixture.plan.portfolio_id);
     assert_eq!(planned.plan_sha256, bijux_dna_infra::hash_file_sha256(&fixture.spec.plan_path)?);
@@ -69,7 +86,10 @@ fn planning_derives_source_plan_catalog_and_command_authorities() -> anyhow::Res
     assert!(planned.command_arguments.windows(2).any(|values| {
         values == ["--repository-commit".to_string(), planned.repository_commit.clone()]
     }));
-    assert_eq!(plan_corpus_materialization_slurm_spec(&request)?, planned);
+    assert_eq!(
+        plan_corpus_materialization_slurm_spec(&request, &repository_commit, &command_arguments,)?,
+        planned
+    );
     assert_eq!(
         load_corpus_materialization_slurm_spec(
             &planned.evidence_root.join("materialization-spec.json")
@@ -78,10 +98,12 @@ fn planning_derives_source_plan_catalog_and_command_authorities() -> anyhow::Res
     );
 
     fs::write(fixture.spec.repository_path.join("untracked.txt"), b"dirty\n")?;
-    assert!(plan_corpus_materialization_slurm_spec(&request)
-        .is_err_and(
-            |error| format!("{error:#}").contains("clean corpus materialization repository")
-        ));
+    assert!(plan_corpus_materialization_slurm_spec(
+        &request,
+        &repository_commit,
+        &command_arguments
+    )
+    .is_err_and(|error| format!("{error:#}").contains("clean corpus materialization repository")));
     Ok(())
 }
 
@@ -565,4 +587,12 @@ fn run_git(repository: &std::path::Path, arguments: &[&str]) -> anyhow::Result<(
         anyhow::bail!("git command failed: {}", String::from_utf8_lossy(&output.stderr));
     }
     Ok(())
+}
+
+fn git_stdout(repository: &std::path::Path, arguments: &[&str]) -> anyhow::Result<String> {
+    let output = Command::new("git").args(arguments).current_dir(repository).output()?;
+    if !output.status.success() {
+        anyhow::bail!("git command failed: {}", String::from_utf8_lossy(&output.stderr));
+    }
+    Ok(String::from_utf8(output.stdout)?.trim().to_string())
 }

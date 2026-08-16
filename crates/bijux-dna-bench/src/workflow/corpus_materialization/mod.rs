@@ -33,6 +33,36 @@ pub struct CorpusMaterializationRequest {
     pub admitted_at_utc: String,
 }
 
+/// Project the benchmark-owned corpus materialization command for an execution backend.
+///
+/// # Errors
+/// Returns an error when the request cannot authorize corpus materialization.
+pub fn corpus_materialization_command_arguments(
+    request: &CorpusMaterializationRequest,
+) -> Result<Vec<String>> {
+    validate_request(request)?;
+    let data_root = canonical_directory(&request.data_root, "governed data root")?;
+    let plan_path = canonical_file_under(&request.plan_path, &data_root, "acquisition plan")?;
+    Ok(vec![
+        "bench".to_string(),
+        "materialize-fastq-corpus".to_string(),
+        "--plan".to_string(),
+        plan_path.display().to_string(),
+        "--data-root".to_string(),
+        data_root.display().to_string(),
+        "--repository-commit".to_string(),
+        request.repository_commit.clone(),
+        "--jobs".to_string(),
+        request.maximum_parallelism.to_string(),
+        "--retries".to_string(),
+        request.retries.to_string(),
+        "--timeout-seconds".to_string(),
+        request.timeout_seconds.to_string(),
+        "--admitted-at-utc".to_string(),
+        request.admitted_at_utc.clone(),
+    ])
+}
+
 #[derive(Debug, Clone)]
 struct MaterializationTarget {
     sample_index: usize,

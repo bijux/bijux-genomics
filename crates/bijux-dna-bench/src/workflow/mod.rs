@@ -213,7 +213,8 @@ pub use corpus_acquisition::{
     CorpusAcquisitionRequest, SelectedFastqCollectionAcquisitionRequest,
 };
 pub use corpus_materialization::{
-    materialize_fastq_corpus, CorpusMaterializationPublication, CorpusMaterializationRequest,
+    corpus_materialization_command_arguments, materialize_fastq_corpus,
+    CorpusMaterializationPublication, CorpusMaterializationRequest,
 };
 pub use cross_campaign::{
     derive_cross_benchmark_campaign, load_cross_benchmark_campaign_report,

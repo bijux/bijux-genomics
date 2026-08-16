@@ -3,10 +3,10 @@ use std::io::Write as _;
 
 use anyhow::Context as _;
 use bijux_dna_bench::{
-    materialize_fastq_corpus, BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout,
-    CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusEvaluationDesign,
-    CorpusMaterializationDisposition, CorpusMaterializationRequest, CorpusSourcePolicy,
-    CORPUS_ACQUISITION_SCHEMA_V2,
+    corpus_materialization_command_arguments, materialize_fastq_corpus, BenchmarkCorpusClass,
+    CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
+    CorpusEvaluationDesign, CorpusMaterializationDisposition, CorpusMaterializationRequest,
+    CorpusSourcePolicy, CORPUS_ACQUISITION_SCHEMA_V2,
 };
 use flate2::write::GzEncoder;
 use flate2::Compression;
@@ -15,6 +15,35 @@ const REPOSITORY_COMMIT: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 fn catalog_snapshot_path(data_root: &std::path::Path) -> std::path::PathBuf {
     data_root.join("catalog/snapshots").join(REPOSITORY_COMMIT).join("corpus-01.json")
+}
+
+#[test]
+fn benchmark_owner_projects_materialization_command_arguments() -> anyhow::Result<()> {
+    let temporary = tempfile::tempdir()?;
+    let data_root = temporary.path().join("data");
+    let plan_path = data_root.join("evidence/acquisition-plans/plan.json");
+    fs::create_dir_all(plan_path.parent().context("plan parent")?)?;
+    fs::write(&plan_path, b"projection-only plan identity")?;
+    let data_root = data_root.canonicalize()?;
+    let plan_path = plan_path.canonicalize()?;
+    let request = request(plan_path.clone(), data_root.clone());
+
+    let arguments = corpus_materialization_command_arguments(&request)?;
+
+    assert_eq!(arguments.first().map(String::as_str), Some("bench"));
+    assert_eq!(arguments.get(1).map(String::as_str), Some("materialize-fastq-corpus"));
+    assert!(arguments.windows(2).any(|pair| {
+        pair[0] == "--plan" && pair[1] == plan_path.display().to_string()
+    }));
+    assert!(arguments.windows(2).any(|pair| {
+        pair[0] == "--data-root" && pair[1] == data_root.display().to_string()
+    }));
+    assert!(arguments
+        .windows(2)
+        .any(|pair| pair[0] == "--repository-commit" && pair[1] == REPOSITORY_COMMIT));
+    assert!(arguments.windows(2).any(|pair| pair[0] == "--jobs" && pair[1] == "1"));
+    assert!(arguments.windows(2).any(|pair| pair[0] == "--timeout-seconds" && pair[1] == "10"));
+    Ok(())
 }
 
 #[test]

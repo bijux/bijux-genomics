@@ -74,6 +74,9 @@ pub(super) fn validate_specification(
         bail!("corpus materialization retry or timeout policy is invalid");
     }
     require_utc_timestamp(&spec.admitted_at_utc, "admission timestamp")?;
+    if spec.schema_version == CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V2 {
+        validate_command_arguments(&spec.command_arguments)?;
+    }
 
     let data_root = canonical_directory(&spec.data_root, "governed data root")?;
     canonical_directory(&spec.repository_path, "frozen repository")?;

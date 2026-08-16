@@ -526,6 +526,22 @@ pub(crate) fn handle_meta_commands(
                     cli::BenchCorpusMaterializationCommand::Plan(args) => {
                         let cpus = u32::try_from(args.jobs)
                             .map_err(|_| anyhow::anyhow!("materialization jobs exceed CPU range"))?;
+                        let repository_commit =
+                            bijux_dna_api::v1::api::env::clean_repository_head_commit(
+                                &args.repository,
+                            )?;
+                        let command_arguments =
+                            bijux_dna_api::v1::api::bench::corpus_materialization_command_arguments(
+                                &bijux_dna_api::v1::api::bench::CorpusMaterializationRequest {
+                                    plan_path: args.plan.clone(),
+                                    data_root: args.data_root.clone(),
+                                    repository_commit: repository_commit.clone(),
+                                    maximum_parallelism: args.jobs,
+                                    retries: args.retries,
+                                    timeout_seconds: args.timeout_seconds,
+                                    admitted_at_utc: args.admitted_at_utc.clone(),
+                                },
+                            )?;
                         let spec = bijux_dna_api::v1::api::bench::plan_corpus_materialization_slurm_spec(
                             &bijux_dna_api::v1::api::bench::CorpusMaterializationSlurmPlanRequest {
                                 repository_path: args.repository.clone(),
@@ -546,6 +562,8 @@ pub(crate) fn handle_meta_commands(
                                 timeout_seconds: args.timeout_seconds,
                                 admitted_at_utc: args.admitted_at_utc.clone(),
                             },
+                            &repository_commit,
+                            &command_arguments,
                         )?;
                         crate::commands::cli::render::json::print_pretty(&spec)?;
                     }

@@ -14,21 +14,25 @@ use super::contracts::{
 };
 use super::validation::{
     canonical_directory, catalog_snapshot_path, ensure_json_identity, read_json,
-    validate_catalog_closure, validate_catalog_precondition, validate_specification,
+    validate_catalog_closure, validate_catalog_precondition, validate_command_arguments,
+    validate_specification,
 };
 
 /// Derive and persist one immutable corpus-materialization scheduler specification.
 ///
 /// Source commit, executable and plan digests, corpus and portfolio identities, catalog
-/// precondition, command projection, and the governed evidence root are derived rather than
-/// accepted as caller claims.
+/// precondition, and the governed evidence root are derived rather than accepted as caller claims.
+/// The product owner supplies an opaque command projection that the runner validates and binds.
 ///
 /// # Errors
 /// Returns an error when the repository is dirty, an authority is unsafe or inconsistent, the
 /// acquisition plan is invalid, resources are invalid, or immutable evidence conflicts.
 pub fn plan_corpus_materialization_slurm_spec(
     request: &CorpusMaterializationSlurmPlanRequest,
+    expected_repository_commit: &str,
+    command_arguments: &[String],
 ) -> Result<CorpusMaterializationSlurmSpec> {
+    validate_command_arguments(command_arguments)?;
     let repository_path = request
         .repository_path
         .canonicalize()
@@ -36,6 +40,9 @@ pub fn plan_corpus_materialization_slurm_spec(
     let repository_commit =
         bijux_dna_containers::api::clean_repository_head_commit(&repository_path)
             .context("require a clean corpus materialization repository")?;
+    if repository_commit != expected_repository_commit {
+        bail!("repository changed after product command projection");
+    }
     let executable_path = request
         .executable_path
         .canonicalize()
@@ -62,7 +69,7 @@ pub fn plan_corpus_materialization_slurm_spec(
         executable_sha256: bijux_dna_infra::hash_file_sha256(&executable_path)
             .context("hash corpus materialization executable")?,
         executable_path,
-        command_arguments: Vec::new(),
+        command_arguments: command_arguments.to_vec(),
         plan_sha256: bijux_dna_infra::hash_file_sha256(&plan_path)
             .context("hash corpus acquisition plan")?,
         plan_path,
@@ -75,7 +82,6 @@ pub fn plan_corpus_materialization_slurm_spec(
         timeout_seconds: request.timeout_seconds,
         admitted_at_utc: request.admitted_at_utc.clone(),
     };
-    spec.command_arguments = materialization_command_arguments(&spec);
     spec.existing_catalog_sha256 = existing_catalog_identity(&spec)?;
     validate_specification(&spec)?;
     validate_catalog_precondition(&spec)?;
@@ -96,27 +102,6 @@ pub fn plan_corpus_materialization_slurm_spec(
     }
     ensure_json_identity(&spec.evidence_root.join("materialization-spec.json"), &spec)?;
     Ok(spec)
-}
-
-fn materialization_command_arguments(spec: &CorpusMaterializationSlurmSpec) -> Vec<String> {
-    vec![
-        "bench".to_string(),
-        "materialize-fastq-corpus".to_string(),
-        "--plan".to_string(),
-        spec.plan_path.display().to_string(),
-        "--data-root".to_string(),
-        spec.data_root.display().to_string(),
-        "--repository-commit".to_string(),
-        spec.repository_commit.clone(),
-        "--jobs".to_string(),
-        spec.maximum_parallelism.to_string(),
-        "--retries".to_string(),
-        spec.retries.to_string(),
-        "--timeout-seconds".to_string(),
-        spec.timeout_seconds.to_string(),
-        "--admitted-at-utc".to_string(),
-        spec.admitted_at_utc.clone(),
-    ]
 }
 
 fn existing_catalog_identity(spec: &CorpusMaterializationSlurmSpec) -> Result<Option<String>> {
