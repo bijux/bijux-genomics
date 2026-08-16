@@ -7,6 +7,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{CorpusAcquisitionPlan, GovernedDataCatalog};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 use super::contracts::{
@@ -255,7 +256,7 @@ pub fn collect_corpus_materialization_slurm_job(
         corpus_id: spec.corpus_id.clone(),
         portfolio_id: spec.portfolio_id.clone(),
         repository_commit: spec.repository_commit.clone(),
-        job_id: handle.job_id,
+        job_id: handle.job_id.clone(),
         specification_sha256: prepared.specification_sha256,
         script_sha256: prepared.script_sha256,
         executable_sha256: spec.executable_sha256.clone(),
@@ -269,8 +270,23 @@ pub fn collect_corpus_materialization_slurm_job(
         collected_at_utc: collected_at_utc.to_string(),
         failure,
     };
-    ensure_json_identity(&terminal_path, &evidence)?;
-    Ok(CorpusMaterializationCollection { observation, evidence: Some(evidence) })
+    let retained = publish_json_or_load_winner(&terminal_path, &evidence)?;
+    validate_retained_evidence(spec, &plan, &handle, &retained)?;
+    Ok(CorpusMaterializationCollection { observation, evidence: Some(retained) })
+}
+
+fn publish_json_or_load_winner<T>(path: &Path, candidate: &T) -> Result<T>
+where
+    T: Clone + DeserializeOwned + PartialEq + Serialize,
+{
+    match ensure_json_identity(path, candidate) {
+        Ok(()) => Ok(candidate.clone()),
+        Err(publication_error) => read_json(path).with_context(|| {
+            format!(
+                "reload immutable evidence after concurrent publication conflict: {publication_error:#}"
+            )
+        }),
+    }
 }
 
 fn validate_success(
@@ -429,6 +445,28 @@ fn submission_intent(prepared: &PreparedCorpusMaterializationSlurmJob) -> Submis
         stdout_path: prepared.request.stdout_path.clone(),
         stderr_path: prepared.request.stderr_path.clone(),
         submitted_at_utc: prepared.request.submitted_at_utc.clone(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::publish_json_or_load_winner;
+
+    #[test]
+    fn concurrent_publication_reloads_the_immutable_winner() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let path = root.path().join("materialization-evidence.json");
+        let winner = json!({"collected_at_utc": "2026-08-16T13:39:38Z"});
+        let concurrent_candidate = json!({"collected_at_utc": "2026-08-16T13:40:45Z"});
+        bijux_dna_infra::atomic_write_json(&path, &winner)?;
+
+        let retained = publish_json_or_load_winner(&path, &concurrent_candidate)?;
+
+        assert_eq!(retained, winner);
+        assert_eq!(serde_json::from_slice::<serde_json::Value>(&std::fs::read(path)?)?, winner);
+        Ok(())
     }
 }
 
