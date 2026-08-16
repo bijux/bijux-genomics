@@ -8,10 +8,9 @@
   },
   "protocol_title": "FASTQ profile overrepresented sequences benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "49f40518dc0b445178e4f11da02b7525e2fe24150b5273631ebba48fb32e1b9a",
+  "protocol_sha256": "c21dbbbfa1a11a5f4999a3a17111eba42e9a25c2e2f47c9d09aae5b05bf9591e",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

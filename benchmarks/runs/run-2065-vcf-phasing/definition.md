@@ -5,7 +5,7 @@
 - Run: `run-2065`
 - Stage: `vcf.phasing`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2065`
 
 Compare the runnable vcf.phasing tools using masked_concordance_switch_error_calibration_and_rare_variant_recovery; downstream substitution: run QC, association-neutral population summaries, and re-masking checks on every output.

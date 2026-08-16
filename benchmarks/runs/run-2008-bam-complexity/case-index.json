@@ -5,7 +5,7 @@
     "domain": "bam",
     "stage_id": "bam.complexity"
   },
-  "protocol_sha256": "603acb76c52d18b3a875741a2c1aa86d8879df63fcbc8c548bc68b71be0c9d4f",
+  "protocol_sha256": "4242c5a70833b4647a60cfae056185f052533961e9789746bc39e91fc2248e43",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

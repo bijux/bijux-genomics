@@ -5,7 +5,7 @@
 - Run: `run-2019`
 - Stage: `bam.markdup`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2019`
 
 Compare the runnable bam.markdup tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.

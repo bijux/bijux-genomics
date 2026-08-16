@@ -5,7 +5,7 @@
 - Run: `run-2014`
 - Stage: `bam.haplogroups`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2014`
 
 Compare the runnable bam.haplogroups tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.

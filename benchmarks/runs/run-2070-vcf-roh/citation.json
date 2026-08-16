@@ -8,10 +8,9 @@
   },
   "protocol_title": "VCF roh benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "33d8cf8477f3b2675257df40c76c730956d20173c7f01bf1b8a0239690f70b89",
+  "protocol_sha256": "f89daaa75bc208ea8024802c59c83ede7b120fc11fe9af7f0cd3ed11d1093c65",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

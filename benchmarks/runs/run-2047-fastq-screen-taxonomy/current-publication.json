@@ -5,9 +5,8 @@
     "domain": "fastq",
     "stage_id": "fastq.screen_taxonomy"
   },
-  "protocol_sha256": "0e976f6b69fbef89b0f2244a94a805ced2b4068daee9accb5387b3a151151d15",
+  "protocol_sha256": "b9e48fc4ea2375f96ac47601f0e0132cf827837f3d8a5d829183cf2ba32bae50",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

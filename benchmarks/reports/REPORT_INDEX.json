@@ -16,16 +16,16 @@
     {
       "product_id": "permanent-run-registry",
       "json_path": "benchmarks/contracts/run-registry.json",
-      "json_sha256": "72265f36b77e9b4f5486511872c5e6480ff847e337b20e6ce3146897d020530b",
+      "json_sha256": "5b5da255d0e7d23a5df095d9dd68ea4f400a1b7e0e3daf0ff945305d8bf60aa9",
       "markdown_path": "benchmarks/reports/run-registry.md",
-      "markdown_sha256": "7ee3dda023d57ae1091f73ed5ee09e993ec0c5f1a47fb8cb57e575ab0f972b4b"
+      "markdown_sha256": "65dd58f09d4dd09bf1320dfc43797f0fdef9f85dd8361dc236a8226ad37eeaf1"
     },
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "68154230be25bcf3dcb2ddd2d740483cb8bdd4978c8e51b9c2e081070567c087",
+      "json_sha256": "6a4d73e6264c99757adb145a1b0bb0e526d18fa983062828290fcf9dd322401a",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
-      "markdown_sha256": "86beacbb4486d89389a535b20889a59f6b617aa1d7cc823e5abd5cf7ca90a87e"
+      "markdown_sha256": "0837b9b23d52b8bf0bdd1b2fcb9b2f46e59aac1b9db60b27a0199e670a8c8757"
     },
     {
       "product_id": "stage-universe",
@@ -37,23 +37,23 @@
     {
       "product_id": "stage-benchmark-coverage",
       "json_path": "benchmarks/reports/stage-benchmark-coverage.json",
-      "json_sha256": "4135764409dfda2e510deebdef7e2811d6cd4ad5bbf259eec77bd1e36645655f",
+      "json_sha256": "70b8d8968dce3338cbc124c7858455635228d26521f4ee83593f32182796a9c3",
       "markdown_path": "benchmarks/reports/stage-benchmark-coverage.md",
-      "markdown_sha256": "33e5128262360d1e3c15a61bf19765fc0fa0739914b45dd91d05082bd5f780c6"
+      "markdown_sha256": "bb720fb7ff8b0211d62defd1365851fa0987adc9e0afbdd4d0327713f58f44f6"
     },
     {
       "product_id": "stage-tool-closure",
       "json_path": "benchmarks/reports/STAGE_TOOL_CLOSURE.json",
-      "json_sha256": "3739f2382513b7c4688e1bbc7002d84770059a800d81f3321faee2ba5b640a2b",
+      "json_sha256": "5ce9f6358253ea96ff65a7b8140ce68bc5602ebcdf1c42ecdd0f2b2e55736671",
       "markdown_path": "benchmarks/reports/STAGE_TOOL_CLOSURE.md",
       "markdown_sha256": "98440128195721bffdb5f56f1214c85ef992c855137f1bee1a26042052623eaf"
     },
     {
       "product_id": "scientific-benchmark-readiness",
       "json_path": "benchmarks/reports/scientific-benchmark-readiness.json",
-      "json_sha256": "6c8960073de1fdde8f44f85e1f9bad6fec8de9d55f56561b26851dab5eec8890",
+      "json_sha256": "f40e128513cfefa3ff5ea56ee2540320baae6a9388d46a405eddaff13f296a66",
       "markdown_path": "benchmarks/reports/scientific-benchmark-readiness.md",
-      "markdown_sha256": "b86015320d38cfa92ca6bedab2f5648835ce9085d97a2d545b8db979e5b6b774"
+      "markdown_sha256": "c0d96b55818760eced55a82f119611e41f4331ddb39416a761a45b7bc9817bc0"
     }
   ],
   "run_reports": [
@@ -102,8 +102,7 @@
       "stage_id": "bam.authenticity",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -111,8 +110,7 @@
       "stage_id": "bam.bias_mitigation",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -120,8 +118,7 @@
       "stage_id": "bam.complexity",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -129,8 +126,7 @@
       "stage_id": "bam.contamination",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -154,8 +150,7 @@
       "stage_id": "bam.filter",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -171,8 +166,7 @@
       "stage_id": "bam.haplogroups",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -188,8 +182,7 @@
       "stage_id": "bam.kinship",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -197,8 +190,7 @@
       "stage_id": "bam.length_filter",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -206,8 +198,7 @@
       "stage_id": "bam.mapq_filter",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -215,8 +206,7 @@
       "stage_id": "bam.markdup",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -224,8 +214,7 @@
       "stage_id": "bam.overlap_correction",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -233,8 +222,7 @@
       "stage_id": "bam.qc_pre",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -242,8 +230,7 @@
       "stage_id": "bam.recalibration",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -251,8 +238,7 @@
       "stage_id": "bam.sex",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -260,8 +246,7 @@
       "stage_id": "bam.validate",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -269,8 +254,7 @@
       "stage_id": "fastq.cluster_otus",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -278,8 +262,7 @@
       "stage_id": "fastq.correct_errors",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -287,8 +270,7 @@
       "stage_id": "fastq.deplete_host",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -296,8 +278,7 @@
       "stage_id": "fastq.deplete_reference_contaminants",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -305,8 +286,7 @@
       "stage_id": "fastq.deplete_rrna",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -322,8 +302,7 @@
       "stage_id": "fastq.detect_duplicates_premerge",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -331,8 +310,7 @@
       "stage_id": "fastq.estimate_library_complexity_prealign",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -340,8 +318,7 @@
       "stage_id": "fastq.extract_umis",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -349,8 +326,7 @@
       "stage_id": "fastq.filter_low_complexity",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -358,8 +334,7 @@
       "stage_id": "fastq.filter_reads",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -367,8 +342,7 @@
       "stage_id": "fastq.index_reference",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -376,8 +350,7 @@
       "stage_id": "fastq.infer_asvs",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -385,8 +358,7 @@
       "stage_id": "fastq.merge_pairs",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -394,8 +366,7 @@
       "stage_id": "fastq.normalize_abundance",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -403,8 +374,7 @@
       "stage_id": "fastq.normalize_primers",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -412,8 +382,7 @@
       "stage_id": "fastq.profile_overrepresented_sequences",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -459,8 +428,7 @@
       "stage_id": "fastq.remove_chimeras",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -468,8 +436,7 @@
       "stage_id": "fastq.remove_duplicates",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -477,8 +444,7 @@
       "stage_id": "fastq.report_qc",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -486,8 +452,7 @@
       "stage_id": "fastq.screen_taxonomy",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -495,8 +460,7 @@
       "stage_id": "fastq.trim_polyg_tails",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -504,8 +468,7 @@
       "stage_id": "fastq.trim_reads",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -513,8 +476,7 @@
       "stage_id": "fastq.trim_terminal_damage",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -541,8 +503,7 @@
       "stage_id": "vcf.admixture",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -550,8 +511,7 @@
       "stage_id": "vcf.call",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -559,8 +519,7 @@
       "stage_id": "vcf.call_diploid",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -568,8 +527,7 @@
       "stage_id": "vcf.call_gl",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -577,8 +535,7 @@
       "stage_id": "vcf.call_pseudohaploid",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -586,8 +543,7 @@
       "stage_id": "vcf.damage_filter",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -595,8 +551,7 @@
       "stage_id": "vcf.demography",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -604,8 +559,7 @@
       "stage_id": "vcf.filter",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -613,8 +567,7 @@
       "stage_id": "vcf.gl_propagation",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -622,8 +575,7 @@
       "stage_id": "vcf.ibd",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -631,8 +583,7 @@
       "stage_id": "vcf.imputation_metrics",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -640,8 +591,7 @@
       "stage_id": "vcf.impute",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -649,8 +599,7 @@
       "stage_id": "vcf.pca",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -658,8 +607,7 @@
       "stage_id": "vcf.phasing",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -667,8 +615,7 @@
       "stage_id": "vcf.population_structure",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -676,8 +623,7 @@
       "stage_id": "vcf.postprocess",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -685,8 +631,7 @@
       "stage_id": "vcf.prepare_reference_panel",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -694,8 +639,7 @@
       "stage_id": "vcf.qc",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -703,8 +647,7 @@
       "stage_id": "vcf.roh",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -712,8 +655,7 @@
       "stage_id": "vcf.stats",
       "disposition": "missing",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     }
   ],

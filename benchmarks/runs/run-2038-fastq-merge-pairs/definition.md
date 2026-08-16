@@ -5,7 +5,7 @@
 - Run: `run-2038`
 - Stage: `fastq.merge_pairs`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2038`
 
 Compare the runnable fastq.merge_pairs tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.

@@ -5,7 +5,7 @@
     "domain": "bam",
     "stage_id": "bam.validate"
   },
-  "protocol_sha256": "ed9227d4b83a50fd5aaad7cd9b31703c5438ae92537d8c94f1ace39f27856307",
+  "protocol_sha256": "8f3144c077965f2d47623ca9e6aa4931b1db51d334a85ad5df019a23238bb22b",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

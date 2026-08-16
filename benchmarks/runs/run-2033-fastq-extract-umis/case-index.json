@@ -5,7 +5,7 @@
     "domain": "fastq",
     "stage_id": "fastq.extract_umis"
   },
-  "protocol_sha256": "d27a63078413838b85928ab8d0f5d16b12294f64f1ff94a01c58cc7658d58c2d",
+  "protocol_sha256": "e07912f293d618c9f592ce04f39b53c9ed3c169adf1ceeca7de64f98b223ee07",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

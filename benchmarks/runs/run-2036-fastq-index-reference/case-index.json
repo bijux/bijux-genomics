@@ -5,7 +5,7 @@
     "domain": "fastq",
     "stage_id": "fastq.index_reference"
   },
-  "protocol_sha256": "dd4012dae167fa33c9bb9ff137de36949acf4fd5dd09fa6bf739ee054380539a",
+  "protocol_sha256": "d801f903e217cf7b1134224c63a546d3837472ba74feb3f5998dbb2d07b94476",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

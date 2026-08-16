@@ -5,9 +5,8 @@
     "domain": "fastq",
     "stage_id": "fastq.remove_chimeras"
   },
-  "protocol_sha256": "efe8ac839c4763b676ca030c82b4b93ec8ff1f89828af4f94b19b8c601ffe03e",
+  "protocol_sha256": "2f521e50be6df45e80b9a778c4bb26be06dedac039a55662bb425e4fbf489a75",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

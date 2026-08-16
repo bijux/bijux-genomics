@@ -5,7 +5,7 @@
     "domain": "vcf",
     "stage_id": "vcf.pca"
   },
-  "protocol_sha256": "0a615ff830e0b9f0774f781f738ce098859ef82d398861dfc057bea9cffc741c",
+  "protocol_sha256": "9560780ef45fba8857aee8a05bb96e3c2fdbd37c4c17c942d96900e250320e41",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

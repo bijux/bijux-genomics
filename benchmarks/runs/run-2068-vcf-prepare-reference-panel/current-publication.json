@@ -5,9 +5,8 @@
     "domain": "vcf",
     "stage_id": "vcf.prepare_reference_panel"
   },
-  "protocol_sha256": "a7c400841c44fe74882125cbfde569aab56d1df6dedc677ecfec04995523d990",
+  "protocol_sha256": "838e93e03f1bf1d838802f5251f9e3da7e847e7ef56cbf3e4d2e99d8ca691cfb",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

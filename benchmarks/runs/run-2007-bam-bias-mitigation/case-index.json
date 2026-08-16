@@ -5,7 +5,7 @@
     "domain": "bam",
     "stage_id": "bam.bias_mitigation"
   },
-  "protocol_sha256": "2acb689e492c2bb5cbaf078b19903751552a65958f619f712715703a5fe89033",
+  "protocol_sha256": "98df80d238885888d1e081d76526e5ee95e2a4add84c8fba0ea0bbc9d243151c",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

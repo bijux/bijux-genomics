@@ -8,10 +8,9 @@
   },
   "protocol_title": "FASTQ deplete rrna benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "bdd14bd0b563d656368f2986cb1638470a8b1b085d1c456daa1fa28d6bc2b6c4",
+  "protocol_sha256": "32241516047c63fc4da90ae1e6eadc3331b9b392623c62a587e72038965bdd2f",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

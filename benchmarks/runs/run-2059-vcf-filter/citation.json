@@ -8,10 +8,9 @@
   },
   "protocol_title": "VCF filter benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "50667a4179fbc8e32ac026f5ab0207235a3146bfdedda535a418de724aef80e6",
+  "protocol_sha256": "a8334d50e15e3e6ce2e552616fc36cf7355eaa9aa15d8757b1e755c448f1da18",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

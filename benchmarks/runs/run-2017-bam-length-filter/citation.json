@@ -8,10 +8,9 @@
   },
   "protocol_title": "BAM length filter benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "fa4985cf3496606faf7a096bac8662f3a97a6b3e4ac905c3b1ff430cf9c35df5",
+  "protocol_sha256": "6d5cbb815a2aeac86f2431a5912908e65ea584dbf488cc0a8ad77726d1dc2fa1",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

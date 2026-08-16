@@ -5,7 +5,7 @@
 - Run: `run-2036`
 - Stage: `fastq.index_reference`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2036`
 
 Compare the runnable fastq.index_reference tools using index_reproducibility_and_downstream_alignment_equivalence; downstream substitution: align the same real sample panel with every built index and validate canonical BAM outputs.

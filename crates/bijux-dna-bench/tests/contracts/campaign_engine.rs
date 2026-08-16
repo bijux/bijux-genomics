@@ -36,8 +36,7 @@ use bijux_dna_stage_contract::{
     TOOL_BINDING_SCHEMA_V1,
 };
 
-const EXISTING_CAMPAIGN_COUNT: usize = 13;
-const EXISTING_CASE_COUNT: usize = 30;
+const COMPLETE_CAMPAIGN_COUNT: usize = 71;
 const COVERAGE_STAGE: &str = "bam.coverage";
 
 struct PlanningFixture {
@@ -50,13 +49,19 @@ struct PlanningFixture {
 #[test]
 fn checked_in_campaigns_plan_through_one_order_independent_engine() -> Result<()> {
     let fixture = planning_fixture()?;
-    assert_eq!(fixture.campaigns.campaigns.len(), EXISTING_CAMPAIGN_COUNT);
+    assert_eq!(fixture.campaigns.campaigns.len(), COMPLETE_CAMPAIGN_COUNT);
 
+    let expected_case_count = ready_case_count(&fixture.campaigns);
     let matrix = plan(&fixture)?;
-    assert_eq!(matrix.cases.len(), EXISTING_CASE_COUNT);
+    assert_eq!(matrix.cases.len(), expected_case_count);
     assert_eq!(
         matrix.cases.iter().map(|case| case.run_id.as_str()).collect::<BTreeSet<_>>().len(),
-        EXISTING_CAMPAIGN_COUNT
+        fixture
+            .campaigns
+            .campaigns
+            .iter()
+            .filter(|campaign| !campaign.corpus_catalog_ids.is_empty())
+            .count()
     );
 
     let mut reordered = fixture;
@@ -79,12 +84,18 @@ fn checked_in_campaigns_close_the_canonical_binding_registry() -> Result<()> {
     let mut fixture = planning_fixture()?;
     fixture.bindings = canonical_tool_bindings()?;
 
+    let expected_case_count = ready_case_count(&fixture.campaigns);
     let matrix = plan(&fixture)?;
 
-    assert_eq!(matrix.cases.len(), EXISTING_CASE_COUNT);
+    assert_eq!(matrix.cases.len(), expected_case_count);
     assert_eq!(
         matrix.cases.iter().map(|case| case.run_id.as_str()).collect::<BTreeSet<_>>().len(),
-        EXISTING_CAMPAIGN_COUNT
+        fixture
+            .campaigns
+            .campaigns
+            .iter()
+            .filter(|campaign| !campaign.corpus_catalog_ids.is_empty())
+            .count()
     );
     Ok(())
 }
@@ -868,7 +879,7 @@ fn admitted_observations_aggregate_all_cases_without_dispatch() -> Result<()> {
     validate_benchmark_case_matrix(&matrix)?;
     let mut observations = admitted_observations(&matrix);
     let aggregations = aggregate_benchmark_case_observations(&matrix, &observations)?;
-    assert_eq!(aggregations.len(), EXISTING_CASE_COUNT);
+    assert_eq!(aggregations.len(), matrix.cases.len());
     assert!(aggregations.iter().all(|aggregation| {
         aggregation.repetition_count == 3
             && aggregation.performance.len()
@@ -1102,6 +1113,14 @@ fn planning_fixture() -> Result<PlanningFixture> {
     Ok(PlanningFixture { campaigns, interfaces, bindings, snapshots })
 }
 
+fn ready_case_count(campaigns: &BenchmarkStageCampaignRegistry) -> usize {
+    campaigns
+        .campaigns
+        .iter()
+        .map(|campaign| campaign.tool_ids.len() * campaign.corpus_catalog_ids.len())
+        .sum()
+}
+
 fn clean_source_repository() -> Result<tempfile::TempDir> {
     let repository = bijux_dna_infra::temp_dir("case-plan-source-repository")?;
     let source_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
@@ -1119,7 +1138,14 @@ fn clean_source_repository() -> Result<tempfile::TempDir> {
         vec!["init", "--initial-branch=main"],
         vec!["config", "user.email", "tests@bijux.invalid"],
         vec!["config", "user.name", "Bijux Tests"],
-        vec!["add", "benchmarks/contracts", "benchmarks/execution", "crates", "domain"],
+        vec![
+            "add",
+            "benchmarks/contracts",
+            "benchmarks/execution",
+            "benchmarks/schemas",
+            "crates",
+            "domain",
+        ],
         vec!["commit", "-m", "test: seed campaign registry"],
     ] {
         git_stdout(repository.path(), &arguments)?;

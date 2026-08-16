@@ -5,7 +5,7 @@
 - Run: `run-2066`
 - Stage: `vcf.population_structure`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2066`
 
 Compare the runnable vcf.population_structure tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.

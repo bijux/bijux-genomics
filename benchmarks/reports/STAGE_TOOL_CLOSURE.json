@@ -3,7 +3,7 @@
   "sources": [
     {
       "path": "benchmarks/contracts/portfolio.toml",
-      "sha256": "6f2ae70a6fd5ea53127d3e9c429c7d0a92b3e85d372027514aff5f2280d8e5fb"
+      "sha256": "c8429d06aad85727f2ca83b4c0a0fb28a1206b24d19ee6a10333f2a074896dbd"
     },
     {
       "path": "containers/contracts/catalog.toml",

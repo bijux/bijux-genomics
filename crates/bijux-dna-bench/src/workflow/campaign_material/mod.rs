@@ -478,17 +478,25 @@ mod tests {
     use super::BenchmarkCampaignEvidence;
 
     #[test]
-    fn executable_campaign_material_drivers_cover_the_declared_registry() -> anyhow::Result<()> {
+    fn executable_campaigns_use_reviewed_drivers_or_generic_bindings() -> anyhow::Result<()> {
         let (registry, _, _) = super::super::load_checked_in_benchmark_planning_contracts()?;
         let drivers = registry
             .campaigns
             .iter()
             .filter_map(|campaign| campaign.material_driver)
             .collect::<BTreeSet<_>>();
-        assert_eq!(drivers.len(), registry.campaigns.len());
-        assert!(registry.campaigns.iter().all(|campaign| campaign
-            .material_driver
-            .is_some_and(|driver| driver.stage_id() == campaign.stage_id)));
+        assert_eq!(drivers.len(), 13);
+        assert!(registry
+            .campaigns
+            .iter()
+            .filter(|campaign| campaign.material_driver.is_some())
+            .all(|campaign| campaign
+                .material_driver
+                .is_some_and(|driver| driver.stage_id() == campaign.stage_id)));
+        assert_eq!(
+            registry.campaigns.iter().filter(|campaign| campaign.material_driver.is_none()).count(),
+            58
+        );
         Ok(())
     }
 

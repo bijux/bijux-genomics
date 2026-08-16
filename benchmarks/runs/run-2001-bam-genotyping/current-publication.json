@@ -5,7 +5,7 @@
     "domain": "bam",
     "stage_id": "bam.genotyping"
   },
-  "protocol_sha256": "04a15ee8d9e52e043518df99b0f42f0825d361b1a894e6cd985756471442192d",
+  "protocol_sha256": "6b6980a9ef4a542ed7cdbb8055066eb7e63603804ebe9117fbb71b8c49e18b06",
   "limitations": [
     "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]

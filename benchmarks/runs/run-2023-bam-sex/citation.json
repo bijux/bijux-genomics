@@ -8,10 +8,9 @@
   },
   "protocol_title": "BAM sex benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "8916fe6775eb86dbfca1eaa0fef8356650502ffdac370a082e9ca86d08119371",
+  "protocol_sha256": "5733c1a0c5d51465ee7dccbf313c9db11430c0899f214a19fc14bf7cbd04ac7f",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

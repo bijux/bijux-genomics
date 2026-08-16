@@ -5,7 +5,7 @@
 - Run: `run-2071`
 - Stage: `vcf.stats`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2071`
 
 Compare the runnable vcf.stats tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.

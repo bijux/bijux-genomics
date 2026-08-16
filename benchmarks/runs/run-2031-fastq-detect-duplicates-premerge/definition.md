@@ -5,7 +5,7 @@
 - Run: `run-2031`
 - Stage: `fastq.detect_duplicates_premerge`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2031`
 
 Compare the runnable fastq.detect_duplicates_premerge tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.

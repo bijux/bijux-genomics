@@ -8,10 +8,9 @@
   },
   "protocol_title": "BAM overlap correction benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "799e2dd86d76e4f1b40d9b327dcd7da82b1596ad0d691d444e10a31c44462ed6",
+  "protocol_sha256": "5929ff1f3dc9da00456144cf07ad204d695cc295ed762e66b3fe48b0c57124b0",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

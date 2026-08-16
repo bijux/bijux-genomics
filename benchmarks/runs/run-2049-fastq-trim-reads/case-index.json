@@ -5,7 +5,7 @@
     "domain": "fastq",
     "stage_id": "fastq.trim_reads"
   },
-  "protocol_sha256": "5c1447ed13d8a506afca87e855c1b111901572ef7a40a0650e690e557fa83726",
+  "protocol_sha256": "2847c18e24b7cac8c02c7d92ccaf61c2da279ca7ce48c36d3fc9e4967c7d94b8",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

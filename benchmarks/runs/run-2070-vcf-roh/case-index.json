@@ -5,7 +5,7 @@
     "domain": "vcf",
     "stage_id": "vcf.roh"
   },
-  "protocol_sha256": "33d8cf8477f3b2675257df40c76c730956d20173c7f01bf1b8a0239690f70b89",
+  "protocol_sha256": "f89daaa75bc208ea8024802c59c83ede7b120fc11fe9af7f0cd3ed11d1093c65",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

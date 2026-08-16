@@ -5,7 +5,7 @@
     "domain": "vcf",
     "stage_id": "vcf.admixture"
   },
-  "protocol_sha256": "e307c02bf6ed7a45f6f67ba16a26505612fb0f1171c77c988f7a301888ff6c90",
+  "protocol_sha256": "22e8811cbd9f05318d159d59a03a03aeb3b6bfcb051b5f9825808d515401c949",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

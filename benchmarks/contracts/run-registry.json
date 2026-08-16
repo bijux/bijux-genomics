@@ -9,15 +9,15 @@
     "identity_policy": "existing_ids_immutable"
   },
   "source_contract_sha256": {
-    "benchmarks/contracts/portfolio.toml": "447bcfa9342ccb5a41b22c1a8524edae368e9d8c1bae38af03f157159d0d63db",
-    "benchmarks/contracts/stage-campaigns.toml": "7178aa0d34ae9c235ee9b05ad7028ac5d451db6ad71e8d4e19a68e3c1e9071ad",
-    "benchmarks/contracts/stage-interfaces.toml": "069fceff18959c1b1da4d45af8f292fcb81304bca15e71e7cef68576c72b48b3",
+    "benchmarks/contracts/portfolio.toml": "c8429d06aad85727f2ca83b4c0a0fb28a1206b24d19ee6a10333f2a074896dbd",
+    "benchmarks/contracts/stage-campaigns.toml": "0bf439d8dba796f5f1cca0651cfd6054944a7e3857e024ff1f5f514e0ce08977",
+    "benchmarks/contracts/stage-interfaces.toml": "78a5b9742e7cb328488fbfb6f38ddf83b62b25aef55af39965b3fa58e087e39d",
     "containers/contracts/catalog.toml": "7315eeaae2364f99df38ad66fa46d9a2b3e3dc64d8757619b714df94de9d780a"
   },
   "summary": {
     "run_count": 71,
-    "active_count": 13,
-    "reserved_count": 58,
+    "active_count": 71,
+    "reserved_count": 0,
     "retired_count": 0
   },
   "runs": [
@@ -183,11 +183,15 @@
         "bam_diversity",
         "ancient_damage_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.sam.artifact.unsorted.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.authenticity.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-ancient-authentication-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -208,11 +212,15 @@
         "bam_diversity",
         "alignment_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.bias_mitigation.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -232,11 +240,14 @@
       "required_corpus_roles": [
         "bam_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.complexity.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -260,11 +271,16 @@
         "variant_truth",
         "population_inference_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.file.v1",
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.contamination.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -349,11 +365,14 @@
         "bam_diversity",
         "alignment_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.filter.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -403,11 +422,16 @@
         "variant_truth",
         "population_inference_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.file.v1",
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.haplogroups.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -457,11 +481,16 @@
         "variant_truth",
         "population_inference_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.file.v1",
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.kinship.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -483,11 +512,14 @@
         "bam_diversity",
         "alignment_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.length_filter.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -509,11 +541,14 @@
         "bam_diversity",
         "alignment_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.mapq_filter.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -535,11 +570,14 @@
         "bam_diversity",
         "alignment_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.markdup.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -560,11 +598,14 @@
         "bam_diversity",
         "alignment_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.overlap_correction.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -585,11 +626,15 @@
       "required_corpus_roles": [
         "bam_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.directory.v1",
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.qc_pre.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -610,11 +655,16 @@
         "bam_diversity",
         "alignment_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1",
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.recalibration.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -638,11 +688,15 @@
         "variant_truth",
         "population_inference_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.sex.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -664,11 +718,14 @@
       "required_corpus_roles": [
         "bam_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.validate.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -688,11 +745,14 @@
       "required_corpus_roles": [
         "amplicon_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.cluster_otus.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -716,11 +776,14 @@
         "short_read_diversity",
         "read_processing_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.paired_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.correct_errors.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -741,11 +804,15 @@
         "short_read_diversity",
         "environmental_taxonomy_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.directory.v1",
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.deplete_host.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-depletion-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -766,11 +833,15 @@
         "short_read_diversity",
         "environmental_taxonomy_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.directory.v1",
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.deplete_reference_contaminants.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-depletion-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -791,11 +862,15 @@
         "short_read_diversity",
         "environmental_taxonomy_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.directory.v1",
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.deplete_rrna.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-depletion-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -843,11 +918,14 @@
       "required_corpus_roles": [
         "short_read_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.detect_duplicates_premerge.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -867,11 +945,14 @@
       "required_corpus_roles": [
         "short_read_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.estimate_library_complexity_prealign.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -892,11 +973,14 @@
         "short_read_diversity",
         "read_processing_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.paired_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.extract_umis.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -919,11 +1003,14 @@
         "short_read_diversity",
         "read_processing_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.filter_low_complexity.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -947,11 +1034,14 @@
         "short_read_diversity",
         "read_processing_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.filter_reads.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -972,11 +1062,14 @@
       "required_corpus_roles": [
         "alignment_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.index_reference.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "reference-index-build-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -996,11 +1089,14 @@
       "required_corpus_roles": [
         "amplicon_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.paired_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.infer_asvs.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1027,11 +1123,14 @@
         "short_read_diversity",
         "read_processing_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.paired_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1051,11 +1150,14 @@
       "required_corpus_roles": [
         "amplicon_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.table.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.normalize_abundance.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1076,11 +1178,15 @@
         "short_read_diversity",
         "read_processing_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.single_end.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.normalize_primers.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1102,11 +1208,14 @@
       "required_corpus_roles": [
         "short_read_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.profile_overrepresented_sequences.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1186,11 +1295,14 @@
       "required_corpus_roles": [
         "amplicon_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.remove_chimeras.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1212,11 +1324,15 @@
         "short_read_diversity",
         "read_processing_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.paired_end.v1",
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.remove_duplicates.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1236,11 +1352,14 @@
       "required_corpus_roles": [
         "short_read_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.directory.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.report_qc.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1263,11 +1382,15 @@
       "required_corpus_roles": [
         "environmental_taxonomy_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.database.v1",
+        "bijux.fastq.artifact.paired_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.screen_taxonomy.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-taxonomy-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1289,11 +1412,14 @@
         "short_read_diversity",
         "read_processing_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.trim_polyg_tails.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1327,11 +1453,16 @@
         "short_read_diversity",
         "read_processing_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.paired_end.v1",
+        "bijux.fastq.artifact.single_end.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.trim_reads.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1354,11 +1485,14 @@
         "short_read_diversity",
         "read_processing_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.fastq.artifact.single_end.v1"
+      ],
+      "output_contract": "bijux.benchmark.fastq.trim_terminal_damage.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1412,11 +1546,15 @@
         "population_inference_truth",
         "ancient_population_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.table.v1",
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.admixture.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1437,11 +1575,15 @@
         "variant_truth",
         "ancient_damage_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.call.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-calling-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1462,11 +1604,15 @@
         "variant_truth",
         "ancient_damage_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.call_diploid.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-calling-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1488,11 +1634,15 @@
         "variant_truth",
         "ancient_damage_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.call_gl.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-calling-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1514,11 +1664,15 @@
         "variant_truth",
         "ancient_damage_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.call_pseudohaploid.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-calling-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1539,11 +1693,14 @@
         "variant_truth",
         "masked_genotype_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.damage_filter.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1564,11 +1721,14 @@
         "population_inference_truth",
         "ancient_population_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.table.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.demography.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1589,11 +1749,14 @@
         "variant_truth",
         "masked_genotype_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.filter.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1614,11 +1777,14 @@
         "variant_truth",
         "masked_genotype_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.gl_propagation.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1641,11 +1807,15 @@
         "population_inference_truth",
         "ancient_population_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.table.v1",
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.ibd.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1669,11 +1839,16 @@
         "variant_truth",
         "masked_genotype_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.table.v1",
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
+        "bijux.vcf.artifact.reference_panel_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.imputation_metrics.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-phasing-imputation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1697,11 +1872,16 @@
         "variant_truth",
         "masked_genotype_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.table.v1",
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
+        "bijux.vcf.artifact.reference_panel_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.impute.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-phasing-imputation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1723,11 +1903,15 @@
         "population_inference_truth",
         "ancient_population_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.table.v1",
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.pca.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1751,11 +1935,16 @@
         "variant_truth",
         "masked_genotype_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.table.v1",
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
+        "bijux.vcf.artifact.reference_panel_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.phasing.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-phasing-imputation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1778,11 +1967,15 @@
         "population_inference_truth",
         "ancient_population_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.auxiliary.artifact.table.v1",
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.population_structure.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1803,11 +1996,14 @@
         "variant_truth",
         "masked_genotype_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.postprocess.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1828,11 +2024,14 @@
         "variant_truth",
         "masked_genotype_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.prepare_reference_panel.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1855,11 +2054,14 @@
         "variant_truth",
         "masked_genotype_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.qc.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1880,11 +2082,14 @@
         "population_inference_truth",
         "ancient_population_diversity"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.roh.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
@@ -1905,11 +2110,14 @@
         "variant_truth",
         "masked_genotype_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.vcf.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.vcf.stats.bundle.v1",
+      "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     }

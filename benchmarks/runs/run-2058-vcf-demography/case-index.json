@@ -5,7 +5,7 @@
     "domain": "vcf",
     "stage_id": "vcf.demography"
   },
-  "protocol_sha256": "b82b4d7f7c1a8164ec20f7e4a8607e202eed0d3dd96ad5a9be170bf01cc3dc1e",
+  "protocol_sha256": "c1a0e0faa21ad6cf0fe8c48fcae33e2835454e1f048417d0583ae4f77834628d",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
