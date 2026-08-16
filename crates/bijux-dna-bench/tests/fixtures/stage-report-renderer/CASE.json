@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.fixture_case.v1",
+  "format": "stage_report_renderer_parity",
+  "content": "Typed benchmark stage reports paired with byte-exact expected Markdown renderings. The .expected.txt suffix preserves report bytes without placing documentation files outside the crate docs boundary."
+}
