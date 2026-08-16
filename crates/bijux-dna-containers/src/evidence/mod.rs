@@ -116,8 +116,9 @@ pub use runtime_verification::{
 };
 pub use schema::{
     image_inventory_publication_schema, image_inventory_scan_schema,
-    runtime_verification_publication_schema, write_image_inventory_publication_schema,
-    write_image_inventory_scan_schema, write_runtime_verification_publication_schema,
+    runtime_verification_publication_schema, runtime_verification_schemas_match,
+    write_image_inventory_publication_schema, write_image_inventory_scan_schema,
+    write_runtime_verification_publication_schema,
 };
 pub use security_database::{
     load_grype_database_contract, verify_grype_database, AdmittedGrypeDatabase,

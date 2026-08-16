@@ -429,9 +429,9 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     }
     let inventory = read_json(inventory_path)?;
     let scan = read_json(scan_path)?;
-    let runtime = read_json(runtime_path)?;
+    let runtime = read_json(&runtime_path)?;
     let security_probe = read_json(security_probe_path)?;
-    let tool_identity = read_json(tool_identity_path)?;
+    let tool_identity = read_json(&tool_identity_path)?;
     let storage_plan = read_json(storage_plan_path)?;
     let storage_report = read_json(storage_report_path)?;
     let qualification_registry = read_json(qualification_registry_path)?;
@@ -471,7 +471,25 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     assert_eq!(catalog, bijux_dna_containers::api::container_catalog_schema());
     assert_eq!(catalog_lock, bijux_dna_containers::api::container_catalog_lock_schema());
     assert_eq!(activation, bijux_dna_containers::api::image_activation_plan_schema());
+    assert!(bijux_dna_containers::api::runtime_verification_schemas_match(
+        &runtime_path,
+        &tool_identity_path,
+    )?);
     assert!(bijux_dna_containers::api::image_activation_plan_schema_matches(&activation_path)?);
+
+    let drifted_runtime = tempfile::NamedTempFile::new()?;
+    std::fs::write(drifted_runtime.path(), b"{}")?;
+    assert!(!bijux_dna_containers::api::runtime_verification_schemas_match(
+        drifted_runtime.path(),
+        &tool_identity_path,
+    )?);
+
+    let drifted_identity = tempfile::NamedTempFile::new()?;
+    std::fs::write(drifted_identity.path(), b"{}")?;
+    assert!(!bijux_dna_containers::api::runtime_verification_schemas_match(
+        &runtime_path,
+        drifted_identity.path(),
+    )?);
 
     let drifted_activation = tempfile::NamedTempFile::new()?;
     std::fs::write(drifted_activation.path(), b"{}")?;

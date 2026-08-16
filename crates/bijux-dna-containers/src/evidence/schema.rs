@@ -1,3 +1,4 @@
+use anyhow::Context;
 use schemars::schema_for;
 use serde_json::Value;
 use std::path::Path;
@@ -83,4 +84,23 @@ pub fn write_image_inventory_scan_schema(path: &Path) -> anyhow::Result<()> {
 pub fn write_runtime_verification_publication_schema(path: &Path) -> anyhow::Result<()> {
     bijux_dna_infra::atomic_write_json(path, &runtime_verification_publication_schema())?;
     Ok(())
+}
+
+/// Compare the checked runtime-publication and tool-identity schemas with their owner contracts.
+///
+/// # Errors
+/// Returns an error when either checked schema cannot be read or parsed.
+pub fn runtime_verification_schemas_match(
+    publication_path: &Path,
+    identity_path: &Path,
+) -> anyhow::Result<bool> {
+    let publication_bytes =
+        std::fs::read(publication_path).context("read runtime-verification publication schema")?;
+    let publication: Value = serde_json::from_slice(&publication_bytes)
+        .context("parse runtime-verification publication schema")?;
+    let identity_bytes = std::fs::read(identity_path).context("read tool-image identity schema")?;
+    let identity: Value =
+        serde_json::from_slice(&identity_bytes).context("parse tool-image identity schema")?;
+    Ok(publication == runtime_verification_publication_schema()
+        && identity == super::tool_contract::tool_image_identity_evidence_schema())
 }

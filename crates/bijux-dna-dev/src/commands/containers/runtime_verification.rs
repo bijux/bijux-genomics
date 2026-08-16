@@ -1,4 +1,4 @@
-use super::{path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Result, Workspace};
+use super::{path_from_arg, success_line, ContainerCommandOutcome, Result, Workspace};
 
 const PUBLICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/runtime-verification-publication.v2.json";
@@ -49,15 +49,12 @@ fn check_schema(workspace: &Workspace, args: &[String]) -> Result<ContainerComma
     if !args.is_empty() {
         anyhow::bail!(USAGE);
     }
-    let publication: serde_json::Value =
-        serde_json::from_str(&read_utf8(&workspace.path(PUBLICATION_SCHEMA_PATH))?)?;
-    let identity: serde_json::Value =
-        serde_json::from_str(&read_utf8(&workspace.path(IDENTITY_SCHEMA_PATH))?)?;
-    if publication != bijux_dna_containers::api::runtime_verification_publication_schema()
-        || identity != bijux_dna_containers::api::tool_image_identity_evidence_schema()
-    {
+    if !bijux_dna_containers::api::runtime_verification_schemas_match(
+        &workspace.path(PUBLICATION_SCHEMA_PATH),
+        &workspace.path(IDENTITY_SCHEMA_PATH),
+    )? {
         return Ok(ContainerCommandOutcome::failure(
-            "runtime-verification schema drifted from Rust environment types\n",
+            "runtime-verification schema drifted from Rust container types\n",
         ));
     }
     success_line("runtime-verification schema: OK")
