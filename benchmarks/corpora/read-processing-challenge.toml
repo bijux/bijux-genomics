@@ -52,6 +52,7 @@ selected_accessions = [
   "ERR769594",
   "ERR769610",
 ]
+sample_era = "ancient"
 selection_scope = "The ten ancient runs already declared in the human short-read diversity source authority, spanning single- and paired-end libraries and four studies."
 truth_basis = "Archive metadata and study evidence establish authentic ancient-library context; damage observations require an independent governed derivation."
 known_limitations = ["The collection has no calibrated adapter, UMI, or molecule-level duplicate truth."]
@@ -76,6 +77,7 @@ selected_accessions = [
   "SRR898240",
   "SRR898303",
 ]
+sample_era = "modern"
 selection_scope = "Ten exact paired-end Illumina lanes spanning SEQC reference samples A, B, C, and D at NYG and BGI, with additional A and B lanes from AGR."
 truth_basis = "Well-characterized reference RNA mixtures, titrations, technical replication, and ERCC spike-in profiles provide independent abundance and repeatability anchors."
 known_limitations = ["RNA-seq reference mixtures do not model ancient DNA damage or UMI-bearing DNA libraries."]

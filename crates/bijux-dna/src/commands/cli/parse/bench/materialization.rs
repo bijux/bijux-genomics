@@ -12,6 +12,18 @@ pub struct BenchAcquireFastqCorpusArgs {
     pub retrieved_at_utc: String,
 }
 
+#[derive(Debug, Args)]
+pub struct BenchAcquireSelectedFastqCollectionArgs {
+    #[arg(long)]
+    pub spec: PathBuf,
+    #[arg(long)]
+    pub collection_id: String,
+    #[arg(long)]
+    pub output: PathBuf,
+    #[arg(long)]
+    pub retrieved_at_utc: String,
+}
+
 #[derive(Debug, Subcommand)]
 pub enum BenchCorpusMaterializationCommand {
     Prepare(BenchCorpusMaterializationPrepareArgs),

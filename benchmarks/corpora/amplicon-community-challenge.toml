@@ -41,6 +41,7 @@ access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
 data_types = ["amplicon_reference", "fastq"]
 planned_sample_count = 1
 selected_accessions = ["SRR2990088"]
+sample_era = "not_applicable"
 selection_scope = "The single paired-end MiSeq run and its declared 27-isolate composition spanning six orders of abundance."
 truth_basis = "The archive record declares isolate membership, fine-scale 16S differences, and designed frequency range."
 known_limitations = ["One run cannot establish cross-batch or cross-laboratory repeatability."]
@@ -65,6 +66,7 @@ selected_accessions = [
   "SRR042391",
   "SRR042548",
 ]
+sample_era = "not_applicable"
 selection_scope = "Ten exact 454 amplicon runs spanning ten protocol-validation experiments and both HMP mock-community sample records."
 truth_basis = "A common mock material with known organism membership supports membership and within-authority protocol consistency measurements."
 known_limitations = [

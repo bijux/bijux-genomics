@@ -148,6 +148,10 @@ The production lifecycle is one-way and identity-addressed:
 2. Resolve source metadata and access terms without treating live metadata as immutable evidence.
 3. Freeze the acquisition plan, selected accessions, expected files, resource projection, and
    allowed use.
+   A source portfolio that spans multiple archive scientific names is split into independently
+   identified collection plans. Every selected FASTQ collection declares its sample era as
+   `ancient`, `modern`, or `not_applicable`; the resolver never infers this scientific context
+   from names or accession prefixes.
 4. Transfer or derive bytes into a staging root and validate format, record closure, sample
    identity, size, and checksum.
 5. Publish an immutable governed catalog and access receipt under STUDY.

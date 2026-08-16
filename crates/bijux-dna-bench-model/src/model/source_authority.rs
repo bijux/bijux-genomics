@@ -21,6 +21,8 @@ pub struct BenchmarkDataSourceCollection {
     pub planned_accession_count: Option<u64>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub selected_accessions: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sample_era: Option<String>,
     pub selection_scope: String,
     pub truth_basis: String,
     pub known_limitations: Vec<String>,

@@ -478,6 +478,18 @@ pub(crate) fn handle_meta_commands(
                     )?;
                     crate::commands::cli::render::json::print_pretty(&plan)?;
                 }
+                BenchCommand::AcquireSelectedFastqCollection(args) => {
+                    let plan =
+                        bijux_dna_api::v1::api::bench::acquire_selected_fastq_collection(
+                            &bijux_dna_api::v1::api::bench::SelectedFastqCollectionAcquisitionRequest {
+                                spec_path: args.spec.clone(),
+                                collection_id: args.collection_id.clone(),
+                                output_path: args.output.clone(),
+                                retrieved_at_utc: args.retrieved_at_utc.clone(),
+                            },
+                        )?;
+                    crate::commands::cli::render::json::print_pretty(&plan)?;
+                }
                 BenchCommand::MaterializeFastqCorpus(args) => {
                     let publication =
                         bijux_dna_api::v1::api::bench::materialize_fastq_corpus(

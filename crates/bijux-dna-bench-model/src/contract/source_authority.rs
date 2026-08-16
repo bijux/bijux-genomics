@@ -92,6 +92,19 @@ pub fn validate_benchmark_data_source_spec(
                 return Err(invalid("selected source accession is declared more than once"));
             }
         }
+        if collection
+            .sample_era
+            .as_deref()
+            .is_some_and(|value| !matches!(value, "ancient" | "modern" | "not_applicable"))
+        {
+            return Err(invalid("source collection sample era is unsupported"));
+        }
+        if !collection.selected_accessions.is_empty()
+            && collection.data_types.iter().any(|data_type| data_type == "fastq")
+            && collection.sample_era.is_none()
+        {
+            return Err(invalid("selected FASTQ source collection lacks a sample era"));
+        }
         validate_nonempty_list(&collection.known_limitations, "source collection limitation")?;
         if let Some(collection_samples) = collection.planned_sample_count {
             planned_samples = planned_samples

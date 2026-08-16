@@ -90,6 +90,7 @@ mod tests {
                 planned_sample_count: Some(10),
                 planned_accession_count: None,
                 selected_accessions: Vec::new(),
+                sample_era: None,
                 selection_scope: "All ten independently characterized samples.".to_string(),
                 truth_basis: "Orthogonal measurements define benchmark genotypes.".to_string(),
                 known_limitations: vec![

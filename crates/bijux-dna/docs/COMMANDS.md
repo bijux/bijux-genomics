@@ -225,6 +225,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench data-index`
 - `bijux-dna bench catalog-registry publish`
 - `bijux-dna bench acquire-fastq-corpus`
+- `bijux-dna bench acquire-selected-fastq-collection`
 - `bijux-dna bench materialize-fastq-corpus`
 - `bijux-dna bench materialize-reference-bundle`
 - `bijux-dna bench corpus-materialization prepare`

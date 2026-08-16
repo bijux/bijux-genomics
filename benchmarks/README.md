@@ -74,6 +74,21 @@ count, size, or digest ambiguity. The resulting plan is acquisition authority,
 not admission: downloaded files still require digest verification and a
 governed data-catalog record before a comparative campaign can consume them.
 
+For a domain-neutral stage portfolio, resolve each frozen FASTQ collection independently so
+distinct species or metagenome labels remain distinct governed catalogs:
+
+```console
+bijux-dna bench acquire-selected-fastq-collection \
+  --spec benchmarks/corpora/environmental-taxonomy-challenge.toml \
+  --collection-id ena-tara-oceans \
+  --output "$STUDY/data/evidence/acquisition-plans/$commit/environmental-taxonomy-challenge/ena-tara-oceans.json" \
+  --retrieved-at-utc "$retrieved_at_utc"
+```
+
+The selected collection must declare FASTQ data and a complete, exact accession list. The
+resolver rejects missing or extra ENA rows, mixed scientific names within the collection, unsafe
+file identities, and incomplete checksum, size, layout, or archive context.
+
 Materialize the resolved plan under the governed data root:
 
 ```console

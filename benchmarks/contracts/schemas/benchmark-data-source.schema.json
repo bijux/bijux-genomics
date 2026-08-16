@@ -55,6 +55,12 @@
             "null"
           ]
         },
+        "sample_era": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "selected_accessions": {
           "items": {
             "type": "string"

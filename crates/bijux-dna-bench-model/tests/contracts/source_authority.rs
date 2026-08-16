@@ -75,6 +75,26 @@ fn paired_treatment_samples_can_bind_multiple_run_accessions() {
 }
 
 #[test]
+fn selected_fastq_collections_require_an_explicit_supported_era() {
+    let mut source = source_spec();
+    source.data_types = vec!["bam".to_string(), "fastq".to_string(), "vcf".to_string()];
+    source.collections[0].data_types = vec!["bam".to_string(), "fastq".to_string()];
+    source.collections[0].planned_sample_count = Some(1);
+    source.collections[0].selected_accessions = vec!["SAMPLE-001".to_string()];
+    source.target_sample_count = 1;
+
+    assert!(validate_benchmark_data_source_spec(&source)
+        .is_err_and(|error| error.to_string().contains("lacks a sample era")));
+
+    source.collections[0].sample_era = Some("not_applicable".to_string());
+    assert!(validate_benchmark_data_source_spec(&source).is_ok());
+
+    source.collections[0].sample_era = Some("prehistoric".to_string());
+    assert!(validate_benchmark_data_source_spec(&source)
+        .is_err_and(|error| error.to_string().contains("sample era is unsupported")));
+}
+
+#[test]
 fn checked_generic_source_schema_matches_model() -> anyhow::Result<()> {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -135,6 +155,7 @@ fn source_spec() -> BenchmarkDataSourceSpec {
                 planned_sample_count: Some(10),
                 planned_accession_count: None,
                 selected_accessions: Vec::new(),
+                sample_era: None,
                 selection_scope: "All ten independently characterized samples.".to_string(),
                 truth_basis: "Orthogonal measurements define benchmark genotypes.".to_string(),
                 known_limitations: vec![
@@ -151,6 +172,7 @@ fn source_spec() -> BenchmarkDataSourceSpec {
                 planned_sample_count: None,
                 planned_accession_count: None,
                 selected_accessions: Vec::new(),
+                sample_era: None,
                 selection_scope: "One immutable supporting map.".to_string(),
                 truth_basis: "The authority publishes the map independently of samples."
                     .to_string(),
