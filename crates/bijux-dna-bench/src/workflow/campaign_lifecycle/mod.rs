@@ -2,6 +2,7 @@
 //! Campaign lifecycle planning from governed benchmark declarations.
 
 mod authorities;
+mod binding_case_material;
 mod execution;
 mod operator;
 mod planning;
