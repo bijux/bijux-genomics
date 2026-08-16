@@ -53,7 +53,7 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 | `run-2039` | `bijux-benchmark-run-2039` | `fastq.normalize_abundance` | `seqkit` | `active` | `not selected` |
 | `run-2040` | `bijux-benchmark-run-2040` | `fastq.normalize_primers` | `cutadapt` | `active` | `not selected` |
 | `run-2041` | `bijux-benchmark-run-2041` | `fastq.profile_overrepresented_sequences` | `fastq_scan`, `fastqc`, `seqkit` | `active` | `not selected` |
-| `run-2042` | `bijux-benchmark-run-2042` | `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `active` | `run-2042-production-331014ca9f9c` |
+| `run-2042` | `bijux-benchmark-run-2042` | `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `active` | `run-2042-production-e6874f0d833c` |
 | `run-2043` | `bijux-benchmark-run-2043` | `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `active` | `run-2043-production-331014ca9f9c` |
 | `run-2044` | `bijux-benchmark-run-2044` | `fastq.remove_chimeras` | `vsearch` | `active` | `not selected` |
 | `run-2045` | `bijux-benchmark-run-2045` | `fastq.remove_duplicates` | `clumpify`, `fastuniq` | `active` | `not selected` |

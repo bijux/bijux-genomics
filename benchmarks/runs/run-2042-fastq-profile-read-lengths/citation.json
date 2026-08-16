@@ -11,67 +11,67 @@
   "protocol_sha256": "0a26dba2a05494983199517d323be9bad0f6bb56354b2da71f65b202123f53ff",
   "status": "published",
   "selected_publication": {
-    "publication_id": "run-2042-production-331014ca9f9c",
+    "publication_id": "run-2042-production-e6874f0d833c",
     "selected_attempts": [
       {
-        "campaign_id": "production-run-2042-331014ca9",
+        "campaign_id": "production-run-2042-e6874f0d8",
         "run": {
           "run_id": "run-2042",
           "domain": "fastq",
           "stage_id": "fastq.profile_read_lengths"
         },
         "case_id": "run-2042--seqfu--human-short-read-diversity",
-        "attempt_id": "attempt-0002",
+        "attempt_id": "attempt-0001",
         "tool_id": "seqfu"
       },
       {
-        "campaign_id": "production-run-2042-331014ca9",
+        "campaign_id": "production-run-2042-e6874f0d8",
         "run": {
           "run_id": "run-2042",
           "domain": "fastq",
           "stage_id": "fastq.profile_read_lengths"
         },
         "case_id": "run-2042--seqkit--human-short-read-diversity",
-        "attempt_id": "attempt-0002",
+        "attempt_id": "attempt-0001",
         "tool_id": "seqkit"
       }
     ],
-    "repository_commit": "331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec",
+    "repository_commit": "e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd",
     "report": {
-      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2042/run-2042-fastq-profile-read-lengths.json",
-      "sha256": "f7b7038913991be880101f165ccf87a2d8673282749062be5c000220caaf091d",
-      "size_bytes": 48722
+      "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/run-2042-fastq-profile-read-lengths.json",
+      "sha256": "f6ba07ff3d716c58dfbd1cfb66b34a64bc08b0f43e31227b0aa78396707dd38a",
+      "size_bytes": 48676
     },
     "evidence_book": {
-      "uri": "study://results/benchmarks/evidence-books/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/candidate-publications.json",
-      "sha256": "7007544c3bfb93569096fb8ebb6c35975ebd777afd491623002863bb4c798283",
+      "uri": "study://results/benchmarks/evidence-books/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/candidate-publications.json",
+      "sha256": "3d6313b6b43db4ac06ff8e5ae05268b4f7e5a29b253a08f1ede7bd5412b8d599",
       "size_bytes": 3777
     },
     "publication_receipt": {
-      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2042/publication-receipt.json",
-      "sha256": "2aa60e42cdc1bc3a768ea9160ed39a81a5ca3072e430ecbb3bac64cd7ef487dc",
-      "size_bytes": 3314
+      "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/publication-receipt.json",
+      "sha256": "6fceb7621e8939f7d7280442052d3cb156480f006106c6850f8c45428da344fc",
+      "size_bytes": 3400
     },
     "citation_record": {
-      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2042/citation-record.json",
-      "sha256": "0b1214e4f150582d5709657c75e604a737ef3beb962fea1deebe95524beaa4a6",
-      "size_bytes": 3014
+      "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/citation-record.json",
+      "sha256": "8f42650cf4bf3d87f2e6eabcacb6f64df8075e9e73fd634afc3bc68dffe0b75a",
+      "size_bytes": 3087
     },
     "replay_receipt": {
-      "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2042/semantic-identity.json",
-      "sha256": "0ff75e677b95e89e6e0b2ed1e040a92e92194335ea3ed33428abef35698b3507",
-      "size_bytes": 3582
+      "uri": "study://results/benchmarks/replays/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/semantic-identity.json",
+      "sha256": "8b82ad5785f1f3ef379c27ab03bba626503170dffc32525dbaad0caf6d0ee60f",
+      "size_bytes": 3968
     },
     "limitations": [
       "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
-      "The publication covers one governed human short-read diversity cohort.",
+      "The publication compares SeqFu and SeqKit on one governed human short-read diversity cohort and does not generalize beyond the admitted corpus.",
       "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
     ],
     "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
   },
   "limitations": [
     "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
-    "The publication covers one governed human short-read diversity cohort.",
+    "The publication compares SeqFu and SeqKit on one governed human short-read diversity cohort and does not generalize beyond the admitted corpus.",
     "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
   ]
 }

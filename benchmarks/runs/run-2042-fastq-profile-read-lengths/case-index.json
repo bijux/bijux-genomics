@@ -11,22 +11,22 @@
       "case_id": "run-2042--seqfu--human-short-read-diversity",
       "tool_id": "seqfu",
       "definition": {
-        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2042/case-definition-run-2042--seqfu--human-short-read-diversity.json",
-        "sha256": "829730357d9228bcff2b3befb43caf96f0881c689b3b3e6879faf7b492edc121",
-        "size_bytes": 12992
+        "uri": "study://results/benchmarks/replays/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/case-definition-run-2042--seqfu--human-short-read-diversity.json",
+        "sha256": "2678c264061770db59082d3476919d29f317243c9c9323b8f4be489696639e97",
+        "size_bytes": 13020
       }
     },
     {
       "case_id": "run-2042--seqkit--human-short-read-diversity",
       "tool_id": "seqkit",
       "definition": {
-        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2042/case-definition-run-2042--seqkit--human-short-read-diversity.json",
-        "sha256": "bc76d7d57ca4310e0cdf7a7c307e24dc1382863287dce02fd2543eb6d12d388a",
-        "size_bytes": 13166
+        "uri": "study://results/benchmarks/replays/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/case-definition-run-2042--seqkit--human-short-read-diversity.json",
+        "sha256": "08a7a395bb1ce200e64cd3298a4ec0b55365cccedb31d4552df2674d0437ba8d",
+        "size_bytes": 13194
       }
     }
   ],
   "limitations": [
-    "The publication covers one governed human short-read diversity cohort."
+    "The publication compares SeqFu and SeqKit on one governed human short-read diversity cohort and does not generalize beyond the admitted corpus."
   ]
 }
