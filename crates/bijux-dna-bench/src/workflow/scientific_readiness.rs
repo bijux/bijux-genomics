@@ -22,8 +22,9 @@ use bijux_dna_bench_model::{
 use bijux_dna_containers::api::ContainerCatalog;
 
 use super::stage_coverage::runnable_stage_tools;
+use super::suite_load::load_benchmark_portfolio_from_repo;
 use super::{
-    load_benchmark_portfolio, load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
+    load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
     load_stage_reports_from_dir, BenchmarkCoverageWriteMode,
 };
 
@@ -302,8 +303,10 @@ pub fn publish_checked_in_scientific_readiness(
     if !catalog_validation.is_valid() {
         bail!("container catalog validation failed: {:?}", catalog_validation.errors);
     }
-    let portfolio =
-        load_benchmark_portfolio(&repository_root.join("benchmarks/contracts/portfolio.toml"))?;
+    let portfolio = load_benchmark_portfolio_from_repo(
+        &repository_root.join("benchmarks/contracts/portfolio.toml"),
+        repository_root,
+    )?;
     let registry = load_stage_campaign_registry(
         &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
     )?;

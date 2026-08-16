@@ -144,13 +144,28 @@ pub fn load_stage_campaign_registry(path: &Path) -> Result<BenchmarkStageCampaig
 /// # Errors
 /// Returns an error if the portfolio cannot be read, parsed, or validated.
 pub fn load_benchmark_portfolio(path: &Path) -> Result<BenchmarkPortfolio> {
+    let repo_root = crate::repo::resolve_repo_root().context("resolve repository root")?;
+    load_benchmark_portfolio_from_repo(path, &repo_root)
+}
+
+/// Load and validate the benchmark portfolio against an explicit repository authority.
+///
+/// This entry point is used by workflows that already received a repository root so execution
+/// remains independent of the caller's current directory and process environment.
+///
+/// # Errors
+/// Returns an error when the portfolio or a referenced repository-owned source is invalid.
+pub(crate) fn load_benchmark_portfolio_from_repo(
+    path: &Path,
+    repo_root: &Path,
+) -> Result<BenchmarkPortfolio> {
     let raw = fs::read_to_string(path)
         .with_context(|| format!("read benchmark portfolio {}", path.display()))?;
     let portfolio: BenchmarkPortfolio = toml::from_str(&raw)
         .with_context(|| format!("parse benchmark portfolio {}", path.display()))?;
     validate_benchmark_portfolio(&portfolio)
         .with_context(|| format!("validate benchmark portfolio {}", path.display()))?;
-    validate_portfolio_repository_paths(&portfolio)
+    validate_portfolio_repository_paths(&portfolio, repo_root)
         .with_context(|| format!("validate benchmark portfolio paths {}", path.display()))?;
     Ok(portfolio)
 }
@@ -380,8 +395,10 @@ fn validate_stage_interface_repository_contracts(
     Ok(())
 }
 
-fn validate_portfolio_repository_paths(portfolio: &BenchmarkPortfolio) -> Result<()> {
-    let repo_root = crate::repo::resolve_repo_root().context("resolve repository root")?;
+fn validate_portfolio_repository_paths(
+    portfolio: &BenchmarkPortfolio,
+    repo_root: &Path,
+) -> Result<()> {
     for corpus in &portfolio.corpora {
         for source_spec in &corpus.source_specs {
             let source_path = Path::new(source_spec);
@@ -399,12 +416,31 @@ fn validate_portfolio_repository_paths(portfolio: &BenchmarkPortfolio) -> Result
 
 #[cfg(test)]
 mod tests {
+    use std::path::PathBuf;
+
     use anyhow::Context;
     use bijux_dna_bench_model::{BenchmarkEvidenceTier, CorpusDomain, CorpusScale};
 
     use super::{
-        load_bundle_catalog, load_checked_in_benchmark_planning_contracts, load_corpus_catalog,
+        load_benchmark_portfolio_from_repo, load_bundle_catalog,
+        load_checked_in_benchmark_planning_contracts, load_corpus_catalog,
     };
+
+    #[test]
+    fn portfolio_loading_accepts_an_explicit_repository_authority() -> anyhow::Result<()> {
+        let crate_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let repository_root = crate_root
+            .parent()
+            .and_then(std::path::Path::parent)
+            .context("resolve repository root from benchmark crate")?;
+        let portfolio = load_benchmark_portfolio_from_repo(
+            &repository_root.join("benchmarks/contracts/portfolio.toml"),
+            repository_root,
+        )?;
+
+        assert_eq!(portfolio.stage_runs.len(), 71);
+        Ok(())
+    }
 
     #[test]
     fn corpus_catalog_contains_fastq_ci_small_fixture_matrix() -> anyhow::Result<()> {

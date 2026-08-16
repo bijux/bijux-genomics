@@ -21,10 +21,12 @@ use bijux_dna_containers::api::{
 };
 
 use super::{
-    load_benchmark_portfolio, load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
+    load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
     load_stage_reports_from_dir,
 };
 use crate::workflow::stage_report::current_report_sources;
+
+use super::suite_load::load_benchmark_portfolio_from_repo;
 
 const COVERAGE_JSON: &str = "benchmarks/reports/stage-benchmark-coverage.json";
 const COVERAGE_MARKDOWN: &str = "benchmarks/reports/stage-benchmark-coverage.md";
@@ -205,8 +207,10 @@ pub fn publish_checked_in_stage_coverage(
     let registry = load_stage_campaign_registry(
         &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
     )?;
-    let portfolio =
-        load_benchmark_portfolio(&repository_root.join("benchmarks/contracts/portfolio.toml"))?;
+    let portfolio = load_benchmark_portfolio_from_repo(
+        &repository_root.join("benchmarks/contracts/portfolio.toml"),
+        repository_root,
+    )?;
     validate_defined_campaign_portfolio_alignment(&registry, &portfolio)
         .context("align benchmark campaigns with portfolio")?;
     let interfaces = load_stage_interface_catalog_from_repo(

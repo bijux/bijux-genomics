@@ -28,10 +28,11 @@ use bijux_dna_stage_contract::{
 };
 use serde::Deserialize;
 
+use super::load_stage_campaign_registry;
 use super::parameter_authority::{
     load_parameter_registry_entry, ParameterRegistryEntry, PIPELINE_PARAMETERS_PATH,
 };
-use super::{load_benchmark_portfolio, load_stage_campaign_registry};
+use super::suite_load::load_benchmark_portfolio_from_repo;
 
 const CAMPAIGN_PATH: &str = "benchmarks/contracts/stage-campaigns.toml";
 const INTERFACE_PATH: &str = "benchmarks/contracts/stage-interfaces.toml";
@@ -190,7 +191,8 @@ struct DomainScientificThreshold {
 pub fn derive_benchmark_protocol_portfolio(
     repository_root: &Path,
 ) -> Result<BenchmarkProtocolPortfolio> {
-    let portfolio = load_benchmark_portfolio(&repository_root.join(PORTFOLIO_PATH))?;
+    let portfolio =
+        load_benchmark_portfolio_from_repo(&repository_root.join(PORTFOLIO_PATH), repository_root)?;
     let seed_campaigns = load_stage_campaign_registry(&repository_root.join(CAMPAIGN_PATH))?;
     let seed_interfaces = load_seed_interfaces(&repository_root.join(INTERFACE_PATH))?;
     let seed_parameters = load_parameter_config(repository_root)?;
