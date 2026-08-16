@@ -57,7 +57,7 @@ pub(super) fn build_catalog(
         .collect();
     GovernedDataCatalog {
         schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(),
-        id: plan.portfolio_id.clone(),
+        id: plan.corpus_id.clone(),
         purpose: plan.description.clone(),
         source: plan.source_authority.clone(),
         policy: plan.policy.clone(),
@@ -82,7 +82,7 @@ pub(super) fn validate_existing_catalog(
     source_record_sha256: &str,
 ) -> Result<()> {
     let expected_samples = plan.samples.iter().map(catalog_sample).collect::<Vec<_>>();
-    if catalog.id != plan.portfolio_id
+    if catalog.id != plan.corpus_id
         || catalog.source != plan.source_authority
         || catalog.purpose != plan.description
         || catalog.policy != plan.policy

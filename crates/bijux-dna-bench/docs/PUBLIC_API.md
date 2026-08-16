@@ -75,7 +75,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `acquire_selected_fastq_collection(request)` resolves one explicitly frozen FASTQ collection from a domain-neutral source authority and publishes a no-clobber plan without conflating different scientific names.
 - `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` deterministically derives the same validated plan from typed offline ENA records.
 - `derive_selected_fastq_collection_acquisition_plan(spec_path, collection_id, records, retrieved_at_utc)` deterministically derives the selected-collection plan from typed offline ENA records.
-- `materialize_fastq_corpus(request)` re-verifies or transfers checksum-pinned ENA files, validates every gzip FASTQ record, makes the admitted files read-only, and atomically publishes a no-clobber governed catalog.
+- `materialize_fastq_corpus(request)` re-verifies or transfers checksum-pinned ENA files, validates every gzip FASTQ record, makes the admitted files read-only, and atomically publishes a no-clobber collection catalog keyed by the acquisition plan's `corpus_id`; `portfolio_id` remains grouping metadata.
 - `admit_fastq_benchmark_corpus(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` re-hashes and admits one exact governed FASTQ closure.
 - `admit_bam_benchmark_corpus(study_root, data_index_path, corpus_id)` re-hashes and admits one exact governed coordinate-sorted BAM and BAI closure.
 - `ensure_fastq_read_length_expectations(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` independently derives and immutably publishes exact read-length evidence.

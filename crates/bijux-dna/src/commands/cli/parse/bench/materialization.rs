@@ -29,11 +29,44 @@ pub struct BenchAcquireSelectedFastqCollectionArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum BenchCorpusMaterializationCommand {
+    Plan(BenchCorpusMaterializationPlanArgs),
     Prepare(BenchCorpusMaterializationPrepareArgs),
     Submit(BenchCorpusMaterializationSubmitArgs),
     Status(BenchCorpusMaterializationStatusArgs),
     Collect(BenchCorpusMaterializationCollectArgs),
     CorrectEvidence(BenchCorpusMaterializationCorrectEvidenceArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCorpusMaterializationPlanArgs {
+    #[arg(long)]
+    pub repository: PathBuf,
+    #[arg(long)]
+    pub executable: PathBuf,
+    #[arg(long)]
+    pub plan: PathBuf,
+    #[arg(long)]
+    pub data_root: PathBuf,
+    #[arg(long)]
+    pub run_id: String,
+    #[arg(long)]
+    pub attempt_id: String,
+    #[arg(long)]
+    pub account: String,
+    #[arg(long)]
+    pub partition: String,
+    #[arg(long, default_value_t = 4)]
+    pub jobs: usize,
+    #[arg(long)]
+    pub memory_mb: u64,
+    #[arg(long)]
+    pub walltime: String,
+    #[arg(long, default_value_t = 2)]
+    pub retries: usize,
+    #[arg(long, default_value_t = 120)]
+    pub timeout_seconds: u64,
+    #[arg(long)]
+    pub admitted_at_utc: String,
 }
 
 #[derive(Debug, Args)]

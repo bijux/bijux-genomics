@@ -91,6 +91,7 @@ const CLI_COMMANDS: &[&str] = &[
     "bijux-dna bench acquire-selected-fastq-collection",
     "bijux-dna bench materialize-fastq-corpus",
     "bijux-dna bench materialize-reference-bundle",
+    "bijux-dna bench corpus-materialization plan",
     "bijux-dna bench corpus-materialization prepare",
     "bijux-dna bench corpus-materialization submit",
     "bijux-dna bench corpus-materialization status",

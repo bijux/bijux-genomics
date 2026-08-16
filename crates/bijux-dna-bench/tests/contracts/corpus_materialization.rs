@@ -14,10 +14,7 @@ use flate2::Compression;
 const REPOSITORY_COMMIT: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
 fn catalog_snapshot_path(data_root: &std::path::Path) -> std::path::PathBuf {
-    data_root
-        .join("catalog/snapshots")
-        .join(REPOSITORY_COMMIT)
-        .join("human-short-read-diversity.json")
+    data_root.join("catalog/snapshots").join(REPOSITORY_COMMIT).join("corpus-01.json")
 }
 
 #[test]
@@ -31,8 +28,7 @@ fn materialization_reverifies_existing_fastq_and_publishes_catalog() -> anyhow::
     let plan_path = data_root.join("evidence/acquisition-plans/plan.json");
     fs::create_dir_all(plan_path.parent().context("plan parent")?)?;
     fs::write(&plan_path, serde_json::to_vec_pretty(&plan)?)?;
-    let target =
-        data_root.join("corpora/human-short-read-diversity/raw/ERR000001/ERR000001.fastq.gz");
+    let target = data_root.join("corpora/corpus-01/raw/ERR000001/ERR000001.fastq.gz");
     fs::create_dir_all(target.parent().context("FASTQ parent")?)?;
     fs::write(&target, &fastq_bytes)?;
 
@@ -60,6 +56,48 @@ fn materialization_reverifies_existing_fastq_and_publishes_catalog() -> anyhow::
         use std::os::unix::fs::PermissionsExt as _;
         assert_eq!(fs::metadata(target)?.permissions().mode() & 0o777, 0o444);
     }
+    Ok(())
+}
+
+#[test]
+fn selected_collections_in_one_portfolio_receive_independent_catalogs() -> anyhow::Result<()> {
+    let temporary = tempfile::tempdir()?;
+    let data_root = temporary.path().canonicalize()?.join("data");
+    fs::create_dir(&data_root)?;
+    let data_root = data_root.canonicalize()?;
+    let fastq_bytes = compressed_fastq()?;
+
+    let first = acquisition_plan(&fastq_bytes)?;
+    let mut second = first.clone();
+    second.corpus_id = "corpus-02".to_string();
+    second.samples[0].accession = "ERR000002".to_string();
+    second.samples[0].sample_accession = "SAMEA2".to_string();
+    second.samples[0].experiment_accession = "ERX2".to_string();
+    second.samples[0].files[0].name = "ERR000002.fastq.gz".to_string();
+    second.samples[0].files[0].source_url =
+        "https://archive.example/ERR000002.fastq.gz".to_string();
+
+    let plan_root = data_root.join("evidence/acquisition-plans");
+    fs::create_dir_all(&plan_root)?;
+    let first_plan = plan_root.join("corpus-01.json");
+    let second_plan = plan_root.join("corpus-02.json");
+    fs::write(&first_plan, serde_json::to_vec_pretty(&first)?)?;
+    fs::write(&second_plan, serde_json::to_vec_pretty(&second)?)?;
+    let first_fastq = data_root.join("corpora/corpus-01/raw/ERR000001/ERR000001.fastq.gz");
+    let second_fastq = data_root.join("corpora/corpus-02/raw/ERR000002/ERR000002.fastq.gz");
+    fs::create_dir_all(first_fastq.parent().context("first FASTQ parent")?)?;
+    fs::create_dir_all(second_fastq.parent().context("second FASTQ parent")?)?;
+    fs::write(first_fastq, &fastq_bytes)?;
+    fs::write(second_fastq, &fastq_bytes)?;
+
+    let first_publication = materialize_fastq_corpus(&request(first_plan, data_root.clone()))?;
+    let second_publication = materialize_fastq_corpus(&request(second_plan, data_root.clone()))?;
+
+    assert_eq!(first_publication.catalog.id, "corpus-01");
+    assert_eq!(second_publication.catalog.id, "corpus-02");
+    assert_ne!(first_publication.catalog_path, second_publication.catalog_path);
+    assert!(first_publication.catalog_path.is_file());
+    assert!(second_publication.catalog_path.is_file());
     Ok(())
 }
 
@@ -232,8 +270,7 @@ fn write_plan_and_fastq(
     let plan_path = data_root.join("evidence/acquisition-plans/plan.json");
     fs::create_dir_all(plan_path.parent().context("plan parent")?)?;
     fs::write(&plan_path, serde_json::to_vec_pretty(&acquisition_plan(fastq)?)?)?;
-    let target =
-        data_root.join("corpora/human-short-read-diversity/raw/ERR000001/ERR000001.fastq.gz");
+    let target = data_root.join("corpora/corpus-01/raw/ERR000001/ERR000001.fastq.gz");
     fs::create_dir_all(target.parent().context("FASTQ parent")?)?;
     fs::write(target, fastq)?;
     Ok(plan_path)

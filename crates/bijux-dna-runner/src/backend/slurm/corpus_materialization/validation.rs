@@ -13,6 +13,7 @@ use serde::de::DeserializeOwned;
 
 use super::contracts::{
     CorpusMaterializationSlurmSpec, CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1,
+    CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V2,
 };
 
 pub(super) const MAX_EVIDENCE_BYTES: usize = 16 * 1024 * 1024;
@@ -32,11 +33,19 @@ pub fn load_corpus_materialization_slurm_spec(
 pub(super) fn validate_specification(
     spec: &CorpusMaterializationSlurmSpec,
 ) -> Result<CorpusAcquisitionPlan> {
-    if spec.schema_version != CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1 {
+    if !matches!(
+        spec.schema_version.as_str(),
+        CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1 | CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V2
+    ) {
         bail!("corpus materialization Slurm specification schema is unsupported");
     }
     require_run_id(&spec.run_id)?;
     require_identifier(&spec.attempt_id, "attempt")?;
+    if spec.schema_version == CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V2 {
+        require_identifier(&spec.corpus_id, "corpus")?;
+    } else if !spec.corpus_id.is_empty() {
+        bail!("historical corpus materialization specification declares a v2 corpus identity");
+    }
     require_identifier(&spec.portfolio_id, "portfolio")?;
     require_git_commit(&spec.repository_commit)?;
     require_sha256(&spec.executable_sha256, "executable SHA-256")?;
@@ -80,6 +89,11 @@ pub(super) fn validate_specification(
     if plan.portfolio_id != spec.portfolio_id {
         bail!("acquisition plan portfolio differs from scheduler specification");
     }
+    if spec.schema_version == CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V2
+        && plan.corpus_id != spec.corpus_id
+    {
+        bail!("acquisition plan corpus differs from scheduler specification");
+    }
     if !spec.evidence_root.is_absolute()
         || spec
             .evidence_root
@@ -120,10 +134,12 @@ pub(super) fn validate_catalog_closure(
     validate_governed_data_catalog(&catalog).context("validate governed data catalog")?;
     let expected_file_count =
         usize::try_from(plan.file_count).context("acquisition plan file count exceeds platform")?;
-    if catalog.id != spec.portfolio_id || catalog.files.len() != expected_file_count {
+    if catalog.id != materialization_catalog_id(spec) || catalog.files.len() != expected_file_count
+    {
         bail!("governed catalog identity or file count differs from acquisition plan");
     }
-    let corpus_root = spec.data_root.join("corpora").join(&spec.portfolio_id).join("raw");
+    let corpus_root =
+        spec.data_root.join("corpora").join(materialization_catalog_id(spec)).join("raw");
     let mut observed_size = 0_u64;
     for file in &catalog.files {
         let path = Path::new(&file.path);
@@ -172,7 +188,15 @@ pub(super) fn catalog_snapshot_path(
     data_root
         .join("catalog/snapshots")
         .join(&spec.repository_commit)
-        .join(format!("{}.json", spec.portfolio_id))
+        .join(format!("{}.json", materialization_catalog_id(spec)))
+}
+
+pub(super) fn materialization_catalog_id(spec: &CorpusMaterializationSlurmSpec) -> &str {
+    if spec.schema_version == CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V2 {
+        &spec.corpus_id
+    } else {
+        &spec.portfolio_id
+    }
 }
 
 pub(super) fn require_utc_timestamp(value: &str, label: &str) -> Result<()> {

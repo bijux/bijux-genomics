@@ -13,11 +13,11 @@ use super::contracts::{
     CorpusMaterializationCollection, CorpusMaterializationEvidence,
     CorpusMaterializationEvidenceStatus, CorpusMaterializationSlurmSpec,
     PreparedCorpusMaterializationSlurmJob, CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1,
-    CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
+    CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V2, CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
 };
 use super::validation::{
-    canonical_directory, ensure_json_identity, read_json, require_utc_timestamp,
-    validate_catalog_closure, validate_specification,
+    canonical_directory, ensure_json_identity, materialization_catalog_id, read_json,
+    require_utc_timestamp, validate_catalog_closure, validate_specification,
 };
 use crate::backend::slurm::{
     collect_slurm_job, observe_slurm_job, submit_slurm_job, SlurmArraySpec, SlurmClientPaths,
@@ -144,7 +144,7 @@ pub fn load_prepared_corpus_materialization_slurm_job(
     require_utc_timestamp(&prepared.request.submitted_at_utc, "submission timestamp")?;
     if prepared.schema_version != CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1
         || prepared.request.run_id
-            != format!("{}:{}:{}", spec.run_id, spec.portfolio_id, spec.attempt_id)
+            != format!("{}:{}:{}", spec.run_id, materialization_catalog_id(spec), spec.attempt_id)
         || prepared.request.script_path != scheduler_root.join("job.sbatch")
         || prepared.request.working_directory != spec.repository_path
         || prepared.request.stdout_path != scheduler_root.join("stdout.log")
@@ -248,10 +248,11 @@ pub fn collect_corpus_materialization_slurm_job(
         }
     }
     let evidence = CorpusMaterializationEvidence {
-        schema_version: CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1.to_string(),
+        schema_version: CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V2.to_string(),
         status,
         run_id: spec.run_id.clone(),
         attempt_id: spec.attempt_id.clone(),
+        corpus_id: spec.corpus_id.clone(),
         portfolio_id: spec.portfolio_id.clone(),
         repository_commit: spec.repository_commit.clone(),
         job_id: handle.job_id,
@@ -307,9 +308,12 @@ fn validate_retained_evidence(
     evidence: &CorpusMaterializationEvidence,
 ) -> Result<()> {
     let prepared = prepared_from_evidence(spec, handle)?;
-    if evidence.schema_version != CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1
-        || evidence.run_id != spec.run_id
+    if !matches!(
+        evidence.schema_version.as_str(),
+        CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1 | CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V2
+    ) || evidence.run_id != spec.run_id
         || evidence.attempt_id != spec.attempt_id
+        || evidence.corpus_id != spec.corpus_id
         || evidence.portfolio_id != spec.portfolio_id
         || evidence.repository_commit != spec.repository_commit
         || evidence.job_id != handle.job_id
