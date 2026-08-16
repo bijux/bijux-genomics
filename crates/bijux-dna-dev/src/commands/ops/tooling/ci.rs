@@ -458,6 +458,7 @@ pub(in super::super) fn tooling_ci_fast(
                     .collect::<Vec<_>>(),
                 "duration_milliseconds": 0,
                 "compiler_lock_wait_events": 0,
+                "build_target": build_authority.target.join(&group.id),
                 "exit_code": 1,
                 "log": serde_json::Value::Null,
             }));
@@ -491,6 +492,7 @@ pub(in super::super) fn tooling_ci_fast(
                     envs: ci_fast_group_env(
                         workspace,
                         &build_authority,
+                        &group.id,
                         &sccache_runtime_env,
                         &group_compiler_env,
                     )?,
@@ -540,6 +542,7 @@ pub(in super::super) fn tooling_ci_fast(
                     .collect::<Vec<_>>(),
                 "duration_milliseconds": duration_milliseconds,
                 "compiler_lock_wait_events": group_lock_wait_events,
+                "build_target": build_authority.target.join(&group.id),
                 "exit_code": exit_code,
                 "log": workspace.rel(&log_path).to_string_lossy(),
             }));
@@ -664,6 +667,7 @@ pub(in super::super) fn tooling_ci_fast(
         "requested_cache_state": requested_cache_state,
         "shared_cache_authority": shared_cache_authority,
         "build_authority": build_authority.target,
+        "build_target_isolation": "per_group_under_shared_authority",
         "shared_build_authority": shared_build_authority,
         "cache_before": cache_before,
         "cache_after": cache_after,
@@ -768,11 +772,15 @@ fn ci_fast_critical_path(
 fn ci_fast_group_env(
     workspace: &Workspace,
     authority: &FastBuildAuthority,
+    group_id: &str,
     sccache_runtime_env: &[(String, String)],
     group_compiler_env: &[(String, String)],
 ) -> Result<Vec<(String, String)>> {
     let mut envs = artifact_env_with_common_test_env(workspace)?;
-    envs.push(("CARGO_TARGET_DIR".to_string(), authority.target.display().to_string()));
+    envs.push((
+        "CARGO_TARGET_DIR".to_string(),
+        authority.target.join(group_id).display().to_string(),
+    ));
     envs.push(("CARGO_NET_OFFLINE".to_string(), "true".to_string()));
     envs.extend_from_slice(sccache_runtime_env);
     envs.extend_from_slice(group_compiler_env);
@@ -2701,14 +2709,14 @@ mod tests {
     }
 
     #[test]
-    fn fast_groups_share_one_gate_target_and_offline_authority() -> anyhow::Result<()> {
+    fn fast_groups_isolate_targets_under_one_offline_build_authority() -> anyhow::Result<()> {
         let root =
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let workspace = Workspace { root };
         let authority = resolve_ci_fast_build_authority(&workspace, None)?;
         let runtime_env = resolve_ci_fast_sccache_runtime_env(Some("sccache"), None)?;
-        let first = ci_fast_group_env(&workspace, &authority, &runtime_env, &[])?;
-        let second = ci_fast_group_env(&workspace, &authority, &runtime_env, &[])?;
+        let first = ci_fast_group_env(&workspace, &authority, "metadata", &runtime_env, &[])?;
+        let second = ci_fast_group_env(&workspace, &authority, "unit", &runtime_env, &[])?;
 
         assert!(first.iter().any(|(key, value)| key == "CARGO_NET_OFFLINE" && value == "true"));
         assert!(first.iter().any(|(key, value)| key == "TZ" && value == "UTC"));
@@ -2723,8 +2731,9 @@ mod tests {
             .rev()
             .find(|(key, _)| key == "CARGO_TARGET_DIR")
             .map(|(_, value)| value.as_str());
-        assert_eq!(first_target, second_target);
-        assert!(first_target.is_some_and(|value| value.ends_with("ci/ci-fast-target")));
+        assert_ne!(first_target, second_target);
+        assert!(first_target.is_some_and(|value| value.ends_with("ci/ci-fast-target/metadata")));
+        assert!(second_target.is_some_and(|value| value.ends_with("ci/ci-fast-target/unit")));
         assert!(first.iter().any(|(key, value)| {
             key == "SCCACHE_SERVER_UDS" && value.starts_with("/tmp/bijux-sccache-")
         }));
@@ -2757,7 +2766,7 @@ mod tests {
             Some("sccache"),
             Some(std::path::PathBuf::from("/tmp/bijux-sccache-test.sock")),
         )?;
-        let envs = ci_fast_group_env(&workspace, &authority, &runtime_env, &[])?;
+        let envs = ci_fast_group_env(&workspace, &authority, "metadata", &runtime_env, &[])?;
 
         let tmpdirs = envs
             .iter()

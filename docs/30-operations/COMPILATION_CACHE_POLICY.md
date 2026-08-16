@@ -1,17 +1,21 @@
 # Compilation Cache Policy
 
 ## Purpose
+
 Define the compilation-cache and Cargo target-isolation contract without making correctness depend
 on cache state.
 
 ## Scope
+
 Applies to local Rust build reuse, CI toolchain and lock identity, sccache receipts, shared prebuild
 targets, and isolated concurrent target roots.
 
 ## Non-goals
+
 - Hidden crate-specific compile flags.
 
 ## Contracts
+
 - `configs/ci/build-authority.json` is the machine-evaluable toolchain, lock, cache, and target
   authority.
 - CI uses the exact channel in `rust-toolchain.toml`, resolves the single workspace `Cargo.lock`
@@ -27,22 +31,24 @@ targets, and isolated concurrent target roots.
   then gives each concurrent gate its own `artifacts/github-all/targets/<gate>` target root so no
   useful concurrency is serialized by one Cargo target lock. Gates reuse compiler output through
   sccache and reuse only the immutable path to the prebuilt developer binary.
-- The `ci-fast` DAG gives its concurrently ready groups one gate-scoped
-  `artifacts/ci/ci-fast-target` root. Cargo coordinates concurrent access to that root, so groups
-  can reuse the same materialized dependency graph while retaining DAG concurrency. Groups also
-  share the pinned toolchain, workspace lockfile, and sccache authority, and execute Cargo offline
-  after the launcher has resolved its own locked dependencies. The critical-path baseline counts
-  Cargo's lock-wait diagnostics per target and publishes the sum of affected target wall times as
-  an explicit conservative upper bound; it never presents that bound as exact lock-held time.
+- The `ci-fast` DAG gives each concurrently ready group a stable child of the gate-scoped
+  `artifacts/ci/ci-fast-target` authority. Per-group Cargo targets retain build output across
+  invocations without serializing independent groups on one target lock. Groups share the pinned
+  toolchain, workspace lockfile, and sccache authority, and execute Cargo offline after the
+  launcher has resolved its own locked dependencies. Timing receipts name every group target. The
+  critical-path baseline also counts Cargo lock-wait diagnostics and publishes the sum of affected
+  target wall times as an explicit conservative upper bound; it never presents that bound as exact
+  lock-held time.
 - On Unix, the `ci-fast` supervisor gives all groups in one invocation a single explicit
   `SCCACHE_SERVER_UDS` and a short `/tmp` runtime directory. Both the server socket and sccache's
   startup-notification socket are therefore bounded independently of the persistent cache and
   evidence directories, so deep governed roots cannot prevent the cache server from binding.
 - A warm `ci-fast` timing observation is reference-eligible only when pre-run and post-run sccache
   receipts name the same cache authority, that authority is not scoped to the source commit, and
-  the measured run reaches the contract's minimum cache-hit ratio without cache errors. A caller's
-  `warm` label is only a request; it is never evidence. Missing, disabled, commit-scoped, cold, or
-  invalid cache observations remain diagnostic evidence and cannot contribute to the p95 claim.
+  the measured run either reuses complete per-group build targets or reaches the contract's
+  minimum compiler-cache hit ratio without cache errors. A caller's `warm` label is only a
+  request; it is never evidence. Missing, disabled, commit-scoped, cold, or invalid cache
+  observations remain diagnostic evidence and cannot contribute to the p95 claim.
 - Complete-workspace hash shards each use a tracked-source clone and a distinct absolute artifact
   root. Cargo targets, test and coverage targets, temporary directories, and profraw directories
   are disjoint between shards; all shards retain the single toolchain and sccache authority from
@@ -55,6 +61,7 @@ targets, and isolated concurrent target roots.
 - Crate-local `RUSTFLAGS` overrides require governance review.
 
 ## Recommended Local Setup
+
 1. Install `sccache`.
 2. Export `RUSTC_WRAPPER=$(command -v sccache)` in your shell profile.
 3. Use shared `artifacts/target` reuse for interactive local builds and sequential gates in one
@@ -65,16 +72,19 @@ targets, and isolated concurrent target roots.
    non-normalized, or overlapping scratch and evidence roots before materialization.
 
 ## Diagnostics
+
 - `sccache --show-stats`
 - `cargo run -q -p bijux-dna-dev -- checks run check-ci-build-authority`
 - `make -f makes/cargo-dev.mk dev-test`
 
 ## Failure modes
+
 - Treating cache presence as required CI behavior hides correctness regressions.
 - Reusing shared target roots outside the governed artifact environment causes cross-run
   interference.
-- Reusing one target root across independent workflow gates can serialize unrelated products;
-  target sharing is restricted to groups inside the single `ci-fast` gate.
+- Reusing one target directory across independent processes can serialize unrelated products;
+  concurrent workflow gates and `ci-fast` groups use stable isolated targets beneath their
+  respective governed build authorities.
 - Letting sccache derive either its server socket or startup-notification socket below a deep
   shared root can exceed the platform path limit before compilation begins; use the
   supervisor-owned bounded socket and runtime-temporary authorities.
