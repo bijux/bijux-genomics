@@ -189,14 +189,21 @@ fn historical_specifications_remain_loadable_but_cannot_prepare_without_a_comman
 ) -> anyhow::Result<()> {
     let fixture = fixture()?;
     let mut historical = serde_json::to_value(&fixture.spec)?;
-    historical
+    let object = historical
         .as_object_mut()
-        .ok_or_else(|| anyhow::anyhow!("serialized specification is not an object"))?
-        .remove("command_arguments");
+        .ok_or_else(|| anyhow::anyhow!("serialized specification is not an object"))?;
+    object.insert(
+        "schema_version".to_string(),
+        serde_json::Value::String(CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1.to_string()),
+    );
+    object.remove("command_arguments");
+    object.remove("corpus_id");
     let path = fixture.root.path().join("historical-specification.json");
     fs::write(&path, serde_json::to_vec_pretty(&historical)?)?;
 
     let loaded = load_corpus_materialization_slurm_spec(&path)?;
+    assert_eq!(loaded.schema_version, CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1);
+    assert!(loaded.corpus_id.is_empty());
     assert!(loaded.command_arguments.is_empty());
     assert!(prepare_corpus_materialization_slurm_job(&loaded, "2026-08-06T10:20:00Z")
         .is_err_and(|error| error.to_string().contains("command must contain")));
