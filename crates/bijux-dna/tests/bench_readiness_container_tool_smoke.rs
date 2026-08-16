@@ -11,8 +11,11 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
+    let runtime_root = tempfile::tempdir().expect("runtime tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+    support::configure_isolated_runtime_resolution(&mut command, runtime_root.path());
+    let output = command
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .args(args)
@@ -60,13 +63,14 @@ fn bench_readiness_container_tool_smoke_reports_structured_unavailable_tool() {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5")
             && row.get("status").and_then(serde_json::Value::as_str)
                 == Some("unavailable_with_reason")
-            && row.get("smoke_runtime").is_none_or(serde_json::Value::is_null)
-            && row.get("declared_command").is_none_or(serde_json::Value::is_null)
+            && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("apptainer")
+            && row.get("declared_command").and_then(serde_json::Value::as_str)
+                == Some("bijux-dna env smoke apptainer shapeit5")
             && row.get("exit_code").is_none_or(serde_json::Value::is_null)
             && row
                 .get("unavailable_reason")
                 .and_then(serde_json::Value::as_str)
-                .is_some_and(|value| value.contains("external container source"))
+                .is_some_and(|value| value.contains("runtime `apptainer` is not available on PATH"))
             && row.get("manifest_path").and_then(serde_json::Value::as_str)
                 == Some("runs/bench/tool-smoke/container/shapeit5/manifest.json")
     }));

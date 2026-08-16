@@ -12,8 +12,11 @@ fn bench_readiness_container_tool_smoke_writes_manifest_file() {
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
+    let runtime_root = tempfile::tempdir().expect("runtime tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+    support::configure_isolated_runtime_resolution(&mut command, runtime_root.path());
+    let output = command
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .args(["bench", "readiness", "run-container-tool-smoke", "--tools", "shapeit5"])
@@ -46,17 +49,25 @@ fn bench_readiness_container_tool_smoke_writes_manifest_file() {
         parsed.get("status").and_then(serde_json::Value::as_str),
         Some("unavailable_with_reason")
     );
-    assert!(parsed.get("smoke_runtime").is_none_or(serde_json::Value::is_null));
-    assert!(parsed.get("declared_command").is_none_or(serde_json::Value::is_null));
-    assert!(parsed
+    assert_eq!(parsed.get("smoke_runtime").and_then(serde_json::Value::as_str), Some("apptainer"));
+    assert_eq!(
+        parsed.get("declared_command").and_then(serde_json::Value::as_str),
+        Some("bijux-dna env smoke apptainer shapeit5")
+    );
+    let applied_command = parsed
         .get("applied_command")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(std::vec::Vec::is_empty));
+        .expect("applied command array");
+    assert_eq!(applied_command.len(), 4);
+    assert!(applied_command[0].as_str().is_some_and(|value| value.ends_with("bijux-dna-dev")));
+    assert_eq!(applied_command[1].as_str(), Some("containers"));
+    assert_eq!(applied_command[2].as_str(), Some("run"));
+    assert_eq!(applied_command[3].as_str(), Some("smoke-containers-apptainer"));
     assert!(parsed.get("exit_code").is_none_or(serde_json::Value::is_null));
     assert_eq!(parsed.get("stdout").and_then(serde_json::Value::as_str), Some(""));
     assert_eq!(parsed.get("stderr").and_then(serde_json::Value::as_str), Some(""));
     assert!(parsed
         .get("unavailable_reason")
         .and_then(serde_json::Value::as_str)
-        .is_some_and(|value| value.contains("external container source")));
+        .is_some_and(|value| value.contains("runtime `apptainer` is not available on PATH")));
 }

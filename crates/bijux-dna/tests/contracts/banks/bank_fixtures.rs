@@ -68,6 +68,15 @@ pub fn repo_root() -> Result<PathBuf> {
 }
 
 #[allow(dead_code)]
+pub fn configure_isolated_runtime_resolution(command: &mut Command, root: &Path) {
+    command
+        .env("BIJUX_HPC_ROOT", root)
+        .env("BIJUX_CACHE_ROOT", root.join("cache"))
+        .env("BIJUX_APPTAINER_CONTAINER_DIR", root.join("containers"))
+        .env("PATH", root.join("bin"));
+}
+
+#[allow(dead_code)]
 pub fn hpc_dry_run_test_directory(repo_root: &Path, label: &str) -> Result<tempfile::TempDir> {
     let parent = repo_root.join("runs/bench/hpc-dry-run");
     fs::create_dir_all(&parent)?;

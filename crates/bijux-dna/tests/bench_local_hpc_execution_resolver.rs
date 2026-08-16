@@ -21,8 +21,11 @@ fn run_cli(args: &[&str]) -> std::process::Output {
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
+    let runtime_root = tempfile::tempdir().expect("runtime tempdir");
 
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+    support::configure_isolated_runtime_resolution(&mut command, runtime_root.path());
+    command
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -115,13 +118,14 @@ fn bench_local_render_hpc_execution_resolver_reports_selected_tool_runtime_surfa
         .find(|row| row.get("tool_id").map(String::as_str) == Some("plink"))
         .expect("plink selected benchmark row");
     assert_eq!(plink.get("execution_mode").map(String::as_str), Some("containerized"));
-    assert_eq!(plink.get("resolution_kind").map(String::as_str), Some("unavailable_with_reason"));
+    assert_eq!(plink.get("resolution_kind").map(String::as_str), Some("apptainer_image"));
     assert!(
         plink
-            .get("unavailable_reason")
-            .is_some_and(|value| value.contains("planned container source")),
-        "classified planned tools must retain their independent availability reason"
+            .get("resolution_target")
+            .is_some_and(|value| value.starts_with("containers/apptainer/plink.def@sha256:")),
+        "repository-distributable PLINK must resolve to its governed recipe identity"
     );
+    assert_eq!(plink.get("unavailable_reason").map(String::as_str), Some(""));
 
     for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
         let row = rows
