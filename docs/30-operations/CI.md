@@ -45,6 +45,18 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
   [configs/rust/nextest.toml](../../configs/rust/nextest.toml) and
   [configs/coverage/runner.toml](../../configs/coverage/runner.toml).
 
+## Full Workspace Shards
+
+- `configs/ci/full-shards.json` owns the exactly-once five-way hash partition contract.
+- The warm-cache reference allocation is 32 CPUs and 128 GiB. The archive build uses eight jobs;
+  shard execution begins only after the immutable archive closes, so these resources do not
+  contend with shard processes.
+- `ci-test-all-sharded` runs all five partitions by default. Repeated `--shard <id>` arguments are
+  reserved for classified affected recovery and must publish a receipt that disclaims complete
+  workspace coverage.
+- Timing receipts must report archive duration, each selected shard duration, checksum stability,
+  wall time, cache authority, and whether the execution covered the complete contract.
+
 ## Artifact Contract
 - See [docs/30-operations/ISOLATION.md](ISOLATION.md).
 

@@ -22,7 +22,7 @@
       "provisioning": "checksum-bound runner execution binding; site modules are not required"
     }
   ],
-  "archive_build_jobs": 4,
+  "archive_build_jobs": 8,
   "archive_root": "artifacts/ci/full-shards/archive",
   "shard_artifact_root": "artifacts/ci/full-shards/shards",
   "report_root": "artifacts/ci/full-shards",
