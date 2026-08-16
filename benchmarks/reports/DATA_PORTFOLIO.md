@@ -3,12 +3,12 @@
 This report joins portfolio declarations to checksum-verified STUDY records. Data-index
 eligibility proves governed file identity; it does not by itself admit comparative science.
 
-- Source commit: `f62473c409b7cbd8c87dcc21040adf876f239718`
+- Source commit: `da640659bb3475166a7810f789db7322fee9f715`
 - Portfolio corpora: **16**
 - Publishable-data ready: **7**
-- Bound governed catalogs: **24**
-- Unbound governed catalogs: **10**
-- Verified bound bytes: **42415666966**
+- Bound governed catalogs: **33**
+- Unbound governed catalogs: **1**
+- Verified bound bytes: **96839352197**
 - Corpora without storage projections: **0**
 - Corpora without compute projections: **5**
 - Publishable contamination findings: **0**
@@ -18,19 +18,19 @@ eligibility proves governed file identity; it does not by itself admit comparati
 | Corpus | Class | State | Samples | Catalogs | Verified bytes | Projected bytes | Projected CPU hours | Ready | Blockers |
 |---|---|---|---:|---:|---:|---:|---:|---|---|
 | `alignment-truth-panel` | production_real | source_defined | 0/10 | 0 | 0 | 1000000000000 | 5000 | no | source selection is not frozen by exact accessions; source-defined corpus has not been admitted |
-| `amplicon-community-challenge` | production_real | source_defined | 0/10 | 0 | 0 | 25000000000 | 500 | no | source-defined corpus has not been admitted |
+| `amplicon-community-challenge` | production_real | source_defined | 0/10 | 2 | 600126222 | 25000000000 | 500 | no | source-defined corpus has not been admitted |
 | `amplicon-stage-qualification` | qualification_real | admitted | 1/1 | 3 | 11778203 | 11778203 | unknown | yes | - |
 | `ancient-dna-bam-diversity` | production_real | admitted | 10/10 | 2 | 5711625731 | 250000000000 | 3000 | yes | - |
-| `ancient-dna-damage-controls` | production_real | source_defined | 0/10 | 0 | 0 | 100000000000 | 1500 | no | source-defined corpus has not been admitted |
+| `ancient-dna-damage-controls` | production_real | source_defined | 0/10 | 4 | 24927748802 | 100000000000 | 1500 | no | source-defined corpus has not been admitted |
 | `ancient-horse-alignment-qualification` | qualification_real | admitted | 1/1 | 7 | 3020996176 | 3020996176 | unknown | yes | - |
 | `ancient-population-panel` | production_real | source_defined | 0/10 | 0 | 0 | 200000000000 | 3000 | no | source selection is not frozen by exact accessions; source-defined corpus has not been admitted |
-| `environmental-taxonomy-challenge` | production_real | source_defined | 0/10 | 0 | 0 | 100000000000 | 2000 | no | source-defined corpus has not been admitted |
+| `environmental-taxonomy-challenge` | production_real | source_defined | 0/10 | 2 | 17200389018 | 100000000000 | 2000 | no | source-defined corpus has not been admitted |
 | `equine-read-stage-qualification` | qualification_real | admitted | 1/1 | 4 | 27299073539 | 27299073539 | unknown | yes | - |
 | `human-population-stage-qualification` | qualification_real | admitted | 100/100 | 5 | 478974528 | 478974528 | unknown | yes | - |
 | `human-short-read-diversity` | production_real | admitted | 20/20 | 2 | 7950810128 | 5457128348 | 240 | yes | - |
 | `masked-genotype-truth-panel` | production_real | source_defined | 0/100 | 0 | 0 | 750000000000 | 4000 | no | source selection is not frozen by exact accessions; source-defined corpus has not been admitted |
 | `population-inference-truth-panel` | production_real | source_defined | 0/100 | 0 | 0 | 300000000000 | 2500 | no | source selection is not frozen by exact accessions; source-defined corpus has not been admitted |
-| `read-processing-challenge` | production_real | source_defined | 0/10 | 0 | 0 | 100000000000 | 1000 | no | source-defined corpus has not been admitted |
+| `read-processing-challenge` | production_real | source_defined | 0/10 | 2 | 16008145752 | 100000000000 | 1000 | no | source-defined corpus has not been admitted |
 | `variant-truth-panel` | production_real | source_defined | 0/10 | 0 | 0 | 1000000000000 | 5000 | no | source selection is not frozen by exact accessions; source-defined corpus has not been admitted |
 | `viral-taxonomy-stage-qualification` | qualification_real | admitted | 1/1 | 2 | 2255133224 | 2255133224 | unknown | yes | - |
 
@@ -79,11 +79,17 @@ Access terms are copied from each exact governed catalog. Legacy null or absent 
 
 | Corpus | Catalog | Present | Access | Redistribution | Access terms | Observed samples | Sample-count authority |
 |---|---|---|---|---|---|---:|---|
+| `amplicon-community-challenge` | `amplicon-community-challenge-extreme-mock-community` | yes | public | accession-referenced-source-copy | not declared by governed catalog | 1 | catalog.samples |
+| `amplicon-community-challenge` | `amplicon-community-challenge-hmp-amplicon-mock` | yes | public | accession-referenced-source-copy | not declared by governed catalog | 10 | catalog.samples |
 | `amplicon-stage-qualification` | `ena-prjdb2953-drr021371` | yes | public | public-source-copy | not declared by governed catalog | 1 | catalog.sample_identity |
 | `amplicon-stage-qualification` | `ena-prjdb4000-drr037766` | yes | public | public-source-copy | not declared by governed catalog | 1 | catalog.sample_identity |
 | `amplicon-stage-qualification` | `mothur-miseq-sop-f3d0` | yes | public | public-tutorial-copy | not declared by governed catalog | 1 | catalog.sample_identity |
 | `ancient-dna-bam-diversity` | `ancient-dna-bam-diversity` | yes | public | accession-referenced-derived-alignments | not declared by governed catalog | 10 | catalog.samples |
 | `ancient-dna-bam-diversity` | `grch38-reference` | yes | public | public-reference-assembly | not declared by governed catalog | unknown | not available |
+| `ancient-dna-damage-controls` | `ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs` | yes | public | accession-referenced-derived-alignments | not declared by governed catalog | 20 | catalog.samples |
+| `ancient-dna-damage-controls` | `ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank` | yes | public | accession-referenced-derived-alignments | not declared by governed catalog | 1 | catalog.samples |
+| `ancient-dna-damage-controls` | `ancient-dna-damage-controls-public-modern-human-observational-controls` | yes | public | accession-referenced-derived-alignments | not declared by governed catalog | 10 | catalog.samples |
+| `ancient-dna-damage-controls` | `grch38-reference` | yes | public | public-reference-assembly | not declared by governed catalog | unknown | not available |
 | `ancient-horse-alignment-qualification` | `ena-prjeb22390-err2112767-bam` | yes | public | accession-referenced-derived-alignment | not declared by governed catalog | 1 | catalog.sample_identity |
 | `ancient-horse-alignment-qualification` | `ena-prjeb22390-err2112767-ngsbriggs-input` | yes | public | accession-referenced-derived-alignment | not declared by governed catalog | 1 | catalog.samples |
 | `ancient-horse-alignment-qualification` | `ensembl-113-equcab3-refseq-genotyping-inputs-10mb` | yes | public | public-derived-reference-database | not declared by governed catalog | unknown | not available |
@@ -91,6 +97,8 @@ Access terms are copied from each exact governed catalog. Legacy null or absent 
 | `ancient-horse-alignment-qualification` | `ensembl-113-equcab3-variation` | yes | public | public-reference-database | not declared by governed catalog | unknown | not available |
 | `ancient-horse-alignment-qualification` | `equcab3-gcf-002863925.1` | yes | public | public-reference-accession | not declared by governed catalog | unknown | not available |
 | `ancient-horse-alignment-qualification` | `equus-mitochondrial-candidates` | yes | public | public-reference-sequences | not declared by governed catalog | unknown | not available |
+| `environmental-taxonomy-challenge` | `environmental-taxonomy-challenge-ena-tara-oceans` | yes | public | accession-referenced-source-copy | not declared by governed catalog | 10 | catalog.samples |
+| `environmental-taxonomy-challenge` | `environmental-taxonomy-challenge-hmp-mock-community` | yes | public | accession-referenced-source-copy | not declared by governed catalog | 10 | catalog.samples |
 | `equine-read-stage-qualification` | `ena-prjeb10854-err1021817-full` | yes | public | accession-referenced-source-copy | not declared by governed catalog | 1 | catalog.sample_identity |
 | `equine-read-stage-qualification` | `ena-prjeb10854-err1021817-read-prefix-100000` | yes | public | accession-referenced-derived-subset | not declared by governed catalog | 1 | catalog.sample_identity |
 | `equine-read-stage-qualification` | `ena-prjeb10854-err1021817-split-paired-fastq` | yes | public | accession-referenced-source-copy | not declared by governed catalog | 1 | catalog.sample_identity |
@@ -102,6 +110,8 @@ Access terms are copied from each exact governed catalog. Legacy null or absent 
 | `human-population-stage-qualification` | `1000-genomes-phase3-chr22-ibdseq-segments` | yes | public | public-derived-result | not declared by governed catalog | 100 | catalog.sample_count |
 | `human-short-read-diversity` | `grch38-reference` | yes | public | public-reference-assembly | not declared by governed catalog | unknown | not available |
 | `human-short-read-diversity` | `human-short-read-diversity` | yes | public | accession-referenced | ENA public data access terms apply; publication identifies source accessions. | 20 | catalog.samples |
+| `read-processing-challenge` | `read-processing-challenge-ena-ancient-read-panel` | yes | mixed-public | accession-referenced-source-copy | not declared by governed catalog | 10 | catalog.samples |
+| `read-processing-challenge` | `read-processing-challenge-seqc-reference-rna` | yes | mixed-public | accession-referenced-source-copy | not declared by governed catalog | 10 | catalog.samples |
 | `viral-taxonomy-stage-qualification` | `centrifuge-nc-038500.1-single-reference` | yes | public | public-reference-sequence | not declared by governed catalog | 1 | catalog.sample_identity |
 | `viral-taxonomy-stage-qualification` | `kraken2-viral-20260626` | yes | public | public-reference-database | not declared by governed catalog | unknown | not available |
 
@@ -111,16 +121,7 @@ These records are checksum-verified holdings but are not portfolio admission evi
 
 | Catalog | Access | Redistribution | Files | Bytes | Non-production suspicion | Reasons |
 |---|---|---|---:|---:|---|---|
-| `amplicon-community-challenge-extreme-mock-community` | public | accession-referenced-source-copy | 2 | 567380588 | no | - |
-| `amplicon-community-challenge-hmp-amplicon-mock` | public | accession-referenced-source-copy | 10 | 32745634 | no | - |
-| `ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs` | public | accession-referenced-derived-alignments | 40 | 18171459349 | no | - |
-| `ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank` | public | accession-referenced-derived-alignments | 1 | 1018364 | no | - |
-| `ancient-dna-damage-controls-public-modern-human-observational-controls` | public | accession-referenced-derived-alignments | 15 | 2442546526 | no | - |
 | `corpus-01` | public | public-accession-referenced-source-copy | 30 | 3638085565 | no | - |
-| `environmental-taxonomy-challenge-ena-tara-oceans` | public | accession-referenced-source-copy | 19 | 17167643384 | no | - |
-| `environmental-taxonomy-challenge-hmp-mock-community` | public | accession-referenced-source-copy | 10 | 32745634 | no | - |
-| `read-processing-challenge-ena-ancient-read-panel` | mixed-public | accession-referenced-source-copy | 15 | 1195539039 | no | - |
-| `read-processing-challenge-seqc-reference-rna` | mixed-public | accession-referenced-source-copy | 20 | 14812606713 | no | - |
 
 ## Publishable contamination findings
 

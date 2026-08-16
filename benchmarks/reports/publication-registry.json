@@ -58,9 +58,9 @@
     {
       "product_id": "data-portfolio",
       "json_path": "benchmarks/reports/DATA_PORTFOLIO.json",
-      "json_sha256": "757cc39980dc86d66ecdb743eba8db595dc1d9be4351b859e9babb0709ffe7d5",
+      "json_sha256": "bf18dde093411e46bc3f368c7680ca99a51724dee437917ad8d617706a25b741",
       "markdown_path": "benchmarks/reports/DATA_PORTFOLIO.md",
-      "markdown_sha256": "4b55349d87a964550dfd9426be53d47e4639befa68f2a2c76f0ea0f0775bd494"
+      "markdown_sha256": "b91765070ad8582e6f17c1b747f72e0b737f3a8b5e663c6075fe1a115d233cf0"
     }
   ],
   "run_reports": [
