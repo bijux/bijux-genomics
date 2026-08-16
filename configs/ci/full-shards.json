@@ -18,7 +18,7 @@
       "version_args": [
         "--version"
       ],
-      "expected_version_line": "bcftools 1.21",
+      "expected_version_line": "bcftools 1.20",
       "provisioning": "checksum-bound runner execution binding; site modules are not required"
     }
   ],

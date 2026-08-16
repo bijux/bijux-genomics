@@ -1063,6 +1063,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let contract: FullShardContract = serde_json::from_slice(&fs::read(&contract_path)?)
         .with_context(|| format!("parse {}", contract_path.display()))?;
     validate_full_shard_contract(&contract)?;
+    validate_full_shard_runtime_dependency_catalog(workspace, &contract.runtime_dependencies)?;
 
     let storage = resolve_full_shard_storage_roots(
         workspace,
@@ -1864,6 +1865,33 @@ fn validate_full_shard_contract(contract: &FullShardContract) -> Result<()> {
     Ok(())
 }
 
+fn validate_full_shard_runtime_dependency_catalog(
+    workspace: &Workspace,
+    dependencies: &[FullShardRuntimeDependency],
+) -> Result<()> {
+    let catalog = bijux_dna_containers::api::load_container_catalog(&workspace.root)
+        .context("load container catalog for full-shard runtime dependencies")?;
+    for dependency in dependencies {
+        let tool =
+            catalog.tools.iter().find(|tool| tool.id == dependency.id).with_context(|| {
+                format!(
+                    "full-shard runtime dependency {} is absent from the container catalog",
+                    dependency.id
+                )
+            })?;
+        let expected_version_line = format!("{} {}", tool.expected_bin, tool.version);
+        if dependency.executable != tool.expected_bin
+            || dependency.expected_version_line != expected_version_line
+        {
+            anyhow::bail!(
+                "full-shard runtime dependency {} drifted from container catalog executable/version identity",
+                dependency.id
+            );
+        }
+    }
+    Ok(())
+}
+
 fn validate_fast_group_contract(contract: &FastGroupContract) -> Result<()> {
     if contract.schema_version != FAST_GROUPS_SCHEMA_V3
         || !(2..=16).contains(&contract.max_parallelism)
@@ -2332,11 +2360,11 @@ mod tests {
         resolve_full_shard_storage_roots, set_full_archive_readonly, start_owned_sccache_server,
         validate_ci_test_executor_observation, validate_fast_group_contract,
         validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
-        verified_warm_cache_mode, verify_sccache_compiler, FastCacheStats, FastExcludedLane,
-        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
-        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
-        FullShardEphemera, FullShardRoots, FullShardRuntimeDependency,
-        FAST_TIMING_HISTORY_SCHEMA_V4, FULL_SHARD_SCRATCH_ROOT_ENV,
+        validate_full_shard_runtime_dependency_catalog, verified_warm_cache_mode,
+        verify_sccache_compiler, FastCacheStats, FastExcludedLane, FastGroup, FastGroupContract,
+        FastReferenceRunner, FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard,
+        FullShardContract, FullShardCoverage, FullShardEphemera, FullShardRoots,
+        FullShardRuntimeDependency, FAST_TIMING_HISTORY_SCHEMA_V4, FULL_SHARD_SCRATCH_ROOT_ENV,
     };
     use crate::runtime::{process::ProcessRunner, workspace::Workspace};
 
@@ -2429,6 +2457,10 @@ mod tests {
         let contract: FullShardContract = serde_json::from_slice(&std::fs::read(path)?)?;
 
         validate_full_shard_contract(&contract)?;
+        validate_full_shard_runtime_dependency_catalog(
+            &Workspace { root: repository_root },
+            &contract.runtime_dependencies,
+        )?;
         assert_eq!(contract.shards.len(), 5);
         assert_eq!(
             contract.shards.iter().map(|shard| shard.partition.as_str()).collect::<Vec<_>>(),
