@@ -85,6 +85,7 @@ pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V1: &str = "bijux.benchmark.cycle_status
 pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V2: &str = "bijux.benchmark.cycle_status.v2";
 pub const BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1: &str = "bijux.benchmark.cycle_preparation.v1";
 pub const BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.cycle_admission.v1";
+pub const BENCHMARK_PROGRESS_LEDGER_SCHEMA_V1: &str = "bijux.finalization_v3.progress_ledger.v1";
 pub const BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1: &str = "bijux.benchmark.campaign_plan.v1";
 pub const BENCHMARK_RUN_DEFINITION_SCHEMA_V1: &str = "bijux.benchmark.run_definition.v1";
 pub const BENCHMARK_CASE_DEFINITION_SCHEMA_V1: &str = "bijux.benchmark.case_definition.v1";

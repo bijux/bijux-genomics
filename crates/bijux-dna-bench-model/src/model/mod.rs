@@ -67,6 +67,7 @@ pub mod observation;
 pub mod output_declarations;
 pub mod persisted_schema;
 pub mod planning;
+pub mod progress_ledger;
 pub mod protocol;
 pub mod publication;
 pub mod publication_findings;
@@ -547,6 +548,15 @@ pub use planning::{
     BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
     BenchmarkStageInterfaceStatus, BenchmarkStageUniverse, BenchmarkStageUniverseRow,
     BenchmarkStageUniverseSummary,
+};
+#[allow(unused_imports)]
+pub use progress_ledger::{
+    benchmark_progress_ledger_schema, BenchmarkProgressAttempt, BenchmarkProgressAttemptStatus,
+    BenchmarkProgressCheck, BenchmarkProgressCheckStatus, BenchmarkProgressCommit,
+    BenchmarkProgressExecutionUnit, BenchmarkProgressExecutionUnitStatus,
+    BenchmarkProgressExternalWait, BenchmarkProgressFrontier, BenchmarkProgressLedger,
+    BenchmarkProgressLedgerSource, BenchmarkProgressOwner, BenchmarkProgressTask,
+    BenchmarkProgressTaskStatus,
 };
 #[allow(unused_imports)]
 pub use protocol::{
