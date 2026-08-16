@@ -10,8 +10,8 @@
     "active_protocol_count": 71,
     "reserved_protocol_count": 0,
     "retired_protocol_count": 0,
-    "citable_publication_count": 7,
-    "unpublished_run_count": 64
+    "citable_publication_count": 8,
+    "unpublished_run_count": 63
   },
   "runs": [
     {
@@ -256,9 +256,65 @@
         "bam_diversity"
       ],
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
-      "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
-      ]
+      "selected_publication": {
+        "publication_id": "run-2004-production-e6874f0d833c",
+        "selected_attempts": [
+          {
+            "campaign_id": "production-run-2004-e6874f0d8",
+            "run": {
+              "run_id": "run-2004",
+              "domain": "bam",
+              "stage_id": "bam.mapping_summary"
+            },
+            "case_id": "run-2004--picard--ena-prjeb22390-err2112767-bam",
+            "attempt_id": "attempt-0001",
+            "tool_id": "picard"
+          },
+          {
+            "campaign_id": "production-run-2004-e6874f0d8",
+            "run": {
+              "run_id": "run-2004",
+              "domain": "bam",
+              "stage_id": "bam.mapping_summary"
+            },
+            "case_id": "run-2004--samtools--ena-prjeb22390-err2112767-bam",
+            "attempt_id": "attempt-0001",
+            "tool_id": "samtools"
+          }
+        ],
+        "repository_commit": "e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd",
+        "report": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/run-2004-bam-mapping-summary.json",
+          "sha256": "320428b1ff9c4cfab9debcfa86384d668c9af32254b8deb6bbf0973447b44435",
+          "size_bytes": 11458
+        },
+        "evidence_book": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/evidence-book.json",
+          "sha256": "f6be1bb941af6b44dbcaeba60432bfaf85741116c9b5e20a8a66f57e9458b664",
+          "size_bytes": 5758
+        },
+        "publication_receipt": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/publication-receipt.json",
+          "sha256": "07a81979b3d36fa2431b9003246ea9cde829c463e6faa556f53a7fe28164a341",
+          "size_bytes": 3333
+        },
+        "citation_record": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/citation-record.json",
+          "sha256": "afb468a1bbaba9b879e4dfea3c0fc703f06808b0856972c2b73abf2bd43f820c",
+          "size_bytes": 2965
+        },
+        "replay_receipt": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/replay-receipt.json",
+          "sha256": "92abac49da7e8e8f813e8fff0f1f44ac37fd03a44f6803a3bbe8c07e8cab4025",
+          "size_bytes": 3897
+        },
+        "limitations": [
+          "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure.",
+          "The citation is limited to the exact admitted cases, data authorities, artifacts, measurements, scientific verdicts, and downstream evidence selected by this source-locked publication."
+        ],
+        "access_statement": "Public data remain governed by their cited source terms; restricted artifacts are identified by admission evidence and are not redistributed."
+      },
+      "limitations": []
     },
     {
       "run_id": "run-2005",
