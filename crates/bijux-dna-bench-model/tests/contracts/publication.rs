@@ -152,6 +152,23 @@ fn publication_and_book_validate_and_round_trip() -> anyhow::Result<()> {
 }
 
 #[test]
+fn citation_accepts_exact_dotted_catalog_asset_identity() {
+    let mut citation = citation();
+    citation.assets[0].asset_id = "equcab3-gcf-002863925.1".to_string();
+    assert!(validate_benchmark_citation_record(&citation).is_ok());
+}
+
+#[test]
+fn citation_rejects_non_catalog_asset_identity() {
+    let mut citation = citation();
+    citation.assets[0].asset_id = ".equcab3".to_string();
+    assert!(validate_benchmark_citation_record(&citation).is_err());
+
+    citation.assets[0].asset_id = "equcab3/assembly".to_string();
+    assert!(validate_benchmark_citation_record(&citation).is_err());
+}
+
+#[test]
 fn publication_and_book_reject_unknown_fields_and_states() -> anyhow::Result<()> {
     let mut value = serde_json::to_value(publication())?;
     value["unknown"] = serde_json::json!(true);
