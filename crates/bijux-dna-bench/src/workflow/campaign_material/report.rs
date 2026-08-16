@@ -43,6 +43,9 @@ struct BenchmarkCampaignReportAdapter {
     publish: CampaignReportPublisher,
 }
 
+/// Reviewed material-driver adapters retain stage-specific scientific interpretation for the
+/// original campaigns. The generic case-aggregation reporter owns every campaign, including the
+/// derived stages that intentionally have no reviewed material driver.
 const REPORT_ADAPTERS: &[BenchmarkCampaignReportAdapter] = &[
     BenchmarkCampaignReportAdapter {
         stage_id: "bam.align",
@@ -249,7 +252,8 @@ mod tests {
     use std::collections::BTreeSet;
 
     #[test]
-    fn report_adapters_exactly_cover_campaign_and_interface_stages() -> anyhow::Result<()> {
+    fn specialized_report_adapters_cover_reviewed_material_without_narrowing_generic_campaigns(
+    ) -> anyhow::Result<()> {
         let (campaigns, _, interfaces) =
             super::super::super::load_checked_in_benchmark_planning_contracts()?;
         let campaign_stages = campaigns
@@ -262,11 +266,19 @@ mod tests {
             .iter()
             .map(|interface| interface.stage_id.as_str())
             .collect::<BTreeSet<_>>();
+        let reviewed_material_stages = campaigns
+            .campaigns
+            .iter()
+            .filter(|campaign| campaign.material_driver.is_some())
+            .map(|campaign| campaign.stage_id.as_str())
+            .collect::<BTreeSet<_>>();
         let adapter_stages =
             super::REPORT_ADAPTERS.iter().map(|adapter| adapter.stage_id).collect::<BTreeSet<_>>();
         assert_eq!(adapter_stages.len(), super::REPORT_ADAPTERS.len());
-        assert_eq!(adapter_stages, campaign_stages);
-        assert_eq!(adapter_stages, interface_stages);
+        assert_eq!(adapter_stages, reviewed_material_stages);
+        assert_eq!(campaign_stages, interface_stages);
+        assert_eq!(campaign_stages.len(), 71);
+        assert_eq!(campaign_stages.difference(&adapter_stages).count(), 58);
         Ok(())
     }
 }
