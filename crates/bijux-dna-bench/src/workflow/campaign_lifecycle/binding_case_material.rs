@@ -80,6 +80,8 @@ pub(super) fn prepare_binding_case_material(
     }
 
     let output_materials = binding_outputs(case)?;
+    let acceptance_output = json_acceptance_output(&output_materials)?;
+    let acceptance_output_name = acceptance_output.relative_path.clone();
     let mut execution_inputs = Vec::with_capacity(case.corpus.sample_ids.len());
     let mut units = Vec::with_capacity(case.corpus.sample_ids.len());
     for sample_id in &case.corpus.sample_ids {
@@ -119,16 +121,15 @@ pub(super) fn prepare_binding_case_material(
     let attempt_directory = benchmark_attempt_directory(benchmark_root, identity)?;
     let parameters = ensure_parameter_evidence(repository_root, &attempt_directory, case, &units)?;
     let warmup_command = render_warmup(case, executable, &units[0])?;
-    let first_output = &units[0].outputs[0];
     let acceptance_path = format!(
         "repetitions/measured-repetition-1--{}/{}",
         units[0].execution_unit_id,
-        first_output.relative_path.display()
+        acceptance_output_name.display()
     );
     let measured_path = format!(
         "/result/repetitions/measured-repetition-{{repetition}}--{}/{}",
         units[0].execution_unit_id,
-        first_output.relative_path.display()
+        acceptance_output_name.display()
     );
     let resources = case.binding.resources();
     Ok(BenchmarkExecutionMaterial {
@@ -172,6 +173,20 @@ pub(super) fn prepare_binding_case_material(
         },
         stage_plan_units: Some(units),
     })
+}
+
+fn json_acceptance_output(
+    outputs: &[BenchmarkStagePlanOutputMaterial],
+) -> Result<&BenchmarkStagePlanOutputMaterial> {
+    outputs
+        .iter()
+        .find(|output| {
+            matches!(
+                output.role,
+                ArtifactRole::ReportJson | ArtifactRole::MetricsJson | ArtifactRole::SummaryJson
+            )
+        })
+        .context("binding-driven case requires a JSON output until its normalizer is executable")
 }
 
 fn require_independent_corpus_fastq_binding(
@@ -417,8 +432,8 @@ fn ensure_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::{
-        artifact_role_and_suffix, canonical_component, require_independent_corpus_fastq_binding,
-        select_single_end_fastq,
+        artifact_role_and_suffix, canonical_component, json_acceptance_output,
+        require_independent_corpus_fastq_binding, select_single_end_fastq,
     };
     use bijux_dna_bench_model::BenchmarkDataArtifactSnapshotV1;
     use bijux_dna_core::contract::ArtifactRole;
@@ -462,6 +477,28 @@ mod tests {
             assert!(binding.parameters.is_empty());
             assert_eq!(require_independent_corpus_fastq_binding(binding)?.name, "reads_r1");
         }
+        Ok(())
+    }
+
+    #[test]
+    fn non_json_binding_outputs_fail_before_generic_execution() -> anyhow::Result<()> {
+        let bindings = canonical_tool_bindings()?;
+        let binding = bindings
+            .binding(&StageId::new("fastq.filter_reads"), &ToolId::new("bbduk"))
+            .ok_or_else(|| anyhow::anyhow!("missing canonical filter binding"))?;
+        let outputs = binding
+            .outputs
+            .iter()
+            .map(|output| {
+                let (role, suffix) = artifact_role_and_suffix(&output.artifact_contract_id)?;
+                Ok(super::BenchmarkStagePlanOutputMaterial {
+                    binding_name: output.name.clone(),
+                    relative_path: std::path::PathBuf::from(format!("{}{suffix}", output.name)),
+                    role,
+                })
+            })
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        assert!(json_acceptance_output(&outputs).is_err());
         Ok(())
     }
 }
