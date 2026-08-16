@@ -2,8 +2,8 @@
   "schema_version": "bijux.benchmark.publication_registry.v2",
   "summary": {
     "current_product_count": 6,
-    "current_run_report_count": 8,
-    "missing_run_report_count": 63,
+    "current_run_report_count": 7,
+    "missing_run_report_count": 64,
     "stale_run_report_count": 0,
     "failed_run_report_count": 0,
     "superseded_run_report_count": 0,
@@ -16,16 +16,16 @@
     {
       "product_id": "permanent-run-registry",
       "json_path": "benchmarks/contracts/run-registry.json",
-      "json_sha256": "5b5da255d0e7d23a5df095d9dd68ea4f400a1b7e0e3daf0ff945305d8bf60aa9",
+      "json_sha256": "ccad111cdfcb726577275c2d315ea8fb30c63a884238d4684d793fac07a4b585",
       "markdown_path": "benchmarks/reports/run-registry.md",
-      "markdown_sha256": "65dd58f09d4dd09bf1320dfc43797f0fdef9f85dd8361dc236a8226ad37eeaf1"
+      "markdown_sha256": "8007afc98c893781a0a572d4853c5fc80312ea7164e23869814b8c56a6793901"
     },
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "fc343b10b65e0d51e9c1e601c0eded60827eb67a5bff5297d10875224cf8e6c3",
+      "json_sha256": "9103c63447b86e423d4484a7203a4d60eb62091965ab62161b75f6753f39f5b2",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
-      "markdown_sha256": "c1b25e4da75bc81468a5505018f76c6746269f567dc5781431dcd92c95a79268"
+      "markdown_sha256": "71afcd277e70d9434ebcbbaa7797065427c0a3639f75a3e7a9b465c9f2836aa2"
     },
     {
       "product_id": "stage-universe",
@@ -60,20 +60,9 @@
     {
       "run_id": "run-2001",
       "stage_id": "bam.genotyping",
-      "disposition": "current",
-      "report": {
-        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/run-2001-bam-genotyping.json",
-        "sha256": "b6dd411a4292ddb567026c87a1129dcc2f2d2cc07f0a92b3fcfc0fd1f1ff19d8",
-        "size_bytes": 8571
-      },
-      "publication_receipt": {
-        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/publication-receipt.json",
-        "sha256": "9a3404d28646f888a16080428e273b500ad7fe5788e92e422ed7c85d2d6f48e5",
-        "size_bytes": 2564
-      },
+      "disposition": "missing",
       "limitations": [
-        "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure.",
-        "The citation is limited to the exact admitted cases, data authorities, artifacts, measurements, scientific verdicts, and downstream evidence selected by this source-locked publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {

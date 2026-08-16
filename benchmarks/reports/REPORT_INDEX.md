@@ -5,8 +5,8 @@
 Path presence does not confer current benchmark authority. Every permanent run is explicit below: current requires an admitted selected report and publication receipt, while absent evidence remains missing. Source-addressed legacy stage reports remain historical; tracked legacy readiness output is quarantined until removed.
 
 - Current governance products: **6**
-- Current run reports: **8**
-- Missing run reports: **63**
+- Current run reports: **7**
+- Missing run reports: **64**
 - Stale run reports: **0**
 - Failed run reports: **0**
 - Superseded run reports: **0**
@@ -29,7 +29,7 @@ Path presence does not confer current benchmark authority. Every permanent run i
 
 | Run | Stage | Disposition | Report | Publication receipt |
 |---|---|---|---|---|
-| `run-2001` | `bam.genotyping` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/run-2001-bam-genotyping.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/publication-receipt.json` |
+| `run-2001` | `bam.genotyping` | missing | `—` | `—` |
 | `run-2002` | `bam.coverage` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/run-2002-bam-coverage.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/publication-receipt.json` |
 | `run-2003` | `bam.endogenous_content` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/run-2003-bam-endogenous-content.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/publication-receipt.json` |
 | `run-2004` | `bam.mapping_summary` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/run-2004-bam-mapping-summary.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/publication-receipt.json` |
