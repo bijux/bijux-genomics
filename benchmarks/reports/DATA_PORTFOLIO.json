@@ -1,10 +1,10 @@
 {
   "schema_version": "bijux.benchmark.data_portfolio_audit.v2",
-  "source_commit": "efd269dcfc229cfdda4bfbc38ca83b895f39e0ea",
+  "source_commit": "f62473c409b7cbd8c87dcc21040adf876f239718",
   "portfolio_path": "benchmarks/contracts/portfolio.toml",
   "portfolio_sha256": "6cf8178d313915121ed0edff7dd642c565c4dd8a606b0a2462fbbfba5a8f8242",
-  "data_index_path": "study://data/evidence/indexes/6b0bb8b10a5a6db2ff54aa3405be9df11e1dfacc/data-index.json",
-  "data_index_sha256": "7b88a146bd64d51f652f008ff2730865d7facab5fd9d14a60ddb9d3c34b97193",
+  "data_index_path": "study://data/evidence/indexes/f62473c409b7cbd8c87dcc21040adf876f239718/data-index.json",
+  "data_index_sha256": "4151f74b59317a09a24c75442807b6df3b6c3621533aac5aa90cfda710df43fb",
   "summary": {
     "corpus_count": 16,
     "admitted_corpus_count": 7,
@@ -13,7 +13,7 @@
     "publishable_data_ready_count": 7,
     "bound_catalog_count": 24,
     "missing_catalog_binding_count": 0,
-    "unbound_catalog_count": 0,
+    "unbound_catalog_count": 10,
     "verified_bound_file_count": 135,
     "verified_bound_size_bytes": 42415666966,
     "unknown_storage_projection_count": 0,
@@ -1080,6 +1080,107 @@
       "blockers": []
     }
   ],
-  "unbound_assets": [],
+  "unbound_assets": [
+    {
+      "catalog_id": "amplicon-community-challenge-extreme-mock-community",
+      "purpose": "Replicated HMP mock-community amplicons plus the abundance-extreme Stanford community define real sequencing authorities for ASV, OTU, chimera, and normalization evaluation. Selection: The single paired-end MiSeq run and its declared 27-isolate composition spanning six orders of abundance.",
+      "access_classification": "public",
+      "redistribution_classification": "accession-referenced-source-copy",
+      "verified_file_count": 2,
+      "verified_size_bytes": 567380588,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    },
+    {
+      "catalog_id": "amplicon-community-challenge-hmp-amplicon-mock",
+      "purpose": "Replicated HMP mock-community amplicons plus the abundance-extreme Stanford community define real sequencing authorities for ASV, OTU, chimera, and normalization evaluation. Selection: Ten exact 454 amplicon runs spanning ten protocol-validation experiments and both HMP mock-community sample records.",
+      "access_classification": "public",
+      "redistribution_classification": "accession-referenced-source-copy",
+      "verified_file_count": 10,
+      "verified_size_bytes": 32745634,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    },
+    {
+      "catalog_id": "ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs",
+      "purpose": "Ten exact ancient-human UDG/non-UDG library pairs anchor treatment-labeled damage discrimination, complemented by a sequenced extraction blank, observational modern controls, and a common GRCh38 alignment authority. Selection: Freeze the ten listed same-individual shotgun pairs in pair order: G189, G1042, G28, G914, G166, G154, G117, G417, G896, and G397. Within each pair, the first run is UDG-treated and the second is non-UDG; materialization must preserve run, BioSample, individual, treatment, layout, study, and file-checksum fields.",
+      "access_classification": "public",
+      "redistribution_classification": "accession-referenced-derived-alignments",
+      "verified_file_count": 40,
+      "verified_size_bytes": 18171459349,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    },
+    {
+      "catalog_id": "ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank",
+      "purpose": "Ten exact ancient-human UDG/non-UDG library pairs anchor treatment-labeled damage discrimination, complemented by a sequenced extraction blank, observational modern controls, and a common GRCh38 alignment authority. Selection: Freeze shotgun extraction blank AndrewDecon (SRR13355795), including the archive FASTQ checksum, study treatment metadata, library layout, and the study's declared blank interpretation.",
+      "access_classification": "public",
+      "redistribution_classification": "accession-referenced-derived-alignments",
+      "verified_file_count": 1,
+      "verified_size_bytes": 1018364,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    },
+    {
+      "catalog_id": "ancient-dna-damage-controls-public-modern-human-observational-controls",
+      "purpose": "Ten exact ancient-human UDG/non-UDG library pairs anchor treatment-labeled damage discrimination, complemented by a sequenced extraction blank, observational modern controls, and a common GRCh38 alignment authority. Selection: Reuse exactly the ten listed modern public human runs selected by the human-short-read-diversity acquisition plan, retaining their four study accessions, single/paired layout, library strategy, selection, platform, and file checksums.",
+      "access_classification": "public",
+      "redistribution_classification": "accession-referenced-derived-alignments",
+      "verified_file_count": 15,
+      "verified_size_bytes": 2442546526,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    },
+    {
+      "catalog_id": "corpus-01",
+      "purpose": "Human FASTQ benchmark corpus for Lunarc with balanced ancient and modern DNA cohorts.",
+      "access_classification": "public",
+      "redistribution_classification": "public-accession-referenced-source-copy",
+      "verified_file_count": 30,
+      "verified_size_bytes": 3638085565,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    },
+    {
+      "catalog_id": "environmental-taxonomy-challenge-ena-tara-oceans",
+      "purpose": "A source-defined mock-community anchor and immutable reference-database authority for taxonomy, host depletion, and rRNA depletion benchmarks. Selection: Ten exact paired-end WGS runs spanning surface, deep-chlorophyll-maximum, mesopelagic, oxygen-minimum, viral, bacterial, and protist fractions across independent Tara Oceans stations.",
+      "access_classification": "public",
+      "redistribution_classification": "accession-referenced-source-copy",
+      "verified_file_count": 19,
+      "verified_size_bytes": 17167643384,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    },
+    {
+      "catalog_id": "environmental-taxonomy-challenge-hmp-mock-community",
+      "purpose": "A source-defined mock-community anchor and immutable reference-database authority for taxonomy, host depletion, and rRNA depletion benchmarks. Selection: Ten exact 454 amplicon runs spanning ten protocol-validation experiments and both HMP mock-community sample records.",
+      "access_classification": "public",
+      "redistribution_classification": "accession-referenced-source-copy",
+      "verified_file_count": 10,
+      "verified_size_bytes": 32745634,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    },
+    {
+      "catalog_id": "read-processing-challenge-ena-ancient-read-panel",
+      "purpose": "A source-defined panel combining calibrated SEQC RNA-seq lanes with public ancient-DNA reads for signal-specific read-processing evaluation. Selection: The ten ancient runs already declared in the human short-read diversity source authority, spanning single- and paired-end libraries and four studies.",
+      "access_classification": "mixed-public",
+      "redistribution_classification": "accession-referenced-source-copy",
+      "verified_file_count": 15,
+      "verified_size_bytes": 1195539039,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    },
+    {
+      "catalog_id": "read-processing-challenge-seqc-reference-rna",
+      "purpose": "A source-defined panel combining calibrated SEQC RNA-seq lanes with public ancient-DNA reads for signal-specific read-processing evaluation. Selection: Ten exact paired-end Illumina lanes spanning SEQC reference samples A, B, C, and D at NYG and BGI, with additional A and B lanes from AGR.",
+      "access_classification": "mixed-public",
+      "redistribution_classification": "accession-referenced-source-copy",
+      "verified_file_count": 20,
+      "verified_size_bytes": 14812606713,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    }
+  ],
   "publishable_contamination": []
 }

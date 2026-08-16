@@ -3,11 +3,11 @@
 This report joins portfolio declarations to checksum-verified STUDY records. Data-index
 eligibility proves governed file identity; it does not by itself admit comparative science.
 
-- Source commit: `efd269dcfc229cfdda4bfbc38ca83b895f39e0ea`
+- Source commit: `f62473c409b7cbd8c87dcc21040adf876f239718`
 - Portfolio corpora: **16**
 - Publishable-data ready: **7**
 - Bound governed catalogs: **24**
-- Unbound governed catalogs: **0**
+- Unbound governed catalogs: **10**
 - Verified bound bytes: **42415666966**
 - Corpora without storage projections: **0**
 - Corpora without compute projections: **5**
@@ -111,6 +111,16 @@ These records are checksum-verified holdings but are not portfolio admission evi
 
 | Catalog | Access | Redistribution | Files | Bytes | Non-production suspicion | Reasons |
 |---|---|---|---:|---:|---|---|
+| `amplicon-community-challenge-extreme-mock-community` | public | accession-referenced-source-copy | 2 | 567380588 | no | - |
+| `amplicon-community-challenge-hmp-amplicon-mock` | public | accession-referenced-source-copy | 10 | 32745634 | no | - |
+| `ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs` | public | accession-referenced-derived-alignments | 40 | 18171459349 | no | - |
+| `ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank` | public | accession-referenced-derived-alignments | 1 | 1018364 | no | - |
+| `ancient-dna-damage-controls-public-modern-human-observational-controls` | public | accession-referenced-derived-alignments | 15 | 2442546526 | no | - |
+| `corpus-01` | public | public-accession-referenced-source-copy | 30 | 3638085565 | no | - |
+| `environmental-taxonomy-challenge-ena-tara-oceans` | public | accession-referenced-source-copy | 19 | 17167643384 | no | - |
+| `environmental-taxonomy-challenge-hmp-mock-community` | public | accession-referenced-source-copy | 10 | 32745634 | no | - |
+| `read-processing-challenge-ena-ancient-read-panel` | mixed-public | accession-referenced-source-copy | 15 | 1195539039 | no | - |
+| `read-processing-challenge-seqc-reference-rna` | mixed-public | accession-referenced-source-copy | 20 | 14812606713 | no | - |
 
 ## Publishable contamination findings
 
