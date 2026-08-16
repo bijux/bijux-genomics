@@ -23,6 +23,7 @@ pub(in super::super) fn tooling_benchmark_smoke_level1(
         .with_context(|| format!("create {}", out_dir.display()))?;
 
     let examples = canonical_level1_examples(workspace);
+    let example_artifact_root = artifact_root_path(workspace)?.join("examples");
     let mut rows = Vec::new();
     for (example_id, example_root) in &examples {
         let outcome =
@@ -30,7 +31,7 @@ pub(in super::super) fn tooling_benchmark_smoke_level1(
         if !outcome.is_success() {
             return Ok(outcome);
         }
-        let artifact_dir = workspace.path("artifacts/examples").join(example_id);
+        let artifact_dir = example_artifact_root.join(example_id);
         let metrics = read_json_value(&artifact_dir.join("metrics.json"))?;
         let bundle_bytes = std::fs::metadata(artifact_dir.join("bundle.tar.gz"))
             .map(|meta| meta.len())
@@ -219,6 +220,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
 
     let production_mode = env_flag("BIJUX_CERT_PRODUCTION_MODE");
     let truth_vcf = std::env::var("BIJUX_TRUTH_VCF").unwrap_or_default();
+    let example_artifact_root = artifact_root_path(workspace)?.join("examples");
     let doc = read_utf8(&workspace.path("docs/50-reference/MANIFEST_MIGRATION.md"))?;
     let mut errors = Vec::new();
     let mut warnings = Vec::new();
@@ -227,7 +229,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
 
     if matches!(mode, "fastq" | "all") {
         let example_root = workspace.path("examples/fastq/edna-mini");
-        let artifact_root = workspace.path("artifacts/examples/fastq_edna_mini");
+        let artifact_root = example_artifact_root.join("fastq_edna_mini");
         let manifest_path = artifact_root.join("manifest.json");
         let metrics_path = artifact_root.join("metrics.json");
         let report_path = artifact_root.join("report.json");
@@ -368,7 +370,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
             ("vcf_essential_qc_filter", workspace.path("examples/vcf/essential-qc-filter")),
             ("vcf_imputation_mini", workspace.path("examples/vcf/imputation-mini")),
         ] {
-            let artifact_root = workspace.path("artifacts/examples").join(example_id);
+            let artifact_root = example_artifact_root.join(example_id);
             let report_path = artifact_root.join("report.json");
             let explain_path = artifact_root.join("explain.json");
             let metrics_path = artifact_root.join("metrics.json");
@@ -450,7 +452,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
                 "status": "ok",
                 "warnings": sorted_unique(vcf_warnings),
                 "truth_concordance_hook": truth_hook,
-                "artifacts_dir": workspace.path("artifacts/examples").display().to_string(),
+                "artifacts_dir": example_artifact_root.display().to_string(),
             }),
         );
     }

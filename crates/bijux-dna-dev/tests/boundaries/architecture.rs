@@ -230,6 +230,24 @@ fn dev_markdown_docs_stay_in_root_readme_or_docs_dir() {
     );
 }
 
+#[test]
+fn example_artifact_consumers_honor_the_configured_artifact_root() {
+    let root = crate::support::crate_root("bijux-dna-dev")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
+
+    for relative_path in
+        ["src/commands/ops/tooling/acquisition.rs", "src/commands/ops/tooling/certification.rs"]
+    {
+        let path = root.join(relative_path);
+        let source = std::fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+        assert!(
+            !source.contains("workspace.path(\"artifacts/examples"),
+            "{relative_path} must derive example artifacts from artifact_root_path"
+        );
+    }
+}
+
 fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
     std::fs::read_dir(path)
         .unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
