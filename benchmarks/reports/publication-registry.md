@@ -71,7 +71,7 @@ Path presence does not confer current benchmark authority. Every permanent run i
 | `run-2040` | `fastq.normalize_primers` | missing | `—` | `—` |
 | `run-2041` | `fastq.profile_overrepresented_sequences` | missing | `—` | `—` |
 | `run-2042` | `fastq.profile_read_lengths` | current | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2042/run-2042-fastq-profile-read-lengths.json` | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2042/publication-receipt.json` |
-| `run-2043` | `fastq.profile_reads` | current | `study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/run-2043-fastq-profile-reads.json` | `study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/publication-receipt.json` |
+| `run-2043` | `fastq.profile_reads` | current | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2043/run-2043-fastq-profile-reads.json` | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2043/publication-receipt.json` |
 | `run-2044` | `fastq.remove_chimeras` | missing | `—` | `—` |
 | `run-2045` | `fastq.remove_duplicates` | missing | `—` | `—` |
 | `run-2046` | `fastq.report_qc` | missing | `—` | `—` |

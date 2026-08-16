@@ -11,27 +11,27 @@
       "case_id": "run-2043--seqfu--human-short-read-diversity",
       "tool_id": "seqfu",
       "definition": {
-        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2043/case-definition-run-2043--seqfu--human-short-read-diversity.json",
-        "sha256": "5b719fd32c2d03dd54f35fcd6ef21c4f5aee2f357a1193f0f5bb9c1c0bb56024",
-        "size_bytes": 11665
+        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2043/case-definition-run-2043--seqfu--human-short-read-diversity.json",
+        "sha256": "0a11d0280f9e86305574bcf4afd026f76a856881ae465ebd7a292b602c34b606",
+        "size_bytes": 11711
       }
     },
     {
       "case_id": "run-2043--seqkit--human-short-read-diversity",
       "tool_id": "seqkit",
       "definition": {
-        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2043/case-definition-run-2043--seqkit--human-short-read-diversity.json",
-        "sha256": "885ccf9780bba152e052a99a5ad5783be2c9659d2149d2583301f1b23e78ba2d",
-        "size_bytes": 11690
+        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2043/case-definition-run-2043--seqkit--human-short-read-diversity.json",
+        "sha256": "b2c3ab253642201c766ea1d3cf8b6bff7595c38e375ffe1498a7bd2909d4522a",
+        "size_bytes": 11736
       }
     },
     {
       "case_id": "run-2043--seqkit_stats--human-short-read-diversity",
       "tool_id": "seqkit_stats",
       "definition": {
-        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2043/case-definition-run-2043--seqkit_stats--human-short-read-diversity.json",
-        "sha256": "2cc79809f6d08da4f6acc3230b206e03417b59304502392b0a48ec6b07d3762c",
-        "size_bytes": 11693
+        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2043/case-definition-run-2043--seqkit_stats--human-short-read-diversity.json",
+        "sha256": "6a7907c41745e14382659f92d06e6bd541ddcc2d244fe2d33e6b09424991ca81",
+        "size_bytes": 11739
       }
     }
   ],

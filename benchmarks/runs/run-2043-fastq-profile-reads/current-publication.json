@@ -7,76 +7,78 @@
   },
   "protocol_sha256": "0e8e8e09131f489b2d2058a76db86c2e3f3bc6b70753dafbaed4d9b366a0ff07",
   "selected_publication": {
-    "publication_id": "run-2043-production-74b7042739d9",
+    "publication_id": "run-2043-production-331014ca9f9c",
     "selected_attempts": [
       {
-        "campaign_id": "production-run-2043-e410adee18a3819606db911c2cb48c1414972178",
+        "campaign_id": "production-run-2043-331014ca9",
         "run": {
           "run_id": "run-2043",
           "domain": "fastq",
           "stage_id": "fastq.profile_reads"
         },
         "case_id": "run-2043--seqfu--human-short-read-diversity",
-        "attempt_id": "attempt-002",
+        "attempt_id": "attempt-0002",
         "tool_id": "seqfu"
       },
       {
-        "campaign_id": "production-run-2043-e410adee18a3819606db911c2cb48c1414972178",
+        "campaign_id": "production-run-2043-331014ca9",
         "run": {
           "run_id": "run-2043",
           "domain": "fastq",
           "stage_id": "fastq.profile_reads"
         },
         "case_id": "run-2043--seqkit--human-short-read-diversity",
-        "attempt_id": "attempt-002",
+        "attempt_id": "attempt-0002",
         "tool_id": "seqkit"
       },
       {
-        "campaign_id": "production-run-2043-e410adee18a3819606db911c2cb48c1414972178",
+        "campaign_id": "production-run-2043-331014ca9",
         "run": {
           "run_id": "run-2043",
           "domain": "fastq",
           "stage_id": "fastq.profile_reads"
         },
         "case_id": "run-2043--seqkit_stats--human-short-read-diversity",
-        "attempt_id": "attempt-002",
+        "attempt_id": "attempt-0002",
         "tool_id": "seqkit_stats"
       }
     ],
-    "repository_commit": "74b7042739d93b2b1b504790d92d556f34be0d64",
+    "repository_commit": "331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec",
     "report": {
-      "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/run-2043-fastq-profile-reads.json",
-      "sha256": "199529097d0dafd7ddb8b2abf71f5f1dc406ddf784686dfea309fc2e475bbe75",
-      "size_bytes": 38902
+      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2043/run-2043-fastq-profile-reads.json",
+      "sha256": "ee976896a7025d1c50df3a4a8c22e1a7f5272eb08654cec685a42d9fecda0779",
+      "size_bytes": 38900
     },
     "evidence_book": {
-      "uri": "study://results/benchmarks/evidence-books/45c49ae3e9afb3445986fc31b41383b32418403b/candidate-publications.json",
-      "sha256": "5525e3caab74b61a15205c69df50c6a140cf582097f37fe435297bd3cc1dc2f4",
-      "size_bytes": 3258
+      "uri": "study://results/benchmarks/evidence-books/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/candidate-publications.json",
+      "sha256": "7007544c3bfb93569096fb8ebb6c35975ebd777afd491623002863bb4c798283",
+      "size_bytes": 3777
     },
     "publication_receipt": {
-      "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/publication-receipt.json",
-      "sha256": "a83d3672081d1fb5c3c0348d04673e44641ce3185e93278ac95ff13a23e84aba",
-      "size_bytes": 4080
+      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2043/publication-receipt.json",
+      "sha256": "cb768612c96df8f03f710020ae0e1b3ef08e3fede9db8d8074b8bf715aa0020c",
+      "size_bytes": 4032
     },
     "citation_record": {
-      "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/citation-record.json",
-      "sha256": "27660957f0f08dc6a5611b49bf6e504089b024e655fe740162430aa379bd6def",
-      "size_bytes": 3451
+      "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2043/citation-record.json",
+      "sha256": "f00e5924b9ecc12ae3a0b34a99649738e2744a65aa451056b80b35b77c133294",
+      "size_bytes": 3474
     },
     "replay_receipt": {
-      "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2043/semantic-identity.json",
-      "sha256": "f7a5581b78cb40559fae603596c9edaad2e759dc8c8138d9bf681765c3f4af40",
-      "size_bytes": 4263
+      "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2043/semantic-identity.json",
+      "sha256": "73db861ab733fa693203010eef2ddfe39720ee4878904828479f519805c67259",
+      "size_bytes": 4179
     },
     "limitations": [
+      "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
       "The publication covers one governed human short-read diversity cohort.",
-      "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+      "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
     ],
     "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
   },
   "limitations": [
+    "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
     "The publication covers one governed human short-read diversity cohort.",
-    "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+    "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
   ]
 }
