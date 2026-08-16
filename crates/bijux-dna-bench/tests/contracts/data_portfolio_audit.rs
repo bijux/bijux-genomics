@@ -31,9 +31,9 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
     };
     let audit = derive_benchmark_data_portfolio_audit(&request)?;
 
-    assert_eq!(audit.summary.corpus_count, 14);
+    assert_eq!(audit.summary.corpus_count, 16);
     assert_eq!(audit.summary.admitted_corpus_count, 7);
-    assert_eq!(audit.summary.source_defined_corpus_count, 7);
+    assert_eq!(audit.summary.source_defined_corpus_count, 9);
     assert_eq!(audit.summary.missing_corpus_count, 0);
     assert_eq!(audit.summary.publishable_data_ready_count, 1);
     assert_eq!(audit.summary.bound_catalog_count, 4);
@@ -88,6 +88,17 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
                 && corpus.projected_storage_bytes.is_some()
                 && corpus.projected_cpu_hours.is_some()
         }));
+    for corpus_id in ["masked-genotype-truth-panel", "population-inference-truth-panel"] {
+        assert!(audit.corpora.iter().find(|corpus| corpus.corpus_id == corpus_id).is_some_and(
+            |corpus| {
+                !corpus.publishable_data_ready
+                    && corpus.blockers == ["source-defined corpus has not been admitted"]
+                    && corpus.source_specs.len() == 1
+                    && corpus.projected_storage_bytes.is_some()
+                    && corpus.projected_cpu_hours.is_some()
+            }
+        ));
+    }
     assert!(audit
         .corpora
         .iter()

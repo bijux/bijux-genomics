@@ -14,7 +14,7 @@ attribution = "Cite the Allen Ancient DNA Resource release, every contributing s
 projected_storage_bytes = 200000000000
 projected_cpu_hours = 3000
 projection_basis = "The projection reserves 200 GB and 3,000 CPU-hours for at least one hundred selected AADR individuals, release metadata, genotype-likelihood derivation where supported, sensitivity matrices, and validation."
-truth_roles = ["population_inference_truth", "ancient_population_diversity"]
+truth_roles = ["ancient_population_diversity"]
 truth_strategy = "real_cohort_with_independent_metadata_and_sensitivity_analysis"
 known_limitations = [
   "AADR harmonizes published genotype data but does not make inferred ancestry, demography, kinship, or admixture labels into experimental ground truth.",
