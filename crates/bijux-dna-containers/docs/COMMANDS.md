@@ -51,9 +51,11 @@ library can manage when callers invoke the matching API.
 - `import_run_evidence()`, `plan_final_run_evidence()`, and
   `apply_final_run_evidence_plan()`: import immutable run locks, select the latest passing run per
   tool, and preserve superseded attempt lineage behind an explicit non-mutating plan boundary.
-- `admit_external_artifact()`: runs the cataloged version probe against an operator-provided
-  binary or through `apptainer exec`, verifies the declared checksum, and publishes a no-copy
-  admission record. Restricted artifacts must remain outside the repository and active image root.
+- `admit_external_artifact()`: explicitly admits an operator-provided artifact, records audited
+  access denial, or records audited artifact absence. Admission runs the cataloged version probe
+  against a binary or through `apptainer exec`, verifies the declared checksum, and publishes a
+  no-copy record. Restricted artifacts must remain outside the repository and active image root;
+  blocked and unavailable records remain product-supported but cannot bind an execution command.
 - `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
   after strict commit validation and hashes the exact historical catalog bytes.
 - `derive_container_catalog_lock()` and `load_container_catalog_lock()`: derive and admit the

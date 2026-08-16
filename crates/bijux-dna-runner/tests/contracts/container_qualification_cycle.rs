@@ -242,6 +242,8 @@ fn cycle_plan_verifies_governed_external_access_blockers() -> Result<()> {
             repository_commit: &repository_commit,
             tool_id: "angsd",
             recorded_at_utc: "2026-08-09T12:00:00Z",
+            availability:
+                bijux_dna_containers::api::ExternalArtifactAdmissionStatus::BlockedExternalAccess,
             artifact: None,
             blocker_reason: Some("institutional artifact access has not been supplied"),
         },

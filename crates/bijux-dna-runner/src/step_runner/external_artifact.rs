@@ -133,6 +133,7 @@ mod tests {
                 repository_commit: &commit,
                 tool_id: "angsd",
                 recorded_at_utc: "2026-08-06T12:00:00Z",
+                availability: bijux_dna_containers::api::ExternalArtifactAdmissionStatus::Admitted,
                 artifact: Some(ExternalArtifactInput {
                     kind: ExternalArtifactKind::ApptainerSif,
                     path: &artifact,
@@ -179,6 +180,7 @@ mod tests {
                 repository_commit: &commit,
                 tool_id: "angsd",
                 recorded_at_utc: "2026-08-06T12:00:00Z",
+                availability: bijux_dna_containers::api::ExternalArtifactAdmissionStatus::BlockedExternalAccess,
                 artifact: None,
                 blocker_reason: Some("institutional artifact was not supplied"),
             },

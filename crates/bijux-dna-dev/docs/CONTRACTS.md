@@ -32,9 +32,11 @@ This crate owns developer automation contracts, not production pipeline contract
 - `containers run run-evidence -- import|validate|publish|generate|check` delegates immutable run
   lock admission, final selection, attempt lineage, and publication derivation to
   `bijux-dna-containers`; `publish` is non-mutating unless `--apply` is explicit.
-- `containers run external-artifact -- <admit|block|verify|bind> ...` preserves repository and
-  active-image roots explicitly while delegating checksum, license-access, version, stage-binding,
-  and non-redistribution decisions to `bijux-dna-containers`.
+- `containers run external-artifact -- <admit|block|unavailable|verify|bind> ...` preserves
+  repository and active-image roots explicitly while delegating checksum, license-access,
+  availability, version, stage-binding, and non-redistribution decisions to
+  `bijux-dna-containers`. `block` records audited access denial; `unavailable` records audited
+  artifact absence without conflating either state with product support.
 - `containers run repository-archive -- <archive|verify|retire|restore> ...` is a thin operator
   surface over the container-owned checksum, restoration, and retirement contract. `archive` and
   `verify` never remove a snapshot; `retire` is the only removal operation and requires an exact
