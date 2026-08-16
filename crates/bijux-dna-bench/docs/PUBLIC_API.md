@@ -14,6 +14,8 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_suite(path)` loads and validates a benchmark suite TOML file.
 - `load_stage_campaign_registry(path)` loads and validates a benchmark stage-campaign registry TOML file.
 - `load_benchmark_portfolio(path)` loads and validates a benchmark portfolio TOML file.
+- `load_benchmark_progress_ledger(path)` performs bounded non-symlink loading and validates task,
+  execution-unit, attempt, check, commit, external-wait, and frontier references.
 - `load_stage_interface_catalog(path)` loads and validates the stage-interface catalog, parameter configuration, and referenced repository contracts.
 - `load_stage_interface_catalog_from_repo(path, repository_root)` performs the same admission against an explicit workspace root for production callers.
 - `load_stage_interface_catalog_for_publication(path, source_repository_root, presentation_repository_root)` keeps historical interface fields source-locked while completing only absent render metadata from an explicit presentation authority.
@@ -175,6 +177,7 @@ including:
 - `BenchmarkAttemptRecordV2`
 - `BenchmarkAttemptTransition`
 - `BenchmarkCycleStatusV2`
+- `BenchmarkProgressLedger`
 - `BenchmarkCampaignPlan`
 - `BenchmarkExecutionSpec`
 - `BenchmarkStagePlanManifest`

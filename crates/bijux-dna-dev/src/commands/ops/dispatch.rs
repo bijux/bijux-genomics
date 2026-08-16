@@ -145,6 +145,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingBenchmarkDataPortfolioAudit => {
             tooling::tooling_benchmark_data_portfolio_audit(workspace, args)
         }
+        NativeOpsCommandKey::ToolingBenchmarkProgressLedger => {
+            tooling::tooling_benchmark_progress_ledger(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkPublicationRegistry => {
             tooling::tooling_benchmark_publication_registry(workspace, args)
         }

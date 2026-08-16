@@ -407,6 +407,7 @@ benchmark-campaign-cycle
 benchmark-data-catalog-snapshots
 benchmark-data-portfolio-audit
 benchmark-integrity-mini
+benchmark-progress-ledger
 benchmark-protocol-portfolio
 benchmark-publication-registry
 benchmark-run-index
@@ -486,6 +487,9 @@ and one exact governed STUDY data index. It records catalog identity, access and
 classes, access terms, observed sample-count authority, verified storage, source projections,
 unbound holdings, and suspected toy, fixture, synthetic, or smoke contamination without promoting
 index eligibility to scientific admission.
+
+`benchmark-progress-ledger validate` performs bounded loading and Rust-owned semantic validation
+of task, execution-unit, attempt, check, commit, external-wait, and complete frontier references.
 
 `benchmark-protocol-portfolio` generates or checks the complete permanent campaign, stage
 interface, parameter, and run-directory declaration closure from the Rust benchmark authority.

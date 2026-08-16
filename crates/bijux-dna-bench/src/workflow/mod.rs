@@ -42,6 +42,7 @@ mod hardening_campaign;
 mod local_corpus_skip;
 mod options;
 mod parameter_authority;
+mod progress_ledger;
 mod protocol_portfolio;
 mod publication_receipt;
 mod publication_registry;
@@ -277,6 +278,7 @@ pub use local_corpus_skip::{
     BenchmarkLocalCorpusSkipPublicationRequest,
 };
 pub use options::BenchRunOptions;
+pub use progress_ledger::load_benchmark_progress_ledger;
 pub use protocol_portfolio::{
     derive_benchmark_protocol_portfolio, publish_checked_in_benchmark_protocol_portfolio,
     BenchmarkProtocolPortfolio, BenchmarkProtocolPortfolioWriteMode,
