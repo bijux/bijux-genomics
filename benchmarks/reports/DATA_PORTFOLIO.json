@@ -1,6 +1,6 @@
 {
   "schema_version": "bijux.benchmark.data_portfolio_audit.v2",
-  "source_commit": "591b940d0292d497ddfc0500fc9402eeb17c5fcc",
+  "source_commit": "efd269dcfc229cfdda4bfbc38ca83b895f39e0ea",
   "portfolio_path": "benchmarks/contracts/portfolio.toml",
   "portfolio_sha256": "6cf8178d313915121ed0edff7dd642c565c4dd8a606b0a2462fbbfba5a8f8242",
   "data_index_path": "study://data/evidence/indexes/6b0bb8b10a5a6db2ff54aa3405be9df11e1dfacc/data-index.json",
@@ -79,7 +79,7 @@
       "source_specs": [
         {
           "path": "benchmarks/corpora/amplicon-community-challenge.toml",
-          "sha256": "aa409a7413daaca8cbc7fddfe18b823f8d697d13f876c60d5ff9b234a758a469",
+          "sha256": "878260a780beb6f1ea34fd908b57bab81cedc807d164c90fbc0234c02d78a0b7",
           "projected_storage_bytes": 25000000000,
           "projected_cpu_hours": 500,
           "selection_group_count": 2,
@@ -274,7 +274,7 @@
       "source_specs": [
         {
           "path": "benchmarks/corpora/ancient-dna-damage-controls.toml",
-          "sha256": "0af49c5632789d808b41ea8e5a25df113f05c83cf74268473955807cac8f007e",
+          "sha256": "084f6e871dd4d68f9bdd7cdd65f76c37751d5a03926d1541db1bef1e6f64e43b",
           "projected_storage_bytes": 100000000000,
           "projected_cpu_hours": 1500,
           "selection_group_count": 4,
@@ -516,7 +516,7 @@
       "source_specs": [
         {
           "path": "benchmarks/corpora/environmental-taxonomy-challenge.toml",
-          "sha256": "afff4cc5aaa44b64bbaee06354d582d5fabce49c8a5e5579347f04bc34f8b37f",
+          "sha256": "e4caf3e274737721330c603a08efc2da9981fe65512a8863bf23413f2ad79835",
           "projected_storage_bytes": 100000000000,
           "projected_cpu_hours": 2000,
           "selection_group_count": 3,
@@ -940,7 +940,7 @@
       "source_specs": [
         {
           "path": "benchmarks/corpora/read-processing-challenge.toml",
-          "sha256": "7c7f386f0ae8f83deb408764e1b46021e45fece00398e4560a66f578104cfad8",
+          "sha256": "14edfd365e7613bb6a4f4e1879167d6101ed6d8981e0db9f75d746b09fc155bd",
           "projected_storage_bytes": 100000000000,
           "projected_cpu_hours": 1000,
           "selection_group_count": 2,

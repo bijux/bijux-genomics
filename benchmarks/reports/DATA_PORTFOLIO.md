@@ -3,7 +3,7 @@
 This report joins portfolio declarations to checksum-verified STUDY records. Data-index
 eligibility proves governed file identity; it does not by itself admit comparative science.
 
-- Source commit: `591b940d0292d497ddfc0500fc9402eeb17c5fcc`
+- Source commit: `efd269dcfc229cfdda4bfbc38ca83b895f39e0ea`
 - Portfolio corpora: **16**
 - Publishable-data ready: **7**
 - Bound governed catalogs: **24**
