@@ -331,11 +331,25 @@ class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
 data_types = ["genotype_likelihoods", "sample_metadata", "vcf"]
-roles = ["population_inference_truth", "ancient_population_diversity"]
+roles = ["ancient_population_diversity"]
 truth_strategy = "real_cohort_with_independent_metadata_and_sensitivity_analysis"
 scientific_rationale = "Population analyses require a cohort large and diverse enough to test missingness, relatedness, ancestry, sex, age, and low-coverage sensitivity without treating software agreement as truth."
 limitations = ["No governed population cohort, metadata authority, or expected-result sensitivity surface is admitted."]
 source_specs = ["benchmarks/corpora/ancient-population-panel.toml"]
+
+[[corpora]]
+id = "population-inference-truth-panel"
+status = "source_defined"
+evidence_scope = "comparative"
+class = "production_real"
+sample_count = 0
+minimum_sample_count = 100
+data_types = ["pedigree", "sample_metadata", "vcf"]
+roles = ["population_inference_truth"]
+truth_strategy = "masked_population_metadata_and_pedigree_relationship_truth"
+scientific_rationale = "Population inference requires a cohort independent from the ancient diversity panel, with frozen population labels and pedigrees that can be masked during analysis and scored after inference."
+limitations = ["No governed population-label and pedigree truth panel, mask split, or expected-result sensitivity surface is admitted."]
+source_specs = ["benchmarks/corpora/population-inference-truth-panel.toml"]
 
 [[profiles]]
 id = "fastq-observational-qc"
