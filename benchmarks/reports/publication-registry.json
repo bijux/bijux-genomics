@@ -2,8 +2,8 @@
   "schema_version": "bijux.benchmark.publication_registry.v2",
   "summary": {
     "current_product_count": 6,
-    "current_run_report_count": 4,
-    "missing_run_report_count": 67,
+    "current_run_report_count": 5,
+    "missing_run_report_count": 66,
     "stale_run_report_count": 0,
     "failed_run_report_count": 0,
     "superseded_run_report_count": 0,
@@ -23,9 +23,9 @@
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "2ec35767dd8d96fa9910094cfc82716f142650691cd1c239459af849330745c1",
+      "json_sha256": "1000950bbb59b3f5de9a3dad08bf6012b8167bdf820cd0958a45b82cd6cbfa13",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
-      "markdown_sha256": "80eca200402008a8a76e140d027989f87a2becfc094f2f71a915fd6a4f3883fb"
+      "markdown_sha256": "f2cee662b6f8f39b51af6f49cbc246aede190ffde18d7b2dc5b3bb4b33e117ff"
     },
     {
       "product_id": "stage-universe",
@@ -60,9 +60,20 @@
     {
       "run_id": "run-2001",
       "stage_id": "bam.genotyping",
-      "disposition": "missing",
+      "disposition": "current",
+      "report": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/run-2001-bam-genotyping.json",
+        "sha256": "b6dd411a4292ddb567026c87a1129dcc2f2d2cc07f0a92b3fcfc0fd1f1ff19d8",
+        "size_bytes": 8571
+      },
+      "publication_receipt": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/publication-receipt.json",
+        "sha256": "9a3404d28646f888a16080428e273b500ad7fe5788e92e422ed7c85d2d6f48e5",
+        "size_bytes": 2564
+      },
       "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+        "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure.",
+        "The citation is limited to the exact admitted cases, data authorities, artifacts, measurements, scientific verdicts, and downstream evidence selected by this source-locked publication."
       ]
     },
     {
