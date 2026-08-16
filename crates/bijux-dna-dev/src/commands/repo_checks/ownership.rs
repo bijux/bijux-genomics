@@ -472,6 +472,7 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
         if path.ends_with("/mod.rs")
             || path.ends_with("/dispatch.rs")
             || path.ends_with("/command_support.rs")
+            || is_thin_container_operator(path, content)
         {
             return (
                 "thin external adapter",
@@ -545,6 +546,33 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
         );
     }
     ("unclassified", "the ownership audit has no explicit rule for this product file")
+}
+
+fn is_thin_container_operator(path: &str, content: &str) -> bool {
+    const MIGRATED_SURFACES: &[&str] = &[
+        "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs",
+        "crates/bijux-dna-dev/src/commands/containers/qualification_slurm.rs",
+    ];
+    const FORBIDDEN_OPERATOR_PRIMITIVES: &[&str] = &[
+        "use std::fs",
+        "std::fs::",
+        "use std::process",
+        "Command::",
+        "ProcessRunner",
+        "chrono::Utc::now",
+        "serde_json::from_",
+        "toml::",
+        "read_utf8(",
+        "write_utf8(",
+        "atomic_write",
+        "create_dir_all(",
+        "remove_file(",
+        "rename(",
+    ];
+    MIGRATED_SURFACES.contains(&path)
+        && content.contains("bijux_dna_")
+        && content.contains("::api::")
+        && !FORBIDDEN_OPERATOR_PRIMITIVES.iter().any(|primitive| content.contains(primitive))
 }
 
 fn is_test_source(path: &str) -> bool {
@@ -1175,6 +1203,45 @@ mod tests {
             );
             assert_eq!(row.classification, "thin external adapter", "{path}");
         }
+        Ok(())
+    }
+
+    #[test]
+    fn migrated_container_lifecycle_commands_remain_thin_adapters() -> anyhow::Result<()> {
+        let schema_pattern = Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?;
+        for (path, content) in [
+            (
+                "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs",
+                include_str!("../containers/qualification_cycle.rs"),
+            ),
+            (
+                "crates/bijux-dna-dev/src/commands/containers/qualification_slurm.rs",
+                include_str!("../containers/qualification_slurm.rs"),
+            ),
+        ] {
+            let row = classify(
+                &SourceFile { path: path.to_string(), content: content.to_string() },
+                &schema_pattern,
+                &BTreeMap::new(),
+            );
+            assert_eq!(row.classification, "thin external adapter", "{path}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn migrated_container_lifecycle_commands_reject_direct_io_regression() -> anyhow::Result<()> {
+        let row = classify(
+            &SourceFile {
+                path: "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs"
+                    .to_string(),
+                content: "bijux_dna_runner::api::status(); std::fs::write(path, bytes);"
+                    .to_string(),
+            },
+            &Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?,
+            &BTreeMap::new(),
+        );
+        assert_eq!(row.classification, "duplicate legacy logic");
         Ok(())
     }
 
