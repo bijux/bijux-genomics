@@ -553,6 +553,7 @@ fn is_thin_container_operator(path: &str, content: &str) -> bool {
         "crates/bijux-dna-dev/src/commands/containers/external_artifact.rs",
         "crates/bijux-dna-dev/src/commands/containers/image_activation.rs",
         "crates/bijux-dna-dev/src/commands/containers/runtime_verification.rs",
+        "crates/bijux-dna-dev/src/commands/containers/storage.rs",
         "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs",
         "crates/bijux-dna-dev/src/commands/containers/qualification_slurm.rs",
     ];
@@ -1224,6 +1225,10 @@ mod tests {
             (
                 "crates/bijux-dna-dev/src/commands/containers/runtime_verification.rs",
                 include_str!("../containers/runtime_verification.rs"),
+            ),
+            (
+                "crates/bijux-dna-dev/src/commands/containers/storage.rs",
+                include_str!("../containers/storage.rs"),
             ),
             (
                 "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs",

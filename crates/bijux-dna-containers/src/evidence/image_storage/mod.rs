@@ -10,11 +10,12 @@ pub use model::{
     IMAGE_STORAGE_REPORT_SCHEMA_V1,
 };
 pub use report::{
-    derive_image_storage_report, publish_image_storage_report, render_image_storage_report_markdown,
+    derive_image_storage_report, image_storage_report_matches, publish_image_storage_report,
+    render_image_storage_report_markdown,
 };
 pub use schema::{
-    image_storage_plan_schema, image_storage_report_schema, write_image_storage_plan_schema,
-    write_image_storage_report_schema,
+    image_storage_plan_schema, image_storage_report_schema, image_storage_schemas_match,
+    write_image_storage_plan_schema, write_image_storage_report_schema,
 };
 pub use workflow::{
     apply_image_storage_plan, create_image_storage_plan, load_image_storage_plan,
