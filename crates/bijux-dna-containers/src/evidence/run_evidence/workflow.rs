@@ -2,6 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
@@ -268,6 +269,79 @@ pub fn verify_run_evidence_publication(
         bail!("selected run-evidence Markdown drifted from governed locks");
     }
     Ok(())
+}
+
+/// Publish the selected run-evidence book from its immutable locks and attempt ledger.
+///
+/// # Errors
+/// Returns an error when selected evidence is invalid or either publication cannot be written and
+/// verified against the derived index.
+pub fn publish_run_evidence_book(
+    runs_root: &Path,
+    json_path: &Path,
+    markdown_path: &Path,
+) -> Result<RunEvidenceIndex> {
+    let index = derive_run_evidence_index(runs_root)?;
+    let json = format!("{}\n", serde_json::to_string_pretty(&index)?);
+    bijux_dna_infra::atomic_write_bytes(json_path, json.as_bytes())
+        .with_context(|| format!("publish run-evidence JSON {}", json_path.display()))?;
+    bijux_dna_infra::atomic_write_bytes(
+        markdown_path,
+        render_run_evidence_markdown(&index).as_bytes(),
+    )
+    .with_context(|| format!("publish run-evidence Markdown {}", markdown_path.display()))?;
+    verify_run_evidence_publication(runs_root, json_path, markdown_path)?;
+    Ok(index)
+}
+
+/// Rebuild a selected run-evidence publication from raw immutable result evidence.
+///
+/// The publication root must be absent or empty so replay cannot merge with an earlier selection.
+/// Import, supersession selection, ledger publication, and evidence-book derivation remain owned
+/// by this crate; operator surfaces only provide paths and render the returned summary.
+///
+/// # Errors
+/// Returns an error when the replay root is not empty, evidence import or selection fails, or the
+/// derived book cannot be published and verified.
+pub fn replay_run_evidence_book(
+    result_root: &Path,
+    publication_root: &Path,
+    json_path: &Path,
+    markdown_path: &Path,
+) -> Result<RunEvidenceIndex> {
+    require_empty_replay_root(publication_root)?;
+    fs::create_dir_all(publication_root)
+        .with_context(|| format!("create replay root {}", publication_root.display()))?;
+    import_run_evidence(&RunEvidenceImportRequest {
+        result_root: result_root.to_path_buf(),
+        output_root: publication_root.to_path_buf(),
+        minimum_run: None,
+        maximum_run: None,
+    })?;
+    let ledger_path = publication_root.join("attempt-ledger.json");
+    let plan = plan_final_run_evidence(publication_root, &ledger_path)?;
+    apply_final_run_evidence_plan(publication_root, &ledger_path, &plan)?;
+    publish_run_evidence_book(publication_root, json_path, markdown_path)
+}
+
+fn require_empty_replay_root(path: &Path) -> Result<()> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
+            bail!("replay publication root is not a regular directory: {}", path.display())
+        }
+        Ok(_) => {
+            if fs::read_dir(path)
+                .with_context(|| format!("read replay root {}", path.display()))?
+                .next()
+                .is_some()
+            {
+                bail!("replay publication root must be empty: {}", path.display());
+            }
+            Ok(())
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error).with_context(|| format!("inspect replay root {}", path.display())),
+    }
 }
 
 fn result_directories(result_root: &Path) -> Result<Vec<(String, String, PathBuf)>> {

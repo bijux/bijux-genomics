@@ -4,8 +4,9 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use bijux_dna_containers::api::{
     apply_final_run_evidence_plan, derive_run_evidence_index, import_run_evidence,
-    load_run_evidence_index, plan_final_run_evidence, run_evidence_index_schema,
-    validate_run_evidence_index, validate_run_evidence_root, AttemptExecutionStatus,
+    load_run_evidence_index, plan_final_run_evidence, publish_run_evidence_book,
+    replay_run_evidence_book, run_evidence_index_schema, validate_run_evidence_index,
+    validate_run_evidence_root, verify_run_evidence_publication, AttemptExecutionStatus,
     RunEvidenceImportRequest,
 };
 
@@ -93,6 +94,76 @@ fn copied_run_evidence_tampering_is_rejected() -> Result<()> {
 
     assert!(validate_run_evidence_root(&runs)
         .is_err_and(|error| error.to_string().contains("size changed")));
+    Ok(())
+}
+
+#[test]
+fn evidence_book_publication_is_owned_and_verified_by_the_container_crate() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let results = temp.path().join("results");
+    make_result(&results, "run-1001", "passed")?;
+    let runs = temp.path().join("runs");
+    import_run_evidence(&RunEvidenceImportRequest {
+        result_root: results,
+        output_root: runs.clone(),
+        minimum_run: None,
+        maximum_run: None,
+    })?;
+    let ledger = runs.join("attempt-ledger.json");
+    let plan = plan_final_run_evidence(&runs, &ledger)?;
+    apply_final_run_evidence_plan(&runs, &ledger, &plan)?;
+    let json = temp.path().join("book/run-evidence.json");
+    let markdown = temp.path().join("book/run-evidence.md");
+
+    let index = publish_run_evidence_book(&runs, &json, &markdown)?;
+
+    assert_eq!(index.summary.run_count, 1);
+    verify_run_evidence_publication(&runs, &json, &markdown)?;
+    assert!(fs::read_to_string(json)?.ends_with('\n'));
+    Ok(())
+}
+
+#[test]
+fn clean_room_replay_rejects_a_mixed_publication_root() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let results = temp.path().join("results");
+    make_result(&results, "run-1001", "passed")?;
+    let replay = temp.path().join("replay");
+    fs::create_dir_all(&replay)?;
+    fs::write(replay.join("retained.json"), b"{}\n")?;
+
+    let result = replay_run_evidence_book(
+        &results,
+        &replay,
+        &temp.path().join("book.json"),
+        &temp.path().join("book.md"),
+    );
+    let Err(error) = result else {
+        anyhow::bail!("mixed replay roots must be rejected");
+    };
+
+    assert!(error.to_string().contains("must be empty"));
+    assert!(replay.join("retained.json").is_file());
+    Ok(())
+}
+
+#[test]
+fn clean_room_replay_selects_and_publishes_from_raw_results() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let results = temp.path().join("results");
+    make_result(&results, "run-1001", "passed")?;
+    make_result(&results, "run-1002", "failed")?;
+    let replay = temp.path().join("replay");
+    let json = temp.path().join("book.json");
+    let markdown = temp.path().join("book.md");
+
+    let index = replay_run_evidence_book(&results, &replay, &json, &markdown)?;
+
+    assert_eq!(index.summary.run_count, 1);
+    assert_eq!(index.runs[0].run_id, "run-1001");
+    assert!(replay.join("attempt-ledger.json").is_file());
+    assert!(!replay.join("run-1002-adapterremoval").exists());
+    verify_run_evidence_publication(&replay, &json, &markdown)?;
     Ok(())
 }
 
