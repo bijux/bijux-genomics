@@ -148,6 +148,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingBenchmarkPublicationRegistry => {
             tooling::tooling_benchmark_publication_registry(workspace, args)
         }
+        NativeOpsCommandKey::ToolingBenchmarkProtocolPortfolio => {
+            tooling::tooling_benchmark_protocol_portfolio(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkRunRegistry => {
             tooling::tooling_benchmark_run_registry(workspace, args)
         }

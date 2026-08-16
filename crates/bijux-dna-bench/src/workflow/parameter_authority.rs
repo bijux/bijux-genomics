@@ -8,7 +8,8 @@ use bijux_dna_bench_model::contract::validate_pipeline_parameter_config;
 use bijux_dna_bench_model::{BenchmarkPipelineParameterConfig, BenchmarkStageParameterConfig};
 use serde::Deserialize;
 
-const PIPELINE_PARAMETERS_PATH: &str = "benchmarks/contracts/config-pipeline-parameters.yml";
+pub(super) const PIPELINE_PARAMETERS_PATH: &str =
+    "benchmarks/contracts/config-pipeline-parameters.yml";
 const PARAMETER_REGISTRY_PATH: &str = "configs/ci/params/param_registry.toml";
 const VCF_PARAMETER_REGISTRY_PATH: &str = "configs/ci/params/param_registry_downstream.toml";
 const PARAMETER_REGISTRY_SCHEMA: &str = "bijux.param_registry.v1";
@@ -23,12 +24,12 @@ struct ParameterRegistry {
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct ParameterRegistryEntry {
-    stage_id: String,
-    param_type_id: String,
-    schema_version: String,
+pub(super) struct ParameterRegistryEntry {
+    pub(super) stage_id: String,
+    pub(super) param_type_id: String,
+    pub(super) schema_version: String,
     #[serde(default, rename = "params")]
-    _params: Vec<String>,
+    pub(super) parameters: Vec<String>,
 }
 
 pub(in crate::workflow) struct BenchmarkStageParameterAuthority {
@@ -67,7 +68,7 @@ pub(in crate::workflow) fn load_stage_parameter_authority(
     Ok(BenchmarkStageParameterAuthority { source_bytes, stage })
 }
 
-fn load_parameter_registry_entry(
+pub(super) fn load_parameter_registry_entry(
     repository_root: &Path,
     stage_id: &str,
 ) -> Result<ParameterRegistryEntry> {
@@ -98,7 +99,7 @@ fn load_parameter_registry_entry(
         stage_id: entry.stage_id.clone(),
         param_type_id: entry.param_type_id.clone(),
         schema_version: entry.schema_version.clone(),
-        _params: entry._params.clone(),
+        parameters: entry.parameters.clone(),
     })
 }
 

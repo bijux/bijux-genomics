@@ -3,6 +3,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use bijux_dna_stage_contract::{canonical_tool_bindings, ToolBinding};
+
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkCorpusClass, BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkDisposition,
@@ -305,23 +307,34 @@ pub fn validate_stage_campaign_registry(
 
 /// Validate a current executable campaign registry.
 ///
-/// Historical v1 case matrices may omit the material driver and remain replayable through
-/// `validate_stage_campaign_registry`. New planning authorities must use this stricter validator.
+/// A campaign is executable through either a reviewed bespoke material driver or the canonical
+/// binding/plugin lifecycle. Driverless declarations must close over the exact canonical tool set;
+/// this keeps tool additions declarative and prevents the generic engine from growing stage cases.
 ///
 /// # Errors
-/// Returns an error when the base registry is invalid or any campaign omits its stage-bound
-/// material driver.
+/// Returns an error when the base registry is invalid or a driverless campaign differs from the
+/// canonical binding authority.
 pub fn validate_executable_stage_campaign_registry(
     registry: &BenchmarkStageCampaignRegistry,
 ) -> Result<(), BenchError> {
     validate_stage_campaign_registry(registry)?;
-    if let Some(campaign) =
-        registry.campaigns.iter().find(|campaign| campaign.material_driver.is_none())
+    let bindings = canonical_tool_bindings().map_err(|error| {
+        BenchError::InvalidPolicy(format!("canonical tool binding authority is invalid: {error}"))
+    })?;
+    for campaign in registry.campaigns.iter().filter(|campaign| campaign.material_driver.is_none())
     {
-        return Err(BenchError::InvalidPolicy(format!(
-            "executable stage campaign omits its material driver: {}",
-            campaign.stage_id
-        )));
+        let stage_id = bijux_dna_core::ids::StageId::new(&campaign.stage_id);
+        let canonical_tools = bindings
+            .bindings_for_stage(&stage_id)
+            .into_iter()
+            .map(|binding| binding.tool_id().as_str().to_string())
+            .collect::<Vec<_>>();
+        if canonical_tools.is_empty() || canonical_tools != campaign.tool_ids {
+            return Err(BenchError::InvalidPolicy(format!(
+                "generic executable campaign differs from canonical tool bindings for {}: campaign={:?}, bindings={canonical_tools:?}",
+                campaign.stage_id, campaign.tool_ids
+            )));
+        }
     }
     Ok(())
 }
@@ -1116,7 +1129,10 @@ fn validate_stage_campaign_identity(
 
     validate_text_list(&campaign.corpus_ids, "campaign corpus_ids", false)?;
     validate_text_list(&campaign.tool_ids, "campaign tool_ids", false)?;
-    validate_text_list(&campaign.corpus_catalog_ids, "campaign corpus_catalog_ids", false)?;
+    // Source-defined scientific corpora deliberately have no admitted catalog assets yet. Their
+    // campaigns remain complete protocols, while case planning stays blocked until data admission
+    // supplies catalog identities.
+    validate_text_list(&campaign.corpus_catalog_ids, "campaign corpus_catalog_ids", true)?;
     validate_text_list(&campaign.reference_catalog_ids, "campaign reference_catalog_ids", true)?;
     validate_text_list(&campaign.database_catalog_ids, "campaign database_catalog_ids", true)?;
     validate_text_list(&campaign.input_size_keys, "campaign input_size_keys", false)?;

@@ -89,6 +89,11 @@ The `public_api` module itself is private. Stable exports are owned by
 - `BenchmarkStageNormalization` returns the normalized plugin output together
   with its stage-owned downstream evaluation without converting scientific
   failure into control-flow failure.
+- `derive_benchmark_protocol_portfolio(repository_root)` closes all 71 permanent run identities
+  over canonical tool bindings, domain metrics, data roles, parameter authorities, normalized
+  contracts, and downstream probes while preserving reviewed material-driver declarations.
+- `publish_checked_in_benchmark_protocol_portfolio(repository_root, mode)` writes or checks the
+  complete campaign, interface, and parameter declaration set deterministically.
 - `build_benchmark_stage_plans(spec, binding, catalog_tool, units)` constructs the complete
   immutable measured-repetition by execution-unit plan matrix while rejecting identity, path,
   parameter, and resource drift.

@@ -248,7 +248,8 @@ fn benchmark_stage_campaign_registry_rejects_material_driver_drift() {
 }
 
 #[test]
-fn historical_campaign_records_without_material_drivers_remain_readable() -> anyhow::Result<()> {
+fn canonical_campaign_records_without_material_drivers_use_generic_bindings() -> anyhow::Result<()>
+{
     let mut value = serde_json::to_value(stage_campaign_registry())?;
     let campaign = value["campaigns"][0]
         .as_object_mut()
@@ -258,7 +259,11 @@ fn historical_campaign_records_without_material_drivers_remain_readable() -> any
     let historical: BenchmarkStageCampaignRegistry = serde_json::from_value(value)?;
     assert!(historical.campaigns[0].material_driver.is_none());
     validate_stage_campaign_registry(&historical)?;
-    assert!(validate_executable_stage_campaign_registry(&historical).is_err());
+    validate_executable_stage_campaign_registry(&historical)?;
+
+    let mut drifted = historical;
+    drifted.campaigns[0].tool_ids = vec!["seqfu".to_string()];
+    assert!(validate_executable_stage_campaign_registry(&drifted).is_err());
     Ok(())
 }
 
