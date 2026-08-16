@@ -19,7 +19,7 @@
         "--version"
       ],
       "expected_version_line": "bcftools 1.21",
-      "provisioning": "caller-supplied PATH; LUNARC loads GCC/13.3.0 then BCFtools/1.21"
+      "provisioning": "checksum-bound runner execution binding; site modules are not required"
     }
   ],
   "archive_build_jobs": 4,

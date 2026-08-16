@@ -1314,25 +1314,41 @@ fn observe_full_shard_runtime_dependencies(
     dependencies: &[FullShardRuntimeDependency],
     report_path: &Path,
 ) -> Result<Vec<serde_json::Value>> {
-    let runner = ProcessRunner::new(workspace);
+    observe_full_shard_runtime_dependencies_with_env(workspace, dependencies, report_path, None)
+}
+
+fn observe_full_shard_runtime_dependencies_with_env(
+    workspace: &Workspace,
+    dependencies: &[FullShardRuntimeDependency],
+    report_path: &Path,
+    execution_env: Option<&BTreeMap<String, String>>,
+) -> Result<Vec<serde_json::Value>> {
     let mut observations = Vec::with_capacity(dependencies.len());
     let mut all_available = true;
     for dependency in dependencies {
-        let (available, observed, error) = match runner
-            .run_owned(&dependency.executable, &dependency.version_args)
-        {
-            Ok(output) => {
-                let rendered = if output.stdout.is_empty() {
-                    String::from_utf8_lossy(&output.stderr).trim().to_string()
-                } else {
-                    String::from_utf8_lossy(&output.stdout).trim().to_string()
-                };
-                let available = output.status.success()
-                    && rendered.lines().next() == Some(dependency.expected_version_line.as_str());
-                (available, rendered, None)
-            }
-            Err(error) => (false, String::new(), Some(format!("{error:#}"))),
-        };
+        let (available, observed, error) =
+            match bijux_dna_runner::api::run_command_with_context_and_timeout(
+                &dependency.executable,
+                &dependency.version_args,
+                Some(&workspace.root),
+                execution_env,
+                Duration::from_secs(30),
+            ) {
+                Ok(timed) => {
+                    let output = timed.output;
+                    let rendered = if output.stdout.is_empty() {
+                        output.stderr.trim().to_string()
+                    } else {
+                        output.stdout.trim().to_string()
+                    };
+                    let available = !timed.timed_out
+                        && output.exit_code == 0
+                        && rendered.lines().next()
+                            == Some(dependency.expected_version_line.as_str());
+                    (available, rendered, None)
+                }
+                Err(error) => (false, String::new(), Some(format!("{error:#}"))),
+            };
         all_available &= available;
         observations.push(serde_json::json!({
             "id": dependency.id,
@@ -2309,8 +2325,9 @@ mod tests {
         full_shard_args, full_shard_env, full_shard_root_receipt, full_shard_roots,
         full_shard_storage_receipt, isolated_build_tree, materialize_ci_fast_compiler_wrapper,
         materialize_full_shard_workspace, observe_full_shard_runtime_dependencies,
-        parse_compiler_wrapper_identity, parse_sccache_stats, percentile, read_ci_build_authority,
-        reference_timing_samples, remove_full_shard_ephemera, resolve_ci_fast_build_authority,
+        observe_full_shard_runtime_dependencies_with_env, parse_compiler_wrapper_identity,
+        parse_sccache_stats, percentile, read_ci_build_authority, reference_timing_samples,
+        remove_full_shard_ephemera, resolve_ci_fast_build_authority,
         resolve_ci_fast_build_authority_with_scratch_roots, resolve_ci_fast_sccache_runtime_env,
         resolve_full_shard_storage_roots, set_full_archive_readonly, start_owned_sccache_server,
         validate_ci_test_executor_observation, validate_fast_group_contract,
@@ -2417,6 +2434,10 @@ mod tests {
             contract.shards.iter().map(|shard| shard.partition.as_str()).collect::<Vec<_>>(),
             ["hash:1/5", "hash:2/5", "hash:3/5", "hash:4/5", "hash:5/5"]
         );
+        assert_eq!(
+            contract.runtime_dependencies[0].provisioning,
+            "checksum-bound runner execution binding; site modules are not required"
+        );
         Ok(())
     }
 
@@ -2440,6 +2461,63 @@ mod tests {
         assert_eq!(receipt.get("all_available").and_then(serde_json::Value::as_bool), Some(true));
         assert_eq!(
             receipt.pointer("/dependencies/0/observed").and_then(serde_json::Value::as_str),
+            Some("bcftools 1.21")
+        );
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn full_shard_preflight_honors_checksum_bound_runtime_dependencies() -> anyhow::Result<()> {
+        use std::os::unix::fs::PermissionsExt as _;
+
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        let executable = root.path().join("bound-bcftools");
+        std::fs::write(&executable, b"#!/bin/sh\nprintf 'bcftools 1.21\\n'\n")?;
+        std::fs::set_permissions(&executable, std::fs::Permissions::from_mode(0o700))?;
+        let manifest_path = root.path().join("execution-bindings.json");
+        let manifest = bijux_dna_runner::api::ExecutionBindingManifestV1 {
+            schema_version: bijux_dna_runner::api::RUNNER_EXECUTION_BINDINGS_SCHEMA_V1.to_string(),
+            bindings: vec![bijux_dna_runner::api::CommandExecutionBindingV1 {
+                command: "bijux-unavailable-bcftools".to_string(),
+                program: executable.display().to_string(),
+                prefix_args: Vec::new(),
+                required_files: vec![bijux_dna_runner::api::BoundFileIdentityV1 {
+                    path: executable.display().to_string(),
+                    sha256: bijux_dna_infra::hash_file_sha256(&executable)?,
+                    size_bytes: executable.metadata()?.len(),
+                }],
+            }],
+        };
+        std::fs::write(&manifest_path, serde_json::to_vec_pretty(&manifest)?)?;
+        let execution_env = BTreeMap::from([(
+            bijux_dna_runner::api::RUNNER_EXECUTION_BINDINGS_ENV.to_string(),
+            manifest_path.display().to_string(),
+        )]);
+        let report_path = workspace.root.join("artifacts/runtime-dependencies.json");
+        let dependencies = vec![FullShardRuntimeDependency {
+            id: "bcftools".to_string(),
+            executable: "bijux-unavailable-bcftools".to_string(),
+            version_args: vec!["--version".to_string()],
+            expected_version_line: "bcftools 1.21".to_string(),
+            provisioning: "checksum-bound runner execution binding".to_string(),
+        }];
+
+        let observations = observe_full_shard_runtime_dependencies_with_env(
+            &workspace,
+            &dependencies,
+            &report_path,
+            Some(&execution_env),
+        )?;
+
+        assert_eq!(observations.len(), 1);
+        assert_eq!(
+            observations[0].get("available").and_then(serde_json::Value::as_bool),
+            Some(true)
+        );
+        assert_eq!(
+            observations[0].get("observed").and_then(serde_json::Value::as_str),
             Some("bcftools 1.21")
         );
         Ok(())
