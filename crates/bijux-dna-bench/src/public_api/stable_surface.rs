@@ -383,11 +383,12 @@ pub use crate::repo::{
     bench_stage_interfaces_path, bench_suites_dir, build_benchmark_data_index,
     derive_benchmark_data_snapshots, publish_benchmark_data_index,
     publish_governed_data_catalog_registry, publish_governed_data_catalog_snapshots,
-    render_benchmark_data_index_markdown, AdmittedBamGenotypingCorpus,
-    BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
+    publish_governed_materialized_data_catalog_snapshots, render_benchmark_data_index_markdown,
+    AdmittedBamGenotypingCorpus, BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
     GovernedDataCatalogRegistryPublication, GovernedDataCatalogRegistryPublicationRequest,
     GovernedDataCatalogSnapshotPublication, GovernedDataCatalogSnapshotRequest,
     GovernedDerivedDataCatalogAdmission, GovernedDerivedDataCatalogAdmissionRequest,
+    GovernedMaterializedDataCatalogSnapshotRequest,
 };
 pub use crate::workflow::{
     acquire_fastq_corpus, acquire_selected_fastq_collection, admit_benchmark_campaign_evidence,

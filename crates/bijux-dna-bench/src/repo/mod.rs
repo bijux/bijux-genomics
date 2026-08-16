@@ -25,8 +25,9 @@ pub use catalog_registry_authority::{
 };
 pub use catalog_snapshot_authority::{
     admit_governed_derived_data_catalog, publish_governed_data_catalog_snapshots,
-    GovernedDataCatalogSnapshotPublication, GovernedDataCatalogSnapshotRequest,
-    GovernedDerivedDataCatalogAdmission, GovernedDerivedDataCatalogAdmissionRequest,
+    publish_governed_materialized_data_catalog_snapshots, GovernedDataCatalogSnapshotPublication,
+    GovernedDataCatalogSnapshotRequest, GovernedDerivedDataCatalogAdmission,
+    GovernedDerivedDataCatalogAdmissionRequest, GovernedMaterializedDataCatalogSnapshotRequest,
 };
 pub use corpus_authority::{admit_alignment_truth_set, admit_fastq_benchmark_corpus};
 pub use data_index_authority::{
