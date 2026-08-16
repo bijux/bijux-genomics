@@ -15,6 +15,7 @@ use bijux_dna_bench_model::{
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2, BENCHMARK_STAGE_NORMALIZATION_ARTIFACT,
     BENCHMARK_STAGE_NORMALIZATION_SCHEMA_V1,
 };
+use bijux_dna_stage_contract::StagePluginOutputV1;
 
 use super::{
     aggregate_benchmark_case_observations, validate_benchmark_case_aggregations,
@@ -254,26 +255,20 @@ fn normalized_output_bytes<'a>(
 ) -> Result<u64> {
     let mut files = BTreeSet::new();
     for unit in units {
-        let artifacts = unit
-            .normalized_output
-            .get("artifacts")
-            .and_then(serde_json::Value::as_array)
-            .context("normalized generic case omits artifacts")?;
-        for artifact in artifacts {
-            let path = artifact
-                .get("path")
-                .and_then(serde_json::Value::as_str)
-                .context("normalized generic artifact omits its path")?;
-            let metadata = fs::symlink_metadata(path)
-                .with_context(|| format!("inspect normalized generic artifact {path}"))?;
+        let output = normalized_stage_output(unit)?;
+        for artifact in output.artifacts {
+            let path = artifact.path;
+            let metadata = fs::symlink_metadata(&path).with_context(|| {
+                format!("inspect normalized generic artifact {}", path.display())
+            })?;
             if metadata.file_type().is_symlink() || (!metadata.is_file() && !metadata.is_dir()) {
                 bail!("normalized generic artifact is not a regular file or directory");
             }
             if metadata.is_file() {
-                files.insert(path.to_string());
+                files.insert(path);
                 continue;
             }
-            for entry in walkdir::WalkDir::new(path).min_depth(1).follow_links(false) {
+            for entry in walkdir::WalkDir::new(&path).min_depth(1).follow_links(false) {
                 let entry = entry.context("walk normalized generic artifact directory")?;
                 if entry.file_type().is_symlink()
                     || (!entry.file_type().is_file() && !entry.file_type().is_dir())
@@ -281,61 +276,98 @@ fn normalized_output_bytes<'a>(
                     bail!("normalized generic directory contains an unsafe entry");
                 }
                 if entry.file_type().is_file() {
-                    files.insert(entry.path().to_string_lossy().into_owned());
+                    files.insert(entry.path().to_path_buf());
                 }
             }
         }
     }
     files.into_iter().try_fold(0_u64, |total, path| {
         let metadata = fs::symlink_metadata(&path)
-            .with_context(|| format!("inspect normalized generic artifact {path}"))?;
+            .with_context(|| format!("inspect normalized generic artifact {}", path.display()))?;
         total.checked_add(metadata.len()).context("generic benchmark output bytes overflow")
     })
 }
 
-fn canonical_scientific_metrics(
-    unit: &BenchmarkStageNormalizationUnitV1,
-) -> Result<BTreeMap<String, serde_json::Value>> {
-    let parts = unit
-        .normalized_output
-        .get("report_parts")
-        .and_then(serde_json::Value::as_array)
-        .context("normalized generic case omits report parts")?;
-    let metrics = parts
-        .iter()
-        .find(|part| {
-            part.get("name").and_then(serde_json::Value::as_str)
-                == Some("observed_semantic_metrics")
-        })
-        .and_then(|part| part.pointer("/payload/semantic_metrics"))
-        .and_then(serde_json::Value::as_object)
-        .context("normalized generic case omits canonical scientific metrics")?;
-    Ok(metrics.iter().map(|(key, value)| (key.clone(), value.clone())).collect())
+#[derive(Debug, Clone, PartialEq)]
+enum CanonicalScientificMetric {
+    Number(f64),
+    Text(String),
+    Json(String),
 }
 
-fn reduce_scientific_values(values: &[serde_json::Value]) -> Result<BenchmarkScientificValue> {
+fn canonical_scientific_metrics(
+    unit: &BenchmarkStageNormalizationUnitV1,
+) -> Result<BTreeMap<String, CanonicalScientificMetric>> {
+    let output = normalized_stage_output(unit)?;
+    let metrics = output
+        .report_parts
+        .iter()
+        .find(|part| part.name == "observed_semantic_metrics")
+        .and_then(|part| part.payload.get("semantic_metrics"))
+        .and_then(|metrics| metrics.as_object())
+        .context("normalized generic case omits canonical scientific metrics")?;
+    metrics
+        .iter()
+        .map(|(key, value)| {
+            let metric = if let Some(number) = value.as_f64() {
+                if !number.is_finite() {
+                    bail!("generic scientific number is not finite");
+                }
+                CanonicalScientificMetric::Number(number)
+            } else if let Some(text) = value.as_str() {
+                CanonicalScientificMetric::Text(text.to_string())
+            } else {
+                CanonicalScientificMetric::Json(serde_json::to_string(value)?)
+            };
+            Ok((key.clone(), metric))
+        })
+        .collect()
+}
+
+fn normalized_stage_output(
+    unit: &BenchmarkStageNormalizationUnitV1,
+) -> Result<StagePluginOutputV1> {
+    serde_json::from_value(unit.normalized_output.clone())
+        .context("decode normalized generic stage output contract")
+}
+
+fn reduce_scientific_values(
+    values: &[CanonicalScientificMetric],
+) -> Result<BenchmarkScientificValue> {
     if values.is_empty() {
         bail!("generic scientific metric has no execution-unit observations");
     }
-    if values.iter().all(serde_json::Value::is_number) {
+    if values.iter().all(|value| matches!(value, CanonicalScientificMetric::Number(_))) {
         let numeric = values
             .iter()
-            .map(|value| value.as_f64().context("generic scientific number is not finite"))
+            .map(|value| match value {
+                CanonicalScientificMetric::Number(number) => Ok(*number),
+                _ => bail!("generic scientific metric changed type during reduction"),
+            })
             .collect::<Result<Vec<_>>>()?;
-        if numeric.iter().any(|value| !value.is_finite()) {
-            bail!("generic scientific number is not finite");
-        }
         return Ok(BenchmarkScientificValue::Number(
             numeric.iter().sum::<f64>() / numeric.len() as f64,
         ));
     }
     if values.iter().all(|value| value == &values[0]) {
         return Ok(BenchmarkScientificValue::Text(match &values[0] {
-            serde_json::Value::String(value) => value.clone(),
-            value => serde_json::to_string(value)?,
+            CanonicalScientificMetric::Number(number) => number.to_string(),
+            CanonicalScientificMetric::Text(text) | CanonicalScientificMetric::Json(text) => {
+                text.clone()
+            }
         }));
     }
-    Ok(BenchmarkScientificValue::Text(serde_json::to_string(values)?))
+    let fragments = values
+        .iter()
+        .map(|value| match value {
+            CanonicalScientificMetric::Number(number) => Ok(number.to_string()),
+            CanonicalScientificMetric::Text(text) => {
+                serde_json::to_string(text).map_err(Into::into)
+            }
+            CanonicalScientificMetric::Json(json) => Ok(json.clone()),
+        })
+        .collect::<Result<Vec<_>>>()?;
+    Ok(BenchmarkScientificValue::Text(format!("[{}]", fragments.join(","))))
 }
 
 /// Build one stage report from generic case aggregations without stage or tool dispatch.
@@ -469,28 +501,37 @@ fn report_interface(
 mod tests {
     use bijux_dna_bench_model::BenchmarkScientificValue;
 
-    use super::reduce_scientific_values;
+    use super::{reduce_scientific_values, CanonicalScientificMetric};
 
     #[test]
     fn generic_scientific_reduction_preserves_numeric_and_nonnumeric_evidence() -> anyhow::Result<()>
     {
         assert_eq!(
-            reduce_scientific_values(&[serde_json::json!(2), serde_json::json!(4)])?,
+            reduce_scientific_values(&[
+                CanonicalScientificMetric::Number(2.0),
+                CanonicalScientificMetric::Number(4.0),
+            ])?,
             BenchmarkScientificValue::Number(3.0)
         );
         assert_eq!(
             reduce_scientific_values(&[
-                serde_json::json!("report_only"),
-                serde_json::json!("report_only"),
+                CanonicalScientificMetric::Text("report_only".to_string()),
+                CanonicalScientificMetric::Text("report_only".to_string()),
             ])?,
             BenchmarkScientificValue::Text("report_only".to_string())
         );
         assert_eq!(
-            reduce_scientific_values(&[serde_json::Value::Null, serde_json::Value::Null])?,
+            reduce_scientific_values(&[
+                CanonicalScientificMetric::Json("null".to_string()),
+                CanonicalScientificMetric::Json("null".to_string()),
+            ])?,
             BenchmarkScientificValue::Text("null".to_string())
         );
         assert_eq!(
-            reduce_scientific_values(&[serde_json::json!("a"), serde_json::json!("b")])?,
+            reduce_scientific_values(&[
+                CanonicalScientificMetric::Text("a".to_string()),
+                CanonicalScientificMetric::Text("b".to_string()),
+            ])?,
             BenchmarkScientificValue::Text("[\"a\",\"b\"]".to_string())
         );
         Ok(())
