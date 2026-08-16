@@ -26,7 +26,8 @@ pub use chain::{
 };
 pub use external_artifact::{
     admit_external_artifact, bind_external_artifact_command, external_artifact_admission_schema,
-    external_artifact_image_ref, external_artifact_tool_id, load_external_artifact_admission,
+    external_artifact_admission_schema_matches, external_artifact_image_ref,
+    external_artifact_tool_id, load_external_artifact_admission,
     verify_external_artifact_admission, write_external_artifact_admission_schema,
     ExternalArtifactAdmission, ExternalArtifactAdmissionRequest, ExternalArtifactAdmissionStatus,
     ExternalArtifactCommandBinding, ExternalArtifactIdentity, ExternalArtifactInput,

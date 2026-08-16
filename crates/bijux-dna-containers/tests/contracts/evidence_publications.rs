@@ -510,8 +510,15 @@ fn checked_in_external_artifact_schema_matches_rust_type() -> Result<()> {
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_containers::evidence::write_external_artifact_admission_schema(&path)?;
     }
-    let checked_in: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
+    assert!(bijux_dna_containers::evidence::external_artifact_admission_schema_matches(&path)?);
+    let checked_in: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&path)?)?;
     assert_eq!(checked_in, bijux_dna_containers::evidence::external_artifact_admission_schema());
+
+    let drifted = tempfile::NamedTempFile::new()?;
+    std::fs::write(drifted.path(), b"{}")?;
+    assert!(!bijux_dna_containers::evidence::external_artifact_admission_schema_matches(
+        drifted.path()
+    )?);
 
     let historical: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
         root.join("containers/contracts/schemas/external-artifact-admission.v1.json"),

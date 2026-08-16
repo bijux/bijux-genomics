@@ -37,6 +37,18 @@ impl ExternalArtifactKind {
     }
 }
 
+impl std::str::FromStr for ExternalArtifactKind {
+    type Err = anyhow::Error;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "binary" => Ok(Self::Binary),
+            "apptainer_sif" => Ok(Self::ApptainerSif),
+            _ => anyhow::bail!("unsupported external artifact kind: {value}"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ExternalArtifactAdmissionStatus {

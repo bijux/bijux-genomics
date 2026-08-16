@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use schemars::schema_for;
 
 use super::model::ExternalArtifactAdmission;
@@ -18,4 +18,15 @@ pub fn external_artifact_admission_schema() -> serde_json::Value {
 pub fn write_external_artifact_admission_schema(path: &Path) -> Result<()> {
     bijux_dna_infra::atomic_write_json(path, &external_artifact_admission_schema())?;
     Ok(())
+}
+
+/// Compare one checked-in admission schema with the container owner's generated contract.
+///
+/// # Errors
+/// Returns an error when the checked schema cannot be read or parsed.
+pub fn external_artifact_admission_schema_matches(path: &Path) -> Result<bool> {
+    let bytes = std::fs::read(path).context("read external-artifact admission schema")?;
+    let checked: serde_json::Value =
+        serde_json::from_slice(&bytes).context("parse external-artifact admission schema")?;
+    Ok(checked == external_artifact_admission_schema())
 }

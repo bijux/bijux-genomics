@@ -550,6 +550,7 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
 
 fn is_thin_container_operator(path: &str, content: &str) -> bool {
     const MIGRATED_SURFACES: &[&str] = &[
+        "crates/bijux-dna-dev/src/commands/containers/external_artifact.rs",
         "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs",
         "crates/bijux-dna-dev/src/commands/containers/qualification_slurm.rs",
     ];
@@ -1207,9 +1208,13 @@ mod tests {
     }
 
     #[test]
-    fn migrated_container_lifecycle_commands_remain_thin_adapters() -> anyhow::Result<()> {
+    fn migrated_container_operator_commands_remain_thin_adapters() -> anyhow::Result<()> {
         let schema_pattern = Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?;
         for (path, content) in [
+            (
+                "crates/bijux-dna-dev/src/commands/containers/external_artifact.rs",
+                include_str!("../containers/external_artifact.rs"),
+            ),
             (
                 "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs",
                 include_str!("../containers/qualification_cycle.rs"),
@@ -1230,7 +1235,7 @@ mod tests {
     }
 
     #[test]
-    fn migrated_container_lifecycle_commands_reject_direct_io_regression() -> anyhow::Result<()> {
+    fn migrated_container_operator_commands_reject_direct_io_regression() -> anyhow::Result<()> {
         let row = classify(
             &SourceFile {
                 path: "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs"
