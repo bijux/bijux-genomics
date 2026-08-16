@@ -230,6 +230,10 @@ sample_count = 0
 minimum_sample_count = 10
 data_types = ["fastq"]
 roles = ["read_processing_truth", "adapter_damage_complexity_challenge"]
+catalog_ids = [
+  "read-processing-challenge-ena-ancient-read-panel",
+  "read-processing-challenge-seqc-reference-rna",
+]
 truth_strategy = "real_reads_with_calibrated_spike_ins"
 scientific_rationale = "Real libraries with independently quantified adapter, damage, duplicate, UMI, complexity, and low-quality signals are required to measure true retention and removal rather than only runtime."
 limitations = ["The challenge panel, spike-in recipe, and independent truth observations are not yet admitted."]
@@ -244,6 +248,10 @@ sample_count = 0
 minimum_sample_count = 10
 data_types = ["fastq", "taxonomy_database"]
 roles = ["environmental_taxonomy_truth", "host_and_rrna_challenge"]
+catalog_ids = [
+  "environmental-taxonomy-challenge-ena-tara-oceans",
+  "environmental-taxonomy-challenge-hmp-mock-community",
+]
 truth_strategy = "real_edna_with_mock_community_and_orthogonal_assays"
 scientific_rationale = "Environmental and mock-community libraries with independently supported composition are needed for Kraken, Centrifuge, Kaiju, rRNA, and host-depletion sensitivity and specificity."
 limitations = ["No governed eDNA panel, database snapshot, expected-taxon set, or negative controls are admitted."]
@@ -258,6 +266,10 @@ sample_count = 0
 minimum_sample_count = 10
 data_types = ["amplicon_reference", "fastq"]
 roles = ["amplicon_truth"]
+catalog_ids = [
+  "amplicon-community-challenge-extreme-mock-community",
+  "amplicon-community-challenge-hmp-amplicon-mock",
+]
 truth_strategy = "real_mock_communities_with_known_composition"
 scientific_rationale = "Replicated real mock communities with known membership and abundance are needed to compare ASV, OTU, chimera, and normalization behavior."
 limitations = ["No governed mock-community panel or independently declared expected composition is admitted."]
@@ -304,6 +316,12 @@ sample_count = 0
 minimum_sample_count = 10
 data_types = ["bam", "fasta", "fastq", "orthogonal_assay", "sample_metadata"]
 roles = ["ancient_damage_truth"]
+catalog_ids = [
+  "ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs",
+  "ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank",
+  "ancient-dna-damage-controls-public-modern-human-observational-controls",
+  "grch38-reference",
+]
 truth_strategy = "paired_udg_treatment_labels_with_extraction_blank_and_observational_modern_negatives"
 scientific_rationale = "Same-individual UDG/non-UDG library pairs provide independently labeled relative-damage expectations; an extraction blank and stratified modern libraries probe contamination and false-positive behavior without being misrepresented as per-molecule truth."
 limitations = ["The selected sources, common-protocol alignments, checksums, treatment metadata, held-out split, and orthogonal expectation table are not yet admitted, and the design cannot establish per-molecule damage truth."]

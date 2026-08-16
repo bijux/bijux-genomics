@@ -36,11 +36,56 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
     assert_eq!(audit.summary.source_defined_corpus_count, 9);
     assert_eq!(audit.summary.missing_corpus_count, 0);
     assert_eq!(audit.summary.publishable_data_ready_count, 1);
-    assert_eq!(audit.summary.bound_catalog_count, 4);
+    assert_eq!(audit.summary.bound_catalog_count, 13);
     assert_eq!(audit.summary.missing_catalog_binding_count, 20);
     assert_eq!(audit.summary.unbound_catalog_count, 1);
     assert_eq!(audit.summary.suspected_nonproduction_asset_count, 1);
     assert_eq!(audit.summary.publishable_contamination_count, 0);
+    for (corpus_id, expected_catalog_ids) in [
+        (
+            "read-processing-challenge",
+            vec![
+                "read-processing-challenge-ena-ancient-read-panel",
+                "read-processing-challenge-seqc-reference-rna",
+            ],
+        ),
+        (
+            "environmental-taxonomy-challenge",
+            vec![
+                "environmental-taxonomy-challenge-ena-tara-oceans",
+                "environmental-taxonomy-challenge-hmp-mock-community",
+            ],
+        ),
+        (
+            "amplicon-community-challenge",
+            vec![
+                "amplicon-community-challenge-extreme-mock-community",
+                "amplicon-community-challenge-hmp-amplicon-mock",
+            ],
+        ),
+        (
+            "ancient-dna-damage-controls",
+            vec![
+                "ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs",
+                "ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank",
+                "ancient-dna-damage-controls-public-modern-human-observational-controls",
+                "grch38-reference",
+            ],
+        ),
+    ] {
+        let corpus = audit
+            .corpora
+            .iter()
+            .find(|corpus| corpus.corpus_id == corpus_id)
+            .context("source-defined corpus")?;
+        let observed = corpus
+            .catalog_bindings
+            .iter()
+            .map(|binding| binding.catalog_id.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(observed, expected_catalog_ids);
+        assert_eq!(corpus.blockers, ["source-defined corpus has not been admitted"]);
+    }
     assert!(audit
         .corpora
         .iter()
@@ -221,6 +266,25 @@ impl DataAuditFixture {
             "real horse reference assembly",
             None,
         )?;
+        for id in [
+            "read-processing-challenge-ena-ancient-read-panel",
+            "read-processing-challenge-seqc-reference-rna",
+            "environmental-taxonomy-challenge-ena-tara-oceans",
+            "environmental-taxonomy-challenge-hmp-mock-community",
+            "amplicon-community-challenge-extreme-mock-community",
+            "amplicon-community-challenge-hmp-amplicon-mock",
+            "ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs",
+            "ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank",
+            "ancient-dna-damage-controls-public-modern-human-observational-controls",
+        ] {
+            write_catalog(
+                &data_root,
+                &catalog_root,
+                id,
+                "real source-defined corpus authority",
+                None,
+            )?;
+        }
         write_catalog(
             &data_root,
             &catalog_root,
