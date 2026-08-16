@@ -7,9 +7,12 @@ pub(in super::super) fn tooling_benchmark_run_index(
     let mode = match args {
         [] => bijux_dna_bench::BenchmarkRunIndexWriteMode::Write,
         [flag] if flag == "--check" => bijux_dna_bench::BenchmarkRunIndexWriteMode::Check,
+        [flag] if flag == "--demote-stale" => {
+            bijux_dna_bench::BenchmarkRunIndexWriteMode::DemoteStale
+        }
         _ => {
             return Ok(OpsCommandOutcome::failure(
-                "Usage: cargo run -p bijux-dna-dev -- tooling run benchmark-run-index -- [--check]\n",
+                "Usage: cargo run -p bijux-dna-dev -- tooling run benchmark-run-index -- [--check|--demote-stale]\n",
             ));
         }
     };
