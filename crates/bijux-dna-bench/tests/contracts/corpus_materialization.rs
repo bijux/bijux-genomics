@@ -32,17 +32,27 @@ fn benchmark_owner_projects_materialization_command_arguments() -> anyhow::Resul
 
     assert_eq!(arguments.first().map(String::as_str), Some("bench"));
     assert_eq!(arguments.get(1).map(String::as_str), Some("materialize-fastq-corpus"));
-    assert!(arguments.windows(2).any(|pair| {
-        pair[0] == "--plan" && pair[1] == plan_path.display().to_string()
-    }));
-    assert!(arguments.windows(2).any(|pair| {
-        pair[0] == "--data-root" && pair[1] == data_root.display().to_string()
-    }));
+    assert!(arguments
+        .windows(2)
+        .any(|pair| { pair[0] == "--plan" && pair[1] == plan_path.display().to_string() }));
+    assert!(arguments
+        .windows(2)
+        .any(|pair| { pair[0] == "--data-root" && pair[1] == data_root.display().to_string() }));
     assert!(arguments
         .windows(2)
         .any(|pair| pair[0] == "--repository-commit" && pair[1] == REPOSITORY_COMMIT));
     assert!(arguments.windows(2).any(|pair| pair[0] == "--jobs" && pair[1] == "1"));
+    assert!(arguments.windows(2).any(|pair| pair[0] == "--retries" && pair[1] == "0"));
     assert!(arguments.windows(2).any(|pair| pair[0] == "--timeout-seconds" && pair[1] == "10"));
+    assert!(arguments
+        .windows(2)
+        .any(|pair| pair[0] == "--admitted-at-utc" && pair[1] == "2026-01-02T03:04:05Z"));
+
+    let outside_plan = temporary.path().join("outside-plan.json");
+    fs::write(&outside_plan, b"outside governed data root")?;
+    let escaped = request(outside_plan.canonicalize()?, data_root);
+    assert!(corpus_materialization_command_arguments(&escaped)
+        .is_err_and(|error| format!("{error:#}").contains("escapes governed root")));
     Ok(())
 }
 
