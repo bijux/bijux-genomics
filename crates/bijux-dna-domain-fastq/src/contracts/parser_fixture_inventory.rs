@@ -74,16 +74,6 @@ fn fixture_bindings() -> &'static Vec<FastqParserFixtureBinding> {
                 )
             })
             .collect::<Vec<_>>();
-        rows.push(binding_for_stage_surface(
-            "fastq.detect_duplicates_premerge",
-            "bijux_dna",
-            "report_json",
-        ));
-        rows.push(binding_for_stage_surface(
-            "fastq.estimate_library_complexity_prealign",
-            "bijux_dna",
-            "report_json",
-        ));
         rows.sort_by(|left, right| {
             left.stage_id.cmp(right.stage_id).then_with(|| left.tool_id.cmp(right.tool_id))
         });
@@ -127,12 +117,12 @@ fn binding_for_stage_surface(
             DETECT_ADAPTERS_REPORT_SCHEMA_VERSION,
             "fastq.detect_adapters.report_json",
         ),
-        ("fastq.detect_duplicates_premerge", "report_json") => (
+        ("fastq.detect_duplicates_premerge", "duplicate_signal_report") => (
             "parse_detect_duplicates_premerge_report",
             DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION,
             "fastq.detect_duplicates_premerge.report_json",
         ),
-        ("fastq.estimate_library_complexity_prealign", "report_json") => (
+        ("fastq.estimate_library_complexity_prealign", "library_complexity_report") => (
             "parse_estimate_library_complexity_prealign_report",
             ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_REPORT_SCHEMA_VERSION,
             "fastq.estimate_library_complexity_prealign.report_json",
@@ -286,14 +276,14 @@ const FASTQ_PARSER_FIXTURE_CASES: &[FastqParserFixtureCase] = &[
     FastqParserFixtureCase {
         fixture_case_id: "fastq.detect_duplicates_premerge.report_json",
         stage_id: "fastq.detect_duplicates_premerge",
-        semantic_surface: "report_json",
+        semantic_surface: "duplicate_signal_report",
         canonical_tool_id: "bijux_dna",
         raw_fixture: r#"{"schema_version":"bijux.fastq.detect_duplicates_premerge.report.v1","stage":"fastq.detect_duplicates_premerge","stage_id":"fastq.detect_duplicates_premerge","tool_id":"bijux_dna","paired_mode":"paired_end","duplicate_detection_policy":"report_only","measurement_scope":"premerge_sequence_signature","modifies_reads":false,"advisory_only":true,"reads_in":12,"duplicate_signal_reads":4,"duplicate_signal_fraction":0.3333333333333333,"compared_read_pairs":6}"#,
     },
     FastqParserFixtureCase {
         fixture_case_id: "fastq.estimate_library_complexity_prealign.report_json",
         stage_id: "fastq.estimate_library_complexity_prealign",
-        semantic_surface: "report_json",
+        semantic_surface: "library_complexity_report",
         canonical_tool_id: "bijux_dna",
         raw_fixture: r#"{"schema_version":"bijux.fastq.estimate_library_complexity_prealign.report.v1","stage":"fastq.estimate_library_complexity_prealign","stage_id":"fastq.estimate_library_complexity_prealign","tool_id":"bijux_dna","paired_mode":"single_end","complexity_policy":"prealign_kmer","estimate_method":"kmer_redundancy","modifies_reads":false,"advisory_only":true,"reads_in":0,"estimated_unique_fraction":0.0,"estimated_duplicate_fraction":0.0,"insufficient_data_reason":"insufficient_reads_for_prealign_complexity_estimation","kmer_size":31}"#,
     },
@@ -446,7 +436,7 @@ mod tests {
     #[test]
     fn fastq_parser_fixture_inventory_covers_governed_active_bindings() {
         let rows = fastq_parser_fixture_bindings();
-        assert_eq!(rows.len(), observer_specialization_contracts().len() + 2);
+        assert_eq!(rows.len(), observer_specialization_contracts().len());
 
         let unique_rows = rows
             .iter()

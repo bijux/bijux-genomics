@@ -13,6 +13,12 @@ pub(super) const CONTRACTS: &[ObserverSpecializationContract] = &[
     contract("fastq.profile_read_lengths", "seqfu", "report_json"),
     contract("fastq.profile_read_lengths", "seqkit", "report_json"),
     contract("fastq.detect_adapters", "fastqc", "report_json"),
+    contract("fastq.detect_duplicates_premerge", "bijux_dna", "duplicate_signal_report"),
+    contract(
+        "fastq.estimate_library_complexity_prealign",
+        "bijux_dna",
+        "library_complexity_report",
+    ),
     contract("fastq.profile_overrepresented_sequences", "fastqc", "report_json"),
     contract("fastq.profile_overrepresented_sequences", "fastq_scan", "report_json"),
     contract("fastq.profile_overrepresented_sequences", "seqkit", "report_json"),

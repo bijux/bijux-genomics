@@ -18,7 +18,7 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionResources, BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy,
     BenchmarkExecutionSourceLock, BenchmarkExecutionSpec, BenchmarkLifecycleStatus,
     BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
-    BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_STAGE_NORMALIZATION_ARTIFACT,
 };
 use bijux_dna_containers::api::{ContainerCatalog, ContainerCatalogTool, CurrentApptainerImage};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
@@ -53,6 +53,15 @@ pub struct BenchmarkExecutionMaterial {
     pub determinism: BenchmarkExecutionDeterminism,
     pub acceptance: BenchmarkExecutionAcceptance,
     pub stage_plan_units: Option<Vec<BenchmarkStagePlanUnitMaterial>>,
+    pub downstream_probe_mode: BenchmarkDownstreamProbeMode,
+}
+
+/// Declares whether downstream evidence is emitted by a reviewed campaign command or by the
+/// dependency-injected stage plugin after the immutable runner output closes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BenchmarkDownstreamProbeMode {
+    RunnerProduced,
+    StagePlugin,
 }
 
 /// One binding-owned input path for an independently executable benchmark unit.
@@ -357,6 +366,11 @@ pub fn build_execution_spec(
             &bijux_dna_core::ids::ToolId::new(&identity.tool_id),
         )
         .context("canonical bindings omit the planned execution output authority")?;
+    for resource_file in measurement_resource_files(campaign.measured_repetitions) {
+        if !material.required_files.contains(&resource_file) {
+            material.required_files.push(resource_file);
+        }
+    }
     material.required_files.extend(stage_plan_required_files(
         stage_plan_units,
         binding,
@@ -406,7 +420,14 @@ pub fn build_execution_spec(
                 stage_id: interface.downstream_probe.consumer_stage_id.clone(),
                 input_contract: interface.downstream_probe.input_contract.clone(),
                 source: interface.downstream_probe.source.clone(),
-                artifact: "repetitions/repetition-1.report-qc.json".to_string(),
+                artifact: match material.downstream_probe_mode {
+                    BenchmarkDownstreamProbeMode::RunnerProduced => {
+                        "repetitions/repetition-1.report-qc.json".to_string()
+                    }
+                    BenchmarkDownstreamProbeMode::StagePlugin => {
+                        BENCHMARK_STAGE_NORMALIZATION_ARTIFACT.to_string()
+                    }
+                },
             },
         },
         measurement: BenchmarkExecutionMeasurement {
@@ -446,6 +467,12 @@ pub fn build_execution_spec(
     };
     validate_execution_spec(&spec).context("validate constructed benchmark execution spec")?;
     Ok(spec)
+}
+
+fn measurement_resource_files(measured_repetitions: u32) -> Vec<String> {
+    (1..=measured_repetitions)
+        .map(|repetition| format!("repetitions/repetition-{repetition}.resource.tsv"))
+        .collect()
 }
 
 fn stage_plan_required_files(
@@ -510,8 +537,8 @@ mod tests {
     use bijux_dna_containers::api::ContainerCatalog;
 
     use super::{
-        stage_plan_required_files, supports_offline_stage, BenchmarkStagePlanOutputMaterial,
-        BenchmarkStagePlanUnitMaterial,
+        measurement_resource_files, stage_plan_required_files, supports_offline_stage,
+        BenchmarkStagePlanOutputMaterial, BenchmarkStagePlanUnitMaterial,
     };
     use bijux_dna_core::contract::ArtifactRole;
     use bijux_dna_stage_contract::canonical_tool_bindings;
@@ -568,5 +595,17 @@ mod tests {
             ]
         );
         Ok(())
+    }
+
+    #[test]
+    fn measurement_resources_close_the_runner_owned_repetition_outputs() {
+        assert_eq!(
+            measurement_resource_files(3),
+            [
+                "repetitions/repetition-1.resource.tsv",
+                "repetitions/repetition-2.resource.tsv",
+                "repetitions/repetition-3.resource.tsv",
+            ]
+        );
     }
 }

@@ -149,6 +149,7 @@ pub fn prepare_bam_genotyping_material_from_corpus(
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
         stage_plan_units: Some(vec![stage_plan_unit()]),
+        downstream_probe_mode: crate::workflow::BenchmarkDownstreamProbeMode::RunnerProduced,
     };
     Ok(BamGenotypingMaterial { execution, admitted_corpus: corpus.clone() })
 }

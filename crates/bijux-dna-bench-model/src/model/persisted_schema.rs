@@ -38,6 +38,7 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
             benchmark_admitted_case_observation_v2_schema, benchmark_case_aggregation_schema,
             benchmark_case_aggregation_set_schema, benchmark_case_aggregation_v2_schema,
             benchmark_case_matrix_schema, benchmark_case_matrix_v1_schema,
+            benchmark_stage_normalization_schema,
         },
         execution::{
             benchmark_effective_parameters_schema, benchmark_execution_spec_schema,
@@ -136,6 +137,10 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
         PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/case-matrix.schema.json",
             benchmark_case_matrix_schema,
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/stage-normalization.schema.json",
+            benchmark_stage_normalization_schema,
         ),
         PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/admitted-case-observation.schema.json",

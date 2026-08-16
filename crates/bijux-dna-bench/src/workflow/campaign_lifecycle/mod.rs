@@ -4,6 +4,7 @@
 mod authorities;
 mod binding_case_material;
 mod execution;
+mod normalization;
 mod operator;
 mod planning;
 mod preparation;
@@ -17,16 +18,20 @@ pub use bijux_dna_bench_model::{
     BenchmarkCyclePreparation, BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit,
 };
 pub use execution::{
-    build_benchmark_stage_plans, build_execution_spec, BenchmarkExecutionMaterial,
-    BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
+    build_benchmark_stage_plans, build_execution_spec, BenchmarkDownstreamProbeMode,
+    BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
     BenchmarkStagePlanUnitMaterial,
 };
+pub use normalization::{
+    normalize_benchmark_execution_outputs, STAGE_PLUGIN_NORMALIZATION_ARTIFACT,
+};
 pub use operator::{
-    admit_checked_in_benchmark_campaign, load_checked_in_benchmark_campaign_plan,
-    plan_checked_in_benchmark_campaign, retry_checked_in_benchmark_campaign,
-    status_checked_in_benchmark_campaign, supersede_checked_in_benchmark_campaign,
-    BenchmarkCycleAdmissionRequest, BenchmarkCyclePlanRequest, BenchmarkCycleRetryRequest,
-    BenchmarkCycleStatusRequest, BenchmarkCycleSupersedeRequest,
+    admit_checked_in_benchmark_campaign, admit_checked_in_benchmark_campaign_with_plugins,
+    load_checked_in_benchmark_campaign_plan, plan_checked_in_benchmark_campaign,
+    retry_checked_in_benchmark_campaign, status_checked_in_benchmark_campaign,
+    supersede_checked_in_benchmark_campaign, BenchmarkCycleAdmissionRequest,
+    BenchmarkCyclePlanRequest, BenchmarkCycleRetryRequest, BenchmarkCycleStatusRequest,
+    BenchmarkCycleSupersedeRequest,
 };
 pub use planning::{
     plan_benchmark_case_attempts, plan_benchmark_case_retry_attempts, plan_stage_campaign_attempts,

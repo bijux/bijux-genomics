@@ -10,6 +10,8 @@ pub struct StageMetricSpec {
 
 pub const FASTQ_VALIDATE_CLASSES: [MetricClass; 1] = [MetricClass::Integrity];
 pub const FASTQ_DETECT_CLASSES: [MetricClass; 1] = [MetricClass::Composition];
+pub const FASTQ_DUPLICATE_SIGNAL_CLASSES: [MetricClass; 1] = [MetricClass::Integrity];
+pub const FASTQ_LIBRARY_COMPLEXITY_CLASSES: [MetricClass; 1] = [MetricClass::Integrity];
 pub const FASTQ_DAMAGE_AWARE_PRETRIM_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::Retention];
 pub const FASTQ_POLYG_TRIM_CLASSES: [MetricClass; 3] =
@@ -55,6 +57,18 @@ pub const FASTQ_VALIDATE_INVARIANTS: [&str; 3] =
     ["reads_valid + reads_invalid == reads_total", "mean_q in [0, 45]", "counts are non-negative"];
 pub const FASTQ_DETECT_INVARIANTS: [&str; 2] =
     ["counts are non-negative", "adapter_content in [0, 100]"];
+pub const FASTQ_DUPLICATE_SIGNAL_INVARIANTS: [&str; 4] = [
+    "duplicate_signal_reads <= reads_in",
+    "duplicate_signal_fraction in [0, 1]",
+    "compared_read_pairs <= reads_in / 2 when present",
+    "counts are non-negative",
+];
+pub const FASTQ_LIBRARY_COMPLEXITY_INVARIANTS: [&str; 4] = [
+    "estimated_unique_fraction in [0, 1]",
+    "estimated_duplicate_fraction in [0, 1]",
+    "estimated_unique_fraction + estimated_duplicate_fraction ~= 1 when reads_in > 0",
+    "kmer_size > 0",
+];
 pub const FASTQ_DAMAGE_AWARE_PRETRIM_INVARIANTS: [&str; 3] =
     ["reads_out <= reads_in", "bases_out <= bases_in", "counts are non-negative"];
 pub const FASTQ_POLYG_TRIM_INVARIANTS: [&str; 4] = [
@@ -133,7 +147,7 @@ pub const FASTQ_NORMALIZE_ABUNDANCE_INVARIANTS: [&str; 3] =
 pub const FASTQ_OVERREPRESENTED_INVARIANTS: [&str; 3] =
     ["sequence_count >= 0", "top_fraction in [0, 1]", "counts are non-negative"];
 
-pub const FASTQ_STAGE_METRIC_SPECS: [StageMetricSpec; 22] = [
+pub const FASTQ_STAGE_METRIC_SPECS: [StageMetricSpec; 24] = [
     StageMetricSpec {
         stage: "fastq.validate_reads",
         classes: &FASTQ_VALIDATE_CLASSES,
@@ -145,6 +159,18 @@ pub const FASTQ_STAGE_METRIC_SPECS: [StageMetricSpec; 22] = [
         classes: &FASTQ_DETECT_CLASSES,
         invariants: &FASTQ_DETECT_INVARIANTS,
         notes: "Adapter detection inspects reads and reports adapter signals.",
+    },
+    StageMetricSpec {
+        stage: "fastq.detect_duplicates_premerge",
+        classes: &FASTQ_DUPLICATE_SIGNAL_CLASSES,
+        invariants: &FASTQ_DUPLICATE_SIGNAL_INVARIANTS,
+        notes: "Premerge duplicate detection reports sequence-signature evidence without mutating reads.",
+    },
+    StageMetricSpec {
+        stage: "fastq.estimate_library_complexity_prealign",
+        classes: &FASTQ_LIBRARY_COMPLEXITY_CLASSES,
+        invariants: &FASTQ_LIBRARY_COMPLEXITY_INVARIANTS,
+        notes: "Prealignment library-complexity estimation reports k-mer redundancy without mutating reads.",
     },
     StageMetricSpec {
         stage: "fastq.trim_terminal_damage",
@@ -271,4 +297,19 @@ pub const FASTQ_STAGE_METRIC_SPECS: [StageMetricSpec; 22] = [
 #[must_use]
 pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
     FASTQ_STAGE_METRIC_SPECS.iter().find(|spec| spec.stage == stage_id).copied()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::metric_spec_for_stage;
+
+    #[test]
+    fn report_only_duplicate_stages_declare_scientific_metric_invariants() {
+        for stage_id in
+            ["fastq.detect_duplicates_premerge", "fastq.estimate_library_complexity_prealign"]
+        {
+            let spec = metric_spec_for_stage(stage_id).expect("metric authority");
+            assert!(!spec.invariants.is_empty(), "{stage_id}");
+        }
+    }
 }

@@ -382,6 +382,24 @@ pub fn status_checked_in_benchmark_campaign(
 pub fn admit_checked_in_benchmark_campaign(
     request: &BenchmarkCycleAdmissionRequest,
 ) -> Result<BenchmarkCycleAdmission> {
+    admit_checked_in_benchmark_campaign_with_optional_plugins(request, None)
+}
+
+/// Verify, normalize, and admit every independently ready output closure in one campaign.
+///
+/// # Errors
+/// Returns the same top-level authority failures as [`admit_checked_in_benchmark_campaign`].
+pub fn admit_checked_in_benchmark_campaign_with_plugins(
+    request: &BenchmarkCycleAdmissionRequest,
+    plugins: &crate::BenchmarkStagePluginRegistry<'_>,
+) -> Result<BenchmarkCycleAdmission> {
+    admit_checked_in_benchmark_campaign_with_optional_plugins(request, Some(plugins))
+}
+
+fn admit_checked_in_benchmark_campaign_with_optional_plugins(
+    request: &BenchmarkCycleAdmissionRequest,
+    plugins: Option<&crate::BenchmarkStagePluginRegistry<'_>>,
+) -> Result<BenchmarkCycleAdmission> {
     validate_utc_timestamp(&request.admitted_at_utc, "benchmark admission admitted_at_utc")
         .context("validate benchmark admission timestamp")?;
     let repository_root = request
@@ -416,7 +434,13 @@ pub fn admit_checked_in_benchmark_campaign(
     let units = attempts
         .into_iter()
         .map(|attempt| {
-            admit_attempt(&study_root, &benchmark_root, &attempt.identity, &request.admitted_at_utc)
+            admit_attempt(
+                &study_root,
+                &benchmark_root,
+                &attempt.identity,
+                &request.admitted_at_utc,
+                plugins,
+            )
         })
         .collect();
     let admission = BenchmarkCycleAdmission::new(
@@ -433,6 +457,7 @@ fn admit_attempt(
     benchmark_root: &Path,
     identity: &BenchmarkAttemptIdentity,
     admitted_at_utc: &str,
+    plugins: Option<&crate::BenchmarkStagePluginRegistry<'_>>,
 ) -> BenchmarkCycleAdmissionUnit {
     let lifecycle = match bijux_dna_runtime::load_attempt_lifecycle(benchmark_root, identity) {
         Ok(lifecycle) => lifecycle,
@@ -454,6 +479,17 @@ fn admit_attempt(
     }
     let result = (|| -> Result<BenchmarkEvidenceReference> {
         let spec = super::load_execution_spec(benchmark_root, identity)?;
+        if spec.interface.downstream_probe.artifact == super::STAGE_PLUGIN_NORMALIZATION_ARTIFACT {
+            let plugins = plugins.context(
+                "benchmark attempt requires an injected stage-plugin normalization registry",
+            )?;
+            super::normalize_benchmark_execution_outputs(
+                benchmark_root,
+                &spec,
+                plugins,
+                admitted_at_utc,
+            )?;
+        }
         let publication = if prior_status == Some(BenchmarkLifecycleStatus::Passed) {
             crate::revalidate_benchmark_execution_outputs(study_root, &spec)?
         } else {

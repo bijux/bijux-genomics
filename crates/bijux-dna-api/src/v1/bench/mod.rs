@@ -3,5 +3,6 @@ mod stage_plugins;
 
 pub use exports::*;
 pub use stage_plugins::{
+    admit_checked_in_benchmark_campaign_with_stage_plugins,
     validate_benchmark_stage_plugin_composition, BenchmarkStagePluginComposition,
 };

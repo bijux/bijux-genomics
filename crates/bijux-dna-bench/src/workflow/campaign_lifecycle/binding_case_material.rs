@@ -23,8 +23,8 @@ use bijux_dna_stage_contract::{
 };
 
 use super::{
-    BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
-    BenchmarkStagePlanUnitMaterial,
+    BenchmarkDownstreamProbeMode, BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial,
+    BenchmarkStagePlanOutputMaterial, BenchmarkStagePlanUnitMaterial,
 };
 use crate::workflow::parameter_authority::load_stage_parameter_authority;
 
@@ -172,6 +172,7 @@ pub(super) fn prepare_binding_case_material(
             }],
         },
         stage_plan_units: Some(units),
+        downstream_probe_mode: BenchmarkDownstreamProbeMode::StagePlugin,
     })
 }
 

@@ -88,7 +88,10 @@ One lifecycle handles every admitted stage/tool pair:
 4. `bijux-dna-runner` submits the declared execution once and returns its durable backend identity.
 5. `bijux-dna-runtime` appends the attempt transition and retry or supersession lineage.
 6. A later cycle observes scheduler state once, collects terminal/accounting-ready attempts once,
-   and passes immutable outputs through the declared normalizer and probes.
+   and passes immutable outputs through the injected domain `StagePlugin`, declared result
+   normalizer, and downstream probe. The benchmark owner persists the checksum-bound normalization
+   publication beneath the immutable attempt admission root before evidence admission; raw tool
+   JSON is never treated as the downstream scientific verdict.
 7. `bijux-dna-science` and `bijux-dna-policies` derive independent scientific and governance
    decisions from admitted observations.
 8. `bijux-dna-bench` admits eligible evidence, closes ready cases, publishes each independently

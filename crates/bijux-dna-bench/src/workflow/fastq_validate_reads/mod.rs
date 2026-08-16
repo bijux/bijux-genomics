@@ -114,6 +114,7 @@ pub fn prepare_fastq_validate_reads_material_from_expectations(
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
         stage_plan_units: Some(stage_plan_units),
+        downstream_probe_mode: crate::workflow::BenchmarkDownstreamProbeMode::RunnerProduced,
     };
     Ok(FastqValidateReadsMaterial { execution, expectations: expectations.clone() })
 }
