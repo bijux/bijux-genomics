@@ -60,7 +60,7 @@ fn bench_readiness_fastq_parser_fixture_coverage_writes_governed_tsv_columns() {
     }));
     assert!(rows.iter().any(|row| {
         row.starts_with(
-            "fastq.detect_duplicates_premerge\tbijux_dna\tcorpus-01-mini\tcorpus_only\tfastq.adapter.detect_duplicates_premerge\tfastq.parser.detect_duplicates_premerge\tfastq_detect_duplicates_premerge_v1\tparse_detect_duplicates_premerge_report\tbijux.fastq.detect_duplicates_premerge.report.v1\tfixture_case\tfastq.detect_duplicates_premerge.report_json\treport_json\tbijux_dna\tcovered\tactive row `fastq.detect_duplicates_premerge` / `bijux_dna` is governed by FASTQ parser fixture case `fastq.detect_duplicates_premerge.report_json` using parser `parse_detect_duplicates_premerge_report` over canonical `bijux_dna` report_json data"
+            "fastq.detect_duplicates_premerge\tbijux_dna\tcorpus-01-mini\tcorpus_only\tfastq.adapter.detect_duplicates_premerge\tfastq.parser.detect_duplicates_premerge\tfastq_detect_duplicates_premerge_v1\tparse_detect_duplicates_premerge_report\tbijux.fastq.detect_duplicates_premerge.report.v1\tfixture_case\tfastq.detect_duplicates_premerge.report_json\tduplicate_signal_report\tbijux_dna\tcovered\tactive row `fastq.detect_duplicates_premerge` / `bijux_dna` is governed by FASTQ parser fixture case `fastq.detect_duplicates_premerge.report_json` using parser `parse_detect_duplicates_premerge_report` over canonical `bijux_dna` duplicate_signal_report data"
         )
     }));
     assert!(rows.iter().any(|row| {

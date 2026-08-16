@@ -22,13 +22,19 @@ fn run_cli_report(args: &[&str], report_path: &str) -> serde_json::Value {
         .output()
         .expect("run cli");
 
-    assert!(!output.status.success(), "unadmitted IMPUTE5 evidence must keep the gate open");
+    assert!(
+        output.status.success(),
+        "structural imputation-metrics readiness failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
     serde_json::from_slice(&std::fs::read(repo_root.join(report_path)).expect("read report"))
         .expect("parse report as json")
 }
 
 #[test]
-fn bench_readiness_vcf_imputation_metrics_ready_reports_unadmitted_impute5_evidence() {
+fn bench_readiness_vcf_imputation_metrics_ready_reports_all_supported_backends() {
     let payload = run_cli_report(
         &["bench", "readiness", "render-vcf-imputation-metrics-ready", "--json"],
         "artifacts/benchmark-smoke/readiness/vcf/imputation-metrics-ready.json",
@@ -53,8 +59,9 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_unadmitted_impute5_evide
         .and_then(serde_json::Value::as_u64)
         .expect("incomplete row count");
     assert_eq!(complete_count + incomplete_count, 4);
-    assert!(incomplete_count >= 1);
-    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
+    assert_eq!(complete_count, 4);
+    assert_eq!(incomplete_count, 0);
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let required_metrics = payload
         .get("required_metric_names")
@@ -140,14 +147,13 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_unadmitted_impute5_evide
     {
         assert_eq!(impute5.get(field).and_then(serde_json::Value::as_bool), Some(true));
     }
-    assert_eq!(impute5.get("smoke_ready").and_then(serde_json::Value::as_bool), Some(false));
+    assert_eq!(impute5.get("smoke_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
         impute5.get("coverage_status").and_then(serde_json::Value::as_str),
-        Some("incomplete")
+        Some("complete")
     );
-    assert!(impute5.get("missing_surfaces").and_then(serde_json::Value::as_array).is_some_and(
-        |values| values
-            .iter()
-            .any(|value| { value.as_str() == Some("local_vcf_imputation_metrics_smoke") })
-    ));
+    assert!(impute5
+        .get("missing_surfaces")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(Vec::is_empty));
 }
