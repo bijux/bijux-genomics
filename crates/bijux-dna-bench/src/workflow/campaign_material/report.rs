@@ -22,11 +22,19 @@ use crate::workflow::bam_picard_cohort::{
     publish_bam_gc_bias_stage_report_with_presentation_authority,
     publish_bam_insert_size_stage_report_with_presentation_authority,
 };
+use crate::workflow::campaign_engine::aggregate_admitted_benchmark_case_evidence;
 use crate::workflow::fastq_detect_adapters::publish_fastq_detect_adapters_stage_report_with_presentation_authority;
 use crate::workflow::fastq_profile_read_lengths::publish_fastq_profile_read_lengths_stage_report_with_presentation_authority;
 use crate::workflow::fastq_profile_reads::publish_fastq_profile_reads_stage_report_with_presentation_authority;
 use crate::workflow::fastq_validate_reads::publish_fastq_validate_reads_stage_report_with_presentation_authority;
-use crate::workflow::{BenchmarkCampaignPlanSource, BenchmarkStageReportPublication};
+use crate::workflow::stage_report::{
+    canonical_directory, publish_stage_report, require_complete_plan,
+};
+use crate::workflow::{
+    build_benchmark_stage_report_from_case_aggregations, load_stage_campaign_registry,
+    load_stage_interface_catalog_for_publication, verify_campaign_plan_source_authority,
+    BenchmarkCampaignPlanSource, BenchmarkStageReportPublication,
+};
 
 type CampaignReportPublisher = fn(
     &Path,
@@ -107,8 +115,8 @@ const REPORT_ADAPTERS: &[BenchmarkCampaignReportAdapter] = &[
 /// plan's stable stage identity selects that adapter without coupling lifecycle dispatch to run IDs.
 ///
 /// # Errors
-/// Returns an error when the plan mixes identities, names a stage without an adapter, or the
-/// selected report fails source, evidence, science, or no-clobber validation.
+/// Returns an error when the plan mixes identities or the selected specialized or generic report
+/// fails source, evidence, science, or no-clobber validation.
 pub fn publish_benchmark_campaign_report(
     repository_root: &Path,
     study_root: &Path,
@@ -217,19 +225,27 @@ fn publish_benchmark_campaign_report_with_source_authority(
         bail!("benchmark campaign plan mixes run or stage identities");
     }
 
-    let adapter =
-        REPORT_ADAPTERS.iter().find(|adapter| adapter.stage_id == stage_id).with_context(|| {
-            format!("benchmark stage has no crate-owned report adapter: {stage_id}")
-        })?;
-    let publication = (adapter.publish)(
-        repository_root,
-        presentation_repository_root,
-        study_root,
-        benchmark_root,
-        plan,
-        source_authority,
-        output_root,
-    )?;
+    let publication = if let Some(adapter) = report_adapter(stage_id) {
+        (adapter.publish)(
+            repository_root,
+            presentation_repository_root,
+            study_root,
+            benchmark_root,
+            plan,
+            source_authority,
+            output_root,
+        )?
+    } else {
+        publish_generic_campaign_report(
+            repository_root,
+            presentation_repository_root,
+            study_root,
+            benchmark_root,
+            plan,
+            source_authority,
+            output_root,
+        )?
+    };
     let publication = BenchmarkCampaignReportPublication {
         schema_version: BENCHMARK_CAMPAIGN_REPORT_PUBLICATION_SCHEMA_V1.to_string(),
         run_id: run_id.to_string(),
@@ -245,6 +261,87 @@ fn publish_benchmark_campaign_report_with_source_authority(
     validate_benchmark_campaign_report_publication(&publication)
         .context("validate benchmark campaign report publication")?;
     Ok(publication)
+}
+
+fn report_adapter(stage_id: &str) -> Option<&'static BenchmarkCampaignReportAdapter> {
+    REPORT_ADAPTERS.iter().find(|adapter| adapter.stage_id == stage_id)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn publish_generic_campaign_report(
+    repository_root: &Path,
+    presentation_repository_root: &Path,
+    study_root: &Path,
+    benchmark_root: &Path,
+    plan: &BenchmarkCampaignPlan,
+    source_authority: BenchmarkCampaignPlanSource<'_>,
+    output_root: &Path,
+) -> Result<BenchmarkStageReportPublication> {
+    let BenchmarkCampaignPlanSource::CaseMatrix(matrix) = source_authority else {
+        bail!("generic benchmark report requires exact case-matrix authority");
+    };
+    let repository_root = canonical_directory(repository_root, "benchmark repository")?;
+    let study_root = canonical_directory(study_root, "STUDY root")?;
+    let benchmark_root = canonical_directory(benchmark_root, "benchmark result root")?;
+    if !benchmark_root.starts_with(&study_root) {
+        bail!("benchmark result root is outside STUDY");
+    }
+    let registry_path = repository_root.join("benchmarks/contracts/stage-campaigns.toml");
+    let interface_path = repository_root.join("benchmarks/contracts/stage-interfaces.toml");
+    let registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)?;
+    verify_campaign_plan_source_authority(
+        plan,
+        source_authority,
+        &plan.repository_commit,
+        &registry_sha256,
+    )?;
+    if bijux_dna_containers::api::repository_head_commit(&repository_root)?
+        != plan.repository_commit
+    {
+        bail!("benchmark report source worktree differs from campaign plan");
+    }
+    let run_id = plan
+        .cycle
+        .attempts
+        .first()
+        .context("benchmark campaign plan has no attempts")?
+        .identity
+        .run
+        .run_id
+        .as_str();
+    let registry = load_stage_campaign_registry(&registry_path)?;
+    let campaign = registry
+        .campaigns
+        .iter()
+        .find(|campaign| campaign.run_id == run_id)
+        .with_context(|| format!("benchmark registry omits {run_id}"))?;
+    require_complete_plan(campaign, plan)?;
+    let interfaces = load_stage_interface_catalog_for_publication(
+        &interface_path,
+        &repository_root,
+        presentation_repository_root,
+    )?;
+    let interface = interfaces
+        .catalog
+        .interfaces
+        .iter()
+        .find(|interface| interface.stage_id == campaign.stage_id)
+        .with_context(|| format!("benchmark interface catalog omits {}", campaign.stage_id))?;
+    let aggregations = aggregate_admitted_benchmark_case_evidence(
+        &repository_root,
+        &study_root,
+        &benchmark_root,
+        plan,
+        matrix,
+        campaign,
+    )?;
+    let report = build_benchmark_stage_report_from_case_aggregations(
+        &repository_root,
+        matrix,
+        &aggregations,
+        run_id,
+    )?;
+    publish_stage_report(output_root, campaign, interface, report, &interfaces.presentation)
 }
 
 #[cfg(test)]
@@ -279,6 +376,8 @@ mod tests {
         assert_eq!(campaign_stages, interface_stages);
         assert_eq!(campaign_stages.len(), 71);
         assert_eq!(campaign_stages.difference(&adapter_stages).count(), 58);
+        assert!(super::report_adapter("fastq.detect_duplicates_premerge").is_none());
+        assert!(super::report_adapter("fastq.estimate_library_complexity_prealign").is_none());
         Ok(())
     }
 }

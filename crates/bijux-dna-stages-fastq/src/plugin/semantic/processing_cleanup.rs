@@ -36,6 +36,9 @@ fn detect_duplicates_premerge_metrics(artifacts: &[ArtifactRef]) -> Option<serde
         "modifies_reads": report.modifies_reads,
         "advisory_only": report.advisory_only,
         "reads_in": report.reads_in,
+        "duplicate_count": report.duplicate_signal_reads,
+        "duplicate_fraction": report.duplicate_signal_fraction,
+        "inspected_pair_count": report.compared_read_pairs,
         "duplicate_signal_reads": report.duplicate_signal_reads,
         "duplicate_signal_fraction": report.duplicate_signal_fraction,
         "compared_read_pairs": report.compared_read_pairs,
@@ -57,6 +60,11 @@ fn estimate_library_complexity_prealign_metrics(
         "modifies_reads": report.modifies_reads,
         "advisory_only": report.advisory_only,
         "reads_in": report.reads_in,
+        "estimated_complexity": if report.insufficient_data_reason.is_some() {
+            serde_json::Value::Null
+        } else {
+            serde_json::json!(report.estimated_unique_fraction)
+        },
         "estimated_unique_fraction": report.estimated_unique_fraction,
         "estimated_duplicate_fraction": report.estimated_duplicate_fraction,
         "insufficient_data_reason": report.insufficient_data_reason,

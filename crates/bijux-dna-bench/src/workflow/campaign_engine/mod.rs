@@ -32,4 +32,5 @@ pub use planning::{
     plan_benchmark_case_matrix, validate_benchmark_case_matrix, BenchmarkCaseMatrixRequest,
 };
 pub use plugins::{BenchmarkStageNormalization, BenchmarkStagePluginRegistry};
+pub(crate) use reporting::aggregate_admitted_benchmark_case_evidence;
 pub use reporting::build_benchmark_stage_report_from_case_aggregations;

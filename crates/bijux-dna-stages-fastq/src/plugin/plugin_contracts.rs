@@ -247,7 +247,7 @@ fn parse_outputs_normalizes_premerge_duplicate_and_complexity_reports() -> anyho
                 "duplicate_signal_fraction": 0.333_333_333_333_333_3,
                 "compared_read_pairs": null
             }),
-            "duplicate_signal_reads",
+            "duplicate_count",
             serde_json::json!(4),
         ),
         (
@@ -269,8 +269,8 @@ fn parse_outputs_normalizes_premerge_duplicate_and_complexity_reports() -> anyho
                 "insufficient_data_reason": null,
                 "kmer_size": 31
             }),
-            "estimated_duplicate_fraction",
-            serde_json::json!(0.25),
+            "estimated_complexity",
+            serde_json::json!(0.75),
         ),
     ] {
         let report_path = temp.path().join(format!("{metric}.json"));
