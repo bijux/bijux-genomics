@@ -46,7 +46,7 @@ fn benchmark_owner_projects_materialization_command_arguments() -> anyhow::Resul
     assert!(arguments.windows(2).any(|pair| pair[0] == "--timeout-seconds" && pair[1] == "10"));
     assert!(arguments
         .windows(2)
-        .any(|pair| pair[0] == "--admitted-at-utc" && pair[1] == "2026-01-02T03:04:05Z"));
+        .any(|pair| pair[0] == "--admitted-at-utc" && pair[1] == "2026-08-06T01:00:00+00:00"));
 
     let outside_plan = temporary.path().join("outside-plan.json");
     fs::write(&outside_plan, b"outside governed data root")?;
