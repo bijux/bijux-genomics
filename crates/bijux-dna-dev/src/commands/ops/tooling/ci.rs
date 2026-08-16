@@ -65,7 +65,7 @@ struct FullShardCoverage {
     overlap_policy: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct FullShard {
     id: String,
@@ -1058,11 +1058,14 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
-    ensure_help_only("ci-test-all-sharded", args)?;
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        ensure_help_only("ci-test-all-sharded", args)?;
+    }
     let contract_path = workspace.path("configs/ci/full-shards.json");
     let contract: FullShardContract = serde_json::from_slice(&fs::read(&contract_path)?)
         .with_context(|| format!("parse {}", contract_path.display()))?;
     validate_full_shard_contract(&contract)?;
+    let selected_shards = select_full_shards(&contract, args)?;
     validate_full_shard_runtime_dependency_catalog(workspace, &contract.runtime_dependencies)?;
 
     let storage = resolve_full_shard_storage_roots(
@@ -1085,8 +1088,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
     let archive_roots = full_archive_roots(&storage, &contract)?;
     validate_full_archive_roots(&storage, &archive_roots)?;
-    let shard_roots = contract
-        .shards
+    let shard_roots = selected_shards
         .iter()
         .map(|shard| full_shard_roots(&storage, &contract, shard))
         .collect::<Result<Vec<_>>>()?;
@@ -1147,6 +1149,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     "shard_runtime_artifacts_retained": false,
                 },
                 "storage": full_shard_storage_receipt(&storage),
+                "execution_scope": full_shard_execution_scope(&contract, &selected_shards),
                 "wall_time_milliseconds": started.elapsed().as_millis(),
                 "all_passed": false,
                 "shards": [],
@@ -1155,13 +1158,11 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         ephemera.retain_bounded_evidence()?;
         return Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr });
     }
-    let shard_workspaces = contract
-        .shards
+    let shard_workspaces = selected_shards
         .iter()
         .map(|shard| materialize_full_shard_workspace(workspace, &storage.scratch_root, &shard.id))
         .collect::<Result<Vec<_>>>()?;
-    let specs = contract
-        .shards
+    let specs = selected_shards
         .iter()
         .zip(&shard_workspaces)
         .zip(&shard_roots)
@@ -1184,7 +1185,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let mut all_passed = true;
     let mut shard_receipts = Vec::with_capacity(outputs.len());
     for (((shard, shard_workspace), roots), completed) in
-        contract.shards.iter().zip(&shard_workspaces).zip(&shard_roots).zip(outputs)
+        selected_shards.iter().zip(&shard_workspaces).zip(&shard_roots).zip(outputs)
     {
         let log_path = report_root.join(format!("{}.log", shard.id));
         let mut log = completed.output.stdout.clone();
@@ -1227,6 +1228,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "shard_runtime_artifacts_retained": false,
             },
             "storage": full_shard_storage_receipt(&storage),
+            "execution_scope": full_shard_execution_scope(&contract, &selected_shards),
             "coverage": {
                 "workspace": true,
                 "all_targets": true,
@@ -1243,6 +1245,55 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     )?;
     ephemera.retain_bounded_evidence()?;
     Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
+}
+
+fn select_full_shards(contract: &FullShardContract, args: &[String]) -> Result<Vec<FullShard>> {
+    if args.is_empty() {
+        return Ok(contract.shards.clone());
+    }
+    if !args.len().is_multiple_of(2) {
+        anyhow::bail!("ci-test-all-sharded expects repeated --shard <id> pairs");
+    }
+    let mut selected_ids = BTreeSet::new();
+    let mut selected = Vec::with_capacity(args.len() / 2);
+    for pair in args.chunks_exact(2) {
+        if pair[0] != "--shard" || pair[1].trim().is_empty() {
+            anyhow::bail!("ci-test-all-sharded expects repeated --shard <id> pairs");
+        }
+        if !selected_ids.insert(pair[1].as_str()) {
+            anyhow::bail!("full shard selection repeats {}", pair[1]);
+        }
+        selected.push(
+            contract
+                .shards
+                .iter()
+                .find(|shard| shard.id == pair[1])
+                .cloned()
+                .with_context(|| format!("unknown full shard selection {}", pair[1]))?,
+        );
+    }
+    Ok(selected)
+}
+
+fn full_shard_execution_scope(
+    contract: &FullShardContract,
+    selected_shards: &[FullShard],
+) -> serde_json::Value {
+    serde_json::json!({
+        "mode": if selected_shards.len() == contract.shards.len() {
+            "complete"
+        } else {
+            "affected_recovery"
+        },
+        "complete_contract_coverage": selected_shards.len() == contract.shards.len(),
+        "selected_shard_ids": selected_shards.iter().map(|shard| &shard.id).collect::<Vec<_>>(),
+        "selected_partitions": selected_shards
+            .iter()
+            .map(|shard| &shard.partition)
+            .collect::<Vec<_>>(),
+        "contract_shard_count": contract.shards.len(),
+        "selected_shard_count": selected_shards.len(),
+    })
 }
 
 fn remove_full_shard_ephemera(path: &Path) -> Result<()> {
@@ -2350,21 +2401,22 @@ mod tests {
     use super::{
         artifact_root_path, cache_stats_delta, cargo_lock_wait_events, ci_fast_critical_path,
         ci_fast_group_env, ci_output_path_under, full_archive_args, full_archive_roots,
-        full_shard_args, full_shard_env, full_shard_root_receipt, full_shard_roots,
-        full_shard_storage_receipt, isolated_build_tree, materialize_ci_fast_compiler_wrapper,
-        materialize_full_shard_workspace, observe_full_shard_runtime_dependencies,
-        observe_full_shard_runtime_dependencies_with_env, parse_compiler_wrapper_identity,
-        parse_sccache_stats, percentile, read_ci_build_authority, reference_timing_samples,
-        remove_full_shard_ephemera, resolve_ci_fast_build_authority,
+        full_shard_args, full_shard_env, full_shard_execution_scope, full_shard_root_receipt,
+        full_shard_roots, full_shard_storage_receipt, isolated_build_tree,
+        materialize_ci_fast_compiler_wrapper, materialize_full_shard_workspace,
+        observe_full_shard_runtime_dependencies, observe_full_shard_runtime_dependencies_with_env,
+        parse_compiler_wrapper_identity, parse_sccache_stats, percentile, read_ci_build_authority,
+        reference_timing_samples, remove_full_shard_ephemera, resolve_ci_fast_build_authority,
         resolve_ci_fast_build_authority_with_scratch_roots, resolve_ci_fast_sccache_runtime_env,
-        resolve_full_shard_storage_roots, set_full_archive_readonly, start_owned_sccache_server,
-        validate_ci_test_executor_observation, validate_fast_group_contract,
-        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
-        validate_full_shard_runtime_dependency_catalog, verified_warm_cache_mode,
-        verify_sccache_compiler, FastCacheStats, FastExcludedLane, FastGroup, FastGroupContract,
-        FastReferenceRunner, FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard,
-        FullShardContract, FullShardCoverage, FullShardEphemera, FullShardRoots,
-        FullShardRuntimeDependency, FAST_TIMING_HISTORY_SCHEMA_V4, FULL_SHARD_SCRATCH_ROOT_ENV,
+        resolve_full_shard_storage_roots, select_full_shards, set_full_archive_readonly,
+        start_owned_sccache_server, validate_ci_test_executor_observation,
+        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
+        validate_full_shard_root_set, validate_full_shard_runtime_dependency_catalog,
+        verified_warm_cache_mode, verify_sccache_compiler, FastCacheStats, FastExcludedLane,
+        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
+        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
+        FullShardEphemera, FullShardRoots, FullShardRuntimeDependency,
+        FAST_TIMING_HISTORY_SCHEMA_V4, FULL_SHARD_SCRATCH_ROOT_ENV,
     };
     use crate::runtime::{process::ProcessRunner, workspace::Workspace};
 
@@ -2447,6 +2499,44 @@ mod tests {
     #[test]
     fn full_shard_contract_covers_hash_space_exactly_once() {
         assert!(validate_full_shard_contract(&contract()).is_ok());
+    }
+
+    #[test]
+    fn full_shard_selection_supports_exact_affected_recovery() -> anyhow::Result<()> {
+        let contract = contract();
+        assert_eq!(select_full_shards(&contract, &[])?.len(), 5);
+
+        let selected = select_full_shards(
+            &contract,
+            &[
+                "--shard".to_string(),
+                "hash-4-of-5".to_string(),
+                "--shard".to_string(),
+                "hash-5-of-5".to_string(),
+            ],
+        )?;
+        assert_eq!(
+            selected.iter().map(|shard| shard.id.as_str()).collect::<Vec<_>>(),
+            ["hash-4-of-5", "hash-5-of-5"]
+        );
+        let scope = full_shard_execution_scope(&contract, &selected);
+        assert_eq!(scope["mode"], "affected_recovery");
+        assert_eq!(scope["complete_contract_coverage"], false);
+        assert_eq!(scope["selected_shard_count"], 2);
+        assert!(select_full_shards(
+            &contract,
+            &[
+                "--shard".to_string(),
+                "hash-4-of-5".to_string(),
+                "--shard".to_string(),
+                "hash-4-of-5".to_string(),
+            ]
+        )
+        .is_err());
+        assert!(select_full_shards(&contract, &["--shard".to_string(), "hash-9-of-5".to_string()])
+            .is_err());
+        assert!(select_full_shards(&contract, &["--shard".to_string()]).is_err());
+        Ok(())
     }
 
     #[test]
