@@ -34,11 +34,22 @@ pub enum BenchmarkDataSnapshotRoleV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct BenchmarkDataArtifactSnapshotV1 {
+    pub path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+    pub role: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkDataSnapshotV1 {
     pub catalog_id: String,
     pub role: BenchmarkDataSnapshotRoleV1,
     pub catalog_sha256: String,
     pub sample_ids: Vec<String>,
+    #[serde(default)]
+    pub files: Vec<BenchmarkDataArtifactSnapshotV1>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]

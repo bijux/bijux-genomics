@@ -7,9 +7,10 @@ use std::path::{Component, Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_benchmark_data_index, validate_governed_data_catalog_document,
-    validate_governed_data_catalog_registry, BenchmarkDataIndex, BenchmarkDataIndexRecord,
-    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1, BenchmarkEligibility,
-    DataIntegrityStatus, GovernedDataCatalogDocument, GovernedDataCatalogRegistry,
+    validate_governed_data_catalog_registry, BenchmarkDataArtifactSnapshotV1, BenchmarkDataIndex,
+    BenchmarkDataIndexRecord, BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
+    BenchmarkEligibility, DataIntegrityStatus, GovernedDataCatalogDocument,
+    GovernedDataCatalogRegistry,
 };
 
 const MAX_AUTHORITY_BYTES: usize = 64 * 1024 * 1024;
@@ -147,6 +148,16 @@ fn admit_snapshot(
         role,
         catalog_sha256: record.catalog_sha256.clone(),
         sample_ids,
+        files: record
+            .files
+            .iter()
+            .map(|file| BenchmarkDataArtifactSnapshotV1 {
+                path: file.path.clone(),
+                sha256: file.sha256.clone(),
+                size_bytes: file.size_bytes,
+                role: file.role.clone(),
+            })
+            .collect(),
     })
 }
 
@@ -260,6 +271,10 @@ mod tests {
         assert_eq!(snapshots.len(), 1);
         assert_eq!(snapshots[0].catalog_id, "horse-bam");
         assert_eq!(snapshots[0].sample_ids, ["ERR1"]);
+        assert_eq!(snapshots[0].files.len(), 1);
+        assert_eq!(snapshots[0].files[0].path, "study://data/corpora/horse/ERR1.bam");
+        assert_eq!(snapshots[0].files[0].role, "coordinate-sorted-bam");
+        assert_eq!(snapshots[0].files[0].size_bytes, 3);
 
         fs::write(&fixture.corpus_file, b"drifted")?;
         assert!(derive_benchmark_data_snapshots(

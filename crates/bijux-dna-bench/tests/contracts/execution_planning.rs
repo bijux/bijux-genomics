@@ -199,6 +199,12 @@ fn case_matrix(
             } else {
                 Vec::new()
             },
+            files: vec![bijux_dna_bench::BenchmarkDataArtifactSnapshotV1 {
+                path: format!("study://data/fixtures/{id}.bin"),
+                sha256: "7".repeat(64),
+                size_bytes: 1,
+                role: "fixture-artifact".to_string(),
+            }],
         })
     })
     .collect::<Vec<_>>();

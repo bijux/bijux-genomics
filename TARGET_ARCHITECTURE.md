@@ -81,8 +81,10 @@ One lifecycle handles every admitted stage/tool pair:
    matrix. A reviewed driver is validated against the declared stage before planning; lifecycle
    code never selects material semantics from a literal run ID. An independent case is rejected
    before allocation when a required source role has no admitted authority or requires an upstream
-   result. Catalog executable/version identity and the binding's thread allocation must match the
-   immutable execution specification before the attempt can become ready.
+   result. Its data snapshots retain every governed file URI, digest, size, and role and reject
+   empty, duplicate, malformed, or escaping file closures. Catalog executable/version identity and
+   the binding's thread allocation must match the immutable execution specification before the
+   attempt can become ready.
 4. `bijux-dna-runner` submits the declared execution once and returns its durable backend identity.
 5. `bijux-dna-runtime` appends the attempt transition and retry or supersession lineage.
 6. A later cycle observes scheduler state once, collects terminal/accounting-ready attempts once,

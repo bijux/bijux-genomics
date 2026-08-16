@@ -484,7 +484,7 @@ pub use crate::workflow::{
     BenchmarkCycleAdmissionRequest, BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit,
     BenchmarkCyclePlanRequest, BenchmarkCyclePreparation, BenchmarkCyclePreparationRequest,
     BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit, BenchmarkCycleRetryRequest,
-    BenchmarkCycleStatusRequest, BenchmarkCycleSupersedeRequest,
+    BenchmarkCycleStatusRequest, BenchmarkCycleSupersedeRequest, BenchmarkDataArtifactSnapshotV1,
     BenchmarkDataPortfolioAuditPublicationRequest, BenchmarkDataPortfolioAuditRequest,
     BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1, BenchmarkDossierIndexPublicationRequest,
     BenchmarkDossierStagePublicationRequest, BenchmarkEvidenceBookRequest,

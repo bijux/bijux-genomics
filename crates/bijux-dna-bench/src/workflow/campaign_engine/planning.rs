@@ -2,6 +2,7 @@
 //! Registry-driven benchmark case-matrix planning.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Component, Path};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
@@ -289,11 +290,36 @@ fn data_snapshot_index(
         if snapshot.sample_ids.iter().collect::<BTreeSet<_>>().len() != snapshot.sample_ids.len() {
             bail!("corpus snapshot samples are invalid");
         }
+        if snapshot.files.is_empty() {
+            bail!("data snapshot has no exact file authorities: {}", snapshot.catalog_id);
+        }
+        let mut file_paths = BTreeSet::new();
+        for file in &snapshot.files {
+            require_study_data_uri(&file.path)?;
+            require_identity(&file.sha256, 64, "data artifact digest")?;
+            require_component(&file.role, "data artifact role")?;
+            if !file_paths.insert(file.path.as_str()) {
+                bail!("data snapshot contains duplicate file authority: {}", file.path);
+            }
+        }
         if indexed.insert(snapshot.catalog_id.as_str(), snapshot).is_some() {
             bail!("duplicate data snapshot id");
         }
     }
     Ok(indexed)
+}
+
+fn require_study_data_uri(uri: &str) -> Result<()> {
+    let relative = uri
+        .strip_prefix("study://data/")
+        .context("data artifact path is not a canonical STUDY data URI")?;
+    let path = Path::new(relative);
+    if relative.is_empty()
+        || path.components().any(|component| !matches!(component, Component::Normal(_)))
+    {
+        bail!("data artifact path is unsafe");
+    }
+    Ok(())
 }
 
 fn required_data_roles(

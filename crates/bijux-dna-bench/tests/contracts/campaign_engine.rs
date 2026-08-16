@@ -985,6 +985,12 @@ fn campaign_data_authority_must_be_exact_and_role_correct() -> Result<()> {
         role: BenchmarkDataSnapshotRoleV1::Database,
         catalog_sha256: "f".repeat(64),
         sample_ids: Vec::new(),
+        files: vec![bijux_dna_bench::BenchmarkDataArtifactSnapshotV1 {
+            path: "study://data/fixtures/unreferenced-production-data.bin".to_string(),
+            sha256: "e".repeat(64),
+            size_bytes: 1,
+            role: "fixture-artifact".to_string(),
+        }],
     });
     assert!(plan(&extra).is_err_and(|error| {
         error.to_string().contains("do not exactly close campaign data authorities")
@@ -1181,6 +1187,36 @@ fn aggregation_refuses_incomplete_or_nondeterministic_evidence() -> Result<()> {
 }
 
 #[test]
+fn campaign_data_authority_requires_exact_safe_file_identities() -> Result<()> {
+    let legacy: BenchmarkDataSnapshotV1 = serde_json::from_value(serde_json::json!({
+        "catalog_id": "legacy-corpus",
+        "role": "corpus",
+        "catalog_sha256": "1".repeat(64),
+        "sample_ids": ["legacy-sample"]
+    }))?;
+    assert!(legacy.files.is_empty());
+
+    let mut missing = planning_fixture()?;
+    missing.snapshots[0].files.clear();
+    assert!(plan(&missing).is_err_and(|error| {
+        error.to_string().contains("data snapshot has no exact file authorities")
+    }));
+
+    let mut unsafe_path = planning_fixture()?;
+    unsafe_path.snapshots[0].files[0].path = "study://data/../escape.fastq".to_string();
+    assert!(plan(&unsafe_path)
+        .is_err_and(|error| error.to_string().contains("data artifact path is unsafe")));
+
+    let mut duplicate = planning_fixture()?;
+    let repeated = duplicate.snapshots[0].files[0].clone();
+    duplicate.snapshots[0].files.push(repeated);
+    assert!(plan(&duplicate).is_err_and(|error| {
+        error.to_string().contains("data snapshot contains duplicate file authority")
+    }));
+    Ok(())
+}
+
+#[test]
 fn generic_aggregations_build_a_citable_stage_report_without_dispatch() -> Result<()> {
     let fixture = planning_fixture()?;
     let mut matrix = plan(&fixture)?;
@@ -1267,7 +1303,7 @@ fn planning_fixture() -> Result<PlanningFixture> {
         .into_iter()
         .enumerate()
         .map(|(index, (catalog_id, role))| BenchmarkDataSnapshotV1 {
-            catalog_id,
+            catalog_id: catalog_id.clone(),
             role,
             catalog_sha256: format!("{index:064x}"),
             sample_ids: if role == BenchmarkDataSnapshotRoleV1::Corpus {
@@ -1275,6 +1311,12 @@ fn planning_fixture() -> Result<PlanningFixture> {
             } else {
                 Vec::new()
             },
+            files: vec![bijux_dna_bench::BenchmarkDataArtifactSnapshotV1 {
+                path: format!("study://data/fixtures/{catalog_id}.bin"),
+                sha256: format!("{:064x}", index + 1024),
+                size_bytes: 1,
+                role: "fixture-artifact".to_string(),
+            }],
         })
         .collect();
     Ok(PlanningFixture { campaigns, interfaces, bindings, snapshots })
@@ -1510,6 +1552,12 @@ fn campaign_snapshots(
             } else {
                 Vec::new()
             },
+            files: vec![bijux_dna_bench::BenchmarkDataArtifactSnapshotV1 {
+                path: format!("study://data/fixtures/{id}.bin"),
+                sha256: "b".repeat(64),
+                size_bytes: 1,
+                role: "fixture-artifact".to_string(),
+            }],
         })
     })
     .collect()

@@ -408,12 +408,24 @@ mod tests {
                 role: BenchmarkDataSnapshotRoleV1::Reference,
                 catalog_sha256: "b".repeat(64),
                 sample_ids: Vec::new(),
+                files: vec![bijux_dna_bench_model::BenchmarkDataArtifactSnapshotV1 {
+                    path: "study://data/fixtures/grch38.fa".to_string(),
+                    sha256: "c".repeat(64),
+                    size_bytes: 1,
+                    role: "reference-fasta".to_string(),
+                }],
             },
             BenchmarkDataSnapshotV1 {
                 catalog_id: "human-fastq-cohort".to_string(),
                 role: BenchmarkDataSnapshotRoleV1::Corpus,
                 catalog_sha256: "a".repeat(64),
                 sample_ids: vec!["sample-1".to_string()],
+                files: vec![bijux_dna_bench_model::BenchmarkDataArtifactSnapshotV1 {
+                    path: "study://data/fixtures/sample-1.fastq.gz".to_string(),
+                    sha256: "d".repeat(64),
+                    size_bytes: 1,
+                    role: "raw-fastq".to_string(),
+                }],
             },
         ];
         let assets = citation_assets_from_snapshots(&snapshots);

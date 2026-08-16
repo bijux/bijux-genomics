@@ -148,7 +148,7 @@ pub use campaign_engine::{
     BenchmarkCaseAggregationV2, BenchmarkCaseDefinitionV1, BenchmarkCaseExecutionEvidenceV1,
     BenchmarkCaseMatrixV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
     BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
-    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
+    BenchmarkDataArtifactSnapshotV1, BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
 };
 #[allow(unused_imports)]
 pub use comparable_metrics::{

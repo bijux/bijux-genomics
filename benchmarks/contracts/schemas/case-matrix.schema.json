@@ -212,6 +212,32 @@
       ],
       "type": "object"
     },
+    "BenchmarkDataArtifactSnapshotV1": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes",
+        "role"
+      ],
+      "type": "object"
+    },
     "BenchmarkDataSnapshotRoleV1": {
       "enum": [
         "corpus",
@@ -228,6 +254,13 @@
         },
         "catalog_sha256": {
           "type": "string"
+        },
+        "files": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/BenchmarkDataArtifactSnapshotV1"
+          },
+          "type": "array"
         },
         "role": {
           "$ref": "#/$defs/BenchmarkDataSnapshotRoleV1"
