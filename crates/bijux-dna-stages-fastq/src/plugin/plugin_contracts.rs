@@ -199,7 +199,7 @@ fn fastq_stage_plugin_uses_reported_outputs_for_metrics() -> anyhow::Result<()> 
 }
 
 #[test]
-fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
+fn parse_outputs_fails_closed_without_observer_artifact() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.detect_adapters");
     let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
@@ -216,10 +216,12 @@ fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
         output.report_parts[1].payload["benchmark_scenarios"][0]["scenario_id"],
         serde_json::json!("detect_adapters_fairness")
     );
-    assert_eq!(
-        output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
-        Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Pass)
-    );
+    let verdict = output.verdict.as_ref().expect("verdict");
+    assert_eq!(verdict.verdict, bijux_dna_core::prelude::invariants::InvariantStatusV1::Fail);
+    assert!(verdict
+        .reasons
+        .iter()
+        .any(|reason| reason == "declared observer parser did not produce semantic metrics"));
 }
 
 #[test]
