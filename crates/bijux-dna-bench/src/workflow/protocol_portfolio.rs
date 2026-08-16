@@ -553,7 +553,9 @@ fn derive_interface(
         .context("validated normalized output closure is empty")?;
     let adapters = bindings
         .iter()
-        .map(|binding| (binding.tool_id().as_str().to_string(), binding.binding_id().to_string()))
+        .map(|binding| {
+            (binding.tool_id().as_str().to_string(), binding.normalizer_id().to_string())
+        })
         .collect();
     let immutable_parameters = std::iter::once("schema_version".to_string())
         .chain(parameter_entry.parameters.iter().cloned())
@@ -879,6 +881,16 @@ mod tests {
             .find(|campaign| campaign.stage_id == "fastq.deplete_host")
             .context("derived host-depletion campaign is absent")?;
         assert_eq!(deplete_host.reference_catalog_ids, ["grch38-reference"]);
+        let authenticity = portfolio
+            .interfaces
+            .interfaces
+            .iter()
+            .find(|interface| interface.stage_id == "bam.authenticity")
+            .context("derived authenticity interface is absent")?;
+        assert_eq!(
+            authenticity.adapters.get("authenticct").map(String::as_str),
+            Some("bijux_dna_planner_bam::tool_adapters::stages_adna::authenticity::plan")
+        );
         Ok(())
     }
 }
