@@ -62,7 +62,7 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 | `run-2048` | `bijux-benchmark-run-2048` | `fastq.trim_polyg_tails` | `bbduk`, `fastp` | `active` | `not selected` |
 | `run-2049` | `bijux-benchmark-run-2049` | `fastq.trim_reads` | `adapterremoval`, `alientrimmer`, `atropos`, `bbduk`, `cutadapt`, `fastp`, `fastx_clipper`, `leehom`, `prinseq`, `seqkit`, `seqprep`, `skewer`, `trim_galore`, `trimmomatic` | `active` | `not selected` |
 | `run-2050` | `bijux-benchmark-run-2050` | `fastq.trim_terminal_damage` | `adapterremoval`, `cutadapt`, `seqkit` | `active` | `not selected` |
-| `run-2051` | `bijux-benchmark-run-2051` | `fastq.validate_reads` | `fastq_scan`, `fastqc`, `fastqvalidator`, `fqtools`, `seqtk` | `active` | `run-2051-production-74b7042739d9` |
+| `run-2051` | `bijux-benchmark-run-2051` | `fastq.validate_reads` | `fastq_scan`, `fastqc`, `fastqvalidator`, `fqtools`, `seqtk` | `active` | `run-2051-production-331014ca9f9c` |
 | `run-2052` | `bijux-benchmark-run-2052` | `vcf.admixture` | `plink`, `plink2` | `active` | `not selected` |
 | `run-2053` | `bijux-benchmark-run-2053` | `vcf.call` | `bcftools` | `active` | `not selected` |
 | `run-2054` | `bijux-benchmark-run-2054` | `vcf.call_diploid` | `bcftools` | `active` | `not selected` |

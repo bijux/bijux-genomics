@@ -23,9 +23,9 @@
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "f43afe37162cb5d01a11e6eaf8a085ee70839f15bf5ccf3bedf6e1fe98882826",
+      "json_sha256": "2ec35767dd8d96fa9910094cfc82716f142650691cd1c239459af849330745c1",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
-      "markdown_sha256": "814958e74a5c4eb00ddd28375bcbb97f75d227e37bf0d38c2832015223f7b445"
+      "markdown_sha256": "80eca200402008a8a76e140d027989f87a2becfc094f2f71a915fd6a4f3883fb"
     },
     {
       "product_id": "stage-universe",
@@ -498,18 +498,19 @@
       "stage_id": "fastq.validate_reads",
       "disposition": "current",
       "report": {
-        "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/run-2051-fastq-validate-reads.json",
-        "sha256": "bea171be40ace8d69919bbc534de9b1fb70132631b4f11962521df42a9b203d4",
-        "size_bytes": 62399
+        "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2051/run-2051-fastq-validate-reads.json",
+        "sha256": "b72eeeebfc709b841eda589fdcd9584d406c14f5f1f19593d2cd79ad242992a4",
+        "size_bytes": 62331
       },
       "publication_receipt": {
-        "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/publication-receipt.json",
-        "sha256": "8559c615ac2d709c8a9c4c7bb5e709cf20cd660e81da41ccc14ca943bb88a621",
-        "size_bytes": 5657
+        "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2051/publication-receipt.json",
+        "sha256": "7cda5bb1b57722adde97dc1c8ff180b57baff4cdebe0c40f4ae6d651ee4b254f",
+        "size_bytes": 5555
       },
       "limitations": [
+        "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
         "The publication covers one governed human short-read diversity cohort.",
-        "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+        "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
       ]
     },
     {

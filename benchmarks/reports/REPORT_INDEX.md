@@ -79,7 +79,7 @@ Path presence does not confer current benchmark authority. Every permanent run i
 | `run-2048` | `fastq.trim_polyg_tails` | missing | `—` | `—` |
 | `run-2049` | `fastq.trim_reads` | missing | `—` | `—` |
 | `run-2050` | `fastq.trim_terminal_damage` | missing | `—` | `—` |
-| `run-2051` | `fastq.validate_reads` | current | `study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/run-2051-fastq-validate-reads.json` | `study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/publication-receipt.json` |
+| `run-2051` | `fastq.validate_reads` | current | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2051/run-2051-fastq-validate-reads.json` | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2051/publication-receipt.json` |
 | `run-2052` | `vcf.admixture` | missing | `—` | `—` |
 | `run-2053` | `vcf.call` | missing | `—` | `—` |
 | `run-2054` | `vcf.call_diploid` | missing | `—` | `—` |
