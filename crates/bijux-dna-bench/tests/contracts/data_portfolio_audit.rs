@@ -88,13 +88,9 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
         .is_some_and(|corpus| {
             corpus.source_specs[0].planned_sample_count == Some(20)
                 && corpus.source_specs[0].planned_accession_count == Some(20)
-                && corpus.source_specs[0].selected_accession_count == Some(10)
-                && corpus.source_specs[0].selection_complete == Some(false)
-                && corpus.blockers
-                    == [
-                        "source selection is not frozen by exact accessions",
-                        "source-defined corpus has not been admitted",
-                    ]
+                && corpus.source_specs[0].selected_accession_count == Some(20)
+                && corpus.source_specs[0].selection_complete == Some(true)
+                && corpus.blockers == ["source-defined corpus has not been admitted"]
         }));
     assert!(audit
         .corpora
@@ -102,8 +98,19 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
         .find(|corpus| corpus.corpus_id == "amplicon-community-challenge")
         .is_some_and(|corpus| {
             corpus.source_specs[0].planned_sample_count == Some(11)
-                && corpus.source_specs[0].selected_accession_count == Some(1)
-                && corpus.source_specs[0].selection_complete == Some(false)
+                && corpus.source_specs[0].selected_accession_count == Some(11)
+                && corpus.source_specs[0].selection_complete == Some(true)
+        }));
+    assert!(audit
+        .corpora
+        .iter()
+        .find(|corpus| corpus.corpus_id == "environmental-taxonomy-challenge")
+        .is_some_and(|corpus| {
+            corpus.source_specs[0].planned_sample_count == Some(20)
+                && corpus.source_specs[0].planned_accession_count == Some(20)
+                && corpus.source_specs[0].selected_accession_count == Some(20)
+                && corpus.source_specs[0].selection_complete == Some(true)
+                && corpus.blockers == ["source-defined corpus has not been admitted"]
         }));
     assert!(audit
         .corpora

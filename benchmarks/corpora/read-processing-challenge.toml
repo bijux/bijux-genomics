@@ -2,7 +2,7 @@
 # purpose = Source authorities for real read-processing truth material
 # authority = bijux-genomics-benchmarks
 # stability = stable
-# last_updated = 2026-08-08
+# last_updated = 2026-08-16
 
 schema_version = "bijux.benchmark.data_source.v1"
 portfolio_id = "read-processing-challenge"
@@ -64,6 +64,18 @@ source_url = "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE47774"
 access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
 data_types = ["fastq"]
 planned_sample_count = 10
-selection_scope = "Ten Illumina lanes stratified across SEQC reference samples A, B, C, and D, with fixed site and lane identities selected during acquisition planning."
+selected_accessions = [
+  "SRR1215996",
+  "SRR1216024",
+  "SRR1216054",
+  "SRR1216080",
+  "SRR896664",
+  "SRR896743",
+  "SRR896823",
+  "SRR896904",
+  "SRR898240",
+  "SRR898303",
+]
+selection_scope = "Ten exact paired-end Illumina lanes spanning SEQC reference samples A, B, C, and D at NYG and BGI, with additional A and B lanes from AGR."
 truth_basis = "Well-characterized reference RNA mixtures, titrations, technical replication, and ERCC spike-in profiles provide independent abundance and repeatability anchors."
 known_limitations = ["RNA-seq reference mixtures do not model ancient DNA damage or UMI-bearing DNA libraries."]
