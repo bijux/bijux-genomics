@@ -585,7 +585,7 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
     let mut domain_entries = fs::read_dir(&domain_root)?
         .filter_map(std::result::Result::ok)
         .map(|entry| entry.path())
-        .filter(|path| path.is_dir())
+        .filter(|path| is_domain_coverage_root(path))
         .collect::<Vec<_>>();
     domain_entries.sort();
     for path in domain_entries {
@@ -599,6 +599,11 @@ fn generate_domain_coverage_doc(workspace: &Workspace, out: &Path) -> Result<()>
         lines.push(format!("| `{domain}` | {stages} | {tools} | {fixtures} |"));
     }
     write_utf8(out, &format!("{}\n", lines.join("\n")))
+}
+
+fn is_domain_coverage_root(path: &Path) -> bool {
+    path.is_dir()
+        && ["stages", "tools", "fixtures"].iter().any(|component| path.join(component).is_dir())
 }
 
 fn tracked_visible_repo_root_entries(workspace: &Workspace) -> Result<Vec<PathBuf>> {
@@ -1964,10 +1969,23 @@ mod tests {
 
     use super::{
         benchmark_corpus_dir_name, benchmark_sync_profile, benchmark_workspace_lookup,
-        config_string, env_or_contract, expand_toml_env_placeholders, load_benchmark_sync_profiles,
-        load_benchmark_workspace_paths, BenchmarkWorkspacePaths,
+        config_string, env_or_contract, expand_toml_env_placeholders, is_domain_coverage_root,
+        load_benchmark_sync_profiles, load_benchmark_workspace_paths, BenchmarkWorkspacePaths,
     };
     use crate::runtime::workspace::Workspace;
+
+    #[test]
+    fn domain_coverage_excludes_non_domain_contract_roots() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-domain-coverage-root")?;
+        let bam = temp.path().join("bam");
+        let contracts = temp.path().join("contracts");
+        std::fs::create_dir_all(bam.join("stages"))?;
+        std::fs::create_dir_all(contracts.join("schemas"))?;
+
+        assert!(is_domain_coverage_root(&bam));
+        assert!(!is_domain_coverage_root(&contracts));
+        Ok(())
+    }
 
     #[test]
     fn load_benchmark_sync_profiles_reads_workspace_profile_fields() -> anyhow::Result<()> {

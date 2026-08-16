@@ -20,10 +20,12 @@ Top-level workspace paths only.
 |---|---|---|---|
 | `Cargo.lock` | `file` | `-` | - |
 | `Cargo.toml` | `file` | `-` | - |
+| `DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md` | `file` | `-` | - |
 | `LICENSE` | `file` | `-` | - |
 | `Makefile` | `file` | `-` | - |
 | `NOTICE` | `file` | `-` | - |
 | `README.md` | `file` | `-` | - |
+| `TARGET_ARCHITECTURE.md` | `file` | `-` | - |
 | `assets` | `dir` | `-` | - |
 | `audit-allowlist.toml` | `file` | `-` | - |
 | `benchmarks` | `dir` | `-` | - |
@@ -35,7 +37,6 @@ Top-level workspace paths only.
 | `examples` | `dir` | `-` | - |
 | `makes` | `dir` | `-` | - |
 | `mkdocs.yml` | `file` | `-` | - |
-| `runs` | `dir` | `-` | - |
 | `rust-toolchain.toml` | `file` | `-` | - |
 | `rustfmt.toml` | `file` | `-` | - |
 | `science` | `dir` | `-` | - |
