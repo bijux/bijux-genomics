@@ -17,15 +17,11 @@ pub(super) fn generate(workspace: &Workspace, args: &[String]) -> Result<Contain
         return success_line(GENERATE_USAGE);
     }
     let (request, scan_output, publication_output) = parse_generate_args(workspace, args)?;
-    if scan_output == publication_output {
-        anyhow::bail!("image-inventory scan and publication outputs must be distinct");
-    }
-    if scan_output.try_exists()? || publication_output.try_exists()? {
-        anyhow::bail!("refusing to replace existing image-inventory evidence output");
-    }
-    let evidence = bijux_dna_containers::evidence::derive_image_inventory_evidence(&request)?;
-    bijux_dna_infra::atomic_create_json(&scan_output, &evidence.scan)?;
-    bijux_dna_infra::atomic_create_json(&publication_output, &evidence.publication)?;
+    let evidence = bijux_dna_containers::api::publish_image_inventory_evidence(
+        &request,
+        &scan_output,
+        &publication_output,
+    )?;
     success_line(format!(
         "generated immutable image inventory for {} tools at {} and {}",
         evidence.publication.tools.len(),

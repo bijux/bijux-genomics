@@ -6,10 +6,10 @@ use anyhow::{Context, Result};
 use bijux_dna_containers::evidence::{
     apptainer_recipe_identity_at_commit, derive_image_inventory_evidence,
     derive_image_inventory_publication, image_inventory_request_from_activation_plan,
-    repository_head_commit, ContainerImageState, DetachedImageDisposition, EvidenceSourceIdentity,
-    ImageActivationPlan, ImageActivationPlanState, ImageActivationPublication,
-    ImageCandidateDisposition, ImageInventoryDerivationRequest, ImageInventoryEvidenceRoots,
-    IMAGE_ACTIVATION_PLAN_SCHEMA_V1,
+    publish_image_inventory_evidence, repository_head_commit, ContainerImageState,
+    DetachedImageDisposition, EvidenceSourceIdentity, ImageActivationPlan,
+    ImageActivationPlanState, ImageActivationPublication, ImageCandidateDisposition,
+    ImageInventoryDerivationRequest, ImageInventoryEvidenceRoots, IMAGE_ACTIVATION_PLAN_SCHEMA_V1,
 };
 use serde_json::json;
 use tempfile::TempDir;
@@ -139,6 +139,36 @@ impl Fixture {
         fs::write(evidence_path, serde_json::to_vec_pretty(&flattened)?)?;
         Ok(())
     }
+}
+
+#[test]
+fn owner_immutably_publishes_the_scan_and_inventory() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let scan = fixture.study.join("publications/scan.json");
+    let publication = fixture.study.join("publications/inventory.json");
+
+    let evidence = publish_image_inventory_evidence(&fixture.request, &scan, &publication)?;
+
+    let persisted_scan: serde_json::Value = serde_json::from_slice(&fs::read(scan)?)?;
+    let persisted_publication: serde_json::Value = serde_json::from_slice(&fs::read(publication)?)?;
+    assert_eq!(persisted_scan, serde_json::to_value(evidence.scan)?);
+    assert_eq!(persisted_publication, serde_json::to_value(evidence.publication)?);
+    Ok(())
+}
+
+#[test]
+fn owner_rejects_overlapping_or_existing_inventory_publications() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let retained = fixture.study.join("publications/retained.json");
+    fs::create_dir_all(retained.parent().context("retained parent")?)?;
+    fs::write(&retained, b"retained\n")?;
+    let other = fixture.study.join("publications/other.json");
+
+    assert!(publish_image_inventory_evidence(&fixture.request, &retained, &retained).is_err());
+    assert!(publish_image_inventory_evidence(&fixture.request, &retained, &other).is_err());
+    assert_eq!(fs::read(retained)?, b"retained\n");
+    assert!(!other.exists());
+    Ok(())
 }
 
 #[test]
