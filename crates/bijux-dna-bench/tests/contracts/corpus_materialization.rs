@@ -26,9 +26,9 @@ fn benchmark_owner_projects_materialization_command_arguments() -> anyhow::Resul
     fs::write(&plan_path, b"projection-only plan identity")?;
     let data_root = data_root.canonicalize()?;
     let plan_path = plan_path.canonicalize()?;
-    let request = request(plan_path.clone(), data_root.clone());
+    let projection_request = request(plan_path.clone(), data_root.clone());
 
-    let arguments = corpus_materialization_command_arguments(&request)?;
+    let arguments = corpus_materialization_command_arguments(&projection_request)?;
 
     assert_eq!(arguments.first().map(String::as_str), Some("bench"));
     assert_eq!(arguments.get(1).map(String::as_str), Some("materialize-fastq-corpus"));
