@@ -33,7 +33,7 @@ pub enum BenchmarkPublicationRegistryWriteMode {
     Check,
 }
 
-/// Derive current, historical, and quarantined benchmark publication ownership.
+/// Derive current and quarantined benchmark publication ownership.
 ///
 /// # Errors
 /// Returns an error when report paths, source identities, tracked readiness files, or file digests
@@ -45,7 +45,6 @@ pub fn derive_benchmark_publication_registry(
     let run_reports = permanent_run_reports(repository_root)?;
     let repository_commit = bijux_dna_containers::api::repository_head_commit(repository_root)?;
     let mut stage_reports = active_stage_reports(repository_root, &repository_commit)?;
-    stage_reports.extend(historical_stage_reports(repository_root)?);
     stage_reports.sort_by(|left, right| {
         left.run_id
             .cmp(&right.run_id)
@@ -186,7 +185,7 @@ pub fn render_benchmark_publication_registry_markdown(
         "<!-- source: bijux-dna-bench::workflow::publication_registry -->".to_string(),
         "# Benchmark publication registry".to_string(),
         String::new(),
-        "Path presence does not confer current benchmark authority. Every permanent run is explicit below: current requires an admitted selected report and publication receipt, while absent evidence remains missing. Source-addressed legacy stage reports remain historical; tracked legacy readiness output is quarantined until removed.".to_string(),
+        "Path presence does not confer current benchmark authority. Every permanent run is explicit below: current requires an admitted selected report and publication receipt, while absent evidence remains missing. Historical publications remain immutable in STUDY and are not copied into this current-only report namespace; tracked legacy readiness output is quarantined until removed.".to_string(),
         String::new(),
         format!("- Current governance products: **{}**", summary.current_product_count),
         format!("- Current run reports: **{}**", summary.current_run_report_count),
@@ -397,52 +396,6 @@ fn active_stage_reports(
     }
     if json_stems != markdown_stems {
         bail!("active stage report JSON and Markdown pairs drifted");
-    }
-    Ok(reports)
-}
-
-fn historical_stage_reports(repository_root: &Path) -> Result<Vec<BenchmarkStagePublication>> {
-    let historical_root = repository_root.join("benchmarks/reports/historical");
-    let mut reports = Vec::new();
-    for source_entry in fs::read_dir(&historical_root).context("read historical reports")? {
-        let source_path = source_entry?.path();
-        if !source_path.is_dir() {
-            if source_path.file_name().and_then(|value| value.to_str()).is_some_and(|name| {
-                is_stage_report_file(name, ".json") || is_stage_report_file(name, ".md")
-            }) {
-                bail!("historical run report is not source-addressed: {}", source_path.display());
-            }
-            continue;
-        }
-        let source_commit = source_path
-            .file_name()
-            .and_then(|value| value.to_str())
-            .context("historical source directory is not UTF-8")?;
-        if !is_hex(source_commit, 40) {
-            bail!("historical report directory is not a source commit: {source_commit}");
-        }
-        let mut json_stems = BTreeSet::new();
-        let mut markdown_stems = BTreeSet::new();
-        for entry in fs::read_dir(&source_path).context("read source-addressed reports")? {
-            let path = entry?.path();
-            let Some(file_name) = path.file_name().and_then(|value| value.to_str()) else {
-                continue;
-            };
-            if path.is_file() && is_stage_report_file(file_name, ".json") {
-                json_stems.insert(file_name.trim_end_matches(".json").to_string());
-                reports.push(stage_publication(
-                    repository_root,
-                    &path,
-                    BenchmarkStagePublicationDisposition::Historical,
-                    Some(source_commit),
-                )?);
-            } else if path.is_file() && is_stage_report_file(file_name, ".md") {
-                markdown_stems.insert(file_name.trim_end_matches(".md").to_string());
-            }
-        }
-        if json_stems != markdown_stems {
-            bail!("historical stage report JSON and Markdown pairs drifted: {source_commit}");
-        }
     }
     Ok(reports)
 }

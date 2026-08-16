@@ -397,18 +397,16 @@ but intentionally have no current report until fresh Slurm attempts pass
 reconciliation and admission.
 
 Benchmark execution admission and report publication are owned exclusively by
-`bijux-dna-bench`, with operator composition in `bijux-dna-dev`. Historical
-reports retain their original source comments as provenance, but no Python
-benchmark evidence control plane remains. The superseded BAM coverage and
-endogenous-content reports are retained byte-for-byte as
-[historical run-2002 evidence](reports/historical/run-2002-bam-coverage.md)
-and [historical run-2003 evidence](reports/historical/run-2003-bam-endogenous-content.md).
+`bijux-dna-bench`, with operator composition in `bijux-dna-dev`. The tracked
+`benchmarks/reports` namespace contains only current governance products and
+the generated current report index. Historical reports remain immutable in
+STUDY and are not copied back into Git.
 
-The checked-in [BAM mapping-summary report](reports/run-2004-bam-mapping-summary.md),
-[FASTQ read-length report](reports/run-2042-fastq-profile-read-lengths.md), and
-[FASTQ profile report](reports/run-2043-fastq-profile-reads.md) are published
-from admitted campaign attempts by crate-owned report workflows. BAM
+The [BAM mapping-summary publication](runs/run-2004-bam-mapping-summary/current-publication.json),
+[FASTQ read-length publication](runs/run-2042-fastq-profile-read-lengths/current-publication.json),
+and [FASTQ profile publication](runs/run-2043-fastq-profile-reads/current-publication.json)
+select admitted campaign evidence through crate-owned report workflows. BAM
 genotyping uses the same Rust admission and publication authority. A report is
 current only when its source, data, image, scheduler, output, science, and
-downstream-probe locks validate together. All large run products remain on the
-governed study filesystem.
+downstream-probe locks validate together. All large run products and historical
+publications remain on the governed study filesystem.
