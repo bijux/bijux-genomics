@@ -1,5 +1,5 @@
 # owner = bijux-genomics-benchmarks
-# purpose = Source authorities for variant, phasing, and imputation truth
+# purpose = Source authorities for independent variant and phasing truth
 # authority = bijux-genomics-benchmarks
 # stability = stable
 # last_updated = 2026-08-08
@@ -13,22 +13,22 @@ access_terms_url = "https://www.ncbi.nlm.nih.gov/projects/gap/cgi-bin/study.cgi?
 attribution = "Cite Platinum Genomes, NCBI dbGaP, IGSR, the 1000 Genomes Project, and the selected map and call-set releases."
 projected_storage_bytes = 1000000000000
 projected_cpu_hours = 5000
-projection_basis = "The projection reserves 1 TB and 5,000 CPU-hours for the seventeen-person truth pedigree, immutable 1000 Genomes panel and map snapshots, masked-truth splits, and validation outputs."
-truth_roles = ["variant_truth", "masked_genotype_truth"]
-truth_strategy = "independently_curated_genotypes_with_masked_truth"
+projection_basis = "The projection reserves 1 TB and 5,000 CPU-hours for the seventeen-person truth pedigree, immutable reference and map snapshots, family-aware evaluation partitions, and validation outputs."
+truth_roles = ["variant_truth"]
+truth_strategy = "independently_curated_genotypes_with_mendelian_consistency"
 known_limitations = [
   "Platinum Genomes access and redistribution constraints must be resolved before materialization.",
   "Mendelian consistency does not establish truth in every difficult genomic region or variant class.",
   "Reference-panel and genetic-map releases must be frozen independently and may introduce population-specific bias.",
 ]
-description = "Inheritance-supported Platinum Genomes truth with frozen IGSR reference-panel and map authorities defines calling, filtering, phasing, and masked-imputation inputs."
-sample_context = "Seventeen pedigree members with curated genotypes plus a public reference panel and genetic map."
-assay_context = "Deep whole-genome reads, masked genotype evaluation, phasing, and imputation against immutable authorities."
+description = "Inheritance-supported Platinum Genomes truth with frozen reference and map authorities defines calling, filtering, and phasing evaluation inputs."
+sample_context = "Seventeen pedigree members with curated genotypes plus immutable reference and genetic-map authorities."
+assay_context = "Deep whole-genome reads evaluated for variant calling, transformation, and phasing against inheritance-supported genotypes."
 strata = ["ancestry", "family_role", "genomic_region", "variant_class"]
-controls = ["masked_genotype_truth", "mendelian_consistency", "reference_panel_exclusion"]
+controls = ["mendelian_consistency", "reference_panel_exclusion", "replicate_concordance"]
 held_out_split = "Freeze sample, family, and genomic-region masks before calling or imputation parameter selection."
 lineage = "Pedigree reads and truth plus panel and map releases to checksummed catalogs, masks, and variant evidence."
-allowed_uses = ["genotype_accuracy", "imputation_accuracy", "performance", "phasing_accuracy"]
+allowed_uses = ["genotype_accuracy", "performance", "phasing_accuracy"]
 data_types = ["bam", "genetic_map", "reference_panel", "vcf"]
 target_sample_count = 10
 

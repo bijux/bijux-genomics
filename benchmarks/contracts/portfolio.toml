@@ -317,11 +317,25 @@ class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
 data_types = ["bam", "genetic_map", "reference_panel", "vcf"]
-roles = ["variant_truth", "masked_genotype_truth"]
-truth_strategy = "independently_curated_genotypes_with_masked_truth"
-scientific_rationale = "A diverse truth cohort with held-out genotypes, immutable panels, and genetic maps is required for calling, filtering, phasing, and imputation accuracy."
-limitations = ["No governed multi-sample truth VCF, mask split, reference panel, or genetic map is admitted."]
+roles = ["variant_truth"]
+truth_strategy = "independently_curated_genotypes_with_mendelian_consistency"
+scientific_rationale = "A diverse inheritance-supported truth cohort with immutable reference and map authorities is required for calling, filtering, transformation, and phasing accuracy."
+limitations = ["No governed multi-sample truth VCF, pedigree partition, reference snapshot, or genetic-map snapshot is admitted."]
 source_specs = ["benchmarks/corpora/variant-truth-panel.toml"]
+
+[[corpora]]
+id = "masked-genotype-truth-panel"
+status = "source_defined"
+evidence_scope = "comparative"
+class = "production_real"
+sample_count = 0
+minimum_sample_count = 100
+data_types = ["genetic_map", "reference_panel", "sample_metadata", "vcf"]
+roles = ["masked_genotype_truth"]
+truth_strategy = "held_out_high_coverage_genotypes_with_panel_exclusion"
+scientific_rationale = "Phasing and imputation require independently held-out high-coverage genotypes, a frozen reference panel, and a genetic map, with evaluation samples excluded from the panel before masking."
+limitations = ["No governed evaluation cohort, panel-exclusion receipt, genotype mask split, reference-panel snapshot, or genetic-map snapshot is admitted."]
+source_specs = ["benchmarks/corpora/masked-genotype-truth-panel.toml"]
 
 [[corpora]]
 id = "ancient-population-panel"
