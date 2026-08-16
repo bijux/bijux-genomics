@@ -94,10 +94,10 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     let section_counts = support::json_object(&payload, "report_section_counts")?;
     assert_eq!(support::object_u64_sum(section_counts), row_count);
     assert_eq!(section_counts.get("variant_calling").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(section_counts.get("imputation").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(section_counts.get("imputation").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(
         section_counts.get("population_structure").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(7)
     );
     assert_eq!(
         section_counts.get("runs_of_homozygosity").and_then(serde_json::Value::as_u64),

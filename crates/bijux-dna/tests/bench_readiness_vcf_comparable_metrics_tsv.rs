@@ -54,7 +54,7 @@ fn bench_readiness_vcf_comparable_metrics_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"vcf.phasing\tswitch_error_proxy\tswitch error proxy\tfraction\tlower_is_better\ttrue\tbeagle,eagle,shapeit5"
+            row == &"vcf.phasing\tswitch_error_proxy\tswitch error proxy\tfraction\tlower_is_better\ttrue\tbeagle,eagle,shapeit,shapeit5"
         }),
         "TSV must retain the governed VCF phasing comparable row"
     );

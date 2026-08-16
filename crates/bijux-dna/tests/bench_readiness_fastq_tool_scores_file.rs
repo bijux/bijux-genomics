@@ -73,16 +73,22 @@ fn bench_readiness_fastq_tool_scores_writes_governed_tsv_columns() {
         }),
         "TSV must retain the supported external FastUniq binding as access-blocked"
     );
-    assert!(
-        rows.iter().any(|row| {
-            row.contains(
-                "fastq.filter_reads\tfastp\tmulti_tool_ranking\toutput_contract\tfastq:corpus-01-mini:fastq.filter_reads:sample-set:fastp"
-            ) && row.contains("\tscored\t0.333333\tretained_fraction\t1.000000\t")
-                && row.contains("\t1\t2\t")
-                && row.contains("\tevidence_report\tnone\t")
-        }),
-        "TSV must retain the governed scored fastq.filter_reads fastp row"
-    );
+    let fastp = rows
+        .iter()
+        .find(|row| row.starts_with("fastq.filter_reads\tfastp\t"))
+        .expect("TSV must retain the governed fastq.filter_reads fastp row");
+    let fastp_columns = fastp.split('\t').collect::<Vec<_>>();
+    assert_eq!(fastp_columns.get(2), Some(&"multi_tool_ranking"));
+    assert_eq!(fastp_columns.get(3), Some(&"output_contract"));
+    assert_eq!(fastp_columns.get(9), Some(&"scored"));
+    assert_eq!(fastp_columns.get(10), Some(&"0.333333"));
+    assert_eq!(fastp_columns.get(11), Some(&"retained_fraction"));
+    assert_eq!(fastp_columns.get(12), Some(&"1.000000"));
+    assert_eq!(fastp_columns.get(14), Some(&"1"));
+    assert_eq!(fastp_columns.get(15), Some(&"2"));
+    assert_eq!(fastp_columns.get(17), Some(&"not_available"));
+    assert_eq!(fastp_columns.get(20), Some(&"not_available"));
+    assert_eq!(fastp_columns.get(21), Some(&"none"));
     assert!(
         rows.iter().any(|row| {
             row.contains(

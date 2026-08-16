@@ -121,7 +121,7 @@ fn bench_readiness_vcf_tool_scores_writes_governed_tsv_columns() {
     assert_eq!(imputation_columns.get(29), Some(&"none"));
     assert!(
         rows.iter().any(|row| {
-            row.contains("vcf.population_structure\tplink2\tsingle_tool_acceptance\tscientific_comparable_metrics")
+            row.contains("vcf.population_structure\tplink2\tmulti_tool_ranking\tscientific_comparable_metrics")
                 && row.contains("\tpair_count\t")
                 && row.contains("\tnone\t")
         }),

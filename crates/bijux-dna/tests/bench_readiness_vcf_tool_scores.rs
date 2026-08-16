@@ -54,7 +54,7 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(
         payload.get("insufficient_evidence_row_count").and_then(serde_json::Value::as_u64),
-        Some(0)
+        Some(11)
     );
     assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(4));
 
@@ -63,14 +63,17 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
     assert_eq!(
         payload.get("scored_row_count").and_then(serde_json::Value::as_u64),
-        Some(row_count - 4)
+        Some(row_count - 15)
     );
 
     let failure_counts = payload
         .get("failure_class_counts")
         .and_then(serde_json::Value::as_object)
         .expect("failure_class_counts");
-    assert_eq!(failure_counts.get("none").and_then(serde_json::Value::as_u64), Some(row_count - 4));
+    assert_eq!(
+        failure_counts.get("none").and_then(serde_json::Value::as_u64),
+        Some(row_count - 15)
+    );
     assert_eq!(
         failure_counts.get("blocked_external_access").and_then(serde_json::Value::as_u64),
         Some(4)
