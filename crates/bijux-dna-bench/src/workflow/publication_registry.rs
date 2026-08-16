@@ -3,20 +3,22 @@
 
 use std::collections::BTreeSet;
 use std::fs;
-use std::path::Path;
+use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
-    validate_benchmark_publication_registry, validate_benchmark_run_index, validate_stage_report,
+    validate_benchmark_data_portfolio_audit, validate_benchmark_publication_registry,
+    validate_benchmark_run_index, validate_stage_report,
 };
 use bijux_dna_bench_model::{
     benchmark_publication_registry_schema, BenchmarkCurrentPublication,
-    BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
+    BenchmarkDataPortfolioAudit, BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
     BenchmarkQuarantinedPublicationSurface, BenchmarkRunIndex, BenchmarkRunReportDisposition,
     BenchmarkRunReportIndexEntry, BenchmarkStagePublication, BenchmarkStagePublicationDisposition,
     BenchmarkStageReport,
 };
 
+use super::data_portfolio_audit::render_benchmark_data_portfolio_audit_markdown;
 use super::stage_report::report_source_is_current;
 
 const REGISTRY_JSON: &str = "benchmarks/reports/publication-registry.json";
@@ -267,6 +269,7 @@ pub fn render_benchmark_publication_registry_markdown(
 }
 
 fn current_products(repository_root: &Path) -> Result<Vec<BenchmarkCurrentPublication>> {
+    validate_current_data_portfolio_product(repository_root)?;
     [
         (
             "permanent-run-registry",
@@ -294,6 +297,11 @@ fn current_products(repository_root: &Path) -> Result<Vec<BenchmarkCurrentPublic
             "benchmarks/reports/scientific-benchmark-readiness.json",
             "benchmarks/reports/scientific-benchmark-readiness.md",
         ),
+        (
+            "data-portfolio",
+            "benchmarks/reports/DATA_PORTFOLIO.json",
+            "benchmarks/reports/DATA_PORTFOLIO.md",
+        ),
     ]
     .into_iter()
     .map(|(product_id, json_path, markdown_path)| {
@@ -306,6 +314,52 @@ fn current_products(repository_root: &Path) -> Result<Vec<BenchmarkCurrentPublic
         })
     })
     .collect()
+}
+
+fn validate_current_data_portfolio_product(repository_root: &Path) -> Result<()> {
+    let json_path = repository_root.join("benchmarks/reports/DATA_PORTFOLIO.json");
+    let markdown_path = repository_root.join("benchmarks/reports/DATA_PORTFOLIO.md");
+    let json = fs::read(&json_path).context("read current data-portfolio report")?;
+    let audit: BenchmarkDataPortfolioAudit =
+        serde_json::from_slice(&json).context("parse current data-portfolio report")?;
+    validate_benchmark_data_portfolio_audit(&audit)
+        .context("validate current data-portfolio report")?;
+
+    let markdown = fs::read_to_string(&markdown_path)
+        .context("read current data-portfolio Markdown report")?;
+    if markdown != render_benchmark_data_portfolio_audit_markdown(&audit) {
+        bail!("current data-portfolio Markdown differs from its typed JSON report");
+    }
+    if file_sha256(&governed_report_source_path(repository_root, &audit.portfolio_path)?)?
+        != audit.portfolio_sha256
+    {
+        bail!("current data-portfolio report has stale portfolio authority");
+    }
+    for source in audit.corpora.iter().flat_map(|corpus| &corpus.source_specs) {
+        if file_sha256(&governed_report_source_path(repository_root, &source.path)?)?
+            != source.sha256
+        {
+            bail!("current data-portfolio report has stale source authority: {}", source.path);
+        }
+    }
+    let data_index_identity = audit
+        .data_index_path
+        .strip_prefix("study://data/evidence/indexes/")
+        .and_then(|value| value.strip_suffix("/data-index.json"));
+    if !data_index_identity.is_some_and(|identity| is_hex(identity, 40)) {
+        bail!("current data-portfolio report lacks an immutable STUDY data-index identity");
+    }
+    Ok(())
+}
+
+fn governed_report_source_path(repository_root: &Path, value: &str) -> Result<PathBuf> {
+    let path = Path::new(value);
+    if path.is_absolute()
+        || path.components().any(|component| !matches!(component, Component::Normal(_)))
+    {
+        bail!("current data-portfolio report contains a non-normalized source path: {value}");
+    }
+    Ok(repository_root.join(path))
 }
 
 fn active_stage_reports(
@@ -478,4 +532,28 @@ fn is_stage_report_file(file_name: &str, extension: &str) -> bool {
             && stem[4..8].bytes().all(|byte| byte.is_ascii_digit())
             && stem.as_bytes()[8] == b'-'
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use super::governed_report_source_path;
+
+    #[test]
+    fn current_data_report_sources_reject_absolute_and_traversing_paths() {
+        let root = Path::new("/repository");
+        assert_eq!(
+            governed_report_source_path(root, "benchmarks/corpora/source.toml")
+                .expect("normalized source path"),
+            root.join("benchmarks/corpora/source.toml")
+        );
+        for path in [
+            "/workspace/checkout/benchmarks/corpora/source.toml",
+            "benchmarks/corpora/../reports/DATA_PORTFOLIO.json",
+            "./benchmarks/corpora/source.toml",
+        ] {
+            assert!(governed_report_source_path(root, path).is_err(), "accepted {path}");
+        }
+    }
 }

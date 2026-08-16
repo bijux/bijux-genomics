@@ -319,7 +319,12 @@ fn checked_in_publication_registry_has_no_drift() -> Result<()> {
         &repository_root,
         bijux_dna_bench::BenchmarkPublicationRegistryWriteMode::Check,
     )?;
-    assert_eq!(registry.summary.current_product_count, 6);
+    assert_eq!(registry.summary.current_product_count, 7);
+    assert!(registry.current_products.iter().any(|product| {
+        product.product_id == "data-portfolio"
+            && product.json_path == "benchmarks/reports/DATA_PORTFOLIO.json"
+            && product.markdown_path == "benchmarks/reports/DATA_PORTFOLIO.md"
+    }));
     assert_eq!(
         registry.summary.current_run_report_count,
         run_index.summary.citable_publication_count

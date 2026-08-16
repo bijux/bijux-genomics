@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.benchmark.publication_registry.v2",
   "summary": {
-    "current_product_count": 6,
+    "current_product_count": 7,
     "current_run_report_count": 7,
     "missing_run_report_count": 64,
     "stale_run_report_count": 0,
@@ -54,6 +54,13 @@
       "json_sha256": "f40e128513cfefa3ff5ea56ee2540320baae6a9388d46a405eddaff13f296a66",
       "markdown_path": "benchmarks/reports/scientific-benchmark-readiness.md",
       "markdown_sha256": "c0d96b55818760eced55a82f119611e41f4331ddb39416a761a45b7bc9817bc0"
+    },
+    {
+      "product_id": "data-portfolio",
+      "json_path": "benchmarks/reports/DATA_PORTFOLIO.json",
+      "json_sha256": "a950d502b3df1bfff2dfa3a05df9f5b05d04f80dbce9fb75214017385ac130e9",
+      "markdown_path": "benchmarks/reports/DATA_PORTFOLIO.md",
+      "markdown_sha256": "8fbb6adc06fe706d5257bb5934391fc1ea77c62f99c8a7c57cf04bde91651820"
     }
   ],
   "run_reports": [

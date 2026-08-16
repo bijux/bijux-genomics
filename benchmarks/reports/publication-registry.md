@@ -4,7 +4,7 @@
 
 Path presence does not confer current benchmark authority. Every permanent run is explicit below: current requires an admitted selected report and publication receipt, while absent evidence remains missing. Source-addressed legacy stage reports remain historical; tracked legacy readiness output is quarantined until removed.
 
-- Current governance products: **6**
+- Current governance products: **7**
 - Current run reports: **7**
 - Missing run reports: **64**
 - Stale run reports: **0**
@@ -24,6 +24,7 @@ Path presence does not confer current benchmark authority. Every permanent run i
 | `stage-benchmark-coverage` | `benchmarks/reports/stage-benchmark-coverage.json` | `benchmarks/reports/stage-benchmark-coverage.md` |
 | `stage-tool-closure` | `benchmarks/reports/STAGE_TOOL_CLOSURE.json` | `benchmarks/reports/STAGE_TOOL_CLOSURE.md` |
 | `scientific-benchmark-readiness` | `benchmarks/reports/scientific-benchmark-readiness.json` | `benchmarks/reports/scientific-benchmark-readiness.md` |
+| `data-portfolio` | `benchmarks/reports/DATA_PORTFOLIO.json` | `benchmarks/reports/DATA_PORTFOLIO.md` |
 
 ## Permanent run reports
 
