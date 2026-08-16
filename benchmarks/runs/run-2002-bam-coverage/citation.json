@@ -9,8 +9,78 @@
   "protocol_title": "BAM coverage benchmark protocol",
   "protocol_version": "1.0.0",
   "protocol_sha256": "20491b48583657368803973d3773ad4cdb15201db356d75170538b480e7f390b",
-  "status": "protocol_only",
+  "status": "published",
+  "selected_publication": {
+    "publication_id": "run-2002-production-e6874f0d833c",
+    "selected_attempts": [
+      {
+        "campaign_id": "production-run-2002-e6874f0d8",
+        "run": {
+          "run_id": "run-2002",
+          "domain": "bam",
+          "stage_id": "bam.coverage"
+        },
+        "case_id": "run-2002--bedtools--ena-prjeb22390-err2112767-bam",
+        "attempt_id": "attempt-0001",
+        "tool_id": "bedtools"
+      },
+      {
+        "campaign_id": "production-run-2002-e6874f0d8",
+        "run": {
+          "run_id": "run-2002",
+          "domain": "bam",
+          "stage_id": "bam.coverage"
+        },
+        "case_id": "run-2002--mosdepth--ena-prjeb22390-err2112767-bam",
+        "attempt_id": "attempt-0001",
+        "tool_id": "mosdepth"
+      },
+      {
+        "campaign_id": "production-run-2002-e6874f0d8",
+        "run": {
+          "run_id": "run-2002",
+          "domain": "bam",
+          "stage_id": "bam.coverage"
+        },
+        "case_id": "run-2002--samtools--ena-prjeb22390-err2112767-bam",
+        "attempt_id": "attempt-0001",
+        "tool_id": "samtools"
+      }
+    ],
+    "repository_commit": "e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd",
+    "report": {
+      "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/run-2002-bam-coverage.json",
+      "sha256": "dcbec16b0a5a4cbc0fb31adb5570c78459893a1be1e6d0fde1b3d8ae7ea390e6",
+      "size_bytes": 15520
+    },
+    "evidence_book": {
+      "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/evidence-book.json",
+      "sha256": "f6be1bb941af6b44dbcaeba60432bfaf85741116c9b5e20a8a66f57e9458b664",
+      "size_bytes": 5758
+    },
+    "publication_receipt": {
+      "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/publication-receipt.json",
+      "sha256": "93abca853f8c7e173e5e9308df272437ee75df0ad8146ee5aeefae3f8b97aaaa",
+      "size_bytes": 4034
+    },
+    "citation_record": {
+      "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/citation-record.json",
+      "sha256": "9e71ac80e83efeab5fa25440a427a5edd9be582301540eee910ab810d747ce0f",
+      "size_bytes": 3583
+    },
+    "replay_receipt": {
+      "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/replay-receipt.json",
+      "sha256": "f31cb5ff4673aa9718cb73f158a7ccbec72d658f969ed364e882aafcf2a07069",
+      "size_bytes": 4474
+    },
+    "limitations": [
+      "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure.",
+      "The citation is limited to the exact admitted cases, data authorities, artifacts, measurements, scientific verdicts, and downstream evidence selected by this source-locked publication."
+    ],
+    "access_statement": "Public data remain governed by their cited source terms; restricted artifacts are identified by admission evidence and are not redistributed."
+  },
   "limitations": [
-    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+    "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure.",
+    "The citation is limited to the exact admitted cases, data authorities, artifacts, measurements, scientific verdicts, and downstream evidence selected by this source-locked publication."
   ]
 }

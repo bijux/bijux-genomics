@@ -7,13 +7,13 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 - Registered protocols: **71**
 - Active protocols: **71**
 - Reserved protocols: **0**
-- Citable publications: **5**
-- Unpublished protocols: **66**
+- Citable publications: **6**
+- Unpublished protocols: **65**
 
 | Run | Citation key | Stage | Tools | Protocol | Publication |
 |---|---|---|---|---|---|
 | `run-2001` | `bijux-benchmark-run-2001` | `bam.genotyping` | `bcftools` | `active` | `run-2001-production-e6874f0d833c` |
-| `run-2002` | `bijux-benchmark-run-2002` | `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `active` | `not selected` |
+| `run-2002` | `bijux-benchmark-run-2002` | `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `active` | `run-2002-production-e6874f0d833c` |
 | `run-2003` | `bijux-benchmark-run-2003` | `bam.endogenous_content` | `samtools` | `active` | `not selected` |
 | `run-2004` | `bijux-benchmark-run-2004` | `bam.mapping_summary` | `picard`, `samtools` | `active` | `not selected` |
 | `run-2005` | `bijux-benchmark-run-2005` | `bam.align` | `bowtie2`, `bwa` | `active` | `not selected` |
