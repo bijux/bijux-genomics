@@ -629,6 +629,19 @@ fn target_owner(path: &str, classification: &str) -> String {
     if let Some(owner) = legacy_target_owner(path) {
         return owner.to_string();
     }
+    // Automation composes product owners; its filename does not transfer its
+    // implementation authority to a product service mentioned in that name.
+    if path.starts_with(".github/workflows/") {
+        return "bijux-std".to_string();
+    }
+    if classification == "thin external adapter"
+        && (path == "Makefile" || path.starts_with("makes/"))
+    {
+        return "bijux-dna-dev".to_string();
+    }
+    if classification == "test contract" && path.starts_with("crates/") {
+        return current_owner(path);
+    }
     if classification == "canonical crate logic" || classification == "declarative product asset" {
         return current_owner(path);
     }
@@ -1103,9 +1116,9 @@ mod tests {
 
     use super::{
         classify, dependency_consumers, is_relevant, legacy_authorities, legacy_callers,
-        production_callers, render_markdown, validate_audit, AuditSummary, OwnershipAudit,
-        OwnershipRow, SourceFile, DIRECT_BENCH_PRODUCT_CONSUMERS, OUTPUT_JSON, OUTPUT_MARKDOWN,
-        OUTPUT_SCHEMA, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
+        production_callers, render_markdown, target_owner, validate_audit, AuditSummary,
+        OwnershipAudit, OwnershipRow, SourceFile, DIRECT_BENCH_PRODUCT_CONSUMERS, OUTPUT_JSON,
+        OUTPUT_MARKDOWN, OUTPUT_SCHEMA, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
     };
 
     #[test]
@@ -1131,6 +1144,28 @@ mod tests {
         assert_eq!(row.classification, "canonical crate logic");
         assert_eq!(row.target_owner, "bijux-dna-bench");
         Ok(())
+    }
+
+    #[test]
+    fn automation_and_tests_keep_their_declared_implementation_owner() {
+        for path in [
+            ".github/workflows/automerge-pr.yml",
+            ".github/workflows/publish-ghcr-container-images.yml",
+            ".github/workflows/release-qualification.yml",
+        ] {
+            assert_eq!(target_owner(path, "thin external adapter"), "bijux-std");
+        }
+        for path in ["Makefile", "makes/containers.mk", "makes/bin/dev_dna_bootstrap.sh"] {
+            assert_eq!(target_owner(path, "thin external adapter"), "bijux-dna-dev");
+        }
+        assert_eq!(
+            target_owner("crates/bijux-dna-containers-qa/tests/qualification.rs", "test contract"),
+            "bijux-dna-containers-qa"
+        );
+        assert_eq!(
+            target_owner("crates/bijux-dna-runtime/tests/campaign.rs", "test contract"),
+            "bijux-dna-runtime"
+        );
     }
 
     #[test]
