@@ -20,12 +20,10 @@ Top-level workspace paths only.
 |---|---|---|---|
 | `Cargo.lock` | `file` | `-` | - |
 | `Cargo.toml` | `file` | `-` | - |
-| `DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md` | `file` | `-` | - |
 | `LICENSE` | `file` | `-` | - |
 | `Makefile` | `file` | `-` | - |
 | `NOTICE` | `file` | `-` | - |
 | `README.md` | `file` | `-` | - |
-| `TARGET_ARCHITECTURE.md` | `file` | `-` | - |
 | `assets` | `dir` | `-` | - |
 | `audit-allowlist.toml` | `file` | `-` | - |
 | `benchmarks` | `dir` | `-` | - |

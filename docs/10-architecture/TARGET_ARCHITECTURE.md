@@ -13,15 +13,15 @@ repository surfaces may contain declarations or publications without becoming al
 engines.
 
 Dependency edges remain governed by
-[the boundary map](docs/10-architecture/BOUNDARY_MAP.md). Authored domain truth and generated
-configuration remain governed by [the SSOT contract](docs/10-architecture/SSOT.md).
+[the boundary map](BOUNDARY_MAP.md). Authored domain truth and generated
+configuration remain governed by [the SSOT contract](SSOT.md).
 Production corpus, truth, materialization, and scientific claim eligibility remain governed by
-[the data portfolio and truth contract](DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md).
+[the data portfolio and truth contract](../20-science/DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md).
 
 ## Product Boundary
 
 Containers and benchmarks are application products implemented by workspace crates. The
-[`containers/`](containers/) and [`benchmarks/`](benchmarks/) trees are declarative and
+[`containers/`](../../containers/) and [`benchmarks/`](../../benchmarks/) trees are declarative and
 publication surfaces. They may contain reviewed recipes, catalogs, contracts, generated schemas,
 protocol definitions, citations, small reports, documentation, and narrow external-tool workers.
 
@@ -179,12 +179,12 @@ superseded, and source-addressed historical evidence remain explicit.
 Neither root may contain a copied checkout, an embedded absolute-workspace mirror, raw attempt
 logs, SIF bytes, private external artifacts, or scheduler state. The exact direct-root shape and
 absolute-prefix prohibition are governed by
-[the root tree contract](docs/10-architecture/ROOT_TREE_CONTRACT.md).
+[the root tree contract](ROOT_TREE_CONTRACT.md).
 
 ## Enforcement
 
 Architecture changes must keep this contract, crate-local architecture documents, the
-[contract index](docs/10-architecture/CONTRACT_INDEX.md), and executable boundary checks aligned.
+[contract index](CONTRACT_INDEX.md), and executable boundary checks aligned.
 At minimum, validate:
 
 ```sh

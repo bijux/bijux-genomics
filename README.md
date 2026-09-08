@@ -94,7 +94,7 @@ The full CLI inventory is maintained in [`crates/bijux-dna/docs/COMMANDS.md`](cr
 ## Documentation
 
 - Project introduction: [`docs/00-intro/WHAT_IS_BIJUX.md`](docs/00-intro/WHAT_IS_BIJUX.md)
-- Product ownership: [`TARGET_ARCHITECTURE.md`](TARGET_ARCHITECTURE.md)
+- Product ownership: [`TARGET_ARCHITECTURE.md`](docs/10-architecture/TARGET_ARCHITECTURE.md)
 - Architecture overview: [`docs/10-architecture/ARCHITECTURE_OVERVIEW.md`](docs/10-architecture/ARCHITECTURE_OVERVIEW.md)
 - CI operations: [`docs/30-operations/CI.md`](docs/30-operations/CI.md)
 - HPC dry-run guidance: [`docs/30-operations/HPC_CAMPAIGN_DRYRUN.md`](docs/30-operations/HPC_CAMPAIGN_DRYRUN.md)

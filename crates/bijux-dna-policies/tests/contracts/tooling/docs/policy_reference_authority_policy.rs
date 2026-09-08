@@ -280,7 +280,7 @@ fn policy__contracts__policy_reference_authority_policy__tests_style_links_gover
 fn policy__contracts__policy_reference_authority_policy__crate_map_links_governed_surfaces_exactly()
 {
     let expected = BTreeSet::from([
-        "../../TARGET_ARCHITECTURE.md".to_string(),
+        "../10-architecture/TARGET_ARCHITECTURE.md".to_string(),
         "../10-architecture/BOUNDARY_MAP.md".to_string(),
         "../40-policies/MATURITY_LADDER.md".to_string(),
     ]);

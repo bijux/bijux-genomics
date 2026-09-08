@@ -25,14 +25,14 @@ Define the machine-checkable contract for repository architecture authority.
 - Workspace membership from [Cargo.toml](../../Cargo.toml).
 - Dependency edges from crate [Cargo.toml](../../Cargo.toml) files.
 - Boundary authority from [docs/10-architecture/BOUNDARY_MAP.md](BOUNDARY_MAP.md).
-- Responsibility authority from [TARGET_ARCHITECTURE.md](../../TARGET_ARCHITECTURE.md).
+- Responsibility authority from [TARGET_ARCHITECTURE.md](TARGET_ARCHITECTURE.md).
 - Contract artifact authority from [docs/10-architecture/CONTRACT_SPINE.md](CONTRACT_SPINE.md).
 
 ## Forbidden dependencies
 - Crate dependency edges not listed in the executable `boundaries` block in
   [docs/10-architecture/BOUNDARY_MAP.md](BOUNDARY_MAP.md).
 - Domain, stage, planner, runtime, runner, API, CLI, analyzer, container, and benchmark concerns
-  owned by a different crate in [TARGET_ARCHITECTURE.md](../../TARGET_ARCHITECTURE.md).
+  owned by a different crate in [TARGET_ARCHITECTURE.md](TARGET_ARCHITECTURE.md).
 - Parallel contract authorities outside the files listed in
   [docs/10-architecture/CONTRACT_INDEX.md](CONTRACT_INDEX.md).
 

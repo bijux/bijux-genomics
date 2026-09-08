@@ -150,6 +150,8 @@ nav:
       - Overview: cli/index.md
   - Architecture:
       - Overview: 10-architecture/ARCHITECTURE_OVERVIEW.md
+      - Product Ownership: 10-architecture/TARGET_ARCHITECTURE.md
+      - Data Portfolio and Truth: 20-science/DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md
       - Architecture Litmus: 10-architecture/ARCHITECTURE_LITMUS.md
       - Boundaries: 10-architecture/BOUNDARY_MAP.md
       - Boundary Diagram: 10-architecture/BOUNDARY_DIAGRAM.md

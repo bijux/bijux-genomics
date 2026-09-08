@@ -15,6 +15,7 @@ Documents under `docs/20-science/`.
 - Domain-specific science families must enter through their landing pages, not ad hoc deep links.
 
 ## Root Docs
+- [Data Portfolio and Truth Contract](DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md)
 - [Scientific Decisions](SCIENTIFIC_DECISIONS.md)
 - [Scientific Defaults](SCIENTIFIC_DEFAULTS.md)
 - [Publication Assets](PUBLICATION_ASSETS.md)
