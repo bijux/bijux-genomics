@@ -32,7 +32,7 @@ jobs:
       - name: "Check out the repository"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
           components: rustfmt
@@ -55,7 +55,7 @@ jobs:
       - name: "Install Linux build dependencies"
         run: "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev"
       - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
           components: clippy
@@ -76,7 +76,7 @@ jobs:
       - name: "Check out the repository"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - name: "Set up sccache"
@@ -100,7 +100,7 @@ jobs:
       - name: "Install Linux build dependencies"
         run: "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev"
       - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - name: "Set up sccache"
@@ -123,7 +123,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
@@ -147,7 +147,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
@@ -172,7 +172,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
@@ -196,7 +196,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
@@ -220,7 +220,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
@@ -244,7 +244,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
@@ -268,7 +268,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
@@ -339,7 +339,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
@@ -359,7 +359,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
@@ -379,7 +379,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
@@ -399,7 +399,7 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@d1031067263f94b142dd6c0ce24c5eb9d02d52a0
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
