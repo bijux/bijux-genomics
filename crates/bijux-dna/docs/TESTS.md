@@ -83,3 +83,5 @@ namespaces so function-based routing and slow rosters retain their meaning.
 Executable fixture assertions live in `tests/contracts/fixtures/`; `tests/fixtures/` holds input data only. Grouped entrypoints keep their binary and case identities.
 
 Local simulation command contracts link through `bench_local_simulation`. The `contracts/local_simulation` tree separates stage, all-domain and pipeline cases; JSON, file, declared-output and failure assertions retain their original feature conditions. A single shared support module serializes process-global environment/cwd mutations for ordinary Cargo test execution. Nextest still isolates each test process and uses the existing repository mutation locks.
+
+Active-scope completion runs one sandboxed workflow. Its JSON command case compares the persisted report with stdout and covers all nineteen checks, active matrix proof paths, and exact VCF closure detail. A separate workflow solely for file existence and duplicated report counters is unnecessary. This suite does not separately exercise the plain-text path presentation mode.

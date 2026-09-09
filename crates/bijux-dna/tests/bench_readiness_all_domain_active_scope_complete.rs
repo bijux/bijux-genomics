@@ -28,7 +28,18 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+    let payload: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    let persisted = std::fs::read(
+        sandbox
+            .path()
+            .join("artifacts/benchmark-smoke/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json"),
+    )
+    .expect("read persisted active scope report");
+    let persisted: serde_json::Value =
+        serde_json::from_slice(&persisted).expect("parse persisted active scope report");
+    assert_eq!(persisted, payload, "stdout and governed report must describe the same observation");
+    payload
 }
 
 #[test]
@@ -107,6 +118,17 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
             == Some("vcf_postprocess_closure")
             && check.get("detail").and_then(serde_json::Value::as_str)
                 == Some("active_postprocess_row_count=1, parser_fixture_match_count=1, output_contract_match_count=1, expected_result_match_count=1, report_map_match_count=1, local_job_match_count=1, command_audit_match_count=1")
+    }));
+
+    assert!(checks.iter().any(|check| {
+        check.get("surface_id").and_then(serde_json::Value::as_str)
+            == Some("all_domain_active_stage_tool_matrix")
+            && check.get("proof_paths").and_then(serde_json::Value::as_array).is_some_and(|paths| {
+                paths.iter().any(|path| {
+                    path.as_str()
+                        == Some("artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv")
+                })
+            })
     }));
 
     let failed_checks =
