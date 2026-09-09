@@ -2,8 +2,7 @@
 
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn bench_local_fake_run_essential_pipelines_writes_governed_artifact_tree() {

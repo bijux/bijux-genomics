@@ -4,8 +4,7 @@
 use std::process::Command;
 
 #[cfg(feature = "bam_downstream")]
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[cfg(feature = "bam_downstream")]
 fn run_cli_json(args: &[&str]) -> serde_json::Value {

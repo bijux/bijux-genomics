@@ -3,13 +3,10 @@
 use std::collections::BTreeSet;
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _repo_lock =
-        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -37,39 +34,30 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_local_fake_run_all_domain_failures_json_reports_governed_result_slice(
-) -> anyhow::Result<()> {
-    let payload = run_cli_json(&[
-        "bench",
-        "local",
-        "fake-run-all-domain-failures",
-        "--exit-code",
-        "13",
-        "--json",
-    ]);
+fn bench_local_fake_run_all_domains_json_reports_governed_result_slice() -> anyhow::Result<()> {
+    let payload = run_cli_json(&["bench", "local", "fake-run-all-domains", "--json"]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.local_all_domain_fake_failures.v1")
+        Some("bijux.bench.local_all_domain_fake_runs.v1")
     );
     assert_eq!(
-        payload.get("failure_root").and_then(serde_json::Value::as_str),
-        Some("artifacts/benchmark-smoke/simulated-runs/all-domains-failures")
+        payload.get("fake_run_root").and_then(serde_json::Value::as_str),
+        Some("artifacts/benchmark-smoke/simulated-runs/all-domains")
     );
     let result_count = support::json_u64(&payload, "result_count").expect("result_count");
-    assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(13));
     assert!(payload
-        .get("failed_output_count")
+        .get("created_output_count")
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count >= 120));
 
     let domain_counts = support::json_object(&payload, "domain_counts")?;
     assert_eq!(support::object_u64_sum(domain_counts), result_count);
 
-    let failures = support::json_array(&payload, "failures")?;
-    assert_eq!(failures.len() as u64, result_count);
+    let results = support::json_array(&payload, "results")?;
+    assert_eq!(results.len() as u64, result_count);
     for domain in ["fastq", "bam", "vcf"] {
-        let observed = failures
+        let observed = results
             .iter()
             .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some(domain))
             .count() as u64;
@@ -85,42 +73,39 @@ fn bench_local_fake_run_all_domain_failures_json_reports_governed_result_slice(
         ("vcf", "vcf.imputation_metrics", "impute5"),
         ("vcf", "vcf.impute", "impute5"),
     ] {
-        assert!(failures.iter().any(|row| {
+        assert!(results.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some(domain)
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
         }));
     }
-    let result_ids = failures
+    let result_ids = results
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
     assert_eq!(result_ids.len() as u64, result_count);
 
-    let taxonomy = failures
+    let taxonomy = results
         .iter()
         .find(|row| {
             row.get("result_id").and_then(serde_json::Value::as_str)
                 == Some("fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2")
         })
         .expect("taxonomy row");
-    assert_eq!(taxonomy.get("exit_code").and_then(serde_json::Value::as_i64), Some(13));
     assert_eq!(
         taxonomy.get("command_source").and_then(serde_json::Value::as_str),
         Some("fastq_bam_command_adapter")
     );
+    assert_eq!(
+        taxonomy.get("declared_output_count").and_then(serde_json::Value::as_u64),
+        taxonomy.get("created_output_count").and_then(serde_json::Value::as_u64)
+    );
     assert!(taxonomy
-        .get("failed_output_count")
+        .get("expected_metric_count")
         .and_then(serde_json::Value::as_u64)
-        .is_some_and(|count| count >= 2));
-    assert!(taxonomy.get("failed_outputs").and_then(serde_json::Value::as_array).is_some_and(
-        |outputs| outputs.iter().any(|output| {
-            output.get("artifact_id").and_then(serde_json::Value::as_str)
-                == Some("classification_report_json")
-        })
-    ));
+        .is_some_and(|count| count >= 1));
 
-    let vcf_call = failures
+    let vcf_call = results
         .iter()
         .find(|row| {
             row.get("result_id").and_then(serde_json::Value::as_str)
@@ -131,12 +116,20 @@ fn bench_local_fake_run_all_domain_failures_json_reports_governed_result_slice(
         vcf_call.get("command_source").and_then(serde_json::Value::as_str),
         Some("vcf_bcftools_adapter")
     );
-    assert!(vcf_call.get("failed_outputs").and_then(serde_json::Value::as_array).is_some_and(
-        |outputs| outputs.iter().any(|output| {
+    assert!(vcf_call.get("outputs").and_then(serde_json::Value::as_array).is_some_and(|outputs| {
+        outputs.iter().any(|output| {
             output.get("artifact_id").and_then(serde_json::Value::as_str) == Some("called_vcf")
+                && output.get("exists").and_then(serde_json::Value::as_bool) == Some(true)
         }) && outputs.iter().any(|output| {
             output.get("artifact_id").and_then(serde_json::Value::as_str) == Some("called_vcf_tbi")
+                && output.get("exists").and_then(serde_json::Value::as_bool) == Some(true)
         })
-    ));
+    }));
+    assert!(vcf_call
+        .get("stage_result_path")
+        .and_then(serde_json::Value::as_str)
+        .is_some_and(|path| path.ends_with(
+            "/all-domains/vcf/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json"
+        )));
     Ok(())
 }

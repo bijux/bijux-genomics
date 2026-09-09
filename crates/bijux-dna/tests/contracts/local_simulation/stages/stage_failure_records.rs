@@ -3,8 +3,8 @@
 #[cfg(feature = "bam_downstream")]
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+#[cfg(feature = "bam_downstream")]
+use crate::support;
 
 #[cfg(feature = "bam_downstream")]
 #[test]

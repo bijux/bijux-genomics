@@ -81,3 +81,5 @@ and population smoke targets. Test function names remain stable beneath module
 namespaces so function-based routing and slow rosters retain their meaning.
 
 Executable fixture assertions live in `tests/contracts/fixtures/`; `tests/fixtures/` holds input data only. Grouped entrypoints keep their binary and case identities.
+
+Local simulation command contracts link through `bench_local_simulation`. The `contracts/local_simulation` tree separates stage, all-domain and pipeline cases; JSON, file, declared-output and failure assertions retain their original feature conditions. A single shared support module serializes process-global environment/cwd mutations for ordinary Cargo test execution. Nextest still isolates each test process and uses the existing repository mutation locks.
