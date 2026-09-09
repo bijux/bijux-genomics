@@ -6,9 +6,6 @@ use std::collections::BTreeSet;
 mod support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let sandbox = support::RepoSandbox::new("bench-readiness-full-benchmark-report")
         .expect("isolated report repository");
     let home = tempfile::tempdir().expect("tempdir");
@@ -31,12 +28,25 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+    let payload: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    let json_path = payload["json_output_path"].as_str().expect("JSON report path");
+    let persisted: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(sandbox.path().join(json_path)).expect("read persisted full report"),
+    )
+    .expect("parse persisted full report");
+    assert_eq!(persisted, payload, "persisted full report must match stdout");
+    let markdown_path = payload["markdown_output_path"].as_str().expect("Markdown report path");
+    let markdown =
+        std::fs::read_to_string(sandbox.path().join(markdown_path)).expect("read markdown");
+    assert_markdown_sections(&markdown);
+    payload
 }
 
 #[test]
 fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() -> anyhow::Result<()> {
     let payload = run_cli_json(&["bench", "readiness", "render-full-benchmark-report", "--json"]);
+    assert_report_owner_contract(&payload)?;
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -164,4 +174,64 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() -> an
         .expect("unsupported pairs");
     assert_eq!(unsupported_pairs.len(), 1);
     Ok(())
+}
+
+fn assert_report_owner_contract(payload: &serde_json::Value) -> anyhow::Result<()> {
+    use bijux_dna_api::v1::api::bench::{
+        validate_full_benchmark_report, FullBenchmarkReport, FullBenchmarkReportAdmissionContext,
+    };
+    let report: FullBenchmarkReport = serde_json::from_value(payload.clone())?;
+    assert_eq!(
+        report.present_row_count + report.missing_result_row_count,
+        report.expected_result_row_count
+    );
+    assert_eq!(
+        report.row_count,
+        report.expected_result_row_count + report.unsupported_pair_row_count
+    );
+    assert_eq!(report.explicit_unsupported_row_count, report.unsupported_pairs.len());
+    assert_eq!(report.missing_result_row_count, report.missing_results.len());
+    assert_eq!(report.failure_row_count, report.expected_result_row_count);
+    assert_eq!(report.failure_class_row_count, report.failures.classification_rows.len());
+    assert_eq!(report.rows.len(), report.row_count);
+    assert_eq!(report.runtime.len(), report.row_count);
+    assert_eq!(report.memory.len(), report.row_count);
+    assert!(!report.rows.is_empty(), "full benchmark report should contain benchmark rows");
+    assert!(report.comparable_metrics.iter().all(|row| !row.direction.is_empty()));
+    assert!(report.comparable_metrics.iter().all(|row| !row.tolerance_kind.is_empty()));
+    assert!(report.comparable_metrics.iter().all(|row| !row.pass_rule.is_empty()));
+    assert!(report.comparable_metrics.iter().all(|row| !row.insufficiency_behavior.is_empty()));
+    assert!(report.passes_behavior_test);
+
+    let context = FullBenchmarkReportAdmissionContext {
+        expected_result_ids: report.rows.iter().filter_map(|row| row.result_id.clone()).collect(),
+        collector_missing_result_count: report.missing_result_row_count,
+        collector_failure_count: report.failure_row_count,
+        collector_unsupported_pair_count: report.explicit_unsupported_row_count,
+        triggered_failure_class_count: report.failure_class_row_count,
+    };
+    let mut unsafe_report = report.clone();
+    unsafe_report.rows[0].evidence_path = "../outside.json".to_string();
+    assert!(validate_full_benchmark_report(&mut unsafe_report, &context).is_err());
+    Ok(())
+}
+
+fn assert_markdown_sections(markdown: &str) {
+    assert!(markdown.contains("# FASTQ + BAM + VCF Benchmark Report"));
+    assert!(markdown.contains("## Stage-Centric"));
+    assert!(markdown.contains("## Tool-Centric"));
+    assert!(markdown.contains("## Corpus-Centric"));
+    assert!(markdown.contains("## Pipeline-Centric"));
+    assert!(markdown.contains("## Runtime"));
+    assert!(markdown.contains("## Memory"));
+    assert!(markdown.contains("## Failures"));
+    assert!(markdown.contains("## Missing Results"));
+    assert!(markdown.contains("## Comparable Metrics"));
+    assert!(markdown.contains("## Unsupported Pairs"));
+    assert!(markdown.contains("Tolerance Kind"));
+    assert!(markdown.contains("Insufficiency Behavior"));
+    assert!(markdown.contains("match_reference_structure"));
+    assert!(markdown.contains("fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2"));
+    assert!(markdown.contains("vcf.filter"));
+    assert!(markdown.contains("samtools"));
 }
