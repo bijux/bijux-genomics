@@ -71,13 +71,15 @@ fn bench_readiness_vcf_qc_ready_reports_complete_retained_qc_callers() {
             .iter()
             .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id))
             .unwrap_or_else(|| panic!("missing {tool_id} qc row"));
-        let expected_output_root = format!("runs/bench/local-smoke/vcf.qc/{tool_id}");
-        let expected_qc_json_path = format!("runs/bench/local-smoke/vcf.qc/{tool_id}/qc.json");
+        let expected_output_root = format!("artifacts/runs/bench/local-smoke/vcf.qc/{tool_id}");
+        let expected_qc_json_path =
+            format!("artifacts/runs/bench/local-smoke/vcf.qc/{tool_id}/qc.json");
         let expected_qc_summary_path =
-            format!("runs/bench/local-smoke/vcf.qc/{tool_id}/qc_summary.json");
-        let expected_metrics_path = format!("runs/bench/local-smoke/vcf.qc/{tool_id}/metrics.json");
+            format!("artifacts/runs/bench/local-smoke/vcf.qc/{tool_id}/qc_summary.json");
+        let expected_metrics_path =
+            format!("artifacts/runs/bench/local-smoke/vcf.qc/{tool_id}/metrics.json");
         let expected_stage_result_path =
-            format!("runs/bench/local-smoke/vcf.qc/{tool_id}/stage-result.json");
+            format!("artifacts/runs/bench/local-smoke/vcf.qc/{tool_id}/stage-result.json");
 
         assert_eq!(row.get("stage_id").and_then(serde_json::Value::as_str), Some("vcf.qc"));
         assert_eq!(

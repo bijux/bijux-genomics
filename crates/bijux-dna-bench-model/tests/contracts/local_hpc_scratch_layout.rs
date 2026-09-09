@@ -11,7 +11,7 @@ fn input_link(job_root: &str, source: &str) -> BenchmarkLocalHpcScratchInputLink
         artifact_role: Some("reference".to_string()),
         source_kind: "directory".to_string(),
         source_path: source.to_string(),
-        staged_path: format!("runs/bench/hpc-dry-run/staged/{source}"),
+        staged_path: format!("artifacts/runs/bench/hpc-dry-run/staged/{source}"),
         link_path: format!("{job_root}/inputs/{source}"),
         checksum_sha256: "a".repeat(64),
         size_bytes: 1024,
@@ -20,7 +20,7 @@ fn input_link(job_root: &str, source: &str) -> BenchmarkLocalHpcScratchInputLink
 }
 
 fn job(job_id: &str, job_kind: &str, lineage: (&str, &str)) -> BenchmarkLocalHpcScratchLayoutJob {
-    let job_root = format!("runs/bench/hpc-dry-run/scratch/{job_id}");
+    let job_root = format!("artifacts/runs/bench/hpc-dry-run/scratch/{job_id}");
     let benchmark_result = job_kind == "benchmark_result";
     BenchmarkLocalHpcScratchLayoutJob {
         job_id_local: job_id.to_string(),
@@ -35,10 +35,10 @@ fn job(job_id: &str, job_kind: &str, lineage: (&str, &str)) -> BenchmarkLocalHpc
         asset_profile_id: "sample-set".to_string(),
         scratch_root: job_root.clone(),
         input_links_root: format!("{job_root}/inputs"),
-        output_root: format!("runs/bench/hpc-dry-run/results/{job_id}"),
-        log_root: format!("runs/bench/hpc-dry-run/logs/{job_id}"),
-        stdout_path: format!("runs/bench/hpc-dry-run/logs/{job_id}/stdout.log"),
-        stderr_path: format!("runs/bench/hpc-dry-run/logs/{job_id}/stderr.log"),
+        output_root: format!("artifacts/runs/bench/hpc-dry-run/results/{job_id}"),
+        log_root: format!("artifacts/runs/bench/hpc-dry-run/logs/{job_id}"),
+        stdout_path: format!("artifacts/runs/bench/hpc-dry-run/logs/{job_id}/stdout.log"),
+        stderr_path: format!("artifacts/runs/bench/hpc-dry-run/logs/{job_id}/stderr.log"),
         resources: BenchmarkLocalHpcScratchJobResources {
             cpus_per_task: 4,
             memory_mb: 8192,
@@ -63,9 +63,9 @@ fn job(job_id: &str, job_kind: &str, lineage: (&str, &str)) -> BenchmarkLocalHpc
 fn layout() -> BenchmarkLocalHpcScratchLayout {
     BenchmarkLocalHpcScratchLayout {
         schema_version: BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1.to_string(),
-        output_path: "runs/bench/hpc-dry-run/scratch-layout.json".to_string(),
-        staging_root: "runs/bench/hpc-dry-run/staged".to_string(),
-        scratch_root: "runs/bench/hpc-dry-run/scratch".to_string(),
+        output_path: "artifacts/runs/bench/hpc-dry-run/scratch-layout.json".to_string(),
+        staging_root: "artifacts/runs/bench/hpc-dry-run/staged".to_string(),
+        scratch_root: "artifacts/runs/bench/hpc-dry-run/scratch".to_string(),
         selected_job_count: 2,
         benchmark_job_count: 1,
         essential_pipeline_job_count: 1,
@@ -121,11 +121,13 @@ fn local_hpc_scratch_layout_rejects_counter_and_lineage_drift() {
 #[test]
 fn local_hpc_scratch_layout_rejects_unsafe_scratch_and_cleanup_contracts() {
     let mut nested_shared_roots = layout();
-    nested_shared_roots.staging_root = "runs/bench/hpc-dry-run/scratch/staged".to_string();
+    nested_shared_roots.staging_root =
+        "artifacts/runs/bench/hpc-dry-run/scratch/staged".to_string();
     assert!(validate_benchmark_local_hpc_scratch_layout(&nested_shared_roots).is_err());
 
     let mut escaped_root = layout();
-    escaped_root.jobs[0].scratch_root = "runs/bench/hpc-dry-run/scratch-escaped".to_string();
+    escaped_root.jobs[0].scratch_root =
+        "artifacts/runs/bench/hpc-dry-run/scratch-escaped".to_string();
     assert!(validate_benchmark_local_hpc_scratch_layout(&escaped_root).is_err());
 
     let mut unbounded_resources = layout();
@@ -138,7 +140,7 @@ fn local_hpc_scratch_layout_rejects_unsafe_scratch_and_cleanup_contracts() {
 
     let mut scratch_owned_output = layout();
     scratch_owned_output.jobs[0].output_root =
-        "runs/bench/hpc-dry-run/scratch/job-benchmark/output".to_string();
+        "artifacts/runs/bench/hpc-dry-run/scratch/job-benchmark/output".to_string();
     assert!(validate_benchmark_local_hpc_scratch_layout(&scratch_owned_output).is_err());
 }
 
@@ -146,7 +148,8 @@ fn local_hpc_scratch_layout_rejects_unsafe_scratch_and_cleanup_contracts() {
 fn local_hpc_scratch_layout_rejects_invalid_input_admission() {
     let mut escaped_link = layout();
     escaped_link.jobs[0].input_links[0].link_path =
-        "runs/bench/hpc-dry-run/scratch/job-benchmark/inputs-escaped/reference".to_string();
+        "artifacts/runs/bench/hpc-dry-run/scratch/job-benchmark/inputs-escaped/reference"
+            .to_string();
     assert!(validate_benchmark_local_hpc_scratch_layout(&escaped_link).is_err());
 
     let mut invalid_checksum = layout();
@@ -167,6 +170,6 @@ fn local_hpc_scratch_layout_rejects_invalid_input_admission() {
 
     let mut traversing_staged_path = layout();
     traversing_staged_path.jobs[0].input_links[0].staged_path =
-        "runs/bench/hpc-dry-run/staged/../escaped".to_string();
+        "artifacts/runs/bench/hpc-dry-run/staged/../escaped".to_string();
     assert!(validate_benchmark_local_hpc_scratch_layout(&traversing_staged_path).is_err());
 }

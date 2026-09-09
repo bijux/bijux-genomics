@@ -586,7 +586,7 @@ mod tests {
                 && row.sample_scope == "asset-set"
                 && row.normalized_metrics_output_id.as_deref() == Some("report_json")
                 && row.stage_result_manifest_path
-                    == "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stage-result.json"
+                    == "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stage-result.json"
         }));
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"
@@ -597,7 +597,7 @@ mod tests {
                 && row.normalized_metrics_output_id.as_deref() == Some("classification_report_json")
                 && row
                     .stage_result_manifest_path
-                    == "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json"
+                    == "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json"
         }));
         assert!(report.rows.iter().any(|row| {
             row.domain == "bam"

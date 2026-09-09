@@ -101,7 +101,7 @@ fn bench_readiness_bam_overlap_endogenous_ready_reports_complete_governed_rows()
         .is_some_and(|paths| {
             paths.iter().any(|path| {
                 path.as_str()
-                    == Some("runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json")
+                    == Some("artifacts/runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json")
             })
         }));
 
@@ -139,11 +139,11 @@ fn bench_readiness_bam_overlap_endogenous_ready_reports_complete_governed_rows()
         .is_some_and(|paths| {
             paths.iter().any(|path| {
                 path.as_str()
-                    == Some("runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json")
+                    == Some("artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json")
             }) && paths.iter().any(|path| {
                 path.as_str()
                     == Some(
-                        "runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam.bai",
+                        "artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam.bai",
                     )
             })
         }));

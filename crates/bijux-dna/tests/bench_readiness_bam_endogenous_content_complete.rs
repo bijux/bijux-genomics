@@ -63,24 +63,24 @@ fn bench_readiness_bam_endogenous_content_complete_reports_governed_metrics() {
     assert_eq!(row.get("tool_id").and_then(serde_json::Value::as_str), Some("samtools"));
     assert_eq!(
         row.get("local_smoke_proof_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json")
+        Some("artifacts/runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json")
     );
     assert_eq!(
         row.get("endogenous_report_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.content.json"
+            "artifacts/runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.content.json"
         )
     );
     assert_eq!(
         row.get("endogenous_summary_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.summary.json"
+            "artifacts/runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/endogenous.summary.json"
         )
     );
     assert_eq!(
         row.get("stage_metrics_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/stage.metrics.json"
+            "artifacts/runs/bench/local-smoke/bam.endogenous_content/human_like_endogenous_partial_mapping/samtools/stage.metrics.json"
         )
     );
     assert_eq!(

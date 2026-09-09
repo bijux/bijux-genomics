@@ -63,15 +63,15 @@ fn bench_readiness_bam_overlap_correction_complete_reports_governed_metrics() {
     assert_eq!(row.get("tool_id").and_then(serde_json::Value::as_str), Some("bamutil"));
     assert_eq!(
         row.get("local_smoke_proof_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json")
+        Some("artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json")
     );
     assert_eq!(
         row.get("overlap_corrected_bam_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam")
+        Some("artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam")
     );
     assert_eq!(
         row.get("overlap_corrected_bai_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam.bai")
+        Some("artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam.bai")
     );
     assert_eq!(
         row.get("summary_schema_version").and_then(serde_json::Value::as_str),

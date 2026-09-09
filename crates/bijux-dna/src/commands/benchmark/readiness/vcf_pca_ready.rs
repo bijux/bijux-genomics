@@ -977,7 +977,7 @@ fn render_eigensoft_artifact_entry(artifact: &VcfEigensoftAdapterArtifact) -> St
 
 fn render_stage_result_manifest_path(stage_id: &str, tool_id: &str) -> String {
     format!(
-        "runs/bench/slurm-dry-run/runs/{}/{}/{}/{}/{}/stage-result.json",
+        "artifacts/runs/bench/slurm-dry-run/runs/{}/{}/{}/{}/{}/stage-result.json",
         LOCAL_SLURM_DRY_RUN_RUN_ID, "{fixture_scope}", stage_id, "{sample_scope}", tool_id
     )
 }

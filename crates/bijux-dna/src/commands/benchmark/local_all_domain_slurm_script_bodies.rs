@@ -7,7 +7,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_SCRIPT_BODY_REPORT_PATH: &str =
-    "runs/bench/slurm-dry-run/all-domains/no-placeholder-report.json";
+    "artifacts/runs/bench/slurm-dry-run/all-domains/no-placeholder-report.json";
 
 pub(crate) fn run_validate_all_domain_slurm_script_bodies(
     args: &parse::BenchLocalValidateAllDomainSlurmScriptBodiesArgs,

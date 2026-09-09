@@ -33,7 +33,10 @@ fn bench_local_validate_all_domain_slurm_shell_syntax_writes_governed_report_pat
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "runs/bench/slurm-dry-run/all-domains/bash-n-report.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/runs/bench/slurm-dry-run/all-domains/bash-n-report.json"
+    );
 
     let report_path = repo_root.join(rendered_path.trim());
     assert!(report_path.is_file(), "all-domain bash -n report must exist");
@@ -50,14 +53,14 @@ fn bench_local_validate_all_domain_slurm_shell_syntax_writes_governed_report_pat
     );
 
     let benchmark_script = repo_root.join(
-        "runs/bench/slurm-dry-run/all-domains/benchmark-results/vcf/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/job.sbatch",
+        "artifacts/runs/bench/slurm-dry-run/all-domains/benchmark-results/vcf/vcf_production_regression/vcf.stats/vcf_cohort/bcftools/job.sbatch",
     );
     assert!(benchmark_script.is_file(), "governed benchmark script must exist");
     let benchmark_body = fs::read_to_string(&benchmark_script).expect("read benchmark script");
     assert!(benchmark_body.contains("bijux-dna bench local execute-all-domain-benchmark-result"));
 
     let pipeline_script =
-        repo_root.join("runs/bench/slurm-dry-run/all-domains/essential-pipelines/relatedness-segments-vcf/vcf.ibd/job.sbatch");
+        repo_root.join("artifacts/runs/bench/slurm-dry-run/all-domains/essential-pipelines/relatedness-segments-vcf/vcf.ibd/job.sbatch");
     assert!(pipeline_script.is_file(), "governed pipeline script must exist");
     let pipeline_body = fs::read_to_string(&pipeline_script).expect("read pipeline script");
     assert!(pipeline_body.contains("bijux-dna bench local execute-essential-pipeline-node"));

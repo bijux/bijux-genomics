@@ -72,8 +72,10 @@ pub(crate) fn seed_tool_smoke_manifests(repo_root: &std::path::Path) {
                 "registry_paths": registry_paths,
                 "checked_at_unix_s": 0
             });
-            let manifest_path =
-                repo_root.join("runs/bench/tool-smoke/host").join(tool_id).join("manifest.json");
+            let manifest_path = repo_root
+                .join("artifacts/runs/bench/tool-smoke/host")
+                .join(tool_id)
+                .join("manifest.json");
             std::fs::create_dir_all(manifest_path.parent().expect("host manifest parent"))
                 .expect("create host manifest dir");
             std::fs::write(
@@ -161,8 +163,10 @@ pub(crate) fn seed_tool_smoke_manifests(repo_root: &std::path::Path) {
                 "checked_at_unix_s": 0
             })
         };
-        let manifest_path =
-            repo_root.join("runs/bench/tool-smoke/container").join(tool_id).join("manifest.json");
+        let manifest_path = repo_root
+            .join("artifacts/runs/bench/tool-smoke/container")
+            .join(tool_id)
+            .join("manifest.json");
         std::fs::create_dir_all(manifest_path.parent().expect("container manifest parent"))
             .expect("create container manifest dir");
         std::fs::write(

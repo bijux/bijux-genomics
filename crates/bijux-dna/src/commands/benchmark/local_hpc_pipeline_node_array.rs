@@ -28,7 +28,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_HPC_PIPELINE_NODE_ARRAY_SCRIPT_PATH: &str =
-    "runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch";
+    "artifacts/runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch";
 const PIPELINE_NODE_ARRAY_JOB_NAME: &str = "bijux-pipeline-node-array";
 
 pub(crate) type LocalHpcPipelineNodeArrayExpectedOutput =

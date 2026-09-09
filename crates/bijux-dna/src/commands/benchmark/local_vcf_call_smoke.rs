@@ -25,7 +25,7 @@ use super::local_vcf_call_bam_smoke_support::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_CALL_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.call";
+const DEFAULT_VCF_CALL_SMOKE_ROOT: &str = "artifacts/runs/bench/local-smoke/vcf.call";
 const LOCAL_VCF_CALL_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-call-smoke";
 const GOVERNED_VCF_CALL_STAGE_ID: &str = "vcf.call";
 const GOVERNED_VCF_CALL_RESOLVED_STAGE_ID: &str = "vcf.call_diploid";

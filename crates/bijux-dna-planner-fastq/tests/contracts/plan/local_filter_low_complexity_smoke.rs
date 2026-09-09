@@ -35,7 +35,7 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
     assert_eq!(
         se_case.plan.out_dir,
         PathBuf::from(
-            "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk"
+            "artifacts/runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk"
         )
     );
     assert_eq!(se_case.plan.resources.threads, 1);
@@ -51,19 +51,19 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
     assert_eq!(
         se_case.plan.params["output_r1"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz"
+            "artifacts/runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.fastq.gz"
         )
     );
     assert_eq!(
         se_case.plan.params["report_json"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json"
+            "artifacts/runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/low_complexity_report.json"
         )
     );
     assert_eq!(
         se_case.plan.params["raw_backend_report"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.low_complexity.stats"
+            "artifacts/runs/bench/local-smoke/fastq.filter_low_complexity/human_like_se_filter_signals/bbduk/bbduk.low_complexity.stats"
         )
     );
 
@@ -86,7 +86,7 @@ fn local_filter_low_complexity_smoke_plans_use_governed_low_complexity_fixture()
     assert_eq!(
         pe_case.plan.out_dir,
         PathBuf::from(
-            "runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk"
+            "artifacts/runs/bench/local-smoke/fastq.filter_low_complexity/human_like_pe_layout/bbduk"
         )
     );
     assert_eq!(pe_case.plan.effective_params["paired_mode"], serde_json::json!("paired_end"));

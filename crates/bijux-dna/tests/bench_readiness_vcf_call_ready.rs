@@ -148,19 +148,19 @@ fn bench_readiness_vcf_call_ready_reports_complete_retained_callers() {
     );
     assert_eq!(
         row.get("smoke_output_vcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz")
+        Some("artifacts/runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz")
     );
     assert_eq!(
         row.get("smoke_output_tbi_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi")
+        Some("artifacts/runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi")
     );
     assert_eq!(
         row.get("smoke_metrics_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call/bcftools/metrics.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.call/bcftools/metrics.json")
     );
     assert_eq!(
         row.get("smoke_stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call/bcftools/stage-result.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.call/bcftools/stage-result.json")
     );
     assert_eq!(row.get("smoke_parseable").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(row.get("smoke_gt_present").and_then(serde_json::Value::as_bool), Some(true));

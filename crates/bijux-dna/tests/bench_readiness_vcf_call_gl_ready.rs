@@ -150,7 +150,7 @@ fn bench_readiness_vcf_call_gl_ready_reports_unadmitted_angsd_evidence() {
         );
         assert_eq!(
             row.get("smoke_output_vcf_path").and_then(serde_json::Value::as_str),
-            Some("runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz")
+            Some("artifacts/runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz")
         );
         assert_eq!(row.get("smoke_parseable").and_then(serde_json::Value::as_bool), Some(true));
         assert_eq!(row.get("smoke_gt_present").and_then(serde_json::Value::as_bool), Some(false));

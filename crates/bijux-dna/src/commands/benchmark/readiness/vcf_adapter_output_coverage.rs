@@ -560,7 +560,7 @@ fn requires_index_outputs(declared_outputs: &[DeclaredArtifact]) -> bool {
 
 fn path_template_root(stage_id: &str, tool_id: &str) -> String {
     format!(
-        "runs/bench/slurm-dry-run/runs/{}/{}/{}/{}/{}",
+        "artifacts/runs/bench/slurm-dry-run/runs/{}/{}/{}/{}/{}",
         LOCAL_SLURM_DRY_RUN_RUN_ID, "{fixture_scope}", stage_id, "{sample_scope}", tool_id
     )
 }

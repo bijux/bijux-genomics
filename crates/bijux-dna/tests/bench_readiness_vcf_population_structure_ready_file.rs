@@ -65,7 +65,7 @@ fn bench_readiness_vcf_population_structure_ready_writes_governed_json_file() {
             && row.get("smoke_sample_group_count").and_then(serde_json::Value::as_u64) == Some(4)
             && row.get("smoke_tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
             && row.get("smoke_output_root").and_then(serde_json::Value::as_str).is_some_and(
-                |value| value == "runs/bench/local-smoke/vcf.population_structure/plink2",
+                |value| value == "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2",
             )
             && row
                 .get("smoke_population_structure_json_path")

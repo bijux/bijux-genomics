@@ -33,7 +33,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH: &str =
-    "runs/bench/slurm-dry-run/all-domains/submit-manifest.json";
+    "artifacts/runs/bench/slurm-dry-run/all-domains/submit-manifest.json";
 
 struct PipelineNodeContext {
     default_corpus_id: String,

@@ -134,19 +134,19 @@ fn bench_readiness_vcf_call_diploid_ready_reports_complete_retained_callers() {
     );
     assert_eq!(
         row.get("smoke_output_vcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz")
+        Some("artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz")
     );
     assert_eq!(
         row.get("smoke_output_tbi_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz.tbi")
+        Some("artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz.tbi")
     );
     assert_eq!(
         row.get("smoke_metrics_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_diploid/bcftools/metrics.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/metrics.json")
     );
     assert_eq!(
         row.get("smoke_stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_diploid/bcftools/stage-result.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/stage-result.json")
     );
     assert_eq!(row.get("smoke_parseable").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(

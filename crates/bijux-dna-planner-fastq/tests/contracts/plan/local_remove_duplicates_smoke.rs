@@ -41,7 +41,7 @@ fn local_remove_duplicates_smoke_plans_use_governed_duplicate_fixture() -> Resul
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify"
+            "artifacts/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify"
         )
     );
     assert_eq!(case.plan.resources.threads, 1);
@@ -63,31 +63,31 @@ fn local_remove_duplicates_smoke_plans_use_governed_duplicate_fixture() -> Resul
     assert_eq!(
         case.plan.params["output_r1"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz"
+            "artifacts/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R1.fastq.gz"
         )
     );
     assert_eq!(
         case.plan.params["output_r2"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R2.fastq.gz"
+            "artifacts/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/clumpify.dedup.R2.fastq.gz"
         )
     );
     assert_eq!(
         case.plan.params["duplicate_classes_tsv"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_classes.tsv"
+            "artifacts/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_classes.tsv"
         )
     );
     assert_eq!(
         case.plan.params["duplicate_provenance_json"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_provenance.json"
+            "artifacts/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/duplicate_provenance.json"
         )
     );
     assert_eq!(
         case.plan.params["report_json"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/deduplicate_report.json"
+            "artifacts/runs/bench/local-smoke/fastq.remove_duplicates/human_like_pe_duplicate_signals/clumpify/deduplicate_report.json"
         )
     );
 

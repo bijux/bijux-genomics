@@ -29,9 +29,10 @@ fn bench_readiness_host_tool_smoke_writes_manifest_file() {
     );
 
     let rendered_root = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_root.trim(), "runs/bench/tool-smoke/host");
+    assert_eq!(rendered_root.trim(), "artifacts/runs/bench/tool-smoke/host");
 
-    let manifest_path = repo_root.join("runs/bench/tool-smoke/host/bijux_dna/manifest.json");
+    let manifest_path =
+        repo_root.join("artifacts/runs/bench/tool-smoke/host/bijux_dna/manifest.json");
     assert!(manifest_path.is_file(), "host smoke manifest must exist");
 
     let payload = std::fs::read_to_string(&manifest_path).expect("read host smoke manifest");

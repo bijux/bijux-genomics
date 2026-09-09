@@ -28,9 +28,9 @@ fn row(status: &str, job_id: &str) -> BenchmarkLocalHpcResultCollectionSimulatio
         result_id: (!unavailable).then(|| format!("result-{status}")),
         pipeline_id: None,
         node_id: None,
-        evidence_path: format!("runs/bench/hpc-dry-run/{status}"),
+        evidence_path: format!("artifacts/runs/bench/hpc-dry-run/{status}"),
         manifest_path: matches!(status, "complete" | "failed" | "insufficient")
-            .then(|| format!("runs/bench/hpc-dry-run/{status}/stage-result.json")),
+            .then(|| format!("artifacts/runs/bench/hpc-dry-run/{status}/stage-result.json")),
         declared_output_count: usize::from(!unavailable),
         present_output_count: usize::from(matches!(status, "complete" | "insufficient")),
         detail: format!("governed {status} evidence"),
@@ -50,9 +50,12 @@ fn report() -> BenchmarkLocalHpcResultCollectionSimulationReport {
     ];
     BenchmarkLocalHpcResultCollectionSimulationReport {
         schema_version: BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1.to_string(),
-        output_path: "runs/bench/hpc-dry-run/result-collection-simulation.json".to_string(),
-        simulation_root: "runs/bench/hpc-dry-run/result-collection-simulation-tree".to_string(),
-        execution_resolver_path: "runs/bench/hpc-dry-run/execution-resolver.json".to_string(),
+        output_path: "artifacts/runs/bench/hpc-dry-run/result-collection-simulation.json"
+            .to_string(),
+        simulation_root: "artifacts/runs/bench/hpc-dry-run/result-collection-simulation-tree"
+            .to_string(),
+        execution_resolver_path: "artifacts/runs/bench/hpc-dry-run/execution-resolver.json"
+            .to_string(),
         row_count: 5,
         complete_row_count: 1,
         failed_row_count: 1,

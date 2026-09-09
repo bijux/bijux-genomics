@@ -88,7 +88,7 @@ struct LocalNormalizePrimersSmokeReport {
 
 /// Materialize the governed local-smoke `fastq.normalize_primers` artifacts.
 ///
-/// The written summary artifact lives at `runs/bench/local-smoke/fastq.normalize_primers/report.json`
+/// The written summary artifact lives at `artifacts/runs/bench/local-smoke/fastq.normalize_primers/report.json`
 /// under the active repository root, alongside the top-level `normalized.fastq.gz`.
 ///
 /// # Errors
@@ -99,7 +99,7 @@ pub fn write_local_normalize_primers_smoke_report() -> Result<PathBuf> {
     let cases =
         bijux_dna_planner_fastq::stage_api::local_normalize_primers_smoke_plans(&repo_root)?;
 
-    let output_root = repo_root.join("runs/bench/local-smoke/fastq.normalize_primers");
+    let output_root = repo_root.join("artifacts/runs/bench/local-smoke/fastq.normalize_primers");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let cases = cases
         .iter()

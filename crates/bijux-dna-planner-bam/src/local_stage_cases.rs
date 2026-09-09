@@ -18,57 +18,64 @@ use serde::Deserialize;
 use crate::selection::{allowed_tools_for_stage, load_bam_domain_tool_planning_spec};
 
 const LOCAL_VALIDATE_CONFIG_PATH: &str = "configs/bench/local/bam-validate.toml";
-const DEFAULT_LOCAL_VALIDATE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.validate";
+const DEFAULT_LOCAL_VALIDATE_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/bam.validate";
 const LOCAL_QC_PRE_CONFIG_PATH: &str = "configs/bench/local/bam-qc-pre.toml";
-const DEFAULT_LOCAL_QC_PRE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.qc_pre";
+const DEFAULT_LOCAL_QC_PRE_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/bam.qc_pre";
 const LOCAL_MAPPING_SUMMARY_CONFIG_PATH: &str = "configs/bench/local/bam-mapping-summary.toml";
-const DEFAULT_LOCAL_MAPPING_SUMMARY_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.mapping_summary";
+const DEFAULT_LOCAL_MAPPING_SUMMARY_OUTPUT_DIR: &str =
+    "artifacts/runs/bench/local-smoke/bam.mapping_summary";
 const LOCAL_FILTER_CONFIG_PATH: &str = "configs/bench/local/bam-filter.toml";
-const DEFAULT_LOCAL_FILTER_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.filter";
+const DEFAULT_LOCAL_FILTER_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/bam.filter";
 const LOCAL_MAPQ_FILTER_CONFIG_PATH: &str = "configs/bench/local/bam-mapq-filter.toml";
-const DEFAULT_LOCAL_MAPQ_FILTER_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.mapq_filter";
+const DEFAULT_LOCAL_MAPQ_FILTER_OUTPUT_DIR: &str =
+    "artifacts/runs/bench/local-smoke/bam.mapq_filter";
 const LOCAL_LENGTH_FILTER_CONFIG_PATH: &str = "configs/bench/local/bam-length-filter.toml";
-const DEFAULT_LOCAL_LENGTH_FILTER_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.length_filter";
+const DEFAULT_LOCAL_LENGTH_FILTER_OUTPUT_DIR: &str =
+    "artifacts/runs/bench/local-smoke/bam.length_filter";
 const LOCAL_MARKDUP_CONFIG_PATH: &str = "configs/bench/local/bam-markdup.toml";
-const DEFAULT_LOCAL_MARKDUP_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.markdup";
+const DEFAULT_LOCAL_MARKDUP_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/bam.markdup";
 const LOCAL_DUPLICATION_METRICS_CONFIG_PATH: &str =
     "configs/bench/local/bam-duplication-metrics.toml";
 const DEFAULT_LOCAL_DUPLICATION_METRICS_OUTPUT_DIR: &str =
-    "runs/bench/local-smoke/bam.duplication_metrics";
+    "artifacts/runs/bench/local-smoke/bam.duplication_metrics";
 const LOCAL_COMPLEXITY_CONFIG_PATH: &str = "configs/bench/local/bam-complexity.toml";
-const DEFAULT_LOCAL_COMPLEXITY_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.complexity";
+const DEFAULT_LOCAL_COMPLEXITY_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/bam.complexity";
 const LOCAL_COVERAGE_CONFIG_PATH: &str = "configs/bench/local/bam-coverage.toml";
-const DEFAULT_LOCAL_COVERAGE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.coverage";
+const DEFAULT_LOCAL_COVERAGE_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/bam.coverage";
 const LOCAL_INSERT_SIZE_CONFIG_PATH: &str = "configs/bench/local/bam-insert-size.toml";
-const DEFAULT_LOCAL_INSERT_SIZE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.insert_size";
+const DEFAULT_LOCAL_INSERT_SIZE_OUTPUT_DIR: &str =
+    "artifacts/runs/bench/local-smoke/bam.insert_size";
 const LOCAL_GC_BIAS_CONFIG_PATH: &str = "configs/bench/local/bam-gc-bias.toml";
-const DEFAULT_LOCAL_GC_BIAS_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.gc_bias";
+const DEFAULT_LOCAL_GC_BIAS_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/bam.gc_bias";
 #[cfg(feature = "bam_downstream")]
 const LOCAL_BIAS_MITIGATION_CONFIG_PATH: &str = "configs/bench/local/bam-bias-mitigation.toml";
 #[cfg(feature = "bam_downstream")]
-const DEFAULT_LOCAL_BIAS_MITIGATION_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.bias_mitigation";
+const DEFAULT_LOCAL_BIAS_MITIGATION_OUTPUT_DIR: &str =
+    "artifacts/runs/bench/local-smoke/bam.bias_mitigation";
 const LOCAL_RECALIBRATION_CONFIG_PATH: &str = "configs/bench/local/bam-recalibration.toml";
-const DEFAULT_LOCAL_RECALIBRATION_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.recalibration";
+const DEFAULT_LOCAL_RECALIBRATION_OUTPUT_DIR: &str =
+    "artifacts/runs/bench/local-smoke/bam.recalibration";
 const LOCAL_ENDOGENOUS_CONTENT_CONFIG_PATH: &str =
     "configs/bench/local/bam-endogenous-content.toml";
 const DEFAULT_LOCAL_ENDOGENOUS_CONTENT_OUTPUT_DIR: &str =
-    "runs/bench/local-smoke/bam.endogenous_content";
+    "artifacts/runs/bench/local-smoke/bam.endogenous_content";
 const LOCAL_OVERLAP_CORRECTION_CONFIG_PATH: &str =
     "configs/bench/local/bam-overlap-correction.toml";
 const DEFAULT_LOCAL_OVERLAP_CORRECTION_OUTPUT_DIR: &str =
-    "runs/bench/local-smoke/bam.overlap_correction";
+    "artifacts/runs/bench/local-smoke/bam.overlap_correction";
 const LOCAL_DAMAGE_CONFIG_PATH: &str = "configs/bench/local/bam-damage.toml";
-const DEFAULT_LOCAL_DAMAGE_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.damage";
+const DEFAULT_LOCAL_DAMAGE_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/bam.damage";
 const LOCAL_AUTHENTICITY_CONFIG_PATH: &str = "configs/bench/local/bam-authenticity.toml";
-const DEFAULT_LOCAL_AUTHENTICITY_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.authenticity";
+const DEFAULT_LOCAL_AUTHENTICITY_OUTPUT_DIR: &str =
+    "artifacts/runs/bench/local-smoke/bam.authenticity";
 const LOCAL_AUTHENTICITY_EXPECTED_METRIC_IDS: [&str; 5] =
     ["damage", "contamination", "complexity", "coverage", "mapping"];
 const LOCAL_SEX_CONFIG_PATH: &str = "configs/bench/local/bam-sex.toml";
-const DEFAULT_LOCAL_SEX_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.sex";
+const DEFAULT_LOCAL_SEX_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/bam.sex";
 #[cfg(feature = "bam_downstream")]
 const LOCAL_KINSHIP_CONFIG_PATH: &str = "configs/bench/local/bam-kinship.toml";
 #[cfg(feature = "bam_downstream")]
-const DEFAULT_LOCAL_KINSHIP_OUTPUT_DIR: &str = "runs/bench/local-smoke/bam.kinship";
+const DEFAULT_LOCAL_KINSHIP_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/bam.kinship";
 const BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
 
 fn local_smoke_case_output_dir(
@@ -85,7 +92,7 @@ fn local_smoke_case_output_dir(
     let readiness_root = repo_root.join(BENCHMARK_READINESS_ROOT_RELATIVE);
     if resolved_root == readiness_root || resolved_root.starts_with(&readiness_root) {
         return Err(anyhow!(
-            "local-smoke output_dir must remain disposable under `runs/bench/local-smoke` and must not resolve inside `{BENCHMARK_READINESS_ROOT_RELATIVE}`"
+            "local-smoke output_dir must remain disposable under `artifacts/runs/bench/local-smoke` and must not resolve inside `{BENCHMARK_READINESS_ROOT_RELATIVE}`"
         ));
     }
     Ok(output_root.join(sample_id).join(tool_id))

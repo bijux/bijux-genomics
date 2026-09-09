@@ -36,33 +36,34 @@ fn bench_local_vcf_population_structure_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json"
+        "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json"
     );
 
     let repo_root = support::repo_root().expect("repo root");
     let report_path = repo_root
-        .join("runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json");
+        .join("artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json");
     let source_stage_path = repo_root.join(
-        "runs/bench/local-smoke/vcf.population_structure/plink2/source_population_structure.json",
+        "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/source_population_structure.json",
     );
     let source_pruned_variants_path = repo_root
-        .join("runs/bench/local-smoke/vcf.population_structure/plink2/source_pruned_variants.tsv");
-    let source_logs_path =
-        repo_root.join("runs/bench/local-smoke/vcf.population_structure/plink2/source_logs.txt");
-    let source_pca_report_path =
-        repo_root.join("runs/bench/local-smoke/vcf.population_structure/plink2/source_pca.json");
-    let source_admixture_report_path = repo_root
-        .join("runs/bench/local-smoke/vcf.population_structure/plink2/source_admixture.json");
-    let stage_result_path =
-        repo_root.join("runs/bench/local-smoke/vcf.population_structure/plink2/stage-result.json");
+        .join("artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/source_pruned_variants.tsv");
+    let source_logs_path = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/source_logs.txt");
+    let source_pca_report_path = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/source_pca.json");
+    let source_admixture_report_path = repo_root.join(
+        "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/source_admixture.json",
+    );
+    let stage_result_path = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/stage-result.json");
     let ld_prune_out_path = repo_root.join(
-        "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/ld_prune_out.tsv",
+        "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/ld_prune_out.tsv",
     );
     let eigenvec_path = repo_root.join(
-        "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenvec.tsv",
+        "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenvec.tsv",
     );
     let eigenval_path = repo_root.join(
-        "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenval.tsv",
+        "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenval.tsv",
     );
 
     for path in [
@@ -168,21 +169,21 @@ fn bench_local_vcf_population_structure_smoke_writes_governed_files() {
             == Some("population_structure_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
                 == Some(
-                    "runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json",
+                    "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json",
                 )
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("population_pca_eigenvec")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
                 == Some(
-                    "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenvec.tsv",
+                    "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenvec.tsv",
                 )
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("population_pca_eigenval")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
                 == Some(
-                    "runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenval.tsv",
+                    "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/artifacts/stage/eigenval.tsv",
                 )
     }));
 }

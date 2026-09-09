@@ -479,7 +479,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.filter_reads/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.filter_reads/report.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "tool_id")?;
@@ -507,7 +507,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.filter_low_complexity/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.filter_low_complexity/report.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "planned_tool_id")?;
@@ -535,7 +535,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.profile_overrepresented_sequences/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.profile_overrepresented_sequences/report.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "planned_tool_id")?;
@@ -561,7 +561,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.remove_duplicates/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.remove_duplicates/report.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "planned_tool_id")?;
@@ -589,7 +589,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.detect_adapters/adapters.json",
+        "artifacts/runs/bench/local-smoke/fastq.detect_adapters/adapters.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let case_count = required_u64(root, "case_count")?;
@@ -615,7 +615,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.extract_umis/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.extract_umis/report.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "planned_tool_id")?;
@@ -640,7 +640,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.detect_duplicates_premerge/duplicates.json",
+        "artifacts/runs/bench/local-smoke/fastq.detect_duplicates_premerge/duplicates.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             Ok((
@@ -664,7 +664,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json",
+        "artifacts/runs/bench/local-smoke/fastq.estimate_library_complexity_prealign/complexity.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             Ok((
@@ -688,7 +688,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.merge_pairs/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.merge_pairs/report.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "planned_tool_id")?;
@@ -719,7 +719,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.normalize_abundance/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.normalize_abundance/report.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "planned_tool_id")?;
@@ -744,7 +744,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.remove_chimeras/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.remove_chimeras/report.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "planned_tool_id")?;
@@ -769,7 +769,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.cluster_otus/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.cluster_otus/report.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "planned_tool_id")?;
@@ -794,7 +794,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.infer_asvs/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.infer_asvs/report.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "planned_tool_id")?;
@@ -819,7 +819,7 @@ fn load_fastq_evidence(
     merge_single_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json",
+        "artifacts/runs/bench/local-smoke/fastq.trim_terminal_damage/metrics.json",
         |root| {
             let stage_id = required_str(root, "stage_id")?;
             let tool_id = required_str(root, "tool_id")?;
@@ -847,19 +847,19 @@ fn load_fastq_evidence(
     merge_case_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.trim_reads/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.trim_reads/report.json",
         "trim_reads",
     )?;
     merge_case_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json",
+        "artifacts/runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json",
         "trim_polyg_tails",
     )?;
     merge_case_stage_report(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/fastq.normalize_primers/report.json",
+        "artifacts/runs/bench/local-smoke/fastq.normalize_primers/report.json",
         "normalize_primers",
     )?;
     merge_profile_reads_summary(repo_root, &mut rows)?;
@@ -1023,7 +1023,8 @@ fn merge_profile_reads_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), FastqEvidenceAggregate>,
 ) -> Result<()> {
-    let absolute_path = repo_root.join("runs/bench/local-smoke/fastq.profile_reads/profile.json");
+    let absolute_path =
+        repo_root.join("artifacts/runs/bench/local-smoke/fastq.profile_reads/profile.json");
     let Some(root) = load_optional_json_value(&absolute_path)? else {
         return Ok(());
     };
@@ -1061,7 +1062,8 @@ fn merge_validate_reads_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), FastqEvidenceAggregate>,
 ) -> Result<()> {
-    let absolute_path = repo_root.join("runs/bench/local-smoke/fastq.validate_reads/report.json");
+    let absolute_path =
+        repo_root.join("artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json");
     let Some(root) = load_optional_json_value(&absolute_path)? else {
         return Ok(());
     };

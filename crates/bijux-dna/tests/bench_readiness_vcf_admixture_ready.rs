@@ -119,15 +119,15 @@ fn bench_readiness_vcf_admixture_ready_reports_every_complete_active_backend() {
     );
     assert_eq!(
         row.get("smoke_output_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.admixture/plink2")
+        Some("artifacts/runs/bench/local-smoke/vcf.admixture/plink2")
     );
     assert_eq!(
         row.get("smoke_input_vcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/admixture_input.vcf")
+        Some("artifacts/runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/admixture_input.vcf")
     );
     assert_eq!(
         row.get("smoke_population_labels_manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/population_labels.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.admixture/plink2/artifacts/input/population_labels.json")
     );
     assert_eq!(row.get("smoke_selected_k").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(row.get("smoke_sample_count").and_then(serde_json::Value::as_u64), Some(4));

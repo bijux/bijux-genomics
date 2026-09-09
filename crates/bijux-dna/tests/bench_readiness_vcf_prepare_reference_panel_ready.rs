@@ -97,7 +97,7 @@ fn bench_readiness_vcf_prepare_reference_panel_ready_reports_complete_active_row
     );
     assert_eq!(
         row.get("smoke_output_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools")
+        Some("artifacts/runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools")
     );
     assert_eq!(row.get("smoke_input_variants").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(row.get("smoke_output_variants").and_then(serde_json::Value::as_u64), Some(4));

@@ -158,7 +158,7 @@ fn bench_readiness_fastq_validate_reads_ready_reports_complete_active_validator_
     );
     assert_eq!(
         fastqc.get("smoke_proof_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/fastq.validate_reads/report.json")
+        Some("artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json")
     );
     assert!(fastqc.get("shared_metric_fields").and_then(serde_json::Value::as_array).is_some_and(
         |fields| {

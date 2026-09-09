@@ -267,7 +267,7 @@ Visible aliases are part of the operator surface:
   `run-fastq-micro-smoke-subset` writes `artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json`,
   choosing one governed retained FASTQ binding per family from the canonical local-container smoke
   matrix. Families with a real governed `materialize-stage` smoke artifact record host-local
-  evidence under `runs/bench/local-smoke/<stage>/`, while planner-backed families report the
+  evidence under `artifacts/runs/bench/local-smoke/<stage>/`, while planner-backed families report the
   checked-in container smoke path instead of inventing a fake host success. The summary keeps the
   family slice, representative stage/tool, execution status, smoke metadata, and any parsed
   evidence schema so FASTQ readiness stays grounded in one honest local-or-container verdict per
@@ -1326,7 +1326,7 @@ Visible aliases are part of the operator surface:
   tool execution gate for Goals 421–429. The gate rerenders the governed retained inventory,
   executable-resolution, version-probe, Apptainer-map, input-preflight, output-contract, and
   real-output parser proof surfaces, and it validates the retained host/container smoke manifests
-  already recorded under `runs/bench/tool-smoke/{host,container}`. The report keeps the checked
+  already recorded under `artifacts/runs/bench/tool-smoke/{host,container}`. The report keeps the checked
   goal ids, failing goal ids when any, retained-tool and smoke counts, parser-family count, and a
   per-goal detail line. The command fails closed if any retained active tool is unresolved,
   unversioned, missing a governed smoke manifest, missing a structured unavailable reason, or
@@ -1334,7 +1334,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench readiness run-container-tool-smoke`
   `run-container-tool-smoke` executes the governed local container smoke wrapper for every
   retained tool that resolves to a non-host runtime and writes one manifest per tool at
-  `runs/bench/tool-smoke/container/<tool_id>/manifest.json`. Docker-backed tools run through the
+  `artifacts/runs/bench/tool-smoke/container/<tool_id>/manifest.json`. Docker-backed tools run through the
   governed `docker-arm64` smoke surface when Docker is available; Apptainer-backed tools run
   through the governed `apptainer` smoke surface when Apptainer is available; explicitly
   unresolved retained tools record `unavailable_with_reason` instead of pretending local support.
@@ -1345,7 +1345,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench readiness run-host-tool-smoke`
   `run-host-tool-smoke` executes the governed `version_cmd` for every retained tool that resolves
   to `host_binary` and writes one manifest per tool at
-  `runs/bench/tool-smoke/host/<tool_id>/manifest.json`. Each manifest records the declared
+  `artifacts/runs/bench/tool-smoke/host/<tool_id>/manifest.json`. Each manifest records the declared
   command, applied argv, exit code, stdout, stderr, parsed version, regex match result, runtime
   probe paths, and registry source paths. The command fails closed if any host tool command fails,
   does not yield a parseable version, or misses its governed version regex.
@@ -1622,7 +1622,7 @@ Visible aliases are part of the operator surface:
   benchmark-addressable through a real local contract row. CLI integration tests independently
   exercise the admitted declarations alongside the VCF domain and execution-stage contracts.
 - `bijux-dna bench local render-vcf-smoke-root`
-  `render-vcf-smoke-root` writes `runs/bench/local-smoke/vcf/SMOKE_ROOT.json`, deriving the governed
+  `render-vcf-smoke-root` writes `artifacts/runs/bench/local-smoke/vcf/SMOKE_ROOT.json`, deriving the governed
   local VCF smoke root from the owned VCF stage catalog, benchmark matrix, and current `HEAD`
   revision. The manifest keeps `run_id`, `repo_revision`, `corpus_id`, `created_at`, `command`,
   `stage_count`, `tool_pair_count`, and one explicit row per stage-tool pair with deterministic
@@ -1631,14 +1631,14 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local run-bam-micro-smoke-subset`
   `run-bam-micro-smoke-subset` writes `artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json`, choosing
   one governed retained BAM binding per family from the canonical local-smoke matrix. Host-backed
-  families materialize the real tiny-fixture artifact under `runs/bench/local-smoke/<stage>/`,
+  families materialize the real tiny-fixture artifact under `artifacts/runs/bench/local-smoke/<stage>/`,
   while container-backed families record the exact smoke command and checked-in support path
   instead of inventing a fake host success. The summary keeps the family slice, representative
   stage/tool, execution status, smoke metadata, and any parsed evidence schema so BAM readiness
   stays grounded in one honest local-or-container verdict per family.
 - `bijux-dna bench local run-bam-stage-smoke`
   `run-bam-stage-smoke` materializes the governed BAM tiny-fixture smoke artifact for one
-  smoke-capable stage under `runs/bench/local-smoke/<stage>/`, using the exact stage-level BAM
+  smoke-capable stage under `artifacts/runs/bench/local-smoke/<stage>/`, using the exact stage-level BAM
   smoke contract checked in under `configs/bench/local/`. JSON-backed BAM smoke stages print
   the real governed report in `--json` mode, while TSV-backed stages report the artifact path and
   format without inventing extra metrics.
@@ -1646,15 +1646,15 @@ Visible aliases are part of the operator surface:
   `run-vcf-micro-smoke-subset` writes `artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json`, choosing one
   governed retained VCF binding per family from the canonical local-container smoke matrix.
   Families with a real governed local smoke wrapper materialize the exact stage-result manifest
-  under `runs/bench/local-smoke/<stage>/`, while container-backed families record the exact smoke
+  under `artifacts/runs/bench/local-smoke/<stage>/`, while container-backed families record the exact smoke
   command and checked-in support path instead of inventing a fake host success. The summary keeps
   the family slice, representative stage/tool, execution status, smoke metadata, and any parsed
   evidence schema so VCF readiness stays grounded in one honest local-or-container verdict per
   family.
 - `bijux-dna bench local run-vcf-call-smoke`
-  `run-vcf-call-smoke` writes `runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz`,
-  `runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi`, and
-  `runs/bench/local-smoke/vcf.call/bcftools/metrics.json` from the governed `vcf.call` matrix row and
+  `run-vcf-call-smoke` writes `artifacts/runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz`,
+  `artifacts/runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz.tbi`, and
+  `artifacts/runs/bench/local-smoke/vcf.call/bcftools/metrics.json` from the governed `vcf.call` matrix row and
   the real `human_like_validation` BAM fixture in `corpus-01-bam-mini`. The command uses the
   retained `bcftools` caller, resolves the alias onto the diploid BAM calling flow, materializes a
   private reference copy under `artifacts/reference`, and writes a `stage-result.json` manifest
@@ -1662,9 +1662,9 @@ Visible aliases are part of the operator surface:
   variant counts, and parseability checks for the real local smoke without mutating the governed
   fixture tree.
 - `bijux-dna bench local run-vcf-call-diploid-smoke`
-  `run-vcf-call-diploid-smoke` writes `runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz`,
-  `runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz.tbi`, and
-  `runs/bench/local-smoke/vcf.call_diploid/bcftools/metrics.json` from the governed
+  `run-vcf-call-diploid-smoke` writes `artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz`,
+  `artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz.tbi`, and
+  `artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/metrics.json` from the governed
   `vcf.call_diploid` matrix row and the real `human_like_validation` BAM fixture in
   `corpus-01-bam-mini`. The command uses the retained `bcftools` caller, materializes a private
   reference copy under `artifacts/reference`, validates that GT-bearing output stays parseable and
@@ -1673,9 +1673,9 @@ Visible aliases are part of the operator surface:
   `homozygous_alt_count`, and `missing_count`) so diploid genotype representation is proved by a
   real local smoke instead of inferred from the generic calling alias.
 - `bijux-dna bench local run-vcf-call-gl-smoke`
-  `run-vcf-call-gl-smoke` writes `runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz`,
-  `runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz.tbi`, and
-  `runs/bench/local-smoke/vcf.call_gl/bcftools/metrics.json` from the governed `vcf.call_gl` matrix
+  `run-vcf-call-gl-smoke` writes `artifacts/runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz`,
+  `artifacts/runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz.tbi`, and
+  `artifacts/runs/bench/local-smoke/vcf.call_gl/bcftools/metrics.json` from the governed `vcf.call_gl` matrix
   row and the real `human_like_validation` BAM fixture in `corpus-01-bam-mini`. The command
   materializes a private reference copy under `artifacts/reference`, emits the real retained
   `bcftools` likelihood representation, validates that the output remains indexed and parseable
@@ -1684,9 +1684,9 @@ Visible aliases are part of the operator surface:
   a `stage-result.json` manifest so GL-bearing local smoke evidence stays reviewer-visible.
 - `bijux-dna bench local run-vcf-damage-filter-smoke`
   `run-vcf-damage-filter-smoke` writes
-  `runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz`,
-  `runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi`, and
-  `runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json` from the governed
+  `artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz`,
+  `artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi`, and
+  `artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json` from the governed
   `vcf.damage_filter` matrix row. The command materializes a deterministic single-sample synthetic
   VCF with PL-bearing genotype likelihoods plus explicit `CT_GA_DAMAGE_RATIO`, `DEAM5P`,
   `DEAM3P`, and `PMD_SCORE` evidence, runs the real retained `bcftools` damage-filter stage,
@@ -1695,9 +1695,9 @@ Visible aliases are part of the operator surface:
   `terminal_context_count`) so the local smoke proves real damage filtering instead of a fixture
   copy.
 - `bijux-dna bench local run-vcf-filter-smoke`
-  `run-vcf-filter-smoke` writes `runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz`,
-  `runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi`, and
-  `runs/bench/local-smoke/vcf.filter/bcftools/metrics.json` from the governed `vcf.filter` matrix
+  `run-vcf-filter-smoke` writes `artifacts/runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz`,
+  `artifacts/runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi`, and
+  `artifacts/runs/bench/local-smoke/vcf.filter/bcftools/metrics.json` from the governed `vcf.filter` matrix
   row. The command materializes a deterministic single-sample site-filter fixture with known
   `LOWQUAL`, `LOW_DP`, `LOW_MQ`, and `HIGH_MISSING` rows, runs the real retained `bcftools`
   filter stage with tagged-record retention, keeps the breakdown and explain artifacts visible,
@@ -1705,9 +1705,9 @@ Visible aliases are part of the operator surface:
   `filter_ids`, `depth_threshold`, `quality_threshold`, and `missingness_threshold`) so reviewer
   evidence comes from the repo command instead of an implied threshold contract.
 - `bijux-dna bench local run-vcf-qc-smoke`
-  `run-vcf-qc-smoke` writes `runs/bench/local-smoke/vcf.qc/plink2/qc.json`,
-  `runs/bench/local-smoke/vcf.qc/plink2/qc_summary.json`, and
-  `runs/bench/local-smoke/vcf.qc/plink2/metrics.json` from the governed `vcf.qc` matrix row. The
+  `run-vcf-qc-smoke` writes `artifacts/runs/bench/local-smoke/vcf.qc/plink2/qc.json`,
+  `artifacts/runs/bench/local-smoke/vcf.qc/plink2/qc_summary.json`, and
+  `artifacts/runs/bench/local-smoke/vcf.qc/plink2/metrics.json` from the governed `vcf.qc` matrix row. The
   command materializes a deterministic three-sample cohort VCF with one known high-missingness
   sample and one known high-missingness variant, runs the real retained `plink2`-owned QC stage,
   keeps the copied summary, warnings, histogram, and table artifacts visible, and records exact
@@ -1717,7 +1717,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local run-vcf-admixture-smoke`
   `run-vcf-admixture-smoke` selects `plink` or `plink2` with `--tool-id` and writes tool-addressed
   `admixture.tsv` and `admixture.json` artifacts
-  under `runs/bench/local-smoke/vcf.admixture/<tool-id>/` from the matching governed
+  under `artifacts/runs/bench/local-smoke/vcf.admixture/<tool-id>/` from the matching governed
   `vcf.admixture` binding. The command materializes the owned `vcf-mini` multisample cohort plus
   population metadata contracts, runs the exact retained PLINK-family backend, keeps the source
   Q-matrix and stage manifest visible, and records exact smoke evidence (`sample_id`, `K`,
@@ -1726,7 +1726,7 @@ Visible aliases are part of the operator surface:
   governed fallback proxy.
 - `bijux-dna bench local run-vcf-population-structure-smoke`
   `run-vcf-population-structure-smoke` writes
-  `runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json` from the
+  `artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json` from the
   governed `vcf.population_structure` matrix row. The command reruns the owned PCA and admixture
   smoke commands first, fails if their persisted reports are missing, runs the retained population
   structure stage on the governed cohort contract, keeps the source stage JSON, pruned variants,
@@ -1734,8 +1734,8 @@ Visible aliases are part of the operator surface:
   (`consumed_pca`, `consumed_admixture`, `sample_groups`, `distance_summary`, and `status`) so
   the final report is grounded in real upstream local-smoke outputs instead of an invented join.
 - `bijux-dna bench local run-vcf-ibd-smoke`
-  `run-vcf-ibd-smoke` writes `runs/bench/local-smoke/vcf.ibd/germline/ibd.tsv` and
-  `runs/bench/local-smoke/vcf.ibd/germline/ibd.json` from the governed `vcf.ibd` matrix row. The
+  `run-vcf-ibd-smoke` writes `artifacts/runs/bench/local-smoke/vcf.ibd/germline/ibd.tsv` and
+  `artifacts/runs/bench/local-smoke/vcf.ibd/germline/ibd.json` from the governed `vcf.ibd` matrix row. The
   command materializes the owned `vcf-mini` multisample cohort plus sample metadata contract, runs
   the retained IBD stage, keeps the source input, segment, merged, filtered, summary, metrics, and
   log artifacts visible, and records exact normalized pair evidence (`sample_a`, `sample_b`,
@@ -1744,7 +1744,7 @@ Visible aliases are part of the operator surface:
   run on the same sparse input still succeeds, so the suite-local block remains reviewer-visible
   instead of collapsing into a generic command failure.
 - `bijux-dna bench local run-vcf-demography-smoke`
-  `run-vcf-demography-smoke` writes `runs/bench/local-smoke/vcf.demography/ibdne/demography.json`
+  `run-vcf-demography-smoke` writes `artifacts/runs/bench/local-smoke/vcf.demography/ibdne/demography.json`
   from the governed `vcf.demography` matrix row. The command reruns the owned IBD smoke first,
   consumes the governed filtered-segment artifact as its real upstream input, runs the retained
   demography stage, keeps the upstream IBD report plus the source Ne trajectory, contract, metrics,
@@ -1753,25 +1753,25 @@ Visible aliases are part of the operator surface:
   the built-in sparse-overlap IBD probe and requires an explicit `insufficient_data` result instead
   of a stderr-only failure, so missing IBD support stays reviewer-visible as structured output.
 - `bijux-dna bench local run-vcf-roh-smoke`
-  `run-vcf-roh-smoke` writes `runs/bench/local-smoke/vcf.roh/plink2/roh.tsv` and
-  `runs/bench/local-smoke/vcf.roh/plink2/roh.json` from the governed `vcf.roh` matrix row. The
+  `run-vcf-roh-smoke` writes `artifacts/runs/bench/local-smoke/vcf.roh/plink2/roh.tsv` and
+  `artifacts/runs/bench/local-smoke/vcf.roh/plink2/roh.json` from the governed `vcf.roh` matrix row. The
   command materializes the owned `vcf-mini` multisample cohort plus sample metadata contract, runs
   the retained ROH stage, keeps the source segment table, per-sample summary, source report,
   metrics, and logs visible, and records exact normalized smoke evidence (`sample_id`, `contig`,
   `start`, `end`, `length`, `variant_count`, `segment_count`, and `total_length`) so reviewer
   evidence comes from the repo command instead of a raw PLINK-shaped artifact.
 - `bijux-dna bench local run-vcf-pca-smoke`
-  `run-vcf-pca-smoke` writes `runs/bench/local-smoke/vcf.pca/plink2/pca.tsv` and
-  `runs/bench/local-smoke/vcf.pca/plink2/pca.json` from the governed `vcf.pca` matrix row. The
+  `run-vcf-pca-smoke` writes `artifacts/runs/bench/local-smoke/vcf.pca/plink2/pca.tsv` and
+  `artifacts/runs/bench/local-smoke/vcf.pca/plink2/pca.json` from the governed `vcf.pca` matrix row. The
   command materializes the owned `vcf-mini` multisample cohort plus metadata contracts, runs the
   retained PCA stage, keeps the source eigen tables and stage manifest visible, and records exact
   smoke evidence (`sample_id`, `pc1`, `pc2`, `eigenvalues`, `variant_count`, `excluded_samples`,
   and `execution_mode`) so sample-to-metadata coverage stays explicit whether the local run used
   `plink2` directly or the governed fallback proxy.
 - `bijux-dna bench local run-vcf-stats-smoke`
-  `run-vcf-stats-smoke` writes `runs/bench/local-smoke/vcf.stats/bcftools/stats.json`,
-  `runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt`, and
-  `runs/bench/local-smoke/vcf.stats/bcftools/metrics.json` from the governed `vcf.stats` matrix row.
+  `run-vcf-stats-smoke` writes `artifacts/runs/bench/local-smoke/vcf.stats/bcftools/stats.json`,
+  `artifacts/runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt`, and
+  `artifacts/runs/bench/local-smoke/vcf.stats/bcftools/metrics.json` from the governed `vcf.stats` matrix row.
   The command materializes a deterministic two-sample cohort VCF with a known 2:1
   transition/transversion mix, runs the real retained `bcftools` stats stage, fails closed unless
   the persisted `stats.json` stays normalized, and records exact smoke metrics (`variant_count`,
@@ -1780,9 +1780,9 @@ Visible aliases are part of the operator surface:
   raw tool text.
 - `bijux-dna bench local run-vcf-gl-propagation-smoke`
   `run-vcf-gl-propagation-smoke` writes
-  `runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz`,
-  `runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf`, and
-  `runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json` from the governed
+  `artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz`,
+  `artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf`, and
+  `artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json` from the governed
   `vcf.gl_propagation` matrix row. The command materializes a deterministic single-sample GL/PL/GP
   input VCF, runs the real retained `bcftools` propagation stage, keeps the normalized VCF, BCF,
   CSI, and stage report visible, and records exact smoke metrics
@@ -1791,9 +1791,9 @@ Visible aliases are part of the operator surface:
   inferred from policy files.
 - `bijux-dna bench local run-vcf-prepare-reference-panel-smoke`
   `run-vcf-prepare-reference-panel-smoke` writes
-  `runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz`,
-  `runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi`, and
-  `runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json` from the governed
+  `artifacts/runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz`,
+  `artifacts/runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz.tbi`, and
+  `artifacts/runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json` from the governed
   `vcf.prepare_reference_panel` matrix row. The command materializes a deterministic single-sample
   input VCF plus an unsorted duplicate-bearing raw panel fixture, runs the real retained
   `bcftools` panel-preparation stage, keeps the overlap, chunk, and panel manifests visible, and
@@ -1802,9 +1802,9 @@ Visible aliases are part of the operator surface:
   the output panel is sorted, indexed, normalized, and sample-consistent instead of only copying a
   panel fixture.
 - `bijux-dna bench local run-vcf-phasing-smoke`
-  `run-vcf-phasing-smoke` writes `runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz`,
-  `runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz.tbi`, and
-  `runs/bench/local-smoke/vcf.phasing/shapeit5/metrics.json` from the governed `vcf.phasing` matrix
+  `run-vcf-phasing-smoke` writes `artifacts/runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz`,
+  `artifacts/runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz.tbi`, and
+  `artifacts/runs/bench/local-smoke/vcf.phasing/shapeit5/metrics.json` from the governed `vcf.phasing` matrix
   row. The command materializes a deterministic two-sample unphased cohort VCF plus the owned
   panel/map lock assets, runs the real retained `shapeit5` phasing stage, keeps the phasing QC,
   manifest, phase-block, switch-proxy, and panel-asset reports visible, and records exact smoke
@@ -1812,9 +1812,9 @@ Visible aliases are part of the operator surface:
   `tool_id`) so reviewer evidence proves phased separators are emitted instead of only inferring
   phasing readiness from the stage catalog.
 - `bijux-dna bench local run-vcf-impute-smoke`
-  `run-vcf-impute-smoke` writes `runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz`,
-  `runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz.tbi`, and
-  `runs/bench/local-smoke/vcf.impute/beagle/metrics.json` from the governed `vcf.impute` matrix row.
+  `run-vcf-impute-smoke` writes `artifacts/runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz`,
+  `artifacts/runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz.tbi`, and
+  `artifacts/runs/bench/local-smoke/vcf.impute/beagle/metrics.json` from the governed `vcf.impute` matrix row.
   The command materializes a deterministic two-sample masked-truth cohort plus the owned
   panel/map lock assets, runs the real retained `beagle` imputation stage, keeps the imputation
   QC, manifest, overlap, warning, acceptance, and panel-mismatch artifacts visible, and records
@@ -1824,7 +1824,7 @@ Visible aliases are part of the operator surface:
   surfaced with an explicit unresolved reason instead of being hidden by wrapper logic.
 - `bijux-dna bench local run-vcf-imputation-metrics-smoke`
   `run-vcf-imputation-metrics-smoke` writes
-  `runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json` from the governed
+  `artifacts/runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json` from the governed
   `vcf.impute` smoke outputs. The command reruns the real local `beagle` imputation smoke, copies
   the persisted QC, metrics, and manifest artifacts into a dedicated reviewer-facing root, and
   records exact quality evidence (`concordance`, `mean_info_score`, `r2_available`,
@@ -1832,9 +1832,9 @@ Visible aliases are part of the operator surface:
   explicit in `missing_quality_fields` instead of silently disappearing from the report surface.
 - `bijux-dna bench local run-vcf-call-pseudohaploid-smoke`
   `run-vcf-call-pseudohaploid-smoke` writes
-  `runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
-  `runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz.tbi`, and
-  `runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json` from the governed
+  `artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz`,
+  `artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz.tbi`, and
+  `artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json` from the governed
   `vcf.call_pseudohaploid` matrix row and the real `human_like_validation` BAM fixture in
   `corpus-01-bam-mini`. The command records explicit pseudohaploid site metrics
   (`target_sites`, `covered_sites`, `called_sites`, `missing_sites`), the governed sampling
@@ -1843,7 +1843,7 @@ Visible aliases are part of the operator surface:
   headers while still surfacing the raw header drift.
 - `bijux-dna bench local validate-vcf-no-empty-output`
   `validate-vcf-no-empty-output` writes `artifacts/benchmark-smoke/readiness/local-ready/vcf/no-empty-output-check.json`,
-  refreshes the governed VCF smoke-output fixture tree under `runs/bench/local-smoke/vcf`, and fails
+  refreshes the governed VCF smoke-output fixture tree under `artifacts/runs/bench/local-smoke/vcf`, and fails
   closed unless every declared `.vcf.gz`, `.json`, `.tsv`, and `.log` artifact remains present
   and non-empty. The report keeps one explicit row per checked output with `stage_id`, `tool_id`,
   `output_id`, `output_kind`, `output_path`, `bytes`, `status`, and `allow_empty_reason`, and the
@@ -1857,7 +1857,7 @@ Visible aliases are part of the operator surface:
   `goal_id`, `surface`, `output_path`, `ok`, and `detail` so any drift stays visible in a single
   reviewer-facing local-ready report.
 - `bijux-dna bench local validate-vcf-smoke-suite-ready`
-  `validate-vcf-smoke-suite-ready` writes `runs/bench/local-smoke/VCF_SMOKE_SUITE_READY.json` and
+  `validate-vcf-smoke-suite-ready` writes `artifacts/runs/bench/local-smoke/VCF_SMOKE_SUITE_READY.json` and
   fail-closes across the governed VCF Goal 211-229 slice. The gate reruns every owned VCF local
   smoke surface in goal order, from `vcf.call` through `vcf.demography`, and records one explicit
   row per goal with `goal_id`, `surface`, `output_path`, `ok`, and `detail` so missing outputs,
@@ -2003,31 +2003,31 @@ Visible aliases are part of the operator surface:
   lineage-table consistency, per-classifier backend index paths, classifier-compatibility claims,
   source-manifest integrity, and backend bundle shape.
 - `bijux-dna bench local validate-slurm-dependencies`
-  `validate-slurm-dependencies` writes `runs/bench/slurm-dry-run/dependency-check.json` and refuses
+  `validate-slurm-dependencies` writes `artifacts/runs/bench/slurm-dry-run/dependency-check.json` and refuses
   any dry-run job whose dependencies are split or duplicated across both the submit manifest and
   the generated `.sbatch` header.
 - `bijux-dna bench local validate-slurm-shell-syntax`
-  `validate-slurm-shell-syntax` writes `runs/bench/slurm-dry-run/bash-n-report.json` and refuses any
+  `validate-slurm-shell-syntax` writes `artifacts/runs/bench/slurm-dry-run/bash-n-report.json` and refuses any
   generated `.sbatch` file under the selected dry-run root that fails `bash -n`.
 - `bijux-dna bench local validate-all-domain-slurm-shell-syntax`
   `validate-all-domain-slurm-shell-syntax` regenerates the governed all-domain SLURM tree under
-  `runs/bench/slurm-dry-run/all-domains/`, then writes
-  `runs/bench/slurm-dry-run/all-domains/bash-n-report.json`. The report refuses any generated
+  `artifacts/runs/bench/slurm-dry-run/all-domains/`, then writes
+  `artifacts/runs/bench/slurm-dry-run/all-domains/bash-n-report.json`. The report refuses any generated
   benchmark-result or essential-pipeline `.sbatch` file in that 213-script tree that fails
   `bash -n`, so the all-domain SLURM surface is syntax-checked as one owned unit instead of
   relying on partial domain roots.
 - `bijux-dna bench local validate-slurm-script-bodies`
-  `validate-slurm-script-bodies` writes `runs/bench/slurm-dry-run/no-placeholder-report.json` and
+  `validate-slurm-script-bodies` writes `artifacts/runs/bench/slurm-dry-run/no-placeholder-report.json` and
   refuses generated `.sbatch` bodies that still contain placeholder markers, fake `echo execute`
   payloads, unconditional `rc=0`, or missing `bijux-dna` command lines.
 - `bijux-dna bench local render-slurm-submit-manifest`
-  `render-slurm-submit-manifest` writes `runs/bench/slurm-dry-run/submit-manifest.json`, rendering the
+  `render-slurm-submit-manifest` writes `artifacts/runs/bench/slurm-dry-run/submit-manifest.json`, rendering the
   governed FASTQ and BAM dry-run script slices first and then recording per-job job names, domain,
   stage ownership, corpus and sample scope, resources, script path, log paths, declared outputs,
   and derived dependencies.
 - `bijux-dna bench local render-all-domain-slurm-submit-manifest`
   `render-all-domain-slurm-submit-manifest` writes
-  `runs/bench/slurm-dry-run/all-domains/submit-manifest.json` for the governed 213-job all-domain
+  `artifacts/runs/bench/slurm-dry-run/all-domains/submit-manifest.json` for the governed 213-job all-domain
   SLURM tree. The manifest keeps one row per benchmark-result or essential-pipeline job with
   `job_id_local`, domain, stage, pipeline or node identity where applicable, tool, corpus,
   asset-profile, script path, stdout, stderr, declared outputs, manifest-only dependencies, and
@@ -2035,48 +2035,48 @@ Visible aliases are part of the operator surface:
   id or if a generated script leaks dependency ordering into `#SBATCH --dependency` headers.
 - `bijux-dna bench local render-hpc-asset-staging-manifest`
   `render-hpc-asset-staging-manifest` writes
-  `runs/bench/hpc-dry-run/asset-staging-manifest.json`, using the governed
+  `artifacts/runs/bench/hpc-dry-run/asset-staging-manifest.json`, using the governed
   `artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.argv.jsonl` slice as the
   selected future HPC benchmark job roster. Each job row lists the staged source assets it consumes,
   including the original repo-relative source path, deterministic staged path under
-  `runs/bench/hpc-dry-run/staged/`, checksum, size, member count for prefix bundles or directories,
+  `artifacts/runs/bench/hpc-dry-run/staged/`, checksum, size, member count for prefix bundles or directories,
   and the canonical consumer `result_id`, so hidden local benchmark dependencies stay explicit
   before any cluster transfer logic is added.
 - `bijux-dna bench local validate-hpc-asset-staging-manifest`
   `validate-hpc-asset-staging-manifest` reloads
-  `runs/bench/hpc-dry-run/asset-staging-manifest.json`, enforces the governed schema and output
+  `artifacts/runs/bench/hpc-dry-run/asset-staging-manifest.json`, enforces the governed schema and output
   location, and then rebuilds the expected manifest from the current all-domain command argv slice.
   The command fails closed if job counts, staged inputs, checksums, staged paths, or consumer
   result ids drift from the governed dry-run source selection.
 - `bijux-dna bench local render-hpc-scratch-layout`
-  `render-hpc-scratch-layout` writes `runs/bench/hpc-dry-run/scratch-layout.json`, using the
+  `render-hpc-scratch-layout` writes `artifacts/runs/bench/hpc-dry-run/scratch-layout.json`, using the
   governed all-domain SLURM submit manifest together with the rendered benchmark and essential
   pipeline command argv slices. Each selected job keeps a job-scoped scratch root, an `inputs/`
   link tree rooted under scratch, the governed output and log roots copied back from the submit
   manifest, explicit scratch resource ceilings, and a durable cleanup policy so future HPC job
   layouts never depend on unclear shared paths.
 - `bijux-dna bench local validate-hpc-scratch-layout`
-  `validate-hpc-scratch-layout` reloads `runs/bench/hpc-dry-run/scratch-layout.json`, enforces
+  `validate-hpc-scratch-layout` reloads `artifacts/runs/bench/hpc-dry-run/scratch-layout.json`, enforces
   the governed schema and output location, and then rebuilds the expected layout from the current
   submit manifest, command argv slices, staged-input discovery rules, and resource hints. The
   command fails closed if scratch roots, input-link paths, output or log roots, scratch resource
   ceilings, or cleanup policy rows drift from the governed dry-run layout.
 - `bijux-dna bench local render-hpc-execution-resolver`
-  `render-hpc-execution-resolver` writes `runs/bench/hpc-dry-run/execution-resolver.tsv`, using
+  `render-hpc-execution-resolver` writes `artifacts/runs/bench/hpc-dry-run/execution-resolver.tsv`, using
   the governed all-domain SLURM submit manifest as the selected future HPC job roster together
   with the governed execution-mode map, runtime probes, and Apptainer conversion map. Each row
   records the selected tool scope, the lookup tool id used for runtime resolution, whether the
   selected job resolves as a host binary, a governed Apptainer image, or an explicit unavailable
   reason, so cluster execution never depends on ambiguous operator runtime assumptions.
 - `bijux-dna bench local validate-hpc-execution-resolver`
-  `validate-hpc-execution-resolver` reloads `runs/bench/hpc-dry-run/execution-resolver.tsv` and
+  `validate-hpc-execution-resolver` reloads `artifacts/runs/bench/hpc-dry-run/execution-resolver.tsv` and
   rebuilds the expected selected-tool runtime surface from the current submit manifest, execution
   mode assignments, runtime probes, and Apptainer map. The command fails closed if selected tool
   scope, lookup aliases, final resolution kind, target path, or unavailable reason drift from the
   governed dry-run execution plan.
 - `bijux-dna bench local render-hpc-dependency-simulation`
   `render-hpc-dependency-simulation` writes
-  `runs/bench/hpc-dry-run/slurm-dependency-simulation.json`. The render consumes the governed HPC
+  `artifacts/runs/bench/hpc-dry-run/slurm-dependency-simulation.json`. The render consumes the governed HPC
   job graph and proves two failure-isolation cases over the selected benchmark-result and
   essential-pipeline-node scope: a failed node blocks only its descendants, sibling branches keep
   running, and unrelated benchmark work continues. Each case records per-job status,
@@ -2084,25 +2084,25 @@ Visible aliases are part of the operator surface:
   explicit before any cluster submission occurs.
 - `bijux-dna bench local validate-hpc-dependency-simulation`
   `validate-hpc-dependency-simulation` reloads
-  `runs/bench/hpc-dry-run/slurm-dependency-simulation.json` and rebuilds the expected simulation
+  `artifacts/runs/bench/hpc-dry-run/slurm-dependency-simulation.json` and rebuilds the expected simulation
   report from the current benchmark-model-admitted HPC job graph. The command fails closed if failed-job choice,
   descendant blocking, sibling continuation, benchmark continuation, or any per-job dependency
   status drifts from the governed dry-run dependency contract.
 - `bijux-dna bench local render-hpc-resume-simulation`
-  `render-hpc-resume-simulation` writes `runs/bench/hpc-dry-run/resume-simulation.json` together
+  `render-hpc-resume-simulation` writes `artifacts/runs/bench/hpc-dry-run/resume-simulation.json` together
   with a sibling `resume-simulation-tree/` that mirrors the governed selected-job result layout.
   The render seeds valid stage-result manifests for every governed HPC job, then injects one
   failed manifest, one missing manifest, one stale partial-output case, and one downstream
   dependency rerun so skip versus rerun behavior is explicit before any real cluster resume flow.
 - `bijux-dna bench local validate-hpc-resume-simulation`
-  `validate-hpc-resume-simulation` reloads `runs/bench/hpc-dry-run/resume-simulation.json` and
+  `validate-hpc-resume-simulation` reloads `artifacts/runs/bench/hpc-dry-run/resume-simulation.json` and
   rebuilds the expected resume report from the current governed HPC job graph and stage-result
   contract. The command fails closed if valid-completed skips, failed-manifest reruns,
   missing-manifest reruns, stale partial-output reruns, or dependency-propagated reruns drift from
   the governed dry-run resume contract.
 - `bijux-dna bench local render-hpc-result-collection-simulation`
   `render-hpc-result-collection-simulation` writes
-  `runs/bench/hpc-dry-run/result-collection-simulation.json` together with a sibling
+  `artifacts/runs/bench/hpc-dry-run/result-collection-simulation.json` together with a sibling
   `result-collection-simulation-tree/` that mirrors the governed selected-job result layout. The
   render seeds valid stage-result manifests for the governed jobs, then injects one failed
   manifest, one missing manifest, one insufficient-data output, and one unavailable execution case
@@ -2110,7 +2110,7 @@ Visible aliases are part of the operator surface:
   stay distinct before any real cluster result import occurs.
 - `bijux-dna bench local validate-hpc-result-collection-simulation`
   `validate-hpc-result-collection-simulation` reloads
-  `runs/bench/hpc-dry-run/result-collection-simulation.json` and rebuilds the expected collection
+  `artifacts/runs/bench/hpc-dry-run/result-collection-simulation.json` and rebuilds the expected collection
   report from the current governed HPC job graph, stage-result contract, and execution resolver.
   The command fails closed if complete, failed, missing, insufficient, or unavailable row
   classification drifts from the governed dry-run result-collection contract.
@@ -2145,30 +2145,30 @@ Visible aliases are part of the operator surface:
   ambiguous execution handling.
 - `bijux-dna bench local render-hpc-stage-benchmark-array`
   `render-hpc-stage-benchmark-array` writes
-  `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` together with
-  `runs/bench/hpc-dry-run/slurm/stage-benchmark-array-manifest.json`. The render consumes the
+  `artifacts/runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` together with
+  `artifacts/runs/bench/hpc-dry-run/slurm/stage-benchmark-array-manifest.json`. The render consumes the
   governed selected benchmark-result jobs, HPC scratch layout, and execution resolver so each
   zero-based array index maps to one exact `result_id`, benchmark-result execution argv, resource
   request, stdout and stderr paths, declared outputs, and execution-resolution metadata before any
   real cluster submission occurs.
 - `bijux-dna bench local validate-hpc-stage-benchmark-array`
   `validate-hpc-stage-benchmark-array` reloads
-  `runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` and its companion manifest, then
+  `artifacts/runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch` and its companion manifest, then
   rebuilds the expected array dispatch surface from the current selected benchmark jobs, HPC
   scratch layout, and execution resolver. The command fails closed if the array index mapping,
   benchmark-result execution commands, resource envelope, wrapper script, log paths, or declared
   outputs drift from the governed dry-run stage benchmark plan.
 - `bijux-dna bench local render-hpc-pipeline-node-array`
   `render-hpc-pipeline-node-array` writes
-  `runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch` together with
-  `runs/bench/hpc-dry-run/slurm/pipeline-node-array-manifest.json`. The render consumes the
+  `artifacts/runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch` together with
+  `artifacts/runs/bench/hpc-dry-run/slurm/pipeline-node-array-manifest.json`. The render consumes the
   governed essential-pipeline nodes from the selected-job manifest, validated pipeline DAGs, and
   HPC scratch layout so each zero-based array index maps to one exact pipeline node execution
   command, dependency job list, upstream result ids, dependency output paths, and node expected
   outputs before any cluster submission or dependency simulation occurs.
 - `bijux-dna bench local validate-hpc-pipeline-node-array`
   `validate-hpc-pipeline-node-array` reloads
-  `runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch` and its companion manifest, then
+  `artifacts/runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch` and its companion manifest, then
   rebuilds the expected array dispatch surface from the current selected essential-pipeline jobs,
   validated DAGs, and HPC scratch layout. The command fails closed if dependency ordering,
   upstream result bindings, expected output paths, wrapper script, or per-node execution commands
@@ -2260,27 +2260,27 @@ Visible aliases are part of the operator surface:
   collapsing into raw stderr alone.
 - `bijux-dna bench local render-all-domain-slurm-scripts`
   `render-all-domain-slurm-scripts` writes one governed `.sbatch` file per canonical all-domain
-  benchmark result plus one per essential pipeline node under `runs/bench/slurm-dry-run/all-domains/`.
+  benchmark result plus one per essential pipeline node under `artifacts/runs/bench/slurm-dry-run/all-domains/`.
   The generated tree keeps benchmark-ready FASTQ, BAM, and VCF jobs under
   `benchmark-results/<domain>/<corpus>/<stage>/<asset-profile>/<tool>/job.sbatch` and essential
   pipeline jobs under `essential-pipelines/<pipeline-id>/<node-id>/job.sbatch`, while `stdout`,
   `stderr`, and declared outputs resolve under the canonical run root
-  `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/`. This is the owned
+  `artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/`. This is the owned
   cross-domain SLURM generation surface for the governed 120-result benchmark slice and the
   93-node essential pipeline slice.
 - `bijux-dna bench local validate-all-domain-slurm-script-bodies`
   `validate-all-domain-slurm-script-bodies` regenerates the governed all-domain SLURM tree under
-  `runs/bench/slurm-dry-run/all-domains/`, then writes
-  `runs/bench/slurm-dry-run/all-domains/no-placeholder-report.json`. The report fails closed if any
+  `artifacts/runs/bench/slurm-dry-run/all-domains/`, then writes
+  `artifacts/runs/bench/slurm-dry-run/all-domains/no-placeholder-report.json`. The report fails closed if any
   generated `.sbatch` body contains `placeholder`, a to-do marker, `echo execute`, unconditional `rc=0`,
   an empty executable body, or a missing `bijux-dna` invocation, so reviewers can prove the
   all-domain SLURM surface calls owned repo commands instead of template text.
 - `bijux-dna bench local validate-all-domain-slurm-result-paths`
   `validate-all-domain-slurm-result-paths` regenerates the governed all-domain submit manifest and
-  writes `runs/bench/slurm-dry-run/all-domains/path-convention-check.json`. The report fails closed
+  writes `artifacts/runs/bench/slurm-dry-run/all-domains/path-convention-check.json`. The report fails closed
   unless every benchmark-result and essential-pipeline `stdout`, `stderr`, and declared output
   path lives under the canonical run root
-  `runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/` and keeps stable path
+  `artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/` and keeps stable path
   ownership by domain, stage or pipeline node, tool, corpus, and sample scope where applicable.
 - `bijux-dna bench local execute-all-domain-benchmark-result`
   `execute-all-domain-benchmark-result` resolves one canonical all-domain benchmark-ready
@@ -2308,12 +2308,12 @@ Visible aliases are part of the operator surface:
   including estimated `resource_metrics` derived from governed thread and memory ceilings.
 - `bijux-dna bench local render-slurm-scripts`
   `render-slurm-scripts` writes one governed `.sbatch` file per selected local benchmark stage
-  under `runs/bench/slurm-dry-run/<domain>/`, using the real stage materialization command,
+  under `artifacts/runs/bench/slurm-dry-run/<domain>/`, using the real stage materialization command,
   governed thread and memory ceilings, and a domain-scoped stage inventory slice such as the
   27-stage FASTQ local benchmark matrix or the 24-stage BAM local benchmark matrix. Each script
   now resolves `#SBATCH --output`, `#SBATCH --error`, `RESULT_ROOT`, and
   `STAGE_RESULT_MANIFEST_PATH` under
-  `runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/<corpus-or-planner-only>/<stage-id-or-pipeline-id>/<sample-id-or-sample-set>/<tool-id>/`.
+  `artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/<corpus-or-planner-only>/<stage-id-or-pipeline-id>/<sample-id-or-sample-set>/<tool-id>/`.
   Rendering the BAM slice requires `cargo run -p bijux-dna --features bam_downstream -- bench local
   render-slurm-scripts --domain bam`.
 - `bijux-dna bench local render-stage-commands`

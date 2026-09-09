@@ -78,7 +78,7 @@ pub fn configure_isolated_runtime_resolution(command: &mut Command, root: &Path)
 
 #[allow(dead_code)]
 pub fn hpc_dry_run_test_directory(repo_root: &Path, label: &str) -> Result<tempfile::TempDir> {
-    let parent = repo_root.join("runs/bench/hpc-dry-run");
+    let parent = repo_root.join("artifacts/runs/bench/hpc-dry-run");
     fs::create_dir_all(&parent)?;
     Ok(tempfile::Builder::new().prefix(label).tempdir_in(parent)?)
 }

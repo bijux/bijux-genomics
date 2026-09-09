@@ -1327,7 +1327,7 @@ mod tests {
         assert!(sex_row
             .local_proof_artifact_paths
             .iter()
-            .any(|path| path == "runs/bench/local-smoke/bam.sex/sex.json"));
+            .any(|path| path == "artifacts/runs/bench/local-smoke/bam.sex/sex.json"));
 
         #[cfg(feature = "bam_downstream")]
         {

@@ -1222,10 +1222,9 @@ mod tests {
             .required_local_smoke_fields
             .iter()
             .any(|field| field == "mapping_summary"));
-        assert!(authenticity_row
-            .local_smoke_artifact_paths
-            .iter()
-            .any(|path| { path == "runs/bench/local-smoke/bam.authenticity/authenticity.json" }));
+        assert!(authenticity_row.local_smoke_artifact_paths.iter().any(|path| {
+            path == "artifacts/runs/bench/local-smoke/bam.authenticity/authenticity.json"
+        }));
 
         let damage_row = report
             .rows
@@ -1246,6 +1245,6 @@ mod tests {
         assert!(damage_row
             .local_smoke_artifact_paths
             .iter()
-            .any(|path| path == "runs/bench/local-smoke/bam.damage/damage.json"));
+            .any(|path| path == "artifacts/runs/bench/local-smoke/bam.damage/damage.json"));
     }
 }

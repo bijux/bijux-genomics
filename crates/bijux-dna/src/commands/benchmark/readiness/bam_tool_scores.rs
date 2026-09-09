@@ -549,7 +549,7 @@ fn merge_validate_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.validate/validation.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.validate/validation.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -615,7 +615,7 @@ fn merge_qc_pre_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.qc_pre/qc_pre.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.qc_pre/qc_pre.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -664,7 +664,8 @@ fn merge_mapping_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv");
+    let path =
+        repo_root.join("artifacts/runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv");
     if !path.is_file() {
         return Ok(());
     }
@@ -714,7 +715,7 @@ fn merge_filter_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.filter/filter_metrics.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.filter/filter_metrics.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -764,7 +765,7 @@ fn merge_mapq_filter_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -811,7 +812,8 @@ fn merge_length_filter_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.length_filter/length_filter.json");
+    let path =
+        repo_root.join("artifacts/runs/bench/local-smoke/bam.length_filter/length_filter.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -856,7 +858,7 @@ fn merge_markdup_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.markdup/duplicates.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.markdup/duplicates.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -899,8 +901,8 @@ fn merge_duplication_metrics_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path =
-        repo_root.join("runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json");
+    let path = repo_root
+        .join("artifacts/runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -945,7 +947,7 @@ fn merge_coverage_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.coverage/coverage.tsv");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.coverage/coverage.tsv");
     if !path.is_file() {
         return Ok(());
     }
@@ -998,7 +1000,7 @@ fn merge_damage_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.damage/damage.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.damage/damage.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1041,7 +1043,8 @@ fn merge_authenticity_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.authenticity/authenticity.json");
+    let path =
+        repo_root.join("artifacts/runs/bench/local-smoke/bam.authenticity/authenticity.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1089,7 +1092,8 @@ fn merge_contamination_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.contamination/local_smoke.json");
+    let path =
+        repo_root.join("artifacts/runs/bench/local-smoke/bam.contamination/local_smoke.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1150,7 +1154,7 @@ fn merge_sex_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.sex/tool_smoke.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.sex/tool_smoke.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1210,7 +1214,7 @@ fn merge_haplogroups_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.haplogroups/haplogroups.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.haplogroups/haplogroups.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1255,7 +1259,7 @@ fn merge_complexity_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.complexity/complexity.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.complexity/complexity.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1297,8 +1301,8 @@ fn merge_endogenous_content_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path =
-        repo_root.join("runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json");
+    let path = repo_root
+        .join("artifacts/runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1339,7 +1343,7 @@ fn merge_insert_size_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.insert_size/insert_size.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.insert_size/insert_size.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1379,7 +1383,7 @@ fn merge_kinship_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.kinship/kinship.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.kinship/kinship.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1433,8 +1437,8 @@ fn merge_overlap_correction_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path =
-        repo_root.join("runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json");
+    let path = repo_root
+        .join("artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1472,7 +1476,8 @@ fn merge_recalibration_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.recalibration/recalibration.json");
+    let path =
+        repo_root.join("artifacts/runs/bench/local-smoke/bam.recalibration/recalibration.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1514,7 +1519,7 @@ fn merge_gc_bias_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), BamEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv");
     if !path.is_file() {
         return Ok(());
     }

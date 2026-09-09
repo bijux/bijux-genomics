@@ -527,8 +527,11 @@ mod tests {
 
         assert_eq!(report.schema_version, LOCAL_VCF_NO_EMPTY_OUTPUT_CHECK_SCHEMA_VERSION);
         assert_eq!(report.report_output_path, DEFAULT_VCF_NO_EMPTY_OUTPUT_CHECK_PATH);
-        assert_eq!(report.smoke_root_manifest_path, "runs/bench/local-smoke/vcf/SMOKE_ROOT.json");
-        assert_eq!(report.smoke_root_path, "runs/bench/local-smoke/vcf");
+        assert_eq!(
+            report.smoke_root_manifest_path,
+            "artifacts/runs/bench/local-smoke/vcf/SMOKE_ROOT.json"
+        );
+        assert_eq!(report.smoke_root_path, "artifacts/runs/bench/local-smoke/vcf");
         assert!(report.refreshed_smoke_outputs);
         assert_eq!(report.corpus_id, "vcf_production_regression");
         assert_eq!(report.stage_count, 20);
@@ -546,7 +549,7 @@ mod tests {
             .expect("phasing VCF row");
         assert_eq!(
             phasing_vcf.output_path,
-            "runs/bench/local-smoke/vcf/vcf.phasing/shapeit5/artifacts/phased.vcf.gz"
+            "artifacts/runs/bench/local-smoke/vcf/vcf.phasing/shapeit5/artifacts/phased.vcf.gz"
         );
         assert_eq!(phasing_vcf.bytes.map(|bytes| bytes > 0), Some(true));
 
@@ -557,7 +560,7 @@ mod tests {
             .expect("stats stdout log row");
         assert_eq!(
             stats_log.output_path,
-            "runs/bench/local-smoke/vcf/vcf.stats/bcftools/artifacts/stdout.log"
+            "artifacts/runs/bench/local-smoke/vcf/vcf.stats/bcftools/artifacts/stdout.log"
         );
         assert_eq!(stats_log.bytes.map(|bytes| bytes > 0), Some(true));
     }

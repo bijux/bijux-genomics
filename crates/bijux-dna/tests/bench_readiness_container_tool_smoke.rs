@@ -50,7 +50,7 @@ fn bench_readiness_container_tool_smoke_reports_structured_unavailable_tool() {
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/tool-smoke/container")
+        Some("artifacts/runs/bench/tool-smoke/container")
     );
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("success_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -72,7 +72,7 @@ fn bench_readiness_container_tool_smoke_reports_structured_unavailable_tool() {
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|value| value.contains("runtime `apptainer` is not available on PATH"))
             && row.get("manifest_path").and_then(serde_json::Value::as_str)
-                == Some("runs/bench/tool-smoke/container/shapeit5/manifest.json")
+                == Some("artifacts/runs/bench/tool-smoke/container/shapeit5/manifest.json")
     }));
 }
 

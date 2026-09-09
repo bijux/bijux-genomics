@@ -4,7 +4,7 @@ BIJUX_BENCH_BIN ?= cargo run -q -p bijux-dna --
 BENCHMARK_CONFIG ?= configs/bench/benchmark.toml
 export BIJUX_BENCHMARK_CONFIG := $(BENCHMARK_CONFIG)
 BENCHMARK_CORPUS_ID ?= corpus-01
-OUT_DIR ?= .
+OUT_DIR ?=
 TOOLS ?=
 SAMPLE_ID ?=
 R1 ?=
@@ -35,7 +35,7 @@ define run_fastq_benchmark_stage
 		--sample-id "$(SAMPLE_ID)" \
 		--r1 "$(R1)" \
 		$(if $(R2),--r2 "$(R2)",) \
-		--out "$(OUT_DIR)" \
+		--out "$(or $(strip $(OUT_DIR)),artifacts/runs/bench)" \
 		$(BENCH_TOOLS_ARGS) \
 		$(BENCH_EXPERIMENTAL_ARGS)
 endef
@@ -98,7 +98,7 @@ _benchmark-preprocess: ## Benchmark full preprocessing pipeline
 		--sample-id "$(SAMPLE_ID)" \
 		--r1 "$(R1)" \
 		$(if $(R2),--r2 "$(R2)",) \
-		--out "$(OUT_DIR)" \
+		--out "$(or $(strip $(OUT_DIR)),artifacts/runs/bench)" \
 		$(BENCH_EXPERIMENTAL_ARGS)
 
 _benchmark-all: ## Run all FASTQ benchmarks sequentially for one explicit sample input

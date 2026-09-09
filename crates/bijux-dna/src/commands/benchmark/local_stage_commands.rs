@@ -31,7 +31,7 @@ const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh";
 const LOCAL_REPORT_QC_CONFIG_PATH: &str = "configs/bench/local/fastq-report-qc.toml";
 const LOCAL_REPORT_QC_CONFIG_SCHEMA_VERSION: &str = "bijux.bench.fastq.local_report_qc.v1";
-const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "runs/bench/local-smoke/fastq.report_qc";
+const DEFAULT_LOCAL_REPORT_QC_OUTPUT_DIR: &str = "artifacts/runs/bench/local-smoke/fastq.report_qc";
 
 #[derive(Debug, Clone)]
 pub(crate) struct BenchLocalStagePlanBundle {
@@ -1163,17 +1163,21 @@ mod tests {
 
         assert_eq!(
             report_path.strip_prefix(&root).expect("relative report path").display().to_string(),
-            "runs/bench/local-smoke/fastq.report_qc/report.json"
+            "artifacts/runs/bench/local-smoke/fastq.report_qc/report.json"
         );
         assert!(root
-            .join("runs/bench/local-smoke/fastq.report_qc/report_qc_report.json")
+            .join("artifacts/runs/bench/local-smoke/fastq.report_qc/report_qc_report.json")
             .is_file());
         assert!(root
-            .join("runs/bench/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json")
+            .join(
+                "artifacts/runs/bench/local-smoke/fastq.report_qc/governed_qc_inputs_manifest.json"
+            )
             .is_file());
-        assert!(root.join("runs/bench/local-smoke/fastq.report_qc/multiqc_report.html").is_file());
         assert!(root
-            .join("runs/bench/local-smoke/fastq.report_qc/multiqc_data/multiqc_data.json")
+            .join("artifacts/runs/bench/local-smoke/fastq.report_qc/multiqc_report.html")
+            .is_file());
+        assert!(root
+            .join("artifacts/runs/bench/local-smoke/fastq.report_qc/multiqc_data/multiqc_data.json")
             .is_file());
     }
 
@@ -1183,7 +1187,8 @@ mod tests {
         use std::os::unix::fs::PermissionsExt;
 
         let root = repo_root();
-        let contributors_dir = root.join("runs/bench/local-smoke/fastq.report_qc/contributors");
+        let contributors_dir =
+            root.join("artifacts/runs/bench/local-smoke/fastq.report_qc/contributors");
         std::fs::create_dir_all(&contributors_dir).expect("create contributors dir");
         let contributor = contributors_dir.join("detect_adapters.report.json");
         bijux_dna_infra::write_payload(&contributor, br#"{"stale":true}"#)
@@ -1201,7 +1206,8 @@ mod tests {
             "rewritten contributor should come from governed fixture content"
         );
         assert!(
-            root.join("runs/bench/local-smoke/fastq.report_qc/report_qc_report.json").is_file(),
+            root.join("artifacts/runs/bench/local-smoke/fastq.report_qc/report_qc_report.json")
+                .is_file(),
             "canonical stage-contract report should be regenerated"
         );
     }

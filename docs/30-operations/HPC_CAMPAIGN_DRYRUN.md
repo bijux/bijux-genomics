@@ -175,10 +175,10 @@ Call the underlying CLI directly when a non-default manifest path is needed:
 
 ```bash
 bijux-dna bench local render-hpc-asset-staging-manifest \
-  --output runs/bench/hpc-dry-run/asset-staging-manifest.json
+  --output artifacts/runs/bench/hpc-dry-run/asset-staging-manifest.json
 
 bijux-dna bench local validate-hpc-asset-staging-manifest \
-  --manifest runs/bench/hpc-dry-run/asset-staging-manifest.json
+  --manifest artifacts/runs/bench/hpc-dry-run/asset-staging-manifest.json
 
 bijux-dna bench local render-hpc-candidate-run-manifest \
   --output artifacts/benchmark-smoke/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json
@@ -193,46 +193,46 @@ bijux-dna bench local validate-hpc-dry-run-ready \
   --manifest artifacts/benchmark-smoke/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json
 
 bijux-dna bench local render-hpc-scratch-layout \
-  --output runs/bench/hpc-dry-run/scratch-layout.json
+  --output artifacts/runs/bench/hpc-dry-run/scratch-layout.json
 
 bijux-dna bench local validate-hpc-scratch-layout \
-  --manifest runs/bench/hpc-dry-run/scratch-layout.json
+  --manifest artifacts/runs/bench/hpc-dry-run/scratch-layout.json
 
 bijux-dna bench local render-hpc-execution-resolver \
-  --output runs/bench/hpc-dry-run/execution-resolver.tsv
+  --output artifacts/runs/bench/hpc-dry-run/execution-resolver.tsv
 
 bijux-dna bench local validate-hpc-execution-resolver \
-  --manifest runs/bench/hpc-dry-run/execution-resolver.tsv
+  --manifest artifacts/runs/bench/hpc-dry-run/execution-resolver.tsv
 
 bijux-dna bench local render-hpc-dependency-simulation \
-  --output runs/bench/hpc-dry-run/slurm-dependency-simulation.json
+  --output artifacts/runs/bench/hpc-dry-run/slurm-dependency-simulation.json
 
 bijux-dna bench local validate-hpc-dependency-simulation \
-  --manifest runs/bench/hpc-dry-run/slurm-dependency-simulation.json
+  --manifest artifacts/runs/bench/hpc-dry-run/slurm-dependency-simulation.json
 
 bijux-dna bench local render-hpc-resume-simulation \
-  --output runs/bench/hpc-dry-run/resume-simulation.json
+  --output artifacts/runs/bench/hpc-dry-run/resume-simulation.json
 
 bijux-dna bench local validate-hpc-resume-simulation \
-  --manifest runs/bench/hpc-dry-run/resume-simulation.json
+  --manifest artifacts/runs/bench/hpc-dry-run/resume-simulation.json
 
 bijux-dna bench local render-hpc-result-collection-simulation \
-  --output runs/bench/hpc-dry-run/result-collection-simulation.json
+  --output artifacts/runs/bench/hpc-dry-run/result-collection-simulation.json
 
 bijux-dna bench local validate-hpc-result-collection-simulation \
-  --manifest runs/bench/hpc-dry-run/result-collection-simulation.json
+  --manifest artifacts/runs/bench/hpc-dry-run/result-collection-simulation.json
 
 bijux-dna bench local render-hpc-stage-benchmark-array \
-  --output runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch
+  --output artifacts/runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch
 
 bijux-dna bench local validate-hpc-stage-benchmark-array \
-  --script runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch
+  --script artifacts/runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch
 
 bijux-dna bench local render-hpc-pipeline-node-array \
-  --output runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch
+  --output artifacts/runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch
 
 bijux-dna bench local validate-hpc-pipeline-node-array \
-  --script runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch
+  --script artifacts/runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch
 ```
 
 Generate baseline campaign profiles:

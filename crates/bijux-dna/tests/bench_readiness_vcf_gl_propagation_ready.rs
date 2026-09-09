@@ -134,31 +134,31 @@ fn bench_readiness_vcf_gl_propagation_ready_reports_complete_active_retained_cal
     );
     assert_eq!(
         row.get("smoke_output_vcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz")
+        Some("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz")
     );
     assert_eq!(
         row.get("smoke_output_tbi_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz.tbi")
+        Some("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz.tbi")
     );
     assert_eq!(
         row.get("smoke_output_bcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf")
+        Some("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf")
     );
     assert_eq!(
         row.get("smoke_output_bcf_csi_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf.csi")
+        Some("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf.csi")
     );
     assert_eq!(
         row.get("smoke_report_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json")
     );
     assert_eq!(
         row.get("smoke_metrics_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json")
     );
     assert_eq!(
         row.get("smoke_stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.gl_propagation/bcftools/stage-result.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/stage-result.json")
     );
     assert_eq!(row.get("smoke_parseable").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(row.get("smoke_gt_present").and_then(serde_json::Value::as_bool), Some(true));

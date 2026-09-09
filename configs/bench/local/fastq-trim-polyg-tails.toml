@@ -11,7 +11,7 @@ supplemental_tool_ids = ["bbduk"]
 threads = 1
 trim_polyg = true
 min_polyg_run = 6
-output_dir = "runs/bench/local-smoke/fastq.trim_polyg_tails"
+output_dir = "artifacts/runs/bench/local-smoke/fastq.trim_polyg_tails"
 
 [[cases]]
 sample_id = "polyg-hit-se"

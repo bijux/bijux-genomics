@@ -75,7 +75,7 @@ struct DamageExpectationDeltas {
 
 /// Materialize the governed local-smoke `bam.damage` artifacts and top-level report.
 ///
-/// The written report lives at `runs/bench/local-smoke/bam.damage/damage.json`
+/// The written report lives at `artifacts/runs/bench/local-smoke/bam.damage/damage.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -91,7 +91,7 @@ pub fn write_local_damage_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("runs/bench/local-smoke/bam.damage");
+    let output_root = repo_root.join("artifacts/runs/bench/local-smoke/bam.damage");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_damage_smoke_case(&repo_root, case)?;
     let report_path = output_root.join("damage.json");

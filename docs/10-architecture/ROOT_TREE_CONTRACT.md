@@ -13,6 +13,20 @@ Keep the repository layout reviewable and prevent generated paths from recreatin
 
 The repository root is governed by the native `check-root-layout` allowlist. New root entries require an architecture decision and a corresponding validator change. Generated output belongs under `artifacts/` unless another governed destination is part of a product contract.
 
+Local benchmark smoke, readiness, fake-run, and Slurm dry-run defaults use
+`artifacts/runs/bench/`. The analysis run-index default is
+`artifacts/runs/bijux-dna-runs/index.jsonl`. Explicit input paths in previously
+serialized reports retain their original meaning; published evidence is not
+rewritten when a default output location changes.
+
+When importing an existing root `runs/` tree, inventory every file and checksum
+before moving it into `artifacts/runs/archive/`. Preserve its original relative
+tree and record the old-to-new prefix mapping alongside the inventory. Archived
+reports remain historical evidence, separate from newly generated outputs and
+current readiness claims. Consumers replaying an archived report must resolve
+its original paths against that recorded mapping and its original input locks.
+Do not recreate root `runs/` as a compatibility symlink.
+
 ## Container product root
 
 `containers/` has these direct directories:

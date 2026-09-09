@@ -140,39 +140,41 @@ fn bench_readiness_vcf_damage_filter_ready_reports_complete_active_retained_call
     );
     assert_eq!(
         row.get("smoke_input_vcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/artifacts/input/damage_input.vcf")
+        Some("artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/artifacts/input/damage_input.vcf")
     );
     assert_eq!(
         row.get("smoke_output_vcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz")
+        Some("artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz")
     );
     assert_eq!(
         row.get("smoke_output_tbi_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi")
+        Some("artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filtered.vcf.gz.tbi")
     );
     assert_eq!(
         row.get("smoke_metrics_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json")
     );
     assert_eq!(
         row.get("smoke_summary_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json")
     );
     assert_eq!(
         row.get("smoke_counts_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_counts.json")
+        Some(
+            "artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_counts.json"
+        )
     );
     assert_eq!(
         row.get("smoke_warnings_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/warnings.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/warnings.json")
     );
     assert_eq!(
         row.get("smoke_damage_manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_genotype_manifest.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_genotype_manifest.json")
     );
     assert_eq!(
         row.get("smoke_stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.damage_filter/bcftools/stage-result.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/stage-result.json")
     );
     assert_eq!(row.get("smoke_parseable").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(row.get("smoke_gt_present").and_then(serde_json::Value::as_bool), Some(true));

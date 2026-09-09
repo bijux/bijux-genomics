@@ -131,27 +131,27 @@ fn bench_readiness_vcf_stats_ready_reports_complete_active_retained_callers() {
     );
     assert_eq!(
         row.get("smoke_output_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.stats/bcftools")
+        Some("artifacts/runs/bench/local-smoke/vcf.stats/bcftools")
     );
     assert_eq!(
         row.get("smoke_input_vcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.stats/bcftools/artifacts/input/stats_input.vcf")
+        Some("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/artifacts/input/stats_input.vcf")
     );
     assert_eq!(
         row.get("smoke_stats_json_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.stats/bcftools/stats.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/stats.json")
     );
     assert_eq!(
         row.get("smoke_bcftools_stats_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt")
+        Some("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/bcftools_stats.txt")
     );
     assert_eq!(
         row.get("smoke_metrics_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.stats/bcftools/metrics.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/metrics.json")
     );
     assert_eq!(
         row.get("smoke_stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.stats/bcftools/stage-result.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/stage-result.json")
     );
     assert_eq!(row.get("smoke_variant_count").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(row.get("smoke_snp_count").and_then(serde_json::Value::as_u64), Some(3));

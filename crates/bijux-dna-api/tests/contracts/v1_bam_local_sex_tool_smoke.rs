@@ -33,13 +33,16 @@ fn write_local_sex_tool_smoke_report_materializes_retained_tool_cases() -> Resul
     let _lock = crate::support::bench_output_lock()
         .unwrap_or_else(|err| panic!("repo lock BAM sex tool benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_root = repo_root.join("runs/bench/local-smoke/bam.sex");
+    let output_root = repo_root.join("artifacts/runs/bench/local-smoke/bam.sex");
     if output_root.exists() {
         std::fs::remove_dir_all(&output_root)?;
     }
 
     let report_path = bijux_dna_api::v1::api::bam::write_local_sex_tool_smoke_report()?;
-    assert_eq!(report_path, repo_root.join("runs/bench/local-smoke/bam.sex/tool_smoke.json"));
+    assert_eq!(
+        report_path,
+        repo_root.join("artifacts/runs/bench/local-smoke/bam.sex/tool_smoke.json")
+    );
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
     assert_eq!(payload["schema_version"], serde_json::json!("bijux.bam.sex.tool_smoke.report.v1"));

@@ -108,7 +108,7 @@ struct LocalHaplogroupsCaseArtifacts {
 
 /// Materialize governed local-smoke `bam.haplogroups` artifacts and report bundle.
 ///
-/// The written report lives at `runs/bench/local-smoke/bam.haplogroups/haplogroups.json`
+/// The written report lives at `artifacts/runs/bench/local-smoke/bam.haplogroups/haplogroups.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -128,7 +128,7 @@ pub fn write_local_haplogroups_smoke_report() -> Result<PathBuf> {
         return Err(anyhow!("local-ready haplogroups tool drifted to `{}`", plan.tool_id.as_str()));
     }
 
-    let output_root = repo_root.join("runs/bench/local-smoke/bam.haplogroups");
+    let output_root = repo_root.join("artifacts/runs/bench/local-smoke/bam.haplogroups");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let ready_case = materialize_local_haplogroups_case(&repo_root, &plan, READY_CASE)?;
@@ -156,7 +156,8 @@ fn materialize_local_haplogroups_case(
     plan: &bijux_dna_stage_contract::StagePlanV1,
     proof_case: &str,
 ) -> Result<LocalHaplogroupsSmokeCaseReport> {
-    let case_dir = repo_root.join("runs/bench/local-smoke/bam.haplogroups").join(proof_case);
+    let case_dir =
+        repo_root.join("artifacts/runs/bench/local-smoke/bam.haplogroups").join(proof_case);
     bijux_dna_infra::ensure_dir(&case_dir)?;
 
     let input_bam = resolve_input_path(repo_root, plan, "bam")?;

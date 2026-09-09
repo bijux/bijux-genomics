@@ -97,7 +97,7 @@ fn validate_required_rows(rows: &[AllDomainOutputDeclarationRow]) -> Result<(), 
         "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
         "classification_report_json",
         "screen_report_tsv",
-        "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
+        "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
         None,
     )?;
     require_output_row(
@@ -105,7 +105,7 @@ fn validate_required_rows(rows: &[AllDomainOutputDeclarationRow]) -> Result<(), 
         "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
         "kinship_report",
         "summary",
-        "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
+        "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
         None,
     )?;
     require_output_row(
@@ -113,7 +113,7 @@ fn validate_required_rows(rows: &[AllDomainOutputDeclarationRow]) -> Result<(), 
         "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
         "called_vcf",
         "called_vcf",
-        "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
+        "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
         Some("called_vcf_tbi"),
     )
 }

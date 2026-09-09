@@ -135,35 +135,35 @@ fn bench_readiness_vcf_filter_ready_reports_complete_active_retained_callers() {
     );
     assert_eq!(
         row.get("smoke_output_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.filter/bcftools")
+        Some("artifacts/runs/bench/local-smoke/vcf.filter/bcftools")
     );
     assert_eq!(
         row.get("smoke_output_vcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz")
+        Some("artifacts/runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz")
     );
     assert_eq!(
         row.get("smoke_output_tbi_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi")
+        Some("artifacts/runs/bench/local-smoke/vcf.filter/bcftools/filtered.vcf.gz.tbi")
     );
     assert_eq!(
         row.get("smoke_metrics_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.filter/bcftools/metrics.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.filter/bcftools/metrics.json")
     );
     assert_eq!(
         row.get("smoke_filter_breakdown_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.filter/bcftools/filter_breakdown.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.filter/bcftools/filter_breakdown.json")
     );
     assert_eq!(
         row.get("smoke_filter_breakdown_tsv_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.filter/bcftools/filter_breakdown.tsv")
+        Some("artifacts/runs/bench/local-smoke/vcf.filter/bcftools/filter_breakdown.tsv")
     );
     assert_eq!(
         row.get("smoke_filter_explain_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.filter/bcftools/filter_explain.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.filter/bcftools/filter_explain.json")
     );
     assert_eq!(
         row.get("smoke_stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.filter/bcftools/stage-result.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.filter/bcftools/stage-result.json")
     );
     assert_eq!(row.get("smoke_parseable").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(row.get("smoke_gt_present").and_then(serde_json::Value::as_bool), Some(true));

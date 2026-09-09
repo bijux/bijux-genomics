@@ -52,10 +52,10 @@ fn bench_local_render_all_domain_slurm_scripts_writes_governed_root() {
         String::from_utf8_lossy(&output.stderr)
     );
     let rendered_root = String::from_utf8_lossy(&output.stdout);
-    assert_eq!(rendered_root.trim(), "runs/bench/slurm-dry-run/all-domains");
+    assert_eq!(rendered_root.trim(), "artifacts/runs/bench/slurm-dry-run/all-domains");
 
     let repo_root = support::repo_root().expect("repo root");
-    let output_root = repo_root.join("runs/bench/slurm-dry-run/all-domains");
+    let output_root = repo_root.join("artifacts/runs/bench/slurm-dry-run/all-domains");
     let mut script_paths = Vec::new();
     collect_sbatch_paths(&output_root, &mut script_paths);
     script_paths.sort();
@@ -73,10 +73,10 @@ fn bench_local_render_all_domain_slurm_scripts_writes_governed_root() {
     assert!(vcf_body.contains("#SBATCH --job-name="));
     assert!(vcf_body.contains("bcftools"));
     assert!(vcf_body.contains(
-        "#SBATCH --output=runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
+        "#SBATCH --output=artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
     ));
     assert!(vcf_body.contains(
-        "RESULT_ROOT=runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort"
+        "RESULT_ROOT=artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort"
     ));
 
     let pipeline_script =
@@ -86,6 +86,6 @@ fn bench_local_render_all_domain_slurm_scripts_writes_governed_root() {
     assert!(pipeline_body.contains("# dependency_node_ids:"));
     assert!(pipeline_body.contains("germline"));
     assert!(pipeline_body.contains(
-        "#SBATCH --output=runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.ibd/germline/vcf_production_regression/sample-set/stdout.log"
+        "#SBATCH --output=artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.ibd/germline/vcf_production_regression/sample-set/stdout.log"
     ));
 }

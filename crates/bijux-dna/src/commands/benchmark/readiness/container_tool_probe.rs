@@ -13,7 +13,8 @@ use super::version_probes::{collect_version_probe_rows, VersionProbeRow};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_CONTAINER_TOOL_SMOKE_ROOT: &str = "runs/bench/tool-smoke/container";
+pub(crate) const DEFAULT_CONTAINER_TOOL_SMOKE_ROOT: &str =
+    "artifacts/runs/bench/tool-smoke/container";
 pub(crate) const DEFAULT_CONTAINER_TOOL_SMOKE_TIMEOUT_SECONDS: u64 = 300;
 const CONTAINER_TOOL_SMOKE_REPORT_SCHEMA_VERSION: &str =
     "bijux.bench.container_tool_smoke_report.v1";
@@ -636,7 +637,7 @@ mod tests {
         bijux_dna_infra::ensure_dir(dev_binary.parent().expect("dev binary parent"))?;
         bijux_dna_infra::write_bytes(&dev_binary, b"#!/bin/sh\nexit 0\n")?;
         bijux_dna_infra::write_bytes(&bijux_binary, b"#!/bin/sh\nexit 0\n")?;
-        let output_root = PathBuf::from("runs/bench/tool-smoke/container");
+        let output_root = PathBuf::from("artifacts/runs/bench/tool-smoke/container");
         let rows = vec![
             sample_row("adapterremoval", "docker_image"),
             sample_row("angsd", "external_artifact"),
@@ -688,18 +689,18 @@ mod tests {
         assert_eq!(report.failure_count, 0);
         assert!(repo_root
             .path()
-            .join("runs/bench/tool-smoke/container/adapterremoval/manifest.json")
+            .join("artifacts/runs/bench/tool-smoke/container/adapterremoval/manifest.json")
             .is_file());
         assert!(repo_root
             .path()
-            .join("runs/bench/tool-smoke/container/angsd/manifest.json")
+            .join("artifacts/runs/bench/tool-smoke/container/angsd/manifest.json")
             .is_file());
         assert!(repo_root
             .path()
-            .join("runs/bench/tool-smoke/container/shapeit5/manifest.json")
+            .join("artifacts/runs/bench/tool-smoke/container/shapeit5/manifest.json")
             .is_file());
         let external_manifest: serde_json::Value = serde_json::from_slice(&std::fs::read(
-            repo_root.path().join("runs/bench/tool-smoke/container/angsd/manifest.json"),
+            repo_root.path().join("artifacts/runs/bench/tool-smoke/container/angsd/manifest.json"),
         )?)?;
         assert_eq!(
             external_manifest.get("status").and_then(serde_json::Value::as_str),
@@ -723,7 +724,7 @@ mod tests {
         bijux_dna_infra::write_bytes(&dev_binary, b"#!/bin/sh\nexit 0\n").expect("seed dev binary");
         bijux_dna_infra::write_bytes(&bijux_binary, b"#!/bin/sh\nexit 0\n")
             .expect("seed bijux binary");
-        let output_root = PathBuf::from("runs/bench/tool-smoke/container");
+        let output_root = PathBuf::from("artifacts/runs/bench/tool-smoke/container");
         let rows = vec![sample_row("adapterremoval", "docker_image")];
 
         let err = render_container_tool_smoke_with_executor(
@@ -761,7 +762,7 @@ mod tests {
 
         let report = render_container_tool_smoke_with_executor(
             repo_root.path(),
-            PathBuf::from("runs/bench/tool-smoke/container"),
+            PathBuf::from("artifacts/runs/bench/tool-smoke/container"),
             &[sample_row("adapterremoval", "docker_image")],
             &SmokeRuntimeAvailability {
                 docker_unavailable_reason: Some(unavailable_reason.to_string()),
@@ -793,7 +794,7 @@ mod tests {
 
         let report = render_container_tool_smoke_with_executor(
             repo_root.path(),
-            PathBuf::from("runs/bench/tool-smoke/container"),
+            PathBuf::from("artifacts/runs/bench/tool-smoke/container"),
             &[sample_row("adapterremoval", "docker_image")],
             &SmokeRuntimeAvailability {
                 docker_unavailable_reason: Some("docker daemon unavailable".to_string()),

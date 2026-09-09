@@ -116,7 +116,7 @@ fn bench_local_render_hpc_stage_benchmark_array_reports_governed_index_manifest(
     assert_eq!(
         vcf_stats.get("stdout_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
+            "artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
         )
     );
     assert!(
@@ -124,7 +124,7 @@ fn bench_local_render_hpc_stage_benchmark_array_reports_governed_index_manifest(
             |outputs| outputs.iter().any(|value| {
                 value.as_str().is_some_and(|path| {
                     path.contains("/declared-outputs/")
-                        && path.starts_with("runs/bench/slurm-dry-run/")
+                        && path.starts_with("artifacts/runs/bench/slurm-dry-run/")
                 })
             })
         ),

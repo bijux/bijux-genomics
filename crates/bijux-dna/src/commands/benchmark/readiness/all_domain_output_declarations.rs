@@ -333,7 +333,7 @@ fn artifact_id(entry: &str) -> String {
 
 fn vcf_result_root(row: &VcfExpectedBenchmarkResultRow) -> String {
     format!(
-        "runs/bench/slurm-dry-run/runs/{}/{}/{}/{}/{}",
+        "artifacts/runs/bench/slurm-dry-run/runs/{}/{}/{}/{}/{}",
         LOCAL_SLURM_DRY_RUN_RUN_ID, row.corpus_id, row.stage_id, row.asset_profile_id, row.tool_id
     )
 }

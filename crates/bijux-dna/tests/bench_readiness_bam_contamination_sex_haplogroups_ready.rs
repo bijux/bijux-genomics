@@ -136,9 +136,9 @@ fn bench_readiness_bam_contamination_sex_haplogroups_ready_reports_complete_gove
         .get("local_proof_artifact_paths")
         .and_then(serde_json::Value::as_array)
         .is_some_and(|paths| {
-            paths
-                .iter()
-                .any(|path| path.as_str() == Some("runs/bench/local-smoke/bam.sex/sex.json"))
+            paths.iter().any(|path| {
+                path.as_str() == Some("artifacts/runs/bench/local-smoke/bam.sex/sex.json")
+            })
         }));
 
     #[cfg(feature = "bam_downstream")]

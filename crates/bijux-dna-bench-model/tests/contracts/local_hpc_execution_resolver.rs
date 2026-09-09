@@ -38,7 +38,7 @@ fn report() -> BenchmarkLocalHpcExecutionResolverReport {
     let rows = vec![row("angsd", "unavailable_with_reason"), row("samtools", "apptainer_image")];
     BenchmarkLocalHpcExecutionResolverReport {
         schema_version: BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1.to_string(),
-        output_path: "runs/bench/hpc-dry-run/execution-resolver.tsv".to_string(),
+        output_path: "artifacts/runs/bench/hpc-dry-run/execution-resolver.tsv".to_string(),
         row_count: rows.len(),
         resolution_counts: BTreeMap::from([
             ("apptainer_image".to_string(), 1),

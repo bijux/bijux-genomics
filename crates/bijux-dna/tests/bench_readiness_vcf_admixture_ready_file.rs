@@ -70,9 +70,8 @@ fn bench_readiness_vcf_admixture_ready_writes_governed_json_file() {
                 .get("smoke_input_vcf_path")
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|value| !value.contains("staging-"))
-            && row
-                .get("smoke_output_root")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|value| value == "runs/bench/local-smoke/vcf.admixture/plink2")
+            && row.get("smoke_output_root").and_then(serde_json::Value::as_str).is_some_and(
+                |value| value == "artifacts/runs/bench/local-smoke/vcf.admixture/plink2",
+            )
     }));
 }

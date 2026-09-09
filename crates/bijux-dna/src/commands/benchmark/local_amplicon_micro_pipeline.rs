@@ -559,7 +559,7 @@ fn run_normalize_primers_stage(
     output_root: &Path,
 ) -> Result<NormalizePrimersStageArtifacts> {
     let source_report_path =
-        repo_root.join("runs/bench/local-smoke/fastq.normalize_primers/report.json");
+        repo_root.join("artifacts/runs/bench/local-smoke/fastq.normalize_primers/report.json");
     if !is_nonempty_file(&source_report_path) {
         return run_fixture_backed_normalize_primers_stage(repo_root, output_root);
     }
@@ -671,7 +671,8 @@ fn run_normalize_primers_stage(
 }
 
 fn run_infer_asvs_stage(repo_root: &Path, output_root: &Path) -> Result<InferAsvsStageArtifacts> {
-    let source_report_path = repo_root.join("runs/bench/local-smoke/fastq.infer_asvs/report.json");
+    let source_report_path =
+        repo_root.join("artifacts/runs/bench/local-smoke/fastq.infer_asvs/report.json");
     if !is_nonempty_file(&source_report_path) {
         return run_fixture_backed_infer_asvs_stage(repo_root, output_root);
     }
@@ -779,7 +780,7 @@ fn run_remove_chimeras_stage(
     output_root: &Path,
 ) -> Result<RemoveChimerasStageArtifacts> {
     let source_report_path =
-        repo_root.join("runs/bench/local-smoke/fastq.remove_chimeras/report.json");
+        repo_root.join("artifacts/runs/bench/local-smoke/fastq.remove_chimeras/report.json");
     if !is_nonempty_file(&source_report_path) {
         return run_fixture_backed_remove_chimeras_stage(repo_root, output_root);
     }
@@ -889,7 +890,7 @@ fn run_cluster_otus_stage(
     output_root: &Path,
 ) -> Result<ClusterOtusStageArtifacts> {
     let source_report_path =
-        repo_root.join("runs/bench/local-smoke/fastq.cluster_otus/report.json");
+        repo_root.join("artifacts/runs/bench/local-smoke/fastq.cluster_otus/report.json");
     if !is_nonempty_file(&source_report_path) {
         return run_fixture_backed_cluster_otus_stage(repo_root, output_root);
     }
@@ -1007,7 +1008,7 @@ fn run_normalize_abundance_stage(
     corpus_manifest_path: &Path,
 ) -> Result<NormalizeAbundanceStageArtifacts> {
     let source_report_path =
-        repo_root.join("runs/bench/local-smoke/fastq.normalize_abundance/report.json");
+        repo_root.join("artifacts/runs/bench/local-smoke/fastq.normalize_abundance/report.json");
     if !is_nonempty_file(&source_report_path) {
         return run_fixture_backed_normalize_abundance_stage(
             repo_root,

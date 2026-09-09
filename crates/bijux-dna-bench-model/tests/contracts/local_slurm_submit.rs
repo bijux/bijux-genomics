@@ -26,10 +26,12 @@ fn all_domain_job(
         corpus_id: "vcf_production_regression".to_string(),
         asset_profile_id: "vcf_cohort".to_string(),
         result_id: result_id.map(ToString::to_string),
-        script_path: format!("runs/bench/slurm-dry-run/{job_id_local}/job.sbatch"),
-        stdout: format!("runs/bench/slurm-dry-run/{job_id_local}/stdout.log"),
-        stderr: format!("runs/bench/slurm-dry-run/{job_id_local}/stderr.log"),
-        outputs: vec![format!("runs/bench/slurm-dry-run/{job_id_local}/stage-result.json")],
+        script_path: format!("artifacts/runs/bench/slurm-dry-run/{job_id_local}/job.sbatch"),
+        stdout: format!("artifacts/runs/bench/slurm-dry-run/{job_id_local}/stdout.log"),
+        stderr: format!("artifacts/runs/bench/slurm-dry-run/{job_id_local}/stderr.log"),
+        outputs: vec![format!(
+            "artifacts/runs/bench/slurm-dry-run/{job_id_local}/stage-result.json"
+        )],
         dependencies: Vec::new(),
         resources: BenchmarkLocalSlurmSubmitResources {
             cpus_per_task: 2,
@@ -42,8 +44,9 @@ fn all_domain_job(
 fn all_domain_manifest() -> BenchmarkLocalAllDomainSlurmSubmitManifest {
     BenchmarkLocalAllDomainSlurmSubmitManifest {
         schema_version: BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1.to_string(),
-        root_path: "runs/bench/slurm-dry-run/all-domains".to_string(),
-        manifest_path: "runs/bench/slurm-dry-run/all-domains/submit-manifest.json".to_string(),
+        root_path: "artifacts/runs/bench/slurm-dry-run/all-domains".to_string(),
+        manifest_path: "artifacts/runs/bench/slurm-dry-run/all-domains/submit-manifest.json"
+            .to_string(),
         run_id: "all-domain-benchmark-dry-run".to_string(),
         job_count: 2,
         dependency_count: 0,
@@ -69,8 +72,8 @@ fn all_domain_manifest() -> BenchmarkLocalAllDomainSlurmSubmitManifest {
 fn manifest() -> BenchmarkLocalSlurmSubmitManifest {
     BenchmarkLocalSlurmSubmitManifest {
         schema_version: BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1.to_string(),
-        root_path: "runs/bench/slurm-dry-run".to_string(),
-        manifest_path: "runs/bench/slurm-dry-run/submit-manifest.json".to_string(),
+        root_path: "artifacts/runs/bench/slurm-dry-run".to_string(),
+        manifest_path: "artifacts/runs/bench/slurm-dry-run/submit-manifest.json".to_string(),
         run_id: "local-benchmark-dry-run".to_string(),
         job_count: 1,
         dependency_count: 0,
@@ -89,15 +92,16 @@ fn manifest() -> BenchmarkLocalSlurmSubmitManifest {
                 memory_mb: 4096,
                 time_limit: "01:00:00".to_string(),
             },
-            script_path: "runs/bench/slurm-dry-run/fastq/validate-reads.sbatch".to_string(),
+            script_path: "artifacts/runs/bench/slurm-dry-run/fastq/validate-reads.sbatch"
+                .to_string(),
             logs: BenchmarkLocalSlurmSubmitLogs {
-                stdout_path: "runs/bench/slurm-dry-run/result/stdout.log".to_string(),
-                stderr_path: "runs/bench/slurm-dry-run/result/stderr.log".to_string(),
+                stdout_path: "artifacts/runs/bench/slurm-dry-run/result/stdout.log".to_string(),
+                stderr_path: "artifacts/runs/bench/slurm-dry-run/result/stderr.log".to_string(),
             },
-            result_root: "runs/bench/slurm-dry-run/result".to_string(),
+            result_root: "artifacts/runs/bench/slurm-dry-run/result".to_string(),
             outputs: vec![BenchmarkLocalStageArtifactEntry {
                 artifact_id: "validation-report".to_string(),
-                path: "runs/bench/slurm-dry-run/result/report.json".to_string(),
+                path: "artifacts/runs/bench/slurm-dry-run/result/report.json".to_string(),
                 role: "report".to_string(),
                 optional: false,
             }],

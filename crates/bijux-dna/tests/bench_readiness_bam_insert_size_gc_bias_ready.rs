@@ -106,7 +106,8 @@ fn bench_readiness_bam_insert_size_gc_bias_ready_reports_complete_governed_rows(
         .and_then(serde_json::Value::as_array)
         .is_some_and(|paths| {
             paths.iter().any(|path| {
-                path.as_str() == Some("runs/bench/local-smoke/bam.insert_size/insert_size.json")
+                path.as_str()
+                    == Some("artifacts/runs/bench/local-smoke/bam.insert_size/insert_size.json")
             })
         }));
 }

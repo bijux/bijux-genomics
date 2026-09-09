@@ -17,7 +17,8 @@ use super::local_vcf_call_bam_smoke_support::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_CALL_DIPLOID_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.call_diploid";
+const DEFAULT_VCF_CALL_DIPLOID_SMOKE_ROOT: &str =
+    "artifacts/runs/bench/local-smoke/vcf.call_diploid";
 const LOCAL_VCF_CALL_DIPLOID_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_call_diploid_smoke.v1";
 const LOCAL_VCF_CALL_DIPLOID_SMOKE_METRICS_SCHEMA_VERSION: &str =

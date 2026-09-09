@@ -1232,7 +1232,7 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
         let manifest_path =
             repo_root.join("artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_RUN.json");
         let evidence_path =
-            repo_root.join("runs/bench/local-smoke/fastq.validate_reads/report.json");
+            repo_root.join("artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json");
         let log_path = repo_root.join("artifacts/benchmark-smoke/micro/logs/MICRO_RUN.log");
         for path in
             [&fastq_report_path, &adna_report_path, &manifest_path, &evidence_path, &log_path]
@@ -1265,7 +1265,7 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
                 smoke_support_path: None,
                 execution_status: super::super::local_fastq_micro_smoke_subset::FastqMicroSmokeExecutionStatus::LocalSmoke,
                 reason: "governed local smoke".to_string(),
-                evidence_path: Some("runs/bench/local-smoke/fastq.validate_reads/report.json".to_string()),
+                evidence_path: Some("artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json".to_string()),
                 evidence_format: Some("json".to_string()),
                 parsed_schema_version: Some("bijux.fastq.validate.local_smoke.report.v1".to_string()),
             }],
@@ -1424,7 +1424,7 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
                 reason: "governed local smoke".to_string(),
                 command: Some("bijux-dna bench local materialize-stage --stage-id fastq.validate_reads".to_string()),
                 source_report_path: fastq_report.output_path.clone(),
-                evidence_path: Some("runs/bench/local-smoke/fastq.validate_reads/report.json".to_string()),
+                evidence_path: Some("artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json".to_string()),
                 stage_result_manifest_path: None,
                 normalized_metric_count: 1,
                 output_count: 1,
@@ -1455,7 +1455,7 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
             component_id: "fastq_micro_smoke_subset".to_string(),
             artifact_id: "evidence".to_string(),
             role: "family_evidence".to_string(),
-            path: "runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
+            path: "artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
             exists: true,
             source: "fastq_micro_smoke_subset".to_string(),
         }];

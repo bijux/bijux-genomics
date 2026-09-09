@@ -36,26 +36,28 @@ fn bench_local_vcf_gl_propagation_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz"
+        "artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let output_vcf =
-        repo_root.join("runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz");
-    let output_tbi =
-        repo_root.join("runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz.tbi");
-    let output_bcf =
-        repo_root.join("runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf");
-    let output_bcf_csi =
-        repo_root.join("runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf.csi");
-    let report_path = repo_root
-        .join("runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json");
+    let output_vcf = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz");
+    let output_tbi = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz.tbi");
+    let output_bcf = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf");
+    let output_bcf_csi = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.bcf.csi");
+    let report_path = repo_root.join(
+        "artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json",
+    );
     let metrics_path =
-        repo_root.join("runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json");
-    let manifest_path =
-        repo_root.join("runs/bench/local-smoke/vcf.gl_propagation/bcftools/stage-result.json");
-    let input_vcf = repo_root
-        .join("runs/bench/local-smoke/vcf.gl_propagation/bcftools/artifacts/input/gl_input.vcf");
+        repo_root.join("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json");
+    let manifest_path = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/stage-result.json");
+    let input_vcf = repo_root.join(
+        "artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/artifacts/input/gl_input.vcf",
+    );
 
     assert!(output_vcf.is_file(), "expected output VCF at {}", output_vcf.display());
     assert!(output_tbi.is_file(), "expected output index at {}", output_tbi.display());
@@ -111,13 +113,13 @@ fn bench_local_vcf_gl_propagation_smoke_writes_governed_files() {
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("gl_propagated_vcf")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz")
+                == Some("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/propagated.vcf.gz")
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("gl_propagation_report")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
                 == Some(
-                    "runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json",
+                    "artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json",
                 )
     }));
 }

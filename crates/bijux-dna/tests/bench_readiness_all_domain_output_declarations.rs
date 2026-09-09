@@ -100,7 +100,7 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() -> anyh
     assert_eq!(
         taxonomy.get("manifest").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json"
         )
     );
     assert_eq!(
@@ -151,7 +151,7 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() -> anyh
     assert_eq!(
         vcf_call.get("manifest").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json"
         )
     );
 

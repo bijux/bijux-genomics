@@ -113,7 +113,7 @@ fn bench_readiness_vcf_population_structure_ready_reports_every_complete_active_
     );
     assert_eq!(
         row.get("smoke_output_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.population_structure/plink2")
+        Some("artifacts/runs/bench/local-smoke/vcf.population_structure/plink2")
     );
     assert_eq!(row.get("smoke_status").and_then(serde_json::Value::as_str), Some("complete"));
     assert_eq!(row.get("smoke_sample_group_count").and_then(serde_json::Value::as_u64), Some(4));

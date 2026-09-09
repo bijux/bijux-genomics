@@ -11,7 +11,7 @@ fn row(
     tool: &str,
     unavailable: bool,
 ) -> BenchmarkLocalHpcStageBenchmarkArrayRow {
-    let root = format!("runs/bench/results/{tool}");
+    let root = format!("artifacts/runs/bench/results/{tool}");
     BenchmarkLocalHpcStageBenchmarkArrayRow {
         array_index: index,
         job_id_local: format!("benchmark:vcf:run:vcf.qc:profile:{tool}"),
@@ -31,7 +31,7 @@ fn row(
             format!("containers/{tool}.sif")
         },
         unavailable_reason: unavailable.then(|| "external artifact admission required".to_string()),
-        script_path: format!("runs/bench/slurm/{tool}.sbatch"),
+        script_path: format!("artifacts/runs/bench/slurm/{tool}.sbatch"),
         benchmark_result_argv: vec!["bijux-dna".to_string(), "bench".to_string()],
         benchmark_result_command: "bijux-dna bench".to_string(),
         scratch_root: format!("{root}/scratch"),
@@ -53,10 +53,12 @@ fn row(
 fn report() -> BenchmarkLocalHpcStageBenchmarkArrayReport {
     BenchmarkLocalHpcStageBenchmarkArrayReport {
         schema_version: BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1.to_string(),
-        script_path: "runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch".to_string(),
-        manifest_path: "runs/bench/hpc-dry-run/slurm/stage-benchmark-array-manifest.json"
+        script_path: "artifacts/runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch"
             .to_string(),
-        wrapper_log_root: "runs/bench/hpc-dry-run/slurm/logs/stage-benchmark-array".to_string(),
+        manifest_path: "artifacts/runs/bench/hpc-dry-run/slurm/stage-benchmark-array-manifest.json"
+            .to_string(),
+        wrapper_log_root: "artifacts/runs/bench/hpc-dry-run/slurm/logs/stage-benchmark-array"
+            .to_string(),
         array_spec: "0-1".to_string(),
         benchmark_job_count: 2,
         resource_envelope: BenchmarkLocalHpcArrayResources {

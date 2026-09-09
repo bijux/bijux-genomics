@@ -418,6 +418,8 @@ fn execution_spec_rejects_disposable_production_roots() {
         "configs/bench/local",
         "runs/bench/local-fake-runs",
         "runs/bench/readiness-probes",
+        "artifacts/runs/bench/local-fake-runs",
+        "artifacts/runs/bench/readiness-probes",
         "artifacts/benchmark-smoke",
     ];
     const RESULT_SUFFIX: &str = "run-2042-fastq-profile-read-lengths/seqkit/attempts/\

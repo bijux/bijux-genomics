@@ -22,7 +22,7 @@ use crate::commands::cli::render;
 const LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION: &str =
     BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH: &str =
-    "runs/bench/hpc-dry-run/asset-staging-manifest.json";
+    "artifacts/runs/bench/hpc-dry-run/asset-staging-manifest.json";
 const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
     "artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.argv.jsonl";
 const DEFAULT_HPC_RENDERED_COMMANDS_PATH: &str =
@@ -409,7 +409,7 @@ mod tests {
     }
 
     fn manifest_path(repo_root: &std::path::Path, label: &str) -> (tempfile::TempDir, PathBuf) {
-        let temp_root = repo_root.join("runs/bench/test-sandboxes");
+        let temp_root = repo_root.join("artifacts/runs/bench/test-sandboxes");
         std::fs::create_dir_all(&temp_root).expect("create HPC asset staging test root");
         let temp_dir = tempfile::Builder::new()
             .prefix(label)
@@ -431,7 +431,7 @@ mod tests {
         let rows = load_rendered_command_argv_rows(&root).expect("load all-domain command argv");
 
         assert_eq!(manifest.schema_version, LOCAL_HPC_ASSET_STAGING_MANIFEST_SCHEMA_VERSION);
-        assert!(manifest.output_path.starts_with("runs/bench/test-sandboxes/"));
+        assert!(manifest.output_path.starts_with("artifacts/runs/bench/test-sandboxes/"));
         assert_eq!(manifest.selected_job_count, rows.len());
         assert_eq!(manifest.jobs.len(), rows.len());
         assert!(manifest.staged_input_count >= manifest.jobs.len());
@@ -447,7 +447,7 @@ mod tests {
             entry.source_path == "assets/reference/host/references/toy_host_reference"
                 && entry.source_kind == "prefix_bundle"
                 && entry.staged_path
-                    == "runs/bench/hpc-dry-run/staged/assets/reference/host/references/toy_host_reference"
+                    == "artifacts/runs/bench/hpc-dry-run/staged/assets/reference/host/references/toy_host_reference"
         }));
         assert!(bowtie2.staged_inputs.iter().any(|entry| {
             entry.source_path == "assets/toy/core-v1/fastq/reads_1.fastq"
@@ -486,7 +486,7 @@ mod tests {
             .expect("load validated HPC asset staging manifest");
 
         assert_eq!(loaded, rendered);
-        assert!(loaded.output_path.starts_with("runs/bench/test-sandboxes/"));
+        assert!(loaded.output_path.starts_with("artifacts/runs/bench/test-sandboxes/"));
     }
 
     #[test]
