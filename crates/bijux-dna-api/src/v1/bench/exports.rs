@@ -674,3 +674,5 @@ pub use bijux_dna_bench::{
 pub use bijux_dna_bench_model::{
     project_benchmark_local_hpc_tool_scopes, BenchmarkLocalHpcToolScope,
 };
+
+pub use bijux_dna_bench_model::build_benchmark_local_hpc_dependency_simulation;

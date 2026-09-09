@@ -1005,7 +1005,9 @@ fn thin_cli_uses_model_owned_local_hpc_dependency_simulation_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_hpc_dependency_simulation"));
+    assert!(contents.contains("build_benchmark_local_hpc_dependency_simulation"));
+    assert!(!contents.contains("fn simulate_failure_case("));
+    assert!(!contents.contains("fn descendants_of("));
     assert!(!contents.contains("struct LocalHpcDependencySimulationJob {"));
     assert!(!contents.contains("struct LocalHpcDependencySimulationCase {"));
     assert!(!contents.contains("struct LocalHpcDependencySimulationReport {"));

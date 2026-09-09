@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench-model
 //! Semantic admission for persisted local HPC dependency simulations.
 
 use std::collections::{BTreeMap, BTreeSet, VecDeque};

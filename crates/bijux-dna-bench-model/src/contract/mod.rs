@@ -154,7 +154,10 @@ pub use local_essential_pipeline_fake_run::{
 };
 pub use local_hpc_asset_staging::validate_benchmark_local_hpc_asset_staging_manifest;
 pub use local_hpc_candidate_run::validate_benchmark_local_hpc_candidate_run_manifest;
-pub use local_hpc_dependency_simulation::validate_benchmark_local_hpc_dependency_simulation;
+pub use local_hpc_dependency_simulation::{
+    build_benchmark_local_hpc_dependency_simulation,
+    validate_benchmark_local_hpc_dependency_simulation,
+};
 pub use local_hpc_dry_run_readiness::validate_benchmark_local_hpc_dry_run_readiness;
 pub use local_hpc_execution_resolver::validate_benchmark_local_hpc_execution_resolver;
 pub use local_hpc_pipeline_node_array::validate_benchmark_local_hpc_pipeline_node_array;

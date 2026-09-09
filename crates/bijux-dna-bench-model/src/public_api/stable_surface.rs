@@ -2,15 +2,16 @@
 //! Stable crate-root re-exports.
 
 pub use crate::contract::{
-    build_benchmark_local_hpc_job_graph, project_benchmark_local_hpc_tool_scopes,
-    validate_all_domain_output_declaration_rows, validate_all_domain_output_declarations_report,
-    validate_stage_tool_assets_config, validate_stage_tool_assets_report,
-    validate_stage_tool_containers_config, validate_stage_tool_containers_report,
-    validate_stage_tool_resources_config, validate_stage_tool_resources_report,
-    BenchmarkLocalHpcToolScope, ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1,
-    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
-    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1,
-    STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+    build_benchmark_local_hpc_dependency_simulation, build_benchmark_local_hpc_job_graph,
+    project_benchmark_local_hpc_tool_scopes, validate_all_domain_output_declaration_rows,
+    validate_all_domain_output_declarations_report, validate_stage_tool_assets_config,
+    validate_stage_tool_assets_report, validate_stage_tool_containers_config,
+    validate_stage_tool_containers_report, validate_stage_tool_resources_config,
+    validate_stage_tool_resources_report, BenchmarkLocalHpcToolScope,
+    ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
+    STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1,
+    STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
 };
 pub use crate::model::benchmark_config::{
     benchmark_config_schema, BenchmarkConfig, BenchmarkCorpusConfig,
