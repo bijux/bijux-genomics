@@ -217,6 +217,16 @@ const CHANGED_PATH_RULES: &[ChangedPathRule] = &[
         reason: "all-domain readiness tests cover the active benchmark surface",
     },
     ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/benchmark_readiness.rs",
+        command: "make bench-active-fast",
+        reason: "the readiness suite entrypoint governs all active benchmark contracts",
+    },
+    ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/benchmark/readiness/",
+        command: "make bench-active-fast",
+        reason: "grouped readiness cases cover the active benchmark surface",
+    },
+    ChangedPathRule {
         matcher: "configs/bench/local/",
         command: "make bench-active-fast",
         reason: "benchmark contract changes must preserve active fast proofs",
@@ -863,7 +873,7 @@ mod tests {
             "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/"
         ));
         assert!(path_matches_rule(
-            "crates/bijux-dna/tests/bench_readiness_all_domain_adapter_coverage.rs",
+            "crates/bijux-dna/tests/benchmark/readiness/adapters.rs",
             "adapter"
         ));
         assert!(!path_matches_rule(
@@ -945,7 +955,7 @@ mod tests {
         let fixture = root.path().join("changed_paths.txt");
         write_utf8_report(
             &fixture,
-            ".github/workflows/ci.yml\ncrates/bijux-dna/tests/bench_readiness_all_domain_adapter_coverage.rs\nbenchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.pca/expected.normalized.json\nbenchmarks/tests/fixtures/science/fastq-taxonomy-truth/expected_taxa.tsv\n",
+            ".github/workflows/ci.yml\ncrates/bijux-dna/tests/benchmark/readiness/adapters.rs\nbenchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.pca/expected.normalized.json\nbenchmarks/tests/fixtures/science/fastq-taxonomy-truth/expected_taxa.tsv\n",
         )?;
         let report = changed_path_commands(root.path(), &fixture)?;
         assert_eq!(
@@ -958,6 +968,22 @@ mod tests {
                 "make science-fixtures-fast".to_string()
             ]
         );
+        Ok(())
+    }
+
+    #[test]
+    fn readiness_suite_entrypoint_and_modules_select_the_active_lane() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let fixture = root.path().join("changed_paths.txt");
+        for path in [
+            "crates/bijux-dna/tests/benchmark_readiness.rs",
+            "crates/bijux-dna/tests/benchmark/readiness/mod.rs",
+            "crates/bijux-dna/tests/benchmark/readiness/outputs_tsv.rs",
+        ] {
+            write_utf8_report(&fixture, path)?;
+            let report = changed_path_commands(root.path(), &fixture)?;
+            assert_eq!(report.commands, vec!["make bench-active-fast".to_string()], "{path}");
+        }
         Ok(())
     }
 

@@ -6,6 +6,9 @@ shared path helpers. It should not contain README placeholder files or empty tax
 
 ```text
 tests/
+├── benchmark_readiness.rs
+├── benchmark/
+│   └── readiness/
 ├── boundaries.rs
 ├── boundaries/
 ├── contracts.rs
@@ -19,6 +22,7 @@ tests/
 ```
 
 ## Coverage Map
+- `tests/benchmark_readiness.rs`: active stage/tool scope, adapters, parser fixtures, output declarations/contracts, expected results and report maps. JSON and TSV assertions live in `tests/benchmark/readiness/`. One executable retains individual case identities under report modules; the slow roster matches the unchanged function-name suffixes. The standard harness shares one process environment guard, while nextest can schedule separate cases.
 - `tests/boundaries.rs`: layout, docs placement, dependency, public-surface, no-process-spawn, and
   guardrail checks.
 - `tests/boundaries/architecture_tree.rs`: root, docs, source, command, and public API tree

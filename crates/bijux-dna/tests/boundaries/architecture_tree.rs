@@ -449,6 +449,8 @@ fn dna_tree_matches_architecture_contract() {
 
     let tests_entries = dir_entries(&root.join("tests"));
     let required_test_entries: BTreeSet<_> = [
+        "benchmark/",
+        "benchmark_readiness.rs",
         "boundaries/",
         "boundaries.rs",
         "contracts/",

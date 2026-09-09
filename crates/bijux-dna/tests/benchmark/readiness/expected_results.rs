@@ -3,8 +3,7 @@
 use std::collections::BTreeSet;
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
@@ -35,18 +34,22 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows(
+fn bench_readiness_all_domain_expected_result_coverage_reports_complete_active_rows(
 ) -> anyhow::Result<()> {
-    let payload =
-        run_cli_json(&["bench", "readiness", "render-all-domain-report-map-coverage", "--json"]);
+    let payload = run_cli_json(&[
+        "bench",
+        "readiness",
+        "render-all-domain-expected-result-coverage",
+        "--json",
+    ]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.all_domain_report_map_coverage.v1")
+        Some("bijux.bench.readiness.all_domain_expected_result_coverage.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("artifacts/benchmark-smoke/readiness/all-domains/report-map-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/expected-result-coverage.tsv")
     );
     let rows = support::json_array(&payload, "rows")?;
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
@@ -65,11 +68,11 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows(
             .len(),
     )
     .expect("tool count fits u64");
-    assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(row_count));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(stage_count));
+    assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
+    assert_eq!(support::json_u64(&payload, "stage_count"), Some(stage_count));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
     assert_eq!(
-        payload.get("report_map_binding_count").and_then(serde_json::Value::as_u64),
+        payload.get("expected_result_binding_count").and_then(serde_json::Value::as_u64),
         Some(row_count)
     );
     assert_eq!(
@@ -89,32 +92,12 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows(
                 .count(),
         )
         .expect("domain count fits u64");
-        assert_eq!(support::object_u64(domain_counts, domain), Some(expected_count));
-    }
-    assert_eq!(support::object_u64_sum(domain_counts), row_count);
-
-    let proof_source_counts = payload
-        .get("proof_source_counts")
-        .and_then(serde_json::Value::as_object)
-        .expect("proof source counts");
-    for source in ["fastq_report_map", "bam_report_map", "vcf_report_map"] {
-        let expected_count = u64::try_from(
-            rows.iter()
-                .filter(|row| {
-                    row.get("proof_source").and_then(serde_json::Value::as_str) == Some(source)
-                })
-                .count(),
-        )
-        .expect("proof source count fits u64");
         assert_eq!(
-            proof_source_counts.get(source).and_then(serde_json::Value::as_u64),
+            domain_counts.get(domain).and_then(serde_json::Value::as_u64),
             Some(expected_count)
         );
     }
-    assert_eq!(
-        proof_source_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
-        row_count
-    );
+    assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let report_section_counts = payload
         .get("report_section_counts")
@@ -128,16 +111,12 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows(
         row_count
     );
     assert_eq!(
-        report_section_counts.get("sample_identity").and_then(serde_json::Value::as_u64),
+        report_section_counts.get("variant_calling").and_then(serde_json::Value::as_u64),
         Some(6)
     );
     assert_eq!(
         report_section_counts.get("normalization").and_then(serde_json::Value::as_u64),
         Some(1)
-    );
-    assert_eq!(
-        report_section_counts.get("population_structure").and_then(serde_json::Value::as_u64),
-        Some(7)
     );
     assert_eq!(
         report_section_counts.get("runs_of_homozygosity").and_then(serde_json::Value::as_u64),
@@ -149,90 +128,121 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows(
         coverage_status_counts.get("covered").and_then(serde_json::Value::as_u64),
         Some(row_count)
     );
-
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));
 
-    let population_structure_bindings = rows
+    let variant_calling_bindings = rows
         .iter()
         .filter(|row| {
-            row.get("report_section_id").and_then(serde_json::Value::as_str)
-                == Some("population_structure")
+            row.get("report_section").and_then(serde_json::Value::as_str) == Some("variant_calling")
         })
         .map(|row| {
-            format!(
-                "{}:{}",
-                row.get("stage_id").and_then(serde_json::Value::as_str).expect("stage identity"),
-                row.get("tool_id").and_then(serde_json::Value::as_str).expect("tool identity")
+            (
+                row.get("stage_id")
+                    .and_then(serde_json::Value::as_str)
+                    .expect("variant-calling stage id"),
+                row.get("tool_id")
+                    .and_then(serde_json::Value::as_str)
+                    .expect("variant-calling tool id"),
             )
         })
         .collect::<BTreeSet<_>>();
-    assert_eq!(
-        population_structure_bindings,
-        BTreeSet::from([
-            "vcf.admixture:plink".to_string(),
-            "vcf.admixture:plink2".to_string(),
-            "vcf.pca:eigensoft".to_string(),
-            "vcf.pca:plink2".to_string(),
-            "vcf.population_structure:eigensoft".to_string(),
-            "vcf.population_structure:plink".to_string(),
-            "vcf.population_structure:plink2".to_string(),
-        ])
-    );
+    assert!(variant_calling_bindings.contains(&("vcf.call_gl", "angsd")));
+    assert!(variant_calling_bindings.contains(&("vcf.call_pseudohaploid", "angsd")));
 
-    assert!(rows.iter().any(|row| {
-        row.get("result_id").and_then(serde_json::Value::as_str)
-            == Some("fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2")
-            && row.get("report_section_id").and_then(serde_json::Value::as_str)
-                == Some("contamination_screening")
-            && row.get("summary_table_id").and_then(serde_json::Value::as_str)
-                == Some("screening_contamination")
-            && row.get("proof_source").and_then(serde_json::Value::as_str)
-                == Some("fastq_report_map")
-    }));
+    let taxonomy_rows = rows
+        .iter()
+        .filter(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.screen_taxonomy")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(taxonomy_rows.len(), 4);
+    for tool_id in ["centrifuge", "kaiju", "kraken2", "krakenuniq"] {
+        let taxonomy = taxonomy_rows
+            .iter()
+            .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id))
+            .unwrap_or_else(|| panic!("taxonomy coverage row missing for {tool_id}"));
+        assert_eq!(
+            taxonomy.get("adapter_id").and_then(serde_json::Value::as_str),
+            Some("fastq.adapter.screen_taxonomy")
+        );
+        assert_eq!(
+            taxonomy.get("parser_id").and_then(serde_json::Value::as_str),
+            Some("fastq.parser.screen_taxonomy")
+        );
+        assert_eq!(
+            taxonomy.get("schema_id").and_then(serde_json::Value::as_str),
+            Some("fastq_screen_taxonomy_v1")
+        );
+        assert_eq!(
+            taxonomy.get("report_section").and_then(serde_json::Value::as_str),
+            Some("contamination_screening")
+        );
+        let metrics = taxonomy
+            .get("expected_metrics")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| panic!("expected_metrics missing for {tool_id}"));
+        for metric_id in [
+            "classification_report_json",
+            "taxonomy_database_id",
+            "classified_reads",
+            "unclassified_reads",
+            "classified_fraction",
+            "unclassified_fraction",
+            "top_taxa",
+        ] {
+            assert!(
+                metrics.iter().any(|value| value.as_str() == Some(metric_id)),
+                "taxonomy coverage row for {tool_id} must include expected metric `{metric_id}`"
+            );
+        }
+    }
     assert!(rows.iter().any(|row| {
         row.get("result_id").and_then(serde_json::Value::as_str)
             == Some("bam:corpus-01-kinship-mini:bam.kinship:sample-set:king")
-            && row.get("report_section_id").and_then(serde_json::Value::as_str)
+            && row.get("adapter_id").and_then(serde_json::Value::as_str)
+                == Some("bam.adapter.kinship")
+            && row.get("parser_id").and_then(serde_json::Value::as_str)
+                == Some("bam.parser.kinship")
+            && row.get("schema_id").and_then(serde_json::Value::as_str)
+                == Some("bam_kinship_normalized_v1")
+            && row.get("report_section").and_then(serde_json::Value::as_str)
                 == Some("sample_identity")
-            && row.get("summary_table_id").and_then(serde_json::Value::as_str)
-                == Some("identity_inference")
-            && row.get("proof_source").and_then(serde_json::Value::as_str) == Some("bam_report_map")
     }));
     assert!(rows.iter().any(|row| {
         row.get("result_id").and_then(serde_json::Value::as_str)
             == Some("vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools")
-            && row.get("report_section_id").and_then(serde_json::Value::as_str)
+            && row.get("adapter_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.adapter.transform")
+            && row.get("parser_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.parser.vcf_output")
+            && row.get("schema_id").and_then(serde_json::Value::as_str)
+                == Some("bijux.schemas.bench.vcf-normalized-metrics.postprocess.v1")
+            && row.get("report_section").and_then(serde_json::Value::as_str)
                 == Some("normalization")
-            && row.get("summary_table_id").and_then(serde_json::Value::as_str)
-                == Some("normalization_metrics")
-            && row.get("proof_source").and_then(serde_json::Value::as_str) == Some("vcf_report_map")
     }));
     assert!(rows.iter().any(|row| {
         row.get("result_id").and_then(serde_json::Value::as_str)
-            == Some("vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2")
-            && row.get("report_section_id").and_then(serde_json::Value::as_str)
-                == Some("population_structure")
-            && row.get("summary_table_id").and_then(serde_json::Value::as_str)
-                == Some("population_structure_metrics")
-            && row.get("proof_source").and_then(serde_json::Value::as_str) == Some("vcf_report_map")
+            == Some(
+                "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+            )
+            && row.get("report_section").and_then(serde_json::Value::as_str) == Some("imputation")
+            && row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));
     assert!(rows.iter().any(|row| {
         row.get("result_id").and_then(serde_json::Value::as_str)
             == Some("vcf:vcf_production_regression:vcf.roh:vcf_cohort:plink2")
-            && row.get("report_section_id").and_then(serde_json::Value::as_str)
+            && row.get("report_section").and_then(serde_json::Value::as_str)
                 == Some("runs_of_homozygosity")
-            && row.get("summary_table_id").and_then(serde_json::Value::as_str)
-                == Some("roh_metrics")
-            && row.get("proof_source").and_then(serde_json::Value::as_str) == Some("vcf_report_map")
+            && row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));
 
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(
         violations.is_empty(),
-        "all active rows must retain complete governed report-map coverage"
+        "all active rows must retain complete governed expected-result coverage"
     );
     Ok(())
 }
