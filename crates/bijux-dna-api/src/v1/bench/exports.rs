@@ -597,6 +597,7 @@ pub use bijux_dna_bench_model::{
     build_benchmark_local_all_domain_slurm_scripts_report,
     build_benchmark_local_hpc_array_resource_envelope,
     build_benchmark_local_hpc_dependency_simulation, build_benchmark_local_hpc_job_graph,
+    build_fastq_tool_score_rows, build_fastq_tool_scores_report,
     normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor,
     project_benchmark_local_hpc_tool_scopes,
     validate_benchmark_local_all_domain_slurm_scripts_report,
@@ -606,13 +607,16 @@ pub use bijux_dna_bench_model::{
     BenchmarkLocalHpcToolScope, BenchmarkLocalPipelineDagConfig, BenchmarkLocalPipelineDagDomain,
     BenchmarkLocalPipelineDagMetadataConfig, BenchmarkLocalPipelineDagNode,
     BenchmarkLocalPipelineDagStagesConfig, BenchmarkLocalPipelineProjectSourceConfig,
+    FastqScoreEvidence, FastqScoreExpectedRow, FastqScoreMemoryRow, FastqScoreRuntimeRow,
+    FastqToolScoreRow, FastqToolScoreStatus, FastqToolScoresReport, FastqToolScoringInput,
     StageScoringApplicability, StageScoringCompletion, StageScoringConfig, StageScoringCorrectness,
     StageScoringCorrectnessSignal, StageScoringDecisionMode, StageScoringDirection,
     StageScoringFailureClass, StageScoringFailureClassCatalogEntry, StageScoringFailureEffect,
     StageScoringMemory, StageScoringMissingBehavior, StageScoringRow, StageScoringRuntime,
     StageScoringScientificThreshold, StageScoringWeights,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
-    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1, STAGE_SCORING_SCHEMA_VERSION,
+    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1, FASTQ_TOOL_SCORES_SCHEMA_VERSION,
+    STAGE_SCORING_SCHEMA_VERSION,
 };
 
 /// Render the governed VCF normalized metrics schema.

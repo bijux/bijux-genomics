@@ -24,6 +24,7 @@ pub mod dossier_index;
 pub mod essential_pipeline_readiness;
 pub mod execution;
 pub mod expected_benchmark_results;
+pub mod fastq_scoring;
 pub mod full_benchmark_report;
 pub mod full_benchmark_result_collector;
 pub mod graph;

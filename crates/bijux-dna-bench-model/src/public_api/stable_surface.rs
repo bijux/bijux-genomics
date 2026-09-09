@@ -750,3 +750,12 @@ pub use crate::model::stage_scoring::{
     StageScoringMemory, StageScoringMissingBehavior, StageScoringRow, StageScoringRuntime,
     StageScoringScientificThreshold, StageScoringWeights, STAGE_SCORING_SCHEMA_VERSION,
 };
+
+pub use crate::model::fastq_scoring::{
+    FastqScoreEvidence, FastqScoreExpectedRow, FastqScoreMemoryRow, FastqScoreRuntimeRow,
+    FastqToolScoreRow, FastqToolScoreStatus, FastqToolScoresReport, FastqToolScoringInput,
+    FASTQ_TOOL_SCORES_SCHEMA_VERSION,
+};
+pub use crate::policy::fastq_scoring::{
+    build_fastq_tool_score_rows, build_fastq_tool_scores_report,
+};
