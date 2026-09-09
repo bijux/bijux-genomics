@@ -1,9 +1,12 @@
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainNoPlaceholderCommandCheckReport, AllDomainNoPlaceholderCommandRow,
+    AllDomainNoPlaceholderCommandStepAudit, ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::all_domain_rendered_commands::{
     render_all_domain_commands, AllDomainRenderedCommandRow, AllDomainRenderedCommandStep,
@@ -14,68 +17,12 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/no-placeholder-command-check.json";
-const ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_no_placeholder_command_check.v1";
 const FINDING_TO_DO_MARKER: &str = "contains_todo_marker";
 const FINDING_PLACEHOLDER: &str = "contains_placeholder";
 const FINDING_ECHO_ONLY_EXECUTION: &str = "echo_only_execution";
 const FINDING_UNCONDITIONAL_SUCCESS: &str = "unconditional_success";
 const FINDING_EMPTY_EXECUTABLE: &str = "empty_executable";
 const FINDING_MISSING_REAL_INVOCATION: &str = "missing_real_invocation";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainNoPlaceholderCommandStepAudit {
-    pub(crate) step_id: String,
-    pub(crate) step_kind: String,
-    pub(crate) executable: String,
-    pub(crate) is_shell_wrapper: bool,
-    pub(crate) command_heads: Vec<String>,
-    pub(crate) has_real_invocation: bool,
-    pub(crate) finding_types: Vec<String>,
-    pub(crate) ok: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainNoPlaceholderCommandRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) command_source: String,
-    pub(crate) command_step_count: usize,
-    pub(crate) script_command_count: usize,
-    pub(crate) has_real_invocation: bool,
-    pub(crate) finding_count: usize,
-    pub(crate) finding_types: Vec<String>,
-    pub(crate) ok: bool,
-    pub(crate) step_audits: Vec<AllDomainNoPlaceholderCommandStepAudit>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainNoPlaceholderCommandCheckReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) script_output_path: String,
-    pub(crate) argv_output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) result_id_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) command_step_count: usize,
-    pub(crate) shell_wrapped_step_count: usize,
-    pub(crate) direct_step_count: usize,
-    pub(crate) valid_row_count: usize,
-    pub(crate) invalid_row_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) command_source_counts: BTreeMap<String, usize>,
-    pub(crate) finding_type_counts: BTreeMap<String, usize>,
-    pub(crate) violation_count: usize,
-    pub(crate) ok: bool,
-    pub(crate) rows: Vec<AllDomainNoPlaceholderCommandRow>,
-    pub(crate) violations: Vec<AllDomainNoPlaceholderCommandRow>,
-}
 
 pub(crate) fn run_render_all_domain_no_placeholder_command_check(
     args: &parse::BenchReadinessRenderAllDomainNoPlaceholderCommandCheckArgs,
@@ -164,7 +111,7 @@ fn build_all_domain_no_placeholder_command_check_report(
     let violations = rows.iter().filter(|row| !row.ok).cloned().collect::<Vec<_>>();
 
     let report = AllDomainNoPlaceholderCommandCheckReport {
-        schema_version: ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION,
+        schema_version: ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, output_path),
         script_output_path: rendered_report.output_path,
         argv_output_path: rendered_report.argv_output_path,

@@ -1,0 +1,205 @@
+{
+  "$defs": {
+    "AllDomainReportMapCoverageRow": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "coverage_status": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "expected_report_section": {
+          "type": "string"
+        },
+        "parser_id": {
+          "type": "string"
+        },
+        "proof_source": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "report_section_id": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "schema_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "summary_table_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "adapter_id",
+        "parser_id",
+        "schema_id",
+        "expected_report_section",
+        "report_section_id",
+        "summary_table_id",
+        "proof_source",
+        "coverage_status",
+        "reason"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "coverage_percent": {
+      "format": "double",
+      "type": "number"
+    },
+    "coverage_status_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "covered_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "missing_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "proof_source_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "report_map_binding_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "report_section_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "result_id_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainReportMapCoverageRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_report_map_coverage.v1",
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "summary_table_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "violation_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "violations": {
+      "items": {
+        "$ref": "#/$defs/AllDomainReportMapCoverageRow"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "row_count",
+    "result_id_count",
+    "stage_count",
+    "tool_count",
+    "report_map_binding_count",
+    "covered_row_count",
+    "missing_row_count",
+    "coverage_percent",
+    "domain_counts",
+    "proof_source_counts",
+    "report_section_counts",
+    "summary_table_counts",
+    "coverage_status_counts",
+    "violation_count",
+    "ok",
+    "rows",
+    "violations"
+  ],
+  "title": "AllDomainReportMapCoverageReport",
+  "type": "object"
+}

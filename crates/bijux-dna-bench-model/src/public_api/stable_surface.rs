@@ -840,3 +840,24 @@ pub use crate::model::hpc_campaign::{
 pub use crate::policy::campaign_copy_back::{
     plan_campaign_copy_back, quote_slurm_argument, slurm_script_path,
 };
+
+pub use crate::model::readiness::coverage::{
+    AllDomainExpectedResultCoverageReport, AllDomainExpectedResultCoverageRow,
+    AllDomainLocalJobCoverageReport, AllDomainLocalJobCoverageRow,
+    AllDomainNoPlaceholderCommandCheckReport, AllDomainNoPlaceholderCommandRow,
+    AllDomainNoPlaceholderCommandStepAudit, AllDomainOutputContractCoverageReport,
+    AllDomainOutputContractCoverageRow, AllDomainParserFixtureCoverageReport,
+    AllDomainParserFixtureCoverageRow, AllDomainReportMapCoverageReport,
+    AllDomainReportMapCoverageRow, RemovedFromScopeReport, RemovedFromScopeRow,
+    ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION,
+    ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_REPORT_MAP_COVERAGE_SCHEMA_VERSION, REMOVED_FROM_SCOPE_SCHEMA_VERSION,
+};
+
+pub use crate::contract::vcf_scope::{
+    validate_vcf_scope_imputation_identity, validate_vcf_scope_postprocess_closure,
+    VcfScopeCoverageEvidence,
+};

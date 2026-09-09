@@ -727,3 +727,24 @@ pub use crate::workflow::hpc_campaign::write_campaign_copy_back_manifest;
 pub use bijux_dna_bench_model::{
     quote_slurm_argument, slurm_script_path, CopyBackEntry, CopyBackManifestReport,
 };
+
+pub use bijux_dna_bench_model::{
+    AllDomainExpectedResultCoverageReport, AllDomainExpectedResultCoverageRow,
+    AllDomainLocalJobCoverageReport, AllDomainLocalJobCoverageRow,
+    AllDomainNoPlaceholderCommandCheckReport, AllDomainNoPlaceholderCommandRow,
+    AllDomainNoPlaceholderCommandStepAudit, AllDomainOutputContractCoverageReport,
+    AllDomainOutputContractCoverageRow, AllDomainParserFixtureCoverageReport,
+    AllDomainParserFixtureCoverageRow, AllDomainReportMapCoverageReport,
+    AllDomainReportMapCoverageRow, RemovedFromScopeReport, RemovedFromScopeRow,
+    ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION,
+    ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_REPORT_MAP_COVERAGE_SCHEMA_VERSION, REMOVED_FROM_SCOPE_SCHEMA_VERSION,
+};
+
+pub use bijux_dna_bench_model::{
+    validate_vcf_scope_imputation_identity, validate_vcf_scope_postprocess_closure,
+    VcfScopeCoverageEvidence,
+};

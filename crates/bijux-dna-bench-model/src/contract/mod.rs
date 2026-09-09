@@ -406,3 +406,5 @@ pub(crate) mod hpc_campaign;
 
 mod simulation;
 pub use simulation::{admit_all_domain_simulation_inputs, AllDomainSimulationInput};
+
+pub(crate) mod vcf_scope;

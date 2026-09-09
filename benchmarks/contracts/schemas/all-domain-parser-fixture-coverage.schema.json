@@ -1,0 +1,181 @@
+{
+  "$defs": {
+    "AllDomainParserFixtureCoverageRow": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "coverage_status": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "parser_fixture_parser_id": {
+          "type": "string"
+        },
+        "parser_fixture_reference": {
+          "type": "string"
+        },
+        "parser_fixture_reference_kind": {
+          "type": "string"
+        },
+        "parser_fixture_schema_id": {
+          "type": "string"
+        },
+        "parser_id": {
+          "type": "string"
+        },
+        "proof_source": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "schema_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "adapter_id",
+        "parser_id",
+        "schema_id",
+        "parser_fixture_parser_id",
+        "parser_fixture_schema_id",
+        "parser_fixture_reference_kind",
+        "parser_fixture_reference",
+        "proof_source",
+        "coverage_status",
+        "reason"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "coverage_percent": {
+      "format": "double",
+      "type": "number"
+    },
+    "coverage_status_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "covered_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "missing_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "parser_proof_binding_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "proof_source_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainParserFixtureCoverageRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_parser_fixture_coverage.v1",
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "violation_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "violations": {
+      "items": {
+        "$ref": "#/$defs/AllDomainParserFixtureCoverageRow"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "row_count",
+    "stage_count",
+    "tool_count",
+    "parser_proof_binding_count",
+    "covered_row_count",
+    "missing_row_count",
+    "coverage_percent",
+    "domain_counts",
+    "proof_source_counts",
+    "coverage_status_counts",
+    "violation_count",
+    "ok",
+    "rows",
+    "violations"
+  ],
+  "title": "AllDomainParserFixtureCoverageReport",
+  "type": "object"
+}
