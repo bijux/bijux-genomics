@@ -2,28 +2,9 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
-
-fn run_cli(args: &[&str]) -> std::process::Output {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
-    let home = tempfile::tempdir().expect("tempdir");
-
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
-        .env("HOME", home.path())
-        .env("BIJUX_SKIP_QA", "1")
-        .env("BIJUX_ALLOW_SILVER", "1")
-        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(args)
-        .output()
-        .expect("run cli")
-}
 
 fn collect_sbatch_paths(root: &Path, paths: &mut Vec<PathBuf>) {
     if !root.exists() {
@@ -43,6 +24,29 @@ fn collect_sbatch_paths(root: &Path, paths: &mut Vec<PathBuf>) {
 
 #[test]
 fn bench_local_render_all_domain_slurm_scripts_writes_governed_root() {
+    let sandbox = support::RepoSandbox::new("slurm-script-files-").expect("repository sandbox");
+    let repo_root = sandbox.path();
+    let home = tempfile::tempdir().expect("home directory");
+    let run_cli = |args: &[&str]| {
+        sandbox
+            .bijux_dna_command()
+            .env("HOME", home.path())
+            .env("BIJUX_SKIP_QA", "1")
+            .env("BIJUX_ALLOW_SILVER", "1")
+            .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+            .args(args)
+            .output()
+            .expect("run cli")
+    };
+    let manifest_path =
+        repo_root.join("artifacts/runs/bench/slurm-dry-run/all-domains/submit-manifest.json");
+    assert!(!manifest_path.exists(), "the test must start without another invocation's manifest");
+    let setup = run_cli(&["bench", "local", "render-all-domain-slurm-submit-manifest"]);
+    assert!(
+        setup.status.success(),
+        "manifest setup failed: {}",
+        String::from_utf8_lossy(&setup.stderr)
+    );
     let output = run_cli(&["bench", "local", "render-all-domain-slurm-scripts"]);
     assert!(
         output.status.success(),
@@ -54,7 +58,6 @@ fn bench_local_render_all_domain_slurm_scripts_writes_governed_root() {
     let rendered_root = String::from_utf8_lossy(&output.stdout);
     assert_eq!(rendered_root.trim(), "artifacts/runs/bench/slurm-dry-run/all-domains");
 
-    let repo_root = support::repo_root().expect("repo root");
     let output_root = repo_root.join("artifacts/runs/bench/slurm-dry-run/all-domains");
     let mut script_paths = Vec::new();
     collect_sbatch_paths(&output_root, &mut script_paths);

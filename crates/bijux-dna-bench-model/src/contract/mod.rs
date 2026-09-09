@@ -51,6 +51,7 @@ mod local_hpc_tool_scope;
 mod local_pipeline_dag;
 mod local_runtime_metrics;
 mod local_slurm_dependency;
+mod local_slurm_scripts;
 mod local_slurm_submit;
 mod local_stage_commands;
 mod local_stage_completion;
@@ -378,3 +379,8 @@ pub use local_hpc_tool_scope::{
 };
 
 pub use local_hpc_array::build_benchmark_local_hpc_array_resource_envelope;
+
+pub use local_slurm_scripts::{
+    build_benchmark_local_all_domain_slurm_scripts_report,
+    validate_benchmark_local_all_domain_slurm_scripts_report,
+};

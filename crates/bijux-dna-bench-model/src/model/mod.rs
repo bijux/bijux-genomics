@@ -49,6 +49,7 @@ pub mod local_hpc_submission_readiness;
 pub mod local_pipeline_dag;
 pub mod local_runtime_metrics;
 pub mod local_slurm_dependency;
+pub mod local_slurm_scripts;
 pub mod local_slurm_submit;
 pub mod local_stage_commands;
 pub mod local_stage_completion;
@@ -728,4 +729,9 @@ pub use workspace_layout::{
     WorkspaceConvergencePlan, WorkspaceEntrySummary, WorkspaceLayoutIssue, WorkspaceLayoutReport,
     WorkspaceLocalStageLayout, WorkspaceNormalizationReport, WorkspaceRootPairSummary,
     WorkspaceStageNormalizationReport,
+};
+
+pub use local_slurm_scripts::{
+    BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
+    BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
 };

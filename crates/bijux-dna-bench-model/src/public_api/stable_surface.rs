@@ -732,3 +732,12 @@ pub use crate::policy::{
     gate_decision_schema, GateDecision, GatePolicy, GatePolicyOverrides, GateViolation,
 };
 pub use crate::stats::robust_estimators::robust_stats;
+
+pub use crate::contract::{
+    build_benchmark_local_all_domain_slurm_scripts_report,
+    validate_benchmark_local_all_domain_slurm_scripts_report,
+};
+pub use crate::model::{
+    BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
+    BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
+};

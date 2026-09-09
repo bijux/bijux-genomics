@@ -68,3 +68,5 @@ ordering, stable numeric decisions, and stable serialized JSON shape.
 Legacy benchmark artifacts may remain as fixtures for historical comparison, but
 new behavior must use the current suite catalog and v1 benchmark model
 contracts. Do not add new legacy schema shapes.
+
+The benchmark model owns local all-domain SLURM script inventory types, aggregate construction and coverage admission. Script writers provide typed entries; model validation is pure and checks the serialized inventory against independently expected job counts. Path admission, script bytes and filesystem effects remain adapter responsibilities.

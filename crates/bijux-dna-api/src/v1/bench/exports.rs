@@ -589,17 +589,25 @@ pub fn write_bam_normalized_metrics_schema(path: &Path) -> Result<()> {
 }
 
 /// Stability: v1 (stable).
-/// Descriptor for one governed stage-specific VCF normalized metrics schema.
+/// Governed benchmark planning, report and normalized-metric contracts.
 pub use bijux_dna_bench_model::{
     benchmark_local_pipeline_dag_config_schema,
     benchmark_local_pipeline_dag_metadata_config_schema,
-    benchmark_local_pipeline_dag_stages_config_schema, build_benchmark_local_hpc_job_graph,
+    benchmark_local_pipeline_dag_stages_config_schema,
+    build_benchmark_local_all_domain_slurm_scripts_report,
+    build_benchmark_local_hpc_array_resource_envelope,
+    build_benchmark_local_hpc_dependency_simulation, build_benchmark_local_hpc_job_graph,
     normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor,
+    project_benchmark_local_hpc_tool_scopes,
+    validate_benchmark_local_all_domain_slurm_scripts_report,
     validate_benchmark_local_pipeline_dag_config,
-    validate_benchmark_local_pipeline_dag_declarations, BenchmarkLocalPipelineDagConfig,
-    BenchmarkLocalPipelineDagDomain, BenchmarkLocalPipelineDagMetadataConfig,
-    BenchmarkLocalPipelineDagNode, BenchmarkLocalPipelineDagStagesConfig,
-    BenchmarkLocalPipelineProjectSourceConfig, BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1,
+    validate_benchmark_local_pipeline_dag_declarations, BenchmarkLocalAllDomainSlurmScriptEntry,
+    BenchmarkLocalAllDomainSlurmScriptsReport, BenchmarkLocalHpcToolScope,
+    BenchmarkLocalPipelineDagConfig, BenchmarkLocalPipelineDagDomain,
+    BenchmarkLocalPipelineDagMetadataConfig, BenchmarkLocalPipelineDagNode,
+    BenchmarkLocalPipelineDagStagesConfig, BenchmarkLocalPipelineProjectSourceConfig,
+    BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
+    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1,
 };
 
 /// Render the governed VCF normalized metrics schema.
@@ -670,11 +678,3 @@ pub fn write_vcf_normalized_metrics_stage_schemas(
 pub use bijux_dna_bench::{
     inspect_benchmark_source_asset, BenchmarkSourceAsset, BenchmarkSourceKind,
 };
-
-pub use bijux_dna_bench_model::{
-    project_benchmark_local_hpc_tool_scopes, BenchmarkLocalHpcToolScope,
-};
-
-pub use bijux_dna_bench_model::build_benchmark_local_hpc_dependency_simulation;
-
-pub use bijux_dna_bench_model::build_benchmark_local_hpc_array_resource_envelope;
