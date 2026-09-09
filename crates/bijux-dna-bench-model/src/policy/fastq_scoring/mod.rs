@@ -6,6 +6,7 @@ use crate::{
 };
 use anyhow::Result;
 
+mod admission;
 mod assembly;
 mod ranking;
 mod report;
@@ -53,6 +54,7 @@ struct BaseScoreRow {
 /// Rejects scoring policy that fails the shared scientific admission contract.
 pub fn build_fastq_tool_score_rows(input: FastqToolScoringInput) -> Result<Vec<FastqToolScoreRow>> {
     validate_stage_scoring_config(&input.config)?;
+    admission::validate_input(&input)?;
     Ok(score_base_rows(assembly::collect_base_score_rows(input)))
 }
 
@@ -298,6 +300,59 @@ mod tests {
         assert_eq!(rows[0].failure_class, "none");
         assert_eq!(rows[1].score_status, FastqToolScoreStatus::Blocked);
         assert_eq!(rows[1].failure_class, "command_failed");
+        Ok(())
+    }
+    #[test]
+    fn fastq_scoring_rejects_invalid_correctness_fractions() -> Result<()> {
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -0.1, 1.1] {
+            for truth in [false, true] {
+                let mut data = input()?;
+                for evidence in data.evidence.values_mut() {
+                    if truth {
+                        evidence.truth_correctness_score = Some(value);
+                    } else {
+                        evidence.contract_correctness_score = Some(value);
+                    }
+                }
+                assert!(build_fastq_tool_score_rows(data).is_err(), "{value}");
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn fastq_scoring_rejects_invalid_runtime_and_memory_observations() -> Result<()> {
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -1.0] {
+            for field in 0..3 {
+                let mut data = input()?;
+                match field {
+                    0 => data.runtime_rows[0].elapsed_seconds = Some(value),
+                    1 => data.memory_rows[0].observed_memory_mb = Some(value),
+                    _ => data.memory_rows[0].declared_memory_mb = Some(value),
+                }
+                assert!(build_fastq_tool_score_rows(data).is_err(), "{field}: {value}");
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn fastq_scoring_preserves_zero_and_unit_boundary_observations() -> Result<()> {
+        let mut data = input()?;
+        for evidence in data.evidence.values_mut() {
+            evidence.contract_correctness_score = Some(0.0);
+            evidence.truth_correctness_score = Some(1.0);
+        }
+        for row in &mut data.runtime_rows {
+            row.elapsed_seconds = Some(0.0);
+        }
+        for row in &mut data.memory_rows {
+            row.observed_memory_mb = Some(0.0);
+            row.declared_memory_mb = Some(0.0);
+        }
+        let rows = build_fastq_tool_score_rows(data)?;
+        assert!(rows.iter().all(|row| row.score_status == FastqToolScoreStatus::Scored));
+        assert!(rows.iter().all(|row| row.runtime_seconds == Some(0.0)));
         Ok(())
     }
 }
