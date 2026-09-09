@@ -183,3 +183,31 @@ fn counts<'a>(values: impl Iterator<Item = &'a str>) -> BTreeMap<String, usize> 
         counts
     })
 }
+
+#[test]
+fn full_benchmark_result_collector_rejects_each_overflowing_source_count() {
+    for source in 0..8 {
+        let mut report = valid_report();
+        match source {
+            0 => report.benchmark_expected_row_count = usize::MAX,
+            1 => report.pipeline_fake_run_row_count = usize::MAX,
+            2 => report.fake_run_row_count = usize::MAX,
+            3 => report.fake_failure_row_count = usize::MAX,
+            4 => report.missing_result_audit_row_count = usize::MAX,
+            5 => report.real_smoke_row_count = usize::MAX,
+            6 => report.insufficient_data_row_count = usize::MAX,
+            _ => report.unsupported_pair_row_count = usize::MAX,
+        }
+        assert!(validate_full_benchmark_result_collector(&mut report, &context()).is_err());
+        assert!(!report.passes_behavior_test);
+    }
+}
+
+#[test]
+fn full_benchmark_result_collector_rejects_missing_count_beyond_expected_results() {
+    let mut report = valid_report();
+    let mut context = context();
+    context.expected_missing_result_row_count = 2;
+    assert!(validate_full_benchmark_result_collector(&mut report, &context).is_err());
+    assert!(!report.passes_behavior_test);
+}

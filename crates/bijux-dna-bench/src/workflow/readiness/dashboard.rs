@@ -269,13 +269,7 @@ fn ensure_full_benchmark_dashboard_contract(
     if report.blocked_jobs != full_report.missing_result_row_count {
         return Err(BenchError::InvalidObservation { reason: "full benchmark dashboard blocked jobs drifted from the governed missing-result count".to_string() });
     }
-    if report.total_expected_jobs != report.ready_jobs + report.blocked_jobs {
-        return Err(BenchError::InvalidObservation {
-            reason:
-                "full benchmark dashboard expected jobs must equal ready plus blocked expected jobs"
-                    .to_string(),
-        });
-    }
+    validate_job_counts(report.total_expected_jobs, report.ready_jobs, report.blocked_jobs)?;
 
     let expected_bindings = expected_results
         .rows
@@ -326,6 +320,17 @@ fn ensure_full_benchmark_dashboard_contract(
     Ok(report)
 }
 
+fn validate_job_counts(expected: usize, ready: usize, blocked: usize) -> Result<(), BenchError> {
+    if ready.checked_add(blocked) != Some(expected) {
+        return Err(BenchError::InvalidObservation {
+            reason:
+                "full benchmark dashboard expected jobs must equal ready plus blocked expected jobs"
+                    .to_string(),
+        });
+    }
+    Ok(())
+}
+
 fn binding_key(domain: &str, stage_id: &str, tool_id: &str) -> BindingKey {
     BindingKey {
         domain: domain.to_string(),
@@ -336,7 +341,7 @@ fn binding_key(domain: &str, stage_id: &str, tool_id: &str) -> BindingKey {
 
 #[cfg(test)]
 mod tests {
-    use super::{count_failed_real_smokes, real_smoke_row_passes};
+    use super::{count_failed_real_smokes, real_smoke_row_passes, validate_job_counts};
     use bijux_dna_bench_model::{
         RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport, RealSmokeCoreSubsetRow,
     };
@@ -392,5 +397,12 @@ mod tests {
             ],
         };
         assert_eq!(count_failed_real_smokes(&report), 1);
+    }
+    #[test]
+    fn dashboard_job_counts_reject_overflow_and_incomplete_coverage() {
+        assert!(validate_job_counts(7, 4, 3).is_ok());
+        assert!(validate_job_counts(usize::MAX, usize::MAX, 0).is_ok());
+        assert!(validate_job_counts(0, usize::MAX, 1).is_err());
+        assert!(validate_job_counts(7, 4, 2).is_err());
     }
 }

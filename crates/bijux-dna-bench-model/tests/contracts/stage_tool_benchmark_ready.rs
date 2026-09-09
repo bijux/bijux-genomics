@@ -58,3 +58,12 @@ fn stage_tool_readiness_schema_pins_the_protocol_version() -> anyhow::Result<()>
     );
     Ok(())
 }
+
+#[test]
+fn stage_tool_readiness_rejects_overflowing_pair_totals() {
+    let mut report = ready_report();
+    report.expected_pair_count = 0;
+    report.benchmark_ready_pair_count = usize::MAX;
+    report.excluded_pair_count = 1;
+    assert!(validate_stage_tool_benchmark_ready_report(&report).is_err());
+}
