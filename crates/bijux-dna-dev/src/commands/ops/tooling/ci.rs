@@ -3185,9 +3185,7 @@ mod tests {
 
     #[test]
     fn fast_groups_isolate_targets_under_one_offline_build_authority() -> anyhow::Result<()> {
-        let root =
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
-        let workspace = Workspace { root };
+        let workspace = Workspace::resolve()?;
         let authority = resolve_ci_fast_build_authority(&workspace, None)?;
         let runtime_env = resolve_ci_fast_sccache_runtime_env(Some("sccache"), None)?;
         let first = ci_fast_group_env(&workspace, &authority, "metadata", &runtime_env, &[])?;
@@ -3233,9 +3231,7 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn sccache_transport_replaces_deep_inherited_runtime_tmpdir() -> anyhow::Result<()> {
-        let root =
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
-        let workspace = Workspace { root };
+        let workspace = Workspace::resolve()?;
         let authority = resolve_ci_fast_build_authority(&workspace, None)?;
         let runtime_env = resolve_ci_fast_sccache_runtime_env(
             Some("sccache"),
