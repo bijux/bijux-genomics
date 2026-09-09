@@ -204,4 +204,42 @@ mod tests {
         .is_err());
         Ok(())
     }
+    #[test]
+    fn vcf_score_adapters_reject_overflow_before_failure_scoring() -> anyhow::Result<()> {
+        type Adapter = fn(&serde_json::Value, &Path, &mut EvidenceRows) -> anyhow::Result<()>;
+        let cases: [(Adapter, serde_json::Value, &str, &str, &str); 3] = [
+            (
+                super::merge_call_gl_summary,
+                serde_json::json!({"stage_id":"vcf.call_gl","tool_id":"angsd","sites_with_likelihoods":3,"missing_likelihoods":2,"exit_code":0,"sample_count":1,"samples_with_likelihoods":1,"likelihood_field":"GL"}),
+                "sites_with_likelihoods",
+                "missing_likelihoods",
+                "likelihood sites",
+            ),
+            (
+                super::merge_filter_summary,
+                serde_json::json!({"stage_id":"vcf.filter","tool_id":"bcftools","input_variants":5,"pass_variants":3,"failed_variants":2,"exit_code":1,"quality_threshold":10.0,"depth_threshold":2.0}),
+                "pass_variants",
+                "failed_variants",
+                "filtered variants",
+            ),
+            (
+                super::merge_stats_summary,
+                serde_json::json!({"schema_version":"bijux.vcf.stats.v1","variants_total":5,"snps":3,"indels":2,"annotation_coverage":0.0,"missingness_post":0.1,"ti_tv":1.5,"heterozygosity_ratio":0.4}),
+                "snps",
+                "indels",
+                "classified variants",
+            ),
+        ];
+        for (adapter, mut value, left, right, label) in cases {
+            adapter(&value, Path::new("observed.json"), &mut EvidenceRows::new())?;
+            value[left] = serde_json::json!(u64::MAX);
+            value[right] = serde_json::json!(1);
+            let mut rows = EvidenceRows::new();
+            let error = adapter(&value, Path::new("observed.json"), &mut rows)
+                .expect_err("overflowing observation must be rejected");
+            assert!(error.to_string().contains(label), "{error:#}");
+            assert!(rows.is_empty(), "invalid observation entered the score index");
+        }
+        Ok(())
+    }
 }

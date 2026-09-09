@@ -2,8 +2,8 @@
 //! Interpret VCF genotypes reports without filesystem access.
 
 use super::fields::{
-    format_u64_as_string, fraction_u64, required_array, required_bool, required_i64, required_str,
-    required_u64, summarize_metrics, unique_strings,
+    checked_count_sum, format_u64_as_string, fraction_u64, required_array, required_bool,
+    required_i64, required_str, required_u64, summarize_metrics, unique_strings,
 };
 use super::merge::insert_evidence;
 use super::{EvidenceRows, VcfEvidenceAggregate};
@@ -77,7 +77,8 @@ pub(crate) fn merge_call_gl_summary(
     let stage_id = super::fields::required_stage(root, bijux_dna_core::id_catalog::VCF_CALL_GL)?;
     let sites_with_likelihoods = required_u64(root, "sites_with_likelihoods")?;
     let missing_likelihoods = required_u64(root, "missing_likelihoods")?;
-    let total_sites = sites_with_likelihoods + missing_likelihoods;
+    let total_sites =
+        checked_count_sum(sites_with_likelihoods, missing_likelihoods, "likelihood sites")?;
     insert_evidence(
         rows,
         stage_id,

@@ -2,8 +2,8 @@
 //! Interpret VCF quality reports without filesystem access.
 
 use super::fields::{
-    format_f64, fraction_u64, required_array, required_bool, required_f64, required_i64,
-    required_u64, summarize_metrics,
+    checked_count_sum, format_f64, fraction_u64, required_array, required_bool, required_f64,
+    required_i64, required_u64, summarize_metrics,
 };
 use super::merge::insert_evidence;
 use super::{EvidenceRows, VcfEvidenceAggregate};
@@ -68,8 +68,8 @@ pub(crate) fn merge_filter_summary(
     let input_variants = required_u64(root, "input_variants")?;
     let pass_variants = required_u64(root, "pass_variants")?;
     let failed_variants = required_u64(root, "failed_variants")?;
-    let contract_ok =
-        required_i64(root, "exit_code")? == 0 && input_variants == pass_variants + failed_variants;
+    let observed_variants = checked_count_sum(pass_variants, failed_variants, "filtered variants")?;
+    let contract_ok = required_i64(root, "exit_code")? == 0 && input_variants == observed_variants;
     insert_evidence(
         rows,
         stage_id,
@@ -191,8 +191,9 @@ pub(crate) fn merge_stats_summary(
     let snps = required_u64(root, "snps")?;
     let indels = required_u64(root, "indels")?;
     let missingness_post = required_f64(root, "missingness_post")?;
+    let classified_variants = checked_count_sum(snps, indels, "classified variants")?;
     let contract_ok =
-        required_f64(root, "annotation_coverage")? == 1.0 && variants_total == snps + indels;
+        required_f64(root, "annotation_coverage")? == 1.0 && variants_total == classified_variants;
     insert_evidence(
         rows,
         stage_id,

@@ -54,6 +54,10 @@ pub(super) fn optional_f64(value: &Value, key: &str) -> Option<f64> {
     value.get(key).and_then(Value::as_f64)
 }
 
+pub(super) fn checked_count_sum(left: u64, right: u64, field: &str) -> Result<u64> {
+    left.checked_add(right).with_context(|| format!("VCF observation `{field}` count overflow"))
+}
+
 pub(super) fn fraction_u64(numerator: u64, denominator: u64) -> Result<f64> {
     if denominator == 0 {
         return Ok(0.0);
