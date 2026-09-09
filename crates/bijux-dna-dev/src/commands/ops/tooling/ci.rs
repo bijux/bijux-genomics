@@ -16,6 +16,7 @@ use super::{
 use crate::application::ci::{
     ArchivedWorkspaceExecutables, CoverageAttestation, ExpectedTestInventory, ShardDiscoveryPlan,
 };
+use crate::runtime::compilation_cache::CompilationCache;
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 use crate::runtime::source_snapshot::TrackedSourceSnapshot;
 
@@ -1122,6 +1123,17 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .map(|shard| full_shard_roots(&storage, &contract, shard))
         .collect::<Result<Vec<_>>>()?;
     validate_full_shard_root_set(&storage, &shard_roots)?;
+    for roots in &shard_roots {
+        anyhow::ensure!(
+            !paths_overlap(&roots.artifact_root, &archive_roots.cargo_target),
+            "shard cleanup overlaps compilation products"
+        );
+    }
+    let compilation_cache = CompilationCache::acquire(&storage.scratch_root)?;
+    anyhow::ensure!(
+        compilation_cache.target() == archive_roots.cargo_target,
+        "archive target differs from its exclusive cache owner"
+    );
     let mut ephemera = FullShardEphemera::new(&storage.scratch_root, &archive_roots, &shard_roots);
     prepare_full_archive_roots(&archive_roots)?;
     let preparation_started = Instant::now();
@@ -1190,7 +1202,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "evidence_retention": {
                     "policy": "bounded_logs_and_receipts",
                     "archive_retained": false,
-                    "build_targets_retained": false,
+                    "build_targets_retained": true,
+                    "compilation_cache_target": compilation_cache.target(),
                     "isolated_workspaces_retained": false,
                     "shard_runtime_artifacts_retained": false,
                 },
@@ -1335,7 +1348,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "evidence_retention": {
                 "policy": "bounded_logs_and_receipts",
                 "archive_retained": false,
-                "build_targets_retained": false,
+                "build_targets_retained": true,
+                    "compilation_cache_target": compilation_cache.target(),
                 "isolated_workspaces_retained": false,
                 "shard_runtime_artifacts_retained": false,
             },
@@ -1387,8 +1401,12 @@ fn finish_full_shard_receipt(
     });
     receipt["evidence_retention"]["archive_retained"] =
         serde_json::json!(ephemera.archive_root.symlink_metadata().is_ok());
+    let compilation_target = receipt["evidence_retention"]["compilation_cache_target"]
+        .as_str()
+        .map(PathBuf::from)
+        .unwrap_or_else(|| ephemera.archive_root.join("build"));
     receipt["evidence_retention"]["build_targets_retained"] =
-        serde_json::json!(ephemera.archive_root.join("build").exists());
+        serde_json::json!(compilation_target.exists());
     receipt["evidence_retention"]["isolated_workspaces_retained"] =
         serde_json::json!(ephemera.scratch_workspaces.symlink_metadata().is_ok());
     receipt["evidence_retention"]["shard_runtime_artifacts_retained"] = serde_json::json!(ephemera
@@ -1739,7 +1757,7 @@ fn full_archive_roots(
     )?;
     Ok(FullArchiveRoots {
         archive_extract: artifact_root.join("extracted"),
-        cargo_target: isolated_build_tree(&artifact_root, "cargo"),
+        cargo_target: CompilationCache::target_under(&storage.scratch_root),
         archive_file: artifact_root.join("workspace-tests.tar.zst"),
         build_log: storage.retained_report_root.join("archive-build.log"),
         artifact_root,
@@ -1828,7 +1846,8 @@ fn validate_full_archive_roots(
         anyhow::bail!("full shard archive log is outside retained report authority");
     }
     if !roots.archive_file.starts_with(&roots.artifact_root)
-        || !roots.cargo_target.starts_with(&roots.artifact_root)
+        || roots.cargo_target != CompilationCache::target_under(&storage.scratch_root)
+        || paths_overlap(&roots.cargo_target, &roots.artifact_root)
         || !roots.archive_extract.starts_with(&roots.artifact_root)
         || paths_overlap(&roots.archive_extract, &roots.cargo_target)
         || paths_overlap(&roots.archive_extract, &roots.archive_file)
@@ -3765,6 +3784,33 @@ mod tests {
         assert_eq!(receipt["evidence_retention"]["archive_retained"], true);
         assert!(!ephemera.armed);
         assert_eq!(std::fs::read(external.join("evidence"))?, b"retained");
+        Ok(())
+    }
+    #[test]
+    fn full_shard_cleanup_retains_exclusively_owned_compilation_products() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let lease = super::CompilationCache::acquire(root.path())?;
+        let product = lease.target().join("compiled-product");
+        std::fs::write(&product, b"reusable")?;
+        let mut ephemera = FullShardEphemera {
+            scratch_workspaces: root.path().join("workspaces"),
+            archive_root: root.path().join("archive"),
+            shard_artifact_roots: vec![root.path().join("shards/hash-1-of-5")],
+            armed: true,
+        };
+        std::fs::create_dir_all(&ephemera.archive_root)?;
+        let report = root.path().join("timing.json");
+        super::finish_full_shard_receipt(
+            &report,
+            serde_json::json!({"all_passed":true,"evidence_retention":{"compilation_cache_target":lease.target()}}),
+            std::time::Instant::now(),
+            &mut ephemera,
+        )?;
+        assert!(!ephemera.archive_root.exists());
+        assert_eq!(std::fs::read(product)?, b"reusable");
+        let receipt: serde_json::Value = serde_json::from_slice(&std::fs::read(report)?)?;
+        assert_eq!(receipt["evidence_retention"]["build_targets_retained"], true);
+        assert_eq!(receipt["all_passed"], true);
         Ok(())
     }
 }
