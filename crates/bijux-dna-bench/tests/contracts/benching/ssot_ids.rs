@@ -44,18 +44,33 @@ fn tool_literals_after_identifier(line: &str) -> Vec<String> {
     let Some(position) = line.find("tool_id") else {
         return Vec::new();
     };
-    let suffix = &line[position + "tool_id".len()..];
-    let trimmed = suffix.trim_start();
-    let source = if trimmed.starts_with('"') {
-        let Some((_, value)) = trimmed.split_once(':') else {
+    let suffix = line[position + "tool_id".len()..].trim_start();
+    // Match patterns name possible tool values; accessor arguments name report fields.
+    if line[..position].contains("matches!(") {
+        let Some((_, patterns)) = suffix.split_once(',') else {
             return Vec::new();
         };
-        value
+        return extract_string_literals(patterns.split(')').next().unwrap_or(patterns))
+            .into_iter()
+            .filter(|literal| is_identifier_literal(literal))
+            .collect();
+    }
+    let value = if suffix.starts_with('"') {
+        suffix.split_once(':').map(|(_, value)| value)
     } else {
         suffix
+            .split_once("==")
+            .or_else(|| suffix.split_once("!="))
+            .or_else(|| suffix.split_once('='))
+            .or_else(|| suffix.split_once(':'))
+            .map(|(_, value)| value)
     };
-    extract_string_literals(source)
+    let Some(value) = value.map(str::trim_start).filter(|value| value.starts_with('"')) else {
+        return Vec::new();
+    };
+    extract_string_literals(value)
         .into_iter()
+        .take(1)
         .filter(|literal| is_identifier_literal(literal))
         .collect()
 }
@@ -181,4 +196,27 @@ fn tool_scanner_reads_values_after_the_tool_identifier() {
         Vec::<String>::new()
     );
     assert_eq!(tool_literals_after_identifier("{\"tool_id\": \"samtools\"}"), ["samtools"]);
+}
+
+#[test]
+fn tool_scanner_distinguishes_report_field_access_from_literal_identity() {
+    for source in [
+        "let tool_id = required_identifier(row, \"tool_id\")?;",
+        "let tool_id = row.get(\"tool_id\");",
+        "let tool_id = required_str(root, \"tool_id\")?;",
+    ] {
+        assert!(tool_literals_after_identifier(source).is_empty(), "{source}");
+    }
+    assert_eq!(
+        tool_literals_after_identifier("let tool_id = \"invented_tool\";"),
+        ["invented_tool"]
+    );
+    assert_eq!(
+        tool_literals_after_identifier("tool_id: \"invented_tool\", field: \"metadata\""),
+        ["invented_tool"]
+    );
+    assert_eq!(
+        tool_literals_after_identifier("identity.tool_id == \"invented_tool\""),
+        ["invented_tool"]
+    );
 }
