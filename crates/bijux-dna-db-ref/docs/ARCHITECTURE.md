@@ -45,3 +45,5 @@ tests/
 ```
 
 `resolution/reference_catalog.rs` owns explicit-root species and bundle identity lookup through the existing complete runtime configuration types. The default species resolver delegates to the same lookup. Catalog queries reject duplicate matching identities and never fall back from a missing selected root to the compiled workspace. `tests/contracts/reference_catalog.rs` exercises isolated catalog roots and malformed declarations.
+
+`materialization/fasta_index.rs` derives FASTA index bytes as a pure reference contract. Repository adapters own acquisition and publication. LF/CRLF offsets, final lines and per-record wrap widths are checked against pinned native index fixtures; ambiguous identities and irregular layouts are rejected before publication.

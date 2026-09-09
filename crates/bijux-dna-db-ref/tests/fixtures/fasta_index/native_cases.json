@@ -1,0 +1,25 @@
+{
+  "producer": "bcftools 1.20 norm --fasta-ref (HTSlib 1.20 FAI creation)",
+  "cases": [
+    {
+      "name": "wrapped-lf",
+      "fasta": ">chr1 description\nACGT\nACGT\nAC\n>chr2\nTTT\n",
+      "fai": "chr1\t10\t18\t4\t5\nchr2\t3\t37\t3\t4\n"
+    },
+    {
+      "name": "wrapped-crlf",
+      "fasta": ">chr1 description\r\nACGT\r\nACGT\r\nAC\r\n>chr2\r\nTTT\r\n",
+      "fai": "chr1\t10\t19\t4\t6\nchr2\t3\t42\t3\t5\n"
+    },
+    {
+      "name": "unterminated-final-line",
+      "fasta": ">chr1\nACGT\nAC",
+      "fai": "chr1\t6\t6\t4\t5\n"
+    },
+    {
+      "name": "different-record-wraps",
+      "fasta": ">chr1\nACGTA\nCG\n>chr2\nTTT\nTTT\nT\n",
+      "fai": "chr1\t7\t6\t5\t6\nchr2\t7\t21\t3\t4\n"
+    }
+  ]
+}

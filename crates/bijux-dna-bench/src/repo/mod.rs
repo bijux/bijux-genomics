@@ -10,6 +10,7 @@ mod pipeline_config;
 mod pipeline_execution;
 mod pipeline_inventory;
 mod pipeline_reference;
+mod reference_fasta;
 mod repo_root;
 mod repository;
 mod run_artifacts;
@@ -63,3 +64,5 @@ pub use pipeline_execution::validate_benchmark_pipeline_execution_context;
 pub use pipeline_inventory::{
     load_benchmark_pipeline_inventory_index, load_benchmark_pipeline_vcf_stage_matrix_index,
 };
+
+pub use reference_fasta::materialize_benchmark_reference_fasta;

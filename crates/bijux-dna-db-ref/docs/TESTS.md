@@ -36,3 +36,5 @@ tests/
   public surface shape.
 - Prefer `contracts` when changing species, bundle, panel, or map resolution
   behavior.
+
+FASTA index contracts cover LF, CRLF, final lines without terminators and distinct record wrap widths. `fixtures/fasta_index/native_cases.json` records byte-exact FAI output produced by bcftools/HTSlib 1.20; JSON escapes preserve CRLF bytes across Git checkout policies. Negative cases reject ambiguous identity and non-indexable layouts.

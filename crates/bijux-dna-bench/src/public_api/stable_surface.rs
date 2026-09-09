@@ -640,3 +640,5 @@ pub use bijux_dna_science::decision::{
 pub use crate::artifacts::{
     inspect_benchmark_source_asset, BenchmarkSourceAsset, BenchmarkSourceKind,
 };
+
+pub use crate::repo::materialize_benchmark_reference_fasta;

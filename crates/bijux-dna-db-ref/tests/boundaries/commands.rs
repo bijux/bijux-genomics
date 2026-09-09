@@ -28,6 +28,7 @@ fn commands_doc_lists_managed_operations() {
         "validate-imputation-tool-compatibility",
         "plan-panel-file-materialization",
         "ref-service",
+        "build-reference-fasta-index",
     ];
 
     assert_eq!(operations, expected, "COMMANDS.md must list resolver operations in stable order");

@@ -59,6 +59,7 @@ fn bench_tree_matches_architecture_contract() {
             "pipeline_config.rs",
             "pipeline_execution.rs",
             "pipeline_inventory.rs",
+            "reference_fasta.rs",
             "pipeline_reference.rs",
             "repo_root.rs",
             "repository.rs",
