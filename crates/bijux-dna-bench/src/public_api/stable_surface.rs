@@ -676,3 +676,10 @@ pub use bijux_dna_bench_model::{
 pub use crate::workflow::{
     derive_container_qualification_report, derive_container_qualification_report_with_release,
 };
+
+pub use bijux_dna_bench_model::{
+    build_operational_benchmark_ready_report, validate_operational_benchmark_ready_report,
+    OperationalBenchmarkReadyBlocker, OperationalBenchmarkReadyCheck,
+    OperationalBenchmarkReadyReport, OperationalBenchmarkResultCounts,
+    OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION,
+};

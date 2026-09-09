@@ -13,3 +13,5 @@ pub mod bam_scoring;
 pub mod vcf_scoring;
 
 pub mod output_audit;
+
+pub mod operational_readiness;

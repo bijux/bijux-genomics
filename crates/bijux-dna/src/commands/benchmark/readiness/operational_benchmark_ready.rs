@@ -2,7 +2,13 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    build_operational_benchmark_ready_report, OperationalBenchmarkResultCounts,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    OperationalBenchmarkReadyBlocker, OperationalBenchmarkReadyCheck,
+    OperationalBenchmarkReadyReport,
+};
 
 use super::all_domain_expected_benchmark_results::{
     render_all_domain_expected_benchmark_results, AllDomainExpectedBenchmarkResultsReport,
@@ -64,8 +70,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json";
-const OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.operational_benchmark_ready.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {
@@ -81,43 +85,6 @@ struct PairKey {
     domain: String,
     stage_id: String,
     tool_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct OperationalBenchmarkReadyCheck {
-    pub(crate) surface_id: String,
-    pub(crate) output_path: String,
-    pub(crate) ok: bool,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-pub(crate) struct OperationalBenchmarkReadyBlocker {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) blocker_type: String,
-    pub(crate) blocker_path: String,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct OperationalBenchmarkReadyReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) checked_surface_count: usize,
-    pub(crate) passed_surface_count: usize,
-    pub(crate) failed_surface_count: usize,
-    pub(crate) benchmark_ready_row_count: usize,
-    pub(crate) blocker_count: usize,
-    pub(crate) missing_result_row_count: usize,
-    pub(crate) insufficient_data_row_count: usize,
-    pub(crate) unsupported_pair_row_count: usize,
-    pub(crate) ok: bool,
-    pub(crate) checks: Vec<OperationalBenchmarkReadyCheck>,
-    pub(crate) blockers: Vec<OperationalBenchmarkReadyBlocker>,
 }
 
 pub(crate) fn run_render_operational_benchmark_ready(
@@ -926,34 +893,22 @@ pub(crate) fn render_operational_benchmark_ready(
         ));
     }
 
-    let checks = checks;
-    let blocker_count = blockers.len();
-    let passed_surface_count = checks.iter().filter(|check| check.ok).count();
-    let failed_surface_count = checks.len().saturating_sub(passed_surface_count);
-    let benchmark_ready_row_count = expected_results.as_ref().map_or(0, |report| report.row_count);
-    let missing_result_row_count =
-        result_collector.as_ref().map_or(0, |report| report.missing_result_status_count);
-    let insufficient_data_row_count =
-        result_collector.as_ref().map_or(0, |report| report.insufficient_data_status_count);
-    let unsupported_pair_row_count =
-        result_collector.as_ref().map_or(0, |report| report.unsupported_pair_status_count);
-    let ok = blocker_count == 0 && failed_surface_count == 0;
-
-    let report = OperationalBenchmarkReadyReport {
-        schema_version: OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION,
-        output_path: path_relative_to_repo(repo_root, &absolute_output_path),
-        checked_surface_count: checks.len(),
-        passed_surface_count,
-        failed_surface_count,
-        benchmark_ready_row_count,
-        blocker_count,
-        missing_result_row_count,
-        insufficient_data_row_count,
-        unsupported_pair_row_count,
-        ok,
-        checks,
-        blockers: blockers.into_iter().collect(),
+    let counts = OperationalBenchmarkResultCounts {
+        benchmark_ready: expected_results.as_ref().map_or(0, |report| report.row_count),
+        missing: result_collector.as_ref().map_or(0, |report| report.missing_result_status_count),
+        insufficient: result_collector
+            .as_ref()
+            .map_or(0, |report| report.insufficient_data_status_count),
+        unsupported: result_collector
+            .as_ref()
+            .map_or(0, |report| report.unsupported_pair_status_count),
     };
+    let report = build_operational_benchmark_ready_report(
+        path_relative_to_repo(repo_root, &absolute_output_path),
+        checks,
+        blockers,
+        counts,
+    );
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)?;
     if report.ok {
         Ok(report)

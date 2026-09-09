@@ -707,3 +707,10 @@ pub fn write_vcf_normalized_metrics_stage_schemas(
 pub use bijux_dna_bench::{
     inspect_benchmark_source_asset, BenchmarkSourceAsset, BenchmarkSourceKind,
 };
+
+pub use bijux_dna_bench::{
+    build_operational_benchmark_ready_report, validate_operational_benchmark_ready_report,
+    OperationalBenchmarkReadyBlocker, OperationalBenchmarkReadyCheck,
+    OperationalBenchmarkReadyReport, OperationalBenchmarkResultCounts,
+    OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION,
+};

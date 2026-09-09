@@ -787,3 +787,12 @@ pub use crate::model::readiness::output_audit::{
 pub use crate::policy::output_audit::{
     build_output_contract_tests_report, evaluate_output_contract_row,
 };
+
+pub use crate::model::readiness::operational::{
+    OperationalBenchmarkReadyBlocker, OperationalBenchmarkReadyCheck,
+    OperationalBenchmarkReadyReport, OperationalBenchmarkResultCounts,
+    OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION,
+};
+pub use crate::policy::operational_readiness::{
+    build_operational_benchmark_ready_report, validate_operational_benchmark_ready_report,
+};
