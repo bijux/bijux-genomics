@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 use std::time::Instant;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use chrono::Utc;
 use serde_json::json;
 
@@ -38,6 +38,14 @@ pub(super) fn with_timing<F>(group: &str, command: &str, action: F) -> Result<()
 where
     F: FnOnce() -> Result<()>,
 {
+    let workspace = Workspace::resolve()?;
+    for key in ["ARTIFACT_ROOT", "ISO_ROOT", "ARTIFACT_DIR"] {
+        if let Some(path) = std::env::var_os(key) {
+            workspace
+                .admit_artifact_path(std::path::Path::new(&path))
+                .with_context(|| format!("admit {key} before command execution"))?;
+        }
+    }
     let started_at = Utc::now();
     let timer = Instant::now();
     let result = action();
@@ -80,6 +88,9 @@ fn write_timing(
                 }
             },
         );
+    let Ok(timing_dir) = workspace.admit_artifact_path(&timing_dir) else {
+        return;
+    };
     if bijux_dna_infra::ensure_dir(&timing_dir).is_err() {
         return;
     }

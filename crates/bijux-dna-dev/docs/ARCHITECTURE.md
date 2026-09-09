@@ -39,7 +39,7 @@ Layer responsibilities:
 - `cli/` owns parsing, routing, and execution reporting for the developer-facing surface.
 - `application/` coordinates catalogs, commands, and runtime adapters into stable workflows.
 - `catalog/` and `model/` define the durable command vocabulary and typed outcomes.
-- `runtime/` owns workspace discovery and process boundaries.
+- `runtime/` owns workspace discovery, artifact path admission, and process boundaries. Environment-selected output roots and declared CI destinations share the same workspace boundary checks.
 - `commands/` owns repository-scoped effects and enforcement logic. New side effects belong there behind typed catalog entries, not in `cli/` or `application/`.
 
 Command boundaries:

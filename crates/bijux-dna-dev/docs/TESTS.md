@@ -1,6 +1,8 @@
 # bijux-dna-dev Tests
 
 ## Coverage
+- `tests/bootstrap.rs` checks developer executable freshness after direct and transitive source changes.
+- `src/runtime/workspace.rs` tests artifact root admission; CI destination contracts reuse that owner and cover nested symlink escapes.
 - `tests/boundaries.rs` is the integration-test entrypoint for boundary-oriented coverage.
 - `tests/boundaries/architecture.rs` enforces the documented crate tree and layout contract.
 - `tests/boundaries/architecture.rs` also rejects Markdown files outside the root `README.md` and `docs/`.

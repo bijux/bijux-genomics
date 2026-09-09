@@ -1,4 +1,3 @@
-use std::io::ErrorKind;
 use std::path::{Component, Path};
 
 use anyhow::{ensure, Context, Result};
@@ -28,32 +27,8 @@ fn validate_destination(root: &Path, declared: &str) -> Result<()> {
             && components.all(|component| matches!(component, Component::Normal(_))),
         "destination must name a relative child of artifacts without parent traversal"
     );
-    let boundary = root.join("artifacts");
-    if let Ok(metadata) = boundary.symlink_metadata() {
-        ensure!(metadata.is_dir(), "artifact root must be a regular directory");
-    }
-    let boundary = boundary.canonicalize().unwrap_or(boundary);
-    let candidate = root.join(declared);
-    // Check the nearest existing ancestor so future outputs cannot traverse an escape link.
-    for ancestor in candidate.ancestors() {
-        match ancestor.symlink_metadata() {
-            Ok(_) => {
-                let resolved = ancestor
-                    .canonicalize()
-                    .with_context(|| format!("resolve output ancestor {}", ancestor.display()))?;
-                if ancestor.starts_with(root.join("artifacts")) {
-                    ensure!(
-                        resolved.starts_with(&boundary),
-                        "destination escapes through a symlink"
-                    );
-                }
-                return Ok(());
-            }
-            Err(error) if error.kind() == ErrorKind::NotFound => {}
-            Err(error) => return Err(error).context("inspect output destination"),
-        }
-    }
-    anyhow::bail!("destination has no resolvable filesystem ancestor")
+    Workspace { root: root.to_path_buf() }.admit_artifact_path(Path::new(declared))?;
+    Ok(())
 }
 
 pub(super) fn configured_artifact_path_offenders(workspace: &Workspace) -> Result<Vec<String>> {
