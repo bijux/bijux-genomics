@@ -3,7 +3,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_api::v1::api::bench::ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION;
+use bijux_dna_api::v1::api::bench::{
+    validate_all_domain_rendered_command_rows, AllDomainExpectedBenchmarkResultRow,
+    ReadinessStageToolBinding as BindingKey, ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION,
+};
 pub(crate) use bijux_dna_api::v1::api::bench::{
     AllDomainRenderedCommandArgvRow, AllDomainRenderedCommandArgvStep, AllDomainRenderedCommandRow,
     AllDomainRenderedCommandStep, AllDomainRenderedCommandsReport,
@@ -22,13 +25,6 @@ pub(crate) const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.sh";
 pub(crate) const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl";
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct BindingKey {
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-}
 
 pub(crate) fn run_render_all_domain_commands(
     args: &parse::BenchReadinessRenderAllDomainCommandsArgs,
@@ -108,16 +104,7 @@ pub(crate) fn collect_all_domain_rendered_command_rows(
     let expected_rows = collect_all_domain_expected_benchmark_result_rows(repo_root)?;
     let expected_by_binding = expected_rows
         .into_iter()
-        .map(|row| {
-            (
-                binding_key(&row.domain, &row.stage_id, &row.tool_id),
-                ExpectedBindingRow {
-                    result_id: row.result_id,
-                    corpus_id: row.corpus_id,
-                    asset_profile_id: row.asset_profile_id,
-                },
-            )
-        })
+        .map(|row| (binding_key(&row.domain, &row.stage_id, &row.tool_id), row))
         .collect::<BTreeMap<_, _>>();
 
     let mut rows = Vec::new();
@@ -166,19 +153,12 @@ pub(crate) fn collect_all_domain_rendered_command_rows(
             .then_with(|| left.tool_id.cmp(&right.tool_id))
             .then_with(|| left.result_id.cmp(&right.result_id))
     });
-    ensure_all_domain_rendered_command_contract(&expected_by_binding, &rows)?;
+    validate_all_domain_rendered_command_rows(&expected_by_binding, &rows)?;
     Ok(rows)
 }
 
-#[derive(Debug, Clone)]
-struct ExpectedBindingRow {
-    result_id: String,
-    corpus_id: String,
-    asset_profile_id: String,
-}
-
 fn vcf_row_to_all_domain_row(
-    expected_by_binding: &BTreeMap<BindingKey, ExpectedBindingRow>,
+    expected_by_binding: &BTreeMap<BindingKey, AllDomainExpectedBenchmarkResultRow>,
     row: VcfRenderedCommandRow,
 ) -> Result<AllDomainRenderedCommandRow> {
     let binding = binding_key("vcf", &row.stage_id, &row.tool_id);
@@ -212,171 +192,6 @@ fn vcf_row_to_all_domain_row(
             .collect(),
         script_commands: row.script_commands,
     })
-}
-
-fn ensure_all_domain_rendered_command_contract(
-    expected_by_binding: &BTreeMap<BindingKey, ExpectedBindingRow>,
-    rows: &[AllDomainRenderedCommandRow],
-) -> Result<()> {
-    if rows.len() != expected_by_binding.len() {
-        return Err(anyhow!(
-            "all-domain rendered commands must keep exactly one row per benchmark-ready result binding (expected {}, found {})",
-            expected_by_binding.len(),
-            rows.len()
-        ));
-    }
-
-    let mut seen_result_ids = BTreeSet::<&str>::new();
-    let mut seen_bindings = BTreeSet::<BindingKey>::new();
-    for row in rows {
-        if row.result_id.trim().is_empty()
-            || row.domain.trim().is_empty()
-            || row.stage_id.trim().is_empty()
-            || row.tool_id.trim().is_empty()
-            || row.corpus_id.trim().is_empty()
-            || row.asset_profile_id.trim().is_empty()
-            || row.readiness_kind.trim().is_empty()
-            || row.benchmark_status.trim().is_empty()
-            || row.command_source.trim().is_empty()
-        {
-            return Err(anyhow!(
-                "all-domain rendered command row `{}` is missing required columns",
-                row.result_id
-            ));
-        }
-        if !seen_result_ids.insert(row.result_id.as_str()) {
-            return Err(anyhow!(
-                "all-domain rendered commands contain duplicate result_id `{}`",
-                row.result_id
-            ));
-        }
-        if !seen_bindings.insert(binding_key(&row.domain, &row.stage_id, &row.tool_id)) {
-            return Err(anyhow!(
-                "all-domain rendered commands contain duplicate `{}` / `{}` / `{}` bindings",
-                row.domain,
-                row.stage_id,
-                row.tool_id
-            ));
-        }
-        if row.benchmark_status != "benchmark_ready" {
-            return Err(anyhow!(
-                "all-domain rendered command row `{}` drifted from the benchmark-ready slice",
-                row.result_id
-            ));
-        }
-        if row.command_steps.is_empty() || row.script_commands.is_empty() {
-            return Err(anyhow!(
-                "all-domain rendered command row `{}` must keep command steps and shell commands",
-                row.result_id
-            ));
-        }
-        for step in &row.command_steps {
-            let executable = step
-                .argv
-                .first()
-                .map(|value| value.trim())
-                .filter(|value| !value.is_empty())
-                .ok_or_else(|| {
-                    anyhow!(
-                        "all-domain rendered command row `{}` step `{}` has an empty executable",
-                        row.result_id,
-                        step.step_id
-                    )
-                })?;
-            let command_lower = step.command.to_ascii_lowercase();
-            if command_lower.contains("todo")
-                || command_lower.contains("placeholder")
-                || (executable.eq_ignore_ascii_case("echo")
-                    && command_lower.contains("echo execute"))
-            {
-                return Err(anyhow!(
-                    "all-domain rendered command row `{}` step `{}` still contains placeholder execution text",
-                    row.result_id,
-                    step.step_id
-                ));
-            }
-        }
-    }
-
-    let missing = expected_by_binding
-        .iter()
-        .filter(|(binding, expected)| {
-            !rows.iter().any(|row| {
-                row.result_id == expected.result_id
-                    && row.domain == binding.domain
-                    && row.stage_id == binding.stage_id
-                    && row.tool_id == binding.tool_id
-            })
-        })
-        .map(|(_, expected)| expected.result_id.clone())
-        .collect::<Vec<_>>();
-    if !missing.is_empty() {
-        return Err(anyhow!(
-            "all-domain rendered commands are missing governed result ids: {}",
-            missing.join(", ")
-        ));
-    }
-
-    if rows.len() != expected_by_binding.len() {
-        return Err(anyhow!(
-            "all-domain rendered commands must retain exactly one benchmark-ready row per expected binding (expected {}, found {})",
-            expected_by_binding.len(),
-            rows.len(),
-        ));
-    }
-
-    require_rendered_row(
-        rows,
-        "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
-        "fastq",
-        "fastq.screen_taxonomy",
-        "kraken2",
-        "fastq_bam_command_adapter",
-    )?;
-    require_rendered_row(
-        rows,
-        "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
-        "bam",
-        "bam.kinship",
-        "king",
-        "fastq_bam_command_adapter",
-    )?;
-    require_rendered_row(
-        rows,
-        "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
-        "vcf",
-        "vcf.call",
-        "bcftools",
-        "vcf_bcftools_adapter",
-    )?;
-
-    Ok(())
-}
-
-fn require_rendered_row(
-    rows: &[AllDomainRenderedCommandRow],
-    result_id: &str,
-    domain: &str,
-    stage_id: &str,
-    tool_id: &str,
-    command_source: &str,
-) -> Result<()> {
-    let row = rows
-        .iter()
-        .find(|row| row.result_id == result_id)
-        .ok_or_else(|| anyhow!("all-domain rendered commands are missing `{result_id}`"))?;
-    if row.domain != domain
-        || row.stage_id != stage_id
-        || row.tool_id != tool_id
-        || row.command_source != command_source
-        || row.command_steps.is_empty()
-        || row.script_commands.is_empty()
-    {
-        return Err(anyhow!(
-            "all-domain rendered command row `{result_id}` drifted from the governed contract"
-        ));
-    }
-    Ok(())
 }
 
 fn repo_root_ascent_from_output(repo_root: &Path, output_path: &Path) -> Result<String> {

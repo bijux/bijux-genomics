@@ -10,6 +10,7 @@ not own CLI commands or process execution.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
+| `validate-all-domain-rendered-command-rows` | `validate_all_domain_rendered_command_rows` | Admit complete, unique governed result bindings with executable command steps and required adapter sources. |
 | `validate-all-domain-stage-tool-table-rows` | `validate_all_domain_stage_tool_table_rows` | Admit unique stage/tool coverage and required columns against acquired domain-ready bindings and VCF row counts. |
 | `admit-real-smoke-core-subset` | `admit_real_smoke_core_subset_report` | Admit required smoke stage/bridge coverage, metric presence and attached manifest outcomes. |
 | `validate-local-pipeline-config` | `validate_benchmark_local_pipeline_dag_config` | Admit local pipeline configuration version and required identity/node envelope. |

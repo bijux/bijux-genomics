@@ -85,3 +85,5 @@ Local smoke subset observation envelopes, rows, and execution-kind serialization
 Readiness stage/tool asset coverage and rendered command envelopes, rows, and argument-vector steps are model-owned wire contracts. Planned commands preserve token boundaries and pipeline handoff flags; serialization does not prove that those commands executed.
 
 `contract/readiness` admits stage/tool coverage against an explicit domain catalog context. `ReadinessStageToolBinding` supplies ordered binding identity; the caller owns acquisition and reuses the same catalog observations for projection and validation. Persisted table rows keep their wire fields, and blocked bindings remain visible.
+
+Rendered command admission also belongs to `contract/readiness`: it compares typed expected result bindings with planned command observations, requires executable steps and preserves governed adapter sources. Domain acquisition, argument projection, shell presentation and persistence remain caller responsibilities. Admission does not certify actual execution or scientific compatibility.
