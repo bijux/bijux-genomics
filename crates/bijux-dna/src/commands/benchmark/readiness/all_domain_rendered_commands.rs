@@ -3,7 +3,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION;
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainRenderedCommandArgvRow, AllDomainRenderedCommandArgvStep, AllDomainRenderedCommandRow,
+    AllDomainRenderedCommandStep, AllDomainRenderedCommandsReport,
+};
 
 use super::all_domain_expected_benchmark_results::collect_all_domain_expected_benchmark_result_rows;
 use super::rendered_commands::collect_rendered_command_rows;
@@ -18,73 +22,12 @@ pub(crate) const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.sh";
 pub(crate) const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl";
-const ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_rendered_commands.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {
     domain: String,
     stage_id: String,
     tool_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainRenderedCommandStep {
-    pub(crate) step_id: String,
-    pub(crate) step_kind: String,
-    pub(crate) consumes_previous_stdout: bool,
-    pub(crate) argv: Vec<String>,
-    pub(crate) command: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainRenderedCommandRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) benchmark_status: String,
-    pub(crate) command_source: String,
-    pub(crate) command_steps: Vec<AllDomainRenderedCommandStep>,
-    pub(crate) script_commands: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainRenderedCommandArgvStep {
-    pub(crate) step_id: String,
-    pub(crate) step_kind: String,
-    pub(crate) consumes_previous_stdout: bool,
-    pub(crate) argv: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainRenderedCommandArgvRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) benchmark_status: String,
-    pub(crate) command_source: String,
-    pub(crate) command_steps: Vec<AllDomainRenderedCommandArgvStep>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainRenderedCommandsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) argv_output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) result_id_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) benchmark_status_counts: BTreeMap<String, usize>,
-    pub(crate) command_source_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<AllDomainRenderedCommandRow>,
 }
 
 pub(crate) fn run_render_all_domain_commands(
@@ -137,7 +80,7 @@ pub(crate) fn render_all_domain_commands(
     }
 
     Ok(AllDomainRenderedCommandsReport {
-        schema_version: ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION,
+        schema_version: ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         argv_output_path: path_relative_to_repo(repo_root, &argv_output_path),
         row_count: rows.len(),

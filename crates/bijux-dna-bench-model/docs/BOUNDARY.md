@@ -81,3 +81,5 @@ Runtime, memory and execution-failure observations in FASTQ scoring match the ex
 The full benchmark dashboard envelope and metric rows are owned here. Their closed input shapes and schema identity are independent of CLI acquisition, filesystem persistence, and Markdown presentation. Row cross-checks remain with the report evaluator.
 
 Local smoke subset observation envelopes, rows, and execution-kind serialization belong to this model owner. Failed execution observations remain representable; decoding alone does not establish success, count closure, or backend provenance. Acquisition, admission policy, and persistence remain separate responsibilities.
+
+Readiness stage/tool asset coverage and rendered command envelopes, rows, and argument-vector steps are model-owned wire contracts. Planned commands preserve token boundaries and pipeline handoff flags; serialization does not prove that those commands executed.

@@ -3,7 +3,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION;
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainStageToolTableReport, AllDomainStageToolTableRow,
+};
 
 use super::bam_command_adapter_coverage::{
     collect_bam_command_adapter_coverage_rows, BamBenchmarkStatus,
@@ -24,8 +27,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domain-stage-tool-table.tsv";
-const ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_stage_tool_table.v1";
 const NOT_ASSIGNED: &str = "not_assigned";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -33,30 +34,6 @@ struct BindingKey {
     domain: String,
     stage_id: String,
     tool_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainStageToolTableRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) adapter_id: String,
-    pub(crate) parser_id: String,
-    pub(crate) benchmark_status: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainStageToolTableReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) benchmark_ready_row_count: usize,
-    pub(crate) benchmark_ready_unique_binding_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) benchmark_ready_domain_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<AllDomainStageToolTableRow>,
 }
 
 pub(crate) fn run_render_all_domain_stage_tool_table(
@@ -109,7 +86,7 @@ pub(crate) fn render_all_domain_stage_tool_table(
     }
 
     Ok(AllDomainStageToolTableReport {
-        schema_version: ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION,
+        schema_version: ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         row_count,
         benchmark_ready_row_count,

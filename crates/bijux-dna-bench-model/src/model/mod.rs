@@ -744,3 +744,14 @@ pub use readiness::smoke_subset::{
     RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport, RealSmokeCoreSubsetRow,
     REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION,
 };
+
+pub use readiness::stage_tool_table::{
+    AllDomainStageToolTableReport, AllDomainStageToolTableRow,
+    ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION,
+};
+
+pub use readiness::rendered_commands::{
+    AllDomainRenderedCommandArgvRow, AllDomainRenderedCommandArgvStep, AllDomainRenderedCommandRow,
+    AllDomainRenderedCommandStep, AllDomainRenderedCommandsReport,
+    ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION,
+};
