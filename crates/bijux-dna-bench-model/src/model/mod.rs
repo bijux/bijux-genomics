@@ -746,7 +746,7 @@ pub use readiness::smoke_subset::{
 };
 
 pub use readiness::stage_tool_table::{
-    AllDomainStageToolTableReport, AllDomainStageToolTableRow,
+    AllDomainStageToolTableReport, AllDomainStageToolTableRow, ReadinessStageToolBinding,
     ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION,
 };
 

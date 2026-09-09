@@ -3,7 +3,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_api::v1::api::bench::ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION;
+use bijux_dna_api::v1::api::bench::{
+    validate_all_domain_stage_tool_table_rows, AllDomainStageToolTableAdmissionContext,
+    ReadinessStageToolBinding as BindingKey, ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION,
+};
 pub(crate) use bijux_dna_api::v1::api::bench::{
     AllDomainStageToolTableReport, AllDomainStageToolTableRow,
 };
@@ -28,13 +31,6 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domain-stage-tool-table.tsv";
 const NOT_ASSIGNED: &str = "not_assigned";
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct BindingKey {
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-}
 
 pub(crate) fn run_render_all_domain_stage_tool_table(
     args: &parse::BenchReadinessRenderAllDomainStageToolTableArgs,
@@ -120,15 +116,21 @@ pub(crate) fn collect_all_domain_stage_tool_table_rows(
         .into_iter()
         .map(|row| (binding_key("bam", &row.stage_id, &row.tool_id), row))
         .collect::<BTreeMap<_, _>>();
-    let vcf_matrix_rows = collect_vcf_benchmark_binding_rows()?
+    let vcf_matrix_rows = collect_vcf_benchmark_binding_rows()?;
+    let expected_vcf_row_count = vcf_matrix_rows.len();
+    let vcf_matrix_rows = vcf_matrix_rows
         .into_iter()
         .map(|row| (binding_key("vcf", &row.stage_id, &row.tool_id), row))
         .collect::<BTreeMap<_, _>>();
 
     let mut rows = Vec::new();
+    let mut expected_ready_bindings = BTreeSet::new();
 
     for row in collect_fastq_command_adapter_coverage_rows(repo_root)?.2 {
         let key = binding_key("fastq", &row.stage_id, &row.tool_id);
+        if row.benchmark_status == FastqBenchmarkStatus::BenchmarkReady {
+            expected_ready_bindings.insert(key.clone());
+        }
         let corpus_row = fastq_corpus_rows.get(&key).ok_or_else(|| {
             anyhow!(
                 "all-domain stage-tool table is missing FASTQ corpus assignment for `{}` / `{}`",
@@ -154,6 +156,9 @@ pub(crate) fn collect_all_domain_stage_tool_table_rows(
 
     for row in collect_bam_command_adapter_coverage_rows(repo_root)?.2 {
         let key = binding_key("bam", &row.stage_id, &row.tool_id);
+        if row.benchmark_status == BamBenchmarkStatus::BenchmarkReady {
+            expected_ready_bindings.insert(key.clone());
+        }
         let corpus_row = bam_corpus_rows.get(&key).ok_or_else(|| {
             anyhow!(
                 "all-domain stage-tool table is missing BAM corpus assignment for `{}` / `{}`",
@@ -175,6 +180,9 @@ pub(crate) fn collect_all_domain_stage_tool_table_rows(
 
     for row in collect_vcf_tool_serving_map_rows()? {
         let key = binding_key("vcf", &row.stage_id, &row.tool_id);
+        if row.benchmark_status == "benchmark_ready" {
+            expected_ready_bindings.insert(key.clone());
+        }
         let matrix_row = vcf_matrix_rows.get(&key).ok_or_else(|| {
             anyhow!(
                 "all-domain stage-tool table is missing VCF matrix coverage for `{}` / `{}`",
@@ -200,87 +208,14 @@ pub(crate) fn collect_all_domain_stage_tool_table_rows(
             .then_with(|| left.stage_id.cmp(&right.stage_id))
             .then_with(|| left.tool_id.cmp(&right.tool_id))
     });
-    ensure_all_domain_stage_tool_table_contract(repo_root, &rows)?;
+    validate_all_domain_stage_tool_table_rows(
+        &rows,
+        &AllDomainStageToolTableAdmissionContext {
+            expected_ready_bindings,
+            expected_vcf_row_count,
+        },
+    )?;
     Ok(rows)
-}
-
-fn ensure_all_domain_stage_tool_table_contract(
-    repo_root: &Path,
-    rows: &[AllDomainStageToolTableRow],
-) -> Result<()> {
-    let mut seen = BTreeSet::<BindingKey>::new();
-    for row in rows {
-        if !seen.insert(binding_key(&row.domain, &row.stage_id, &row.tool_id)) {
-            return Err(anyhow!(
-                "all-domain stage-tool table contains duplicate `{}` / `{}` / `{}`",
-                row.domain,
-                row.stage_id,
-                row.tool_id
-            ));
-        }
-        if row.corpus_id.trim().is_empty()
-            || row.asset_profile_id.trim().is_empty()
-            || row.adapter_id.trim().is_empty()
-            || row.parser_id.trim().is_empty()
-        {
-            return Err(anyhow!(
-                "all-domain stage-tool table row `{}` / `{}` / `{}` contains a blank required column",
-                row.domain,
-                row.stage_id,
-                row.tool_id
-            ));
-        }
-    }
-
-    let expected_ready_keys = collect_fastq_command_adapter_coverage_rows(repo_root)?
-        .2
-        .into_iter()
-        .filter(|row| row.benchmark_status == FastqBenchmarkStatus::BenchmarkReady)
-        .map(|row| binding_key("fastq", &row.stage_id, &row.tool_id))
-        .chain(
-            collect_bam_command_adapter_coverage_rows(repo_root)?
-                .2
-                .into_iter()
-                .filter(|row| row.benchmark_status == BamBenchmarkStatus::BenchmarkReady)
-                .map(|row| binding_key("bam", &row.stage_id, &row.tool_id)),
-        )
-        .chain(
-            collect_vcf_tool_serving_map_rows()?
-                .into_iter()
-                .filter(|row| row.benchmark_status == "benchmark_ready")
-                .map(|row| binding_key("vcf", &row.stage_id, &row.tool_id)),
-        )
-        .collect::<BTreeSet<_>>();
-
-    let observed_ready_keys = rows
-        .iter()
-        .filter(|row| row.benchmark_status == "benchmark_ready")
-        .map(|row| binding_key(&row.domain, &row.stage_id, &row.tool_id))
-        .collect::<BTreeSet<_>>();
-
-    if expected_ready_keys != observed_ready_keys {
-        let missing = expected_ready_keys
-            .difference(&observed_ready_keys)
-            .map(render_binding_key)
-            .collect::<Vec<_>>();
-        let extra = observed_ready_keys
-            .difference(&expected_ready_keys)
-            .map(render_binding_key)
-            .collect::<Vec<_>>();
-        return Err(anyhow!(
-            "all-domain stage-tool table drifted from domain-ready bindings; missing={missing:?} extra={extra:?}"
-        ));
-    }
-
-    let expected_vcf_row_count = vcf_matrix_rows_len()?;
-    let actual_vcf_row_count = rows.iter().filter(|row| row.domain == "vcf").count();
-    if actual_vcf_row_count != expected_vcf_row_count {
-        return Err(anyhow!(
-            "all-domain stage-tool table must include every governed VCF matrix row (expected {expected_vcf_row_count}, found {actual_vcf_row_count})"
-        ));
-    }
-
-    Ok(())
 }
 
 fn fastq_bam_asset_profile_id(
@@ -342,14 +277,6 @@ fn binding_key(domain: &str, stage_id: &str, tool_id: &str) -> BindingKey {
         stage_id: stage_id.to_string(),
         tool_id: tool_id.to_string(),
     }
-}
-
-fn render_binding_key(key: &BindingKey) -> String {
-    format!("{}:{}:{}", key.domain, key.stage_id, key.tool_id)
-}
-
-fn vcf_matrix_rows_len() -> Result<usize> {
-    Ok(collect_vcf_benchmark_binding_rows()?.len())
 }
 
 fn render_all_domain_stage_tool_table_tsv(rows: &[AllDomainStageToolTableRow]) -> String {

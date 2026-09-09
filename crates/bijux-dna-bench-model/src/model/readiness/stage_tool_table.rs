@@ -8,6 +8,14 @@ use std::collections::BTreeMap;
 pub const ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_stage_tool_table.v1";
 
+/// Ordered identity for stage/tool readiness coverage.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ReadinessStageToolBinding {
+    pub domain: String,
+    pub stage_id: String,
+    pub tool_id: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct AllDomainStageToolTableRow {

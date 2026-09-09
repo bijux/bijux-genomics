@@ -83,3 +83,5 @@ The full benchmark dashboard envelope and metric rows are owned here. Their clos
 Local smoke subset observation envelopes, rows, and execution-kind serialization belong to this model owner. Failed execution observations remain representable; decoding alone does not establish success, count closure, or backend provenance. Acquisition, admission policy, and persistence remain separate responsibilities.
 
 Readiness stage/tool asset coverage and rendered command envelopes, rows, and argument-vector steps are model-owned wire contracts. Planned commands preserve token boundaries and pipeline handoff flags; serialization does not prove that those commands executed.
+
+`contract/readiness` admits stage/tool coverage against an explicit domain catalog context. `ReadinessStageToolBinding` supplies ordered binding identity; the caller owns acquisition and reuses the same catalog observations for projection and validation. Persisted table rows keep their wire fields, and blocked bindings remain visible.

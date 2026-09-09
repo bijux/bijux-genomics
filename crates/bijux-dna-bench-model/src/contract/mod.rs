@@ -78,6 +78,7 @@ mod publication_outcome;
 mod publication_registry;
 mod publication_status;
 mod published_results_status;
+mod readiness;
 mod readiness_views;
 mod real_smoke_core_subset;
 mod records;
@@ -390,3 +391,7 @@ pub use local_slurm_scripts::{
 };
 
 pub use real_smoke_core_subset::admit_real_smoke_core_subset_report;
+
+pub use readiness::{
+    validate_all_domain_stage_tool_table_rows, AllDomainStageToolTableAdmissionContext,
+};
