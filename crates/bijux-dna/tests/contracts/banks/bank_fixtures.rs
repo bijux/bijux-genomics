@@ -164,7 +164,6 @@ impl RepoSandbox {
             &["bench", "local", "run-vcf-qc-smoke"],
             &["bench", "local", "run-vcf-roh-smoke"],
             &["bench", "local", "run-vcf-stats-smoke"],
-            &["bench", "readiness", "render-full-benchmark-report"],
             &["bench", "run-micro"],
         ];
 
