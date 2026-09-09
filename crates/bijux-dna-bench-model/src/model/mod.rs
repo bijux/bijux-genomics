@@ -761,3 +761,5 @@ pub mod bam_scoring;
 pub mod vcf_scoring;
 
 pub(crate) mod hpc_campaign;
+
+pub(crate) mod simulation;

@@ -388,3 +388,5 @@ pub use container_qualification::{
 };
 
 pub(crate) mod hpc_campaign;
+
+pub(crate) mod simulation;

@@ -73,3 +73,11 @@ gating, and deterministic artifact persistence.
 - Contract validation failures before artifact persistence.
 
 Local stage inventories retain matrix declaration order, domain prefixes, unique stage identities and the governed matrix schema version. Aggregate reports retain selected-domain order and exact count closure. Repository admission and workflow publication use the existing model-owned inventory schemas and validators. A readiness declaration is not evidence of executed tool compatibility.
+
+## All-domain local simulation
+
+The simulation service consumes canonical expected-result, rendered-command and output-declaration rows. The model admits their unique identities and output paths before the repository writes any artifacts. The workflow owns orchestration; artifact rendering records illustrative commands without executing them. CLI adapters acquire the current readiness rows and present the report.
+
+`local-all-domain-fake-runs.schema.json` and `local-all-domain-fake-run-metrics.schema.json` are generated from the benchmark model. Existing wire version identifiers and artifact names remain stable. These outputs demonstrate local orchestration only: zero-length binary placeholders and simulated elapsed time do not certify scientific validity, real resource use or tool interchangeability. Byte counts describe produced artifact bytes and exclude unrelated files from earlier runs.
+
+Output admission rejects duplicate results, contradictory row identities, colliding result directories, parent traversal and existing symlink destinations before writes. Concurrent hostile filesystem namespace replacement and atomic publication of an entire multi-file run are not provided by this service.

@@ -711,3 +711,14 @@ pub use crate::artifacts::schema_publication::{
     write_benchmark_stage_report_schema, write_fastq_normalized_metrics_schema,
     write_vcf_normalized_metrics_schema, write_vcf_normalized_metrics_stage_schemas,
 };
+
+pub use crate::artifacts::simulation::render_all_domain_simulation_command_script;
+pub use crate::workflow::simulation::fake_run_all_domain_benchmark_results;
+pub use bijux_dna_bench_model::{
+    all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
+    all_domain_simulation_output_path, all_domain_simulation_output_role,
+    validate_all_domain_simulation_report, validate_all_domain_simulation_result,
+    AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
+    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+};

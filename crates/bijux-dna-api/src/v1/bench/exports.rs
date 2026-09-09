@@ -517,3 +517,13 @@ pub use bijux_dna_bench::{
     write_benchmark_stage_report_schema, write_fastq_normalized_metrics_schema,
     write_vcf_normalized_metrics_schema, write_vcf_normalized_metrics_stage_schemas,
 };
+
+pub use bijux_dna_bench::{
+    all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
+    all_domain_simulation_output_path, all_domain_simulation_output_role,
+    fake_run_all_domain_benchmark_results, render_all_domain_simulation_command_script,
+    validate_all_domain_simulation_report, validate_all_domain_simulation_result,
+    AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
+    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+};

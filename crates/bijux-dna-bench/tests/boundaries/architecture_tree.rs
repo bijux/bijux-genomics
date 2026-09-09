@@ -21,6 +21,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
         entries([
+            "simulation.rs",
             "admission/",
             "bam_score_evidence/",
             "vcf_score_evidence/",
@@ -106,6 +107,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
+            "simulation.rs",
             "bam_score_evidence.rs",
             "vcf_score_evidence.rs",
             "vcf_execution_proof.rs",
@@ -167,6 +169,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/workflow")),
         entries([
+            "simulation.rs",
             "container_qualification/",
             "alias_resolution.rs",
             "appraisal.rs",

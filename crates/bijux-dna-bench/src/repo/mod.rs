@@ -83,3 +83,5 @@ pub use vcf_execution_proof::load_vcf_execution_blocker;
 pub(crate) mod container_qualification;
 
 pub(crate) mod hpc_campaign;
+
+pub(crate) mod simulation;

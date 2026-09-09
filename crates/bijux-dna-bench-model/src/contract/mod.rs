@@ -403,3 +403,6 @@ pub use suite::CanonicalFastqSuiteCatalog;
 pub use suite::{validate_suite_with_catalog, BenchmarkSuiteCatalog};
 
 pub(crate) mod hpc_campaign;
+
+mod simulation;
+pub use simulation::{admit_all_domain_simulation_inputs, AllDomainSimulationInput};

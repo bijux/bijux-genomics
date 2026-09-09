@@ -29,3 +29,5 @@ pub(crate) mod vcf_score_evidence;
 pub(crate) mod vcf_execution_proof;
 
 pub(crate) mod schema_publication;
+
+pub(crate) mod simulation;

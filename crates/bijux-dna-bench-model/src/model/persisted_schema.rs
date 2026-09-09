@@ -78,6 +78,8 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
     };
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-all-domain-fake-run-metrics.schema.json", || schemars::schema_for!(super::simulation::AllDomainFakeRunMetrics)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-all-domain-fake-runs.schema.json", || schemars::schema_for!(super::simulation::AllDomainFakeRunsReport)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/hpc-campaign-monitor.schema.json", || schemars::schema_for!(crate::SlurmMonitorReport)),
         PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/hpc-bundle-sidecar.schema.json",
