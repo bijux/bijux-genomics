@@ -242,8 +242,6 @@ mod mod_contracts_tooling_vcf_image_smoke_policy_rs;
 mod mod_contracts_tooling_vcf_support_gate_policy_rs;
 #[path = "contracts/tooling/governance_core/workflow_truth_boundary_policy.rs"]
 mod mod_contracts_tooling_workflow_truth_boundary_policy_rs;
-#[path = "contracts/workspace.rs"]
-mod mod_contracts_workspace_rs;
 
 #[path = "contracts/tooling/cli/workspace_binary_policy.rs"]
 mod workspace_binary_policy;
