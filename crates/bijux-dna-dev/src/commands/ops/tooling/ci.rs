@@ -1150,6 +1150,12 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         set_full_archive_readonly(&archive_roots.archive_file)?;
     }
     let mut archive_receipt = serde_json::json!({
+        "schema_version": "bijux.ci.full_archive_build.v1",
+        "source_commit": source_identity,
+        "source_worktree_clean": source_clean,
+        "source_patch_sha256": source_patch_sha256,
+        "contract_sha256": contract_sha256,
+        "build_authority_sha256": build_authority_sha256,
         "workspace": workspace.rel(&archive_workspace).to_string_lossy(),
         "artifact": workspace.rel(&archive_roots.archive_file).to_string_lossy(),
         "artifact_sha256": archive_sha256,
@@ -1163,6 +1169,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "stderr_log": workspace.rel(&report_root.join("archive-build.stderr.log")).to_string_lossy(),
         "read_only_during_shard_execution": archive_passed,
     });
+    // Retain completed build evidence even when discovery or execution is interrupted.
+    write_json_pretty(&report_root.join("archive-build.receipt.json"), &archive_receipt)?;
     let mut stdout = String::from_utf8_lossy(&archive_output.output.stdout).into_owned();
     let mut stderr = String::from_utf8_lossy(&archive_output.output.stderr).into_owned();
     if !archive_passed {
@@ -1214,6 +1222,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let executables = ArchivedWorkspaceExecutables::parse(&inventory_output.output.stdout)?;
     let inventory_log = report_root.join("test-inventory.stdout.log");
     let inventory_receipt = serde_json::json!({
+        "schema_version": "bijux.ci.full_test_inventory.v1",
         "path": workspace.rel(&inventory_log).to_string_lossy(),
         "sha256": bijux_dna_infra::hash_file_sha256(&inventory_log)?,
         "workspace_executables": &executables,
@@ -1221,8 +1230,10 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "expected_ignored_case_count": expected_inventory.ignored_case_count(),
         "duration_milliseconds": inventory_output.duration.as_millis(),
         "source_commit": source_identity,
+        "source_patch_sha256": source_patch_sha256,
         "archive_sha256": archive_sha256,
     });
+    write_json_pretty(&report_root.join("test-inventory.receipt.json"), &inventory_receipt)?;
     let shard_plans = selected_shards
         .iter()
         .map(|shard| {
