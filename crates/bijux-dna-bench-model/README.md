@@ -95,3 +95,5 @@ read-only drift gate.
 The default `canonical-fastq-catalog` feature preserves `contract::validate_suite` and the canonical FASTQ adapter. Pure record consumers can disable default features and use `contract::validate_suite_with_catalog` with an explicit provider. This removes the model-to-FASTQ compilation dependency for those builds. Full workspace feature unification may still enable the canonical adapter; a minimal consumer build is a separate measured configuration.
 
 BAM scoring records, per-binding evidence selection, weighted ranking and report counts are owned by the model scoring policy. Callers supply typed observations; repository acquisition and TSV presentation remain adapter responsibilities.
+
+BAM scoring admits correctness fractions in `[0, 1]` and finite nonnegative runtime/memory before ranking. Scientific metric columns require finite values while retaining their declared units and signed values; their format-specific range and provenance admission belongs to the artifact contract.

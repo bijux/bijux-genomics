@@ -5,6 +5,7 @@ use crate::{
     BamToolScoreRow, BamToolScoringInput, StageScoringCorrectnessSignal, StageScoringDecisionMode,
 };
 
+mod admission;
 mod assembly;
 mod ranking;
 mod report;
@@ -63,6 +64,7 @@ pub fn build_bam_tool_score_rows(
     input: BamToolScoringInput,
 ) -> anyhow::Result<Vec<BamToolScoreRow>> {
     crate::validate_stage_scoring_config(&input.config)?;
+    admission::validate_input(&input)?;
     Ok(score_base_rows(assembly::collect_base_score_rows(input)))
 }
 
@@ -319,6 +321,71 @@ mod tests {
         assert_eq!(rows[0].failure_class, "none");
         assert_eq!(rows[1].score_status, BamToolScoreStatus::Blocked);
         assert_eq!(rows[1].failure_class, "command_failed");
+        Ok(())
+    }
+
+    #[test]
+    fn bam_scoring_rejects_invalid_correctness_fractions() -> Result<()> {
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -0.1, 1.1] {
+            for truth in [false, true] {
+                let mut data = input()?;
+                for evidence in data.evidence.values_mut() {
+                    if truth {
+                        evidence.truth_correctness_score = Some(value);
+                    } else {
+                        evidence.contract_correctness_score = Some(value);
+                    }
+                }
+                assert!(build_bam_tool_score_rows(data).is_err());
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn bam_scoring_rejects_invalid_runtime_memory_and_nonfinite_metrics() -> Result<()> {
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -1.0] {
+            for field in 0..3 {
+                let mut data = input()?;
+                match field {
+                    0 => data.runtime_rows[0].elapsed_seconds = Some(value),
+                    1 => data.memory_rows[0].observed_memory_mb = Some(value),
+                    _ => data.memory_rows[0].declared_memory_mb = Some(value),
+                }
+                assert!(build_bam_tool_score_rows(data).is_err());
+            }
+        }
+        for field in 0..4 {
+            let mut data = input()?;
+            for evidence in data.evidence.values_mut() {
+                match field {
+                    0 => evidence.alignment_qc_metric_value = Some(f64::NAN),
+                    1 => evidence.coverage_metric_value = Some(f64::INFINITY),
+                    2 => evidence.damage_metric_value = Some(f64::NAN),
+                    _ => evidence.authenticity_metric_value = Some(f64::NEG_INFINITY),
+                }
+            }
+            assert!(build_bam_tool_score_rows(data).is_err());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn bam_scoring_preserves_metric_units_and_zero_runtime() -> Result<()> {
+        let mut data = input()?;
+        data.runtime_rows[0].elapsed_seconds = Some(0.0);
+        data.memory_rows[0].observed_memory_mb = Some(0.0);
+        for evidence in data.evidence.values_mut() {
+            evidence.coverage_metric_value = Some(35.0);
+            evidence.coverage_metric_basis = Some("mean_depth".into());
+            evidence.authenticity_metric_value = Some(-0.2);
+            evidence.authenticity_metric_basis = Some("signed_estimate_fixture".into());
+        }
+        let rows = build_bam_tool_score_rows(data)?;
+        assert_eq!(rows[0].runtime_seconds, Some(0.0));
+        assert_eq!(rows[0].observed_memory_mb, Some(0.0));
+        assert!(rows.iter().all(|row| row.coverage_metric_value == Some(35.0)));
+        assert!(rows.iter().all(|row| row.authenticity_metric_value == Some(-0.2)));
         Ok(())
     }
 }
