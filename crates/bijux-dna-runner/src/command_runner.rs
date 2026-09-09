@@ -123,7 +123,7 @@ pub fn run_command_with_context_and_stdin(
 }
 
 /// Capture process bytes before any presentation decoding. Execution bindings and
-/// process-group timeout semantics match the text command adapter.
+/// process-group timeout semantics match the text command API.
 pub(crate) fn run_command_bytes_with_timeout(
     command: &str,
     args: &[String],

@@ -1,4 +1,4 @@
-//! Owner: runner age command adapter.
+//! Owner: runner age process backend.
 use crate::command_runner::run_command_bytes_with_timeout;
 use anyhow::{anyhow, Context, Result};
 use std::path::{Path, PathBuf};
