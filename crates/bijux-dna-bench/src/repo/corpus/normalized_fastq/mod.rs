@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Normalized FASTQ corpus discovery and publication cohort metadata.
 //!
 //! Manifest content identity, sample/accession closure and publication cohorts are admitted here.

@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Read-only inspection of benchmark source files, directories, and index-prefix bundles.
 
 use std::collections::BTreeSet;

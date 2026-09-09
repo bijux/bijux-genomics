@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Typed acquisition boundary for benchmark profile evidence.
 
 use anyhow::Result;

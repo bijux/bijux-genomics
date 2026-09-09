@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Domain selection and governed matrix identities for stage inventory admission.
 
 use super::super::DEFAULT_VCF_STAGE_MATRIX_PATH;

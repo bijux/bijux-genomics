@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Read and admit domain-local stage matrix declarations from an explicit repository root.
 
 mod domain;

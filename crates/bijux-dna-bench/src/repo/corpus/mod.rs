@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Domain-specific corpus admission and normalized read metadata.
 
 mod bam;

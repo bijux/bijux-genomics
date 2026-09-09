@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Benchmark scientific profile admission over explicit evidence providers.
 
 use std::collections::{BTreeMap, BTreeSet};
