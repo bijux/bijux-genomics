@@ -8,7 +8,7 @@ are supplied through the shared stage contract by an application composition roo
 ## Root Layout
 
 - `Cargo.toml` declares dependencies; `README.md` introduces the crate.
-- `bench/suites/` holds governed suite TOML data; Markdown belongs in `docs/`.
+- `benchmarks/suites/` holds governed suite TOML data; Markdown belongs in `docs/`.
 - `src/` owns the library; `tests/` owns its contract and boundary evidence.
 
 ## Source Layout
