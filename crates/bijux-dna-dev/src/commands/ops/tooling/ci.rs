@@ -14,7 +14,7 @@ use super::{
     set_assets_readonly, write_json_pretty, Context, OpsCommandOutcome, Result, Workspace,
 };
 use crate::application::ci::{
-    ArchivedWorkspaceExecutables, CoverageAttestation, ExpectedTestInventory, ShardDiscoveryPlan,
+    CompiledWorkspaceExecutables, CoverageAttestation, ExpectedTestInventory, ShardDiscoveryPlan,
 };
 use crate::runtime::compilation_cache::CompilationCache;
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
@@ -1241,7 +1241,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "full test inventory failed; see test-inventory.stderr.log"
     );
     let expected_inventory = ExpectedTestInventory::parse(&inventory_output.output.stdout)?;
-    let executables = ArchivedWorkspaceExecutables::parse(&inventory_output.output.stdout)?;
+    let executables = CompiledWorkspaceExecutables::parse(&inventory_output.output.stdout)?;
     let inventory_log = report_root.join("test-inventory.stdout.log");
     let inventory_receipt = serde_json::json!({
         "schema_version": "bijux.ci.full_test_inventory.v1",
@@ -1290,7 +1290,9 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             let mut args = full_shard_args(shard, &archive_roots.archive_extract, shard_workspace);
             args.extend(["--filterset".to_string(), plan.filterset.clone()]);
             let mut envs = full_shard_env(roots, shard_workspace)?;
-            envs.extend(executables.remapped_environment(&archive_roots.archive_extract)?);
+            envs.extend(
+                executables.remapped_environment(&archive_roots.archive_extract.join("target"))?,
+            );
             Ok(ParallelProcessSpec {
                 label: shard.id.clone(),
                 program: "cargo".to_string(),

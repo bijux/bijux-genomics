@@ -7,7 +7,7 @@ mod inventory;
 mod partition;
 
 pub(crate) use coverage::CoverageAttestation;
-pub(crate) use executables::ArchivedWorkspaceExecutables;
+pub(crate) use executables::CompiledWorkspaceExecutables;
 pub(crate) use inventory::ExpectedTestInventory;
 pub(crate) use partition::ShardDiscoveryPlan;
 
@@ -335,11 +335,11 @@ mod tests {
     #[test]
     fn archived_workspace_executables_are_explicitly_remapped_for_cross_package_tests() -> Result<()>
     {
-        let bindings = super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(
+        let bindings = super::CompiledWorkspaceExecutables::parse(&serde_json::to_vec(
             &executable_inventory(),
         )?)?;
         let root = std::env::current_dir()?.join("archive with spaces");
-        let env = bindings.remapped_environment(&root)?;
+        let env = bindings.remapped_environment(&root.join("target"))?;
         assert_eq!(
             env,
             vec![
@@ -362,18 +362,18 @@ mod tests {
     {
         let mut missing = executable_inventory();
         missing["rust-build-meta"]["non-test-binaries"]["developer-package"] = json!([]);
-        assert!(super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&missing)?).is_err());
+        assert!(super::CompiledWorkspaceExecutables::parse(&serde_json::to_vec(&missing)?).is_err());
         let mut duplicate = executable_inventory();
         duplicate["rust-build-meta"]["non-test-binaries"]["foreign-package"] =
             json!([{"name":"bijux-dna","kind":"bin-exe","path":"debug/bijux-dna"}]);
         assert!(
-            super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&duplicate)?).is_err()
+            super::CompiledWorkspaceExecutables::parse(&serde_json::to_vec(&duplicate)?).is_err()
         );
         let mut wrong_kind = executable_inventory();
         wrong_kind["rust-build-meta"]["non-test-binaries"]["cli-package"][0]["kind"] =
             json!("dylib");
         assert!(
-            super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&wrong_kind)?).is_err()
+            super::CompiledWorkspaceExecutables::parse(&serde_json::to_vec(&wrong_kind)?).is_err()
         );
         Ok(())
     }
@@ -394,14 +394,29 @@ mod tests {
             let mut value = executable_inventory();
             value["rust-build-meta"]["non-test-binaries"]["cli-package"][0]["path"] = json!(path);
             assert!(
-                super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&value)?).is_err(),
+                super::CompiledWorkspaceExecutables::parse(&serde_json::to_vec(&value)?).is_err(),
                 "{path:?}"
             );
         }
         let mut windows = executable_inventory();
         windows["rust-build-meta"]["non-test-binaries"]["cli-package"][0]["path"] =
             json!("debug/bijux-dna.exe");
-        assert!(super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&windows)?).is_ok());
+        assert!(super::CompiledWorkspaceExecutables::parse(&serde_json::to_vec(&windows)?).is_ok());
+        Ok(())
+    }
+    #[test]
+    fn compiled_workspace_executables_accept_an_explicit_local_target_root() -> Result<()> {
+        let bindings = super::CompiledWorkspaceExecutables::parse(&serde_json::to_vec(
+            &executable_inventory(),
+        )?)?;
+        let root = std::env::current_dir()?.join("artifacts/build/cargo");
+        let env = bindings.remapped_environment(&root)?;
+        for (name, path) in env {
+            let binary = name
+                .strip_prefix("NEXTEST_BIN_EXE_")
+                .ok_or_else(|| anyhow::anyhow!("unexpected executable variable"))?;
+            assert_eq!(std::path::PathBuf::from(path), root.join("debug").join(binary));
+        }
         Ok(())
     }
 }
