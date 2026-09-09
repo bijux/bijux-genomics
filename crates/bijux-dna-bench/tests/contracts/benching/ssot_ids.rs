@@ -30,7 +30,7 @@ fn extract_string_literals(contents: &str) -> Vec<String> {
 fn is_stage_id(value: &str) -> bool {
     let parts: Vec<&str> = value.split('.').collect();
     matches!(parts.as_slice(), [prefix, suffix]
-        if matches!(*prefix, "fastq" | "bam" | "vcf") && !suffix.is_empty())
+        if matches!(*prefix, "fastq" | "bam" | "vcf") && is_identifier_literal(suffix))
 }
 
 fn is_identifier_literal(value: &str) -> bool {
@@ -156,6 +156,10 @@ fn stage_id_shape_excludes_domain_prefixes() {
     assert!(!is_stage_id("fastq."));
     assert!(!is_stage_id("bam."));
     assert!(!is_stage_id("vcf."));
+    assert!(!is_stage_id("fastq.validate_reads must declare its corpus"));
+    assert!(!is_stage_id("bam.align/report.json"));
+    assert!(!is_stage_id("vcf.CALL"));
+    assert!(is_stage_id("fastq.unknown_stage"));
 }
 
 #[test]
