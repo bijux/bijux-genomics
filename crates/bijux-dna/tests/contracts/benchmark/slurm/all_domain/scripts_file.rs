@@ -3,8 +3,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 fn collect_sbatch_paths(root: &Path, paths: &mut Vec<PathBuf>) {
     if !root.exists() {

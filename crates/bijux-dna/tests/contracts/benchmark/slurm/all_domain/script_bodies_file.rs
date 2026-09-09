@@ -3,8 +3,7 @@
 use std::fs;
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn bench_local_validate_all_domain_slurm_script_bodies_writes_owned_execution_commands() {

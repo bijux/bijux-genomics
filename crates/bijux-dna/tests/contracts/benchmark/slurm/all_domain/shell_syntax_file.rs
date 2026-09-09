@@ -3,8 +3,7 @@
 use std::fs;
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn bench_local_validate_all_domain_slurm_shell_syntax_writes_governed_report_path() {
