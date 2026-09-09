@@ -13,7 +13,9 @@ use super::{
     resolved_run_ignored, run_check_ids, run_make_target, run_program_with_env,
     set_assets_readonly, write_json_pretty, Context, OpsCommandOutcome, Result, Workspace,
 };
-use crate::application::ci::{CoverageAttestation, ExpectedTestInventory, ShardDiscoveryPlan};
+use crate::application::ci::{
+    ArchivedWorkspaceExecutables, CoverageAttestation, ExpectedTestInventory, ShardDiscoveryPlan,
+};
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 use crate::runtime::source_snapshot::TrackedSourceSnapshot;
 
@@ -1206,10 +1208,12 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "full test inventory failed; see test-inventory.stderr.log"
     );
     let expected_inventory = ExpectedTestInventory::parse(&inventory_output.output.stdout)?;
+    let executables = ArchivedWorkspaceExecutables::parse(&inventory_output.output.stdout)?;
     let inventory_log = report_root.join("test-inventory.stdout.log");
     let inventory_receipt = serde_json::json!({
         "path": workspace.rel(&inventory_log).to_string_lossy(),
         "sha256": bijux_dna_infra::hash_file_sha256(&inventory_log)?,
+        "workspace_executables": &executables,
         "expected_case_count": expected_inventory.case_count(),
         "expected_ignored_case_count": expected_inventory.ignored_case_count(),
         "duration_milliseconds": inventory_output.duration.as_millis(),
@@ -1253,11 +1257,13 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 shard_workspace,
             );
             args.extend(["--filterset".to_string(), plan.filterset.clone()]);
+            let mut envs = full_shard_env(roots, shard_workspace)?;
+            envs.extend(executables.remapped_environment(&roots.archive_extract)?);
             Ok(ParallelProcessSpec {
                 label: shard.id.clone(),
                 program: "cargo".to_string(),
                 args,
-                envs: full_shard_env(roots, shard_workspace)?,
+                envs,
                 current_dir: Some(shard_workspace.clone()),
             })
         })

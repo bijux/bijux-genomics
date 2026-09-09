@@ -293,3 +293,75 @@ fn binary_names_can_overlap_when_their_case_identities_are_distinct() -> Result<
     assert!(report.complete);
     Ok(())
 }
+
+fn executable_inventory() -> Value {
+    json!({"rust-build-meta":{"non-test-binaries":{
+        "cli-package":[{"name":"bijux-dna","kind":"bin-exe","path":"debug/bijux-dna"}],
+        "developer-package":[{"name":"bijux-dna-dev","kind":"bin-exe","path":"debug/bijux-dna-dev"}]
+    }}})
+}
+
+#[test]
+fn archived_workspace_executables_are_explicitly_remapped_for_cross_package_tests() -> Result<()> {
+    let bindings =
+        super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&executable_inventory())?)?;
+    let root = std::env::current_dir()?.join("archive with spaces");
+    let env = bindings.remapped_environment(&root)?;
+    assert_eq!(
+        env,
+        vec![
+            (
+                "NEXTEST_BIN_EXE_bijux-dna".to_owned(),
+                root.join("target/debug/bijux-dna").display().to_string()
+            ),
+            (
+                "NEXTEST_BIN_EXE_bijux-dna-dev".to_owned(),
+                root.join("target/debug/bijux-dna-dev").display().to_string()
+            ),
+        ]
+    );
+    assert!(bindings.remapped_environment(std::path::Path::new("relative")).is_err());
+    Ok(())
+}
+
+#[test]
+fn archived_workspace_executables_reject_absent_ambiguous_and_wrong_kind_bindings() -> Result<()> {
+    let mut missing = executable_inventory();
+    missing["rust-build-meta"]["non-test-binaries"]["developer-package"] = json!([]);
+    assert!(super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&missing)?).is_err());
+    let mut duplicate = executable_inventory();
+    duplicate["rust-build-meta"]["non-test-binaries"]["foreign-package"] =
+        json!([{"name":"bijux-dna","kind":"bin-exe","path":"debug/bijux-dna"}]);
+    assert!(super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&duplicate)?).is_err());
+    let mut wrong_kind = executable_inventory();
+    wrong_kind["rust-build-meta"]["non-test-binaries"]["cli-package"][0]["kind"] = json!("dylib");
+    assert!(super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&wrong_kind)?).is_err());
+    Ok(())
+}
+
+#[test]
+fn archived_executable_paths_cannot_escape_or_change_binary_identity() -> Result<()> {
+    for path in [
+        "",
+        "/debug/bijux-dna",
+        "../bijux-dna",
+        "debug/../bijux-dna",
+        "debug/./bijux-dna",
+        "debug//bijux-dna",
+        "debug\\bijux-dna",
+        "debug/other",
+        "bad\0/debug/bijux-dna",
+    ] {
+        let mut value = executable_inventory();
+        value["rust-build-meta"]["non-test-binaries"]["cli-package"][0]["path"] = json!(path);
+        assert!(
+            super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&value)?).is_err(),
+            "{path:?}"
+        );
+    }
+    let mut windows = executable_inventory();
+    windows["rust-build-meta"]["non-test-binaries"]["cli-package"][0]["path"] =
+        json!("debug/bijux-dna.exe");
+    assert!(super::ArchivedWorkspaceExecutables::parse(&serde_json::to_vec(&windows)?).is_ok());
+    Ok(())
+}

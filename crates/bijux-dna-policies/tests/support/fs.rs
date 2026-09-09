@@ -3,6 +3,16 @@ use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
 
+#[path = "workspace_binary.rs"]
+mod workspace_binary;
+pub fn workspace_binary_command(
+    root: &Path,
+    package: &str,
+    binary: &str,
+) -> std::io::Result<std::process::Command> {
+    workspace_binary::workspace_binary_command(root, package, binary)
+}
+
 pub fn workspace_root() -> PathBuf {
     bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
