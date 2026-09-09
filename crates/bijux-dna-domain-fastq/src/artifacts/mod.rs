@@ -64,7 +64,10 @@ pub use capture_provenance_snapshot::{
 pub use classify_layout::{
     ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
 };
-pub use cluster_otus::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
+pub use cluster_otus::{
+    ClusterOtusReportV1, LocalClusterOtusSmokeReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION,
+    LOCAL_CLUSTER_OTUS_SMOKE_REPORT_SCHEMA_VERSION,
+};
 pub use concatenate_lanes::{
     ConcatenateLaneSummaryV1, ConcatenateLanesReportV1, CONCATENATE_LANES_REPORT_SCHEMA_VERSION,
 };
@@ -90,20 +93,31 @@ pub use estimate_library_complexity_prealign::{
     ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_REPORT_SCHEMA_VERSION,
     PREALIGN_COMPLEXITY_INSUFFICIENT_DATA_REASON,
 };
-pub use extract_umis::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
+pub use extract_umis::{
+    ExtractUmisReportV1, LocalExtractUmisSmokeReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION,
+    LOCAL_EXTRACT_UMIS_SMOKE_REPORT_SCHEMA_VERSION,
+};
 pub use filter_low_complexity::{
-    FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
+    FilterLowComplexityReportV1, LocalFilterLowComplexitySmokeReportV1,
+    FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
+    LOCAL_FILTER_LOW_COMPLEXITY_SMOKE_REPORT_SCHEMA_VERSION,
 };
 pub use filter_reads::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
 pub use index_reference::{
     IndexReferenceFileEntryV1, IndexReferenceReportV1, INDEX_REFERENCE_REPORT_SCHEMA_VERSION,
 };
-pub use infer_asvs::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
+pub use infer_asvs::{
+    InferAsvsReportV1, LocalInferAsvsSmokeReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION,
+    LOCAL_INFER_ASVS_SMOKE_REPORT_SCHEMA_VERSION,
+};
 pub use interleave_reads::{InterleaveReadsReportV1, INTERLEAVE_READS_REPORT_SCHEMA_VERSION};
 pub use materialize_qc_manifest::{
     MaterializeQcManifestReportV1, QcManifestEntryV1, MATERIALIZE_QC_MANIFEST_REPORT_SCHEMA_VERSION,
 };
-pub use merge_pairs::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
+pub use merge_pairs::{
+    LocalMergePairsSmokeReportV1, MergePairsReportV1,
+    LOCAL_MERGE_PAIRS_SMOKE_REPORT_SCHEMA_VERSION, MERGE_PAIRS_REPORT_SCHEMA_VERSION,
+};
 pub use naming::{
     contaminant_depletion_artifact_paths, corrected_fastq_artifact_paths,
     host_depletion_artifact_paths, merge_fastq_artifact_paths, qc_bundle_artifact_paths,
@@ -113,7 +127,9 @@ pub use naming::{
     QcBundleArtifactPaths, RrnaDepletionArtifactPaths, ValidationArtifactPaths,
 };
 pub use normalize_abundance::{
-    NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
+    LocalNormalizeAbundanceSmokeReportV1, NormalizeAbundanceReportV1,
+    LOCAL_NORMALIZE_ABUNDANCE_SMOKE_REPORT_SCHEMA_VERSION,
+    NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
 };
 pub use normalize_primers::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
 pub use normalize_read_names::{
@@ -130,7 +146,8 @@ pub use prepare_primer_bank::{
     PreparePrimerBankReportV1, PREPARE_PRIMER_BANK_REPORT_SCHEMA_VERSION,
 };
 pub use profile_overrepresented_sequences::{
-    OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
+    LocalProfileOverrepresentedSequencesSmokeReportV1, OverrepresentedSequenceRowV1,
+    ProfileOverrepresentedReportV1, LOCAL_PROFILE_OVERREPRESENTED_SMOKE_REPORT_SCHEMA_VERSION,
     PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
 };
 pub use profile_read_lengths::{
@@ -145,9 +162,13 @@ pub use qc_bundle::{
     governed_qc_inputs_manifest_from_inputs, GovernedQcInputsManifestV1,
     GovernedQcManifestContributorV1, GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
 };
-pub use remove_chimeras::{RemoveChimerasReportV1, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION};
+pub use remove_chimeras::{
+    LocalRemoveChimerasSmokeReportV1, RemoveChimerasReportV1,
+    LOCAL_REMOVE_CHIMERAS_SMOKE_REPORT_SCHEMA_VERSION, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
+};
 pub use remove_duplicates::{
-    DuplicateClassEntryV1, RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1,
+    DuplicateClassEntryV1, LocalRemoveDuplicatesSmokeReportV1, RemoveDuplicatesProvenanceV1,
+    RemoveDuplicatesReportV1, LOCAL_REMOVE_DUPLICATES_SMOKE_REPORT_SCHEMA_VERSION,
     REMOVE_DUPLICATES_PROVENANCE_SCHEMA_VERSION, REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION,
 };
 pub use repair_pairs::{RepairPairsReportV1, REPAIR_PAIRS_REPORT_SCHEMA_VERSION};

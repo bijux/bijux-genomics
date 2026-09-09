@@ -1,3 +1,7 @@
+use bijux_dna_domain_fastq::{
+    LocalProfileOverrepresentedSequencesSmokeReportV1 as LocalProfileOverrepresentedSequencesSmokeReport,
+    LOCAL_PROFILE_OVERREPRESENTED_SMOKE_REPORT_SCHEMA_VERSION,
+};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -33,7 +37,6 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
-use serde::Serialize;
 
 use crate::internal::fastq::stages::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context,
@@ -42,24 +45,6 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.profile_overrepresented_sequences";
-const LOCAL_PROFILE_OVERREPRESENTED_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.profile_overrepresented_sequences.local_smoke.report.v1";
-
-#[derive(Debug, Clone, Serialize)]
-struct LocalProfileOverrepresentedSequencesSmokeReport {
-    schema_version: String,
-    stage_id: String,
-    sample_id: String,
-    planned_tool_id: String,
-    report_tool_id: String,
-    top_sequence: String,
-    top_count: u64,
-    top_fraction: f64,
-    flagged_sequences: u64,
-    overrepresented_tsv: String,
-    case_report_json: String,
-    raw_backend_report: String,
-}
 
 /// Benchmark FASTQ overrepresented-sequence profiling tools.
 ///

@@ -1,3 +1,7 @@
+use bijux_dna_domain_fastq::{
+    LocalExtractUmisSmokeReportV1 as LocalExtractUmisSmokeReport,
+    LOCAL_EXTRACT_UMIS_SMOKE_REPORT_SCHEMA_VERSION,
+};
 use std::collections::{BTreeSet, HashMap};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -34,7 +38,6 @@ use bijux_dna_planner_fastq::ExtractUmisStageParams;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
-use serde::Serialize;
 
 use crate::internal::fastq::stages::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context, observe_fastq_stats,
@@ -45,26 +48,6 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_EXTRACT_UMIS,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
-
-const LOCAL_EXTRACT_UMIS_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.extract_umis.local_smoke.report.v1";
-
-#[derive(Debug, Clone, Serialize)]
-struct LocalExtractUmisSmokeReport {
-    schema_version: String,
-    stage_id: String,
-    sample_id: String,
-    planned_tool_id: String,
-    report_tool_id: String,
-    umi_pattern: String,
-    extracted_umi_count: u64,
-    invalid_umi_count: u64,
-    tag_header_format: String,
-    umi_extracted_fastq_gz: String,
-    umi_extracted_r2_fastq_gz: String,
-    case_report_json: String,
-    raw_backend_report: String,
-}
 
 fn apply_thread_override(
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,

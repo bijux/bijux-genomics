@@ -1,3 +1,7 @@
+use bijux_dna_domain_fastq::{
+    LocalClusterOtusSmokeReportV1 as LocalClusterOtusSmokeReport,
+    LOCAL_CLUSTER_OTUS_SMOKE_REPORT_SCHEMA_VERSION,
+};
 use std::collections::{BTreeSet, HashMap};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
@@ -31,28 +35,6 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.cluster_otus";
-const LOCAL_CLUSTER_OTUS_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.cluster_otus.local_smoke.report.v1";
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct LocalClusterOtusSmokeReport {
-    schema_version: String,
-    stage_id: String,
-    sample_id: String,
-    planned_tool_id: String,
-    report_tool_id: String,
-    clustering_threshold: f64,
-    otu_count: u64,
-    sample_count: u64,
-    representative_sequence_count: u64,
-    otu_table_tsv: String,
-    representative_sequences_fasta: String,
-    otu_representatives_fasta: String,
-    case_report_json: String,
-    taxonomy_ready_fasta: String,
-    taxonomy_ready_fastq: String,
-    raw_backend_report: String,
-}
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct ClusterOtusTableMetrics {

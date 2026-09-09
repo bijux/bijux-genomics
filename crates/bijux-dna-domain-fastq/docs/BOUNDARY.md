@@ -27,3 +27,5 @@ parameter schemas/defaults, metric semantics, pipeline ordering, and invariant e
 Boundary invariants are enforced by bijux-dna-policies contract tests.
 The repository policy is rooted at `README.md`, and the repository coding
 policy is rooted at `README.md`.
+
+Local smoke observation envelopes live beside their stage artifact contracts. They preserve separate planned-backend and actual report-producer identifiers, closed JSON field shapes, and generated JSON Schema. API adapters own materialization; the envelope alone does not establish execution provenance or scientific correctness.
