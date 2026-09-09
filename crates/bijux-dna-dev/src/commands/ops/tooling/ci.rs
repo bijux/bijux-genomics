@@ -13,6 +13,7 @@ use super::{
     resolved_run_ignored, run_check_ids, run_make_target, run_program_with_env,
     set_assets_readonly, write_json_pretty, Context, OpsCommandOutcome, Result, Workspace,
 };
+use crate::application::ci::{CoverageAttestation, ExpectedTestInventory};
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 
 const FULL_SHARDS_SCHEMA_V5: &str = "bijux.ci.full_shards.v5";
@@ -1092,6 +1093,18 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         )));
     }
     let started = Instant::now();
+    let source_identity = source_commit(workspace)?;
+    let source_clean = source_worktree_clean(workspace)?;
+    write_json_pretty(
+        &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
+        &serde_json::json!({
+            "schema_version": "bijux.ci.full_gate_timing.v4",
+            "state": "running",
+            "source_commit": source_identity,
+            "source_worktree_clean": source_clean,
+            "all_passed": false,
+        }),
+    )?;
     let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
     let archive_roots = full_archive_roots(&storage, &contract)?;
     validate_full_archive_roots(&storage, &archive_roots)?;
@@ -1145,7 +1158,10 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         write_json_pretty(
             &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
             &serde_json::json!({
-                "schema_version": "bijux.ci.full_gate_timing.v3",
+                "schema_version": "bijux.ci.full_gate_timing.v4",
+            "state": "complete",
+            "source_commit": source_identity,
+            "source_worktree_clean": source_clean,
                 "contract_sha256": contract_sha256,
                 "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),
                 "build_authority_sha256": build_authority_sha256,
@@ -1159,7 +1175,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     "shard_runtime_artifacts_retained": false,
                 },
                 "storage": full_shard_storage_receipt(&storage),
-                "execution_scope": full_shard_execution_scope(&contract, &selected_shards),
+                "execution_scope": full_shard_execution_scope(&contract, &selected_shards, false),
                 "wall_time_milliseconds": started.elapsed().as_millis(),
                 "all_passed": false,
                 "shards": [],
@@ -1168,6 +1184,31 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         ephemera.retain_bounded_evidence()?;
         return Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr });
     }
+    let inventory_spec = ParallelProcessSpec {
+        label: "test-inventory".to_string(),
+        program: "cargo".to_string(),
+        args: full_inventory_args(),
+        envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+        current_dir: Some(archive_workspace.clone()),
+    };
+    let mut inventory_outputs =
+        ProcessRunner::new(workspace).run_parallel_logged(vec![inventory_spec], &report_root)?;
+    let inventory_output = inventory_outputs.pop().context("test inventory was not collected")?;
+    anyhow::ensure!(
+        inventory_output.output.status.success(),
+        "full test inventory failed; see test-inventory.stderr.log"
+    );
+    let expected_inventory = ExpectedTestInventory::parse(&inventory_output.output.stdout)?;
+    let inventory_log = report_root.join("test-inventory.stdout.log");
+    let inventory_receipt = serde_json::json!({
+        "path": workspace.rel(&inventory_log).to_string_lossy(),
+        "sha256": bijux_dna_infra::hash_file_sha256(&inventory_log)?,
+        "expected_case_count": expected_inventory.case_count(),
+        "expected_ignored_case_count": expected_inventory.ignored_case_count(),
+        "duration_milliseconds": inventory_output.duration.as_millis(),
+        "source_commit": source_identity,
+        "archive_sha256": archive_sha256,
+    });
     let shard_workspaces = selected_shards
         .iter()
         .map(|shard| materialize_full_shard_workspace(workspace, &storage.scratch_root, &shard.id))
@@ -1192,7 +1233,14 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         })
         .collect::<Result<Vec<_>>>()?;
     let outputs = ProcessRunner::new(workspace).run_parallel_logged(specs, &report_root)?;
-    let mut all_passed = true;
+    let coverage = CoverageAttestation::reconcile(
+        &expected_inventory,
+        outputs
+            .iter()
+            .map(|completed| (completed.label.as_str(), completed.output.stdout.as_slice())),
+    );
+    let mut all_passed = coverage.selected_shards_valid
+        && (selected_shards.len() != contract.shards.len() || coverage.complete);
     let mut shard_receipts = Vec::with_capacity(outputs.len());
     for (((shard, shard_workspace), roots), completed) in
         selected_shards.iter().zip(&shard_workspaces).zip(&shard_roots).zip(outputs)
@@ -1226,7 +1274,10 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     write_json_pretty(
         &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
         &serde_json::json!({
-            "schema_version": "bijux.ci.full_gate_timing.v3",
+            "schema_version": "bijux.ci.full_gate_timing.v4",
+            "state": "complete",
+            "source_commit": source_identity,
+            "source_worktree_clean": source_clean,
             "contract_sha256": contract_sha256,
             "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),
             "build_authority_sha256": build_authority_sha256,
@@ -1240,8 +1291,10 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "shard_runtime_artifacts_retained": false,
             },
             "storage": full_shard_storage_receipt(&storage),
-            "execution_scope": full_shard_execution_scope(&contract, &selected_shards),
+            "execution_scope": full_shard_execution_scope(&contract, &selected_shards, coverage.complete),
+            "expected_inventory": inventory_receipt,
             "coverage": {
+                "observed_test_execution": coverage,
                 "workspace": true,
                 "all_targets": true,
                 "all_features": true,
@@ -1290,6 +1343,7 @@ fn select_full_shards(contract: &FullShardContract, args: &[String]) -> Result<V
 fn full_shard_execution_scope(
     contract: &FullShardContract,
     selected_shards: &[FullShard],
+    observed_complete: bool,
 ) -> serde_json::Value {
     serde_json::json!({
         "mode": if selected_shards.len() == contract.shards.len() {
@@ -1297,7 +1351,8 @@ fn full_shard_execution_scope(
         } else {
             "affected_recovery"
         },
-        "complete_contract_coverage": selected_shards.len() == contract.shards.len(),
+        "all_declared_shards_selected": selected_shards.len() == contract.shards.len(),
+        "complete_contract_coverage": selected_shards.len() == contract.shards.len() && observed_complete,
         "selected_shard_ids": selected_shards.iter().map(|shard| &shard.id).collect::<Vec<_>>(),
         "selected_partitions": selected_shards
             .iter()
@@ -1481,6 +1536,26 @@ fn full_archive_args(archive_file: &Path) -> Vec<String> {
     ]
 }
 
+fn full_inventory_args() -> Vec<String> {
+    [
+        "nextest",
+        "list",
+        "--workspace",
+        "--all-targets",
+        "--all-features",
+        "--locked",
+        "--config-file",
+        "configs/rust/nextest.toml",
+        "--profile",
+        "full",
+        "--message-format",
+        "json",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect()
+}
+
 fn full_shard_args(
     shard: &FullShard,
     archive_file: &Path,
@@ -1490,6 +1565,12 @@ fn full_shard_args(
     vec![
         "nextest".to_string(),
         "run".to_string(),
+        "--message-format".to_string(),
+        "libtest-json-plus".to_string(),
+        "--message-format-version".to_string(),
+        "0.1".to_string(),
+        "--no-tests".to_string(),
+        "fail".to_string(),
         "--archive-file".to_string(),
         archive_file.display().to_string(),
         "--extract-to".to_string(),
@@ -1773,6 +1854,7 @@ fn full_shard_env(roots: &FullShardRoots, shard_workspace: &Path) -> Result<Vec<
         bijux_dna_infra::ensure_dir(root)?;
     }
     Ok(vec![
+        ("NEXTEST_EXPERIMENTAL_LIBTEST_JSON".to_string(), "1".to_string()),
         ("ARTIFACT_ROOT".to_string(), roots.artifact_root.display().to_string()),
         ("ISO_ROOT".to_string(), roots.artifact_root.display().to_string()),
         ("CARGO_TARGET_DIR".to_string(), roots.cargo_target.display().to_string()),
@@ -2533,7 +2615,7 @@ mod tests {
             selected.iter().map(|shard| shard.id.as_str()).collect::<Vec<_>>(),
             ["hash-4-of-5", "hash-5-of-5"]
         );
-        let scope = full_shard_execution_scope(&contract, &selected);
+        let scope = full_shard_execution_scope(&contract, &selected, false);
         assert_eq!(scope["mode"], "affected_recovery");
         assert_eq!(scope["complete_contract_coverage"], false);
         assert_eq!(scope["selected_shard_count"], 2);

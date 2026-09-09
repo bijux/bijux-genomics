@@ -92,3 +92,9 @@ run is active. Completed combined logs and timing receipts remain available at
 their existing paths. A new invocation replaces logs with the same labels; preserve
 needed evidence before rerunning. A missing final receipt after interruption is
 not a successful gate, even when partial logs contain passing tests.
+
+The full-shard runner emits `bijux.ci.full_gate_timing.v4`. After archive creation, the producer lists its complete all-feature test inventory using the same source and Cargo target. This is an additional measured discovery operation. Shards emit pinned `libtest-json-plus` 0.1 events with zero retries and execute ignored tests. The final receipt includes the inventory digest, expected ordinary/ignored counts, missing/duplicate/failed cases, and invalid shard reports. Full coverage requires exact observed membership and successful complete event sequences, as well as all declared shards being selected. A selected recovery shard can pass without claiming full coverage.
+
+`all_declared_shards_selected` records scheduling; `complete_contract_coverage` requires observed coverage. A fresh running receipt invalidates earlier success before producer execution; absent, running, failed or mismatched-source evidence cannot establish completion. The source commit and clean-worktree observation accompany the result; final qualification still requires an immutable clean candidate. The pinned event format is experimental upstream and must be qualified alongside any executor upgrade.
+
+Nextest 0.9.100 can repeat suite blocks and retain an ignored counter when ignored cases execute. Admission accepts those bounded suite blocks while checking actual start/finish events and passed/failed counters. Every ignored case still needs its own successful result in the exact global case set; summary counters never substitute for execution.

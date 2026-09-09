@@ -1,0 +1,201 @@
+use anyhow::Result;
+use serde_json::{json, Value};
+
+use super::{CoverageAttestation, ExpectedTestInventory};
+
+fn inventory_value() -> Value {
+    json!({"test-count": 2, "rust-suites": {
+        "owner::contracts": {"package-name":"owner", "binary-id":"owner::contracts", "binary-name":"contracts", "kind":"test", "status":"listed", "testcases": {
+            "first": {"ignored":false, "filter-match":{"status":"matches"}},
+            "second": {"ignored":true, "filter-match":{"status":"matches"}}
+        }}
+    }})
+}
+
+fn inventory() -> Result<ExpectedTestInventory> {
+    ExpectedTestInventory::parse(&serde_json::to_vec(&inventory_value())?)
+}
+
+fn events(name: &str, passed: bool) -> String {
+    let identity = json!({"crate":"owner", "test_binary":"contracts", "kind":"test"});
+    let verdict = if passed { "ok" } else { "failed" };
+    let name = format!("owner::contracts${name}");
+    [
+        json!({"type":"suite", "event":"started", "test_count":1, "nextest":identity}),
+        json!({"type":"test", "event":"started", "name":name}),
+        json!({"type":"test", "event":verdict, "name":name}),
+        json!({"type":"suite", "event":verdict, "passed":usize::from(passed), "failed":usize::from(!passed), "ignored":0, "measured":0, "nextest":identity}),
+    ].into_iter().map(|value| value.to_string()).collect::<Vec<_>>().join("\n")
+}
+
+#[test]
+fn all_declared_cases_including_ignored_cases_must_execute_once() -> Result<()> {
+    let inventory = inventory()?;
+    let first = events("first", true);
+    let second = events("second", true);
+    let report = CoverageAttestation::reconcile(
+        &inventory,
+        [("one", first.as_bytes()), ("two", second.as_bytes())],
+    );
+    assert!(report.complete);
+    assert!(report.selected_shards_valid);
+    assert_eq!(serde_json::to_value(report)?["observed_count"], 2);
+    Ok(())
+}
+
+#[test]
+fn selected_shard_success_does_not_claim_full_coverage() -> Result<()> {
+    let inventory = inventory()?;
+    let first = events("first", true);
+    let report = CoverageAttestation::reconcile(&inventory, [("one", first.as_bytes())]);
+    assert!(report.selected_shards_valid);
+    assert!(!report.complete);
+    assert_eq!(serde_json::to_value(report)?["missing"][0]["test_name"], "second");
+    Ok(())
+}
+
+#[test]
+fn duplicate_shards_or_cross_shard_case_overlap_fail_admission() -> Result<()> {
+    let inventory = inventory()?;
+    let first = events("first", true);
+    let second = events("second", true);
+    for streams in [
+        vec![("one", first.as_bytes()), ("one", second.as_bytes())],
+        vec![("one", first.as_bytes()), ("two", first.as_bytes()), ("three", second.as_bytes())],
+    ] {
+        let report = CoverageAttestation::reconcile(&inventory, streams);
+        assert!(!report.selected_shards_valid);
+        assert!(!report.complete);
+    }
+    Ok(())
+}
+
+#[test]
+fn failed_case_is_retained_as_failure_even_with_complete_membership() -> Result<()> {
+    let inventory = inventory()?;
+    let first = events("first", false);
+    let second = events("second", true);
+    let report = CoverageAttestation::reconcile(
+        &inventory,
+        [("one", first.as_bytes()), ("two", second.as_bytes())],
+    );
+    assert!(!report.complete);
+    assert!(!report.selected_shards_valid);
+    let value = serde_json::to_value(report)?;
+    assert_eq!(value["observed_count"], 2);
+    assert_eq!(value["failed"][0]["test_name"], "first");
+    Ok(())
+}
+
+#[test]
+fn malformed_empty_foreign_truncated_or_inconsistent_events_cannot_pass() -> Result<()> {
+    let inventory = inventory()?;
+    let valid = events("first", true);
+    let lines = valid.lines().collect::<Vec<_>>();
+    let bad_streams = [
+        String::new(),
+        "not json".to_string(),
+        events("foreign", true),
+        lines[..3].join("\n"),
+        lines[1..].join("\n"),
+        [lines[0], lines[2], lines[3]].join("\n"),
+        [lines[0], lines[1], lines[1], lines[2], lines[3]].join("\n"),
+        [lines[0], lines[1], lines[2], lines[2], lines[3]].join("\n"),
+        [lines[0], lines[1], lines[2], lines[3], lines[2]].join("\n"),
+        valid.replace("\"test_count\":1", "\"test_count\":999"),
+        valid.replace("\"passed\":1", "\"passed\":0"),
+        valid.replace("\"event\":\"ok\"", "\"event\":\"ignored\""),
+        valid.replace("\"kind\":\"test\"", "\"kind\":\"lib\""),
+    ];
+    for stream in bad_streams {
+        let report = CoverageAttestation::reconcile(&inventory, [("one", stream.as_bytes())]);
+        assert!(!report.selected_shards_valid, "unexpectedly admitted {stream}");
+        assert!(!report.complete);
+    }
+    assert!(!CoverageAttestation::reconcile(&inventory, []).selected_shards_valid);
+    Ok(())
+}
+
+#[test]
+fn expected_inventory_rejects_count_filter_discovery_and_identity_gaps() -> Result<()> {
+    let valid = inventory_value();
+    let mut count = valid.clone();
+    count["test-count"] = json!(1);
+    let mut filtered = valid.clone();
+    filtered["rust-suites"]["owner::contracts"]["testcases"]["first"]["filter-match"]["status"] =
+        json!("mismatch");
+    let mut not_discovered = valid.clone();
+    not_discovered["rust-suites"]["owner::contracts"]["status"] = json!("skipped");
+    let mut wrong_id = valid.clone();
+    wrong_id["rust-suites"]["owner::contracts"]["binary-id"] = json!("other");
+    let mut alias = valid.clone();
+    let mut duplicate = valid["rust-suites"]["owner::contracts"].clone();
+    duplicate["binary-id"] = json!("other");
+    duplicate["kind"] = json!("lib");
+    alias["rust-suites"]["other"] = duplicate;
+    for value in
+        [json!({"test-count":0,"rust-suites":{}}), count, filtered, not_discovered, wrong_id, alias]
+    {
+        assert!(ExpectedTestInventory::parse(&serde_json::to_vec(&value)?).is_err());
+    }
+    Ok(())
+}
+
+#[test]
+fn pinned_nextest_library_and_integration_events_map_to_declared_binary_ids() -> Result<()> {
+    for (package, binary, kind, id, name, stream) in [
+        ("bijux-dna-bench", "bijux_dna_bench", "lib", "bijux-dna-bench", "workflow::summary::row_metrics::tests::metric_outliers_map_to_metric_bearing_replicates", include_str!("../../../tests/fixtures/ci/nextest/library.jsonl")),
+        ("bijux-dna-bench-model", "contracts", "test", "bijux-dna-bench-model::contracts", "mod_contracts_active_scope_rs::active_scope_report_validates_exact_summary_closure", include_str!("../../../tests/fixtures/ci/nextest/integration.jsonl")),
+    ] {
+        let value = json!({"test-count":1,"rust-suites": {id: {"package-name":package,"binary-id":id,"binary-name":binary,"kind":kind,"status":"listed","testcases":{name:{"ignored":false,"filter-match":{"status":"matches"}}}}}});
+        let inventory = ExpectedTestInventory::parse(&serde_json::to_vec(&value)?)?;
+        let report = CoverageAttestation::reconcile(&inventory, [("observed", stream.as_bytes())]);
+        assert!(report.complete);
+        assert_eq!(serde_json::to_value(report)?["observed_count"], 1);
+    }
+    Ok(())
+}
+
+#[test]
+fn executed_ignored_cases_are_counted_from_events_despite_legacy_suite_bookkeeping() -> Result<()> {
+    let value = json!({"test-count":2,"rust-suites":{"bijux-dna-bench-model::contracts": {
+        "package-name":"bijux-dna-bench-model", "binary-id":"bijux-dna-bench-model::contracts", "binary-name":"contracts", "kind":"test", "status":"listed", "testcases": {
+            "ordinary":{"ignored":false,"filter-match":{"status":"matches"}},
+            "ignored":{"ignored":true,"filter-match":{"status":"matches"}}
+        }
+    }}});
+    let inventory = ExpectedTestInventory::parse(&serde_json::to_vec(&value)?)?;
+    let stream = include_str!("../../../tests/fixtures/ci/nextest/ignored.jsonl");
+    let report = CoverageAttestation::reconcile(&inventory, [("observed", stream.as_bytes())]);
+    assert!(report.complete);
+    assert_eq!(serde_json::to_value(report)?["observed_count"], 2);
+    let first_block = stream.lines().take(4).collect::<Vec<_>>().join("\n");
+    let incomplete =
+        CoverageAttestation::reconcile(&inventory, [("observed", first_block.as_bytes())]);
+    assert!(!incomplete.complete, "ignored summary counters must not replace missing case events");
+    Ok(())
+}
+
+#[test]
+fn binary_names_can_overlap_when_their_case_identities_are_distinct() -> Result<()> {
+    let mut value = inventory_value();
+    value["rust-suites"]["owner::bin/contracts"] = json!({
+        "package-name":"owner", "binary-id":"owner::bin/contracts", "binary-name":"contracts",
+        "kind":"bin", "status":"listed", "testcases":{}
+    });
+    let empty_binary_inventory = ExpectedTestInventory::parse(&serde_json::to_vec(&value)?)?;
+    assert_eq!(empty_binary_inventory.case_count(), 2);
+    value["test-count"] = json!(3);
+    value["rust-suites"]["owner::bin/contracts"]["testcases"]["third"] =
+        json!({"ignored":false,"filter-match":{"status":"matches"}});
+    let inventory = ExpectedTestInventory::parse(&serde_json::to_vec(&value)?)?;
+    let first = events("first", true);
+    let second = events("second", true);
+    let third = events("third", true).replace("\"kind\":\"test\"", "\"kind\":\"bin\"");
+    let report = CoverageAttestation::reconcile(
+        &inventory,
+        [("one", first.as_bytes()), ("two", second.as_bytes()), ("three", third.as_bytes())],
+    );
+    assert!(report.complete);
+    Ok(())
+}

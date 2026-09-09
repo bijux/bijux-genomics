@@ -30,3 +30,5 @@
 - Prefer targeted command-module tests when changing one automation surface.
 - Re-run policy tests after updating docs, command names, or generated-control outputs.
 - Do not add README files under `tests/`; crate narrative docs belong under `docs/`.
+
+CI coverage contracts replay captured Nextest 0.9.100 library and integration event streams from `tests/fixtures/ci/nextest/`. The fixture capture manifest binds their source/binary hashes and format version. Adversarial cases reject omissions, duplicate identities, incomplete event sequences, incorrect suite counters, unexpected cases, failed outcomes and filtered inventories.

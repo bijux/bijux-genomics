@@ -1,0 +1,4 @@
+{"type":"suite","event":"started","test_count":1,"nextest":{"crate":"bijux-dna-bench-model","test_binary":"contracts","kind":"test"}}
+{"type":"test","event":"started","name":"bijux-dna-bench-model::contracts$mod_contracts_active_scope_rs::active_scope_report_validates_exact_summary_closure"}
+{"type":"test","event":"ok","name":"bijux-dna-bench-model::contracts$mod_contracts_active_scope_rs::active_scope_report_validates_exact_summary_closure","exec_time":0.026544875}
+{"type":"suite","event":"ok","passed":1,"failed":0,"ignored":0,"measured":0,"filtered_out":375,"exec_time":0.026544875,"nextest":{"crate":"bijux-dna-bench-model","test_binary":"contracts","kind":"test"}}

@@ -53,7 +53,7 @@ fn dev_tree_matches_architecture_contract() {
 
     let application_entries = dir_entries(&root.join("src/application"));
     let expected_application: BTreeSet<_> =
-        ["checks/", "checks.rs", "containers.rs", "domain.rs", "mod.rs", "ops.rs"]
+        ["checks/", "checks.rs", "ci/", "containers.rs", "domain.rs", "mod.rs", "ops.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
@@ -185,11 +185,18 @@ fn dev_tree_matches_architecture_contract() {
     );
 
     let test_entries = dir_entries(&root.join("tests"));
-    let expected_tests: BTreeSet<_> =
-        ["bootstrap.rs", "boundaries/", "boundaries.rs", "guardrails.rs", "snapshots/", "support/"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_tests: BTreeSet<_> = [
+        "bootstrap.rs",
+        "boundaries/",
+        "boundaries.rs",
+        "fixtures/",
+        "guardrails.rs",
+        "snapshots/",
+        "support/",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(test_entries, expected_tests, "dev test tree must match the documented taxonomy");
 
     let support_entries = dir_entries(&root.join("tests/support"));

@@ -63,3 +63,5 @@ Test boundaries mirror that split:
 - `tests/boundaries/dependencies.rs` protects the dependency graph so
   development automation remains outside production crates.
 - `tests/support/workspace_paths.rs` contains shared workspace-root helpers only.
+
+`application/ci/` separates expected test inventory admission, pinned Nextest event admission, and exact cross-shard coverage reconciliation. These modules have no filesystem or process effects. The tooling CI command owns producer/shard execution, logs, hashes and receipt publication.
