@@ -48,6 +48,7 @@ mod protocol_portfolio;
 mod publication_receipt;
 mod publication_registry;
 mod publication_selection;
+mod readiness;
 mod reference_materialization;
 mod replay;
 mod report_load;
@@ -373,3 +374,8 @@ pub use workspace_layout::{
 };
 
 pub use stage_inventory::render_benchmark_all_domain_stage_inventory;
+
+pub use readiness::{
+    evaluate_full_benchmark_dashboard, render_full_benchmark_dashboard_markdown,
+    FullBenchmarkDashboardEvidence, FullBenchmarkDashboardPaths,
+};

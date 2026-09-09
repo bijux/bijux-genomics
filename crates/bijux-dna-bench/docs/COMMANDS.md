@@ -153,3 +153,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test sem
 ```
 
 The CLI local stage-list commands delegate matrix admission to `load_benchmark_local_stage_inventory` and aggregate publication to `render_benchmark_all_domain_stage_inventory`. Both receive an explicit repository root through the public API.
+
+`evaluate_full_benchmark_dashboard` accepts borrowed readiness reports plus explicit governed path expectations. It computes the nine summary metrics and admits their cross-report relationships without IO. `render_full_benchmark_dashboard_markdown` renders that evaluated response; the CLI retains report acquisition and filesystem publication.
