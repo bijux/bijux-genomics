@@ -66,12 +66,13 @@ impl TrackedSourceSnapshot {
             // Git applies binary changes, deletions, link targets and executable modes together.
             // Keep the captured patch in clone metadata, outside tracked input and run artifacts.
             let patch_path = isolated.path(".git/bijux-tracked-source.patch");
-            std::fs::write(&patch_path, &self.patch).context("persist captured source patch")?;
+            bijux_dna_infra::write_bytes(&patch_path, &self.patch)
+                .context("persist captured source patch")?;
             let result = git(
                 &isolated,
                 &["apply", "--binary", "--whitespace=nowarn", ".git/bijux-tracked-source.patch"],
             );
-            std::fs::remove_file(&patch_path).context("remove applied source patch")?;
+            bijux_dna_infra::remove_file(&patch_path).context("remove applied source patch")?;
             result?;
         }
         bijux_dna_infra::ensure_dir(isolated.path("artifacts"))?;

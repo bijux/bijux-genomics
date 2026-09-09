@@ -119,7 +119,7 @@ impl<'a> ProcessRunner<'a> {
                 spec.label
             );
         }
-        fs::create_dir_all(log_directory)
+        bijux_dna_infra::ensure_dir(log_directory)
             .with_context(|| format!("create process log directory {}", log_directory.display()))?;
         self.collect_parallel(specs, Some(log_directory))
     }
@@ -188,9 +188,9 @@ fn run_with_logs(
 ) -> Result<Output> {
     let stdout_path = directory.join(format!("{label}.stdout.log"));
     let stderr_path = directory.join(format!("{label}.stderr.log"));
-    let stdout = fs::File::create(&stdout_path)
+    let stdout = bijux_dna_infra::create_file(&stdout_path)
         .with_context(|| format!("create {}", stdout_path.display()))?;
-    let stderr = fs::File::create(&stderr_path)
+    let stderr = bijux_dna_infra::create_file(&stderr_path)
         .with_context(|| format!("create {}", stderr_path.display()))?;
     let status =
         command.stdin(std::process::Stdio::null()).stdout(stdout).stderr(stderr).spawn()?.wait()?;
