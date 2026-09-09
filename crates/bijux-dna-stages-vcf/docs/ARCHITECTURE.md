@@ -34,3 +34,5 @@ helpers, records manifests, and parses stage metrics.
 - `DEPENDENCIES.md` for dependency graph shape.
 - `EFFECTS.md` for allowed and forbidden effects.
 - `TESTS.md` for verification expectations.
+
+`vcf_io/indexing.rs` owns the shared VCF-to-BGZF/index encoder and paired publication. Inputs up to 1 MiB use bounded encoding and retain existing regular files only when both newly encoded payloads match exactly. Larger inputs stream through the same encoder. Missing, changed, corrupt or symlink outputs are replaced through the existing staged publication path.

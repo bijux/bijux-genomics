@@ -24,6 +24,7 @@ fn stages_vcf_tree_matches_architecture_contract() {
             "repo_root.rs",
             "stage_specs.rs",
             "vcf_io.rs",
+            "vcf_io/",
             "wrappers.rs",
         ]),
         "src tree must match the documented stages-vcf layout"
