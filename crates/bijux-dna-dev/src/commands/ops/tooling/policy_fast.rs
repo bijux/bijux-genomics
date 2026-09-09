@@ -94,6 +94,9 @@ pub(super) fn run(
         "release-readiness" => RELEASE,
         _ => anyhow::bail!("unknown policy suite {suite}"),
     };
+    if suite != "policy-fast" {
+        return run_leaf_suite(workspace, envs, suite, groups);
+    }
     let listing = run_program_with_env(workspace, "cargo", &arguments("list", groups), envs)?;
     if !listing.is_success() {
         return Ok(listing);
@@ -105,6 +108,111 @@ pub(super) fn run(
         &inventory,
     )?;
     let mut outcome = run_program_with_env(workspace, "cargo", &arguments("run", groups), envs)?;
+    outcome.stdout.insert_str(
+        0,
+        &format!(
+            "{suite} selected {} executable tests across {} required policy selectors\n",
+            counts.iter().sum::<usize>(),
+            counts.len()
+        ),
+    );
+    Ok(outcome)
+}
+
+fn harness_cases(listing: &str) -> Result<std::collections::BTreeSet<String>> {
+    let mut names = std::collections::BTreeSet::new();
+    for line in listing.lines() {
+        if let Some(name) = line.strip_suffix(": test") {
+            ensure!(names.insert(name.to_string()), "test harness repeated case {name}");
+        }
+    }
+    Ok(names)
+}
+
+fn policy_test_executable(messages: &str) -> Result<String> {
+    let mut executables = std::collections::BTreeSet::new();
+    for line in messages.lines().filter(|line| !line.trim().is_empty()) {
+        let message: Value = serde_json::from_str(line).context("parse Cargo build message")?;
+        if message["reason"] == "compiler-artifact"
+            && message["target"]["name"] == "contracts"
+            && message["target"]["kind"] == serde_json::json!(["test"])
+        {
+            if let Some(executable) = message["executable"].as_str() {
+                executables.insert(executable.to_string());
+            }
+        }
+    }
+    ensure!(executables.len() == 1, "Cargo must produce exactly one policy contracts executable");
+    executables.into_iter().next().context("missing policy contracts executable")
+}
+
+fn run_leaf_suite(
+    workspace: &Workspace,
+    envs: &[(String, String)],
+    suite: &str,
+    groups: &[(&str, &str)],
+) -> Result<OpsCommandOutcome> {
+    let build_args = [
+        "test",
+        "--locked",
+        "-p",
+        "bijux-dna-policies",
+        "--test",
+        "contracts",
+        "--no-run",
+        "--message-format=json",
+    ]
+    .map(str::to_string);
+    let build = run_program_with_env(workspace, "cargo", &build_args, envs)?;
+    if !build.is_success() {
+        return Ok(build);
+    }
+    let executable = policy_test_executable(&build.stdout)?;
+    let test_workspace = Workspace { root: workspace.path("crates/bijux-dna-policies") };
+    let mut arguments = vec!["--exact".to_string(), "--nocapture".to_string()];
+    arguments.extend(groups.iter().map(|(_, name)| (*name).to_string()));
+    let mut list_args = arguments.clone();
+    list_args.extend(["--list", "--format", "terse"].map(str::to_string));
+    let listing = run_program_with_env(&test_workspace, &executable, &list_args, envs)?;
+    if !listing.is_success() {
+        return Ok(listing);
+    }
+    let names = harness_cases(&listing.stdout)?;
+    list_args.push("--ignored".to_string());
+    let ignored_listing = run_program_with_env(&test_workspace, &executable, &list_args, envs)?;
+    if !ignored_listing.is_success() {
+        return Ok(ignored_listing);
+    }
+    let ignored = harness_cases(&ignored_listing.stdout)?;
+    let cases = names
+        .iter()
+        .map(|name| {
+            (
+                name.clone(),
+                serde_json::json!({
+                    "ignored": ignored.contains(name), "filter-match": {"status": "matches"}
+                }),
+            )
+        })
+        .collect::<serde_json::Map<_, _>>();
+    // Normalize native harness lists into the same selection contract as nextest.
+    let inventory = serde_json::json!({
+        "executor": "rust-test-harness",
+        "build_argv": build_args,
+        "execution_argv": arguments,
+        "listing": listing.stdout,
+        "ignored_listing": ignored_listing.stdout,
+        "rust-suites": {"policies::contracts": {
+            "binary-name": "contracts", "binary-path": executable,
+            "cwd": test_workspace.root, "testcases": cases
+        }}
+    });
+    let counts = selected_coverage(&inventory, groups)?;
+    write_json_pretty(
+        &workspace.path(&format!("artifacts/ci/{suite}/inventory.json")),
+        &inventory,
+    )?;
+    let mut outcome = run_program_with_env(&test_workspace, &executable, &arguments, envs)?;
     outcome.stdout.insert_str(
         0,
         &format!(
@@ -194,6 +302,27 @@ mod tests {
                 assert!(selected_coverage(&ignored, groups).is_err());
             }
         }
+        Ok(())
+    }
+    #[test]
+    fn cargo_executable_selection_rejects_missing_ambiguous_or_malformed_messages() -> Result<()> {
+        let artifact = serde_json::json!({"reason": "compiler-artifact", "target": {"name": "contracts", "kind": ["test"]}, "executable": "/artifacts/contracts"}).to_string();
+        assert_eq!(policy_test_executable(&artifact)?, "/artifacts/contracts");
+        assert!(policy_test_executable("{}").is_err());
+        assert!(policy_test_executable("not JSON").is_err());
+        let other = artifact.replace("/artifacts/contracts", "/artifacts/other");
+        assert!(policy_test_executable(&format!("{artifact}\n{other}")).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn harness_listing_preserves_qualified_names_and_rejects_duplicates() -> Result<()> {
+        assert_eq!(
+            harness_cases("owner::case: test\nother::case: test\n\n2 tests, 0 benchmarks\n")?,
+            ["owner::case".to_string(), "other::case".to_string()].into_iter().collect()
+        );
+        assert!(harness_cases("owner::case: test\nowner::case: test\n").is_err());
+        assert!(harness_cases("0 tests, 0 benchmarks\n")?.is_empty());
         Ok(())
     }
 }
