@@ -1,7 +1,5 @@
 //! Evidence qualification contracts for v1.
 
-mod derivation;
-
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -18,7 +16,7 @@ pub use bijux_dna_policies::{
 };
 pub use bijux_dna_science::evidence::genotypes_equivalent_unphased;
 
-pub use derivation::{
+pub use bijux_dna_bench::{
     derive_container_qualification_report, derive_container_qualification_report_with_release,
 };
 

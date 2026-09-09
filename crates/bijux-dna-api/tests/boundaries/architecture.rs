@@ -151,7 +151,7 @@ fn assert_v1_tree(root: &std::path::Path) {
             "mod.rs",
             "pipelines/",
             "plan.rs",
-            "qualification/",
+            "qualification.rs",
             "report/",
             "run/",
             "shared.rs",
@@ -204,11 +204,6 @@ fn assert_v1_tree(root: &std::path::Path) {
         &root.join("src/v1/pipelines"),
         &["mod.rs", "registry.rs"],
         "api v1 pipelines tree must stay isolated in its own namespace",
-    );
-    assert_dir_entries(
-        &root.join("src/v1/qualification"),
-        &["derivation.rs", "mod.rs"],
-        "api qualification tree must separate evidence composition from public contracts",
     );
     assert_dir_entries(
         &root.join("src/v1/run"),

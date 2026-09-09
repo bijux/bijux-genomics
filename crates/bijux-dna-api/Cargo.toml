@@ -21,7 +21,7 @@ walkdir.workspace = true
 flate2.workspace = true
 bijux-dna-core.workspace = true
 bijux-dna-bench-model.workspace = true
-bijux-dna-bench.workspace = true
+bijux-dna-bench = { workspace = true, features = ["container-qualification"] }
 bijux-dna-domain-bam.workspace = true
 bijux-dna-domain-fastq.workspace = true
 bijux-dna-domain-vcf.workspace = true

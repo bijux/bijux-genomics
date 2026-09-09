@@ -156,13 +156,13 @@ fn qualification_report(
         );
     }
     match release_publication_path {
-        Some(path) => bijux_dna_api::v1::api::qualification::derive_container_qualification_report_with_release(
+        Some(path) => bijux_dna_bench::derive_container_qualification_report_with_release(
             &workspace.root,
             &environment_evidence,
             &admitted_reports,
             path,
         ),
-        None => bijux_dna_api::v1::api::qualification::derive_container_qualification_report(
+        None => bijux_dna_bench::derive_container_qualification_report(
             &workspace.root,
             &environment_evidence,
             &admitted_reports,

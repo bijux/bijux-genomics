@@ -9,7 +9,7 @@ rust-version.workspace = true
 aho-corasick.workspace = true
 anyhow.workspace = true
 bijux-dna-api.workspace = true
-bijux-dna-bench.workspace = true
+bijux-dna-bench = { workspace = true, features = ["container-qualification"] }
 bijux-dna-core.workspace = true
 bijux-dna-stage-contract.workspace = true
 bijux-dna-db-ena.workspace = true

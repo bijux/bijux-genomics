@@ -74,3 +74,13 @@ The benchmark model owns local all-domain SLURM script inventory types, aggregat
 `load_fastq_tool_score_evidence` keeps observed-report IO in `repo` and format adapters in `artifacts/fastq_score_evidence`; raw JSON remains confined to those owners. The loader returns typed model evidence for pure scoring. Missing optional reports contribute no observations, malformed reports and overflowing case totals reject, and authored fixture-reference names never substitute for observed tool outcomes.
 
 `workflow/readiness` evaluates a borrowed `FullBenchmarkDashboardEvidence` view. Coverage counts and cross-report consistency belong to this pure service; the CLI acquires reports and adapts paths and output. Markdown rendering consumes the evaluated report without IO. Readiness coverage alone does not establish backend execution or scientific validity.
+
+## Container qualification capability
+
+`container-qualification` enables composition of admitted benchmark, container,
+security and release facts through the policy and science owners. Repository
+acquisition is separate from pure assessment and publication decisions. The API
+and developer commands enable this capability explicitly; ordinary benchmark
+consumers do not gain a mandatory policy-library dependency. Policy guardrails
+retain an independent development dependency, so testing a minimal benchmark
+build does not require enabling the production qualification capability.

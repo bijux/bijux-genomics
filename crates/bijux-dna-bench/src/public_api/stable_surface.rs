@@ -671,3 +671,8 @@ pub use bijux_dna_bench_model::{
     OutputContractRuntimePaths, OutputContractTestRow, OutputContractTestsReport,
     OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION,
 };
+
+#[cfg(feature = "container-qualification")]
+pub use crate::workflow::{
+    derive_container_qualification_report, derive_container_qualification_report_with_release,
+};

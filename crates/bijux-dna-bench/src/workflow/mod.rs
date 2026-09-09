@@ -379,3 +379,10 @@ pub use readiness::{
     evaluate_full_benchmark_dashboard, render_full_benchmark_dashboard_markdown,
     FullBenchmarkDashboardEvidence, FullBenchmarkDashboardPaths,
 };
+
+#[cfg(feature = "container-qualification")]
+mod container_qualification;
+#[cfg(feature = "container-qualification")]
+pub use container_qualification::{
+    derive_container_qualification_report, derive_container_qualification_report_with_release,
+};

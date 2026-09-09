@@ -89,6 +89,7 @@ fn bench_tree_matches_architecture_contract() {
             "vcf_score_evidence.rs",
             "vcf_execution_proof.rs",
             "case_data_authority.rs",
+            "container_qualification.rs",
             "catalog_registry_authority.rs",
             "catalog_snapshot_authority.rs",
             "corpus/",
@@ -144,6 +145,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/workflow")),
         entries([
+            "container_qualification/",
             "alias_resolution.rs",
             "appraisal.rs",
             "attempt_migration.rs",
@@ -426,12 +428,11 @@ fn manifest_dependency_graph_matches_boundary_contract() {
         .unwrap_or_else(|err| panic!("parse {}: {err}", manifest.display()));
 
     let dependencies = dependency_names(&parsed, "dependencies");
-    let dev_dependencies = dependency_names(&parsed, "dev-dependencies");
-    let duplicates = dependencies.intersection(&dev_dependencies).cloned().collect::<Vec<_>>();
+    let duplicates = redundant_dependency_edges(&parsed);
 
     assert!(
         duplicates.is_empty(),
-        "normal and dev dependencies must not duplicate edges: {duplicates:?}",
+        "always enabled normal and dev dependencies must not duplicate edges: {duplicates:?}",
     );
     for forbidden in [
         "bijux-dna-api",
@@ -579,4 +580,43 @@ fn markdown_files_outside_docs(root: &Path) -> Vec<String> {
         })
         .map(|entry| entry.path().display().to_string())
         .collect()
+}
+
+fn redundant_dependency_edges(manifest: &toml::Value) -> Vec<String> {
+    let normal = dependency_names(manifest, "dependencies");
+    let development = dependency_names(manifest, "dev-dependencies");
+    normal
+        .intersection(&development)
+        .filter(|name| {
+            manifest
+                .get("dependencies")
+                .and_then(|table| table.get(name.as_str()))
+                .and_then(|dependency| dependency.get("optional"))
+                .and_then(toml::Value::as_bool)
+                != Some(true)
+        })
+        .cloned()
+        .collect()
+}
+
+#[test]
+fn optional_production_capabilities_can_retain_independent_test_dependencies() -> anyhow::Result<()>
+{
+    let mut manifest: toml::Value = toml::from_str(
+        r#"
+[dependencies]
+owner = { version = "1", optional = true }
+[dev-dependencies]
+owner = "1"
+"#,
+    )?;
+    assert!(redundant_dependency_edges(&manifest).is_empty());
+    manifest["dependencies"]["owner"]["optional"] = toml::Value::Boolean(false);
+    assert_eq!(redundant_dependency_edges(&manifest), vec!["owner"]);
+    manifest["dependencies"]["owner"]
+        .as_table_mut()
+        .ok_or_else(|| anyhow::anyhow!("dependency table absent"))?
+        .remove("optional");
+    assert_eq!(redundant_dependency_edges(&manifest), vec!["owner"]);
+    Ok(())
 }

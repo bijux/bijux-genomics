@@ -78,3 +78,6 @@ pub use vcf_score_evidence::load_vcf_tool_score_evidence;
 
 mod vcf_execution_proof;
 pub use vcf_execution_proof::load_vcf_execution_blocker;
+
+#[cfg(feature = "container-qualification")]
+pub(crate) mod container_qualification;
