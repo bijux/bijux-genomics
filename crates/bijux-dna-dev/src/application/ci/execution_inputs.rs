@@ -63,7 +63,8 @@ mod tests {
 
     #[test]
     fn nextest_reuse_accepts_local_and_extracted_products_without_transport_flags() -> Result<()> {
-        let root = std::env::current_dir()?.join("artifacts/test products");
+        let directory = tempfile::tempdir()?;
+        let root = directory.path().canonicalize()?.join("compiled products");
         for target in [root.join("compile-cache/cargo"), root.join("extracted/target")] {
             let inputs = NextestReuseInputs::new(
                 root.join("cargo.json"),
@@ -86,7 +87,8 @@ mod tests {
 
     #[test]
     fn nextest_reuse_rejects_ambiguous_or_escaping_input_paths() -> Result<()> {
-        let root = std::env::current_dir()?;
+        let directory = tempfile::tempdir()?;
+        let root = directory.path().canonicalize()?;
         assert!(NextestReuseInputs::new(
             root.join("same.json"),
             root.join("same.json"),

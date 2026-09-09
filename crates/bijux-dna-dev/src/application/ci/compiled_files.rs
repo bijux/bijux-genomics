@@ -91,7 +91,8 @@ mod tests {
 
     #[test]
     fn local_compiled_metadata_admits_test_and_workspace_executables() -> Result<()> {
-        let source = std::env::current_dir()?;
+        let directory = tempfile::tempdir()?;
+        let source = directory.path().canonicalize()?;
         let target = source.join("artifacts/compiler");
         let cargo = json!({"workspace_root":source,"target_directory":target});
         let binary = target.join("debug/deps/owner-hash");

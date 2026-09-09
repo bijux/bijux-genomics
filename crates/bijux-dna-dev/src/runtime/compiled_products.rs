@@ -10,13 +10,13 @@ use crate::application::ci::{admit_compiled_executable_paths, NextestReuseInputs
 use crate::runtime::process::{ParallelProcessOutput, ParallelProcessSpec, ProcessRunner};
 use crate::runtime::workspace::Workspace;
 
-pub(crate) struct LocalCompiledTests {
+pub(crate) struct LocalCompiledProducts {
     pub(crate) reuse: NextestReuseInputs,
     pub(crate) receipt: Value,
     fingerprints: BTreeMap<PathBuf, String>,
 }
 
-impl LocalCompiledTests {
+impl LocalCompiledProducts {
     pub(crate) fn build(
         workspace: &Workspace,
         source: &Path,

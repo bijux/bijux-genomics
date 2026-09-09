@@ -18,7 +18,7 @@ use crate::application::ci::{
     ShardDiscoveryPlan,
 };
 use crate::runtime::compilation_cache::CompilationCache;
-use crate::runtime::compiled_tests::LocalCompiledTests;
+use crate::runtime::compiled_products::LocalCompiledProducts;
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 use crate::runtime::source_snapshot::TrackedSourceSnapshot;
 
@@ -1152,7 +1152,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     };
     let archive_preparation = preparation_started.elapsed();
     let mut local_compiled = if local_products {
-        Some(LocalCompiledTests::build(
+        Some(LocalCompiledProducts::build(
             workspace,
             &archive_workspace,
             compilation_cache.target(),
