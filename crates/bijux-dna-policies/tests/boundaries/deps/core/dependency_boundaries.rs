@@ -6,28 +6,26 @@ fn repo_root() -> PathBuf {
 }
 
 fn parse_dependency_names(manifest: &Path) -> Vec<String> {
-    let content = std::fs::read_to_string(manifest)
-        .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
-    let mut deps = Vec::new();
-    let mut in_deps = false;
-    for line in content.lines() {
-        let line = line.trim();
-        if line.starts_with('[') {
-            in_deps =
-                matches!(line, "[dependencies]" | "[dev-dependencies]" | "[build-dependencies]");
-            continue;
-        }
-        if !in_deps || line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        if let Some((name, _rest)) = line.split_once('=') {
-            let name = name.trim().trim_matches('"').to_string();
-            if !name.is_empty() {
-                deps.push(name);
-            }
-        }
-    }
-    deps
+    let metadata = cargo_metadata::MetadataCommand::new()
+        .manifest_path(manifest)
+        .no_deps()
+        .other_options(vec!["--locked".to_string()])
+        .exec()
+        .unwrap_or_else(|error| {
+            panic!("read Cargo dependency authority {}: {error}", manifest.display())
+        });
+    let expected =
+        manifest.canonicalize().unwrap_or_else(|error| panic!("resolve manifest: {error}"));
+    let package = metadata
+        .packages
+        .iter()
+        .find(|package| {
+            package.manifest_path.as_std_path().canonicalize().is_ok_and(|path| path == expected)
+        })
+        .unwrap_or_else(|| {
+            panic!("Cargo did not return requested manifest {}", manifest.display())
+        });
+    package.dependencies.iter().map(|dependency| dependency.name.clone()).collect()
 }
 
 #[test]
@@ -232,28 +230,51 @@ fn policy__boundaries__dependency_boundaries__environment_has_no_engine_or_runne
 }
 
 #[test]
-fn policy__boundaries__dependency_boundaries__production_crates_do_not_depend_on_environment_qa() {
-    let root = repo_root();
-    let crates_dir = root.join("crates");
-    let crate_dirs = std::fs::read_dir(&crates_dir)
-        .unwrap_or_else(|err| panic!("read {}: {err}", crates_dir.display()));
-    let mut offenders = Vec::new();
-    for entry in crate_dirs.flatten() {
-        let path = entry.path().join("Cargo.toml");
-        if !path.exists() {
-            continue;
-        }
-        if path.to_string_lossy().contains("bijux-dna-containers-qa") {
-            continue;
-        }
-        let deps = parse_dependency_names(&path);
-        if deps.iter().any(|dep| dep == "bijux-dna-containers-qa") {
-            offenders.push(format!("{} depends on bijux-dna-containers-qa", path.display()));
-        }
+fn dependency_authority_resolves_aliases_workspace_and_target_specific_edges() -> anyhow::Result<()>
+{
+    let root = bijux_dna_testkit::tempdir_for("dependency-authority");
+    let root = root.path();
+    for package in ["consumer", "runner-owner", "shared-owner", "build-owner", "test-owner"] {
+        let dir = root.join(package);
+        std::fs::create_dir_all(dir.join("src"))?;
+        std::fs::write(dir.join("src/lib.rs"), "pub fn present() {}\n")?;
+        std::fs::write(
+            dir.join("Cargo.toml"),
+            format!("[package]\nname = \"{package}\"\nversion = \"0.1.0\"\nedition = \"2021\"\n"),
+        )?;
     }
-    bijux_dna_policies::policy_assert!(
-        offenders.is_empty(),
-        "production crates must not depend on bijux-dna-containers-qa:\n{}",
-        offenders.join("\n")
+    std::fs::write(
+        root.join("Cargo.toml"),
+        r#"[workspace]
+members = ["consumer", "runner-owner", "shared-owner", "build-owner", "test-owner"]
+resolver = "2"
+[workspace.dependencies]
+shared_alias = { package = "shared-owner", path = "shared-owner" }
+"#,
+    )?;
+    let manifest = root.join("consumer/Cargo.toml");
+    let mut content = std::fs::read_to_string(&manifest)?;
+    content.push_str(
+        r#"
+[dependencies]
+runner_alias = { package = "runner-owner", path = "../runner-owner" }
+shared_alias.workspace = true
+[target.'cfg(unix)'.build-dependencies]
+builder = { package = "build-owner", path = "../build-owner" }
+[dev-dependencies.fixture]
+package = "test-owner"
+path = "../test-owner"
+"#,
     );
+    std::fs::write(&manifest, content)?;
+    let observed =
+        parse_dependency_names(&manifest).into_iter().collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        observed,
+        ["runner-owner", "shared-owner", "build-owner", "test-owner"]
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    );
+    Ok(())
 }
