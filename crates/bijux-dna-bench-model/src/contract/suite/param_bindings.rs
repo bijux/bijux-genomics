@@ -99,6 +99,11 @@ fn validate_stage_param_binding_keys<'a>(
     catalog: &dyn BenchmarkSuiteCatalog,
 ) -> Result<(), BenchError> {
     let Some(parameter_ids) = catalog.parameter_ids(stage_id) else {
+        if catalog.declares_stage(stage_id) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite stage {stage_id} is missing its governed parameter contract"
+            )));
+        }
         return Ok(());
     };
     for key in keys {

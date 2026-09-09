@@ -11,6 +11,7 @@ struct FixtureCatalog {
     stage: bool,
     ports: bool,
     parameters: bool,
+    missing_contract: Option<&'static str>,
 }
 
 impl BenchmarkSuiteCatalog for FixtureCatalog {
@@ -30,12 +31,21 @@ impl BenchmarkSuiteCatalog for FixtureCatalog {
         }
     }
     fn input_ids(&self, _: &str) -> Option<BTreeSet<String>> {
+        if self.missing_contract == Some("input") {
+            return None;
+        }
         Some(if self.ports { BTreeSet::from(["reads".to_string()]) } else { BTreeSet::new() })
     }
-    fn output_ids(&self, stage: &str) -> Option<BTreeSet<String>> {
-        self.input_ids(stage)
+    fn output_ids(&self, _: &str) -> Option<BTreeSet<String>> {
+        if self.missing_contract == Some("output") {
+            return None;
+        }
+        Some(if self.ports { BTreeSet::from(["reads".to_string()]) } else { BTreeSet::new() })
     }
     fn parameter_ids(&self, _: &str) -> Option<BTreeSet<String>> {
+        if self.missing_contract == Some("parameter") {
+            return None;
+        }
         Some(if self.parameters { BTreeSet::from(["limit".to_string()]) } else { BTreeSet::new() })
     }
 }
@@ -86,7 +96,7 @@ fn suite() -> BenchmarkSuiteSpec {
 fn suite_catalog_port_admits_explicit_stage_tool_ports_and_parameters() -> anyhow::Result<()> {
     validate_suite_with_catalog(
         &suite(),
-        &FixtureCatalog { stage: true, ports: true, parameters: true },
+        &FixtureCatalog { stage: true, ports: true, parameters: true, missing_contract: None },
     )?;
     Ok(())
 }
@@ -95,7 +105,7 @@ fn suite_catalog_port_admits_explicit_stage_tool_ports_and_parameters() -> anyho
 fn suite_catalog_port_rejects_missing_stage_observations() {
     assert!(validate_suite_with_catalog(
         &suite(),
-        &FixtureCatalog { stage: false, ports: true, parameters: true }
+        &FixtureCatalog { stage: false, ports: true, parameters: true, missing_contract: None }
     )
     .is_err());
 }
@@ -103,9 +113,50 @@ fn suite_catalog_port_rejects_missing_stage_observations() {
 #[test]
 fn suite_catalog_port_rejects_incompatible_ports_and_parameters() {
     for catalog in [
-        FixtureCatalog { stage: true, ports: false, parameters: true },
-        FixtureCatalog { stage: true, ports: true, parameters: false },
+        FixtureCatalog { stage: true, ports: false, parameters: true, missing_contract: None },
+        FixtureCatalog { stage: true, ports: true, parameters: false, missing_contract: None },
     ] {
         assert!(validate_suite_with_catalog(&suite(), &catalog).is_err());
     }
+}
+
+#[test]
+fn suite_catalog_port_rejects_missing_contracts_for_declared_stages() {
+    for (missing, diagnostic) in [
+        ("input", "governed input port contract"),
+        ("output", "governed output port contract"),
+        ("parameter", "governed parameter contract"),
+    ] {
+        let catalog = FixtureCatalog {
+            stage: true,
+            ports: true,
+            parameters: true,
+            missing_contract: Some(missing),
+        };
+        match validate_suite_with_catalog(&suite(), &catalog) {
+            Err(error) => assert!(error.to_string().contains(diagnostic), "{error}"),
+            Ok(()) => panic!("missing {missing} contract was admitted"),
+        }
+    }
+}
+
+#[test]
+fn suite_catalog_port_does_not_require_unused_contracts() -> anyhow::Result<()> {
+    let mut request = suite();
+    request.edges.clear();
+    for stage in &mut request.stages {
+        stage.param_bindings.clear();
+    }
+    for missing in ["input", "output", "parameter"] {
+        validate_suite_with_catalog(
+            &request,
+            &FixtureCatalog {
+                stage: true,
+                ports: true,
+                parameters: true,
+                missing_contract: Some(missing),
+            },
+        )?;
+    }
+    Ok(())
 }

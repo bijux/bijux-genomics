@@ -34,6 +34,12 @@ fn validate_stage_output_port(
         return Ok(());
     };
     let Some(output_ids) = catalog.output_ids(&node.stage_id) else {
+        if catalog.declares_stage(&node.stage_id) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite stage {} is missing its governed output port contract",
+                node.stage_id
+            )));
+        }
         return Ok(());
     };
     if output_ids.contains(output_id) {
@@ -55,6 +61,12 @@ fn validate_stage_input_port(
         return Ok(());
     };
     let Some(input_ids) = catalog.input_ids(&node.stage_id) else {
+        if catalog.declares_stage(&node.stage_id) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite stage {} is missing its governed input port contract",
+                node.stage_id
+            )));
+        }
         return Ok(());
     };
     if input_ids.contains(input_id) {

@@ -86,3 +86,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --te
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test schemas --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test semantics --no-default-features
 ```
+
+Suite catalog admission rejects missing input, output or parameter contracts when a declared stage uses that boundary. Empty declared identifier sets reject supplied values; unused contracts are not required. Executor and planner stages outside the supplied catalog retain their existing admission path.
