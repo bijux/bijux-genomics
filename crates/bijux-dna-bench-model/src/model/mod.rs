@@ -25,6 +25,7 @@ pub mod essential_pipeline_readiness;
 pub mod execution;
 pub mod expected_benchmark_results;
 pub mod fastq_scoring;
+pub mod full_benchmark_dashboard;
 pub mod full_benchmark_report;
 pub mod full_benchmark_result_collector;
 pub mod graph;
@@ -263,6 +264,11 @@ pub use execution::{
 pub use expected_benchmark_results::{
     all_domain_expected_benchmark_results_schema, AllDomainExpectedBenchmarkResultRow,
     AllDomainExpectedBenchmarkResultsReport,
+};
+#[allow(unused_imports)]
+pub use full_benchmark_dashboard::{
+    FullBenchmarkDashboardMetric, FullBenchmarkDashboardReport,
+    FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION,
 };
 #[allow(unused_imports)]
 pub use full_benchmark_report::{

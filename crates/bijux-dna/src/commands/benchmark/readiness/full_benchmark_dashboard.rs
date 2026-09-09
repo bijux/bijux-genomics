@@ -3,7 +3,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION;
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    FullBenchmarkDashboardMetric, FullBenchmarkDashboardReport,
+};
 
 use super::all_domain_expected_benchmark_results::{
     render_all_domain_expected_benchmark_results, AllDomainExpectedBenchmarkResultsReport,
@@ -38,42 +41,12 @@ pub(crate) const DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.md";
 pub(crate) const DEFAULT_FULL_BENCHMARK_DASHBOARD_JSON_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_DASHBOARD.json";
-const FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.full_benchmark_dashboard.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {
     domain: String,
     stage_id: String,
     tool_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct FullBenchmarkDashboardMetric {
-    pub(crate) metric_id: String,
-    pub(crate) count: usize,
-    pub(crate) source_path: String,
-    pub(crate) source_field: String,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct FullBenchmarkDashboardReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) markdown_output_path: String,
-    pub(crate) json_output_path: String,
-    pub(crate) total_stages: usize,
-    pub(crate) total_tools: usize,
-    pub(crate) total_expected_jobs: usize,
-    pub(crate) ready_jobs: usize,
-    pub(crate) blocked_jobs: usize,
-    pub(crate) missing_parsers: usize,
-    pub(crate) missing_adapters: usize,
-    pub(crate) missing_assets: usize,
-    pub(crate) failed_real_smokes: usize,
-    pub(crate) explicit_unsupported_pairs: usize,
-    pub(crate) passes_behavior_test: bool,
-    pub(crate) metrics: Vec<FullBenchmarkDashboardMetric>,
 }
 
 pub(crate) fn run_render_full_benchmark_dashboard(
@@ -239,7 +212,7 @@ fn render_full_benchmark_dashboard_with_dependency(
     ];
 
     let report = FullBenchmarkDashboardReport {
-        schema_version: FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION,
+        schema_version: FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION.to_string(),
         markdown_output_path: path_relative_to_repo(repo_root, &markdown_output_path),
         json_output_path: path_relative_to_repo(repo_root, &json_output_path),
         total_stages,
