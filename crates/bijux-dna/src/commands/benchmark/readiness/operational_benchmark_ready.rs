@@ -467,10 +467,9 @@ pub(crate) fn render_operational_benchmark_ready(
         "all_domain_slurm_script_bodies",
         DEFAULT_ALL_DOMAIN_SLURM_SCRIPT_BODY_REPORT_PATH,
         || {
-            render_all_domain_slurm_scripts(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
-            )?;
+            slurm_scripts
+                .as_ref()
+                .context("all-domain SLURM scripts must render before body validation")?;
             validate_slurm_script_bodies(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
@@ -502,10 +501,9 @@ pub(crate) fn render_operational_benchmark_ready(
         "all_domain_slurm_shell_syntax",
         DEFAULT_ALL_DOMAIN_SLURM_BASH_N_REPORT_PATH,
         || {
-            render_all_domain_slurm_scripts(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
-            )?;
+            slurm_scripts
+                .as_ref()
+                .context("all-domain SLURM scripts must render before shell validation")?;
             validate_slurm_shell_syntax(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
