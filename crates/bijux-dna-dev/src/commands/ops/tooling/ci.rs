@@ -955,7 +955,10 @@ fn resolve_ci_fast_build_authority_with_scratch_roots(
     scratch_roots: &[PathBuf],
 ) -> Result<FastBuildAuthority> {
     let shared = configured.is_some();
-    let target = configured.unwrap_or(artifact_root_path(workspace)?.join("ci/ci-fast-target"));
+    let target = match configured {
+        Some(target) => target,
+        None => artifact_root_path(workspace)?.join("ci/ci-fast-target"),
+    };
     if shared
         && (!target.is_absolute()
             || target
