@@ -5,6 +5,67 @@ use anyhow::Context as _;
 use bijux_dna_containers::api::derive_container_registry_projection_report;
 use tempfile::tempdir;
 
+#[test]
+fn container_manifest_preserves_fields_and_sorts_only_eligible_tools() -> anyhow::Result<()> {
+    let fixture = tempdir()?;
+    let registry = fixture.path().join("registry.toml");
+    fs::write(
+        &registry,
+        r#"
+[[tools]]
+id = "zeta"
+version = "1.0"
+runtimes = [
+  "apptainer", # valid multiline registry data
+]
+apptainer_def = "containers/zeta.def"
+[[tools]]
+id = "alpha"
+upstream = "https://example.invalid/alpha"
+pinned_commit = "sha256:abc"
+runtimes = ["docker", "apptainer"]
+dockerfile = "containers/alpha.Dockerfile"
+unknown_registry_field = true
+[[tools]]
+id = "native"
+runtimes = ["local"]
+dockerfile = "unused"
+[[tools]]
+id = "without_recipe"
+runtimes = ["docker"]
+[[stages]]
+id = "unrelated"
+"#,
+    )?;
+    let value = bijux_dna_containers::api::registry_export_containers_value(&registry)?;
+    assert_eq!(
+        value,
+        serde_json::json!({
+            "schema_version": "bijux.container_manifest.v1",
+            "containers": [
+                {"tool_id": "alpha", "version": null, "upstream": "https://example.invalid/alpha",
+                 "pinned_commit": "sha256:abc", "runtimes": ["docker", "apptainer"],
+                 "dockerfile": "containers/alpha.Dockerfile", "apptainer_def": null},
+                {"tool_id": "zeta", "version": "1.0", "upstream": null, "pinned_commit": null,
+                 "runtimes": ["apptainer"], "dockerfile": null, "apptainer_def": "containers/zeta.def"}
+            ]
+        })
+    );
+    Ok(())
+}
+
+#[test]
+fn container_manifest_rejects_absent_or_malformed_registry_data() -> anyhow::Result<()> {
+    let fixture = tempdir()?;
+    let registry = fixture.path().join("registry.toml");
+    assert!(bijux_dna_containers::api::registry_export_containers_value(&registry).is_err());
+    for body in ["", "[[tools]]\nid = [", "[[tools]]\nid = 7", "[[tools]]\nruntimes = []"] {
+        fs::write(&registry, body)?;
+        assert!(bijux_dna_containers::api::registry_export_containers_value(&registry).is_err());
+    }
+    Ok(())
+}
+
 const EMPTY_REGISTRIES: [&str; 4] = [
     "tool_registry_experimental.toml",
     "tool_registry_container_experimental.toml",

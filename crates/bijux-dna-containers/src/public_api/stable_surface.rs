@@ -159,6 +159,7 @@ pub use crate::execution_contract::{
     PipelineEvidenceKind, PipelineInputKind, CONTAINER_CREDENTIAL_REFERENCE_SCHEMA_V1,
     CONTAINER_PIPELINE_SCHEMA_V1, CONTAINER_PIPELINE_SCHEMA_V2,
 };
+pub use crate::registry::registry_export_containers_value;
 pub use crate::resolve::*;
 pub use crate::site_policy::{
     archive_and_retire_frozen_repository, archive_frozen_repository, container_governance_schema,

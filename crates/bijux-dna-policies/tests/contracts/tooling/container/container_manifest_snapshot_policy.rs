@@ -20,7 +20,7 @@ fn slow__policy__contracts__container_manifest_snapshot_policy__generated_manife
     let expected = std::fs::read_to_string(&snapshot_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path.display()));
     let actual = serde_json::to_string_pretty(
-        &bijux_dna::public_api::cli::env::registry_export_containers_value(&registry_path)
+        &bijux_dna_containers::api::registry_export_containers_value(&registry_path)
             .unwrap_or_else(|err| {
                 panic!("render container manifest with {}: {err}", registry_path.display())
             }),
