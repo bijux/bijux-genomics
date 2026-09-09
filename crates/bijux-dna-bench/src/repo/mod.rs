@@ -1,6 +1,9 @@
 //! Owner: bijux-dna-bench
 //! Run repositories for bench.
 
+mod fastq_score_evidence;
+pub(crate) use fastq_score_evidence::load_optional_fastq_score_report;
+
 mod case_data_authority;
 mod catalog_registry_authority;
 mod catalog_snapshot_authority;

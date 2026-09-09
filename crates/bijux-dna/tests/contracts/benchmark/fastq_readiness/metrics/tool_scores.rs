@@ -62,9 +62,35 @@ fn bench_readiness_fastq_tool_scores_report_governs_real_fastq_evidence() {
     let scored_row_count = score_status_count("scored");
     let insufficient_evidence_row_count = score_status_count("insufficient_evidence");
     let blocked_row_count = score_status_count("blocked");
-    assert_eq!(scored_row_count, 10);
-    assert_eq!(insufficient_evidence_row_count, 60);
+    assert_eq!(scored_row_count, 5);
+    assert_eq!(insufficient_evidence_row_count, 65);
     assert_eq!(blocked_row_count, 1);
+    for (stage, tool) in [
+        ("fastq.normalize_primers", "cutadapt"),
+        ("fastq.remove_chimeras", "vsearch"),
+        ("fastq.infer_asvs", "dada2"),
+        ("fastq.cluster_otus", "vsearch"),
+        ("fastq.normalize_abundance", "seqkit"),
+    ] {
+        let row = rows
+            .iter()
+            .find(|row| row["stage_id"] == stage && row["tool_id"] == tool)
+            .expect("retained amplicon binding remains visible");
+        assert_eq!(row["score_status"], "insufficient_evidence");
+        for field in [
+            "score_total",
+            "truth_correctness_score",
+            "contract_correctness_score",
+            "retained_reads",
+            "dropped_reads",
+        ] {
+            assert!(
+                row.get(field).is_some_and(serde_json::Value::is_null),
+                "{stage}/{tool}: fabricated {field}"
+            );
+        }
+    }
+
     assert_eq!(
         payload.get("scored_row_count").and_then(serde_json::Value::as_u64),
         Some(scored_row_count)

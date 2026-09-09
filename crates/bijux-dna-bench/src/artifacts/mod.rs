@@ -2,6 +2,8 @@
 //! Benchmark source inspection, output admission, and deterministic persistence.
 
 pub mod admission;
+mod fastq_score_evidence;
+pub use fastq_score_evidence::load_fastq_tool_score_evidence;
 mod source_assets;
 pub mod writer;
 

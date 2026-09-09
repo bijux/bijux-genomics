@@ -20,9 +20,15 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
-        entries(["admission/", "mod.rs", "source_assets.rs", "writer/"]),
+        entries(["admission/", "fastq_score_evidence/", "mod.rs", "source_assets.rs", "writer/"]),
         "artifacts tree must separate source inspection, output admission, and serialization"
     );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/fastq_score_evidence")),
+        entries(["adapters.rs", "fields.rs", "mod.rs", "summaries.rs"]),
+        "FASTQ report evidence must separate format projections from aggregate normalization"
+    );
+
     assert_eq!(
         dir_entries(&root.join("src/artifacts/admission")),
         entries(["mod.rs", "model.rs", "validation.rs"]),
@@ -55,6 +61,7 @@ fn bench_tree_matches_architecture_contract() {
             "catalog_snapshot_authority.rs",
             "corpus/",
             "data_index_authority.rs",
+            "fastq_score_evidence.rs",
             "mod.rs",
             "pipeline_config.rs",
             "pipeline_execution.rs",
