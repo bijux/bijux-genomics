@@ -14,7 +14,8 @@ use super::{
     set_assets_readonly, write_json_pretty, Context, OpsCommandOutcome, Result, Workspace,
 };
 use crate::application::ci::{
-    CompiledWorkspaceExecutables, CoverageAttestation, ExpectedTestInventory, ShardDiscoveryPlan,
+    CompiledWorkspaceExecutables, CoverageAttestation, ExpectedTestInventory, NextestReuseInputs,
+    ShardDiscoveryPlan,
 };
 use crate::runtime::compilation_cache::CompilationCache;
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
@@ -1287,7 +1288,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .zip(&shard_roots)
         .zip(&shard_plans)
         .map(|(((shard, shard_workspace), roots), plan)| {
-            let mut args = full_shard_args(shard, &archive_roots.archive_extract, shard_workspace);
+            let mut args = full_shard_args(shard, &archive_roots.archive_extract, shard_workspace)?;
             args.extend(["--filterset".to_string(), plan.filterset.clone()]);
             let mut envs = full_shard_env(roots, shard_workspace)?;
             envs.extend(
@@ -1681,8 +1682,8 @@ fn full_shard_args(
     shard: &FullShard,
     archive_extract: &Path,
     workspace_remap: &Path,
-) -> Vec<String> {
-    vec![
+) -> Result<Vec<String>> {
+    let mut args = vec![
         "nextest".to_string(),
         "run".to_string(),
         "--message-format".to_string(),
@@ -1691,14 +1692,6 @@ fn full_shard_args(
         "0.1".to_string(),
         "--no-tests".to_string(),
         "fail".to_string(),
-        "--cargo-metadata".to_string(),
-        archive_extract.join("target/nextest/cargo-metadata.json").display().to_string(),
-        "--binaries-metadata".to_string(),
-        archive_extract.join("target/nextest/binaries-metadata.json").display().to_string(),
-        "--target-dir-remap".to_string(),
-        archive_extract.join("target").display().to_string(),
-        "--workspace-remap".to_string(),
-        workspace_remap.display().to_string(),
         "--config-file".to_string(),
         "configs/rust/nextest.toml".to_string(),
         "--profile".to_string(),
@@ -1709,7 +1702,15 @@ fn full_shard_args(
         "0".to_string(),
         "--partition".to_string(),
         shard.partition.clone(),
-    ]
+    ];
+    let target = archive_extract.join("target");
+    let reuse = NextestReuseInputs::new(
+        target.join("nextest/cargo-metadata.json"),
+        target.join("nextest/binaries-metadata.json"),
+        target,
+    )?;
+    args.extend(reuse.arguments(workspace_remap)?);
+    Ok(args)
 }
 
 fn materialize_full_shard_workspace(
@@ -3038,7 +3039,7 @@ mod tests {
 
         for shard in &contract.shards {
             let remap = storage.scratch_root.join("workspaces").join(&shard.id);
-            let args = full_shard_args(shard, &archive.archive_extract, &remap);
+            let args = full_shard_args(shard, &archive.archive_extract, &remap)?;
             for forbidden in [
                 "--workspace",
                 "--all-targets",

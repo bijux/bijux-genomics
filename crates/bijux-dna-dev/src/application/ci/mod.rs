@@ -5,11 +5,13 @@ mod events;
 mod executables;
 mod inventory;
 mod partition;
+mod test_products;
 
 pub(crate) use coverage::CoverageAttestation;
 pub(crate) use executables::CompiledWorkspaceExecutables;
 pub(crate) use inventory::ExpectedTestInventory;
 pub(crate) use partition::ShardDiscoveryPlan;
+pub(crate) use test_products::NextestReuseInputs;
 
 #[cfg(test)]
 mod tests {
