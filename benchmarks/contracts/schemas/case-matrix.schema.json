@@ -1030,6 +1030,7 @@
       "type": "object"
     },
     "ToolConstraints": {
+      "additionalProperties": false,
       "properties": {
         "mem_gb": {
           "format": "uint32",

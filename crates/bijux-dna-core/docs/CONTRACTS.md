@@ -41,6 +41,8 @@ artifact movement, report persistence, or retention policy.
 - `Objective`, `ObjectiveSpec`, `ObjectiveWeights`, `ToolScore`,
   `Disqualification`, `StageSelection`, and `select_stage`.
 
+`ToolConstraints` admits exactly `runtime`, `mem_gb`, `tmp_gb`, and `threads`. Unknown resource fields reject in standalone documents and nested execution or binding inputs; valid serialized payloads and defaults retain their existing shape. Semantic resource checks remain the consuming planner or execution contract's responsibility.
+
 Selection is pure scoring over typed candidate data. It does not execute tools,
 probe environments, download images, or choose runtime backends.
 

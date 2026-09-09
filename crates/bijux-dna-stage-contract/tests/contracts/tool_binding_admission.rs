@@ -23,6 +23,12 @@ fn binding_transport_rejects_unknown_fields_at_every_owned_object_boundary() -> 
     let registry = canonical_retained_tool_bindings()?;
     let binding = registry.bindings().next().context("retained binding")?;
     rejects_unknown::<ToolBindingV1>(serde_json::to_value(binding)?)?;
+    let mut with_unknown_resource = serde_json::to_value(binding)?;
+    with_unknown_resource["resources"]["memory_gb"] = json!(32);
+    let error = serde_json::from_value::<ToolBindingV1>(with_unknown_resource)
+        .err()
+        .context("undeclared binding resource must reject")?;
+    assert!(error.to_string().contains("unknown field"), "{error}");
     rejects_unknown::<BindingInputV1>(
         json!({"name":"reads","artifact_contract_id":"reads.v1","source":"corpus","required":true}),
     )?;
@@ -80,6 +86,8 @@ fn legacy_input_source_remains_readable_for_evidence_admission() -> Result<()> {
 
 #[test]
 fn binding_object_schemas_declare_closed_field_sets() {
+    let binding = schemars::schema_for!(ToolBindingV1).to_value();
+    assert_eq!(binding["$defs"]["ToolConstraints"]["additionalProperties"], json!(false));
     for schema in [
         schemars::schema_for!(ToolBindingV1).to_value(),
         schemars::schema_for!(BindingInputV1).to_value(),
