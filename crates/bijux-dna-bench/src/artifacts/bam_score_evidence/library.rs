@@ -17,9 +17,10 @@ pub(crate) fn merge_complexity_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id = super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_COMPLEXITY)?;
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
+        stage_id,
         required_str(root, "method")?,
         BamEvidenceAggregate {
             contract_correctness_score: Some(if required_bool(root, "expectation_matched")? {
@@ -56,9 +57,11 @@ pub(crate) fn merge_endogenous_content_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id =
+        super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_ENDOGENOUS_CONTENT)?;
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
+        stage_id,
         "samtools",
         BamEvidenceAggregate {
             contract_correctness_score: Some(if required_bool(root, "expectation_matched")? {
@@ -94,9 +97,11 @@ pub(crate) fn merge_insert_size_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id =
+        super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_INSERT_SIZE)?;
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
+        stage_id,
         required_str(root, "method")?,
         BamEvidenceAggregate {
             contract_correctness_score: Some(if required_bool(root, "expectation_matched")? {

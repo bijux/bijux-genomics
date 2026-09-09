@@ -18,7 +18,7 @@ pub(crate) fn merge_validate_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_VALIDATE)?;
     let cases = required_array(root, "cases")?;
     let case_count = required_u64(root, "case_count")?;
     anyhow::ensure!(
@@ -94,9 +94,9 @@ pub(crate) fn merge_qc_pre_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_QC_PRE)?;
     for case in required_array(root, "cases")? {
-        let tool_id = required_str(case, "tool_id")?;
+        let tool_id = super::fields::required_identifier(case, "tool_id")?;
         let total_reads = required_u64(case, "total_reads")?;
         let mapped_reads = required_u64(case, "mapped_reads")?;
         let unmapped_reads = required_u64(case, "unmapped_reads")?;
@@ -186,6 +186,7 @@ pub(crate) fn merge_filter_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id = super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_FILTER)?;
     let input_reads = required_u64(root, "input_reads")?;
     let kept_reads = required_u64(root, "kept_reads")?;
     let removed_reads = required_u64(root, "removed_reads")?;
@@ -197,7 +198,7 @@ pub(crate) fn merge_filter_summary(
     );
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
+        stage_id,
         "samtools",
         BamEvidenceAggregate {
             truth_correctness_score: Some(fraction_u64(kept_reads, input_reads)?),
@@ -233,6 +234,8 @@ pub(crate) fn merge_mapq_filter_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id =
+        super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_MAPQ_FILTER)?;
     let input_reads = required_u64(root, "input_reads")?;
     let kept_reads = required_u64(root, "kept_reads")?;
     let removed_reads = required_u64(root, "removed_reads")?;
@@ -240,7 +243,7 @@ pub(crate) fn merge_mapq_filter_summary(
     let mapq_threshold = required_u64(root, "mapq_threshold")?;
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
+        stage_id,
         "samtools",
         BamEvidenceAggregate {
             truth_correctness_score: Some(fraction_u64(kept_reads, input_reads)?),
@@ -277,13 +280,15 @@ pub(crate) fn merge_length_filter_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id =
+        super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_LENGTH_FILTER)?;
     let input_reads = required_u64(root, "input_reads")?;
     let kept_reads = required_u64(root, "kept_reads")?;
     let removed_reads = required_u64(root, "removed_reads")?;
     let min_length_threshold = required_u64(root, "min_length_threshold")?;
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
+        stage_id,
         "samtools",
         BamEvidenceAggregate {
             truth_correctness_score: Some(fraction_u64(kept_reads, input_reads)?),

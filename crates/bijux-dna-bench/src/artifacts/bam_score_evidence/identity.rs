@@ -17,16 +17,13 @@ pub(crate) fn merge_contamination_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
-    let stage_id = required_str(root, "stage_id")?;
-    let by_tool = required_array(root, "rows")?.iter().fold(
-        BTreeMap::<String, Vec<&Value>>::new(),
-        |mut map, row| {
-            if let Some(tool_id) = optional_str(row, "tool_id") {
-                map.entry(tool_id.to_string()).or_default().push(row);
-            }
-            map
-        },
-    );
+    let stage_id =
+        super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_CONTAMINATION)?;
+    let mut by_tool = BTreeMap::<String, Vec<&Value>>::new();
+    for row in required_array(root, "rows")? {
+        let tool_id = super::fields::required_identifier(row, "tool_id")?;
+        by_tool.entry(tool_id.to_string()).or_default().push(row);
+    }
     for (tool_id, tool_rows) in by_tool {
         let selected =
             tool_rows.iter().find(|row| optional_str(row, "proof_case") == Some("ready")).copied();
@@ -71,16 +68,12 @@ pub(crate) fn merge_contamination_summary(
 }
 
 pub(crate) fn merge_sex_summary(root: &Value, path: &Path, rows: &mut EvidenceRows) -> Result<()> {
-    let stage_id = required_str(root, "stage_id")?;
-    let by_tool = required_array(root, "rows")?.iter().fold(
-        BTreeMap::<String, Vec<&Value>>::new(),
-        |mut map, row| {
-            if let Some(tool_id) = optional_str(row, "tool_id") {
-                map.entry(tool_id.to_string()).or_default().push(row);
-            }
-            map
-        },
-    );
+    let stage_id = super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_SEX)?;
+    let mut by_tool = BTreeMap::<String, Vec<&Value>>::new();
+    for row in required_array(root, "rows")? {
+        let tool_id = super::fields::required_identifier(row, "tool_id")?;
+        by_tool.entry(tool_id.to_string()).or_default().push(row);
+    }
     for (tool_id, tool_rows) in by_tool {
         let selected =
             tool_rows.iter().find(|row| optional_str(row, "proof_case") == Some("ready")).copied();
@@ -128,7 +121,8 @@ pub(crate) fn merge_haplogroups_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id =
+        super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_HAPLOGROUPS)?;
     let ready_row = required_array(root, "rows")?
         .iter()
         .find(|row| optional_str(row, "proof_case") == Some("ready"));
@@ -138,7 +132,7 @@ pub(crate) fn merge_haplogroups_summary(
     insert_evidence(
         rows,
         stage_id,
-        required_str(row, "tool_id")?,
+        super::fields::required_identifier(row, "tool_id")?,
         BamEvidenceAggregate {
             contract_correctness_score: Some(if required_bool(row, "expectation_matched")? {
                 1.0
@@ -170,7 +164,7 @@ pub(crate) fn merge_kinship_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_KINSHIP)?;
     let case = required_array(root, "cases")?.iter().find(|case| {
         optional_str(case, "method") == Some("king") && optional_str(case, "status") == Some("ok")
     });

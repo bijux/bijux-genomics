@@ -133,3 +133,22 @@ pub(super) fn checked_observation_sum(left: f64, right: f64, field: &str) -> Res
     anyhow::ensure!(sum.is_finite(), "BAM observation {field} total must remain finite");
     Ok(sum)
 }
+
+/// Admit stage identity before any scientific projection can enter the score index.
+pub(super) fn required_stage<'a>(value: &'a Value, expected: &str) -> Result<&'a str> {
+    let stage = required_identifier(value, "stage_id")?;
+    anyhow::ensure!(
+        stage == expected,
+        "expected BAM report stage `{expected}`, observed `{stage}`"
+    );
+    Ok(stage)
+}
+
+pub(super) fn required_identifier<'a>(value: &'a Value, key: &str) -> Result<&'a str> {
+    let id = required_str(value, key)?;
+    anyhow::ensure!(
+        !id.is_empty() && id.trim() == id,
+        "missing or noncanonical BAM report identifier `{key}`"
+    );
+    Ok(id)
+}

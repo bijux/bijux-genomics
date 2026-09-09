@@ -18,9 +18,11 @@ pub(crate) fn merge_overlap_correction_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id =
+        super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_OVERLAP_CORRECTION)?;
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
+        stage_id,
         required_str(root, "method")?,
         BamEvidenceAggregate {
             contract_correctness_score: Some(if required_bool(root, "expectation_matched")? {
@@ -53,13 +55,15 @@ pub(crate) fn merge_recalibration_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id =
+        super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_RECALIBRATION)?;
     let contract_ok = required_bool(root, "expectation_matched")?
         && required_bool(root, "output_bam_present")?
         && required_bool(root, "recalibration_report_present")?;
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
-        required_str(root, "tool_id")?,
+        stage_id,
+        super::fields::required_identifier(root, "tool_id")?,
         BamEvidenceAggregate {
             contract_correctness_score: Some(if contract_ok { 1.0 } else { 0.0 }),
             contract_correctness_basis: Some(

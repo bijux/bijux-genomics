@@ -3,7 +3,7 @@
 
 use super::fields::{
     checked_observation_sum, format_f64, optional_str, parse_bool, parse_f64, parse_u64,
-    required_bool, required_f64, required_str, required_tsv, required_u64, summarize_metrics,
+    required_bool, required_f64, required_tsv, required_u64, summarize_metrics,
 };
 use super::merge::insert_evidence;
 use super::{BamEvidenceAggregate, EvidenceRows};
@@ -18,13 +18,14 @@ pub(crate) fn merge_markdup_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id = super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_MARKDUP)?;
     let duplicate_fraction = required_f64(root, "duplicate_fraction")?;
     let duplicate_count = required_u64(root, "duplicate_count")?;
     let output_reads = required_u64(root, "output_reads")?;
     let removed_reads = required_u64(root, "removed_reads")?;
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
+        stage_id,
         "samtools",
         BamEvidenceAggregate {
             truth_correctness_score: Some((1.0 - duplicate_fraction).clamp(0.0, 1.0)),
@@ -58,6 +59,8 @@ pub(crate) fn merge_duplication_metrics_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id =
+        super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_DUPLICATION_METRICS)?;
     let duplicate_fraction = required_f64(root, "duplicate_fraction")?;
     let duplicate_count = required_u64(root, "duplicate_count")?;
     let examined_reads = required_u64(root, "examined_reads")?;
@@ -65,7 +68,7 @@ pub(crate) fn merge_duplication_metrics_summary(
         optional_str(root, "estimated_library_size").unwrap_or("").to_string();
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
+        stage_id,
         "samtools",
         BamEvidenceAggregate {
             truth_correctness_score: Some((1.0 - duplicate_fraction).clamp(0.0, 1.0)),

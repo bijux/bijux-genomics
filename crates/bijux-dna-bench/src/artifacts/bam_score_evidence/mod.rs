@@ -147,4 +147,45 @@ mod tests {
         }
         Ok(())
     }
+    #[test]
+    fn bam_score_adapters_reject_cross_stage_and_noncanonical_tool_observations(
+    ) -> anyhow::Result<()> {
+        let valid = serde_json::json!({"stage_id":"bam.qc_pre","cases":[{
+            "tool_id":"samtools","total_reads":20,"mapped_reads":15,"unmapped_reads":5,
+            "duplicate_flagged_reads":2,"expectation_matched":true
+        }]});
+        for stage in ["bam.filter", "vcf.qc", "", " bam.qc_pre", "bam.qc_pre "] {
+            let mut value = valid.clone();
+            value["stage_id"] = serde_json::json!(stage);
+            let mut rows = EvidenceRows::new();
+            assert!(merge_qc_pre_summary(&value, Path::new("qc.json"), &mut rows).is_err());
+            assert!(rows.is_empty());
+        }
+        for tool in [
+            serde_json::Value::Null,
+            serde_json::json!(""),
+            serde_json::json!(" samtools"),
+            serde_json::json!("samtools "),
+        ] {
+            let mut value = valid.clone();
+            value["cases"][0]["tool_id"] = tool.clone();
+            assert!(merge_qc_pre_summary(&value, Path::new("qc.json"), &mut EvidenceRows::new())
+                .is_err());
+            for (stage, adapter) in [
+                (
+                    "bam.sex",
+                    super::merge_sex_summary
+                        as fn(&serde_json::Value, &Path, &mut EvidenceRows) -> anyhow::Result<()>,
+                ),
+                ("bam.contamination", super::merge_contamination_summary),
+            ] {
+                let value = serde_json::json!({"stage_id":stage,"rows":[{"tool_id":tool,"proof_case":"unavailable"}]});
+                assert!(
+                    adapter(&value, Path::new("identity.json"), &mut EvidenceRows::new()).is_err()
+                );
+            }
+        }
+        merge_qc_pre_summary(&valid, Path::new("qc.json"), &mut EvidenceRows::new())?;
+        Ok(())
+    }
 }

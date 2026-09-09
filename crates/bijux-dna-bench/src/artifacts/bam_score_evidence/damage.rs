@@ -14,14 +14,15 @@ pub(crate) fn merge_damage_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id = super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_DAMAGE)?;
     let terminal_c_to_t_5p = required_f64(root, "terminal_c_to_t_5p")?;
     let terminal_g_to_a_3p = required_f64(root, "terminal_g_to_a_3p")?;
     let damage_signal = required_str(root, "damage_signal")?;
     let score = f64::midpoint(terminal_c_to_t_5p, terminal_g_to_a_3p);
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
-        required_str(root, "method")?,
+        stage_id,
+        super::fields::required_identifier(root, "method")?,
         BamEvidenceAggregate {
             truth_correctness_score: Some(score),
             truth_correctness_basis: Some("mean_terminal_substitution_rate".to_string()),
@@ -54,6 +55,8 @@ pub(crate) fn merge_authenticity_summary(
     path: &Path,
     rows: &mut EvidenceRows,
 ) -> Result<()> {
+    let stage_id =
+        super::fields::required_stage(root, bijux_dna_core::id_catalog::BAM_AUTHENTICITY)?;
     let score = required_f64(root, "score")?;
     let confidence = required_f64(root, "confidence")?;
     let pmd_like_signal_present = required_bool(root, "pmd_like_signal_present")?;
@@ -65,8 +68,8 @@ pub(crate) fn merge_authenticity_summary(
         / 4.0;
     insert_evidence(
         rows,
-        required_str(root, "stage_id")?,
-        required_str(root, "method")?,
+        stage_id,
+        super::fields::required_identifier(root, "method")?,
         BamEvidenceAggregate {
             truth_correctness_score: Some(truth_score),
             truth_correctness_basis: Some("authenticity_metric_mean".to_string()),
