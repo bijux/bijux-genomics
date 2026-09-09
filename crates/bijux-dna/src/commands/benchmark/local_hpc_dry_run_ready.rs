@@ -121,9 +121,24 @@ pub(crate) fn validate_hpc_dry_run_ready_path(
     } else {
         repo_root.join(manifest_path)
     };
-    let report = build_hpc_dry_run_ready(repo_root, &absolute_manifest_path)?;
+    ensure_path_stays_within_benchmark_readiness_hpc_root(
+        repo_root,
+        &absolute_manifest_path,
+        "HPC dry-run readiness output",
+    )?;
     let observed = fs::read(&absolute_manifest_path)
         .with_context(|| format!("read {}", absolute_manifest_path.display()))?;
+    let admitted: LocalHpcDryRunReadyReport =
+        serde_json::from_slice(&observed).with_context(|| {
+            format!("parse HPC dry-run readiness report {}", absolute_manifest_path.display())
+        })?;
+    validate_benchmark_local_hpc_dry_run_readiness(&admitted).with_context(|| {
+        format!(
+            "HPC dry-run readiness report `{}` drifted from its declared observations",
+            absolute_manifest_path.display()
+        )
+    })?;
+    let report = build_hpc_dry_run_ready(repo_root, &absolute_manifest_path)?;
     let expected =
         serde_json::to_vec_pretty(&report).context("serialize governed HPC dry-run readiness")?;
     if observed != expected {
@@ -1106,5 +1121,25 @@ fn blocked_by(surface: &str, error: Option<&anyhow::Error>) -> String {
     match error {
         Some(error) => format!("{surface} validation failed earlier: {error:#}"),
         None => format!("{surface} validation failed earlier"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use anyhow::Context;
+    #[test]
+    fn hpc_readiness_rejects_malformed_input_before_acquiring_evidence() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let directory = root.path().join("artifacts/benchmark-smoke/readiness/hpc");
+        std::fs::create_dir_all(&directory)?;
+        let path = directory.join("report.json");
+        std::fs::write(&path, b"null")?;
+        let error = super::validate_hpc_dry_run_ready_path(root.path(), &path)
+            .err()
+            .context("malformed report must reject")?;
+        assert!(format!("{error:#}").contains("parse HPC dry-run readiness report"));
+        assert_eq!(std::fs::read_dir(directory)?.count(), 1);
+        assert_eq!(std::fs::read(path)?, b"null");
+        Ok(())
     }
 }

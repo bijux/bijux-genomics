@@ -32,7 +32,7 @@ fn run_cli(sandbox: &support::RepoSandbox, args: &[&str]) -> std::process::Outpu
 }
 
 #[test]
-fn bench_local_render_hpc_dry_run_ready_proves_goals_481_to_489() {
+fn bench_local_hpc_dry_run_ready_preserves_render_validation_and_drift_rejection() {
     let sandbox = support::RepoSandbox::new("hpc-dry-run-readiness-").expect("repo sandbox");
     let repo_root = sandbox.path();
     let (_temp_dir, report_path) = render_path(repo_root, "render-hpc-dry-run-ready-");
@@ -90,4 +90,48 @@ fn bench_local_render_hpc_dry_run_ready_proves_goals_481_to_489() {
         .map(|check| check.get("goal_id").and_then(serde_json::Value::as_u64).expect("goal id"))
         .collect::<Vec<_>>();
     assert_eq!(goal_ids, vec![481, 482, 483, 484, 485, 486, 487, 488, 489]);
+
+    let validate_output = run_cli(
+        &sandbox,
+        &["bench", "local", "validate-hpc-dry-run-ready", "--manifest", &report_arg],
+    );
+    assert!(
+        validate_output.status.success(),
+        "validate command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        validate_output.status,
+        String::from_utf8_lossy(&validate_output.stdout),
+        String::from_utf8_lossy(&validate_output.stderr)
+    );
+
+    let printed_path = String::from_utf8(validate_output.stdout).expect("stdout utf8");
+    assert_eq!(
+        printed_path.trim(),
+        report_path
+            .strip_prefix(repo_root)
+            .expect("report path relative to repo root")
+            .to_string_lossy()
+    );
+
+    let stale_report = fs::read_to_string(&report_path).expect("read report").replacen(
+        "\"ready_for_first_hpc_run\": true",
+        "\"ready_for_first_hpc_run\": false",
+        1,
+    );
+    fs::write(&report_path, stale_report).expect("write stale report");
+
+    let validate_output = run_cli(
+        &sandbox,
+        &["bench", "local", "validate-hpc-dry-run-ready", "--manifest", &report_arg],
+    );
+    assert!(
+        !validate_output.status.success(),
+        "validate command should reject stale report\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&validate_output.stdout),
+        String::from_utf8_lossy(&validate_output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&validate_output.stderr);
+    assert!(
+        stderr.contains("dry-run readiness report") && stderr.contains("drifted"),
+        "stale report failure must identify dry-run readiness drift, got:\n{stderr}"
+    );
 }
