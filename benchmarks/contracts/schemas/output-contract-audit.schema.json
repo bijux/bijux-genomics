@@ -1,0 +1,272 @@
+{
+  "$defs": {
+    "OutputContractTestRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "declared_index_output_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "declared_logs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "declared_manifest": {
+          "type": "string"
+        },
+        "declared_normalized_metric_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "declared_raw_output_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "execution_blocker": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "independent_execution_proven": {
+          "type": "boolean"
+        },
+        "index_outputs_matched": {
+          "type": "boolean"
+        },
+        "logs_matched": {
+          "type": "boolean"
+        },
+        "manifest_matched": {
+          "type": "boolean"
+        },
+        "no_undeclared_outputs": {
+          "type": "boolean"
+        },
+        "normalized_metrics_matched": {
+          "type": "boolean"
+        },
+        "observed_index_output_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "observed_logs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "observed_manifest": {
+          "type": "string"
+        },
+        "observed_normalized_metric_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "observed_output_paths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "observed_raw_output_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "output_proof_path": {
+          "type": "string"
+        },
+        "output_proof_surface": {
+          "type": "string"
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "proof_tool_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "raw_outputs_matched": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "runtime_path_proof_path": {
+          "type": "string"
+        },
+        "runtime_path_proof_surface": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_undeclared_output_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "output_proof_surface",
+        "output_proof_path",
+        "runtime_path_proof_surface",
+        "runtime_path_proof_path",
+        "declared_raw_output_ids",
+        "observed_raw_output_ids",
+        "declared_normalized_metric_ids",
+        "observed_normalized_metric_ids",
+        "declared_index_output_ids",
+        "observed_index_output_ids",
+        "observed_output_paths",
+        "stage_undeclared_output_ids",
+        "declared_logs",
+        "observed_logs",
+        "declared_manifest",
+        "observed_manifest",
+        "raw_outputs_matched",
+        "normalized_metrics_matched",
+        "index_outputs_matched",
+        "logs_matched",
+        "manifest_matched",
+        "no_undeclared_outputs",
+        "independent_execution_proven",
+        "passed",
+        "reason"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "blocked_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "blocked_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "blocked_tool_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "failed_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failed_stage_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "failed_tool_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "output_proof_surface_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "passed_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/OutputContractTestRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.output_contract_audit.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "row_count",
+    "passed_row_count",
+    "blocked_row_count",
+    "failed_row_count",
+    "domain_counts",
+    "output_proof_surface_counts",
+    "blocked_stage_ids",
+    "blocked_tool_ids",
+    "failed_stage_ids",
+    "failed_tool_ids",
+    "rows"
+  ],
+  "title": "OutputContractTestsReport",
+  "type": "object"
+}

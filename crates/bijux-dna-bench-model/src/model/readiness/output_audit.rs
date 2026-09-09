@@ -1,5 +1,7 @@
 //! Persisted output audit decisions and explicit observation inputs.
 
+use schemars::{json_schema, Schema, SchemaGenerator};
+use serde::{Deserialize, Deserializer};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub const OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION: &str =
@@ -48,6 +50,8 @@ pub struct OutputContractTestRow {
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct OutputContractTestsReport {
+    #[serde(deserialize_with = "deserialize_schema_version")]
+    #[schemars(schema_with = "schema_version")]
     pub schema_version: String,
     pub output_path: String,
     pub row_count: usize,
@@ -84,4 +88,45 @@ pub struct OutputContractRuntimePaths {
     pub stdout_path: String,
     pub stderr_path: String,
     pub stage_result_path: String,
+}
+
+fn deserialize_schema_version<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<String, D::Error> {
+    let version = String::deserialize(deserializer)?;
+    if version != OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION {
+        return Err(serde::de::Error::custom("unsupported output contract audit schema version"));
+    }
+    Ok(version)
+}
+
+fn schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type":"string","const":OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION})
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn output_audit_schema_closes_version_and_count_inputs() -> anyhow::Result<()> {
+        let report = crate::build_output_contract_tests_report("report.json".into(), Vec::new());
+        let wire = serde_json::to_value(report)?;
+        for invalid in [serde_json::json!("unsupported.v1"), serde_json::Value::Null] {
+            let mut changed = wire.clone();
+            changed["schema_version"] = invalid;
+            assert!(serde_json::from_value::<OutputContractTestsReport>(changed).is_err());
+        }
+        let mut negative = wire;
+        negative["row_count"] = serde_json::json!(-1);
+        assert!(serde_json::from_value::<OutputContractTestsReport>(negative).is_err());
+        let schema = serde_json::to_value(schemars::schema_for!(OutputContractTestsReport))?;
+        assert_eq!(
+            schema["properties"]["schema_version"]["const"],
+            OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION
+        );
+        assert_eq!(schema["additionalProperties"], false);
+        assert_eq!(schema["$defs"]["OutputContractTestRow"]["additionalProperties"], false);
+        Ok(())
+    }
 }
