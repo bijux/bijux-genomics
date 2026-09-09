@@ -1,14 +1,45 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkStageToolClosureReport",
+  "type": "object",
+  "properties": {
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageToolClosureRow"
+      }
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.stage_tool_closure.v1"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageToolClosureSource"
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkStageToolClosureSummary"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "sources",
+    "summary",
+    "rows"
+  ],
   "$defs": {
     "BenchmarkStageToolClosureDisposition": {
+      "type": "string",
       "enum": [
         "aligned",
         "missing_domain_binding"
-      ],
-      "type": "string"
+      ]
     },
     "BenchmarkStageToolClosureRow": {
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
         "artifact_delivery": {
           "type": "string"
@@ -44,6 +75,7 @@
           "type": "string"
         }
       },
+      "additionalProperties": false,
       "required": [
         "domain",
         "stage_id",
@@ -54,75 +86,75 @@
         "domain_declared",
         "protocol_disposition",
         "closure"
-      ],
-      "type": "object"
+      ]
     },
     "BenchmarkStageToolClosureSource": {
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
         "path": {
           "type": "string"
         },
         "sha256": {
-          "pattern": "^[0-9a-f]{64}$",
-          "type": "string"
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
         }
       },
+      "additionalProperties": false,
       "required": [
         "path",
         "sha256"
-      ],
-      "type": "object"
+      ]
     },
     "BenchmarkStageToolClosureSummary": {
-      "additionalProperties": false,
+      "type": "object",
       "properties": {
         "aligned_pair_count": {
+          "type": "integer",
           "format": "uint",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         },
         "benchmark_pair_count": {
+          "type": "integer",
           "format": "uint",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         },
         "catalog_pair_count": {
+          "type": "integer",
           "format": "uint",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         },
         "domain_pair_count": {
+          "type": "integer",
           "format": "uint",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         },
         "drift_pair_count": {
+          "type": "integer",
           "format": "uint",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         },
         "external_artifact_pair_count": {
+          "type": "integer",
           "format": "uint",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         },
         "qualification_only_pair_count": {
+          "type": "integer",
           "format": "uint",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         },
         "stage_count": {
+          "type": "integer",
           "format": "uint",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         },
         "supported_tool_count": {
+          "type": "integer",
           "format": "uint",
-          "minimum": 0,
-          "type": "integer"
+          "minimum": 0
         }
       },
+      "additionalProperties": false,
       "required": [
         "supported_tool_count",
         "stage_count",
@@ -133,46 +165,14 @@
         "benchmark_pair_count",
         "qualification_only_pair_count",
         "external_artifact_pair_count"
-      ],
-      "type": "object"
+      ]
     },
     "BenchmarkStageToolProtocolDisposition": {
+      "type": "string",
       "enum": [
         "benchmark_required",
         "qualification_only"
-      ],
-      "type": "string"
+      ]
     }
-  },
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
-  "properties": {
-    "rows": {
-      "items": {
-        "$ref": "#/$defs/BenchmarkStageToolClosureRow"
-      },
-      "type": "array"
-    },
-    "schema_version": {
-      "const": "bijux.benchmark.stage_tool_closure.v1",
-      "type": "string"
-    },
-    "sources": {
-      "items": {
-        "$ref": "#/$defs/BenchmarkStageToolClosureSource"
-      },
-      "type": "array"
-    },
-    "summary": {
-      "$ref": "#/$defs/BenchmarkStageToolClosureSummary"
-    }
-  },
-  "required": [
-    "schema_version",
-    "sources",
-    "summary",
-    "rows"
-  ],
-  "title": "BenchmarkStageToolClosureReport",
-  "type": "object"
+  }
 }

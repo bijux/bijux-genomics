@@ -1,100 +1,31 @@
 {
-  "$defs": {
-    "BenchmarkContractLock": {
-      "additionalProperties": false,
-      "properties": {
-        "contract_id": {
-          "type": "string"
-        },
-        "repository_path": {
-          "type": "string"
-        },
-        "sha256": {
-          "pattern": "^[0-9a-f]{64}$",
-          "type": "string"
-        }
-      },
-      "required": [
-        "contract_id",
-        "repository_path",
-        "sha256"
-      ],
-      "type": "object"
-    },
-    "BenchmarkCorpusRole": {
-      "additionalProperties": false,
-      "properties": {
-        "corpus_ids": {
-          "items": {
-            "type": "string"
-          },
-          "type": "array"
-        },
-        "role": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "role",
-        "corpus_ids"
-      ],
-      "type": "object"
-    },
-    "BenchmarkRunIdentity": {
-      "additionalProperties": false,
-      "properties": {
-        "domain": {
-          "type": "string"
-        },
-        "run_id": {
-          "type": "string"
-        },
-        "stage_id": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "run_id",
-        "domain",
-        "stage_id"
-      ],
-      "type": "object"
-    },
-    "BenchmarkRunState": {
-      "enum": [
-        "active",
-        "reserved",
-        "retired"
-      ],
-      "type": "string"
-    }
-  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "additionalProperties": false,
+  "title": "BenchmarkRunDefinition",
+  "type": "object",
   "properties": {
     "acceptance_policy_id": {
       "type": "string"
     },
     "accepted_input_contracts": {
+      "type": "array",
       "items": {
         "type": "string"
-      },
-      "type": "array"
+      }
     },
     "citation_key": {
       "type": "string"
     },
     "contracts": {
+      "type": "array",
       "items": {
         "$ref": "#/$defs/BenchmarkContractLock"
-      },
-      "type": "array"
+      }
     },
     "corpus_roles": {
+      "type": "array",
       "items": {
         "$ref": "#/$defs/BenchmarkCorpusRole"
-      },
-      "type": "array"
+      }
     },
     "identity": {
       "$ref": "#/$defs/BenchmarkRunIdentity"
@@ -121,15 +52,15 @@
       "type": "string"
     },
     "protocol_version": {
-      "pattern": "^(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)$",
-      "type": "string"
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)$"
     },
     "purpose": {
       "type": "string"
     },
     "schema_version": {
-      "const": "bijux.benchmark.run_definition.v1",
-      "type": "string"
+      "type": "string",
+      "const": "bijux.benchmark.run_definition.v1"
     },
     "state": {
       "$ref": "#/$defs/BenchmarkRunState"
@@ -141,10 +72,10 @@
       ]
     },
     "supersedes_run_ids": {
+      "type": "array",
       "items": {
         "type": "string"
-      },
-      "type": "array"
+      }
     },
     "title": {
       "type": "string"
@@ -153,12 +84,13 @@
       "type": "string"
     },
     "tool_ids": {
+      "type": "array",
       "items": {
         "type": "string"
-      },
-      "type": "array"
+      }
     }
   },
+  "additionalProperties": false,
   "required": [
     "schema_version",
     "identity",
@@ -178,6 +110,74 @@
     "citation_key",
     "supersedes_run_ids"
   ],
-  "title": "BenchmarkRunDefinition",
-  "type": "object"
+  "$defs": {
+    "BenchmarkContractLock": {
+      "type": "object",
+      "properties": {
+        "contract_id": {
+          "type": "string"
+        },
+        "repository_path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "contract_id",
+        "repository_path",
+        "sha256"
+      ]
+    },
+    "BenchmarkCorpusRole": {
+      "type": "object",
+      "properties": {
+        "corpus_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "role",
+        "corpus_ids"
+      ]
+    },
+    "BenchmarkRunIdentity": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ]
+    },
+    "BenchmarkRunState": {
+      "type": "string",
+      "enum": [
+        "active",
+        "reserved",
+        "retired"
+      ]
+    }
+  }
 }
