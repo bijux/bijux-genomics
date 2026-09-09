@@ -50,7 +50,7 @@ fn parse_filter_reads(root: &Value) -> Result<(String, String, FastqEvidenceAggr
 
 fn parse_filter_low_complexity(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.filter_low_complexity")?;
-    let tool_id = required_str(root, "planned_tool_id")?;
+    let tool_id = required_str(root, "report_tool_id")?;
     let input_reads = required_u64(root, "input_reads")?;
     let output_reads = required_u64(root, "output_reads")?;
     let dropped_reads = required_u64(root, "reads_removed_low_complexity")?;
@@ -75,7 +75,7 @@ fn parse_profile_overrepresented_sequences(
     root: &Value,
 ) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.profile_overrepresented_sequences")?;
-    let tool_id = required_str(root, "planned_tool_id")?;
+    let tool_id = required_str(root, "report_tool_id")?;
     let top_fraction = required_f64(root, "top_fraction")?;
     Ok((
         stage_id.to_string(),
@@ -97,7 +97,7 @@ fn parse_profile_overrepresented_sequences(
 
 fn parse_remove_duplicates(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.remove_duplicates")?;
-    let tool_id = required_str(root, "planned_tool_id")?;
+    let tool_id = required_str(root, "report_tool_id")?;
     let input_reads = required_u64(root, "input_reads")?;
     let output_reads = required_u64(root, "output_reads")?;
     let duplicate_reads = required_u64(root, "duplicate_reads")?;
@@ -143,7 +143,7 @@ fn parse_detect_adapters(root: &Value) -> Result<(String, String, FastqEvidenceA
 
 fn parse_extract_umis(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.extract_umis")?;
-    let tool_id = required_str(root, "planned_tool_id")?;
+    let tool_id = required_str(root, "report_tool_id")?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -207,7 +207,7 @@ fn parse_estimate_library_complexity_prealign(
 
 fn parse_merge_pairs(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.merge_pairs")?;
-    let tool_id = required_str(root, "planned_tool_id")?;
+    let tool_id = required_str(root, "report_tool_id")?;
     let input_pair_count = required_u64(root, "input_pair_count")?;
     let merged_count = required_u64(root, "merged_count")?;
     let unmerged_r1_count = required_u64(root, "unmerged_r1_count")?;
@@ -238,7 +238,7 @@ fn parse_merge_pairs(root: &Value) -> Result<(String, String, FastqEvidenceAggre
 
 fn parse_normalize_abundance(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.normalize_abundance")?;
-    let tool_id = required_str(root, "planned_tool_id")?;
+    let tool_id = required_str(root, "report_tool_id")?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -258,7 +258,7 @@ fn parse_normalize_abundance(root: &Value) -> Result<(String, String, FastqEvide
 
 fn parse_remove_chimeras(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.remove_chimeras")?;
-    let tool_id = required_str(root, "planned_tool_id")?;
+    let tool_id = required_str(root, "report_tool_id")?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -279,7 +279,7 @@ fn parse_remove_chimeras(root: &Value) -> Result<(String, String, FastqEvidenceA
 
 fn parse_cluster_otus(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.cluster_otus")?;
-    let tool_id = required_str(root, "planned_tool_id")?;
+    let tool_id = required_str(root, "report_tool_id")?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -300,7 +300,7 @@ fn parse_cluster_otus(root: &Value) -> Result<(String, String, FastqEvidenceAggr
 
 fn parse_infer_asvs(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.infer_asvs")?;
-    let tool_id = required_str(root, "planned_tool_id")?;
+    let tool_id = required_str(root, "report_tool_id")?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -350,7 +350,7 @@ mod tests {
     #[test]
     fn report_stage_identity_is_bound_to_each_adapter() -> Result<()> {
         let mut value = serde_json::json!({
-            "stage_id":"fastq.filter_reads", "tool_id":"fastp", "planned_tool_id":"fastp",
+            "stage_id":"fastq.filter_reads", "tool_id":"fastp", "planned_tool_id":"fastp", "report_tool_id":"fastp",
             "top_fraction":0.25, "case_count":3, "detected_case_count":1,
             "input_reads":3, "output_reads":1, "reads_dropped":2,
             "reads_removed_low_complexity":2, "duplicate_reads":2,
@@ -375,7 +375,7 @@ mod tests {
     }
     #[test]
     fn merge_report_counts_reject_overflow_and_preserve_record_units() -> Result<()> {
-        let original = serde_json::json!({"stage_id":"fastq.merge_pairs", "planned_tool_id":"pear",
+        let original = serde_json::json!({"stage_id":"fastq.merge_pairs", "planned_tool_id":"pear", "report_tool_id":"pear",
             "input_pair_count":2,"merged_count":1,"unmerged_r1_count":1,"unmerged_r2_count":1,"discarded_count":0});
         let observed = parse_merge_pairs(&original)?.2;
         assert_eq!((observed.retained_reads, observed.dropped_reads), (Some(3), Some(0)));
@@ -384,6 +384,50 @@ mod tests {
             value[field] = serde_json::json!(u64::MAX);
             let error = parse_merge_pairs(&value).err().context("count overflow must reject")?;
             assert!(error.to_string().contains("overflows u64"), "{error}");
+        }
+        Ok(())
+    }
+    #[test]
+    fn local_report_producer_is_never_replaced_by_the_planned_backend() -> Result<()> {
+        let adapters: [ReportAdapter; 9] = [
+            parse_filter_low_complexity,
+            parse_profile_overrepresented_sequences,
+            parse_remove_duplicates,
+            parse_extract_umis,
+            parse_merge_pairs,
+            parse_normalize_abundance,
+            parse_remove_chimeras,
+            parse_cluster_otus,
+            parse_infer_asvs,
+        ];
+        let stages = [
+            "fastq.filter_low_complexity",
+            "fastq.profile_overrepresented_sequences",
+            "fastq.remove_duplicates",
+            "fastq.extract_umis",
+            "fastq.merge_pairs",
+            "fastq.normalize_abundance",
+            "fastq.remove_chimeras",
+            "fastq.cluster_otus",
+            "fastq.infer_asvs",
+        ];
+        for (adapter, stage) in adapters.into_iter().zip(stages) {
+            let mut value = serde_json::json!({
+                "stage_id": stage, "planned_tool_id": "pear", "report_tool_id": "bijux",
+                "top_fraction":0.25, "input_reads":3, "output_reads":1,
+                "reads_removed_low_complexity":2, "duplicate_reads":2,
+                "input_pair_count":3, "merged_count":1, "unmerged_r1_count":1,
+                "unmerged_r2_count":1, "discarded_count":0
+            });
+            assert_eq!(adapter(&value)?.1, "bijux", "{stage}");
+            value["planned_tool_id"] = serde_json::json!("vsearch");
+            assert_eq!(adapter(&value)?.1, "bijux", "planning cannot change observed producer");
+            for invalid in
+                [serde_json::Value::Null, serde_json::json!(""), serde_json::json!(" bijux")]
+            {
+                value["report_tool_id"] = invalid;
+                assert!(adapter(&value).is_err(), "{stage}: invalid producer must reject");
+            }
         }
         Ok(())
     }
