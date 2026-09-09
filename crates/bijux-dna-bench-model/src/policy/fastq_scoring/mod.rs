@@ -265,4 +265,39 @@ mod tests {
         assert!(build_fastq_tool_score_rows(invalid).is_err());
         Ok(())
     }
+    #[test]
+    fn fastq_scoring_never_attributes_another_tools_metrics_to_the_default_binding() -> Result<()> {
+        for observed_tool in ["beta", "unregistered"] {
+            let mut input = input()?;
+            input.runtime_rows.retain(|row| row.tool_id == "beta");
+            input.memory_rows.retain(|row| row.tool_id == "beta");
+            input.runtime_rows[0].tool_id = observed_tool.into();
+            input.memory_rows[0].tool_id = observed_tool.into();
+            let rows = build_fastq_tool_score_rows(input)?;
+            assert_eq!(rows[0].tool_id, "alpha");
+            assert!(rows[0].runtime_seconds.is_none(), "foreign runtime from {observed_tool}");
+            assert!(rows[0].observed_memory_mb.is_none(), "foreign memory from {observed_tool}");
+            assert!(rows[0].declared_memory_mb.is_none());
+            assert_eq!(rows[0].runtime_source, "not_available");
+            assert_eq!(rows[0].memory_source, "not_available");
+            if observed_tool == "beta" {
+                assert_eq!(rows[1].runtime_seconds, Some(3.0));
+                assert_eq!(rows[1].observed_memory_mb, Some(20.0));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn fastq_scoring_keeps_execution_failure_at_its_observed_tool_binding() -> Result<()> {
+        let mut input = input()?;
+        input.runtime_rows.retain(|row| row.tool_id == "beta");
+        input.runtime_rows[0].execution_status = "failed".into();
+        let rows = build_fastq_tool_score_rows(input)?;
+        assert_eq!(rows[0].score_status, FastqToolScoreStatus::Scored);
+        assert_eq!(rows[0].failure_class, "none");
+        assert_eq!(rows[1].score_status, FastqToolScoreStatus::Blocked);
+        assert_eq!(rows[1].failure_class, "command_failed");
+        Ok(())
+    }
 }

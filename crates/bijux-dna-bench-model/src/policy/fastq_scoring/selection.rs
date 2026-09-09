@@ -77,61 +77,23 @@ pub(super) fn describe_row_reason(
 }
 
 pub(super) fn select_runtime_row(
-    stage_row: &StageScoringRow,
+    stage_id: &str,
     tool_id: &str,
     runtime_rows: &BTreeMap<(String, String), Vec<FastqScoreRuntimeRow>>,
-    has_evidence: bool,
 ) -> Option<FastqScoreRuntimeRow> {
-    if let Some(rows) = runtime_rows.get(&(stage_row.stage_id.clone(), tool_id.to_string())) {
-        return best_runtime_row(rows);
-    }
-    if tool_id != stage_row.default_tool_id || !has_evidence {
-        return None;
-    }
-    let stage_candidates = runtime_rows
-        .iter()
-        .filter(|((stage_id, _), _)| stage_id == &stage_row.stage_id)
-        .flat_map(|(_, rows)| rows.iter().cloned())
-        .collect::<Vec<_>>();
-    if stage_candidates.len() == 1 {
-        return stage_candidates.into_iter().next();
-    }
-    if stage_candidates
-        .iter()
-        .all(|row| !stage_row.benchmark_ready_tool_ids.iter().any(|tool| tool == &row.tool_id))
-    {
-        return best_runtime_row(&stage_candidates);
-    }
-    None
+    runtime_rows
+        .get(&(stage_id.to_owned(), tool_id.to_owned()))
+        .and_then(|rows| best_runtime_row(rows))
 }
 
 pub(super) fn select_memory_row(
-    stage_row: &StageScoringRow,
+    stage_id: &str,
     tool_id: &str,
     memory_rows: &BTreeMap<(String, String), Vec<FastqScoreMemoryRow>>,
-    has_evidence: bool,
 ) -> Option<FastqScoreMemoryRow> {
-    if let Some(rows) = memory_rows.get(&(stage_row.stage_id.clone(), tool_id.to_string())) {
-        return best_memory_row(rows);
-    }
-    if tool_id != stage_row.default_tool_id || !has_evidence {
-        return None;
-    }
-    let stage_candidates = memory_rows
-        .iter()
-        .filter(|((stage_id, _), _)| stage_id == &stage_row.stage_id)
-        .flat_map(|(_, rows)| rows.iter().cloned())
-        .collect::<Vec<_>>();
-    if stage_candidates.len() == 1 {
-        return stage_candidates.into_iter().next();
-    }
-    if stage_candidates
-        .iter()
-        .all(|row| !stage_row.benchmark_ready_tool_ids.iter().any(|tool| tool == &row.tool_id))
-    {
-        return best_memory_row(&stage_candidates);
-    }
-    None
+    memory_rows
+        .get(&(stage_id.to_owned(), tool_id.to_owned()))
+        .and_then(|rows| best_memory_row(rows))
 }
 
 fn best_runtime_row(rows: &[FastqScoreRuntimeRow]) -> Option<FastqScoreRuntimeRow> {
