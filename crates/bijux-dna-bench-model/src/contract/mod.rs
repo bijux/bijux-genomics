@@ -46,6 +46,7 @@ mod local_hpc_resume_simulation;
 mod local_hpc_scratch_layout;
 mod local_hpc_stage_benchmark_array;
 mod local_hpc_submission_readiness;
+mod local_hpc_tool_scope;
 mod local_pipeline_dag;
 mod local_runtime_metrics;
 mod local_slurm_dependency;
@@ -367,3 +368,7 @@ pub use stage_tool_resources::{
 pub use suite::validate_suite;
 
 pub use local_hpc_job_graph::build_benchmark_local_hpc_job_graph;
+
+pub use local_hpc_tool_scope::{
+    project_benchmark_local_hpc_tool_scopes, BenchmarkLocalHpcToolScope,
+};

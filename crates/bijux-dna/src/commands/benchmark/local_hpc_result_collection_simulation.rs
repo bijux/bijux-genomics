@@ -13,7 +13,7 @@ use bijux_dna_api::v1::api::bench::{
 use serde_json::Value;
 
 use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
-use super::local_hpc_execution_resolver::collect_hpc_execution_resolver_report;
+use super::local_hpc_execution_resolver::collect_hpc_execution_resolver_report_for_jobs;
 use super::local_hpc_job_completion::{
     classify_local_hpc_job_completion, resolve_local_hpc_job_result_paths,
     LocalHpcJobCompletionState,
@@ -188,11 +188,13 @@ fn build_hpc_result_collection_simulation(
 
     let selected_jobs = load_local_hpc_selected_jobs(repo_root)?;
     let jobs_by_id = selected_jobs
-        .into_iter()
+        .iter()
+        .cloned()
         .map(|job| (job.job_id_local.clone(), job))
         .collect::<BTreeMap<_, _>>();
     validate_seeded_job_presence(&jobs_by_id)?;
-    let execution_resolver_report = collect_hpc_execution_resolver_report(repo_root)?;
+    let execution_resolver_report =
+        collect_hpc_execution_resolver_report_for_jobs(repo_root, &selected_jobs)?;
     let unavailable_result_job_id =
         select_unavailable_result_job_id(&execution_resolver_report, &jobs_by_id)?;
 

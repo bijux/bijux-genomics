@@ -51,3 +51,7 @@ stay aligned with public API and contract tests.
 Local pipeline execution-context admission is a pure contract: identity, frontend/compute surface closure, duplicate rejection and optional campaign-path presence. Repository site-profile availability is evaluated by the benchmark repository adapter after this contract passes.
 
 `contract/local_hpc_job_graph.rs` derives deterministic dependency graphs from typed submission jobs and an explicit manifest identity. Duplicate and missing identities, cycles, counters and edge closure are admitted without filesystem access. CLI composition acquires jobs through the submission producer.
+
+`contract/local_hpc_tool_scope.rs` projects selected job membership into deterministic tool scopes. Declared tool identities remain separate even when lookup aliases coincide; runtime availability and transport admission stay with execution owners.
+
+HPC resume and result-collection requests reuse their selected submission jobs for graph and resolver projections. Reuse is limited to that request; subsequent commands reacquire governed inputs.

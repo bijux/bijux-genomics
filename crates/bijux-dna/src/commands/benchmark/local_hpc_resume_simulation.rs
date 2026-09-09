@@ -4,21 +4,23 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
-    validate_benchmark_local_hpc_resume_simulation, BenchmarkLocalHpcResumeSimulationBehavior,
-    BenchmarkLocalHpcResumeSimulationJob, BenchmarkLocalHpcResumeSimulationReport,
-    BENCHMARK_LOCAL_HPC_RESUME_DEPENDENCY_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_FAILED_JOB_ID,
-    BENCHMARK_LOCAL_HPC_RESUME_MISSING_MANIFEST_JOB_ID,
+    build_benchmark_local_hpc_job_graph, validate_benchmark_local_hpc_resume_simulation,
+    BenchmarkLocalHpcResumeSimulationBehavior, BenchmarkLocalHpcResumeSimulationJob,
+    BenchmarkLocalHpcResumeSimulationReport, BENCHMARK_LOCAL_HPC_RESUME_DEPENDENCY_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_FAILED_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_MISSING_MANIFEST_JOB_ID,
     BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESUME_STALE_OUTPUT_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_UNRELATED_JOB_ID,
     BENCHMARK_LOCAL_HPC_RESUME_VALID_JOB_ID,
 };
 
-use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
+use super::local_all_domain_slurm_submit_manifest::{
+    BenchLocalAllDomainSlurmSubmitJob, DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
+};
 use super::local_hpc_job_completion::{
     classify_local_hpc_job_completion, resolve_local_hpc_job_result_paths,
     LocalHpcJobCompletionState,
 };
-use super::local_hpc_job_graph::{collect_local_hpc_job_graph, LocalHpcJobGraphNode};
+use super::local_hpc_job_graph::LocalHpcJobGraphNode;
 use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
 use super::local_hpc_simulation_tree::{
     remap_job_to_simulation_root, remove_one_declared_output, remove_stage_result_manifest,
@@ -172,8 +174,11 @@ fn build_hpc_resume_simulation(
     fs::create_dir_all(&simulation_root)
         .with_context(|| format!("create {}", simulation_root.display()))?;
 
-    let graph = collect_local_hpc_job_graph(repo_root)?;
     let selected_jobs = load_local_hpc_selected_jobs(repo_root)?;
+    let graph = build_benchmark_local_hpc_job_graph(
+        DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
+        selected_jobs.clone(),
+    )?;
     let jobs_by_id = selected_jobs
         .into_iter()
         .map(|job| (job.job_id_local.clone(), job))
