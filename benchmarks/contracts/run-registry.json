@@ -9,7 +9,7 @@
     "identity_policy": "existing_ids_immutable"
   },
   "source_contract_sha256": {
-    "benchmarks/contracts/portfolio.toml": "6cf8178d313915121ed0edff7dd642c565c4dd8a606b0a2462fbbfba5a8f8242",
+    "benchmarks/contracts/portfolio.toml": "03fb5b5edeb33aaa39a689fd6d7530a5004b3cb0252ad04ddf82443402e1a5d1",
     "benchmarks/contracts/stage-campaigns.toml": "60e526bf1da3ee4f4b411535803a1c4cd339d8ccd2417e4280b9e90695dce873",
     "benchmarks/contracts/stage-interfaces.toml": "63ba55a3542258bc8b629a169997a51dde94682dd3abc0f03748751931b579b4",
     "containers/contracts/catalog.toml": "7315eeaae2364f99df38ad66fa46d9a2b3e3dc64d8757619b714df94de9d780a"
