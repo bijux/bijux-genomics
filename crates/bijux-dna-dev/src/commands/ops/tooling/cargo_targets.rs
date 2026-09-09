@@ -1372,9 +1372,7 @@ fn science_fixtures_fast_command_args() -> Vec<String> {
         "--test",
         "bench_local_amplicon_corpus_fixture",
         "--test",
-        "bench_local_vcf_population_structure_smoke",
-        "--test",
-        "bench_local_vcf_population_structure_smoke_file",
+        "bench_local_vcf_population_truth",
         "--test",
         "fixtures_validate_all",
         "--test",
@@ -1418,8 +1416,7 @@ mod tests {
             "fixtures_ancient_dna",
             "fixtures_amplicon",
             "fixtures_validate_all",
-            "bench_local_vcf_population_structure_smoke",
-            "bench_local_vcf_population_structure_smoke_file",
+            "bench_local_vcf_population_truth",
         ] {
             assert!(args.windows(2).any(|pair| pair == ["--test", target]), "missing {target}");
         }

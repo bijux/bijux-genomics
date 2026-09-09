@@ -1,0 +1,9 @@
+mod call_diploid_smoke;
+mod call_diploid_smoke_file;
+mod call_gl_smoke_file;
+mod call_pseudohaploid_smoke;
+mod call_pseudohaploid_smoke_file;
+mod call_smoke;
+mod call_smoke_file;
+mod gl_propagation_smoke;
+mod gl_propagation_smoke_file;

@@ -292,9 +292,14 @@ const CHANGED_PATH_RULES: &[ChangedPathRule] = &[
         reason: "fixture validation commands own the science truth contract",
     },
     ChangedPathRule {
-        matcher: "crates/bijux-dna/tests/bench_local_vcf_population_structure_smoke",
+        matcher: "crates/bijux-dna/tests/contracts/benchmark/vcf_smoke/population_truth/",
         command: "make science-fixtures-fast",
         reason: "population mini-smoke truth belongs to the science fixture lane",
+    },
+    ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/bench_local_vcf_population_truth.rs",
+        command: "make science-fixtures-fast",
+        reason: "population truth suite entrypoint selects the science fixture lane",
     },
     ChangedPathRule {
         matcher: "crates/bijux-dna/tests/contracts/fixtures/",
@@ -1030,7 +1035,9 @@ mod tests {
             for path in [
                 format!("crates/bijux-dna/tests/fixtures_{family}.rs"),
                 format!("crates/bijux-dna/tests/contracts/fixtures/{family}/mod.rs"),
-                format!("crates/bijux-dna/tests/contracts/fixtures/{family}/corpus/expected_json.rs"),
+                format!(
+                    "crates/bijux-dna/tests/contracts/fixtures/{family}/corpus/expected_json.rs"
+                ),
             ] {
                 write_utf8_report(&fixture, &path)?;
                 let report = changed_path_commands(root.path(), &fixture)?;
@@ -1040,6 +1047,15 @@ mod tests {
                     "{path}"
                 );
             }
+        }
+        for path in [
+            "crates/bijux-dna/tests/bench_local_vcf_population_truth.rs",
+            "crates/bijux-dna/tests/contracts/benchmark/vcf_smoke/population_truth/mod.rs",
+            "crates/bijux-dna/tests/contracts/benchmark/vcf_smoke/population_truth/population_structure_smoke_file.rs",
+        ] {
+            write_utf8_report(&fixture, path)?;
+            let report = changed_path_commands(root.path(), &fixture)?;
+            assert_eq!(report.commands, vec!["make science-fixtures-fast".to_string()], "{path}");
         }
         Ok(())
     }
