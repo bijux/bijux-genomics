@@ -13,26 +13,12 @@ use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_bench_model::{
     validate_benchmark_local_stage_inventory, BenchmarkLocalStageInventory,
-    BenchmarkLocalStageInventoryEntry, BenchmarkLocalStageReadinessKind as LocalStageReadinessKind,
-    LocalVcfStageMatrixConfig, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
+    BenchmarkLocalStageInventoryEntry, BenchmarkLocalStageMatrixConfig,
+    BenchmarkLocalStageReadinessKind as LocalStageReadinessKind, LocalVcfStageMatrixConfig,
+    BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
 };
-use serde::Deserialize;
 
 const VCF_LOCAL_STAGE_READINESS_KIND: LocalStageReadinessKind = LocalStageReadinessKind::Smoke;
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct LocalStageMatrix {
-    schema_version: String,
-    stages: Vec<LocalStageMatrixEntry>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct LocalStageMatrixEntry {
-    stage_id: String,
-    readiness_kind: LocalStageReadinessKind,
-}
 
 /// Load one domain's stage inventory without creating outputs.
 ///
@@ -57,7 +43,7 @@ fn load_matrix_backed_stage_inventory(
     let matrix_path = repo_root.join(domain.matrix_relative_path());
     let raw = fs::read_to_string(&matrix_path)
         .with_context(|| format!("read {}", matrix_path.display()))?;
-    let matrix: LocalStageMatrix =
+    let matrix: BenchmarkLocalStageMatrixConfig =
         toml::from_str(&raw).with_context(|| format!("parse {}", matrix_path.display()))?;
 
     if matrix.schema_version != domain.expected_matrix_schema_version() {

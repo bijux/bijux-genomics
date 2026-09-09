@@ -475,3 +475,5 @@ and `benchmark_local_pipeline_dag_stages_config_schema` produce their registered
 Existing validation-report schemas retain their persisted identities. Graph topology, stage
 readiness, reference resolution and scientific profile validation are additional service
 obligations; schema admission does not certify executable or scientifically compatible inputs.
+
+`BenchmarkLocalStageMatrixConfig` owns the existing FASTQ/BAM local matrix input shape, with generated `benchmark_local_stage_matrix_config_schema()` and the two exact v1 schema identities. VCF retains `LocalVcfStageMatrixConfig`. Structural deserialization rejects unknown fields and readiness values; repository admission additionally checks the requested domain, exact version, non-empty inventory and unique stage identities. Serialization preserves matrix declaration order.

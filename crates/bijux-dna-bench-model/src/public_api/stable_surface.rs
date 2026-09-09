@@ -506,8 +506,10 @@ pub use crate::model::local_stage_fake_run::{
 };
 pub use crate::model::local_stage_inventory::{
     benchmark_local_all_domain_stage_inventory_schema, benchmark_local_stage_inventory_schema,
-    BenchmarkLocalAllDomainStageInventory, BenchmarkLocalStageInventory,
-    BenchmarkLocalStageInventoryEntry,
+    benchmark_local_stage_matrix_config_schema, BenchmarkLocalAllDomainStageInventory,
+    BenchmarkLocalStageInventory, BenchmarkLocalStageInventoryEntry,
+    BenchmarkLocalStageMatrixConfig, BENCHMARK_LOCAL_BAM_STAGE_MATRIX_SCHEMA_V1,
+    BENCHMARK_LOCAL_FASTQ_STAGE_MATRIX_SCHEMA_V1,
 };
 pub use crate::model::local_vcf_call_gl_smoke::{
     benchmark_local_vcf_call_gl_smoke_metrics_schema, benchmark_local_vcf_call_gl_smoke_schema,

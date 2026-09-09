@@ -281,3 +281,5 @@ Normalized FASTQ metadata admission verifies the v1 manifest schema (including t
 ## Local Stage Inventory
 
 `load_benchmark_local_stage_inventory(root, domain)` reads the governed FASTQ, BAM or VCF matrix under an explicit repository root, checks its schema and stage identity, and preserves declaration order without writing outputs. `BenchmarkLocalStageInventoryDomain` selects the domain. `render_benchmark_all_domain_stage_inventory(root, domains, output)` preserves requested domain order, validates aggregate closure, and atomically publishes the existing report schema. Invalid selections or matrices leave existing report bytes intact. These operations admit declared readiness; they do not establish execution or tool qualification.
+
+FASTQ/BAM stage matrix inputs use the model-owned `BenchmarkLocalStageMatrixConfig`; its registered JSON Schema is `benchmarks/contracts/schemas/local-stage-matrix-config.schema.json`. The repository loader remains the semantic admission boundary for selected domain and stage identity.

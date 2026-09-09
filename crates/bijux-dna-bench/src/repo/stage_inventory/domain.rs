@@ -1,6 +1,9 @@
 //! Domain selection and governed matrix identities for stage inventory admission.
 
 use super::super::DEFAULT_VCF_STAGE_MATRIX_PATH;
+use bijux_dna_bench_model::{
+    BENCHMARK_LOCAL_BAM_STAGE_MATRIX_SCHEMA_V1, BENCHMARK_LOCAL_FASTQ_STAGE_MATRIX_SCHEMA_V1,
+};
 
 /// Domain whose local benchmark stage declaration is admitted.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -39,8 +42,8 @@ impl BenchmarkLocalStageInventoryDomain {
 
     pub(super) const fn expected_matrix_schema_version(self) -> &'static str {
         match self {
-            Self::Fastq => "bijux.bench.fastq.local_stage_matrix.v1",
-            Self::Bam => "bijux.bench.bam.local_stage_matrix.v1",
+            Self::Fastq => BENCHMARK_LOCAL_FASTQ_STAGE_MATRIX_SCHEMA_V1,
+            Self::Bam => BENCHMARK_LOCAL_BAM_STAGE_MATRIX_SCHEMA_V1,
             Self::Vcf => "bijux.bench.vcf.local_stage_matrix.v1",
         }
     }
