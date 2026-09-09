@@ -79,6 +79,10 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
         PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/operational-benchmark-ready.schema.json",
+            || schemars::schema_for!(super::readiness::operational::OperationalBenchmarkReadyReport),
+        ),
+        PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/output-contract-audit.schema.json",
             || schemars::schema_for!(super::readiness::output_audit::OutputContractTestsReport),
         ),
