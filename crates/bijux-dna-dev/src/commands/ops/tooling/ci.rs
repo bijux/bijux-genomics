@@ -19,6 +19,10 @@ use crate::application::ci::{
 };
 use crate::runtime::compilation_cache::CompilationCache;
 use crate::runtime::compiled_products::LocalCompiledProducts;
+use crate::runtime::owned_artifacts::{
+    owned_children, remove_empty_owned_directory, remove_owned_tree as remove_full_shard_ephemera,
+    remove_owned_trees,
+};
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 use crate::runtime::source_snapshot::TrackedSourceSnapshot;
 
@@ -148,11 +152,21 @@ impl FullShardEphemera {
     }
 
     fn retain_bounded_evidence(&mut self) -> Result<()> {
-        remove_full_shard_ephemera(&self.scratch_workspaces)?;
-        for path in &self.shard_artifact_roots {
-            remove_full_shard_ephemera(path)?;
+        let mut paths = self.shard_artifact_roots.clone();
+        paths.push(self.archive_root.clone());
+        let children = owned_children(&self.scratch_workspaces);
+        let mut failures = Vec::new();
+        match children {
+            Ok(children) => paths.extend(children),
+            Err(error) => failures.push(format!("{error:#}")),
         }
-        remove_full_shard_ephemera(&self.archive_root)?;
+        if let Err(error) = remove_owned_trees(&paths) {
+            failures.push(format!("{error:#}"));
+        }
+        if let Err(error) = remove_empty_owned_directory(&self.scratch_workspaces) {
+            failures.push(format!("{error:#}"));
+        }
+        anyhow::ensure!(failures.is_empty(), "full shard cleanup failed: {}", failures.join("; "));
         self.armed = false;
         Ok(())
     }
@@ -1543,64 +1557,6 @@ fn full_shard_execution_scope(
         "contract_shard_count": contract.shards.len(),
         "selected_shard_count": selected_shards.len(),
     })
-}
-
-fn remove_full_shard_ephemera(path: &Path) -> Result<()> {
-    let metadata = match path.symlink_metadata() {
-        Ok(metadata) => metadata,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
-        Err(error) => {
-            return Err(error)
-                .with_context(|| format!("inspect full shard ephemeral path {}", path.display()))
-        }
-    };
-    if metadata.file_type().is_symlink() {
-        anyhow::bail!("full shard ephemeral path is a symlink: {}", path.display());
-    }
-    make_full_shard_ephemera_removable(path)?;
-    if metadata.is_dir() {
-        std::fs::remove_dir_all(path)
-            .with_context(|| format!("remove full shard ephemeral directory {}", path.display()))
-    } else {
-        std::fs::remove_file(path)
-            .with_context(|| format!("remove full shard ephemeral file {}", path.display()))
-    }
-}
-
-fn make_full_shard_ephemera_removable(path: &Path) -> Result<()> {
-    for entry in walkdir::WalkDir::new(path).follow_links(false) {
-        let entry = entry.with_context(|| {
-            format!("inspect full shard ephemeral path below {}", path.display())
-        })?;
-        let metadata = entry.path().symlink_metadata().with_context(|| {
-            format!("read full shard ephemeral metadata {}", entry.path().display())
-        })?;
-        if metadata.file_type().is_symlink() {
-            continue;
-        }
-        let mut permissions = metadata.permissions();
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-
-            let owner_access = if metadata.is_dir() { 0o700 } else { 0o600 };
-            if permissions.mode() & owner_access == owner_access {
-                continue;
-            }
-            permissions.set_mode(permissions.mode() | owner_access);
-        }
-        #[cfg(not(unix))]
-        {
-            if !permissions.readonly() {
-                continue;
-            }
-            permissions.set_readonly(false);
-        }
-        std::fs::set_permissions(entry.path(), permissions).with_context(|| {
-            format!("restore owner access to full shard ephemera {}", entry.path().display())
-        })?;
-    }
-    Ok(())
 }
 
 fn read_ci_build_authority(path: &Path) -> Result<CiBuildAuthority> {

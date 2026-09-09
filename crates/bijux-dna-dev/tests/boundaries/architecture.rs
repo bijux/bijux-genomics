@@ -177,6 +177,7 @@ fn dev_tree_matches_architecture_contract() {
     let expected_runtime: BTreeSet<_> = [
         "compilation_cache.rs",
         "compiled_products.rs",
+        "owned_artifacts.rs",
         "mod.rs",
         "process.rs",
         "source_snapshot.rs",
