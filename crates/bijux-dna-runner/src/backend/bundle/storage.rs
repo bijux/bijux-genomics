@@ -55,14 +55,30 @@ pub(super) fn temp_output_path(output_path: &Path) -> PathBuf {
     path.set_file_name(suffix);
     path
 }
-pub(super) fn temp_plaintext_path(output_path: &Path) -> PathBuf {
-    let mut path = temp_output_path(output_path);
-    let suffix = path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .map_or_else(|| "bundle.input".to_string(), |name| format!("{name}.input"));
-    path.set_file_name(suffix);
-    path
+/// Keep private plaintext owned through backend execution and report cleanup errors.
+pub(super) fn with_staged_plaintext<T>(
+    output_path: &Path,
+    plaintext: &[u8],
+    operation: impl FnOnce(&Path) -> Result<T>,
+) -> Result<T> {
+    use std::io::Write;
+    let parent = output_path
+        .parent()
+        .filter(|path| !path.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    let mut staged = bijux_dna_infra::private_temp_file_in(parent, ".bundle-plaintext-")
+        .context("create private bundle plaintext")?;
+    let result = staged
+        .as_file_mut()
+        .write_all(plaintext)
+        .context("write private bundle plaintext")
+        .and_then(|()| operation(staged.path()));
+    let cleanup = staged.close().context("remove private bundle plaintext");
+    match (result, cleanup) {
+        (Ok(value), Ok(())) => Ok(value),
+        (Err(error), Ok(())) | (Ok(_), Err(error)) => Err(error),
+        (Err(error), Err(cleanup)) => Err(anyhow!("{error:#}; cleanup also failed: {cleanup:#}")),
+    }
 }
 pub(super) fn monotonic_nanos() -> u128 {
     std::time::SystemTime::now()

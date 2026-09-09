@@ -167,3 +167,49 @@ fn bundle_sidecar_rejects_unknown_contracts_and_false_plaintext_counts() -> anyh
     assert!(format!("{error:#}").contains("byte count mismatch"));
     Ok(())
 }
+
+#[test]
+fn plaintext_staging_is_private_during_execution_and_removed_after_success() -> anyhow::Result<()> {
+    let root = tempfile::tempdir()?;
+    let output = root.path().join("ciphertext");
+    let payload = [255, 0, 128, 10];
+    let mut observed = None;
+    let result = super::storage::with_staged_plaintext(&output, &payload, |path| {
+        assert_eq!(path.parent(), Some(root.path()));
+        assert_eq!(std::fs::read(path)?, payload);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(std::fs::metadata(path)?.permissions().mode() & 0o777, 0o600);
+        }
+        observed = Some(path.to_path_buf());
+        Ok(42)
+    })?;
+    assert_eq!(result, 42);
+    assert!(!observed.expect("backend observed plaintext").exists());
+    assert_eq!(std::fs::read_dir(root.path())?.count(), 0);
+    Ok(())
+}
+
+#[test]
+fn plaintext_staging_retains_backend_and_cleanup_failures() -> anyhow::Result<()> {
+    let root = tempfile::tempdir()?;
+    let output = root.path().join("ciphertext");
+    let error = super::storage::with_staged_plaintext::<()>(&output, b"private", |_path| {
+        Err(anyhow::anyhow!("backend refused recipient"))
+    })
+    .expect_err("backend failure");
+    assert!(error.to_string().contains("backend refused recipient"));
+    assert_eq!(std::fs::read_dir(root.path())?.count(), 0);
+    let error = super::storage::with_staged_plaintext::<()>(&output, b"private", |path| {
+        // Replacing only this owned fixture makes close fail independently of the backend.
+        bijux_dna_infra::remove_file(path)?;
+        bijux_dna_infra::ensure_dir(path)?;
+        Err(anyhow::anyhow!("backend refused recipient"))
+    })
+    .expect_err("both failures must survive");
+    let message = format!("{error:#}");
+    assert!(message.contains("backend refused recipient"));
+    assert!(message.contains("remove private bundle plaintext"));
+    Ok(())
+}

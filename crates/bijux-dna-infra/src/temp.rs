@@ -22,6 +22,17 @@ pub fn temp_dir_in(base: &Path, prefix: &str) -> Result<tempfile::TempDir, IoErr
     tempfile::Builder::new().prefix(prefix).tempdir_in(base).map_err(IoError::from_io)
 }
 
+/// Create an exclusively owned temporary file under the declared output root.
+/// Unix creation uses mode 0600 before any content is written. The returned owner
+/// removes the file on drop; callers can use `close` to observe cleanup failures.
+///
+/// # Errors
+/// Returns an IO error if the parent or temporary file cannot be created.
+pub fn private_temp_file_in(base: &Path, prefix: &str) -> Result<tempfile::NamedTempFile, IoError> {
+    ensure_dir(base)?;
+    tempfile::Builder::new().prefix(prefix).tempfile_in(base).map_err(IoError::from_io)
+}
+
 fn test_tmp_dir() -> Option<PathBuf> {
     std::env::var_os("TEST_TMP_DIR")
         .filter(|value| !value.is_empty())

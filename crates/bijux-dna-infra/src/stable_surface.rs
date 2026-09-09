@@ -23,4 +23,4 @@ pub use super::run_directories::{
     ATTEMPT_ARCHIVE_ROLLBACK_SCHEMA_V1, ATTEMPT_ARCHIVE_SCHEMA_V1, ATTEMPT_LAYOUT_CONTRACT,
     ATTEMPT_LAYOUT_SCHEMA_V1, PIPELINE_RUN_DIR_TEMPLATE, RUN_LAYOUT_CONTRACT,
 };
-pub use super::temp::{temp_dir, temp_dir_in};
+pub use super::temp::{private_temp_file_in, temp_dir, temp_dir_in};

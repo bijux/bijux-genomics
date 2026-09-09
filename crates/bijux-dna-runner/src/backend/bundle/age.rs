@@ -4,7 +4,7 @@ use anyhow::{anyhow, Context, Result};
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 const AGE_COMMAND_TIMEOUT: Duration = Duration::from_mins(5);
-use super::storage::temp_plaintext_path;
+use super::storage::with_staged_plaintext;
 pub(super) fn encrypt_age_cli(
     recipients: &[String],
     plaintext: &[u8],
@@ -13,30 +13,27 @@ pub(super) fn encrypt_age_cli(
     if recipients.is_empty() {
         return Err(anyhow!("age-cli backend requires at least one recipient"));
     }
-    let plaintext_path = temp_plaintext_path(output_path);
-    bijux_dna_infra::write_bytes(&plaintext_path, plaintext)
-        .with_context(|| format!("stage plaintext {}", plaintext_path.display()))?;
+    with_staged_plaintext(output_path, plaintext, |plaintext_path| {
+        let mut args = vec!["--encrypt".to_string()];
+        for recipient in recipients {
+            args.push("-r".to_string());
+            args.push(recipient.clone());
+        }
+        args.push("-o".to_string());
+        args.push(output_path.display().to_string());
+        args.push(plaintext_path.display().to_string());
 
-    let mut args = vec!["--encrypt".to_string()];
-    for recipient in recipients {
-        args.push("-r".to_string());
-        args.push(recipient.clone());
-    }
-    args.push("-o".to_string());
-    args.push(output_path.display().to_string());
-    args.push(plaintext_path.display().to_string());
-
-    let output = run_command_bytes_with_timeout("age", &args, AGE_COMMAND_TIMEOUT)
-        .with_context(|| format!("run age --encrypt for {}", output_path.display()));
-    let _ = bijux_dna_infra::remove_file_if_exists(&plaintext_path);
-    let output = output?;
-    if output.timed_out || !output.status.success() {
-        return Err(anyhow!(
-            "age --encrypt failed: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        ));
-    }
-    Ok(())
+        let output = run_command_bytes_with_timeout("age", &args, AGE_COMMAND_TIMEOUT)
+            .with_context(|| format!("run age --encrypt for {}", output_path.display()));
+        let output = output?;
+        if output.timed_out || !output.status.success() {
+            return Err(anyhow!(
+                "age --encrypt failed: {}",
+                String::from_utf8_lossy(&output.stderr).trim()
+            ));
+        }
+        Ok(())
+    })
 }
 pub(super) fn decrypt_age_cli(bundle_path: &Path, identity_files: &[PathBuf]) -> Result<Vec<u8>> {
     if identity_files.is_empty() {
