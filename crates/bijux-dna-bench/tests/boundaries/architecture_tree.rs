@@ -80,7 +80,7 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/repo/corpus/normalized_fastq")),
-        entries(["manifest.rs", "mod.rs", "tests.rs"]),
+        entries(["manifest.rs", "mod.rs"]),
         "normalized corpus admission must separate manifest IO from sample metadata"
     );
 
@@ -193,7 +193,6 @@ fn bench_tree_matches_architecture_contract() {
             "mod.rs",
             "population.rs",
             "taxonomy.rs",
-            "tests.rs",
         ]),
         "pipeline profiles must separate scientific rules from evidence acquisition"
     );
