@@ -166,6 +166,7 @@ pub use local_pipeline_dag::{
     validate_benchmark_local_pipeline_dag_declarations,
     validate_benchmark_local_pipeline_dag_validation,
     validate_benchmark_local_pipeline_dag_validation_set,
+    validate_benchmark_local_pipeline_execution_context,
     BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1,
 };
 pub use local_runtime_metrics::validate_benchmark_local_runtime_metrics;

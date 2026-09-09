@@ -90,3 +90,5 @@ and suite catalog governance.
 `repo/pipeline_reference.rs` admits benchmark pipeline reference identities using explicit-root db-ref catalog queries. The reference owner reads complete catalog schemas; benchmark admission checks the declared default build and bundle binding. The CLI calls this service without duplicating catalog DTOs or IO.
 
 `repo/pipeline_config.rs` adapts governed TOML and paired YAML files into benchmark-model pipeline inputs. Bundle selection, contextual parse failures and strict field handling have one repository owner; CLI/HPC callers consume the public service facade. Scientific and execution-context admission remain separate from transport parsing.
+
+Pipeline inventory acquisition and explicit site-profile lookup belong to repository adapters. The benchmark model admits execution-context symbols without filesystem access; repository admission then checks custom site-profile availability. Pipeline graph planning and profile semantics retain their existing owners, with no additional normal Cargo edges.

@@ -238,7 +238,7 @@ fn validate_ancient_dna_policy(
     Ok(())
 }
 
-fn require_non_empty(value: &str, message: &str) -> Result<()> {
+pub(super) fn require_non_empty(value: &str, message: &str) -> Result<()> {
     if value.trim().is_empty() {
         return Err(anyhow!(message.to_string()));
     }

@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 pub(crate) use bijux_dna_api::v1::api::bench::{
     build_vcf_stage_matrix_rows, render_vcf_stage_matrix, validate_vcf_stage_matrix,
-    LocalVcfStageMatrixConfig, VcfStageMatrixRow, DEFAULT_VCF_STAGE_MATRIX_PATH,
+    VcfStageMatrixRow, DEFAULT_VCF_STAGE_MATRIX_PATH,
 };
 
 use crate::commands::cli::{parse, render};

@@ -7,6 +7,8 @@ mod catalog_snapshot_authority;
 mod corpus;
 mod data_index_authority;
 mod pipeline_config;
+mod pipeline_execution;
+mod pipeline_inventory;
 mod pipeline_reference;
 mod repo_root;
 mod repository;
@@ -55,4 +57,9 @@ pub use workspace_paths::{
     bench_data_dir, bench_data_fitness_path, bench_fastq_local_stage_matrix_path,
     bench_local_config_dir, bench_portfolio_path, bench_reports_dir, bench_stage_campaigns_path,
     bench_stage_interfaces_path, bench_suites_dir, DEFAULT_VCF_STAGE_MATRIX_PATH,
+};
+
+pub use pipeline_execution::validate_benchmark_pipeline_execution_context;
+pub use pipeline_inventory::{
+    load_benchmark_pipeline_inventory_index, load_benchmark_pipeline_vcf_stage_matrix_index,
 };

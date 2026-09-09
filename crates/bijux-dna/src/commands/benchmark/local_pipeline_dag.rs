@@ -8,16 +8,18 @@ use anyhow::{anyhow, Context, Result};
 #[cfg(test)]
 use bijux_dna_api::v1::api::bench::BenchmarkLocalPipelineProjectSourceConfig as LocalPipelineProjectSourceConfig;
 use bijux_dna_api::v1::api::bench::{
+    load_benchmark_pipeline_inventory_index as load_pipeline_inventory_index,
+    load_benchmark_pipeline_vcf_stage_matrix_index as load_local_vcf_stage_matrix_index,
     validate_benchmark_local_pipeline_dag_config as validate_pipeline_contract,
     validate_benchmark_local_pipeline_dag_declarations,
-    validate_benchmark_local_pipeline_dag_validation, validate_benchmark_pipeline_profiles,
+    validate_benchmark_local_pipeline_dag_validation,
+    validate_benchmark_pipeline_execution_context, validate_benchmark_pipeline_profiles,
     validate_benchmark_pipeline_reference_context, BenchmarkLocalCorpusStageCompatibilityReport,
-    PipelineProfileEvidence, BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
+    PipelineProfileEvidence, VcfStageMatrixRow, BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
     BenchmarkLocalPipelineAncientDnaPolicy as LocalPipelineAncientDnaPolicy,
     BenchmarkLocalPipelineDagConfig as LocalPipelineDagConfig,
-    BenchmarkLocalPipelineDagDomain as LocalPipelineDagDomain,
     BenchmarkLocalPipelineDagValidationNode as LocalPipelineDagValidationNodeReport,
     BenchmarkLocalPipelineDagValidationReport as LocalPipelineDagValidationReport,
     BenchmarkLocalPipelineExecutionContext as LocalPipelineExecutionContext,
@@ -31,12 +33,6 @@ use bijux_dna_api::v1::api::plan::{validate_artifact_flow, ArtifactFlowNode};
 
 use crate::commands::benchmark::local_corpus_stage_compatibility::{
     validate_corpus_stage_compatibility_path, DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH,
-};
-use crate::commands::benchmark::local_stage_inventory::{
-    load_local_stage_inventory, BenchLocalDomain, LocalStageReadinessKind,
-};
-use crate::commands::benchmark::local_vcf_stage_matrix::{
-    LocalVcfStageMatrixConfig, VcfStageMatrixRow,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -221,76 +217,6 @@ impl PipelineProfileEvidence for LocalPipelineEvidence<'_> {
     }
 }
 
-fn load_pipeline_inventory_index(
-    repo_root: &Path,
-    domain: LocalPipelineDagDomain,
-) -> Result<BTreeMap<String, LocalStageReadinessKind>> {
-    let mut inventory_index = BTreeMap::new();
-    let inventory_domains = match domain {
-        LocalPipelineDagDomain::Fastq => vec![BenchLocalDomain::Fastq],
-        LocalPipelineDagDomain::Bam => vec![BenchLocalDomain::Bam],
-        LocalPipelineDagDomain::Vcf => Vec::new(),
-        LocalPipelineDagDomain::Cross => vec![BenchLocalDomain::Fastq, BenchLocalDomain::Bam],
-    };
-
-    for inventory_domain in inventory_domains {
-        let inventory = load_local_stage_inventory(repo_root, inventory_domain)?;
-        for stage in inventory.stages {
-            inventory_index.insert(stage.stage_id, stage.readiness_kind);
-        }
-    }
-
-    if matches!(domain, LocalPipelineDagDomain::Vcf | LocalPipelineDagDomain::Cross) {
-        inventory_index.extend(load_local_vcf_pipeline_inventory_index(repo_root)?);
-    }
-
-    Ok(inventory_index)
-}
-
-fn load_local_vcf_pipeline_inventory_index(
-    repo_root: &Path,
-) -> Result<BTreeMap<String, LocalStageReadinessKind>> {
-    let matrix_path = repo_root.join("configs/bench/local/vcf-stage-matrix.toml");
-    let raw = fs::read_to_string(&matrix_path)
-        .with_context(|| format!("read {}", matrix_path.display()))?;
-    let matrix: LocalVcfStageMatrixConfig =
-        toml::from_str(&raw).with_context(|| format!("parse {}", matrix_path.display()))?;
-
-    if matrix.schema_version != "bijux.bench.vcf.local_stage_matrix.v1" {
-        return Err(anyhow!(
-            "{} declares `{}` but `bijux.bench.vcf.local_stage_matrix.v1` is required for `vcf` local pipeline inventory",
-            matrix_path.display(),
-            matrix.schema_version
-        ));
-    }
-
-    let mut inventory_index = BTreeMap::new();
-    for row in matrix.rows {
-        inventory_index.entry(row.stage_id).or_insert(LocalStageReadinessKind::Smoke);
-    }
-    Ok(inventory_index)
-}
-
-fn load_local_vcf_stage_matrix_index(
-    repo_root: &Path,
-) -> Result<BTreeMap<String, VcfStageMatrixRow>> {
-    let matrix_path = repo_root.join("configs/bench/local/vcf-stage-matrix.toml");
-    let raw = fs::read_to_string(&matrix_path)
-        .with_context(|| format!("read {}", matrix_path.display()))?;
-    let matrix: LocalVcfStageMatrixConfig =
-        toml::from_str(&raw).with_context(|| format!("parse {}", matrix_path.display()))?;
-
-    if matrix.schema_version != "bijux.bench.vcf.local_stage_matrix.v1" {
-        return Err(anyhow!(
-            "{} declares `{}` but `bijux.bench.vcf.local_stage_matrix.v1` is required for VCF stage-matrix validation",
-            matrix_path.display(),
-            matrix.schema_version
-        ));
-    }
-
-    Ok(matrix.rows.into_iter().map(|row| (row.stage_id.clone(), row)).collect::<BTreeMap<_, _>>())
-}
-
 fn validate_pipeline_metadata(
     repo_root: &Path,
     config_path: &Path,
@@ -300,89 +226,14 @@ fn validate_pipeline_metadata(
         validate_benchmark_pipeline_reference_context(repo_root, reference_context)?;
     }
     if let Some(execution_context) = &config.execution_context {
-        validate_execution_context(repo_root, execution_context)?;
+        validate_benchmark_pipeline_execution_context(repo_root, execution_context)?;
     }
     validate_benchmark_local_pipeline_dag_declarations(config_path, config)
-}
-
-fn validate_execution_context(
-    repo_root: &Path,
-    execution_context: &LocalPipelineExecutionContext,
-) -> Result<()> {
-    require_non_empty(
-        &execution_context.site_profile_id,
-        "local pipeline execution_context must declare a non-empty `site_profile_id`",
-    )?;
-    validate_symbol_list(
-        &execution_context.frontend_surfaces,
-        "local pipeline execution_context.frontend_surfaces",
-    )?;
-    validate_symbol_list(
-        &execution_context.compute_surfaces,
-        "local pipeline execution_context.compute_surfaces",
-    )?;
-    if let Some(default_campaign_config) = &execution_context.default_campaign_config {
-        require_non_empty(
-            default_campaign_config,
-            "local pipeline execution_context.default_campaign_config must not be empty when present",
-        )?;
-    }
-
-    let allowed_frontend =
-        BTreeSet::from(["downloads".to_string(), "ref-prep".to_string(), "snp-prep".to_string()]);
-    for surface in &execution_context.frontend_surfaces {
-        if !allowed_frontend.contains(surface) {
-            return Err(anyhow!(
-                "local pipeline execution_context.frontend_surfaces contains unsupported surface `{surface}`"
-            ));
-        }
-    }
-
-    let allowed_compute = BTreeSet::from([
-        "fastq-qc".to_string(),
-        "fastq-to-bam".to_string(),
-        "bam-qc".to_string(),
-        "bam-to-vcf".to_string(),
-    ]);
-    for surface in &execution_context.compute_surfaces {
-        if !allowed_compute.contains(surface) {
-            return Err(anyhow!(
-                "local pipeline execution_context.compute_surfaces contains unsupported surface `{surface}`"
-            ));
-        }
-    }
-
-    let site_profile_id = execution_context.site_profile_id.as_str();
-    let built_in = matches!(site_profile_id, "lunarc" | "generic");
-    let profile_path = repo_root
-        .join("benchmarks/configs/hpc/campaign/site-profiles")
-        .join(format!("{site_profile_id}.toml"));
-    if !built_in && !profile_path.is_file() {
-        return Err(anyhow!(
-            "local pipeline execution_context site_profile_id `{site_profile_id}` is not a built-in profile and {} is missing",
-            profile_path.display()
-        ));
-    }
-
-    Ok(())
 }
 
 fn require_non_empty(value: &str, message: &str) -> Result<()> {
     if value.trim().is_empty() {
         return Err(anyhow!(message.to_string()));
-    }
-    Ok(())
-}
-
-fn validate_symbol_list(values: &[String], label: &str) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for value in values {
-        if value.trim().is_empty() {
-            return Err(anyhow!("{label} contains an empty symbol"));
-        }
-        if !seen.insert(value.clone()) {
-            return Err(anyhow!("{label} repeats symbol `{value}`"));
-        }
     }
     Ok(())
 }

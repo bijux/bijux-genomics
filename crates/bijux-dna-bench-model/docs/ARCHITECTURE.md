@@ -47,3 +47,5 @@ serialization, validation errors, and seeded sampling.
 
 `docs/COMMANDS.md` lists model-level operations owned by this crate and must
 stay aligned with public API and contract tests.
+
+Local pipeline execution-context admission is a pure contract: identity, frontend/compute surface closure, duplicate rejection and optional campaign-path presence. Repository site-profile availability is evaluated by the benchmark repository adapter after this contract passes.

@@ -57,6 +57,8 @@ fn bench_tree_matches_architecture_contract() {
             "data_index_authority.rs",
             "mod.rs",
             "pipeline_config.rs",
+            "pipeline_execution.rs",
+            "pipeline_inventory.rs",
             "pipeline_reference.rs",
             "repo_root.rs",
             "repository.rs",
