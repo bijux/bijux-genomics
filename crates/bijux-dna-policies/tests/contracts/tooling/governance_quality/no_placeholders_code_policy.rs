@@ -45,7 +45,8 @@ fn contains_production_placeholder(raw: &str) -> bool {
 }
 
 #[test]
-fn placeholder_policy_rejects_production_markers_while_admitting_negative_test_fixtures() {
+fn policy__contracts__no_placeholders_code_policy__reject_production_markers_and_allow_negative_fixtures(
+) {
     for source in
         ["// TODO implement admission", "fn run() { todo!() }", "fn run() { unimplemented!() }"]
     {
