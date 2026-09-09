@@ -37,6 +37,9 @@ impl EnvGuard {
         };
         if let Some(sandbox) = &sandbox {
             std::env::set_current_dir(sandbox.path())?;
+            for (key, value) in sandbox.environment() {
+                std::env::set_var(key, value);
+            }
         }
         Ok(Self { cwd, env, _sandbox: sandbox })
     }
@@ -120,13 +123,19 @@ impl RepoSandbox {
     #[must_use]
     pub fn bijux_dna_command(&self) -> Command {
         let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+        command.current_dir(self.path()).envs(self.environment());
         command
-            .current_dir(self.path())
-            .env("BIJUX_REPO_ROOT", self.path())
-            .env("BIJUX_BENCHMARK_ROOT", self.path().join("benchmarks"))
-            .env("GIT_DIR", &self.git_dir)
-            .env("GIT_WORK_TREE", self.path());
-        command
+    }
+
+    fn environment(&self) -> [(&'static str, PathBuf); 6] {
+        [
+            ("BIJUX_REPO_ROOT", self.path().to_path_buf()),
+            ("BIJUX_BENCHMARK_ROOT", self.path().join("benchmarks")),
+            ("ARTIFACT_ROOT", self.path().join("artifacts")),
+            ("ISO_ROOT", self.path().join("artifacts")),
+            ("GIT_DIR", self.git_dir.clone()),
+            ("GIT_WORK_TREE", self.path().to_path_buf()),
+        ]
     }
 
     pub fn materialize_vcf_score_evidence(&self, home: &Path) -> Result<()> {

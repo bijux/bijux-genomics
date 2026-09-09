@@ -112,11 +112,11 @@ fn vcf_aggregate_readiness_writers_acquire_repository_lock_before_mutation() -> 
     let repo_root = support::repo_root()?;
     for (relative, mutation_marker) in [
         (
-            "crates/bijux-dna/tests/bench_readiness_vcf_all_retained_tools_complete.rs",
+            "crates/bijux-dna/tests/contracts/benchmark/vcf_readiness/inventory/all_retained_tools_complete.rs",
             "EnvGuard::new()",
         ),
         (
-            "crates/bijux-dna/tests/bench_readiness_vcf_all_retained_tools_complete_file.rs",
+            "crates/bijux-dna/tests/contracts/benchmark/vcf_readiness/inventory/all_retained_tools_complete_file.rs",
             "EnvGuard::new()",
         ),
         (
@@ -201,5 +201,38 @@ fn nextest_full_profile_serializes_benchmark_product_writers() -> anyhow::Result
         }
     }
     assert!(mutating_unit_count > 0, "benchmark unit mutator inventory became vacuous");
+    Ok(())
+}
+
+#[test]
+fn repository_sandbox_replaces_inherited_workspace_and_output_authorities() -> anyhow::Result<()> {
+    let _cwd_guard =
+        support::CWD_LOCK.lock().map_err(|error| anyhow::anyhow!("cwd lock: {error}"))?;
+    let _restore = support::EnvGuard::new()?;
+    let original = support::repo_root()?;
+    for (key, value) in [
+        ("BIJUX_REPO_ROOT", original.clone()),
+        ("ARTIFACT_ROOT", original.join("artifacts")),
+        ("ISO_ROOT", original.join("artifacts")),
+    ] {
+        std::env::set_var(key, value);
+    }
+    {
+        let _lock = support::RepoProcessLock::acquire("sandbox-authority-contract")?;
+        let _sandbox = support::EnvGuard::new()?;
+        let root = support::repo_root()?;
+        assert_ne!(root, original);
+        assert_eq!(root, std::env::current_dir()?);
+        assert_eq!(support::crate_root("bijux-dna")?, root.join("crates/bijux-dna"));
+        for key in ["ARTIFACT_ROOT", "ISO_ROOT"] {
+            assert_eq!(std::env::var_os(key), Some(root.join("artifacts").into_os_string()));
+        }
+        assert_eq!(std::env::var_os("GIT_WORK_TREE"), Some(root.into_os_string()));
+    }
+    assert_eq!(support::repo_root()?, original);
+    assert_eq!(
+        std::env::var_os("ARTIFACT_ROOT"),
+        Some(original.join("artifacts").into_os_string())
+    );
     Ok(())
 }
