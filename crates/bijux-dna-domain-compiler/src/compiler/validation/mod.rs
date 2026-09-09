@@ -2,9 +2,8 @@ use super::{
     anyhow, bail, collect_yaml_files, ensure_status, has_supported_placeholder_forbidden_token,
     is_tool_meaningful_in_domain, is_umbrella_stage, is_unspecified, placeholders_allowed,
     read_yaml, validate_tool_output_subset, AdapterBank, BTreeMap, BTreeSet, ContainerToolContract,
-    ContaminationDbBank, Context, DomainArtifactVocabulary, DomainIndex, DomainMetricVocabulary,
-    DomainStage, DomainToolLoose, Path, ReferenceBank, Result, ValidateOptions,
-    DEFAULT_COMPILE_SCOPE,
+    ContaminationDbBank, Context, DomainIndex, DomainMetricVocabulary, DomainStage,
+    DomainToolLoose, Path, ReferenceBank, Result, ValidateOptions, DEFAULT_COMPILE_SCOPE,
 };
 
 mod catalog_coverage;

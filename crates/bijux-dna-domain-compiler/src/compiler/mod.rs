@@ -18,10 +18,9 @@ mod vcf_emit;
 
 use self::models::{
     AdapterBank, BenchmarkScenario, ContainerCatalog, ContainerToolContract, ContaminationDbBank,
-    DomainArtifactVocabulary, DomainIndex, DomainMetricVocabulary, DomainStage, DomainTool,
-    DomainToolLoose, ReferenceBank, StageDefaultMap, StageDefaultRationaleMap, StageOutputKindsMap,
-    StagePlannedMap, StageResourceHint, StageStatusMap, StageToolMap, ThresholdBand, ToolMap,
-    ToolRow,
+    DomainIndex, DomainMetricVocabulary, DomainStage, DomainTool, DomainToolLoose, ReferenceBank,
+    StageDefaultMap, StageDefaultRationaleMap, StageOutputKindsMap, StagePlannedMap,
+    StageResourceHint, StageStatusMap, StageToolMap, ThresholdBand, ToolMap, ToolRow,
 };
 use self::support::{
     collect_yaml_files, default_healthcheck_cmd, default_version_regex, encode_f64_map,

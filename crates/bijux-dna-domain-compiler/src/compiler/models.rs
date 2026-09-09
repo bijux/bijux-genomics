@@ -309,16 +309,6 @@ pub(super) struct BenchmarkScenario {
 }
 
 #[derive(Debug, Deserialize, Default)]
-pub(super) struct DomainArtifactVocabulary {
-    #[serde(default)]
-    pub(super) domain: String,
-    #[serde(default)]
-    pub(super) artifact_ids: Vec<String>,
-    #[serde(default)]
-    pub(super) artifacts: Vec<DomainArtifactEntry>,
-}
-
-#[derive(Debug, Deserialize, Default)]
 pub(super) struct DomainMetricVocabulary {
     #[serde(default)]
     pub(super) domain: String,
@@ -326,11 +316,6 @@ pub(super) struct DomainMetricVocabulary {
     pub(super) metric_ids: Vec<String>,
     #[serde(default)]
     pub(super) metrics: Vec<DomainMetricEntry>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-pub(super) struct DomainArtifactEntry {
-    pub(super) id: String,
 }
 
 #[derive(Debug, Deserialize, Default)]
