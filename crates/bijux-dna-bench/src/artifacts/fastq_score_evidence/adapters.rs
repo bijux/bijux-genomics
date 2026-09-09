@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Adapters for observed FASTQ stage report formats.
 
 use super::fields::{fraction_u64, required_f64, required_stage, required_str, required_u64};

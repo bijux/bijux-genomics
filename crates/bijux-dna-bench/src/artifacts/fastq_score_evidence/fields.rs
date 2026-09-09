@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Field and numeric projections shared by FASTQ report adapters.
 
 use anyhow::{anyhow, Result};

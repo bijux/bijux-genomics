@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Optional observed FASTQ score report IO.
 
 use anyhow::{Context, Result};

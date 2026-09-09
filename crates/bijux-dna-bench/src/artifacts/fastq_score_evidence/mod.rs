@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Observed FASTQ scoring evidence. Authored truth fixtures alone do not establish tool outcomes.
 
 use crate::repo::load_optional_fastq_score_report as load_optional_json_value;
