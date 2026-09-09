@@ -185,7 +185,7 @@ mod tests {
             std::fs::create_dir(&directory)?;
             std::fs::write(
                 directory.join("artifacts.yaml"),
-                format!("domain: {domain}\nartifact_ids: [reads]\n"),
+                format!("schema_version: bijux.domain.artifacts.v1\ndomain: {domain}\nartifact_ids: [reads]\n"),
             )?;
             std::fs::write(
                 directory.join("metrics.yaml"),
@@ -205,13 +205,16 @@ mod tests {
             ),
             ("artifact_ids: [' reads ']\n", "blank or padded artifact ID"),
         ] {
-            std::fs::write(&path, format!("domain: fastq\n{body}"))?;
+            std::fs::write(
+                &path,
+                format!("schema_version: bijux.domain.artifacts.v1\ndomain: fastq\n{body}"),
+            )?;
             let error = validate_domain_vocabularies(root.path())
                 .err()
                 .context("invalid vocabulary must fail")?;
             assert!(error.to_string().contains(diagnostic), "{error:#}");
         }
-        std::fs::write(&path, "domain: fastq\nartifacts: [{id: reads, type: fastq}]\n")?;
+        std::fs::write(&path, "schema_version: bijux.artifacts.v1\ndomain: fastq\nartifacts: [{id: reads, type: fastq}]\n")?;
         let vocabulary = validate_domain_vocabularies(root.path())?;
         assert!(vocabulary.artifact_vocab["fastq"].contains("reads"));
         Ok(())
