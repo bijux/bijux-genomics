@@ -1065,6 +1065,26 @@ mod bam_pair_tests {
     }
 
     #[test]
+    fn rejects_foreign_sample_even_when_bam_and_index_pair() {
+        for sample in ["ERR2112768", "ERR21127670"] {
+            let bam = file(&format!("/study/{sample}.ngsbriggs-input.bam"));
+            let bai = file(&format!("/study/{sample}.ngsbriggs-input.bam.bai"));
+            let error = validate_bam_pair(&bam, &bai, "ERR2112767")
+                .expect_err("a matching index cannot establish sample ownership");
+            assert!(error.to_string().contains("do not close"));
+        }
+    }
+
+    #[test]
+    fn rejects_replaced_extension_index_for_sample_owned_bam() {
+        let bam = file("/study/ERR2112767.ngsbriggs-input.bam");
+        let bai = file("/study/ERR2112767.ngsbriggs-input.bai");
+        let error = validate_bam_pair(&bam, &bai, "ERR2112767")
+            .expect_err("the admitted sidecar must append to the exact BAM name");
+        assert!(error.to_string().contains("do not close"));
+    }
+
+    #[test]
     fn rejects_index_that_does_not_name_its_bam() {
         let bam = file("/study/ERR2112767.ngsbriggs-input.bam");
         let bai = file("/study/ERR2112767.other.bam.bai");
