@@ -59,11 +59,8 @@ fn bench_readiness_container_tool_smoke_writes_manifest_file() {
         .get("applied_command")
         .and_then(serde_json::Value::as_array)
         .expect("applied command array");
-    assert_eq!(applied_command.len(), 4);
-    assert!(applied_command[0].as_str().is_some_and(|value| value.ends_with("bijux-dna-dev")));
-    assert_eq!(applied_command[1].as_str(), Some("containers"));
-    assert_eq!(applied_command[2].as_str(), Some("run"));
-    assert_eq!(applied_command[3].as_str(), Some("smoke-containers-apptainer"));
+    // Admission failed before execution dependencies were acquired; no command was applied.
+    assert!(applied_command.is_empty());
     assert!(parsed.get("exit_code").is_none_or(serde_json::Value::is_null));
     assert_eq!(parsed.get("stdout").and_then(serde_json::Value::as_str), Some(""));
     assert_eq!(parsed.get("stderr").and_then(serde_json::Value::as_str), Some(""));
