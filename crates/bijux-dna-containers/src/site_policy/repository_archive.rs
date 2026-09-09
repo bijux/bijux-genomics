@@ -584,6 +584,11 @@ mod tests {
             .args(["bundle", "verify"])
             .arg(&bundle)
             .current_dir(&external)
+            .env_remove("GIT_DIR")
+            .env_remove("GIT_WORK_TREE")
+            .env_remove("GIT_COMMON_DIR")
+            // Scratch may be nested below a repository; keep this negative case outside it.
+            .env("GIT_CEILING_DIRECTORIES", root.path())
             .output()?;
         ensure!(!ambient.status.success(), "ambient non-repository unexpectedly verified bundle");
         verify_bundle(&repository, &bundle)
