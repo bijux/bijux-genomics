@@ -192,6 +192,7 @@ mod tests {
 
     #[test]
     fn script_report_rejects_forged_aggregates_identities_and_unsupported_shapes() -> Result<()> {
+        type WireMutation = (&'static str, fn(&mut serde_json::Value));
         let report = build_benchmark_local_all_domain_slurm_scripts_report(
             "scripts".to_string(),
             entries()?,
@@ -199,31 +200,41 @@ mod tests {
             1,
         )?;
         let original = serde_json::to_value(&report)?;
-        for (pointer, value) in [
-            ("/schema_version", json!("bijux.bench.local_all_domain_slurm_scripts.v9")),
-            ("/output_root", json!(" ")),
-            ("/script_count", json!(3)),
-            ("/benchmark_job_count", json!(2)),
-            ("/essential_pipeline_job_count", json!(0)),
-            ("/pipeline_count", json!(2)),
-            ("/domain_counts/vcf", json!(3)),
-            ("/benchmark_domain_counts/vcf", json!(0)),
-            ("/essential_pipeline_domain_counts/vcf", json!(0)),
-            ("/scripts/1/script_path", json!("benchmark/job.sbatch")),
-            ("/scripts/1/job_id_local", json!("benchmark:vcf.stats")),
-            ("/scripts/0/job_kind", json!("unknown")),
-            ("/scripts/0/pipeline_id", json!("germline")),
-            ("/scripts/1/pipeline_id", json!(null)),
-        ] {
+        let mutations: [WireMutation; 14] = [
+            ("schema_version", |wire| {
+                wire["schema_version"] = json!("bijux.bench.local_all_domain_slurm_scripts.v9");
+            }),
+            ("output_root", |wire| wire["output_root"] = json!(" ")),
+            ("script_count", |wire| wire["script_count"] = json!(3)),
+            ("benchmark_job_count", |wire| wire["benchmark_job_count"] = json!(2)),
+            ("essential_pipeline_job_count", |wire| {
+                wire["essential_pipeline_job_count"] = json!(0);
+            }),
+            ("pipeline_count", |wire| wire["pipeline_count"] = json!(2)),
+            ("domain_counts.vcf", |wire| wire["domain_counts"]["vcf"] = json!(3)),
+            ("benchmark_domain_counts.vcf", |wire| {
+                wire["benchmark_domain_counts"]["vcf"] = json!(0);
+            }),
+            ("essential_pipeline_domain_counts.vcf", |wire| {
+                wire["essential_pipeline_domain_counts"]["vcf"] = json!(0);
+            }),
+            ("scripts.1.script_path", |wire| {
+                wire["scripts"][1]["script_path"] = json!("benchmark/job.sbatch");
+            }),
+            ("scripts.1.job_id_local", |wire| {
+                wire["scripts"][1]["job_id_local"] = json!("benchmark:vcf.stats");
+            }),
+            ("scripts.0.job_kind", |wire| wire["scripts"][0]["job_kind"] = json!("unknown")),
+            ("scripts.0.pipeline_id", |wire| wire["scripts"][0]["pipeline_id"] = json!("germline")),
+            ("scripts.1.pipeline_id", |wire| wire["scripts"][1]["pipeline_id"] = json!(null)),
+        ];
+        for (field, mutate) in mutations {
             let mut wire = original.clone();
-            let target = wire
-                .pointer_mut(pointer)
-                .ok_or_else(|| anyhow!("missing fixture pointer {pointer}"))?;
-            *target = value;
+            mutate(&mut wire);
             let mutated = serde_json::from_value(wire)?;
             assert!(
                 validate_benchmark_local_all_domain_slurm_scripts_report(&mutated, 1, 1).is_err(),
-                "accepted {pointer}"
+                "accepted {field}"
             );
         }
         let mut wire = original;
