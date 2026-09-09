@@ -78,6 +78,9 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
     };
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-pipeline-dag-config.schema.json", super::benchmark_local_pipeline_dag_config_schema),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-pipeline-dag-metadata-config.schema.json", super::benchmark_local_pipeline_dag_metadata_config_schema),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-pipeline-dag-stages-config.schema.json", super::benchmark_local_pipeline_dag_stages_config_schema),
         PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/benchmark-config.schema.json",
             super::benchmark_config_schema,

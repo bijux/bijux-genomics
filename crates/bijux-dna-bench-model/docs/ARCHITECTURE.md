@@ -10,6 +10,7 @@ and decision records, and statistical helpers.
 - `src/model/` owns observations, suites, decisions, summaries, graph nodes, stage-profile data
   fitness, persisted container report-portfolio identities, permanent-run report dispositions,
   normalized-result records and execution-metrics envelopes, and suite support records.
+- `src/model/local_pipeline_dag/` separates TOML/YAML configuration inputs from persisted validation reports; three configuration schemas share the model schema registry.
 - `src/contract/` validates records, suite shape, stage governance, graph edges, data-fitness and
   portfolio closure, parameter bindings, container and benchmark report freshness, diversity
   requirements, and analysis requirements.

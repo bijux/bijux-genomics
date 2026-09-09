@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/local_pipeline_config.rs"]
+mod local_pipeline_config;
 #[path = "contracts/active_scope.rs"]
 mod mod_contracts_active_scope_rs;
 #[path = "contracts/all_domain_failure_classification.rs"]

@@ -4,16 +4,23 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_pipeline_dag_config as validate_pipeline_contract,
     validate_benchmark_local_pipeline_dag_validation,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
     BenchmarkLocalPipelineAncientDnaPolicy as LocalPipelineAncientDnaPolicy,
+    BenchmarkLocalPipelineDagConfig as LocalPipelineDagConfig,
+    BenchmarkLocalPipelineDagDomain as LocalPipelineDagDomain,
+    BenchmarkLocalPipelineDagMetadataConfig as LocalPipelineDagMetadataConfig,
+    BenchmarkLocalPipelineDagNode as LocalPipelineDagNode,
+    BenchmarkLocalPipelineDagStagesConfig as LocalPipelineDagStagesConfig,
     BenchmarkLocalPipelineDagValidationNode as LocalPipelineDagValidationNodeReport,
     BenchmarkLocalPipelineDagValidationProfile as LocalPipelineDagValidationProfileReport,
     BenchmarkLocalPipelineDagValidationReport as LocalPipelineDagValidationReport,
     BenchmarkLocalPipelineExecutionContext as LocalPipelineExecutionContext,
     BenchmarkLocalPipelineProjectSource as LocalPipelineProjectSource,
+    BenchmarkLocalPipelineProjectSourceConfig as LocalPipelineProjectSourceConfig,
     BenchmarkLocalPipelineReferenceAssets as LocalPipelineReferenceAssets,
     BenchmarkLocalPipelineReferenceContext as LocalPipelineReferenceContext,
     BenchmarkLocalPipelineSnpEffAssets as LocalPipelineSnpEffAssets,
@@ -40,104 +47,6 @@ pub(crate) const DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH: &str =
     "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml";
 const LOCAL_PIPELINE_YAML_CONFIG_FILE: &str = "config.yaml";
 const LOCAL_PIPELINE_YAML_STAGES_FILE: &str = "stages.yaml";
-const LOCAL_PIPELINE_DAG_SCHEMA_VERSION: &str = "bijux.bench.local_pipeline_dag.v1";
-
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-enum LocalPipelineDagDomain {
-    Fastq,
-    Bam,
-    Vcf,
-    Cross,
-}
-
-impl LocalPipelineDagDomain {
-    fn as_str(self) -> &'static str {
-        match self {
-            Self::Fastq => "fastq",
-            Self::Bam => "bam",
-            Self::Vcf => "vcf",
-            Self::Cross => "cross",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct LocalPipelineDagConfig {
-    schema_version: String,
-    pipeline_id: String,
-    domain: LocalPipelineDagDomain,
-    summary: String,
-    default_corpus_id: String,
-    #[serde(default)]
-    reference_context: Option<LocalPipelineReferenceContext>,
-    #[serde(default)]
-    execution_context: Option<LocalPipelineExecutionContext>,
-    #[serde(default)]
-    project_sources: Vec<LocalPipelineProjectSourceConfig>,
-    #[serde(default)]
-    ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
-    #[serde(default)]
-    reference_assets: Option<LocalPipelineReferenceAssets>,
-    #[serde(default)]
-    variant_assets: Option<LocalPipelineVariantAssets>,
-    nodes: Vec<LocalPipelineDagNode>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct LocalPipelineDagMetadataConfig {
-    schema_version: String,
-    pipeline_id: String,
-    domain: LocalPipelineDagDomain,
-    summary: String,
-    default_corpus_id: String,
-    #[serde(default)]
-    reference_context: Option<LocalPipelineReferenceContext>,
-    #[serde(default)]
-    execution_context: Option<LocalPipelineExecutionContext>,
-    #[serde(default)]
-    project_sources: Vec<LocalPipelineProjectSourceConfig>,
-    #[serde(default)]
-    ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
-    #[serde(default)]
-    reference_assets: Option<LocalPipelineReferenceAssets>,
-    #[serde(default)]
-    variant_assets: Option<LocalPipelineVariantAssets>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct LocalPipelineDagStagesConfig {
-    nodes: Vec<LocalPipelineDagNode>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct LocalPipelineProjectSourceConfig {
-    project_id: String,
-    metadata_url: String,
-    #[serde(default = "default_local_pipeline_project_retries")]
-    retries: u32,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct LocalPipelineDagNode {
-    node_id: String,
-    stage_id: String,
-    readiness_kind: LocalStageReadinessKind,
-    summary: String,
-    #[serde(default)]
-    depends_on: Vec<String>,
-    #[serde(default)]
-    external_inputs: Vec<String>,
-    #[serde(default)]
-    upstream_inputs: Vec<String>,
-    #[serde(default)]
-    outputs: Vec<String>,
-}
 
 pub(crate) fn run_validate_pipeline_dag(
     args: &parse::BenchLocalValidatePipelineDagArgs,
@@ -2770,29 +2679,6 @@ fn require_vcf_matrix_binding(
         ));
     }
     Ok(())
-}
-
-fn validate_pipeline_contract(config: &LocalPipelineDagConfig) -> Result<()> {
-    if config.schema_version != LOCAL_PIPELINE_DAG_SCHEMA_VERSION {
-        return Err(anyhow!("unsupported local pipeline DAG schema `{}`", config.schema_version));
-    }
-    require_non_empty(
-        &config.pipeline_id,
-        "local pipeline DAG must declare a non-empty `pipeline_id`",
-    )?;
-    require_non_empty(&config.summary, "local pipeline DAG must declare a non-empty `summary`")?;
-    require_non_empty(
-        &config.default_corpus_id,
-        "local pipeline DAG must declare a non-empty `default_corpus_id`",
-    )?;
-    if config.nodes.is_empty() {
-        return Err(anyhow!("local pipeline DAG must declare at least one `nodes` entry"));
-    }
-    Ok(())
-}
-
-fn default_local_pipeline_project_retries() -> u32 {
-    3
 }
 
 fn validate_pipeline_metadata(

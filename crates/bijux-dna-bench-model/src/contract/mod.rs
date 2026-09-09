@@ -162,8 +162,9 @@ pub use local_hpc_scratch_layout::validate_benchmark_local_hpc_scratch_layout;
 pub use local_hpc_stage_benchmark_array::validate_benchmark_local_hpc_stage_benchmark_array;
 pub use local_hpc_submission_readiness::validate_benchmark_local_hpc_submission_readiness;
 pub use local_pipeline_dag::{
-    validate_benchmark_local_pipeline_dag_validation,
+    validate_benchmark_local_pipeline_dag_config, validate_benchmark_local_pipeline_dag_validation,
     validate_benchmark_local_pipeline_dag_validation_set,
+    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1,
 };
 pub use local_runtime_metrics::validate_benchmark_local_runtime_metrics;
 pub use local_slurm_dependency::{

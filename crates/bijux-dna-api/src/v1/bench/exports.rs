@@ -584,7 +584,16 @@ pub fn write_bam_normalized_metrics_schema(path: &Path) -> Result<()> {
 
 /// Stability: v1 (stable).
 /// Descriptor for one governed stage-specific VCF normalized metrics schema.
-pub use bijux_dna_bench_model::normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor;
+pub use bijux_dna_bench_model::{
+    benchmark_local_pipeline_dag_config_schema,
+    benchmark_local_pipeline_dag_metadata_config_schema,
+    benchmark_local_pipeline_dag_stages_config_schema,
+    normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor,
+    validate_benchmark_local_pipeline_dag_config, BenchmarkLocalPipelineDagConfig,
+    BenchmarkLocalPipelineDagDomain, BenchmarkLocalPipelineDagMetadataConfig,
+    BenchmarkLocalPipelineDagNode, BenchmarkLocalPipelineDagStagesConfig,
+    BenchmarkLocalPipelineProjectSourceConfig, BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1,
+};
 
 /// Render the governed VCF normalized metrics schema.
 ///

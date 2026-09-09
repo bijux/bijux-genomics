@@ -419,11 +419,17 @@ pub use local_hpc_submission_readiness::{
 };
 #[allow(unused_imports)]
 pub use local_pipeline_dag::{
+    benchmark_local_pipeline_dag_config_schema,
+    benchmark_local_pipeline_dag_metadata_config_schema,
+    benchmark_local_pipeline_dag_stages_config_schema,
     benchmark_local_pipeline_dag_validation_schema,
     benchmark_local_pipeline_dag_validation_set_schema, BenchmarkLocalPipelineAncientDnaPolicy,
-    BenchmarkLocalPipelineDagValidationNode, BenchmarkLocalPipelineDagValidationProfile,
-    BenchmarkLocalPipelineDagValidationReport, BenchmarkLocalPipelineDagValidationSetReport,
-    BenchmarkLocalPipelineExecutionContext, BenchmarkLocalPipelineProjectSource,
+    BenchmarkLocalPipelineDagConfig, BenchmarkLocalPipelineDagDomain,
+    BenchmarkLocalPipelineDagMetadataConfig, BenchmarkLocalPipelineDagNode,
+    BenchmarkLocalPipelineDagStagesConfig, BenchmarkLocalPipelineDagValidationNode,
+    BenchmarkLocalPipelineDagValidationProfile, BenchmarkLocalPipelineDagValidationReport,
+    BenchmarkLocalPipelineDagValidationSetReport, BenchmarkLocalPipelineExecutionContext,
+    BenchmarkLocalPipelineProjectSource, BenchmarkLocalPipelineProjectSourceConfig,
     BenchmarkLocalPipelineReferenceAssets, BenchmarkLocalPipelineReferenceContext,
     BenchmarkLocalPipelineSnpEffAssets, BenchmarkLocalPipelineVariantAssets,
 };
