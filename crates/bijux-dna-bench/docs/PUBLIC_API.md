@@ -269,3 +269,5 @@ including:
   operations.
 - Update `docs/COMMANDS.md`, `docs/BENCH_CONTRACT.md`, and tests when adding a
   new public benchmark operation or artifact shape.
+
+Normalized FASTQ metadata is exposed through `NormalizedFastqSample`, `load_fastq_corpus_source_for_id`, `normalized_fastq_expected_sample_total`, `expected_fastq_publication_cohort_counts`, `discover_normalized_fastq_samples`, `match_normalized_fastq_corpus_metadata`, and `select_normalized_fastq_paired_samples`. These preserve the normalized-directory and MANIFEST.json publication contract; callers needing current content identity use the separate governed data-index admission APIs.

@@ -1,11 +1,10 @@
 //! Owner: bijux-dna-bench
 //! Run repositories for bench.
 
-mod bam_corpus_authority;
 mod case_data_authority;
 mod catalog_registry_authority;
 mod catalog_snapshot_authority;
-mod corpus_authority;
+mod corpus;
 mod data_index_authority;
 mod repo_root;
 mod repository;
@@ -14,10 +13,6 @@ mod run_metadata;
 pub mod sqlite;
 mod workspace_paths;
 
-pub use bam_corpus_authority::{
-    admit_bam_benchmark_cohort, admit_bam_benchmark_corpus, admit_bam_genotyping_corpus,
-    admit_benchmark_indexed_reference, admit_benchmark_reference, AdmittedBamGenotypingCorpus,
-};
 pub use case_data_authority::derive_benchmark_data_snapshots;
 pub use catalog_registry_authority::{
     publish_governed_data_catalog_registry, GovernedDataCatalogRegistryPublication,
@@ -29,7 +24,14 @@ pub use catalog_snapshot_authority::{
     GovernedDataCatalogSnapshotRequest, GovernedDerivedDataCatalogAdmission,
     GovernedDerivedDataCatalogAdmissionRequest, GovernedMaterializedDataCatalogSnapshotRequest,
 };
-pub use corpus_authority::{admit_alignment_truth_set, admit_fastq_benchmark_corpus};
+pub use corpus::{
+    admit_alignment_truth_set, admit_bam_benchmark_cohort, admit_bam_benchmark_corpus,
+    admit_bam_genotyping_corpus, admit_benchmark_indexed_reference, admit_benchmark_reference,
+    admit_fastq_benchmark_corpus, discover_normalized_fastq_samples,
+    expected_fastq_publication_cohort_counts, load_fastq_corpus_source_for_id,
+    match_normalized_fastq_corpus_metadata, normalized_fastq_expected_sample_total,
+    select_normalized_fastq_paired_samples, AdmittedBamGenotypingCorpus, NormalizedFastqSample,
+};
 pub use data_index_authority::{
     build_benchmark_data_index, publish_benchmark_data_index, render_benchmark_data_index_markdown,
     BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,

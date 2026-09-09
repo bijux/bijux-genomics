@@ -96,3 +96,5 @@ They may change when the v1 public contract remains stable.
   without changing the generic composition API.
 - Experimental: no experimental public namespace is exported today; any future one must be called out explicitly here before use.
 - Internal: `src/internal/`, `src/runtime/`, `src/support/`, `src/surface/`, and any item not re-exported through `v1::api`.
+
+The benchmark API re-exports normalized FASTQ corpus discovery and publication metadata services from `bijux-dna-bench`, including `NormalizedFastqSample`. This metadata contract is separate from governed data-index content admission.

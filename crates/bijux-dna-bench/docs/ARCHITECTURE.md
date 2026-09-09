@@ -80,3 +80,5 @@ planner, runner, or domain execution crates for production behavior.
 source tree, test tree, and Markdown location rules. Contract tests enforce the
 public API snapshot, no raw JSON outside repo/artifacts, no public API panics,
 and suite catalog governance.
+
+`src/repo/corpus/` groups BAM and FASTQ governed admission and normalized FASTQ metadata. Normalized discovery, accession joins, and publication cohort selection serve benchmark execution and dossier consumers through the public API.

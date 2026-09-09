@@ -7,7 +7,10 @@ mod vcf_smoke_contracts;
 pub use vcf_smoke_contracts::*;
 
 pub use bijux_dna_bench::{
-    all_domain_output_declarations_schema, stage_tool_assets_config_schema,
+    all_domain_output_declarations_schema, discover_normalized_fastq_samples,
+    expected_fastq_publication_cohort_counts, load_fastq_corpus_source_for_id,
+    match_normalized_fastq_corpus_metadata, normalized_fastq_expected_sample_total,
+    select_normalized_fastq_paired_samples, stage_tool_assets_config_schema,
     stage_tool_assets_report_schema, stage_tool_containers_config_schema,
     stage_tool_containers_report_schema, stage_tool_resources_config_schema,
     stage_tool_resources_report_schema, validate_all_domain_output_declaration_rows,
@@ -15,10 +18,10 @@ pub use bijux_dna_bench::{
     validate_stage_tool_assets_report, validate_stage_tool_containers_config,
     validate_stage_tool_containers_report, validate_stage_tool_resources_config,
     validate_stage_tool_resources_report, AllDomainOutputDeclarationRow,
-    AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport, StageToolAssetRow,
-    StageToolAssetsConfig, StageToolAssetsReport, StageToolContainerRow, StageToolContainersConfig,
-    StageToolContainersReport, StageToolResourceRow, StageToolResourcesConfig,
-    StageToolResourcesReport, ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1,
+    AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport, NormalizedFastqSample,
+    StageToolAssetRow, StageToolAssetsConfig, StageToolAssetsReport, StageToolContainerRow,
+    StageToolContainersConfig, StageToolContainersReport, StageToolResourceRow,
+    StageToolResourcesConfig, StageToolResourcesReport, ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1,
     BAM_STAGE_TOOL_RESOURCE_ORIGIN, FASTQ_STAGE_TOOL_RESOURCE_ORIGIN,
     LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
     LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, STAGE_TOOL_ASSETS_DECLARATION_ORIGIN,

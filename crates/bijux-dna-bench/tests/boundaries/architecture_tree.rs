@@ -50,11 +50,10 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
-            "bam_corpus_authority.rs",
             "case_data_authority.rs",
             "catalog_registry_authority.rs",
             "catalog_snapshot_authority.rs",
-            "corpus_authority.rs",
+            "corpus/",
             "data_index_authority.rs",
             "mod.rs",
             "repo_root.rs",
@@ -65,6 +64,12 @@ fn bench_tree_matches_architecture_contract() {
             "workspace_paths.rs",
         ]),
         "repo tree must stay split between repository policy and persisted artifacts"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/repo/corpus")),
+        entries(["bam.rs", "fastq.rs", "mod.rs", "normalized_fastq.rs"]),
+        "corpus tree must separate governed admission from normalized read metadata"
     );
 
     assert_eq!(
