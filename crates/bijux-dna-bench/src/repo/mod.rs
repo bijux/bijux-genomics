@@ -72,3 +72,6 @@ pub use reference_fasta::materialize_benchmark_reference_fasta;
 
 mod bam_score_evidence;
 pub use bam_score_evidence::load_bam_tool_score_evidence;
+
+mod vcf_score_evidence;
+pub use vcf_score_evidence::load_vcf_tool_score_evidence;

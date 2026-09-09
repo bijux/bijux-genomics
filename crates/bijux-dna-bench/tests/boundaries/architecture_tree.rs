@@ -23,12 +23,18 @@ fn bench_tree_matches_architecture_contract() {
         entries([
             "admission/",
             "bam_score_evidence/",
+            "vcf_score_evidence/",
             "fastq_score_evidence/",
             "mod.rs",
             "source_assets.rs",
             "writer/"
         ]),
         "artifacts tree must separate source inspection, output admission, and serialization"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/vcf_score_evidence")),
+        entries(["fields.rs","genotypes.rs","imputation.rs","merge.rs","mod.rs","population.rs","quality.rs","relatedness.rs"]),
+        "VCF observation interpretation must separate scientific responsibilities and field admission"
     );
     assert_eq!(
         dir_entries(&root.join("src/artifacts/bam_score_evidence")),
@@ -79,6 +85,7 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/repo")),
         entries([
             "bam_score_evidence.rs",
+            "vcf_score_evidence.rs",
             "case_data_authority.rs",
             "catalog_registry_authority.rs",
             "catalog_snapshot_authority.rs",

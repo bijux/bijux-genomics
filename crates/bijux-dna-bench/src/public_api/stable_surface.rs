@@ -663,3 +663,5 @@ pub use bijux_dna_bench_model::{
 };
 
 pub use crate::repo::load_bam_tool_score_evidence;
+
+pub use crate::repo::load_vcf_tool_score_evidence;

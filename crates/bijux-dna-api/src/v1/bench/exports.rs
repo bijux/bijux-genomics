@@ -12,7 +12,7 @@ pub use bijux_dna_bench::{
     expected_fastq_publication_cohort_counts, load_bam_tool_score_evidence,
     load_benchmark_local_pipeline_dag_config, load_benchmark_local_stage_inventory,
     load_benchmark_pipeline_inventory_index, load_benchmark_pipeline_vcf_stage_matrix_index,
-    load_fastq_corpus_source_for_id, load_fastq_tool_score_evidence,
+    load_fastq_corpus_source_for_id, load_fastq_tool_score_evidence, load_vcf_tool_score_evidence,
     match_normalized_fastq_corpus_metadata, materialize_benchmark_reference_fasta,
     normalized_fastq_expected_sample_total, render_benchmark_all_domain_stage_inventory,
     render_full_benchmark_dashboard_markdown, select_normalized_fastq_paired_samples,

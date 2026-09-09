@@ -23,3 +23,5 @@ pub use writer::{
 };
 
 pub(crate) mod bam_score_evidence;
+
+pub(crate) mod vcf_score_evidence;
