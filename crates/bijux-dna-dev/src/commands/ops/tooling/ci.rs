@@ -79,7 +79,6 @@ struct FullShard {
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct FullShardRoots {
     artifact_root: PathBuf,
-    archive_extract: PathBuf,
     cargo_target: PathBuf,
     test_target: PathBuf,
     coverage_target: PathBuf,
@@ -92,6 +91,7 @@ struct FullShardRoots {
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct FullArchiveRoots {
     artifact_root: PathBuf,
+    archive_extract: PathBuf,
     cargo_target: PathBuf,
     archive_file: PathBuf,
     build_log: PathBuf,
@@ -1204,10 +1204,11 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         ephemera.retain_bounded_evidence()?;
         return Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr });
     }
+    prepare_full_archive_extraction(&archive_roots.archive_extract)?;
     let inventory_spec = ParallelProcessSpec {
         label: "test-inventory".to_string(),
         program: "cargo".to_string(),
-        args: full_inventory_args(),
+        args: full_inventory_args(&archive_roots),
         envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
         current_dir: Some(archive_workspace.clone()),
     };
@@ -1234,6 +1235,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "archive_sha256": archive_sha256,
     });
     write_json_pretty(&report_root.join("test-inventory.receipt.json"), &inventory_receipt)?;
+    seal_full_archive_extraction(&archive_roots.archive_extract)?;
     let shard_plans = selected_shards
         .iter()
         .map(|shard| {
@@ -1264,15 +1266,10 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .zip(&shard_roots)
         .zip(&shard_plans)
         .map(|(((shard, shard_workspace), roots), plan)| {
-            let mut args = full_shard_args(
-                shard,
-                &archive_roots.archive_file,
-                &roots.archive_extract,
-                shard_workspace,
-            );
+            let mut args = full_shard_args(shard, &archive_roots.archive_extract, shard_workspace);
             args.extend(["--filterset".to_string(), plan.filterset.clone()]);
             let mut envs = full_shard_env(roots, shard_workspace)?;
-            envs.extend(executables.remapped_environment(&roots.archive_extract)?);
+            envs.extend(executables.remapped_environment(&archive_roots.archive_extract)?);
             Ok(ParallelProcessSpec {
                 label: shard.id.clone(),
                 program: "cargo".to_string(),
@@ -1307,7 +1304,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "id": completed.label,
             "partition": shard.partition,
             "workspace": workspace.rel(shard_workspace).to_string_lossy(),
-            "environment_roots": full_shard_root_receipt(roots, shard_workspace),
+            "environment_roots": full_shard_root_receipt(roots, &archive_roots, shard_workspace),
             "duration_milliseconds": completed.duration.as_millis(),
             "exit_code": exit_code,
             "log": workspace.rel(&log_path).to_string_lossy(),
@@ -1359,7 +1356,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "run_ignored": "all",
                 "overlap_policy": "exactly_once",
                 "workspace_isolation": contract.workspace_isolation,
-                "output_isolation": "shared_read_only_archive_with_disjoint_extraction_and_runtime_roots"
+                "output_isolation": "shared_read_only_extraction_with_disjoint_workspaces_and_runtime_roots"
             },
             "wall_time_milliseconds": started.elapsed().as_millis(),
             "all_passed": all_passed,
@@ -1594,29 +1591,25 @@ fn full_archive_args(archive_file: &Path) -> Vec<String> {
     ]
 }
 
-fn full_inventory_args() -> Vec<String> {
-    [
-        "nextest",
-        "list",
-        "--workspace",
-        "--all-targets",
-        "--all-features",
-        "--locked",
-        "--config-file",
-        "configs/rust/nextest.toml",
-        "--profile",
-        "full",
-        "--message-format",
-        "json",
+fn full_inventory_args(archive: &FullArchiveRoots) -> Vec<String> {
+    vec![
+        "nextest".to_string(),
+        "list".to_string(),
+        "--archive-file".to_string(),
+        archive.archive_file.display().to_string(),
+        "--extract-to".to_string(),
+        archive.archive_extract.display().to_string(),
+        "--config-file".to_string(),
+        "configs/rust/nextest.toml".to_string(),
+        "--profile".to_string(),
+        "full".to_string(),
+        "--message-format".to_string(),
+        "json".to_string(),
     ]
-    .into_iter()
-    .map(str::to_string)
-    .collect()
 }
 
 fn full_shard_args(
     shard: &FullShard,
-    archive_file: &Path,
     archive_extract: &Path,
     workspace_remap: &Path,
 ) -> Vec<String> {
@@ -1629,10 +1622,12 @@ fn full_shard_args(
         "0.1".to_string(),
         "--no-tests".to_string(),
         "fail".to_string(),
-        "--archive-file".to_string(),
-        archive_file.display().to_string(),
-        "--extract-to".to_string(),
-        archive_extract.display().to_string(),
+        "--cargo-metadata".to_string(),
+        archive_extract.join("target/nextest/cargo-metadata.json").display().to_string(),
+        "--binaries-metadata".to_string(),
+        archive_extract.join("target/nextest/binaries-metadata.json").display().to_string(),
+        "--target-dir-remap".to_string(),
+        archive_extract.join("target").display().to_string(),
         "--workspace-remap".to_string(),
         workspace_remap.display().to_string(),
         "--config-file".to_string(),
@@ -1682,7 +1677,6 @@ fn full_shard_roots(
     )?
     .join(&shard.id);
     Ok(FullShardRoots {
-        archive_extract: artifact_root.join("nextest/archive"),
         cargo_target: isolated_build_tree(&artifact_root, "cargo"),
         test_target: isolated_build_tree(&artifact_root, "test"),
         coverage_target: isolated_build_tree(&artifact_root, "coverage"),
@@ -1704,6 +1698,7 @@ fn full_archive_roots(
         &contract.archive_root,
     )?;
     Ok(FullArchiveRoots {
+        archive_extract: artifact_root.join("extracted"),
         cargo_target: isolated_build_tree(&artifact_root, "cargo"),
         archive_file: artifact_root.join("workspace-tests.tar.zst"),
         build_log: storage.retained_report_root.join("archive-build.log"),
@@ -1794,6 +1789,9 @@ fn validate_full_archive_roots(
     }
     if !roots.archive_file.starts_with(&roots.artifact_root)
         || !roots.cargo_target.starts_with(&roots.artifact_root)
+        || !roots.archive_extract.starts_with(&roots.artifact_root)
+        || paths_overlap(&roots.archive_extract, &roots.cargo_target)
+        || paths_overlap(&roots.archive_extract, &roots.archive_file)
     {
         anyhow::bail!("full shard archive paths escape the archive scratch root");
     }
@@ -1818,6 +1816,31 @@ fn set_full_archive_readonly(path: &Path) -> Result<()> {
     permissions.set_readonly(true);
     std::fs::set_permissions(path, permissions)
         .with_context(|| format!("make full shard archive read-only {}", path.display()))
+}
+
+fn prepare_full_archive_extraction(path: &Path) -> Result<()> {
+    remove_full_shard_ephemera(path)?;
+    bijux_dna_infra::ensure_dir(path)?;
+    Ok(())
+}
+
+fn seal_full_archive_extraction(path: &Path) -> Result<()> {
+    let metadata = path
+        .symlink_metadata()
+        .with_context(|| format!("read extracted archive root {}", path.display()))?;
+    anyhow::ensure!(
+        metadata.is_dir() && !metadata.file_type().is_symlink(),
+        "full archive extraction must be an owned directory: {}",
+        path.display()
+    );
+    for entry in walkdir::WalkDir::new(path).follow_links(false).contents_first(true) {
+        let entry =
+            entry.with_context(|| format!("inspect extracted archive {}", path.display()))?;
+        if !entry.file_type().is_symlink() {
+            set_full_archive_readonly(entry.path())?;
+        }
+    }
+    Ok(())
 }
 
 fn full_archive_env(roots: &FullArchiveRoots, build_jobs: usize) -> Result<Vec<(String, String)>> {
@@ -1896,7 +1919,11 @@ fn full_shard_env(roots: &FullShardRoots, shard_workspace: &Path) -> Result<Vec<
     ])
 }
 
-fn full_shard_root_receipt(roots: &FullShardRoots, shard_workspace: &Path) -> serde_json::Value {
+fn full_shard_root_receipt(
+    roots: &FullShardRoots,
+    archive: &FullArchiveRoots,
+    shard_workspace: &Path,
+) -> serde_json::Value {
     serde_json::json!({
         "repository_root": shard_workspace.display().to_string(),
         "benchmark_root": shard_workspace.join("benchmarks").display().to_string(),
@@ -1905,7 +1932,8 @@ fn full_shard_root_receipt(roots: &FullShardRoots, shard_workspace: &Path) -> se
         "artifact_root": shard_workspace.join("artifacts").display().to_string(),
         "iso_root": shard_workspace.join("artifacts").display().to_string(),
         "executor_scratch_root": roots.artifact_root.display().to_string(),
-        "archive_extract_dir": roots.archive_extract.display().to_string(),
+        "archive_extract_dir": archive.archive_extract.display().to_string(),
+        "archive_extraction_ownership": "shared_read_only",
         "cargo_target_dir": roots.cargo_target.display().to_string(),
         "test_target_dir": roots.test_target.display().to_string(),
         "coverage_target_dir": roots.coverage_target.display().to_string(),
@@ -1926,10 +1954,9 @@ fn full_shard_storage_receipt(storage: &FullShardStorageRoots) -> serde_json::Va
 }
 
 impl FullShardRoots {
-    fn all(&self) -> [&Path; 9] {
+    fn all(&self) -> [&Path; 8] {
         [
             &self.artifact_root,
-            &self.archive_extract,
             &self.cargo_target,
             &self.test_target,
             &self.coverage_target,
@@ -1942,8 +1969,8 @@ impl FullShardRoots {
 }
 
 impl FullArchiveRoots {
-    fn scratch_all(&self) -> [&Path; 3] {
-        [&self.artifact_root, &self.cargo_target, &self.archive_file]
+    fn scratch_all(&self) -> [&Path; 4] {
+        [&self.artifact_root, &self.cargo_target, &self.archive_file, &self.archive_extract]
     }
 }
 
@@ -2894,14 +2921,15 @@ mod tests {
         assert!(consumer.admit_artifact_path(&roots[0].artifact_root).is_err());
         assert_eq!(first_env["INSTA_UPDATE"], "no");
         assert!(!first_env.contains_key("INSTA_WORKSPACE_ROOT"));
-        let receipt = full_shard_root_receipt(&roots[0], &shard_workspace);
+        let archive = full_archive_roots(&storage, &contract)?;
+        let receipt = full_shard_root_receipt(&roots[0], &archive, &shard_workspace);
         assert_eq!(receipt["repository_root"], first_env["BIJUX_REPO_ROOT"]);
         assert_eq!(receipt["benchmark_root"], first_env["BIJUX_BENCHMARK_ROOT"]);
         assert_eq!(receipt["snapshot_source_authority"], "archive_compile_time_metadata");
         assert_eq!(receipt["snapshot_update_policy"], first_env["INSTA_UPDATE"]);
         assert_eq!(receipt["artifact_root"], first_env["ARTIFACT_ROOT"]);
         assert_eq!(receipt["iso_root"], first_env["ISO_ROOT"]);
-        assert_eq!(receipt["archive_extract_dir"], roots[0].archive_extract.display().to_string());
+        assert_eq!(receipt["archive_extract_dir"], archive.archive_extract.display().to_string());
         assert_eq!(receipt["cargo_target_dir"], first_env["CARGO_TARGET_DIR"]);
         assert_eq!(receipt["test_target_dir"], first_env["TEST_TARGET_DIR"]);
         assert_eq!(receipt["coverage_target_dir"], first_env["COV_TARGET_DIR"]);
@@ -2933,24 +2961,92 @@ mod tests {
         }
         assert_eq!(build_args.iter().filter(|arg| arg.as_str() == "--archive-file").count(), 1);
 
+        let inventory = super::full_inventory_args(&archive);
+        assert!(inventory.windows(2).any(|pair| pair[0] == "--extract-to"
+            && pair[1] == archive.archive_extract.display().to_string()));
+        assert!(!inventory.iter().any(|arg| arg == "--workspace" || arg == "--all-targets"));
+
         for shard in &contract.shards {
-            let roots = full_shard_roots(&storage, &contract, shard)?;
             let remap = storage.scratch_root.join("workspaces").join(&shard.id);
-            let args =
-                full_shard_args(shard, &archive.archive_file, &roots.archive_extract, &remap);
-            for forbidden in ["--workspace", "--all-targets", "--all-features", "--locked"] {
+            let args = full_shard_args(shard, &archive.archive_extract, &remap);
+            for forbidden in [
+                "--workspace",
+                "--all-targets",
+                "--all-features",
+                "--locked",
+                "--archive-file",
+                "--extract-to",
+            ] {
                 assert!(!args.iter().any(|arg| arg == forbidden));
             }
             assert!(args.windows(2).any(|pair| {
-                pair[0] == "--archive-file" && pair[1] == archive.archive_file.display().to_string()
+                pair[0] == "--cargo-metadata"
+                    && pair[1]
+                        == archive
+                            .archive_extract
+                            .join("target/nextest/cargo-metadata.json")
+                            .display()
+                            .to_string()
             }));
             assert!(args.windows(2).any(|pair| {
-                pair[0] == "--extract-to" && pair[1] == roots.archive_extract.display().to_string()
+                pair[0] == "--target-dir-remap"
+                    && pair[1] == archive.archive_extract.join("target").display().to_string()
             }));
             assert!(args.windows(2).any(|pair| {
                 pair[0] == "--workspace-remap" && pair[1] == remap.display().to_string()
             }));
         }
+        Ok(())
+    }
+
+    #[test]
+    fn shared_archive_preparation_creates_an_empty_extraction_destination() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let archive = temp.path().join("archive/extracted");
+        super::prepare_full_archive_extraction(&archive)?;
+        assert!(archive.is_dir());
+        std::fs::write(archive.join("stale"), b"old generated artifact")?;
+        super::seal_full_archive_extraction(&archive)?;
+        super::prepare_full_archive_extraction(&archive)?;
+        assert_eq!(std::fs::read_dir(&archive)?.count(), 0);
+        Ok(())
+    }
+
+    #[test]
+    fn shared_archive_sealing_preserves_bytes_and_owned_cleanup() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let archive = temp.path().join("extracted");
+        let member = archive.join("target/nextest/binaries-metadata.json");
+        std::fs::create_dir_all(member.parent().context("member parent")?)?;
+        std::fs::write(&member, b"governed archive metadata")?;
+        super::seal_full_archive_extraction(&archive)?;
+        assert_eq!(std::fs::read(&member)?, b"governed archive metadata");
+        assert!(std::fs::metadata(&member)?.permissions().readonly());
+        assert!(std::fs::metadata(&archive)?.permissions().readonly());
+        super::remove_full_shard_ephemera(&archive)?;
+        assert!(!archive.exists());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn shared_archive_sealing_never_follows_external_symlinks() -> anyhow::Result<()> {
+        use std::os::unix::fs::{symlink, PermissionsExt};
+        let temp = tempfile::tempdir()?;
+        let outside = temp.path().join("outside");
+        let archive = temp.path().join("extracted");
+        std::fs::create_dir(&outside)?;
+        std::fs::create_dir(&archive)?;
+        let file = outside.join("writable");
+        std::fs::write(&file, b"outside authority")?;
+        let mode = std::fs::metadata(&file)?.permissions().mode();
+        symlink(&outside, archive.join("linked"))?;
+        super::seal_full_archive_extraction(&archive)?;
+        assert_eq!(std::fs::metadata(&file)?.permissions().mode(), mode);
+        assert_eq!(std::fs::read(&file)?, b"outside authority");
+        assert!(super::seal_full_archive_extraction(&archive.join("linked")).is_err());
+        super::remove_full_shard_ephemera(&archive)?;
+        assert!(file.is_file());
         Ok(())
     }
 
@@ -3060,13 +3156,13 @@ mod tests {
 
         let archive_roots = FullArchiveRoots {
             artifact_root: archive_root.clone(),
+            archive_extract: archive_root.join("extracted"),
             cargo_target: isolated_build_tree(&archive_root, "cargo"),
             archive_file: archive_root.join("workspace-tests.tar.zst"),
             build_log: report_root.join("archive-build.log"),
         };
         let shard_roots = vec![FullShardRoots {
             artifact_root: shard_root.clone(),
-            archive_extract: shard_root.join("nextest/archive"),
             cargo_target: isolated_build_tree(&shard_root, "cargo"),
             test_target: isolated_build_tree(&shard_root, "test"),
             coverage_target: isolated_build_tree(&shard_root, "coverage"),

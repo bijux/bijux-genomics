@@ -112,3 +112,5 @@ Readiness coverage, shell command and argv JSONL contracts share the `bench_read
 Local harness JSON/file checks and the all-domain operational completion check use independent repository sandboxes in the full-profile global worker pool. Harness commands and persisted-output reads use the same sandbox; their CWD/environment guard remains process-wide. Shared-output generators retain the serialized group until their own isolation is qualified.
 
 Full benchmark report, result collector and dashboard checks bind every CLI child to an explicit independent repository sandbox and use the full-profile global worker pool. Original report assertions and command scopes remain intact; the dashboard independently acquires its expected-result comparison from the same governed inputs.
+
+The local full executor extracts its admitted test archive once for inventory, seals that extraction against writes, and supplies its Cargo and binary metadata to each test shard. Shards keep separate source workspaces and writable outputs; executable paths resolve to the shared extraction. Native inventory remains authoritative for exact case coverage.
