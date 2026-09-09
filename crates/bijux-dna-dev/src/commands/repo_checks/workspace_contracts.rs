@@ -759,15 +759,15 @@ pub(crate) fn check_readme_links(
     fail(check, missing.join("\n"))
 }
 
-pub(crate) fn check_root_layout(
-    workspace: &Workspace,
-    check: &CheckDefinition,
-) -> Result<CheckOutcome> {
-    let allowlist = [
+fn repository_root_offenders(root: &Path) -> Result<Vec<String>> {
+    const DIRECTORIES: &[&str] = &[
+        ".bijux",
+        ".cargo",
+        ".git",
+        ".github",
         "artifacts",
         "assets",
         "benchmarks",
-        "bin",
         "configs",
         "containers",
         "crates",
@@ -777,26 +777,43 @@ pub(crate) fn check_root_layout(
         "makes",
         "science",
     ];
+    const FILES: &[&str] = &[
+        ".git",
+        ".gitignore",
+        "Cargo.lock",
+        "Cargo.toml",
+        "LICENSE",
+        "Makefile",
+        "NOTICE",
+        "README.md",
+        "audit-allowlist.toml",
+        "mkdocs.yml",
+        "rust-toolchain.toml",
+        "rustfmt.toml",
+    ];
     let mut offenders = Vec::new();
-    offenders.extend(embedded_workspace_mirror_roots(&workspace.root)?);
-    for entry in std::fs::read_dir(&workspace.root)
-        .with_context(|| format!("read {}", workspace.root.display()))?
-    {
+    for entry in std::fs::read_dir(root).with_context(|| format!("read {}", root.display()))? {
         let entry = entry?;
-        if !entry.file_type()?.is_dir() {
-            continue;
-        }
         let name = entry.file_name().to_string_lossy().to_string();
-        if name.starts_with('.')
-            || name.starts_with("target")
-            || name == "runs"
-            || allowlist.contains(&name.as_str())
-            || is_absolute_workspace_prefix(&name)
+        let kind = entry.file_type()?;
+        if (kind.is_dir() && DIRECTORIES.contains(&name.as_str()))
+            || (kind.is_file() && FILES.contains(&name.as_str()))
         {
             continue;
         }
-        offenders.push(name);
+        offenders.push(format!("{name}: unexpected repository-root entry"));
     }
+    offenders.sort();
+    Ok(offenders)
+}
+
+pub(crate) fn check_root_layout(
+    workspace: &Workspace,
+    check: &CheckDefinition,
+) -> Result<CheckOutcome> {
+    let mut offenders = repository_root_offenders(&workspace.root)?;
+    offenders.extend(super::science_archive::science_tree_offenders(workspace)?);
+    offenders.extend(embedded_workspace_mirror_roots(&workspace.root)?);
     offenders.extend(governed_product_root_offenders(
         &workspace.root,
         "containers",
@@ -1039,8 +1056,68 @@ fn source_like_scan_path(rel: &str) -> bool {
 mod embedded_workspace_mirror_tests {
     use super::{
         embedded_workspace_mirror_roots, governed_product_root_offenders,
-        product_user_path_literal_offenders, CONTAINER_ROOT_DIRECTORIES, CONTAINER_ROOT_FILES,
+        product_user_path_literal_offenders, repository_root_offenders, CONTAINER_ROOT_DIRECTORIES,
+        CONTAINER_ROOT_FILES,
     };
+
+    #[test]
+    fn repository_root_rejects_hidden_caches_outputs_and_misplaced_contracts() -> anyhow::Result<()>
+    {
+        let root = tempfile::tempdir()?;
+        for name in
+            [".pytest_cache", ".ruff_cache", "__pycache__", "runs", "target", "target-tests"]
+        {
+            std::fs::create_dir(root.path().join(name))?;
+        }
+        for name in [
+            ".DS_Store",
+            "DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md",
+            "TARGET_ARCHITECTURE.md",
+            "check.log",
+        ] {
+            std::fs::write(root.path().join(name), b"preserved")?;
+        }
+        let offenders = repository_root_offenders(root.path())?;
+        assert_eq!(offenders.len(), 10);
+        for offender in offenders {
+            let name =
+                offender.split(':').next().ok_or_else(|| anyhow::anyhow!("missing entry"))?;
+            assert!(root.path().join(name).exists(), "validation must preserve user evidence");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn repository_root_accepts_governed_entries_and_git_worktree_files() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        for directory in [".cargo", ".bijux", ".github", "artifacts", "crates", "docs"] {
+            std::fs::create_dir(root.path().join(directory))?;
+        }
+        for file in [".git", ".gitignore", "Cargo.toml", "Cargo.lock", "README.md"] {
+            std::fs::write(root.path().join(file), b"governed")?;
+        }
+        assert!(repository_root_offenders(root.path())?.is_empty());
+        std::fs::create_dir(root.path().join("LICENSE"))?;
+        assert_eq!(
+            repository_root_offenders(root.path())?,
+            ["LICENSE: unexpected repository-root entry"]
+        );
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn repository_root_rejects_symlinks_that_hide_output_locations() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        std::fs::create_dir(root.path().join("artifacts"))?;
+        std::os::unix::fs::symlink("artifacts", root.path().join("runs"))?;
+        std::os::unix::fs::symlink("artifacts", root.path().join("crates"))?;
+        assert_eq!(
+            repository_root_offenders(root.path())?,
+            ["crates: unexpected repository-root entry", "runs: unexpected repository-root entry",]
+        );
+        Ok(())
+    }
 
     fn materialize_allowed_root(
         root: &std::path::Path,

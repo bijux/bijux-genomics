@@ -2,7 +2,9 @@
 
 ## Test Files
 
-- `tests/contracts.rs` checks typed science identifier validation.
+- `tests/contracts.rs` checks typed science identifier validation and external evidence acquisition.
+  `tests/contracts/archive_sync.py` uses local Git fixtures to exercise clone/fetch,
+  export, storage overrides, and rejected destinations without network access.
 - `tests/fastq_environment_slice.rs` verifies compiled FASTQ evidence and generated output parity.
 - `tests/tsv_shape.rs` verifies governed TSV files remain rectangular.
 - `tests/guardrails.rs` runs shared workspace guardrails for this crate.

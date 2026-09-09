@@ -14,6 +14,7 @@ mod dependency_graph;
 mod governance;
 mod no_wait;
 mod ownership;
+mod science_archive;
 mod workspace_contracts;
 
 pub(crate) use artifacts::{

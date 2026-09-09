@@ -3,6 +3,10 @@
 This directory governs the local archive of GitHub repositories referenced as
 upstream evidence by `bijux-genomics`.
 
+Only this contract and `MANIFEST.tsv` belong in the product repository. Mirror
+and export locators use the logical `science/docs/` namespace and resolve below
+the external sibling `bijux-genomics-science/` after removing that prefix.
+
 [../README.md](../README.md) defines the broader upstream archive contract that
 this GitHub-mirror surface complements.
 
@@ -25,6 +29,8 @@ python3 makes/bin/sync_science_docs_github_repos.py
 ```
 
 Add `--archive-format tar.gz` when a compressed portable snapshot is required.
+Use `--evidence-root PATH` or `BIJUX_SCIENCE_ARCHIVE_ROOT` to choose another
+external archive. Payload paths inside the product checkout are rejected.
 
 ## Scope Boundary
 

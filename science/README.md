@@ -21,7 +21,7 @@ local-archive boundary for the full science control surface.
 - [science/generated/README.md](generated/README.md) is the committed compiler output surface
 - [science/specs/releases/README.md](specs/releases/README.md) owns release
   output cuts under `artifacts/science-releases/**`
-- [science/docs/README.md](docs/README.md) is the local manual archive for non-shareable evidence payloads
+- [science/docs/README.md](docs/README.md) governs locator metadata for externally stored evidence payloads
 
 The first implemented slice is the FASTQ environment and container support surface:
 
@@ -73,8 +73,9 @@ for the stage- and tool-level ledger inventory.
 
 ## Local Evidence Archive
 
-[science/docs/README.md](docs/README.md) is intentionally separate from
-`science/`.
+[science/docs/README.md](docs/README.md) defines archive locator metadata.
+Downloaded payloads live separately in `../bijux-genomics-science/`; normal
+science builds do not require that external archive.
 
 - [science/specs/evidence/README.md](specs/evidence/README.md) records the
   authored identifiers, claims, and reviewable metadata for the current slice.
@@ -84,4 +85,5 @@ for the stage- and tool-level ledger inventory.
   is not acceptable.
 - [science/generated/indexes/science_index.json](generated/indexes/science_index.json)
   may report expected archive paths, but the archive contents themselves stay
-  outside Git.
+  outside the product checkout. The `science/docs/` prefix in stored archive
+  locators is a logical namespace resolved against the external archive root.
