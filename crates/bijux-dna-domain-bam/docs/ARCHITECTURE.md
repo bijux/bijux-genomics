@@ -23,7 +23,14 @@ src/
 ├── reference.rs
 ├── stage_specs/
 └── types/
+    └── artifact_reports/   # persisted schemas grouped by scientific responsibility
 ```
+
+## Artifact schema boundary
+
+`types/artifact_reports/` owns persisted identity, alignment, filtering, duplicate, coverage, recalibration, ancient DNA, population, workflow, resource and corpus models. Models depend on explicit sibling types and pure parameters/metrics; they do not import artifact processing or filesystem operations. Public names, schema identities and serialized fields remain stable through crate-root exports.
+
+`artifacts.rs` still contains existing small-fixture parsing, transformations and report evaluation. Those effects are separate from the model modules and require further execution-owner separation; moving models does not create independent Cargo compilation units.
 
 ## Responsibilities
 
@@ -39,5 +46,5 @@ src/
 ## Boundaries
 
 - This crate provides types and deterministic parsing helpers to downstream crates.
-- This crate does not choose tools, spawn processes, inspect environments, write generated configs, or execute pipeline stages.
+- Model modules do not choose tools, spawn processes, inspect environments, or write generated configs. Existing small-fixture transformation helpers still perform file IO in `artifacts.rs`.
 - Runtime execution belongs in runner, runtime, stage, planner, or developer-control-plane crates.

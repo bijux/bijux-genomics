@@ -1,3 +1,4 @@
+pub(crate) mod artifact_reports;
 mod contig;
 mod paths;
 mod sample_meta;
