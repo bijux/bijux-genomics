@@ -81,10 +81,8 @@ fn build_base_row(
     let binding_key = (stage_row.stage_id.clone(), tool_id.to_string());
     let binding_rows = index.full_rows_by_binding.get(&binding_key).cloned().unwrap_or_default();
     let evidence_row = index.evidence.get(&binding_key);
-    let runtime_row =
-        select_runtime_row(stage_row, tool_id, &index.runtime_by_binding, evidence_row.is_some());
-    let memory_row =
-        select_memory_row(stage_row, tool_id, &index.memory_by_binding, evidence_row.is_some());
+    let runtime_row = select_runtime_row(&stage_row.stage_id, tool_id, &index.runtime_by_binding);
+    let memory_row = select_memory_row(&stage_row.stage_id, tool_id, &index.memory_by_binding);
     let failure_class = classify_failure_class(
         &binding_rows,
         evidence_row,
