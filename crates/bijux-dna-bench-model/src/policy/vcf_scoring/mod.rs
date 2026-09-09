@@ -5,6 +5,7 @@ use crate::{
     StageScoringCorrectnessSignal, StageScoringDecisionMode, VcfToolScoreRow, VcfToolScoringInput,
 };
 
+mod admission;
 mod assembly;
 mod ranking;
 mod report;
@@ -61,6 +62,7 @@ pub fn build_vcf_tool_score_rows(
     input: VcfToolScoringInput,
 ) -> anyhow::Result<Vec<VcfToolScoreRow>> {
     crate::validate_stage_scoring_config(&input.config)?;
+    admission::validate_input(&input)?;
     Ok(score_base_rows(assembly::collect_base_score_rows(input)))
 }
 
@@ -280,6 +282,111 @@ mod tests {
         let mut invalid = input()?;
         invalid.config.rows[0].weights.runtime = f64::NAN;
         assert!(build_vcf_tool_score_rows(invalid).is_err());
+        Ok(())
+    }
+    #[test]
+    fn vcf_scoring_never_attributes_another_tools_metrics_to_the_default_binding() -> Result<()> {
+        for observed_tool in ["beta", "unregistered"] {
+            let mut input = input()?;
+            input.runtime_rows.retain(|row| row.tool_id == "beta");
+            input.memory_rows.retain(|row| row.tool_id == "beta");
+            input.runtime_rows[0].tool_id = observed_tool.into();
+            input.memory_rows[0].tool_id = observed_tool.into();
+            let rows = build_vcf_tool_score_rows(input)?;
+            assert_eq!(rows[0].tool_id, "alpha");
+            assert!(rows[0].runtime_seconds.is_none(), "foreign runtime from {observed_tool}");
+            assert!(rows[0].observed_memory_mb.is_none(), "foreign memory from {observed_tool}");
+            assert!(rows[0].declared_memory_mb.is_none());
+            assert_eq!(rows[0].runtime_source, "not_available");
+            assert_eq!(rows[0].memory_source, "not_available");
+            if observed_tool == "beta" {
+                assert_eq!(rows[1].runtime_seconds, Some(3.0));
+                assert_eq!(rows[1].observed_memory_mb, Some(20.0));
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn vcf_scoring_keeps_execution_failure_at_its_observed_tool_binding() -> Result<()> {
+        let mut input = input()?;
+        input.runtime_rows.retain(|row| row.tool_id == "beta");
+        input.runtime_rows[0].execution_status = "failed".into();
+        let rows = build_vcf_tool_score_rows(input)?;
+        assert_eq!(rows[0].score_status, VcfToolScoreStatus::Scored);
+        assert_eq!(rows[0].failure_class, "none");
+        assert_eq!(rows[1].score_status, VcfToolScoreStatus::Blocked);
+        assert_eq!(rows[1].failure_class, "command_failed");
+        Ok(())
+    }
+
+    #[test]
+    fn vcf_scoring_rejects_invalid_correctness_fractions() -> Result<()> {
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -0.1, 1.1] {
+            for truth in [false, true] {
+                let mut data = input()?;
+                for evidence in data.evidence.values_mut() {
+                    if truth {
+                        evidence.truth_correctness_score = Some(value);
+                    } else {
+                        evidence.contract_correctness_score = Some(value);
+                    }
+                }
+                assert!(build_vcf_tool_score_rows(data).is_err());
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn vcf_scoring_rejects_invalid_runtime_memory_and_nonfinite_metrics() -> Result<()> {
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -1.0] {
+            for field in 0..4 {
+                let mut data = input()?;
+                match field {
+                    0 => data.runtime_rows[0].elapsed_seconds = Some(value),
+                    1 => data.memory_rows[0].observed_memory_mb = Some(value),
+                    2 => data.memory_rows[0].declared_memory_mb = Some(value),
+                    _ => {
+                        for evidence in data.evidence.values_mut() {
+                            evidence.runtime_seconds = Some(value);
+                        }
+                    }
+                }
+                assert!(build_vcf_tool_score_rows(data).is_err());
+            }
+        }
+        for field in 0..4 {
+            let mut data = input()?;
+            for evidence in data.evidence.values_mut() {
+                match field {
+                    0 => evidence.genotype_truth_metric_value = Some(f64::NAN),
+                    1 => evidence.missingness_metric_value = Some(f64::INFINITY),
+                    2 => evidence.phasing_imputation_metric_value = Some(f64::NAN),
+                    _ => evidence.population_metric_value = Some(f64::NEG_INFINITY),
+                }
+            }
+            assert!(build_vcf_tool_score_rows(data).is_err());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn vcf_scoring_preserves_metric_units_and_zero_runtime() -> Result<()> {
+        let mut data = input()?;
+        data.runtime_rows[0].elapsed_seconds = Some(0.0);
+        data.memory_rows[0].observed_memory_mb = Some(0.0);
+        for evidence in data.evidence.values_mut() {
+            evidence.genotype_truth_metric_value = Some(35.0);
+            evidence.genotype_truth_metric_basis = Some("variant_count".into());
+            evidence.population_metric_value = Some(-0.2);
+            evidence.population_metric_basis = Some("signed_estimate_fixture".into());
+        }
+        let rows = build_vcf_tool_score_rows(data)?;
+        assert_eq!(rows[0].runtime_seconds, Some(0.0));
+        assert_eq!(rows[0].observed_memory_mb, Some(0.0));
+        assert!(rows.iter().all(|row| row.genotype_truth_metric_value == Some(35.0)));
+        assert!(rows.iter().all(|row| row.population_metric_value == Some(-0.2)));
         Ok(())
     }
 }

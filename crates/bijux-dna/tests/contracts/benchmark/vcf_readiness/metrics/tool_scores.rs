@@ -23,6 +23,25 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let home = tempfile::tempdir().expect("tempdir");
     sandbox.materialize_vcf_score_evidence(home.path()).expect("materialize VCF score evidence");
 
+    // Keep the unavailable-tool conflict deterministic on hosts with different tools installed.
+    let micro_path =
+        sandbox.path().join("artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json");
+    let mut micro: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&micro_path).expect("read micro observations"))
+            .expect("parse micro observations");
+    let runtime = micro["runtime_rows"].as_array_mut().expect("runtime observations");
+    let row = runtime
+        .iter_mut()
+        .find(|row| row["stage_id"] == "vcf.gl_propagation" && row["tool_id"] == "bcftools")
+        .expect("likelihood propagation observation");
+    row["execution_status"] = serde_json::json!("unavailable");
+    row["elapsed_seconds"] = serde_json::Value::Null;
+    std::fs::write(
+        &micro_path,
+        serde_json::to_vec_pretty(&micro).expect("serialize micro observations"),
+    )
+    .expect("write unavailable observation");
+
     let output = run_cli(&sandbox, home.path(), args);
     assert!(
         output.status.success(),
@@ -56,14 +75,14 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
         payload.get("insufficient_evidence_row_count").and_then(serde_json::Value::as_u64),
         Some(11)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(5));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let row_count = rows.len() as u64;
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
     assert_eq!(
         payload.get("scored_row_count").and_then(serde_json::Value::as_u64),
-        Some(row_count - 15)
+        Some(row_count - 16)
     );
 
     let failure_counts = payload
@@ -72,7 +91,7 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
         .expect("failure_class_counts");
     assert_eq!(
         failure_counts.get("none").and_then(serde_json::Value::as_u64),
-        Some(row_count - 15)
+        Some(row_count - 16)
     );
     assert_eq!(
         failure_counts.get("blocked_external_access").and_then(serde_json::Value::as_u64),
@@ -102,6 +121,17 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
         );
         assert_eq!(licensed.get("score_total"), Some(&serde_json::Value::Null));
     }
+
+    let unavailable = rows
+        .iter()
+        .find(|row| row["stage_id"] == "vcf.gl_propagation" && row["tool_id"] == "bcftools")
+        .expect("unavailable tool score row");
+    assert_eq!(unavailable["micro_execution_status"], "unavailable");
+    assert_eq!(unavailable["contract_correctness_score"], 1.0);
+    assert_eq!(unavailable["failure_class"], "tool_not_found");
+    assert_eq!(unavailable["score_status"], "blocked");
+    assert_eq!(unavailable["score_total"], serde_json::Value::Null);
+    assert_eq!(failure_counts["tool_not_found"], 1);
 
     let qc_plink2 = rows
         .iter()
