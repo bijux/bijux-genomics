@@ -1,18 +1,9 @@
 //! Owner: runner bundle filesystem paths, persistence support, and content identities.
 use anyhow::{anyhow, Context, Result};
+pub use bijux_dna_bench_model::sidecar_path_for;
 use sha2::{Digest, Sha256};
 use std::io::Read;
 use std::path::{Path, PathBuf};
-#[must_use]
-pub fn sidecar_path_for(bundle_path: &Path) -> PathBuf {
-    let mut path = bundle_path.to_path_buf();
-    let suffix = bundle_path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .map_or_else(|| "bundle.sidecar.json".to_string(), |name| format!("{name}.sidecar.json"));
-    path.set_file_name(suffix);
-    path
-}
 #[must_use]
 pub fn sha256_hex(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();

@@ -814,4 +814,11 @@ pub use crate::policy::hpc_campaign::{
     evaluate_campaign_preflight, resolve_hpc_campaign_resource_template,
 };
 
-pub use crate::model::hpc_campaign::{BundleSidecar, BUNDLE_SIDECAR_SCHEMA_VERSION};
+pub use crate::model::hpc_campaign::{
+    sidecar_path_for, BundleSidecar, BUNDLE_SIDECAR_SCHEMA_VERSION,
+};
+
+pub use crate::model::hpc_campaign::{
+    SlurmMonitorEntry, SlurmMonitorReport, SlurmMonitorSnapshot, CAMPAIGN_MONITOR_SCHEMA_VERSION,
+};
+pub use crate::policy::campaign_monitor::summarize_campaign_monitor;

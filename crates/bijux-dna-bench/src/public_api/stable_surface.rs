@@ -693,3 +693,6 @@ pub use bijux_dna_bench_model::{
     PlannedJob, PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
     ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
 };
+
+pub use crate::workflow::hpc_campaign::monitor_campaign;
+pub use bijux_dna_bench_model::{SlurmMonitorEntry, SlurmMonitorReport, SlurmMonitorSnapshot};

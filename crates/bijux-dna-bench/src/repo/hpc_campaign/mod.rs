@@ -3,3 +3,5 @@
 pub(crate) mod configuration;
 pub(crate) mod environment;
 pub(crate) mod profiles;
+
+pub(crate) mod monitor;

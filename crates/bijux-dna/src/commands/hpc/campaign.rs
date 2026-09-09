@@ -11,7 +11,7 @@ pub use bijux_dna_api::v1::api::bench::{
 };
 use std::path::{Path, PathBuf};
 const DEFAULT_CAMPAIGN_PROFILE_OUT_DIR: &str = "benchmarks/configs/hpc/campaign";
-fn campaign_context() -> Result<CampaignContext> {
+pub(super) fn campaign_context() -> Result<CampaignContext> {
     let workspace_root = std::env::current_dir().context("resolve current directory")?;
     Ok(CampaignContext {
         campaign_root: BenchmarkPathResolver::new(&workspace_root, None)

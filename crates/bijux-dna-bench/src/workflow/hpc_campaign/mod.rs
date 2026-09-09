@@ -18,6 +18,8 @@ pub struct CampaignContext {
     pub timestamp: String,
 }
 
+pub(crate) mod monitor;
+pub use monitor::monitor_campaign;
 pub use planning::campaign_dry_run;
 pub use preflight::campaign_preflight;
 #[cfg(test)]

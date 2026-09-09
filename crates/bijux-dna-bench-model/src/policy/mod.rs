@@ -17,3 +17,5 @@ pub mod output_audit;
 pub mod operational_readiness;
 
 pub mod hpc_campaign;
+
+pub(crate) mod campaign_monitor;

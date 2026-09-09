@@ -68,3 +68,15 @@ fn backend_schema(_: &mut SchemaGenerator) -> Schema {
 fn digest_schema(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type":"string", "pattern": "^[0-9a-f]{64}$"})
 }
+
+/// Resolve the canonical sidecar filename without filesystem effects.
+#[must_use]
+pub fn sidecar_path_for(bundle_path: &std::path::Path) -> std::path::PathBuf {
+    let mut path = bundle_path.to_path_buf();
+    let suffix = bundle_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map_or_else(|| "bundle.sidecar.json".to_string(), |name| format!("{name}.sidecar.json"));
+    path.set_file_name(suffix);
+    path
+}

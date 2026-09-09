@@ -1,3 +1,4 @@
+pub use bijux_dna_api::v1::api::bench::SlurmMonitorReport;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -59,46 +60,6 @@ pub struct CopyBackManifestReport {
     pub domain: String,
     pub suggested_copy_command: String,
     pub entries: Vec<CopyBackEntry>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct SlurmMonitorReport {
-    pub schema_version: &'static str,
-    pub campaign_id: String,
-    pub domain: String,
-    pub snapshot: SlurmMonitorSnapshot,
-    pub jobs: Vec<SlurmMonitorEntry>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct SlurmMonitorSnapshot {
-    pub total_jobs: usize,
-    pub jobs_with_log: usize,
-    pub jobs_with_out: usize,
-    pub jobs_with_err: usize,
-    pub jobs_with_results_bundle: usize,
-    pub jobs_with_code_bundle: usize,
-    pub jobs_with_appraiser_done: usize,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[allow(clippy::struct_excessive_bools)]
-pub struct SlurmMonitorEntry {
-    pub planned_job_id: String,
-    pub scheduler_job_id: String,
-    pub stage: String,
-    pub tool: String,
-    pub sample: String,
-    pub log_exists: bool,
-    pub out_exists: bool,
-    pub err_exists: bool,
-    pub results_exists: bool,
-    pub results_sidecar_exists: bool,
-    pub results_bundle_encrypted: bool,
-    pub code_exists: bool,
-    pub code_sidecar_exists: bool,
-    pub code_bundle_encrypted: bool,
-    pub appraiser_done: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -889,121 +850,14 @@ pub fn cancel_jobs(
     )
 }
 
-fn is_encrypted_bundle_marker(path: &Path) -> bool {
-    let Ok(bytes) = std::fs::read(path) else {
-        return false;
-    };
-    let preview_len = bytes.len().min(512);
-    let preview = String::from_utf8_lossy(&bytes[..preview_len]);
-    preview.contains("\"schema_version\": \"bijux.hpc.bundle.")
-}
-
-#[derive(Debug, Deserialize)]
-struct SubmissionManifestJobRow {
-    planned_job_id: Option<String>,
-    scheduler_job_id: Option<String>,
-    log_path: Option<String>,
-    out_path: Option<String>,
-    err_path: Option<String>,
-    results_path: Option<String>,
-    code_path: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct SubmissionManifestFile {
-    jobs: Vec<SubmissionManifestJobRow>,
-}
-
-fn submission_jobs_from_manifest(
-    path: &Path,
-) -> Result<BTreeMap<String, SubmissionManifestJobRow>> {
-    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let manifest: SubmissionManifestFile =
-        serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
-    Ok(manifest
-        .jobs
-        .into_iter()
-        .filter_map(|row| row.planned_job_id.clone().map(|planned_id| (planned_id, row)))
-        .collect())
-}
-
 pub fn monitor_campaign(args: &SlurmMonitorArgs) -> Result<SlurmMonitorReport> {
-    let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
-    let submitted_jobs = if let Some(path) = &args.submission_manifest {
-        submission_jobs_from_manifest(path)?
-    } else {
-        BTreeMap::new()
-    };
-    let mut entries = Vec::new();
-    for job in &report.planned_jobs {
-        let submitted_job = submitted_jobs.get(&job.job_id);
-        let log_path =
-            submitted_job.and_then(|row| row.log_path.as_deref()).unwrap_or(&job.outputs.log);
-        let out_path =
-            submitted_job.and_then(|row| row.out_path.as_deref()).unwrap_or(&job.outputs.out);
-        let err_path =
-            submitted_job.and_then(|row| row.err_path.as_deref()).unwrap_or(&job.outputs.err);
-        let results_path = submitted_job
-            .and_then(|row| row.results_path.as_deref())
-            .unwrap_or(&job.outputs.results);
-        let code_path =
-            submitted_job.and_then(|row| row.code_path.as_deref()).unwrap_or(&job.outputs.code);
-        let log_exists = Path::new(log_path).is_file();
-        let out_exists = Path::new(out_path).is_file();
-        let err_exists = Path::new(err_path).is_file();
-        let results_exists = Path::new(results_path).is_file();
-        let code_exists = Path::new(code_path).is_file();
-        let results_sidecar_exists = sidecar_path_for(Path::new(results_path)).is_file();
-        let code_sidecar_exists = sidecar_path_for(Path::new(code_path)).is_file();
-        let results_bundle_encrypted =
-            results_exists && is_encrypted_bundle_marker(Path::new(results_path));
-        let code_bundle_encrypted = code_exists && is_encrypted_bundle_marker(Path::new(code_path));
-        let appraiser_done = PathBuf::from(format!("{results_path}.appraiser.done")).is_file();
-        entries.push(SlurmMonitorEntry {
-            planned_job_id: job.job_id.clone(),
-            scheduler_job_id: submitted_job
-                .and_then(|row| row.scheduler_job_id.clone())
-                .unwrap_or_else(|| "<unknown>".to_string()),
-            stage: job.stage.clone(),
-            tool: job.tool.clone(),
-            sample: job.sample.clone(),
-            log_exists,
-            out_exists,
-            err_exists,
-            results_exists,
-            results_sidecar_exists,
-            results_bundle_encrypted,
-            code_exists,
-            code_sidecar_exists,
-            code_bundle_encrypted,
-            appraiser_done,
-        });
-    }
-    let snapshot = SlurmMonitorSnapshot {
-        total_jobs: entries.len(),
-        jobs_with_log: entries.iter().filter(|row| row.log_exists).count(),
-        jobs_with_out: entries.iter().filter(|row| row.out_exists).count(),
-        jobs_with_err: entries.iter().filter(|row| row.err_exists).count(),
-        jobs_with_results_bundle: entries
-            .iter()
-            .filter(|row| {
-                row.results_exists && row.results_sidecar_exists && row.results_bundle_encrypted
-            })
-            .count(),
-        jobs_with_code_bundle: entries
-            .iter()
-            .filter(|row| row.code_exists && row.code_sidecar_exists && row.code_bundle_encrypted)
-            .count(),
-        jobs_with_appraiser_done: entries.iter().filter(|row| row.appraiser_done).count(),
-    };
-    Ok(SlurmMonitorReport {
-        schema_version: SLURM_SUBMISSION_SCHEMA_VERSION,
-        campaign_id: report.campaign_id,
-        domain: report.domain,
-        snapshot,
-        jobs: entries,
-    })
+    bijux_dna_api::v1::api::bench::monitor_campaign(
+        &crate::commands::hpc::campaign::campaign_context()?,
+        &args.config,
+        args.env_file.as_deref(),
+        args.user_policies.as_deref(),
+        args.submission_manifest.as_deref(),
+    )
 }
 
 pub fn write_copy_back_manifest(

@@ -98,3 +98,7 @@ output directory. Availability inspection does not execute or submit jobs.
 source admission, resource-template selection and preflight decisions. Preflight
 receives typed observations covering every configured layout root exactly once.
 The CLI adapts requests and output; Slurm submission remains runner behavior.
+
+## Campaign monitoring
+
+Campaign monitoring composes the local plan with explicit repository observations. The repository adapter resolves paths against the caller's workspace, projects submitted job metadata, rejects ambiguous identities and unsupported declared versions, and reads only the historical 512-byte bundle marker preview. The pure benchmark model aggregates typed observations and owns the monitor output schema. The CLI only adapts arguments and presents the report. Historical marker flags do not establish confidentiality or ciphertext integrity.

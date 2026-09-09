@@ -723,3 +723,7 @@ pub use bijux_dna_bench::{
     PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
     ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
 };
+
+pub use bijux_dna_bench::{
+    monitor_campaign, SlurmMonitorEntry, SlurmMonitorReport, SlurmMonitorSnapshot,
+};

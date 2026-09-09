@@ -5,4 +5,9 @@ mod reports;
 pub use configuration::*;
 pub use reports::*;
 
-pub use bundle::{BundleSidecar, BUNDLE_SIDECAR_SCHEMA_VERSION};
+pub use bundle::{sidecar_path_for, BundleSidecar, BUNDLE_SIDECAR_SCHEMA_VERSION};
+
+mod monitor;
+pub use monitor::{
+    SlurmMonitorEntry, SlurmMonitorReport, SlurmMonitorSnapshot, CAMPAIGN_MONITOR_SCHEMA_VERSION,
+};
