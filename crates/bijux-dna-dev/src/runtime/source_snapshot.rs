@@ -45,6 +45,61 @@ impl TrackedSourceSnapshot {
         bijux_dna_infra::hash_bytes_sha256(&self.patch)
     }
 
+    pub(crate) fn is_clean(&self) -> bool {
+        self.patch.is_empty()
+    }
+
+    /// Reuse only a previously owned clean checkout while preserving unchanged input timestamps.
+    /// The caller must hold the compilation cache writer lease throughout use of this checkout.
+    pub(crate) fn materialize_cached_clean(&self, destination: &Path) -> Result<()> {
+        ensure!(self.is_clean(), "cached compilation source requires a clean tracked snapshot");
+        let isolated = Workspace { root: destination.to_path_buf() };
+        let marker = destination.join(".git/bijux-source-cache.json");
+        let origin = self.source.root.canonicalize()?;
+        match destination.symlink_metadata() {
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                self.materialize(destination)?;
+            }
+            Err(error) => return Err(error).context("inspect cached source owner"),
+            Ok(metadata) => {
+                ensure!(
+                    metadata.is_dir() && !metadata.file_type().is_symlink(),
+                    "cached source owner must be a directory"
+                );
+                ensure!(
+                    !destination.join(".git").symlink_metadata()?.file_type().is_symlink(),
+                    "cached Git metadata must not be redirected"
+                );
+                let ownership: serde_json::Value = serde_json::from_slice(
+                    &bijux_dna_infra::read_to_end_bounded(&marker, 16 * 1024)?,
+                )?;
+                ensure!(
+                    ownership["schema_version"] == "bijux.ci.source_cache.v1"
+                        && ownership["origin"] == serde_json::json!(origin),
+                    "cached source belongs to a different authority"
+                );
+                let current = TrackedSourceSnapshot::capture(&isolated)?;
+                ensure!(
+                    current.is_clean() && ownership["commit"] == current.commit(),
+                    "cached compilation inputs changed outside their owner"
+                );
+                ensure!(
+                    git(&isolated, &["ls-files", "--others", "--exclude-standard", "-z"])?
+                        .is_empty(),
+                    "cached source contains untracked input"
+                );
+                if current.commit() != self.commit() {
+                    git(&isolated, &["checkout", "--quiet", "--detach", self.commit()])?;
+                }
+            }
+        }
+        bijux_dna_infra::atomic_write_json(
+            &marker,
+            &serde_json::json!({"schema_version":"bijux.ci.source_cache.v1","origin":origin,"commit":self.commit()}),
+        )?;
+        Ok(())
+    }
+
     /// Materialize into a new caller-owned scratch directory. Existing paths are never removed.
     pub(crate) fn materialize(&self, destination: &Path) -> Result<()> {
         ensure!(
@@ -215,6 +270,42 @@ mod tests {
             0
         );
         assert_eq!(std::fs::read(source.path("modified.txt"))?, b"before\n");
+        Ok(())
+    }
+    #[test]
+    fn cached_clean_snapshot_preserves_unchanged_mtimes_and_advances_changed_inputs() -> Result<()>
+    {
+        let (root, source) = source_fixture()?;
+        let snapshot = TrackedSourceSnapshot::capture(&source)?;
+        let cache = root.path().join("cache");
+        snapshot.materialize_cached_clean(&cache)?;
+        let unchanged = cache.join("unchanged.txt");
+        let before = std::fs::metadata(&unchanged)?.modified()?;
+        snapshot.materialize_cached_clean(&cache)?;
+        assert_eq!(std::fs::metadata(&unchanged)?.modified()?, before);
+        std::fs::write(source.path("modified.txt"), b"advanced input with a new length")?;
+        git(&source, &["commit", "--quiet", "-am", "fixture: advance cached source"])?;
+        TrackedSourceSnapshot::capture(&source)?.materialize_cached_clean(&cache)?;
+        assert_eq!(std::fs::read(cache.join("modified.txt"))?, b"advanced input with a new length");
+        assert_eq!(std::fs::metadata(&unchanged)?.modified()?, before);
+        std::fs::write(cache.join("modified.txt"), b"unexpected edit")?;
+        assert!(TrackedSourceSnapshot::capture(&source)?.materialize_cached_clean(&cache).is_err());
+        assert_eq!(std::fs::read(cache.join("modified.txt"))?, b"unexpected edit");
+        Ok(())
+    }
+
+    #[test]
+    fn cached_source_never_adopts_unowned_or_dirty_input() -> Result<()> {
+        let (root, source) = source_fixture()?;
+        let snapshot = TrackedSourceSnapshot::capture(&source)?;
+        let unowned = root.path().join("unowned");
+        snapshot.materialize(&unowned)?;
+        assert!(snapshot.materialize_cached_clean(&unowned).is_err());
+        std::fs::write(source.path("modified.txt"), b"dirty input")?;
+        let dirty = TrackedSourceSnapshot::capture(&source)?;
+        assert!(dirty.materialize_cached_clean(&root.path().join("dirty-cache")).is_err());
+        dirty.materialize(&root.path().join("dirty-run"))?;
+        assert_eq!(std::fs::read(root.path().join("dirty-run/modified.txt"))?, b"dirty input");
         Ok(())
     }
 }

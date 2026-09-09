@@ -1137,8 +1137,13 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let mut ephemera = FullShardEphemera::new(&storage.scratch_root, &archive_roots, &shard_roots);
     prepare_full_archive_roots(&archive_roots)?;
     let preparation_started = Instant::now();
-    let archive_workspace =
-        materialize_full_shard_workspace(&source_snapshot, &storage.scratch_root, "archive-build")?;
+    let archive_workspace = if source_snapshot.is_clean() {
+        let path = storage.scratch_root.join("compile-cache/workspace");
+        source_snapshot.materialize_cached_clean(&path)?;
+        path
+    } else {
+        materialize_full_shard_workspace(&source_snapshot, &storage.scratch_root, "archive-build")?
+    };
     let archive_preparation = preparation_started.elapsed();
     let archive_spec = ParallelProcessSpec {
         label: "archive-build".to_string(),
@@ -1204,6 +1209,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     "archive_retained": false,
                     "build_targets_retained": true,
                     "compilation_cache_target": compilation_cache.target(),
+                    "compilation_workspace": archive_workspace,
+                    "compilation_workspace_retained": source_snapshot.is_clean(),
                     "isolated_workspaces_retained": false,
                     "shard_runtime_artifacts_retained": false,
                 },
@@ -1350,6 +1357,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "archive_retained": false,
                 "build_targets_retained": true,
                     "compilation_cache_target": compilation_cache.target(),
+                    "compilation_workspace": archive_workspace,
+                    "compilation_workspace_retained": source_snapshot.is_clean(),
                 "isolated_workspaces_retained": false,
                 "shard_runtime_artifacts_retained": false,
             },
