@@ -79,6 +79,18 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
         PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/all-domain-stage-tool-table.schema.json",
+            || schemars::schema_for!(super::AllDomainStageToolTableReport),
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/all-domain-rendered-commands.schema.json",
+            || schemars::schema_for!(super::AllDomainRenderedCommandsReport),
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/all-domain-rendered-command-argv-row.schema.json",
+            || schemars::schema_for!(super::AllDomainRenderedCommandArgvRow),
+        ),
+        PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/full-benchmark-dashboard.schema.json",
             || schemars::schema_for!(super::FullBenchmarkDashboardReport),
         ),
