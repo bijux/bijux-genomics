@@ -652,3 +652,9 @@ pub use crate::artifacts::{
 };
 
 pub use crate::repo::materialize_benchmark_reference_fasta;
+
+pub use bijux_dna_bench_model::{
+    build_bam_tool_score_rows, build_bam_tool_scores_report, BamScoreEvidence, BamScoreExpectedRow,
+    BamScoreMemoryRow, BamScoreRuntimeRow, BamToolScoreRow, BamToolScoreStatus,
+    BamToolScoresReport, BamToolScoringInput, BAM_TOOL_SCORES_SCHEMA_VERSION,
+};

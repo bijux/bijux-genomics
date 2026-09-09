@@ -767,3 +767,9 @@ pub use crate::model::fastq_scoring::{
 pub use crate::policy::fastq_scoring::{
     build_fastq_tool_score_rows, build_fastq_tool_scores_report,
 };
+
+pub use crate::model::bam_scoring::{
+    BamScoreEvidence, BamScoreExpectedRow, BamScoreMemoryRow, BamScoreRuntimeRow, BamToolScoreRow,
+    BamToolScoreStatus, BamToolScoresReport, BamToolScoringInput, BAM_TOOL_SCORES_SCHEMA_VERSION,
+};
+pub use crate::policy::bam_scoring::{build_bam_tool_score_rows, build_bam_tool_scores_report};

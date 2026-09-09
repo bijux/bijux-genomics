@@ -93,3 +93,5 @@ read-only drift gate.
 ## Catalog linkage
 
 The default `canonical-fastq-catalog` feature preserves `contract::validate_suite` and the canonical FASTQ adapter. Pure record consumers can disable default features and use `contract::validate_suite_with_catalog` with an explicit provider. This removes the model-to-FASTQ compilation dependency for those builds. Full workspace feature unification may still enable the canonical adapter; a minimal consumer build is a separate measured configuration.
+
+BAM scoring records, per-binding evidence selection, weighted ranking and report counts are owned by the model scoring policy. Callers supply typed observations; repository acquisition and TSV presentation remain adapter responsibilities.

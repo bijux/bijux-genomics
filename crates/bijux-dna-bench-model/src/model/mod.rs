@@ -755,3 +755,5 @@ pub use readiness::rendered_commands::{
     AllDomainRenderedCommandStep, AllDomainRenderedCommandsReport,
     ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION,
 };
+
+pub mod bam_scoring;
