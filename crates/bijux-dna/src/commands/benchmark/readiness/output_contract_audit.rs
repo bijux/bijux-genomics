@@ -1,6 +1,6 @@
 use bijux_dna_api::v1::api::bench::{
-    build_output_contract_tests_report, evaluate_output_contract_row, OutputContractProof,
-    OutputContractRuntimePaths,
+    build_output_contract_tests_report, evaluate_output_contract_row, load_vcf_execution_blocker,
+    OutputContractProof, OutputContractRuntimePaths,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{OutputContractTestRow, OutputContractTestsReport};
 use std::collections::{BTreeMap, BTreeSet};
@@ -738,7 +738,7 @@ fn vcf_tool_proof_from_manifest(
     manifest_path: &str,
     manifest: BenchStageResultManifestV1,
 ) -> Result<VcfToolProof> {
-    let execution_blocker = vcf_execution_blocker(repo_root, &manifest)?;
+    let execution_blocker = load_vcf_execution_blocker(repo_root, &manifest)?;
     let mut observed_ids = BTreeSet::<String>::new();
     let mut observed_paths_by_id = BTreeMap::<String, Vec<String>>::new();
     for output in manifest.outputs {
@@ -760,118 +760,6 @@ fn vcf_tool_proof_from_manifest(
         independent_execution_proven: execution_blocker.is_none(),
         execution_blocker,
     })
-}
-
-fn vcf_execution_blocker(
-    repo_root: &Path,
-    manifest: &BenchStageResultManifestV1,
-) -> Result<Option<String>> {
-    let report_artifact_id = match manifest.stage_id.as_str() {
-        "vcf.admixture" => "admixture_json",
-        "vcf.phasing" => "phasing_manifest",
-        "vcf.ibd" => "ibd_json",
-        "vcf.pca" => "pca_json",
-        "vcf.population_structure" => "source_population_structure_json",
-        "vcf.demography" => "demography_json",
-        _ => return Ok(None),
-    };
-    let report_output = manifest
-        .outputs
-        .iter()
-        .find(|output| output.artifact_id == report_artifact_id && output.exists)
-        .ok_or_else(|| {
-            anyhow!(
-                "VCF tool proof `{}` / `{}` is missing `{report_artifact_id}`",
-                manifest.stage_id,
-                manifest.tool.id
-            )
-        })?;
-    let report_path = repo_relative_path(repo_root, Path::new(&report_output.realized_path));
-    let report: serde_json::Value = serde_json::from_slice(
-        &std::fs::read(&report_path)
-            .with_context(|| format!("read VCF execution proof {}", report_path.display()))?,
-    )
-    .with_context(|| format!("parse VCF execution proof {}", report_path.display()))?;
-
-    if manifest.stage_id == "vcf.population_structure" {
-        return Ok(population_structure_execution_blocker(&manifest.tool.id, &report));
-    }
-    if manifest.stage_id == "vcf.phasing" {
-        if !report
-            .get("backend_execution_attempted")
-            .and_then(serde_json::Value::as_bool)
-            .unwrap_or(false)
-        {
-            return Ok(Some(format!(
-                "selected VCF tool `{}` was not executed; phasing smoke reported `backend_execution_attempted=false`",
-                manifest.tool.id
-            )));
-        }
-    } else if manifest.stage_id == "vcf.ibd" {
-        let execution_mode =
-            report.get("execution_mode").and_then(serde_json::Value::as_str).unwrap_or("missing");
-        let tool_ok_field = format!("{}_tool_ok", manifest.tool.id);
-        let selected_tool_ok =
-            report.get(&tool_ok_field).and_then(serde_json::Value::as_bool).unwrap_or(false);
-        if execution_mode != "tool_backed" || !selected_tool_ok {
-            return Ok(Some(format!(
-                "selected VCF tool `{}` was not executed; smoke reported execution_mode `{execution_mode}` and `{tool_ok_field}={selected_tool_ok}`",
-                manifest.tool.id
-            )));
-        }
-    } else if !report.get("tool_ok").and_then(serde_json::Value::as_bool).unwrap_or(false) {
-        return Ok(Some(format!(
-            "selected VCF tool `{}` was not executed; smoke reported `tool_ok=false`",
-            manifest.tool.id
-        )));
-    }
-
-    Ok(None)
-}
-
-fn population_structure_execution_blocker(
-    selected_tool_id: &str,
-    report: &serde_json::Value,
-) -> Option<String> {
-    let pca_tool_id = report.pointer("/pca/tool_id").and_then(serde_json::Value::as_str);
-    let pca_tool_ok = report.pointer("/pca/tool_ok").and_then(serde_json::Value::as_bool);
-    let expected_admixture_tool_id =
-        if selected_tool_id == "eigensoft" { "plink2" } else { selected_tool_id };
-    let admixture_tool_id =
-        report.pointer("/admixture/tool_id").and_then(serde_json::Value::as_str);
-    let admixture_tool_ok =
-        report.pointer("/admixture/tool_ok").and_then(serde_json::Value::as_bool);
-    let expected_prune_tool_id = if selected_tool_id == "plink" { "plink" } else { "plink2" };
-    let prune_tool_id =
-        report.pointer("/tool_attempts/prune/tool").and_then(serde_json::Value::as_str);
-    let prune_tool_ok =
-        report.pointer("/tool_attempts/prune/ok").and_then(serde_json::Value::as_bool);
-    let mds_tool_id = report.pointer("/tool_attempts/mds/tool").and_then(serde_json::Value::as_str);
-    let mds_tool_ok = report.pointer("/tool_attempts/mds/ok").and_then(serde_json::Value::as_bool);
-    let mds_plan_ok =
-        selected_tool_id != "plink" || (mds_tool_id == Some("plink") && mds_tool_ok == Some(true));
-    if report.get("toolchain").and_then(serde_json::Value::as_str) == Some(selected_tool_id)
-        && pca_tool_id == Some(selected_tool_id)
-        && pca_tool_ok == Some(true)
-        && admixture_tool_id == Some(expected_admixture_tool_id)
-        && admixture_tool_ok == Some(true)
-        && prune_tool_id == Some(expected_prune_tool_id)
-        && prune_tool_ok == Some(true)
-        && mds_plan_ok
-    {
-        return None;
-    }
-    Some(format!(
-        "selected VCF tool `{selected_tool_id}` did not complete its population-structure component plan; PCA `{}` ok={}, admixture `{}` ok={}, prune `{}` ok={}, MDS `{}` ok={}",
-        pca_tool_id.unwrap_or("missing"),
-        pca_tool_ok.unwrap_or(false),
-        admixture_tool_id.unwrap_or("missing"),
-        admixture_tool_ok.unwrap_or(false),
-        prune_tool_id.unwrap_or("missing"),
-        prune_tool_ok.unwrap_or(false),
-        mds_tool_id.unwrap_or("not_applicable"),
-        mds_tool_ok.unwrap_or(selected_tool_id != "plink"),
-    ))
 }
 
 fn build_row(
@@ -1106,8 +994,7 @@ mod tests {
     use super::{
         build_output_contract_audit_report, is_vcf_tool_contract_planning_refusal,
         load_validated_stage_result_manifest_path, local_stage_proof_output_path,
-        local_vcf_stage_result_manifest_path, population_structure_execution_blocker,
-        DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
+        local_vcf_stage_result_manifest_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
     };
     use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
@@ -1247,37 +1134,6 @@ mod tests {
     }
 
     #[test]
-    fn population_structure_admission_requires_exact_successful_component_plan() {
-        for (tool_id, admixture_tool_id, prune_tool_id) in [
-            ("eigensoft", "plink2", "plink2"),
-            ("plink", "plink", "plink"),
-            ("plink2", "plink2", "plink2"),
-        ] {
-            let report = serde_json::json!({
-                "toolchain": tool_id,
-                "tool_attempts": {
-                    "prune": {"tool": prune_tool_id, "ok": true},
-                    "mds": {
-                        "tool": if tool_id == "plink" { Some("plink") } else { None },
-                        "ok": if tool_id == "plink" { Some(true) } else { None }
-                    }
-                },
-                "pca": {"tool_id": tool_id, "tool_ok": true},
-                "admixture": {"tool_id": admixture_tool_id, "tool_ok": true}
-            });
-            assert_eq!(population_structure_execution_blocker(tool_id, &report), None);
-
-            let mut failed_report = report;
-            failed_report["admixture"]["tool_ok"] = serde_json::Value::Bool(false);
-            let blocker = population_structure_execution_blocker(tool_id, &failed_report)
-                .expect("failed component must block admission");
-            assert!(blocker.contains(&format!("selected VCF tool `{tool_id}`")));
-            assert!(blocker.contains("admixture"));
-            assert!(blocker.contains("ok=false"));
-        }
-    }
-
-    #[test]
     fn build_output_contract_audit_report_records_governed_proof_surfaces() {
         let root = repo_root();
         let _cwd_lock = acquire_cwd_lock();
@@ -1291,7 +1147,11 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_audit.v1");
         assert_eq!(report.output_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH);
         assert_eq!(report.row_count, 159);
-        assert!(report.passed_row_count > 0, "report should keep real passing rows");
+        assert!(report
+            .rows
+            .iter()
+            .filter(|row| row.passed)
+            .all(|row| { row.independent_execution_proven && row.execution_blocker.is_none() }));
         assert!(
             report.output_proof_surface_counts.contains_key("shared_stage_smoke"),
             "FASTQ/BAM shared-stage smoke proof must be represented"
@@ -1317,8 +1177,12 @@ mod tests {
             .find(|row| row.stage_id == "vcf.postprocess" && row.tool_id == "bcftools")
             .expect("vcf.postprocess row");
         assert_eq!(vcf_postprocess.output_proof_surface, "direct_tool_smoke");
-        assert!(vcf_postprocess.independent_execution_proven);
-        assert!(vcf_postprocess.passed);
+        assert!(!vcf_postprocess.independent_execution_proven);
+        assert!(!vcf_postprocess.passed);
+        assert!(vcf_postprocess
+            .execution_blocker
+            .as_deref()
+            .is_some_and(|reason| { reason.starts_with("unverified_execution_report:") }));
         for tool_id in ["eigensoft", "plink", "plink2"] {
             let row = report
                 .rows
@@ -1390,10 +1254,17 @@ mod tests {
             "governed proof runs should not leave blocked FASTQ/BAM materialization rows"
         );
         assert_eq!(fastq_index_reference.output_proof_surface, "shared_stage_smoke");
-        assert!(fastq_index_reference.independent_execution_proven);
-        assert!(fastq_index_reference.passed);
+        assert!(!fastq_index_reference.independent_execution_proven);
+        assert!(!fastq_index_reference.passed);
         assert_eq!(bam_genotyping.output_proof_surface, "direct_declared_output_proof");
-        assert!(bam_genotyping.independent_execution_proven);
-        assert!(bam_genotyping.passed);
+        assert!(!bam_genotyping.independent_execution_proven);
+        assert!(!bam_genotyping.passed);
+        for synthetic in [fastq_index_reference, bam_genotyping] {
+            assert!(synthetic.proof_tool_id.is_none());
+            assert!(synthetic
+                .execution_blocker
+                .as_deref()
+                .is_some_and(|reason| { reason.starts_with("synthetic_output_contract_only:") }));
+        }
     }
 }

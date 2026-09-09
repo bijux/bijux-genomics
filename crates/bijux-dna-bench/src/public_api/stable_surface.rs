@@ -664,7 +664,7 @@ pub use bijux_dna_bench_model::{
 
 pub use crate::repo::load_bam_tool_score_evidence;
 
-pub use crate::repo::load_vcf_tool_score_evidence;
+pub use crate::repo::{load_vcf_execution_blocker, load_vcf_tool_score_evidence};
 
 pub use bijux_dna_bench_model::{
     build_output_contract_tests_report, evaluate_output_contract_row, OutputContractProof,

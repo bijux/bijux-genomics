@@ -24,6 +24,7 @@ fn bench_tree_matches_architecture_contract() {
             "admission/",
             "bam_score_evidence/",
             "vcf_score_evidence/",
+            "vcf_execution_proof.rs",
             "fastq_score_evidence/",
             "mod.rs",
             "source_assets.rs",
@@ -86,6 +87,7 @@ fn bench_tree_matches_architecture_contract() {
         entries([
             "bam_score_evidence.rs",
             "vcf_score_evidence.rs",
+            "vcf_execution_proof.rs",
             "case_data_authority.rs",
             "catalog_registry_authority.rs",
             "catalog_snapshot_authority.rs",

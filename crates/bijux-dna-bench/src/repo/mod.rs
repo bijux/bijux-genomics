@@ -75,3 +75,6 @@ pub use bam_score_evidence::load_bam_tool_score_evidence;
 
 mod vcf_score_evidence;
 pub use vcf_score_evidence::load_vcf_tool_score_evidence;
+
+mod vcf_execution_proof;
+pub use vcf_execution_proof::load_vcf_execution_blocker;
