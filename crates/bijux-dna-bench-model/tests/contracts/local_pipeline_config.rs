@@ -3,7 +3,8 @@ use bijux_dna_bench_model::{
     benchmark_local_pipeline_dag_config_schema,
     benchmark_local_pipeline_dag_metadata_config_schema,
     benchmark_local_pipeline_dag_stages_config_schema,
-    validate_benchmark_local_pipeline_dag_config, BenchmarkLocalPipelineDagConfig,
+    validate_benchmark_local_pipeline_dag_config,
+    validate_benchmark_local_pipeline_dag_declarations, BenchmarkLocalPipelineDagConfig,
     BenchmarkLocalPipelineDagMetadataConfig, BenchmarkLocalPipelineDagStagesConfig,
     BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1,
 };
@@ -140,8 +141,136 @@ fn governed_toml_pipelines_decode_through_the_model_owner() -> anyhow::Result<()
         let config: BenchmarkLocalPipelineDagConfig =
             toml::from_str(&std::fs::read_to_string(&path)?)?;
         validate_benchmark_local_pipeline_dag_config(&config)?;
+        validate_benchmark_local_pipeline_dag_declarations(&path, &config)?;
         count += 1;
     }
     assert!(count > 0, "governed input set is empty");
+    Ok(())
+}
+
+fn declared_pipeline() -> Value {
+    let mut value = config();
+    value["project_sources"] =
+        json!([{"project_id":"study", "metadata_url":"https://example.invalid/metadata"}]);
+    value["ancient_dna_policy"] = json!({
+        "aligner_mode":"auto", "auto_bwa_aln_p75_threshold_bp":70,
+        "adapter_cleanup_tool":"adapterremoval", "merge_pairs_in_preprocess":true,
+        "duplicate_stage_id":"validate", "duplicate_tool":"dedup", "caller_tool":"caller"
+    });
+    value["reference_assets"] = json!({
+        "directory_name":"reference", "genome_url":"https://example.invalid/genome",
+        "genome_filename":"genome.fa", "assembly_report_url":"http://example.invalid/report",
+        "assembly_report_filename":"assembly.txt"
+    });
+    value["variant_assets"] = json!({
+        "directory_name":"variants", "source_vcf_url":"https://example.invalid/variants",
+        "source_vcf_filename":"source.vcf", "refseq_vcf_filename":"refseq.vcf",
+        "annotated_vcf_filename":"annotated.vcf", "snpeff":{
+            "genome_id":"genome", "database_url":"https://example.invalid/database",
+            "database_filename":"database.zip", "core_url":"https://example.invalid/core",
+            "core_filename":"core.zip"
+        }
+    });
+    value["execution_context"] =
+        json!({"site_profile_id":"local", "frontend_surfaces":["ref-prep","snp-prep"]});
+    value
+}
+
+fn admit_declarations(value: Value) -> anyhow::Result<()> {
+    validate_benchmark_local_pipeline_dag_declarations(
+        std::path::Path::new("pipeline.toml"),
+        &serde_json::from_value(value)?,
+    )
+}
+
+#[test]
+fn declaration_admission_accepts_supported_modes_and_stage_identity_forms() -> anyhow::Result<()> {
+    admit_declarations(config())?;
+    for mode in ["auto", "bwa_aln", "bwa_mem"] {
+        for stage in ["validate", "fastq.validate_reads"] {
+            let mut value = declared_pipeline();
+            value["ancient_dna_policy"]["aligner_mode"] = json!(mode);
+            value["ancient_dna_policy"]["duplicate_stage_id"] = json!(stage);
+            admit_declarations(value)?;
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn source_admission_rejects_invalid_urls_retries_and_duplicate_identity() -> anyhow::Result<()> {
+    for (field, invalid) in [
+        ("metadata_url", json!("file:///local/metadata")),
+        ("metadata_url", json!(" ")),
+        ("retries", json!(0)),
+        ("project_id", json!("\t")),
+    ] {
+        let mut value = declared_pipeline();
+        value["project_sources"][0][field] = invalid;
+        assert!(admit_declarations(value).is_err(), "{field}");
+    }
+    let mut value = declared_pipeline();
+    let duplicate = value["project_sources"][0].clone();
+    value["project_sources"].as_array_mut().context("source array")?.push(duplicate);
+    assert_eq!(
+        admit_declarations(value).err().context("duplicate source must fail")?.to_string(),
+        "local pipeline project_sources repeats project_id `study`"
+    );
+    Ok(())
+}
+
+#[test]
+fn ancient_dna_admission_rejects_unsupported_or_unbound_tool_policy() -> anyhow::Result<()> {
+    for (field, invalid) in [
+        ("aligner_mode", json!("guess")),
+        ("auto_bwa_aln_p75_threshold_bp", json!(0)),
+        ("adapter_cleanup_tool", json!(" ")),
+        ("duplicate_tool", json!(" ")),
+        ("caller_tool", json!(" ")),
+    ] {
+        let mut value = declared_pipeline();
+        value["ancient_dna_policy"][field] = invalid;
+        assert!(admit_declarations(value).is_err(), "{field}");
+    }
+    let mut value = declared_pipeline();
+    value["ancient_dna_policy"]["duplicate_stage_id"] = json!("missing");
+    assert_eq!(
+        admit_declarations(value).err().context("missing stage must fail")?.to_string(),
+        "pipeline.toml declares ancient_dna_policy duplicate_stage_id `missing` but that stage is not present in the pipeline DAG"
+    );
+    Ok(())
+}
+
+#[test]
+fn operational_asset_admission_rejects_missing_or_invalid_sources() -> anyhow::Result<()> {
+    for path in [
+        "/reference_assets/directory_name",
+        "/reference_assets/genome_url",
+        "/reference_assets/genome_filename",
+        "/reference_assets/assembly_report_url",
+        "/reference_assets/assembly_report_filename",
+        "/variant_assets/directory_name",
+        "/variant_assets/source_vcf_url",
+        "/variant_assets/source_vcf_filename",
+        "/variant_assets/refseq_vcf_filename",
+        "/variant_assets/annotated_vcf_filename",
+        "/variant_assets/snpeff/genome_id",
+        "/variant_assets/snpeff/database_url",
+        "/variant_assets/snpeff/database_filename",
+        "/variant_assets/snpeff/core_url",
+        "/variant_assets/snpeff/core_filename",
+    ] {
+        let mut value = declared_pipeline();
+        *value.pointer_mut(path).context("asset fixture path")? = json!(" ");
+        assert!(admit_declarations(value).is_err(), "{path}");
+    }
+    for (field, surface) in [("reference_assets", "ref-prep"), ("variant_assets", "snp-prep")] {
+        let mut value = declared_pipeline();
+        value[field] = Value::Null;
+        assert_eq!(
+            admit_declarations(value).err().context("missing assets must fail")?.to_string(),
+            format!("local pipeline execution_context.frontend_surfaces includes `{surface}` but {field} is missing")
+        );
+    }
     Ok(())
 }

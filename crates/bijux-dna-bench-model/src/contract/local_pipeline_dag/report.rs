@@ -10,41 +10,10 @@ use crate::{
     BenchError,
 };
 
-use super::{
+use super::super::{
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
 };
-
-/// Existing TOML and YAML local benchmark pipeline configuration protocol.
-pub const BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1: &str = "bijux.bench.local_pipeline_dag.v1";
-
-/// Admit the existing configuration identity and required graph envelope.
-///
-/// Node topology, stage readiness and repository-backed scientific profile checks
-/// belong to their respective services and must follow this shape admission.
-///
-/// # Errors
-/// Rejects unknown schema versions, blank identity fields and an empty node list.
-pub fn validate_benchmark_local_pipeline_dag_config(
-    config: &crate::model::BenchmarkLocalPipelineDagConfig,
-) -> anyhow::Result<()> {
-    if config.schema_version != BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1 {
-        anyhow::bail!("unsupported local pipeline DAG schema `{}`", config.schema_version);
-    }
-    for (field, value) in [
-        ("pipeline_id", &config.pipeline_id),
-        ("summary", &config.summary),
-        ("default_corpus_id", &config.default_corpus_id),
-    ] {
-        if value.trim().is_empty() {
-            anyhow::bail!("local pipeline DAG must declare a non-empty `{field}`");
-        }
-    }
-    if config.nodes.is_empty() {
-        anyhow::bail!("local pipeline DAG must declare at least one `nodes` entry");
-    }
-    Ok(())
-}
 
 /// Validate one persisted local pipeline DAG validation report.
 ///

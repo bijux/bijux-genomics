@@ -3,8 +3,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+#[cfg(test)]
+use bijux_dna_api::v1::api::bench::BenchmarkLocalPipelineProjectSourceConfig as LocalPipelineProjectSourceConfig;
 use bijux_dna_api::v1::api::bench::{
     validate_benchmark_local_pipeline_dag_config as validate_pipeline_contract,
+    validate_benchmark_local_pipeline_dag_declarations,
     validate_benchmark_local_pipeline_dag_validation, validate_benchmark_pipeline_profiles,
     BenchmarkLocalCorpusStageCompatibilityReport, PipelineProfileEvidence,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
@@ -19,7 +22,6 @@ pub(crate) use bijux_dna_api::v1::api::bench::{
     BenchmarkLocalPipelineDagValidationReport as LocalPipelineDagValidationReport,
     BenchmarkLocalPipelineExecutionContext as LocalPipelineExecutionContext,
     BenchmarkLocalPipelineProjectSource as LocalPipelineProjectSource,
-    BenchmarkLocalPipelineProjectSourceConfig as LocalPipelineProjectSourceConfig,
     BenchmarkLocalPipelineReferenceAssets as LocalPipelineReferenceAssets,
     BenchmarkLocalPipelineReferenceContext as LocalPipelineReferenceContext,
     BenchmarkLocalPipelineSnpEffAssets as LocalPipelineSnpEffAssets,
@@ -366,18 +368,7 @@ fn validate_pipeline_metadata(
     if let Some(execution_context) = &config.execution_context {
         validate_execution_context(repo_root, execution_context)?;
     }
-    validate_project_sources(&config.project_sources)?;
-    if let Some(policy) = &config.ancient_dna_policy {
-        validate_ancient_dna_policy(config_path, config, policy)?;
-    }
-    if let Some(reference_assets) = &config.reference_assets {
-        validate_reference_assets(reference_assets)?;
-    }
-    if let Some(variant_assets) = &config.variant_assets {
-        validate_variant_assets(variant_assets)?;
-    }
-    validate_operational_asset_requirements(config)?;
-    Ok(())
+    validate_benchmark_local_pipeline_dag_declarations(config_path, config)
 }
 
 fn validate_reference_context(
@@ -513,176 +504,6 @@ fn validate_execution_context(
         ));
     }
 
-    Ok(())
-}
-
-fn validate_reference_assets(reference_assets: &LocalPipelineReferenceAssets) -> Result<()> {
-    require_non_empty(
-        &reference_assets.directory_name,
-        "local pipeline reference_assets must declare a non-empty `directory_name`",
-    )?;
-    require_http_url(&reference_assets.genome_url, "local pipeline reference_assets genome_url")?;
-    require_non_empty(
-        &reference_assets.genome_filename,
-        "local pipeline reference_assets must declare a non-empty `genome_filename`",
-    )?;
-    require_http_url(
-        &reference_assets.assembly_report_url,
-        "local pipeline reference_assets assembly_report_url",
-    )?;
-    require_non_empty(
-        &reference_assets.assembly_report_filename,
-        "local pipeline reference_assets must declare a non-empty `assembly_report_filename`",
-    )?;
-    Ok(())
-}
-
-fn validate_variant_assets(variant_assets: &LocalPipelineVariantAssets) -> Result<()> {
-    require_non_empty(
-        &variant_assets.directory_name,
-        "local pipeline variant_assets must declare a non-empty `directory_name`",
-    )?;
-    require_http_url(
-        &variant_assets.source_vcf_url,
-        "local pipeline variant_assets source_vcf_url",
-    )?;
-    require_non_empty(
-        &variant_assets.source_vcf_filename,
-        "local pipeline variant_assets must declare a non-empty `source_vcf_filename`",
-    )?;
-    require_non_empty(
-        &variant_assets.refseq_vcf_filename,
-        "local pipeline variant_assets must declare a non-empty `refseq_vcf_filename`",
-    )?;
-    require_non_empty(
-        &variant_assets.annotated_vcf_filename,
-        "local pipeline variant_assets must declare a non-empty `annotated_vcf_filename`",
-    )?;
-    require_non_empty(
-        &variant_assets.snpeff.genome_id,
-        "local pipeline variant_assets snpeff.genome_id must declare a non-empty value",
-    )?;
-    require_http_url(
-        &variant_assets.snpeff.database_url,
-        "local pipeline variant_assets snpeff.database_url",
-    )?;
-    require_non_empty(
-        &variant_assets.snpeff.database_filename,
-        "local pipeline variant_assets snpeff.database_filename must declare a non-empty value",
-    )?;
-    require_http_url(
-        &variant_assets.snpeff.core_url,
-        "local pipeline variant_assets snpeff.core_url",
-    )?;
-    require_non_empty(
-        &variant_assets.snpeff.core_filename,
-        "local pipeline variant_assets snpeff.core_filename must declare a non-empty value",
-    )?;
-    Ok(())
-}
-
-fn validate_operational_asset_requirements(config: &LocalPipelineDagConfig) -> Result<()> {
-    let Some(execution_context) = &config.execution_context else {
-        return Ok(());
-    };
-    if execution_context.frontend_surfaces.iter().any(|surface| surface == "ref-prep")
-        && config.reference_assets.is_none()
-    {
-        return Err(anyhow!(
-            "local pipeline execution_context.frontend_surfaces includes `ref-prep` but reference_assets is missing"
-        ));
-    }
-    if execution_context.frontend_surfaces.iter().any(|surface| surface == "snp-prep")
-        && config.variant_assets.is_none()
-    {
-        return Err(anyhow!(
-            "local pipeline execution_context.frontend_surfaces includes `snp-prep` but variant_assets is missing"
-        ));
-    }
-    Ok(())
-}
-
-fn validate_project_sources(project_sources: &[LocalPipelineProjectSourceConfig]) -> Result<()> {
-    let mut seen_project_ids = BTreeSet::new();
-    for source in project_sources {
-        require_non_empty(
-            &source.project_id,
-            "local pipeline project_sources entries must declare a non-empty `project_id`",
-        )?;
-        require_non_empty(
-            &source.metadata_url,
-            "local pipeline project_sources entries must declare a non-empty `metadata_url`",
-        )?;
-        require_http_url(&source.metadata_url, "local pipeline project_sources metadata_url")?;
-        if source.retries == 0 {
-            return Err(anyhow!(
-                "local pipeline project_sources entry `{}` must declare retries >= 1",
-                source.project_id
-            ));
-        }
-        if !seen_project_ids.insert(source.project_id.clone()) {
-            return Err(anyhow!(
-                "local pipeline project_sources repeats project_id `{}`",
-                source.project_id
-            ));
-        }
-    }
-    Ok(())
-}
-
-fn require_http_url(value: &str, label: &str) -> Result<()> {
-    if value.starts_with("http://") || value.starts_with("https://") {
-        Ok(())
-    } else {
-        Err(anyhow!("{label} `{value}` must start with http:// or https://"))
-    }
-}
-
-fn validate_ancient_dna_policy(
-    config_path: &Path,
-    config: &LocalPipelineDagConfig,
-    policy: &LocalPipelineAncientDnaPolicy,
-) -> Result<()> {
-    require_non_empty(
-        &policy.aligner_mode,
-        "local pipeline ancient_dna_policy must declare a non-empty `aligner_mode`",
-    )?;
-    if !matches!(policy.aligner_mode.as_str(), "auto" | "bwa_aln" | "bwa_mem") {
-        return Err(anyhow!(
-            "local pipeline ancient_dna_policy aligner_mode `{}` is unsupported",
-            policy.aligner_mode
-        ));
-    }
-    if policy.auto_bwa_aln_p75_threshold_bp == 0 {
-        return Err(anyhow!(
-            "local pipeline ancient_dna_policy auto_bwa_aln_p75_threshold_bp must be greater than zero"
-        ));
-    }
-    require_non_empty(
-        &policy.adapter_cleanup_tool,
-        "local pipeline ancient_dna_policy must declare a non-empty `adapter_cleanup_tool`",
-    )?;
-    require_non_empty(
-        &policy.duplicate_stage_id,
-        "local pipeline ancient_dna_policy must declare a non-empty `duplicate_stage_id`",
-    )?;
-    require_non_empty(
-        &policy.duplicate_tool,
-        "local pipeline ancient_dna_policy must declare a non-empty `duplicate_tool`",
-    )?;
-    require_non_empty(
-        &policy.caller_tool,
-        "local pipeline ancient_dna_policy must declare a non-empty `caller_tool`",
-    )?;
-    if !config.nodes.iter().any(|node| {
-        node.node_id == policy.duplicate_stage_id || node.stage_id == policy.duplicate_stage_id
-    }) {
-        return Err(anyhow!(
-            "{} declares ancient_dna_policy duplicate_stage_id `{}` but that stage is not present in the pipeline DAG",
-            config_path.display(),
-            policy.duplicate_stage_id
-        ));
-    }
     Ok(())
 }
 

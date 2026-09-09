@@ -11,6 +11,7 @@ and decision records, and statistical helpers.
   fitness, persisted container report-portfolio identities, permanent-run report dispositions,
   normalized-result records and execution-metrics envelopes, and suite support records.
 - `src/model/local_pipeline_dag/` separates TOML/YAML configuration inputs from persisted validation reports; three configuration schemas share the model schema registry.
+- `src/contract/local_pipeline_dag/` separates input declaration admission from persisted report validation. Project sources, ancient DNA tool policy and reference/variant asset declarations are checked without repository IO.
 - `src/contract/` validates records, suite shape, stage governance, graph edges, data-fitness and
   portfolio closure, parameter bindings, container and benchmark report freshness, diversity
   requirements, and analysis requirements.
