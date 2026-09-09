@@ -2,6 +2,8 @@
 
 use std::collections::BTreeSet;
 
+mod dependencies;
+
 use crate::{
     BenchError, BenchmarkLocalAllDomainSlurmSubmitJob, BenchmarkLocalAllDomainSlurmSubmitManifest,
     BenchmarkLocalSlurmSubmitJob, BenchmarkLocalSlurmSubmitManifest,
@@ -63,7 +65,9 @@ pub fn validate_benchmark_local_all_domain_slurm_submit_manifest(
             }
         }
     }
-    Ok(())
+    dependencies::validate_acyclic(
+        manifest.jobs.iter().map(|job| (job.job_id_local.as_str(), job.dependencies.as_slice())),
+    )
 }
 
 fn validate_all_domain_job(job: &BenchmarkLocalAllDomainSlurmSubmitJob) -> Result<(), BenchError> {
@@ -178,7 +182,9 @@ pub fn validate_benchmark_local_slurm_submit_manifest(
             }
         }
     }
-    Ok(())
+    dependencies::validate_acyclic(
+        manifest.jobs.iter().map(|job| (job.job_name.as_str(), job.dependencies.as_slice())),
+    )
 }
 
 fn validate_job(job: &BenchmarkLocalSlurmSubmitJob) -> Result<(), BenchError> {
