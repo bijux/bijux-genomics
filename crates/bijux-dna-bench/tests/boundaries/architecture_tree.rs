@@ -159,6 +159,7 @@ fn bench_tree_matches_architecture_contract() {
             "publication_receipt.rs",
             "publication_registry.rs",
             "publication_selection.rs",
+            "readiness/",
             "reference_materialization.rs",
             "replay.rs",
             "report_load.rs",
@@ -281,6 +282,12 @@ fn bench_tree_matches_architecture_contract() {
             "storage.rs",
         ]),
         "campaign lifecycle tree must separate source authority, operator composition, preparation, planning, execution, and storage logic"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/readiness")),
+        entries(["dashboard.rs", "dashboard_markdown.rs", "mod.rs"]),
+        "readiness evaluation must retain its explicit workflow owner"
     );
 
     assert_eq!(
