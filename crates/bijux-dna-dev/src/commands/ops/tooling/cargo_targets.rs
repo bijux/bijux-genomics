@@ -1359,127 +1359,40 @@ fn unit_contract_fast_command_args() -> Vec<String> {
 }
 
 fn science_fixtures_fast_command_args() -> Vec<String> {
-    vec![
-        "test".to_string(),
-        "-p".to_string(),
-        "bijux-dna".to_string(),
-        "--test".to_string(),
-        "bench_local_corpus_fixture".to_string(),
-        "--test".to_string(),
-        "bench_local_bam_corpus_fixture".to_string(),
-        "--test".to_string(),
-        "bench_local_edna_corpus_fixture".to_string(),
-        "--test".to_string(),
-        "bench_local_amplicon_corpus_fixture".to_string(),
-        "--test".to_string(),
-        "bench_local_vcf_population_structure_smoke".to_string(),
-        "--test".to_string(),
-        "bench_local_vcf_population_structure_smoke_file".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_all".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_fastq_duplicates_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_fastq_duplicates_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_duplicates_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_duplicates_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_fastq_taxonomy_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_fastq_taxonomy_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_taxonomy_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_taxonomy_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_amplicon_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_amplicon_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_amplicon_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_amplicon_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_adna_damage_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_adna_damage_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_adna_damage_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_adna_damage_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_adna_contamination_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_adna_contamination_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_adna_contamination_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_adna_contamination_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_alignment_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_alignment_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_alignment_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_alignment_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_duplicate_insert_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_duplicate_insert_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_duplicate_insert_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_duplicate_insert_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_endogenous_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_endogenous_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_endogenous_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_endogenous_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_gc_coverage_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_gc_coverage_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_gc_coverage_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_gc_coverage_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_haplogroup_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_haplogroup_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_haplogroup_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_haplogroup_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_sex_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_sex_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_sex_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_sex_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_trimming_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_trimming_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_vcf_mini".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_vcf_mini_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_vcf_mini".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_vcf_mini_stdout".to_string(),
-        "--".to_string(),
-        "--nocapture".to_string(),
+    [
+        "test",
+        "-p",
+        "bijux-dna",
+        "--test",
+        "bench_local_corpus_fixture",
+        "--test",
+        "bench_local_bam_corpus_fixture",
+        "--test",
+        "bench_local_edna_corpus_fixture",
+        "--test",
+        "bench_local_amplicon_corpus_fixture",
+        "--test",
+        "bench_local_vcf_population_structure_smoke",
+        "--test",
+        "bench_local_vcf_population_structure_smoke_file",
+        "--test",
+        "fixtures_validate_all",
+        "--test",
+        "fixtures_amplicon",
+        "--test",
+        "fixtures_ancient_dna",
+        "--test",
+        "fixtures_bam",
+        "--test",
+        "fixtures_fastq",
+        "--test",
+        "fixtures_vcf",
+        "--",
+        "--nocapture",
     ]
+    .into_iter()
+    .map(ToOwned::to_owned)
+    .collect()
 }
 
 #[cfg(test)]
@@ -1498,85 +1411,18 @@ mod tests {
     #[test]
     fn science_fixtures_fast_keeps_taxonomy_and_fixture_validation_targets() {
         let args = science_fixtures_fast_command_args();
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_fastq_taxonomy_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_expected_fastq_taxonomy_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_fastq_duplicates_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_amplicon_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_adna_damage_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_expected_adna_damage_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == ["--test".to_string(), "fixtures_validate_adna_contamination_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_expected_adna_contamination_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_bam_alignment_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_bam_duplicate_insert_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_bam_endogenous_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_expected_bam_endogenous_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_bam_gc_coverage_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_bam_haplogroup_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_expected_bam_haplogroup_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_bam_sex_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_expected_bam_sex_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_all".to_string()]
-        }));
+        for target in [
+            "fixtures_fastq",
+            "fixtures_bam",
+            "fixtures_vcf",
+            "fixtures_ancient_dna",
+            "fixtures_amplicon",
+            "fixtures_validate_all",
+            "bench_local_vcf_population_structure_smoke",
+            "bench_local_vcf_population_structure_smoke_file",
+        ] {
+            assert!(args.windows(2).any(|pair| pair == ["--test", target]), "missing {target}");
+        }
         assert_eq!(args.last().map(String::as_str), Some("--nocapture"));
     }
 }

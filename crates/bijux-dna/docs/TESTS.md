@@ -60,3 +60,12 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --no-default-fea
 ## Snapshot Rules
 Update snapshots only when the command surface, output format, or public export intentionally
 changes. Snapshot diffs must be reviewed as contract changes, not accepted mechanically.
+
+Scientific fixture command contracts are grouped in `fixtures_fastq`, `fixtures_bam`,
+`fixtures_vcf`, `fixtures_ancient_dna`, and `fixtures_amplicon`. The corresponding
+`tests/fixtures/` subtrees separate corpus families and observed/expected JSON/text
+interfaces. Each executable shares the existing environment/cwd guard; full-profile
+repository mutation serialization and function-based slow selection still apply.
+`science-fixtures-fast` selects these suites plus its existing corpus, aggregate,
+and population smoke targets. Test function names remain stable beneath module
+namespaces so function-based routing and slow rosters retain their meaning.

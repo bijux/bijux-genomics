@@ -451,6 +451,12 @@ fn dna_tree_matches_architecture_contract() {
     let required_test_entries: BTreeSet<_> = [
         "benchmark/",
         "benchmark_readiness.rs",
+        "fixtures/",
+        "fixtures_fastq.rs",
+        "fixtures_bam.rs",
+        "fixtures_vcf.rs",
+        "fixtures_ancient_dna.rs",
+        "fixtures_amplicon.rs",
         "boundaries/",
         "boundaries.rs",
         "contracts/",
@@ -488,6 +494,15 @@ fn dna_tree_matches_architecture_contract() {
             "dna tests tree must use grouped suite roots or governed integration-test prefixes, found `{entry}`"
         );
     }
+
+    assert_eq!(
+        dir_entries(&root.join("tests/fixtures")),
+        ["amplicon/", "ancient_dna/", "bam/", "fastq/", "vcf/"]
+            .into_iter()
+            .map(str::to_string)
+            .collect(),
+        "fixture command contracts must stay grouped by their scientific corpus family"
+    );
 
     let support_test_entries = dir_entries(&root.join("tests/support"));
     let expected_support_tests: BTreeSet<_> =

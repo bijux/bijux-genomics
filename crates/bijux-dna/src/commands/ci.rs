@@ -297,6 +297,36 @@ const CHANGED_PATH_RULES: &[ChangedPathRule] = &[
         reason: "population mini-smoke truth belongs to the science fixture lane",
     },
     ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/fixtures/",
+        command: "make science-fixtures-fast",
+        reason: "grouped fixture contracts preserve governed scientific truth interfaces",
+    },
+    ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/fixtures_fastq.rs",
+        command: "make science-fixtures-fast",
+        reason: "grouped fixture contracts preserve governed scientific truth interfaces",
+    },
+    ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/fixtures_bam.rs",
+        command: "make science-fixtures-fast",
+        reason: "grouped fixture contracts preserve governed scientific truth interfaces",
+    },
+    ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/fixtures_vcf.rs",
+        command: "make science-fixtures-fast",
+        reason: "grouped fixture contracts preserve governed scientific truth interfaces",
+    },
+    ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/fixtures_ancient_dna.rs",
+        command: "make science-fixtures-fast",
+        reason: "grouped fixture contracts preserve governed scientific truth interfaces",
+    },
+    ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/fixtures_amplicon.rs",
+        command: "make science-fixtures-fast",
+        reason: "grouped fixture contracts preserve governed scientific truth interfaces",
+    },
+    ChangedPathRule {
         matcher: "crates/bijux-dna/tests/fixtures_validate_",
         command: "make science-fixtures-fast",
         reason: "fixture validation tests belong to the science fixture lane",
@@ -983,6 +1013,28 @@ mod tests {
             write_utf8_report(&fixture, path)?;
             let report = changed_path_commands(root.path(), &fixture)?;
             assert_eq!(report.commands, vec!["make bench-active-fast".to_string()], "{path}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn grouped_fixture_entrypoints_and_modules_select_the_science_lane() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let fixture = root.path().join("changed_paths.txt");
+        for family in ["fastq", "bam", "vcf", "ancient_dna", "amplicon"] {
+            for path in [
+                format!("crates/bijux-dna/tests/fixtures_{family}.rs"),
+                format!("crates/bijux-dna/tests/fixtures/{family}/mod.rs"),
+                format!("crates/bijux-dna/tests/fixtures/{family}/corpus/expected_json.rs"),
+            ] {
+                write_utf8_report(&fixture, &path)?;
+                let report = changed_path_commands(root.path(), &fixture)?;
+                assert_eq!(
+                    report.commands,
+                    vec!["make science-fixtures-fast".to_string()],
+                    "{path}"
+                );
+            }
         }
         Ok(())
     }
