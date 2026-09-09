@@ -29,3 +29,16 @@ This crate is allowed to depend on stable workspace primitives and developer-pol
 - Use `cargo tree -p bijux-dna-dev --no-default-features --depth 1` to inspect direct dependencies.
 - Dependency changes must be reviewed against [BOUNDARY.md](BOUNDARY.md) before commit.
 - External network-capable dependencies are allowed only when a documented command owns the network behavior and keeps offline failure modes explicit.
+
+## API documentation capability
+
+The default `api-docs` feature retains API reference generation. Operator builds
+with `--no-default-features` omit the API facade dependency while retaining
+container qualification, policy/schema checks and CI execution. Qualification
+composition comes directly from benchmark services; schemas and report rendering
+come from their policy owner. `generate-docs` in an operator build reports the
+missing feature before creating any output. Rebuild with `--features api-docs`
+when generating the full documentation set.
+
+Full workspace verification still builds all features. A minimal operator build
+is a separate supported build scope, not evidence of all-feature test coverage.

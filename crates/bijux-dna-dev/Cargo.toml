@@ -5,10 +5,14 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
+[features]
+default = ["api-docs"]
+api-docs = ["dep:bijux-dna-api"]
+
 [dependencies]
 aho-corasick.workspace = true
 anyhow.workspace = true
-bijux-dna-api.workspace = true
+bijux-dna-api = { workspace = true, optional = true }
 bijux-dna-bench = { workspace = true, features = ["container-qualification"] }
 bijux-dna-core.workspace = true
 bijux-dna-stage-contract.workspace = true

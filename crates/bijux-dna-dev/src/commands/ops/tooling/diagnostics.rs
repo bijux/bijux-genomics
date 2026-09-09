@@ -1420,6 +1420,10 @@ pub(in super::super) fn tooling_generate_docs(
                 "Usage: cargo run -p bijux-dna-dev -- tooling run generate-docs -- [out-root]\n",
             )),
         };
+    anyhow::ensure!(
+        cfg!(feature = "api-docs"),
+        "generate-docs requires the bijux-dna-dev `api-docs` feature; rebuild with --features api-docs"
+    );
     bijux_dna_infra::ensure_dir(out_root.join("00-intro"))
         .with_context(|| format!("create {}", out_root.join("00-intro").display()))?;
     bijux_dna_infra::ensure_dir(out_root.join("20-science"))
@@ -1517,5 +1521,28 @@ mod architecture_report_tests {
         let expected = std::fs::read_to_string(snapshot_path())
             .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path().display()));
         assert_eq!(rendered, expected);
+    }
+}
+
+#[cfg(all(test, not(feature = "api-docs")))]
+mod documentation_capability_tests {
+    use super::tooling_generate_docs;
+    use crate::runtime::workspace::Workspace;
+    use anyhow::Context;
+
+    #[test]
+    fn api_documentation_unavailability_is_reported_before_output_creation() -> anyhow::Result<()> {
+        let directory = tempfile::tempdir()?;
+        let workspace = Workspace { root: directory.path().to_path_buf() };
+        let output = directory.path().join("requested-docs");
+        let error = tooling_generate_docs(&workspace, &[output.display().to_string()])
+            .err()
+            .context("documentation capability must be absent")?;
+        assert!(error.to_string().contains("--features api-docs"));
+        assert!(!output.exists());
+        assert_eq!(std::fs::read_dir(directory.path())?.count(), 0);
+        let help = tooling_generate_docs(&workspace, &["--help".to_owned()])?;
+        assert_eq!(help.exit_code, 0);
+        Ok(())
     }
 }
