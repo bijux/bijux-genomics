@@ -1174,9 +1174,9 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let mut stdout = String::from_utf8_lossy(&archive_output.output.stdout).into_owned();
     let mut stderr = String::from_utf8_lossy(&archive_output.output.stderr).into_owned();
     if !archive_passed {
-        write_json_pretty(
+        finish_full_shard_receipt(
             &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
-            &serde_json::json!({
+            serde_json::json!({
                 "schema_version": "bijux.ci.full_gate_timing.v4",
             "state": "complete",
             "source_commit": source_identity,
@@ -1200,8 +1200,9 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "all_passed": false,
                 "shards": [],
             }),
+            started,
+            &mut ephemera,
         )?;
-        ephemera.retain_bounded_evidence()?;
         return Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr });
     }
     prepare_full_archive_extraction(&archive_roots.archive_extract)?;
@@ -1318,9 +1319,9 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     archive_receipt["artifact_sha256_after_execution"] =
         serde_json::Value::String(archive_sha256_after);
     archive_receipt["checksum_stable"] = serde_json::Value::Bool(archive_checksum_stable);
-    write_json_pretty(
+    finish_full_shard_receipt(
         &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
-        &serde_json::json!({
+        serde_json::json!({
             "schema_version": "bijux.ci.full_gate_timing.v4",
             "state": "complete",
             "source_commit": source_identity,
@@ -1362,9 +1363,43 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "all_passed": all_passed,
             "shards": shard_receipts,
         }),
+        started,
+        &mut ephemera,
     )?;
-    ephemera.retain_bounded_evidence()?;
     Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
+}
+
+/// Publish a terminal result only after the owned cleanup attempt has completed.
+fn finish_full_shard_receipt(
+    path: &Path,
+    mut receipt: serde_json::Value,
+    started: Instant,
+    ephemera: &mut FullShardEphemera,
+) -> Result<()> {
+    let cleanup_started = Instant::now();
+    let cleanup = ephemera.retain_bounded_evidence();
+    // A terminal receipt must describe the last attempt, without a hidden Drop retry.
+    ephemera.armed = false;
+    receipt["cleanup"] = serde_json::json!({
+        "completed": cleanup.is_ok(),
+        "duration_milliseconds": cleanup_started.elapsed().as_millis(),
+        "error": cleanup.as_ref().err().map(|error| format!("{error:#}")),
+    });
+    receipt["evidence_retention"]["archive_retained"] =
+        serde_json::json!(ephemera.archive_root.symlink_metadata().is_ok());
+    receipt["evidence_retention"]["build_targets_retained"] =
+        serde_json::json!(ephemera.archive_root.join("build").exists());
+    receipt["evidence_retention"]["isolated_workspaces_retained"] =
+        serde_json::json!(ephemera.scratch_workspaces.symlink_metadata().is_ok());
+    receipt["evidence_retention"]["shard_runtime_artifacts_retained"] = serde_json::json!(ephemera
+        .shard_artifact_roots
+        .iter()
+        .any(|root| root.symlink_metadata().is_ok()));
+    receipt["wall_time_milliseconds"] = serde_json::json!(started.elapsed().as_millis());
+    receipt["all_passed"] =
+        serde_json::json!(receipt["all_passed"].as_bool() == Some(true) && cleanup.is_ok());
+    write_json_pretty(path, &receipt)?;
+    cleanup
 }
 
 fn select_full_shards(contract: &FullShardContract, args: &[String]) -> Result<Vec<FullShard>> {
@@ -1419,8 +1454,13 @@ fn full_shard_execution_scope(
 }
 
 fn remove_full_shard_ephemera(path: &Path) -> Result<()> {
-    let Ok(metadata) = path.symlink_metadata() else {
-        return Ok(());
+    let metadata = match path.symlink_metadata() {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => {
+            return Err(error)
+                .with_context(|| format!("inspect full shard ephemeral path {}", path.display()))
+        }
     };
     if metadata.file_type().is_symlink() {
         anyhow::bail!("full shard ephemeral path is a symlink: {}", path.display());
@@ -3662,5 +3702,69 @@ mod tests {
         };
 
         assert_eq!(reference_timing_samples(&history, &reference), vec![42, 43]);
+    }
+    #[test]
+    fn full_shard_receipt_includes_owned_cleanup_in_terminal_timing() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let archive = root.path().join("archive");
+        std::fs::create_dir_all(archive.join("build"))?;
+        std::fs::write(archive.join("build/product"), b"owned compilation output")?;
+        let mut ephemera = FullShardEphemera {
+            scratch_workspaces: root.path().join("workspaces"),
+            archive_root: archive.clone(),
+            shard_artifact_roots: vec![],
+            armed: true,
+        };
+        let started = std::time::Instant::now()
+            .checked_sub(std::time::Duration::from_millis(25))
+            .ok_or_else(|| anyhow::anyhow!("cannot construct elapsed timer"))?;
+        let path = root.path().join("timing.json");
+        super::finish_full_shard_receipt(
+            &path,
+            serde_json::json!({"state":"complete","all_passed":true,"wall_time_milliseconds":0}),
+            started,
+            &mut ephemera,
+        )?;
+        let receipt: serde_json::Value = serde_json::from_slice(&std::fs::read(&path)?)?;
+        assert!(!archive.exists());
+        assert!(!ephemera.armed);
+        assert_eq!(receipt["all_passed"], true);
+        assert_eq!(receipt["cleanup"]["completed"], true);
+        assert_eq!(receipt["evidence_retention"]["build_targets_retained"], false);
+        assert!(receipt["wall_time_milliseconds"].as_u64().is_some_and(|elapsed| elapsed >= 25));
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn full_shard_receipt_records_cleanup_failure_and_preserves_external_targets(
+    ) -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let external = root.path().join("retained");
+        std::fs::create_dir_all(&external)?;
+        std::fs::write(external.join("evidence"), b"retained")?;
+        let archive = root.path().join("archive");
+        std::os::unix::fs::symlink(&external, &archive)?;
+        let mut ephemera = FullShardEphemera {
+            scratch_workspaces: root.path().join("workspaces"),
+            archive_root: archive,
+            shard_artifact_roots: vec![],
+            armed: true,
+        };
+        let path = root.path().join("timing.json");
+        assert!(super::finish_full_shard_receipt(
+            &path,
+            serde_json::json!({"state":"complete","all_passed":true}),
+            std::time::Instant::now(),
+            &mut ephemera
+        )
+        .is_err());
+        let receipt: serde_json::Value = serde_json::from_slice(&std::fs::read(&path)?)?;
+        assert_eq!(receipt["all_passed"], false);
+        assert_eq!(receipt["cleanup"]["completed"], false);
+        assert_eq!(receipt["evidence_retention"]["archive_retained"], true);
+        assert!(!ephemera.armed);
+        assert_eq!(std::fs::read(external.join("evidence"))?, b"retained");
+        Ok(())
     }
 }

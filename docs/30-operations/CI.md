@@ -114,3 +114,5 @@ Local harness JSON/file checks and the all-domain operational completion check u
 Full benchmark report, result collector and dashboard checks bind every CLI child to an explicit independent repository sandbox and use the full-profile global worker pool. Original report assertions and command scopes remain intact; the dashboard independently acquires its expected-result comparison from the same governed inputs.
 
 The local full executor extracts its admitted test archive once for inventory, seals that extraction against writes, and supplies its Cargo and binary metadata to each test shard. Shards keep separate source workspaces and writable outputs; executable paths resolve to the shared extraction. Native inventory remains authoritative for exact case coverage.
+
+The full-shard terminal timing includes owned scratch cleanup. The receipt records cleanup duration and failure, observes retained roots, and cannot report `all_passed` when cleanup fails. Initial running evidence remains until the terminal cleanup attempt has been recorded.
