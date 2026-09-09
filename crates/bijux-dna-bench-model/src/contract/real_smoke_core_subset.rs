@@ -1,5 +1,7 @@
 //! Pure admission of the governed local smoke observation subset.
 
+use std::collections::{BTreeMap, BTreeSet};
+
 use crate::{
     BenchError, RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport, RealSmokeCoreSubsetRow,
 };
@@ -12,6 +14,7 @@ use crate::{
 pub fn admit_real_smoke_core_subset_report(
     mut report: RealSmokeCoreSubsetReport,
 ) -> Result<RealSmokeCoreSubsetReport, BenchError> {
+    validate_observation_summary(&report)?;
     if report.execution_count != 4 {
         return Err(invalid_observation(format!(
             "real-smoke core subset must keep exactly 4 executions, found {}",
@@ -83,6 +86,57 @@ pub fn admit_real_smoke_core_subset_report(
 
     report.passes_behavior_test = true;
     Ok(report)
+}
+
+fn validate_observation_summary(report: &RealSmokeCoreSubsetReport) -> Result<(), BenchError> {
+    if report.schema_version != crate::REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION {
+        return Err(invalid_observation(
+            "unsupported local smoke core subset schema version".to_string(),
+        ));
+    }
+    if report.execution_count != report.rows.len() {
+        return Err(invalid_observation(
+            "real-smoke execution count does not match observed rows".to_string(),
+        ));
+    }
+    let stage_count = report
+        .rows
+        .iter()
+        .filter(|row| row.execution_kind == RealSmokeCoreSubsetExecutionKind::Stage)
+        .count();
+    let bridge_count = report
+        .rows
+        .iter()
+        .filter(|row| row.execution_kind == RealSmokeCoreSubsetExecutionKind::PipelineBridge)
+        .count();
+    if report.stage_execution_count != stage_count || report.pipeline_bridge_count != bridge_count {
+        return Err(invalid_observation(
+            "real-smoke execution-kind counts do not match observed rows".to_string(),
+        ));
+    }
+    let mut domain_counts = BTreeMap::new();
+    let mut execution_ids = BTreeSet::new();
+    for row in &report.rows {
+        if !execution_ids.insert(row.execution_id.as_str()) {
+            return Err(invalid_observation(format!(
+                "duplicate real-smoke execution identity `{}`",
+                row.execution_id
+            )));
+        }
+        *domain_counts.entry(row.domain.clone()).or_insert(0_usize) += 1;
+        if row.normalized_metric_count != row.normalized_metrics.len() {
+            return Err(invalid_observation(format!(
+                "real-smoke metric count for `{}` does not match observed metrics",
+                row.execution_id
+            )));
+        }
+    }
+    if report.domain_counts != domain_counts {
+        return Err(invalid_observation(
+            "real-smoke domain counts do not match observed rows".to_string(),
+        ));
+    }
+    Ok(())
 }
 
 fn ensure_row_exists<'a>(
@@ -210,6 +264,40 @@ mod tests {
         assert!(admit_real_smoke_core_subset_report(report).is_err());
         let mut report = observations();
         report.rows[0].manifest_exit_code = Some(1);
+        assert!(admit_real_smoke_core_subset_report(report).is_err());
+    }
+    #[test]
+    fn subset_admission_rejects_extra_rows_hidden_by_declared_counts() {
+        let mut report = observations();
+        report.rows.push(report.rows[0].clone());
+        assert!(admit_real_smoke_core_subset_report(report).is_err());
+    }
+
+    #[test]
+    fn subset_admission_rejects_duplicate_execution_identity() {
+        let mut report = observations();
+        report.rows[1].execution_id = report.rows[0].execution_id.clone();
+        assert!(admit_real_smoke_core_subset_report(report).is_err());
+    }
+
+    #[test]
+    fn subset_admission_requires_exact_domain_summaries() {
+        let mut report = observations();
+        report.domain_counts.insert("vcf".to_string(), 99);
+        assert!(admit_real_smoke_core_subset_report(report).is_err());
+    }
+
+    #[test]
+    fn subset_admission_requires_exact_metric_cardinality() {
+        let mut report = observations();
+        report.rows[0].normalized_metric_count = 2;
+        assert!(admit_real_smoke_core_subset_report(report).is_err());
+    }
+
+    #[test]
+    fn subset_admission_rejects_unsupported_schema_identity() {
+        let mut report = observations();
+        report.schema_version = "unknown.v1".to_string();
         assert!(admit_real_smoke_core_subset_report(report).is_err());
     }
 }
