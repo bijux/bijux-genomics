@@ -18,6 +18,7 @@ use crate::application::ci::{
     ShardDiscoveryPlan,
 };
 use crate::runtime::compilation_cache::CompilationCache;
+use crate::runtime::compiled_tests::LocalCompiledTests;
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 use crate::runtime::source_snapshot::TrackedSourceSnapshot;
 
@@ -1070,6 +1071,11 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     if matches!(args, [single] if single == "--help" || single == "-h") {
         ensure_help_only("ci-test-all-sharded", args)?;
     }
+    let started = Instant::now();
+    let (local_products, args) = match args.split_first() {
+        Some((flag, remaining)) if flag == "--local-products" => (true, remaining),
+        _ => (false, args),
+    };
     let contract_path = workspace.path("configs/ci/full-shards.json");
     let contract: FullShardContract = serde_json::from_slice(&fs::read(&contract_path)?)
         .with_context(|| format!("parse {}", contract_path.display()))?;
@@ -1100,7 +1106,6 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             contract.runtime_dependency_report
         )));
     }
-    let started = Instant::now();
     let source_snapshot = TrackedSourceSnapshot::capture(workspace)?;
     let source_identity = source_snapshot.commit();
     let source_patch_sha256 = source_snapshot.patch_sha256();
@@ -1146,28 +1151,47 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         materialize_full_shard_workspace(&source_snapshot, &storage.scratch_root, "archive-build")?
     };
     let archive_preparation = preparation_started.elapsed();
-    let archive_spec = ParallelProcessSpec {
-        label: "archive-build".to_string(),
-        program: "cargo".to_string(),
-        args: full_archive_args(&archive_roots.archive_file),
-        envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
-        current_dir: Some(archive_workspace.clone()),
+    let mut local_compiled = if local_products {
+        Some(LocalCompiledTests::build(
+            workspace,
+            &archive_workspace,
+            compilation_cache.target(),
+            &full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+            &report_root,
+        )?)
+    } else {
+        None
     };
-    let mut archive_outputs =
-        ProcessRunner::new(workspace).run_parallel_logged(vec![archive_spec], &report_root)?;
-    let archive_output = archive_outputs.pop().context("archive build was not collected")?;
-    let mut archive_log = archive_output.output.stdout.clone();
-    archive_log.extend_from_slice(&archive_output.output.stderr);
-    bijux_dna_infra::write_bytes(&archive_roots.build_log, &archive_log)?;
-    let archive_exit_code = archive_output.output.status.code().unwrap_or(1);
-    let archive_passed = archive_exit_code == 0 && archive_roots.archive_file.is_file();
-    let archive_sha256 = archive_passed
+    let archive_output = if local_compiled.is_none() {
+        let archive_spec = ParallelProcessSpec {
+            label: "archive-build".to_string(),
+            program: "cargo".to_string(),
+            args: full_archive_args(&archive_roots.archive_file),
+            envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+            current_dir: Some(archive_workspace.clone()),
+        };
+        let mut archive_outputs =
+            ProcessRunner::new(workspace).run_parallel_logged(vec![archive_spec], &report_root)?;
+        Some(archive_outputs.pop().context("archive build was not collected")?)
+    } else {
+        None
+    };
+    if let Some(output) = &archive_output {
+        let mut log = output.output.stdout.clone();
+        log.extend_from_slice(&output.output.stderr);
+        bijux_dna_infra::write_bytes(&archive_roots.build_log, &log)?;
+    }
+    let archive_exit_code =
+        archive_output.as_ref().map_or(0, |output| output.output.status.code().unwrap_or(1));
+    let archive_passed = local_compiled.is_some()
+        || (archive_exit_code == 0 && archive_roots.archive_file.is_file());
+    let archive_sha256 = (archive_output.is_some() && archive_passed)
         .then(|| bijux_dna_infra::hash_file_sha256(&archive_roots.archive_file))
         .transpose()?;
-    if archive_passed {
+    if archive_sha256.is_some() {
         set_full_archive_readonly(&archive_roots.archive_file)?;
     }
-    let mut archive_receipt = serde_json::json!({
+    let mut archive_receipt = archive_output.as_ref().map(|output| serde_json::json!({
         "schema_version": "bijux.ci.full_archive_build.v1",
         "source_commit": source_identity,
         "source_worktree_clean": source_clean,
@@ -1180,17 +1204,24 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "artifact_present": archive_roots.archive_file.is_file(),
         "cargo_target_dir": archive_roots.cargo_target.display().to_string(),
         "build_jobs": contract.archive_build_jobs,
-        "duration_milliseconds": archive_output.duration.as_millis(),
+        "duration_milliseconds": output.duration.as_millis(),
         "exit_code": archive_exit_code,
         "log": workspace.rel(&archive_roots.build_log).to_string_lossy(),
         "stdout_log": workspace.rel(&report_root.join("archive-build.stdout.log")).to_string_lossy(),
         "stderr_log": workspace.rel(&report_root.join("archive-build.stderr.log")).to_string_lossy(),
         "read_only_during_shard_execution": archive_passed,
-    });
-    // Retain completed build evidence even when discovery or execution is interrupted.
-    write_json_pretty(&report_root.join("archive-build.receipt.json"), &archive_receipt)?;
-    let mut stdout = String::from_utf8_lossy(&archive_output.output.stdout).into_owned();
-    let mut stderr = String::from_utf8_lossy(&archive_output.output.stderr).into_owned();
+    })).unwrap_or(serde_json::Value::Null);
+    if archive_output.is_some() {
+        write_json_pretty(&report_root.join("archive-build.receipt.json"), &archive_receipt)?;
+    }
+    let mut stdout = archive_output
+        .as_ref()
+        .map(|output| String::from_utf8_lossy(&output.output.stdout).into_owned())
+        .unwrap_or_default();
+    let mut stderr = archive_output
+        .as_ref()
+        .map(|output| String::from_utf8_lossy(&output.output.stderr).into_owned())
+        .unwrap_or_default();
     if !archive_passed {
         finish_full_shard_receipt(
             &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
@@ -1226,11 +1257,27 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         )?;
         return Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr });
     }
-    prepare_full_archive_extraction(&archive_roots.archive_extract)?;
+    let (reuse_inputs, compiled_target, inventory_args) = if let Some(products) = &local_compiled {
+        (
+            None,
+            compilation_cache.target().to_path_buf(),
+            products.inventory_arguments(&archive_workspace)?,
+        )
+    } else {
+        prepare_full_archive_extraction(&archive_roots.archive_extract)?;
+        let target = archive_roots.archive_extract.join("target");
+        let reuse = archive_reuse_inputs(&archive_roots.archive_extract)?;
+        (Some(reuse), target, full_inventory_args(&archive_roots))
+    };
+    let reuse_inputs = local_compiled
+        .as_ref()
+        .map(|products| &products.reuse)
+        .or(reuse_inputs.as_ref())
+        .context("compiled test reuse inputs are absent")?;
     let inventory_spec = ParallelProcessSpec {
         label: "test-inventory".to_string(),
         program: "cargo".to_string(),
-        args: full_inventory_args(&archive_roots),
+        args: inventory_args,
         envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
         current_dir: Some(archive_workspace.clone()),
     };
@@ -1257,7 +1304,9 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "archive_sha256": archive_sha256,
     });
     write_json_pretty(&report_root.join("test-inventory.receipt.json"), &inventory_receipt)?;
-    seal_full_archive_extraction(&archive_roots.archive_extract)?;
+    if local_compiled.is_none() {
+        seal_full_archive_extraction(&archive_roots.archive_extract)?;
+    }
     let shard_plans = selected_shards
         .iter()
         .map(|shard| {
@@ -1288,12 +1337,10 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .zip(&shard_roots)
         .zip(&shard_plans)
         .map(|(((shard, shard_workspace), roots), plan)| {
-            let mut args = full_shard_args(shard, &archive_roots.archive_extract, shard_workspace)?;
+            let mut args = full_shard_args(shard, reuse_inputs, shard_workspace)?;
             args.extend(["--filterset".to_string(), plan.filterset.clone()]);
             let mut envs = full_shard_env(roots, shard_workspace)?;
-            envs.extend(
-                executables.remapped_environment(&archive_roots.archive_extract.join("target"))?,
-            );
+            envs.extend(executables.remapped_environment(&compiled_target)?);
             Ok(ParallelProcessSpec {
                 label: shard.id.clone(),
                 program: "cargo".to_string(),
@@ -1324,11 +1371,18 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         all_passed &= exit_code == 0;
         stdout.push_str(&String::from_utf8_lossy(&completed.output.stdout));
         stderr.push_str(&String::from_utf8_lossy(&completed.output.stderr));
+        let mut environment_roots = full_shard_root_receipt(roots, &archive_roots, shard_workspace);
+        environment_roots["compiled_target_dir"] = serde_json::json!(compiled_target);
+        if local_products {
+            environment_roots["archive_extract_dir"] = serde_json::Value::Null;
+            environment_roots["snapshot_source_authority"] =
+                serde_json::json!("local_compile_time_metadata");
+        }
         shard_receipts.push(serde_json::json!({
             "id": completed.label,
             "partition": shard.partition,
             "workspace": workspace.rel(shard_workspace).to_string_lossy(),
-            "environment_roots": full_shard_root_receipt(roots, &archive_roots, shard_workspace),
+            "environment_roots": environment_roots,
             "duration_milliseconds": completed.duration.as_millis(),
             "exit_code": exit_code,
             "log": workspace.rel(&log_path).to_string_lossy(),
@@ -1336,12 +1390,18 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "stderr_log": workspace.rel(&report_root.join(format!("{}.stderr.log", shard.id))).to_string_lossy(),
         }));
     }
-    let archive_sha256_after = bijux_dna_infra::hash_file_sha256(&archive_roots.archive_file)?;
-    let archive_checksum_stable = archive_sha256.as_deref() == Some(archive_sha256_after.as_str());
-    all_passed &= archive_checksum_stable;
-    archive_receipt["artifact_sha256_after_execution"] =
-        serde_json::Value::String(archive_sha256_after);
-    archive_receipt["checksum_stable"] = serde_json::Value::Bool(archive_checksum_stable);
+    if let Some(products) = &mut local_compiled {
+        all_passed &= products.verify_unchanged()?;
+        write_json_pretty(&report_root.join("compiled-products.receipt.json"), &products.receipt)?;
+    } else {
+        let archive_sha256_after = bijux_dna_infra::hash_file_sha256(&archive_roots.archive_file)?;
+        let archive_checksum_stable =
+            archive_sha256.as_deref() == Some(archive_sha256_after.as_str());
+        all_passed &= archive_checksum_stable;
+        archive_receipt["artifact_sha256_after_execution"] =
+            serde_json::Value::String(archive_sha256_after);
+        archive_receipt["checksum_stable"] = serde_json::Value::Bool(archive_checksum_stable);
+    }
     finish_full_shard_receipt(
         &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
         serde_json::json!({
@@ -1355,6 +1415,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "build_authority_sha256": build_authority_sha256,
             "runtime_dependencies": runtime_dependencies,
             "archive": archive_receipt,
+            "compiled_products": local_compiled.as_ref().map(|products| &products.receipt),
+            "product_transport": if local_products { "local_metadata" } else { "archive" },
             "evidence_retention": {
                 "policy": "bounded_logs_and_receipts",
                 "archive_retained": false,
@@ -1383,7 +1445,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "run_ignored": "all",
                 "overlap_policy": "exactly_once",
                 "workspace_isolation": contract.workspace_isolation,
-                "output_isolation": "shared_read_only_extraction_with_disjoint_workspaces_and_runtime_roots"
+                "output_isolation": if local_products { "exclusive_compilation_cache_with_disjoint_workspaces_and_runtime_roots" } else { "shared_read_only_extraction_with_disjoint_workspaces_and_runtime_roots" }
             },
             "wall_time_milliseconds": started.elapsed().as_millis(),
             "all_passed": all_passed,
@@ -1680,7 +1742,7 @@ fn full_inventory_args(archive: &FullArchiveRoots) -> Vec<String> {
 
 fn full_shard_args(
     shard: &FullShard,
-    archive_extract: &Path,
+    reuse: &NextestReuseInputs,
     workspace_remap: &Path,
 ) -> Result<Vec<String>> {
     let mut args = vec![
@@ -1703,14 +1765,17 @@ fn full_shard_args(
         "--partition".to_string(),
         shard.partition.clone(),
     ];
+    args.extend(reuse.arguments(workspace_remap)?);
+    Ok(args)
+}
+
+fn archive_reuse_inputs(archive_extract: &Path) -> Result<NextestReuseInputs> {
     let target = archive_extract.join("target");
-    let reuse = NextestReuseInputs::new(
+    NextestReuseInputs::new(
         target.join("nextest/cargo-metadata.json"),
         target.join("nextest/binaries-metadata.json"),
         target,
-    )?;
-    args.extend(reuse.arguments(workspace_remap)?);
-    Ok(args)
+    )
 }
 
 fn materialize_full_shard_workspace(
@@ -2021,7 +2086,9 @@ fn full_shard_storage_receipt(storage: &FullShardStorageRoots) -> serde_json::Va
         "retained_report_root": storage.retained_report_root.display().to_string(),
         "scratch_root": storage.scratch_root.display().to_string(),
         "scratch_root_environment": FULL_SHARD_SCRATCH_ROOT_ENV,
-        "scratch_retained": false,
+        "scratch_retained": true,
+        "retention_scope": "exclusively_owned_compilation_cache",
+        "compilation_cache_target": CompilationCache::target_under(&storage.scratch_root),
     })
 }
 
@@ -3040,7 +3107,11 @@ mod tests {
 
         for shard in &contract.shards {
             let remap = storage.scratch_root.join("workspaces").join(&shard.id);
-            let args = full_shard_args(shard, &archive.archive_extract, &remap)?;
+            let args = full_shard_args(
+                shard,
+                &super::archive_reuse_inputs(&archive.archive_extract)?,
+                &remap,
+            )?;
             for forbidden in [
                 "--workspace",
                 "--all-targets",

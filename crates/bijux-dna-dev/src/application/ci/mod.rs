@@ -1,5 +1,6 @@
 //! Admission of declared test inventories and observed CI execution evidence.
 
+mod compiled_files;
 mod coverage;
 mod events;
 mod executables;
@@ -7,6 +8,7 @@ mod inventory;
 mod partition;
 mod test_products;
 
+pub(crate) use compiled_files::admit_compiled_executable_paths;
 pub(crate) use coverage::CoverageAttestation;
 pub(crate) use executables::CompiledWorkspaceExecutables;
 pub(crate) use inventory::ExpectedTestInventory;

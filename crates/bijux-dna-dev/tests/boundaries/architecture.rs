@@ -176,6 +176,7 @@ fn dev_tree_matches_architecture_contract() {
     let runtime_entries = dir_entries(&root.join("src/runtime"));
     let expected_runtime: BTreeSet<_> = [
         "compilation_cache.rs",
+        "compiled_tests.rs",
         "mod.rs",
         "process.rs",
         "source_snapshot.rs",
