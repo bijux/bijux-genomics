@@ -230,8 +230,8 @@ fn policy__boundaries__dependency_boundaries__environment_has_no_engine_or_runne
 }
 
 #[test]
-fn dependency_authority_resolves_aliases_workspace_and_target_specific_edges() -> anyhow::Result<()>
-{
+fn policy__boundaries__dependency_boundaries__dependency_authority_resolves_aliases_workspace_and_target_specific_edges(
+) -> anyhow::Result<()> {
     let root = bijux_dna_testkit::tempdir_for("dependency-authority");
     let root = root.path();
     for package in ["consumer", "runner-owner", "shared-owner", "build-owner", "test-owner"] {
