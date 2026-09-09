@@ -11,3 +11,5 @@ pub use outcomes::{gate_decision_schema, GateDecision, GateViolation};
 pub mod bam_scoring;
 
 pub mod vcf_scoring;
+
+pub mod output_audit;

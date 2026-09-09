@@ -9,3 +9,5 @@ pub(crate) mod rendered_commands;
 pub(crate) mod result_collector;
 pub(crate) mod smoke_subset;
 pub(crate) mod stage_tool_table;
+
+pub(crate) mod output_audit;

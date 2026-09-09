@@ -779,3 +779,11 @@ pub use crate::model::vcf_scoring::{
     VcfToolScoreStatus, VcfToolScoresReport, VcfToolScoringInput, VCF_TOOL_SCORES_SCHEMA_VERSION,
 };
 pub use crate::policy::vcf_scoring::{build_vcf_tool_score_rows, build_vcf_tool_scores_report};
+
+pub use crate::model::readiness::output_audit::{
+    OutputContractProof, OutputContractRuntimePaths, OutputContractTestRow,
+    OutputContractTestsReport, OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION,
+};
+pub use crate::policy::output_audit::{
+    build_output_contract_tests_report, evaluate_output_contract_row,
+};
