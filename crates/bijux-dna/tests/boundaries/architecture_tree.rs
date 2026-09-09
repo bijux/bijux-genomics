@@ -452,6 +452,8 @@ fn dna_tree_matches_architecture_contract() {
         "benchmark/",
         "benchmark_readiness.rs",
         "bench_readiness_fastq.rs",
+        "bench_readiness_bam.rs",
+        "bench_readiness_vcf.rs",
         "fixtures/",
         "fixtures_fastq.rs",
         "fixtures_bam.rs",
