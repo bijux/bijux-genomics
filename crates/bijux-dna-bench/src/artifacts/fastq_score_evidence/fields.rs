@@ -47,6 +47,14 @@ pub(super) fn required_stage<'a>(value: &'a Value, expected: &str) -> Result<&'a
     Ok(stage)
 }
 
+pub(super) fn sum_report_counts(cases: &[Value], key: &str) -> Result<u64> {
+    cases.iter().try_fold(0_u64, |total, case| {
+        total
+            .checked_add(required_u64(case, key)?)
+            .ok_or_else(|| anyhow!("FASTQ report sum of `{key}` overflows u64"))
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

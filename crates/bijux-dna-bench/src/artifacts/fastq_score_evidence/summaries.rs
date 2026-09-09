@@ -2,7 +2,7 @@
 
 use super::fields::{
     fraction_u64, optional_str, optional_u64, required_f64, required_stage, required_str,
-    required_u64,
+    sum_report_counts,
 };
 use super::merge_evidence_row;
 use crate::repo::load_optional_fastq_score_report as load_optional_json_value;
@@ -97,12 +97,7 @@ pub(super) fn merge_profile_reads_summary(
         .get("cases")
         .and_then(Value::as_array)
         .ok_or_else(|| anyhow!("{} is missing cases", absolute_path.display()))?;
-    let total_reads = cases
-        .iter()
-        .map(|case| required_u64(case, "reads_total"))
-        .collect::<Result<Vec<_>>>()?
-        .into_iter()
-        .sum::<u64>();
+    let total_reads = sum_report_counts(cases, "reads_total")?;
     merge_evidence_row(
         rows,
         (stage_id, "seqkit_stats".to_string()),
@@ -136,12 +131,7 @@ pub(super) fn merge_validate_reads_summary(
         .get("cases")
         .and_then(Value::as_array)
         .ok_or_else(|| anyhow!("{} is missing cases", absolute_path.display()))?;
-    let total_reads = cases
-        .iter()
-        .map(|case| required_u64(case, "input_read_count_total"))
-        .collect::<Result<Vec<_>>>()?
-        .into_iter()
-        .sum::<u64>();
+    let total_reads = sum_report_counts(cases, "input_read_count_total")?;
     let passed_cases = u64::try_from(
         cases.iter().filter(|case| optional_str(case, "validation_status") == Some("pass")).count(),
     )?;

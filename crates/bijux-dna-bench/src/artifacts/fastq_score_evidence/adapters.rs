@@ -1,7 +1,7 @@
 //! Adapters for observed FASTQ stage report formats.
 
 use super::fields::{fraction_u64, required_f64, required_stage, required_str, required_u64};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use bijux_dna_bench_model::FastqScoreEvidence as FastqEvidenceAggregate;
 use serde_json::Value;
 use std::collections::BTreeSet;
@@ -213,8 +213,12 @@ fn parse_merge_pairs(root: &Value) -> Result<(String, String, FastqEvidenceAggre
     let unmerged_r1_count = required_u64(root, "unmerged_r1_count")?;
     let unmerged_r2_count = required_u64(root, "unmerged_r2_count")?;
     let discarded_count = required_u64(root, "discarded_count")?;
-    let input_reads = input_pair_count.saturating_mul(2);
-    let retained_reads = merged_count + unmerged_r1_count + unmerged_r2_count;
+    let input_reads =
+        input_pair_count.checked_mul(2).context("FASTQ merge input read count overflows u64")?;
+    let retained_reads = merged_count
+        .checked_add(unmerged_r1_count)
+        .and_then(|count| count.checked_add(unmerged_r2_count))
+        .context("FASTQ merge retained read count overflows u64")?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -366,6 +370,20 @@ mod tests {
                 let error = adapter(&value).err().context("cross-stage report must reject")?;
                 assert!(error.to_string().contains("expected stage"), "{error}");
             }
+        }
+        Ok(())
+    }
+    #[test]
+    fn merge_report_counts_reject_overflow_and_preserve_record_units() -> Result<()> {
+        let original = serde_json::json!({"stage_id":"fastq.merge_pairs", "planned_tool_id":"pear",
+            "input_pair_count":2,"merged_count":1,"unmerged_r1_count":1,"unmerged_r2_count":1,"discarded_count":0});
+        let observed = parse_merge_pairs(&original)?.2;
+        assert_eq!((observed.retained_reads, observed.dropped_reads), (Some(3), Some(0)));
+        for field in ["input_pair_count", "merged_count", "unmerged_r2_count"] {
+            let mut value = original.clone();
+            value[field] = serde_json::json!(u64::MAX);
+            let error = parse_merge_pairs(&value).err().context("count overflow must reject")?;
+            assert!(error.to_string().contains("overflows u64"), "{error}");
         }
         Ok(())
     }

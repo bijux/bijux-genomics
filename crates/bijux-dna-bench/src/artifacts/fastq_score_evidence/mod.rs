@@ -173,4 +173,41 @@ mod tests {
         }
         Ok(())
     }
+    #[test]
+    fn summary_counts_reject_overflow_and_preserve_maximum_count() -> Result<()> {
+        for (path, stage, tool, field) in [
+            (
+                "artifacts/runs/bench/local-smoke/fastq.profile_reads/profile.json",
+                "fastq.profile_reads",
+                "seqkit_stats",
+                "reads_total",
+            ),
+            (
+                "artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json",
+                "fastq.validate_reads",
+                "fastqvalidator",
+                "input_read_count_total",
+            ),
+        ] {
+            let repository = bijux_dna_infra::temp_dir("fastq-summary-count-admission")?;
+            let report = repository.path().join(path);
+            bijux_dna_infra::ensure_dir(report.parent().context("report parent")?)?;
+            let mut value = serde_json::json!({"stage_id":stage,"cases":[{field:u64::MAX,"validation_status":"pass"},{field:1,"validation_status":"pass"}]});
+            bijux_dna_infra::write_bytes(&report, &serde_json::to_vec(&value)?)?;
+            let error = load_fastq_tool_score_evidence(repository.path())
+                .err()
+                .context("sum overflow must reject")?;
+            assert!(error.to_string().contains("overflows u64"), "{error}");
+            value["cases"].as_array_mut().context("cases array")?.truncate(1);
+            bijux_dna_infra::write_bytes(&report, &serde_json::to_vec(&value)?)?;
+            let rows = load_fastq_tool_score_evidence(repository.path())?;
+            assert_eq!(
+                rows.get(&(stage.to_string(), tool.to_string()))
+                    .context("observed summary")?
+                    .retained_reads,
+                Some(u64::MAX)
+            );
+        }
+        Ok(())
+    }
 }
