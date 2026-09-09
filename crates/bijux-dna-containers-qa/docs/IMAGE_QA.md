@@ -32,7 +32,7 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo run -p bijux-dna-containers-qa --b
 
 - Fast tests use local fixtures only.
 - Runtime QA may use operator-provided external datasets, but default tests never fetch them.
-- Synthetic fixture artifacts live under `tests/fixtures/qa_artifacts/default/`.
+- Contract tests create bounded inputs for real qualification and verification behavior.
 - Larger real-world datasets must record source, checksum, license, and purpose outside source code
   before use.
 
@@ -46,6 +46,6 @@ image probes, while preserving Apptainer-specific image/cache behavior.
 ## Artifact Contract
 
 Runtime QA records write under `artifacts/image-qa/<platform>/`; per-run tool outputs write under
-`artifacts/image-qa/runs/<stage>/`. Fixture artifacts use production-like names (`manifest.json`,
-`report.json`) and are checked by
-`tests/contracts/artifacts/qa_artifact_contract.rs`.
+`artifacts/image-qa/runs/<stage>/`. Qualification contracts exercise required output evidence,
+content identity, version matching and metric failure classification in
+`tests/contracts/qualification.rs`.

@@ -19,20 +19,19 @@ TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo te
 
 ## Contracts Suite
 
-- `tests/contracts/artifacts/qa_artifact_contract.rs`: fixture manifest/report shape.
-- `tests/contracts/qa_contracts.rs`: shared QA support contract coverage.
+- `tests/contracts/qualification.rs`: source admission, required outputs, content identity, metrics and failure classes.
+- `tests/contracts/qa_contracts.rs`: shared QA support behavior with `verification-tools` enabled.
+- `tests/contracts/apptainer_smoke.rs` and `runtime_verification.rs`: verification tool behavior with the default feature enabled.
 
-## Determinism Suite
+Run the default suite to retain every verification capability:
 
-- `tests/determinism/fixture_stability.rs`: stable JSON fixture ordering.
+```sh
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-containers-qa
+```
 
-## Support Fixtures
-
-- `tests/support/image_qa_support.rs`: helper contract tests included by `tests/contracts.rs`.
-- `tests/fixtures/qa_artifacts/default/`: minimal manifest/report fixtures.
+The commands above with `--no-default-features` qualify the independently usable qualification library. Inputs are created inside owned test sandboxes for the behavior being exercised.
 
 ## Failure Meaning
 
 - Boundary failures mean layout, docs, commands, dependencies, or public exports drifted.
 - Contract failures mean QA evidence shape or support behavior changed.
-- Determinism failures mean fixture output is no longer stable.

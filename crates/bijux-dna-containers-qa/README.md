@@ -65,7 +65,7 @@ on image count, dataset size, and local Docker/Apptainer cache state.
 - QA JSONL: `artifacts/image-qa/<platform>/qa.jsonl`
 - QA SQLite: `artifacts/image-qa/<platform>/qa.sqlite`
 - QA summary: `artifacts/image-qa/<platform>/qa.json`
-- Fixture manifest/report contracts: `tests/fixtures/qa_artifacts/default/`
+- Qualification evidence and failure classification: `tests/contracts/qualification.rs`
 
 ## How to run its tests
 See `docs/TESTS.md`.
@@ -85,5 +85,7 @@ Contract and behavior changes follow `docs/CONTRACTS.md`, `docs/PUBLIC_API.md`, 
 `docs/DEPENDENCIES.md`.
 
 ## Dependency boundary
-Only `bijux-dna-runner` may consume the stable qualification facade. Keep all process execution and
-scheduler effects in the runner and lock the remaining dependency direction through boundary tests.
+The runner consumes the qualification facade without the optional verification tools. The API
+explicitly enables verification tools for its public services. Qualification process execution and
+scheduler effects belong to the runner; image, runtime and security QA commands own their declared
+verification effects. Boundary tests enforce the dependency direction.

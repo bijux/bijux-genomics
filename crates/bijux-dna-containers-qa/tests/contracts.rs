@@ -2,8 +2,6 @@
 #[cfg(feature = "verification-tools")]
 #[path = "contracts/apptainer_smoke.rs"]
 mod mod_contracts_apptainer_smoke_rs;
-#[path = "contracts/artifacts.rs"]
-mod mod_contracts_artifacts_rs;
 #[cfg(feature = "verification-tools")]
 #[path = "contracts/qa_contracts.rs"]
 mod mod_contracts_qa_contracts_rs;
