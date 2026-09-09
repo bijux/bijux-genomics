@@ -3,8 +3,7 @@
 use std::collections::BTreeSet;
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn bench_readiness_all_domain_rendered_commands_write_governed_argv_jsonl() {
