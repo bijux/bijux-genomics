@@ -1,34 +1,20 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::path::PathBuf;
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli(args: &[&str]) -> std::process::Output {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _repo_lock =
-        support::RepoProcessLock::acquire("benchmark-readiness-mutators").expect("repo lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
-    let home = tempfile::tempdir().expect("tempdir");
-
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+fn run_cli_json_with_sandbox(args: &[&str]) -> (support::RepoSandbox, serde_json::Value) {
+    let sandbox = support::RepoSandbox::new("readiness-report-files-").expect("repository sandbox");
+    let home = tempfile::tempdir().expect("home directory");
+    let output = sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
         .args(args)
         .output()
-        .expect("run cli")
-}
-
-fn run_cli_json_with_repo_root(args: &[&str]) -> (PathBuf, serde_json::Value) {
-    let repo_root = support::repo_root().expect("repo root");
-    let output = run_cli(args);
+        .expect("run cli");
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -36,17 +22,18 @@ fn run_cli_json_with_repo_root(args: &[&str]) -> (PathBuf, serde_json::Value) {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    (repo_root, serde_json::from_slice(&output.stdout).expect("parse stdout as json"))
+    (sandbox, serde_json::from_slice(&output.stdout).expect("parse stdout as json"))
 }
 
 #[test]
 fn bench_readiness_all_domain_failure_classification_writes_governed_report_and_probe_fixture() {
-    let (repo_root, payload) = run_cli_json_with_repo_root(&[
+    let (sandbox, payload) = run_cli_json_with_sandbox(&[
         "bench",
         "readiness",
         "render-all-domain-failure-classification",
         "--json",
     ]);
+    let repo_root = sandbox.path();
 
     let report_path = repo_root
         .join("artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json");
