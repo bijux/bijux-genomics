@@ -178,6 +178,7 @@ fn dev_tree_matches_architecture_contract() {
         "compilation_cache.rs",
         "compiled_products.rs",
         "owned_artifacts.rs",
+        "gate_receipt.rs",
         "mod.rs",
         "process.rs",
         "source_snapshot.rs",
