@@ -154,7 +154,9 @@ fn nextest_full_profile_serializes_benchmark_product_writers() -> anyhow::Result
     assert!(group.contains("max-threads = 1"));
     assert!(!config.contains("[test-groups.micro-benchmark-mutators]"));
     assert!(!config.contains("[test-groups.vcf-benchmark-mutators]"));
-    assert!(config.contains("binary(/^(?:bench_|config_|dev_crates_|fixtures_|plan_validate_)/)"));
+    assert!(config.contains(
+        "binary(/^(?:bench_|benchmark_readiness$|config_|dev_crates_|fixtures_|plan_validate_)/)"
+    ));
     assert!(config.contains("test(/^commands::benchmark::/)"));
 
     let integration_root = repo_root.join("crates/bijux-dna/tests");
@@ -174,9 +176,10 @@ fn nextest_full_profile_serializes_benchmark_product_writers() -> anyhow::Result
                     anyhow::anyhow!("integration test path has no UTF-8 file stem")
                 })?;
             assert!(
-                ["bench_", "config_", "dev_crates_", "fixtures_", "plan_validate_"]
-                    .iter()
-                    .any(|prefix| binary.starts_with(prefix)),
+                binary == "benchmark_readiness"
+                    || ["bench_", "config_", "dev_crates_", "fixtures_", "plan_validate_"]
+                        .iter()
+                        .any(|prefix| binary.starts_with(prefix)),
                 "repository-mutating integration binary `{binary}` escaped the full-profile prefix contract"
             );
         }
