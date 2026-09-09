@@ -43,3 +43,5 @@ tests/
 │   └── runtime_provider.rs
 └── guardrails.rs
 ```
+
+`resolution/reference_catalog.rs` owns explicit-root species and bundle identity lookup through the existing complete runtime configuration types. The default species resolver delegates to the same lookup. Catalog queries reject duplicate matching identities and never fall back from a missing selected root to the compiled workspace. `tests/contracts/reference_catalog.rs` exercises isolated catalog roots and malformed declarations.

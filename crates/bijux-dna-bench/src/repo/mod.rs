@@ -6,6 +6,7 @@ mod catalog_registry_authority;
 mod catalog_snapshot_authority;
 mod corpus;
 mod data_index_authority;
+mod pipeline_reference;
 mod repo_root;
 mod repository;
 mod run_artifacts;
@@ -37,6 +38,7 @@ pub use data_index_authority::{
     build_benchmark_data_index, publish_benchmark_data_index, render_benchmark_data_index_markdown,
     BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
 };
+pub use pipeline_reference::validate_benchmark_pipeline_reference_context;
 pub use repo_root::resolve_repo_root;
 pub use repository::RunRepository;
 pub(crate) use run_artifacts::load_observations;

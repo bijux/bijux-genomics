@@ -9,8 +9,8 @@ use bijux_dna_api::v1::api::bench::{
     validate_benchmark_local_pipeline_dag_config as validate_pipeline_contract,
     validate_benchmark_local_pipeline_dag_declarations,
     validate_benchmark_local_pipeline_dag_validation, validate_benchmark_pipeline_profiles,
-    BenchmarkLocalCorpusStageCompatibilityReport, PipelineProfileEvidence,
-    BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
+    validate_benchmark_pipeline_reference_context, BenchmarkLocalCorpusStageCompatibilityReport,
+    PipelineProfileEvidence, BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
     BenchmarkLocalPipelineAncientDnaPolicy as LocalPipelineAncientDnaPolicy,
@@ -28,7 +28,6 @@ pub(crate) use bijux_dna_api::v1::api::bench::{
     BenchmarkLocalPipelineVariantAssets as LocalPipelineVariantAssets,
 };
 use bijux_dna_api::v1::api::plan::{validate_artifact_flow, ArtifactFlowNode};
-use serde::Deserialize;
 
 use crate::commands::benchmark::local_corpus_stage_compatibility::{
     validate_corpus_stage_compatibility_path, DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH,
@@ -363,86 +362,12 @@ fn validate_pipeline_metadata(
     config: &LocalPipelineDagConfig,
 ) -> Result<()> {
     if let Some(reference_context) = &config.reference_context {
-        validate_reference_context(repo_root, reference_context)?;
+        validate_benchmark_pipeline_reference_context(repo_root, reference_context)?;
     }
     if let Some(execution_context) = &config.execution_context {
         validate_execution_context(repo_root, execution_context)?;
     }
     validate_benchmark_local_pipeline_dag_declarations(config_path, config)
-}
-
-fn validate_reference_context(
-    repo_root: &Path,
-    reference_context: &LocalPipelineReferenceContext,
-) -> Result<()> {
-    require_non_empty(
-        &reference_context.species_id,
-        "local pipeline reference_context must declare a non-empty `species_id`",
-    )?;
-    require_non_empty(
-        &reference_context.build_id,
-        "local pipeline reference_context must declare a non-empty `build_id`",
-    )?;
-    require_non_empty(
-        &reference_context.reference_bundle_id,
-        "local pipeline reference_context must declare a non-empty `reference_bundle_id`",
-    )?;
-
-    let species_catalog_path = repo_root.join("configs/runtime/species.toml");
-    let species_catalog_raw = fs::read_to_string(&species_catalog_path)
-        .with_context(|| format!("read {}", species_catalog_path.display()))?;
-    let species_catalog: RuntimeSpeciesCatalog = toml::from_str(&species_catalog_raw)
-        .with_context(|| format!("parse {}", species_catalog_path.display()))?;
-    let species_row = species_catalog
-        .species
-        .iter()
-        .find(|row| row.species_id == reference_context.species_id)
-        .ok_or_else(|| {
-            anyhow!(
-                "local pipeline reference_context species_id `{}` is not present in {}",
-                reference_context.species_id,
-                species_catalog_path.display()
-            )
-        })?;
-    if species_row.default_build_id != reference_context.build_id {
-        return Err(anyhow!(
-            "local pipeline reference_context build_id `{}` does not match the runtime default build `{}` for species `{}`",
-            reference_context.build_id,
-            species_row.default_build_id,
-            reference_context.species_id
-        ));
-    }
-
-    let bundles_path = repo_root.join("configs/runtime/reference_bundles.toml");
-    let bundles_raw = fs::read_to_string(&bundles_path)
-        .with_context(|| format!("read {}", bundles_path.display()))?;
-    let bundles_catalog: RuntimeReferenceBundleCatalog = toml::from_str(&bundles_raw)
-        .with_context(|| format!("parse {}", bundles_path.display()))?;
-    let bundle_row = bundles_catalog
-        .bundle
-        .iter()
-        .find(|row| row.bundle_id == reference_context.reference_bundle_id)
-        .ok_or_else(|| {
-            anyhow!(
-                "local pipeline reference_context reference_bundle_id `{}` is not present in {}",
-                reference_context.reference_bundle_id,
-                bundles_path.display()
-            )
-        })?;
-    if bundle_row.species_id != reference_context.species_id
-        || bundle_row.build_id != reference_context.build_id
-    {
-        return Err(anyhow!(
-            "local pipeline reference_context bundle `{}` resolves to `{}` / `{}`, expected `{}` / `{}`",
-            reference_context.reference_bundle_id,
-            bundle_row.species_id,
-            bundle_row.build_id,
-            reference_context.species_id,
-            reference_context.build_id
-        ));
-    }
-
-    Ok(())
 }
 
 fn validate_execution_context(
@@ -505,29 +430,6 @@ fn validate_execution_context(
     }
 
     Ok(())
-}
-
-#[derive(Debug, Deserialize)]
-struct RuntimeSpeciesCatalog {
-    species: Vec<RuntimeSpeciesRow>,
-}
-
-#[derive(Debug, Deserialize)]
-struct RuntimeSpeciesRow {
-    species_id: String,
-    default_build_id: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct RuntimeReferenceBundleCatalog {
-    bundle: Vec<RuntimeReferenceBundleRow>,
-}
-
-#[derive(Debug, Deserialize)]
-struct RuntimeReferenceBundleRow {
-    bundle_id: String,
-    species_id: String,
-    build_id: String,
 }
 
 fn require_non_empty(value: &str, message: &str) -> Result<()> {

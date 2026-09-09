@@ -13,6 +13,7 @@ toml.workspace = true
 bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 
 [dev-dependencies]
+tempfile.workspace = true
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 
 [lints]

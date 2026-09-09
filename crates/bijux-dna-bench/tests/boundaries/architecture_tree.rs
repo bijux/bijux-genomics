@@ -56,6 +56,7 @@ fn bench_tree_matches_architecture_contract() {
             "corpus/",
             "data_index_authority.rs",
             "mod.rs",
+            "pipeline_reference.rs",
             "repo_root.rs",
             "repository.rs",
             "run_artifacts/",

@@ -86,3 +86,5 @@ and suite catalog governance.
 `src/repo/corpus/` groups BAM and FASTQ governed admission and normalized FASTQ metadata. Normalized discovery, accession joins, and publication cohort selection serve benchmark execution and dossier consumers through the public API.
 
 `src/repo/stage_inventory/` admits local domain matrices from an explicit repository root. `src/workflow/stage_inventory.rs` aggregates the admitted inventories and publishes their validated report atomically. Persisted inventory models and report validators belong to `bijux-dna-bench-model`; CLI consumers use the curated API facade.
+
+`repo/pipeline_reference.rs` admits benchmark pipeline reference identities using explicit-root db-ref catalog queries. The reference owner reads complete catalog schemas; benchmark admission checks the declared default build and bundle binding. The CLI calls this service without duplicating catalog DTOs or IO.

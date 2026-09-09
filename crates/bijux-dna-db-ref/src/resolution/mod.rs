@@ -3,6 +3,7 @@ mod locks;
 mod maps;
 mod panels;
 mod reference_assets;
+mod reference_catalog;
 mod species;
 
 pub use compatibility::validate_imputation_tool_compatibility;
@@ -22,3 +23,5 @@ pub use species::{
     resolve_coverage_profile, resolve_sex_chromosome_rule, resolve_sex_par_organellar_assets,
     resolve_species_alias, resolve_species_authority, resolve_species_context,
 };
+
+pub use reference_catalog::{find_reference_bundle_identity_at, find_species_authority_at};
