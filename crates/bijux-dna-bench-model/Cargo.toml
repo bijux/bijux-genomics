@@ -14,7 +14,7 @@ serde_json = { workspace = true }
 schemars.workspace = true
 sha2.workspace = true
 bijux-dna-core = { path = "../bijux-dna-core" }
-bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
+bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq", optional = true }
 bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 bijux-dna-stage-contract = { path = "../bijux-dna-stage-contract" }
 
@@ -22,6 +22,11 @@ bijux-dna-stage-contract = { path = "../bijux-dna-stage-contract" }
 workspace = true
 
 [dev-dependencies]
+bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 toml.workspace = true
+
+[features]
+default = ["canonical-fastq-catalog"]
+canonical-fastq-catalog = ["dep:bijux-dna-domain-fastq"]

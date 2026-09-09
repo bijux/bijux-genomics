@@ -375,6 +375,7 @@ pub use stage_tool_containers::{
 pub use stage_tool_resources::{
     validate_stage_tool_resources_config, validate_stage_tool_resources_report,
 };
+#[cfg(feature = "canonical-fastq-catalog")]
 pub use suite::validate_suite;
 
 pub use local_hpc_job_graph::build_benchmark_local_hpc_job_graph;
@@ -397,4 +398,6 @@ pub use readiness::{
     AllDomainStageToolTableAdmissionContext,
 };
 
-pub use suite::{validate_suite_with_catalog, BenchmarkSuiteCatalog, CanonicalFastqSuiteCatalog};
+#[cfg(feature = "canonical-fastq-catalog")]
+pub use suite::CanonicalFastqSuiteCatalog;
+pub use suite::{validate_suite_with_catalog, BenchmarkSuiteCatalog};

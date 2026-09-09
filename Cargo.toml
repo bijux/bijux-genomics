@@ -83,7 +83,7 @@ bijux-dna-analyze = { path = "crates/bijux-dna-analyze" }
 bijux-dna = { path = "crates/bijux-dna" }
 bijux-dna-api = { path = "crates/bijux-dna-api" }
 bijux-dna-bench = { path = "crates/bijux-dna-bench" }
-bijux-dna-bench-model = { path = "crates/bijux-dna-bench-model" }
+bijux-dna-bench-model = { path = "crates/bijux-dna-bench-model", default-features = false }
 bijux-dna-core = { path = "crates/bijux-dna-core" }
 bijux-dna-db-ena = { path = "crates/bijux-dna-db-ena" }
 bijux-dna-db-ref = { path = "crates/bijux-dna-db-ref" }

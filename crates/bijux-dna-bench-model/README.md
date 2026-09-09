@@ -88,3 +88,7 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --te
 Set `BIJUX_UPDATE_GENERATED_SCHEMAS=1` only when intentionally regenerating
 checked-in schemas from the Rust model registry; the ordinary schema test is a
 read-only drift gate.
+
+## Catalog linkage
+
+The default `canonical-fastq-catalog` feature preserves `contract::validate_suite` and the canonical FASTQ adapter. Pure record consumers can disable default features and use `contract::validate_suite_with_catalog` with an explicit provider. This removes the model-to-FASTQ compilation dependency for those builds. Full workspace feature unification may still enable the canonical adapter; a minimal consumer build is a separate measured configuration.

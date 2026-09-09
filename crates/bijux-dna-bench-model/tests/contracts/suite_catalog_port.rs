@@ -1,0 +1,111 @@
+use std::collections::BTreeSet;
+
+use bijux_dna_bench_model::contract::{validate_suite_with_catalog, BenchmarkSuiteCatalog};
+use bijux_dna_bench_model::{
+    AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageEdge, BenchmarkStageSpec,
+    BenchmarkSuiteSpec, DatasetSpec, DiversityRequirements, ReplicatePolicy,
+};
+use bijux_dna_core::ids::{StageId, ToolId};
+
+struct FixtureCatalog {
+    stage: bool,
+    ports: bool,
+    parameters: bool,
+}
+
+impl BenchmarkSuiteCatalog for FixtureCatalog {
+    fn declares_stage(&self, stage: &str) -> bool {
+        self.stage && stage == "fastq.fixture"
+    }
+    fn stage_is_plannable(&self, _: &StageId) -> Option<bool> {
+        Some(true)
+    }
+    fn declares_binding(&self, _: &StageId, tool: &ToolId) -> bool {
+        tool.as_str() == "fixture"
+    }
+    fn admitted_tools(&self, _: &StageId) -> Vec<ToolId> {
+        match bijux_dna_core::ids::parse_tool_id("fixture") {
+            Ok(tool) => vec![tool],
+            Err(error) => panic!("invalid fixture tool: {error}"),
+        }
+    }
+    fn input_ids(&self, _: &str) -> Option<BTreeSet<String>> {
+        Some(if self.ports { BTreeSet::from(["reads".to_string()]) } else { BTreeSet::new() })
+    }
+    fn output_ids(&self, stage: &str) -> Option<BTreeSet<String>> {
+        self.input_ids(stage)
+    }
+    fn parameter_ids(&self, _: &str) -> Option<BTreeSet<String>> {
+        Some(if self.parameters { BTreeSet::from(["limit".to_string()]) } else { BTreeSet::new() })
+    }
+}
+
+fn suite() -> BenchmarkSuiteSpec {
+    let stages = ["source", "sink"].map(|instance| BenchmarkStageSpec {
+        stage: "fastq.fixture".to_string(),
+        stage_instance_id: Some(instance.to_string()),
+        tools: vec!["fixture".to_string()],
+        params: Vec::new(),
+        upstream_stage_instance_ids: Vec::new(),
+        param_bindings: vec![BenchmarkParamBinding {
+            stage_instance_id: None,
+            tool: None,
+            values: std::collections::BTreeMap::from([("limit".to_string(), serde_json::json!(1))]),
+        }],
+    });
+    let mut suite = BenchmarkSuiteSpec::v1_stage_matrix(
+        "fixture-suite".to_string(),
+        vec![DatasetSpec {
+            id: "fixture-data".to_string(),
+            hash: "fixture-hash".to_string(),
+            size: 1,
+            origin: "synthetic".to_string(),
+            class_label: "fixture".to_string(),
+            read_layout: "paired".to_string(),
+        }],
+        stages.to_vec(),
+        ReplicatePolicy { count: 1, warmup: 0, seeds: vec![1] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
+        Vec::new(),
+        AnalysisRequirements {
+            require_bootstrap: false,
+            require_outlier_detection: false,
+            min_replicates_for_bootstrap: 5,
+        },
+    );
+    suite.edges.push(BenchmarkStageEdge {
+        from: "source".to_string(),
+        to: "sink".to_string(),
+        from_output_id: Some("reads".to_string()),
+        to_input_id: Some("reads".to_string()),
+    });
+    suite
+}
+
+#[test]
+fn suite_catalog_port_admits_explicit_stage_tool_ports_and_parameters() -> anyhow::Result<()> {
+    validate_suite_with_catalog(
+        &suite(),
+        &FixtureCatalog { stage: true, ports: true, parameters: true },
+    )?;
+    Ok(())
+}
+
+#[test]
+fn suite_catalog_port_rejects_missing_stage_observations() {
+    assert!(validate_suite_with_catalog(
+        &suite(),
+        &FixtureCatalog { stage: false, ports: true, parameters: true }
+    )
+    .is_err());
+}
+
+#[test]
+fn suite_catalog_port_rejects_incompatible_ports_and_parameters() {
+    for catalog in [
+        FixtureCatalog { stage: true, ports: false, parameters: true },
+        FixtureCatalog { stage: true, ports: true, parameters: false },
+    ] {
+        assert!(validate_suite_with_catalog(&suite(), &catalog).is_err());
+    }
+}

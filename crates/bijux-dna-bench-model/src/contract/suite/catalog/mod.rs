@@ -4,7 +4,9 @@
 use bijux_dna_core::ids::{StageId, ToolId};
 use std::collections::BTreeSet;
 
+#[cfg(feature = "canonical-fastq-catalog")]
 mod fastq;
+#[cfg(feature = "canonical-fastq-catalog")]
 pub use fastq::CanonicalFastqSuiteCatalog;
 
 /// Domain catalog port consumed by pure suite validation.

@@ -8,4 +8,6 @@ mod suite_validation;
 
 pub(super) use declared_stage_nodes::DeclaredStageNodes;
 
-pub use suite_validation::{validate_suite, validate_suite_with_catalog};
+#[cfg(feature = "canonical-fastq-catalog")]
+pub use suite_validation::validate_suite;
+pub use suite_validation::validate_suite_with_catalog;
