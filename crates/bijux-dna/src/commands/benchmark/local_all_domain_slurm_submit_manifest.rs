@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_all_domain_slurm_scripts_report,
     validate_benchmark_local_all_domain_slurm_submit_manifest,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
 };
@@ -19,6 +20,7 @@ use super::local_all_domain_result_paths::{
 };
 use super::local_all_domain_slurm_scripts::{
     render_all_domain_slurm_scripts, BenchLocalAllDomainSlurmScriptEntry,
+    BenchLocalAllDomainSlurmScriptsReport,
 };
 use super::local_pipeline_dag::{validate_pipeline_dag_path, LocalPipelineDagValidationNodeReport};
 use super::local_slurm_run_paths::load_fixture_sample_scope_map;
@@ -83,6 +85,38 @@ pub(crate) fn render_all_domain_slurm_submit_manifest(
         .with_context(|| format!("create {}", absolute_root.display()))?;
 
     let scripts = render_all_domain_slurm_scripts(repo_root, absolute_root.clone())?;
+    write_all_domain_slurm_submit_manifest(repo_root, &scripts, absolute_root, absolute_output)
+}
+
+/// Persist submission metadata using the script inventory already produced by this request.
+pub(crate) fn write_all_domain_slurm_submit_manifest(
+    repo_root: &Path,
+    scripts: &BenchLocalAllDomainSlurmScriptsReport,
+    root_path: PathBuf,
+    output_path: PathBuf,
+) -> Result<BenchLocalAllDomainSlurmSubmitManifest> {
+    validate_benchmark_local_all_domain_slurm_scripts_report(
+        scripts,
+        scripts.benchmark_job_count,
+        scripts.essential_pipeline_job_count,
+    )?;
+    let absolute_root = repo_root.join(root_path);
+    if scripts.output_root != path_relative_to_repo(repo_root, &absolute_root) {
+        return Err(anyhow!(
+            "all-domain slurm script inventory belongs to a different output root"
+        ));
+    }
+    let absolute_output = repo_root.join(output_path);
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_root,
+        "all-domain slurm dry-run root",
+    )?;
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &absolute_output,
+        "all-domain slurm submit manifest output",
+    )?;
     let benchmark_outputs = collect_all_domain_output_declaration_rows(repo_root)?
         .into_iter()
         .map(|row| (row.result_id.clone(), row))

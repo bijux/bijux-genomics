@@ -49,7 +49,7 @@ use crate::commands::benchmark::local_all_domain_slurm_scripts::{
 };
 use crate::commands::benchmark::local_all_domain_slurm_shell_syntax::DEFAULT_ALL_DOMAIN_SLURM_BASH_N_REPORT_PATH;
 use crate::commands::benchmark::local_all_domain_slurm_submit_manifest::{
-    render_all_domain_slurm_submit_manifest, DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
+    write_all_domain_slurm_submit_manifest, DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
 };
 use crate::commands::benchmark::local_slurm_script_bodies::validate_slurm_script_bodies;
 use crate::commands::benchmark::local_slurm_shell_syntax::validate_slurm_shell_syntax;
@@ -535,8 +535,12 @@ pub(crate) fn render_operational_benchmark_ready(
         "all_domain_slurm_submit_manifest",
         DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
         || {
-            render_all_domain_slurm_submit_manifest(
+            let scripts = slurm_scripts.as_ref().context(
+                "all-domain SLURM scripts must render before submit-manifest construction",
+            )?;
+            write_all_domain_slurm_submit_manifest(
                 repo_root,
+                scripts,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
                 PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH),
             )
