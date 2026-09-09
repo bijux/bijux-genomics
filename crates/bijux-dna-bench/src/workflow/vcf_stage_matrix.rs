@@ -16,7 +16,7 @@ use bijux_dna_bench_model::{
 
 use super::vcf_stage_catalog::build_vcf_stage_catalog_rows;
 
-pub const DEFAULT_VCF_STAGE_MATRIX_PATH: &str = "configs/bench/local/vcf-stage-matrix.toml";
+pub use crate::repo::DEFAULT_VCF_STAGE_MATRIX_PATH;
 const DECLARED_VCF_STAGE_MATRIX: &str =
     include_str!("../../../../configs/bench/local/vcf-stage-matrix.toml");
 const LOCAL_VCF_STAGE_MATRIX_HEADER: &str = "# schema_version = 1\n\

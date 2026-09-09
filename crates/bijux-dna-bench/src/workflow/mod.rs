@@ -59,6 +59,7 @@ mod scientific_readiness;
 mod source_authority;
 mod stage_coverage;
 mod stage_families;
+mod stage_inventory;
 mod stage_report;
 mod stage_result;
 mod stage_tool_closure;
@@ -369,4 +370,8 @@ pub use workspace_layout::{
     benchmark_workspace_layout_corpus_dir_name, benchmark_workspace_layout_report,
     publish_benchmark_workspace_layout_status, render_benchmark_workspace_layout_markdown,
     summarize_benchmark_workspace_root_pair,
+};
+
+pub use stage_inventory::{
+    render_benchmark_all_domain_stage_inventory, DEFAULT_BENCHMARK_ALL_DOMAIN_STAGE_LIST_PATH,
 };

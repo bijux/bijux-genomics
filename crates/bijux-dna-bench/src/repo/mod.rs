@@ -11,6 +11,7 @@ mod repository;
 mod run_artifacts;
 mod run_metadata;
 pub mod sqlite;
+mod stage_inventory;
 mod workspace_paths;
 
 pub use case_data_authority::derive_benchmark_data_snapshots;
@@ -40,9 +41,12 @@ pub use repo_root::resolve_repo_root;
 pub use repository::RunRepository;
 pub(crate) use run_artifacts::load_observations;
 pub use run_metadata::RunMetadata;
+pub use stage_inventory::{
+    load_benchmark_local_stage_inventory, BenchmarkLocalStageInventoryDomain,
+};
 pub use workspace_paths::{
     bench_bam_local_stage_matrix_path, bench_bundles_dir, bench_contracts_dir, bench_corpora_dir,
     bench_data_dir, bench_data_fitness_path, bench_fastq_local_stage_matrix_path,
     bench_local_config_dir, bench_portfolio_path, bench_reports_dir, bench_stage_campaigns_path,
-    bench_stage_interfaces_path, bench_suites_dir,
+    bench_stage_interfaces_path, bench_suites_dir, DEFAULT_VCF_STAGE_MATRIX_PATH,
 };

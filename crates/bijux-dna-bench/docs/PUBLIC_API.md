@@ -277,3 +277,7 @@ Normalized FASTQ metadata admission verifies the v1 manifest schema (including t
 ## Pipeline Profile Admission
 
 `validate_benchmark_pipeline_profiles` consumes the model-owned local pipeline configuration and a `PipelineProfileEvidence` provider. It returns the existing profile-validation reports and retains provider failures. The provider supplies governed corpus/stage compatibility and VCF matrix evidence only when selected rules request it. Admission of graph topology and repository metadata remains a caller obligation; these symbolic profile checks do not qualify executed scientific tools.
+
+## Local Stage Inventory
+
+`load_benchmark_local_stage_inventory(root, domain)` reads the governed FASTQ, BAM or VCF matrix under an explicit repository root, checks its schema and stage identity, and preserves declaration order without writing outputs. `BenchmarkLocalStageInventoryDomain` selects the domain. `render_benchmark_all_domain_stage_inventory(root, domains, output)` preserves requested domain order, validates aggregate closure, and atomically publishes the existing report schema. Invalid selections or matrices leave existing report bytes intact. These operations admit declared readiness; they do not establish execution or tool qualification.

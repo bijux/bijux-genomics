@@ -150,3 +150,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test con
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test determinism --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test semantics --no-default-features
 ```
+
+The CLI local stage-list commands delegate matrix admission to `load_benchmark_local_stage_inventory` and aggregate publication to `render_benchmark_all_domain_stage_inventory`. Both receive an explicit repository root through the public API.

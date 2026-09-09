@@ -71,3 +71,5 @@ gating, and deterministic artifact persistence.
 - Missing required stratification metadata.
 - Unknown metrics in gate policies.
 - Contract validation failures before artifact persistence.
+
+Local stage inventories retain matrix declaration order, domain prefixes, unique stage identities and the governed matrix schema version. Aggregate reports retain selected-domain order and exact count closure. Repository admission and workflow publication use the existing model-owned inventory schemas and validators. A readiness declaration is not evidence of executed tool compatibility.
