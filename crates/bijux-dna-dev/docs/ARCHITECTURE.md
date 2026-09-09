@@ -67,3 +67,5 @@ Test boundaries mirror that split:
 `application/ci/` separates expected test inventory admission, pinned Nextest event admission, and exact cross-shard coverage reconciliation. These modules have no filesystem or process effects. The tooling CI command owns producer/shard execution, logs, hashes and receipt publication.
 
 `runtime/source_snapshot/` captures the tracked worktree once as a pinned commit plus a binary Git patch. Archive and shard workspaces materialize that same input with one checkout and, only for changed sources, one patch application. Untracked evidence is excluded. CI commands own scratch lifetimes; snapshot materialization refuses existing destinations.
+
+`application/ci/partition.rs` owns the qualified executor partition protocol and binary discovery filtersets. It consumes the producer inventory without IO. Coverage reconciliation checks each selected partition as well as the global case union. The existing locked `twox-hash` dependency supplies xxHash64 with only its 64-bit hash feature enabled.

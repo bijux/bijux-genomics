@@ -13,7 +13,7 @@ use super::{
     resolved_run_ignored, run_check_ids, run_make_target, run_program_with_env,
     set_assets_readonly, write_json_pretty, Context, OpsCommandOutcome, Result, Workspace,
 };
-use crate::application::ci::{CoverageAttestation, ExpectedTestInventory};
+use crate::application::ci::{CoverageAttestation, ExpectedTestInventory, ShardDiscoveryPlan};
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 use crate::runtime::source_snapshot::TrackedSourceSnapshot;
 
@@ -1216,6 +1216,22 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "source_commit": source_identity,
         "archive_sha256": archive_sha256,
     });
+    let shard_plans = selected_shards
+        .iter()
+        .map(|shard| {
+            let plan = ShardDiscoveryPlan::from_inventory(
+                &expected_inventory,
+                &shard.partition,
+                &build_authority.test_executor.version,
+            )?;
+            anyhow::ensure!(
+                plan.expected_case_count > 0,
+                "selected shard {} has no expected cases",
+                shard.id
+            );
+            Ok(plan)
+        })
+        .collect::<Result<Vec<_>>>()?;
     let preparation_started = Instant::now();
     let shard_workspaces = selected_shards
         .iter()
@@ -1228,27 +1244,30 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .iter()
         .zip(&shard_workspaces)
         .zip(&shard_roots)
-        .map(|((shard, shard_workspace), roots)| {
+        .zip(&shard_plans)
+        .map(|(((shard, shard_workspace), roots), plan)| {
+            let mut args = full_shard_args(
+                shard,
+                &archive_roots.archive_file,
+                &roots.archive_extract,
+                shard_workspace,
+            );
+            args.extend(["--filterset".to_string(), plan.filterset.clone()]);
             Ok(ParallelProcessSpec {
                 label: shard.id.clone(),
                 program: "cargo".to_string(),
-                args: full_shard_args(
-                    shard,
-                    &archive_roots.archive_file,
-                    &roots.archive_extract,
-                    shard_workspace,
-                ),
+                args,
                 envs: full_shard_env(roots, shard_workspace)?,
                 current_dir: Some(shard_workspace.clone()),
             })
         })
         .collect::<Result<Vec<_>>>()?;
     let outputs = ProcessRunner::new(workspace).run_parallel_logged(specs, &report_root)?;
-    let coverage = CoverageAttestation::reconcile(
+    let coverage = CoverageAttestation::reconcile_planned(
         &expected_inventory,
-        outputs
-            .iter()
-            .map(|completed| (completed.label.as_str(), completed.output.stdout.as_slice())),
+        outputs.iter().zip(&shard_plans).map(|(completed, plan)| {
+            (completed.label.as_str(), completed.output.stdout.as_slice(), plan)
+        }),
     );
     let mut all_passed = coverage.selected_shards_valid
         && (selected_shards.len() != contract.shards.len() || coverage.complete);
@@ -1308,6 +1327,9 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "archive_milliseconds": archive_preparation.as_millis(),
                 "shards_milliseconds": shard_preparation.as_millis(),
             },
+            "discovery_plans": selected_shards.iter().zip(&shard_plans).map(|(shard, plan)| {
+                serde_json::json!({"shard_id": shard.id, "plan": plan})
+            }).collect::<Vec<_>>(),
             "expected_inventory": inventory_receipt,
             "coverage": {
                 "observed_test_execution": coverage,

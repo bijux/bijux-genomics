@@ -3,6 +3,100 @@ use serde_json::{json, Value};
 
 use super::{CoverageAttestation, ExpectedTestInventory};
 
+fn partition_inventory() -> Result<ExpectedTestInventory> {
+    let mut value = inventory_value();
+    value["test-count"] = json!(3);
+    value["rust-suites"]["owner::contracts"]["testcases"] = json!({
+        "ordinary": {"ignored":false, "filter-match":{"status":"matches"}},
+        "ignored": {"ignored":true, "filter-match":{"status":"matches"}},
+        "failure": {"ignored":false, "filter-match":{"status":"matches"}}
+    });
+    value["rust-suites"]["owner::empty"] = json!({
+        "package-name":"owner", "binary-id":"owner::empty", "binary-name":"empty",
+        "kind":"test", "status":"listed", "testcases":{}
+    });
+    ExpectedTestInventory::parse(&serde_json::to_vec(&value)?)
+}
+
+#[test]
+fn discovery_plans_preserve_exact_hash_membership_and_exclude_empty_binaries() -> Result<()> {
+    let inventory = partition_inventory()?;
+    let mut union = std::collections::BTreeSet::new();
+    for (index, names) in
+        [vec!["ordinary"], vec![], vec![], vec!["ignored"], vec!["failure"]].into_iter().enumerate()
+    {
+        let plan = super::ShardDiscoveryPlan::from_inventory(
+            &inventory,
+            &format!("hash:{}/5", index + 1),
+            "0.9.100",
+        )?;
+        assert_eq!(plan.expected_case_count, names.len());
+        assert_eq!(
+            plan.expected.iter().map(|case| case.test_name.as_str()).collect::<Vec<_>>(),
+            names
+        );
+        assert_eq!(
+            plan.filterset,
+            if names.is_empty() { "none()" } else { "binary_id(=owner::contracts)" }
+        );
+        for case in plan.expected {
+            assert!(union.insert(case), "hash partitions must not overlap");
+        }
+    }
+    assert_eq!(union.len(), inventory.case_count());
+    Ok(())
+}
+
+#[test]
+fn discovery_plans_reject_invalid_partitions_and_unqualified_executors() -> Result<()> {
+    let inventory = partition_inventory()?;
+    for partition in ["", "count:1/5", "hash:0/5", "hash:6/5", "hash:1/0", "hash:1/5/2", "hash:a/5"]
+    {
+        assert!(
+            super::ShardDiscoveryPlan::from_inventory(&inventory, partition, "0.9.100").is_err()
+        );
+    }
+    for version in ["", "0.9.99", "0.9.101", "1.0.0"] {
+        assert!(super::ShardDiscoveryPlan::from_inventory(&inventory, "hash:1/5", version).is_err());
+    }
+    Ok(())
+}
+
+#[test]
+fn partial_recovery_requires_all_and_only_its_planned_cases() -> Result<()> {
+    let inventory = partition_inventory()?;
+    let plan = super::ShardDiscoveryPlan::from_inventory(&inventory, "hash:1/5", "0.9.100")?;
+    let ordinary = events("ordinary", true);
+    let ignored = events("ignored", true);
+    let failure = events("failure", true);
+    let valid = CoverageAttestation::reconcile_planned(
+        &inventory,
+        [("selected", ordinary.as_bytes(), &plan)],
+    );
+    assert!(valid.selected_shards_valid);
+    assert!(!valid.complete);
+    let foreign = CoverageAttestation::reconcile_planned(
+        &inventory,
+        [("selected", ignored.as_bytes(), &plan)],
+    );
+    assert!(!foreign.selected_shards_valid);
+    let all = super::ShardDiscoveryPlan::from_inventory(&inventory, "hash:1/1", "0.9.100")?;
+    let incomplete = CoverageAttestation::reconcile_planned(
+        &inventory,
+        [("selected", ordinary.as_bytes(), &all)],
+    );
+    assert!(!incomplete.selected_shards_valid);
+    let complete = [ordinary, ignored, failure].join("\n");
+    assert!(
+        CoverageAttestation::reconcile_planned(
+            &inventory,
+            [("selected", complete.as_bytes(), &all)],
+        )
+        .complete
+    );
+    Ok(())
+}
+
 fn inventory_value() -> Value {
     json!({"test-count": 2, "rust-suites": {
         "owner::contracts": {"package-name":"owner", "binary-id":"owner::contracts", "binary-name":"contracts", "kind":"test", "status":"listed", "testcases": {
