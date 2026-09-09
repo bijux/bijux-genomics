@@ -1870,6 +1870,7 @@ fn validate_full_archive_roots(
 }
 
 fn prepare_full_archive_roots(roots: &FullArchiveRoots) -> Result<()> {
+    bijux_dna_infra::ensure_dir(&roots.artifact_root)?;
     bijux_dna_infra::ensure_dir(&roots.cargo_target)?;
     for stale in [&roots.archive_file, &roots.build_log] {
         if stale.exists() {
@@ -3823,6 +3824,22 @@ mod tests {
         let receipt: serde_json::Value = serde_json::from_slice(&std::fs::read(report)?)?;
         assert_eq!(receipt["evidence_retention"]["build_targets_retained"], true);
         assert_eq!(receipt["all_passed"], true);
+        Ok(())
+    }
+    #[test]
+    fn full_shard_archive_output_root_is_prepared_independently_of_the_cache() -> anyhow::Result<()>
+    {
+        let root = tempfile::tempdir()?;
+        let storage = super::FullShardStorageRoots {
+            retained_report_root: root.path().join("reports"),
+            scratch_root: root.path().join("scratch"),
+        };
+        let roots = full_archive_roots(&storage, &contract())?;
+        super::prepare_full_archive_roots(&roots)?;
+        assert!(!roots.cargo_target.starts_with(&roots.artifact_root));
+        assert!(roots.cargo_target.is_dir());
+        assert!(roots.artifact_root.is_dir());
+        std::fs::write(&roots.archive_file, b"archive output")?;
         Ok(())
     }
 }
