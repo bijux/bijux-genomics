@@ -86,6 +86,7 @@ pub mod scope_views;
 pub mod slurm_submission;
 pub mod source_authority;
 pub mod stage_result;
+pub mod stage_scoring;
 pub mod stage_tool_assets;
 pub mod stage_tool_benchmark_ready;
 pub mod stage_tool_closure;

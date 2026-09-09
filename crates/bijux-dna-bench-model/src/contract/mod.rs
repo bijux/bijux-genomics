@@ -4,6 +4,9 @@
 //! Must not perform IO.
 #![allow(dead_code)]
 
+mod stage_scoring;
+pub use stage_scoring::validate_stage_scoring_config;
+
 mod active_scope;
 mod all_domain_failure_classification;
 mod all_domain_parser_collector;

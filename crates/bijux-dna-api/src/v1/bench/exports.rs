@@ -601,13 +601,18 @@ pub use bijux_dna_bench_model::{
     project_benchmark_local_hpc_tool_scopes,
     validate_benchmark_local_all_domain_slurm_scripts_report,
     validate_benchmark_local_pipeline_dag_config,
-    validate_benchmark_local_pipeline_dag_declarations, BenchmarkLocalAllDomainSlurmScriptEntry,
-    BenchmarkLocalAllDomainSlurmScriptsReport, BenchmarkLocalHpcToolScope,
-    BenchmarkLocalPipelineDagConfig, BenchmarkLocalPipelineDagDomain,
+    validate_benchmark_local_pipeline_dag_declarations, validate_stage_scoring_config,
+    BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
+    BenchmarkLocalHpcToolScope, BenchmarkLocalPipelineDagConfig, BenchmarkLocalPipelineDagDomain,
     BenchmarkLocalPipelineDagMetadataConfig, BenchmarkLocalPipelineDagNode,
     BenchmarkLocalPipelineDagStagesConfig, BenchmarkLocalPipelineProjectSourceConfig,
+    StageScoringApplicability, StageScoringCompletion, StageScoringConfig, StageScoringCorrectness,
+    StageScoringCorrectnessSignal, StageScoringDecisionMode, StageScoringDirection,
+    StageScoringFailureClass, StageScoringFailureClassCatalogEntry, StageScoringFailureEffect,
+    StageScoringMemory, StageScoringMissingBehavior, StageScoringRow, StageScoringRuntime,
+    StageScoringScientificThreshold, StageScoringWeights,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
-    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1,
+    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1, STAGE_SCORING_SCHEMA_VERSION,
 };
 
 /// Render the governed VCF normalized metrics schema.

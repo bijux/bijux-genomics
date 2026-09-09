@@ -741,3 +741,12 @@ pub use crate::model::{
     BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
 };
+
+pub use crate::contract::validate_stage_scoring_config;
+pub use crate::model::stage_scoring::{
+    StageScoringApplicability, StageScoringCompletion, StageScoringConfig, StageScoringCorrectness,
+    StageScoringCorrectnessSignal, StageScoringDecisionMode, StageScoringDirection,
+    StageScoringFailureClass, StageScoringFailureClassCatalogEntry, StageScoringFailureEffect,
+    StageScoringMemory, StageScoringMissingBehavior, StageScoringRow, StageScoringRuntime,
+    StageScoringScientificThreshold, StageScoringWeights, STAGE_SCORING_SCHEMA_VERSION,
+};
