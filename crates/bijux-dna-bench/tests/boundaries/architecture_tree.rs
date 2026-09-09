@@ -20,8 +20,8 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
-        entries(["admission/", "mod.rs", "writer/"]),
-        "artifacts tree must stay focused on deterministic serialization"
+        entries(["admission/", "mod.rs", "source_assets.rs", "writer/"]),
+        "artifacts tree must separate source inspection, output admission, and serialization"
     );
     assert_eq!(
         dir_entries(&root.join("src/artifacts/admission")),

@@ -42,7 +42,9 @@ belong under `docs/`.
   loading.
 - `src/repo/sqlite/queries/run_index/` separates run-index queries from
   metadata-path policy.
-- `src/artifacts/` owns deterministic artifact serialization.
+- `src/artifacts/` owns source content identities, output admission, and deterministic serialization.
+- `src/artifacts/source_assets.rs` inspects files, directories, and index-prefix
+  bundles before staging, with typed source kinds and stable member digests.
 - `src/artifacts/writer/` separates observation reading, observation writing,
   and structured JSON writing.
 

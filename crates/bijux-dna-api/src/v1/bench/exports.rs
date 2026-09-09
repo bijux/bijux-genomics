@@ -647,3 +647,7 @@ pub fn write_vcf_normalized_metrics_stage_schemas(
     }
     Ok(descriptors)
 }
+
+pub use bijux_dna_bench::{
+    inspect_benchmark_source_asset, BenchmarkSourceAsset, BenchmarkSourceKind,
+};

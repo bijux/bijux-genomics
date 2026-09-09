@@ -11,6 +11,11 @@ The `public_api` module itself is private. Stable exports are owned by
 
 ## Stable Operations
 
+- `inspect_benchmark_source_asset(root, path)` returns an optional typed content
+  identity for a file, directory, or index-prefix bundle before staging. It
+  preserves logical source paths and sorted compound digests, rejects directory
+  cycles, and creates no outputs. `BenchmarkSourceKind::as_str()` preserves the
+  existing `file`, `directory`, and `prefix_bundle` manifest spellings.
 - `load_suite(path)` loads and validates a benchmark suite TOML file.
 - `load_stage_campaign_registry(path)` loads and validates a benchmark stage-campaign registry TOML file.
 - `load_benchmark_portfolio(path)` loads and validates a benchmark portfolio TOML file.

@@ -274,7 +274,7 @@ fn to_staged_input(
     Ok(LocalHpcAssetStagingInput {
         artifact_id: input.artifact_id,
         artifact_role: input.artifact_role,
-        source_kind: input.source_asset.source_kind,
+        source_kind: input.source_asset.kind.as_str().to_string(),
         source_path: input.source_asset.source_path,
         staged_path,
         checksum_sha256: input.source_asset.checksum_sha256,

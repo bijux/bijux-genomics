@@ -627,3 +627,7 @@ pub use bijux_dna_bench_model::{
 pub use bijux_dna_science::decision::{
     evaluate_benchmark_gate_policy, validate_benchmark_gate_policy,
 };
+
+pub use crate::artifacts::{
+    inspect_benchmark_source_asset, BenchmarkSourceAsset, BenchmarkSourceKind,
+};

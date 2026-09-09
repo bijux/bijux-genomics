@@ -492,7 +492,7 @@ fn to_input_link(
     Ok(LocalHpcScratchInputLink {
         artifact_id: input.artifact_id,
         artifact_role: input.artifact_role,
-        source_kind: input.source_asset.source_kind,
+        source_kind: input.source_asset.kind.as_str().to_string(),
         source_path: input.source_asset.source_path,
         staged_path,
         link_path,
