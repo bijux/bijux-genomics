@@ -2,8 +2,8 @@
 //! Interpret observed BAM duplicates and coverage report fields without filesystem access.
 
 use super::fields::{
-    format_f64, optional_str, parse_bool, parse_f64, parse_u64, required_bool, required_f64,
-    required_str, required_tsv, required_u64, summarize_metrics,
+    checked_observation_sum, format_f64, optional_str, parse_bool, parse_f64, parse_u64,
+    required_bool, required_f64, required_str, required_tsv, required_u64, summarize_metrics,
 };
 use super::merge::insert_evidence;
 use super::{BamEvidenceAggregate, EvidenceRows};
@@ -109,11 +109,23 @@ pub(crate) fn merge_coverage_summary(
     let mut matched = true;
     let mut count = 0_u64;
     for row in tsv_rows {
-        breadth_sum += parse_f64(required_tsv(row, "breadth_1x")?)?;
-        mean_depth_sum += parse_f64(required_tsv(row, "mean_depth")?)?;
-        covered_bases_total += parse_u64(required_tsv(row, "covered_bases")?)?;
+        breadth_sum = checked_observation_sum(
+            breadth_sum,
+            parse_f64(required_tsv(row, "breadth_1x")?)?,
+            "breadth_1x",
+        )?;
+        mean_depth_sum = checked_observation_sum(
+            mean_depth_sum,
+            parse_f64(required_tsv(row, "mean_depth")?)?,
+            "mean_depth",
+        )?;
+        covered_bases_total = covered_bases_total
+            .checked_add(parse_u64(required_tsv(row, "covered_bases")?)?)
+            .ok_or_else(|| anyhow::anyhow!("BAM coverage covered_bases total overflow"))?;
         matched &= parse_bool(required_tsv(row, "case_expectation_matched")?)?;
-        count += 1;
+        count = count
+            .checked_add(1)
+            .ok_or_else(|| anyhow::anyhow!("BAM coverage row count overflow"))?;
     }
     let mean_breadth = breadth_sum / checked_f64_from_u64(count, "coverage row count")?;
     let mean_depth = mean_depth_sum / checked_f64_from_u64(count, "coverage row count")?;

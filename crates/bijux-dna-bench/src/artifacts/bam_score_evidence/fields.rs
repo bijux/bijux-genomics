@@ -50,7 +50,9 @@ pub(super) fn parse_u64(value: &str) -> Result<u64> {
 }
 
 pub(super) fn parse_f64(value: &str) -> Result<f64> {
-    value.parse::<f64>().with_context(|| format!("parse number `{value}`"))
+    let parsed = value.parse::<f64>().with_context(|| format!("parse number `{value}`"))?;
+    anyhow::ensure!(parsed.is_finite(), "BAM observation number `{value}` must be finite");
+    Ok(parsed)
 }
 
 pub(super) fn parse_bool(value: &str) -> Result<bool> {
@@ -124,4 +126,10 @@ pub(crate) fn parse_tsv_rows(
         rows.push(row);
     }
     Ok(rows)
+}
+
+pub(super) fn checked_observation_sum(left: f64, right: f64, field: &str) -> Result<f64> {
+    let sum = left + right;
+    anyhow::ensure!(sum.is_finite(), "BAM observation {field} total must remain finite");
+    Ok(sum)
 }

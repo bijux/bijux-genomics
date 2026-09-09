@@ -91,4 +91,60 @@ mod tests {
         assert_eq!(row.contract_correctness_score, Some(0.0));
         Ok(())
     }
+
+    fn validation_with_read_counts(first: u64, second: u64) -> serde_json::Value {
+        serde_json::json!({"stage_id":"bam.validate","case_count":2,"all_cases_matched":true,"cases":[
+            {"expectation_matched":true,"validation_status":"pass","total_reads":first},
+            {"expectation_matched":true,"validation_status":"pass","total_reads":second}
+        ]})
+    }
+
+    #[test]
+    fn bam_score_adapters_reject_overflow_and_inconsistent_validation_counts() -> anyhow::Result<()>
+    {
+        let path = Path::new("observed/validation.json");
+        let mut rows = EvidenceRows::new();
+        merge_validate_summary(&validation_with_read_counts(u64::MAX, 0), path, &mut rows)?;
+        assert_eq!(rows.values().next().and_then(|row| row.retained_reads), Some(u64::MAX));
+        assert!(merge_validate_summary(
+            &validation_with_read_counts(u64::MAX, 1),
+            path,
+            &mut EvidenceRows::new()
+        )
+        .is_err());
+        let mut wrong_count = validation_with_read_counts(7, 3);
+        wrong_count["case_count"] = serde_json::json!(3);
+        assert!(merge_validate_summary(&wrong_count, path, &mut EvidenceRows::new()).is_err());
+        let mut wrong_summary = validation_with_read_counts(7, 3);
+        wrong_summary["all_cases_matched"] = serde_json::json!(false);
+        assert!(merge_validate_summary(&wrong_summary, path, &mut EvidenceRows::new()).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn bam_score_adapters_reject_invalid_coverage_totals_and_keep_depth_units() -> anyhow::Result<()>
+    {
+        use super::{merge_coverage_summary, parse_tsv_rows};
+        let path = Path::new("observed/coverage.tsv");
+        for (first, second, depth, pass) in [
+            (u64::MAX, 0, "35", true),
+            (u64::MAX, 1, "35", false),
+            (1, 1, "NaN", false),
+            (1, 1, "inf", false),
+            (1, 1, "1e308", false),
+        ] {
+            let raw=format!("breadth_1x\tmean_depth\tcovered_bases\tcase_expectation_matched\n0.5\t{depth}\t{first}\ttrue\n0.5\t{depth}\t{second}\ttrue\n");
+            let values = parse_tsv_rows(&raw, path)?;
+            let mut rows = EvidenceRows::new();
+            let result = merge_coverage_summary(&values, path, &mut rows);
+            assert_eq!(result.is_ok(), pass, "{raw}: {result:?}");
+            if pass {
+                assert_eq!(
+                    rows.values().next().and_then(|row| row.coverage_metric_value),
+                    Some(35.0)
+                );
+            }
+        }
+        Ok(())
+    }
 }

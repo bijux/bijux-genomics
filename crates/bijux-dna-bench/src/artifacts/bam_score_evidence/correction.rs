@@ -2,8 +2,8 @@
 //! Interpret observed BAM correction report fields without filesystem access.
 
 use super::fields::{
-    format_f64, parse_bool, parse_f64, required_bool, required_f64, required_str, required_tsv,
-    required_u64, summarize_metrics,
+    checked_observation_sum, format_f64, parse_bool, parse_f64, required_bool, required_f64,
+    required_str, required_tsv, required_u64, summarize_metrics,
 };
 use super::merge::insert_evidence;
 use super::{BamEvidenceAggregate, EvidenceRows};
@@ -101,8 +101,14 @@ pub(crate) fn merge_gc_bias_summary(
     for row in tsv_rows {
         matched &= parse_bool(required_tsv(row, "case_expectation_matched")?)?;
         let normalized_coverage = parse_f64(required_tsv(row, "normalized_coverage")?)?;
-        deviation_sum += (normalized_coverage - 1.0).abs();
-        count += 1;
+        deviation_sum = checked_observation_sum(
+            deviation_sum,
+            (normalized_coverage - 1.0).abs(),
+            "normalized coverage deviation",
+        )?;
+        count = count
+            .checked_add(1)
+            .ok_or_else(|| anyhow::anyhow!("BAM GC bias row count overflow"))?;
     }
     let mean_deviation = deviation_sum / checked_f64_from_u64(count, "GC bias row count")?;
     insert_evidence(

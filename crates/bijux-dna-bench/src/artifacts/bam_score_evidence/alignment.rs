@@ -2,9 +2,9 @@
 //! Interpret observed BAM alignment report fields without filesystem access.
 
 use super::fields::{
-    format_f64, fraction_u64, optional_str, optional_u64, parse_bool, parse_f64, parse_u64,
-    required_array, required_bool, required_f64, required_str, required_tsv, required_u64,
-    summarize_metrics, unique_strings,
+    format_f64, fraction_u64, optional_str, parse_bool, parse_f64, parse_u64, required_array,
+    required_bool, required_f64, required_str, required_tsv, required_u64, summarize_metrics,
+    unique_strings,
 };
 use super::merge::insert_evidence;
 use super::{BamEvidenceAggregate, EvidenceRows};
@@ -21,16 +21,29 @@ pub(crate) fn merge_validate_summary(
     let stage_id = required_str(root, "stage_id")?;
     let cases = required_array(root, "cases")?;
     let case_count = required_u64(root, "case_count")?;
-    let matched_cases = cases
-        .iter()
-        .filter(|case| case.get("expectation_matched").and_then(Value::as_bool) == Some(true))
-        .count() as u64;
-    let pass_cases = cases
-        .iter()
-        .filter(|case| case.get("validation_status").and_then(Value::as_str) == Some("pass"))
-        .count() as u64;
-    let retained_reads =
-        cases.iter().filter_map(|case| optional_u64(case, "total_reads")).sum::<u64>();
+    anyhow::ensure!(
+        u64::try_from(cases.len())? == case_count,
+        "BAM validation case_count does not match the observed cases"
+    );
+    let mut matched_cases = 0_u64;
+    let mut pass_cases = 0_u64;
+    let mut retained_reads = 0_u64;
+    for case in cases {
+        matched_cases += u64::from(required_bool(case, "expectation_matched")?);
+        pass_cases += u64::from(required_str(case, "validation_status")? == "pass");
+        if let Some(value) = case.get("total_reads").filter(|value| !value.is_null()) {
+            let reads = value.as_u64().ok_or_else(|| {
+                anyhow::anyhow!("BAM validation total_reads must be an unsigned count")
+            })?;
+            retained_reads = retained_reads
+                .checked_add(reads)
+                .ok_or_else(|| anyhow::anyhow!("BAM validation total_reads overflow"))?;
+        }
+    }
+    anyhow::ensure!(
+        required_bool(root, "all_cases_matched")? == (matched_cases == case_count),
+        "BAM validation all_cases_matched contradicts observed cases"
+    );
     let validation_statuses = unique_strings(
         cases.iter().filter_map(|case| optional_str(case, "validation_status").map(str::to_string)),
     );
