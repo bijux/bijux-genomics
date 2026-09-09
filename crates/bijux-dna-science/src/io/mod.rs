@@ -55,3 +55,6 @@ pub fn list_yaml_files(path: &Path) -> Result<Vec<PathBuf>> {
     files.sort();
     Ok(files)
 }
+
+mod specs;
+pub use specs::load_specs;

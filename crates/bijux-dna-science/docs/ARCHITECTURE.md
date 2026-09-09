@@ -12,7 +12,7 @@ src/
 ├── app/
 │   └── mod.rs       # CLI command coordination and governed write destinations
 ├── cli.rs           # command-line arguments and subcommands
-├── compile.rs       # authored YAML loading, cross-reference checks, and evidence derivation
+├── compile.rs       # deterministic evidence derivation and compile orchestration
 ├── decision/
 │   ├── benchmark_gate.rs # fail-closed benchmark science gate evaluation
 │   └── mod.rs             # scientific decision facade
@@ -22,14 +22,18 @@ src/
 │   ├── fastq_read_lengths.rs # bounded independent FASTQ truth derivation
 │   └── mod.rs               # scientific evidence derivation facade
 ├── errors.rs        # validation error formatting
-├── io.rs            # deterministic UTF-8 file IO helpers
+├── io/
+│   ├── mod.rs       # deterministic UTF-8 file IO helpers
+│   └── specs.rs     # authored document acquisition and admitted keyed loading
 ├── lib.rs           # library exports
 ├── main.rs          # binary shell
 ├── release.rs       # immutable release bundle writer under artifacts/
 ├── render/
 │   └── mod.rs       # stable TSV and JSON rendering
 └── schema/
-    └── mod.rs       # accepted authored spec versions
+    ├── authored.rs  # pure source, claim and cross-reference admission
+    ├── mod.rs       # accepted authored spec versions
+    └── version.rs   # shared document version access
 ```
 
 ## Data Flow
@@ -54,3 +58,5 @@ domain structs remain in `domain`; filesystem writes stay in `app`, `io`, and
 
 This crate must not execute tools, choose pipeline routes, or own runtime policy. Those concerns
 remain in planner, engine, runner, and environment crates.
+
+`io/specs` owns authored YAML acquisition and duplicate/version checks. `schema/authored` validates source/claim semantics and relationships without reading files. The historical `compile::load_specs` and `compile::SchemaVersion` paths re-export these owners. `compile` still acquires upstream FASTQ evidence during derivation; separating those format observations from compilation remains necessary. Archive paths in authored records remain logical evidence identifiers; this change does not copy or download upstream archives.

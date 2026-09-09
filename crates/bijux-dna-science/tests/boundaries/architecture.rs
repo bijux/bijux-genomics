@@ -21,7 +21,7 @@ fn science_source_tree_matches_architecture_contract() {
             "domain/",
             "evidence/",
             "errors.rs",
-            "io.rs",
+            "io/",
             "lib.rs",
             "main.rs",
             "release.rs",
@@ -56,9 +56,10 @@ fn science_source_tree_matches_architecture_contract() {
         entries(["mod.rs"]),
         "science render functions must stay isolated"
     );
+    assert_eq!(dir_entries(&root.join("src/io")), entries(["mod.rs", "specs.rs"]));
     assert_eq!(
         dir_entries(&root.join("src/schema")),
-        entries(["mod.rs"]),
+        entries(["authored.rs", "mod.rs", "version.rs"]),
         "science schema constants must stay isolated"
     );
 }
