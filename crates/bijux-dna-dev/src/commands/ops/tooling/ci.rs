@@ -2405,6 +2405,8 @@ pub(in super::super) fn tooling_ci_coverage(
 mod tests {
     use std::collections::BTreeMap;
 
+    use anyhow::Context;
+
     use super::{
         artifact_root_path, cache_stats_delta, cargo_lock_wait_events, ci_fast_critical_path,
         ci_fast_group_env, ci_output_path_under, full_archive_args, full_archive_roots,
@@ -2668,7 +2670,8 @@ mod tests {
 
         let error =
             observe_full_shard_runtime_dependencies(&workspace, &dependencies, &report_path)
-                .expect_err("a missing runtime dependency must stop full-shard launch");
+                .err()
+                .context("a missing runtime dependency must stop full-shard launch")?;
         assert!(error.to_string().contains("runtime dependencies are unavailable"));
         let receipt: serde_json::Value = serde_json::from_slice(&std::fs::read(report_path)?)?;
         assert_eq!(receipt.get("all_available").and_then(serde_json::Value::as_bool), Some(false));

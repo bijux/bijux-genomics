@@ -252,16 +252,17 @@ mod tests {
     }
 
     #[test]
-    fn refuses_missing_groups_including_partial_selection() {
+    fn refuses_missing_groups_including_partial_selection() -> Result<()> {
         for (binary, prefix) in GROUPS {
             let mut inventory = complete_inventory();
             inventory["rust-suites"][format!("policies::{binary}")]["testcases"]
                 .as_object_mut()
-                .expect("testcases")
+                .context("testcases")?
                 .remove(&format!("{prefix}admitted"));
             assert!(selected_coverage(&inventory, GROUPS).is_err(), "missing {prefix}");
         }
         assert!(selected_coverage(&json!({"rust-suites": {}}), GROUPS).is_err());
+        Ok(())
     }
 
     #[test]
@@ -290,8 +291,8 @@ mod tests {
                 let mut missing = inventory.clone();
                 let cases = missing["rust-suites"]["policies::contracts"]["testcases"]
                     .as_object_mut()
-                    .expect("cases");
-                let case = cases.remove(*name).expect("required case");
+                    .context("cases")?;
+                let case = cases.remove(*name).context("required case")?;
                 assert!(selected_coverage(&missing, groups).is_err());
                 missing["rust-suites"]["policies::contracts"]["testcases"]
                     [format!("{name}_renamed")] = case;
