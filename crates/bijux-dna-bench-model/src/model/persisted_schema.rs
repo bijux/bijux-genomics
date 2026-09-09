@@ -78,6 +78,14 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
     };
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/full-benchmark-dashboard.schema.json",
+            || schemars::schema_for!(super::FullBenchmarkDashboardReport),
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/local-real-smoke-core-subset.schema.json",
+            || schemars::schema_for!(super::RealSmokeCoreSubsetReport),
+        ),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-stage-matrix-config.schema.json", super::benchmark_local_stage_matrix_config_schema),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-pipeline-dag-config.schema.json", super::benchmark_local_pipeline_dag_config_schema),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-pipeline-dag-metadata-config.schema.json", super::benchmark_local_pipeline_dag_metadata_config_schema),
