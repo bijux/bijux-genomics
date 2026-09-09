@@ -545,3 +545,5 @@ presentation metadata. Historical v1 catalogs that predate that metadata receive
 `report_presentation` tables from the explicit presentation repository; all execution, scientific,
 parameter, adapter, and downstream-probe fields remain validated against `--repository-root`. The
 operator reports the presentation commit, catalog SHA-256, and exact overlaid stage IDs.
+
+Fast policy lanes (`policy-fast`, `ssot-policy-fast`, `registry-lint`, and `release-readiness`) list their required nextest selections before execution. Every module group or exact named case must resolve to a non-ignored test. Missing, renamed, unexpected, or ignored selections fail the lane. The inventory is retained under `artifacts/ci/<lane>/inventory.json`; each lane then executes its combined selection in one nextest run.

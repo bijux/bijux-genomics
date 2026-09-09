@@ -13,32 +13,41 @@ const GROUPS: &[(&str, &str)] = &[
     ("boundaries", "mod_boundaries_deps_heavy_deps_policy_rs::"),
 ];
 
-fn arguments(operation: &str) -> Vec<String> {
-    let mut args = [
-        "nextest",
-        operation,
-        "--locked",
-        "-p",
-        "bijux-dna-policies",
-        "--test",
-        "boundaries",
-        "--test",
-        "contracts",
-    ]
-    .map(str::to_string)
-    .to_vec();
+// Module selectors end in `::`; leaf selectors must match the complete test name.
+const SSOT: &[(&str, &str)] = &[
+    ("contracts", "mod_contracts_tooling_policies_rs::policy__contracts__policies__policy_test_names_are_consistent"),
+    ("contracts", "mod_contracts_tooling_registry_ssot_completeness_policy_rs::policy__contracts__registry_ssot_completeness_policy__supported_stages_and_tools_are_complete"),
+    ("contracts", "mod_contracts_tooling_tool_registry_stage_domain_policy_rs::policy__contracts__tool_registry_stage_domain_policy__production_tool_bindings_are_explicit_and_domain_consistent"),
+];
+const REGISTRY: &[(&str, &str)] = &[
+    ("contracts", "mod_contracts_tooling_tool_registry_reproducibility_policy_rs::policy__contracts__tool_registry_reproducibility_policy__production_registry_is_pinned_and_non_floating"),
+    ("contracts", "mod_contracts_tooling_tool_registry_reproducibility_policy_rs::policy__contracts__tool_registry_reproducibility_policy__profiles_only_use_valid_production_tools"),
+];
+const RELEASE: &[(&str, &str)] = &[
+    ("contracts", "mod_contracts_tooling_tool_registry_reproducibility_policy_rs::policy__contracts__tool_registry_reproducibility_policy__profiles_release_readiness_gate"),
+    ("contracts", "mod_contracts_tooling_tool_registry_reproducibility_policy_rs::policy__contracts__tool_registry_reproducibility_policy__reference_adna_profile_uses_production_tools_only"),
+];
+
+fn arguments(operation: &str, groups: &[(&str, &str)]) -> Vec<String> {
+    let mut args =
+        ["nextest", operation, "--locked", "-p", "bijux-dna-policies"].map(str::to_string).to_vec();
+    let binaries =
+        groups.iter().map(|(binary, _)| *binary).collect::<std::collections::BTreeSet<_>>();
+    for binary in binaries {
+        args.extend(["--test".to_string(), binary.to_string()]);
+    }
     if operation == "list" {
         args.extend(["--message-format", "json"].map(str::to_string));
     } else {
         args.extend(["--no-tests", "fail", "--no-fail-fast"].map(str::to_string));
     }
-    args.extend(GROUPS.iter().map(|(_, prefix)| (*prefix).to_string()));
+    args.extend(groups.iter().map(|(_, prefix)| (*prefix).to_string()));
     args
 }
 
-fn selected_coverage(inventory: &Value) -> Result<Vec<usize>> {
+fn selected_coverage(inventory: &Value, groups: &[(&str, &str)]) -> Result<Vec<usize>> {
     let suites = inventory["rust-suites"].as_object().context("nextest list lacks rust-suites")?;
-    let mut counts = vec![0; GROUPS.len()];
+    let mut counts = vec![0; groups.len()];
     for suite in suites.values() {
         let binary = suite["binary-name"].as_str().context("nextest suite lacks binary-name")?;
         let cases = suite["testcases"].as_object().context("nextest suite lacks testcases")?;
@@ -49,38 +58,57 @@ fn selected_coverage(inventory: &Value) -> Result<Vec<usize>> {
             if status != "matches" {
                 continue;
             }
-            let group = GROUPS
+            let group = groups
                 .iter()
                 .position(|(expected_binary, prefix)| {
-                    binary == *expected_binary && name.starts_with(prefix)
+                    binary == *expected_binary
+                        && if prefix.ends_with("::") {
+                            name.starts_with(prefix)
+                        } else {
+                            name == prefix
+                        }
                 })
-                .with_context(|| format!("unexpected policy-fast selection {binary}::{name}"))?;
+                .with_context(|| format!("unexpected policy selection {binary}::{name}"))?;
             ensure!(
                 case["ignored"].as_bool() == Some(false),
-                "policy-fast responsibility cannot be ignored: {binary}::{name}"
+                "policy responsibility cannot be ignored: {binary}::{name}"
             );
             counts[group] += 1;
         }
     }
-    for ((binary, prefix), count) in GROUPS.iter().zip(&counts) {
-        ensure!(*count > 0, "policy-fast selected no executable tests for {binary}::{prefix}");
+    for ((binary, prefix), count) in groups.iter().zip(&counts) {
+        ensure!(*count > 0, "policy selected no executable tests for {binary}::{prefix}");
     }
     Ok(counts)
 }
 
-pub(super) fn run(workspace: &Workspace, envs: &[(String, String)]) -> Result<OpsCommandOutcome> {
-    let listing = run_program_with_env(workspace, "cargo", &arguments("list"), envs)?;
+pub(super) fn run(
+    workspace: &Workspace,
+    envs: &[(String, String)],
+    suite: &str,
+) -> Result<OpsCommandOutcome> {
+    let groups = match suite {
+        "policy-fast" => GROUPS,
+        "ssot-policy-fast" => SSOT,
+        "registry-lint" => REGISTRY,
+        "release-readiness" => RELEASE,
+        _ => anyhow::bail!("unknown policy suite {suite}"),
+    };
+    let listing = run_program_with_env(workspace, "cargo", &arguments("list", groups), envs)?;
     if !listing.is_success() {
         return Ok(listing);
     }
     let inventory: Value = serde_json::from_str(&listing.stdout).context("parse nextest list")?;
-    let counts = selected_coverage(&inventory)?;
-    write_json_pretty(&workspace.path("artifacts/ci/policy-fast/inventory.json"), &inventory)?;
-    let mut outcome = run_program_with_env(workspace, "cargo", &arguments("run"), envs)?;
+    let counts = selected_coverage(&inventory, groups)?;
+    write_json_pretty(
+        &workspace.path(&format!("artifacts/ci/{suite}/inventory.json")),
+        &inventory,
+    )?;
+    let mut outcome = run_program_with_env(workspace, "cargo", &arguments("run", groups), envs)?;
     outcome.stdout.insert_str(
         0,
         &format!(
-            "policy-fast selected {} executable tests across {} required policy groups\n",
+            "{suite} selected {} executable tests across {} required policy selectors\n",
             counts.iter().sum::<usize>(),
             counts.len()
         ),
@@ -111,7 +139,7 @@ mod tests {
         let mut inventory = complete_inventory();
         inventory["rust-suites"]["policies::contracts"]["testcases"]["unrelated"] =
             json!({"ignored": false, "filter-match": {"status": "mismatch"}});
-        assert_eq!(selected_coverage(&inventory)?, vec![1; 7]);
+        assert_eq!(selected_coverage(&inventory, GROUPS)?, vec![1; 7]);
         Ok(())
     }
 
@@ -123,9 +151,9 @@ mod tests {
                 .as_object_mut()
                 .expect("testcases")
                 .remove(&format!("{prefix}admitted"));
-            assert!(selected_coverage(&inventory).is_err(), "missing {prefix}");
+            assert!(selected_coverage(&inventory, GROUPS).is_err(), "missing {prefix}");
         }
-        assert!(selected_coverage(&json!({"rust-suites": {}})).is_err());
+        assert!(selected_coverage(&json!({"rust-suites": {}}), GROUPS).is_err());
     }
 
     #[test]
@@ -134,11 +162,38 @@ mod tests {
         let name = format!("{}admitted", GROUPS[0].1);
         inventory["rust-suites"]["policies::boundaries"]["testcases"][name]["ignored"] =
             json!(true);
-        assert!(selected_coverage(&inventory).is_err());
+        assert!(selected_coverage(&inventory, GROUPS).is_err());
         let mut inventory = complete_inventory();
         inventory["rust-suites"]["policies::contracts"]["testcases"]["unrelated"] =
             json!({"ignored": false, "filter-match": {"status": "matches"}});
-        assert!(selected_coverage(&inventory).is_err());
-        assert!(selected_coverage(&json!({})).is_err());
+        assert!(selected_coverage(&inventory, GROUPS).is_err());
+        assert!(selected_coverage(&json!({}), GROUPS).is_err());
+    }
+    #[test]
+    fn leaf_suites_require_each_exact_case_and_reject_renamed_or_ignored_cases() -> Result<()> {
+        for groups in [SSOT, REGISTRY, RELEASE] {
+            let mut inventory = json!({"rust-suites": {"policies::contracts": {"binary-name": "contracts", "testcases": {}}}});
+            for (_, name) in groups {
+                inventory["rust-suites"]["policies::contracts"]["testcases"][*name] =
+                    json!({"ignored": false, "filter-match": {"status": "matches"}});
+            }
+            assert_eq!(selected_coverage(&inventory, groups)?, vec![1; groups.len()]);
+            for (_, name) in groups {
+                let mut missing = inventory.clone();
+                let cases = missing["rust-suites"]["policies::contracts"]["testcases"]
+                    .as_object_mut()
+                    .expect("cases");
+                let case = cases.remove(*name).expect("required case");
+                assert!(selected_coverage(&missing, groups).is_err());
+                missing["rust-suites"]["policies::contracts"]["testcases"]
+                    [format!("{name}_renamed")] = case;
+                assert!(selected_coverage(&missing, groups).is_err());
+                let mut ignored = inventory.clone();
+                ignored["rust-suites"]["policies::contracts"]["testcases"][*name]["ignored"] =
+                    json!(true);
+                assert!(selected_coverage(&ignored, groups).is_err());
+            }
+        }
+        Ok(())
     }
 }

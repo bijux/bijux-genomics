@@ -16,52 +16,9 @@ pub(in super::super) fn tooling_cargo_targets(
     let envs = artifact_env(workspace)?;
     let common_envs = artifact_env_with_common_test_env(workspace)?;
     match subcommand {
-        "policy-fast" => super::policy_fast::run(workspace, &common_envs),
-        "ssot-policy-fast" => run_programs_with_env(
-            workspace,
-            &[
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "policy_test_names_are_consistent",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "supported_stages_and_tools_are_complete",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "each_tool_has_exactly_one_domain_and_stage_binding",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-            ],
-            &common_envs,
-        ),
+        "policy-fast" | "ssot-policy-fast" | "registry-lint" | "release-readiness" => {
+            super::policy_fast::run(workspace, &common_envs, subcommand)
+        }
         "test-profile-invariants" => run_program_with_env(
             workspace,
             "cargo",
@@ -76,74 +33,10 @@ pub(in super::super) fn tooling_cargo_targets(
             ],
             &common_envs,
         ),
-        "registry-lint" => run_programs_with_env(
-            workspace,
-            &[
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "production_registry_is_pinned_and_non_floating",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "profiles_only_use_valid_production_tools",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-            ],
-            &common_envs,
-        ),
         "unit-contract-fast" => run_program_with_env(
             workspace,
             "cargo",
             &unit_contract_fast_command_args(),
-            &common_envs,
-        ),
-        "release-readiness" => run_programs_with_env(
-            workspace,
-            &[
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "profiles_release_readiness_gate",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "reference_adna_profile_uses_production_tools_only",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-            ],
             &common_envs,
         ),
         "bench-active-fast" => run_program_with_env(
