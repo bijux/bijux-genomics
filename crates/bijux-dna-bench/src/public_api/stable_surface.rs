@@ -110,10 +110,11 @@ pub use crate::workflow::{
     render_vcf_stage_catalog, render_vcf_stage_matrix, required_migration_stage_ids,
     rollback_benchmark_workspace_convergence, rollback_benchmark_workspace_layout_report,
     stage_set_contains_canonical_or_migration_alias, summarize_benchmark_workspace_root_pair,
-    validate_benchmark_config_contract, validate_benchmark_stage_result_path,
-    validate_vcf_stage_matrix, BenchmarkConfigValidationRequest, BenchmarkConfigValidationSummary,
+    validate_benchmark_config_contract, validate_benchmark_pipeline_profiles,
+    validate_benchmark_stage_result_path, validate_vcf_stage_matrix,
+    BenchmarkConfigValidationRequest, BenchmarkConfigValidationSummary,
     BenchmarkLocalCorpusSkipPublicationRequest, BenchmarkMatrixRequest, LegacyBenchmarkStageAlias,
-    DEFAULT_VCF_STAGE_CATALOG_PATH, DEFAULT_VCF_STAGE_MATRIX_PATH,
+    PipelineProfileEvidence, DEFAULT_VCF_STAGE_CATALOG_PATH, DEFAULT_VCF_STAGE_MATRIX_PATH,
 };
 pub use bijux_dna_bench_model::{
     all_domain_active_stage_tool_matrix_schema, all_domain_expected_benchmark_results_schema,

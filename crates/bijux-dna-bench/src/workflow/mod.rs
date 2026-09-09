@@ -42,6 +42,7 @@ mod hardening_campaign;
 mod local_corpus_skip;
 mod options;
 mod parameter_authority;
+mod pipeline_profiles;
 mod progress_ledger;
 mod protocol_portfolio;
 mod publication_receipt;
@@ -72,6 +73,8 @@ mod vcf_stage_catalog;
 mod vcf_stage_matrix;
 mod workspace_convergence;
 mod workspace_layout;
+
+pub use pipeline_profiles::{validate_benchmark_pipeline_profiles, PipelineProfileEvidence};
 
 pub use alias_resolution::{
     choose_canonical_tool_id, legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases,

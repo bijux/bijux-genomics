@@ -20,6 +20,8 @@ belong under `docs/`.
 
 ## Source Layout
 
+`src/workflow/pipeline_profiles/` owns benchmark profile selection and scientific handoff requirements, grouped into ancient-DNA, germline, imputation, population, taxonomy and amplicon rules. `PipelineProfileEvidence` supplies admitted corpus compatibility and VCF matrix data; repository acquisition and process execution are outside these profile rules.
+
 - `src/lib.rs` keeps the crate root thin and re-exports `public_api`.
 - `src/public_api/` owns the curated stable surface and stable-surface owner.
 - `src/workflow/` owns suite loading, summarization, comparison, gate evaluation,

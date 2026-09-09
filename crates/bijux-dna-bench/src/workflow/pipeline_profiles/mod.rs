@@ -1,0 +1,150 @@
+//! Benchmark scientific profile admission over explicit evidence providers.
+
+use std::collections::{BTreeMap, BTreeSet};
+
+use anyhow::{anyhow, Result};
+use bijux_dna_bench_model::{
+    BenchmarkLocalCorpusStageCompatibilityEntry as LocalCorpusStageCompatibilityEntryReport,
+    BenchmarkLocalPipelineDagConfig as LocalPipelineDagConfig,
+    BenchmarkLocalPipelineDagDomain as LocalPipelineDagDomain,
+    BenchmarkLocalPipelineDagNode as LocalPipelineDagNode,
+    BenchmarkLocalPipelineDagValidationProfile as LocalPipelineDagValidationProfileReport,
+    VcfStageMatrixRow,
+};
+
+mod amplicon;
+mod ancient_dna;
+mod evidence;
+mod germline;
+mod imputation;
+mod population;
+mod taxonomy;
+
+#[cfg(test)]
+mod tests;
+
+pub use evidence::PipelineProfileEvidence;
+
+/// Validate selected benchmark profiles while retaining declared evidence checks.
+///
+/// Profile selection follows stage membership and governed pipeline identities.
+/// This operation does not execute pipelines or qualify real tool substitutions.
+///
+/// # Errors
+/// Rejects incompatible profile wiring, corpus/binding evidence, or provider errors.
+pub fn validate_benchmark_pipeline_profiles(
+    config: &LocalPipelineDagConfig,
+    evidence: &dyn PipelineProfileEvidence,
+) -> Result<Vec<LocalPipelineDagValidationProfileReport>> {
+    let mut profiles = Vec::new();
+    let stage_ids = config.nodes.iter().map(|node| node.stage_id.as_str()).collect::<BTreeSet<_>>();
+
+    if stage_ids.contains("vcf.call_pseudohaploid") || stage_ids.contains("vcf.damage_filter") {
+        profiles.push(ancient_dna::validate_ancient_dna_pseudohaploid_profile(evidence, config)?);
+    }
+    if stage_ids.contains("vcf.call_gl") || stage_ids.contains("vcf.gl_propagation") {
+        profiles.push(ancient_dna::validate_ancient_dna_gl_profile(evidence, config)?);
+    }
+    if stage_ids.contains("vcf.call_diploid") && stage_ids.contains("bam.recalibration") {
+        profiles.push(germline::validate_diploid_small_sample_profile(evidence, config)?);
+    }
+    if stage_ids.contains("vcf.prepare_reference_panel") && stage_ids.contains("vcf.impute") {
+        profiles.push(imputation::validate_reference_panel_imputation_profile(evidence, config)?);
+    }
+    if stage_ids.contains("vcf.population_structure") && stage_ids.contains("vcf.admixture") {
+        profiles.push(population::validate_population_structure_vcf_profile(evidence, config)?);
+    }
+    if stage_ids.contains("vcf.ibd")
+        && stage_ids.contains("vcf.roh")
+        && stage_ids.contains("vcf.demography")
+    {
+        profiles.push(population::validate_relatedness_segments_vcf_profile(evidence, config)?);
+    }
+    if stage_ids.contains("bam.genotyping")
+        && stage_ids.contains("vcf.filter")
+        && stage_ids.contains("vcf.stats")
+        && stage_ids.contains("vcf.qc")
+        && stage_ids.contains("vcf.pca")
+        && stage_ids.contains("vcf.roh")
+    {
+        profiles.push(germline::validate_bam_genotyping_vcf_downstream_profile(evidence, config)?);
+    }
+    if config.pipeline_id == "edna-taxonomy-no-vcf" {
+        profiles.push(taxonomy::validate_edna_taxonomy_no_vcf_profile(evidence, config)?);
+    }
+    if config.pipeline_id == "amplicon-asv-otu-no-vcf" {
+        profiles.push(amplicon::validate_amplicon_asv_otu_no_vcf_profile(evidence, config)?);
+    }
+
+    Ok(profiles)
+}
+
+fn require_profile_stage<'a>(
+    stage_index: &'a BTreeMap<String, &'a LocalPipelineDagNode>,
+    profile_id: &str,
+    stage_id: &str,
+) -> Result<&'a LocalPipelineDagNode> {
+    stage_index
+        .get(stage_id)
+        .copied()
+        .ok_or_else(|| anyhow!("{profile_id} local pipeline DAG must declare stage `{stage_id}`"))
+}
+
+fn require_list_contains(
+    values: &[String],
+    expected: &str,
+    profile_id: &str,
+    message: &str,
+) -> Result<()> {
+    if values.iter().any(|value| value == expected) {
+        Ok(())
+    } else {
+        Err(anyhow!("{profile_id}: {message}"))
+    }
+}
+
+fn require_compatibility_fixture(
+    compatibility_index: &BTreeMap<&str, &LocalCorpusStageCompatibilityEntryReport>,
+    profile_id: &str,
+    stage_id: &str,
+    expected_corpus_family_id: &str,
+    expected_fixture_id: &str,
+) -> Result<()> {
+    let Some(entry) = compatibility_index.get(stage_id).copied() else {
+        return Err(anyhow!(
+            "{profile_id} local pipeline DAG cannot confirm corpus compatibility for missing stage `{stage_id}`"
+        ));
+    };
+    if entry.corpus_family_id.as_deref() != Some(expected_corpus_family_id)
+        || entry.fixture_id.as_deref() != Some(expected_fixture_id)
+    {
+        return Err(anyhow!(
+            "{profile_id} local pipeline DAG expected `{stage_id}` to remain governed by `{expected_corpus_family_id}` / `{expected_fixture_id}`, found {:?} / {:?}",
+            entry.corpus_family_id,
+            entry.fixture_id
+        ));
+    }
+    Ok(())
+}
+
+fn require_vcf_matrix_binding(
+    matrix_index: &BTreeMap<String, VcfStageMatrixRow>,
+    profile_id: &str,
+    stage_id: &str,
+    expected_asset_profile_id: &str,
+    expected_corpus_id: &str,
+) -> Result<()> {
+    let Some(row) = matrix_index.get(stage_id) else {
+        return Err(anyhow!(
+            "{profile_id} local pipeline DAG cannot confirm governed VCF stage-matrix coverage for missing stage `{stage_id}`"
+        ));
+    };
+    if row.asset_profile_id != expected_asset_profile_id || row.corpus_id != expected_corpus_id {
+        return Err(anyhow!(
+            "{profile_id} local pipeline DAG expected `{stage_id}` to remain governed by asset profile `{expected_asset_profile_id}` and corpus `{expected_corpus_id}`, found `{}` / `{}`",
+            row.asset_profile_id,
+            row.corpus_id
+        ));
+    }
+    Ok(())
+}

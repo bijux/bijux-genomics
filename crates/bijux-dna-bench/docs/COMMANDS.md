@@ -9,6 +9,7 @@ These operations are exported through the crate root and `public_api`.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
+| `validate-pipeline-profiles` | `validate_benchmark_pipeline_profiles(config, evidence)` | Check selected scientific benchmark profile handoffs against a typed evidence provider. |
 | `load-suite` | `load_suite(path)` | Load and validate a benchmark suite TOML file. |
 | `load-corpus-manifest` | `load_corpus_manifest(path)` | Load and validate one benchmark corpus TOML manifest. |
 | `load-corpus-catalog` | `load_corpus_catalog()` | Load and validate all checked-in benchmark corpus manifests. |

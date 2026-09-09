@@ -140,6 +140,7 @@ fn bench_tree_matches_architecture_contract() {
             "mod.rs",
             "options.rs",
             "parameter_authority.rs",
+            "pipeline_profiles/",
             "progress_ledger.rs",
             "protocol_portfolio.rs",
             "publication_receipt.rs",
@@ -172,6 +173,22 @@ fn bench_tree_matches_architecture_contract() {
             "workspace_layout.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/pipeline_profiles")),
+        entries([
+            "amplicon.rs",
+            "ancient_dna.rs",
+            "evidence.rs",
+            "germline.rs",
+            "imputation.rs",
+            "mod.rs",
+            "population.rs",
+            "taxonomy.rs",
+            "tests.rs",
+        ]),
+        "pipeline profiles must separate scientific rules from evidence acquisition"
     );
 
     assert_eq!(
