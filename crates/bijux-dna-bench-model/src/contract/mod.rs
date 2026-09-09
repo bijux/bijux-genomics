@@ -394,8 +394,8 @@ pub use local_slurm_scripts::{
 pub use real_smoke_core_subset::admit_real_smoke_core_subset_report;
 
 pub use readiness::{
-    validate_all_domain_rendered_command_rows, validate_all_domain_stage_tool_table_rows,
-    AllDomainStageToolTableAdmissionContext,
+    validate_all_domain_expected_result_rows, validate_all_domain_rendered_command_rows,
+    validate_all_domain_stage_tool_table_rows, AllDomainStageToolTableAdmissionContext,
 };
 
 #[cfg(feature = "canonical-fastq-catalog")]

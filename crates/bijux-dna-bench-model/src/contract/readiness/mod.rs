@@ -9,3 +9,6 @@ pub use stage_tool_table::{
 
 mod rendered_commands;
 pub use rendered_commands::validate_all_domain_rendered_command_rows;
+
+mod expected_results;
+pub use expected_results::validate_all_domain_expected_result_rows;

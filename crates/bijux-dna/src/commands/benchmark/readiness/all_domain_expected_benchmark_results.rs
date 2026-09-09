@@ -4,7 +4,8 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
-    validate_all_domain_expected_benchmark_results, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1,
+    validate_all_domain_expected_benchmark_results, validate_all_domain_expected_result_rows,
+    ReadinessStageToolBinding as BindingKey, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
     AllDomainExpectedBenchmarkResultRow, AllDomainExpectedBenchmarkResultsReport,
@@ -26,13 +27,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/expected-benchmark-results-all-domains.tsv";
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct BindingKey {
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-}
 
 pub(crate) fn run_render_all_domain_expected_benchmark_results(
     args: &parse::BenchReadinessRenderAllDomainExpectedBenchmarkResultsArgs,
@@ -121,7 +115,9 @@ pub(crate) fn collect_all_domain_expected_benchmark_result_rows(
 
     let mut rows = Vec::new();
 
-    for row in collect_expected_benchmark_result_rows(repo_root)? {
+    let expected_fastq_bam = collect_expected_benchmark_result_rows(repo_root)?;
+    let expected_fastq_bam_count = expected_fastq_bam.len();
+    for row in expected_fastq_bam {
         let key = binding_key(&row.domain, &row.stage_id, &row.tool_id);
         let asset_profile_id = fastq_bam_asset_profile_id(&key, &asset_roles_by_binding);
         let report_section = match row.domain.as_str() {
@@ -166,7 +162,9 @@ pub(crate) fn collect_all_domain_expected_benchmark_result_rows(
         });
     }
 
-    for row in collect_vcf_expected_benchmark_result_rows(repo_root)? {
+    let expected_vcf = collect_vcf_expected_benchmark_result_rows(repo_root)?;
+    let expected_vcf_count = expected_vcf.len();
+    for row in expected_vcf {
         rows.push(AllDomainExpectedBenchmarkResultRow {
             result_id: vcf_result_id(&row),
             domain: row.domain,
@@ -188,7 +186,7 @@ pub(crate) fn collect_all_domain_expected_benchmark_result_rows(
             .then_with(|| left.corpus_id.cmp(&right.corpus_id))
             .then_with(|| left.result_id.cmp(&right.result_id))
     });
-    ensure_all_domain_expected_benchmark_result_contract(repo_root, &rows)?;
+    validate_all_domain_expected_result_rows(&rows, expected_fastq_bam_count, expected_vcf_count)?;
     Ok(rows)
 }
 
@@ -217,125 +215,6 @@ fn expected_bam_metrics(stage_id: &str, normalized_metrics_output_id: Option<&st
         metrics.insert(metric);
     }
     metrics.into_iter().collect()
-}
-
-fn ensure_all_domain_expected_benchmark_result_contract(
-    repo_root: &Path,
-    rows: &[AllDomainExpectedBenchmarkResultRow],
-) -> Result<()> {
-    let unique_result_ids = rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>();
-    if unique_result_ids.len() != rows.len() {
-        return Err(anyhow!(
-            "all-domain expected-result table must keep a unique stable result_id per row"
-        ));
-    }
-
-    for row in rows {
-        if row.domain.trim().is_empty()
-            || row.stage_id.trim().is_empty()
-            || row.tool_id.trim().is_empty()
-            || row.corpus_id.trim().is_empty()
-            || row.asset_profile_id.trim().is_empty()
-            || row.report_section.trim().is_empty()
-        {
-            return Err(anyhow!(
-                "all-domain expected-result row `{}` contains a blank required column",
-                row.result_id
-            ));
-        }
-        if row.expected_outputs.is_empty() {
-            return Err(anyhow!(
-                "all-domain expected-result row `{}` is missing expected_outputs",
-                row.result_id
-            ));
-        }
-        if row.expected_metrics.is_empty() {
-            return Err(anyhow!(
-                "all-domain expected-result row `{}` is missing expected_metrics",
-                row.result_id
-            ));
-        }
-    }
-
-    let expected_count = collect_expected_benchmark_result_rows(repo_root)?.len()
-        + collect_vcf_expected_benchmark_result_rows(repo_root)?.len();
-    if rows.len() != expected_count {
-        return Err(anyhow!(
-            "all-domain expected-result table must retain every benchmark-ready FASTQ, BAM, and VCF row, found {} of {}",
-            rows.len(),
-            expected_count
-        ));
-    }
-    require_expected_row(
-        rows,
-        "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
-        "fastq",
-        "fastq.screen_taxonomy",
-        "kraken2",
-        "corpus-02-edna-mini",
-        "database_artifact_id+taxonomy_database_root",
-        "classification_report_json",
-        "classification_report_json",
-        "contamination_screening",
-    )?;
-    require_expected_row(
-        rows,
-        "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
-        "bam",
-        "bam.kinship",
-        "king",
-        "corpus-01-kinship-mini",
-        "reference_fasta+reference_panel",
-        "kinship_report",
-        "kinship_report",
-        "sample_identity",
-    )?;
-    require_expected_row(
-        rows,
-        "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
-        "vcf",
-        "vcf.call",
-        "bcftools",
-        "vcf_production_regression",
-        "bam_bundle",
-        "called_vcf",
-        "variant_count",
-        "variant_calling",
-    )?;
-
-    Ok(())
-}
-
-fn require_expected_row(
-    rows: &[AllDomainExpectedBenchmarkResultRow],
-    result_id: &str,
-    domain: &str,
-    stage_id: &str,
-    tool_id: &str,
-    corpus_id: &str,
-    asset_profile_id: &str,
-    expected_output: &str,
-    expected_metric: &str,
-    report_section: &str,
-) -> Result<()> {
-    let row = rows
-        .iter()
-        .find(|row| row.result_id == result_id)
-        .ok_or_else(|| anyhow!("all-domain expected-result table is missing `{result_id}`"))?;
-    if row.domain != domain
-        || row.stage_id != stage_id
-        || row.tool_id != tool_id
-        || row.corpus_id != corpus_id
-        || row.asset_profile_id != asset_profile_id
-        || !row.expected_outputs.iter().any(|candidate| candidate == expected_output)
-        || !row.expected_metrics.iter().any(|candidate| candidate == expected_metric)
-        || row.report_section != report_section
-    {
-        return Err(anyhow!(
-            "all-domain expected-result row `{result_id}` drifted from the governed result contract"
-        ));
-    }
-    Ok(())
 }
 
 fn render_all_domain_expected_benchmark_results_tsv(

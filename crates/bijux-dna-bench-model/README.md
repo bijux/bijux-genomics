@@ -30,6 +30,7 @@ execution, runner integration, API orchestration, or report persistence.
 
 `docs/COMMANDS.md` is the SSOT for callable pure-model operations:
 
+- `validate-all-domain-expected-result-rows`
 - `validate-all-domain-rendered-command-rows`
 - `validate-all-domain-stage-tool-table-rows`
 - `admit-real-smoke-core-subset`
