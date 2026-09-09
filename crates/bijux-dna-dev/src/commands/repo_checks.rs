@@ -8,6 +8,7 @@ use crate::commands::command_support::{
 use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::runtime::workspace::Workspace;
 
+mod artifact_paths;
 mod artifacts;
 mod build_authority;
 mod dependency_graph;

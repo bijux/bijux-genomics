@@ -74,3 +74,9 @@ If an embedded mirror is discovered, record its inventory and checksums, move it
 - `make ci-fast`
 
 The root-layout check is part of `ci-fast` and fails before longer checks when the governed tree drifts.
+
+`check-artifacts-layout` validates declared CI build, archive and report
+destinations in the build-authority, fast-groups and full-shards contracts.
+They must be relative children of `artifacts/` without parent traversal; existing
+ancestors must not escape through symlinks. The check preserves all files and
+reports the owning configuration field when a destination is invalid.
