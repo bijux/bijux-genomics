@@ -1,5 +1,7 @@
 //! Pure admission of the governed local smoke observation subset.
 
+use bijux_dna_core::id_catalog;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
@@ -37,20 +39,25 @@ pub fn admit_real_smoke_core_subset_report(
         &report.rows,
         RealSmokeCoreSubsetExecutionKind::Stage,
         "fastq",
-        "fastq.validate_reads",
+        id_catalog::FASTQ_VALIDATE_READS,
     )?;
     ensure_row_exists(
         &report.rows,
         RealSmokeCoreSubsetExecutionKind::Stage,
         "bam",
-        "bam.validate",
+        id_catalog::BAM_VALIDATE,
     )?;
-    ensure_row_exists(&report.rows, RealSmokeCoreSubsetExecutionKind::Stage, "vcf", "vcf.stats")?;
+    ensure_row_exists(
+        &report.rows,
+        RealSmokeCoreSubsetExecutionKind::Stage,
+        "vcf",
+        id_catalog::VCF_STATS,
+    )?;
     let bridge_row = ensure_row_exists(
         &report.rows,
         RealSmokeCoreSubsetExecutionKind::PipelineBridge,
         "vcf",
-        "vcf.call",
+        id_catalog::VCF_CALL,
     )?;
     if bridge_row.bridge_source_domain.as_deref() != Some("bam")
         || bridge_row.bridge_target_domain.as_deref() != Some("vcf")
