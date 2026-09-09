@@ -538,18 +538,18 @@ fn collect_local_stage_proof_from_plans(
     }
     let undeclared_stage_output_ids =
         observed_ids.difference(declared_ids).cloned().collect::<Vec<_>>();
-    let independent_execution_proven = !observed_ids.is_empty() && missing_required_count == 0;
+    let fixture_complete = !observed_ids.is_empty() && missing_required_count == 0;
     Ok(LocalStageProof {
         proof_surface: PROOF_SURFACE_SHARED_STAGE_SMOKE,
         proof_path: proof_path.unwrap_or_else(|| {
             format!("materialize {} / {} produced no outputs", stage_id, proof_tool_id)
         }),
-        proof_tool_id: Some(proof_tool_id.to_string()),
+        proof_tool_id: None,
         observed_ids,
         observed_paths_by_id,
         undeclared_stage_output_ids,
-        independent_execution_proven,
-        execution_blocker: None,
+        independent_execution_proven: false,
+        execution_blocker: fixture_complete.then(|| "synthetic_output_contract_only: declared outputs were materialized without executing the selected backend".to_string()),
     })
 }
 
@@ -612,12 +612,12 @@ fn collect_direct_declared_output_proof(
             path_relative_to_repo(repo_root, &proof_root),
             result_ids
         ),
-        proof_tool_id: Some(tool_id.to_string()),
+        proof_tool_id: None,
         observed_ids,
         observed_paths_by_id,
         undeclared_stage_output_ids: Vec::new(),
-        independent_execution_proven: true,
-        execution_blocker: None,
+        independent_execution_proven: false,
+        execution_blocker: Some("synthetic_output_contract_only: declared outputs were materialized without executing the selected backend".to_string()),
     })
 }
 

@@ -127,6 +127,8 @@ pub fn evaluate_output_contract_row(
     ];
     let observed_manifest = runtime_path_proof.stage_result_path.clone();
     let passed = output_row.status == AllDomainOutputDeclarationStatus::Complete
+        && execution_blocker.is_none()
+        && proof_tool_id.as_deref() == Some(output_row.tool_id.as_str())
         && independent_execution_proven
         && raw_outputs_matched
         && normalized_metrics_matched
@@ -192,6 +194,12 @@ fn output_audit_reason(
         let mut failures = Vec::<String>::new();
         if output_row.status != AllDomainOutputDeclarationStatus::Complete {
             failures.push("output declaration is not complete".to_string());
+        }
+        if row.proof_tool_id.as_deref() != Some(output_row.tool_id.as_str()) {
+            failures.push(format!(
+                "observed tool {:?} does not match declared tool `{}`",
+                row.proof_tool_id, output_row.tool_id
+            ));
         }
         if !row.independent_execution_proven {
             failures.push(format!(
@@ -333,5 +341,35 @@ mod tests {
         wire["rows"][0]["undeclared_field"] = serde_json::json!(true);
         assert!(serde_json::from_value::<OutputContractTestsReport>(wire).is_err());
         Ok(())
+    }
+    #[test]
+    fn output_audit_rejects_foreign_or_missing_tool_proof() {
+        let (declaration, runtime, proof) = inputs();
+        for tool in [None, Some("freebayes".to_string()), Some(" bcftools".to_string())] {
+            let mut observed = proof.clone();
+            observed.proof_tool_id = tool;
+            let row = evaluate_output_contract_row(&declaration, &runtime, observed);
+            assert!(!row.passed);
+            assert!(row.reason.contains("does not match declared tool"));
+        }
+    }
+
+    #[test]
+    fn output_audit_blocker_prevents_positive_proof_and_count_overlap() {
+        let (declaration, runtime, mut proof) = inputs();
+        proof.execution_blocker = Some("execution unavailable".into());
+        let row = evaluate_output_contract_row(&declaration, &runtime, proof);
+        assert!(row.independent_execution_proven);
+        assert!(!row.passed);
+        let report = build_output_contract_tests_report("report.json".into(), vec![row]);
+        assert_eq!(
+            (
+                report.row_count,
+                report.passed_row_count,
+                report.blocked_row_count,
+                report.failed_row_count
+            ),
+            (1, 0, 1, 0)
+        );
     }
 }
