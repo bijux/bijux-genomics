@@ -73,3 +73,5 @@ Test boundaries mirror that split:
 The admitted full-test inventory also owns explicit CLI and developer executable paths for cross-package policy tests. `application/ci/executables.rs` rejects missing, ambiguous or escaping declarations, and the CI command maps those relative archive members into each shard extraction. Policy process support consumes the exact runtime binding; local unbound execution asks Cargo to establish freshness instead of trusting an existing debug file.
 
 Archived test consumers receive their remapped workspace as repository authority and its `artifacts/` directory as product output authority. Executor-owned archive extraction, build targets, coverage and scratch paths remain separate under the shard storage contract. The root receipt records both authorities; workspace admission continues to reject foreign output roots.
+
+The partition adapter follows the [pinned Nextest 0.9.100 implementation](https://github.com/nextest-rs/nextest/blob/cargo-nextest-0.9.100/nextest-runner/src/partition.rs); executor upgrades require fresh protocol qualification.
