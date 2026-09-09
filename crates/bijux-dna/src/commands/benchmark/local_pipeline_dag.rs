@@ -1,3 +1,5 @@
+pub(crate) use bijux_dna_api::v1::api::bench::benchmark_local_pipeline_config_path;
+use bijux_dna_api::v1::api::bench::load_benchmark_local_pipeline_dag_config as load_local_pipeline_dag_config;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -16,8 +18,6 @@ pub(crate) use bijux_dna_api::v1::api::bench::{
     BenchmarkLocalPipelineAncientDnaPolicy as LocalPipelineAncientDnaPolicy,
     BenchmarkLocalPipelineDagConfig as LocalPipelineDagConfig,
     BenchmarkLocalPipelineDagDomain as LocalPipelineDagDomain,
-    BenchmarkLocalPipelineDagMetadataConfig as LocalPipelineDagMetadataConfig,
-    BenchmarkLocalPipelineDagStagesConfig as LocalPipelineDagStagesConfig,
     BenchmarkLocalPipelineDagValidationNode as LocalPipelineDagValidationNodeReport,
     BenchmarkLocalPipelineDagValidationReport as LocalPipelineDagValidationReport,
     BenchmarkLocalPipelineExecutionContext as LocalPipelineExecutionContext,
@@ -41,11 +41,8 @@ use crate::commands::benchmark::local_vcf_stage_matrix::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const BENCHMARK_LOCAL_PIPELINE_CONFIG_ROOT: &str = "benchmarks/configs/pipelines/local";
 pub(crate) const DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH: &str =
     "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml";
-const LOCAL_PIPELINE_YAML_CONFIG_FILE: &str = "config.yaml";
-const LOCAL_PIPELINE_YAML_STAGES_FILE: &str = "stages.yaml";
 
 pub(crate) fn run_validate_pipeline_dag(
     args: &parse::BenchLocalValidatePipelineDagArgs,
@@ -94,68 +91,6 @@ pub(crate) fn load_validated_local_pipeline_dag_report(
     let config = load_local_pipeline_dag_config(config_path)?;
     let output_path = repo_root.join(default_pipeline_report_relative_path(&config.pipeline_id));
     validate_pipeline_dag(repo_root, config_path, &output_path, &config)
-}
-
-pub(crate) fn benchmark_local_pipeline_config_dir(repo_root: &Path) -> PathBuf {
-    repo_root.join(BENCHMARK_LOCAL_PIPELINE_CONFIG_ROOT)
-}
-
-pub(crate) fn benchmark_local_pipeline_config_path(repo_root: &Path, pipeline_id: &str) -> PathBuf {
-    let config_root = benchmark_local_pipeline_config_dir(repo_root);
-    let bundle_dir = config_root.join(pipeline_id);
-    if bundle_dir.is_dir() {
-        bundle_dir
-    } else {
-        config_root.join(format!("{pipeline_id}.toml"))
-    }
-}
-
-fn load_local_pipeline_dag_config(config_path: &Path) -> Result<LocalPipelineDagConfig> {
-    if config_path.is_dir() {
-        return load_local_pipeline_dag_yaml_bundle(config_path);
-    }
-    if matches!(
-        config_path.file_name().and_then(|value| value.to_str()),
-        Some(LOCAL_PIPELINE_YAML_CONFIG_FILE)
-    ) {
-        let Some(bundle_dir) = config_path.parent() else {
-            return Err(anyhow!(
-                "yaml local pipeline config `{}` must have a parent directory",
-                config_path.display()
-            ));
-        };
-        return load_local_pipeline_dag_yaml_bundle(bundle_dir);
-    }
-    let raw = fs::read_to_string(config_path)
-        .with_context(|| format!("read {}", config_path.display()))?;
-    toml::from_str(&raw).with_context(|| format!("parse {}", config_path.display()))
-}
-
-fn load_local_pipeline_dag_yaml_bundle(bundle_dir: &Path) -> Result<LocalPipelineDagConfig> {
-    let metadata_path = bundle_dir.join(LOCAL_PIPELINE_YAML_CONFIG_FILE);
-    let stages_path = bundle_dir.join(LOCAL_PIPELINE_YAML_STAGES_FILE);
-    let metadata_raw = fs::read_to_string(&metadata_path)
-        .with_context(|| format!("read {}", metadata_path.display()))?;
-    let stages_raw = fs::read_to_string(&stages_path)
-        .with_context(|| format!("read {}", stages_path.display()))?;
-    let metadata: LocalPipelineDagMetadataConfig = serde_yaml::from_str(&metadata_raw)
-        .with_context(|| format!("parse {}", metadata_path.display()))?;
-    let stages: LocalPipelineDagStagesConfig = serde_yaml::from_str(&stages_raw)
-        .with_context(|| format!("parse {}", stages_path.display()))?;
-    Ok(LocalPipelineDagConfig {
-        schema_version: metadata.schema_version,
-        pipeline_id: metadata.pipeline_id,
-        domain: metadata.domain,
-        summary: metadata.summary,
-        default_corpus_id: metadata.default_corpus_id,
-        reference_context: metadata.reference_context,
-        execution_context: metadata.execution_context,
-        project_sources: metadata.project_sources,
-        ancient_dna_policy: metadata.ancient_dna_policy,
-        reference_assets: metadata.reference_assets,
-        variant_assets: metadata.variant_assets,
-        nodes: stages.nodes,
-    })
 }
 
 fn validate_pipeline_dag(

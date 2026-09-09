@@ -7,8 +7,9 @@ mod vcf_smoke_contracts;
 pub use vcf_smoke_contracts::*;
 
 pub use bijux_dna_bench::{
-    all_domain_output_declarations_schema, discover_normalized_fastq_samples,
-    expected_fastq_publication_cohort_counts, load_benchmark_local_stage_inventory,
+    all_domain_output_declarations_schema, benchmark_local_pipeline_config_path,
+    discover_normalized_fastq_samples, expected_fastq_publication_cohort_counts,
+    load_benchmark_local_pipeline_dag_config, load_benchmark_local_stage_inventory,
     load_fastq_corpus_source_for_id, match_normalized_fastq_corpus_metadata,
     normalized_fastq_expected_sample_total, render_benchmark_all_domain_stage_inventory,
     select_normalized_fastq_paired_samples, stage_tool_assets_config_schema,
