@@ -21,8 +21,16 @@ pub fn validate_stage_scoring_config(config: &StageScoringConfig) -> Result<()> 
             config.schema_version
         );
     }
+    if config.rows.is_empty() {
+        bail!("stage scoring config requires at least one scoring row");
+    }
     let failure_class_ids =
         config.failure_classes.iter().map(|row| row.class_id.as_str()).collect::<BTreeSet<_>>();
+    if failure_class_ids.len() != config.failure_classes.len()
+        || failure_class_ids.len() != REQUIRED_ALL_DOMAIN_FAILURE_CLASSES.len()
+    {
+        bail!("stage scoring config requires each declared failure class exactly once");
+    }
     for class_id in REQUIRED_ALL_DOMAIN_FAILURE_CLASSES {
         if !failure_class_ids.contains(class_id) {
             bail!("stage scoring config is missing failure class `{class_id}`");
@@ -31,6 +39,28 @@ pub fn validate_stage_scoring_config(config: &StageScoringConfig) -> Result<()> 
 
     let mut seen_stage_ids = BTreeSet::<(&str, &str)>::new();
     for row in &config.rows {
+        if !matches!(row.domain.as_str(), "fastq" | "bam" | "vcf")
+            || row
+                .stage_id
+                .split_once('.')
+                .is_none_or(|(domain, stage)| domain != row.domain || stage.is_empty())
+            || row.stage_id.trim() != row.stage_id
+        {
+            bail!("stage scoring row has an invalid domain/stage identity");
+        }
+        let tool_ids =
+            row.benchmark_ready_tool_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();
+        if tool_ids.is_empty()
+            || tool_ids.len() != row.benchmark_ready_tool_ids.len()
+            || tool_ids.len() != row.benchmark_ready_tool_count
+            || row.active_tool_count < row.benchmark_ready_tool_count
+            || tool_ids.iter().any(|tool| tool.trim().is_empty() || tool.trim() != *tool)
+        {
+            bail!(
+                "stage scoring row `{}` has inconsistent benchmark-ready tool identities or counts",
+                row.stage_id
+            );
+        }
         if !seen_stage_ids.insert((row.domain.as_str(), row.stage_id.as_str())) {
             bail!(
                 "stage scoring config contains duplicate row `{}` / `{}`",
@@ -310,6 +340,38 @@ mod tests {
             mutate(&mut config);
             assert!(validate_stage_scoring_config(&config).is_err());
         }
+        Ok(())
+    }
+    #[test]
+    fn stage_scoring_policy_rejects_ambiguous_inventory_and_tool_cardinality() -> Result<()> {
+        let mutations: [fn(&mut StageScoringConfig); 10] = [
+            |c| c.rows.clear(),
+            |c| c.failure_classes.push(c.failure_classes[0].clone()),
+            |c| c.failure_classes[0].class_id = "undeclared".into(),
+            |c| c.rows[0].stage_id = "fastq.align".into(),
+            |c| c.rows[0].stage_id = "bam.".into(),
+            |c| c.rows[0].benchmark_ready_tool_count += 1,
+            |c| c.rows[0].active_tool_count = 0,
+            |c| {
+                let duplicate = c.rows[0].default_tool_id.clone();
+                c.rows[0].benchmark_ready_tool_ids.push(duplicate);
+            },
+            |c| c.rows[0].benchmark_ready_tool_ids[0] = String::new(),
+            |c| c.rows[0].benchmark_ready_tool_ids[0].push(' '),
+        ];
+        for mutate in mutations {
+            let mut config = policy()?;
+            mutate(&mut config);
+            assert!(validate_stage_scoring_config(&config).is_err());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn stage_scoring_policy_admits_the_complete_authored_inventory() -> Result<()> {
+        let config: StageScoringConfig =
+            toml::from_str(include_str!("../../../../configs/bench/local/stage-scoring.toml"))?;
+        validate_stage_scoring_config(&config)?;
         Ok(())
     }
 }
