@@ -20,8 +20,30 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
-        entries(["admission/", "fastq_score_evidence/", "mod.rs", "source_assets.rs", "writer/"]),
+        entries([
+            "admission/",
+            "bam_score_evidence/",
+            "fastq_score_evidence/",
+            "mod.rs",
+            "source_assets.rs",
+            "writer/"
+        ]),
         "artifacts tree must separate source inspection, output admission, and serialization"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/bam_score_evidence")),
+        entries([
+            "alignment.rs",
+            "correction.rs",
+            "damage.rs",
+            "duplicates_coverage.rs",
+            "fields.rs",
+            "identity.rs",
+            "library.rs",
+            "merge.rs",
+            "mod.rs"
+        ]),
+        "BAM score interpretation must separate scientific responsibilities and field admission"
     );
     assert_eq!(
         dir_entries(&root.join("src/artifacts/fastq_score_evidence")),
@@ -56,6 +78,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
+            "bam_score_evidence.rs",
             "case_data_authority.rs",
             "catalog_registry_authority.rs",
             "catalog_snapshot_authority.rs",

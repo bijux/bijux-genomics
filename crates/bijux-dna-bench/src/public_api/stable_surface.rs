@@ -658,3 +658,5 @@ pub use bijux_dna_bench_model::{
     BamScoreMemoryRow, BamScoreRuntimeRow, BamToolScoreRow, BamToolScoreStatus,
     BamToolScoresReport, BamToolScoringInput, BAM_TOOL_SCORES_SCHEMA_VERSION,
 };
+
+pub use crate::repo::load_bam_tool_score_evidence;

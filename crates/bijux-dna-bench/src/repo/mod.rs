@@ -69,3 +69,6 @@ pub use pipeline_inventory::{
 };
 
 pub use reference_fasta::materialize_benchmark_reference_fasta;
+
+mod bam_score_evidence;
+pub use bam_score_evidence::load_bam_tool_score_evidence;

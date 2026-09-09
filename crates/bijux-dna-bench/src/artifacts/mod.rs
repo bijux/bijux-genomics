@@ -21,3 +21,5 @@ pub use writer::{
     write_decisions_json, write_observations_jsonl, write_summary_json,
     EffectiveToolParametersPublication, WriteMode, EFFECTIVE_TOOL_PARAMETERS_FILE,
 };
+
+pub(crate) mod bam_score_evidence;
