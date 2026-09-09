@@ -4,6 +4,7 @@ mod model;
 mod publication;
 mod render;
 mod report;
+mod schema;
 
 pub use decision::{
     evaluate_benchmark_evidence, evaluate_execution_evidence, evaluate_identity_evidence,
@@ -29,3 +30,5 @@ pub use report::{
     QualificationEvidenceSource, QualificationReport, QualificationReportSummary,
     QUALIFICATION_REPORT_SCHEMA_V4,
 };
+
+pub use schema::{render_qualification_assessment_schema, render_qualification_report_schema};

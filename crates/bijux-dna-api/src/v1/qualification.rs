@@ -5,8 +5,9 @@ use std::path::Path;
 use anyhow::{Context, Result};
 
 pub use bijux_dna_policies::{
-    evaluate_publication_freshness, render_qualification_report_json,
-    render_qualification_report_markdown, ArtifactAvailability, ArtifactDelivery, EvidenceDecision,
+    evaluate_publication_freshness, render_qualification_assessment_schema,
+    render_qualification_report_json, render_qualification_report_markdown,
+    render_qualification_report_schema, ArtifactAvailability, ArtifactDelivery, EvidenceDecision,
     EvidenceDimension, EvidenceVerdict, ImmutablePublicationIdentity, ProductSupport,
     PublicationArtifactIdentity, PublicationAuthority, PublicationDisposition,
     PublicationFreshnessEvaluation, PublicationFreshnessVerdict, PublicationIdentityMismatch,
@@ -20,18 +21,6 @@ pub use bijux_dna_bench::{
     derive_container_qualification_report, derive_container_qualification_report_with_release,
 };
 
-/// Render the governed qualification-assessment schema.
-///
-/// # Panics
-/// Panics if the Rust-derived schema cannot be represented as JSON.
-#[must_use]
-pub fn render_qualification_assessment_schema() -> serde_json::Value {
-    match serde_json::to_value(schemars::schema_for!(QualificationAssessment)) {
-        Ok(value) => value,
-        Err(error) => panic!("serialize qualification-assessment schema: {error}"),
-    }
-}
-
 /// Write the governed qualification-assessment schema to disk.
 ///
 /// # Errors
@@ -39,18 +28,6 @@ pub fn render_qualification_assessment_schema() -> serde_json::Value {
 pub fn write_qualification_assessment_schema(path: &Path) -> Result<()> {
     bijux_dna_infra::atomic_write_json(path, &render_qualification_assessment_schema())
         .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed qualification-report schema.
-///
-/// # Panics
-/// Panics if the Rust-derived schema cannot be represented as JSON.
-#[must_use]
-pub fn render_qualification_report_schema() -> serde_json::Value {
-    match serde_json::to_value(schemars::schema_for!(QualificationReport)) {
-        Ok(value) => value,
-        Err(error) => panic!("serialize qualification-report schema: {error}"),
-    }
 }
 
 /// Write the governed qualification-report schema to disk.

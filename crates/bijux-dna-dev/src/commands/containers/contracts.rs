@@ -1,3 +1,5 @@
+use anyhow::Context;
+
 use super::{
     failure_lines, out_path_arg, path_from_arg, read_utf8, success_line, write_utf8,
     ContainerCommandOutcome, Result, Workspace,
@@ -57,10 +59,8 @@ pub(super) fn check_evidence_qualification(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let report = qualification_report(workspace, None)?;
-    let expected_json =
-        bijux_dna_api::v1::api::qualification::render_qualification_report_json(&report)?;
-    let expected_markdown =
-        bijux_dna_api::v1::api::qualification::render_qualification_report_markdown(&report)?;
+    let expected_json = bijux_dna_policies::render_qualification_report_json(&report)?;
+    let expected_markdown = bijux_dna_policies::render_qualification_report_markdown(&report)?;
     let mut errors = Vec::new();
     for (path, expected) in [
         ("containers/reports/qualification.json", expected_json.as_str()),
@@ -121,9 +121,8 @@ pub(super) fn generate_evidence_qualification(
         }
     };
     let report = qualification_report(workspace, release_path.as_deref())?;
-    let json = bijux_dna_api::v1::api::qualification::render_qualification_report_json(&report)?;
-    let markdown =
-        bijux_dna_api::v1::api::qualification::render_qualification_report_markdown(&report)?;
+    let json = bijux_dna_policies::render_qualification_report_json(&report)?;
+    let markdown = bijux_dna_policies::render_qualification_report_markdown(&report)?;
     bijux_dna_infra::atomic_write_bytes(&json_path, json.as_bytes())?;
     bijux_dna_infra::atomic_write_bytes(&markdown_path, markdown.as_bytes())?;
     success_line(format!(
@@ -135,7 +134,7 @@ pub(super) fn generate_evidence_qualification(
 fn qualification_report(
     workspace: &Workspace,
     release_publication_path: Option<&std::path::Path>,
-) -> Result<bijux_dna_api::v1::api::qualification::QualificationReport> {
+) -> Result<bijux_dna_policies::QualificationReport> {
     let environment_evidence =
         bijux_dna_containers::evidence::load_container_evidence_chain(&workspace.root)?;
     let registry = bijux_dna_bench::load_stage_campaign_registry(
@@ -179,7 +178,11 @@ pub(super) fn generate_qualification_schema(
         return success_line(usage);
     }
     let output = out_path_arg(workspace, args, QUALIFICATION_SCHEMA_PATH, usage)?;
-    bijux_dna_api::v1::api::qualification::write_qualification_assessment_schema(&output)?;
+    bijux_dna_infra::atomic_write_json(
+        &output,
+        &bijux_dna_policies::render_qualification_assessment_schema(),
+    )
+    .with_context(|| format!("write {}", output.display()))?;
     success_line(format!("generated {}", output.display()))
 }
 
@@ -191,7 +194,7 @@ pub(super) fn check_qualification_schema(workspace: &Workspace) -> Result<Contai
         )));
     }
     let checked: serde_json::Value = serde_json::from_str(&read_utf8(&path)?)?;
-    let generated = bijux_dna_api::v1::api::qualification::render_qualification_assessment_schema();
+    let generated = bijux_dna_policies::render_qualification_assessment_schema();
     if checked != generated {
         return Ok(ContainerCommandOutcome::failure(format!(
             "{QUALIFICATION_SCHEMA_PATH} drifted from Rust policy types\n"
@@ -209,7 +212,11 @@ pub(super) fn generate_qualification_report_schema(
         return success_line(usage);
     }
     let output = out_path_arg(workspace, args, QUALIFICATION_REPORT_SCHEMA_PATH, usage)?;
-    bijux_dna_api::v1::api::qualification::write_qualification_report_schema(&output)?;
+    bijux_dna_infra::atomic_write_json(
+        &output,
+        &bijux_dna_policies::render_qualification_report_schema(),
+    )
+    .with_context(|| format!("write {}", output.display()))?;
     success_line(format!("generated {}", output.display()))
 }
 
@@ -223,7 +230,7 @@ pub(super) fn check_qualification_report_schema(
         )));
     }
     let checked: serde_json::Value = serde_json::from_str(&read_utf8(&path)?)?;
-    let generated = bijux_dna_api::v1::api::qualification::render_qualification_report_schema();
+    let generated = bijux_dna_policies::render_qualification_report_schema();
     if checked != generated {
         return Ok(ContainerCommandOutcome::failure(format!(
             "{QUALIFICATION_REPORT_SCHEMA_PATH} drifted from Rust policy types\n"
