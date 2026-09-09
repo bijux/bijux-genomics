@@ -79,6 +79,7 @@ mod publication_registry;
 mod publication_status;
 mod published_results_status;
 mod readiness_views;
+mod real_smoke_core_subset;
 mod records;
 mod remediation_queue;
 mod replay;
@@ -387,3 +388,5 @@ pub use local_slurm_scripts::{
     build_benchmark_local_all_domain_slurm_scripts_report,
     validate_benchmark_local_all_domain_slurm_scripts_report,
 };
+
+pub use real_smoke_core_subset::admit_real_smoke_core_subset_report;

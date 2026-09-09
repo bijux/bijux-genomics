@@ -145,22 +145,16 @@ pub use bijux_dna_bench::{
     WorkspaceEntrySummary, WorkspaceLayoutIssue, WorkspaceLayoutReport, WorkspaceLocalStageLayout,
     WorkspaceNormalizationReport, WorkspaceRootPairSummary, WorkspaceStageNormalizationReport,
 };
-use bijux_dna_bench::{
-    admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,
-    benchmark_attempt_schema, benchmark_cycle_status_schema,
-    benchmark_pipeline_parameter_config_schema, benchmark_stage_interface_catalog_schema,
-    benchmark_stage_report_schema,
-};
 pub use bijux_dna_bench::{
-    all_domain_active_stage_tool_matrix_schema, all_domain_expected_benchmark_results_schema,
-    all_domain_retained_tools_schema, bam_comparable_metrics_schema,
-    benchmark_corpus_dossier_summary_schema, build_full_benchmark_comparable_metric_rows,
-    build_full_benchmark_corpus_rows, build_full_benchmark_failures_section,
-    build_full_benchmark_memory_rows, build_full_benchmark_missing_result_rows,
-    build_full_benchmark_pipeline_rows, build_full_benchmark_runtime_rows,
-    build_full_benchmark_stage_rows, build_full_benchmark_tool_rows,
-    build_full_benchmark_unsupported_pair_rows, corpus_centric_report_schema,
-    fastq_comparable_metrics_schema, full_benchmark_report_schema,
+    admit_real_smoke_core_subset_report, all_domain_active_stage_tool_matrix_schema,
+    all_domain_expected_benchmark_results_schema, all_domain_retained_tools_schema,
+    bam_comparable_metrics_schema, benchmark_corpus_dossier_summary_schema,
+    build_full_benchmark_comparable_metric_rows, build_full_benchmark_corpus_rows,
+    build_full_benchmark_failures_section, build_full_benchmark_memory_rows,
+    build_full_benchmark_missing_result_rows, build_full_benchmark_pipeline_rows,
+    build_full_benchmark_runtime_rows, build_full_benchmark_stage_rows,
+    build_full_benchmark_tool_rows, build_full_benchmark_unsupported_pair_rows,
+    corpus_centric_report_schema, fastq_comparable_metrics_schema, full_benchmark_report_schema,
     full_benchmark_result_collector_schema, load_fastq_corpus_source_spec,
     render_full_benchmark_report_markdown, scientific_acceptance_thresholds_report_schema,
     scientific_acceptance_thresholds_schema, stage_centric_report_schema,
@@ -396,6 +390,12 @@ pub use bijux_dna_bench::{
     SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1,
     STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1,
     TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1, VCF_STAGE_FAMILIES,
+};
+use bijux_dna_bench::{
+    admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,
+    benchmark_attempt_schema, benchmark_cycle_status_schema,
+    benchmark_pipeline_parameter_config_schema, benchmark_stage_interface_catalog_schema,
+    benchmark_stage_report_schema,
 };
 pub use bijux_dna_bench::{
     build_vcf_stage_catalog_rows, build_vcf_stage_matrix_rows, render_vcf_stage_catalog,

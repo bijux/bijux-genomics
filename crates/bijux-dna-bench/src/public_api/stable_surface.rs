@@ -117,11 +117,11 @@ pub use crate::workflow::{
     PipelineProfileEvidence, DEFAULT_VCF_STAGE_CATALOG_PATH, DEFAULT_VCF_STAGE_MATRIX_PATH,
 };
 pub use bijux_dna_bench_model::{
-    all_domain_active_stage_tool_matrix_schema, all_domain_expected_benchmark_results_schema,
-    all_domain_failure_classification_schema, all_domain_parser_collector_schema,
-    all_domain_retained_tools_schema, appraisal_report_schema, bam_comparable_metrics_schema,
-    benchmark_corpus_dossier_summary_schema, benchmark_dossier_index_schema,
-    benchmark_essential_pipeline_readiness_schema,
+    admit_real_smoke_core_subset_report, all_domain_active_stage_tool_matrix_schema,
+    all_domain_expected_benchmark_results_schema, all_domain_failure_classification_schema,
+    all_domain_parser_collector_schema, all_domain_retained_tools_schema, appraisal_report_schema,
+    bam_comparable_metrics_schema, benchmark_corpus_dossier_summary_schema,
+    benchmark_dossier_index_schema, benchmark_essential_pipeline_readiness_schema,
     benchmark_local_all_domain_slurm_submit_manifest_schema,
     benchmark_local_all_domain_stage_inventory_schema, benchmark_local_corpus_run_schema,
     benchmark_local_corpus_skip_report_schema, benchmark_local_corpus_stage_compatibility_schema,

@@ -30,6 +30,7 @@ execution, runner integration, API orchestration, or report persistence.
 
 `docs/COMMANDS.md` is the SSOT for callable pure-model operations:
 
+- `admit-real-smoke-core-subset`
 - `validate-suite`
 - `validate-observation`
 - `validate-summary`

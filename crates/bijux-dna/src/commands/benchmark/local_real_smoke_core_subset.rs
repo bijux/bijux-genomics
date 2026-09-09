@@ -3,7 +3,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_api::v1::api::bench::REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION;
+use bijux_dna_api::v1::api::bench::{
+    admit_real_smoke_core_subset_report, REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION,
+};
 pub(crate) use bijux_dna_api::v1::api::bench::{
     RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport, RealSmokeCoreSubsetRow,
 };
@@ -104,7 +106,7 @@ pub(crate) fn render_real_smoke_core_subset(
         passes_behavior_test: false,
         rows,
     };
-    let report = ensure_real_smoke_core_subset_contract(repo_root, report)?;
+    let report = admit_real_smoke_core_subset_report(report)?;
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)?;
     Ok(report)
 }
@@ -275,113 +277,6 @@ fn collect_vcf_call_bridge_row(
         normalized_metric_count: normalized_metrics.len(),
         normalized_metrics,
     })
-}
-
-fn ensure_real_smoke_core_subset_contract(
-    _repo_root: &Path,
-    mut report: RealSmokeCoreSubsetReport,
-) -> Result<RealSmokeCoreSubsetReport> {
-    if report.execution_count != 4 {
-        return Err(anyhow!(
-            "real-smoke core subset must keep exactly 4 executions, found {}",
-            report.execution_count
-        ));
-    }
-    if report.stage_execution_count != 3 {
-        return Err(anyhow!(
-            "real-smoke core subset must keep exactly 3 stage executions, found {}",
-            report.stage_execution_count
-        ));
-    }
-    if report.pipeline_bridge_count != 1 {
-        return Err(anyhow!(
-            "real-smoke core subset must keep exactly 1 pipeline bridge, found {}",
-            report.pipeline_bridge_count
-        ));
-    }
-    ensure_row_exists(
-        &report.rows,
-        RealSmokeCoreSubsetExecutionKind::Stage,
-        "fastq",
-        "fastq.validate_reads",
-    )?;
-    ensure_row_exists(
-        &report.rows,
-        RealSmokeCoreSubsetExecutionKind::Stage,
-        "bam",
-        "bam.validate",
-    )?;
-    ensure_row_exists(&report.rows, RealSmokeCoreSubsetExecutionKind::Stage, "vcf", "vcf.stats")?;
-    let bridge_row = ensure_row_exists(
-        &report.rows,
-        RealSmokeCoreSubsetExecutionKind::PipelineBridge,
-        "vcf",
-        "vcf.call",
-    )?;
-    if bridge_row.bridge_source_domain.as_deref() != Some("bam")
-        || bridge_row.bridge_target_domain.as_deref() != Some("vcf")
-    {
-        return Err(anyhow!(
-            "real-smoke core subset bridge must stay bam->vcf, found {:?}->{:?}",
-            bridge_row.bridge_source_domain,
-            bridge_row.bridge_target_domain
-        ));
-    }
-
-    for row in &report.rows {
-        if row.normalized_metric_count == 0 || row.normalized_metrics.is_empty() {
-            return Err(anyhow!(
-                "real-smoke core subset row `{}` is missing normalized metrics",
-                row.execution_id
-            ));
-        }
-        if let Some(_manifest_path) = &row.stage_result_manifest_path {
-            if row.manifest_status.as_deref() != Some("succeeded") {
-                return Err(anyhow!(
-                    "real-smoke core subset manifest for `{}` must be succeeded, found {:?}",
-                    row.execution_id,
-                    row.manifest_status
-                ));
-            }
-            if row.manifest_exit_code != Some(0) {
-                return Err(anyhow!(
-                    "real-smoke core subset manifest for `{}` must keep exit_code=0, found {:?}",
-                    row.execution_id,
-                    row.manifest_exit_code
-                ));
-            }
-        }
-    }
-
-    report.passes_behavior_test = true;
-    Ok(report)
-}
-
-fn ensure_row_exists<'a>(
-    rows: &'a [RealSmokeCoreSubsetRow],
-    execution_kind: RealSmokeCoreSubsetExecutionKind,
-    domain: &str,
-    stage_id: &str,
-) -> Result<&'a RealSmokeCoreSubsetRow> {
-    rows.iter()
-        .find(|row| {
-            row.execution_kind == execution_kind && row.domain == domain && row.stage_id == stage_id
-        })
-        .ok_or_else(|| {
-            anyhow!(
-                "real-smoke core subset is missing `{}` `{}` `{}`",
-                execution_kind_label(execution_kind),
-                domain,
-                stage_id
-            )
-        })
-}
-
-fn execution_kind_label(kind: RealSmokeCoreSubsetExecutionKind) -> &'static str {
-    match kind {
-        RealSmokeCoreSubsetExecutionKind::Stage => "stage",
-        RealSmokeCoreSubsetExecutionKind::PipelineBridge => "pipeline_bridge",
-    }
 }
 
 fn manifest_status_label(manifest: &BenchStageResultManifestV1) -> String {

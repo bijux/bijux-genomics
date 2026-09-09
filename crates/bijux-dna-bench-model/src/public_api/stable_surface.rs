@@ -2,7 +2,7 @@
 //! Stable crate-root re-exports.
 
 pub use crate::contract::{
-    build_benchmark_local_hpc_array_resource_envelope,
+    admit_real_smoke_core_subset_report, build_benchmark_local_hpc_array_resource_envelope,
     build_benchmark_local_hpc_dependency_simulation, build_benchmark_local_hpc_job_graph,
     project_benchmark_local_hpc_tool_scopes, validate_all_domain_output_declaration_rows,
     validate_all_domain_output_declarations_report, validate_stage_tool_assets_config,
