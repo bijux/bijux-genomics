@@ -47,6 +47,93 @@ fn is_policy_file(path: &Path) -> bool {
     )
 }
 
+struct ArtifactWritePolicy {
+    direct_write: Regex,
+    bound_path: Regex,
+    write_argument: Regex,
+}
+
+impl ArtifactWritePolicy {
+    fn new() -> Self {
+        let operations = r"\b(?:write|write_string|write_bytes|atomic_write_json|create_dir|create_dir_all|ensure_dir|open|create|create_file)\s*\(";
+        Self {
+            direct_write: Regex::new(&format!(
+                r#"{operations}\s*&?\s*(?:(?:std::path::)?(?:PathBuf::from|Path::new)\(\s*)?"artifacts(?:/|")"#
+            ))
+            .expect("compile direct artifact write regex"),
+            bound_path: Regex::new(
+                r#"\blet\s+(?:mut\s+)?(?P<name>[A-Za-z_][A-Za-z_0-9]*)\s*(?::\s*(?:std::path::)?PathBuf\s*)?=\s*(?:std::path::)?(?:PathBuf::from|Path::new)\(\s*"artifacts(?:/|")"#,
+            )
+            .expect("compile bound artifact path regex"),
+            write_argument: Regex::new(&format!(
+                r"{operations}\s*&?\s*(?P<name>[A-Za-z_][A-Za-z_0-9]*)\b"
+            ))
+            .expect("compile artifact write argument regex"),
+        }
+    }
+
+    fn writes_to_shared_artifacts(&self, content: &str) -> bool {
+        if self.direct_write.is_match(content) {
+            return true;
+        }
+        // Path values are also persisted plan metadata. A constructor alone is not a write.
+        // Track direct local bindings into filesystem calls without exempting their source files.
+        let scopes = bijux_dna_testkit::workspace_support::rust_block_ranges(content);
+        let bound_paths = self
+            .bound_path
+            .captures_iter(content)
+            .filter_map(|capture| {
+                let name = capture.name("name")?;
+                let scope = scopes
+                    .iter()
+                    .filter(|scope| scope.contains(&name.start()))
+                    .min_by_key(|scope| scope.len())
+                    .cloned()
+                    .unwrap_or(0..content.len());
+                Some((name.as_str(), name.end(), scope))
+            })
+            .collect::<Vec<_>>();
+        self.write_argument.captures_iter(content).any(|capture| {
+            capture.name("name").is_some_and(|name| {
+                bound_paths.iter().any(|(bound, declared_at, scope)| {
+                    *bound == name.as_str()
+                        && *declared_at < name.start()
+                        && scope.contains(&name.start())
+                })
+            })
+        })
+    }
+}
+
+#[test]
+fn policy__contracts__test_determinism_policy__artifact_write_scan_distinguishes_metadata_from_effects(
+) {
+    let policy = ArtifactWritePolicy::new();
+    for source in [
+        r#"std::fs::write("artifacts/report.json", data)?;"#,
+        "std::fs::write(\n    \"artifacts/report.json\", data)?;",
+        r#"File::create(PathBuf::from("artifacts/report.json"))?;"#,
+        r#"let output = PathBuf::from("artifacts/report.json"); atomic_write_json(&output, &report)?;"#,
+        r#"let mut output: PathBuf = PathBuf::from("artifacts"); ensure_dir(&output.join("tests"))?;"#,
+        r#"let output = Path::new("artifacts/report.json"); std::fs::write(output, data)?;"#,
+        r#"fn owner() { let output = PathBuf::from("artifacts/report.json"); if enabled { std::fs::write(&output, data)?; } }"#,
+    ] {
+        assert!(policy.writes_to_shared_artifacts(source), "missed write: {source}");
+    }
+    for source in [
+        r#"assert_eq!(plan.out_dir, PathBuf::from("artifacts/runs/bench/local-smoke"));"#,
+        r#"let output = PathBuf::from("artifacts/report.json"); render(root.path(), output)?;"#,
+        r#"let output = paths.root.join("report.json"); std::fs::write(&output, "artifacts/metadata")?;"#,
+        r#"std::fs::write(root.path().join("artifacts/report.json"), data)?;"#,
+        r#"fn metadata() { let output = PathBuf::from("artifacts/report.json"); render(root.path(), output)?; } fn isolated() { let output = paths.root.join("report.json"); std::fs::write(&output, data)?; }"#,
+    ] {
+        assert!(
+            !policy.writes_to_shared_artifacts(source),
+            "mistook metadata for a write: {source}"
+        );
+    }
+}
+
 #[test]
 fn policy__contracts__test_determinism_policy__tests_ban_systemtime_now() {
     let root = workspace_root();
@@ -95,15 +182,14 @@ fn policy__contracts__test_determinism_policy__tests_ban_thread_rng() {
 fn policy__contracts__test_determinism_policy__tests_do_not_write_to_artifacts_root() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    let write_to_artifacts =
-        Regex::new(r#"(write|create_dir|create_dir_all|open)\s*\([^\n]*[\"']artifacts/"#)
-            .expect("compile regex");
-    let hardcoded_artifacts_root =
-        Regex::new(r#"PathBuf::from\(\s*[\"']artifacts(?:/|[\"'])"#).expect("compile regex");
+    let policy = ArtifactWritePolicy::new();
 
     for file in rs_test_files(&root) {
+        if is_policy_file(&file) {
+            continue;
+        }
         let content = test_scoped_content(&file);
-        if write_to_artifacts.is_match(&content) || hardcoded_artifacts_root.is_match(&content) {
+        if policy.writes_to_shared_artifacts(&content) {
             offenders.push(file.display().to_string());
         }
     }

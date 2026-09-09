@@ -94,8 +94,38 @@ fn is_test_cfg_attribute(trimmed: &str) -> bool {
 }
 
 fn apply_brace_delta(line: &str, initial_depth: usize, state: &mut LexicalState) -> usize {
-    let bytes = line.as_bytes();
     let mut depth = initial_depth;
+    visit_braces(line, state, |_, opening| {
+        depth = if opening { depth + 1 } else { depth.saturating_sub(1) };
+    });
+    depth
+}
+
+/// Return byte ranges for braced Rust scopes, ignoring braces in literals and comments.
+///
+/// Unclosed scopes extend to the end of the input so lexical policy scans remain conservative.
+#[must_use]
+pub fn rust_block_ranges(raw: &str) -> Vec<std::ops::Range<usize>> {
+    let mut state = LexicalState::default();
+    let mut stack = Vec::new();
+    let mut ranges = Vec::new();
+    let mut offset = 0;
+    for line in raw.split_inclusive('\n') {
+        visit_braces(line, &mut state, |index, opening| {
+            if opening {
+                stack.push(offset + index);
+            } else if let Some(start) = stack.pop() {
+                ranges.push(start..offset + index + 1);
+            }
+        });
+        offset += line.len();
+    }
+    ranges.extend(stack.into_iter().map(|start| start..raw.len()));
+    ranges
+}
+
+fn visit_braces(line: &str, state: &mut LexicalState, mut visit: impl FnMut(usize, bool)) {
+    let bytes = line.as_bytes();
     let mut index = 0usize;
     while index < bytes.len() {
         let current = bytes[index];
@@ -162,13 +192,12 @@ fn apply_brace_delta(line: &str, initial_depth: usize, state: &mut LexicalState)
         } else if current == b'\'' && has_char_literal_terminator(bytes, index + 1) {
             state.in_char = true;
         } else if current == b'{' {
-            depth += 1;
+            visit(index, true);
         } else if current == b'}' {
-            depth = depth.saturating_sub(1);
+            visit(index, false);
         }
         index += 1;
     }
-    depth
 }
 
 fn has_char_literal_terminator(bytes: &[u8], mut index: usize) -> bool {
@@ -191,7 +220,18 @@ fn has_char_literal_terminator(bytes: &[u8], mut index: usize) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{select_rust_test_modules, strip_rust_test_modules};
+    use super::{rust_block_ranges, select_rust_test_modules, strip_rust_test_modules};
+
+    #[test]
+    fn scope_ranges_ignore_literal_braces_and_keep_nested_and_unclosed_blocks() {
+        let source = "fn first() { let text = \"}\"; /* { */ if true { call(); } }\nfn second() {";
+        let scopes = rust_block_ranges(source);
+        let bodies = scopes.into_iter().map(|range| &source[range]).collect::<Vec<_>>();
+        assert_eq!(
+            bodies,
+            ["{ call(); }", "{ let text = \"}\"; /* { */ if true { call(); } }", "{"]
+        );
+    }
 
     #[test]
     fn strips_attributed_nested_test_modules_without_counting_literal_braces() {
