@@ -654,9 +654,12 @@ pub use crate::artifacts::{
 pub use crate::repo::materialize_benchmark_reference_fasta;
 
 pub use bijux_dna_bench_model::{
-    build_bam_tool_score_rows, build_bam_tool_scores_report, BamScoreEvidence, BamScoreExpectedRow,
-    BamScoreMemoryRow, BamScoreRuntimeRow, BamToolScoreRow, BamToolScoreStatus,
-    BamToolScoresReport, BamToolScoringInput, BAM_TOOL_SCORES_SCHEMA_VERSION,
+    build_bam_tool_score_rows, build_bam_tool_scores_report, build_vcf_tool_score_rows,
+    build_vcf_tool_scores_report, BamScoreEvidence, BamScoreExpectedRow, BamScoreMemoryRow,
+    BamScoreRuntimeRow, BamToolScoreRow, BamToolScoreStatus, BamToolScoresReport,
+    BamToolScoringInput, VcfScoreEvidence, VcfScoreExpectedRow, VcfScoreMemoryRow,
+    VcfScoreRuntimeRow, VcfToolScoreRow, VcfToolScoreStatus, VcfToolScoresReport,
+    VcfToolScoringInput, BAM_TOOL_SCORES_SCHEMA_VERSION, VCF_TOOL_SCORES_SCHEMA_VERSION,
 };
 
 pub use crate::repo::load_bam_tool_score_evidence;

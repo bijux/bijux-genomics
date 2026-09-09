@@ -97,3 +97,5 @@ The default `canonical-fastq-catalog` feature preserves `contract::validate_suit
 BAM scoring records, per-binding evidence selection, weighted ranking and report counts are owned by the model scoring policy. Callers supply typed observations; repository acquisition and TSV presentation remain adapter responsibilities.
 
 BAM scoring admits correctness fractions in `[0, 1]` and finite nonnegative runtime/memory before ranking. Scientific metric columns require finite values while retaining their declared units and signed values; their format-specific range and provenance admission belongs to the artifact contract.
+
+VCF scoring uses typed evidence inputs and pure selection, ranking, and report policy. Repository acquisition and CLI rendering remain at their respective boundaries.

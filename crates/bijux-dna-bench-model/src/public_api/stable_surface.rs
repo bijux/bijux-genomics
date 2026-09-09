@@ -773,3 +773,9 @@ pub use crate::model::bam_scoring::{
     BamToolScoreStatus, BamToolScoresReport, BamToolScoringInput, BAM_TOOL_SCORES_SCHEMA_VERSION,
 };
 pub use crate::policy::bam_scoring::{build_bam_tool_score_rows, build_bam_tool_scores_report};
+
+pub use crate::model::vcf_scoring::{
+    VcfScoreEvidence, VcfScoreExpectedRow, VcfScoreMemoryRow, VcfScoreRuntimeRow, VcfToolScoreRow,
+    VcfToolScoreStatus, VcfToolScoresReport, VcfToolScoringInput, VCF_TOOL_SCORES_SCHEMA_VERSION,
+};
+pub use crate::policy::vcf_scoring::{build_vcf_tool_score_rows, build_vcf_tool_scores_report};

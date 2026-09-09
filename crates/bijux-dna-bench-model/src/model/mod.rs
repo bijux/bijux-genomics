@@ -757,3 +757,5 @@ pub use readiness::rendered_commands::{
 };
 
 pub mod bam_scoring;
+
+pub mod vcf_scoring;
