@@ -114,8 +114,7 @@ pub use crate::workflow::{
     validate_benchmark_pipeline_profiles, validate_benchmark_stage_result_path,
     validate_vcf_stage_matrix, BenchmarkConfigValidationRequest, BenchmarkConfigValidationSummary,
     BenchmarkLocalCorpusSkipPublicationRequest, BenchmarkMatrixRequest, LegacyBenchmarkStageAlias,
-    PipelineProfileEvidence, DEFAULT_BENCHMARK_ALL_DOMAIN_STAGE_LIST_PATH,
-    DEFAULT_VCF_STAGE_CATALOG_PATH, DEFAULT_VCF_STAGE_MATRIX_PATH,
+    PipelineProfileEvidence, DEFAULT_VCF_STAGE_CATALOG_PATH, DEFAULT_VCF_STAGE_MATRIX_PATH,
 };
 pub use bijux_dna_bench_model::{
     all_domain_active_stage_tool_matrix_schema, all_domain_expected_benchmark_results_schema,

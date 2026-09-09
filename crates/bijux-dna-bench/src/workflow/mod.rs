@@ -372,6 +372,4 @@ pub use workspace_layout::{
     summarize_benchmark_workspace_root_pair,
 };
 
-pub use stage_inventory::{
-    render_benchmark_all_domain_stage_inventory, DEFAULT_BENCHMARK_ALL_DOMAIN_STAGE_LIST_PATH,
-};
+pub use stage_inventory::render_benchmark_all_domain_stage_inventory;
