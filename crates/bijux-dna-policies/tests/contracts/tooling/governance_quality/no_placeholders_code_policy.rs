@@ -24,11 +24,7 @@ fn policy__contracts__no_placeholders_code_policy__production_paths_ban_todo_mar
         }
         let raw = std::fs::read_to_string(path)
             .unwrap_or_else(|_| panic!("read source file {}", path.display()));
-        if raw.contains("TODO")
-            || raw.contains("todo!(")
-            || raw.contains("unimplemented!(")
-            || raw.contains("bail!(\"not implemented")
-        {
+        if contains_production_placeholder(&raw) {
             offenders.push(rel.to_string());
         }
     }
@@ -38,4 +34,24 @@ fn policy__contracts__no_placeholders_code_policy__production_paths_ban_todo_mar
         "placeholder code detected in production paths:\n{}",
         offenders.join("\n")
     );
+}
+
+fn contains_production_placeholder(raw: &str) -> bool {
+    let production = bijux_dna_testkit::workspace_support::strip_rust_test_modules(raw);
+    production.contains("TODO")
+        || production.contains("todo!(")
+        || production.contains("unimplemented!(")
+        || production.contains("bail!(\"not implemented")
+}
+
+#[test]
+fn placeholder_policy_rejects_production_markers_while_admitting_negative_test_fixtures() {
+    for source in
+        ["// TODO implement admission", "fn run() { todo!() }", "fn run() { unimplemented!() }"]
+    {
+        assert!(contains_production_placeholder(source));
+    }
+    let fixture = "fn run() {}\n#[cfg(test)]\nmod tests {\n    const REJECTED: &str = \"TODO run tool\";\n}\n";
+    assert!(!contains_production_placeholder(fixture));
+    assert!(contains_production_placeholder(&format!("{fixture}\nfn run_later() {{ todo!() }}")));
 }
