@@ -15,6 +15,7 @@ use super::{
 };
 use crate::application::ci::{CoverageAttestation, ExpectedTestInventory};
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
+use crate::runtime::source_snapshot::TrackedSourceSnapshot;
 
 const FULL_SHARDS_SCHEMA_V5: &str = "bijux.ci.full_shards.v5";
 const FAST_GROUPS_SCHEMA_V3: &str = "bijux.ci.fast_groups.v3";
@@ -1093,7 +1094,9 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         )));
     }
     let started = Instant::now();
-    let source_identity = source_commit(workspace)?;
+    let source_snapshot = TrackedSourceSnapshot::capture(workspace)?;
+    let source_identity = source_snapshot.commit();
+    let source_patch_sha256 = source_snapshot.patch_sha256();
     let source_clean = source_worktree_clean(workspace)?;
     write_json_pretty(
         &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
@@ -1102,6 +1105,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "state": "running",
             "source_commit": source_identity,
             "source_worktree_clean": source_clean,
+            "source_patch_sha256": source_patch_sha256,
             "all_passed": false,
         }),
     )?;
@@ -1115,8 +1119,10 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     validate_full_shard_root_set(&storage, &shard_roots)?;
     let mut ephemera = FullShardEphemera::new(&storage.scratch_root, &archive_roots, &shard_roots);
     prepare_full_archive_roots(&archive_roots)?;
+    let preparation_started = Instant::now();
     let archive_workspace =
-        materialize_full_shard_workspace(workspace, &storage.scratch_root, "archive-build")?;
+        materialize_full_shard_workspace(&source_snapshot, &storage.scratch_root, "archive-build")?;
+    let archive_preparation = preparation_started.elapsed();
     let archive_spec = ParallelProcessSpec {
         label: "archive-build".to_string(),
         program: "cargo".to_string(),
@@ -1162,6 +1168,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "state": "complete",
             "source_commit": source_identity,
             "source_worktree_clean": source_clean,
+            "source_patch_sha256": source_patch_sha256,
                 "contract_sha256": contract_sha256,
                 "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),
                 "build_authority_sha256": build_authority_sha256,
@@ -1209,10 +1216,14 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "source_commit": source_identity,
         "archive_sha256": archive_sha256,
     });
+    let preparation_started = Instant::now();
     let shard_workspaces = selected_shards
         .iter()
-        .map(|shard| materialize_full_shard_workspace(workspace, &storage.scratch_root, &shard.id))
+        .map(|shard| {
+            materialize_full_shard_workspace(&source_snapshot, &storage.scratch_root, &shard.id)
+        })
         .collect::<Result<Vec<_>>>()?;
+    let shard_preparation = preparation_started.elapsed();
     let specs = selected_shards
         .iter()
         .zip(&shard_workspaces)
@@ -1278,6 +1289,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "state": "complete",
             "source_commit": source_identity,
             "source_worktree_clean": source_clean,
+            "source_patch_sha256": source_patch_sha256,
             "contract_sha256": contract_sha256,
             "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),
             "build_authority_sha256": build_authority_sha256,
@@ -1292,6 +1304,10 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             },
             "storage": full_shard_storage_receipt(&storage),
             "execution_scope": full_shard_execution_scope(&contract, &selected_shards, coverage.complete),
+            "source_preparation": {
+                "archive_milliseconds": archive_preparation.as_millis(),
+                "shards_milliseconds": shard_preparation.as_millis(),
+            },
             "expected_inventory": inventory_receipt,
             "coverage": {
                 "observed_test_execution": coverage,
@@ -1591,66 +1607,24 @@ fn full_shard_args(
 }
 
 fn materialize_full_shard_workspace(
-    workspace: &Workspace,
+    snapshot: &TrackedSourceSnapshot,
     report_root: &Path,
     identity: &str,
 ) -> Result<PathBuf> {
+    anyhow::ensure!(
+        Path::new(identity).components().count() == 1
+            && matches!(Path::new(identity).components().next(), Some(Component::Normal(_))),
+        "shard workspace identity must be one directory name"
+    );
     let shard_workspace = report_root.join("workspaces").join(identity);
-    if shard_workspace.exists() {
+    if shard_workspace.symlink_metadata().is_ok() {
         std::fs::remove_dir_all(&shard_workspace).with_context(|| {
             format!("remove stale shard workspace {}", shard_workspace.display())
         })?;
     }
     let shard_parent = shard_workspace.parent().context("shard workspace has no parent")?;
     bijux_dna_infra::ensure_dir(shard_parent)?;
-    let clone = ProcessRunner::new(workspace).run_owned(
-        "git",
-        &[
-            "clone".to_string(),
-            "--shared".to_string(),
-            "--quiet".to_string(),
-            workspace.root.display().to_string(),
-            shard_workspace.display().to_string(),
-        ],
-    )?;
-    if !clone.status.success() {
-        anyhow::bail!(
-            "clone shard workspace {}: {}",
-            shard_workspace.display(),
-            String::from_utf8_lossy(&clone.stderr)
-        );
-    }
-    bijux_dna_infra::ensure_dir(shard_workspace.join("artifacts"))?;
-
-    let tracked = ProcessRunner::new(workspace).run(&["git", "ls-files", "-z"])?;
-    if !tracked.status.success() {
-        anyhow::bail!(
-            "list tracked files for shard workspace: {}",
-            String::from_utf8_lossy(&tracked.stderr)
-        );
-    }
-    for encoded in tracked.stdout.split(|byte| *byte == 0).filter(|path| !path.is_empty()) {
-        let relative = std::str::from_utf8(encoded).context("tracked path is not UTF-8")?;
-        let relative = Path::new(relative);
-        if relative.is_absolute()
-            || relative.components().any(|component| {
-                matches!(
-                    component,
-                    Component::ParentDir | Component::RootDir | Component::Prefix(_)
-                )
-            })
-        {
-            anyhow::bail!("tracked path escapes shard workspace: {}", relative.display());
-        }
-        let source = workspace.root.join(relative);
-        let destination = shard_workspace.join(relative);
-        if let Some(parent) = destination.parent() {
-            bijux_dna_infra::ensure_dir(parent)?;
-        }
-        std::fs::copy(&source, &destination).with_context(|| {
-            format!("copy tracked shard source {} to {}", source.display(), destination.display())
-        })?;
-    }
+    snapshot.materialize(&shard_workspace)?;
     Ok(shard_workspace)
 }
 
@@ -3097,7 +3071,8 @@ mod tests {
         let shard =
             FullShard { id: "isolation-proof".to_string(), partition: "hash:1/5".to_string() };
 
-        let isolated = materialize_full_shard_workspace(&workspace, report_root.path(), &shard.id)?;
+        let snapshot = crate::runtime::source_snapshot::TrackedSourceSnapshot::capture(&workspace)?;
+        let isolated = materialize_full_shard_workspace(&snapshot, report_root.path(), &shard.id)?;
         assert!(isolated.join(".git").is_dir());
         assert!(isolated.join("artifacts").is_dir());
         let root_manifest = std::fs::read(workspace.path("Cargo.toml"))?;

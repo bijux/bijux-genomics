@@ -65,3 +65,5 @@ Test boundaries mirror that split:
 - `tests/support/workspace_paths.rs` contains shared workspace-root helpers only.
 
 `application/ci/` separates expected test inventory admission, pinned Nextest event admission, and exact cross-shard coverage reconciliation. These modules have no filesystem or process effects. The tooling CI command owns producer/shard execution, logs, hashes and receipt publication.
+
+`runtime/source_snapshot/` captures the tracked worktree once as a pinned commit plus a binary Git patch. Archive and shard workspaces materialize that same input with one checkout and, only for changed sources, one patch application. Untracked evidence is excluded. CI commands own scratch lifetimes; snapshot materialization refuses existing destinations.

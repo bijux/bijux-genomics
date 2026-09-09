@@ -1,4 +1,5 @@
 pub mod process;
+pub(crate) mod source_snapshot;
 pub mod workspace;
 mod workspace_root;
 
