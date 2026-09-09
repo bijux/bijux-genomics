@@ -227,7 +227,8 @@ pub use integration_matrix::{
     is_reference_index_backend_compatible, planned_tool_ids_for_stage,
     reference_index_backends_for_tool, registered_tool_ids_for_stage,
     stage_sanity_metrics_for_stage, stage_tool_binding, stage_tool_bindings,
-    stage_tool_bindings_for_stage, BenchmarkScenario, StageToolBinding, ToolIntegrationLevel,
+    stage_tool_bindings_for_stage, validate_reference_index_backend, BenchmarkScenario,
+    StageToolBinding, ToolIntegrationLevel,
 };
 pub use invariants::{
     evaluate_invariants, fastq_invariant_specs, thresholds_from_env, validate_edna_table,

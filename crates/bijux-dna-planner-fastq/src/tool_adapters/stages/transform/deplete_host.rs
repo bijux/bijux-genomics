@@ -105,6 +105,11 @@ pub fn plan_host_depletion_with_index_backend(
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_host_depletion_tool_list(std::slice::from_ref(&tool_id))?;
+    bijux_dna_domain_fastq::validate_reference_index_backend(
+        &STAGE_ID,
+        &tool.tool_id,
+        &bijux_dna_core::ids::ToolId::new(reference_index_backend),
+    )?;
     ensure_host_depletion_options(options)?;
     let paired = r2.is_some();
     let paths = host_depletion_paths(out_dir, paired);
@@ -391,11 +396,11 @@ mod tests {
             Path::new("reference.index"),
             Path::new("out"),
             &DepleteHostPlanOptions::baseline(),
-            "star",
+            "bowtie2_build",
         )?;
 
-        assert_eq!(plan.effective_params["reference_index_backend"], "star");
-        assert_eq!(plan.params["reference_index_backend"], "star");
+        assert_eq!(plan.effective_params["reference_index_backend"], "bowtie2_build");
+        assert_eq!(plan.params["reference_index_backend"], "bowtie2_build");
         Ok(())
     }
 
@@ -440,6 +445,29 @@ mod tests {
             .template
             .windows(2)
             .any(|window| window == ["--met-file", "out/bowtie2.host.metrics.txt"]));
+        Ok(())
+    }
+    #[test]
+    fn deplete_host_rejects_incompatible_reference_index_at_the_adapter_boundary() -> Result<()> {
+        for backend in ["star", "", "bowtie2", "bowtie2_build ", "unregistered"] {
+            let error = plan_host_depletion_with_index_backend(
+                &tool("bowtie2"),
+                Path::new("reads_R1.fastq.gz"),
+                None,
+                Path::new("reference.index"),
+                Path::new("out"),
+                &DepleteHostPlanOptions::baseline(),
+                backend,
+            )
+            .err()
+            .ok_or_else(|| {
+                anyhow!("incompatible index backend must reject before command planning")
+            })?;
+            assert!(
+                error.to_string().contains("requires one of [bowtie2_build]"),
+                "{backend}: {error}"
+            );
+        }
         Ok(())
     }
 }

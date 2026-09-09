@@ -192,6 +192,32 @@ pub fn is_reference_index_backend_compatible(tool_id: &ToolId, index_tool_id: &T
     reference_index_backends_for_tool(tool_id).into_iter().any(|backend| backend == *index_tool_id)
 }
 
+/// Admit a reference index using the domain's declared consumer/backend compatibility.
+///
+/// # Errors
+/// Rejects unknown consumers and index backends outside their compatible class.
+pub fn validate_reference_index_backend(
+    stage_id: &StageId,
+    depletion_tool_id: &ToolId,
+    index_tool_id: &ToolId,
+) -> anyhow::Result<()> {
+    let compatible_backends = reference_index_backends_for_tool(depletion_tool_id);
+    if compatible_backends.is_empty() {
+        anyhow::bail!(
+            "unsupported reference-aware depletion backend for {stage_id}: {}",
+            depletion_tool_id.as_str()
+        );
+    }
+    if compatible_backends.contains(index_tool_id) {
+        return Ok(());
+    }
+    anyhow::bail!(
+        "{stage_id} requires one of [{}] as reference index backend, but upstream fastq.index_reference used {}",
+        compatible_backends.iter().map(ToolId::as_str).collect::<Vec<_>>().join(", "),
+        index_tool_id.as_str()
+    )
+}
+
 #[must_use]
 pub fn stage_sanity_metrics_for_stage(stage_id: &StageId) -> Vec<String> {
     domain_index_contract().stage_sanity_metrics.get(stage_id.as_str()).cloned().unwrap_or_default()
