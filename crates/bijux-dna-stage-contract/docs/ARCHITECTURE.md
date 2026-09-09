@@ -40,6 +40,7 @@ src/
 ├── tool_binding/
 │   ├── mod.rs              # tool-binding public module surface
 │   ├── model.rs            # binding interface and serialized model
+│   ├── output_closure.rs   # shared output declaration admission and exact native paths
 │   ├── registry.rs         # deterministic stage/tool registry
 │   ├── rendering.rs        # pure generic argv projection
 │   └── validation.rs       # binding conformance validation
@@ -65,3 +66,5 @@ interpret those payloads; this crate does not execute them.
   semantic consumer must close every implementation of a stage.
 - Update boundary tests and docs in the same change as any intentional layout
   change.
+
+Output discovery has one declaration validator shared by registry admission and exact-path expansion. Expansion retains native path bytes and rejects paths without file names or collisions between primary and sidecar outputs. Benchmark lifecycle and container qualification consume this contract; it performs no filesystem IO or scientific qualification.
