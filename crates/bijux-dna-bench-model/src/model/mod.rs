@@ -5,7 +5,6 @@
 pub mod active_scope;
 pub mod admission;
 pub mod all_domain_failure_classification;
-pub mod all_domain_parser_collector;
 pub mod appraisal;
 pub mod benchmark_config;
 pub mod benchmark_matrix;
@@ -23,11 +22,7 @@ pub mod domain_campaign;
 pub mod dossier_index;
 pub mod essential_pipeline_readiness;
 pub mod execution;
-pub mod expected_benchmark_results;
 pub mod fastq_scoring;
-pub mod full_benchmark_dashboard;
-pub mod full_benchmark_report;
-pub mod full_benchmark_result_collector;
 pub mod graph;
 pub mod interfaces;
 pub mod lifecycle;
@@ -78,8 +73,8 @@ pub mod publication_outcome;
 pub mod publication_registry;
 pub mod publication_status;
 pub mod published_results_status;
+pub(crate) mod readiness;
 pub mod readiness_views;
-pub mod real_smoke_core_subset;
 pub mod remediation_queue;
 pub mod replay;
 pub mod report;
@@ -113,13 +108,6 @@ pub use admission::{
 pub use all_domain_failure_classification::{
     all_domain_failure_classification_schema, AllDomainFailureClassificationReport,
     AllDomainFailureClassificationRow,
-};
-#[allow(unused_imports)]
-pub use all_domain_parser_collector::{
-    all_domain_parser_collector_schema, AllDomainParserCollectorReport,
-    AllDomainParserCollectorRow, AllDomainParserCollectorSourceKind,
-    ALL_DOMAIN_PARSER_COLLECTOR_FAKE_RUN_ROOT, ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT,
-    ALL_DOMAIN_PARSER_COLLECTOR_OUTPUT_PATH,
 };
 #[allow(unused_imports)]
 pub use appraisal::{
@@ -260,30 +248,6 @@ pub use execution::{
     BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
     BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
     BenchmarkExecutionSpec, BenchmarkStagePlanManifest, BenchmarkStagePlanReference,
-};
-#[allow(unused_imports)]
-pub use expected_benchmark_results::{
-    all_domain_expected_benchmark_results_schema, AllDomainExpectedBenchmarkResultRow,
-    AllDomainExpectedBenchmarkResultsReport,
-};
-#[allow(unused_imports)]
-pub use full_benchmark_dashboard::{
-    FullBenchmarkDashboardMetric, FullBenchmarkDashboardReport,
-    FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION,
-};
-#[allow(unused_imports)]
-pub use full_benchmark_report::{
-    full_benchmark_report_schema, FullBenchmarkComparableMetricRow, FullBenchmarkCorpusSectionRow,
-    FullBenchmarkFailureRow, FullBenchmarkFailuresSection, FullBenchmarkMemoryRow,
-    FullBenchmarkMissingResultRow, FullBenchmarkPipelineSection, FullBenchmarkPipelineSectionRow,
-    FullBenchmarkReport, FullBenchmarkReportRow, FullBenchmarkReportRowStatus,
-    FullBenchmarkRuntimeRow, FullBenchmarkStageSectionRow, FullBenchmarkToolSectionRow,
-    FullBenchmarkUnsupportedPairRow,
-};
-#[allow(unused_imports)]
-pub use full_benchmark_result_collector::{
-    full_benchmark_result_collector_schema, FullBenchmarkResultCollectorReport,
-    FullBenchmarkResultCollectorRow, FullBenchmarkResultStatus, FullBenchmarkResultSurfaceKind,
 };
 #[allow(unused_imports)]
 pub use graph::{
@@ -623,6 +587,37 @@ pub use published_results_status::{
     PublishedResultsStatusReport, StageResultIssue, BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1,
 };
 #[allow(unused_imports)]
+pub use readiness::dashboard::{
+    FullBenchmarkDashboardMetric, FullBenchmarkDashboardReport,
+    FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION,
+};
+#[allow(unused_imports)]
+pub use readiness::expected_results::{
+    all_domain_expected_benchmark_results_schema, AllDomainExpectedBenchmarkResultRow,
+    AllDomainExpectedBenchmarkResultsReport,
+};
+#[allow(unused_imports)]
+pub use readiness::full_report::{
+    full_benchmark_report_schema, FullBenchmarkComparableMetricRow, FullBenchmarkCorpusSectionRow,
+    FullBenchmarkFailureRow, FullBenchmarkFailuresSection, FullBenchmarkMemoryRow,
+    FullBenchmarkMissingResultRow, FullBenchmarkPipelineSection, FullBenchmarkPipelineSectionRow,
+    FullBenchmarkReport, FullBenchmarkReportRow, FullBenchmarkReportRowStatus,
+    FullBenchmarkRuntimeRow, FullBenchmarkStageSectionRow, FullBenchmarkToolSectionRow,
+    FullBenchmarkUnsupportedPairRow,
+};
+#[allow(unused_imports)]
+pub use readiness::parser_collector::{
+    all_domain_parser_collector_schema, AllDomainParserCollectorReport,
+    AllDomainParserCollectorRow, AllDomainParserCollectorSourceKind,
+    ALL_DOMAIN_PARSER_COLLECTOR_FAKE_RUN_ROOT, ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT,
+    ALL_DOMAIN_PARSER_COLLECTOR_OUTPUT_PATH,
+};
+#[allow(unused_imports)]
+pub use readiness::result_collector::{
+    full_benchmark_result_collector_schema, FullBenchmarkResultCollectorReport,
+    FullBenchmarkResultCollectorRow, FullBenchmarkResultStatus, FullBenchmarkResultSurfaceKind,
+};
+#[allow(unused_imports)]
 pub use readiness_views::{
     corpus_centric_report_schema, stage_centric_report_schema, tool_centric_report_schema,
     CorpusCentricCorpusReport, CorpusCentricReport, CorpusCentricStageRow,
@@ -745,7 +740,7 @@ pub use local_slurm_scripts::{
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
 };
 
-pub use real_smoke_core_subset::{
+pub use readiness::smoke_subset::{
     RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport, RealSmokeCoreSubsetRow,
     REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION,
 };

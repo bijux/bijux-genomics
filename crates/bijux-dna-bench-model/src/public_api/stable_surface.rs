@@ -236,12 +236,6 @@ pub use crate::model::all_domain_failure_classification::{
     all_domain_failure_classification_schema, AllDomainFailureClassificationReport,
     AllDomainFailureClassificationRow,
 };
-pub use crate::model::all_domain_parser_collector::{
-    all_domain_parser_collector_schema, AllDomainParserCollectorReport,
-    AllDomainParserCollectorRow, AllDomainParserCollectorSourceKind,
-    ALL_DOMAIN_PARSER_COLLECTOR_FAKE_RUN_ROOT, ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT,
-    ALL_DOMAIN_PARSER_COLLECTOR_OUTPUT_PATH,
-};
 pub use crate::model::appraisal::{
     appraisal_report_schema, hardening_queue_report_schema, AppraisalFinding, AppraisalReport,
     AppraisalSummary, HardeningQueueEntry, HardeningQueueReport, APPRAISAL_REPORT_SCHEMA_V1,
@@ -621,6 +615,12 @@ pub use crate::model::publication_status::{
 pub use crate::model::published_results_status::{
     benchmark_published_results_status_schema, PublishedResultsStageReport,
     PublishedResultsStatusReport, StageResultIssue, BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1,
+};
+pub use crate::model::readiness::parser_collector::{
+    all_domain_parser_collector_schema, AllDomainParserCollectorReport,
+    AllDomainParserCollectorRow, AllDomainParserCollectorSourceKind,
+    ALL_DOMAIN_PARSER_COLLECTOR_FAKE_RUN_ROOT, ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT,
+    ALL_DOMAIN_PARSER_COLLECTOR_OUTPUT_PATH,
 };
 pub use crate::model::remediation_queue::{
     benchmark_remediation_queue_schema, BenchmarkRemediationIssue, BenchmarkRemediationIssueGroup,
