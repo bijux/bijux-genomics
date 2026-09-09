@@ -676,3 +676,5 @@ pub use bijux_dna_bench_model::{
 };
 
 pub use bijux_dna_bench_model::build_benchmark_local_hpc_dependency_simulation;
+
+pub use bijux_dna_bench_model::build_benchmark_local_hpc_array_resource_envelope;

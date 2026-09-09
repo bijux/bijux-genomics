@@ -34,6 +34,7 @@ mod local_corpus_run;
 mod local_corpus_skip;
 mod local_corpus_stage_compatibility;
 mod local_essential_pipeline_fake_run;
+mod local_hpc_array;
 mod local_hpc_asset_staging;
 mod local_hpc_candidate_run;
 mod local_hpc_dependency_simulation;
@@ -375,3 +376,5 @@ pub use local_hpc_job_graph::build_benchmark_local_hpc_job_graph;
 pub use local_hpc_tool_scope::{
     project_benchmark_local_hpc_tool_scopes, BenchmarkLocalHpcToolScope,
 };
+
+pub use local_hpc_array::build_benchmark_local_hpc_array_resource_envelope;

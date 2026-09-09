@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
+    build_benchmark_local_hpc_array_resource_envelope,
     validate_benchmark_local_hpc_stage_benchmark_array, BenchmarkLocalHpcStageBenchmarkArrayReport,
     BenchmarkLocalHpcStageBenchmarkArrayRow, BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1,
 };
@@ -12,7 +13,7 @@ use super::local_all_domain_job_execution::{
     render_shell_command, rendered_benchmark_result_execution_argv,
 };
 use super::local_hpc_array_support::{
-    manifest_path_for_script, shell_quote, time_limit_to_seconds, LocalHpcArrayResources,
+    manifest_path_for_script, shell_quote, LocalHpcArrayResources,
 };
 use super::local_hpc_execution_resolver::{
     collect_hpc_execution_resolver_report, LocalHpcExecutionResolverRow,
@@ -198,7 +199,8 @@ fn build_hpc_stage_benchmark_array(
         })?;
     let wrapper_log_root = script_parent.join("logs").join(file_stem);
     let array_spec = format!("0-{}", rows.len() - 1);
-    let resource_envelope = compute_resource_envelope(&rows)?;
+    let resource_envelope =
+        build_benchmark_local_hpc_array_resource_envelope(rows.iter().map(|row| &row.resources))?;
 
     let report = LocalHpcStageBenchmarkArrayReport {
         schema_version: LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_VERSION.to_string(),
@@ -283,27 +285,6 @@ fn build_stage_benchmark_array_row(
             time_limit: scratch.resources.time_limit.clone(),
             scratch_gb: scratch.resources.scratch_gb,
         },
-    })
-}
-
-fn compute_resource_envelope(
-    rows: &[LocalHpcStageBenchmarkArrayRow],
-) -> Result<LocalHpcArrayResources> {
-    let max_time_limit = rows
-        .iter()
-        .max_by_key(|row| {
-            time_limit_to_seconds("HPC stage benchmark array", &row.resources.time_limit)
-                .unwrap_or(0)
-        })
-        .map(|row| row.resources.time_limit.clone())
-        .ok_or_else(|| {
-            anyhow!("HPC stage benchmark array cannot compute an empty resource envelope")
-        })?;
-    Ok(LocalHpcArrayResources {
-        cpus_per_task: rows.iter().map(|row| row.resources.cpus_per_task).max().unwrap_or(1),
-        memory_mb: rows.iter().map(|row| row.resources.memory_mb).max().unwrap_or(1024),
-        time_limit: max_time_limit,
-        scratch_gb: rows.iter().map(|row| row.resources.scratch_gb).max().unwrap_or(1),
     })
 }
 

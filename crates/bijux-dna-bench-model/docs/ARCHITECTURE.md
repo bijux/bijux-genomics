@@ -57,3 +57,5 @@ Local pipeline execution-context admission is a pure contract: identity, fronten
 HPC resume and result-collection requests reuse their selected submission jobs for graph and resolver projections. Reuse is limited to that request; subsequent commands reacquire governed inputs.
 
 `contract/local_hpc_dependency_simulation/` separates pure branch-failure simulation from persisted report validation. The graph and output identity are explicit inputs; CLI adapters own filesystem publication and drift comparison.
+
+HPC array resource admission and component-wise envelope construction share one pure model owner. CLI array renderers adapt selected rows; both persisted array validators use the same checked walltime contract.
