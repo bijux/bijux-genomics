@@ -2,6 +2,7 @@
 mod age;
 mod contracts;
 mod mock;
+mod publication;
 mod recipients;
 mod storage;
 use age::{decrypt_age_cli, encrypt_age_cli};
@@ -9,10 +10,11 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_bench_model::BUNDLE_SIDECAR_SCHEMA_VERSION;
 pub use contracts::{BundleDecryptRequest, BundleSidecar, BundleWriteRequest};
 use mock::{decrypt_mock_envelope, encrypt_mock_envelope};
+use publication::BundlePair;
 use recipients::{validate_recipients, validate_sidecar_recipients};
 use std::path::{Path, PathBuf};
 pub use storage::{digest_file_sha256, sha256_hex, sidecar_path_for};
-use storage::{ensure_parent, recipient_fingerprint, temp_output_path};
+use storage::{ensure_parent, recipient_fingerprint};
 #[derive(Debug, Clone)]
 enum EncryptionBackend {
     MockEnvelopeV1,
@@ -66,62 +68,49 @@ pub fn write_encrypted_bundle(request: &BundleWriteRequest<'_>) -> Result<Bundle
     validate_recipients(request.recipients)?;
 
     ensure_parent(request.output_path)?;
-    let temp_path = temp_output_path(request.output_path);
-    let plaintext_sha256 = sha256_hex(request.plaintext);
+    let pair = BundlePair::acquire(request.output_path)?;
+    pair.publish(
+        |staged| {
+            encrypt_with_backend(&backend, request.recipients, request.plaintext, staged)
+                .with_context(|| format!("encrypt {}", request.output_path.display()))?;
+            let plaintext_sha256 = sha256_hex(request.plaintext);
+            let ciphertext_sha256 = digest_file_sha256(staged)?;
+            let sidecar = BundleSidecar {
+                schema_version: BUNDLE_SIDECAR_SCHEMA_VERSION.to_string(),
+                bundle_kind: request.bundle_kind.to_string(),
+                campaign_id: request.campaign_id.to_string(),
+                domain: request.domain.to_string(),
+                stage: request.stage.to_string(),
+                tool: request.tool.to_string(),
+                sample: request.sample.to_string(),
+                planned_job_id: request.planned_job_id.to_string(),
+                scheduler_job_id: request.scheduler_job_id.to_string(),
+                submitted_at: request.submitted_at.to_string(),
+                backend: request.backend.to_string(),
+                recipients: request.recipients.to_vec(),
+                recipient_fingerprints: request
+                    .recipients
+                    .iter()
+                    .map(|recipient| recipient_fingerprint(recipient))
+                    .collect(),
+                ciphertext_path: request.output_path.display().to_string(),
+                plaintext_sha256,
+                ciphertext_sha256,
+                plaintext_bytes: request.plaintext.len(),
+            };
 
-    let encrypt_result =
-        encrypt_with_backend(&backend, request.recipients, request.plaintext, &temp_path);
-
-    if let Err(error) = encrypt_result {
-        let _ = bijux_dna_infra::remove_file(&temp_path);
-        return Err(error).with_context(|| format!("encrypt {}", request.output_path.display()));
-    }
-
-    let ciphertext_sha256 = digest_file_sha256(&temp_path)?;
-    bijux_dna_infra::rename(&temp_path, request.output_path).with_context(|| {
-        format!(
-            "move encrypted bundle {} -> {}",
-            temp_path.display(),
-            request.output_path.display()
-        )
-    })?;
-
-    let sidecar = BundleSidecar {
-        schema_version: BUNDLE_SIDECAR_SCHEMA_VERSION.to_string(),
-        bundle_kind: request.bundle_kind.to_string(),
-        campaign_id: request.campaign_id.to_string(),
-        domain: request.domain.to_string(),
-        stage: request.stage.to_string(),
-        tool: request.tool.to_string(),
-        sample: request.sample.to_string(),
-        planned_job_id: request.planned_job_id.to_string(),
-        scheduler_job_id: request.scheduler_job_id.to_string(),
-        submitted_at: request.submitted_at.to_string(),
-        backend: request.backend.to_string(),
-        recipients: request.recipients.to_vec(),
-        recipient_fingerprints: request
-            .recipients
-            .iter()
-            .map(|recipient| recipient_fingerprint(recipient))
-            .collect(),
-        ciphertext_path: request.output_path.display().to_string(),
-        plaintext_sha256,
-        ciphertext_sha256,
-        plaintext_bytes: request.plaintext.len(),
-    };
-
-    let sidecar_path = sidecar_path_for(request.output_path);
-    let payload = serde_json::to_vec_pretty(&sidecar).context("serialize sidecar")?;
-    bijux_dna_infra::atomic_write_bytes(&sidecar_path, &payload)
-        .with_context(|| format!("write {}", sidecar_path.display()))?;
-
-    Ok(sidecar)
+            let payload = serde_json::to_vec_pretty(&sidecar).context("serialize sidecar")?;
+            Ok((sidecar, payload))
+        },
+        |_| Ok(()),
+    )
 }
 /// Verify the selected sidecar and ciphertext before decoding the declared backend.
 ///
 /// # Errors
 /// Returns path, schema, hash, backend, or IO errors.
 pub fn decrypt_bundle(request: &BundleDecryptRequest<'_>) -> Result<(BundleSidecar, Vec<u8>)> {
+    let _pair = BundlePair::acquire_reader(request.bundle_path)?;
     let sidecar_path =
         request.sidecar_path.map_or_else(|| sidecar_path_for(request.bundle_path), PathBuf::from);
     let raw_sidecar =
