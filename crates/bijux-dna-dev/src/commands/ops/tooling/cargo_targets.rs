@@ -16,30 +16,7 @@ pub(in super::super) fn tooling_cargo_targets(
     let envs = artifact_env(workspace)?;
     let common_envs = artifact_env_with_common_test_env(workspace)?;
     match subcommand {
-        "policy-fast" => run_program_with_env(
-            workspace,
-            "cargo",
-            &[
-                "test".to_string(),
-                "-p".to_string(),
-                "bijux-dna-policies".to_string(),
-                "--test".to_string(),
-                "dependency_graph".to_string(),
-                "--test".to_string(),
-                "purity_scans".to_string(),
-                "--test".to_string(),
-                "core_layering".to_string(),
-                "--test".to_string(),
-                "domain_dependency_policy".to_string(),
-                "--test".to_string(),
-                "ci_tools_policy".to_string(),
-                "--test".to_string(),
-                "dev_deps_policy".to_string(),
-                "--test".to_string(),
-                "heavy_deps_policy".to_string(),
-            ],
-            &envs,
-        ),
+        "policy-fast" => super::policy_fast::run(workspace, &common_envs),
         "ssot-policy-fast" => run_programs_with_env(
             workspace,
             &[

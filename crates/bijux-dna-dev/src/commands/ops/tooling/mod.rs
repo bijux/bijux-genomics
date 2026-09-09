@@ -40,6 +40,7 @@ mod ci;
 mod config_docs;
 mod diagnostics;
 mod operator_workflow_maturity;
+mod policy_fast;
 mod reference_external_data;
 mod scientific_caveat_propagation;
 
