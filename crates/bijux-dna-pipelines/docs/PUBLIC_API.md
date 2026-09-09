@@ -3,6 +3,7 @@
 The public API is the stable contract surface exported from `src/lib.rs` and mirrored through `src/public_api/`.
 
 ## Public Modules
+- `artifact_flow`
 - `bam`
 - `contract`
 - `cross`
@@ -29,3 +30,11 @@ The public API is the stable contract surface exported from `src/lib.rs` and mir
 - Stable: the public modules and root reexports documented in this file.
 - Experimental: profile/template helpers are experimental until they are promoted into the documented root reexports or stable module contracts.
 - Internal: composition helpers and defaults plumbing that are not re-exported through `src/lib.rs` or `src/public_api/stable_surface.rs`.
+
+## Artifact Flow
+
+`artifact_flow::{ArtifactFlowNode, validate_artifact_flow}` admits symbolic producer/dependency
+graphs and returns a deterministic topological order. Borrowed inputs keep configuration
+formats and benchmark readiness outside the graph owner. Exact producer dependencies,
+unique symbols, and cycle rejection do not replace domain artifact compatibility checks.
+The public service facade exposes the same owner through `bijux_dna_api::v1::api::plan`.

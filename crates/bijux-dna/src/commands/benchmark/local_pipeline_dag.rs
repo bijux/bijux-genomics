@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -19,6 +19,7 @@ pub(crate) use bijux_dna_api::v1::api::bench::{
     BenchmarkLocalPipelineSnpEffAssets as LocalPipelineSnpEffAssets,
     BenchmarkLocalPipelineVariantAssets as LocalPipelineVariantAssets,
 };
+use bijux_dna_api::v1::api::plan::{validate_artifact_flow, ArtifactFlowNode};
 use serde::Deserialize;
 
 use crate::commands::benchmark::local_corpus_stage_compatibility::{
@@ -260,19 +261,8 @@ fn validate_pipeline_dag(
 
     let inventory_index = load_pipeline_inventory_index(repo_root, config.domain)?;
 
-    let mut seen_node_ids = BTreeSet::new();
     let mut seen_stage_ids = BTreeSet::new();
-    let mut seen_outputs = BTreeSet::new();
-    let mut node_index = BTreeMap::<String, usize>::new();
-    let mut output_producers = BTreeMap::<String, String>::new();
-    let mut adjacency = BTreeMap::<String, Vec<String>>::new();
-    let mut indegree = BTreeMap::<String, usize>::new();
-
-    for (index, node) in config.nodes.iter().enumerate() {
-        require_non_empty(
-            &node.node_id,
-            "local pipeline DAG nodes must declare a non-empty `node_id`",
-        )?;
+    for node in &config.nodes {
         require_non_empty(
             &node.stage_id,
             "local pipeline DAG nodes must declare a non-empty `stage_id`",
@@ -281,9 +271,6 @@ fn validate_pipeline_dag(
             &node.summary,
             "local pipeline DAG nodes must declare a non-empty `summary`",
         )?;
-        if !seen_node_ids.insert(node.node_id.clone()) {
-            return Err(anyhow!("local pipeline DAG repeats node_id `{}`", node.node_id));
-        }
         if !seen_stage_ids.insert(node.stage_id.clone()) {
             return Err(anyhow!("local pipeline DAG repeats stage_id `{}`", node.stage_id));
         }
@@ -303,100 +290,20 @@ fn validate_pipeline_dag(
                 expected_readiness_kind.as_str()
             ));
         }
-        validate_symbol_list(
-            &node.external_inputs,
-            &format!("node `{}` external_inputs", node.node_id),
-        )?;
-        validate_symbol_list(
-            &node.upstream_inputs,
-            &format!("node `{}` upstream_inputs", node.node_id),
-        )?;
-        validate_symbol_list(&node.outputs, &format!("node `{}` outputs", node.node_id))?;
-        validate_symbol_list(&node.depends_on, &format!("node `{}` depends_on", node.node_id))?;
-        if node.external_inputs.is_empty() && node.upstream_inputs.is_empty() {
-            return Err(anyhow!(
-                "local pipeline DAG node `{}` must declare at least one external or upstream input",
-                node.node_id
-            ));
-        }
-        if node.outputs.is_empty() {
-            return Err(anyhow!(
-                "local pipeline DAG node `{}` must declare at least one output",
-                node.node_id
-            ));
-        }
-        for output in &node.outputs {
-            if !seen_outputs.insert(output.clone()) {
-                return Err(anyhow!(
-                    "local pipeline DAG output `{output}` is produced more than once"
-                ));
-            }
-            output_producers.insert(output.clone(), node.node_id.clone());
-        }
-        node_index.insert(node.node_id.clone(), index);
-        indegree.insert(node.node_id.clone(), node.depends_on.len());
-        adjacency.entry(node.node_id.clone()).or_default();
     }
 
-    for node in &config.nodes {
-        let mut required_dependencies = BTreeSet::new();
-        for dependency in &node.depends_on {
-            if !node_index.contains_key(dependency) {
-                return Err(anyhow!(
-                    "local pipeline DAG node `{}` depends on unknown node `{dependency}`",
-                    node.node_id
-                ));
-            }
-            adjacency.entry(dependency.clone()).or_default().push(node.node_id.clone());
-        }
-        for upstream_input in &node.upstream_inputs {
-            let Some(producer) = output_producers.get(upstream_input) else {
-                return Err(anyhow!(
-                    "local pipeline DAG node `{}` consumes upstream input `{upstream_input}` that no node produces",
-                    node.node_id
-                ));
-            };
-            if producer == &node.node_id {
-                return Err(anyhow!(
-                    "local pipeline DAG node `{}` cannot consume its own output `{upstream_input}` as an upstream input",
-                    node.node_id
-                ));
-            }
-            required_dependencies.insert(producer.clone());
-        }
-        let declared_dependencies = node.depends_on.iter().cloned().collect::<BTreeSet<_>>();
-        if declared_dependencies != required_dependencies {
-            return Err(anyhow!(
-                "local pipeline DAG node `{}` declares dependencies {:?} but upstream inputs require {:?}",
-                node.node_id,
-                node.depends_on,
-                required_dependencies.into_iter().collect::<Vec<_>>()
-            ));
-        }
-    }
-
-    let mut ready = VecDeque::new();
-    for node in &config.nodes {
-        if indegree.get(&node.node_id).copied().unwrap_or_default() == 0 {
-            ready.push_back(node.node_id.clone());
-        }
-    }
-    let mut topological_order = Vec::with_capacity(config.nodes.len());
-    while let Some(node_id) = ready.pop_front() {
-        topological_order.push(node_id.clone());
-        for successor in adjacency.get(&node_id).into_iter().flatten() {
-            let Some(entry) = indegree.get_mut(successor) else {
-                continue;
-            };
-            *entry -= 1;
-            if *entry == 0 {
-                ready.push_back(successor.clone());
-            }
-        }
-    }
-    if topological_order.len() != config.nodes.len() {
-        return Err(anyhow!("local pipeline DAG `{}` contains a cycle", config.pipeline_id));
-    }
+    let artifact_nodes = config
+        .nodes
+        .iter()
+        .map(|node| ArtifactFlowNode {
+            node_id: &node.node_id,
+            depends_on: &node.depends_on,
+            external_inputs: &node.external_inputs,
+            upstream_inputs: &node.upstream_inputs,
+            outputs: &node.outputs,
+        })
+        .collect::<Vec<_>>();
+    let topological_order = validate_artifact_flow(&config.pipeline_id, &artifact_nodes)?;
 
     let validation_profiles = build_validation_profiles(repo_root, config)?;
 

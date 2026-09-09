@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/artifact_flow.rs"]
+mod artifact_flow;
 #[path = "contracts/defaults.rs"]
 mod mod_contracts_defaults_rs;
 #[path = "contracts/profiles.rs"]

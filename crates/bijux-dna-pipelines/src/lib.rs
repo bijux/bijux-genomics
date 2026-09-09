@@ -1,6 +1,7 @@
 //! Canonical pipeline profiles, defaults ledgers, manifests, and registry lookups
 //! for FASTQ, BAM, VCF, and cross-domain workflows.
 
+pub mod artifact_flow;
 pub mod bam;
 pub mod contract;
 pub mod cross;
