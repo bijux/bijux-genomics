@@ -69,10 +69,6 @@ pub use bijux_dna_bench::{
     VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1,
 };
 
-use std::path::Path;
-
-use anyhow::{Context, Result};
-
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 pub use bijux_dna_bench::{
@@ -402,12 +398,7 @@ pub use bijux_dna_bench::{
     STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1,
     TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1, VCF_STAGE_FAMILIES,
 };
-use bijux_dna_bench::{
-    admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,
-    benchmark_attempt_schema, benchmark_cycle_status_schema,
-    benchmark_pipeline_parameter_config_schema, benchmark_stage_interface_catalog_schema,
-    benchmark_stage_report_schema,
-};
+
 pub use bijux_dna_bench::{
     build_vcf_stage_catalog_rows, build_vcf_stage_matrix_rows, render_vcf_stage_catalog,
     render_vcf_stage_matrix, validate_vcf_stage_matrix, DEFAULT_VCF_STAGE_CATALOG_PATH,
@@ -452,157 +443,6 @@ pub use bijux_dna_planner_fastq::stage_api::*;
 pub type BenchOutcome<M> = crate::internal::public_surface::handlers::fastq::BenchOutcome<M>;
 pub use crate::internal::public_surface::handlers::fastq::*;
 
-fn render_owned_schema(schema: schemars::Schema) -> serde_json::Value {
-    match serde_json::to_value(schema) {
-        Ok(value) => value,
-        Err(error) => panic!("serialize JSON schema: {error}"),
-    }
-}
-
-/// Render the governed benchmark attempt schema.
-#[must_use]
-pub fn render_benchmark_attempt_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_attempt_schema())
-}
-
-/// Write the governed benchmark attempt schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_attempt_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_attempt_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark attempt-archive schema.
-#[must_use]
-pub fn render_benchmark_attempt_archive_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_attempt_archive_schema())
-}
-
-/// Write the governed benchmark attempt-archive schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_attempt_archive_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_attempt_archive_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark cycle status schema.
-#[must_use]
-pub fn render_benchmark_cycle_status_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_cycle_status_schema())
-}
-
-/// Write the governed benchmark cycle status schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_cycle_status_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_cycle_status_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark stage-interface catalog schema.
-#[must_use]
-pub fn render_benchmark_stage_interfaces_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_stage_interface_catalog_schema())
-}
-
-/// Write the governed benchmark stage-interface catalog schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_stage_interfaces_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_stage_interfaces_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark pipeline-parameter schema.
-#[must_use]
-pub fn render_benchmark_pipeline_parameters_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_pipeline_parameter_config_schema())
-}
-
-/// Write the governed benchmark pipeline-parameter schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_pipeline_parameters_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_pipeline_parameters_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark stage-report schema.
-#[must_use]
-pub fn render_benchmark_stage_report_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_stage_report_schema())
-}
-
-/// Write the governed benchmark stage-report schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_stage_report_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_stage_report_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark report-admission schema.
-#[must_use]
-pub fn render_benchmark_report_admission_schema() -> serde_json::Value {
-    render_owned_schema(admitted_benchmark_stage_report_schema())
-}
-
-/// Write the governed benchmark report-admission schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_report_admission_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_report_admission_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed FASTQ normalized metrics schema.
-#[must_use]
-pub fn render_fastq_normalized_metrics_schema() -> serde_json::Value {
-    crate::internal::fastq::stages::preprocess::render_governed_fastq_normalized_metrics_schema()
-}
-
-/// Write the governed FASTQ normalized metrics schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_fastq_normalized_metrics_schema(path: &Path) -> Result<()> {
-    let schema = render_fastq_normalized_metrics_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed BAM normalized metrics schema.
-#[must_use]
-pub fn render_bam_normalized_metrics_schema() -> serde_json::Value {
-    bijux_dna_bench_model::normalized_result::bam_envelope::render_bam_normalized_metrics_schema()
-}
-
-/// Write the governed BAM normalized metrics schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_bam_normalized_metrics_schema(path: &Path) -> Result<()> {
-    let schema = render_bam_normalized_metrics_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
 /// Stability: v1 (stable).
 /// Governed benchmark planning, report and normalized-metric contracts.
 pub use bijux_dna_bench_model::{
@@ -639,71 +479,6 @@ pub use bijux_dna_bench_model::{
     STAGE_SCORING_SCHEMA_VERSION, VCF_TOOL_SCORES_SCHEMA_VERSION,
 };
 
-/// Render the governed VCF normalized metrics schema.
-///
-/// # Errors
-/// Returns an error if the governed schema cannot be rendered.
-pub fn render_vcf_normalized_metrics_schema() -> Result<serde_json::Value> {
-    bijux_dna_bench_model::normalized_result::vcf_envelope::render_vcf_normalized_metrics_schema()
-}
-
-/// Render the governed stage-specific VCF normalized metrics schema.
-///
-/// # Errors
-/// Returns an error if the stage-specific schema cannot be rendered.
-pub fn render_vcf_normalized_metrics_stage_schema(stage_id: &str) -> Result<serde_json::Value> {
-    bijux_dna_bench_model::normalized_result::vcf_envelope::render_vcf_normalized_metrics_stage_schema(stage_id)
-}
-
-/// Validate a normalized VCF metrics payload against the governed stage schema contract.
-///
-/// # Errors
-/// Returns an error if the payload does not satisfy the governed schema contract.
-pub fn validate_vcf_normalized_metrics(
-    metrics: &serde_json::Value,
-) -> Result<VcfNormalizedMetricsStageSchemaDescriptor> {
-    bijux_dna_bench_model::normalized_result::vcf_envelope::validate_vcf_normalized_metrics(metrics)
-}
-
-/// Describe the governed stage-specific VCF normalized metrics schema set.
-///
-/// # Errors
-/// Returns an error if the governed stage schema descriptors cannot be enumerated.
-pub fn vcf_normalized_metrics_stage_schema_descriptors(
-) -> Result<Vec<VcfNormalizedMetricsStageSchemaDescriptor>> {
-    bijux_dna_bench_model::normalized_result::vcf_envelope::vcf_normalized_metrics_stage_descriptors(
-    )
-}
-
-/// Write the governed VCF normalized metrics schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_vcf_normalized_metrics_schema(path: &Path) -> Result<()> {
-    let schema = render_vcf_normalized_metrics_schema()?;
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Write the governed stage-specific VCF normalized metrics schema set to disk.
-///
-/// # Errors
-/// Returns an error if the directory cannot be prepared or any schema cannot be written.
-pub fn write_vcf_normalized_metrics_stage_schemas(
-    stage_dir: &Path,
-) -> Result<Vec<VcfNormalizedMetricsStageSchemaDescriptor>> {
-    std::fs::create_dir_all(stage_dir)
-        .with_context(|| format!("create {}", stage_dir.display()))?;
-    let descriptors = vcf_normalized_metrics_stage_schema_descriptors()?;
-    for descriptor in &descriptors {
-        let schema = render_vcf_normalized_metrics_stage_schema(&descriptor.stage_id)?;
-        let path = stage_dir.join(&descriptor.file_name);
-        bijux_dna_infra::atomic_write_json(&path, &schema)
-            .with_context(|| format!("write {}", path.display()))?;
-    }
-    Ok(descriptors)
-}
-
 pub use bijux_dna_bench::{
     inspect_benchmark_source_asset, BenchmarkSourceAsset, BenchmarkSourceKind,
 };
@@ -726,4 +501,19 @@ pub use bijux_dna_bench::{
 
 pub use bijux_dna_bench::{
     monitor_campaign, SlurmMonitorEntry, SlurmMonitorReport, SlurmMonitorSnapshot,
+};
+
+pub use bijux_dna_bench::{
+    render_bam_normalized_metrics_schema, render_benchmark_attempt_archive_schema,
+    render_benchmark_attempt_schema, render_benchmark_cycle_status_schema,
+    render_benchmark_pipeline_parameters_schema, render_benchmark_report_admission_schema,
+    render_benchmark_stage_interfaces_schema, render_benchmark_stage_report_schema,
+    render_fastq_normalized_metrics_schema, render_vcf_normalized_metrics_schema,
+    render_vcf_normalized_metrics_stage_schema, validate_vcf_normalized_metrics,
+    vcf_normalized_metrics_stage_schema_descriptors, write_bam_normalized_metrics_schema,
+    write_benchmark_attempt_archive_schema, write_benchmark_attempt_schema,
+    write_benchmark_cycle_status_schema, write_benchmark_pipeline_parameters_schema,
+    write_benchmark_report_admission_schema, write_benchmark_stage_interfaces_schema,
+    write_benchmark_stage_report_schema, write_fastq_normalized_metrics_schema,
+    write_vcf_normalized_metrics_schema, write_vcf_normalized_metrics_stage_schemas,
 };

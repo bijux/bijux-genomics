@@ -27,6 +27,7 @@ fn bench_tree_matches_architecture_contract() {
             "vcf_execution_proof.rs",
             "fastq_score_evidence/",
             "mod.rs",
+            "schema_publication.rs",
             "source_assets.rs",
             "writer/"
         ]),
