@@ -43,3 +43,9 @@ Use:
 ```sh
 TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-containers-qa --no-default-features --test boundaries
 ```
+
+## Qualification compilation boundary
+
+The default `verification-tools` feature provides the existing image, runtime and security verification modules and five command binaries. It enables their command parsing, SQLite analysis, FASTQ behavior, logging and supervised-process dependencies. With default features disabled, qualification source admission, compilation, planning, materialization and verdict evaluation remain available without those QA harness dependencies.
+
+The workspace runner consumes this qualification surface without enabling `verification-tools`. The public API facade enables it explicitly because it exports the verification services. Features are additive: a joint build containing the API can still enable the broader surface; package-scoped runner builds are the independent compilation boundary.
