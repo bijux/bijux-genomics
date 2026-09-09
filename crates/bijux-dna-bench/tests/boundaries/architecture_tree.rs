@@ -77,6 +77,25 @@ fn bench_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
+        dir_entries(&root.join("src/repo/hpc_campaign")),
+        entries(["mod.rs", "configuration.rs", "environment.rs", "profiles.rs"]),
+        "campaign acquisition stays separate from planning"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/hpc_campaign")),
+        entries([
+            "mod.rs",
+            "configuration.rs",
+            "planning.rs",
+            "policies.rs",
+            "preflight.rs",
+            "resources.rs",
+            "templates.rs"
+        ]),
+        "campaign workflows keep their distinct responsibilities"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("src/public_api")),
         entries(["mod.rs", "stable_surface.rs"]),
         "public api tree must stay curated"
@@ -89,6 +108,7 @@ fn bench_tree_matches_architecture_contract() {
             "vcf_score_evidence.rs",
             "vcf_execution_proof.rs",
             "case_data_authority.rs",
+            "hpc_campaign/",
             "container_qualification.rs",
             "catalog_registry_authority.rs",
             "catalog_snapshot_authority.rs",
@@ -202,6 +222,7 @@ fn bench_tree_matches_architecture_contract() {
             "run_suite/",
             "runtime_selection.rs",
             "scientific_readiness.rs",
+            "hpc_campaign/",
             "source_authority.rs",
             "stage_coverage.rs",
             "stage_families.rs",

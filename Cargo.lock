@@ -362,6 +362,7 @@ dependencies = [
  "insta",
  "md5",
  "rayon",
+ "regex",
  "serde",
  "serde_json",
  "serde_yaml",

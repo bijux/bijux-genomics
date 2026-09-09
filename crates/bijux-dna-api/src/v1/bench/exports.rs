@@ -714,3 +714,12 @@ pub use bijux_dna_bench::{
     OperationalBenchmarkReadyReport, OperationalBenchmarkResultCounts,
     OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION,
 };
+
+pub use bijux_dna_bench::{
+    campaign_dry_run, campaign_preflight, is_supported_encryption_backend, write_campaign_profiles,
+    CampaignCheck, CampaignConfig, CampaignContext, CampaignDryRunReport, CampaignJob,
+    CampaignLayout, CampaignMeta, CampaignPolicies, CampaignPreflightReport, CampaignSecurity,
+    CampaignSlurm, CorpusSizeScalePolicy, LayoutPolicies, OutputTemplates, PlannedJob,
+    PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
+    ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
+};

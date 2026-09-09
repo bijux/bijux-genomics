@@ -683,3 +683,13 @@ pub use bijux_dna_bench_model::{
     OperationalBenchmarkReadyReport, OperationalBenchmarkResultCounts,
     OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION,
 };
+
+pub use crate::repo::hpc_campaign::profiles::write_campaign_profiles;
+pub use crate::workflow::hpc_campaign::{campaign_dry_run, campaign_preflight, CampaignContext};
+pub use bijux_dna_bench_model::{
+    is_supported_encryption_backend, CampaignCheck, CampaignConfig, CampaignDryRunReport,
+    CampaignJob, CampaignLayout, CampaignMeta, CampaignPolicies, CampaignPreflightReport,
+    CampaignSecurity, CampaignSlurm, CorpusSizeScalePolicy, LayoutPolicies, OutputTemplates,
+    PlannedJob, PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
+    ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
+};

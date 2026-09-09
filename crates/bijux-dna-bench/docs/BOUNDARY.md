@@ -84,3 +84,17 @@ and developer commands enable this capability explicitly; ordinary benchmark
 consumers do not gain a mandatory policy-library dependency. Policy guardrails
 retain an independent development dependency, so testing a minimal benchmark
 build does not require enabling the production qualification capability.
+
+## Configured HPC campaigns
+
+`workflow/hpc_campaign` composes explicit campaign requests. The caller supplies
+its workspace and campaign roots, selected environment bindings, executable
+search path and timestamp. `repo/hpc_campaign` reads declared configuration and
+site profiles, observes filesystem and executable availability, and writes
+built-in profile declarations from `bench/campaign_profiles` to the requested
+output directory. Availability inspection does not execute or submit jobs.
+
+`bijux-dna-bench-model` owns campaign configuration, planned reports, confidential
+source admission, resource-template selection and preflight decisions. Preflight
+receives typed observations covering every configured layout root exactly once.
+The CLI adapts requests and output; Slurm submission remains runner behavior.

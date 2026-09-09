@@ -81,3 +81,5 @@ pub use vcf_execution_proof::load_vcf_execution_blocker;
 
 #[cfg(feature = "container-qualification")]
 pub(crate) mod container_qualification;
+
+pub(crate) mod hpc_campaign;

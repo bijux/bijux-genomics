@@ -796,3 +796,20 @@ pub use crate::model::readiness::operational::{
 pub use crate::policy::operational_readiness::{
     build_operational_benchmark_ready_report, validate_operational_benchmark_ready_report,
 };
+
+pub use crate::model::hpc_campaign::{
+    is_supported_encryption_backend, CampaignCheck, CampaignConfig, CampaignDryRunReport,
+    CampaignJob, CampaignLayout, CampaignMeta, CampaignPolicies, CampaignPreflightReport,
+    CampaignSecurity, CampaignSlurm, CorpusSizeScalePolicy, LayoutPolicies, OutputTemplates,
+    PlannedJob, PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
+    ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
+};
+
+pub use crate::contract::hpc_campaign::validate_hpc_campaign_config_source;
+
+pub use crate::model::hpc_campaign::{
+    CampaignLayoutObservation, CampaignPreflightInputs, CampaignPreflightObservations,
+};
+pub use crate::policy::hpc_campaign::{
+    evaluate_campaign_preflight, resolve_hpc_campaign_resource_template,
+};

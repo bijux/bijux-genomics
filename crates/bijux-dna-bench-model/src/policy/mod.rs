@@ -15,3 +15,5 @@ pub mod vcf_scoring;
 pub mod output_audit;
 
 pub mod operational_readiness;
+
+pub mod hpc_campaign;

@@ -401,3 +401,5 @@ pub use readiness::{
 #[cfg(feature = "canonical-fastq-catalog")]
 pub use suite::CanonicalFastqSuiteCatalog;
 pub use suite::{validate_suite_with_catalog, BenchmarkSuiteCatalog};
+
+pub(crate) mod hpc_campaign;

@@ -386,3 +386,5 @@ mod container_qualification;
 pub use container_qualification::{
     derive_container_qualification_report, derive_container_qualification_report_with_release,
 };
+
+pub(crate) mod hpc_campaign;
