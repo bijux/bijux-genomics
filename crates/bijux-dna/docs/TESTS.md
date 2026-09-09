@@ -6,8 +6,10 @@ shared path helpers. It should not contain README placeholder files or empty tax
 
 ```text
 tests/
+├── bench_readiness_fastq.rs
 ├── benchmark_readiness.rs
 ├── benchmark/
+│   ├── fastq_readiness/
 │   └── readiness/
 ├── boundaries.rs
 ├── boundaries/
@@ -22,6 +24,7 @@ tests/
 ```
 
 ## Coverage Map
+- `tests/bench_readiness_fastq.rs`: FASTQ stage bindings, execution surfaces, evidence maps and metrics contracts, grouped under `tests/benchmark/fastq_readiness/`. Cases retain their function names and use one shared process guard; nextest partitions individual cases and retains the full-profile repository mutation group.
 - `tests/benchmark_readiness.rs`: active stage/tool scope, adapters, parser fixtures, output declarations/contracts, expected results and report maps. JSON and TSV assertions live in `tests/benchmark/readiness/`. One executable retains individual case identities under report modules; the slow roster matches the unchanged function-name suffixes. The standard harness shares one process environment guard, while nextest can schedule separate cases.
 - `tests/boundaries.rs`: layout, docs placement, dependency, public-surface, no-process-spawn, and
   guardrail checks.

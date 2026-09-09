@@ -1,0 +1,10 @@
+mod active_stage_tool_matrix;
+mod active_stage_tool_matrix_tsv;
+mod duplicate_stages_ready;
+mod duplicate_stages_ready_file;
+mod filter_stages_ready;
+mod filter_stages_ready_file;
+mod trim_stages_ready;
+mod trim_stages_ready_file;
+mod validate_reads_ready;
+mod validate_reads_ready_file;
