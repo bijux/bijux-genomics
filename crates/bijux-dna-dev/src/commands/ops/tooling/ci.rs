@@ -1065,7 +1065,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let contract: FullShardContract = serde_json::from_slice(&fs::read(&contract_path)?)
         .with_context(|| format!("parse {}", contract_path.display()))?;
     validate_full_shard_contract(&contract)?;
-    let selected_shards = select_full_shards(&contract, args)?;
+    let preflight_only = matches!(args, [single] if single == "--preflight-only");
+    let selected_shards = select_full_shards(&contract, if preflight_only { &[] } else { args })?;
     validate_full_shard_runtime_dependency_catalog(workspace, &contract.runtime_dependencies)?;
 
     let storage = resolve_full_shard_storage_roots(
@@ -1084,6 +1085,12 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         &contract.runtime_dependencies,
         &ci_output_path(workspace, &contract.runtime_dependency_report)?,
     )?;
+    if preflight_only {
+        return Ok(OpsCommandOutcome::success(format!(
+            "full workspace runtime preflight passed; report: {}\n",
+            contract.runtime_dependency_report
+        )));
+    }
     let started = Instant::now();
     let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
     let archive_roots = full_archive_roots(&storage, &contract)?;

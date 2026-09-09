@@ -474,6 +474,9 @@ validate-frontend-mini-domain-stacks
 are supplied. A classified failure may be recovered with repeated `--shard <id>` pairs; the
 timing receipt records `affected_recovery` scope and cannot claim complete contract coverage.
 Unknown, duplicate, empty, or malformed selections fail before the archive build starts.
+The exclusive `--preflight-only` option validates the same build authority, pinned executor and
+runtime dependency bindings, writes the normal dependency report, and returns before preparing
+an archive or launching shards. A preflight pass is not a test or coverage pass.
 
 `benchmark-data-catalog-snapshots publish` preserves each flat v1 governed catalog inside a
 digest-bound v2 authority, retains current v2 records from an explicit prior registry, and
