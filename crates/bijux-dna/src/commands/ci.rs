@@ -222,7 +222,7 @@ const CHANGED_PATH_RULES: &[ChangedPathRule] = &[
         reason: "the readiness suite entrypoint governs all active benchmark contracts",
     },
     ChangedPathRule {
-        matcher: "crates/bijux-dna/tests/benchmark/readiness/",
+        matcher: "crates/bijux-dna/tests/contracts/benchmark/readiness/",
         command: "make bench-active-fast",
         reason: "grouped readiness cases cover the active benchmark surface",
     },
@@ -295,6 +295,11 @@ const CHANGED_PATH_RULES: &[ChangedPathRule] = &[
         matcher: "crates/bijux-dna/tests/bench_local_vcf_population_structure_smoke",
         command: "make science-fixtures-fast",
         reason: "population mini-smoke truth belongs to the science fixture lane",
+    },
+    ChangedPathRule {
+        matcher: "crates/bijux-dna/tests/contracts/fixtures/",
+        command: "make science-fixtures-fast",
+        reason: "fixture contract modules govern scientific fixture admission",
     },
     ChangedPathRule {
         matcher: "crates/bijux-dna/tests/fixtures/",
@@ -903,7 +908,7 @@ mod tests {
             "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/"
         ));
         assert!(path_matches_rule(
-            "crates/bijux-dna/tests/benchmark/readiness/adapters.rs",
+            "crates/bijux-dna/tests/contracts/benchmark/readiness/adapters.rs",
             "adapter"
         ));
         assert!(!path_matches_rule(
@@ -985,7 +990,7 @@ mod tests {
         let fixture = root.path().join("changed_paths.txt");
         write_utf8_report(
             &fixture,
-            ".github/workflows/ci.yml\ncrates/bijux-dna/tests/benchmark/readiness/adapters.rs\nbenchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.pca/expected.normalized.json\nbenchmarks/tests/fixtures/science/fastq-taxonomy-truth/expected_taxa.tsv\n",
+            ".github/workflows/ci.yml\ncrates/bijux-dna/tests/contracts/benchmark/readiness/adapters.rs\nbenchmarks/tests/fixtures/bench/parsers/vcf/plink2/vcf.pca/expected.normalized.json\nbenchmarks/tests/fixtures/science/fastq-taxonomy-truth/expected_taxa.tsv\n",
         )?;
         let report = changed_path_commands(root.path(), &fixture)?;
         assert_eq!(
@@ -1007,8 +1012,8 @@ mod tests {
         let fixture = root.path().join("changed_paths.txt");
         for path in [
             "crates/bijux-dna/tests/benchmark_readiness.rs",
-            "crates/bijux-dna/tests/benchmark/readiness/mod.rs",
-            "crates/bijux-dna/tests/benchmark/readiness/outputs_tsv.rs",
+            "crates/bijux-dna/tests/contracts/benchmark/readiness/mod.rs",
+            "crates/bijux-dna/tests/contracts/benchmark/readiness/outputs_tsv.rs",
         ] {
             write_utf8_report(&fixture, path)?;
             let report = changed_path_commands(root.path(), &fixture)?;
@@ -1024,8 +1029,8 @@ mod tests {
         for family in ["fastq", "bam", "vcf", "ancient_dna", "amplicon"] {
             for path in [
                 format!("crates/bijux-dna/tests/fixtures_{family}.rs"),
-                format!("crates/bijux-dna/tests/fixtures/{family}/mod.rs"),
-                format!("crates/bijux-dna/tests/fixtures/{family}/corpus/expected_json.rs"),
+                format!("crates/bijux-dna/tests/contracts/fixtures/{family}/mod.rs"),
+                format!("crates/bijux-dna/tests/contracts/fixtures/{family}/corpus/expected_json.rs"),
             ] {
                 write_utf8_report(&fixture, &path)?;
                 let report = changed_path_commands(root.path(), &fixture)?;

@@ -29,8 +29,8 @@ tests/
 
 ## Coverage Map
 - `tests/bench_readiness_bam.rs` and `tests/bench_readiness_vcf.rs`: domain readiness contracts grouped by inventory, adapter, metric and scientific responsibility. Standard-harness cases share one process guard per executable; nextest retains case-level scheduling. The four dedicated VCF parser-failure and missing-input targets remain entrypoints for their native fast lanes.
-- `tests/bench_readiness_fastq.rs`: FASTQ stage bindings, execution surfaces, evidence maps and metrics contracts, grouped under `tests/benchmark/fastq_readiness/`. Cases retain their function names and use one shared process guard; nextest partitions individual cases and retains the full-profile repository mutation group.
-- `tests/benchmark_readiness.rs`: active stage/tool scope, adapters, parser fixtures, output declarations/contracts, expected results and report maps. JSON and TSV assertions live in `tests/benchmark/readiness/`. One executable retains individual case identities under report modules; the slow roster matches the unchanged function-name suffixes. The standard harness shares one process environment guard, while nextest can schedule separate cases.
+- `tests/bench_readiness_fastq.rs`: FASTQ stage bindings, execution surfaces, evidence maps and metrics contracts, grouped under `tests/contracts/benchmark/fastq_readiness/`. Cases retain their function names and use one shared process guard; nextest partitions individual cases and retains the full-profile repository mutation group.
+- `tests/benchmark_readiness.rs`: active stage/tool scope, adapters, parser fixtures, output declarations/contracts, expected results and report maps. JSON and TSV assertions live in `tests/contracts/benchmark/readiness/`. One executable retains individual case identities under report modules; the slow roster matches the unchanged function-name suffixes. The standard harness shares one process environment guard, while nextest can schedule separate cases.
 - `tests/boundaries.rs`: layout, docs placement, dependency, public-surface, no-process-spawn, and
   guardrail checks.
 - `tests/boundaries/architecture_tree.rs`: root, docs, source, command, and public API tree
@@ -77,3 +77,5 @@ repository mutation serialization and function-based slow selection still apply.
 `science-fixtures-fast` selects these suites plus its existing corpus, aggregate,
 and population smoke targets. Test function names remain stable beneath module
 namespaces so function-based routing and slow rosters retain their meaning.
+
+Executable fixture assertions live in `tests/contracts/fixtures/`; `tests/fixtures/` holds input data only. Grouped entrypoints keep their binary and case identities.

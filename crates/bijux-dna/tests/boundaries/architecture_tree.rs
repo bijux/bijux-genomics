@@ -449,12 +449,10 @@ fn dna_tree_matches_architecture_contract() {
 
     let tests_entries = dir_entries(&root.join("tests"));
     let required_test_entries: BTreeSet<_> = [
-        "benchmark/",
         "benchmark_readiness.rs",
         "bench_readiness_fastq.rs",
         "bench_readiness_bam.rs",
         "bench_readiness_vcf.rs",
-        "fixtures/",
         "fixtures_fastq.rs",
         "fixtures_bam.rs",
         "fixtures_vcf.rs",
@@ -478,6 +476,9 @@ fn dna_tree_matches_architecture_contract() {
         required_test_entries.is_subset(&tests_entries),
         "dna tests tree must retain the governed grouped suite roots"
     );
+    for contract_group in ["benchmark", "fixtures"] {
+        assert!(root.join("tests/contracts").join(contract_group).is_dir());
+    }
     let allowed_root_test_files =
         ["boundaries.rs", "contracts.rs", "guardrails.rs", "schemas.rs", "snapshots.rs"];
     let allowed_root_test_prefixes = ["bench_", "ci_", "config_", "dev_", "fixtures_", "plan_"];
@@ -499,7 +500,7 @@ fn dna_tree_matches_architecture_contract() {
     }
 
     assert_eq!(
-        dir_entries(&root.join("tests/fixtures")),
+        dir_entries(&root.join("tests/contracts/fixtures")),
         ["amplicon/", "ancient_dna/", "bam/", "fastq/", "vcf/"]
             .into_iter()
             .map(str::to_string)
