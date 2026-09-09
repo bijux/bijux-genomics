@@ -1855,10 +1855,13 @@ fn full_shard_env(roots: &FullShardRoots, shard_workspace: &Path) -> Result<Vec<
     for root in roots.all() {
         bijux_dna_infra::ensure_dir(root)?;
     }
+    let workspace = Workspace { root: shard_workspace.to_path_buf() };
+    let outputs = workspace.admit_artifact_path(&workspace.path("artifacts"))?;
+    bijux_dna_infra::ensure_dir(&outputs)?;
     Ok(vec![
         ("NEXTEST_EXPERIMENTAL_LIBTEST_JSON".to_string(), "1".to_string()),
-        ("ARTIFACT_ROOT".to_string(), roots.artifact_root.display().to_string()),
-        ("ISO_ROOT".to_string(), roots.artifact_root.display().to_string()),
+        ("ARTIFACT_ROOT".to_string(), outputs.display().to_string()),
+        ("ISO_ROOT".to_string(), outputs.display().to_string()),
         ("CARGO_TARGET_DIR".to_string(), roots.cargo_target.display().to_string()),
         ("TEST_TARGET_DIR".to_string(), roots.test_target.display().to_string()),
         ("COV_TARGET_DIR".to_string(), roots.coverage_target.display().to_string()),
@@ -1885,8 +1888,9 @@ fn full_shard_root_receipt(roots: &FullShardRoots, shard_workspace: &Path) -> se
         "benchmark_root": shard_workspace.join("benchmarks").display().to_string(),
         "snapshot_source_authority": "archive_compile_time_metadata",
         "snapshot_update_policy": "no",
-        "artifact_root": roots.artifact_root.display().to_string(),
-        "iso_root": roots.artifact_root.display().to_string(),
+        "artifact_root": shard_workspace.join("artifacts").display().to_string(),
+        "iso_root": shard_workspace.join("artifacts").display().to_string(),
+        "executor_scratch_root": roots.artifact_root.display().to_string(),
         "archive_extract_dir": roots.archive_extract.display().to_string(),
         "cargo_target_dir": roots.cargo_target.display().to_string(),
         "test_target_dir": roots.test_target.display().to_string(),
@@ -2827,9 +2831,7 @@ mod tests {
     #[test]
     fn full_shard_runtime_roots_are_absolute_complete_disjoint_and_read_only() -> anyhow::Result<()>
     {
-        let root =
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
-        let workspace = Workspace { root };
+        let workspace = Workspace::resolve()?;
         let contract = contract();
         let storage = resolve_full_shard_storage_roots(&workspace, &contract, None)?;
         let roots = contract
@@ -2840,6 +2842,7 @@ mod tests {
         validate_full_shard_root_set(&storage, &roots)?;
 
         let shard_workspace = storage.scratch_root.join("workspaces/hash-1-of-5");
+        std::fs::create_dir_all(&shard_workspace)?;
         let first_env = full_shard_env(&roots[0], &shard_workspace)?
             .into_iter()
             .collect::<std::collections::BTreeMap<_, _>>();
@@ -2870,6 +2873,11 @@ mod tests {
             first_env["BIJUX_BENCHMARK_ROOT"],
             shard_workspace.join("benchmarks").display().to_string()
         );
+        let consumer = Workspace { root: shard_workspace.clone() };
+        let outputs = std::path::Path::new(&first_env["ARTIFACT_ROOT"]);
+        assert_eq!(consumer.admit_artifact_path(outputs)?, consumer.path("artifacts"));
+        assert_eq!(first_env["ISO_ROOT"], first_env["ARTIFACT_ROOT"]);
+        assert!(consumer.admit_artifact_path(&roots[0].artifact_root).is_err());
         assert_eq!(first_env["INSTA_UPDATE"], "no");
         assert!(!first_env.contains_key("INSTA_WORKSPACE_ROOT"));
         let receipt = full_shard_root_receipt(&roots[0], &shard_workspace);
@@ -2899,9 +2907,7 @@ mod tests {
 
     #[test]
     fn full_shards_build_once_and_execute_only_from_the_archive() -> anyhow::Result<()> {
-        let root =
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
-        let workspace = Workspace { root };
+        let workspace = Workspace::resolve()?;
         let contract = contract();
         let storage = resolve_full_shard_storage_roots(&workspace, &contract, None)?;
         let archive = full_archive_roots(&storage, &contract)?;
@@ -2949,9 +2955,7 @@ mod tests {
 
     #[test]
     fn full_shard_scratch_authority_is_external_disjoint_and_fail_closed() -> anyhow::Result<()> {
-        let root =
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
-        let workspace = Workspace { root };
+        let workspace = Workspace::resolve()?;
         let contract = contract();
         let external = std::path::PathBuf::from("/local/slurmtmp.1234/bijux-full-shards");
         let storage =
