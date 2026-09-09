@@ -1,9 +1,11 @@
-use std::path::PathBuf;
+use std::collections::BTreeSet;
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::process::Output;
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
-use anyhow::{Context, Result};
+use anyhow::{ensure, Context, Result};
 
 use crate::runtime::workspace::Workspace;
 
@@ -85,6 +87,48 @@ impl<'a> ProcessRunner<'a> {
         &self,
         specs: Vec<ParallelProcessSpec>,
     ) -> Result<Vec<ParallelProcessOutput>> {
+        self.collect_parallel(specs, None)
+    }
+
+    /// Run independent processes with directly written stdout and stderr files.
+    ///
+    /// Files are visible while children run and survive coordinator interruption. Each label
+    /// owns two files in the supplied directory; a new invocation replaces those prior logs.
+    /// The returned output remains compatible with callers that aggregate completed results.
+    ///
+    /// # Errors
+    /// Returns an error for ambiguous log labels, log IO failures, or child launch failures.
+    pub fn run_parallel_logged(
+        &self,
+        specs: Vec<ParallelProcessSpec>,
+        log_directory: &Path,
+    ) -> Result<Vec<ParallelProcessOutput>> {
+        let mut labels = BTreeSet::new();
+        for spec in &specs {
+            ensure!(
+                !spec.label.is_empty()
+                    && spec.label.bytes().all(|byte| {
+                        byte.is_ascii_lowercase() || byte.is_ascii_digit() || b"-_".contains(&byte)
+                    }),
+                "parallel process log label must contain only lowercase letters, digits, '-' or '_': {}",
+                spec.label
+            );
+            ensure!(
+                labels.insert(&spec.label),
+                "duplicate parallel process log label: {}",
+                spec.label
+            );
+        }
+        fs::create_dir_all(log_directory)
+            .with_context(|| format!("create process log directory {}", log_directory.display()))?;
+        self.collect_parallel(specs, Some(log_directory))
+    }
+
+    fn collect_parallel(
+        &self,
+        specs: Vec<ParallelProcessSpec>,
+        log_directory: Option<&Path>,
+    ) -> Result<Vec<ParallelProcessOutput>> {
         let root = self.workspace.root.clone();
         let count = specs.len();
         let (sender, receiver) = mpsc::channel();
@@ -95,17 +139,21 @@ impl<'a> ProcessRunner<'a> {
                 scope.spawn(move || {
                     let started = Instant::now();
                     let current_dir = spec.current_dir.as_ref().unwrap_or(&root);
-                    let result = std::process::Command::new(&spec.program)
+                    let mut command = std::process::Command::new(&spec.program);
+                    command
                         .args(&spec.args)
                         .envs(spec.envs.iter().map(|(key, value)| (key, value)))
-                        .current_dir(current_dir)
-                        .output()
-                        .with_context(|| format!("run parallel process {}", spec.label))
-                        .map(|output| ParallelProcessOutput {
-                            label: spec.label,
-                            output,
-                            duration: started.elapsed(),
-                        });
+                        .current_dir(current_dir);
+                    let result = match log_directory {
+                        Some(directory) => run_with_logs(&mut command, directory, &spec.label),
+                        None => command.output().map_err(Into::into),
+                    }
+                    .with_context(|| format!("run parallel process {}", spec.label))
+                    .map(|output| ParallelProcessOutput {
+                        label: spec.label,
+                        output,
+                        duration: started.elapsed(),
+                    });
                     let _ = sender.send((index, result));
                 });
             }
@@ -131,6 +179,28 @@ impl<'a> ProcessRunner<'a> {
                 .collect()
         })
     }
+}
+
+fn run_with_logs(
+    command: &mut std::process::Command,
+    directory: &Path,
+    label: &str,
+) -> Result<Output> {
+    let stdout_path = directory.join(format!("{label}.stdout.log"));
+    let stderr_path = directory.join(format!("{label}.stderr.log"));
+    let stdout = fs::File::create(&stdout_path)
+        .with_context(|| format!("create {}", stdout_path.display()))?;
+    let stderr = fs::File::create(&stderr_path)
+        .with_context(|| format!("create {}", stderr_path.display()))?;
+    let status =
+        command.stdin(std::process::Stdio::null()).stdout(stdout).stderr(stderr).spawn()?.wait()?;
+    Ok(Output {
+        status,
+        stdout: fs::read(&stdout_path)
+            .with_context(|| format!("read {}", stdout_path.display()))?,
+        stderr: fs::read(&stderr_path)
+            .with_context(|| format!("read {}", stderr_path.display()))?,
+    })
 }
 
 #[cfg(test)]
@@ -181,6 +251,84 @@ mod tests {
             String::from_utf8(outputs[0].output.stdout.clone())?.trim(),
             isolated.path().canonicalize()?.display().to_string()
         );
+        Ok(())
+    }
+    fn shell_spec(label: &str, script: &str) -> ParallelProcessSpec {
+        ParallelProcessSpec {
+            label: label.to_string(),
+            program: "sh".to_string(),
+            args: vec!["-c".to_string(), script.to_string()],
+            envs: Vec::new(),
+            current_dir: None,
+        }
+    }
+
+    #[test]
+    fn parallel_logs_are_visible_to_the_child_before_exit() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        let logs = workspace.root.join("artifacts/logs");
+        let mut spec = shell_spec(
+            "live",
+            "printf live; printf diagnostic >&2; test \"$(cat \"$STDOUT_LOG\")\" = live && test \"$(cat \"$STDERR_LOG\")\" = diagnostic",
+        );
+        spec.envs = vec![
+            ("STDOUT_LOG".to_string(), logs.join("live.stdout.log").display().to_string()),
+            ("STDERR_LOG".to_string(), logs.join("live.stderr.log").display().to_string()),
+        ];
+        let outputs = ProcessRunner::new(&workspace).run_parallel_logged(vec![spec], &logs)?;
+        assert!(outputs[0].output.status.success());
+        assert_eq!(outputs[0].output.stdout, b"live");
+        assert_eq!(outputs[0].output.stderr, b"diagnostic");
+        Ok(())
+    }
+
+    #[test]
+    fn parallel_logs_retain_failures_and_collect_successful_peers() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        let logs = workspace.root.join("artifacts/logs");
+        let outputs = ProcessRunner::new(&workspace).run_parallel_logged(
+            vec![
+                shell_spec("failed", "printf failed >&2; exit 7"),
+                shell_spec("passed", "printf passed"),
+            ],
+            &logs,
+        )?;
+        assert_eq!(outputs[0].output.status.code(), Some(7));
+        assert_eq!(outputs[1].output.status.code(), Some(0));
+        assert_eq!(std::fs::read(logs.join("failed.stderr.log"))?, b"failed");
+        assert_eq!(std::fs::read(logs.join("passed.stdout.log"))?, b"passed");
+        Ok(())
+    }
+
+    #[test]
+    fn parallel_log_labels_reject_collisions_and_path_traversal_before_launch() -> anyhow::Result<()>
+    {
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        let logs = workspace.root.join("artifacts/logs");
+        for labels in [["same", "same"], ["safe", "../escaped"], ["safe", ""], ["safe", "Safe"]] {
+            let specs =
+                labels.into_iter().map(|label| shell_spec(label, "touch launched")).collect();
+            assert!(ProcessRunner::new(&workspace).run_parallel_logged(specs, &logs).is_err());
+            assert!(!workspace.root.join("launched").exists());
+            assert!(!logs.exists());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn parallel_logs_survive_a_peer_launch_failure() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        let logs = workspace.root.join("artifacts/logs");
+        let mut missing = shell_spec("missing", "");
+        missing.program = workspace.root.join("absent-executable").display().to_string();
+        let result = ProcessRunner::new(&workspace)
+            .run_parallel_logged(vec![missing, shell_spec("survivor", "printf retained")], &logs);
+        assert!(result.is_err());
+        assert_eq!(std::fs::read(logs.join("survivor.stdout.log"))?, b"retained");
         Ok(())
     }
 }

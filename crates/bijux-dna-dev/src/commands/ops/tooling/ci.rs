@@ -1111,7 +1111,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
         current_dir: Some(archive_workspace.clone()),
     };
-    let mut archive_outputs = ProcessRunner::new(workspace).run_parallel(vec![archive_spec])?;
+    let mut archive_outputs =
+        ProcessRunner::new(workspace).run_parallel_logged(vec![archive_spec], &report_root)?;
     let archive_output = archive_outputs.pop().context("archive build was not collected")?;
     let mut archive_log = archive_output.output.stdout.clone();
     archive_log.extend_from_slice(&archive_output.output.stderr);
@@ -1134,6 +1135,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "duration_milliseconds": archive_output.duration.as_millis(),
         "exit_code": archive_exit_code,
         "log": workspace.rel(&archive_roots.build_log).to_string_lossy(),
+        "stdout_log": workspace.rel(&report_root.join("archive-build.stdout.log")).to_string_lossy(),
+        "stderr_log": workspace.rel(&report_root.join("archive-build.stderr.log")).to_string_lossy(),
         "read_only_during_shard_execution": archive_passed,
     });
     let mut stdout = String::from_utf8_lossy(&archive_output.output.stdout).into_owned();
@@ -1188,7 +1191,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             })
         })
         .collect::<Result<Vec<_>>>()?;
-    let outputs = ProcessRunner::new(workspace).run_parallel(specs)?;
+    let outputs = ProcessRunner::new(workspace).run_parallel_logged(specs, &report_root)?;
     let mut all_passed = true;
     let mut shard_receipts = Vec::with_capacity(outputs.len());
     for (((shard, shard_workspace), roots), completed) in
@@ -1210,6 +1213,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "duration_milliseconds": completed.duration.as_millis(),
             "exit_code": exit_code,
             "log": workspace.rel(&log_path).to_string_lossy(),
+            "stdout_log": workspace.rel(&report_root.join(format!("{}.stdout.log", shard.id))).to_string_lossy(),
+            "stderr_log": workspace.rel(&report_root.join(format!("{}.stderr.log", shard.id))).to_string_lossy(),
         }));
     }
     let archive_sha256_after = bijux_dna_infra::hash_file_sha256(&archive_roots.archive_file)?;

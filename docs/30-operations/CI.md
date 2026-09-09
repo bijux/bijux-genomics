@@ -84,3 +84,11 @@ Applies only to the files and workflows referenced in this document.
 ## Failure modes
 - Running CI-related scripts outside the shared artifact contract fails by policy.
 - HPC path assumptions in docs/scripts can cause false failures when profile roots differ.
+
+Full workspace archive and shard stdout/stderr are written directly beneath
+`artifacts/ci/full-shards/` as `archive-build.stdout.log`, `archive-build.stderr.log`,
+and `hash-N-of-5.stdout.log` / `hash-N-of-5.stderr.log`. Inspect these files while a
+run is active. Completed combined logs and timing receipts remain available at
+their existing paths. A new invocation replaces logs with the same labels; preserve
+needed evidence before rerunning. A missing final receipt after interruption is
+not a successful gate, even when partial logs contain passing tests.
