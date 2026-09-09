@@ -1584,10 +1584,18 @@ fn make_full_shard_ephemera_removable(path: &Path) -> Result<()> {
             use std::os::unix::fs::PermissionsExt;
 
             let owner_access = if metadata.is_dir() { 0o700 } else { 0o600 };
+            if permissions.mode() & owner_access == owner_access {
+                continue;
+            }
             permissions.set_mode(permissions.mode() | owner_access);
         }
         #[cfg(not(unix))]
-        permissions.set_readonly(false);
+        {
+            if !permissions.readonly() {
+                continue;
+            }
+            permissions.set_readonly(false);
+        }
         std::fs::set_permissions(entry.path(), permissions).with_context(|| {
             format!("restore owner access to full shard ephemera {}", entry.path().display())
         })?;
