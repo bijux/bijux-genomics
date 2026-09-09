@@ -1,7 +1,9 @@
 //! Normalized FASTQ corpus discovery and publication cohort metadata.
 //!
-//! This boundary preserves the MANIFEST.json digest-to-accession join used by corpus benchmarks.
-//! It does not replace governed data-index admission or verify current file digests and read content.
+//! Manifest content identity, sample/accession closure and publication cohorts are admitted here.
+//! FASTQ record semantics and governed data-index admission remain separate contracts.
+
+mod manifest;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -11,15 +13,9 @@ use crate::workflow::load_fastq_corpus_source_spec;
 use anyhow::{anyhow, Context, Result};
 
 use bijux_dna_bench_model::{
-    CorpusAcquisitionLayout, FastqCorpusSourceSample as CorpusSpecSample,
-    FastqCorpusSourceSpec as CorpusSpec,
+    validate_fastq_corpus_source_spec, CorpusAcquisitionLayout,
+    FastqCorpusSourceSample as CorpusSpecSample, FastqCorpusSourceSpec as CorpusSpec,
 };
-
-#[derive(Debug, Clone, serde::Deserialize, Default)]
-struct CorpusManifest {
-    #[serde(default)]
-    files: BTreeMap<String, String>,
-}
 
 /// Discovered normalized read paths; content admission remains a separate operation.
 #[derive(Debug, Clone)]
@@ -156,19 +152,16 @@ pub fn match_normalized_fastq_corpus_metadata(
     spec: &CorpusSpec,
     samples: &[NormalizedFastqSample],
 ) -> Result<BTreeMap<String, CorpusSpecSample>> {
-    let manifest_path = corpus_root.join("MANIFEST.json");
-    let raw = fs::read_to_string(&manifest_path)
-        .with_context(|| format!("read {}", manifest_path.display()))?;
-    let manifest: CorpusManifest =
-        serde_json::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))?;
+    validate_fastq_corpus_source_spec(spec)?;
+    let manifest = manifest::load(corpus_root)?;
 
-    let mut hash_to_accessions = BTreeMap::<String, Vec<String>>::new();
+    let mut hash_to_accessions = BTreeMap::<String, BTreeSet<String>>::new();
     for (relative_path, digest) in &manifest.files {
         let path = Path::new(relative_path);
         let parts = path.iter().collect::<Vec<_>>();
-        if parts.len() >= 2 && parts[0].to_str() == Some("raw") {
+        if parts.len() >= 3 && parts[0].to_str() == Some("raw") {
             let accession = parts[1].to_string_lossy().to_string();
-            hash_to_accessions.entry(digest.clone()).or_default().push(accession);
+            hash_to_accessions.entry(digest.clone()).or_default().insert(accession);
         }
     }
     let spec_by_accession = spec
@@ -199,25 +192,86 @@ pub fn match_normalized_fastq_corpus_metadata(
             return Err(anyhow!(
                 "expected one accession for {}, found {}",
                 relative_path,
-                accessions.join(",")
+                accessions.iter().map(String::as_str).collect::<Vec<_>>().join(",")
             ));
         }
-        let accession = &accessions[0];
+        let accession = accessions.first().context("missing accession identity")?;
         let metadata = spec_by_accession
             .get(accession)
             .cloned()
             .ok_or_else(|| anyhow!("missing curated metadata for accession {accession}"))?;
-        metadata_by_sample.insert(sample_id, metadata);
+        if let Some(previous) = metadata_by_sample.insert(sample_id.clone(), metadata.clone()) {
+            if previous.accession != metadata.accession {
+                return Err(anyhow!("conflicting mate accessions for {sample_id}"));
+            }
+        }
     }
 
+    validate_sample_metadata(spec, samples, &metadata_by_sample)?;
+    let mut expected_paths = BTreeSet::new();
+    for sample in samples {
+        for (mate, path) in [(1, Some(&sample.r1)), (2, sample.r2.as_ref())] {
+            let Some(path) = path else { continue };
+            let relative = format!("normalized/{}_R{mate}.fastq.gz", sample.sample_id);
+            if path != &corpus_root.join(&relative) || !manifest.files.contains_key(&relative) {
+                return Err(anyhow!("read path or manifest entry mismatch for {relative}"));
+            }
+            expected_paths.insert(relative);
+        }
+    }
+    let declared_paths = manifest
+        .files
+        .keys()
+        .filter(|path| path.starts_with("normalized/"))
+        .cloned()
+        .collect::<BTreeSet<_>>();
+    if declared_paths != expected_paths {
+        return Err(anyhow!("normalized manifest read paths do not close over discovered samples"));
+    }
+    manifest::verify_content(corpus_root, &manifest)?;
+    Ok(metadata_by_sample)
+}
+
+fn validate_sample_metadata(
+    spec: &CorpusSpec,
+    samples: &[NormalizedFastqSample],
+    metadata_by_sample: &BTreeMap<String, CorpusSpecSample>,
+) -> Result<()> {
+    validate_fastq_corpus_source_spec(spec)?;
+    if samples.len() != spec.target_total || metadata_by_sample.len() != samples.len() {
+        return Err(anyhow!("normalized samples and metadata do not close over source total"));
+    }
+    let spec_by_accession =
+        spec.samples.iter().map(|row| (row.accession.as_str(), row)).collect::<BTreeMap<_, _>>();
+    let mut sample_ids = BTreeSet::new();
+    let mut accessions = BTreeSet::new();
     let mut actual_counts = expected_fastq_publication_cohort_counts(spec, "full")?;
     for count in actual_counts.values_mut() {
         *count = 0;
     }
     for sample in samples {
+        if sample.sample_id.is_empty() || !sample_ids.insert(&sample.sample_id) {
+            return Err(anyhow!("empty or repeated normalized sample identity"));
+        }
         let metadata = metadata_by_sample
             .get(&sample.sample_id)
             .ok_or_else(|| anyhow!("missing accession metadata for {}", sample.sample_id))?;
+        if !accessions.insert(&metadata.accession)
+            || spec_by_accession.get(metadata.accession.as_str()).copied() != Some(metadata)
+        {
+            return Err(anyhow!(
+                "repeated or inconsistent curated accession for {}",
+                sample.sample_id
+            ));
+        }
+        if sample.layout != metadata.layout.as_str()
+            || sample.r2.is_some() != (metadata.layout == CorpusAcquisitionLayout::Pe)
+        {
+            return Err(anyhow!(
+                "read layout disagrees with curated metadata for {}",
+                sample.sample_id
+            ));
+        }
         *actual_counts
             .entry(format!("{}_{}", metadata.era, metadata.layout.as_str()))
             .or_default() += 1;
@@ -232,7 +286,7 @@ pub fn match_normalized_fastq_corpus_metadata(
             actual_counts
         ));
     }
-    Ok(metadata_by_sample)
+    Ok(())
 }
 
 /// Select paired samples using curated metadata and enforce paired cohort counts.
@@ -244,6 +298,7 @@ pub fn select_normalized_fastq_paired_samples(
     samples: &[NormalizedFastqSample],
     metadata_by_sample: &BTreeMap<String, CorpusSpecSample>,
 ) -> Result<Vec<NormalizedFastqSample>> {
+    validate_sample_metadata(spec, samples, metadata_by_sample)?;
     let paired = samples
         .iter()
         .filter(|row| {
@@ -253,7 +308,9 @@ pub fn select_normalized_fastq_paired_samples(
         })
         .cloned()
         .collect::<Vec<_>>();
-    let mut actual_counts = BTreeMap::<String, usize>::new();
+    let expected_counts = expected_fastq_publication_cohort_counts(spec, "paired")?;
+    let mut actual_counts =
+        expected_counts.keys().map(|key| (key.clone(), 0)).collect::<BTreeMap<_, _>>();
     for sample in &paired {
         let metadata = metadata_by_sample
             .get(&sample.sample_id)
@@ -262,7 +319,6 @@ pub fn select_normalized_fastq_paired_samples(
             .entry(format!("{}_{}", metadata.era, metadata.layout.as_str()))
             .or_default() += 1;
     }
-    let expected_counts = expected_fastq_publication_cohort_counts(spec, "paired")?;
     if actual_counts != expected_counts {
         return Err(anyhow!(
             "paired corpus contract drift: expected {expected_counts:?}, found {actual_counts:?}"
@@ -272,158 +328,4 @@ pub fn select_normalized_fastq_paired_samples(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use std::io::Write;
-
-    fn source_path() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../benchmarks/corpora/human-short-read-diversity.toml")
-    }
-
-    fn corpus() -> Result<(tempfile::TempDir, CorpusSpec, BTreeMap<String, String>)> {
-        let root = tempfile::tempdir()?;
-        fs::create_dir(root.path().join("normalized"))?;
-        let mut spec = load_fastq_corpus_source_spec(&source_path())?;
-        spec.target_total = 4;
-        spec.target_ancient_se = Some(1);
-        spec.target_ancient_pe = Some(1);
-        spec.target_modern_se = Some(1);
-        spec.target_modern_pe = Some(1);
-        let template = spec.samples[0].clone();
-        spec.samples.clear();
-        let mut files = BTreeMap::new();
-        for (sample, era, layout) in [
-            ("d", "modern", CorpusAcquisitionLayout::Pe),
-            ("b", "ancient", CorpusAcquisitionLayout::Pe),
-            ("c", "modern", CorpusAcquisitionLayout::Se),
-            ("a", "ancient", CorpusAcquisitionLayout::Se),
-        ] {
-            let accession = format!("accession_{sample}");
-            let mut metadata = template.clone();
-            metadata.accession = accession.clone();
-            metadata.era = era.to_string();
-            metadata.layout = layout;
-            spec.samples.push(metadata);
-            fs::create_dir_all(root.path().join("raw").join(&accession))?;
-            let mates = if layout == CorpusAcquisitionLayout::Pe { 2 } else { 1 };
-            for mate in 1..=mates {
-                let name = format!("{sample}_R{mate}.fastq.gz");
-                let mut gzip =
-                    flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
-                write!(gzip, "@{sample}/{mate}\nACGT\n+\nIIII\n")?;
-                let bytes = gzip.finish()?;
-                let digest = bijux_dna_infra::hash_bytes_sha256(&bytes);
-                for relative in [format!("normalized/{name}"), format!("raw/{accession}/{name}")] {
-                    fs::write(root.path().join(&relative), &bytes)?;
-                    files.insert(relative, digest.clone());
-                }
-            }
-        }
-        write_manifest(root.path(), &files)?;
-        Ok((root, spec, files))
-    }
-
-    fn write_manifest(root: &Path, files: &BTreeMap<String, String>) -> Result<()> {
-        fs::write(
-            root.join("MANIFEST.json"),
-            serde_json::to_vec(&serde_json::json!({"files": files}))?,
-        )?;
-        Ok(())
-    }
-
-    #[test]
-    fn discovers_ordered_reads_matches_accessions_and_selects_both_paired_cohorts() -> Result<()> {
-        let (root, spec, _) = corpus()?;
-        let samples = discover_normalized_fastq_samples(
-            root.path(),
-            &spec.corpus_id,
-            normalized_fastq_expected_sample_total(&spec),
-        )?;
-        assert_eq!(
-            samples.iter().map(|row| row.sample_id.as_str()).collect::<Vec<_>>(),
-            ["a", "b", "c", "d"]
-        );
-        assert_eq!(
-            samples.iter().map(|row| row.layout.as_str()).collect::<Vec<_>>(),
-            ["se", "pe", "se", "pe"]
-        );
-        let metadata = match_normalized_fastq_corpus_metadata(root.path(), &spec, &samples)?;
-        for sample in &samples {
-            assert_eq!(
-                metadata[&sample.sample_id].accession,
-                format!("accession_{}", sample.sample_id)
-            );
-        }
-        let paired = select_normalized_fastq_paired_samples(&spec, &samples, &metadata)?;
-        assert_eq!(paired.iter().map(|row| row.sample_id.as_str()).collect::<Vec<_>>(), ["b", "d"]);
-        Ok(())
-    }
-
-    #[test]
-    fn rejects_missing_read_roots_orphan_mates_and_sample_count_drift() -> Result<()> {
-        let empty = tempfile::tempdir()?;
-        assert!(discover_normalized_fastq_samples(empty.path(), "corpus", 0).is_err());
-        let (root, spec, _) = corpus()?;
-        assert!(discover_normalized_fastq_samples(root.path(), &spec.corpus_id, 3).is_err());
-        fs::remove_file(root.path().join("normalized/b_R1.fastq.gz"))?;
-        assert!(discover_normalized_fastq_samples(root.path(), &spec.corpus_id, 4)
-            .unwrap_err()
-            .to_string()
-            .contains("missing R1"));
-        Ok(())
-    }
-
-    #[test]
-    fn rejects_missing_ambiguous_and_unknown_manifest_accessions() -> Result<()> {
-        let (root, spec, files) = corpus()?;
-        let samples = discover_normalized_fastq_samples(root.path(), &spec.corpus_id, 4)?;
-        let key = "raw/accession_a/a_R1.fastq.gz";
-        let mut missing = files.clone();
-        let digest = missing.remove(key).context("raw digest")?;
-        write_manifest(root.path(), &missing)?;
-        assert!(match_normalized_fastq_corpus_metadata(root.path(), &spec, &samples)
-            .unwrap_err()
-            .to_string()
-            .contains("missing accession"));
-        missing.insert("raw/unlisted/a_R1.fastq.gz".to_string(), digest.clone());
-        write_manifest(root.path(), &missing)?;
-        assert!(match_normalized_fastq_corpus_metadata(root.path(), &spec, &samples)
-            .unwrap_err()
-            .to_string()
-            .contains("missing curated metadata"));
-        missing.insert(key.to_string(), digest);
-        write_manifest(root.path(), &missing)?;
-        assert!(match_normalized_fastq_corpus_metadata(root.path(), &spec, &samples)
-            .unwrap_err()
-            .to_string()
-            .contains("expected one accession"));
-        Ok(())
-    }
-
-    #[test]
-    fn rejects_incomplete_cohort_authority_and_count_drift() -> Result<()> {
-        let (root, mut spec, _) = corpus()?;
-        assert!(expected_fastq_publication_cohort_counts(&spec, "unknown").is_err());
-        spec.target_ancient_se = None;
-        assert!(expected_fastq_publication_cohort_counts(&spec, "full").is_err());
-        spec.target_ancient_se = Some(2);
-        let samples = discover_normalized_fastq_samples(root.path(), &spec.corpus_id, 4)?;
-        assert!(match_normalized_fastq_corpus_metadata(root.path(), &spec, &samples)
-            .unwrap_err()
-            .to_string()
-            .contains("cohort contract drift"));
-        Ok(())
-    }
-
-    #[test]
-    fn rejects_requested_corpus_identity_mismatch() -> Result<()> {
-        let spec = load_fastq_corpus_source_spec(&source_path())?;
-        assert_eq!(
-            load_fastq_corpus_source_for_id(&source_path(), &spec.corpus_id)?.corpus_id,
-            spec.corpus_id
-        );
-        assert!(load_fastq_corpus_source_for_id(&source_path(), "different-corpus").is_err());
-        Ok(())
-    }
-}
+mod tests;
