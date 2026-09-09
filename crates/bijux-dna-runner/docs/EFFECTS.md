@@ -39,7 +39,7 @@ Runner errors use these source-level effect codes:
 - No network access by default.
 - No privileged containers or host-root mounts.
 - No secret logging.
-- Replay must not spawn processes, pull images, or mutate input artifacts.
+- Execution-manifest replay must not spawn processes, pull images, or mutate input artifacts.
 - Ordinary runners must refuse `external-artifact://` image references before filesystem or process
   effects.
 
@@ -61,3 +61,7 @@ Runner errors use these source-level effect codes:
 ## Failure modes
 - Forbidden process, network, or filesystem behavior fails boundary tests.
 - Runtime command failures are recorded as execution failures; see `EXECUTION_SPEC.md`.
+
+## Bundle effects
+
+Bundle requests declare ciphertext paths, recipients and identities. The age adapter performs one supervised command with a five-minute deadline and preserves plaintext bytes without UTF-8 conversion. Plaintext staging is adjacent to the declared output and removed after the encryption attempt. The deterministic `mock-envelope-v1` transport supports local simulation and provides no confidentiality. The ciphertext and sidecar are separately persisted; interrupted pair publication must be treated as incomplete evidence and fails integrity admission.

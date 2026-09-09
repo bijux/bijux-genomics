@@ -813,3 +813,5 @@ pub use crate::model::hpc_campaign::{
 pub use crate::policy::hpc_campaign::{
     evaluate_campaign_preflight, resolve_hpc_campaign_resource_template,
 };
+
+pub use crate::model::hpc_campaign::{BundleSidecar, BUNDLE_SIDECAR_SCHEMA_VERSION};

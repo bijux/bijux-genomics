@@ -87,3 +87,7 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 ## Change Rules
 - Public field changes, invocation-hash changes, replay semantics changes, and backend invariant changes are breaking unless explicitly approved.
 - Contract changes must update this file, `PUBLIC_API.md` when exports change, `DETERMINISM.md` when identity or replay changes, and the matching tests.
+
+## Bundle boundary
+
+`BundleWriteRequest` supplies payload bytes, recipient and backend selection, output authority and campaign/job provenance. `BundleDecryptRequest` selects a ciphertext, optional sidecar and identity files. The model-owned sidecar contract admits only the known schema, supported backend and lowercase SHA-256 fields, rejects unknown fields, and publishes its schema at `benchmarks/contracts/schemas/hpc-bundle-sidecar.schema.json`. Decoding compares ciphertext path/hash before backend invocation and plaintext hash/byte count before returning bytes. Recipient fingerprints are descriptive transport metadata; they are not independent identity authorization. Tests in `tests/contracts/bundle/owner.rs` cover deterministic replay and malformed or contradictory evidence; command-runner tests cover byte preservation and process deadlines.

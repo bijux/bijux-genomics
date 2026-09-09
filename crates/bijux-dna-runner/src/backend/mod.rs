@@ -1,3 +1,4 @@
+mod bundle;
 pub mod docker;
 mod facade;
 pub mod kinds;

@@ -33,3 +33,7 @@ Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux
 
 ## Contract Changes
 Boundary changes must update `DEPENDENCIES.md`, `EFFECTS.md`, `EXECUTION_SPEC.md`, and the matching runner boundary tests in the same reviewable change.
+
+## Bundle transport
+
+The runner owns publication and decoding of explicitly requested bundle transports. The benchmark model owns the persisted `BundleSidecar` schema. Bundle transport verifies ciphertext identity, declared backend, plaintext hash and byte count; it does not interpret the scientific payload. `backend/bundle` separates transport contracts, storage, the external age adapter, the deterministic mock adapter and their lifecycle.

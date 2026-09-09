@@ -26,7 +26,7 @@ fn effects_doc_matches_runner_effect_codes_and_guardrails() {
 
     assert!(effects_doc.contains("BIJUX_ALLOW_NETWORK"));
     assert!(runtime_policy.contains("BIJUX_ALLOW_NETWORK"));
-    assert!(effects_doc.contains("Replay must not spawn processes"));
+    assert!(effects_doc.contains("Execution-manifest replay must not spawn processes"));
 }
 
 fn read(path: impl AsRef<Path>) -> String {

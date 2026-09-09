@@ -65,6 +65,10 @@ pub use crate::backend::{
     MANAGED_SLURM_JOB_EVIDENCE_SCHEMA_V1, MANAGED_SLURM_JOB_SPEC_SCHEMA_V1,
     PREPARED_MANAGED_SLURM_JOB_SCHEMA_V1, SLURM_CANCELLATION_SCHEMA_V1, SLURM_JOB_HANDLE_SCHEMA_V1,
 };
+pub use crate::backend::{
+    decrypt_bundle, digest_file_sha256, sha256_hex, sidecar_path_for, write_encrypted_bundle,
+    BundleDecryptRequest, BundleSidecar, BundleWriteRequest,
+};
 pub use crate::command_runner::{
     invocation_hash, run_command, run_command_with_context, run_command_with_context_and_stdin,
     run_command_with_context_and_timeout, BoundFileIdentityV1, CommandExecutionBindingV1,

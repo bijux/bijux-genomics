@@ -35,3 +35,5 @@ The Slurm backend introduces no scheduler library or async runtime dependency. I
 
 ## Boundary Rule
 If a dependency is only needed for tests, policy inspection, or fixture setup, it belongs in `dev-dependencies`.
+
+The existing `bijux-dna-bench-model` dependency supplies campaign bundle sidecars and scheduler evidence contracts. Bundle backends use the existing command binding and process supervision boundary, SHA-256 support and infra filesystem authority. The `age-cli` backend requires a caller-provided `age` executable or declared execution binding; it introduces no mandatory cryptography library.
