@@ -45,18 +45,7 @@ fn source_tree_matches_architecture_contract() {
         "src tree must match the documented environment qa layout"
     );
 
-    assert_eq!(
-        dir_entries(&root.join("src/qualification")),
-        btree_set(&[
-            "compilation.rs",
-            "evaluation.rs",
-            "materialization.rs",
-            "mod.rs",
-            "model.rs",
-            "planning.rs",
-        ]),
-        "qualification must separate compilation, materialization, models, planning, and verdict evaluation"
-    );
+    assert_qualification_tree(&root);
 
     assert_eq!(
         dir_entries(&root.join("src/image_qa")),
@@ -185,4 +174,26 @@ fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
 
 fn btree_set(entries: &[&str]) -> BTreeSet<String> {
     entries.iter().map(|entry| (*entry).to_string()).collect()
+}
+
+fn assert_qualification_tree(root: &std::path::Path) {
+    assert_eq!(
+        dir_entries(&root.join("src/qualification")),
+        btree_set(&[
+            "specification/",
+            "compilation.rs",
+            "evaluation.rs",
+            "materialization.rs",
+            "mod.rs",
+            "model.rs",
+            "planning.rs",
+        ]),
+        "qualification must separate compilation, materialization, models, planning, and verdict evaluation"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/qualification/specification")),
+        btree_set(&["admission.rs", "model.rs", "mod.rs", "storage.rs"]),
+        "specification contracts separate models, pure admission and storage"
+    );
 }

@@ -2,8 +2,19 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::path::{Component, Path, PathBuf};
+use std::path::{Path, PathBuf};
 
+use super::specification::admission::{
+    require_path_under, require_safe_component, require_safe_relative, require_sha256,
+    validate_specification_header,
+};
+use super::specification::{
+    load_qualification_specification_source, QualificationSpecificationCompilationRequest,
+    QualificationSpecificationCoverage, QualificationSpecificationCoverageState,
+    QualificationSpecificationCoverageSummary, QualificationSpecificationCoverageUnit,
+    QualificationSpecificationInputV1, QualificationSpecificationSourceV1,
+    QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2, QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1,
+};
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::{
     validate_container_governance, verify_frozen_repository, ContainerGovernance,
@@ -15,144 +26,7 @@ use bijux_dna_stage_contract::{
     canonical_tool_bindings, render_tool_command, OutputDiscoveryV1, ToolBinding,
     ToolBindingRenderContext,
 };
-use schemars::{schema_for, JsonSchema, Schema};
-use serde::{Deserialize, Serialize};
 use serde_json::json;
-
-pub const QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1: &str =
-    "bijux.container.qualification_specification_source.v1";
-pub const QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2: &str =
-    "bijux.container.qualification_specification_coverage.v2";
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct QualificationSpecificationCompilationRequest {
-    pub repository_root: PathBuf,
-    pub registry_path: PathBuf,
-    pub inventory_path: PathBuf,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum QualificationSpecificationInputKindV1 {
-    Data,
-    Reference,
-    Database,
-    UpstreamResult,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct QualificationSpecificationInputV1 {
-    pub binding_input: String,
-    pub artifact_contract_id: String,
-    pub id: String,
-    pub kind: QualificationSpecificationInputKindV1,
-    pub path: PathBuf,
-    pub mount_path: PathBuf,
-    pub sha256: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct QualificationSpecificationOutputV1 {
-    pub binding_output: String,
-    pub artifact_contract_id: String,
-    pub path: PathBuf,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct QualificationSpecificationSiteResourcesV1 {
-    pub account: String,
-    pub partition: String,
-    pub walltime: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct QualificationSpecificationSourceV1 {
-    pub schema_version: String,
-    pub catalog_sha256: String,
-    pub registry_sha256: String,
-    pub inventory_sha256: String,
-    pub governed_study_root: PathBuf,
-    pub repository_path: PathBuf,
-    pub repository_commit: String,
-    pub run_id: String,
-    pub tool_id: String,
-    pub campaign: String,
-    pub corpus: String,
-    pub corpus_role: String,
-    pub sample: String,
-    pub operator: String,
-    pub submitted_at_utc: String,
-    pub result_root: PathBuf,
-    pub inputs: Vec<QualificationSpecificationInputV1>,
-    #[serde(default)]
-    pub parameters: BTreeMap<String, String>,
-    pub outputs: Vec<QualificationSpecificationOutputV1>,
-    pub negative_command: Vec<String>,
-    pub site: QualificationSpecificationSiteResourcesV1,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum QualificationSpecificationCoverageState {
-    MissingBinding,
-    ImageUnavailable,
-    SourceMissing,
-    InvalidSource,
-    Ready,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct QualificationSpecificationCoverageUnit {
-    pub run_id: String,
-    pub tool_id: String,
-    pub stage_id: String,
-    pub state: QualificationSpecificationCoverageState,
-    pub binding_ready: bool,
-    pub image_ready: bool,
-    pub source_present: bool,
-    pub detail: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct QualificationSpecificationCoverageSummary {
-    pub supported_tool_count: usize,
-    pub binding_ready_count: usize,
-    pub image_ready_count: usize,
-    pub source_present_count: usize,
-    pub compile_ready_count: usize,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct QualificationSpecificationCoverage {
-    pub schema_version: String,
-    pub catalog_sha256: String,
-    pub registry_sha256: String,
-    pub inventory_sha256: String,
-    pub summary: QualificationSpecificationCoverageSummary,
-    pub units: Vec<QualificationSpecificationCoverageUnit>,
-}
-
-/// Return the generated schema for declarative qualification compiler inputs.
-#[must_use]
-pub fn qualification_specification_source_schema() -> Schema {
-    schema_for!(QualificationSpecificationSourceV1)
-}
-
-/// Write the generated declarative compiler-input schema.
-///
-/// # Errors
-/// Returns an error when the schema cannot be serialized or written.
-pub fn write_qualification_specification_source_schema(path: &Path) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(path, &qualification_specification_source_schema())
-        .context("write qualification specification source schema")
-}
 
 /// Bind one declarative qualification source to its governed, commit-addressed repository freeze.
 ///
@@ -537,48 +411,9 @@ fn require_source_header(
     request: &QualificationSpecificationCompilationRequest,
     source: &QualificationSpecificationSourceV1,
 ) -> Result<()> {
-    if source.schema_version != QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1 {
-        bail!("unsupported qualification specification source schema");
-    }
-    if !source.governed_study_root.is_absolute()
-        || !source.repository_path.is_absolute()
-        || !source.result_root.is_absolute()
-    {
-        bail!("qualification STUDY, repository, and result roots must be absolute");
-    }
-    require_path_under(
-        &source.result_root,
-        &source.governed_study_root,
-        "qualification result root",
-    )?;
-    if source.repository_commit.len() != 40
-        || source
-            .repository_commit
-            .bytes()
-            .any(|byte| !byte.is_ascii_hexdigit() || byte.is_ascii_uppercase())
-    {
-        bail!("qualification repository commit must be lowercase hexadecimal");
-    }
+    validate_specification_header(source)?;
     if !request.repository_root.is_dir() {
         bail!("qualification compiler repository root is unavailable");
-    }
-    for (digest, label) in [
-        (&source.catalog_sha256, "catalog"),
-        (&source.registry_sha256, "qualification registry"),
-        (&source.inventory_sha256, "image inventory"),
-    ] {
-        require_sha256(digest, label)?;
-    }
-    for (value, label) in [
-        (&source.campaign, "campaign"),
-        (&source.corpus, "corpus"),
-        (&source.corpus_role, "corpus role"),
-        (&source.sample, "sample"),
-        (&source.operator, "operator"),
-    ] {
-        if value.trim().is_empty() {
-            bail!("qualification {label} must not be empty");
-        }
     }
     Ok(())
 }
@@ -851,74 +686,17 @@ fn resolve_governed_path(study_root: &Path, value: &str) -> Result<PathBuf> {
     Ok(study_root.join(relative))
 }
 
-/// Load one declarative qualification source from JSON or YAML.
-///
-/// # Errors
-/// Returns an error when the source cannot be read or decoded.
-pub fn load_qualification_specification_source(
-    path: &Path,
-) -> Result<QualificationSpecificationSourceV1> {
-    let metadata = fs::symlink_metadata(path)
-        .with_context(|| format!("inspect qualification source {}", path.display()))?;
-    if metadata.file_type().is_symlink() || !metadata.is_file() {
-        bail!("qualification source is not a regular file: {}", path.display());
-    }
-    let bytes = bijux_dna_infra::read_to_end_bounded(path, 16 * 1024 * 1024)
-        .with_context(|| format!("read qualification source {}", path.display()))?;
-    match path.extension().and_then(|value| value.to_str()) {
-        Some("json") => serde_json::from_slice(&bytes).context("parse qualification source JSON"),
-        Some("yaml" | "yml") => {
-            serde_yaml::from_slice(&bytes).context("parse qualification source YAML")
-        }
-        _ => bail!("qualification source must use a JSON or YAML extension"),
-    }
-}
-
 fn hash(path: &Path) -> Result<String> {
     bijux_dna_infra::hash_file_sha256(path).with_context(|| format!("hash {}", path.display()))
-}
-
-fn require_sha256(value: &str, label: &str) -> Result<()> {
-    if value.len() != 64
-        || value.bytes().any(|byte| !byte.is_ascii_hexdigit() || byte.is_ascii_uppercase())
-    {
-        bail!("{label} identity must be lowercase SHA-256");
-    }
-    Ok(())
-}
-
-fn require_safe_relative(path: &Path, label: &str) -> Result<()> {
-    if path.as_os_str().is_empty()
-        || path.is_absolute()
-        || path.components().any(|component| !matches!(component, Component::Normal(_)))
-    {
-        bail!("{label} must be a safe relative path");
-    }
-    Ok(())
-}
-
-fn require_safe_component(value: &str, label: &str) -> Result<()> {
-    let mut components = Path::new(value).components();
-    if !matches!(components.next(), Some(Component::Normal(_))) || components.next().is_some() {
-        bail!("{label} must be a safe path component");
-    }
-    Ok(())
-}
-
-fn require_path_under(path: &Path, root: &Path, label: &str) -> Result<()> {
-    if !path.starts_with(root)
-        || path
-            .components()
-            .any(|component| matches!(component, Component::CurDir | Component::ParentDir))
-    {
-        bail!("{label} must remain under the governed STUDY root");
-    }
-    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::qualification::QualificationSpecificationInputKindV1;
+    use crate::qualification::{
+        QualificationSpecificationOutputV1, QualificationSpecificationSiteResourcesV1,
+    };
 
     #[test]
     fn qualification_source_loader_rejects_undeclared_encodings() -> Result<()> {
@@ -1227,12 +1005,6 @@ mod tests {
     }
 
     #[test]
-    fn source_schema_refuses_unknown_fields() {
-        let value = serde_json::json!({"schema_version": QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1, "unknown": true});
-        assert!(serde_json::from_value::<QualificationSpecificationSourceV1>(value).is_err());
-    }
-
-    #[test]
     fn glob_outputs_require_a_manifest_built_outside_the_matching_prefix() -> Result<()> {
         let bindings = canonical_tool_bindings()?;
         let binding = bindings
@@ -1269,6 +1041,19 @@ mod tests {
                 walltime: "00:30:00".to_string(),
             },
         };
+        let wire = serde_json::to_value(&source)?;
+        assert_eq!(
+            serde_json::from_value::<QualificationSpecificationSourceV1>(wire.clone())?,
+            source
+        );
+        let mut unknown_root = wire.clone();
+        unknown_root["unknown"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<QualificationSpecificationSourceV1>(unknown_root).is_err());
+        let mut unknown_output = wire;
+        unknown_output["outputs"][0]["unknown"] = serde_json::json!(true);
+        assert!(
+            serde_json::from_value::<QualificationSpecificationSourceV1>(unknown_output).is_err()
+        );
         let command = wrap_real_command(&["true".to_string()], &source, binding)?;
         assert!(command[2].contains("/result/.qualification-glob-manifests/pca_report.txt.partial"));
         assert!(command[2].contains("/result/pca_report.glob-manifest.txt"));
