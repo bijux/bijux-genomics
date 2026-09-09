@@ -79,3 +79,5 @@ FASTQ tool scoring accepts `FastqToolScoringInput` and returns typed rows throug
 Runtime, memory and execution-failure observations in FASTQ scoring match the exact stage/tool binding. A default tool does not inherit observations from another registered or unregistered tool. Missing observations remain absent and reduce metric coverage; any scientific substitution requires an explicit, independently admitted adapter contract.
 
 The full benchmark dashboard envelope and metric rows are owned here. Their closed input shapes and schema identity are independent of CLI acquisition, filesystem persistence, and Markdown presentation. Row cross-checks remain with the report evaluator.
+
+Local smoke subset observation envelopes, rows, and execution-kind serialization belong to this model owner. Failed execution observations remain representable; decoding alone does not establish success, count closure, or backend provenance. Acquisition, admission policy, and persistence remain separate responsibilities.

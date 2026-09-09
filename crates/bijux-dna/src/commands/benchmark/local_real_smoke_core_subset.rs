@@ -3,7 +3,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION;
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport, RealSmokeCoreSubsetRow,
+};
 use serde_json::Value;
 
 use super::local_stage_commands::materialize_local_stage;
@@ -18,46 +21,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_REAL_SMOKE_CORE_SUBSET_PATH: &str =
     "artifacts/benchmarks/local-real-smoke/core-subset/REAL_SMOKE_SUMMARY.json";
-const REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION: &str = "bijux.bench.local_real_smoke_core_subset.v1";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum RealSmokeCoreSubsetExecutionKind {
-    Stage,
-    PipelineBridge,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct RealSmokeCoreSubsetRow {
-    pub(crate) execution_id: String,
-    pub(crate) execution_kind: RealSmokeCoreSubsetExecutionKind,
-    pub(crate) domain: String,
-    pub(crate) bridge_source_domain: Option<String>,
-    pub(crate) bridge_target_domain: Option<String>,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) evidence_path: String,
-    pub(crate) parsed_schema_version: String,
-    pub(crate) stage_result_manifest_path: Option<String>,
-    pub(crate) manifest_status: Option<String>,
-    pub(crate) manifest_exit_code: Option<i32>,
-    pub(crate) normalized_metric_count: usize,
-    pub(crate) normalized_metrics: BTreeMap<String, Value>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct RealSmokeCoreSubsetReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) execution_count: usize,
-    pub(crate) stage_execution_count: usize,
-    pub(crate) pipeline_bridge_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) passes_behavior_test: bool,
-    pub(crate) rows: Vec<RealSmokeCoreSubsetRow>,
-}
 
 pub(crate) fn run_real_smoke_core_subset(
     args: &parse::BenchLocalRunRealSmokeCoreSubsetArgs,
@@ -132,7 +95,7 @@ pub(crate) fn render_real_smoke_core_subset(
     }
 
     let report = RealSmokeCoreSubsetReport {
-        schema_version: REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION,
+        schema_version: REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         execution_count: rows.len(),
         stage_execution_count,

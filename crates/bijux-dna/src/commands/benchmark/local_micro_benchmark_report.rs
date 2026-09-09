@@ -1375,7 +1375,7 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
             handoffs: Vec::new(),
         };
         let empty_real = RealSmokeCoreSubsetReport {
-            schema_version: "bijux.bench.local_real_smoke_core_subset.v1",
+            schema_version: "bijux.bench.local_real_smoke_core_subset.v1".to_string(),
             output_path: "artifacts/benchmark-smoke/micro/core/REAL_SMOKE_CORE_SUMMARY.json"
                 .to_string(),
             execution_count: 0,

@@ -521,7 +521,7 @@ mod tests {
     #[test]
     fn failed_real_smoke_count_tracks_non_passing_rows() {
         let report = RealSmokeCoreSubsetReport {
-            schema_version: "schema",
+            schema_version: "schema".to_string(),
             output_path: "artifacts/test.json".to_string(),
             execution_count: 2,
             stage_execution_count: 2,

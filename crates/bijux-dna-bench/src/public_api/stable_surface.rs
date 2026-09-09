@@ -295,7 +295,8 @@ pub use bijux_dna_bench_model::{
     HardeningBenchmarkCampaignSummary, HardeningBenchmarkGoalEntry, HardeningMatrixRowRef,
     HardeningQueueEntry, HardeningQueueReport, HardeningScenario, MetricsArtifactRow,
     PostconditionRow, PublishedResultsStageReport, PublishedResultsStatusReport,
-    ReadinessComparisonContractStatus, RunRecordRow, ScientificDefaultsStatus, StageCentricReport,
+    ReadinessComparisonContractStatus, RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport,
+    RealSmokeCoreSubsetRow, RunRecordRow, ScientificDefaultsStatus, StageCentricReport,
     StageCentricStageReport, StageCentricToolRow, StageRegistryExtraPairRow,
     StageRegistryExtraPairsReport, StageResultIssue, StageToolBenchmarkReadyExcludedPair,
     StageToolBenchmarkReadyFailingPair, StageToolBenchmarkReadyReport,
@@ -362,10 +363,11 @@ pub use bijux_dna_bench_model::{
     FASTQ_BENCHMARK_CAMPAIGN_SCHEMA_V1, FASTQ_COMPARABLE_METRICS_SCHEMA_V1,
     FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION, FULL_BENCHMARK_REPORT_SCHEMA_V1,
     FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1, HARDENING_BENCHMARK_CAMPAIGN_SCHEMA_V1,
-    HARDENING_QUEUE_REPORT_SCHEMA_V1, REQUIRED_ALL_DOMAIN_FAILURE_CLASSES,
-    STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
-    STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1,
-    VCF_BENCHMARK_CAMPAIGN_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+    HARDENING_QUEUE_REPORT_SCHEMA_V1, REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION,
+    REQUIRED_ALL_DOMAIN_FAILURE_CLASSES, STAGE_CENTRIC_REPORT_SCHEMA_V1,
+    STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1,
+    TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_BENCHMARK_CAMPAIGN_SCHEMA_V1,
+    VCF_COMPARABLE_METRICS_SCHEMA_V1,
 };
 
 pub use crate::artifacts::{

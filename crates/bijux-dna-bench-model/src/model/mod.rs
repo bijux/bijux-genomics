@@ -79,6 +79,7 @@ pub mod publication_registry;
 pub mod publication_status;
 pub mod published_results_status;
 pub mod readiness_views;
+pub mod real_smoke_core_subset;
 pub mod remediation_queue;
 pub mod replay;
 pub mod report;
@@ -742,4 +743,9 @@ pub use workspace_layout::{
 pub use local_slurm_scripts::{
     BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
+};
+
+pub use real_smoke_core_subset::{
+    RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport, RealSmokeCoreSubsetRow,
+    REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION,
 };

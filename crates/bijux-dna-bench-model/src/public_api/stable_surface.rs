@@ -716,7 +716,8 @@ pub use crate::model::{
     FullBenchmarkResultCollectorRow, FullBenchmarkResultStatus, FullBenchmarkResultSurfaceKind,
     FullBenchmarkRuntimeRow, FullBenchmarkStageSectionRow, FullBenchmarkToolSectionRow,
     FullBenchmarkUnsupportedPairRow, GovernedDataCatalog, GovernedDataCatalogFile,
-    GovernedDataCatalogSample, ReadinessComparisonContractStatus, ScientificAcceptanceDirection,
+    GovernedDataCatalogSample, ReadinessComparisonContractStatus, RealSmokeCoreSubsetExecutionKind,
+    RealSmokeCoreSubsetReport, RealSmokeCoreSubsetRow, ScientificAcceptanceDirection,
     ScientificAcceptanceInsufficiencyBehavior, ScientificAcceptancePassRule,
     ScientificAcceptanceThresholdRow, ScientificAcceptanceThresholdsConfig,
     ScientificAcceptanceThresholdsReport, ScientificAcceptanceToleranceKind, StageCentricReport,
@@ -727,6 +728,7 @@ pub use crate::model::{
     ToolCentricStageRow, ToolCentricToolReport, TruthSetHook, TruthSetStatus,
     VcfComparableMetricsReport, VcfComparableMetricsRow,
     BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1, FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION,
+    REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION,
 };
 pub use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
 pub use crate::policy::{
