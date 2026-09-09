@@ -35,7 +35,7 @@ status-level = "pass"
 # These suites create an independent RepoSandbox for every test and bind all CLI
 # repository/output roots to it. They can use the global worker pool within a shard.
 [[profile.full.overrides]]
-filter = 'package(bijux-dna) and binary(/^(?:bench_local_hpc_dry_run_ready(?:_file)?|bench_readiness_operational_benchmark_ready)$/)'
+filter = 'package(bijux-dna) and binary(/^(?:bench_local_hpc_dry_run_ready(?:_file)?|bench_readiness_operational_benchmark_ready|bench_readiness_all_domain_local_harness_complete(?:_file)?|bench_readiness_all_domain_local_operational_benchmark_complete)$/)'
 test-group = '@global'
 
 # Other CLI generators retain serialization until their output isolation is qualified.
