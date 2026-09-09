@@ -95,3 +95,7 @@ Current internal targets surfaced by help:
 - `_policy-fast`
 - `_ci-fast`
 - `_ci-slow`
+
+`_python-test` runs the Python benchmark and adapter contracts with the root
+`pyproject.toml` configuration. Select an interpreter containing its `checks`
+dependency group through `PYTHON`; caches and temporary output use `artifacts/`.

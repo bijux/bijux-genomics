@@ -13,6 +13,12 @@ Keep the repository layout reviewable and prevent generated paths from recreatin
 
 The repository root is governed by the native `check-root-layout` allowlist. New root entries require an architecture decision and a corresponding validator change. Generated output belongs under `artifacts/` unless another governed destination is part of a product contract.
 
+`pyproject.toml` is the discoverable Python tool configuration, including the
+verification dependency group. Keeping this configuration at the root lets both
+pytest and Ruff resolve their cache paths when invoked from nested source
+directories. Their caches live in `artifacts/python/`; root `.pytest_cache`,
+`.ruff_cache`, and `__pycache__` directories remain forbidden.
+
 Local benchmark smoke, readiness, fake-run, and Slurm dry-run defaults use
 `artifacts/runs/bench/`. The analysis run-index default is
 `artifacts/runs/bijux-dna-runs/index.jsonl`. Explicit input paths in previously

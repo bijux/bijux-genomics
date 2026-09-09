@@ -788,6 +788,7 @@ fn repository_root_offenders(root: &Path) -> Result<Vec<String>> {
         "README.md",
         "audit-allowlist.toml",
         "mkdocs.yml",
+        "pyproject.toml",
         "rust-toolchain.toml",
         "rustfmt.toml",
     ];
@@ -1093,7 +1094,9 @@ mod embedded_workspace_mirror_tests {
         for directory in [".cargo", ".bijux", ".github", "artifacts", "crates", "docs"] {
             std::fs::create_dir(root.path().join(directory))?;
         }
-        for file in [".git", ".gitignore", "Cargo.toml", "Cargo.lock", "README.md"] {
+        for file in
+            [".git", ".gitignore", "Cargo.toml", "Cargo.lock", "README.md", "pyproject.toml"]
+        {
             std::fs::write(root.path().join(file), b"governed")?;
         }
         assert!(repository_root_offenders(root.path())?.is_empty());
