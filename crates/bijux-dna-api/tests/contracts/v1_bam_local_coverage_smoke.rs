@@ -99,15 +99,7 @@ fn write_local_coverage_smoke_summary_materializes_governed_outputs() -> Result<
     let coverage_depth = repo_root.join(&chr1_row["coverage_depth"]);
     let coverage_summary_artifact = repo_root.join(&chr1_row["coverage_mosdepth_summary"]);
     let stage_metrics = repo_root.join(&chr1_row["stage_metrics"]);
-    for path in [
-        &coverage_tsv,
-        &coverage_summary_json,
-        &coverage_depth,
-        &coverage_summary_artifact,
-        &stage_metrics,
-    ] {
-        assert!(path.is_file(), "governed BAM coverage artifact must exist: {}", path.display());
-    }
+    assert_coverage_artifacts(&repo_root, chr1_row);
 
     let case_tsv = std::fs::read_to_string(&coverage_tsv)?;
     assert!(case_tsv.contains("chr1_window\tchr1\t1\t6\t6\t1.333333\t1.000000\t6"));
@@ -164,4 +156,17 @@ fn parse_row(
         row.insert(column.clone(), value.clone());
     }
     Ok(row)
+}
+
+fn assert_coverage_artifacts(repo_root: &Path, row: &BTreeMap<String, String>) {
+    for field in [
+        "coverage_tsv",
+        "coverage_summary_json",
+        "coverage_depth",
+        "coverage_mosdepth_summary",
+        "stage_metrics",
+    ] {
+        let path = repo_root.join(&row[field]);
+        assert!(path.is_file(), "governed BAM coverage artifact must exist: {}", path.display());
+    }
 }

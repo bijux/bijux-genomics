@@ -59,50 +59,9 @@ fn write_local_overlap_correction_smoke_report_materializes_governed_outputs() -
     assert_eq!(payload["corrected_overlap_bases"], serde_json::json!(7));
     assert_eq!(payload["insufficiency_reason"], serde_json::Value::Null);
 
-    let corrected_bam = repo_root.join(
-        payload["overlap_corrected_bam"]
-            .as_str()
-            .unwrap_or_else(|| panic!("overlap_corrected_bam path missing")),
-    );
-    let overlap_summary = repo_root.join(
-        payload["overlap_correction_summary"]
-            .as_str()
-            .unwrap_or_else(|| panic!("overlap_correction_summary path missing")),
-    );
-    let flagstat_before = repo_root.join(
-        payload["flagstat_before"]
-            .as_str()
-            .unwrap_or_else(|| panic!("flagstat_before path missing")),
-    );
-    let flagstat_after = repo_root.join(
-        payload["flagstat_after"].as_str().unwrap_or_else(|| panic!("flagstat_after path missing")),
-    );
-    let idxstats_before = repo_root.join(
-        payload["idxstats_before"]
-            .as_str()
-            .unwrap_or_else(|| panic!("idxstats_before path missing")),
-    );
-    let idxstats_after = repo_root.join(
-        payload["idxstats_after"].as_str().unwrap_or_else(|| panic!("idxstats_after path missing")),
-    );
-    let stage_metrics = repo_root.join(
-        payload["stage_metrics"].as_str().unwrap_or_else(|| panic!("stage_metrics path missing")),
-    );
-    for path in [
-        &corrected_bam,
-        &overlap_summary,
-        &flagstat_before,
-        &flagstat_after,
-        &idxstats_before,
-        &idxstats_after,
-        &stage_metrics,
-    ] {
-        assert!(
-            path.is_file(),
-            "governed BAM overlap-correction artifact must exist: {}",
-            path.display()
-        );
-    }
+    assert_overlap_artifacts(&repo_root, &payload);
+    let overlap_summary = report_artifact(&repo_root, &payload, "overlap_correction_summary");
+    let stage_metrics = report_artifact(&repo_root, &payload, "stage_metrics");
 
     let summary_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&overlap_summary)?)?;
@@ -137,4 +96,27 @@ fn write_local_overlap_correction_smoke_report_materializes_governed_outputs() -
     assert_eq!(stage_metrics_json["expectation_matched"], serde_json::json!(true));
 
     Ok(())
+}
+
+fn report_artifact(repo_root: &Path, payload: &serde_json::Value, field: &str) -> PathBuf {
+    repo_root.join(payload[field].as_str().unwrap_or_else(|| panic!("{field} path missing")))
+}
+
+fn assert_overlap_artifacts(repo_root: &Path, payload: &serde_json::Value) {
+    for field in [
+        "overlap_corrected_bam",
+        "overlap_correction_summary",
+        "flagstat_before",
+        "flagstat_after",
+        "idxstats_before",
+        "idxstats_after",
+        "stage_metrics",
+    ] {
+        let path = report_artifact(repo_root, payload, field);
+        assert!(
+            path.is_file(),
+            "governed BAM overlap-correction artifact must exist: {}",
+            path.display()
+        );
+    }
 }
