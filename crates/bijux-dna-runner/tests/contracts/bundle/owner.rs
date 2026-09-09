@@ -213,3 +213,74 @@ fn plaintext_staging_retains_backend_and_cleanup_failures() -> anyhow::Result<()
     assert!(message.contains("remove private bundle plaintext"));
     Ok(())
 }
+
+fn recipient_request<'a>(
+    path: &'a std::path::Path,
+    recipients: &'a [String],
+) -> BundleWriteRequest<'a> {
+    BundleWriteRequest {
+        output_path: path,
+        bundle_kind: "results",
+        campaign_id: "recipient-admission",
+        domain: "test",
+        stage: "test",
+        tool: "test",
+        sample: "test",
+        planned_job_id: "plan",
+        scheduler_job_id: "mock",
+        submitted_at: "1700000000",
+        backend: "mock-envelope-v1",
+        recipients,
+        plaintext: b"retained payload",
+    }
+}
+
+#[test]
+fn recipient_admission_rejects_invalid_declarations_before_filesystem_effects() -> anyhow::Result<()>
+{
+    let root = tempfile::tempdir()?;
+    let output = root.path().join("not-created/bundle");
+    for recipients in [
+        vec![],
+        vec![String::new()],
+        vec!["  ".into()],
+        vec![" alice".into()],
+        vec!["alice".into(), "alice".into()],
+    ] {
+        assert!(write_encrypted_bundle(&recipient_request(&output, &recipients)).is_err());
+        assert!(!root.path().join("not-created").exists());
+    }
+    Ok(())
+}
+
+#[test]
+fn recipient_admission_rejects_sidecar_and_mock_envelope_contradictions() -> anyhow::Result<()> {
+    let root = tempfile::tempdir()?;
+    let output = root.path().join("bundle");
+    let recipients = vec!["alice".into(), "bob".into()];
+    let sidecar = write_encrypted_bundle(&recipient_request(&output, &recipients))?;
+    let request =
+        BundleDecryptRequest { bundle_path: &output, sidecar_path: None, identity_files: &[] };
+    let sidecar_path = sidecar_path_for(&output);
+    let original = std::fs::read(&sidecar_path)?;
+    for replacement in [
+        vec![],
+        vec!["incorrect".to_string()],
+        sidecar.recipient_fingerprints.iter().rev().cloned().collect(),
+    ] {
+        let mut changed = sidecar.clone();
+        changed.recipient_fingerprints = replacement;
+        std::fs::write(&sidecar_path, serde_json::to_vec(&changed)?)?;
+        let error = decrypt_bundle(&request).expect_err("contradictory fingerprints");
+        assert!(format!("{error:#}").contains("fingerprints disagree"));
+    }
+    let mut changed = sidecar;
+    changed.recipients = vec!["mallory".into()];
+    changed.recipient_fingerprints = vec![super::storage::recipient_fingerprint("mallory")];
+    std::fs::write(&sidecar_path, serde_json::to_vec(&changed)?)?;
+    let error = decrypt_bundle(&request).expect_err("mock envelope declares different recipients");
+    assert!(format!("{error:#}").contains("envelope recipients disagree"));
+    std::fs::write(&sidecar_path, &original)?;
+    assert_eq!(decrypt_bundle(&request)?.1, b"retained payload");
+    Ok(())
+}

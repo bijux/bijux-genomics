@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 const MOCK_ENVELOPE_SCHEMA_VERSION: &str = "bijux.hpc.bundle.mock_envelope.v1";
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct MockEnvelope {
     schema_version: String,
     recipients: Vec<String>,
@@ -50,12 +51,19 @@ pub(super) fn encrypt_mock_envelope(recipients: &[String], plaintext: &[u8]) -> 
     };
     serde_json::to_vec_pretty(&envelope).context("serialize mock envelope")
 }
-pub(super) fn decrypt_mock_envelope(ciphertext: &[u8]) -> Result<Vec<u8>> {
+pub(super) fn decrypt_mock_envelope(
+    ciphertext: &[u8],
+    expected_recipients: &[String],
+) -> Result<Vec<u8>> {
     let envelope: MockEnvelope =
         serde_json::from_slice(ciphertext).context("parse mock envelope ciphertext")?;
     if envelope.schema_version != MOCK_ENVELOPE_SCHEMA_VERSION {
         return Err(anyhow!("unsupported mock envelope schema `{}`", envelope.schema_version));
     }
+    anyhow::ensure!(
+        envelope.recipients == expected_recipients,
+        "mock envelope recipients disagree with sidecar declarations"
+    );
     let key =
         Sha256::digest(format!("mock-envelope-v1|{}", envelope.recipients.join("|")).as_bytes());
     let cipher_bytes = hex_decode(&envelope.ciphertext_hex)?;

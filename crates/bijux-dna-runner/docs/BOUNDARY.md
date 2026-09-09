@@ -37,3 +37,5 @@ Boundary changes must update `DEPENDENCIES.md`, `EFFECTS.md`, `EXECUTION_SPEC.md
 ## Bundle transport
 
 The runner owns publication and decoding of explicitly requested bundle transports. The benchmark model owns the persisted `BundleSidecar` schema. Bundle transport verifies ciphertext identity, declared backend, plaintext hash and byte count; it does not interpret the scientific payload. `backend/bundle` separates transport contracts, storage, the external age adapter, the deterministic mock adapter and their lifecycle.
+
+Bundle recipient admission rejects empty, blank, padded or duplicate declarations before backend effects. On decode, ordered fingerprints must match the declared recipient strings; the deterministic mock envelope must also match those declarations. The age sidecar is unsigned: matching fingerprints are declaration consistency, not proof that the ciphertext targets those recipients. Age decryption authenticates its payload through the supplied identity, while the mock transport provides no confidentiality. No new dependency is required for this admission.

@@ -2,12 +2,14 @@
 mod age;
 mod contracts;
 mod mock;
+mod recipients;
 mod storage;
 use age::{decrypt_age_cli, encrypt_age_cli};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_bench_model::BUNDLE_SIDECAR_SCHEMA_VERSION;
 pub use contracts::{BundleDecryptRequest, BundleSidecar, BundleWriteRequest};
 use mock::{decrypt_mock_envelope, encrypt_mock_envelope};
+use recipients::{validate_recipients, validate_sidecar_recipients};
 use std::path::{Path, PathBuf};
 pub use storage::{digest_file_sha256, sha256_hex, sidecar_path_for};
 use storage::{ensure_parent, recipient_fingerprint, temp_output_path};
@@ -44,12 +46,13 @@ fn decrypt_with_backend(
     backend: &EncryptionBackend,
     bundle_path: &Path,
     identity_files: &[PathBuf],
+    recipients: &[String],
 ) -> Result<Vec<u8>> {
     match backend {
         EncryptionBackend::MockEnvelopeV1 => {
             let ciphertext = std::fs::read(bundle_path)
                 .with_context(|| format!("read {}", bundle_path.display()))?;
-            decrypt_mock_envelope(&ciphertext)
+            decrypt_mock_envelope(&ciphertext, recipients)
         }
         EncryptionBackend::AgeCli => decrypt_age_cli(bundle_path, identity_files),
     }
@@ -60,9 +63,7 @@ fn decrypt_with_backend(
 /// Returns backend, filesystem, serialization, or recipient admission errors.
 pub fn write_encrypted_bundle(request: &BundleWriteRequest<'_>) -> Result<BundleSidecar> {
     let backend = parse_backend(request.backend)?;
-    if request.recipients.is_empty() {
-        return Err(anyhow!("bundle encryption recipients list is empty"));
-    }
+    validate_recipients(request.recipients)?;
 
     ensure_parent(request.output_path)?;
     let temp_path = temp_output_path(request.output_path);
@@ -127,6 +128,7 @@ pub fn decrypt_bundle(request: &BundleDecryptRequest<'_>) -> Result<(BundleSidec
         std::fs::read(&sidecar_path).with_context(|| format!("read {}", sidecar_path.display()))?;
     let sidecar: BundleSidecar =
         serde_json::from_slice(&raw_sidecar).context("parse bundle sidecar")?;
+    validate_sidecar_recipients(&sidecar)?;
     if sidecar.schema_version != BUNDLE_SIDECAR_SCHEMA_VERSION {
         return Err(anyhow!("unsupported bundle sidecar schema `{}`", sidecar.schema_version));
     }
@@ -143,7 +145,12 @@ pub fn decrypt_bundle(request: &BundleDecryptRequest<'_>) -> Result<(BundleSidec
     }
 
     let backend = parse_backend(&sidecar.backend)?;
-    let plaintext = decrypt_with_backend(&backend, request.bundle_path, request.identity_files)?;
+    let plaintext = decrypt_with_backend(
+        &backend,
+        request.bundle_path,
+        request.identity_files,
+        &sidecar.recipients,
+    )?;
     if plaintext.len() != sidecar.plaintext_bytes {
         return Err(anyhow!("bundle plaintext byte count mismatch"));
     }

@@ -82,7 +82,7 @@ fn runner_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/backend/bundle")),
-        ["age.rs", "contracts.rs", "mock.rs", "mod.rs", "storage.rs"]
+        ["age.rs", "contracts.rs", "mock.rs", "mod.rs", "recipients.rs", "storage.rs"]
             .into_iter()
             .map(str::to_string)
             .collect(),
