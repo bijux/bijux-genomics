@@ -722,3 +722,8 @@ pub use bijux_dna_bench_model::{
     AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
     ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
 };
+
+pub use crate::workflow::hpc_campaign::write_campaign_copy_back_manifest;
+pub use bijux_dna_bench_model::{
+    quote_slurm_argument, slurm_script_path, CopyBackEntry, CopyBackManifestReport,
+};

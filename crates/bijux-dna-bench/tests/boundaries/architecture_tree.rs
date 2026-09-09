@@ -80,12 +80,20 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/repo/hpc_campaign")),
-        entries(["mod.rs", "configuration.rs", "environment.rs", "monitor.rs", "profiles.rs"]),
+        entries([
+            "mod.rs",
+            "configuration.rs",
+            "copy_back.rs",
+            "environment.rs",
+            "monitor.rs",
+            "profiles.rs"
+        ]),
         "campaign acquisition stays separate from planning"
     );
     assert_eq!(
         dir_entries(&root.join("src/workflow/hpc_campaign")),
         entries([
+            "copy_back.rs",
             "mod.rs",
             "configuration.rs",
             "monitor.rs",

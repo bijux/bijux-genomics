@@ -1,4 +1,8 @@
 pub use bijux_dna_api::v1::api::bench::SlurmMonitorReport;
+use bijux_dna_api::v1::api::bench::{
+    quote_slurm_argument as shell_quote, slurm_script_path as script_path_for,
+};
+pub use bijux_dna_api::v1::api::bench::{CopyBackEntry, CopyBackManifestReport};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -21,7 +25,6 @@ use crate::commands::hpc::{
 };
 
 const SLURM_SUBMISSION_SCHEMA_VERSION: &str = "bijux.hpc.slurm.submission.v1";
-const COPY_BACK_MANIFEST_SCHEMA_VERSION: &str = "bijux.hpc.copy_back_manifest.v1";
 const BUNDLE_DECRYPT_SCHEMA_VERSION: &str = "bijux.hpc.bundle.decrypt.v1";
 
 #[derive(Debug, Clone, Serialize)]
@@ -50,32 +53,6 @@ pub struct SubmittedJob {
     pub err_path: String,
     pub results_path: String,
     pub code_path: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct CopyBackManifestReport {
-    pub schema_version: &'static str,
-    pub manifest_path: String,
-    pub campaign_id: String,
-    pub domain: String,
-    pub suggested_copy_command: String,
-    pub entries: Vec<CopyBackEntry>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct CopyBackEntry {
-    pub stage: String,
-    pub tool: String,
-    pub sample: String,
-    pub scratch_dir: String,
-    pub log_path: String,
-    pub out_path: String,
-    pub err_path: String,
-    pub results_path: String,
-    pub results_sidecar_path: String,
-    pub code_path: String,
-    pub code_sidecar_path: String,
-    pub script_path: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -234,24 +211,6 @@ fn infer_dependencies(jobs: &[SelectedJob]) -> Vec<Vec<String>> {
         result.push(deps);
     }
     result
-}
-
-fn shell_quote(value: &str) -> String {
-    if value.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | '/')) {
-        value.to_string()
-    } else {
-        format!("'{}'", value.replace('\'', "'\\''"))
-    }
-}
-
-fn script_path_for(log_path: &Path) -> PathBuf {
-    let mut script = log_path.to_path_buf();
-    let new_name = match script.file_name().and_then(|s| s.to_str()) {
-        Some(name) => format!("{name}.sbatch.sh"),
-        None => "job.sbatch.sh".to_string(),
-    };
-    script.set_file_name(new_name);
-    script
 }
 
 fn prepared_root_lock_path(root: &str) -> String {
@@ -863,66 +822,13 @@ pub fn monitor_campaign(args: &SlurmMonitorArgs) -> Result<SlurmMonitorReport> {
 pub fn write_copy_back_manifest(
     args: &SlurmCopyBackManifestArgs,
 ) -> Result<CopyBackManifestReport> {
-    let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
-    let manifest_path = args.out.clone().unwrap_or_else(|| {
-        Path::new(&report.config_path).parent().map_or_else(
-            || PathBuf::from("artifacts/slurm_copy_back_manifest.json"),
-            |parent| parent.join("copy-back-manifest.json"),
-        )
-    });
-
-    let entries = report
-        .planned_jobs
-        .iter()
-        .map(|job| CopyBackEntry {
-            stage: job.stage.clone(),
-            tool: job.tool.clone(),
-            sample: job.sample.clone(),
-            scratch_dir: job.outputs.scratch_dir.clone(),
-            log_path: job.outputs.log.clone(),
-            out_path: job.outputs.out.clone(),
-            err_path: job.outputs.err.clone(),
-            results_path: job.outputs.results.clone(),
-            results_sidecar_path: sidecar_path_for(Path::new(&job.outputs.results))
-                .display()
-                .to_string(),
-            code_path: job.outputs.code.clone(),
-            code_sidecar_path: sidecar_path_for(Path::new(&job.outputs.code)).display().to_string(),
-            script_path: script_path_for(Path::new(&job.outputs.log)).display().to_string(),
-        })
-        .collect::<Vec<_>>();
-
-    let suggested_copy_command = if let Some(first) = entries.first() {
-        format!(
-            "rsync -av {} {} {} {} {} {} {} <destination_dir>/",
-            shell_quote(&first.log_path),
-            shell_quote(&first.out_path),
-            shell_quote(&first.err_path),
-            shell_quote(&first.results_path),
-            shell_quote(&first.results_sidecar_path),
-            shell_quote(&first.code_path),
-            shell_quote(&first.code_sidecar_path)
-        )
-    } else {
-        "rsync -av <source> <destination_dir>/".to_string()
-    };
-
-    let manifest = CopyBackManifestReport {
-        schema_version: COPY_BACK_MANIFEST_SCHEMA_VERSION,
-        manifest_path: manifest_path.display().to_string(),
-        campaign_id: report.campaign_id,
-        domain: report.domain,
-        suggested_copy_command,
-        entries,
-    };
-
-    let payload = serde_json::to_vec_pretty(&manifest).context("serialize copy-back manifest")?;
-    ensure_parent(&manifest_path)?;
-    bijux_dna_api::v1::api::run::atomic_write_bytes(&manifest_path, &payload)
-        .with_context(|| format!("write {}", manifest_path.display()))?;
-
-    Ok(manifest)
+    bijux_dna_api::v1::api::bench::write_campaign_copy_back_manifest(
+        &crate::commands::hpc::campaign::campaign_context()?,
+        &args.config,
+        args.env_file.as_deref(),
+        args.user_policies.as_deref(),
+        args.out.as_deref(),
+    )
 }
 
 fn ensure_private_directory(path: &Path) -> Result<()> {

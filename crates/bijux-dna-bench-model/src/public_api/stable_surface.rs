@@ -833,3 +833,10 @@ pub use crate::model::simulation::{
 };
 
 pub use crate::contract::{admit_all_domain_simulation_inputs, AllDomainSimulationInput};
+
+pub use crate::model::hpc_campaign::{
+    CopyBackEntry, CopyBackManifestReport, COPY_BACK_MANIFEST_SCHEMA_VERSION,
+};
+pub use crate::policy::campaign_copy_back::{
+    plan_campaign_copy_back, quote_slurm_argument, slurm_script_path,
+};

@@ -19,3 +19,5 @@ pub mod operational_readiness;
 pub mod hpc_campaign;
 
 pub(crate) mod campaign_monitor;
+
+pub(crate) mod campaign_copy_back;

@@ -25,3 +25,6 @@ pub use preflight::campaign_preflight;
 #[cfg(test)]
 #[path = "../../../tests/contracts/campaign/owner.rs"]
 mod tests;
+
+pub(crate) mod copy_back;
+pub use copy_back::write_campaign_copy_back_manifest;

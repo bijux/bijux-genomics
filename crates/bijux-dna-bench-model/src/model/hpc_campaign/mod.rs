@@ -11,3 +11,6 @@ mod monitor;
 pub use monitor::{
     SlurmMonitorEntry, SlurmMonitorReport, SlurmMonitorSnapshot, CAMPAIGN_MONITOR_SCHEMA_VERSION,
 };
+
+mod copy_back;
+pub use copy_back::{CopyBackEntry, CopyBackManifestReport, COPY_BACK_MANIFEST_SCHEMA_VERSION};

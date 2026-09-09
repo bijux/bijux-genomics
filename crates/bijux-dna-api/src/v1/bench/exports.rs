@@ -527,3 +527,8 @@ pub use bijux_dna_bench::{
     AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
     ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
 };
+
+pub use bijux_dna_bench::{
+    quote_slurm_argument, slurm_script_path, write_campaign_copy_back_manifest, CopyBackEntry,
+    CopyBackManifestReport,
+};
