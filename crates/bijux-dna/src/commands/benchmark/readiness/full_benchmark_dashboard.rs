@@ -98,6 +98,28 @@ pub(crate) fn render_full_benchmark_dashboard(
     repo_root: &Path,
     markdown_output_path: PathBuf,
 ) -> Result<FullBenchmarkDashboardReport> {
+    render_full_benchmark_dashboard_with_dependency(repo_root, markdown_output_path, None)
+}
+
+/// Uses the successful upstream observation from this readiness request.
+/// The caller must keep its repository inputs and referenced artifacts alive and unchanged.
+pub(crate) fn render_full_benchmark_dashboard_from_report(
+    repo_root: &Path,
+    markdown_output_path: PathBuf,
+    dependency: &FullBenchmarkReport,
+) -> Result<FullBenchmarkDashboardReport> {
+    render_full_benchmark_dashboard_with_dependency(
+        repo_root,
+        markdown_output_path,
+        Some(dependency),
+    )
+}
+
+fn render_full_benchmark_dashboard_with_dependency(
+    repo_root: &Path,
+    markdown_output_path: PathBuf,
+    dependency: Option<&FullBenchmarkReport>,
+) -> Result<FullBenchmarkDashboardReport> {
     let markdown_output_path = repo_relative_path(repo_root, &markdown_output_path);
     let json_output_path = derive_json_output_path(&markdown_output_path);
 
@@ -122,10 +144,16 @@ pub(crate) fn render_full_benchmark_dashboard(
         repo_root,
         PathBuf::from(DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH),
     )?;
-    let full_report = render_full_benchmark_report(
-        repo_root,
-        PathBuf::from(DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH),
-    )?;
+    let acquired_dependency;
+    let full_report = if let Some(report) = dependency {
+        report
+    } else {
+        acquired_dependency = render_full_benchmark_report(
+            repo_root,
+            PathBuf::from(DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH),
+        )?;
+        &acquired_dependency
+    };
     let real_smoke = render_real_smoke_core_subset(
         repo_root,
         PathBuf::from(DEFAULT_REAL_SMOKE_CORE_SUBSET_PATH),
@@ -234,7 +262,7 @@ pub(crate) fn render_full_benchmark_dashboard(
         &stage_tool_table,
         &rendered_commands,
         &parser_collector,
-        &full_report,
+        full_report,
         &real_smoke,
     )?;
 
