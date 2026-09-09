@@ -1,3 +1,4 @@
+//! Owner: benchmark qualification composition.
 //! Compose container qualification through repository, policy and science owners.
 
 mod assessment;
@@ -176,4 +177,5 @@ fn derive_container_qualification_report_inner(
 }
 
 #[cfg(test)]
+#[path = "../../../tests/contracts/qualification/owner.rs"]
 mod tests;

@@ -1,3 +1,4 @@
+//! Owner: benchmark repository acquisition.
 //! Acquisition of content-bound container qualification publications and sources.
 use anyhow::{Context, Result};
 use bijux_dna_policies::{

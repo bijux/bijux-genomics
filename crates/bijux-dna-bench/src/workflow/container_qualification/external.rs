@@ -1,3 +1,4 @@
+//! Owner: benchmark qualification composition.
 //! Container qualification external from admitted evidence.
 use super::decisions::{
     artifact_availability_name, artifact_delivery, missing_publication, security_decision,

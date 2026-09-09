@@ -1,3 +1,4 @@
+//! Owner: benchmark qualification composition.
 //! Container qualification publication from admitted evidence.
 use anyhow::Result;
 use bijux_dna_policies::{

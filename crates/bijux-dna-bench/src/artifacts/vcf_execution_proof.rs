@@ -1,3 +1,4 @@
+//! Owner: benchmark artifact interpretation.
 //! Versioned VCF execution-report interpretation, independent of filesystem acquisition.
 
 use anyhow::{ensure, Result};

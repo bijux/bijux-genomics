@@ -1,3 +1,4 @@
+//! Owner: benchmark qualification composition.
 //! Container qualification decisions from admitted evidence.
 use super::QualificationContext;
 use bijux_dna_containers::evidence::ContainerCatalogTool;

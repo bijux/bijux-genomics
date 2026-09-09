@@ -1,3 +1,4 @@
+//! Owner: benchmark qualification composition.
 //! Container qualification image from admitted evidence.
 use super::decisions::{missing_publication, security_decision};
 use super::observations::{

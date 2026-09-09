@@ -1,3 +1,4 @@
+//! Owner: benchmark qualification composition.
 //! Container qualification observations from admitted evidence.
 use crate::{AdmittedBenchmarkStageReport, BenchmarkReportVerdict};
 use bijux_dna_containers::evidence::{

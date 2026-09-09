@@ -1,3 +1,4 @@
+//! Owner: benchmark qualification composition.
 //! Container qualification assessment from admitted evidence.
 use super::decisions::{artifact_delivery, not_applicable, product_support};
 use super::external::external_artifact_assessment;

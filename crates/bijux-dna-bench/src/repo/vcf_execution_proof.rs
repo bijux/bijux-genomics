@@ -1,3 +1,4 @@
+//! Owner: benchmark repository acquisition.
 //! Acquire only the execution report declared by a validated VCF stage result.
 
 use crate::artifacts::vcf_execution_proof;
