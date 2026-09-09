@@ -12,6 +12,16 @@ pub(super) fn required_str<'a>(value: &'a Value, key: &str) -> Result<&'a str> {
         .ok_or_else(|| anyhow!("missing or noncanonical string field `{key}`"))
 }
 
+/// Reads the tool identity carried by an observed case or aggregate report.
+pub(super) fn required_observed_tool(value: &Value) -> Result<&str> {
+    required_str(value, "tool_id")
+}
+
+/// Reads the producer identity independently of the tool planned for execution.
+pub(super) fn required_report_producer(value: &Value) -> Result<&str> {
+    required_str(value, "report_tool_id")
+}
+
 pub(super) fn optional_str<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
     value.get(key).and_then(Value::as_str)
 }

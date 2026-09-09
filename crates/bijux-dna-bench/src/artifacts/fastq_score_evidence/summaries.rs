@@ -2,7 +2,7 @@
 //! Normalize case collections and stage summary observations.
 
 use super::fields::{
-    fraction_u64, optional_str, optional_u64, required_f64, required_stage, required_str,
+    fraction_u64, optional_str, optional_u64, required_f64, required_observed_tool, required_stage,
     sum_report_counts,
 };
 use super::merge_evidence_row;
@@ -31,7 +31,7 @@ pub(super) fn merge_case_stage_report(
         .ok_or_else(|| anyhow!("{} is missing cases", absolute_path.display()))?;
     let mut tool_totals = BTreeMap::<String, (u64, u64, u64, u64)>::new();
     for case in cases {
-        let tool_id = required_str(case, "tool_id")?.to_string();
+        let tool_id = required_observed_tool(case)?.to_string();
         let input_reads = optional_u64(case, "input_read_count_total")
             .or_else(|| optional_u64(case, "input_reads"))
             .ok_or_else(|| {
@@ -167,7 +167,7 @@ pub(super) fn merge_screen_taxonomy_summary(
         return Ok(());
     };
     let stage_id = required_stage(&root, "fastq.screen_taxonomy")?.to_string();
-    let tool_id = required_str(&root, "tool_id")?.to_string();
+    let tool_id = required_observed_tool(&root)?.to_string();
     let samples = root
         .get("samples")
         .and_then(Value::as_array)

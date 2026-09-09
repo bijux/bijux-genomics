@@ -1,7 +1,10 @@
 //! Owner: bijux-dna-bench
 //! Adapters for observed FASTQ stage report formats.
 
-use super::fields::{fraction_u64, required_f64, required_stage, required_str, required_u64};
+use super::fields::{
+    fraction_u64, required_f64, required_observed_tool, required_report_producer, required_stage,
+    required_u64,
+};
 use anyhow::{Context, Result};
 use bijux_dna_bench_model::FastqScoreEvidence as FastqEvidenceAggregate;
 use serde_json::Value;
@@ -27,7 +30,7 @@ pub(super) const REPORTS: &[(&str, ReportAdapter)] = &[
 
 fn parse_filter_reads(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.filter_reads")?;
-    let tool_id = required_str(root, "tool_id")?;
+    let tool_id = required_observed_tool(root)?;
     let input_reads = required_u64(root, "input_reads")?;
     let output_reads = required_u64(root, "output_reads")?;
     let dropped_reads = required_u64(root, "reads_dropped")?;
@@ -51,7 +54,7 @@ fn parse_filter_reads(root: &Value) -> Result<(String, String, FastqEvidenceAggr
 
 fn parse_filter_low_complexity(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.filter_low_complexity")?;
-    let tool_id = required_str(root, "report_tool_id")?;
+    let tool_id = required_report_producer(root)?;
     let input_reads = required_u64(root, "input_reads")?;
     let output_reads = required_u64(root, "output_reads")?;
     let dropped_reads = required_u64(root, "reads_removed_low_complexity")?;
@@ -76,7 +79,7 @@ fn parse_profile_overrepresented_sequences(
     root: &Value,
 ) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.profile_overrepresented_sequences")?;
-    let tool_id = required_str(root, "report_tool_id")?;
+    let tool_id = required_report_producer(root)?;
     let top_fraction = required_f64(root, "top_fraction")?;
     Ok((
         stage_id.to_string(),
@@ -98,7 +101,7 @@ fn parse_profile_overrepresented_sequences(
 
 fn parse_remove_duplicates(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.remove_duplicates")?;
-    let tool_id = required_str(root, "report_tool_id")?;
+    let tool_id = required_report_producer(root)?;
     let input_reads = required_u64(root, "input_reads")?;
     let output_reads = required_u64(root, "output_reads")?;
     let duplicate_reads = required_u64(root, "duplicate_reads")?;
@@ -144,7 +147,7 @@ fn parse_detect_adapters(root: &Value) -> Result<(String, String, FastqEvidenceA
 
 fn parse_extract_umis(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.extract_umis")?;
-    let tool_id = required_str(root, "report_tool_id")?;
+    let tool_id = required_report_producer(root)?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -208,7 +211,7 @@ fn parse_estimate_library_complexity_prealign(
 
 fn parse_merge_pairs(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.merge_pairs")?;
-    let tool_id = required_str(root, "report_tool_id")?;
+    let tool_id = required_report_producer(root)?;
     let input_pair_count = required_u64(root, "input_pair_count")?;
     let merged_count = required_u64(root, "merged_count")?;
     let unmerged_r1_count = required_u64(root, "unmerged_r1_count")?;
@@ -239,7 +242,7 @@ fn parse_merge_pairs(root: &Value) -> Result<(String, String, FastqEvidenceAggre
 
 fn parse_normalize_abundance(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.normalize_abundance")?;
-    let tool_id = required_str(root, "report_tool_id")?;
+    let tool_id = required_report_producer(root)?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -259,7 +262,7 @@ fn parse_normalize_abundance(root: &Value) -> Result<(String, String, FastqEvide
 
 fn parse_remove_chimeras(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.remove_chimeras")?;
-    let tool_id = required_str(root, "report_tool_id")?;
+    let tool_id = required_report_producer(root)?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -280,7 +283,7 @@ fn parse_remove_chimeras(root: &Value) -> Result<(String, String, FastqEvidenceA
 
 fn parse_cluster_otus(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.cluster_otus")?;
-    let tool_id = required_str(root, "report_tool_id")?;
+    let tool_id = required_report_producer(root)?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -301,7 +304,7 @@ fn parse_cluster_otus(root: &Value) -> Result<(String, String, FastqEvidenceAggr
 
 fn parse_infer_asvs(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.infer_asvs")?;
-    let tool_id = required_str(root, "report_tool_id")?;
+    let tool_id = required_report_producer(root)?;
     Ok((
         stage_id.to_string(),
         tool_id.to_string(),
@@ -322,7 +325,7 @@ fn parse_infer_asvs(root: &Value) -> Result<(String, String, FastqEvidenceAggreg
 
 fn parse_trim_terminal_damage(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
     let stage_id = required_stage(root, "fastq.trim_terminal_damage")?;
-    let tool_id = required_str(root, "tool_id")?;
+    let tool_id = required_observed_tool(root)?;
     let input_reads = required_u64(root, "input_reads")?;
     let output_reads = required_u64(root, "output_reads")?;
     Ok((
