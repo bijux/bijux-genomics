@@ -396,3 +396,5 @@ pub use readiness::{
     validate_all_domain_rendered_command_rows, validate_all_domain_stage_tool_table_rows,
     AllDomainStageToolTableAdmissionContext,
 };
+
+pub use suite::{validate_suite_with_catalog, BenchmarkSuiteCatalog, CanonicalFastqSuiteCatalog};

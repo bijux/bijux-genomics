@@ -885,3 +885,85 @@ fn benchmark_cycle_status_uses_governed_schema() {
     assert_eq!(cycle.attempts.len(), 1);
     assert_eq!(cycle.attempts[0].status, BenchmarkLifecycleStatus::Submitted);
 }
+
+#[derive(Clone, Copy)]
+enum CatalogGap {
+    Stage,
+    Support,
+    Plannability,
+    Binding,
+    Admission,
+}
+
+struct IncompleteCatalog(CatalogGap);
+
+impl bijux_dna_bench_model::contract::BenchmarkSuiteCatalog for IncompleteCatalog {
+    fn declares_stage(&self, stage: &str) -> bool {
+        !matches!(self.0, CatalogGap::Stage)
+            && bijux_dna_bench_model::contract::CanonicalFastqSuiteCatalog.declares_stage(stage)
+    }
+    fn stage_is_plannable(&self, stage: &bijux_dna_core::ids::StageId) -> Option<bool> {
+        match self.0 {
+            CatalogGap::Support => None,
+            CatalogGap::Plannability => Some(false),
+            _ => bijux_dna_bench_model::contract::CanonicalFastqSuiteCatalog
+                .stage_is_plannable(stage),
+        }
+    }
+    fn declares_binding(
+        &self,
+        stage: &bijux_dna_core::ids::StageId,
+        tool: &bijux_dna_core::ids::ToolId,
+    ) -> bool {
+        !matches!(self.0, CatalogGap::Binding)
+            && bijux_dna_bench_model::contract::CanonicalFastqSuiteCatalog
+                .declares_binding(stage, tool)
+    }
+    fn admitted_tools(
+        &self,
+        stage: &bijux_dna_core::ids::StageId,
+    ) -> Vec<bijux_dna_core::ids::ToolId> {
+        if matches!(self.0, CatalogGap::Admission) {
+            Vec::new()
+        } else {
+            bijux_dna_bench_model::contract::CanonicalFastqSuiteCatalog.admitted_tools(stage)
+        }
+    }
+    fn input_ids(&self, stage: &str) -> Option<std::collections::BTreeSet<String>> {
+        bijux_dna_bench_model::contract::CanonicalFastqSuiteCatalog.input_ids(stage)
+    }
+    fn output_ids(&self, stage: &str) -> Option<std::collections::BTreeSet<String>> {
+        bijux_dna_bench_model::contract::CanonicalFastqSuiteCatalog.output_ids(stage)
+    }
+    fn parameter_ids(&self, stage: &str) -> Option<std::collections::BTreeSet<String>> {
+        bijux_dna_bench_model::contract::CanonicalFastqSuiteCatalog.parameter_ids(stage)
+    }
+}
+
+#[test]
+fn suite_validation_uses_supplied_catalog_and_distinguishes_missing_governance(
+) -> anyhow::Result<()> {
+    use bijux_dna_bench_model::contract::validate_suite_with_catalog;
+    let suite = suite_with_stage(BenchmarkStageSpec {
+        stage: id_catalog::FASTQ_TRIM.to_string(),
+        stage_instance_id: None,
+        tools: vec![id_catalog::TOOL_FASTP.to_string()],
+        params: Vec::new(),
+        param_bindings: Vec::new(),
+        upstream_stage_instance_ids: Vec::new(),
+    });
+    assert_valid_suite(&suite);
+    for (gap, message) in [
+        (CatalogGap::Stage, "not declared in the FASTQ domain catalog"),
+        (CatalogGap::Support, "missing FASTQ execution support"),
+        (CatalogGap::Plannability, "not plannable"),
+        (CatalogGap::Binding, "not declared in the FASTQ stage-tool matrix"),
+        (CatalogGap::Admission, "not admitted by FASTQ execution support"),
+    ] {
+        let error = validate_suite_with_catalog(&suite, &IncompleteCatalog(gap))
+            .err()
+            .ok_or_else(|| anyhow::anyhow!("missing catalog evidence admitted the suite"))?;
+        assert!(error.to_string().contains(message), "{error}");
+    }
+    Ok(())
+}

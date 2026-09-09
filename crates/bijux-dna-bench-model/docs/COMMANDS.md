@@ -15,6 +15,7 @@ not own CLI commands or process execution.
 | `admit-real-smoke-core-subset` | `admit_real_smoke_core_subset_report` | Admit required smoke stage/bridge coverage, metric presence and attached manifest outcomes. |
 | `validate-local-pipeline-config` | `validate_benchmark_local_pipeline_dag_config` | Admit local pipeline configuration version and required identity/node envelope. |
 | `local-pipeline-config-schemas` | `benchmark_local_pipeline_dag_config_schema`, `benchmark_local_pipeline_dag_metadata_config_schema`, `benchmark_local_pipeline_dag_stages_config_schema` | Generate strict combined and split configuration input schemas. |
+| `validate-suite-with-catalog` | `validate_suite_with_catalog` | Validate suite structure and governed bindings using an explicit catalog provider. |
 | `validate-suite` | `contract::validate_suite` | Validate `BenchmarkSuiteSpec` shape, graph, stage ids, tool ids, and parameter bindings. |
 | `validate-stage-campaign-registry` | `contract::validate_stage_campaign_registry` | Validate `BenchmarkStageCampaignRegistry` shape and campaign-level invariants. |
 | `validate-stage-coverage` | `contract::validate_stage_coverage` | Validate version, ordering, identities, state consistency, and exact summary closure for a stage-coverage publication. |

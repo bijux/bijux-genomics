@@ -2,6 +2,7 @@
 //! Suite stage validation contracts.
 
 use super::DeclaredStageNodes;
+use crate::contract::suite::BenchmarkSuiteCatalog;
 use crate::contract::suite::{
     ensure_supported_stage, planner_owned_graph_stage, validate_stage_param_bindings,
     validate_stage_tools,
@@ -21,14 +22,15 @@ pub(super) fn validate_schema_version(
 
 pub(super) fn validate_stage_definitions(
     suite: &BenchmarkSuiteSpec,
+    catalog: &dyn BenchmarkSuiteCatalog,
 ) -> Result<DeclaredStageNodes, BenchError> {
     let mut seen_stage_nodes = std::collections::BTreeSet::new();
     let mut seen_stage_tool_nodes = std::collections::BTreeSet::new();
     let mut declared_stage_nodes = DeclaredStageNodes::new();
     for stage in &suite.stages {
-        validate_stage_identity(stage, &mut seen_stage_nodes, &mut declared_stage_nodes)?;
-        validate_stage_tool_contracts(stage, &mut seen_stage_tool_nodes)?;
-        validate_stage_param_contracts(stage)?;
+        validate_stage_identity(stage, &mut seen_stage_nodes, &mut declared_stage_nodes, catalog)?;
+        validate_stage_tool_contracts(stage, &mut seen_stage_tool_nodes, catalog)?;
+        validate_stage_param_contracts(stage, catalog)?;
         validate_stage_upstream_contracts(stage)?;
     }
     Ok(declared_stage_nodes)
@@ -38,13 +40,14 @@ fn validate_stage_identity(
     stage: &BenchmarkStageSpec,
     seen_stage_nodes: &mut std::collections::BTreeSet<String>,
     declared_stage_nodes: &mut DeclaredStageNodes,
+    catalog: &dyn BenchmarkSuiteCatalog,
 ) -> Result<(), BenchError> {
     if stage.stage.trim().is_empty() {
         return Err(BenchError::InvalidPolicy(
             "suite stages must include non-empty stage ids".to_string(),
         ));
     }
-    ensure_supported_stage(&stage.stage)?;
+    ensure_supported_stage(&stage.stage, catalog)?;
     let node_id = stage_node_id(stage);
     if node_id.trim().is_empty() {
         return Err(BenchError::InvalidPolicy(format!(
@@ -64,6 +67,7 @@ fn validate_stage_identity(
 fn validate_stage_tool_contracts(
     stage: &BenchmarkStageSpec,
     seen_stage_tool_nodes: &mut std::collections::BTreeSet<String>,
+    catalog: &dyn BenchmarkSuiteCatalog,
 ) -> Result<(), BenchError> {
     if stage.tools.is_empty() && !planner_owned_graph_stage(&stage.stage) {
         return Err(BenchError::InvalidPolicy(format!(
@@ -98,10 +102,13 @@ fn validate_stage_tool_contracts(
             )));
         }
     }
-    validate_stage_tools(&stage.stage, &stage.tools)
+    validate_stage_tools(&stage.stage, &stage.tools, catalog)
 }
 
-fn validate_stage_param_contracts(stage: &BenchmarkStageSpec) -> Result<(), BenchError> {
+fn validate_stage_param_contracts(
+    stage: &BenchmarkStageSpec,
+    catalog: &dyn BenchmarkSuiteCatalog,
+) -> Result<(), BenchError> {
     let mut seen_params = std::collections::BTreeSet::new();
     for params in &stage.params {
         if params.trim().is_empty() {
@@ -117,7 +124,7 @@ fn validate_stage_param_contracts(stage: &BenchmarkStageSpec) -> Result<(), Benc
             )));
         }
     }
-    validate_stage_param_bindings(stage)
+    validate_stage_param_bindings(stage, catalog)
 }
 
 fn validate_stage_upstream_contracts(stage: &BenchmarkStageSpec) -> Result<(), BenchError> {

@@ -33,6 +33,7 @@ execution, runner integration, API orchestration, or report persistence.
 - `validate-all-domain-rendered-command-rows`
 - `validate-all-domain-stage-tool-table-rows`
 - `admit-real-smoke-core-subset`
+- `validate-suite-with-catalog`
 - `validate-suite`
 - `validate-observation`
 - `validate-summary`

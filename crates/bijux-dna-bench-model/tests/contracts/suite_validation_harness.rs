@@ -1,8 +1,10 @@
+use bijux_dna_bench_model::contract::{
+    validate_suite, validate_suite_with_catalog, CanonicalFastqSuiteCatalog,
+};
 use bijux_dna_bench_model::{
     AnalysisRequirements, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
     DiversityRequirements, ReplicatePolicy, StratificationRequirement,
 };
-use bijux_dna_bench_model::contract::validate_suite;
 use bijux_dna_core::id_catalog;
 
 pub(super) fn fastq_stage(name: &str) -> String {
@@ -38,16 +40,8 @@ pub(super) fn suite_with_stage(stage: BenchmarkStageSpec) -> BenchmarkSuiteSpec 
             read_layout: "paired".to_string(),
         }],
         vec![stage],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -61,13 +55,20 @@ pub(super) fn suite_with_stage(stage: BenchmarkStageSpec) -> BenchmarkSuiteSpec 
 }
 
 pub(super) fn suite_error(suite: &BenchmarkSuiteSpec) -> String {
-    match validate_suite(suite) {
+    let default = validate_suite(suite).map_err(|error| error.to_string());
+    let explicit = validate_suite_with_catalog(suite, &CanonicalFastqSuiteCatalog)
+        .map_err(|error| error.to_string());
+    assert_eq!(default, explicit, "explicit catalog changed suite admission");
+    match default {
         Ok(()) => panic!("suite unexpectedly validated"),
-        Err(error) => error.to_string(),
+        Err(error) => error,
     }
 }
 
 pub(super) fn assert_valid_suite(suite: &BenchmarkSuiteSpec) {
+    if let Err(error) = validate_suite_with_catalog(suite, &CanonicalFastqSuiteCatalog) {
+        panic!("explicit canonical catalog unexpectedly failed validation: {error}");
+    }
     if let Err(error) = validate_suite(suite) {
         panic!("suite unexpectedly failed validation: {error}");
     }
