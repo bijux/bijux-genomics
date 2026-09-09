@@ -4,9 +4,6 @@
 mod support;
 
 fn run_cli_json() -> serde_json::Value {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let sandbox = support::RepoSandbox::new("all-domain-harness-json-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
 
@@ -28,7 +25,15 @@ fn run_cli_json() -> serde_json::Value {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+    let payload: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    let output_path = payload["output_path"].as_str().expect("declared output path");
+    let persisted: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(sandbox.path().join(output_path)).expect("read persisted harness gate"),
+    )
+    .expect("parse persisted harness gate");
+    assert_eq!(persisted, payload, "stdout and persisted readiness evidence disagree");
+    payload
 }
 
 #[test]
