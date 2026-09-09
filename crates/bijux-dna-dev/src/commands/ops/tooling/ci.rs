@@ -1298,23 +1298,34 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 .map(|products| &products.reuse)
                 .or(reuse_inputs.as_ref())
                 .context("compiled test reuse inputs are absent")?;
-            let inventory_spec = ParallelProcessSpec {
-                label: "test-inventory".to_string(),
-                program: "cargo".to_string(),
-                args: inventory_args,
-                envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
-                current_dir: Some(archive_workspace.clone()),
+            let (inventory_bytes, inventory_duration) = if let Some(products) = &local_compiled {
+                products.discover_inventory(
+                    workspace,
+                    &archive_workspace,
+                    &full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                    &report_root,
+                    contract.archive_build_jobs.min(5),
+                )?
+            } else {
+                let inventory_spec = ParallelProcessSpec {
+                    label: "test-inventory".to_string(),
+                    program: "cargo".to_string(),
+                    args: inventory_args,
+                    envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                    current_dir: Some(archive_workspace.clone()),
+                };
+                let mut inventory_outputs = ProcessRunner::new(workspace)
+                    .run_parallel_logged(vec![inventory_spec], &report_root)?;
+                let inventory_output =
+                    inventory_outputs.pop().context("test inventory was not collected")?;
+                anyhow::ensure!(
+                    inventory_output.output.status.success(),
+                    "full test inventory failed; see test-inventory.stderr.log"
+                );
+                (inventory_output.output.stdout, inventory_output.duration)
             };
-            let mut inventory_outputs = ProcessRunner::new(workspace)
-                .run_parallel_logged(vec![inventory_spec], &report_root)?;
-            let inventory_output =
-                inventory_outputs.pop().context("test inventory was not collected")?;
-            anyhow::ensure!(
-                inventory_output.output.status.success(),
-                "full test inventory failed; see test-inventory.stderr.log"
-            );
-            let expected_inventory = ExpectedTestInventory::parse(&inventory_output.output.stdout)?;
-            let executables = CompiledWorkspaceExecutables::parse(&inventory_output.output.stdout)?;
+            let expected_inventory = ExpectedTestInventory::parse(&inventory_bytes)?;
+            let executables = CompiledWorkspaceExecutables::parse(&inventory_bytes)?;
             let inventory_log = report_root.join("test-inventory.stdout.log");
             let inventory_receipt = serde_json::json!({
                 "schema_version": "bijux.ci.full_test_inventory.v1",
@@ -1323,7 +1334,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "workspace_executables": &executables,
                 "expected_case_count": expected_inventory.case_count(),
                 "expected_ignored_case_count": expected_inventory.ignored_case_count(),
-                "duration_milliseconds": inventory_output.duration.as_millis(),
+                "duration_milliseconds": inventory_duration.as_millis(),
+                "discovery_mode": if local_compiled.is_some() { "parallel_native_groups" } else { "archive_native_inventory" },
                 "source_commit": source_identity,
                 "source_patch_sha256": source_patch_sha256,
                 "archive_sha256": archive_sha256,

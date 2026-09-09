@@ -75,3 +75,5 @@ The admitted full-test inventory also owns explicit CLI and developer executable
 Archived test consumers receive their remapped workspace as repository authority and its `artifacts/` directory as product output authority. Executor-owned archive extraction, build targets, coverage and scratch paths remain separate under the shard storage contract. The root receipt records both authorities; workspace admission continues to reject foreign output roots.
 
 The partition adapter follows the [pinned Nextest 0.9.100 implementation](https://github.com/nextest-rs/nextest/blob/cargo-nextest-0.9.100/nextest-runner/src/partition.rs); executor upgrades require fresh protocol qualification.
+
+Local compiled test discovery partitions the complete native binary metadata into at most five disjoint groups, bounded by the configured build job count. `application/ci/discovery.rs` admits exact selected binary identities, unfiltered case counts, empty suites, ignored flags and unchanged build metadata. `runtime/compiled_products.rs` owns the concurrent processes and logs; the command handler consumes their admitted union. Archive extraction keeps its existing single inventory owner.

@@ -198,6 +198,7 @@ fn dev_tree_matches_architecture_contract() {
         "bootstrap.rs",
         "boundaries/",
         "boundaries.rs",
+        "contracts/",
         "fixtures/",
         "guardrails.rs",
         "snapshots/",

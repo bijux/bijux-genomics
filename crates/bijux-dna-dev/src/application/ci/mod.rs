@@ -2,6 +2,7 @@
 
 mod compiled_files;
 mod coverage;
+mod discovery;
 mod events;
 mod executables;
 mod execution_inputs;
@@ -10,6 +11,7 @@ mod partition;
 
 pub(crate) use compiled_files::admit_compiled_executable_paths;
 pub(crate) use coverage::CoverageAttestation;
+pub(crate) use discovery::BinaryDiscoveryPlan;
 pub(crate) use executables::CompiledWorkspaceExecutables;
 pub(crate) use execution_inputs::NextestReuseInputs;
 pub(crate) use inventory::ExpectedTestInventory;

@@ -6,7 +6,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{ensure, Context, Result};
 use serde_json::{json, Value};
 
-use crate::application::ci::{admit_compiled_executable_paths, NextestReuseInputs};
+use crate::application::ci::{
+    admit_compiled_executable_paths, BinaryDiscoveryPlan, NextestReuseInputs,
+};
 use crate::runtime::process::{ParallelProcessOutput, ParallelProcessSpec, ProcessRunner};
 use crate::runtime::workspace::Workspace;
 
@@ -110,6 +112,52 @@ impl LocalCompiledProducts {
         .to_vec();
         args.extend(self.reuse.arguments(source)?);
         Ok(args)
+    }
+
+    pub(crate) fn discover_inventory(
+        &self,
+        workspace: &Workspace,
+        source: &Path,
+        envs: &[(String, String)],
+        reports: &Path,
+        concurrency: usize,
+    ) -> Result<(Vec<u8>, std::time::Duration)> {
+        let started = std::time::Instant::now();
+        let metadata = std::fs::read(reports.join("compiled-binaries.stdout.log"))?;
+        let plan = BinaryDiscoveryPlan::new(&metadata, concurrency)?;
+        let mut specs = Vec::with_capacity(plan.groups.len());
+        for group in &plan.groups {
+            let mut args = self.inventory_arguments(source)?;
+            args.extend(["-E".to_owned(), group.filterset.clone()]);
+            specs.push(ParallelProcessSpec {
+                label: group.label.clone(),
+                program: "cargo".to_owned(),
+                args,
+                envs: envs.to_vec(),
+                current_dir: Some(source.to_path_buf()),
+            });
+        }
+        let outputs = ProcessRunner::new(workspace).run_parallel_logged(specs, reports)?;
+        let observations = outputs.iter().map(producer_receipt).collect::<Vec<_>>();
+        bijux_dna_infra::write_bytes(
+            reports.join("test-inventory-groups.receipt.json"),
+            &serde_json::to_vec_pretty(&json!({
+                "schema_version":"bijux.ci.parallel_test_discovery.v1",
+                "groups": observations,
+                "duration_milliseconds":started.elapsed().as_millis(),
+                "all_processes_passed":outputs.iter().all(|output| output.output.status.success()),
+            }))?,
+        )?;
+        ensure!(
+            outputs.iter().all(|output| output.output.status.success()),
+            "test inventory group failed; see test-inventory-group logs"
+        );
+        let merged = plan.merge(
+            outputs.iter().map(|output| (output.label.as_str(), output.output.stdout.as_slice())),
+        )?;
+        bijux_dna_infra::write_bytes(reports.join("test-inventory.stdout.log"), &merged)?;
+        bijux_dna_infra::write_bytes(reports.join("test-inventory.stderr.log"), b"")?;
+        Ok((merged, started.elapsed()))
     }
 
     pub(crate) fn verify_unchanged(&mut self) -> Result<bool> {

@@ -61,7 +61,7 @@ impl ShardDiscoveryPlan {
     }
 }
 
-fn escape_matcher(value: &str) -> String {
+pub(super) fn escape_matcher(value: &str) -> String {
     value.chars().fold(String::new(), |mut escaped, character| {
         match character {
             '\\' => escaped.push_str("\\\\"),
