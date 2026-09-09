@@ -553,3 +553,5 @@ pub use bijux_dna_bench::{
     validate_vcf_scope_imputation_identity, validate_vcf_scope_postprocess_closure,
     VcfScopeCoverageEvidence,
 };
+
+pub use bijux_dna_bench::write_recorded_command_audit;

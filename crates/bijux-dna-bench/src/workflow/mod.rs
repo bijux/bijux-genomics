@@ -390,3 +390,5 @@ pub use container_qualification::{
 pub(crate) mod hpc_campaign;
 
 pub(crate) mod simulation;
+
+pub use readiness::write_recorded_command_audit;

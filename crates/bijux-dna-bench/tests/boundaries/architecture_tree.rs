@@ -115,6 +115,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
+            "command_audit.rs",
             "simulation.rs",
             "bam_score_evidence.rs",
             "vcf_score_evidence.rs",
@@ -354,7 +355,7 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/readiness")),
-        entries(["dashboard.rs", "dashboard_markdown.rs", "mod.rs"]),
+        entries(["command_audit.rs", "dashboard.rs", "dashboard_markdown.rs", "mod.rs"]),
         "readiness evaluation must retain its explicit workflow owner"
     );
 

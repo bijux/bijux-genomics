@@ -748,3 +748,5 @@ pub use bijux_dna_bench_model::{
     validate_vcf_scope_imputation_identity, validate_vcf_scope_postprocess_closure,
     VcfScopeCoverageEvidence,
 };
+
+pub use crate::workflow::write_recorded_command_audit;

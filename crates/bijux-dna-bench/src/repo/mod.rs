@@ -85,3 +85,5 @@ pub(crate) mod container_qualification;
 pub(crate) mod hpc_campaign;
 
 pub(crate) mod simulation;
+
+pub(crate) mod command_audit;

@@ -861,3 +861,5 @@ pub use crate::contract::vcf_scope::{
     validate_vcf_scope_imputation_identity, validate_vcf_scope_postprocess_closure,
     VcfScopeCoverageEvidence,
 };
+
+pub use crate::policy::command_audit::evaluate_recorded_command_audit;
