@@ -68,3 +68,5 @@ interpret those payloads; this crate does not execute them.
   change.
 
 Output discovery has one declaration validator shared by registry admission and exact-path expansion. Expansion retains native path bytes and rejects paths without file names or collisions between primary and sidecar outputs. Benchmark lifecycle and container qualification consume this contract; it performs no filesystem IO or scientific qualification.
+
+Binding transport objects reject undeclared fields at the binding, input, parameter, output, discovery, sidecar and executable-source boundaries. Legacy omitted input-source fields remain readable as `LegacyUnspecified`; new planning still rejects that source. Semantic admission and native downstream compatibility are separate required contracts.

@@ -11,3 +11,6 @@ mod mod_contracts_tool_binding_rs;
 mod mod_contracts_versioning_rs;
 #[path = "support/workspace_paths.rs"]
 mod support;
+
+#[path = "contracts/tool_binding_admission.rs"]
+mod tool_binding_admission;
