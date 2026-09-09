@@ -1,7 +1,8 @@
 //! Normalize case collections and stage summary observations.
 
 use super::fields::{
-    fraction_u64, optional_str, optional_u64, required_f64, required_str, required_u64,
+    fraction_u64, optional_str, optional_u64, required_f64, required_stage, required_str,
+    required_u64,
 };
 use super::merge_evidence_row;
 use crate::repo::load_optional_fastq_score_report as load_optional_json_value;
@@ -22,7 +23,7 @@ pub(super) fn merge_case_stage_report(
     let Some(root) = load_optional_json_value(&absolute_path)? else {
         return Ok(());
     };
-    let stage_id = required_str(&root, "stage_id")?.to_string();
+    let stage_id = required_stage(&root, &format!("fastq.{contract_label}"))?.to_string();
     let cases = root
         .get("cases")
         .and_then(Value::as_array)
@@ -91,7 +92,7 @@ pub(super) fn merge_profile_reads_summary(
     let Some(root) = load_optional_json_value(&absolute_path)? else {
         return Ok(());
     };
-    let stage_id = required_str(&root, "stage_id")?.to_string();
+    let stage_id = required_stage(&root, "fastq.profile_reads")?.to_string();
     let cases = root
         .get("cases")
         .and_then(Value::as_array)
@@ -130,7 +131,7 @@ pub(super) fn merge_validate_reads_summary(
     let Some(root) = load_optional_json_value(&absolute_path)? else {
         return Ok(());
     };
-    let stage_id = required_str(&root, "stage_id")?.to_string();
+    let stage_id = required_stage(&root, "fastq.validate_reads")?.to_string();
     let cases = root
         .get("cases")
         .and_then(Value::as_array)
@@ -174,7 +175,7 @@ pub(super) fn merge_screen_taxonomy_summary(
     let Some(root) = load_optional_json_value(&absolute_path)? else {
         return Ok(());
     };
-    let stage_id = required_str(&root, "stage_id")?.to_string();
+    let stage_id = required_stage(&root, "fastq.screen_taxonomy")?.to_string();
     let tool_id = required_str(&root, "tool_id")?.to_string();
     let samples = root
         .get("samples")

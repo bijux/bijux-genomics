@@ -4,7 +4,11 @@ use anyhow::{anyhow, Result};
 use serde_json::Value;
 
 pub(super) fn required_str<'a>(value: &'a Value, key: &str) -> Result<&'a str> {
-    value.get(key).and_then(Value::as_str).ok_or_else(|| anyhow!("missing string field `{key}`"))
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .filter(|text| !text.is_empty() && text.trim() == *text)
+        .ok_or_else(|| anyhow!("missing or noncanonical string field `{key}`"))
 }
 
 pub(super) fn optional_str<'a>(value: &'a Value, key: &str) -> Option<&'a str> {
@@ -32,5 +36,30 @@ pub(super) fn fraction_u64(numerator: u64, denominator: u64) -> Result<f64> {
                 denominator,
                 "fraction denominator",
             )?)
+    }
+}
+
+pub(super) fn required_stage<'a>(value: &'a Value, expected: &str) -> Result<&'a str> {
+    let stage = required_str(value, "stage_id")?;
+    if stage != expected {
+        return Err(anyhow!("expected stage `{expected}`, observed `{stage}`"));
+    }
+    Ok(stage)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn report_identifiers_require_nonempty_canonical_strings() {
+        for field in ["stage_id", "tool_id", "planned_tool_id"] {
+            for text in ["", " fastp", "fastp "] {
+                let value = serde_json::json!({field: text});
+                assert!(required_str(&value, field).is_err(), "{field}: {text:?}");
+            }
+            let value = serde_json::json!({field: "fastp"});
+            assert_eq!(required_str(&value, field).ok(), Some("fastp"));
+        }
     }
 }

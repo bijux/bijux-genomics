@@ -154,4 +154,23 @@ mod tests {
         }
         Ok(())
     }
+    #[test]
+    fn aggregate_reports_reject_cross_stage_identity() -> Result<()> {
+        for path in [
+            "artifacts/runs/bench/local-smoke/fastq.trim_reads/report.json",
+            "artifacts/runs/bench/local-smoke/fastq.trim_polyg_tails/metrics.json",
+            "artifacts/runs/bench/local-smoke/fastq.normalize_primers/report.json",
+            "artifacts/runs/bench/local-smoke/fastq.profile_reads/profile.json",
+            "artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json",
+            "artifacts/benchmark-smoke/micro/pipelines/edna/artifacts/fastq.screen_taxonomy/report.json",
+        ] {
+            let repository = bijux_dna_infra::temp_dir("fastq-report-stage-identity")?;
+            let report = repository.path().join(path);
+            bijux_dna_infra::ensure_dir(report.parent().context("report parent")?)?;
+            bijux_dna_infra::write_bytes(&report, br#"{"stage_id":"vcf.filter","tool_id":"fastp","cases":[],"samples":[]}"#)?;
+            let error = load_fastq_tool_score_evidence(repository.path()).err().context("cross-stage report must reject")?;
+            assert!(error.to_string().contains("expected stage"), "{error}");
+        }
+        Ok(())
+    }
 }

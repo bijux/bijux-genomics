@@ -1,6 +1,6 @@
 //! Adapters for observed FASTQ stage report formats.
 
-use super::fields::{fraction_u64, required_f64, required_str, required_u64};
+use super::fields::{fraction_u64, required_f64, required_stage, required_str, required_u64};
 use anyhow::Result;
 use bijux_dna_bench_model::FastqScoreEvidence as FastqEvidenceAggregate;
 use serde_json::Value;
@@ -25,7 +25,7 @@ pub(super) const REPORTS: &[(&str, ReportAdapter)] = &[
 ];
 
 fn parse_filter_reads(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.filter_reads")?;
     let tool_id = required_str(root, "tool_id")?;
     let input_reads = required_u64(root, "input_reads")?;
     let output_reads = required_u64(root, "output_reads")?;
@@ -49,7 +49,7 @@ fn parse_filter_reads(root: &Value) -> Result<(String, String, FastqEvidenceAggr
 }
 
 fn parse_filter_low_complexity(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.filter_low_complexity")?;
     let tool_id = required_str(root, "planned_tool_id")?;
     let input_reads = required_u64(root, "input_reads")?;
     let output_reads = required_u64(root, "output_reads")?;
@@ -74,7 +74,7 @@ fn parse_filter_low_complexity(root: &Value) -> Result<(String, String, FastqEvi
 fn parse_profile_overrepresented_sequences(
     root: &Value,
 ) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.profile_overrepresented_sequences")?;
     let tool_id = required_str(root, "planned_tool_id")?;
     let top_fraction = required_f64(root, "top_fraction")?;
     Ok((
@@ -96,7 +96,7 @@ fn parse_profile_overrepresented_sequences(
 }
 
 fn parse_remove_duplicates(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.remove_duplicates")?;
     let tool_id = required_str(root, "planned_tool_id")?;
     let input_reads = required_u64(root, "input_reads")?;
     let output_reads = required_u64(root, "output_reads")?;
@@ -120,7 +120,7 @@ fn parse_remove_duplicates(root: &Value) -> Result<(String, String, FastqEvidenc
 }
 
 fn parse_detect_adapters(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.detect_adapters")?;
     let case_count = required_u64(root, "case_count")?;
     let detected_case_count = required_u64(root, "detected_case_count")?;
     Ok((
@@ -142,7 +142,7 @@ fn parse_detect_adapters(root: &Value) -> Result<(String, String, FastqEvidenceA
 }
 
 fn parse_extract_umis(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.extract_umis")?;
     let tool_id = required_str(root, "planned_tool_id")?;
     Ok((
         stage_id.to_string(),
@@ -164,7 +164,7 @@ fn parse_extract_umis(root: &Value) -> Result<(String, String, FastqEvidenceAggr
 fn parse_detect_duplicates_premerge(
     root: &Value,
 ) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.detect_duplicates_premerge")?;
     Ok((
         stage_id.to_string(),
         "bijux_dna".to_string(),
@@ -186,7 +186,7 @@ fn parse_detect_duplicates_premerge(
 fn parse_estimate_library_complexity_prealign(
     root: &Value,
 ) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.estimate_library_complexity_prealign")?;
     Ok((
         stage_id.to_string(),
         "bijux_dna".to_string(),
@@ -206,7 +206,7 @@ fn parse_estimate_library_complexity_prealign(
 }
 
 fn parse_merge_pairs(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.merge_pairs")?;
     let tool_id = required_str(root, "planned_tool_id")?;
     let input_pair_count = required_u64(root, "input_pair_count")?;
     let merged_count = required_u64(root, "merged_count")?;
@@ -233,7 +233,7 @@ fn parse_merge_pairs(root: &Value) -> Result<(String, String, FastqEvidenceAggre
 }
 
 fn parse_normalize_abundance(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.normalize_abundance")?;
     let tool_id = required_str(root, "planned_tool_id")?;
     Ok((
         stage_id.to_string(),
@@ -253,7 +253,7 @@ fn parse_normalize_abundance(root: &Value) -> Result<(String, String, FastqEvide
 }
 
 fn parse_remove_chimeras(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.remove_chimeras")?;
     let tool_id = required_str(root, "planned_tool_id")?;
     Ok((
         stage_id.to_string(),
@@ -274,7 +274,7 @@ fn parse_remove_chimeras(root: &Value) -> Result<(String, String, FastqEvidenceA
 }
 
 fn parse_cluster_otus(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.cluster_otus")?;
     let tool_id = required_str(root, "planned_tool_id")?;
     Ok((
         stage_id.to_string(),
@@ -295,7 +295,7 @@ fn parse_cluster_otus(root: &Value) -> Result<(String, String, FastqEvidenceAggr
 }
 
 fn parse_infer_asvs(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.infer_asvs")?;
     let tool_id = required_str(root, "planned_tool_id")?;
     Ok((
         stage_id.to_string(),
@@ -316,7 +316,7 @@ fn parse_infer_asvs(root: &Value) -> Result<(String, String, FastqEvidenceAggreg
 }
 
 fn parse_trim_terminal_damage(root: &Value) -> Result<(String, String, FastqEvidenceAggregate)> {
-    let stage_id = required_str(root, "stage_id")?;
+    let stage_id = required_stage(root, "fastq.trim_terminal_damage")?;
     let tool_id = required_str(root, "tool_id")?;
     let input_reads = required_u64(root, "input_reads")?;
     let output_reads = required_u64(root, "output_reads")?;
@@ -336,4 +336,37 @@ fn parse_trim_terminal_damage(root: &Value) -> Result<(String, String, FastqEvid
             source_paths: BTreeSet::new(),
         },
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use anyhow::Context;
+
+    #[test]
+    fn report_stage_identity_is_bound_to_each_adapter() -> Result<()> {
+        let mut value = serde_json::json!({
+            "stage_id":"fastq.filter_reads", "tool_id":"fastp", "planned_tool_id":"fastp",
+            "top_fraction":0.25, "case_count":3, "detected_case_count":1,
+            "input_reads":3, "output_reads":1, "reads_dropped":2,
+            "reads_removed_low_complexity":2, "duplicate_reads":2,
+            "input_pair_count":3, "merged_count":1, "unmerged_r1_count":1,
+            "unmerged_r2_count":1, "discarded_count":0
+        });
+        for (path, adapter) in REPORTS {
+            let stage = std::path::Path::new(path)
+                .parent()
+                .and_then(std::path::Path::file_name)
+                .and_then(std::ffi::OsStr::to_str)
+                .context("declared report stage")?;
+            value["stage_id"] = serde_json::json!(stage);
+            assert_eq!(adapter(&value)?.0, stage);
+            for wrong_stage in ["vcf.filter", "fastq.validate_reads"] {
+                value["stage_id"] = serde_json::json!(wrong_stage);
+                let error = adapter(&value).err().context("cross-stage report must reject")?;
+                assert!(error.to_string().contains("expected stage"), "{error}");
+            }
+        }
+        Ok(())
+    }
 }
