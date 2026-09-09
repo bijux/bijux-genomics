@@ -14,6 +14,19 @@ struct LexicalState {
 /// the end of a test module.
 #[must_use]
 pub fn strip_rust_test_modules(raw: &str) -> String {
+    partition_rust_test_modules(raw, false)
+}
+
+/// Select inline modules governed by `#[cfg(test)]`, excluding surrounding production code.
+///
+/// Uses the same lexical boundaries as [`strip_rust_test_modules`]. This is a source-policy
+/// helper, not a Rust parser; it selects inline modules with their attribute on a separate line.
+#[must_use]
+pub fn select_rust_test_modules(raw: &str) -> String {
+    partition_rust_test_modules(raw, true)
+}
+
+fn partition_rust_test_modules(raw: &str, select_tests: bool) -> String {
     let mut retained = Vec::new();
     let mut pending_attribute_lines = Vec::new();
     let mut awaiting_test_module = false;
@@ -23,11 +36,18 @@ pub fn strip_rust_test_modules(raw: &str) -> String {
     for line in raw.lines() {
         let trimmed = line.trim();
         if skip_depth > 0 {
+            if select_tests {
+                retained.push(line);
+            }
             skip_depth = apply_brace_delta(line, skip_depth, &mut lexical_state);
             continue;
         }
 
-        if is_test_cfg_attribute(trimmed) {
+        let in_code = lexical_state.block_comment_depth == 0
+            && !lexical_state.in_string
+            && !lexical_state.in_char
+            && lexical_state.raw_string_hashes.is_none();
+        if in_code && is_test_cfg_attribute(trimmed) {
             awaiting_test_module = true;
             pending_attribute_lines.push(line);
             continue;
@@ -41,18 +61,30 @@ pub fn strip_rust_test_modules(raw: &str) -> String {
             if trimmed.starts_with("mod ") && line.contains('{') {
                 lexical_state = LexicalState::default();
                 skip_depth = apply_brace_delta(line, 0, &mut lexical_state);
+                if select_tests {
+                    retained.append(&mut pending_attribute_lines);
+                    retained.push(line);
+                }
                 pending_attribute_lines.clear();
                 awaiting_test_module = false;
                 continue;
             }
-            retained.append(&mut pending_attribute_lines);
+            if !select_tests {
+                retained.append(&mut pending_attribute_lines);
+            }
+            pending_attribute_lines.clear();
             awaiting_test_module = false;
         }
 
-        retained.push(line);
+        apply_brace_delta(line, 0, &mut lexical_state);
+        if !select_tests {
+            retained.push(line);
+        }
     }
 
-    retained.append(&mut pending_attribute_lines);
+    if !select_tests {
+        retained.append(&mut pending_attribute_lines);
+    }
     retained.join("\n")
 }
 
@@ -159,7 +191,7 @@ fn has_char_literal_terminator(bytes: &[u8], mut index: usize) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::strip_rust_test_modules;
+    use super::{select_rust_test_modules, strip_rust_test_modules};
 
     #[test]
     fn strips_attributed_nested_test_modules_without_counting_literal_braces() {
@@ -187,11 +219,53 @@ pub fn after() -> usize { 2 }
         assert!(stripped.contains("pub fn after"));
         assert!(!stripped.contains("mod tests"));
         assert!(!stripped.contains("a } brace"));
+        let selected = select_rust_test_modules(source);
+        assert!(selected.contains("mod tests"));
+        assert!(selected.contains("a } brace"));
+        assert!(!selected.contains("pub fn production"));
+        assert!(!selected.contains("pub fn after"));
     }
 
     #[test]
     fn preserves_cfg_attributes_that_do_not_govern_inline_test_modules() {
         let source = "#[cfg(test)]\npub fn test_support() {}\n#[cfg(unix)]\nmod unix {}";
         assert_eq!(strip_rust_test_modules(source), source);
+        assert!(select_rust_test_modules(source).is_empty());
+    }
+
+    #[test]
+    fn selects_each_test_module_without_intervening_production_or_literal_attributes() {
+        let source = r##"const EXAMPLE: &str = r#"
+#[cfg(test)]
+mod fake { fn example() {} }
+"#;
+/*
+#[cfg(test)]
+mod commented { fn example() {} }
+*/
+#[cfg(test)]
+mod first { fn owner_case() {} }
+fn production_between() {}
+#[cfg(test)]
+mod second {
+    fn other_case() { let closing = "}"; }
+}
+fn production_after() {}
+"##;
+        let selected = select_rust_test_modules(source);
+        assert!(selected.contains("mod first"));
+        assert!(selected.contains("mod second"));
+        for excluded in
+            ["EXAMPLE", "mod fake", "mod commented", "production_between", "production_after"]
+        {
+            assert!(!selected.contains(excluded), "selected production token {excluded}");
+        }
+        let production = strip_rust_test_modules(source);
+        assert!(production.contains("mod fake"));
+        assert!(production.contains("mod commented"));
+        assert!(production.contains("production_between"));
+        assert!(production.contains("production_after"));
+        assert!(!production.contains("mod first"));
+        assert!(!production.contains("mod second"));
     }
 }

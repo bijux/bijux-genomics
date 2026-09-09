@@ -38,13 +38,7 @@ fn test_scoped_content(path: &Path) -> String {
     if path_s.contains("/tests/") {
         return content;
     }
-    if let Some((_, scoped)) = content.split_once("#[cfg(test)]") {
-        return scoped.to_string();
-    }
-    if let Some((_, scoped)) = content.split_once("mod tests {") {
-        return scoped.to_string();
-    }
-    content
+    bijux_dna_testkit::workspace_support::select_rust_test_modules(&content)
 }
 
 fn is_policy_file(path: &Path) -> bool {
