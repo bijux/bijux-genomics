@@ -8,6 +8,7 @@ pub mod hashing;
 pub mod input_assessment;
 pub mod invariants;
 pub mod measure;
+pub mod numeric;
 pub mod version;
 
 pub use cache::{CacheKey, ReproducibilityIdentityV1};
