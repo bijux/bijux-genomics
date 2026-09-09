@@ -1,68 +1,6 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "BenchmarkDataPortfolioAudit",
-  "type": "object",
-  "properties": {
-    "corpora": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/BenchmarkCorpusDataAudit"
-      }
-    },
-    "data_index_path": {
-      "type": "string"
-    },
-    "data_index_sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
-    "portfolio_path": {
-      "type": "string"
-    },
-    "portfolio_sha256": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
-    },
-    "publishable_contamination": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "schema_version": {
-      "type": "string",
-      "const": "bijux.benchmark.data_portfolio_audit.v2"
-    },
-    "source_commit": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{40}$"
-    },
-    "summary": {
-      "$ref": "#/$defs/BenchmarkDataPortfolioAuditSummary"
-    },
-    "unbound_assets": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/BenchmarkUnboundDataAsset"
-      }
-    }
-  },
-  "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "source_commit",
-    "portfolio_path",
-    "portfolio_sha256",
-    "data_index_path",
-    "data_index_sha256",
-    "summary",
-    "corpora",
-    "unbound_assets",
-    "publishable_contamination"
-  ],
   "$defs": {
     "BenchmarkCorpusClass": {
-      "type": "string",
       "enum": [
         "production_real",
         "qualification_real",
@@ -71,22 +9,23 @@
         "synthetic",
         "smoke",
         "local_development"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkCorpusDataAudit": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "blockers": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "catalog_bindings": {
-          "type": "array",
           "items": {
             "$ref": "#/$defs/BenchmarkGovernedDataBinding"
-          }
+          },
+          "type": "array"
         },
         "class": {
           "$ref": "#/$defs/BenchmarkCorpusClass"
@@ -95,68 +34,67 @@
           "type": "string"
         },
         "data_types": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "declared_sample_count": {
-          "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "evidence_scope": {
           "$ref": "#/$defs/BenchmarkEvidenceScope"
         },
         "minimum_sample_count": {
-          "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "projected_cpu_hours": {
+          "format": "uint64",
+          "minimum": 0,
           "type": [
             "integer",
             "null"
-          ],
-          "format": "uint64",
-          "minimum": 0
+          ]
         },
         "projected_storage_bytes": {
+          "format": "uint64",
+          "minimum": 0,
           "type": [
             "integer",
             "null"
-          ],
-          "format": "uint64",
-          "minimum": 0
+          ]
         },
         "publishable_data_ready": {
           "type": "boolean"
         },
         "source_specs": {
-          "type": "array",
           "items": {
             "$ref": "#/$defs/BenchmarkDataSourceSpecIdentity"
-          }
+          },
+          "type": "array"
         },
         "status": {
           "$ref": "#/$defs/BenchmarkCorpusStatus"
         },
         "truth_roles": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "truth_strategy": {
           "type": "string"
         },
         "verified_storage_bytes": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         }
       },
-      "additionalProperties": false,
       "required": [
         "corpus_id",
         "status",
@@ -172,91 +110,91 @@
         "verified_storage_bytes",
         "publishable_data_ready",
         "blockers"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkCorpusStatus": {
-      "type": "string",
       "enum": [
         "missing",
         "source_defined",
         "admitted"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkDataPortfolioAuditSummary": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "admitted_corpus_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "bound_catalog_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "corpus_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "missing_catalog_binding_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "missing_corpus_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "publishable_contamination_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "publishable_data_ready_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "source_defined_corpus_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "suspected_nonproduction_asset_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "unbound_catalog_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "unknown_compute_projection_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "unknown_storage_projection_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "verified_bound_file_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "verified_bound_size_bytes": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         }
       },
-      "additionalProperties": false,
       "required": [
         "corpus_count",
         "admitted_corpus_count",
@@ -272,53 +210,54 @@
         "unknown_compute_projection_count",
         "suspected_nonproduction_asset_count",
         "publishable_contamination_count"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkDataSourceSpecIdentity": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "path": {
           "type": "string"
         },
         "planned_accession_count": {
+          "format": "uint64",
+          "minimum": 0,
           "type": [
             "integer",
             "null"
-          ],
-          "format": "uint64",
-          "minimum": 0
+          ]
         },
         "planned_sample_count": {
+          "format": "uint64",
+          "minimum": 0,
           "type": [
             "integer",
             "null"
-          ],
-          "format": "uint64",
-          "minimum": 0
+          ]
         },
         "projected_cpu_hours": {
+          "format": "uint64",
+          "minimum": 0,
           "type": [
             "integer",
             "null"
-          ],
-          "format": "uint64",
-          "minimum": 0
+          ]
         },
         "projected_storage_bytes": {
+          "format": "uint64",
+          "minimum": 0,
           "type": [
             "integer",
             "null"
-          ],
-          "format": "uint64",
-          "minimum": 0
+          ]
         },
         "selected_accession_count": {
+          "format": "uint64",
+          "minimum": 0,
           "type": [
             "integer",
             "null"
-          ],
-          "format": "uint64",
-          "minimum": 0
+          ]
         },
         "selection_complete": {
           "type": [
@@ -327,33 +266,33 @@
           ]
         },
         "selection_group_count": {
+          "format": "uint64",
+          "minimum": 0,
           "type": [
             "integer",
             "null"
-          ],
-          "format": "uint64",
-          "minimum": 0
+          ]
         },
         "sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
         }
       },
-      "additionalProperties": false,
       "required": [
         "path",
         "sha256"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkEvidenceScope": {
-      "type": "string",
       "enum": [
         "qualification",
         "comparative"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkGovernedDataBinding": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "access_classification": {
           "type": [
@@ -382,8 +321,8 @@
         "catalog_sha256": {
           "oneOf": [
             {
-              "type": "string",
-              "pattern": "^[0-9a-f]{64}$"
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
             },
             {
               "type": "null"
@@ -391,21 +330,21 @@
           ]
         },
         "file_roles": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "integrity_verified": {
           "type": "boolean"
         },
         "observed_sample_count": {
+          "format": "uint64",
+          "minimum": 0,
           "type": [
             "integer",
             "null"
-          ],
-          "format": "uint64",
-          "minimum": 0
+          ]
         },
         "present": {
           "type": "boolean"
@@ -423,17 +362,16 @@
           ]
         },
         "verified_file_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "verified_size_bytes": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         }
       },
-      "additionalProperties": false,
       "required": [
         "catalog_id",
         "present",
@@ -443,10 +381,11 @@
         "verified_file_count",
         "verified_size_bytes",
         "file_roles"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkUnboundDataAsset": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "access_classification": {
           "type": "string"
@@ -455,10 +394,10 @@
           "type": "string"
         },
         "classification_reasons": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "purpose": {
           "type": "string"
@@ -470,17 +409,16 @@
           "type": "boolean"
         },
         "verified_file_count": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "verified_size_bytes": {
-          "type": "integer",
           "format": "uint64",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         }
       },
-      "additionalProperties": false,
       "required": [
         "catalog_id",
         "purpose",
@@ -490,7 +428,69 @@
         "verified_size_bytes",
         "suspected_nonproduction",
         "classification_reasons"
-      ]
+      ],
+      "type": "object"
     }
-  }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "corpora": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkCorpusDataAudit"
+      },
+      "type": "array"
+    },
+    "data_index_path": {
+      "type": "string"
+    },
+    "data_index_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "portfolio_path": {
+      "type": "string"
+    },
+    "portfolio_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "publishable_contamination": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.data_portfolio_audit.v2",
+      "type": "string"
+    },
+    "source_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkDataPortfolioAuditSummary"
+    },
+    "unbound_assets": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkUnboundDataAsset"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "source_commit",
+    "portfolio_path",
+    "portfolio_sha256",
+    "data_index_path",
+    "data_index_sha256",
+    "summary",
+    "corpora",
+    "unbound_assets",
+    "publishable_contamination"
+  ],
+  "title": "BenchmarkDataPortfolioAudit",
+  "type": "object"
 }

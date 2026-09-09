@@ -1,49 +1,6 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "BenchmarkScientificReadinessReport",
-  "type": "object",
-  "properties": {
-    "corpora": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/BenchmarkScientificReadinessCorpus"
-      }
-    },
-    "domains": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/$defs/BenchmarkScientificReadinessDomain"
-      }
-    },
-    "measurement": {
-      "$ref": "#/$defs/BenchmarkMeasurementContract"
-    },
-    "schema_version": {
-      "type": "string",
-      "const": "bijux.benchmark.scientific_readiness.v2"
-    },
-    "stages": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/BenchmarkScientificReadinessStage"
-      }
-    },
-    "summary": {
-      "$ref": "#/$defs/BenchmarkScientificReadinessSummary"
-    }
-  },
-  "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "summary",
-    "domains",
-    "measurement",
-    "corpora",
-    "stages"
-  ],
   "$defs": {
     "BenchmarkCorpusClass": {
-      "type": "string",
       "enum": [
         "production_real",
         "qualification_real",
@@ -52,66 +9,67 @@
         "synthetic",
         "smoke",
         "local_development"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkCorpusStatus": {
-      "type": "string",
       "enum": [
         "missing",
         "source_defined",
         "admitted"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkEvidenceScope": {
-      "type": "string",
       "enum": [
         "qualification",
         "comparative"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkEvidenceTier": {
-      "type": "string",
       "enum": [
         "qualification",
         "comparative"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkMeasurementContract": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "measured_repetitions": {
-          "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "required_quality_dimensions": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "required_resource_metrics": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "warmup_repetitions": {
-          "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         }
       },
-      "additionalProperties": false,
       "required": [
         "warmup_repetitions",
         "measured_repetitions",
         "required_resource_metrics",
         "required_quality_dimensions"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkScientificReadinessCorpus": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "class": {
           "$ref": "#/$defs/BenchmarkCorpusClass"
@@ -123,15 +81,15 @@
           "type": "string"
         },
         "roles": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "sample_count": {
-          "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "status": {
           "$ref": "#/$defs/BenchmarkCorpusStatus"
@@ -140,7 +98,6 @@
           "type": "string"
         }
       },
-      "additionalProperties": false,
       "required": [
         "id",
         "status",
@@ -149,54 +106,55 @@
         "sample_count",
         "truth_strategy",
         "roles"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkScientificReadinessDomain": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "blocked_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "ready_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         }
       },
-      "additionalProperties": false,
       "required": [
         "stage_count",
         "ready_count",
         "blocked_count"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkScientificReadinessStage": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "available_comparative_samples": {
-          "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "blockers": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "campaign_run_id": {
+          "default": null,
           "type": [
             "string",
             "null"
-          ],
-          "default": null
+          ]
         },
         "campaign_tier": {
           "anyOf": [
@@ -225,16 +183,15 @@
           "type": "string"
         },
         "retained_tools": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "stage_id": {
           "type": "string"
         }
       },
-      "additionalProperties": false,
       "required": [
         "stage_id",
         "domain",
@@ -245,60 +202,60 @@
         "interface_status",
         "readiness",
         "blockers"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkScientificReadinessStatus": {
-      "type": "string",
       "enum": [
         "ready",
         "blocked"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkScientificReadinessSummary": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "admitted_comparative_corpus_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "blocked_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "comparative_campaign_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "corpus_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "qualification_campaign_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "ready_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "reserved_run_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         }
       },
-      "additionalProperties": false,
       "required": [
         "stage_count",
         "reserved_run_count",
@@ -308,14 +265,57 @@
         "admitted_comparative_corpus_count",
         "qualification_campaign_count",
         "comparative_campaign_count"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkStageInterfaceStatus": {
-      "type": "string",
       "enum": [
         "closed",
         "missing"
-      ]
+      ],
+      "type": "string"
     }
-  }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "corpora": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkScientificReadinessCorpus"
+      },
+      "type": "array"
+    },
+    "domains": {
+      "additionalProperties": {
+        "$ref": "#/$defs/BenchmarkScientificReadinessDomain"
+      },
+      "type": "object"
+    },
+    "measurement": {
+      "$ref": "#/$defs/BenchmarkMeasurementContract"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.scientific_readiness.v2",
+      "type": "string"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkScientificReadinessStage"
+      },
+      "type": "array"
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkScientificReadinessSummary"
+    }
+  },
+  "required": [
+    "schema_version",
+    "summary",
+    "domains",
+    "measurement",
+    "corpora",
+    "stages"
+  ],
+  "title": "BenchmarkScientificReadinessReport",
+  "type": "object"
 }

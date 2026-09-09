@@ -1,31 +1,6 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "BenchmarkStageUniverse",
-  "type": "object",
-  "properties": {
-    "schema_version": {
-      "type": "string",
-      "const": "bijux.benchmark.stage_universe.v1"
-    },
-    "stages": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/BenchmarkStageUniverseRow"
-      }
-    },
-    "summary": {
-      "$ref": "#/$defs/BenchmarkStageUniverseSummary"
-    }
-  },
-  "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "summary",
-    "stages"
-  ],
   "$defs": {
     "BenchmarkDisposition": {
-      "type": "string",
       "enum": [
         "benchmark_required",
         "qualification_only",
@@ -33,10 +8,11 @@
         "test_only",
         "retired",
         "excluded"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkStageUniverseRow": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "benchmark_disposition": {
           "$ref": "#/$defs/BenchmarkDisposition"
@@ -60,55 +36,54 @@
           "type": "string"
         }
       },
-      "additionalProperties": false,
       "required": [
         "stage_id",
         "domain",
         "status",
         "benchmark_disposition",
         "benchmark_disposition_reason"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkStageUniverseSummary": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "benchmark_required_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "excluded_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "orchestration_only_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "qualification_only_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "retired_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "test_only_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         }
       },
-      "additionalProperties": false,
       "required": [
         "stage_count",
         "benchmark_required_count",
@@ -117,7 +92,32 @@
         "test_only_count",
         "retired_count",
         "excluded_count"
-      ]
+      ],
+      "type": "object"
     }
-  }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "bijux.benchmark.stage_universe.v1",
+      "type": "string"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageUniverseRow"
+      },
+      "type": "array"
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkStageUniverseSummary"
+    }
+  },
+  "required": [
+    "schema_version",
+    "summary",
+    "stages"
+  ],
+  "title": "BenchmarkStageUniverse",
+  "type": "object"
 }

@@ -1,42 +1,7 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "BenchmarkRunRegistry",
-  "type": "object",
-  "properties": {
-    "namespace": {
-      "$ref": "#/$defs/BenchmarkRunNamespacePolicy"
-    },
-    "runs": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/BenchmarkRunRegistryRow"
-      }
-    },
-    "schema_version": {
-      "type": "string",
-      "const": "bijux.benchmark.run_registry.v1"
-    },
-    "source_contract_sha256": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "string"
-      }
-    },
-    "summary": {
-      "$ref": "#/$defs/BenchmarkRunRegistrySummary"
-    }
-  },
-  "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "namespace",
-    "source_contract_sha256",
-    "summary",
-    "runs"
-  ],
   "$defs": {
     "BenchmarkRunNamespacePolicy": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "allocation_policy": {
           "type": "string"
@@ -45,25 +10,24 @@
           "type": "string"
         },
         "maximum": {
-          "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "minimum": {
-          "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "next_run_number": {
-          "type": "integer",
           "format": "uint32",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "prefix": {
           "type": "string"
         }
       },
-      "additionalProperties": false,
       "required": [
         "prefix",
         "minimum",
@@ -71,19 +35,20 @@
         "next_run_number",
         "allocation_policy",
         "identity_policy"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkRunRegistryRow": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "acceptance_policy_id": {
           "type": "string"
         },
         "accepted_input_contracts": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "domain": {
           "type": "string"
@@ -116,10 +81,10 @@
           "type": "string"
         },
         "required_corpus_roles": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "run_id": {
           "type": "string"
@@ -146,10 +111,10 @@
           ]
         },
         "supersedes_run_ids": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "title": {
           "type": "string"
@@ -158,13 +123,12 @@
           "type": "string"
         },
         "tool_ids": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         }
       },
-      "additionalProperties": false,
       "required": [
         "run_id",
         "stage_id",
@@ -183,47 +147,83 @@
         "state",
         "supersedes_run_ids",
         "introduced_at_commit"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkRunRegistryState": {
-      "type": "string",
       "enum": [
         "active",
         "reserved",
         "retired"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkRunRegistrySummary": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "active_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "reserved_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "retired_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "run_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         }
       },
-      "additionalProperties": false,
       "required": [
         "run_count",
         "active_count",
         "reserved_count",
         "retired_count"
-      ]
+      ],
+      "type": "object"
     }
-  }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "namespace": {
+      "$ref": "#/$defs/BenchmarkRunNamespacePolicy"
+    },
+    "runs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkRunRegistryRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.run_registry.v1",
+      "type": "string"
+    },
+    "source_contract_sha256": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkRunRegistrySummary"
+    }
+  },
+  "required": [
+    "schema_version",
+    "namespace",
+    "source_contract_sha256",
+    "summary",
+    "runs"
+  ],
+  "title": "BenchmarkRunRegistry",
+  "type": "object"
 }

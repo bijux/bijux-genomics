@@ -1,31 +1,7 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "BenchmarkStageCoverage",
-  "type": "object",
-  "properties": {
-    "schema_version": {
-      "type": "string",
-      "const": "bijux.benchmark.stage_coverage.v1"
-    },
-    "stages": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/BenchmarkStageCoverageRow"
-      }
-    },
-    "summary": {
-      "$ref": "#/$defs/BenchmarkStageCoverageSummary"
-    }
-  },
-  "additionalProperties": false,
-  "required": [
-    "schema_version",
-    "summary",
-    "stages"
-  ],
   "$defs": {
     "BenchmarkStageCoverageRow": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "campaign_run_id": {
           "type": [
@@ -52,68 +28,67 @@
           ]
         },
         "retained_tools": {
-          "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "type": "array"
         },
         "stage_id": {
           "type": "string"
         }
       },
-      "additionalProperties": false,
       "required": [
         "stage_id",
         "retained_tools",
         "definition_status",
         "execution_status"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkStageCoverageSummary": {
-      "type": "object",
+      "additionalProperties": false,
       "properties": {
         "admitted_stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "comparative_stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "defined_stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "failed_stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "missing_stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "qualification_stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "retained_stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         },
         "stale_stage_count": {
-          "type": "integer",
           "format": "uint",
-          "minimum": 0
+          "minimum": 0,
+          "type": "integer"
         }
       },
-      "additionalProperties": false,
       "required": [
         "retained_stage_count",
         "defined_stage_count",
@@ -123,25 +98,50 @@
         "stale_stage_count",
         "failed_stage_count",
         "missing_stage_count"
-      ]
+      ],
+      "type": "object"
     },
     "BenchmarkStageDefinitionStatus": {
-      "type": "string",
       "enum": [
         "missing",
         "qualification",
         "comparative"
-      ]
+      ],
+      "type": "string"
     },
     "BenchmarkStageExecutionStatus": {
-      "type": "string",
       "enum": [
         "not_defined",
         "not_admitted",
         "stale",
         "failed",
         "admitted"
-      ]
+      ],
+      "type": "string"
     }
-  }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "bijux.benchmark.stage_coverage.v1",
+      "type": "string"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageCoverageRow"
+      },
+      "type": "array"
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkStageCoverageSummary"
+    }
+  },
+  "required": [
+    "schema_version",
+    "summary",
+    "stages"
+  ],
+  "title": "BenchmarkStageCoverage",
+  "type": "object"
 }
