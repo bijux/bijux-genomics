@@ -616,8 +616,16 @@ fn thin_cli_uses_model_owned_local_stage_inventory_contracts() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_stage_inventory"));
-    assert!(contents.contains("validate_benchmark_local_all_domain_stage_inventory"));
+    assert!(contents.contains("load_benchmark_local_stage_inventory"));
+    assert!(contents.contains("render_benchmark_all_domain_stage_inventory"));
+    for (owner, validator) in [
+        ("repo/stage_inventory/mod.rs", "validate_benchmark_local_stage_inventory"),
+        ("workflow/stage_inventory.rs", "validate_benchmark_local_all_domain_stage_inventory"),
+    ] {
+        let source = fs::read_to_string(repo_root.join("crates/bijux-dna-bench/src").join(owner))
+            .expect("read stage inventory owner");
+        assert!(source.contains(validator), "{owner} must admit its model contract");
+    }
     assert!(!contents.contains("struct BenchLocalStageInventory"));
     assert!(!contents.contains("struct BenchLocalAllDomainStageInventory"));
     assert!(!contents.contains("bijux.bench.local_stage_inventory.v1"));
@@ -632,7 +640,13 @@ fn thin_cli_uses_model_owned_local_hpc_job_graph_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_hpc_job_graph"));
+    assert!(contents.contains("build_benchmark_local_hpc_job_graph"));
+    assert!(!contents.contains("fn topological_sort"));
+    let owner = fs::read_to_string(
+        repo_root.join("crates/bijux-dna-bench-model/src/contract/local_hpc_job_graph.rs"),
+    )
+    .expect("read pure HPC graph owner");
+    assert!(owner.contains("validate_benchmark_local_hpc_job_graph(&graph)"));
     assert!(!contents.contains("struct LocalHpcJobGraphNode"));
     assert!(!contents.contains("struct LocalHpcJobGraph"));
     assert!(!contents.contains("bijux.bench.local_hpc_job_graph.v1"));
@@ -743,7 +757,13 @@ fn thin_cli_uses_model_owned_fastq_corpus_source_contract() {
     )
     .expect("read publication CLI models");
 
-    assert!(corpus_metadata.contains("load_fastq_corpus_source_spec"));
+    assert!(corpus_metadata.contains("load_fastq_corpus_source_for_id"));
+    let owner = fs::read_to_string(
+        repo_root.join("crates/bijux-dna-bench/src/repo/corpus/normalized_fastq/mod.rs"),
+    )
+    .expect("read corpus admission owner");
+    assert!(owner.contains("load_fastq_corpus_source_spec(path)"));
+    assert!(!corpus_metadata.contains("fs::read"));
     assert!(corpus_metadata.contains("FastqCorpusSourceSpec as CorpusSpec"));
     assert!(!corpus_metadata.contains("struct CorpusSpec"));
     assert!(!corpus_metadata.contains("struct CorpusSpecSample"));

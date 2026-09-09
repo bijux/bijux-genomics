@@ -593,7 +593,7 @@ pub fn write_bam_normalized_metrics_schema(path: &Path) -> Result<()> {
 pub use bijux_dna_bench_model::{
     benchmark_local_pipeline_dag_config_schema,
     benchmark_local_pipeline_dag_metadata_config_schema,
-    benchmark_local_pipeline_dag_stages_config_schema,
+    benchmark_local_pipeline_dag_stages_config_schema, build_benchmark_local_hpc_job_graph,
     normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor,
     validate_benchmark_local_pipeline_dag_config,
     validate_benchmark_local_pipeline_dag_declarations, BenchmarkLocalPipelineDagConfig,

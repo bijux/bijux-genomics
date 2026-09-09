@@ -39,6 +39,7 @@ mod local_hpc_candidate_run;
 mod local_hpc_dependency_simulation;
 mod local_hpc_dry_run_readiness;
 mod local_hpc_execution_resolver;
+mod local_hpc_job_graph;
 mod local_hpc_pipeline_node_array;
 mod local_hpc_result_collection_simulation;
 mod local_hpc_resume_simulation;
@@ -364,3 +365,5 @@ pub use stage_tool_resources::{
     validate_stage_tool_resources_config, validate_stage_tool_resources_report,
 };
 pub use suite::validate_suite;
+
+pub use local_hpc_job_graph::build_benchmark_local_hpc_job_graph;
