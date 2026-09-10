@@ -100,3 +100,9 @@ Operational readiness passes its current stage table, expected results, rendered
 The scratch-layout publication suite retains one private manifest for schema/root/source-link assertions, validated-path presentation, and stale input-link count rejection. All original assertions and both validator invocations remain; duplicate render setup and its second integration executable are retired. The directory guard spans the whole case and drift is restored before completion.
 
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+Variant truth admission and expected/observed JSON/text output cases share the
+`fixtures_vcf` target, grouped by scientific truth family. Pipeline validation JSON
+and file-publication cases share `plan_validate_pipelines`, grouped by declared pipeline.
+Both retain the repository-mutator nextest group and original per-command guards.
+These are command boundary contracts; scientific truth semantics remain owner-tested.

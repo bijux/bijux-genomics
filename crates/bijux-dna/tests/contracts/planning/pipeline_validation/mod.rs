@@ -1,0 +1,11 @@
+mod amplicon;
+mod ancient_dna;
+mod ancient_dna_likelihoods;
+mod bam_genotyping;
+mod catalog;
+mod diploid;
+mod environmental_dna;
+mod local;
+mod population_structure;
+mod reference_panel_imputation;
+mod relatedness;
