@@ -134,44 +134,7 @@ fn run_shell_command(repo_root: &Path, command: &str) -> Result<()> {
     }
 }
 
-pub(crate) fn rendered_benchmark_result_execution_argv(result_id: &str) -> Vec<String> {
-    vec![
-        "bijux-dna".to_string(),
-        "bench".to_string(),
-        "local".to_string(),
-        "execute-all-domain-benchmark-result".to_string(),
-        "--result-id".to_string(),
-        result_id.to_string(),
-    ]
-}
-
-pub(crate) fn rendered_essential_pipeline_node_execution_argv(
-    pipeline_id: &str,
-    node_id: &str,
-) -> Vec<String> {
-    vec![
-        "bijux-dna".to_string(),
-        "bench".to_string(),
-        "local".to_string(),
-        "execute-essential-pipeline-node".to_string(),
-        "--pipeline-id".to_string(),
-        pipeline_id.to_string(),
-        "--node-id".to_string(),
-        node_id.to_string(),
-    ]
-}
-
-pub(crate) fn render_shell_command(argv: &[String]) -> String {
-    argv.iter().map(|segment| shell_quote(segment)).collect::<Vec<_>>().join(" ")
-}
-
-fn shell_quote(value: &str) -> String {
-    if value
-        .chars()
-        .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | '/' | ':' | '+'))
-    {
-        value.to_string()
-    } else {
-        format!("'{}'", value.replace('\'', "'\\''"))
-    }
-}
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    render_shell_command, rendered_benchmark_result_execution_argv,
+    rendered_essential_pipeline_node_execution_argv,
+};

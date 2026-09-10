@@ -787,3 +787,10 @@ pub use bijux_dna_bench_model::{
     summarize_micro_benchmark_report, MicroBenchmarkExpectedRow, MicroBenchmarkReportDestinations,
     MicroBenchmarkReportObservations, MicroBenchmarkReportSources,
 };
+
+pub use crate::workflow::hpc_stage_array::{
+    collect_hpc_stage_array, publish_hpc_stage_array, validate_hpc_stage_array,
+    HpcStageArrayDestination, HpcStageArrayRequest,
+};
+
+pub use crate::artifacts::hpc_stage_array::quote_hpc_shell_value;

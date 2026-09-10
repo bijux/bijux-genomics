@@ -897,3 +897,9 @@ pub use crate::model::micro_benchmark::report_inputs::{
     MicroBenchmarkReportSources,
 };
 pub use crate::policy::micro_report::summarize_micro_benchmark_report;
+
+pub use crate::policy::hpc_array::commands::{
+    render_shell_command, rendered_benchmark_result_execution_argv,
+    rendered_essential_pipeline_node_execution_argv,
+};
+pub use crate::policy::hpc_array::stage::{build_hpc_stage_array_report, HpcStageArrayInputs};

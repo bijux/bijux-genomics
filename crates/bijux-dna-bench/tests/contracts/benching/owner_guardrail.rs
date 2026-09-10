@@ -1022,7 +1022,7 @@ fn thin_cli_uses_model_owned_local_hpc_stage_benchmark_array_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_hpc_stage_benchmark_array"));
+    assert!(contents.contains("validate_hpc_stage_array"));
     assert!(!contents.contains("struct LocalHpcStageBenchmarkArrayRow {"));
     assert!(!contents.contains("struct LocalHpcStageBenchmarkArrayReport {"));
     assert!(!contents.contains("\"bijux.bench.local_hpc_stage_benchmark_array.v1\""));

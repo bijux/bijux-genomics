@@ -128,6 +128,18 @@ pub(crate) fn collect_hpc_scratch_layout(repo_root: &Path) -> Result<LocalHpcScr
     build_hpc_scratch_layout(repo_root, &output_path)
 }
 
+pub(crate) fn collect_hpc_scratch_layout_for_jobs(
+    repo_root: &Path,
+    jobs: &[BenchLocalAllDomainSlurmSubmitJob],
+) -> Result<LocalHpcScratchLayout> {
+    let paths = BenchmarkPathResolver::new(repo_root, None);
+    build_hpc_scratch_layout_for_jobs(
+        repo_root,
+        &paths.benchmark_hpc_dry_run_root().join("scratch-layout.json"),
+        jobs,
+    )
+}
+
 pub(crate) fn load_validated_hpc_scratch_layout_path(
     repo_root: &Path,
     manifest_path: &Path,
@@ -178,6 +190,19 @@ fn build_hpc_scratch_layout(
         absolute_output,
         "HPC scratch layout output",
     )?;
+    let jobs = load_local_hpc_selected_jobs(repo_root)?;
+    build_hpc_scratch_layout_for_jobs(repo_root, absolute_output, &jobs)
+}
+fn build_hpc_scratch_layout_for_jobs(
+    repo_root: &Path,
+    absolute_output: &Path,
+    submit_jobs: &[BenchLocalAllDomainSlurmSubmitJob],
+) -> Result<LocalHpcScratchLayout> {
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        absolute_output,
+        "HPC scratch layout output",
+    )?;
     if let Some(parent) = absolute_output.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
@@ -185,7 +210,6 @@ fn build_hpc_scratch_layout(
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let staging_root = benchmark_paths.benchmark_hpc_dry_run_root().join("staged");
     let scratch_root = benchmark_paths.benchmark_hpc_dry_run_root().join("scratch");
-    let submit_jobs = load_local_hpc_selected_jobs(repo_root)?;
 
     let benchmark_rows = load_all_domain_rendered_command_argv_rows(repo_root)?
         .into_iter()
@@ -195,7 +219,7 @@ fn build_hpc_scratch_layout(
         .into_iter()
         .map(|row| ((row.pipeline_id.clone(), row.node_id.clone()), row))
         .collect::<BTreeMap<_, _>>();
-    let stage_ids = collect_stage_ids(&benchmark_rows, &essential_rows, &submit_jobs);
+    let stage_ids = collect_stage_ids(&benchmark_rows, &essential_rows, submit_jobs);
     let stage_input_hints = collect_local_hpc_stage_input_hints(repo_root, &stage_ids)?;
     let resource_hints = load_local_hpc_job_resource_hints(repo_root)?;
 
@@ -204,7 +228,7 @@ fn build_hpc_scratch_layout(
     let mut essential_pipeline_job_count = 0usize;
     let mut input_link_count = 0usize;
 
-    for job in &submit_jobs {
+    for job in submit_jobs {
         let resources = resolve_local_hpc_job_resource_hint(
             &resource_hints,
             &job.domain,

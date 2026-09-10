@@ -584,3 +584,14 @@ pub use bijux_dna_bench::{
     MicroBenchmarkReportSources, DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH,
     DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH,
 };
+
+pub use bijux_dna_bench::{
+    collect_hpc_stage_array, publish_hpc_stage_array, validate_hpc_stage_array,
+    HpcStageArrayDestination, HpcStageArrayRequest,
+};
+pub use bijux_dna_bench_model::{
+    render_shell_command, rendered_benchmark_result_execution_argv,
+    rendered_essential_pipeline_node_execution_argv,
+};
+
+pub use bijux_dna_bench::quote_hpc_shell_value;

@@ -35,3 +35,5 @@ pub(crate) mod simulation;
 pub(crate) mod command_artifacts;
 
 pub(crate) mod micro_report;
+
+pub(crate) mod hpc_stage_array;

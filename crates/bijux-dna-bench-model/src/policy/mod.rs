@@ -27,3 +27,5 @@ pub(crate) mod command_audit;
 pub(crate) mod command_artifacts;
 
 pub(crate) mod micro_report;
+
+pub(crate) mod hpc_array;
