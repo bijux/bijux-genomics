@@ -81,7 +81,11 @@ fn validate_components(
                 component.report_path
             );
         }
-        if !component.report_path.starts_with("artifacts/benchmark-smoke/micro/") {
+        let path = std::path::Path::new(&component.report_path);
+        if component.report_path.contains('\\')
+            || !component.report_path.starts_with("artifacts/benchmark-smoke/micro/")
+            || !path.components().all(|part| matches!(part, std::path::Component::Normal(_)))
+        {
             bail!("micro benchmark component report `{}` must stay under `artifacts/benchmark-smoke/micro`, found `{}`", component.component_id, component.report_path);
         }
     }

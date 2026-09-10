@@ -17,6 +17,7 @@ pub fn qualify_micro_benchmark_run(
     manifest.passes_behavior_test = false;
     let present = crate::repo::micro_run::present_files(root, manifest, evidence);
     validate_micro_benchmark_run_contract(manifest, evidence, &present)?;
+    crate::repo::micro_run::require_current_artifacts(root, evidence)?;
     manifest.passes_behavior_test = true;
     Ok(())
 }

@@ -219,3 +219,45 @@ fn micro_benchmark_contract_accepts_governed_row_sets() -> Result<()> {
     assert!(!fixture.manifest.passes_behavior_test);
     Ok(())
 }
+
+#[test]
+fn micro_run_requires_current_artifacts_and_scoped_component_paths() -> Result<()> {
+    let root = bijux_dna_infra::temp_dir("micro-run-current-artifacts-")?;
+    let mut fixture = fixture();
+    let mut sidecar = fixture.outputs[0].clone();
+    sidecar.artifact_id = "sidecar".into();
+    sidecar.path = "artifacts/benchmark-smoke/micro/sidecar.json".into();
+    fixture.outputs.push(sidecar);
+    fixture.manifest.output_row_count += 1;
+    fixture.results[0].output_count += 1;
+    fixture.materialize(root.path())?;
+    fixture.qualify(root.path())?;
+    let sidecar_path = root.path().join("artifacts/benchmark-smoke/micro/sidecar.json");
+    bijux_dna_infra::remove_file(&sidecar_path)?;
+    assert!(fixture.qualify(root.path()).is_err());
+    assert!(!fixture.manifest.passes_behavior_test);
+    fixture.materialize(root.path())?;
+    fixture.qualify(root.path())?;
+    let log_path = root.path().join(&fixture.logs[0].path);
+    bijux_dna_infra::remove_file(&log_path)?;
+    assert!(fixture.qualify(root.path()).is_err());
+    assert!(!fixture.manifest.passes_behavior_test);
+    bijux_dna_infra::ensure_dir(&log_path)?;
+    assert!(fixture.qualify(root.path()).is_err());
+    bijux_dna_infra::remove_empty_dir(&log_path)?;
+    fixture.materialize(root.path())?;
+    fixture.qualify(root.path())?;
+    let original = fixture.manifest.component_reports[0].report_path.clone();
+    fixture.manifest.component_reports[0].report_path =
+        original.replacen("micro/", "micro/../micro/", 1);
+    assert!(root.path().join(&fixture.manifest.component_reports[0].report_path).is_file());
+    assert!(fixture.qualify(root.path()).is_err());
+    assert!(!fixture.manifest.passes_behavior_test);
+    fixture.manifest.component_reports[0].report_path = original;
+    // Directory output artifacts retain their existing presence semantics.
+    bijux_dna_infra::remove_file(&sidecar_path)?;
+    bijux_dna_infra::ensure_dir(&sidecar_path)?;
+    fixture.qualify(root.path())?;
+    assert!(fixture.manifest.passes_behavior_test);
+    Ok(())
+}
