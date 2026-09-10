@@ -949,11 +949,11 @@ pub use crate::model::tool_execution_modes::{
 
 pub use crate::contract::{inspect_hpc_replay_payloads, HpcReplayPayloadAdmission};
 
-pub use crate::policy::bundle_redaction::encode_redacted_hpc_bundle;
+pub use crate::policy::bundle_redaction::{encode_redacted_hpc_bundle, redact_hpc_text};
 
 pub use crate::policy::hpc_submission::{
-    hpc_stage_domain, plan_hpc_submission, render_hpc_submission_script, HpcSelectedJob,
-    HpcSubmissionPlan, HpcSubmissionSelector,
+    hpc_stage_domain, plan_hpc_submission, render_hpc_submission_script,
+    select_hpc_redaction_needles, HpcSelectedJob, HpcSubmissionPlan, HpcSubmissionSelector,
 };
 
 pub use crate::model::hpc_campaign::{

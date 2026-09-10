@@ -117,3 +117,25 @@ fn hpc_submission_rejects_ambiguous_and_unresolved_selected_dependencies() {
         assert!(plan_hpc_submission(&invalid, &Selector::All).is_err());
     }
 }
+
+#[test]
+fn redaction_selection_preserves_key_rules_order_and_literal_text() {
+    let values = std::collections::BTreeMap::from([
+        ("API_TOKEN".into(), "same-value".into()),
+        ("PASSWORD".into(), "same-value".into()),
+        ("CUSTOM".into(), "explicit-value".into()),
+        ("OTHER".into(), "ordinary".into()),
+        ("SHORT_SECRET".into(), "abc".into()),
+        ("EMPTY_SECRET".into(), String::new()),
+    ]);
+    let needles = bijux_dna_bench_model::select_hpc_redaction_needles(&values, &["CUSTOM".into()]);
+    assert_eq!(needles, ["explicit-value", "same-value"]);
+    assert_eq!(
+        bijux_dna_bench_model::redact_hpc_text(
+            "same-value ordinary explicit-value".into(),
+            &needles
+        ),
+        "<redacted> ordinary <redacted>"
+    );
+    assert_eq!(bijux_dna_bench_model::redact_hpc_text("plain".into(), &[String::new()]), "plain");
+}

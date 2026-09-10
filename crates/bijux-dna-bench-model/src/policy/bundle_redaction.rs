@@ -12,14 +12,22 @@ pub fn encode_redacted_hpc_bundle(
     serde_json::to_vec_pretty(&payload)
 }
 
+/// Apply the same ordered literal replacements used by bundle string values.
+#[must_use]
+pub fn redact_hpc_text(mut text: String, needles: &[String]) -> String {
+    for needle in needles {
+        if needle.is_empty() {
+            continue;
+        }
+        text = text.replace(needle, "<redacted>");
+    }
+    text
+}
+
 fn redact_values(value: &mut Value, needles: &[String]) {
     match value {
         Value::String(text) => {
-            for needle in needles {
-                if !needle.is_empty() {
-                    *text = text.replace(needle, "<redacted>");
-                }
-            }
+            *text = redact_hpc_text(std::mem::take(text), needles);
         }
         Value::Array(values) => {
             for value in values {

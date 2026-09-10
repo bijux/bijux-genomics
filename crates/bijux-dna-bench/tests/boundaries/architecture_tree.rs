@@ -89,7 +89,8 @@ fn bench_tree_matches_architecture_contract() {
             "copy_back.rs",
             "environment.rs",
             "monitor.rs",
-            "profiles.rs"
+            "profiles.rs",
+            "redaction.rs"
         ]),
         "campaign acquisition stays separate from planning"
     );

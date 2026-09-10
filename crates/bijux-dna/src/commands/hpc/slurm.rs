@@ -6,14 +6,16 @@ use bijux_dna_api::v1::api::bench::{
     assemble_hpc_code_submission, assemble_hpc_results_submission, HpcBundleFoundationLocks,
     HpcBundleSubmission,
 };
-use bijux_dna_api::v1::api::bench::{encode_redacted_hpc_bundle, inspect_hpc_replay_payloads};
+use bijux_dna_api::v1::api::bench::{
+    collect_hpc_redaction_needles, encode_redacted_hpc_bundle, inspect_hpc_replay_payloads,
+    redact_hpc_text as redact_text,
+};
 use bijux_dna_api::v1::api::bench::{
     hpc_stage_domain as stage_domain, plan_hpc_submission, HpcSelectedJob as SelectedJob,
     HpcSubmissionSelector as SubmissionSubset,
 };
 pub use bijux_dna_api::v1::api::bench::{CopyBackEntry, CopyBackManifestReport};
 use bijux_dna_api::v1::api::run::observe_hpc_code_freeze;
-use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -442,7 +444,10 @@ fn run_submission(
         "real Slurm submission cannot encrypt active scheduler output paths; collect terminal outputs before encryption"
     );
     let plan = plan_hpc_submission(&report.planned_jobs, &settings.subset)?;
-    let redaction_needles = redaction_needles(&report)?;
+    let redaction_needles = collect_hpc_redaction_needles(
+        Path::new(&report.env_file_path),
+        &report.security.redacted_env_keys,
+    )?;
 
     let submitted_at = now_timestamp_compact();
     let mut scheduler_ids = Vec::new();
@@ -703,60 +708,6 @@ fn ensure_safe_private_directory(path: &Path, allow_unsafe_destination: bool) ->
         ));
     }
     ensure_private_directory(path)
-}
-
-fn load_env_map_for_redaction(env_path: &Path) -> Result<BTreeMap<String, String>> {
-    if !env_path.exists() {
-        return Ok(BTreeMap::new());
-    }
-    let raw = std::fs::read_to_string(env_path)
-        .with_context(|| format!("read {}", env_path.display()))?;
-    let mut map = BTreeMap::new();
-    for line in raw.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            continue;
-        }
-        let mut parts = trimmed.splitn(2, '=');
-        let Some(key) = parts.next() else { continue };
-        let Some(value) = parts.next() else { continue };
-        map.insert(key.trim().to_string(), value.trim().trim_matches('"').to_string());
-    }
-    Ok(map)
-}
-
-fn redaction_needles(report: &CampaignDryRunReport) -> Result<Vec<String>> {
-    let env_map = load_env_map_for_redaction(Path::new(&report.env_file_path))?;
-    let mut needles = Vec::new();
-    for (key, value) in env_map {
-        if value.is_empty() {
-            continue;
-        }
-        let uppercase = key.to_ascii_uppercase();
-        let by_name = uppercase.contains("SECRET")
-            || uppercase.contains("TOKEN")
-            || uppercase.contains("PASSWORD")
-            || uppercase.contains("KEY")
-            || uppercase.contains("ACCOUNT")
-            || uppercase.contains("PROJECT");
-        let explicitly = report.security.redacted_env_keys.iter().any(|k| k == &key);
-        if (by_name || explicitly) && value.len() >= 4 {
-            needles.push(value);
-        }
-    }
-    needles.sort();
-    needles.dedup();
-    Ok(needles)
-}
-
-fn redact_text(mut text: String, needles: &[String]) -> String {
-    for needle in needles {
-        if needle.is_empty() {
-            continue;
-        }
-        text = text.replace(needle, "<redacted>");
-    }
-    text
 }
 
 fn normalized_sidecar_for_bundle(

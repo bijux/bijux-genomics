@@ -489,3 +489,5 @@ Runtime declaration classification uses `RuntimeResolutionInput` and returns `Ru
 Execution-mode declarations own closed TOML-compatible shapes and header/assignment admission. Unknown schemas, unsupported required fields and ambiguous tool assignments fail before executable resolution. This policy does not establish actual tool availability.
 
 `render_hpc_submission_script` projects one campaign attempt from planned jobs and explicit foundation lock references. Scheduler directives precede executable statements; metadata is quoted as literal shell arguments. Header control characters and malformed dependency identities are rejected before script publication. Rendering performs no IO and does not certify stage execution.
+
+`select_hpc_redaction_needles` applies campaign sensitive-key policy to explicit decoded values. `redact_hpc_text` shares literal replacement semantics with bundle string redaction; environment acquisition belongs to the benchmark repository reader.

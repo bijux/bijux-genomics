@@ -7,3 +7,5 @@ pub(crate) mod profiles;
 pub(crate) mod monitor;
 
 pub(crate) mod copy_back;
+
+pub(crate) mod redaction;

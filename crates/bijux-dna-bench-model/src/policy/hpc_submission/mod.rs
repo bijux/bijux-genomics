@@ -1,6 +1,8 @@
 //! Pure selection and dependency admission for one scheduler submission scope.
 mod dependencies;
+mod redaction;
 mod script;
+pub use redaction::select_hpc_redaction_needles;
 mod selection;
 pub use script::render_hpc_submission_script;
 

@@ -19,6 +19,7 @@ pub struct CampaignContext {
 }
 
 pub(crate) mod monitor;
+pub use crate::repo::hpc_campaign::redaction::collect_hpc_redaction_needles;
 pub use monitor::monitor_campaign;
 pub use planning::campaign_dry_run;
 pub use preflight::campaign_preflight;
