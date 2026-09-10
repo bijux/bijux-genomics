@@ -30,13 +30,13 @@ impl Destinations {
     pub(crate) fn publish(&self, report: &MicroBenchmarkReport) -> Result<()> {
         for path in [&self.markdown, &self.json] {
             if let Some(parent) = path.parent() {
-                std::fs::create_dir_all(parent)
+                bijux_dna_infra::ensure_dir(parent)
                     .with_context(|| format!("create {}", parent.display()))?;
             }
         }
-        std::fs::write(
+        bijux_dna_infra::write_string(
             &self.markdown,
-            crate::artifacts::micro_report::render_micro_benchmark_report_markdown(report),
+            &crate::artifacts::micro_report::render_micro_benchmark_report_markdown(report),
         )
         .with_context(|| format!("write {}", self.markdown.display()))?;
         bijux_dna_infra::atomic_write_json(&self.json, report)?;
