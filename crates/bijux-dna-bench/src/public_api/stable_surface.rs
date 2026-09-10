@@ -812,3 +812,12 @@ pub use crate::repo::hpc_asset_staging::{
 };
 pub use crate::workflow::{collect_hpc_asset_staging_manifest, HpcAssetStagingRequest};
 pub use bijux_dna_bench_model::compare_hpc_asset_staging_manifest;
+
+pub use crate::repo::hpc_scratch::{load_hpc_scratch_layout, publish_hpc_scratch_layout};
+pub use crate::workflow::hpc_scratch::{
+    collect_hpc_scratch_layout, HpcScratchCommands, HpcScratchPipelineCommands, HpcScratchRequest,
+};
+pub use bijux_dna_bench_model::{
+    assemble_hpc_scratch_layout, compare_hpc_scratch_layout, project_hpc_scratch_job,
+    HpcScratchJobRequest,
+};

@@ -614,3 +614,9 @@ pub use bijux_dna_bench::{
     collect_hpc_asset_staging_manifest, compare_hpc_asset_staging_manifest,
     load_hpc_asset_staging_manifest, publish_hpc_asset_staging_manifest, HpcAssetStagingRequest,
 };
+
+pub use bijux_dna_bench::{
+    assemble_hpc_scratch_layout, collect_hpc_scratch_layout, compare_hpc_scratch_layout,
+    load_hpc_scratch_layout, project_hpc_scratch_job, publish_hpc_scratch_layout,
+    HpcScratchCommands, HpcScratchJobRequest, HpcScratchPipelineCommands, HpcScratchRequest,
+};

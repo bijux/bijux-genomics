@@ -919,3 +919,8 @@ pub use crate::policy::hpc_asset_staging::{
 };
 
 pub use crate::model::source_assets::{BenchmarkSourceAsset, BenchmarkSourceKind};
+
+pub use crate::policy::hpc_scratch::{
+    assemble_hpc_scratch_layout, compare_hpc_scratch_layout, project_hpc_scratch_job,
+    HpcScratchJobRequest,
+};

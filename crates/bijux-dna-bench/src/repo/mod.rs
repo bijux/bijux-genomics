@@ -107,3 +107,5 @@ pub(crate) mod hpc_inputs;
 pub(crate) mod hpc_asset_staging;
 
 pub(crate) mod source_assets;
+
+pub(crate) mod hpc_scratch;

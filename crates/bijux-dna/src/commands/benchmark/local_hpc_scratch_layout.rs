@@ -1,82 +1,30 @@
-use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
-use std::path::{Path, PathBuf};
-
-use anyhow::{anyhow, Context, Result};
-use bijux_dna_api::v1::api::bench::{
-    validate_benchmark_local_hpc_scratch_layout, BenchmarkLocalHpcScratchCleanupPolicy,
-    BenchmarkLocalHpcScratchInputLink, BenchmarkLocalHpcScratchJobResources,
-    BenchmarkLocalHpcScratchLayout, BenchmarkLocalHpcScratchLayoutJob,
-    BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
-};
-use serde::Deserialize;
-
 use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
-use super::local_hpc_input_discovery::{
-    collect_local_hpc_job_source_inputs, collect_local_hpc_stage_input_hints, materialize_stage_id,
-    path_relative_to_repo, LocalHpcDiscoveredSourceInput, LocalHpcStageInputHint,
-};
-use super::local_hpc_job_resources::{
-    load_local_hpc_job_resource_hints, resolve_local_hpc_job_resource_hint,
-};
+use super::local_hpc_input_discovery::collect_local_hpc_stage_input_hints;
+use super::local_hpc_job_resources::load_local_hpc_job_resource_hints;
 use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
-use crate::commands::benchmark::readiness::all_domain_rendered_commands::render_all_domain_commands;
-use crate::commands::benchmark::readiness::essential_pipeline_rendered_commands::{
+use super::readiness::all_domain_rendered_commands::render_all_domain_commands;
+use super::readiness::benchmark_command_rows::DEFAULT_STAGE_TOOL_COMMAND_ROOT;
+use super::readiness::essential_pipeline_rendered_commands::{
     render_essential_pipeline_commands, DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_PATH,
 };
-use crate::commands::cli::parse;
-use crate::commands::cli::render;
-
-const LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION: &str = BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1;
+use crate::commands::cli::{parse, render};
+use anyhow::{Context, Result};
+pub(crate) use bijux_dna_api::v1::api::bench::load_hpc_scratch_layout as load_validated_hpc_scratch_layout_path;
+use bijux_dna_api::v1::api::bench::{
+    collect_hpc_scratch_layout as collect_layout, compare_hpc_scratch_layout,
+    publish_hpc_scratch_layout, BenchmarkLocalHpcScratchLayout, HpcScratchCommands,
+    HpcScratchPipelineCommands, HpcScratchRequest,
+};
+use std::path::{Path, PathBuf};
+#[cfg(all(test, feature = "bam_downstream"))]
+const LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION: &str =
+    bijux_dna_api::v1::api::bench::BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_SCRATCH_LAYOUT_PATH: &str =
     "artifacts/runs/bench/hpc-dry-run/scratch-layout.json";
-const CLEANUP_POLICY_ID: &str = "copy_back_outputs_remove_successful_scratch";
-const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.argv.jsonl";
 const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH_FOR_HPC: &str =
     "artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.sh";
-const DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_ARGV_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/pipelines/essential-pipelines-rendered-commands.argv.jsonl";
-
 pub(crate) type LocalHpcScratchLayout = BenchmarkLocalHpcScratchLayout;
-pub(crate) type LocalHpcScratchLayoutJob = BenchmarkLocalHpcScratchLayoutJob;
-pub(crate) type LocalHpcScratchJobResources = BenchmarkLocalHpcScratchJobResources;
-pub(crate) type LocalHpcScratchCleanupPolicy = BenchmarkLocalHpcScratchCleanupPolicy;
-pub(crate) type LocalHpcScratchInputLink = BenchmarkLocalHpcScratchInputLink;
-
-#[derive(Debug, Clone, Deserialize)]
-struct ScratchLayoutAllDomainCommandStep {
-    argv: Vec<String>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct ScratchLayoutAllDomainCommandRow {
-    result_id: String,
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-    corpus_id: String,
-    asset_profile_id: String,
-    command_steps: Vec<ScratchLayoutAllDomainCommandStep>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct ScratchLayoutEssentialPipelineCommandStep {
-    argv: Vec<String>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct ScratchLayoutEssentialPipelineCommandRow {
-    pipeline_id: String,
-    node_id: String,
-    stage_id: String,
-    tool_id: String,
-    domain: String,
-    render_status: String,
-    command_steps: Vec<ScratchLayoutEssentialPipelineCommandStep>,
-}
-
 pub(crate) fn run_render_hpc_scratch_layout(
     args: &parse::BenchLocalRenderHpcScratchLayoutArgs,
 ) -> Result<()> {
@@ -118,7 +66,7 @@ pub(crate) fn render_hpc_scratch_layout(
     let absolute_output =
         if output_path.is_absolute() { output_path } else { repo_root.join(&output_path) };
     let manifest = build_hpc_scratch_layout(repo_root, &absolute_output)?;
-    bijux_dna_infra::atomic_write_json(&absolute_output, &manifest)?;
+    publish_hpc_scratch_layout(repo_root, &absolute_output, &manifest)?;
     Ok(manifest)
 }
 
@@ -140,32 +88,6 @@ pub(crate) fn collect_hpc_scratch_layout_for_jobs(
     )
 }
 
-pub(crate) fn load_validated_hpc_scratch_layout_path(
-    repo_root: &Path,
-    manifest_path: &Path,
-) -> Result<LocalHpcScratchLayout> {
-    let absolute_manifest_path = if manifest_path.is_absolute() {
-        manifest_path.to_path_buf()
-    } else {
-        repo_root.join(manifest_path)
-    };
-    let raw = fs::read_to_string(&absolute_manifest_path)
-        .with_context(|| format!("read {}", absolute_manifest_path.display()))?;
-    let manifest = serde_json::from_str::<LocalHpcScratchLayout>(&raw)
-        .with_context(|| format!("parse {}", absolute_manifest_path.display()))?;
-    validate_benchmark_local_hpc_scratch_layout(&manifest)?;
-    let expected_output_path = path_relative_to_repo(repo_root, &absolute_manifest_path);
-    if manifest.output_path != expected_output_path {
-        return Err(anyhow!(
-            "HPC scratch layout `{}` declares output_path `{}` but is stored at `{}`",
-            absolute_manifest_path.display(),
-            manifest.output_path,
-            expected_output_path
-        ));
-    }
-    Ok(manifest)
-}
-
 pub(crate) fn validate_hpc_scratch_layout_path(
     repo_root: &Path,
     manifest_path: &Path,
@@ -177,7 +99,7 @@ pub(crate) fn validate_hpc_scratch_layout_path(
     };
     let observed = load_validated_hpc_scratch_layout_path(repo_root, &absolute_manifest_path)?;
     let expected = build_hpc_scratch_layout(repo_root, &absolute_manifest_path)?;
-    ensure_scratch_layout_matches_expected(&absolute_manifest_path, &observed, &expected)?;
+    compare_hpc_scratch_layout(&absolute_manifest_path, &observed, &expected)?;
     Ok(observed)
 }
 
@@ -203,398 +125,45 @@ fn build_hpc_scratch_layout_for_jobs(
         absolute_output,
         "HPC scratch layout output",
     )?;
-    if let Some(parent) = absolute_output.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-
-    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
-    let staging_root = benchmark_paths.benchmark_hpc_dry_run_root().join("staged");
-    let scratch_root = benchmark_paths.benchmark_hpc_dry_run_root().join("scratch");
-
-    let benchmark_rows = load_all_domain_rendered_command_argv_rows(repo_root)?
-        .into_iter()
-        .map(|row| (row.result_id.clone(), row))
-        .collect::<BTreeMap<_, _>>();
-    let essential_rows = load_essential_pipeline_rendered_command_argv_rows(repo_root)?
-        .into_iter()
-        .map(|row| ((row.pipeline_id.clone(), row.node_id.clone()), row))
-        .collect::<BTreeMap<_, _>>();
-    let stage_ids = collect_stage_ids(&benchmark_rows, &essential_rows, submit_jobs);
-    let stage_input_hints = collect_local_hpc_stage_input_hints(repo_root, &stage_ids)?;
-    let resource_hints = load_local_hpc_job_resource_hints(repo_root)?;
-
-    let mut jobs = Vec::with_capacity(submit_jobs.len());
-    let mut benchmark_job_count = 0usize;
-    let mut essential_pipeline_job_count = 0usize;
-    let mut input_link_count = 0usize;
-
-    for job in submit_jobs {
-        let resources = resolve_local_hpc_job_resource_hint(
-            &resource_hints,
-            &job.domain,
-            &job.stage_id,
-            &job.tool_id,
-        );
-        let scratch_job =
-            match (job.result_id.as_ref(), job.pipeline_id.as_ref(), job.node_id.as_ref()) {
-                (Some(_), None, None) => {
-                    benchmark_job_count += 1;
-                    build_benchmark_scratch_job(
-                        repo_root,
-                        &staging_root,
-                        &scratch_root,
-                        job,
-                        benchmark_rows
-                            .get(job.result_id.as_deref().ok_or_else(|| {
-                                anyhow!(
-                                    "benchmark scratch layout job `{}` is missing result_id",
-                                    job.job_id_local
-                                )
-                            })?)
-                            .ok_or_else(|| {
-                                anyhow!(
-                                "benchmark scratch layout is missing rendered command row for `{}`",
-                                job.job_id_local
-                            )
-                            })?,
-                        &stage_input_hints,
-                        &resources,
-                    )?
-                }
-                (None, Some(_), Some(_)) => {
-                    essential_pipeline_job_count += 1;
-                    build_essential_pipeline_scratch_job(
-                        repo_root,
-                        &staging_root,
-                        &scratch_root,
-                        job,
-                        essential_rows
-                            .get(&(
-                                job.pipeline_id.clone().ok_or_else(|| {
-                                    anyhow!(
-                                        "pipeline scratch layout job `{}` is missing pipeline_id",
-                                        job.job_id_local
-                                    )
-                                })?,
-                                job.node_id.clone().ok_or_else(|| {
-                                    anyhow!(
-                                        "pipeline scratch layout job `{}` is missing node_id",
-                                        job.job_id_local
-                                    )
-                                })?,
-                            ))
-                            .ok_or_else(|| {
-                                anyhow!(
-                                "pipeline scratch layout is missing rendered command row for `{}`",
-                                job.job_id_local
-                            )
-                            })?,
-                        &stage_input_hints,
-                        &resources,
-                    )?
-                }
-                _ => {
-                    return Err(anyhow!(
-                        "HPC scratch layout could not classify submit-manifest job `{}`",
-                        job.job_id_local
-                    ))
-                }
-            };
-        input_link_count += scratch_job.input_links.len();
-        jobs.push(scratch_job);
-    }
-
-    let manifest = LocalHpcScratchLayout {
-        schema_version: LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION.to_string(),
-        output_path: path_relative_to_repo(repo_root, absolute_output),
-        staging_root: path_relative_to_repo(repo_root, &staging_root),
-        scratch_root: path_relative_to_repo(repo_root, &scratch_root),
-        selected_job_count: jobs.len(),
-        benchmark_job_count,
-        essential_pipeline_job_count,
-        input_link_count,
-        jobs,
-    };
-    validate_benchmark_local_hpc_scratch_layout(&manifest)?;
-    Ok(manifest)
-}
-
-fn load_all_domain_rendered_command_argv_rows(
-    repo_root: &Path,
-) -> Result<Vec<ScratchLayoutAllDomainCommandRow>> {
-    let path = repo_root.join(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH);
-    render_all_domain_commands(repo_root, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH_FOR_HPC.into())
-        .with_context(|| format!("render {}", path.display()))?;
-    load_jsonl_rows(&path, "all-domain rendered command argv row")
-}
-
-fn load_essential_pipeline_rendered_command_argv_rows(
-    repo_root: &Path,
-) -> Result<Vec<ScratchLayoutEssentialPipelineCommandRow>> {
-    let path = repo_root.join(DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_ARGV_PATH);
-    render_essential_pipeline_commands(
+    let paths = BenchmarkPathResolver::new(repo_root, None);
+    let benchmark = render_all_domain_commands(
+        repo_root,
+        DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH_FOR_HPC.into(),
+    )?;
+    let pipeline = render_essential_pipeline_commands(
         repo_root,
         DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_PATH.into(),
-    )
-    .with_context(|| format!("render {}", path.display()))?;
-    let rows = load_jsonl_rows(&path, "essential pipeline rendered command argv row")?;
-    if rows
-        .iter()
-        .any(|row: &ScratchLayoutEssentialPipelineCommandRow| row.render_status != "rendered")
-    {
-        return Err(anyhow!(
-            "HPC scratch layout requires rendered essential pipeline command argv rows"
-        ));
-    }
-    Ok(rows)
-}
-
-fn load_jsonl_rows<T>(path: &Path, row_label: &str) -> Result<Vec<T>>
-where
-    T: for<'de> Deserialize<'de>,
-{
-    let body = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    body.lines()
-        .enumerate()
-        .map(|(index, line)| {
-            serde_json::from_str::<T>(line)
-                .with_context(|| format!("parse {row_label} {} from {}", index + 1, path.display()))
-        })
-        .collect()
-}
-
-fn collect_stage_ids(
-    benchmark_rows: &BTreeMap<String, ScratchLayoutAllDomainCommandRow>,
-    essential_rows: &BTreeMap<(String, String), ScratchLayoutEssentialPipelineCommandRow>,
-    jobs: &[BenchLocalAllDomainSlurmSubmitJob],
-) -> BTreeSet<String> {
-    let mut stage_ids = jobs.iter().map(|job| job.stage_id.clone()).collect::<BTreeSet<_>>();
-    for row in benchmark_rows.values() {
-        stage_ids
-            .extend(row.command_steps.iter().filter_map(|step| materialize_stage_id(&step.argv)));
-    }
-    for row in essential_rows.values() {
-        stage_ids
-            .extend(row.command_steps.iter().filter_map(|step| materialize_stage_id(&step.argv)));
-    }
-    stage_ids
-}
-
-fn build_benchmark_scratch_job(
-    repo_root: &Path,
-    staging_root: &Path,
-    scratch_root: &Path,
-    job: &BenchLocalAllDomainSlurmSubmitJob,
-    row: &ScratchLayoutAllDomainCommandRow,
-    stage_input_hints: &BTreeMap<String, Vec<LocalHpcStageInputHint>>,
-    resources: &super::local_hpc_job_resources::LocalHpcJobResourceHint,
-) -> Result<LocalHpcScratchLayoutJob> {
-    let result_id = row.result_id.clone();
-    let job_scratch_root = scratch_root
-        .join("benchmark-results")
-        .join(&row.domain)
-        .join(&row.corpus_id)
-        .join(&row.stage_id)
-        .join(&row.asset_profile_id)
-        .join(&row.tool_id)
-        .join(&row.result_id);
-    let input_links_root = job_scratch_root.join("inputs");
-    let input_links = collect_local_hpc_job_source_inputs(
-        repo_root,
-        &row.result_id,
-        &row.stage_id,
-        row.command_steps.iter().map(|step| step.argv.as_slice()),
-        stage_input_hints,
-    )?
-    .into_iter()
-    .map(|input| to_input_link(repo_root, staging_root, &input_links_root, input))
-    .collect::<Result<Vec<_>>>()?;
-    build_scratch_job(
-        repo_root,
-        job,
-        Some(result_id),
-        None,
-        None,
-        job_scratch_root,
-        input_links_root,
-        input_links,
-        resources,
-    )
-}
-
-fn build_essential_pipeline_scratch_job(
-    repo_root: &Path,
-    staging_root: &Path,
-    scratch_root: &Path,
-    job: &BenchLocalAllDomainSlurmSubmitJob,
-    row: &ScratchLayoutEssentialPipelineCommandRow,
-    stage_input_hints: &BTreeMap<String, Vec<LocalHpcStageInputHint>>,
-    resources: &super::local_hpc_job_resources::LocalHpcJobResourceHint,
-) -> Result<LocalHpcScratchLayoutJob> {
-    let pipeline_id = row.pipeline_id.clone();
-    let node_id = row.node_id.clone();
-    let job_scratch_root =
-        scratch_root.join("essential-pipelines").join(&row.pipeline_id).join(&row.node_id);
-    let input_links_root = job_scratch_root.join("inputs");
-    let input_links = collect_local_hpc_job_source_inputs(
-        repo_root,
-        &format!("{}::{}", row.pipeline_id, row.node_id),
-        &row.stage_id,
-        row.command_steps.iter().map(|step| step.argv.as_slice()),
-        stage_input_hints,
-    )?
-    .into_iter()
-    .map(|input| to_input_link(repo_root, staging_root, &input_links_root, input))
-    .collect::<Result<Vec<_>>>()?;
-    build_scratch_job(
-        repo_root,
-        job,
-        None,
-        Some(pipeline_id),
-        Some(node_id),
-        job_scratch_root,
-        input_links_root,
-        input_links,
-        resources,
-    )
-}
-
-#[allow(clippy::too_many_arguments)]
-fn build_scratch_job(
-    repo_root: &Path,
-    job: &BenchLocalAllDomainSlurmSubmitJob,
-    result_id: Option<String>,
-    pipeline_id: Option<String>,
-    node_id: Option<String>,
-    job_scratch_root: PathBuf,
-    input_links_root: PathBuf,
-    input_links: Vec<LocalHpcScratchInputLink>,
-    resources: &super::local_hpc_job_resources::LocalHpcJobResourceHint,
-) -> Result<LocalHpcScratchLayoutJob> {
-    Ok(LocalHpcScratchLayoutJob {
-        job_id_local: job.job_id_local.clone(),
-        job_kind: if result_id.is_some() {
-            "benchmark_result".to_string()
-        } else {
-            "essential_pipeline_node".to_string()
-        },
-        result_id,
-        pipeline_id,
-        node_id,
-        domain: job.domain.clone(),
-        stage_id: job.stage_id.clone(),
-        tool_id: job.tool_id.clone(),
-        corpus_id: job.corpus_id.clone(),
-        asset_profile_id: job.asset_profile_id.clone(),
-        scratch_root: path_relative_to_repo(repo_root, &job_scratch_root),
-        input_links_root: path_relative_to_repo(repo_root, &input_links_root),
-        output_root: output_root_for_job(&job.outputs)?,
-        log_root: log_root_for_job(&job.stdout, &job.stderr)?,
-        stdout_path: job.stdout.clone(),
-        stderr_path: job.stderr.clone(),
-        resources: LocalHpcScratchJobResources {
-            cpus_per_task: resources.cpus_per_task,
-            memory_mb: resources.memory_mb,
-            time_limit: resources.time_limit.clone(),
-            scratch_gb: resources.scratch_gb,
-        },
-        cleanup_policy: default_cleanup_policy(),
-        input_links,
+    )?;
+    let commands = HpcScratchCommands {
+        benchmark_rows: benchmark.rows,
+        pipeline_rows: pipeline
+            .rows
+            .into_iter()
+            .map(|row| HpcScratchPipelineCommands {
+                pipeline_id: row.pipeline_id,
+                node_id: row.node_id,
+                stage_id: row.stage_id,
+                tool_id: row.tool_id,
+                domain: row.domain,
+                render_status: row.render_status,
+                command_argv: row.command_steps.into_iter().map(|step| step.argv).collect(),
+            })
+            .collect(),
+    };
+    let hints = collect_local_hpc_stage_input_hints(repo_root, &commands.stage_ids(submit_jobs))?;
+    let resources = load_local_hpc_job_resource_hints(repo_root)?;
+    collect_layout(HpcScratchRequest {
+        repository_root: repo_root,
+        output_path: absolute_output,
+        staging_root: &paths.benchmark_hpc_dry_run_root().join("staged"),
+        scratch_root: &paths.benchmark_hpc_dry_run_root().join("scratch"),
+        jobs: submit_jobs,
+        commands: &commands,
+        stage_input_hints: &hints,
+        resource_hints: &resources,
+        generated_output_root: DEFAULT_STAGE_TOOL_COMMAND_ROOT,
     })
 }
-
-fn to_input_link(
-    repo_root: &Path,
-    staging_root: &Path,
-    input_links_root: &Path,
-    input: LocalHpcDiscoveredSourceInput,
-) -> Result<LocalHpcScratchInputLink> {
-    let staged_path =
-        path_relative_to_repo(repo_root, &staging_root.join(&input.source_asset.source_path));
-    let link_path =
-        path_relative_to_repo(repo_root, &input_links_root.join(&input.source_asset.source_path));
-    Ok(LocalHpcScratchInputLink {
-        artifact_id: input.artifact_id,
-        artifact_role: input.artifact_role,
-        source_kind: input.source_asset.kind.as_str().to_string(),
-        source_path: input.source_asset.source_path,
-        staged_path,
-        link_path,
-        checksum_sha256: input.source_asset.checksum_sha256,
-        size_bytes: input.source_asset.size_bytes,
-        member_count: input.source_asset.member_count,
-    })
-}
-
-fn output_root_for_job(outputs: &[String]) -> Result<String> {
-    if outputs.is_empty() {
-        return Err(anyhow!("HPC scratch layout job must keep at least one output path"));
-    }
-    if outputs.len() == 1 {
-        return Path::new(&outputs[0]).parent().map(path_to_string).ok_or_else(|| {
-            anyhow!("HPC scratch layout output path `{}` has no parent", outputs[0])
-        });
-    }
-    common_path_prefix(outputs)
-}
-
-fn log_root_for_job(stdout: &str, stderr: &str) -> Result<String> {
-    let stdout_parent = Path::new(stdout)
-        .parent()
-        .ok_or_else(|| anyhow!("stdout path `{stdout}` has no parent"))?;
-    let stderr_parent = Path::new(stderr)
-        .parent()
-        .ok_or_else(|| anyhow!("stderr path `{stderr}` has no parent"))?;
-    if stdout_parent != stderr_parent {
-        return Err(anyhow!(
-            "stdout and stderr roots diverged for scratch layout: `{stdout}` vs `{stderr}`"
-        ));
-    }
-    Ok(path_to_string(stdout_parent))
-}
-
-fn common_path_prefix(paths: &[String]) -> Result<String> {
-    let mut prefix = PathBuf::from(&paths[0]);
-    while !paths.iter().all(|path| Path::new(path).starts_with(&prefix)) {
-        if !prefix.pop() {
-            return Err(anyhow!(
-                "scratch layout could not derive a shared output root from `{}`",
-                paths.join("`, `")
-            ));
-        }
-    }
-    Ok(path_to_string(&prefix))
-}
-
-fn path_to_string(path: &Path) -> String {
-    path.to_string_lossy().replace('\\', "/")
-}
-
-fn default_cleanup_policy() -> LocalHpcScratchCleanupPolicy {
-    LocalHpcScratchCleanupPolicy {
-        policy_id: CLEANUP_POLICY_ID.to_string(),
-        remove_scratch_after_successful_sync: true,
-        retain_scratch_on_failure: true,
-        preserve_output_root: true,
-        preserve_log_root: true,
-        preserve_staged_inputs: true,
-    }
-}
-
-fn ensure_scratch_layout_matches_expected(
-    manifest_path: &Path,
-    observed: &LocalHpcScratchLayout,
-    expected: &LocalHpcScratchLayout,
-) -> Result<()> {
-    if observed != expected {
-        return Err(anyhow!(
-            "HPC scratch layout `{}` drifted from the governed render",
-            manifest_path.display()
-        ));
-    }
-    Ok(())
-}
-
 #[cfg(all(test, feature = "bam_downstream"))]
 mod tests {
     use std::path::{Path, PathBuf};

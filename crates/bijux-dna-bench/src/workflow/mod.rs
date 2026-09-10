@@ -403,3 +403,5 @@ pub(crate) mod hpc_array;
 
 mod hpc_asset_staging;
 pub use hpc_asset_staging::{collect_hpc_asset_staging_manifest, HpcAssetStagingRequest};
+
+pub(crate) mod hpc_scratch;

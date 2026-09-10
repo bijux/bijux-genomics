@@ -92,3 +92,5 @@ Suite catalog admission rejects missing input, output or parameter contracts whe
 `derive_hardening_benchmark_campaign(matrix, appraisal, queue, requested_goals)` is the pure hardening campaign derivation operation. It admits source identities and emits the governed goal catalog, checks and summary; repository persistence and benchmark execution remain downstream.
 
 `assemble_hpc_asset_staging_manifest(output, staging, jobs)` derives canonical order and exact counters, then admits the existing wire contract. `compare_hpc_asset_staging_manifest(path, observed, expected)` detects field, job and source identity drift, including substitutions that preserve counts.
+
+`project_hpc_scratch_job(HpcScratchJobRequest)` derives output/log roots and cleanup policy from explicit job/source inputs without IO. `assemble_hpc_scratch_layout(output, staging, scratch, jobs)` admits lineage and exact counts; `compare_hpc_scratch_layout(path, observed, expected)` rejects current-input drift, including substitutions that preserve counts.
