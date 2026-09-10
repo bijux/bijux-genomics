@@ -879,3 +879,7 @@ pub use crate::model::micro_benchmark::run::{
     MicroBenchmarkResultRow, MicroBenchmarkRunManifest, MICRO_BENCHMARK_RUN_COMMAND,
     MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
 };
+
+pub use crate::policy::operational_readiness::{
+    evaluate_operational_reporting, OperationalReportingEvidence, OperationalReportingPaths,
+};

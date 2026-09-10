@@ -4,7 +4,8 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use bijux_dna_api::v1::api::bench::{
     build_operational_benchmark_ready_report, evaluate_operational_binding_coverage,
-    OperationalBenchmarkResultCounts, OperationalBindingEvidence,
+    evaluate_operational_reporting, OperationalBindingEvidence, OperationalReportingEvidence,
+    OperationalReportingPaths,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
     OperationalBenchmarkReadyBlocker, OperationalBenchmarkReadyCheck,
@@ -619,143 +620,23 @@ pub(crate) fn render_operational_benchmark_ready(
         DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
     ));
 
-    if let Some(report) = &result_collector {
-        if report.missing_result_status_count == 0 {
-            blockers.insert(global_blocker(
-                "cross",
-                "benchmark.result_collector",
-                "collector",
-                "benchmark_ready",
-                "benchmark_ready",
-                "missing_result_omitted",
-                &report.output_path,
-                "full benchmark result collector omitted missing_result rows",
-            ));
-        }
-        if report.insufficient_data_status_count == 0 {
-            blockers.insert(global_blocker(
-                "vcf",
-                "vcf.demography",
-                "ibdne",
-                "vcf_production_regression",
-                "json_ibd_segments",
-                "insufficient_data_omitted",
-                &report.output_path,
-                "full benchmark result collector omitted insufficient_data rows",
-            ));
-        }
-        if report.unsupported_pair_status_count == 0 {
-            blockers.insert(global_blocker(
-                "vcf",
-                "vcf.filter",
-                "samtools",
-                "vcf_production_regression",
-                "vcf_cohort",
-                "unsupported_pair_omitted",
-                &report.output_path,
-                "full benchmark result collector omitted unsupported_pair rows",
-            ));
-        }
-    } else {
-        blockers.insert(global_blocker(
-            "cross",
-            "benchmark.result_collector",
-            "collector",
-            "benchmark_ready",
-            "benchmark_ready",
-            "surface_render_failed",
-            DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH,
-            "Full benchmark result collector failed",
-        ));
-    }
-
-    if let Some(report) = &full_report {
-        if !report.passes_behavior_test {
-            blockers.insert(global_blocker(
-                "cross",
-                "benchmark.report",
-                "report",
-                "benchmark_ready",
-                "benchmark_ready",
-                "report_contract_failed",
-                &report.json_output_path,
-                "full benchmark report failed its governed behavior contract",
-            ));
-        }
-        if report.missing_result_row_count == 0 || report.unsupported_pair_row_count == 0 {
-            blockers.insert(global_blocker(
-                "cross",
-                "benchmark.report",
-                "report",
-                "benchmark_ready",
-                "benchmark_ready",
-                "report_rows_omitted",
-                &report.json_output_path,
-                "full benchmark report omitted missing-result or unsupported rows",
-            ));
-        }
-    } else {
-        blockers.insert(global_blocker(
-            "cross",
-            "benchmark.report",
-            "report",
-            "benchmark_ready",
-            "benchmark_ready",
-            "surface_render_failed",
-            DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH,
-            "Full benchmark report failed",
-        ));
-    }
-
-    if let Some(report) = &dashboard {
-        if !report.passes_behavior_test {
-            blockers.insert(global_blocker(
-                "cross",
-                "benchmark.dashboard",
-                "dashboard",
-                "benchmark_ready",
-                "benchmark_ready",
-                "dashboard_contract_failed",
-                &report.json_output_path,
-                "full benchmark dashboard failed its governed behavior contract",
-            ));
-        }
-    } else {
-        blockers.insert(global_blocker(
-            "cross",
-            "benchmark.dashboard",
-            "dashboard",
-            "benchmark_ready",
-            "benchmark_ready",
-            "surface_render_failed",
-            DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH,
-            "Full benchmark dashboard failed",
-        ));
-    }
-
-    if vcf_catalog_ready.is_none() || vcf_smoke_ready.is_none() {
-        blockers.insert(global_blocker(
-            "vcf",
-            "readiness.local_validation",
-            "governed_validation",
-            "vcf_mini",
-            "vcf_cohort",
-            "vcf_stage_untested",
-            DEFAULT_VCF_SMOKE_SUITE_READY_PATH,
-            "VCF catalog or local smoke readiness is not green",
-        ));
-    }
-
-    let counts = OperationalBenchmarkResultCounts {
-        benchmark_ready: expected_results.as_ref().map_or(0, |report| report.row_count),
-        missing: result_collector.as_ref().map_or(0, |report| report.missing_result_status_count),
-        insufficient: result_collector
-            .as_ref()
-            .map_or(0, |report| report.insufficient_data_status_count),
-        unsupported: result_collector
-            .as_ref()
-            .map_or(0, |report| report.unsupported_pair_status_count),
-    };
+    let counts = evaluate_operational_reporting(
+        OperationalReportingEvidence {
+            expected_result_count: expected_results.as_ref().map_or(0, |report| report.row_count),
+            collector: result_collector.as_ref(),
+            report: full_report.as_ref(),
+            dashboard: dashboard.as_ref(),
+            vcf_catalog_available: vcf_catalog_ready.is_some(),
+            vcf_smoke_available: vcf_smoke_ready.is_some(),
+        },
+        OperationalReportingPaths {
+            collector: DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH,
+            report: DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH,
+            dashboard: DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH,
+            vcf_smoke: DEFAULT_VCF_SMOKE_SUITE_READY_PATH,
+        },
+        &mut blockers,
+    );
     let report = build_operational_benchmark_ready_report(
         path_relative_to_repo(repo_root, &absolute_output_path),
         checks,

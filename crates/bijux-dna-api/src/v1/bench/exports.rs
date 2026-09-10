@@ -566,3 +566,7 @@ pub use bijux_dna_bench::{
     MicroBenchmarkResultKind, MicroBenchmarkResultRow, MicroBenchmarkRunEvidence,
     MicroBenchmarkRunManifest, MICRO_BENCHMARK_RUN_COMMAND, MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
 };
+
+pub use bijux_dna_bench::{
+    evaluate_operational_reporting, OperationalReportingEvidence, OperationalReportingPaths,
+};

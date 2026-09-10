@@ -139,3 +139,8 @@ mod tests {
 
 mod coverage;
 pub use coverage::{evaluate_operational_binding_coverage, OperationalBindingEvidence};
+
+mod reporting;
+pub use reporting::{
+    evaluate_operational_reporting, OperationalReportingEvidence, OperationalReportingPaths,
+};
