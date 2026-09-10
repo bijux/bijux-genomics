@@ -624,142 +624,6 @@ fn audited_crate_cycle_names() -> BTreeSet<&'static str> {
     CRATE_CYCLE_CATEGORIES.iter().flat_map(|spec| spec.crates.iter().copied()).collect()
 }
 
-fn strongly_connected_components(
-    adjacency: &BTreeMap<String, BTreeSet<String>>,
-) -> Vec<Vec<String>> {
-    struct TarjanState {
-        index: usize,
-        indices: BTreeMap<String, usize>,
-        lowlinks: BTreeMap<String, usize>,
-        stack: Vec<String>,
-        on_stack: BTreeSet<String>,
-        components: Vec<Vec<String>>,
-    }
-
-    fn visit(node: &str, adjacency: &BTreeMap<String, BTreeSet<String>>, state: &mut TarjanState) {
-        let index = state.index;
-        state.index += 1;
-        state.indices.insert(node.to_string(), index);
-        state.lowlinks.insert(node.to_string(), index);
-        state.stack.push(node.to_string());
-        state.on_stack.insert(node.to_string());
-
-        let neighbors = adjacency.get(node).cloned().unwrap_or_default();
-        for neighbor in neighbors {
-            if !state.indices.contains_key(&neighbor) {
-                visit(&neighbor, adjacency, state);
-                let Some(neighbor_lowlink) = state.lowlinks.get(&neighbor).copied() else {
-                    panic!("neighbor lowlink must exist after visit");
-                };
-                if let Some(node_lowlink) = state.lowlinks.get_mut(node) {
-                    *node_lowlink = (*node_lowlink).min(neighbor_lowlink);
-                }
-            } else if state.on_stack.contains(&neighbor) {
-                let Some(neighbor_index) = state.indices.get(&neighbor).copied() else {
-                    panic!("stacked neighbor index must exist");
-                };
-                if let Some(node_lowlink) = state.lowlinks.get_mut(node) {
-                    *node_lowlink = (*node_lowlink).min(neighbor_index);
-                }
-            }
-        }
-
-        let Some(node_lowlink) = state.lowlinks.get(node).copied() else {
-            panic!("node lowlink must exist");
-        };
-        let Some(node_index) = state.indices.get(node).copied() else {
-            panic!("node index must exist");
-        };
-        if node_lowlink == node_index {
-            let mut component = Vec::new();
-            while let Some(entry) = state.stack.pop() {
-                state.on_stack.remove(&entry);
-                let done = entry == node;
-                component.push(entry);
-                if done {
-                    break;
-                }
-            }
-            component.sort();
-            state.components.push(component);
-        }
-    }
-
-    let mut state = TarjanState {
-        index: 0,
-        indices: BTreeMap::new(),
-        lowlinks: BTreeMap::new(),
-        stack: Vec::new(),
-        on_stack: BTreeSet::new(),
-        components: Vec::new(),
-    };
-
-    for node in adjacency.keys() {
-        if !state.indices.contains_key(node) {
-            visit(node, adjacency, &mut state);
-        }
-    }
-
-    state.components.sort_by(|left, right| left[0].cmp(&right[0]));
-    state.components
-}
-
-fn cycle_components(adjacency: &BTreeMap<String, BTreeSet<String>>) -> Vec<Vec<String>> {
-    strongly_connected_components(adjacency)
-        .into_iter()
-        .filter(|component| {
-            component.len() > 1
-                || adjacency.get(&component[0]).is_some_and(|deps| deps.contains(&component[0]))
-        })
-        .collect()
-}
-
-fn topological_dependency_order(adjacency: &BTreeMap<String, BTreeSet<String>>) -> Vec<String> {
-    let mut indegree = adjacency
-        .keys()
-        .map(|node| (node.clone(), adjacency[node].len()))
-        .collect::<BTreeMap<_, _>>();
-    let mut dependents = adjacency
-        .keys()
-        .map(|node| (node.clone(), BTreeSet::<String>::new()))
-        .collect::<BTreeMap<_, _>>();
-
-    for (from, deps) in adjacency {
-        for dep in deps {
-            dependents.entry(dep.clone()).or_default().insert(from.clone());
-        }
-    }
-
-    let mut ready = indegree
-        .iter()
-        .filter_map(|(node, degree)| (*degree == 0).then_some(node.clone()))
-        .collect::<Vec<_>>();
-    ready.sort();
-
-    let mut order = Vec::with_capacity(adjacency.len());
-    while let Some(node) = ready.first().cloned() {
-        ready.remove(0);
-        order.push(node.clone());
-        let next_dependents = dependents.get(&node).cloned().unwrap_or_default();
-        for dependent in next_dependents {
-            let Some(entry) = indegree.get_mut(&dependent) else {
-                panic!("dependent must remain present in indegree map");
-            };
-            *entry -= 1;
-            if *entry == 0 {
-                ready.push(dependent);
-            }
-        }
-        ready.sort();
-    }
-
-    if order.len() == adjacency.len() {
-        order
-    } else {
-        Vec::new()
-    }
-}
-
 fn gate_cargo_target_dir_with_explicit_path(cwd: &Path, explicit_path: Option<&Path>) -> PathBuf {
     explicit_path.map_or_else(|| cwd.join(DEFAULT_CRATE_SHAPE_GATE_TARGET_DIR), Path::to_path_buf)
 }
@@ -2262,8 +2126,13 @@ pub fn write_no_crate_cycles_report(cwd: &Path, output_path: &Path) -> Result<No
         &direct_deps,
         &direct_dependents,
     )?;
-    let cycles = collect_no_crate_cycle_components(&direct_deps);
-    let topological_order = collect_no_crate_cycle_topological_order(&direct_deps, &cycles);
+    let analysis = bijux_dna_api::v1::api::analyze_workspace_dependencies(&direct_deps)?;
+    let cycles = analysis
+        .cycles
+        .into_iter()
+        .map(|crates| NoCrateCyclesComponent { crates })
+        .collect::<Vec<_>>();
+    let topological_order = analysis.dependency_order;
     let skipped_workspace_crates =
         member_names.difference(&configured_names).cloned().collect::<Vec<_>>();
     let report = NoCrateCyclesReport {
@@ -2337,26 +2206,6 @@ fn collect_no_crate_cycle_crates(
             })
         })
         .collect()
-}
-
-fn collect_no_crate_cycle_components(
-    direct_deps: &BTreeMap<String, BTreeSet<String>>,
-) -> Vec<NoCrateCyclesComponent> {
-    cycle_components(direct_deps)
-        .into_iter()
-        .map(|crates| NoCrateCyclesComponent { crates })
-        .collect()
-}
-
-fn collect_no_crate_cycle_topological_order(
-    direct_deps: &BTreeMap<String, BTreeSet<String>>,
-    cycles: &[NoCrateCyclesComponent],
-) -> Vec<String> {
-    if cycles.is_empty() {
-        topological_dependency_order(direct_deps)
-    } else {
-        Vec::new()
-    }
 }
 
 /// # Errors
@@ -2619,62 +2468,11 @@ pub fn write_runner_owned_process_execution_report(
 #[cfg(test)]
 mod tests {
     use super::{
-        build_benchmarking_ready_crate_shape_gate_report, cycle_components,
-        gate_cargo_target_dir_with_explicit_path, topological_dependency_order,
+        build_benchmarking_ready_crate_shape_gate_report, gate_cargo_target_dir_with_explicit_path,
         CrateShapeGateCheckReport, CRATE_CYCLE_CATEGORIES, CRATE_CYCLE_CLI_CRATES,
         CRATE_CYCLE_DOMAIN_CRATES,
     };
-    use std::collections::{BTreeMap, BTreeSet};
     use std::path::Path;
-
-    fn graph(nodes: &[&str], edges: &[(&str, &str)]) -> BTreeMap<String, BTreeSet<String>> {
-        let mut graph = nodes
-            .iter()
-            .map(|node| ((*node).to_string(), BTreeSet::<String>::new()))
-            .collect::<BTreeMap<_, _>>();
-        for (from, to) in edges {
-            graph.entry((*from).to_string()).or_default().insert((*to).to_string());
-        }
-        graph
-    }
-
-    #[test]
-    fn cycle_components_detects_multi_crate_cycle() {
-        let graph = graph(
-            &["bijux-dna-analyze", "bijux-dna-bench", "bijux-dna-bench-model"],
-            &[
-                ("bijux-dna-analyze", "bijux-dna-bench"),
-                ("bijux-dna-bench", "bijux-dna-bench-model"),
-                ("bijux-dna-bench-model", "bijux-dna-analyze"),
-            ],
-        );
-
-        assert_eq!(
-            cycle_components(&graph),
-            vec![vec![
-                "bijux-dna-analyze".to_string(),
-                "bijux-dna-bench".to_string(),
-                "bijux-dna-bench-model".to_string(),
-            ]]
-        );
-    }
-
-    #[test]
-    fn topological_dependency_order_lists_dependencies_before_dependents() {
-        let graph = graph(
-            &["bijux-dna", "bijux-dna-api", "bijux-dna-core"],
-            &[("bijux-dna", "bijux-dna-api"), ("bijux-dna-api", "bijux-dna-core")],
-        );
-
-        assert_eq!(
-            topological_dependency_order(&graph),
-            vec![
-                "bijux-dna-core".to_string(),
-                "bijux-dna-api".to_string(),
-                "bijux-dna".to_string(),
-            ]
-        );
-    }
 
     #[test]
     fn crate_cycle_category_configuration_keeps_cli_and_domain_scopes_explicit() {

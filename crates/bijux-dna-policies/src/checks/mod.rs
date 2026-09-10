@@ -13,3 +13,5 @@ pub(crate) use stable_surface::*;
 
 #[allow(dead_code)]
 const CHECK_MODULE_REGISTRY: &str = "policy_check_rule_families";
+
+pub(crate) mod workspace_dependencies;

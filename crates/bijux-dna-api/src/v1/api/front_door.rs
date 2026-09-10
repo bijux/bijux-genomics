@@ -81,3 +81,5 @@ pub fn explain(
 ) -> ExplainResponse {
     crate::surface::explain::explain_bundle(plan, defaults_ledger)
 }
+
+pub use bijux_dna_policies::{analyze_workspace_dependencies, WorkspaceDependencyAnalysis};

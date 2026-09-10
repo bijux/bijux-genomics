@@ -243,3 +243,6 @@ mod mod_contracts_tooling_workflow_truth_boundary_policy_rs;
 
 #[path = "contracts/tooling/cli/workspace_binary_policy.rs"]
 mod workspace_binary_policy;
+
+#[path = "contracts/workspace_dependencies.rs"]
+mod workspace_dependencies;
