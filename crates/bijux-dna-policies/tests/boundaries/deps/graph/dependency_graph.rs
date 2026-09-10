@@ -215,7 +215,8 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_documented_boundary
 }
 
 #[test]
-fn policy__boundaries__workspace_dependency_snapshot_matches_committed_contract() {
+fn policy__boundaries__dependency_graph__workspace_dependency_snapshot_matches_committed_contract()
+{
     let root = workspace_root();
     let expected_path = root.join(
         "crates/bijux-dna-policies/tests/fixtures/cargo_metadata_snapshot/workspace-deps.txt",

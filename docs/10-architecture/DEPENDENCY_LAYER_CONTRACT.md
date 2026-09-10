@@ -38,7 +38,7 @@ No undocumented dependency exception is allowed.
 - The committed snapshot lives in
   `crates/bijux-dna-policies/tests/fixtures/cargo_metadata_snapshot/workspace-deps.txt`.
 - The snapshot validator is
-  `crates/bijux-dna-policies/tests/contracts/tooling/governance_core/cargo_metadata_snapshot_policy.rs`.
+  `crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs`.
 
 ## Scope
 The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
