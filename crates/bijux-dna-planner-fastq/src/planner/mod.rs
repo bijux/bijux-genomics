@@ -31,7 +31,6 @@ pub use benchmark::{
 mod graph_policy;
 mod layout_branching;
 mod local_readiness;
-mod local_stage_cases;
 mod quality_sampling;
 mod route_expansion;
 mod selection_planning;
@@ -48,24 +47,7 @@ pub use crate::selection::{
     select_remove_chimeras_tools, select_remove_duplicates_tools, select_screen_tools,
     select_stats_tools, select_trim_tools, select_umi_tools, select_validate_tools,
 };
-use benchmark::{
-    benchmark_compare_steps_for_toolsets, benchmark_select_steps_for_pipeline,
-    comparison_artifact_file_name, comparison_command_for_stage, inferred_selection_artifact_role,
-    project_benchmark_stage_params_for_tool, selection_artifact_file_name,
-};
-use graph_policy::{
-    enforce_stage_status, ensure_unique_stage_binding_nodes, execution_edges_for_stage_plans,
-    planner_owned_graph_stage, stage_artifact_input_policy, stage_dependency_policy,
-    synthetic_stage_artifact_policy, validate_reference_index_bindings,
-    validate_select_stage_nodes,
-};
-pub(crate) use layout_branching::apply_layout_branching;
-pub use local_readiness::{
-    local_deplete_host_plan, local_deplete_reference_contaminants_plan, local_deplete_rrna_plan,
-    local_index_reference_output_contract_plans, local_index_reference_plan,
-    local_screen_taxonomy_output_contract_plans, local_screen_taxonomy_plan,
-};
-pub use local_stage_cases::{
+pub use benchmark::cases::{
     local_cluster_otus_smoke_plans, local_correct_errors_smoke_plans,
     local_detect_adapters_smoke_plans, local_detect_duplicates_premerge_smoke_plans,
     local_estimate_library_complexity_prealign_smoke_plans, local_extract_umis_smoke_plans,
@@ -90,6 +72,23 @@ pub use local_stage_cases::{
     LocalRemoveDuplicatesSmokeCasePlan, LocalTrimPolygTailsSmokeCasePlan,
     LocalTrimReadsSmokeCasePlan, LocalTrimTerminalDamageSmokeCasePlan,
     LocalValidateReadsSmokeCasePlan,
+};
+use benchmark::{
+    benchmark_compare_steps_for_toolsets, benchmark_select_steps_for_pipeline,
+    comparison_artifact_file_name, comparison_command_for_stage, inferred_selection_artifact_role,
+    project_benchmark_stage_params_for_tool, selection_artifact_file_name,
+};
+use graph_policy::{
+    enforce_stage_status, ensure_unique_stage_binding_nodes, execution_edges_for_stage_plans,
+    planner_owned_graph_stage, stage_artifact_input_policy, stage_dependency_policy,
+    synthetic_stage_artifact_policy, validate_reference_index_bindings,
+    validate_select_stage_nodes,
+};
+pub(crate) use layout_branching::apply_layout_branching;
+pub use local_readiness::{
+    local_deplete_host_plan, local_deplete_reference_contaminants_plan, local_deplete_rrna_plan,
+    local_index_reference_output_contract_plans, local_index_reference_plan,
+    local_screen_taxonomy_output_contract_plans, local_screen_taxonomy_plan,
 };
 pub(crate) use quality_sampling::estimate_mean_q;
 pub use route_expansion::{expand_pipeline_stage_tool_routes, select_preprocess_toolsets};

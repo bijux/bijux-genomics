@@ -199,8 +199,92 @@ const PLANNER_AUDIT_SPECS: &[PlannerCrateAuditSpec] = &[
                 reason: "loads governed local-ready FASTQ planning inputs",
             },
             AllowedAuditFileSpec {
-                path: "crates/bijux-dna-planner-fastq/src/planner/local_stage_cases.rs",
-                reason: "loads governed local-smoke FASTQ planning inputs and fixture manifests",
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/cluster_otus.rs",
+                reason: "loads governed FASTQ cluster otus case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/infer_asvs.rs",
+                reason: "loads governed FASTQ infer asvs case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/normalize_abundance.rs",
+                reason: "loads governed FASTQ normalize abundance case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/normalize_primers.rs",
+                reason: "loads governed FASTQ normalize primers case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/remove_chimeras.rs",
+                reason: "loads governed FASTQ remove chimeras case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/detect_adapters.rs",
+                reason: "loads governed FASTQ detect adapters case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/detect_duplicates_premerge.rs",
+                reason: "loads governed FASTQ detect duplicates premerge case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/estimate_library_complexity_prealign.rs",
+                reason: "loads governed FASTQ estimate library complexity prealign case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/profile_overrepresented_sequences.rs",
+                reason: "loads governed FASTQ profile overrepresented sequences case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/profile_read_lengths.rs",
+                reason: "loads governed FASTQ profile read lengths case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/validate_reads.rs",
+                reason: "loads governed FASTQ validate reads case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/qc/profile_reads.rs",
+                reason: "loads governed FASTQ profile reads case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/qc/report_qc.rs",
+                reason: "loads governed FASTQ report qc case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/correct_errors.rs",
+                reason: "loads governed FASTQ correct errors case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/extract_umis.rs",
+                reason: "loads governed FASTQ extract umis case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/filter_low_complexity.rs",
+                reason: "loads governed FASTQ filter low complexity case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/filter_reads.rs",
+                reason: "loads governed FASTQ filter reads case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/merge_pairs.rs",
+                reason: "loads governed FASTQ merge pairs case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/remove_duplicates.rs",
+                reason: "loads governed FASTQ remove duplicates case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_polyg_tails.rs",
+                reason: "loads governed FASTQ trim polyg tails case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_reads.rs",
+                reason: "loads governed FASTQ trim reads case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_terminal_damage.rs",
+                reason: "loads governed FASTQ trim terminal damage case inputs",
             },
             AllowedAuditFileSpec {
                 path: "crates/bijux-dna-planner-fastq/src/planner/quality_sampling.rs",

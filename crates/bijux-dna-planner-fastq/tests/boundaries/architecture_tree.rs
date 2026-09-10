@@ -47,8 +47,65 @@ fn planner_fastq_tree_matches_architecture_contract() {
     );
     assert_eq!(
         child_entries(&root.join("src/planner/benchmark")),
-        entries(["fixture_parameters.rs", "mod.rs", "parameter_values.rs", "plan_parameters.rs"]),
+        entries([
+            "cases/",
+            "fixture_parameters.rs",
+            "mod.rs",
+            "parameter_values.rs",
+            "plan_parameters.rs"
+        ]),
         "benchmark graph construction and fixture parameter projection have distinct owners"
+    );
+    assert_eq!(
+        child_entries(&root.join("src/planner/benchmark/cases")),
+        entries(["admission.rs", "amplicon/", "mod.rs", "pre/", "qc/", "transform/"]),
+        "benchmark case contracts must be owned by stage family"
+    );
+    assert_eq!(
+        child_entries(&root.join("src/planner/benchmark/cases/amplicon")),
+        entries([
+            "mod.rs",
+            "cluster_otus.rs",
+            "infer_asvs.rs",
+            "normalize_abundance.rs",
+            "normalize_primers.rs",
+            "remove_chimeras.rs"
+        ]),
+        "each stage owns its governed config, case inputs and plan construction"
+    );
+    assert_eq!(
+        child_entries(&root.join("src/planner/benchmark/cases/pre")),
+        entries([
+            "mod.rs",
+            "detect_adapters.rs",
+            "detect_duplicates_premerge.rs",
+            "estimate_library_complexity_prealign.rs",
+            "profile_overrepresented_sequences.rs",
+            "profile_read_lengths.rs",
+            "validate_reads.rs"
+        ]),
+        "each stage owns its governed config, case inputs and plan construction"
+    );
+    assert_eq!(
+        child_entries(&root.join("src/planner/benchmark/cases/qc")),
+        entries(["mod.rs", "profile_reads.rs", "report_qc.rs"]),
+        "each stage owns its governed config, case inputs and plan construction"
+    );
+    assert_eq!(
+        child_entries(&root.join("src/planner/benchmark/cases/transform")),
+        entries([
+            "mod.rs",
+            "correct_errors.rs",
+            "extract_umis.rs",
+            "filter_low_complexity.rs",
+            "filter_reads.rs",
+            "merge_pairs.rs",
+            "remove_duplicates.rs",
+            "trim_polyg_tails.rs",
+            "trim_reads.rs",
+            "trim_terminal_damage.rs"
+        ]),
+        "each stage owns its governed config, case inputs and plan construction"
     );
     assert_eq!(
         child_entries(&root.join("src/planner")),
@@ -57,7 +114,6 @@ fn planner_fastq_tree_matches_architecture_contract() {
             "graph_policy.rs",
             "layout_branching.rs",
             "local_readiness.rs",
-            "local_stage_cases.rs",
             "mod.rs",
             "quality_sampling.rs",
             "route_expansion.rs",

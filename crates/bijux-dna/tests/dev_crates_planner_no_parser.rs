@@ -82,13 +82,37 @@ fn dev_crates_planner_no_parser_writes_the_governed_audit_report() {
         .get("planner_input_read_refs")
         .and_then(serde_json::Value::as_array)
         .expect("planner_input_read_refs");
-    assert!(
-        fastq_read_refs.iter().any(|row| {
-            row.get("path").and_then(serde_json::Value::as_str)
-                == Some("crates/bijux-dna-planner-fastq/src/planner/local_stage_cases.rs")
-        }),
-        "FASTQ planner audit must keep the governed local-smoke input reads explicit"
-    );
+    let case_input_paths = fastq_read_refs
+        .iter()
+        .filter_map(|row| row.get("path").and_then(serde_json::Value::as_str))
+        .filter(|path| {
+            path.starts_with("crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/")
+        })
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(case_input_paths, std::collections::BTreeSet::from([
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/cluster_otus.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/infer_asvs.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/normalize_abundance.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/normalize_primers.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/remove_chimeras.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/detect_adapters.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/detect_duplicates_premerge.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/estimate_library_complexity_prealign.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/profile_overrepresented_sequences.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/profile_read_lengths.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/validate_reads.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/qc/profile_reads.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/qc/report_qc.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/correct_errors.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/extract_umis.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/filter_low_complexity.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/filter_reads.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/merge_pairs.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/remove_duplicates.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_polyg_tails.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_reads.rs",
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_terminal_damage.rs",
+    ]), "every governed FASTQ case input reader must remain explicit in the planner audit");
 
     let vcf_report = crates
         .iter()
