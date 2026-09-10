@@ -1,9 +1,17 @@
+use bijux_dna_api::v1::api::bench::{
+    render_micro_benchmark_report_markdown, validate_micro_benchmark_report,
+    MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    MicroBenchmarkCompleteRow, MicroBenchmarkFailedRow, MicroBenchmarkInsufficientDataRow,
+    MicroBenchmarkMemorySourceRow, MicroBenchmarkMissingRow, MicroBenchmarkReport,
+    MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow, MicroBenchmarkUnavailableRow,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{bail, Context, Result};
-use serde::Serialize;
+use anyhow::{Context, Result};
 use serde_json::Value;
 
 use super::local_adna_micro_pipeline::{AdnaMicroPipelineReport, AdnaMicroPipelineRow};
@@ -42,7 +50,6 @@ pub(crate) const DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH: &str =
 pub(crate) const DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH: &str =
     "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json";
 
-const MICRO_BENCHMARK_REPORT_SCHEMA_VERSION: &str = "bijux.bench.local_micro_benchmark_report.v1";
 const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH: &str =
     "configs/bench/local/scientific-acceptance-thresholds.toml";
 const STAGE_TOOL_RESOURCES_PATH: &str = "configs/bench/local/stage-tool-resources.toml";
@@ -57,144 +64,6 @@ pub(crate) struct MicroBenchmarkSourceReports<'a> {
     pub(crate) adna: &'a AdnaMicroPipelineReport,
     pub(crate) edna: &'a EdnaMicroPipelineReport,
     pub(crate) core_germline: &'a CoreGermlineMicroPipelineReport,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkCompleteRow {
-    pub(crate) execution_id: String,
-    pub(crate) component_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) source_report_path: String,
-    pub(crate) evidence_path: Option<String>,
-    pub(crate) command: Option<String>,
-    pub(crate) reason: String,
-    pub(crate) normalized_metric_count: usize,
-    pub(crate) output_count: usize,
-    pub(crate) log_count: usize,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkFailedRow {
-    pub(crate) row_id: String,
-    pub(crate) source_surface: String,
-    pub(crate) component_id: Option<String>,
-    pub(crate) execution_id: Option<String>,
-    pub(crate) domain: Option<String>,
-    pub(crate) stage_id: Option<String>,
-    pub(crate) tool_id: Option<String>,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkMissingRow {
-    pub(crate) component_id: String,
-    pub(crate) execution_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) source_report_path: String,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkUnavailableRow {
-    pub(crate) execution_id: String,
-    pub(crate) component_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) execution_status: MicroBenchmarkExecutionStatus,
-    pub(crate) source_report_path: String,
-    pub(crate) command: Option<String>,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkInsufficientDataRow {
-    pub(crate) execution_id: String,
-    pub(crate) component_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) source_report_path: String,
-    pub(crate) evidence_path: Option<String>,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkRuntimeRow {
-    pub(crate) execution_id: String,
-    pub(crate) component_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) execution_status: MicroBenchmarkExecutionStatus,
-    pub(crate) elapsed_seconds: Option<f64>,
-    pub(crate) runtime_source: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkMemorySourceRow {
-    pub(crate) execution_id: String,
-    pub(crate) component_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) execution_status: MicroBenchmarkExecutionStatus,
-    pub(crate) declared_memory_mb: Option<f64>,
-    pub(crate) declared_cpu_threads: Option<u32>,
-    pub(crate) observed_memory_mb: Option<f64>,
-    pub(crate) observed_cpu_threads: Option<u32>,
-    pub(crate) memory_source: String,
-    pub(crate) resource_origin: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkScienceThresholdRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) metric_id: String,
-    pub(crate) metric_name: String,
-    pub(crate) unit: Option<String>,
-    pub(crate) direction: String,
-    pub(crate) tolerance_kind: String,
-    pub(crate) tolerance_value: f64,
-    pub(crate) pass_rule: String,
-    pub(crate) insufficiency_behavior: String,
-    pub(crate) required: bool,
-    pub(crate) declaration_origin: String,
-    pub(crate) covered_tool_ids: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) markdown_output_path: String,
-    pub(crate) json_output_path: String,
-    pub(crate) micro_run_manifest_path: String,
-    pub(crate) result_row_count: usize,
-    pub(crate) complete_row_count: usize,
-    pub(crate) failed_row_count: usize,
-    pub(crate) missing_row_count: usize,
-    pub(crate) unavailable_row_count: usize,
-    pub(crate) insufficient_data_row_count: usize,
-    pub(crate) runtime_row_count: usize,
-    pub(crate) memory_source_row_count: usize,
-    pub(crate) science_threshold_row_count: usize,
-    pub(crate) passes_behavior_test: bool,
-    pub(crate) execution_status_counts: BTreeMap<String, usize>,
-    pub(crate) runtime_source_counts: BTreeMap<String, usize>,
-    pub(crate) memory_source_counts: BTreeMap<String, usize>,
-    pub(crate) complete_rows: Vec<MicroBenchmarkCompleteRow>,
-    pub(crate) failed_rows: Vec<MicroBenchmarkFailedRow>,
-    pub(crate) missing_rows: Vec<MicroBenchmarkMissingRow>,
-    pub(crate) unavailable_rows: Vec<MicroBenchmarkUnavailableRow>,
-    pub(crate) insufficient_data_rows: Vec<MicroBenchmarkInsufficientDataRow>,
-    pub(crate) runtime_rows: Vec<MicroBenchmarkRuntimeRow>,
-    pub(crate) memory_source_rows: Vec<MicroBenchmarkMemorySourceRow>,
-    pub(crate) science_threshold_rows: Vec<MicroBenchmarkScienceThresholdRow>,
 }
 
 #[derive(Debug, Clone)]
@@ -454,13 +323,11 @@ pub(crate) fn render_micro_benchmark_report(
 
     let mut execution_status_counts = BTreeMap::<String, usize>::new();
     for row in result_rows {
-        *execution_status_counts
-            .entry(micro_execution_status_label(row.status).to_string())
-            .or_default() += 1;
+        *execution_status_counts.entry(row.status.as_str().to_string()).or_default() += 1;
     }
 
     let mut report = MicroBenchmarkReport {
-        schema_version: MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
+        schema_version: MICRO_BENCHMARK_REPORT_SCHEMA_VERSION.to_string(),
         markdown_output_path: path_relative_to_repo(repo_root, &markdown_output_path),
         json_output_path: path_relative_to_repo(repo_root, &json_output_path),
         micro_run_manifest_path: manifest.manifest_path.clone(),
@@ -486,7 +353,7 @@ pub(crate) fn render_micro_benchmark_report(
         memory_source_rows,
         science_threshold_rows,
     };
-    ensure_micro_benchmark_report_contract(manifest, result_rows, &mut report)?;
+    validate_micro_benchmark_report(manifest, result_rows, &mut report)?;
 
     fs::write(&markdown_output_path, render_micro_benchmark_report_markdown(&report))
         .with_context(|| format!("write {}", markdown_output_path.display()))?;
@@ -916,232 +783,6 @@ fn science_threshold_row(
     }
 }
 
-fn ensure_micro_benchmark_report_contract(
-    manifest: &MicroBenchmarkRunManifest,
-    result_rows: &[MicroBenchmarkResultRow],
-    report: &mut MicroBenchmarkReport,
-) -> Result<()> {
-    if report.micro_run_manifest_path != manifest.manifest_path {
-        bail!("micro benchmark report manifest path drifted from the governed run manifest");
-    }
-    if report.result_row_count != result_rows.len() {
-        bail!("micro benchmark report result_row_count drifted from the governed micro run");
-    }
-    if report.complete_row_count + report.unavailable_row_count != report.result_row_count {
-        bail!(
-            "micro benchmark report must account for every result row as complete or unavailable"
-        );
-    }
-    if report.runtime_row_count != report.result_row_count {
-        bail!("micro benchmark report runtime rows must cover every result row");
-    }
-    if report.memory_source_row_count != report.result_row_count {
-        bail!("micro benchmark report memory-source rows must cover every result row");
-    }
-    if report.science_threshold_row_count == 0 {
-        bail!("micro benchmark report must retain at least one science-threshold row");
-    }
-    if report.unavailable_row_count
-        != result_rows
-            .iter()
-            .filter(|row| row.status != MicroBenchmarkExecutionStatus::Succeeded)
-            .count()
-    {
-        bail!("micro benchmark report unavailable rows drifted from the governed run status slice");
-    }
-    let execution_status_total = report.execution_status_counts.values().sum::<usize>();
-    if execution_status_total != report.result_row_count {
-        bail!("micro benchmark report execution-status counts must sum to result_row_count");
-    }
-    if report.failed_rows.iter().any(|row| row.detail.trim().is_empty())
-        || report.missing_rows.iter().any(|row| row.detail.trim().is_empty())
-        || report.unavailable_rows.iter().any(|row| row.reason.trim().is_empty())
-        || report.insufficient_data_rows.iter().any(|row| row.detail.trim().is_empty())
-    {
-        bail!("micro benchmark report rows must keep stable detail and reason fields");
-    }
-    report.passes_behavior_test = true;
-    Ok(())
-}
-
-fn render_micro_benchmark_report_markdown(report: &MicroBenchmarkReport) -> String {
-    let mut rendered = String::from("# Micro Benchmark Report\n\n");
-    rendered.push_str(&format!(
-        "- Result rows: {}\n- Complete rows: {}\n- Failed rows: {}\n- Missing rows: {}\n- Unavailable rows: {}\n- Insufficient-data rows: {}\n- Runtime rows: {}\n- Memory-source rows: {}\n- Science-threshold rows: {}\n\n",
-        report.result_row_count,
-        report.complete_row_count,
-        report.failed_row_count,
-        report.missing_row_count,
-        report.unavailable_row_count,
-        report.insufficient_data_row_count,
-        report.runtime_row_count,
-        report.memory_source_row_count,
-        report.science_threshold_row_count
-    ));
-
-    rendered.push_str("## Complete\n\n");
-    rendered.push_str("| Execution ID | Component | Domain | Stage | Tool | Metrics | Outputs | Logs | Reason |\n");
-    rendered.push_str("| --- | --- | --- | --- | --- | ---: | ---: | ---: | --- |\n");
-    for row in &report.complete_rows {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.execution_id),
-            sanitize_markdown_cell(&row.component_id),
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            row.normalized_metric_count,
-            row.output_count,
-            row.log_count,
-            sanitize_markdown_cell(&row.reason)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Failed\n\n");
-    rendered.push_str(
-        "| Row ID | Source Surface | Component | Execution ID | Domain | Stage | Tool | Detail |\n",
-    );
-    rendered.push_str("| --- | --- | --- | --- | --- | --- | --- | --- |\n");
-    for row in &report.failed_rows {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.row_id),
-            sanitize_markdown_cell(&row.source_surface),
-            sanitize_markdown_cell(row.component_id.as_deref().unwrap_or("")),
-            sanitize_markdown_cell(row.execution_id.as_deref().unwrap_or("")),
-            sanitize_markdown_cell(row.domain.as_deref().unwrap_or("")),
-            sanitize_markdown_cell(row.stage_id.as_deref().unwrap_or("")),
-            sanitize_markdown_cell(row.tool_id.as_deref().unwrap_or("")),
-            sanitize_markdown_cell(&row.detail)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Missing\n\n");
-    rendered.push_str(
-        "| Component | Execution ID | Domain | Stage | Tool | Source Report | Detail |\n",
-    );
-    rendered.push_str("| --- | --- | --- | --- | --- | --- | --- |\n");
-    for row in &report.missing_rows {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.component_id),
-            sanitize_markdown_cell(&row.execution_id),
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            sanitize_markdown_cell(&row.source_report_path),
-            sanitize_markdown_cell(&row.detail)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Unavailable\n\n");
-    rendered.push_str("| Execution ID | Component | Domain | Stage | Tool | Status | Reason |\n");
-    rendered.push_str("| --- | --- | --- | --- | --- | --- | --- |\n");
-    for row in &report.unavailable_rows {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.execution_id),
-            sanitize_markdown_cell(&row.component_id),
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            micro_execution_status_label(row.execution_status),
-            sanitize_markdown_cell(&row.reason)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Insufficient Data\n\n");
-    rendered.push_str("| Execution ID | Component | Domain | Stage | Tool | Detail |\n");
-    rendered.push_str("| --- | --- | --- | --- | --- | --- |\n");
-    for row in &report.insufficient_data_rows {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.execution_id),
-            sanitize_markdown_cell(&row.component_id),
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            sanitize_markdown_cell(&row.detail)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Runtime\n\n");
-    rendered.push_str("| Execution ID | Component | Domain | Stage | Tool | Status | Elapsed Seconds | Source |\n");
-    rendered.push_str("| --- | --- | --- | --- | --- | --- | ---: | --- |\n");
-    for row in &report.runtime_rows {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.execution_id),
-            sanitize_markdown_cell(&row.component_id),
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            micro_execution_status_label(row.execution_status),
-            format_optional_f64(row.elapsed_seconds),
-            sanitize_markdown_cell(&row.runtime_source)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Memory Sources\n\n");
-    rendered.push_str("| Execution ID | Component | Domain | Stage | Tool | Status | Declared Memory MB | Declared CPU Threads | Observed Memory MB | Observed CPU Threads | Source |\n");
-    rendered.push_str("| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- |\n");
-    for row in &report.memory_source_rows {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.execution_id),
-            sanitize_markdown_cell(&row.component_id),
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            micro_execution_status_label(row.execution_status),
-            format_optional_f64(row.declared_memory_mb),
-            format_optional_u32(row.declared_cpu_threads),
-            format_optional_f64(row.observed_memory_mb),
-            format_optional_u32(row.observed_cpu_threads),
-            sanitize_markdown_cell(&row.memory_source)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Science Thresholds\n\n");
-    rendered.push_str("| Domain | Stage | Metric ID | Metric Name | Unit | Direction | Tolerance Kind | Tolerance | Pass Rule | Insufficiency Behavior | Required | Covered Tools |\n");
-    rendered
-        .push_str("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n");
-    for row in &report.science_threshold_rows {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.metric_id),
-            sanitize_markdown_cell(&row.metric_name),
-            sanitize_markdown_cell(row.unit.as_deref().unwrap_or("")),
-            sanitize_markdown_cell(&row.direction),
-            sanitize_markdown_cell(&row.tolerance_kind),
-            format_threshold_value(row.tolerance_value),
-            sanitize_markdown_cell(&row.pass_rule),
-            sanitize_markdown_cell(&row.insufficiency_behavior),
-            row.required,
-            sanitize_markdown_cell(&row.covered_tool_ids.join(", "))
-        ));
-    }
-
-    rendered
-}
-
-fn micro_execution_status_label(status: MicroBenchmarkExecutionStatus) -> &'static str {
-    match status {
-        MicroBenchmarkExecutionStatus::Succeeded => "succeeded",
-        MicroBenchmarkExecutionStatus::ContainerNeeded => "container_needed",
-        MicroBenchmarkExecutionStatus::Unavailable => "unavailable",
-    }
-}
-
 fn read_json_value(path: PathBuf) -> Result<Value> {
     let payload = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     serde_json::from_str(&payload).with_context(|| format!("parse {}", path.display()))
@@ -1153,22 +794,6 @@ fn json_optional_f64(value: &Value, field: &str) -> Option<f64> {
 
 fn json_optional_u32(value: &Value, field: &str) -> Option<u32> {
     value.get(field).and_then(Value::as_u64).and_then(|value| u32::try_from(value).ok())
-}
-
-fn format_optional_f64(value: Option<f64>) -> String {
-    value.map_or_else(String::new, |value| format!("{value:.3}"))
-}
-
-fn format_optional_u32(value: Option<u32>) -> String {
-    value.map_or_else(String::new, |value| value.to_string())
-}
-
-fn format_threshold_value(value: f64) -> String {
-    format!("{value:.6}")
-}
-
-fn sanitize_markdown_cell(value: &str) -> String {
-    value.replace('|', "\\|").replace('\n', "<br>")
 }
 
 #[cfg(test)]
@@ -1497,6 +1122,7 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
         assert_eq!(report.memory_source_row_count, 2);
         assert_eq!(report.science_threshold_row_count, 1);
         assert!(report.passes_behavior_test);
+        assert_report_admission(&manifest, &result_rows, &report).expect("report model admission");
 
         let markdown =
             fs::read_to_string(repo_root.join(DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH))
@@ -1510,6 +1136,38 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
         assert!(markdown.contains("## Runtime"));
         assert!(markdown.contains("## Memory Sources"));
         assert!(markdown.contains("## Science Thresholds"));
+    }
+
+    fn assert_report_admission(
+        manifest: &MicroBenchmarkRunManifest,
+        results: &[MicroBenchmarkResultRow],
+        report: &MicroBenchmarkReport,
+    ) -> Result<()> {
+        let wire = serde_json::to_value(report)?;
+        let replay: MicroBenchmarkReport = serde_json::from_value(wire.clone())?;
+        assert_eq!(serde_json::to_value(replay)?, wire);
+        let mut invalid = wire.clone();
+        invalid["schema_version"] = serde_json::json!("unsupported.v1");
+        assert!(serde_json::from_value::<MicroBenchmarkReport>(invalid).is_err());
+        let mut invalid = wire;
+        invalid["runtime_rows"][0]["unknown"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<MicroBenchmarkReport>(invalid).is_err());
+        let mut changed = report.clone();
+        changed.failed_row_count += 1;
+        assert!(validate_micro_benchmark_report(manifest, results, &mut changed).is_err());
+        assert!(!changed.passes_behavior_test);
+        changed = report.clone();
+        changed.execution_status_counts.insert("overflow".into(), usize::MAX);
+        assert!(validate_micro_benchmark_report(manifest, results, &mut changed).is_err());
+        assert!(!changed.passes_behavior_test);
+        changed = report.clone();
+        let mut mismatched = manifest.clone();
+        mismatched.result_row_count += 1;
+        assert!(validate_micro_benchmark_report(&mismatched, results, &mut changed).is_err());
+        assert!(!changed.passes_behavior_test);
+        validate_micro_benchmark_report(manifest, results, &mut changed)?;
+        assert!(changed.passes_behavior_test);
+        Ok(())
     }
 
     #[test]

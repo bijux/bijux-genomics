@@ -412,3 +412,5 @@ pub(crate) mod vcf_scope;
 pub(crate) use readiness::validate_rendered_command_observations;
 
 pub(crate) mod micro_run;
+
+pub(crate) mod micro_report;

@@ -883,3 +883,11 @@ pub use crate::model::micro_benchmark::run::{
 pub use crate::policy::operational_readiness::{
     evaluate_operational_reporting, OperationalReportingEvidence, OperationalReportingPaths,
 };
+
+pub use crate::contract::micro_report::validate_micro_benchmark_report;
+pub use crate::model::micro_benchmark::report::{
+    MicroBenchmarkCompleteRow, MicroBenchmarkFailedRow, MicroBenchmarkInsufficientDataRow,
+    MicroBenchmarkMemorySourceRow, MicroBenchmarkMissingRow, MicroBenchmarkReport,
+    MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow, MicroBenchmarkUnavailableRow,
+    MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
+};

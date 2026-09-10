@@ -570,3 +570,11 @@ pub use bijux_dna_bench::{
 pub use bijux_dna_bench::{
     evaluate_operational_reporting, OperationalReportingEvidence, OperationalReportingPaths,
 };
+
+pub use bijux_dna_bench::{
+    render_micro_benchmark_report_markdown, validate_micro_benchmark_report,
+    MicroBenchmarkCompleteRow, MicroBenchmarkFailedRow, MicroBenchmarkInsufficientDataRow,
+    MicroBenchmarkMemorySourceRow, MicroBenchmarkMissingRow, MicroBenchmarkReport,
+    MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow, MicroBenchmarkUnavailableRow,
+    MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
+};

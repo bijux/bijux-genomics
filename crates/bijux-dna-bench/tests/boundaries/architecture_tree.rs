@@ -30,6 +30,7 @@ fn bench_tree_matches_architecture_contract() {
             "mod.rs",
             "schema_publication.rs",
             "command_artifacts.rs",
+            "micro_report.rs",
             "source_assets.rs",
             "writer/"
         ]),

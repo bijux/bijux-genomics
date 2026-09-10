@@ -120,3 +120,15 @@ fn deserialize_version<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Str
 fn version_schema(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type":"string", "const":MICRO_BENCHMARK_RUN_SCHEMA_VERSION})
 }
+
+impl MicroBenchmarkExecutionStatus {
+    /// Stable spelling shared by persisted status counts and presentation.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Succeeded => "succeeded",
+            Self::ContainerNeeded => "container_needed",
+            Self::Unavailable => "unavailable",
+        }
+    }
+}

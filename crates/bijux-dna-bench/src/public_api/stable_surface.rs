@@ -768,3 +768,11 @@ pub use bijux_dna_bench_model::{
 pub use bijux_dna_bench_model::{
     evaluate_operational_reporting, OperationalReportingEvidence, OperationalReportingPaths,
 };
+
+pub use crate::artifacts::micro_report::render_micro_benchmark_report_markdown;
+pub use bijux_dna_bench_model::{
+    validate_micro_benchmark_report, MicroBenchmarkCompleteRow, MicroBenchmarkFailedRow,
+    MicroBenchmarkInsufficientDataRow, MicroBenchmarkMemorySourceRow, MicroBenchmarkMissingRow,
+    MicroBenchmarkReport, MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow,
+    MicroBenchmarkUnavailableRow, MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
+};

@@ -33,3 +33,5 @@ pub(crate) mod schema_publication;
 pub(crate) mod simulation;
 
 pub(crate) mod command_artifacts;
+
+pub(crate) mod micro_report;
