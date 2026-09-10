@@ -9,6 +9,8 @@ use bijux_dna_bench_model::{HpcBundleSubmission, HpcCodeFreezeObservation, Plann
 use std::path::{Path, PathBuf};
 
 /// Runner-backed capabilities with an explicit invocation working directory.
+///
+/// Stability: stable v1 adapter over the benchmark submission ports.
 pub struct HpcSchedulerSubmissionBackend {
     pub paths: SlurmClientPaths,
     pub working_directory: PathBuf,

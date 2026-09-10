@@ -6,7 +6,7 @@ fn receipt() -> Value {
     let job = json!({
         "job_name":"trim", "stage":"fastq.trim", "tool":"fastp", "sample":"sample",
         "array_task":null, "planned_job_id":"planned-trim", "scheduler_job_id":"mock-0001",
-        "dependency_scheduler_ids":[], "script_path":"scripts/trim.sh",
+        "dependency_scheduler_ids":[], "script_path":"artifacts/hpc/trim.sh",
         "log_path":"logs/trim.log", "out_path":"logs/trim.out", "err_path":"logs/trim.err",
         "results_path":"results/trim.age", "code_path":"code/trim.age"
     });
