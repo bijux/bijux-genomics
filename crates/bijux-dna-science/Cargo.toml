@@ -20,6 +20,7 @@ toml.workspace = true
 walkdir.workspace = true
 bijux-dna-bench-model.workspace = true
 bijux-dna-core.workspace = true
+bijux-dna-domain-vcf.workspace = true
 bijux-dna-infra = { workspace = true, features = ["yaml"] }
 bijux-dna-policies.workspace = true
 

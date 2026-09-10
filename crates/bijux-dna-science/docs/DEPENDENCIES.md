@@ -12,6 +12,7 @@ guardrails without pulling in runtime execution or planning responsibilities.
 | --- | --- |
 | `anyhow` | Error context for command and compiler flows. |
 | `bijux-dna-bench-model` | Persisted benchmark gate policy and decision records consumed by pure science evaluation. |
+| `bijux-dna-domain-vcf` | Genotype call comparison under an explicitly unphased truth claim. |
 | `bijux-dna-core` | Canonical metric direction semantics used by scientific gates. |
 | `bijux-dna-infra` with `yaml` | Shared deterministic file IO and governed YAML parsing. |
 | `bijux-dna-policies` | Governed evidence-decision contracts used by scientific acceptance rules. |
