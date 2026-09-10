@@ -190,7 +190,8 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
                 return Err(anyhow!("unsupported --view `{}` (expected `tail`)", args.view));
             }
             let run_dir = observability_run_dir(cwd, &args.search_root, &args.run_id)?;
-            let telemetry_path = run_dir.join("run_artifacts").join("telemetry.jsonl");
+            let telemetry_path =
+                bijux_dna_infra::run_artifacts_dir_for_out(&run_dir).join("telemetry.jsonl");
             let raw = std::fs::read_to_string(&telemetry_path)
                 .with_context(|| format!("read {}", telemetry_path.display()))?;
             let mut failure: Option<serde_json::Value> = None;
