@@ -122,3 +122,65 @@ fn benchmark_parameter_decoding_observes_typed_effective_report_parameters() -> 
     assert!(decode_local_benchmark_stage_parameters("fastq.report_qc", &source).is_err());
     Ok(())
 }
+
+#[test]
+fn benchmark_parameter_decoding_reuses_domain_enum_wire_contracts() -> Result<()> {
+    for (stage, key, field, values) in [
+        (
+            "fastq.correct_errors",
+            "quality_encoding",
+            "FASTQ quality_encoding",
+            ["phred33", "phred64"],
+        ),
+        (
+            "fastq.merge_pairs",
+            "unmerged_read_policy",
+            "fastq.merge_pairs unmerged_read_policy",
+            ["emit_unmerged_pairs", "omit_unmerged_pairs"],
+        ),
+        (
+            "fastq.trim_terminal_damage",
+            "damage_mode",
+            "fastq.trim_terminal_damage damage_mode",
+            ["ancient", "udg_trimmed"],
+        ),
+        (
+            "fastq.trim_terminal_damage",
+            "execution_policy",
+            "fastq.trim_terminal_damage execution_policy",
+            ["explicit_terminal_trim", "preserve_udg_trimmed_ends"],
+        ),
+    ] {
+        for value in values {
+            let mut raw = json!({});
+            raw[key] = json!(value);
+            let decoded = decode_local_benchmark_stage_parameters(stage, &plan(stage, raw))?
+                .ok_or_else(|| anyhow::anyhow!("typed stage parameters absent"))?;
+            let observed = match decoded {
+                FastqStageParameters::CorrectErrors(params) => {
+                    serde_json::to_value(params.quality_encoding)?
+                }
+                FastqStageParameters::MergePairs(params) => {
+                    serde_json::to_value(params.unmerged_read_policy)?
+                }
+                FastqStageParameters::TrimTerminalDamage(params) if key == "damage_mode" => {
+                    serde_json::to_value(params.damage_mode)?
+                }
+                FastqStageParameters::TrimTerminalDamage(params) => {
+                    serde_json::to_value(params.execution_policy)?
+                }
+                _ => anyhow::bail!("unexpected typed stage parameters"),
+            };
+            assert_eq!(observed, json!(value));
+        }
+        for value in ["", "unsupported", " phred33 "] {
+            let mut raw = json!({});
+            raw[key] = json!(value);
+            let error = decode_local_benchmark_stage_parameters(stage, &plan(stage, raw))
+                .err()
+                .ok_or_else(|| anyhow::anyhow!("unknown domain enum was accepted"))?;
+            assert_eq!(error.to_string(), format!("unsupported {field} `{value}`"));
+        }
+    }
+    Ok(())
+}

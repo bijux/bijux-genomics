@@ -106,3 +106,7 @@ decoder require their declared scalar types and integer widths; absent/null fiel
 retain existing defaults. Effective records use domain typed decoding. Unconsumed
 raw fields remain available to their upstream contracts, and tool adapters still
 own complete capability, range, identity and scientific admission.
+
+Benchmark enum parameters use the domain enums' serde implementations as the
+single authority for supported wire values. The planner adds benchmark field
+context to failures; it does not maintain another enum variant lookup table.

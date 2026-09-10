@@ -1,9 +1,5 @@
 //! Owner: scalar shape and explicit enum admission for local benchmark parameter observations.
 use anyhow::{anyhow, ensure, Result};
-use bijux_dna_domain_fastq::params::{
-    correct::QualityEncoding, merge::UnmergedReadPolicy, trim::TerminalDamageExecutionPolicy,
-    DamageMode,
-};
 use std::path::PathBuf;
 
 pub(super) fn json_string(value: &serde_json::Value, key: &str) -> Option<String> {
@@ -30,38 +26,13 @@ pub(super) fn json_path(value: &serde_json::Value, key: &str) -> Option<PathBuf>
     json_string(value, key).map(PathBuf::from)
 }
 
-pub(super) fn parse_quality_encoding(raw: &str) -> Result<QualityEncoding> {
-    match raw {
-        "phred33" => Ok(QualityEncoding::Phred33),
-        "phred64" => Ok(QualityEncoding::Phred64),
-        other => Err(anyhow!("unsupported FASTQ quality_encoding `{other}`")),
-    }
-}
-
-pub(super) fn parse_unmerged_read_policy(raw: &str) -> Result<UnmergedReadPolicy> {
-    match raw {
-        "emit_unmerged_pairs" => Ok(UnmergedReadPolicy::EmitUnmergedPairs),
-        "omit_unmerged_pairs" => Ok(UnmergedReadPolicy::OmitUnmergedPairs),
-        other => Err(anyhow!("unsupported fastq.merge_pairs unmerged_read_policy `{other}`")),
-    }
-}
-
-pub(super) fn parse_damage_mode(raw: &str) -> Result<DamageMode> {
-    match raw {
-        "ancient" => Ok(DamageMode::Ancient),
-        "udg_trimmed" => Ok(DamageMode::UdgTrimmed),
-        other => Err(anyhow!("unsupported fastq.trim_terminal_damage damage_mode `{other}`")),
-    }
-}
-
-pub(super) fn parse_terminal_damage_execution_policy(
+/// Use the domain enum's wire decoder while preserving the benchmark field error context.
+pub(super) fn decode_enum_value<T: serde::de::DeserializeOwned>(
     raw: &str,
-) -> Result<TerminalDamageExecutionPolicy> {
-    match raw {
-        "explicit_terminal_trim" => Ok(TerminalDamageExecutionPolicy::ExplicitTerminalTrim),
-        "preserve_udg_trimmed_ends" => Ok(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds),
-        other => Err(anyhow!("unsupported fastq.trim_terminal_damage execution_policy `{other}`")),
-    }
+    field: &str,
+) -> Result<T> {
+    T::deserialize(serde::de::value::StrDeserializer::<serde::de::value::Error>::new(raw))
+        .map_err(|_| anyhow!("unsupported {field} `{raw}`"))
 }
 
 #[derive(Clone, Copy)]

@@ -1,7 +1,6 @@
 //! Owner: typed decoding of observed FASTQ local benchmark plan parameters.
 use super::parameter_values::{
-    json_bool, json_f64, json_path, json_string, json_u32, json_u64, parse_damage_mode,
-    parse_quality_encoding, parse_terminal_damage_execution_policy, parse_unmerged_read_policy,
+    decode_enum_value, json_bool, json_f64, json_path, json_string, json_u32, json_u64,
     validate_raw_fields,
 };
 use crate::FastqStageParameters;
@@ -202,8 +201,9 @@ fn decode_correction(
             let baseline = crate::CorrectErrorsStageParams::baseline();
             Some(crate::FastqStageParameters::CorrectErrors(crate::CorrectErrorsStageParams {
                 threads: json_u32(params, "threads"),
-                quality_encoding: parse_quality_encoding(
+                quality_encoding: decode_enum_value(
                     json_string(params, "quality_encoding").as_deref().unwrap_or("phred33"),
+                    "FASTQ quality_encoding",
                 )?,
                 kmer_size: json_u32(params, "kmer_size"),
                 musket_kmer_budget: json_u64(params, "musket_kmer_budget"),
@@ -219,10 +219,11 @@ fn decode_correction(
                 threads: json_u32(params, "threads"),
                 merge_overlap: json_u32(params, "merge_overlap"),
                 min_len: json_u32(params, "min_len"),
-                unmerged_read_policy: parse_unmerged_read_policy(
+                unmerged_read_policy: decode_enum_value(
                     json_string(params, "unmerged_read_policy")
                         .as_deref()
                         .unwrap_or("emit_unmerged_pairs"),
+                    "fastq.merge_pairs unmerged_read_policy",
                 )?,
             }))
         }
@@ -231,11 +232,14 @@ fn decode_correction(
             Some(crate::FastqStageParameters::TrimTerminalDamage(
                 crate::TrimTerminalDamageStageParams {
                     threads: json_u32(params, "threads"),
-                    damage_mode: parse_damage_mode(
+                    damage_mode: decode_enum_value(
                         json_string(params, "damage_mode").as_deref().unwrap_or("ancient"),
+                        "fastq.trim_terminal_damage damage_mode",
                     )?,
                     execution_policy: json_string(params, "execution_policy")
-                        .map(|value| parse_terminal_damage_execution_policy(&value))
+                        .map(|value| {
+                            decode_enum_value(&value, "fastq.trim_terminal_damage execution_policy")
+                        })
                         .transpose()?,
                     trim_5p_bases: json_u32(params, "trim_5p_bases")
                         .unwrap_or(baseline.trim_5p_bases),
