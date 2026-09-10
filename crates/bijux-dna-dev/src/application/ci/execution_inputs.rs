@@ -25,6 +25,11 @@ impl NextestReuseInputs {
         Ok(Self { cargo_metadata, binaries_metadata, target_root })
     }
 
+    /// Preserve Cargo/build identities while selecting a separately admitted binary inventory.
+    pub(crate) fn with_binaries_metadata(&self, binaries_metadata: PathBuf) -> Result<Self> {
+        Self::new(self.cargo_metadata.clone(), binaries_metadata, self.target_root.clone())
+    }
+
     pub(crate) fn arguments(&self, workspace: &Path) -> Result<Vec<String>> {
         validate_path(workspace)?;
         let mut arguments = Vec::with_capacity(8);
