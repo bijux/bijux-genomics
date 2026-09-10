@@ -137,3 +137,5 @@ receipts declare `local_metadata`, retain separate producer outcomes, and do not
 report metadata as archive bytes. Compile, inventory, shard, and final cleanup
 time remain part of the measured command; no hosted timing claim follows from
 using local products.
+
+The full profile starts the seven isolated readiness/report suites at priority 100. Their long workflows begin early in the existing worker pool; ordinary cases remain priority 0. Prioritization preserves exact case selection, worker limits, retries and isolation groups, and expresses no dependency between tests. Full source-bound timings still include compilation, discovery and cleanup.
