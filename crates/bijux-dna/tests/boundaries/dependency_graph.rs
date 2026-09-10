@@ -5,6 +5,7 @@ const NORMAL_DEPS: &[&str] = &[
     "anyhow",
     "bijux-dna-api",
     "bijux-dna-bench-corpus",
+    "bijux-dna-bench-vcf",
     "bijux-dna-core",
     "bijux-dna-db-ena",
     "bijux-dna-db-ref",

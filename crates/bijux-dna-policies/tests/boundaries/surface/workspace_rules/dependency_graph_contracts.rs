@@ -15,6 +15,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-analyze",
         "bijux-dna-bench",
         "bijux-dna-bench-corpus",
+        "bijux-dna-bench-vcf",
         "bijux-dna-bench-model",
         "bijux-dna-core",
         "bijux-dna-db-ena",

@@ -53,3 +53,7 @@ for local manifest and payload admission. The CLI enables its `alignment` and
 presentation and exit mapping. Corpus models and validation do not belong in
 the command crate; downstream owners can use that service without compiling
 this CLI or the benchmark aggregation library.
+
+VCF benchmark commands supply admitted catalog/binding inputs and a reference
+materialization operation to `bijux-dna-bench-vcf`. That owner constructs adapter
+contracts and fixture observations without a normal dependency on CLI or API.
