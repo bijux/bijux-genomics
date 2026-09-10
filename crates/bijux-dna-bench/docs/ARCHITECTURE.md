@@ -64,3 +64,5 @@ exports, panic boundaries and repository/artifact ownership of raw JSON.
 Hardening campaign decisions belong to `bijux-dna-bench-model::derive_hardening_benchmark_campaign`. `repo/hardening_campaign.rs` admits persisted reports and owns atomic publication. The benchmark facade preserves all three existing public operations; source joins, the goal catalog and check evaluation do not acquire files or depend on runtime services.
 
 `repo/hpc_inputs/` owns current source inspection, stage-hint provenance joins and produced-output exclusion. Its private path classifier handles the supported argv and shell forms. The CLI adapts stage-plan hints and supplies the generated-output root explicitly; source contents are reacquired for each request.
+
+HPC asset staging accepts explicit typed command rows and source hints. Model policy assembles canonical jobs and compares current identities; `repo/hpc_asset_staging.rs` owns destination admission, observations and persistence; `workflow/hpc_asset_staging.rs` composes collection. CLI adapters acquire upstream command/stage declarations and present results.

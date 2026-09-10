@@ -158,3 +158,38 @@ fn local_hpc_asset_staging_rejects_unsafe_or_incomplete_inputs() {
     artifact_pairing.jobs[0].staged_inputs[0].artifact_role = None;
     assert!(validate_benchmark_local_hpc_asset_staging_manifest(&artifact_pairing).is_err());
 }
+
+#[test]
+fn staging_assembly_retains_canonical_identity_and_detects_equal_count_substitution(
+) -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{
+        assemble_hpc_asset_staging_manifest, compare_hpc_asset_staging_manifest,
+    };
+    let expected = manifest();
+    let mut jobs = expected.jobs.clone();
+    jobs.reverse();
+    let assembled = assemble_hpc_asset_staging_manifest(
+        expected.output_path.clone(),
+        expected.staging_root.clone(),
+        jobs,
+    )?;
+    assert_eq!(assembled, expected);
+    let path = std::path::Path::new(&expected.output_path);
+    compare_hpc_asset_staging_manifest(path, &assembled, &expected)?;
+    let mut changed = assembled.clone();
+    changed.jobs[1].staged_inputs[1].checksum_sha256 = "c".repeat(64);
+    validate_benchmark_local_hpc_asset_staging_manifest(&changed)?;
+    let error = compare_hpc_asset_staging_manifest(path, &changed, &expected)
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("equal-count changed source accepted"))?;
+    assert!(error.to_string().contains("staged input"));
+    let mut duplicate = expected.jobs.clone();
+    duplicate.push(duplicate[0].clone());
+    assert!(assemble_hpc_asset_staging_manifest(
+        expected.output_path.clone(),
+        expected.staging_root.clone(),
+        duplicate
+    )
+    .is_err());
+    Ok(())
+}

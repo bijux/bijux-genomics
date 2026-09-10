@@ -913,3 +913,7 @@ pub use crate::policy::hpc_resources::{
 };
 
 pub use crate::policy::hardening_campaign::derive_hardening_benchmark_campaign;
+
+pub use crate::policy::hpc_asset_staging::{
+    assemble_hpc_asset_staging_manifest, compare_hpc_asset_staging_manifest,
+};

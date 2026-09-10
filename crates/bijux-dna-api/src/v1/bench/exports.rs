@@ -609,3 +609,8 @@ pub use bijux_dna_bench::{
     collect_hpc_job_source_inputs, materialize_stage_id, HpcDiscoveredSourceInput,
     HpcStageInputHint,
 };
+
+pub use bijux_dna_bench::{
+    collect_hpc_asset_staging_manifest, compare_hpc_asset_staging_manifest,
+    load_hpc_asset_staging_manifest, publish_hpc_asset_staging_manifest, HpcAssetStagingRequest,
+};

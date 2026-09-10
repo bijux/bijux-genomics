@@ -807,3 +807,9 @@ pub use crate::repo::hpc_inputs::{
     collect_hpc_job_source_inputs, materialize_stage_id, HpcDiscoveredSourceInput,
     HpcStageInputHint,
 };
+
+pub use crate::repo::hpc_asset_staging::{
+    load_hpc_asset_staging_manifest, publish_hpc_asset_staging_manifest,
+};
+pub use crate::workflow::{collect_hpc_asset_staging_manifest, HpcAssetStagingRequest};
+pub use bijux_dna_bench_model::compare_hpc_asset_staging_manifest;

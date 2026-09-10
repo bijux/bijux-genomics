@@ -121,6 +121,7 @@ fn bench_tree_matches_architecture_contract() {
         entries([
             "hpc_array.rs",
             "hpc_resources.rs",
+            "hpc_asset_staging.rs",
             "hpc_inputs/",
             "hardening_campaign.rs",
             "micro_run.rs",
@@ -231,6 +232,7 @@ fn bench_tree_matches_architecture_contract() {
             "fastq_profile_reads/",
             "fastq_validate_reads/",
             "full_benchmark_report.rs",
+            "hpc_asset_staging.rs",
             "local_corpus_skip.rs",
             "mod.rs",
             "options.rs",

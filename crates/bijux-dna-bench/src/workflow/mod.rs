@@ -400,3 +400,6 @@ pub use micro_run::qualify_micro_benchmark_run;
 pub(crate) mod micro_report;
 
 pub(crate) mod hpc_array;
+
+mod hpc_asset_staging;
+pub use hpc_asset_staging::{collect_hpc_asset_staging_manifest, HpcAssetStagingRequest};
