@@ -111,3 +111,8 @@ fn invalid<T>(message: impl Into<String>) -> Result<T, BenchError> {
 
 mod slurm;
 pub use slurm::{evaluate_benchmark_local_hpc_slurm_readiness, BenchmarkLocalHpcSlurmObservation};
+
+mod harness;
+pub use harness::{
+    evaluate_benchmark_local_hpc_harness_readiness, BenchmarkLocalHpcHarnessObservation,
+};

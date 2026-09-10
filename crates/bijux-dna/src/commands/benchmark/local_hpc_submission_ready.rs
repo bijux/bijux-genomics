@@ -1,4 +1,7 @@
 use bijux_dna_api::v1::api::bench::{
+    evaluate_benchmark_local_hpc_harness_readiness, BenchmarkLocalHpcHarnessObservation,
+};
+use bijux_dna_api::v1::api::bench::{
     evaluate_benchmark_local_hpc_slurm_readiness, BenchmarkLocalHpcSlurmObservation,
 };
 use std::collections::BTreeSet;
@@ -40,8 +43,7 @@ use crate::commands::benchmark::local_stage_commands::{
     materialize_local_stage, render_local_stage_commands, BenchLocalStageCommandManifest,
 };
 use crate::commands::benchmark::local_stage_fake_runs::{
-    fake_run_local_stage_commands, fake_run_local_stage_failures,
-    BenchLocalStageFakeFailureManifest, BenchLocalStageFakeRunManifest,
+    fake_run_local_stage_commands, fake_run_local_stage_failures, BenchLocalStageFakeRunManifest,
     DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT,
 };
 use crate::commands::benchmark::local_stage_inventory::{
@@ -563,7 +565,9 @@ fn evaluate_benchmark_harness_goals(
         &[],
         7,
     ) {
-        Ok(manifest) => evaluate_fake_run_failure_goal(repo_root, checks, &manifest),
+        Ok(manifest) => checks.push(evaluate_benchmark_local_hpc_harness_readiness(
+            BenchmarkLocalHpcHarnessObservation::FakeFailures(&manifest),
+        )),
         Err(err) => checks.push(fail_check(
             57,
             "benchmark_harness",
@@ -579,7 +583,9 @@ fn evaluate_benchmark_harness_goals(
         PathBuf::from(DEFAULT_STAGE_OUTPUT_COMPLETION_REPORT_PATH),
     ) {
         Ok(report) => {
-            evaluate_output_completion_goal(checks, &report);
+            checks.push(evaluate_benchmark_local_hpc_harness_readiness(
+                BenchmarkLocalHpcHarnessObservation::OutputCompletion(&report),
+            ));
             Some(report)
         }
         Err(err) => {
@@ -600,7 +606,9 @@ fn evaluate_benchmark_harness_goals(
         PathBuf::from(DEFAULT_STAGE_MANIFEST_COMPLETION_REPORT_PATH),
     ) {
         Ok(report) => {
-            evaluate_manifest_completion_goal(checks, &report);
+            checks.push(evaluate_benchmark_local_hpc_harness_readiness(
+                BenchmarkLocalHpcHarnessObservation::ManifestCompletion(&report),
+            ));
             Some(report)
         }
         Err(err) => {
@@ -623,7 +631,9 @@ fn evaluate_benchmark_harness_goals(
         PathBuf::from(DEFAULT_RUNTIME_METRICS_REPORT_PATH),
     ) {
         Ok(report) => {
-            evaluate_runtime_metrics_goal(checks, &report);
+            checks.push(evaluate_benchmark_local_hpc_harness_readiness(
+                BenchmarkLocalHpcHarnessObservation::RuntimeMetrics(&report),
+            ));
             Some(report)
         }
         Err(err) => {
@@ -779,93 +789,6 @@ fn evaluate_fake_run_success_goal(
     }
 }
 
-fn evaluate_fake_run_failure_goal(
-    _repo_root: &Path,
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    manifest: &BenchLocalStageFakeFailureManifest,
-) {
-    let fields_are_present = manifest.failures.iter().all(|failure| {
-        !failure.stage_id.trim().is_empty()
-            && !failure.tool_id.trim().is_empty()
-            && !failure.command.trim().is_empty()
-            && !failure.stderr_path.trim().is_empty()
-            && !failure.failure_record_path.trim().is_empty()
-            && failure.exit_code == 7
-    });
-    if manifest.stage_count == 51 && fields_are_present {
-        checks.push(ok_check(
-            57,
-            "benchmark_harness",
-            "fake-run failure harness records structured stage failures",
-            Some(manifest.failure_root.clone()),
-            format!("fake-run failure manifest covers {} stages", manifest.stage_count),
-        ));
-    } else {
-        checks.push(fail_check(
-            57,
-            "benchmark_harness",
-            "fake-run failure harness records structured stage failures",
-            Some(manifest.failure_root.clone()),
-            format!("stage_count={} structured_fields={fields_are_present}", manifest.stage_count),
-        ));
-    }
-}
-
-fn evaluate_output_completion_goal(
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    report: &BenchLocalStageOutputCompletionReport,
-) {
-    if report.complete && report.stage_count == 51 && report.incomplete_stage_count == 0 {
-        checks.push(ok_check(
-            58,
-            "benchmark_harness",
-            "output completion requires every declared stage output",
-            Some(report.report_output_path.clone()),
-            format!("output completion marks all {} governed stages complete", report.stage_count),
-        ));
-    } else {
-        checks.push(fail_check(
-            58,
-            "benchmark_harness",
-            "output completion requires every declared stage output",
-            Some(report.report_output_path.clone()),
-            format!(
-                "complete={} stage_count={} incomplete_stage_count={}",
-                report.complete, report.stage_count, report.incomplete_stage_count
-            ),
-        ));
-    }
-}
-
-fn evaluate_manifest_completion_goal(
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    report: &BenchLocalStageManifestCompletionReport,
-) {
-    if report.complete && report.stage_count == 51 && report.incomplete_stage_count == 0 {
-        checks.push(ok_check(
-            59,
-            "benchmark_harness",
-            "manifest completion requires every stage-result manifest",
-            Some(report.report_output_path.clone()),
-            format!(
-                "manifest completion marks all {} governed stages complete",
-                report.stage_count
-            ),
-        ));
-    } else {
-        checks.push(fail_check(
-            59,
-            "benchmark_harness",
-            "manifest completion requires every stage-result manifest",
-            Some(report.report_output_path.clone()),
-            format!(
-                "complete={} stage_count={} incomplete_stage_count={}",
-                report.complete, report.stage_count, report.incomplete_stage_count
-            ),
-        ));
-    }
-}
-
 fn evaluate_stage_result_manifest_goal(
     repo_root: &Path,
     checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
@@ -904,37 +827,6 @@ fn evaluate_stage_result_manifest_goal(
             "stage-result manifests validate the governed runtime contract",
             Some("artifacts/benchmark-smoke/simulated-runs/stages/*/stage-result.json".to_string()),
             validation_errors.join("; "),
-        ));
-    }
-}
-
-fn evaluate_runtime_metrics_goal(
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    report: &BenchLocalStageRuntimeMetricsReport,
-) {
-    let runtime_fields_are_present = report.stages.iter().all(|stage| {
-        !stage.runtime_mode.trim().is_empty()
-            && !stage.started_at.trim().is_empty()
-            && !stage.finished_at.trim().is_empty()
-    });
-    if report.stage_count == 51 && runtime_fields_are_present {
-        checks.push(ok_check(
-            61,
-            "benchmark_harness",
-            "runtime metrics extract validated start, finish, elapsed, exit, and status fields",
-            Some(report.report_output_path.clone()),
-            format!("runtime metrics report covers {} stages", report.stage_count),
-        ));
-    } else {
-        checks.push(fail_check(
-            61,
-            "benchmark_harness",
-            "runtime metrics extract validated start, finish, elapsed, exit, and status fields",
-            Some(report.report_output_path.clone()),
-            format!(
-                "stage_count={} runtime_fields_present={runtime_fields_are_present}",
-                report.stage_count
-            ),
         ));
     }
 }

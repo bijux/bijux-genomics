@@ -208,3 +208,82 @@ fn hpc_slurm_readiness_admits_complete_observations_before_reporting_success() -
     assert!(!evaluate(Observation::ScriptBodies(&report)).ok);
     Ok(())
 }
+
+#[test]
+fn hpc_harness_readiness_rejects_fabricated_counts_and_admits_runtime_rows() -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{
+        evaluate_benchmark_local_hpc_harness_readiness as evaluate,
+        BenchmarkLocalHpcHarnessObservation as Observation, BenchmarkLocalStageFakeFailureManifest,
+        BenchmarkLocalStageManifestCompletionReport, BenchmarkLocalStageOutputCompletionReport,
+        BenchmarkLocalStageReadinessKind, BenchmarkLocalStageRuntimeMetric,
+        BenchmarkLocalStageRuntimeMetricsReport, BenchmarkStageResultStatus,
+        BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1,
+        BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_V1,
+        BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
+        BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1,
+    };
+    let failures = BenchmarkLocalStageFakeFailureManifest {
+        schema_version: BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_V1.to_string(),
+        failure_root: "artifacts/runs/bench/failures".to_string(),
+        source_stage_command_manifest_path: "artifacts/runs/bench/commands.json".to_string(),
+        stage_count: 51,
+        failures: Vec::new(),
+    };
+    let mut completion = serde_json::json!({
+        "schema_version": BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1,
+        "fake_run_root": "artifacts/runs/bench/fake",
+        "report_output_path": "artifacts/runs/bench/completion.json",
+        "source_stage_command_manifest_path": "artifacts/runs/bench/commands.json",
+        "stage_count":51, "complete_stage_count":51, "incomplete_stage_count":0,
+        "complete":true, "stages":[],
+    });
+    let outputs: BenchmarkLocalStageOutputCompletionReport =
+        serde_json::from_value(completion.clone())?;
+    completion["schema_version"] =
+        serde_json::json!(BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1);
+    let manifests: BenchmarkLocalStageManifestCompletionReport =
+        serde_json::from_value(completion)?;
+    let mut runtime = BenchmarkLocalStageRuntimeMetricsReport {
+        schema_version: BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1.to_string(),
+        fake_run_root: "artifacts/runs/bench/fake".to_string(),
+        report_output_path: "artifacts/runs/bench/runtime.json".to_string(),
+        source_stage_command_manifest_path: "artifacts/runs/bench/commands.json".to_string(),
+        stage_count: 51,
+        stages: Vec::new(),
+    };
+    for (goal, observation) in [
+        (57, Observation::FakeFailures(&failures)),
+        (58, Observation::OutputCompletion(&outputs)),
+        (59, Observation::ManifestCompletion(&manifests)),
+        (61, Observation::RuntimeMetrics(&runtime)),
+    ] {
+        let rejected = evaluate(observation);
+        assert_eq!(rejected.goal_id, goal);
+        assert_eq!(rejected.category, "benchmark_harness");
+        assert!(!rejected.ok);
+        assert!(rejected.detail.starts_with("invalid local harness observation:"));
+    }
+    runtime.stages = (0..51)
+        .map(|index| BenchmarkLocalStageRuntimeMetric {
+            stage_id: format!("fixture.stage-{index}"),
+            readiness_kind: BenchmarkLocalStageReadinessKind::Smoke,
+            tool_id: "fixture-tool".to_string(),
+            manifest_path: format!("artifacts/runs/bench/{index}.json"),
+            runtime_mode: "synthetic".to_string(),
+            started_at: "2026-09-10T12:00:00Z".to_string(),
+            finished_at: "2026-09-10T12:00:01Z".to_string(),
+            elapsed_seconds: 1.0,
+            exit_code: 0,
+            status: BenchmarkStageResultStatus::Succeeded,
+        })
+        .collect();
+    let admitted = evaluate(Observation::RuntimeMetrics(&runtime));
+    assert!(admitted.ok);
+    assert_eq!(admitted.detail, "runtime metrics report covers 51 stages");
+    runtime.stages[0].elapsed_seconds = f64::NAN;
+    assert!(!evaluate(Observation::RuntimeMetrics(&runtime)).ok);
+    runtime.stages[0].elapsed_seconds = 1.0;
+    runtime.stages[1] = runtime.stages[0].clone();
+    assert!(!evaluate(Observation::RuntimeMetrics(&runtime)).ok);
+    Ok(())
+}
