@@ -73,3 +73,11 @@ tools, own qualification verdicts, own CLI behavior, or depend on API/engine orc
 - `EXECUTION_SPEC.md` and `DETERMINISM.md` for runner behavior.
 - `BOUNDARY.md`, `DEPENDENCIES.md`, and `EFFECTS.md` for architectural limits.
 - `TESTS.md` for maintenance and verification.
+
+Process supervision separates child lifecycle (`process_supervision/lifecycle.rs`) from
+Unix pipe readiness (`process_supervision/readiness.rs`). A single collection deadline
+covers both stream EOF and child exit, including descendants retaining inherited pipes.
+Cancellation uses the owned process group and reaps the direct child. The non-Unix
+threaded collector retains its existing behavior; inherited-pipe deadline protection
+is currently Unix only. Existing command capture retains complete output without a
+new size cap; output budgets must be explicit at callers that require them.

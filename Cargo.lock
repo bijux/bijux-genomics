@@ -751,6 +751,7 @@ dependencies = [
  "cargo_metadata",
  "chrono",
  "regex",
+ "rustix",
  "serde",
  "serde_json",
  "sha2",

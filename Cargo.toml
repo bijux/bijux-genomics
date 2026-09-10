@@ -66,6 +66,7 @@ toml = "1.1"
 cargo_metadata = "0.18"
 assert_cmd = "2"
 wait-timeout = "0.2.1"
+rustix = { version = "1.1.4", features = ["event", "fs", "process"] }
 predicates = "3"
 filetime = "0.2"
 fs4 = "0.13.1"

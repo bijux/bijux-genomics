@@ -40,6 +40,13 @@ fn dependency_graph_matches_runner_boundary() {
         "dev dependencies must stay limited to metadata, command, and isolated filesystem tests"
     );
 
+    let unix = &manifest["target"]["cfg(unix)"];
+    assert_eq!(
+        dependency_keys(unix, "dependencies"),
+        keys(["rustix"]),
+        "Unix supervision has one explicit safe system interface"
+    );
+
     let runtime_dependencies = dependency_keys(&manifest, "dependencies");
     for forbidden in [
         "bijux-dna",
