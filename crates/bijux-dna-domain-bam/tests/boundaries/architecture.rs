@@ -52,6 +52,18 @@ fn crate_tree_matches_domain_boundary() {
     .collect();
     assert_eq!(dir_entries(&root.join("src")), expected_src, "source tree changed");
 
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts")),
+        BTreeSet::from(["alignment/".to_string()])
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/alignment")),
+        ["mod.rs", "document.rs", "sam.rs", "bam.rs", "header.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    );
+
     let report_models: BTreeSet<_> = [
         "mod.rs",
         "identity.rs",

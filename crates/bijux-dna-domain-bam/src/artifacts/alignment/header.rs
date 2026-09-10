@@ -47,7 +47,10 @@ pub(super) fn render(document: &TinySamDocument, sort_order: &str) -> Result<Str
     Ok(payload)
 }
 
-pub(super) fn merge(target: &mut TinySamDocument, source: &TinySamDocument) -> Result<()> {
+pub(in crate::artifacts) fn merge(
+    target: &mut TinySamDocument,
+    source: &TinySamDocument,
+) -> Result<()> {
     admit(source)?;
     for reference in &source.references {
         let length = *source.reference_lengths.get(reference).context("reference length")?;
@@ -79,5 +82,5 @@ pub(super) fn merge(target: &mut TinySamDocument, source: &TinySamDocument) -> R
 }
 
 #[cfg(test)]
-#[path = "../../tests/contracts/parsers/alignment_header.rs"]
+#[path = "../../../tests/contracts/parsers/alignment_header.rs"]
 mod tests;
