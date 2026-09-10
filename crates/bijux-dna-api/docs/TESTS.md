@@ -14,7 +14,6 @@ README files are intentionally not allowed under `tests/`.
 - `tests/schemas.rs` loads schema snapshots, public surface, and documentation
   alignment tests.
 - `tests/contracts.rs` loads public behavior and integration contract tests.
-- `tests/guardrails.rs` runs the shared crate guardrail policy from the root.
 - `tests/support/workspace_paths.rs` provides repository path helpers for integration
   tests and boundary aggregators.
 

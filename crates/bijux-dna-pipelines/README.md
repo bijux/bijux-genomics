@@ -62,7 +62,6 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-pipelines --no-d
 Entry points:
 - `tests/boundaries.rs`
 - `tests/contracts.rs`
-- `tests/guardrails.rs`
 - `tests/invariant_fast.rs`
 
 ## Where the docs live

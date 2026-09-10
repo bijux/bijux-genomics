@@ -468,7 +468,6 @@ fn bench_tree_matches_architecture_contract() {
             "determinism/",
             "determinism.rs",
             "fixtures/",
-            "guardrails.rs",
             "semantics/",
             "semantics.rs",
             "snapshots/",

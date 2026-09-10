@@ -246,7 +246,6 @@ fn runner_tree_matches_architecture_contract() {
         "contracts.rs",
         "determinism/",
         "determinism.rs",
-        "guardrails.rs",
         "schemas/",
         "schemas.rs",
         "semantics/",

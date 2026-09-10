@@ -56,4 +56,3 @@ and write stage artifacts under caller-provided output directories.
 
 - `tests/contracts.rs` exercises stage outputs and refusal behavior.
 - `tests/boundaries.rs` owns tree, docs, dependency, and command-boundary tests.
-- `tests/guardrails.rs` loads the workspace guardrail policy for this crate.

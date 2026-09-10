@@ -5,7 +5,6 @@ Pipeline profiles are consumed across the stack, so registry drift, defaults dri
 ## Entry Points
 - `tests/boundaries.rs` — source-tree, docs, dependency, command, effects, and policy guardrails.
 - `tests/contracts.rs` — defaults, profile, registry, and snapshot contract coverage.
-- `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 - `tests/invariant_fast.rs` — fast FASTQ invariant checks.
 
 ## Intent Directories

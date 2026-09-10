@@ -138,7 +138,6 @@ fn planner_fastq_tree_matches_architecture_contract() {
             "determinism/",
             "determinism.rs",
             "fixtures/",
-            "guardrails.rs",
             "snapshots/",
             "support/",
         ]),

@@ -30,8 +30,8 @@ fn dependency_graph_matches_planner_vcf_boundary() {
 
     assert_eq!(
         dependency_keys(&manifest, "dev-dependencies"),
-        keys(["bijux-dna-policies"]),
-        "dev dependencies must stay limited to guardrail policy checks"
+        keys([]),
+        "dev dependencies must stay empty without external test support"
     );
 
     let all_dependencies = all_dependency_keys(&manifest);

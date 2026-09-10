@@ -11,7 +11,6 @@ public-surface drift need explicit guardrails.
 - `tests/contracts.rs` — contract behavior, identity, execution, and surface contracts.
 - `tests/schemas.rs` — docs and public-surface locks.
 - `tests/semantics.rs` — identifier catalog, validator, metrics, and input-assessment semantics.
-- `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 
 ## Intent directories
 - `tests/boundaries/` — dependency boundaries, command inventory, and layout contracts.

@@ -10,7 +10,6 @@ contract intent, with taxonomy documented here instead of in `tests/README.md` p
   versioning behavior.
 - `tests/determinism.rs`: fixture and stable-output checks.
 - `tests/schemas.rs`: public type and schema snapshots.
-- `tests/guardrails.rs`: shared policy guardrail smoke coverage.
 - `tests/support/workspace_paths.rs`: shared repository path helpers used by
   integration suites.
 

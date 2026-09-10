@@ -41,7 +41,6 @@ tests/
   and verification-command contract.
 - `tests/contracts.rs`: command behavior, bank, dry-run, and HPC layout contracts.
 - `tests/contracts/dry_run.rs`: dry-run command families and VCF toy execution coverage.
-- `tests/guardrails.rs`: shared policy guardrail smoke for this crate.
 - `tests/schemas.rs`: public API surface snapshots.
 - `tests/snapshots.rs`: CLI help output snapshots and docs-to-help checks.
 - `src/process_exit.rs` unit tests: operator error and exit-code behavior.

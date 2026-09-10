@@ -12,7 +12,6 @@
 
 ## Integration coverage
 
-- `tests/guardrails.rs` validates workspace guardrail conventions for this
   crate.
 - `tests/boundaries.rs` aggregates source-tree, docs placement, command
   inventory, and dependency graph checks.

@@ -20,7 +20,6 @@
 The Slurm backend introduces no scheduler library or async runtime dependency. It invokes the configured `sbatch`, `squeue`, `sacct`, and `scancel` executables through the standard process boundary. Managed workers reuse these existing dependencies and infra hashing; they add no shell parser, scheduler client, or product crate dependency.
 
 ## Dev Dependencies
-- `bijux-dna-policies` for guardrail checks.
 - `bijux-dna-testkit` for shared workspace source scanning support.
 - `cargo_metadata` for dependency boundary tests.
 - `assert_cmd` for command-runner contract tests.

@@ -6,7 +6,6 @@ This file maps runner tests to their contract purpose. Directory-local README fi
 - `tests/boundaries.rs` loads architectural and backend guardrail coverage.
 - `tests/contracts.rs` loads runner-facing behavioral contracts.
 - `tests/determinism.rs` loads replay and run-id stability coverage.
-- `tests/guardrails.rs`, `tests/schemas.rs`, and `tests/semantics.rs` keep focused crate-level checks visible at the root.
 - `tests/support/workspace_paths.rs` provides repository path helpers without creating a helper-only test binary.
 
 ## Boundaries Suite

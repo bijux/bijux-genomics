@@ -19,7 +19,6 @@ handling, but it must not depend on downstream workspace layers.
 
 ## Dev Dependencies
 
-- `bijux-dna-policies`: crate-local guardrail smoke coverage.
 
 ## Forbidden Workspace Dependencies
 

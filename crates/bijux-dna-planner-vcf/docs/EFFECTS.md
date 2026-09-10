@@ -18,6 +18,5 @@
 - Generated configuration mutation.
 
 ## Enforcement
-- Shared policy guardrails run through `tests/guardrails.rs`.
 - Planned command ownership is documented in `docs/COMMANDS.md`.
 - Production source effect checks live in `tests/boundaries/source_effects.rs`.

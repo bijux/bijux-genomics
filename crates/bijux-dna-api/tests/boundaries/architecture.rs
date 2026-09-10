@@ -232,7 +232,6 @@ fn assert_test_tree(root: &std::path::Path) {
             "boundaries.rs",
             "contracts/",
             "contracts.rs",
-            "guardrails.rs",
             "schemas/",
             "schemas.rs",
             "snapshots/",

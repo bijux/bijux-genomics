@@ -5,7 +5,6 @@ VCF planner tests protect deterministic stage plans, graph topology, explain pay
 ## Entry Points
 - `tests/boundaries.rs` — documentation layout, command inventory, architecture, dependency, public API, and source-effect boundary checks.
 - `tests/contracts.rs` — snapshot contracts and planner refusal coverage.
-- `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 
 ## Boundary Modules
 - `tests/boundaries/architecture_tree.rs` — locks the intentional crate layout.

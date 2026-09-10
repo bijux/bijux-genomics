@@ -30,7 +30,7 @@ fn dev_dependency_graph_stays_test_only() {
         std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
             .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
     let dependencies = dependency_names(&manifest, "dev-dependencies");
-    let expected = entries(["anyhow", "bijux-dna-policies", "insta", "tempfile"]);
+    let expected = entries(["anyhow", "insta", "tempfile"]);
 
     assert_eq!(dependencies, expected, "dev dependencies must stay test-facing");
 }

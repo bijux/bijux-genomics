@@ -11,7 +11,6 @@ README files are intentionally not allowed under `tests/`.
 - `tests/determinism.rs` loads stable ordering, compare, and realistic snapshot
   tests.
 - `tests/semantics.rs` loads gate semantic tests.
-- `tests/guardrails.rs` runs the shared crate guardrail policy from the root.
 - `tests/workspace_paths.rs` provides repository path helpers.
 
 ## Boundary Tests

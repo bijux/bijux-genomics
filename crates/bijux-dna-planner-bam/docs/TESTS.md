@@ -6,7 +6,6 @@ Planner tests protect deterministic plan output, graph topology, command specs, 
 - `tests/boundaries.rs` — shared guardrails and planner boundary checks.
 - `tests/contracts.rs` — plan, graph, explain, command, and fixture contracts.
 - `tests/determinism.rs` — deterministic plan ordering and stable graph behavior.
-- `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 
 ## Boundary Modules
 - `tests/boundaries/architecture_tree.rs` — crate source, docs, and test tree contract.

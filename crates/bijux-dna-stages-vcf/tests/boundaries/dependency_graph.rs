@@ -19,7 +19,7 @@ const NORMAL_DEPS: &[&str] = &[
     "sha2",
 ];
 
-const DEV_DEPS: &[&str] = &["bijux-dna-policies", "bijux-dna-testkit", "tempfile"];
+const DEV_DEPS: &[&str] = &["bijux-dna-testkit", "tempfile"];
 
 const FORBIDDEN_BIJUX_EDGES: &[&str] = &[
     "bijux-dna-api",
@@ -50,7 +50,7 @@ fn dev_dependency_graph_stays_test_facing() {
     assert_eq!(
         section_keys(&manifest, "dev-dependencies"),
         set(DEV_DEPS),
-        "dev dependencies must stay limited to policy, testkit, and tempfile support"
+        "dev dependencies must stay limited to testkit, and tempfile support"
     );
 }
 

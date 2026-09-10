@@ -78,7 +78,6 @@ fn science_test_tree_matches_architecture_contract() {
             "contracts/",
             "fastq_environment_slice.rs",
             "fastq_read_length_truth.rs",
-            "guardrails.rs",
             "tsv_shape.rs",
             "unit/",
         ]),

@@ -462,7 +462,6 @@ fn dna_tree_matches_architecture_contract() {
         "boundaries.rs",
         "contracts/",
         "contracts.rs",
-        "guardrails.rs",
         "schemas/",
         "schemas.rs",
         "snapshots/",
@@ -479,8 +478,7 @@ fn dna_tree_matches_architecture_contract() {
     for contract_group in ["benchmark", "fixtures"] {
         assert!(root.join("tests/contracts").join(contract_group).is_dir());
     }
-    let allowed_root_test_files =
-        ["boundaries.rs", "contracts.rs", "guardrails.rs", "schemas.rs", "snapshots.rs"];
+    let allowed_root_test_files = ["boundaries.rs", "contracts.rs", "schemas.rs", "snapshots.rs"];
     let allowed_root_test_prefixes = ["bench_", "ci_", "config_", "dev_", "fixtures_", "plan_"];
     for entry in &tests_entries {
         if required_test_entries.contains(entry) {
