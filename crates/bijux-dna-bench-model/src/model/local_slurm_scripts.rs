@@ -44,3 +44,9 @@ pub struct BenchmarkLocalAllDomainSlurmScriptsReport {
     pub essential_pipeline_domain_counts: BTreeMap<String, usize>,
     pub scripts: Vec<BenchmarkLocalAllDomainSlurmScriptEntry>,
 }
+
+mod body;
+pub use body::{
+    BenchmarkLocalSlurmScriptBodyEntry, BenchmarkLocalSlurmScriptBodyReport,
+    BENCHMARK_LOCAL_SLURM_SCRIPT_BODY_SCHEMA_V1,
+};

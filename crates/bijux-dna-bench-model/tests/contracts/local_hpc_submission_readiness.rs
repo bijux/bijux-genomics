@@ -101,3 +101,67 @@ fn local_hpc_submission_readiness_rejects_inventory_category_path_and_counter_dr
     counters.passed_goal_count = 98;
     assert!(validate_benchmark_local_hpc_submission_readiness(&counters).is_err());
 }
+
+#[test]
+fn slurm_script_body_owner_preserves_findings_and_rejects_forged_wire_aggregates(
+) -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{
+        build_benchmark_local_slurm_script_body_report, inspect_benchmark_local_slurm_script_body,
+        validate_benchmark_local_slurm_script_body_report, BenchmarkLocalSlurmScriptBodyReport,
+    };
+    let root = "artifacts/runs/bench/slurm-dry-run";
+    let output = format!("{root}/inspection.json");
+    let script = format!("{root}/stage.sbatch");
+    let entry = inspect_benchmark_local_slurm_script_body(
+        script.clone(),
+        "#!/bin/bash\nset -euo pipefail\ncargo run -p bijux-dna -- bench local status\n",
+    );
+    assert!(entry.ok && entry.has_bijux_dna_command);
+    let report = build_benchmark_local_slurm_script_body_report(
+        root.to_string(),
+        output.clone(),
+        vec![entry],
+    )?;
+    assert!(report.ok);
+    let mut wire = serde_json::to_value(&report)?;
+    wire["unexpected"] = serde_json::json!(true);
+    assert!(serde_json::from_value::<BenchmarkLocalSlurmScriptBodyReport>(wire).is_err());
+    let mut corrupt = report.clone();
+    corrupt.script_count += 1;
+    assert!(validate_benchmark_local_slurm_script_body_report(&corrupt).is_err());
+    corrupt = report.clone();
+    corrupt.schema_version = "unsupported".to_string();
+    assert!(validate_benchmark_local_slurm_script_body_report(&corrupt).is_err());
+    corrupt = report.clone();
+    corrupt.scripts.push(corrupt.scripts[0].clone());
+    corrupt.script_count += 1;
+    assert!(validate_benchmark_local_slurm_script_body_report(&corrupt).is_err());
+    corrupt = report;
+    corrupt.scripts[0].script_path = "../outside.sbatch".to_string();
+    assert!(validate_benchmark_local_slurm_script_body_report(&corrupt).is_err());
+    let entry = inspect_benchmark_local_slurm_script_body(
+        script,
+        "# TODO: implement\nrc=0\necho execute placeholder\n",
+    );
+    assert!(!entry.ok && !entry.has_bijux_dna_command);
+    assert_eq!(
+        entry.findings,
+        [
+            "contains a to-do marker",
+            "contains unconditional `rc=0`",
+            "contains `placeholder`",
+            "contains fake `echo execute` job body",
+            "missing `bijux-dna` command"
+        ]
+    );
+    let failed = build_benchmark_local_slurm_script_body_report(
+        root.to_string(),
+        output.clone(),
+        vec![entry],
+    )?;
+    assert!(!failed.ok);
+    let empty =
+        build_benchmark_local_slurm_script_body_report(root.to_string(), output, Vec::new())?;
+    assert!(!empty.ok && empty.findings_count == 1);
+    Ok(())
+}

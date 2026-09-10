@@ -406,3 +406,5 @@ mod hpc_asset_staging;
 pub use hpc_asset_staging::{collect_hpc_asset_staging_manifest, HpcAssetStagingRequest};
 
 pub(crate) mod hpc_scratch;
+
+pub use readiness::validate_benchmark_local_slurm_script_bodies;

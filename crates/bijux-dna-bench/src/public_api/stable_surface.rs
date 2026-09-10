@@ -766,7 +766,9 @@ pub use bijux_dna_bench_model::{
     evaluate_operational_binding_coverage, OperationalBindingEvidence,
 };
 
-pub use crate::workflow::publish_rendered_command_artifacts;
+pub use crate::workflow::{
+    publish_rendered_command_artifacts, validate_benchmark_local_slurm_script_bodies,
+};
 
 pub use crate::workflow::qualify_micro_benchmark_run;
 pub use bijux_dna_bench_model::{

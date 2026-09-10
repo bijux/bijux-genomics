@@ -390,7 +390,9 @@ pub use local_hpc_array::build_benchmark_local_hpc_array_resource_envelope;
 
 pub use local_slurm_scripts::{
     build_benchmark_local_all_domain_slurm_scripts_report,
+    build_benchmark_local_slurm_script_body_report, inspect_benchmark_local_slurm_script_body,
     validate_benchmark_local_all_domain_slurm_scripts_report,
+    validate_benchmark_local_slurm_script_body_report,
 };
 
 pub use real_smoke_core_subset::admit_real_smoke_core_subset_report;

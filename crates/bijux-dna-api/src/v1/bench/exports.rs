@@ -452,22 +452,25 @@ pub use bijux_dna_bench_model::{
     build_bam_tool_scores_report, build_benchmark_local_all_domain_slurm_scripts_report,
     build_benchmark_local_hpc_array_resource_envelope,
     build_benchmark_local_hpc_dependency_simulation, build_benchmark_local_hpc_job_graph,
-    build_fastq_tool_score_rows, build_fastq_tool_scores_report, build_vcf_tool_score_rows,
-    build_vcf_tool_scores_report,
+    build_benchmark_local_slurm_script_body_report, build_fastq_tool_score_rows,
+    build_fastq_tool_scores_report, build_vcf_tool_score_rows, build_vcf_tool_scores_report,
+    inspect_benchmark_local_slurm_script_body,
     normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor,
     project_benchmark_local_hpc_tool_scopes,
     validate_benchmark_local_all_domain_slurm_scripts_report,
     validate_benchmark_local_pipeline_dag_config,
-    validate_benchmark_local_pipeline_dag_declarations, validate_stage_scoring_config,
+    validate_benchmark_local_pipeline_dag_declarations,
+    validate_benchmark_local_slurm_script_body_report, validate_stage_scoring_config,
     BamScoreEvidence, BamScoreExpectedRow, BamScoreMemoryRow, BamScoreRuntimeRow, BamToolScoreRow,
     BamToolScoreStatus, BamToolScoresReport, BamToolScoringInput,
     BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
     BenchmarkLocalHpcToolScope, BenchmarkLocalPipelineDagConfig, BenchmarkLocalPipelineDagDomain,
     BenchmarkLocalPipelineDagMetadataConfig, BenchmarkLocalPipelineDagNode,
     BenchmarkLocalPipelineDagStagesConfig, BenchmarkLocalPipelineProjectSourceConfig,
-    FastqScoreEvidence, FastqScoreExpectedRow, FastqScoreMemoryRow, FastqScoreRuntimeRow,
-    FastqToolScoreRow, FastqToolScoreStatus, FastqToolScoresReport, FastqToolScoringInput,
-    StageScoringApplicability, StageScoringCompletion, StageScoringConfig, StageScoringCorrectness,
+    BenchmarkLocalSlurmScriptBodyEntry, BenchmarkLocalSlurmScriptBodyReport, FastqScoreEvidence,
+    FastqScoreExpectedRow, FastqScoreMemoryRow, FastqScoreRuntimeRow, FastqToolScoreRow,
+    FastqToolScoreStatus, FastqToolScoresReport, FastqToolScoringInput, StageScoringApplicability,
+    StageScoringCompletion, StageScoringConfig, StageScoringCorrectness,
     StageScoringCorrectnessSignal, StageScoringDecisionMode, StageScoringDirection,
     StageScoringFailureClass, StageScoringFailureClassCatalogEntry, StageScoringFailureEffect,
     StageScoringMemory, StageScoringMissingBehavior, StageScoringRow, StageScoringRuntime,
@@ -475,8 +478,8 @@ pub use bijux_dna_bench_model::{
     VcfScoreMemoryRow, VcfScoreRuntimeRow, VcfToolScoreRow, VcfToolScoreStatus,
     VcfToolScoresReport, VcfToolScoringInput, BAM_TOOL_SCORES_SCHEMA_VERSION,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
-    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1, FASTQ_TOOL_SCORES_SCHEMA_VERSION,
-    STAGE_SCORING_SCHEMA_VERSION, VCF_TOOL_SCORES_SCHEMA_VERSION,
+    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_SCRIPT_BODY_SCHEMA_V1,
+    FASTQ_TOOL_SCORES_SCHEMA_VERSION, STAGE_SCORING_SCHEMA_VERSION, VCF_TOOL_SCORES_SCHEMA_VERSION,
 };
 
 pub use bijux_dna_bench::{
@@ -567,7 +570,9 @@ pub use bijux_dna_bench::write_recorded_command_audit;
 
 pub use bijux_dna_bench::{evaluate_operational_binding_coverage, OperationalBindingEvidence};
 
-pub use bijux_dna_bench::publish_rendered_command_artifacts;
+pub use bijux_dna_bench::{
+    publish_rendered_command_artifacts, validate_benchmark_local_slurm_script_bodies,
+};
 
 pub use bijux_dna_bench::{
     qualify_micro_benchmark_run, MicroBenchmarkComponentReport, MicroBenchmarkExecutionStatus,

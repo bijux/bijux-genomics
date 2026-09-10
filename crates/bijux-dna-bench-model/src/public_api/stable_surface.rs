@@ -743,11 +743,15 @@ pub use crate::stats::robust_estimators::robust_stats;
 
 pub use crate::contract::{
     build_benchmark_local_all_domain_slurm_scripts_report,
+    build_benchmark_local_slurm_script_body_report, inspect_benchmark_local_slurm_script_body,
     validate_benchmark_local_all_domain_slurm_scripts_report,
+    validate_benchmark_local_slurm_script_body_report,
 };
 pub use crate::model::{
     BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
+    BenchmarkLocalSlurmScriptBodyEntry, BenchmarkLocalSlurmScriptBodyReport,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_SCRIPT_BODY_SCHEMA_V1,
 };
 
 pub use crate::contract::validate_stage_scoring_config;

@@ -136,6 +136,7 @@ fn bench_tree_matches_architecture_contract() {
             "stage_result.rs",
             "command_audit.rs",
             "command_artifacts.rs",
+            "command_artifacts/",
             "simulation.rs",
             "bam_score_evidence.rs",
             "vcf_score_evidence.rs",
@@ -385,7 +386,8 @@ fn bench_tree_matches_architecture_contract() {
             "dashboard.rs",
             "dashboard_markdown.rs",
             "mod.rs",
-            "tool_execution_modes.rs"
+            "tool_execution_modes.rs",
+            "slurm_scripts.rs"
         ]),
         "readiness evaluation must retain its explicit workflow owner"
     );
