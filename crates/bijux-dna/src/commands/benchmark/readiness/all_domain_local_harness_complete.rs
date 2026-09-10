@@ -5,9 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use serde::Serialize;
 
-use super::all_domain_completion_check::{
-    render_all_domain_completion_check, DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH,
-};
+use super::all_domain_completion_check::DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH;
 use super::all_domain_expected_benchmark_results::{
     render_all_domain_expected_benchmark_results, AllDomainExpectedBenchmarkResultsReport,
     DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
@@ -15,9 +13,7 @@ use super::all_domain_expected_benchmark_results::{
 use super::all_domain_failure_classification::{
     render_all_domain_failure_classification, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
 };
-use super::all_domain_missing_result_audit::{
-    render_all_domain_missing_result_audit, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
-};
+use super::all_domain_missing_result_audit::DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH;
 use super::all_domain_output_declarations::{
     render_all_domain_output_declarations, AllDomainOutputDeclarationsReport,
     DEFAULT_ALL_DOMAIN_OUTPUT_DECLARATIONS_PATH,
@@ -34,12 +30,8 @@ use super::all_domain_stage_tool_table::{
     render_all_domain_stage_tool_table, AllDomainStageToolTableReport,
     DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH,
 };
-use crate::commands::benchmark::local_all_domain_fake_failures::{
-    fake_run_all_domain_failures, DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT,
-};
-use crate::commands::benchmark::local_all_domain_fake_runs::{
-    fake_run_all_domain_benchmark_results, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
-};
+use crate::commands::benchmark::local_all_domain_fake_failures::DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT;
+use crate::commands::benchmark::local_all_domain_fake_runs::DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT;
 use crate::commands::benchmark::local_real_smoke_core_subset::{
     render_real_smoke_core_subset, DEFAULT_REAL_SMOKE_CORE_SUBSET_PATH,
 };
@@ -385,13 +377,22 @@ pub(crate) fn render_harness_with_dependencies(
         "all-domain fake-runner",
         Some(DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT.to_string()),
         || {
-            let report = fake_run_all_domain_benchmark_results(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT),
-            )?;
             let expected_results_report = expected_results_report
                 .as_ref()
                 .context("goal 280 expected benchmark results report is required")?;
+            let commands = rendered_commands_report
+                .as_ref()
+                .context("goal 281 rendered commands report is required")?;
+            let outputs = output_declarations_report
+                .as_ref()
+                .context("goal 282 output declarations report is required")?;
+            let report = bijux_dna_api::v1::api::bench::fake_run_all_domain_benchmark_results(
+                repo_root,
+                Path::new(DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT),
+                &expected_results_report.rows,
+                &commands.rows,
+                &outputs.rows,
+            )?;
             if report.result_count != benchmark_ready_binding_count
                 || report.created_output_count == 0
                 || report.domain_counts != expected_results_report.domain_counts
@@ -413,14 +414,23 @@ pub(crate) fn render_harness_with_dependencies(
         "all-domain fake failures",
         Some(DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT.to_string()),
         || {
-            let report = fake_run_all_domain_failures(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT),
-                7,
-            )?;
             let expected_results_report = expected_results_report
                 .as_ref()
                 .context("goal 280 expected benchmark results report is required")?;
+            let commands = rendered_commands_report
+                .as_ref()
+                .context("goal 281 rendered commands report is required")?;
+            let outputs = output_declarations_report
+                .as_ref()
+                .context("goal 282 output declarations report is required")?;
+            let report = bijux_dna_api::v1::api::bench::fake_run_all_domain_failure_results(
+                repo_root,
+                Path::new(DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT),
+                &expected_results_report.rows,
+                &commands.rows,
+                &outputs.rows,
+                7,
+            )?;
             if report.result_count != benchmark_ready_binding_count
                 || report.failed_output_count == 0
                 || report.exit_code != 7
@@ -443,13 +453,22 @@ pub(crate) fn render_harness_with_dependencies(
         "all-domain completion check",
         Some(DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH.to_string()),
         || {
-            let report = render_all_domain_completion_check(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH),
-            )?;
             let expected_results_report = expected_results_report
                 .as_ref()
                 .context("goal 280 expected benchmark results report is required")?;
+            let commands = rendered_commands_report
+                .as_ref()
+                .context("goal 281 rendered commands report is required")?;
+            let outputs = output_declarations_report
+                .as_ref()
+                .context("goal 282 output declarations report is required")?;
+            let report = bijux_dna_api::v1::api::bench::render_all_domain_completion_check(
+                repo_root,
+                Path::new(DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH),
+                &expected_results_report.rows,
+                &commands.rows,
+                &outputs.rows,
+            )?;
             if report.row_count != benchmark_ready_binding_count
                 || report.complete_row_count + report.incomplete_row_count != report.row_count
                 || report.incomplete_row_count != 5
@@ -523,13 +542,22 @@ pub(crate) fn render_harness_with_dependencies(
         "all-domain missing-result test",
         Some(DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH.to_string()),
         || {
-            let report = render_all_domain_missing_result_audit(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH),
-            )?;
             let expected_results_report = expected_results_report
                 .as_ref()
                 .context("goal 280 expected benchmark results report is required")?;
+            let commands = rendered_commands_report
+                .as_ref()
+                .context("goal 281 rendered commands report is required")?;
+            let outputs = output_declarations_report
+                .as_ref()
+                .context("goal 282 output declarations report is required")?;
+            let report = bijux_dna_api::v1::api::bench::render_all_domain_missing_result_audit(
+                repo_root,
+                Path::new(DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH),
+                &expected_results_report.rows,
+                &commands.rows,
+                &outputs.rows,
+            )?;
             if report.expected_row_count != benchmark_ready_binding_count
                 || report.missing_result_row_count != 3
                 || report.present_result_row_count + report.missing_result_row_count
