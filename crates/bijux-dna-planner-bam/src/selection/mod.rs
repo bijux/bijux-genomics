@@ -1,5 +1,6 @@
 mod domain_tool_output_contracts;
 mod domain_tool_specs;
+mod readiness;
 mod registry;
 pub mod tool_selection;
 
@@ -12,3 +13,8 @@ pub use domain_tool_specs::{
     BamDomainToolContractMetadata, BamDomainToolDefinition, BamDomainToolSupportLevel,
 };
 pub use tool_selection::*;
+
+pub use readiness::{
+    assess_bam_tool_definition, BamToolAdapterStatus, BamToolContractStatus,
+    BamToolDefinitionReadiness,
+};

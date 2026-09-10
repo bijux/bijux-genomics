@@ -34,3 +34,9 @@ The public API is the planner surface exported from `src/lib.rs`.
 `planning_spec`, and `execution_spec` methods project that same observation.
 Existing path-based loaders remain available and reload on each call. Definition
 reuse is scoped by the caller; it does not cache changing repository files globally.
+
+`stage_api::assess_bam_tool_definition` projects `BamToolDefinitionReadiness` from
+an optional observed definition and a stage identity. Its typed contract and adapter
+statuses preserve independent metadata admission and planning/execution-spec viability.
+The stable status labels remain available through `as_str`. Runnable spec viability
+does not assert tool installation, successful execution, or scientific qualification.

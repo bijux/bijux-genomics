@@ -87,6 +87,7 @@ fn planner_bam_tree_matches_architecture_contract() {
             "domain_tool_specs.rs",
             "mod.rs",
             "registry.rs",
+            "readiness.rs",
             "tool_selection.rs",
         ]),
         "selection must separate registry loading from tool choice logic"

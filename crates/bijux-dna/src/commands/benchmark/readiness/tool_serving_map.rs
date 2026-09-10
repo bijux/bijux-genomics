@@ -12,8 +12,8 @@ use bijux_dna_domain_fastq::{
     stage_tool_capability_contract, BenchmarkReadinessLevel, RuntimeNormalizationLevel,
 };
 use bijux_dna_planner_bam::stage_api::{
-    allowed_tools_for_stage as allowed_bam_tools_for_stage, load_bam_domain_tool_definition,
-    BamDomainToolDefinition,
+    allowed_tools_for_stage as allowed_bam_tools_for_stage, assess_bam_tool_definition,
+    load_bam_domain_tool_definition,
 };
 use serde::Serialize;
 
@@ -292,11 +292,12 @@ pub(crate) fn collect_bam_tool_serving_map_rows(
                 .or_insert_with(|| load_bam_domain_tool_definition(repo_root, &tool_id))
                 .as_ref()
                 .ok();
+            let readiness = assess_bam_tool_definition(definition, &stage_id);
             rows.push(ToolServingMapRow {
                 tool_id: tool_id.as_str().to_string(),
                 stage_id: stage_id.as_str().to_string(),
-                support_status: bam_support_status_label(definition, &stage_id),
-                adapter_status: bam_adapter_status_label(definition, &stage_id),
+                support_status: readiness.support.as_str().to_string(),
+                adapter_status: readiness.adapter.as_str().to_string(),
                 parser_status: parser_status.to_string(),
                 corpus_status: corpus_status.clone(),
             });
@@ -396,38 +397,6 @@ pub(crate) fn load_corpus_status_by_stage(repo_root: &Path) -> Result<BTreeMap<S
             Ok((entry.stage_id.clone(), corpus_status))
         })
         .collect::<Result<BTreeMap<_, _>>>()
-}
-
-fn bam_support_status_label(
-    definition: Option<&BamDomainToolDefinition>,
-    stage_id: &StageId,
-) -> String {
-    let Some(metadata) = definition.and_then(|definition| definition.contract_metadata().ok())
-    else {
-        return "missing_contract".to_string();
-    };
-    let admitted = metadata.stage_ids.iter().any(|candidate| candidate == stage_id)
-        || metadata.planned_stage_ids.iter().any(|candidate| candidate == stage_id);
-    if !admitted {
-        return "mismatched_contract".to_string();
-    }
-    metadata.pair_support_level(stage_id).as_str().to_string()
-}
-
-fn bam_adapter_status_label(
-    definition: Option<&BamDomainToolDefinition>,
-    stage_id: &StageId,
-) -> String {
-    let Some(definition) = definition else {
-        return "declared_only".to_string();
-    };
-    if definition.execution_spec(stage_id).is_ok() {
-        "runnable".to_string()
-    } else if definition.planning_spec(stage_id).is_ok() {
-        "plannable".to_string()
-    } else {
-        "declared_only".to_string()
-    }
 }
 
 fn bam_parser_status_label(stage: BamStage) -> &'static str {
