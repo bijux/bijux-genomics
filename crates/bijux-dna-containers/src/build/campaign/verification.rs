@@ -1,8 +1,8 @@
 //! Owner: terminal receipt and resumed image verification against current source and runtime observations.
 use super::admission::{
-    campaign_scope, execution_from_tools, select_campaign_tools, selected_receipt_tools,
-    valid_sha256,
+    campaign_scope, execution_from_tools, selected_receipt_tools, valid_sha256,
 };
+use super::execution::CampaignExecutionIdentity;
 use super::model::{
     ApptainerImageCampaignRequest, ImageCampaignExecution, ImageCampaignJobCompletion,
     ImageCampaignToolOutcome, ImageCampaignToolStatus, IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1,
@@ -11,9 +11,10 @@ use super::paths::{campaign_root, require_campaign_path, resolve_study_path};
 use super::storage::load_progress;
 use crate::build::CanonicalApptainerImagePublication;
 use crate::evidence::tool_contract::{
-    clean_repository_head_commit, derive_apptainer_tool_contract, load_container_catalog,
-    retained_apptainer_tool_ids, validate_container_catalog, validate_tool_image_identity_evidence,
-    verify_apptainer_tool_contract, ToolImageIdentityEvidence,
+    clean_repository_head_commit, derive_apptainer_tool_contract, observe_container_catalog,
+    retained_apptainer_tools_from_catalog, validate_observed_container_catalog,
+    validate_tool_image_identity_evidence, verify_apptainer_tool_contract,
+    ToolImageIdentityEvidence,
 };
 use anyhow::{bail, Context, Result};
 use chrono::DateTime;
@@ -54,14 +55,13 @@ pub fn verify_apptainer_image_campaign_receipt(
     if completion.repository_commit != source_commit {
         bail!("image campaign completion differs from frozen source commit");
     }
-    let catalog = load_container_catalog(repository_root)?;
-    let validated = validate_container_catalog(repository_root)?;
+    let observation = observe_container_catalog(repository_root)?;
+    let catalog = &observation.catalog;
+    let validated = validate_observed_container_catalog(repository_root, catalog)?;
     if !validated.is_valid() {
         bail!("image campaign catalog validation failed: {}", validated.errors.join("; "));
     }
-    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
-        &repository_root.join("containers/contracts/catalog.toml"),
-    )?;
+    let catalog_sha256 = observation.sha256;
     let tools = load_progress(
         &execution_path,
         &source_commit,
@@ -69,7 +69,7 @@ pub fn verify_apptainer_image_campaign_receipt(
         &catalog.apptainer_architecture,
     )?;
     let redistributable_tools =
-        retained_apptainer_tool_ids(repository_root, &catalog.apptainer_architecture)?;
+        retained_apptainer_tools_from_catalog(catalog, &catalog.apptainer_architecture)?;
     let selected_tools = selected_receipt_tools(&redistributable_tools, tools.keys())?;
     if tools.values().any(|outcome| {
         outcome.status != ImageCampaignToolStatus::Passed
@@ -105,9 +105,12 @@ pub fn verify_apptainer_image_campaign_receipt(
             worker_count: 1,
             selected_tools: Some(selected_tools.into_iter().collect()),
         },
-        &catalog.apptainer_architecture,
-        &source_commit,
-        &catalog_sha256,
+        &CampaignExecutionIdentity {
+            architecture: &catalog.apptainer_architecture,
+            repository_commit: &source_commit,
+            catalog_sha256: &catalog_sha256,
+            scope: scope.as_deref(),
+        },
         &Mutex::new(tools),
     )?;
     Ok(execution)
@@ -115,26 +118,17 @@ pub fn verify_apptainer_image_campaign_receipt(
 
 pub(super) fn verify_resumed_outcomes(
     request: &ApptainerImageCampaignRequest,
-    architecture: &str,
-    repository_commit: &str,
-    catalog_sha256: &str,
+    identity: &CampaignExecutionIdentity<'_>,
     outcomes: &Mutex<BTreeMap<String, ImageCampaignToolOutcome>>,
 ) -> Result<()> {
-    let catalog = load_container_catalog(&request.repository_root)?;
-    let redistributable_tools =
-        retained_apptainer_tool_ids(&request.repository_root, &catalog.apptainer_architecture)?;
-    let selected_tools =
-        select_campaign_tools(&redistributable_tools, request.selected_tools.as_ref())?;
-    let scope = campaign_scope(&selected_tools, redistributable_tools.len());
-    let expected_image_root = campaign_root(
-        &request.study_root.join("containers/staging"),
-        repository_commit,
-        scope.as_deref(),
-    );
+    let CampaignExecutionIdentity { architecture, repository_commit, catalog_sha256, scope } =
+        *identity;
+    let expected_image_root =
+        campaign_root(&request.study_root.join("containers/staging"), repository_commit, scope);
     let expected_evidence_root = campaign_root(
         &request.study_root.join("containers/evidence/image-campaigns"),
         repository_commit,
-        scope.as_deref(),
+        scope,
     );
     let items =
         outcomes.lock().map_err(|_| anyhow::anyhow!("image campaign progress lock poisoned"))?;

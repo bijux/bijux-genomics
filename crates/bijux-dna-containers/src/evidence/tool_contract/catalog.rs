@@ -159,15 +159,7 @@ pub(super) struct CatalogToolSource {
 /// # Errors
 /// Returns an error when the catalog is missing, malformed, or uses an unsupported schema.
 pub fn load_container_catalog(repository_root: &Path) -> Result<ContainerCatalog> {
-    let catalog_path = repository_root.join("containers/contracts/catalog.toml");
-    let catalog_bytes = fs::read(&catalog_path)
-        .with_context(|| format!("read container catalog {}", catalog_path.display()))?;
-    let catalog: ContainerCatalog = toml::from_slice(&catalog_bytes)
-        .with_context(|| format!("parse container catalog {}", catalog_path.display()))?;
-    if catalog.schema_version != CONTAINER_CATALOG_SCHEMA_V1 {
-        bail!("unsupported container catalog schema: {}", catalog.schema_version);
-    }
-    Ok(catalog)
+    Ok(super::catalog_observation::load_catalog_source(repository_root)?.0)
 }
 
 /// Return every retained Apptainer tool ID in canonical catalog order.
@@ -179,21 +171,7 @@ pub fn retained_apptainer_tool_ids(
     architecture: &str,
 ) -> Result<Vec<String>> {
     let catalog = load_container_catalog(repository_root)?;
-    validate_catalog_header(&catalog, architecture)?;
-    let tools = catalog
-        .tools
-        .into_iter()
-        .filter(|tool| tool.is_redistributable_image() && tool.apptainer_supported)
-        .map(|tool| tool.id)
-        .collect::<Vec<_>>();
-    if tools.is_empty() {
-        bail!("container catalog has no retained Apptainer tools");
-    }
-    let unique = tools.iter().collect::<BTreeSet<_>>();
-    if unique.len() != tools.len() {
-        bail!("container catalog has duplicate retained Apptainer tool IDs");
-    }
-    Ok(tools)
+    retained_apptainer_tools_from_catalog(&catalog, architecture)
 }
 
 /// Hash the canonical container catalog exactly as stored at a repository commit.
@@ -287,4 +265,25 @@ pub(super) fn validate_commit_identity(commit: &str) -> Result<()> {
         bail!("invalid repository commit identity");
     }
     Ok(())
+}
+
+pub(crate) fn retained_apptainer_tools_from_catalog(
+    catalog: &ContainerCatalog,
+    architecture: &str,
+) -> Result<Vec<String>> {
+    validate_catalog_header(catalog, architecture)?;
+    let tools = catalog
+        .tools
+        .iter()
+        .filter(|tool| tool.is_redistributable_image() && tool.apptainer_supported)
+        .map(|tool| tool.id.clone())
+        .collect::<Vec<_>>();
+    if tools.is_empty() {
+        bail!("container catalog has no retained Apptainer tools");
+    }
+    let unique = tools.iter().collect::<BTreeSet<_>>();
+    if unique.len() != tools.len() {
+        bail!("container catalog has duplicate retained Apptainer tool IDs");
+    }
+    Ok(tools)
 }

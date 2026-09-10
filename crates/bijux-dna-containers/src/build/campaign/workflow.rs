@@ -12,8 +12,8 @@ use super::paths::{campaign_root, portable_study_path};
 use super::storage::{ensure_immutable_json, load_progress, publish_campaign_execution};
 use super::verification::verify_resumed_outcomes;
 use crate::evidence::tool_contract::{
-    clean_repository_head_commit, load_container_catalog, retained_apptainer_tool_ids,
-    validate_container_catalog,
+    clean_repository_head_commit, observe_container_catalog, retained_apptainer_tools_from_catalog,
+    validate_observed_container_catalog,
 };
 use anyhow::{bail, Context, Result};
 use std::{fs, sync::Mutex};
@@ -30,20 +30,19 @@ pub fn execute_apptainer_image_campaign(
         bail!("image campaign worker count must be between 1 and 32");
     }
     let commit = clean_repository_head_commit(&request.repository_root)?;
-    let catalog = load_container_catalog(&request.repository_root)?;
-    let validated = validate_container_catalog(&request.repository_root)?;
+    let observation = observe_container_catalog(&request.repository_root)?;
+    let catalog = &observation.catalog;
+    let validated = validate_observed_container_catalog(&request.repository_root, catalog)?;
     if !validated.is_valid() {
         bail!("image campaign catalog validation failed: {}", validated.errors.join("; "));
     }
     let redistributable_tools =
-        retained_apptainer_tool_ids(&request.repository_root, &catalog.apptainer_architecture)?;
+        retained_apptainer_tools_from_catalog(catalog, &catalog.apptainer_architecture)?;
     if redistributable_tools.len() != validated.redistributable_image_count {
         bail!("image campaign redistributable-image roster differs from validated catalog");
     }
     let tools = select_campaign_tools(&redistributable_tools, request.selected_tools.as_ref())?;
-    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
-        &request.repository_root.join("containers/contracts/catalog.toml"),
-    )?;
+    let catalog_sha256 = observation.sha256;
     let scope = campaign_scope(&tools, redistributable_tools.len());
     let evidence_root = campaign_root(
         &request.study_root.join("containers/evidence/image-campaigns"),
@@ -72,25 +71,19 @@ pub fn execute_apptainer_image_campaign(
         bail!("image campaign progress contains a tool outside the redistributable-image roster");
     }
     let outcomes = Mutex::new(outcomes);
-    verify_resumed_outcomes(
-        request,
-        &catalog.apptainer_architecture,
-        &commit,
-        &catalog_sha256,
-        &outcomes,
-    )?;
     let identity = CampaignExecutionIdentity {
         repository_commit: &commit,
         catalog_sha256: &catalog_sha256,
         architecture: &catalog.apptainer_architecture,
         scope: scope.as_deref(),
     };
+    verify_resumed_outcomes(request, &identity, &outcomes)?;
     execute_campaign_tools(request, &tools, &outcomes, &progress_path, &identity)?;
     let tools = outcomes
         .into_inner()
         .map_err(|_| anyhow::anyhow!("image campaign progress lock poisoned"))?;
     let execution =
-        execution_from_tools(commit, catalog_sha256, catalog.apptainer_architecture, tools);
+        execution_from_tools(commit, catalog_sha256, catalog.apptainer_architecture.clone(), tools);
     publish_campaign_execution(&evidence_root, &execution)?;
     Ok(execution)
 }
