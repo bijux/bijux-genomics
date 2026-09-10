@@ -604,3 +604,8 @@ pub use bijux_dna_bench::{
 pub use bijux_dna_bench::{
     load_hpc_job_resources, resolve_hpc_job_resources, HPC_JOB_RESOURCE_CONFIG_PATH,
 };
+
+pub use bijux_dna_bench::{
+    collect_hpc_job_source_inputs, materialize_stage_id, HpcDiscoveredSourceInput,
+    HpcStageInputHint,
+};

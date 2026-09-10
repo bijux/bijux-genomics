@@ -101,3 +101,5 @@ pub(crate) mod hpc_array;
 pub(crate) mod hpc_resources;
 
 pub(crate) mod hardening_campaign;
+
+pub(crate) mod hpc_inputs;

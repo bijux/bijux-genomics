@@ -121,6 +121,7 @@ fn bench_tree_matches_architecture_contract() {
         entries([
             "hpc_array.rs",
             "hpc_resources.rs",
+            "hpc_inputs/",
             "hardening_campaign.rs",
             "micro_run.rs",
             "micro_report/",

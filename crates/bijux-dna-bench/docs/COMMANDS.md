@@ -155,3 +155,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test sem
 The CLI local stage-list commands delegate matrix admission to `load_benchmark_local_stage_inventory` and aggregate publication to `render_benchmark_all_domain_stage_inventory`. Both receive an explicit repository root through the public API.
 
 `evaluate_full_benchmark_dashboard` accepts borrowed readiness reports plus explicit governed path expectations. It computes the nine summary metrics and admits their cross-report relationships without IO. `render_full_benchmark_dashboard_markdown` renders that evaluated response; the CLI retains report acquisition and filesystem publication.
+
+`collect_hpc_job_source_inputs(root, consumer, stage, commands, hints, generated_output_root)` observes original inputs for the command sequence, excluding produced intermediates and preserving declared artifact roles. `materialize_stage_id(argv)` identifies a materialization command for stage-plan adaptation. Discovery uses the supported command-path heuristic; it is not a general shell parser or a semantic artifact validator.
