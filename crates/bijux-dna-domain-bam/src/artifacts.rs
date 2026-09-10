@@ -1,3 +1,5 @@
+mod alignment_header;
+
 use std::collections::{BTreeSet, HashMap};
 use std::fmt::Write as _;
 use std::fs::File;
@@ -944,16 +946,7 @@ fn write_tiny_sam_from_document(
     document: &TinySamDocument,
     sort_order: &str,
 ) -> Result<()> {
-    let mut payload = String::new();
-    payload.push_str(&format!("@HD\tVN:1.6\tSO:{sort_order}\n"));
-    for reference in &document.references {
-        payload.push_str(&format!("@SQ\tSN:{reference}\tLN:1\n"));
-    }
-    let sample =
-        document.read_group_samples.first().cloned().unwrap_or_else(|| "unknown".to_string());
-    for read_group in &document.read_groups {
-        payload.push_str(&format!("@RG\tID:{read_group}\tSM:{sample}\n"));
-    }
+    let mut payload = alignment_header::render(document, sort_order)?;
     for record in &document.records {
         payload.push_str(&format!(
             "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t{}\t{}\t*\tRG:Z:{}\n",
@@ -1528,21 +1521,7 @@ pub fn merge_tiny_bam_with_conflict_refusal(
     };
     for input in input_bams {
         let document = parse_tiny_sam(input)?;
-        for reference in &document.references {
-            if !merged.references.iter().any(|entry| entry == reference) {
-                merged.references.push(reference.clone());
-            }
-        }
-        for read_group in &document.read_groups {
-            if !merged.read_groups.iter().any(|entry| entry == read_group) {
-                merged.read_groups.push(read_group.clone());
-            }
-        }
-        for sample in &document.read_group_samples {
-            if !merged.read_group_samples.iter().any(|entry| entry == sample) {
-                merged.read_group_samples.push(sample.clone());
-            }
-        }
+        alignment_header::merge(&mut merged, &document)?;
         merged.records.extend(document.records);
     }
 
