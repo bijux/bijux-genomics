@@ -1,3 +1,6 @@
+use bijux_dna_api::v1::api::bench::{
+    evaluate_benchmark_local_hpc_slurm_readiness, BenchmarkLocalHpcSlurmObservation,
+};
 use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -28,21 +31,11 @@ use crate::commands::benchmark::local_dag_watchdog_simulation::{
 use crate::commands::benchmark::local_pipeline_dag::{
     validate_pipeline_dag_path, LocalPipelineDagValidationReport,
 };
-use crate::commands::benchmark::local_slurm_dependency_check::{
-    validate_slurm_dependencies, BenchLocalSlurmDependencyCheckReport,
-};
-use crate::commands::benchmark::local_slurm_dry_run::{
-    render_local_slurm_scripts, BenchLocalSlurmDryRunReport,
-};
-use crate::commands::benchmark::local_slurm_script_bodies::{
-    validate_slurm_script_bodies, BenchLocalSlurmScriptBodyReport,
-};
-use crate::commands::benchmark::local_slurm_shell_syntax::{
-    validate_slurm_shell_syntax, BenchLocalSlurmShellSyntaxReport,
-};
-use crate::commands::benchmark::local_slurm_submit_manifest::{
-    render_slurm_submit_manifest, BenchLocalSlurmSubmitManifest,
-};
+use crate::commands::benchmark::local_slurm_dependency_check::validate_slurm_dependencies;
+use crate::commands::benchmark::local_slurm_dry_run::render_local_slurm_scripts;
+use crate::commands::benchmark::local_slurm_script_bodies::validate_slurm_script_bodies;
+use crate::commands::benchmark::local_slurm_shell_syntax::validate_slurm_shell_syntax;
+use crate::commands::benchmark::local_slurm_submit_manifest::render_slurm_submit_manifest;
 use crate::commands::benchmark::local_stage_commands::{
     materialize_local_stage, render_local_stage_commands, BenchLocalStageCommandManifest,
 };
@@ -1776,7 +1769,9 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
         BenchLocalDomain::Fastq,
         PathBuf::from(DEFAULT_SLURM_DRY_RUN_ROOT).join("fastq"),
     ) {
-        Ok(report) => evaluate_fastq_slurm_goal(checks, &report),
+        Ok(report) => checks.push(evaluate_benchmark_local_hpc_slurm_readiness(
+            BenchmarkLocalHpcSlurmObservation::FastqScripts(&report),
+        )),
         Err(err) => checks.push(fail_check(
             92,
             "slurm_dry_run",
@@ -1792,7 +1787,9 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
         PathBuf::from(DEFAULT_SLURM_DRY_RUN_ROOT).join("bam"),
     ) {
         Ok(report) => {
-            evaluate_bam_slurm_goal(checks, &report);
+            checks.push(evaluate_benchmark_local_hpc_slurm_readiness(
+                BenchmarkLocalHpcSlurmObservation::BamScripts(&report),
+            ));
             Some(report)
         }
         Err(err) => {
@@ -1812,7 +1809,9 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
         PathBuf::from(DEFAULT_SLURM_DRY_RUN_ROOT),
         PathBuf::from(DEFAULT_SLURM_SCRIPT_BODY_REPORT_PATH),
     ) {
-        Ok(report) => evaluate_slurm_script_body_goal(checks, &report),
+        Ok(report) => checks.push(evaluate_benchmark_local_hpc_slurm_readiness(
+            BenchmarkLocalHpcSlurmObservation::ScriptBodies(&report),
+        )),
         Err(err) => checks.push(fail_check(
             94,
             "slurm_dry_run",
@@ -1827,7 +1826,9 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
         PathBuf::from(DEFAULT_SLURM_DRY_RUN_ROOT),
         PathBuf::from(DEFAULT_SLURM_SHELL_SYNTAX_REPORT_PATH),
     ) {
-        Ok(report) => evaluate_slurm_shell_syntax_goal(checks, &report),
+        Ok(report) => checks.push(evaluate_benchmark_local_hpc_slurm_readiness(
+            BenchmarkLocalHpcSlurmObservation::ShellSyntax(&report),
+        )),
         Err(err) => checks.push(fail_check(
             95,
             "slurm_dry_run",
@@ -1843,7 +1844,9 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
         PathBuf::from(DEFAULT_SLURM_SUBMIT_MANIFEST_PATH),
     ) {
         Ok(report) => {
-            evaluate_slurm_submit_manifest_goal(checks, &report);
+            checks.push(evaluate_benchmark_local_hpc_slurm_readiness(
+                BenchmarkLocalHpcSlurmObservation::SubmitManifest(&report),
+            ));
             Some(report)
         }
         Err(err) => {
@@ -1864,7 +1867,9 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
         PathBuf::from(DEFAULT_SLURM_SUBMIT_MANIFEST_PATH),
         PathBuf::from(DEFAULT_SLURM_DEPENDENCY_CHECK_REPORT_PATH),
     ) {
-        Ok(report) => evaluate_slurm_dependency_goal(checks, &report),
+        Ok(report) => checks.push(evaluate_benchmark_local_hpc_slurm_readiness(
+            BenchmarkLocalHpcSlurmObservation::Dependencies(&report),
+        )),
         Err(err) => checks.push(fail_check(
             97,
             "slurm_dry_run",
@@ -1874,222 +1879,12 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
         )),
     }
 
-    evaluate_slurm_run_path_goal(checks, bam_slurm_report, submit_manifest);
-}
-
-fn evaluate_fastq_slurm_goal(
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    report: &BenchLocalSlurmDryRunReport,
-) {
-    if report.script_count == 27 {
-        checks.push(ok_check(
-            92,
-            "slurm_dry_run",
-            "FASTQ local benchmark stages render governed SLURM dry-run scripts",
-            Some(report.output_root.clone()),
-            format!("FASTQ SLURM dry-run rendered {} scripts", report.script_count),
-        ));
-    } else {
-        checks.push(fail_check(
-            92,
-            "slurm_dry_run",
-            "FASTQ local benchmark stages render governed SLURM dry-run scripts",
-            Some(report.output_root.clone()),
-            format!("expected 27 FASTQ scripts but found {}", report.script_count),
-        ));
-    }
-}
-
-fn evaluate_bam_slurm_goal(
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    report: &BenchLocalSlurmDryRunReport,
-) {
-    if report.script_count == 24 {
-        checks.push(ok_check(
-            93,
-            "slurm_dry_run",
-            "BAM local benchmark stages render governed SLURM dry-run scripts",
-            Some(report.output_root.clone()),
-            format!("BAM SLURM dry-run rendered {} scripts", report.script_count),
-        ));
-    } else {
-        checks.push(fail_check(
-            93,
-            "slurm_dry_run",
-            "BAM local benchmark stages render governed SLURM dry-run scripts",
-            Some(report.output_root.clone()),
-            format!("expected 24 BAM scripts but found {}", report.script_count),
-        ));
-    }
-}
-
-fn evaluate_slurm_script_body_goal(
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    report: &BenchLocalSlurmScriptBodyReport,
-) {
-    if report.ok {
-        checks.push(ok_check(
-            94,
-            "slurm_dry_run",
-            "generated SLURM script bodies call real repo commands and contain no placeholders",
-            Some(report.report_path.clone()),
-            format!("SLURM script body validation passed across {} scripts", report.script_count),
-        ));
-    } else {
-        checks.push(fail_check(
-            94,
-            "slurm_dry_run",
-            "generated SLURM script bodies call real repo commands and contain no placeholders",
-            Some(report.report_path.clone()),
-            format!(
-                "ok={} script_count={} findings_count={}",
-                report.ok, report.script_count, report.findings_count
-            ),
-        ));
-    }
-}
-
-fn evaluate_slurm_shell_syntax_goal(
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    report: &BenchLocalSlurmShellSyntaxReport,
-) {
-    if report.ok {
-        checks.push(ok_check(
-            95,
-            "slurm_dry_run",
-            "generated SLURM scripts pass bash syntax validation",
-            Some(report.report_path.clone()),
-            format!("SLURM shell syntax validation passed across {} scripts", report.script_count),
-        ));
-    } else {
-        checks.push(fail_check(
-            95,
-            "slurm_dry_run",
-            "generated SLURM scripts pass bash syntax validation",
-            Some(report.report_path.clone()),
-            format!(
-                "ok={} script_count={} findings_count={}",
-                report.ok, report.script_count, report.findings_count
-            ),
-        ));
-    }
-}
-
-fn evaluate_slurm_submit_manifest_goal(
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    report: &BenchLocalSlurmSubmitManifest,
-) {
-    let required_fields_are_present = report.jobs.iter().all(|job| {
-        !job.job_name.trim().is_empty()
-            && !job.domain.trim().is_empty()
-            && !job.tool_id.trim().is_empty()
-            && !job.script_path.trim().is_empty()
-            && !job.logs.stdout_path.trim().is_empty()
-            && !job.logs.stderr_path.trim().is_empty()
-    });
-    if report.job_count == 51 && required_fields_are_present {
-        checks.push(ok_check(
-            96,
-            "slurm_dry_run",
-            "SLURM dry-run submit manifest records complete job metadata",
-            Some(report.manifest_path.clone()),
-            format!("submit manifest records {} jobs", report.job_count),
-        ));
-    } else {
-        checks.push(fail_check(
-            96,
-            "slurm_dry_run",
-            "SLURM dry-run submit manifest records complete job metadata",
-            Some(report.manifest_path.clone()),
-            format!(
-                "job_count={} required_fields_are_present={required_fields_are_present}",
-                report.job_count
-            ),
-        ));
-    }
-}
-
-fn evaluate_slurm_dependency_goal(
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    report: &BenchLocalSlurmDependencyCheckReport,
-) {
-    if report.ok && report.findings_count == 0 {
-        checks.push(ok_check(
-            97,
-            "slurm_dry_run",
-            "SLURM dependencies stay in exactly one source of truth",
-            Some(report.report_path.clone()),
-            format!("dependency ownership is clean across {} dry-run jobs", report.job_count),
-        ));
-    } else {
-        checks.push(fail_check(
-            97,
-            "slurm_dry_run",
-            "SLURM dependencies stay in exactly one source of truth",
-            Some(report.report_path.clone()),
-            format!(
-                "ok={} findings_count={} job_count={}",
-                report.ok, report.findings_count, report.job_count
-            ),
-        ));
-    }
-}
-
-fn evaluate_slurm_run_path_goal(
-    checks: &mut Vec<BenchLocalHpcSubmissionReadyGoalCheck>,
-    bam_slurm_report: Option<BenchLocalSlurmDryRunReport>,
-    submit_manifest: Option<BenchLocalSlurmSubmitManifest>,
-) {
-    let Some(bam_slurm_report) = bam_slurm_report else {
-        checks.push(fail_check(
-            98,
-            "slurm_dry_run",
-            "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
-            "BAM SLURM script rendering failed earlier".to_string(),
-        ));
-        return;
-    };
-    let Some(submit_manifest) = submit_manifest else {
-        checks.push(fail_check(
-            98,
-            "slurm_dry_run",
-            "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
-            "SLURM submit manifest rendering failed earlier".to_string(),
-        ));
-        return;
-    };
-
-    let path_fields_are_present = bam_slurm_report.scripts.iter().all(|script| {
-        script.stdout_path.contains("local-benchmark-dry-run")
-            && script.stderr_path.contains("local-benchmark-dry-run")
-            && script.result_root.contains("local-benchmark-dry-run")
-            && script.stage_result_manifest_path.contains("local-benchmark-dry-run")
-    }) && submit_manifest.jobs.iter().all(|job| {
-        job.logs.stdout_path.contains("local-benchmark-dry-run")
-            && job.logs.stderr_path.contains("local-benchmark-dry-run")
-            && job.result_root.contains("local-benchmark-dry-run")
-    });
-    if path_fields_are_present {
-        checks.push(ok_check(
-            98,
-            "slurm_dry_run",
-            "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
-            "SLURM dry-run scripts and submit manifest both carry governed run-path fields"
-                .to_string(),
-        ));
-    } else {
-        checks.push(fail_check(
-            98,
-            "slurm_dry_run",
-            "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
-            "one or more generated SLURM path fields are missing the governed run-id layout"
-                .to_string(),
-        ));
-    }
+    checks.push(evaluate_benchmark_local_hpc_slurm_readiness(
+        BenchmarkLocalHpcSlurmObservation::RunPaths {
+            bam: bam_slurm_report.as_ref(),
+            submission: submit_manifest.as_ref(),
+        },
+    ));
 }
 
 fn prepare_local_hpc_profile_support(root: &Path) -> Result<HpcProfileSupportPaths> {

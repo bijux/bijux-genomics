@@ -108,3 +108,6 @@ fn require_path(value: &str, field: &str) -> Result<(), BenchError> {
 fn invalid<T>(message: impl Into<String>) -> Result<T, BenchError> {
     Err(BenchError::InvalidPolicy(message.into()))
 }
+
+mod slurm;
+pub use slurm::{evaluate_benchmark_local_hpc_slurm_readiness, BenchmarkLocalHpcSlurmObservation};

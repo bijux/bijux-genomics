@@ -165,3 +165,46 @@ fn slurm_script_body_owner_preserves_findings_and_rejects_forged_wire_aggregates
     assert!(!empty.ok && empty.findings_count == 1);
     Ok(())
 }
+
+#[test]
+fn hpc_slurm_readiness_admits_complete_observations_before_reporting_success() -> anyhow::Result<()>
+{
+    use bijux_dna_bench_model::{
+        build_benchmark_local_slurm_script_body_report,
+        evaluate_benchmark_local_hpc_slurm_readiness as evaluate,
+        inspect_benchmark_local_slurm_script_body,
+        BenchmarkLocalHpcSlurmObservation as Observation, BenchmarkLocalSlurmSubmitManifest,
+        BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
+    };
+    let manifest = BenchmarkLocalSlurmSubmitManifest {
+        schema_version: BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1.to_string(),
+        root_path: "artifacts/runs/bench/slurm-dry-run".to_string(),
+        manifest_path: "artifacts/runs/bench/slurm-dry-run/submit-manifest.json".to_string(),
+        run_id: "local-benchmark-dry-run".to_string(),
+        job_count: 51,
+        dependency_count: 0,
+        jobs: Vec::new(),
+    };
+    let forged = evaluate(Observation::SubmitManifest(&manifest));
+    assert_eq!(forged.goal_id, 96);
+    assert!(!forged.ok && forged.detail.starts_with("invalid local Slurm observation:"));
+    let missing = evaluate(Observation::RunPaths { bam: None, submission: None });
+    assert_eq!(missing.goal_id, 98);
+    assert!(!missing.ok && missing.detail == "BAM SLURM script rendering failed earlier");
+    let root = "artifacts/runs/bench/slurm-dry-run";
+    let entry = inspect_benchmark_local_slurm_script_body(
+        format!("{root}/stage.sbatch"),
+        "bijux-dna --help\n",
+    );
+    let mut report = build_benchmark_local_slurm_script_body_report(
+        root.to_string(),
+        format!("{root}/inspection.json"),
+        vec![entry],
+    )?;
+    let admitted = evaluate(Observation::ScriptBodies(&report));
+    assert_eq!(admitted.goal_id, 94);
+    assert!(admitted.ok);
+    report.script_count += 1;
+    assert!(!evaluate(Observation::ScriptBodies(&report)).ok);
+    Ok(())
+}

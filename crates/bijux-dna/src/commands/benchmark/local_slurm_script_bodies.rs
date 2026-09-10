@@ -1,10 +1,7 @@
 use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
 use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
-pub(crate) use bijux_dna_api::v1::api::bench::{
-    validate_benchmark_local_slurm_script_bodies as validate_slurm_script_bodies,
-    BenchmarkLocalSlurmScriptBodyReport as BenchLocalSlurmScriptBodyReport,
-};
+pub(crate) use bijux_dna_api::v1::api::bench::validate_benchmark_local_slurm_script_bodies as validate_slurm_script_bodies;
 
 pub(crate) fn run_validate_slurm_script_bodies(
     args: &parse::BenchLocalValidateSlurmScriptBodiesArgs,

@@ -174,7 +174,10 @@ pub use local_hpc_result_collection_simulation::validate_benchmark_local_hpc_res
 pub use local_hpc_resume_simulation::validate_benchmark_local_hpc_resume_simulation;
 pub use local_hpc_scratch_layout::validate_benchmark_local_hpc_scratch_layout;
 pub use local_hpc_stage_benchmark_array::validate_benchmark_local_hpc_stage_benchmark_array;
-pub use local_hpc_submission_readiness::validate_benchmark_local_hpc_submission_readiness;
+pub use local_hpc_submission_readiness::{
+    evaluate_benchmark_local_hpc_slurm_readiness,
+    validate_benchmark_local_hpc_submission_readiness, BenchmarkLocalHpcSlurmObservation,
+};
 pub use local_pipeline_dag::{
     validate_benchmark_local_pipeline_dag_config,
     validate_benchmark_local_pipeline_dag_declarations,
