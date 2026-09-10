@@ -94,3 +94,5 @@ Suite catalog admission rejects missing input, output or parameter contracts whe
 `assemble_hpc_asset_staging_manifest(output, staging, jobs)` derives canonical order and exact counters, then admits the existing wire contract. `compare_hpc_asset_staging_manifest(path, observed, expected)` detects field, job and source identity drift, including substitutions that preserve counts.
 
 `project_hpc_scratch_job(HpcScratchJobRequest)` derives output/log roots and cleanup policy from explicit job/source inputs without IO. `assemble_hpc_scratch_layout(output, staging, scratch, jobs)` admits lineage and exact counts; `compare_hpc_scratch_layout(path, observed, expected)` rejects current-input drift, including substitutions that preserve counts.
+
+`classify_runtime_resolution(RuntimeResolutionInput)` interprets declared installation and image references; `select_hpc_runtime_resolution(tool, signature, target)` applies host/external-artifact/Apptainer precedence. These pure policies do not establish actual executable availability or authenticate images. Benchmark CLI adapters project existing governed runtime-probe inputs into the model.

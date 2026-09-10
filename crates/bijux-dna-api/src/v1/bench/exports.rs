@@ -620,3 +620,10 @@ pub use bijux_dna_bench::{
     load_hpc_scratch_layout, project_hpc_scratch_job, publish_hpc_scratch_layout,
     HpcScratchCommands, HpcScratchJobRequest, HpcScratchPipelineCommands, HpcScratchRequest,
 };
+
+pub use bijux_dna_bench::{
+    classify_runtime_resolution, select_hpc_runtime_resolution, HpcApptainerTarget, HpcResolution,
+    RuntimeResolutionInput, RuntimeResolutionSignature, RESOLUTION_KIND_APPTAINER_IMAGE,
+    RESOLUTION_KIND_DOCKER_IMAGE, RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY,
+    RESOLUTION_KIND_UNAVAILABLE,
+};

@@ -481,3 +481,5 @@ obligations; schema admission does not certify executable or scientifically comp
 `derive_hardening_benchmark_campaign(matrix, appraisal, queue, requested_goals)` admits source identities and derives the existing hardening report entirely from typed inputs. Catalog scenarios describe benchmark readiness; this operation does not execute or certify a benchmark.
 
 `BenchmarkSourceKind` and `BenchmarkSourceAsset` describe pre-staging content identities independently of filesystem acquisition. The benchmark repository owner observes current files, directories and index-prefix members. Existing variant spellings and fields remain unchanged; these in-memory observations are not a new persisted wire schema.
+
+Runtime declaration classification uses `RuntimeResolutionInput` and returns `RuntimeResolutionSignature`. HPC selection consumes a borrowed `HpcApptainerTarget` and returns `HpcResolution`. Existing resolution vocabulary and unavailable diagnostics are preserved; these in-memory contracts introduce no persisted schema or runtime execution capability.
