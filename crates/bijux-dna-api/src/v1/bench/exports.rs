@@ -622,12 +622,14 @@ pub use bijux_dna_bench::{
 };
 
 pub use bijux_dna_bench::{
-    classify_runtime_resolution, load_runtime_probe, load_runtime_probe_with_source,
-    load_tool_execution_mode_assignments, load_tool_execution_modes_config,
-    select_hpc_runtime_resolution, BenchmarkRuntimeProbe, HpcApptainerTarget, HpcResolution,
-    LoadedRuntimeProbe, RuntimeResolutionInput, RuntimeResolutionSignature,
-    ToolExecutionModeAssignment, ToolExecutionModesConfig, DEFAULT_TOOL_EXECUTION_MODES_PATH,
-    LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION, RESOLUTION_KIND_APPTAINER_IMAGE,
-    RESOLUTION_KIND_DOCKER_IMAGE, RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY,
-    RESOLUTION_KIND_UNAVAILABLE,
+    classify_runtime_resolution, evaluate_tool_execution_modes, load_runtime_probe,
+    load_runtime_probe_with_source, load_tool_execution_mode_assignments,
+    load_tool_execution_modes_config, select_hpc_runtime_resolution, BenchmarkRuntimeProbe,
+    HpcApptainerTarget, HpcResolution, LoadedRuntimeProbe, RuntimeResolutionInput,
+    RuntimeResolutionSignature, ToolExecutionModeAssignment, ToolExecutionModeRow,
+    ToolExecutionModesConfig, ToolExecutionModesValidationReport,
+    DEFAULT_TOOL_EXECUTION_MODES_PATH, LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
+    RESOLUTION_KIND_APPTAINER_IMAGE, RESOLUTION_KIND_DOCKER_IMAGE,
+    RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY, RESOLUTION_KIND_UNAVAILABLE,
+    TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION,
 };

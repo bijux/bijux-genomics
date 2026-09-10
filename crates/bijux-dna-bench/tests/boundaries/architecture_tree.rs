@@ -380,7 +380,8 @@ fn bench_tree_matches_architecture_contract() {
             "command_artifacts.rs",
             "dashboard.rs",
             "dashboard_markdown.rs",
-            "mod.rs"
+            "mod.rs",
+            "tool_execution_modes.rs"
         ]),
         "readiness evaluation must retain its explicit workflow owner"
     );

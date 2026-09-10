@@ -834,6 +834,12 @@ pub use crate::repo::runtime_probe::{
 };
 pub use bijux_dna_bench_model::BenchmarkRuntimeProbe;
 
+pub use crate::workflow::evaluate_tool_execution_modes;
+pub use bijux_dna_bench_model::{
+    ToolExecutionModeRow, ToolExecutionModesValidationReport,
+    TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION,
+};
+
 pub use crate::repo::tool_execution_modes::{
     load_tool_execution_mode_assignments, load_tool_execution_modes_config,
     DEFAULT_TOOL_EXECUTION_MODES_PATH,

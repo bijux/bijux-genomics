@@ -1,0 +1,108 @@
+{
+  "$defs": {
+    "ToolExecutionModeRow": {
+      "additionalProperties": false,
+      "properties": {
+        "domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "execution_mode": {
+          "type": "string"
+        },
+        "expected_install_kind": {
+          "type": "string"
+        },
+        "required_runtime_fields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool_id",
+        "execution_mode",
+        "expected_install_kind",
+        "domains",
+        "stage_ids",
+        "required_runtime_fields",
+        "summary"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "classification_scope": {
+      "type": "string"
+    },
+    "config_path": {
+      "type": "string"
+    },
+    "mode_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "mode_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "multidomain_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/ToolExecutionModeRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.tool_execution_modes_validation.v1",
+      "type": "string"
+    },
+    "tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "valid": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "config_path",
+    "classification_scope",
+    "mode_count",
+    "tool_count",
+    "multidomain_tool_count",
+    "mode_counts",
+    "valid",
+    "rows"
+  ],
+  "title": "ToolExecutionModesValidationReport",
+  "type": "object"
+}

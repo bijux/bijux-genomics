@@ -76,7 +76,7 @@ fn build_mode_assignment_index(
     Ok(assignments)
 }
 
-fn validate_mode_definition(mode: &ToolExecutionModeDefinition) -> Result<()> {
+pub(super) fn validate_mode_definition(mode: &ToolExecutionModeDefinition) -> Result<()> {
     if !matches!(
         mode.execution_mode.as_str(),
         "internal" | "binary" | "containerized" | "external" | "r" | "java" | "python" | "mixed"

@@ -1,19 +1,22 @@
 //! Owner: governed execution-mode declarations and admitted tool assignments.
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::Deserialize;
 
 pub const LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION: &str =
     "bijux.bench.local_tool_execution_modes.v1";
 pub(crate) const TOOL_EXECUTION_CLASSIFICATION_SCOPE: &str = "primary_operator_runtime";
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ToolExecutionModesConfig {
+    #[schemars(schema_with = "schema_version")]
     pub(crate) schema_version: String,
+    #[schemars(schema_with = "classification_scope")]
     pub(crate) classification_scope: String,
     pub(crate) modes: Vec<ToolExecutionModeDefinition>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct ToolExecutionModeDefinition {
     pub(crate) execution_mode: String,
@@ -40,4 +43,11 @@ impl ToolExecutionModesConfig {
     pub fn mode_count(&self) -> usize {
         self.modes.len()
     }
+}
+
+fn schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type":"string", "const":LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION})
+}
+fn classification_scope(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type":"string", "const":TOOL_EXECUTION_CLASSIFICATION_SCOPE})
 }

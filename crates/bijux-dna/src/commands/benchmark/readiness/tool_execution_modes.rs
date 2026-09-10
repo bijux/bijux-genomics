@@ -1,42 +1,15 @@
-use std::collections::{BTreeMap, BTreeSet};
-use std::path::Path;
-
-use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
-
 use super::tool_serving_map::{
-    collect_bam_tool_serving_map_rows, collect_fastq_tool_serving_map_rows, ToolServingMapRow,
+    collect_bam_tool_serving_map_rows, collect_fastq_tool_serving_map_rows,
 };
-use super::vcf_tool_serving_map::{collect_vcf_tool_serving_map_rows, VcfToolServingMapRow};
-use crate::commands::cli::parse;
-use crate::commands::cli::render;
-
-const TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.tool_execution_modes_validation.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct ToolExecutionModeRow {
-    pub(crate) tool_id: String,
-    pub(crate) execution_mode: String,
-    pub(crate) expected_install_kind: String,
-    pub(crate) domains: Vec<String>,
-    pub(crate) stage_ids: Vec<String>,
-    pub(crate) required_runtime_fields: Vec<String>,
-    pub(crate) summary: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct ToolExecutionModesValidationReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) config_path: String,
-    pub(crate) classification_scope: String,
-    pub(crate) mode_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) multidomain_tool_count: usize,
-    pub(crate) mode_counts: BTreeMap<String, usize>,
-    pub(crate) valid: bool,
-    pub(crate) rows: Vec<ToolExecutionModeRow>,
-}
+use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
+use crate::commands::cli::{parse, render};
+use anyhow::{Context, Result};
+#[cfg(test)]
+use bijux_dna_api::v1::api::bench::TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION;
+use bijux_dna_api::v1::api::bench::{
+    evaluate_tool_execution_modes, ReadinessStageToolBinding, ToolExecutionModesValidationReport,
+};
+use std::path::Path;
 
 pub(crate) fn run_validate_tool_execution_modes(
     args: &parse::BenchReadinessValidateToolExecutionModesArgs,
@@ -61,147 +34,35 @@ pub(crate) fn validate_tool_execution_modes_path(
     config_path: &Path,
 ) -> Result<ToolExecutionModesValidationReport> {
     let config = load_tool_execution_modes_config(config_path)?;
-
     let (_, _, fastq_rows) = collect_fastq_tool_serving_map_rows(repo_root)?;
     let (_, _, bam_rows) = collect_bam_tool_serving_map_rows(repo_root)?;
     let vcf_rows = collect_vcf_tool_serving_map_rows()?;
-    let benchmark_tool_index = build_benchmark_tool_index(&fastq_rows, &bam_rows, &vcf_rows);
-    let assignments = config.assignments()?;
-
-    let configured_tool_ids = assignments.keys().cloned().collect::<BTreeSet<_>>();
-    let benchmark_tool_ids = benchmark_tool_index.keys().cloned().collect::<BTreeSet<_>>();
-
-    let missing_tool_ids =
-        benchmark_tool_ids.difference(&configured_tool_ids).cloned().collect::<Vec<_>>();
-    if !missing_tool_ids.is_empty() {
-        return Err(anyhow!(
-            "tool execution mode config is missing {} benchmark tool ids: {}",
-            missing_tool_ids.len(),
-            missing_tool_ids.join(", "),
-        ));
-    }
-
-    let extra_tool_ids =
-        configured_tool_ids.difference(&benchmark_tool_ids).cloned().collect::<Vec<_>>();
-    if !extra_tool_ids.is_empty() {
-        return Err(anyhow!(
-            "tool execution mode config declares {} tool ids outside the governed benchmark scope: {}",
-            extra_tool_ids.len(),
-            extra_tool_ids.join(", "),
-        ));
-    }
-
-    for (tool_id, assignment) in &assignments {
-        let benchmark_entry = benchmark_tool_index
-            .get(tool_id)
-            .expect("benchmark tool coverage must exist after set validation");
-        for domain in &benchmark_entry.domains {
-            let probe = load_runtime_probe(repo_root, domain, tool_id)?;
-            if probe.install_kind() != assignment.expected_install_kind {
-                return Err(anyhow!(
-                    "tool `{}` in domain `{}` declares install_kind `{}` but execution mode config expects `{}`",
-                    tool_id,
-                    domain,
-                    probe.install_kind(),
-                    assignment.expected_install_kind
-                ));
-            }
-            for field in &assignment.required_runtime_fields {
-                if !probe.has_required_field(field) {
-                    return Err(anyhow!(
-                        "tool `{}` in domain `{}` is missing required runtime field `{}` for execution mode `{}`",
-                        tool_id,
-                        domain,
-                        field,
-                        assignment.execution_mode
-                    ));
-                }
-            }
-        }
-    }
-
-    let mut mode_counts = BTreeMap::<String, usize>::new();
-    let mut rows = Vec::with_capacity(benchmark_tool_index.len());
-    for (tool_id, benchmark_entry) in benchmark_tool_index {
-        let assignment =
-            assignments.get(&tool_id).expect("tool execution mode assignment must exist");
-        *mode_counts.entry(assignment.execution_mode.clone()).or_default() += 1;
-        rows.push(ToolExecutionModeRow {
-            tool_id,
-            execution_mode: assignment.execution_mode.clone(),
-            expected_install_kind: assignment.expected_install_kind.clone(),
-            domains: benchmark_entry.domains,
-            stage_ids: benchmark_entry.stage_ids,
-            required_runtime_fields: assignment.required_runtime_fields.clone(),
-            summary: assignment.summary.clone(),
-        });
-    }
-    rows.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
-
-    let multidomain_tool_count = rows.iter().filter(|row| row.domains.len() > 1).count();
-
-    Ok(ToolExecutionModesValidationReport {
-        schema_version: TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION,
-        config_path: path_relative_to_repo(repo_root, config_path),
-        classification_scope: config.classification_scope().to_string(),
-        mode_count: config.mode_count(),
-        tool_count: rows.len(),
-        multidomain_tool_count,
-        mode_counts,
-        valid: true,
-        rows,
-    })
+    let bindings = fastq_rows
+        .into_iter()
+        .map(|row| ReadinessStageToolBinding {
+            domain: "fastq".into(),
+            stage_id: row.stage_id,
+            tool_id: row.tool_id,
+        })
+        .chain(bam_rows.into_iter().map(|row| ReadinessStageToolBinding {
+            domain: "bam".into(),
+            stage_id: row.stage_id,
+            tool_id: row.tool_id,
+        }))
+        .chain(vcf_rows.into_iter().map(|row| ReadinessStageToolBinding {
+            domain: "vcf".into(),
+            stage_id: row.stage_id,
+            tool_id: row.tool_id,
+        }))
+        .collect::<Vec<_>>();
+    evaluate_tool_execution_modes(repo_root, config_path, &config, &bindings)
 }
 
 pub(crate) use bijux_dna_api::v1::api::bench::{
     load_runtime_probe, load_runtime_probe_with_source, load_tool_execution_mode_assignments,
     load_tool_execution_modes_config, BenchmarkRuntimeProbe as RuntimeProbe,
-    ToolExecutionModeAssignment, DEFAULT_TOOL_EXECUTION_MODES_PATH,
+    ToolExecutionModeAssignment, ToolExecutionModeRow, DEFAULT_TOOL_EXECUTION_MODES_PATH,
 };
-
-#[derive(Debug, Clone)]
-struct BenchmarkToolEntry {
-    domains: Vec<String>,
-    stage_ids: Vec<String>,
-}
-
-fn build_benchmark_tool_index(
-    fastq_rows: &[ToolServingMapRow],
-    bam_rows: &[ToolServingMapRow],
-    vcf_rows: &[VcfToolServingMapRow],
-) -> BTreeMap<String, BenchmarkToolEntry> {
-    let mut domains_by_tool = BTreeMap::<String, BTreeSet<String>>::new();
-    let mut stages_by_tool = BTreeMap::<String, BTreeSet<String>>::new();
-
-    for row in fastq_rows {
-        domains_by_tool.entry(row.tool_id.clone()).or_default().insert("fastq".to_string());
-        stages_by_tool.entry(row.tool_id.clone()).or_default().insert(row.stage_id.clone());
-    }
-    for row in bam_rows {
-        domains_by_tool.entry(row.tool_id.clone()).or_default().insert("bam".to_string());
-        stages_by_tool.entry(row.tool_id.clone()).or_default().insert(row.stage_id.clone());
-    }
-    for row in vcf_rows {
-        domains_by_tool.entry(row.tool_id.clone()).or_default().insert("vcf".to_string());
-        stages_by_tool.entry(row.tool_id.clone()).or_default().insert(row.stage_id.clone());
-    }
-
-    domains_by_tool
-        .into_iter()
-        .map(|(tool_id, domains)| {
-            let stage_ids =
-                stages_by_tool.remove(&tool_id).unwrap_or_default().into_iter().collect::<Vec<_>>();
-            (
-                tool_id,
-                BenchmarkToolEntry { domains: domains.into_iter().collect::<Vec<_>>(), stage_ids },
-            )
-        })
-        .collect()
-}
-
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
-}
 
 #[cfg(test)]
 mod tests {

@@ -936,6 +936,12 @@ pub use crate::policy::runtime_resolution::{
 
 pub use crate::model::runtime_probe::BenchmarkRuntimeProbe;
 
+pub use crate::model::readiness::tool_execution_modes::{
+    ToolExecutionModeRow, ToolExecutionModesValidationReport,
+    TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION,
+};
+pub use crate::policy::tool_execution_validation::ToolExecutionModeValidationPlan;
+
 pub use crate::model::tool_execution_modes::{
     ToolExecutionModeAssignment, ToolExecutionModesConfig,
     LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
