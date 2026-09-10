@@ -717,7 +717,6 @@ name = "bijux-dna-policies"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-containers",
  "bijux-dna-core",
  "bijux-dna-pipelines",
  "bijux-dna-stage-contract",

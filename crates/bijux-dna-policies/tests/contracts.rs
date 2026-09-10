@@ -84,8 +84,6 @@ mod mod_contracts_tooling_compatibility_reference_policy_rs;
 mod mod_contracts_tooling_configs_layout_policy_rs;
 #[path = "contracts/tooling/container/container_label_policy.rs"]
 mod mod_contracts_tooling_container_label_policy_rs;
-#[path = "contracts/tooling/container/container_manifest_snapshot_policy.rs"]
-mod mod_contracts_tooling_container_manifest_snapshot_policy_rs;
 #[path = "contracts/tooling/container/container_registry_parity_policy.rs"]
 mod mod_contracts_tooling_container_registry_parity_policy_rs;
 #[path = "contracts/tooling/container/container_runtime_invocation_policy.rs"]
