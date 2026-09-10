@@ -193,3 +193,6 @@ fn simulation_rejects_existing_symlink_output_and_keeps_external_bytes() -> Resu
     assert!(!root.path().join(DESTINATION).join("manifest.json").exists());
     Ok(())
 }
+
+#[path = "simulation/failure.rs"]
+mod failure;

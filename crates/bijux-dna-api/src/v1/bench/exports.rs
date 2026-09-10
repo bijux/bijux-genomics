@@ -446,6 +446,7 @@ pub use crate::internal::public_surface::handlers::fastq::*;
 /// Stability: v1 (stable).
 /// Governed benchmark planning, report and normalized-metric contracts.
 pub use bijux_dna_bench_model::{
+    all_domain_fake_failure_manifest_schema, all_domain_fake_failure_record_schema,
     benchmark_local_pipeline_dag_config_schema,
     benchmark_local_pipeline_dag_metadata_config_schema,
     benchmark_local_pipeline_dag_stages_config_schema, build_bam_tool_score_rows,
@@ -458,10 +459,12 @@ pub use bijux_dna_bench_model::{
     inspect_benchmark_local_slurm_script_body,
     normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor,
     project_benchmark_local_hpc_tool_scopes, project_full_benchmark_observation_rows,
+    validate_all_domain_failure_simulation_manifest, validate_all_domain_failure_simulation_record,
     validate_benchmark_local_all_domain_slurm_scripts_report,
     validate_benchmark_local_pipeline_dag_config,
     validate_benchmark_local_pipeline_dag_declarations,
     validate_benchmark_local_slurm_script_body_report, validate_stage_scoring_config,
+    AllDomainFakeFailureOutputEntry, AllDomainFakeFailureRecord, AllDomainFakeFailuresManifest,
     BamScoreEvidence, BamScoreExpectedRow, BamScoreMemoryRow, BamScoreRuntimeRow, BamToolScoreRow,
     BamToolScoreStatus, BamToolScoresReport, BamToolScoringInput,
     BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
@@ -479,10 +482,12 @@ pub use bijux_dna_bench_model::{
     StageScoringMissingBehavior, StageScoringRow, StageScoringRuntime,
     StageScoringScientificThreshold, StageScoringWeights, VcfScoreEvidence, VcfScoreExpectedRow,
     VcfScoreMemoryRow, VcfScoreRuntimeRow, VcfToolScoreRow, VcfToolScoreStatus,
-    VcfToolScoresReport, VcfToolScoringInput, BAM_TOOL_SCORES_SCHEMA_VERSION,
+    VcfToolScoresReport, VcfToolScoringInput, ALL_DOMAIN_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_FAILURE_RECORD_SCHEMA_VERSION, BAM_TOOL_SCORES_SCHEMA_VERSION,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_SCRIPT_BODY_SCHEMA_V1,
-    FASTQ_TOOL_SCORES_SCHEMA_VERSION, STAGE_SCORING_SCHEMA_VERSION, VCF_TOOL_SCORES_SCHEMA_VERSION,
+    DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT, FASTQ_TOOL_SCORES_SCHEMA_VERSION,
+    STAGE_SCORING_SCHEMA_VERSION, VCF_TOOL_SCORES_SCHEMA_VERSION,
 };
 
 pub use bijux_dna_bench::{
@@ -536,10 +541,10 @@ pub use bijux_dna_bench::{
 pub use bijux_dna_bench::{
     all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
     all_domain_simulation_output_path, all_domain_simulation_output_role,
-    fake_run_all_domain_benchmark_results, render_all_domain_simulation_command_script,
-    validate_all_domain_simulation_report, validate_all_domain_simulation_result,
-    AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
-    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
+    fake_run_all_domain_benchmark_results, fake_run_all_domain_failure_results,
+    render_all_domain_simulation_command_script, validate_all_domain_simulation_report,
+    validate_all_domain_simulation_result, AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry,
+    AllDomainFakeRunResultReport, AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
     ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
 };
 

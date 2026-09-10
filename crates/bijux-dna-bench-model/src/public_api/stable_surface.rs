@@ -833,15 +833,22 @@ pub use crate::model::hpc_campaign::{
 pub use crate::policy::campaign_monitor::summarize_campaign_monitor;
 
 pub use crate::model::simulation::{
+    all_domain_fake_failure_manifest_schema, all_domain_fake_failure_record_schema,
     all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
     all_domain_simulation_output_path, all_domain_simulation_output_role,
     validate_all_domain_simulation_report, validate_all_domain_simulation_result,
+    AllDomainFakeFailureOutputEntry, AllDomainFakeFailureRecord, AllDomainFakeFailuresManifest,
     AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
-    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
-    ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_FAILURE_RECORD_SCHEMA_VERSION, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT,
+    DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
 };
 
-pub use crate::contract::{admit_all_domain_simulation_inputs, AllDomainSimulationInput};
+pub use crate::contract::{
+    admit_all_domain_simulation_inputs, validate_all_domain_failure_simulation_manifest,
+    validate_all_domain_failure_simulation_record, AllDomainSimulationInput,
+};
 
 pub use crate::model::hpc_campaign::{
     CopyBackEntry, CopyBackManifestReport, COPY_BACK_MANIFEST_SCHEMA_VERSION,

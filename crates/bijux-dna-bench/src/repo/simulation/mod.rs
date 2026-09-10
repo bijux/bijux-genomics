@@ -253,3 +253,5 @@ pub(crate) fn publish_simulation_manifest(
     bijux_dna_infra::atomic_write_json(path, manifest)
         .context("publish all-domain simulation manifest")
 }
+
+pub(crate) mod failure;

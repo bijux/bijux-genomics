@@ -8,10 +8,8 @@ use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
 pub(crate) use bijux_dna_api::v1::api::bench::{
     all_domain_simulation_output_ids as declared_output_ids,
-    all_domain_simulation_output_path as output_relative_path,
-    all_domain_simulation_output_role as output_role,
-    render_all_domain_simulation_command_script as render_result_command_script,
-    AllDomainFakeRunResultReport, AllDomainFakeRunsReport, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+    all_domain_simulation_output_path as output_relative_path, AllDomainFakeRunResultReport,
+    AllDomainFakeRunsReport, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
 };
 use std::path::{Path, PathBuf};
 pub(crate) fn run_fake_run_all_domains(

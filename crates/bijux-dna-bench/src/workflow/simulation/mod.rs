@@ -86,5 +86,8 @@ pub fn fake_run_all_domain_benchmark_results(
 }
 
 #[cfg(test)]
-#[path = "../../tests/contracts/simulation.rs"]
+#[path = "../../../tests/contracts/simulation.rs"]
 mod tests;
+
+mod failure;
+pub use failure::fake_run_all_domain_failure_results;

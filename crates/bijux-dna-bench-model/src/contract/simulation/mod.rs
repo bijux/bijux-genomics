@@ -135,3 +135,8 @@ fn admit_path_component(value: &str) -> Result<()> {
     );
     Ok(())
 }
+
+mod failure;
+pub use failure::{
+    validate_all_domain_failure_simulation_manifest, validate_all_domain_failure_simulation_record,
+};

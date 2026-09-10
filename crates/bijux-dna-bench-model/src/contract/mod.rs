@@ -415,7 +415,10 @@ pub use suite::{validate_suite_with_catalog, BenchmarkSuiteCatalog};
 pub(crate) mod hpc_campaign;
 
 mod simulation;
-pub use simulation::{admit_all_domain_simulation_inputs, AllDomainSimulationInput};
+pub use simulation::{
+    admit_all_domain_simulation_inputs, validate_all_domain_failure_simulation_manifest,
+    validate_all_domain_failure_simulation_record, AllDomainSimulationInput,
+};
 
 pub(crate) mod vcf_scope;
 
