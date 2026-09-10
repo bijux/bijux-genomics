@@ -38,7 +38,7 @@ bijux-dna-domain-compiler: bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna
 bijux-dna-domain-fastq: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-domain-vcf: bijux-dna-core bijux-dna-policies
 bijux-dna-engine: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
-bijux-dna-containers: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit
+bijux-dna-containers: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-process bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-containers-qa: bijux-dna-analyze bijux-dna-bench-model bijux-dna-core bijux-dna-domain-fastq bijux-dna-containers bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-infra: bijux-dna-policies bijux-dna-testkit
 bijux-dna-pipelines: bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
@@ -46,7 +46,8 @@ bijux-dna-planner-bam: bijux-dna-core bijux-dna-domain-bam bijux-dna-infra bijux
 bijux-dna-planner-fastq: bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra bijux-dna-pipelines bijux-dna-policies bijux-dna-stage-contract bijux-dna-stages-fastq bijux-dna-testkit
 bijux-dna-planner-vcf: bijux-dna-core bijux-dna-db-ref bijux-dna-domain-vcf bijux-dna-policies bijux-dna-stage-contract
 bijux-dna-policies: bijux-dna-containers bijux-dna-core bijux-dna-pipelines bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit
-bijux-dna-runner: bijux-dna-bench-model bijux-dna-containers bijux-dna-containers-qa bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-runtime
+bijux-dna-process:
+bijux-dna-runner: bijux-dna-bench-model bijux-dna-containers bijux-dna-containers-qa bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-process bijux-dna-runtime
 bijux-dna-runtime: bijux-dna-bench-model bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-science: bijux-dna-bench-model bijux-dna-core bijux-dna-infra bijux-dna-policies
 bijux-dna-stage-contract: bijux-dna-core bijux-dna-policies bijux-dna-testkit
@@ -61,3 +62,5 @@ See [BOUNDARY_DIAGRAM.md](BOUNDARY_DIAGRAM.md) for the canonical diagram.
 
 ## Failure modes
 Boundary violations fail CI dependency/effect policies.
+
+`bijux-dna-process` owns OS process capture and cancellation with no workspace production dependencies. Containers and runner share that transport while retaining separate command meaning, evidence interpretation and lifecycle policy. Independent compilation follows the leaf graph; elapsed build gains require measurement.

@@ -336,10 +336,20 @@ fn execute_version_probe(command: &[String]) -> Result<String> {
     let [program, arguments @ ..] = command else {
         bail!("external artifact version probe is empty");
     };
-    let output = Command::new(program)
-        .args(arguments)
-        .output()
-        .with_context(|| format!("execute external artifact version probe {program}"))?;
+    let output = bijux_dna_process::capture(
+        Command::new(program).args(arguments),
+        bijux_dna_process::CaptureLimits {
+            timeout: std::time::Duration::from_secs(30),
+            max_output_bytes: MAX_VERSION_OUTPUT_BYTES,
+        },
+        "external artifact version probe",
+    )?;
+    if output.timed_out {
+        bail!("external artifact version probe exceeded its 30-second deadline");
+    }
+    if output.output_limit_exceeded {
+        bail!("external artifact version output exceeds the bounded evidence limit");
+    }
     let byte_count = output.stdout.len().saturating_add(output.stderr.len());
     if byte_count > MAX_VERSION_OUTPUT_BYTES {
         bail!("external artifact version output exceeds the bounded evidence limit");

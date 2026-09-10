@@ -22,6 +22,7 @@ members = ["crates/bijux-dna",
   "crates/bijux-dna-planner-fastq",
   "crates/bijux-dna-planner-vcf",
   "crates/bijux-dna-policies",
+  "crates/bijux-dna-process",
   "crates/bijux-dna-runner",
   "crates/bijux-dna-runtime",
   "crates/bijux-dna-science",
@@ -38,6 +39,7 @@ license = "Apache-2.0"
 rust-version = "1.95"
 
 [workspace.dependencies]
+bijux-dna-process = { path = "crates/bijux-dna-process" }
 aho-corasick = "1"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }

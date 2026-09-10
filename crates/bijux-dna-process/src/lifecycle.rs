@@ -22,7 +22,12 @@ impl Drop for ChildGuard<'_> {
     }
 }
 
-pub(crate) fn wait_for_status(
+/// Wait for direct child exit and cancel its owned process group at the deadline.
+/// Unix callers must isolate the group before spawning; file output remains caller-owned.
+///
+/// # Errors
+/// Returns errors when waiting, signalling or reaping fails.
+pub fn wait_for_status(
     child: &mut Child,
     timeout: Duration,
     label: &str,

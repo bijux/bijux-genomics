@@ -17,6 +17,7 @@ pub(super) fn collect(
         stdout: join_pipe(stdout, "stdout", label)?,
         stderr: join_pipe(stderr, "stderr", label)?,
         timed_out,
+        output_limit_exceeded: false,
     })
 }
 

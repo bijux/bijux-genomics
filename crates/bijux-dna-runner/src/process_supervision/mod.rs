@@ -1,36 +1,13 @@
-//! Process lifecycle and output collection share one operation deadline.
+//! Runner compatibility over the shared process owner; payload capture remains uncapped.
 use anyhow::Result;
-use std::process::{Child, Command, ExitStatus};
+use std::process::Child;
 use std::time::Duration;
-
-mod lifecycle;
-#[cfg(unix)]
-mod readiness;
 #[cfg(not(unix))]
 mod threaded;
-pub(crate) use lifecycle::wait_for_status;
+#[cfg(not(unix))]
+pub(crate) use bijux_dna_process::SupervisedStatus;
+pub(crate) use bijux_dna_process::{isolate_process_group, wait_for_status, SupervisedOutput};
 
-pub(crate) struct SupervisedOutput {
-    pub(crate) status: ExitStatus,
-    pub(crate) stdout: Vec<u8>,
-    pub(crate) stderr: Vec<u8>,
-    pub(crate) timed_out: bool,
-}
-pub(crate) struct SupervisedStatus {
-    pub(crate) status: ExitStatus,
-    pub(crate) timed_out: bool,
-}
-/// Isolate Unix descendants before spawning so cancellation reaches inherited pipes.
-pub(crate) fn isolate_process_group(command: &mut Command) {
-    #[cfg(unix)]
-    {
-        use std::os::unix::process::CommandExt as _;
-        command.process_group(0);
-    }
-    #[cfg(not(unix))]
-    let _ = command;
-}
-/// Collect both streams and child exit. Unix readiness uses a shared deadline.
 pub(crate) fn wait_for_output(
     child: &mut Child,
     timeout: Duration,
@@ -38,7 +15,7 @@ pub(crate) fn wait_for_output(
 ) -> Result<SupervisedOutput> {
     #[cfg(unix)]
     {
-        readiness::collect(child, timeout, label)
+        bijux_dna_process::wait_for_output(child, timeout, None, label)
     }
     #[cfg(not(unix))]
     {

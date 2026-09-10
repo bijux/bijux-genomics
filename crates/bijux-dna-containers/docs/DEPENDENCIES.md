@@ -38,3 +38,5 @@ The dependency boundary is locked by:
 ```sh
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-containers --no-default-features --test boundaries
 ```
+
+External artifact version probes use the `bijux-dna-process` leaf for bounded capture. It introduces no runner, runtime, scheduler or domain dependency into container admission.

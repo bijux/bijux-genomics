@@ -21,6 +21,7 @@ fn dependency_graph_matches_runner_boundary() {
             "bijux-dna-containers",
             "bijux-dna-containers-qa",
             "bijux-dna-infra",
+            "bijux-dna-process",
             "bijux-dna-runtime",
             "chrono",
             "serde",
@@ -28,7 +29,6 @@ fn dependency_graph_matches_runner_boundary() {
             "sha2",
             "tracing",
             "uuid",
-            "wait-timeout",
             "walkdir",
         ]),
         "runtime dependencies must stay limited to execution contracts, environment resolution, infra effects, validation, timestamps, and deterministic identity"
@@ -38,13 +38,6 @@ fn dependency_graph_matches_runner_boundary() {
         dependency_keys(&manifest, "dev-dependencies"),
         keys(["assert_cmd", "bijux-dna-testkit", "cargo_metadata", "regex", "tempfile", "toml",]),
         "dev dependencies must stay limited to metadata, command, and isolated filesystem tests"
-    );
-
-    let unix = &manifest["target"]["cfg(unix)"];
-    assert_eq!(
-        dependency_keys(unix, "dependencies"),
-        keys(["rustix"]),
-        "Unix supervision has one explicit safe system interface"
     );
 
     let runtime_dependencies = dependency_keys(&manifest, "dependencies");

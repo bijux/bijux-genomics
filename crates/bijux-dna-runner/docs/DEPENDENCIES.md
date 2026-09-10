@@ -43,4 +43,6 @@ Bundle recipient admission rejects empty, blank, padded or duplicate declaration
 
 Bundle publication reuses the infrastructure `FileLock` and managed temporary directory authorities. `FileLock::try_acquire_existing` opens an existing lease without creating files or requiring write access, preserving read-only replay inputs. No new runner dependency or Cargo feature is introduced.
 
-Unix process supervision uses `rustix` for safe nonblocking pipe readiness and process-group signals. Its version was already present in the workspace lockfile; the runner enables only the event, filesystem and process capabilities needed for capture and cancellation. This introduces no new workspace crate edge or async runtime.
+Unix process supervision consumes the independent `bijux-dna-process` leaf. That owner uses the already locked `rustix` event, filesystem and process interfaces; runner no longer declares a direct rustix dependency.
+
+The shared `bijux-dna-process` leaf owns Unix readiness and process lifecycle. Runner keeps execution bindings and scheduler policy; the non-Unix compatibility reader remains private.

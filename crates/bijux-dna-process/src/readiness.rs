@@ -13,6 +13,7 @@ use wait_timeout::ChildExt as _;
 pub(super) fn collect(
     child: &mut Child,
     timeout: Duration,
+    max_output_bytes: Option<usize>,
     label: &str,
 ) -> Result<SupervisedOutput> {
     let mut owned = ChildGuard { child, armed: true };
@@ -29,6 +30,8 @@ pub(super) fn collect(
     let mut output = Vec::new();
     let mut errors = Vec::new();
     let mut timed_out = false;
+    let mut output_limit_exceeded = false;
+    let mut remaining = max_output_bytes;
     while stdout.is_some() || stderr.is_some() {
         let Some(duration) = deadline.checked_duration_since(Instant::now()) else {
             timed_out = true;
@@ -53,17 +56,23 @@ pub(super) fn collect(
         }
         drop(descriptors);
         if let Some(pipe) = &mut stdout {
-            if drain(pipe, &mut output, deadline)? {
+            if drain(pipe, &mut output, deadline, &mut remaining, &mut output_limit_exceeded)? {
                 stdout = None;
             }
         }
+        if output_limit_exceeded {
+            break;
+        }
         if let Some(pipe) = &mut stderr {
-            if drain(pipe, &mut errors, deadline)? {
+            if drain(pipe, &mut errors, deadline, &mut remaining, &mut output_limit_exceeded)? {
                 stderr = None;
             }
         }
+        if output_limit_exceeded {
+            break;
+        }
     }
-    let status = if timed_out {
+    let status = if timed_out || output_limit_exceeded {
         terminate(owned.child, label)?
     } else if let Some(status) =
         owned.child.wait_timeout(deadline.saturating_duration_since(Instant::now()))?
@@ -74,15 +83,37 @@ pub(super) fn collect(
         terminate(owned.child, label)?
     };
     owned.armed = false;
-    Ok(SupervisedOutput { status, stdout: output, stderr: errors, timed_out })
+    Ok(SupervisedOutput {
+        status,
+        stdout: output,
+        stderr: errors,
+        timed_out,
+        output_limit_exceeded,
+    })
 }
 
-fn drain(pipe: &mut impl Read, bytes: &mut Vec<u8>, deadline: Instant) -> Result<bool> {
+fn drain(
+    pipe: &mut impl Read,
+    bytes: &mut Vec<u8>,
+    deadline: Instant,
+    remaining: &mut Option<usize>,
+    exceeded: &mut bool,
+) -> Result<bool> {
     let mut buffer = [0_u8; 8192];
     while Instant::now() < deadline {
         match pipe.read(&mut buffer) {
             Ok(0) => return Ok(true),
-            Ok(count) => bytes.extend_from_slice(&buffer[..count]),
+            Ok(count) => {
+                let admitted = remaining.map_or(count, |budget| budget.min(count));
+                bytes.extend_from_slice(&buffer[..admitted]);
+                if let Some(budget) = remaining {
+                    *budget -= admitted;
+                }
+                if admitted < count {
+                    *exceeded = true;
+                    return Ok(false);
+                }
+            }
             Err(error) if error.kind() == ErrorKind::WouldBlock => return Ok(false),
             Err(error) if error.kind() == ErrorKind::Interrupted => {}
             Err(error) => return Err(error.into()),

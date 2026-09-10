@@ -5,6 +5,7 @@ mod support;
 use walkdir::WalkDir;
 
 const ALLOWLIST: &[(&str, &str)] = &[
+    ("/crates/bijux-dna-process/src/capture.rs", "shared bounded process spawning"),
     ("/crates/bijux-dna-runner/", "execution backends"),
     ("/crates/bijux-dna-containers-qa/", "qa harness"),
     ("/crates/bijux-dna/", "cli entrypoints"),

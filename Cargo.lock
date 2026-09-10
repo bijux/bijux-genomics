@@ -397,6 +397,7 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-infra",
  "bijux-dna-policies",
+ "bijux-dna-process",
  "bijux-dna-stage-contract",
  "bijux-dna-testkit",
  "chrono",
@@ -736,6 +737,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bijux-dna-process"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "rustix",
+ "wait-timeout",
+]
+
+[[package]]
 name = "bijux-dna-runner"
 version = "0.1.0"
 dependencies = [
@@ -746,12 +756,12 @@ dependencies = [
  "bijux-dna-containers-qa",
  "bijux-dna-core",
  "bijux-dna-infra",
+ "bijux-dna-process",
  "bijux-dna-runtime",
  "bijux-dna-testkit",
  "cargo_metadata",
  "chrono",
  "regex",
- "rustix",
  "serde",
  "serde_json",
  "sha2",
@@ -759,7 +769,6 @@ dependencies = [
  "toml",
  "tracing",
  "uuid",
- "wait-timeout",
  "walkdir",
 ]
 

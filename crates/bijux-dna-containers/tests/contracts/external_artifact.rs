@@ -367,3 +367,41 @@ fn verify_rebound_artifact_rejection(
 
     Ok(())
 }
+
+#[test]
+fn excessive_external_probe_output_rejects_before_admission_publication() -> Result<()> {
+    let root = repository_root();
+    let temporary = tempfile::tempdir()?;
+    let binary = temporary.path().join("angsd");
+    let active = temporary.path().join("active");
+    std::fs::create_dir(&active)?;
+    std::fs::write(&binary, b"#!/bin/sh\nwhile :; do printf 01234567890123456789; done\n")?;
+    std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o755))?;
+    let checksum = bijux_dna_infra::hash_file_sha256(&binary)?;
+    let record_path = temporary.path().join("admission.json");
+    let commit = repository_head_commit(root)?;
+    let started = std::time::Instant::now();
+    let result = admit_external_artifact(
+        &ExternalArtifactAdmissionRequest {
+            repository_root: root,
+            distributable_image_root: &active,
+            repository_commit: &commit,
+            tool_id: "angsd",
+            recorded_at_utc: "2026-08-06T12:00:00Z",
+            availability: ExternalArtifactAdmissionStatus::Admitted,
+            artifact: Some(ExternalArtifactInput {
+                kind: ExternalArtifactKind::Binary,
+                path: &binary,
+                expected_sha256: &checksum,
+                lawful_access_basis: "local contract fixture",
+                apptainer_executable: None,
+            }),
+            blocker_reason: None,
+        },
+        &record_path,
+    );
+    assert!(result.is_err_and(|error| error.to_string().contains("bounded evidence limit")));
+    assert!(!record_path.exists());
+    assert!(started.elapsed() < std::time::Duration::from_secs(5));
+    Ok(())
+}
