@@ -573,6 +573,7 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
         assert_eq!(report.memory_source_row_count, 2);
         assert_eq!(report.science_threshold_row_count, 1);
         assert!(report.passes_behavior_test);
+        assert_report_source_closure(&manifest, &result_rows, &report).expect("source row closure");
         assert_report_admission(&manifest, &result_rows, &report).expect("report model admission");
 
         let markdown =
@@ -587,6 +588,43 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
         assert!(markdown.contains("## Runtime"));
         assert!(markdown.contains("## Memory Sources"));
         assert!(markdown.contains("## Science Thresholds"));
+    }
+
+    fn assert_report_source_closure(
+        manifest: &MicroBenchmarkRunManifest,
+        results: &[MicroBenchmarkResultRow],
+        report: &MicroBenchmarkReport,
+    ) -> Result<()> {
+        let mutations: [fn(&mut MicroBenchmarkReport); 7] = [
+            |r| r.complete_rows[0].tool_id = "different-tool".into(),
+            |r| r.unavailable_rows[0].execution_status = MicroBenchmarkExecutionStatus::Succeeded,
+            |r| r.runtime_rows[0].execution_id = "different-execution".into(),
+            |r| r.memory_source_rows[0].stage_id = "different-stage".into(),
+            |r| {
+                r.execution_status_counts.clear();
+                r.execution_status_counts.insert("invented-status".into(), r.result_row_count);
+            },
+            |r| {
+                r.runtime_source_counts.clear();
+                r.runtime_source_counts.insert("invented-source".into(), r.result_row_count);
+            },
+            |r| {
+                r.memory_source_counts.clear();
+                r.memory_source_counts.insert("invented-source".into(), r.result_row_count);
+            },
+        ];
+        for mutate in mutations {
+            let mut changed = report.clone();
+            mutate(&mut changed);
+            assert!(validate_micro_benchmark_report(manifest, results, &mut changed).is_err());
+            assert!(!changed.passes_behavior_test);
+        }
+        let mut permuted = report.clone();
+        permuted.runtime_rows.reverse();
+        permuted.memory_source_rows.reverse();
+        validate_micro_benchmark_report(manifest, results, &mut permuted)?;
+        assert!(permuted.passes_behavior_test);
+        Ok(())
     }
 
     fn assert_report_admission(
