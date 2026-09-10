@@ -143,6 +143,7 @@ pub use failure::{
 
 mod missing;
 pub use missing::{
-    admit_all_domain_missing_result_audit, project_all_domain_missing_result_observation,
-    validate_all_domain_missing_result_audit, AllDomainMissingResultObservation,
+    admit_all_domain_missing_result_audit, admit_all_domain_missing_result_inputs,
+    project_all_domain_missing_result_observation, validate_all_domain_missing_result_audit,
+    AllDomainMissingResultObservation,
 };

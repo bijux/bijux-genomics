@@ -255,3 +255,5 @@ pub(crate) fn publish_simulation_manifest(
 }
 
 pub(crate) mod failure;
+
+pub(crate) mod missing;

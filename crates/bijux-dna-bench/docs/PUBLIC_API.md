@@ -287,3 +287,12 @@ FASTQ/BAM stage matrix inputs use the model-owned `BenchmarkLocalStageMatrixConf
 `validate_benchmark_local_slurm_script_bodies` owns current script discovery, lexical inspection and admitted report publication. It confines paths to the benchmark run root, rejects observed links and special script entries, and bounds each UTF-8 script read to16MiB. The repository layer acquires bytes; the model owns lexical findings and closed report admission. A completed failing inspection publishes its report before returning an error. Text checks do not prove shell or scientific execution; concurrent path replacement remains outside observed-path admission.
 
 `fake_run_all_domain_failure_results` accepts expected-result, rendered-command and output-declaration slices plus a destination and nonzero exit code. It admits the complete uniquely aligned set and existing destination links before publication, records commands without executing them, and returns the model-owned failure manifest. Simulation workflow and repository modules group failure publication under `simulation/`. Individual JSON writes are atomic; the complete run is not a transaction and path admission does not prevent concurrent namespace replacement.
+
+`render_all_domain_missing_result_audit` admits expected rows, commands and output
+declarations before materializing an illustrative fixture. The model owns source
+and observation semantics. Repository IO checks all selected paths before effects,
+reads at most 16 MiB per regular manifest, and distinguishes absent files from
+invalid evidence. Only the three governed result manifests are removed; unrelated
+fixture files survive reruns. The workflow publishes the admitted report atomically.
+Commands are recorded and never executed. This is not a whole-run transaction or
+protection against concurrent filesystem namespace replacement.

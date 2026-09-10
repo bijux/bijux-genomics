@@ -164,3 +164,6 @@ mod projection;
 pub use projection::{
     project_all_domain_missing_result_observation, AllDomainMissingResultObservation,
 };
+
+mod inputs;
+pub use inputs::admit_all_domain_missing_result_inputs;

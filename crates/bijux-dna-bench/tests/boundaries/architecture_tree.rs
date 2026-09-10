@@ -9,7 +9,7 @@ fn bench_tree_matches_architecture_contract() {
     for layer in ["repo", "workflow"] {
         assert_eq!(
             dir_entries(&root.join("src").join(layer).join("simulation")),
-            entries(["mod.rs", "failure.rs"])
+            entries(["mod.rs", "failure.rs", "missing.rs"])
         );
     }
     assert_eq!(

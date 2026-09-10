@@ -243,3 +243,6 @@ fn missing_result_projection_binds_simulation_to_typed_manifest_observations() -
     .is_err());
     Ok(())
 }
+
+#[path = "simulation/missing.rs"]
+mod missing;

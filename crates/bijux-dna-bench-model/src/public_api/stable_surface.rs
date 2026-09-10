@@ -850,10 +850,11 @@ pub use crate::model::simulation::{
 };
 
 pub use crate::contract::{
-    admit_all_domain_missing_result_audit, admit_all_domain_simulation_inputs,
-    project_all_domain_missing_result_observation, validate_all_domain_failure_simulation_manifest,
-    validate_all_domain_failure_simulation_record, validate_all_domain_missing_result_audit,
-    AllDomainMissingResultObservation, AllDomainSimulationInput,
+    admit_all_domain_missing_result_audit, admit_all_domain_missing_result_inputs,
+    admit_all_domain_simulation_inputs, project_all_domain_missing_result_observation,
+    validate_all_domain_failure_simulation_manifest, validate_all_domain_failure_simulation_record,
+    validate_all_domain_missing_result_audit, AllDomainMissingResultObservation,
+    AllDomainSimulationInput,
 };
 
 pub use crate::model::hpc_campaign::{
