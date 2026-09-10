@@ -25,7 +25,6 @@ README files are intentionally not allowed under `tests/`.
   and integration-test taxonomy.
 - `tests/boundaries/command_inventory.rs` locks `docs/COMMANDS.md` as the
   complete managed API command and helper namespace inventory.
-- `tests/boundaries/guardrails.rs` runs the shared guardrail harness.
 - `tests/boundaries/guardrails/args_module.rs` forbids vague `args.rs` modules.
 - `tests/boundaries/guardrails/policies.rs` applies shared policy checks.
 - `tests/boundaries/v1_cross_guardrails.rs` keeps cross-domain v1 modules from
@@ -65,3 +64,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-api --test contr
 
 Run `cargo test -p bijux-dna-api --all-features` before release-facing handoff
 when feature-gated code changed.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

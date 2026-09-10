@@ -145,7 +145,6 @@ fn assert_test_layout(root: &Path) {
             "command_inventory.rs",
             "dependency_graph.rs",
             "guardrails/",
-            "guardrails.rs",
         ]),
         "boundary tests must stay explicit"
     );

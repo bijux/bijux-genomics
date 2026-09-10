@@ -41,3 +41,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-engine --no-defa
   changed.
 - Contract failures mean public execution behavior or recorded artifacts changed.
 - Determinism failures mean stable ordering or repeatable output changed.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

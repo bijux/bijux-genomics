@@ -8,10 +8,6 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 static TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
-pub fn guardrails() {
-    let _config = GuardrailConfig::for_crate("bijux-dna-policies");
-}
-
 fn test_root(test_name: &str) -> PathBuf {
     let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
     std::env::temp_dir()
@@ -46,11 +42,6 @@ fn must_fail(result: Result<()>, context: &str) -> anyhow::Error {
         Ok(()) => panic!("{context}"),
         Err(err) => err,
     }
-}
-
-#[test]
-fn policy__root__guardrails__guardrails_smoke() {
-    guardrails();
 }
 
 #[test]

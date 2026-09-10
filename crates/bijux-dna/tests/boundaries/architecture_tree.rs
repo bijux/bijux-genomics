@@ -523,7 +523,6 @@ fn dna_tree_matches_architecture_contract() {
         "dependency_graph.rs",
         "docs_layout.rs",
         "guardrails/",
-        "guardrails.rs",
     ]
     .into_iter()
     .map(str::to_string)

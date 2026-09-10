@@ -47,3 +47,5 @@ artifact root instead of the OS temp root.
 ## Testkit patterns
 See `crates/bijux-dna-testkit/docs/SNAPSHOT_POLICY.md` for shared fixture and
 snapshot stability rules.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

@@ -49,3 +49,5 @@ public-surface drift need explicit guardrails.
   `ids/{parsing,typed}` partitions.
 - New test intent directories must be backed by tracked tests or fixtures before
   they are added to this contract.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

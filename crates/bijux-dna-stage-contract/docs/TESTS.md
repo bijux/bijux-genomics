@@ -53,3 +53,5 @@ contract, and schema changes.
 ## Testkit Patterns
 See `crates/bijux-dna-testkit/docs/PUBLIC_API.md` for shared helper exports and
 `crates/bijux-dna-testkit/docs/SNAPSHOT_POLICY.md` for snapshot stability rules.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

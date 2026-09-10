@@ -18,7 +18,6 @@ README files are intentionally not allowed under `tests/`.
 
 - `tests/boundaries/architecture_tree.rs` protects the root layout, 10-docs
   allowance, Markdown location rules, source layout, and test layout.
-- `tests/boundaries/guardrails.rs` runs shared guardrails for the crate.
 
 ## Contract Tests
 
@@ -75,3 +74,5 @@ The existing micro-report producer fixture also verifies model round-trip, unsup
 Micro-report coverage policy independently tests expected-source and current-evidence obligations, including unavailable results. Repository parser tests retain both report-level and nested-case insufficiency examples. Destination admission rejects traversal, directory roots and aliased outputs without creating directories. The original CLI producer fixture still checks eight upstream adapters, persisted report fields and all Markdown sections.
 
 Micro-report admission compares the exact multiset of component/execution/domain/stage/tool/status identities against source results for result, runtime and memory sections. The existing two-row fixture rejects substituted identities and equal-total forged status/source distributions, clears stale passing verdicts, and accepts a harmless section permutation. No additional workflow fixture is needed.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

@@ -263,7 +263,6 @@ fn assert_contracts_tree(root: &std::path::Path) {
             "dependency_graph.rs",
             "docs_layout.rs",
             "guardrails/",
-            "guardrails.rs",
             "v1_cross_guardrails.rs",
         ],
         "api boundary tests must cover architecture, docs, dependencies, and v1 guardrails",

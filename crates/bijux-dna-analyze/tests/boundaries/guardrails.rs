@@ -1,15 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-#[path = "../../../bijux-dna-policies/tests/guardrails.rs"]
-mod policies;
-
-/// Centralized guardrails runner.
-#[test]
-fn guardrails() {
-    policies::guardrails();
-}
-
 fn collect_rs_files(root: &Path, files: &mut Vec<PathBuf>) {
     let Ok(entries) = fs::read_dir(root) else {
         return;

@@ -13,7 +13,6 @@ This file maps runner tests to their contract purpose. Directory-local README fi
 - `tests/boundaries/architecture.rs` checks root, source, and test tree shape.
 - `tests/boundaries/command_inventory.rs` checks `docs/COMMANDS.md`.
 - `tests/boundaries/dependency_graph.rs` checks `Cargo.toml` dependency boundaries.
-- `tests/boundaries/guardrails.rs` checks workspace-level runner guardrails.
 - `tests/boundaries/backend/backend_invariants.rs` checks backend invariants are documented.
 - `tests/boundaries/backend/invocation_hash.rs` checks stable invocation identity rules.
 - `tests/boundaries/backend/network_guardrail.rs` checks network access remains outside runner execution.
@@ -41,3 +40,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-runner --no-defa
 - Dependency failures mean runtime or dev dependencies crossed the documented boundary.
 - Command inventory failures mean `docs/COMMANDS.md` is no longer the command source of truth.
 - Determinism failures mean identity or replay behavior changed.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
