@@ -182,3 +182,60 @@ pub(super) fn validate_input(
     }
     Ok(())
 }
+
+/// Authorities captured once for a compilation or a catalog-wide coverage request.
+/// Files are acquired sequentially; this does not promise an atomic filesystem snapshot.
+pub(super) struct CompilationAuthorities {
+    pub catalog: bijux_dna_containers::api::ContainerCatalog,
+    pub registry: bijux_dna_containers::api::QualificationRunRegistry,
+    pub inventory: bijux_dna_containers::api::ContainerImageInventoryPublication,
+    pub catalog_sha256: String,
+    pub registry_sha256: String,
+    pub inventory_sha256: String,
+}
+
+impl CompilationAuthorities {
+    pub fn load(request: &QualificationSpecificationCompilationRequest) -> Result<Self> {
+        let catalog = bijux_dna_containers::api::load_container_catalog(&request.repository_root)?;
+        let registry = bijux_dna_containers::api::load_qualification_run_registry(
+            &request.repository_root,
+            &request.registry_path,
+        )?;
+        let inventory =
+            bijux_dna_containers::api::load_image_inventory_publication(&request.inventory_path)?;
+        Ok(Self {
+            catalog,
+            registry,
+            inventory,
+            catalog_sha256: hash(
+                &request.repository_root.join("containers/contracts/catalog.toml"),
+            )?,
+            registry_sha256: hash(&request.registry_path)?,
+            inventory_sha256: hash(&request.inventory_path)?,
+        })
+    }
+
+    pub fn validate_source_identity(
+        &self,
+        source: &QualificationSpecificationSourceV1,
+    ) -> Result<()> {
+        for (actual, expected, label) in [
+            (&self.catalog_sha256, &source.catalog_sha256, "catalog"),
+            (&self.registry_sha256, &source.registry_sha256, "qualification registry"),
+            (&self.inventory_sha256, &source.inventory_sha256, "image inventory"),
+        ] {
+            if actual != expected {
+                bail!("qualification specification source has stale {label} identity");
+            }
+        }
+        if self.registry.catalog_sha256 != self.catalog_sha256
+            || self.inventory.catalog_sha256 != self.catalog_sha256
+        {
+            bail!("qualification compiler authorities do not share the current catalog identity");
+        }
+        if self.inventory.repository_commit != source.repository_commit {
+            bail!("qualification image inventory is stale for the requested repository commit");
+        }
+        Ok(())
+    }
+}

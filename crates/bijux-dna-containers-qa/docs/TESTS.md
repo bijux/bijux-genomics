@@ -37,3 +37,5 @@ The commands above with `--no-default-features` qualify the independently usable
 - Contract failures mean QA evidence shape or support behavior changed.
 
 The retained compiler fixture also checks that pure binding projection survives absent files while the full compiler rejects absent or changed input bytes. Input/output contract mismatches remain projection failures. The original source identities, staged-image rejection and public qualification cases remain covered; illustrative BAM/image fixture bytes do not certify tool execution.
+
+The compiler fixture also replaces inventory bytes after capture: borrowed authority produces the same pipeline, fresh compilation rejects stale source identity, and mismatched source digests reject even against captured authority. No additional large fixture or native integration target is needed.

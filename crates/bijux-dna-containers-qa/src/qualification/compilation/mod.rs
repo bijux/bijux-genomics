@@ -17,7 +17,7 @@ use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{canonical_tool_bindings, render_tool_command};
 use binding::{render_context, validate_negative_command};
 use pipeline::materialize_pipeline;
-use storage::{hash, require_source_header, resolve_current_image, validate_input};
+use storage::{require_source_header, resolve_current_image, validate_input};
 
 /// Compile a checksum-bound stage/tool qualification source into the current pipeline model.
 ///
@@ -28,31 +28,18 @@ pub fn compile_container_qualification_specification(
     source: &QualificationSpecificationSourceV1,
 ) -> Result<ContainerPipelineV2> {
     require_source_header(request, source)?;
-    let catalog = bijux_dna_containers::api::load_container_catalog(&request.repository_root)?;
-    let registry = bijux_dna_containers::api::load_qualification_run_registry(
-        &request.repository_root,
-        &request.registry_path,
-    )?;
-    let inventory =
-        bijux_dna_containers::api::load_image_inventory_publication(&request.inventory_path)?;
-    let catalog_sha256 = hash(&request.repository_root.join("containers/contracts/catalog.toml"))?;
-    let registry_sha256 = hash(&request.registry_path)?;
-    let inventory_sha256 = hash(&request.inventory_path)?;
-    for (actual, expected, label) in [
-        (&catalog_sha256, &source.catalog_sha256, "catalog"),
-        (&registry_sha256, &source.registry_sha256, "qualification registry"),
-        (&inventory_sha256, &source.inventory_sha256, "image inventory"),
-    ] {
-        if actual != expected {
-            bail!("qualification specification source has stale {label} identity");
-        }
-    }
-    if registry.catalog_sha256 != catalog_sha256 || inventory.catalog_sha256 != catalog_sha256 {
-        bail!("qualification compiler authorities do not share the current catalog identity");
-    }
-    if inventory.repository_commit != source.repository_commit {
-        bail!("qualification image inventory is stale for the requested repository commit");
-    }
+    let authorities = storage::CompilationAuthorities::load(request)?;
+    compile_with_authorities(source, &authorities)
+}
+
+fn compile_with_authorities(
+    source: &QualificationSpecificationSourceV1,
+    authorities: &storage::CompilationAuthorities,
+) -> Result<ContainerPipelineV2> {
+    authorities.validate_source_identity(source)?;
+    let catalog = &authorities.catalog;
+    let registry = &authorities.registry;
+    let inventory = &authorities.inventory;
 
     let catalog_tool = catalog
         .tools
@@ -92,7 +79,7 @@ pub fn compile_container_qualification_specification(
     let binding = bindings
         .binding(&StageId::new(&run.stage_id), &ToolId::new(&source.tool_id))
         .context("qualification stage/tool binding is not implemented")?;
-    let (image_path, image_sha256) = resolve_current_image(&inventory, source)?;
+    let (image_path, image_sha256) = resolve_current_image(inventory, source)?;
     let render_context = render_context(binding, source, &catalog_tool.expected_bin)?;
     for input in &source.inputs {
         validate_input(input, &source.governed_study_root)?;
@@ -105,6 +92,7 @@ pub fn compile_container_qualification_specification(
 #[cfg(test)]
 mod tests {
     use super::commands::wrap_real_command;
+    use super::storage::hash;
     use super::*;
     use crate::qualification::specification::{
         load_qualification_specification_source, QualificationSpecificationCoverage,
@@ -133,11 +121,36 @@ mod tests {
 
     #[test]
     fn compiler_emits_current_stage_bound_pipeline_and_refuses_stale_authority() -> Result<()> {
+        let temporary = bijux_dna_infra::temp_dir("qualification-specification-compiler")?;
+        let (request, source) = compiler_fixture(temporary.path())?;
+        let pipeline = compile_container_qualification_specification(&request, &source)?;
+        assert_eq!(pipeline.run.id, "run-1074");
+        assert_eq!(pipeline.run.tool, "bedtools");
+        assert!(pipeline.commands.real[2].contains("qualification-metrics.json"));
+        assert_negative_refusals(&request, &source)?;
+
+        let mut external = source.clone();
+        external.run_id = "run-1094".to_string();
+        external.tool_id = "angsd".to_string();
+        external.negative_command[0] = "angsd".to_string();
+        let Err(error) = compile_container_qualification_specification(&request, &external) else {
+            anyhow::bail!("ANGSD lacks admitted external-artifact evidence in the test inventory");
+        };
+        assert!(!error.to_string().contains("retained distributable"));
+        assert_authority_capture_is_request_scoped(&request, &source)?;
+        assert_projection_preserves_file_identity_checks(&request, &source)?;
+        assert_staged_image_refused(&request, &source)?;
+        Ok(())
+    }
+
+    fn compiler_fixture(
+        fixture_root: &std::path::Path,
+    ) -> Result<(QualificationSpecificationCompilationRequest, QualificationSpecificationSourceV1)>
+    {
         let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
         let registry_path = repository_root.join("containers/contracts/qualification-runs.toml");
         let source_inventory_path = repository_root.join("containers/reports/image-inventory.json");
-        let temporary = bijux_dna_infra::temp_dir("qualification-specification-compiler")?;
-        let study_root = temporary.path().join("study");
+        let study_root = fixture_root.join("study");
         let image_path = study_root.join("containers/apptainer/bedtools.sif");
         fs::create_dir_all(image_path.parent().context("test image has no parent")?)?;
         fs::write(&image_path, b"immutable image bytes\n")?;
@@ -170,7 +183,7 @@ mod tests {
         candidate.admitted = true;
         candidate.current_recipe = true;
         candidate.disposition = ImageCandidateDisposition::Canonical;
-        let inventory_path = temporary.path().join("inventory.json");
+        let inventory_path = fixture_root.join("inventory.json");
         bijux_dna_infra::atomic_write_json(&inventory_path, &inventory)?;
         let inventory_sha256 = hash(&inventory_path)?;
         let request = QualificationSpecificationCompilationRequest {
@@ -184,7 +197,7 @@ mod tests {
             registry_sha256,
             inventory_sha256,
             governed_study_root: study_root,
-            repository_path: temporary.path().to_path_buf(),
+            repository_path: fixture_root.to_path_buf(),
             repository_commit: inventory.repository_commit,
             run_id: "run-1074".to_string(),
             tool_id: "bedtools".to_string(),
@@ -194,7 +207,7 @@ mod tests {
             sample: "sample-1".to_string(),
             operator: "test-operator".to_string(),
             submitted_at_utc: "2026-08-09T15:00:00Z".to_string(),
-            result_root: temporary.path().join("study/results/run-1074-bedtools"),
+            result_root: fixture_root.join("study/results/run-1074-bedtools"),
             inputs: vec![QualificationSpecificationInputV1 {
                 binding_input: "bam".to_string(),
                 artifact_contract_id: "bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string(),
@@ -217,23 +230,7 @@ mod tests {
                 walltime: "00:30:00".to_string(),
             },
         };
-        let pipeline = compile_container_qualification_specification(&request, &source)?;
-        assert_eq!(pipeline.run.id, "run-1074");
-        assert_eq!(pipeline.run.tool, "bedtools");
-        assert!(pipeline.commands.real[2].contains("qualification-metrics.json"));
-        assert_negative_refusals(&request, &source)?;
-
-        let mut external = source.clone();
-        external.run_id = "run-1094".to_string();
-        external.tool_id = "angsd".to_string();
-        external.negative_command[0] = "angsd".to_string();
-        let Err(error) = compile_container_qualification_specification(&request, &external) else {
-            anyhow::bail!("ANGSD lacks admitted external-artifact evidence in the test inventory");
-        };
-        assert!(!error.to_string().contains("retained distributable"));
-        assert_projection_preserves_file_identity_checks(&request, &source)?;
-        assert_staged_image_refused(&request, &source)?;
-        Ok(())
+        Ok((request, source))
     }
 
     #[test]
@@ -395,6 +392,27 @@ mod tests {
             bail!("stale qualification registry identity was accepted");
         };
         assert!(error.to_string().contains("stale qualification registry"));
+        Ok(())
+    }
+
+    fn assert_authority_capture_is_request_scoped(
+        request: &QualificationSpecificationCompilationRequest,
+        source: &QualificationSpecificationSourceV1,
+    ) -> Result<()> {
+        let authorities = storage::CompilationAuthorities::load(request)?;
+        let before = compile_with_authorities(source, &authorities)?;
+        let original = fs::read(&request.inventory_path)?;
+        let mut changed = authorities.inventory.clone();
+        changed.repository_commit = "f".repeat(40);
+        bijux_dna_infra::atomic_write_json(&request.inventory_path, &changed)?;
+        let captured = compile_with_authorities(source, &authorities)?;
+        assert_eq!(serde_json::to_value(before)?, serde_json::to_value(captured)?);
+        assert!(compile_container_qualification_specification(request, source).is_err());
+        let mut mismatched = source.clone();
+        mismatched.catalog_sha256 = "0".repeat(64);
+        assert!(compile_with_authorities(&mismatched, &authorities).is_err());
+        fs::write(&request.inventory_path, original)?;
+        compile_container_qualification_specification(request, source)?;
         Ok(())
     }
 

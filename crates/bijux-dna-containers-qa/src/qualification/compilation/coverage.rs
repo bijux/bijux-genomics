@@ -1,7 +1,7 @@
 //! Per-tool qualification coverage over catalog, image and independently compiled source evidence.
 use super::{
-    compile_container_qualification_specification,
-    storage::{hash, source_path},
+    compile_with_authorities,
+    storage::{require_source_header, source_path, CompilationAuthorities},
 };
 use crate::qualification::specification::{
     load_qualification_specification_source, QualificationSpecificationCompilationRequest,
@@ -23,18 +23,11 @@ pub fn derive_qualification_specification_coverage(
     request: &QualificationSpecificationCompilationRequest,
     sources_root: &Path,
 ) -> Result<QualificationSpecificationCoverage> {
-    let _catalog = bijux_dna_containers::api::load_container_catalog(&request.repository_root)?;
-    let registry = bijux_dna_containers::api::load_qualification_run_registry(
-        &request.repository_root,
-        &request.registry_path,
-    )?;
-    let inventory =
-        bijux_dna_containers::api::load_image_inventory_publication(&request.inventory_path)?;
-    let catalog_sha256 = hash(&request.repository_root.join("containers/contracts/catalog.toml"))?;
-    let registry_sha256 = hash(&request.registry_path)?;
-    let inventory_sha256 = hash(&request.inventory_path)?;
+    let authorities = CompilationAuthorities::load(request)?;
+    let registry = &authorities.registry;
+    let inventory = &authorities.inventory;
     let bindings = canonical_tool_bindings()?;
-    let inventory_current = inventory.catalog_sha256 == catalog_sha256;
+    let inventory_current = inventory.catalog_sha256 == authorities.catalog_sha256;
     let mut units = Vec::new();
     for row in registry.tools.iter().filter(|row| {
         row.product_support == bijux_dna_containers::api::ContainerProductSupport::Supported
@@ -42,7 +35,7 @@ pub fn derive_qualification_specification_coverage(
         let run_id = row.run_id.clone().context("supported qualification tool has no run ID")?;
         let binding_ready =
             bindings.binding(&StageId::new(&row.stage_id), &ToolId::new(&row.tool_id)).is_some();
-        let image_ready = inventory_current && inventory_tool_is_ready(&inventory, &row.tool_id);
+        let image_ready = inventory_current && inventory_tool_is_ready(inventory, &row.tool_id);
         let source_path = source_path(sources_root, &row.tool_id);
         let source_present = source_path.is_some();
         let (state, detail) = if !binding_ready {
@@ -57,7 +50,8 @@ pub fn derive_qualification_specification_coverage(
             )
         } else if let Some(path) = source_path.as_ref() {
             match load_qualification_specification_source(path).and_then(|source| {
-                compile_container_qualification_specification(request, &source).map(|_| ())
+                require_source_header(request, &source)?;
+                compile_with_authorities(&source, &authorities).map(|_| ())
             }) {
                 Ok(()) => (
                     QualificationSpecificationCoverageState::Ready,
@@ -97,9 +91,9 @@ pub fn derive_qualification_specification_coverage(
     };
     Ok(QualificationSpecificationCoverage {
         schema_version: QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2.to_string(),
-        catalog_sha256,
-        registry_sha256,
-        inventory_sha256,
+        catalog_sha256: authorities.catalog_sha256,
+        registry_sha256: authorities.registry_sha256,
+        inventory_sha256: authorities.inventory_sha256,
         summary,
         units,
     })
