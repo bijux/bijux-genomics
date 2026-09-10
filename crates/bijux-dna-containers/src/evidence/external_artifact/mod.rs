@@ -1,3 +1,5 @@
+mod admission;
+mod binding;
 mod model;
 mod schema;
 mod workflow;

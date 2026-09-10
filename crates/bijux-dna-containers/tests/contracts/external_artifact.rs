@@ -191,6 +191,7 @@ fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<
         None,
     )
     .is_err());
+    verify_rebound_artifact_rejection(root, &active, &record_path, &binary, temporary.path())?;
     verify_external_artifact_admission(root, &active, &record_path)?;
 
     std::fs::write(&binary, b"#!/bin/sh\nprintf 'changed\\n'\n")?;
@@ -325,4 +326,44 @@ fn repository_root() -> &'static Path {
         .parent()
         .and_then(Path::parent)
         .unwrap_or_else(|| panic!("container crate must live under repository crates/"))
+}
+
+fn verify_rebound_artifact_rejection(
+    root: &Path,
+    active: &Path,
+    record_path: &Path,
+    binary: &Path,
+    fixture_root: &Path,
+) -> Result<()> {
+    let admitted_bytes = std::fs::read(record_path)?;
+    let mut relative: serde_json::Value = serde_json::from_slice(&admitted_bytes)?;
+    relative["artifact"]["path"] = serde_json::json!("relative-angsd");
+    relative["version_probe"]["command"][0] = serde_json::json!("relative-angsd");
+    std::fs::write(record_path, serde_json::to_vec(&relative)?)?;
+    assert!(load_external_artifact_admission(record_path).is_err());
+    std::fs::write(record_path, &admitted_bytes)?;
+
+    let held_binary = fixture_root.join("held-angsd");
+    std::fs::rename(binary, &held_binary)?;
+    let linked_binary = active.join("same-byte-angsd");
+    std::fs::copy(&held_binary, &linked_binary)?;
+    for target in [&held_binary, &linked_binary] {
+        std::os::unix::fs::symlink(target, binary)?;
+        assert!(verify_external_artifact_admission(root, active, record_path).is_err());
+        assert!(bind_external_artifact_command(
+            root,
+            active,
+            record_path,
+            "bam.sex",
+            &["angsd".into()],
+            None
+        )
+        .is_err());
+        assert_eq!(std::fs::read(record_path)?, admitted_bytes);
+        std::fs::remove_file(binary)?;
+    }
+    std::fs::rename(&held_binary, binary)?;
+    verify_external_artifact_admission(root, active, record_path)?;
+
+    Ok(())
 }
