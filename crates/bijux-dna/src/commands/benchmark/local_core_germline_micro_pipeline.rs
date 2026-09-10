@@ -1,4 +1,7 @@
-use std::collections::{BTreeMap, HashMap};
+use bijux_dna_api::v1::api::bench::alignment_fixtures::{
+    convert_coordinate_sam_to_bam, write_alignment_reference_bed, AlignmentInputFormat,
+};
+use std::collections::BTreeMap;
 use std::fs;
 use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
@@ -20,8 +23,6 @@ use bijux_dna_stages_vcf::pipeline::{
     QcStageParams,
 };
 use bijux_dna_stages_vcf::vcf_io::{vcf_validate_input, VcfFieldRequirement};
-use noodles_bam as bam;
-use noodles_sam as sam;
 use serde::Serialize;
 use serde_json::{json, Value};
 
@@ -966,7 +967,7 @@ fn run_bam_coverage_stage(
     fs::create_dir_all(&stage_root).with_context(|| format!("create {}", stage_root.display()))?;
     let aligned_bam = repo_root.join(required_output(align_row, "aligned_bam")?);
     let regions_bed = stage_root.join("coverage_regions.bed");
-    write_full_reference_bed(&aligned_bam, &regions_bed)?;
+    write_alignment_reference_bed(&aligned_bam, AlignmentInputFormat::Bam, &regions_bed)?;
     let (summary, region_rows) = bijux_dna_domain_bam::summarize_tiny_bam_coverage_regions(
         &aligned_bam,
         Some(&regions_bed),
@@ -1769,113 +1770,6 @@ fn write_mapped_sam_from_fastqs(
         ));
     }
     bijux_dna_infra::write_bytes(output_sam, payload)?;
-    Ok(())
-}
-
-fn convert_coordinate_sam_to_bam(
-    input_sam: &Path,
-    output_bam_path: &Path,
-    output_bam_index_path: &Path,
-) -> Result<()> {
-    use noodles_sam::alignment::io::Write as _;
-    use noodles_sam::header::record::value::map::header::{
-        sort_order::COORDINATE, tag::SORT_ORDER,
-    };
-    use noodles_sam::header::record::value::{map, Map};
-
-    let file = fs::File::open(input_sam)
-        .with_context(|| format!("open semantic alignment SAM {}", input_sam.display()))?;
-    let mut reader = sam::io::Reader::new(BufReader::new(file));
-    let mut header =
-        reader.read_header().with_context(|| format!("read {}", input_sam.display()))?;
-    *header.header_mut() = Some(
-        Map::<map::Header>::builder()
-            .insert(SORT_ORDER, COORDINATE)
-            .build()
-            .map_err(|error| anyhow!("build coordinate sort-order header: {error}"))?,
-    );
-
-    let mut records = reader
-        .records()
-        .collect::<std::io::Result<Vec<_>>>()
-        .with_context(|| format!("read SAM records from {}", input_sam.display()))?;
-    let reference_order = header
-        .reference_sequences()
-        .keys()
-        .enumerate()
-        .map(|(index, name)| (String::from_utf8_lossy(name.as_ref()).into_owned(), index))
-        .collect::<HashMap<_, _>>();
-    records.sort_by(|left, right| {
-        sam_record_sort_key(left, &header, &reference_order).cmp(&sam_record_sort_key(
-            right,
-            &header,
-            &reference_order,
-        ))
-    });
-
-    let bam_file = bijux_dna_infra::create_file(output_bam_path)
-        .with_context(|| format!("create {}", output_bam_path.display()))?;
-    let mut writer = bam::io::Writer::new(bam_file);
-    writer
-        .write_header(&header)
-        .with_context(|| format!("write BAM header to {}", output_bam_path.display()))?;
-    for record in &records {
-        writer
-            .write_alignment_record(&header, record)
-            .with_context(|| format!("write BAM record to {}", output_bam_path.display()))?;
-    }
-    writer.try_finish().with_context(|| format!("finish {}", output_bam_path.display()))?;
-
-    let index = bam::fs::index(output_bam_path)
-        .with_context(|| format!("index coordinate BAM {}", output_bam_path.display()))?;
-    bam::bai::fs::write(output_bam_index_path, &index)
-        .with_context(|| format!("write {}", output_bam_index_path.display()))?;
-    Ok(())
-}
-
-fn sam_record_sort_key(
-    record: &sam::Record,
-    header: &sam::Header,
-    reference_order: &HashMap<String, usize>,
-) -> (usize, usize, usize, String) {
-    let reference_rank = record
-        .reference_sequence_id(header)
-        .transpose()
-        .ok()
-        .flatten()
-        .and_then(|reference_id| {
-            reference_order
-                .iter()
-                .find_map(|(name, rank)| (*rank == reference_id).then_some((name.clone(), *rank)))
-        })
-        .map_or(usize::MAX, |(_, rank)| rank);
-    let alignment_start =
-        record.alignment_start().transpose().ok().flatten().map_or(usize::MAX, usize::from);
-    let unmapped_rank = usize::from(
-        record.flags().ok().is_none_or(noodles_sam::alignment::record::Flags::is_unmapped),
-    );
-    let name = record
-        .name()
-        .map(|name| String::from_utf8_lossy(name.as_ref()).into_owned())
-        .unwrap_or_default();
-    (unmapped_rank, reference_rank, alignment_start, name)
-}
-
-fn write_full_reference_bed(input_bam: &Path, output_bed: &Path) -> Result<()> {
-    let mut reader = bam::io::Reader::new(
-        fs::File::open(input_bam).with_context(|| format!("open {}", input_bam.display()))?,
-    );
-    let header = reader.read_header().with_context(|| format!("read {}", input_bam.display()))?;
-    let mut body = String::new();
-    for (name, reference_sequence) in header.reference_sequences() {
-        let contig = String::from_utf8_lossy(name.as_ref()).into_owned();
-        let length = reference_sequence.length().get();
-        body.push_str(&format!("{contig}\t0\t{length}\t{contig}\n"));
-    }
-    if body.trim().is_empty() {
-        bail!("{} has no reference sequences to render as BED", input_bam.display());
-    }
-    bijux_dna_infra::write_bytes(output_bed, body)?;
     Ok(())
 }
 

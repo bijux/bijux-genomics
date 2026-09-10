@@ -7,6 +7,10 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_docs_tree(root);
     assert_eq!(
+        dir_entries(&root.join("src/repo/alignment_fixture")),
+        entries(["mod.rs", "sorting.rs"])
+    );
+    assert_eq!(
         dir_entries(&root.join("src/repo/simulation")),
         entries(["mod.rs", "failure.rs", "missing.rs", "completion.rs", "paths.rs"])
     );
@@ -134,6 +138,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
+            "alignment_fixture/",
             "hpc_array.rs",
             "hpc_resources.rs",
             "source_assets.rs",

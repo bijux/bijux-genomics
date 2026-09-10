@@ -113,3 +113,5 @@ pub(crate) mod hpc_scratch;
 pub(crate) mod runtime_probe;
 
 pub(crate) mod tool_execution_modes;
+
+pub mod alignment_fixture;

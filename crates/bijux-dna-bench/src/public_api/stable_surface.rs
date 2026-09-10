@@ -866,3 +866,6 @@ pub use bijux_dna_bench_model::{
     ToolExecutionModeAssignment, ToolExecutionModesConfig,
     LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
 };
+
+/// Native alignment-file adapters for small benchmark fixtures.
+pub use crate::repo::alignment_fixture as alignment_fixtures;

@@ -306,3 +306,8 @@ Malformed manifests remain invalid evidence; IO failures are errors. Absolute
 report paths remain supported; observed links and parent traversal are rejected.
 Commands are never executed. Individual writes are not a whole-run transaction,
 and observed-path admission does not prevent concurrent namespace replacement.
+
+`alignment_fixtures` owns native SAM-to-BAM/BAI construction and explicit-format
+reference-span BED projection for local micro-pipeline fixtures. Record collections
+are sorted in memory; encoding and index errors remain explicit. The pair is not
+published transactionally, and this service is not a production-scale sorter.

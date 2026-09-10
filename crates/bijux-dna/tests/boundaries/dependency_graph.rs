@@ -20,8 +20,6 @@ const NORMAL_DEPS: &[&str] = &[
     "bijux-dna-stages-vcf",
     "clap",
     "flate2",
-    "noodles-bam",
-    "noodles-sam",
     "rayon",
     "regex",
     "reqwest",

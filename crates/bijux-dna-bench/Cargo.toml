@@ -32,6 +32,9 @@ bijux-dna-db-ref.workspace = true
 bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 md5.workspace = true
 
+noodles-bam.workspace = true
+noodles-sam.workspace = true
+
 [dev-dependencies]
 bijux-dna-analyze = { path = "../bijux-dna-analyze" }
 bijux-dna-policies = { path = "../bijux-dna-policies" }

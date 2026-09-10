@@ -592,10 +592,11 @@ pub use bijux_dna_bench::{
 };
 
 pub use bijux_dna_bench::{
-    qualify_micro_benchmark_run, MicroBenchmarkComponentReport, MicroBenchmarkExecutionStatus,
-    MicroBenchmarkLogRow, MicroBenchmarkNormalizedMetricRow, MicroBenchmarkOutputRow,
-    MicroBenchmarkResultKind, MicroBenchmarkResultRow, MicroBenchmarkRunEvidence,
-    MicroBenchmarkRunManifest, MICRO_BENCHMARK_RUN_COMMAND, MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
+    alignment_fixtures, qualify_micro_benchmark_run, MicroBenchmarkComponentReport,
+    MicroBenchmarkExecutionStatus, MicroBenchmarkLogRow, MicroBenchmarkNormalizedMetricRow,
+    MicroBenchmarkOutputRow, MicroBenchmarkResultKind, MicroBenchmarkResultRow,
+    MicroBenchmarkRunEvidence, MicroBenchmarkRunManifest, MICRO_BENCHMARK_RUN_COMMAND,
+    MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
 };
 
 pub use bijux_dna_bench::{
