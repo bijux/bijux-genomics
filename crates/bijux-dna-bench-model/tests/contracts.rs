@@ -170,3 +170,6 @@ mod suite_catalog_port;
 
 #[path = "contracts/suite_records.rs"]
 mod suite_records;
+
+#[path = "contracts/hpc_submission.rs"]
+mod hpc_submission;

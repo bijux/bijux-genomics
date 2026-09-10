@@ -1,6 +1,10 @@
 pub use bijux_dna_api::v1::api::bench::SlurmMonitorReport;
 use bijux_dna_api::v1::api::bench::{encode_redacted_hpc_bundle, inspect_hpc_replay_payloads};
 use bijux_dna_api::v1::api::bench::{
+    hpc_stage_domain as stage_domain, plan_hpc_submission, HpcSelectedJob as SelectedJob,
+    HpcSubmissionSelector as SubmissionSubset,
+};
+use bijux_dna_api::v1::api::bench::{
     quote_slurm_argument as shell_quote, slurm_script_path as script_path_for,
 };
 pub use bijux_dna_api::v1::api::bench::{CopyBackEntry, CopyBackManifestReport};
@@ -22,7 +26,6 @@ use crate::commands::cli::{
 use crate::commands::hpc::{
     campaign_dry_run, decrypt_bundle, foundation_lock_path, sha256_hex, sidecar_path_for,
     write_encrypted_bundle, BundleDecryptRequest, BundleWriteRequest, CampaignDryRunReport,
-    PlannedJob,
 };
 
 const SLURM_SUBMISSION_SCHEMA_VERSION: &str = "bijux.hpc.slurm.submission.v1";
@@ -161,13 +164,6 @@ fn default_share_backend() -> String {
 }
 
 #[derive(Debug, Clone)]
-struct SelectedJob {
-    name: String,
-    planned: PlannedJob,
-    depends_on_names: Vec<String>,
-}
-
-#[derive(Debug, Clone)]
 struct SubmissionSettings {
     mode: SubmissionMode,
     subset: SubmissionSubset,
@@ -179,39 +175,11 @@ enum SubmissionMode {
     Real,
 }
 
-#[derive(Debug, Clone)]
-enum SubmissionSubset {
-    All,
-    Stage { stage: String, tool: Option<String>, sample: Option<String> },
-    Domain { domain: String },
-    Cross { domains: Vec<String> },
-}
-
 fn now_timestamp_compact() -> String {
     let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |delta| delta.as_secs());
     secs.to_string()
-}
-
-fn stage_domain(stage_id: &str) -> String {
-    stage_id.split('.').next().unwrap_or("unknown").to_string()
-}
-
-fn infer_dependencies(jobs: &[SelectedJob]) -> Vec<Vec<String>> {
-    let mut by_sample_last_name: BTreeMap<String, String> = BTreeMap::new();
-    let mut result = Vec::with_capacity(jobs.len());
-    for job in jobs {
-        let mut deps = job.depends_on_names.clone();
-        if let Some(previous_name) = by_sample_last_name.get(&job.planned.sample) {
-            if !deps.iter().any(|dep| dep == previous_name) {
-                deps.push(previous_name.clone());
-            }
-        }
-        by_sample_last_name.insert(job.planned.sample.clone(), job.name.clone());
-        result.push(deps);
-    }
-    result
 }
 
 fn prepared_root_lock_path(root: &str) -> String {
@@ -258,7 +226,7 @@ fn write_text(path: &Path, content: &str) -> Result<()> {
 }
 
 fn write_operator_files(
-    job: &SelectedJob,
+    job: &SelectedJob<'_>,
     scheduler_job_id: &str,
     submitted_at: &str,
     redaction_needles: &[String],
@@ -296,7 +264,7 @@ fn git_stdout(args: &[&str]) -> Option<String> {
 
 fn build_results_bundle(
     report: &CampaignDryRunReport,
-    job: &SelectedJob,
+    job: &SelectedJob<'_>,
     scheduler_job_id: &str,
     submitted_at: &str,
     redaction_needles: &[String],
@@ -363,7 +331,7 @@ fn build_results_bundle(
 
 fn build_code_bundle(
     report: &CampaignDryRunReport,
-    job: &SelectedJob,
+    job: &SelectedJob<'_>,
     script_path: &Path,
     scheduler_job_id: &str,
     submitted_at: &str,
@@ -429,7 +397,7 @@ fn build_code_bundle(
 
 fn emit_primary_encrypted_bundles(
     report: &CampaignDryRunReport,
-    job: &SelectedJob,
+    job: &SelectedJob<'_>,
     script_path: &Path,
     scheduler_job_id: &str,
     submitted_at: &str,
@@ -484,7 +452,7 @@ fn emit_primary_encrypted_bundles(
 
 fn maybe_encrypt_operator_outputs(
     report: &CampaignDryRunReport,
-    job: &SelectedJob,
+    job: &SelectedJob<'_>,
     scheduler_job_id: &str,
     submitted_at: &str,
     redaction_needles: &[String],
@@ -522,7 +490,7 @@ fn maybe_encrypt_operator_outputs(
 
 fn build_slurm_script(
     report: &CampaignDryRunReport,
-    job: &SelectedJob,
+    job: &SelectedJob<'_>,
     script_path: &Path,
     dependency_scheduler_ids: &[String],
 ) -> String {
@@ -537,7 +505,7 @@ fn build_slurm_script(
 
     format!(
         "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\n{}\nexport BIJUX_SCRATCH_DIR={}\nexport BIJUX_SCRATCH_IN=$BIJUX_SCRATCH_DIR/in\nexport BIJUX_SCRATCH_OUT=$BIJUX_SCRATCH_DIR/out\nmkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\"\ncleanup() {{\n  rm -rf \"$BIJUX_SCRATCH_DIR\"\n}}\ntrap cleanup EXIT\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\n# Each scheduler job executes exactly one attempt. Retry and supersession are\n# separate lifecycle transitions, never a blocking loop inside this script.\necho \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK scratch=$BIJUX_SCRATCH_DIR\\\"\n",
-        shell_quote(&job.name),
+        shell_quote(job.name),
         job.planned.resources.cpus,
         job.planned.resources.mem_gb,
         shell_quote(&job.planned.resources.walltime),
@@ -581,77 +549,19 @@ fn submit_with_sbatch(script_path: &Path, dependency_scheduler_ids: &[String]) -
     Ok(id.to_string())
 }
 
-fn select_jobs(
-    report: &CampaignDryRunReport,
-    subset: &SubmissionSubset,
-) -> Result<Vec<SelectedJob>> {
-    let mut selected = Vec::new();
-
-    for planned in &report.planned_jobs {
-        let include = match subset {
-            SubmissionSubset::All => true,
-            SubmissionSubset::Stage { stage, tool, sample } => {
-                if planned.stage != *stage {
-                    false
-                } else if let Some(tool) = tool {
-                    planned.tool == *tool
-                } else if let Some(sample) = sample {
-                    planned.sample == *sample
-                } else {
-                    true
-                }
-            }
-            SubmissionSubset::Domain { domain } => stage_domain(&planned.stage) == *domain,
-            SubmissionSubset::Cross { domains } => {
-                let sd = stage_domain(&planned.stage);
-                domains.iter().any(|domain| domain == &sd)
-            }
-        };
-        if include {
-            selected.push(SelectedJob {
-                name: planned.job_name.clone(),
-                planned: planned.clone(),
-                depends_on_names: planned.depends_on.clone(),
-            });
-        }
-    }
-
-    if matches!(subset, SubmissionSubset::Cross { .. }) {
-        let distinct_domains = selected
-            .iter()
-            .map(|job| stage_domain(&job.planned.stage))
-            .collect::<std::collections::BTreeSet<_>>();
-        if distinct_domains.len() < 2 {
-            return Err(anyhow!(
-                "cross-domain submission requires jobs from at least two domains; found {}",
-                distinct_domains.len()
-            ));
-        }
-    }
-
-    if selected.is_empty() {
-        return Err(anyhow!("no jobs matched submission selector"));
-    }
-    Ok(selected)
-}
-
 fn run_submission(
     report: CampaignDryRunReport,
     settings: SubmissionSettings,
 ) -> Result<SlurmSubmissionReport> {
-    let selected = select_jobs(&report, &settings.subset)?;
-    let dependency_name_graph = infer_dependencies(&selected);
+    let plan = plan_hpc_submission(&report.planned_jobs, &settings.subset)?;
     let redaction_needles = redaction_needles(&report)?;
 
     let submitted_at = now_timestamp_compact();
-    let mut name_to_scheduler_id: BTreeMap<String, String> = BTreeMap::new();
+    let mut scheduler_ids = Vec::new();
     let mut jobs_out = Vec::new();
 
-    for (index, selected_job) in selected.iter().enumerate() {
-        let dependency_scheduler_ids = dependency_name_graph[index]
-            .iter()
-            .filter_map(|name| name_to_scheduler_id.get(name).cloned())
-            .collect::<Vec<_>>();
+    for (index, selected_job) in plan.jobs().iter().enumerate() {
+        let dependency_scheduler_ids = plan.scheduler_dependencies(index, &scheduler_ids)?;
 
         let script_path = script_path_for(Path::new(&selected_job.planned.outputs.log));
         let script =
@@ -690,9 +600,9 @@ fn run_submission(
             &redaction_needles,
         )?;
 
-        name_to_scheduler_id.insert(selected_job.name.clone(), scheduler_job_id.clone());
+        scheduler_ids.push(scheduler_job_id.clone());
         jobs_out.push(SubmittedJob {
-            job_name: selected_job.name.clone(),
+            job_name: selected_job.name.to_string(),
             stage: selected_job.planned.stage.clone(),
             tool: selected_job.planned.tool.clone(),
             sample: selected_job.planned.sample.clone(),
@@ -769,7 +679,7 @@ pub fn submit_cross_benchmark(args: &SlurmSubmitCrossArgs) -> Result<SlurmSubmis
             report
                 .planned_jobs
                 .iter()
-                .map(|job| stage_domain(&job.stage))
+                .map(|job| stage_domain(&job.stage).to_string())
                 .collect::<std::collections::BTreeSet<_>>()
                 .into_iter()
                 .collect::<Vec<_>>()

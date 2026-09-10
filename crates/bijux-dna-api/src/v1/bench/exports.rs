@@ -491,12 +491,13 @@ pub use bijux_dna_bench::{
 };
 
 pub use bijux_dna_bench::{
-    campaign_dry_run, campaign_preflight, encode_redacted_hpc_bundle, inspect_hpc_replay_payloads,
-    is_supported_encryption_backend, write_campaign_profiles, CampaignCheck, CampaignConfig,
-    CampaignContext, CampaignDryRunReport, CampaignJob, CampaignLayout, CampaignMeta,
-    CampaignPolicies, CampaignPreflightReport, CampaignSecurity, CampaignSlurm,
-    CorpusSizeScalePolicy, HpcReplayPayloadAdmission, LayoutPolicies, OutputTemplates, PlannedJob,
-    PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
+    campaign_dry_run, campaign_preflight, encode_redacted_hpc_bundle, hpc_stage_domain,
+    inspect_hpc_replay_payloads, is_supported_encryption_backend, plan_hpc_submission,
+    write_campaign_profiles, CampaignCheck, CampaignConfig, CampaignContext, CampaignDryRunReport,
+    CampaignJob, CampaignLayout, CampaignMeta, CampaignPolicies, CampaignPreflightReport,
+    CampaignSecurity, CampaignSlurm, CorpusSizeScalePolicy, HpcReplayPayloadAdmission,
+    HpcSelectedJob, HpcSubmissionPlan, HpcSubmissionSelector, LayoutPolicies, OutputTemplates,
+    PlannedJob, PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
     ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
 };
 
