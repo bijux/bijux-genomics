@@ -2,8 +2,7 @@
 
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn dev_crates_graph_writes_the_governed_workspace_dependency_map() {

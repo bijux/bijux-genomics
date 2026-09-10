@@ -3,8 +3,7 @@
 use std::collections::BTreeMap;
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn dev_crates_check_cycles_writes_the_governed_audit_report() {

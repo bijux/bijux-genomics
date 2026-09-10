@@ -2,8 +2,7 @@
 
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn dev_crates_parser_effect_audit_writes_the_governed_audit_report() {

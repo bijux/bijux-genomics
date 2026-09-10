@@ -2,8 +2,7 @@
 
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn dev_crates_planner_no_parser_writes_the_governed_audit_report() {
@@ -71,6 +70,32 @@ fn dev_crates_planner_no_parser_writes_the_governed_audit_report() {
         }
     }
 
+    assert_bam_input_readers(crates);
+    assert_fastq_input_readers(crates);
+
+    let vcf_report = crates
+        .iter()
+        .find(|crate_report| {
+            crate_report.get("crate_name").and_then(serde_json::Value::as_str)
+                == Some("bijux-dna-planner-vcf")
+        })
+        .expect("vcf planner report");
+    let vcf_allowed = vcf_report
+        .get("allowed_input_read_paths")
+        .and_then(serde_json::Value::as_array)
+        .expect("allowed_input_read_paths");
+    assert!(
+        vcf_allowed.iter().any(|row| {
+            row.get("path").and_then(serde_json::Value::as_str)
+                == Some("crates/bijux-dna-planner-vcf/src/workspace_config.rs")
+        }),
+        "VCF planner audit must keep governed workspace config reads explicit"
+    );
+
+    assert!(out.is_file(), "audit must write the governed report file");
+}
+
+fn assert_bam_input_readers(crates: &[serde_json::Value]) {
     let bam_report = crates
         .iter()
         .find(|report| {
@@ -112,7 +137,9 @@ fn dev_crates_planner_no_parser_writes_the_governed_audit_report() {
         ]),
         "every governed BAM case input reader must remain explicit"
     );
+}
 
+fn assert_fastq_input_readers(crates: &[serde_json::Value]) {
     let fastq_report = crates
         .iter()
         .find(|crate_report| {
@@ -155,25 +182,4 @@ fn dev_crates_planner_no_parser_writes_the_governed_audit_report() {
         "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_reads.rs",
         "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_terminal_damage.rs",
     ]), "every governed FASTQ case input reader must remain explicit in the planner audit");
-
-    let vcf_report = crates
-        .iter()
-        .find(|crate_report| {
-            crate_report.get("crate_name").and_then(serde_json::Value::as_str)
-                == Some("bijux-dna-planner-vcf")
-        })
-        .expect("vcf planner report");
-    let vcf_allowed = vcf_report
-        .get("allowed_input_read_paths")
-        .and_then(serde_json::Value::as_array)
-        .expect("allowed_input_read_paths");
-    assert!(
-        vcf_allowed.iter().any(|row| {
-            row.get("path").and_then(serde_json::Value::as_str)
-                == Some("crates/bijux-dna-planner-vcf/src/workspace_config.rs")
-        }),
-        "VCF planner audit must keep governed workspace config reads explicit"
-    );
-
-    assert!(out.is_file(), "audit must write the governed report file");
 }
