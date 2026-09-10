@@ -14,7 +14,13 @@ use bijux_dna_api::v1::api::bench::{
     hpc_stage_domain as stage_domain, plan_hpc_submission, HpcSelectedJob as SelectedJob,
     HpcSubmissionSelector as SubmissionSubset,
 };
+use bijux_dna_api::v1::api::bench::{
+    validate_hpc_submission_report, HpcSubmissionMode as SubmissionMode,
+    HpcSubmissionSettings as SubmissionSettings,
+    HPC_SLURM_SUBMISSION_SCHEMA_VERSION as SLURM_SUBMISSION_SCHEMA_VERSION,
+};
 pub use bijux_dna_api::v1::api::bench::{CopyBackEntry, CopyBackManifestReport};
+pub use bijux_dna_api::v1::api::bench::{SlurmSubmissionReport, SubmittedJob};
 use bijux_dna_api::v1::api::run::observe_hpc_code_freeze;
 use std::path::{Path, PathBuf};
 
@@ -37,36 +43,7 @@ use crate::commands::hpc::{
     write_encrypted_bundle, BundleDecryptRequest, BundleWriteRequest, CampaignDryRunReport,
 };
 
-const SLURM_SUBMISSION_SCHEMA_VERSION: &str = "bijux.hpc.slurm.submission.v1";
 const BUNDLE_DECRYPT_SCHEMA_VERSION: &str = "bijux.hpc.bundle.decrypt.v1";
-
-#[derive(Debug, Clone, Serialize)]
-pub struct SlurmSubmissionReport {
-    pub schema_version: &'static str,
-    pub mode: String,
-    pub campaign_id: String,
-    pub domain: String,
-    pub submitted_at: String,
-    pub jobs: Vec<SubmittedJob>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct SubmittedJob {
-    pub job_name: String,
-    pub stage: String,
-    pub tool: String,
-    pub sample: String,
-    pub array_task: Option<u32>,
-    pub planned_job_id: String,
-    pub scheduler_job_id: String,
-    pub dependency_scheduler_ids: Vec<String>,
-    pub script_path: String,
-    pub log_path: String,
-    pub out_path: String,
-    pub err_path: String,
-    pub results_path: String,
-    pub code_path: String,
-}
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SlurmDecryptReport {
@@ -170,18 +147,6 @@ struct ShareProfile {
 
 fn default_share_backend() -> String {
     "mock-envelope-v1".to_string()
-}
-
-#[derive(Debug, Clone)]
-struct SubmissionSettings {
-    mode: SubmissionMode,
-    subset: SubmissionSubset,
-}
-
-#[derive(Debug, Clone)]
-enum SubmissionMode {
-    Mock,
-    Real,
 }
 
 fn now_timestamp_compact() -> String {
@@ -524,7 +489,7 @@ fn run_submission(
         });
     }
 
-    Ok(SlurmSubmissionReport {
+    let report = SlurmSubmissionReport {
         schema_version: SLURM_SUBMISSION_SCHEMA_VERSION,
         mode: match settings.mode {
             SubmissionMode::Mock => "mock".to_string(),
@@ -534,7 +499,9 @@ fn run_submission(
         domain: report.domain,
         submitted_at,
         jobs: jobs_out,
-    })
+    };
+    validate_hpc_submission_report(&report)?;
+    Ok(report)
 }
 
 pub fn submit_stage_benchmark(args: &SlurmSubmitStageArgs) -> Result<SlurmSubmissionReport> {

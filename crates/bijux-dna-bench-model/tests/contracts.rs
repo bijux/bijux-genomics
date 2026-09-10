@@ -182,3 +182,6 @@ mod hpc_campaign_fixture;
 
 #[path = "contracts/hpc_submission_script.rs"]
 mod hpc_submission_script;
+
+#[path = "contracts/hpc_submission_report.rs"]
+mod hpc_submission_report;

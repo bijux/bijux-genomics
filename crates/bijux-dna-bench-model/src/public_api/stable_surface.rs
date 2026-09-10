@@ -957,7 +957,8 @@ pub use crate::policy::hpc_submission::{
 };
 
 pub use crate::model::hpc_campaign::{
-    assemble_hpc_code_submission, assemble_hpc_results_submission, HpcBundleFoundationLocks,
-    HpcBundleSubmission, HpcCodeFreezeObservation, HpcCodeSubmissionBundle,
-    HpcResultsSubmissionBundle,
+    assemble_hpc_code_submission, assemble_hpc_results_submission, validate_hpc_submission_report,
+    HpcBundleFoundationLocks, HpcBundleSubmission, HpcCodeFreezeObservation,
+    HpcCodeSubmissionBundle, HpcResultsSubmissionBundle, HpcSubmissionMode, HpcSubmissionSettings,
+    SlurmSubmissionReport, SubmittedJob, HPC_SLURM_SUBMISSION_SCHEMA_VERSION,
 };

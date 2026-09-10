@@ -21,3 +21,9 @@ pub use submission_bundle::{
     HpcBundleSubmission, HpcCodeFreezeObservation, HpcCodeSubmissionBundle,
     HpcResultsSubmissionBundle,
 };
+
+mod submission_report;
+pub use submission_report::{
+    validate_hpc_submission_report, HpcSubmissionMode, HpcSubmissionSettings,
+    SlurmSubmissionReport, SubmittedJob, HPC_SLURM_SUBMISSION_SCHEMA_VERSION,
+};

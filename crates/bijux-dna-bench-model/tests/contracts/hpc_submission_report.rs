@@ -1,0 +1,78 @@
+use anyhow::{Context, Result};
+use bijux_dna_bench_model::{validate_hpc_submission_report, SlurmSubmissionReport};
+use serde_json::{json, Value};
+
+fn receipt() -> Value {
+    let job = json!({
+        "job_name":"trim", "stage":"fastq.trim", "tool":"fastp", "sample":"sample",
+        "array_task":null, "planned_job_id":"planned-trim", "scheduler_job_id":"mock-0001",
+        "dependency_scheduler_ids":[], "script_path":"scripts/trim.sh",
+        "log_path":"logs/trim.log", "out_path":"logs/trim.out", "err_path":"logs/trim.err",
+        "results_path":"results/trim.age", "code_path":"code/trim.age"
+    });
+    let mut dependent = job.clone();
+    dependent["job_name"] = json!("qc");
+    dependent["planned_job_id"] = json!("planned-qc");
+    dependent["scheduler_job_id"] = json!("mock-0002");
+    dependent["dependency_scheduler_ids"] = json!(["mock-0001"]);
+    json!({"schema_version":"bijux.hpc.slurm.submission.v1", "mode":"mock",
+        "campaign_id":"campaign", "domain":"fastq", "submitted_at":"1750000000",
+        "jobs":[job, dependent]})
+}
+
+#[test]
+fn submission_report_preserves_wire_and_admits_ordered_receipts() -> Result<()> {
+    let value = receipt();
+    let report: SlurmSubmissionReport =
+        serde_json::from_value(value.clone()).context("decode valid mock receipt")?;
+    validate_hpc_submission_report(&report).context("admit ordered receipts")?;
+    assert_eq!(serde_json::to_value(report).context("serialize receipt")?, value);
+    let mut real = value;
+    real["mode"] = json!("real");
+    real["jobs"][0]["scheduler_job_id"] = json!("1001");
+    real["jobs"][1]["scheduler_job_id"] = json!("1002");
+    real["jobs"][1]["dependency_scheduler_ids"] = json!(["1001"]);
+    validate_hpc_submission_report(&serde_json::from_value(real).context("decode real receipt")?)
+        .context("admit real receipts")?;
+    Ok(())
+}
+
+#[test]
+fn submission_report_rejects_foreign_wire_and_invalid_receipt_closure() -> Result<()> {
+    for (pointer, replacement) in
+        [("/schema_version", json!("bijux.hpc.slurm.submission.v9")), ("/mode", json!("complete"))]
+    {
+        let mut value = receipt();
+        *value.pointer_mut(pointer).context("existing mutation field")? = replacement;
+        assert!(serde_json::from_value::<SlurmSubmissionReport>(value).is_err());
+    }
+    for pointer in ["", "/jobs/0"] {
+        let mut value = receipt();
+        value
+            .pointer_mut(pointer)
+            .context("existing receipt object")?
+            .as_object_mut()
+            .context("existing receipt object")?
+            .insert("extra".into(), json!(true));
+        assert!(serde_json::from_value::<SlurmSubmissionReport>(value).is_err());
+    }
+    for (pointer, replacement) in [
+        ("/jobs", json!([])),
+        ("/campaign_id", json!(" ")),
+        ("/jobs/0/script_path", json!("")),
+        ("/jobs/1/job_name", json!("trim")),
+        ("/jobs/1/planned_job_id", json!("planned-trim")),
+        ("/jobs/1/scheduler_job_id", json!("mock-0001")),
+        ("/jobs/1/scheduler_job_id", json!("123")),
+        ("/jobs/0/dependency_scheduler_ids", json!(["mock-0002"])),
+        ("/jobs/0/dependency_scheduler_ids", json!(["mock-0001"])),
+        ("/jobs/1/dependency_scheduler_ids", json!(["unknown"])),
+        ("/jobs/1/dependency_scheduler_ids", json!(["mock-0001", "mock-0001"])),
+    ] {
+        let mut value = receipt();
+        *value.pointer_mut(pointer).context("existing mutation field")? = replacement;
+        let report = serde_json::from_value(value).context("decode semantic mutation")?;
+        assert!(validate_hpc_submission_report(&report).is_err(), "accepted mutation at {pointer}");
+    }
+    Ok(())
+}
