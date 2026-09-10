@@ -106,3 +106,9 @@ Variant truth admission and expected/observed JSON/text output cases share the
 and file-publication cases share `plan_validate_pipelines`, grouped by declared pipeline.
 Both retain the repository-mutator nextest group and original per-command guards.
 These are command boundary contracts; scientific truth semantics remain owner-tested.
+
+Benchmark path admission/cleanup, schema validation and planning projections are
+grouped in `bench_paths`, `bench_schema_validation` and `bench_planning`.
+Their modules pair JSON with file, TSV, TOML, shell and argv publication contracts
+under each responsibility. All original cases and repository-mutator guards remain;
+test execution can be sharded independently of these shared compilation targets.
