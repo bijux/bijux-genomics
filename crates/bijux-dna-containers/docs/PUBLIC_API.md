@@ -32,7 +32,10 @@
   no-clobber canonical image activation and activation-derived current inventory requests;
   reversible historical, obsolete, and interrupted image
   quarantine; no-copy external binary/SIF admission, access blockers, checksum/version replay, and
-  stage command binding for licensing-restricted tools; focused catalog/image-inventory closure
+  stage command binding for licensing-restricted tools; `admit_external_artifact_with_probe`
+  accepts a trusted `ExternalArtifactProbeTransport` with typed request, raw observation and
+  terminal outcome. Command projection and version admission remain independent of the transport;
+  `NativeExternalArtifactProbeTransport` uses bounded shared process capture; focused catalog/image-inventory closure
   validation for execution planning; runtime inspection; deterministic image-inventory report
   rendering; validation, loading, JSON Schema rendering, and atomic schema writing.
 - `execution_contract`: strict credential-reference loading, validation, and generated schema

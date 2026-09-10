@@ -1,9 +1,7 @@
-//! Current repository observations, admission publication and version-probe acquisition.
-use std::path::{Path, PathBuf};
-use std::process::Command;
+//! Current repository observations and immutable admission publication.
+use std::path::Path;
 
 use anyhow::{bail, Context, Result};
-use regex::Regex;
 
 use super::super::tool_contract::{
     catalog_identity_at_commit, load_container_catalog, repository_head_commit,
@@ -11,8 +9,7 @@ use super::super::tool_contract::{
 use super::super::EvidenceSourceIdentity;
 use super::model::{
     ExternalArtifactAdmission, ExternalArtifactAdmissionStatus, ExternalArtifactCommandBinding,
-    ExternalArtifactIdentity, ExternalArtifactKind, ExternalArtifactVersionProbe,
-    EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2,
+    ExternalArtifactIdentity, ExternalArtifactVersionProbe, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2,
 };
 
 use super::admission::{
@@ -20,26 +17,10 @@ use super::admission::{
     validate_persisted_version_probe, validate_sha256,
 };
 
-const MAX_VERSION_OUTPUT_BYTES: usize = 64 * 1024;
-
-pub struct ExternalArtifactInput<'a> {
-    pub kind: ExternalArtifactKind,
-    pub path: &'a Path,
-    pub expected_sha256: &'a str,
-    pub lawful_access_basis: &'a str,
-    pub apptainer_executable: Option<&'a Path>,
-}
-
-pub struct ExternalArtifactAdmissionRequest<'a> {
-    pub repository_root: &'a Path,
-    pub distributable_image_root: &'a Path,
-    pub repository_commit: &'a str,
-    pub tool_id: &'a str,
-    pub recorded_at_utc: &'a str,
-    pub availability: ExternalArtifactAdmissionStatus,
-    pub artifact: Option<ExternalArtifactInput<'a>>,
-    pub blocker_reason: Option<&'a str>,
-}
+use super::probe::{
+    probe_version, ExternalArtifactProbeTransport, NativeExternalArtifactProbeTransport,
+};
+use super::request::{ExternalArtifactAdmissionRequest, ExternalArtifactInput};
 
 /// Admit an operator-provided artifact without copying it into repository or active image storage.
 ///
@@ -49,6 +30,21 @@ pub struct ExternalArtifactAdmissionRequest<'a> {
 pub fn admit_external_artifact(
     request: &ExternalArtifactAdmissionRequest<'_>,
     output: &Path,
+) -> Result<ExternalArtifactAdmission> {
+    admit_external_artifact_with_probe(request, output, &mut NativeExternalArtifactProbeTransport)
+}
+
+/// Admit an artifact using an explicit version-observation transport.
+/// The same catalog, source, checksum, version and immutable-publication requirements apply
+/// as in [`admit_external_artifact`]. Blocked/unavailable declarations never invoke the probe.
+///
+/// # Errors
+/// Rejects invalid requests before probing and rejects unsuccessful or incompatible evidence
+/// before publication. A transport error does not become a successful availability record.
+pub fn admit_external_artifact_with_probe(
+    request: &ExternalArtifactAdmissionRequest<'_>,
+    output: &Path,
+    transport: &mut dyn ExternalArtifactProbeTransport,
 ) -> Result<ExternalArtifactAdmission> {
     require_timestamp(request.recorded_at_utc)?;
     let repository_root = request
@@ -89,8 +85,13 @@ pub fn admit_external_artifact(
     let (lawful_access_basis, artifact, version_probe, blocker_reason) =
         match (request.availability, &request.artifact, request.blocker_reason) {
             (ExternalArtifactAdmissionStatus::Admitted, Some(input), None) => {
-                let admitted =
-                    inspect_artifact(&repository_root, &distributable_image_root, &tool, input)?;
+                let admitted = inspect_artifact(
+                    &repository_root,
+                    &distributable_image_root,
+                    &tool,
+                    input,
+                    transport,
+                )?;
                 (
                     Some(input.lawful_access_basis.trim().to_string()),
                     Some(admitted.0),
@@ -257,6 +258,7 @@ fn inspect_artifact(
     distributable_image_root: &Path,
     tool: &crate::evidence::tool_contract::ContainerCatalogTool,
     input: &ExternalArtifactInput<'_>,
+    transport: &mut dyn ExternalArtifactProbeTransport,
 ) -> Result<(ExternalArtifactIdentity, ExternalArtifactVersionProbe)> {
     if input.lawful_access_basis.trim().is_empty() {
         bail!("external artifact requires a lawful access basis");
@@ -281,13 +283,7 @@ fn inspect_artifact(
     if sha256 != input.expected_sha256.to_ascii_lowercase() {
         bail!("external artifact checksum does not match operator declaration");
     }
-    let command = version_probe_command(tool, input, &artifact_path)?;
-    let output = execute_version_probe(&command)?;
-    let expected = Regex::new(&tool.expected_version_regex)
-        .context("compile external artifact version contract")?;
-    if !expected.is_match(&output) {
-        bail!("external artifact version output does not match catalog contract");
-    }
+    let version_probe = probe_version(tool, input, &artifact_path, transport)?;
     Ok((
         ExternalArtifactIdentity {
             kind: input.kind,
@@ -295,72 +291,6 @@ fn inspect_artifact(
             sha256,
             size_bytes: metadata.len(),
         },
-        ExternalArtifactVersionProbe {
-            command,
-            output_sha256: bijux_dna_infra::hash_bytes_sha256(output.as_bytes()),
-            output,
-        },
+        version_probe,
     ))
-}
-
-fn version_probe_command(
-    tool: &crate::evidence::tool_contract::ContainerCatalogTool,
-    input: &ExternalArtifactInput<'_>,
-    artifact_path: &Path,
-) -> Result<Vec<String>> {
-    let tokens = tool.version_command.split_ascii_whitespace().collect::<Vec<_>>();
-    let [program, arguments @ ..] = tokens.as_slice() else {
-        bail!("external artifact version command is empty");
-    };
-    if *program != tool.expected_bin {
-        bail!("external artifact version command does not invoke the expected binary");
-    }
-    let mut command = match input.kind {
-        ExternalArtifactKind::Binary => vec![artifact_path.display().to_string()],
-        ExternalArtifactKind::ApptainerSif => vec![
-            input
-                .apptainer_executable
-                .map_or_else(|| PathBuf::from("apptainer"), Path::to_path_buf)
-                .display()
-                .to_string(),
-            "exec".to_string(),
-            artifact_path.display().to_string(),
-            tool.expected_bin.clone(),
-        ],
-    };
-    command.extend(arguments.iter().map(|argument| (*argument).to_string()));
-    Ok(command)
-}
-
-fn execute_version_probe(command: &[String]) -> Result<String> {
-    let [program, arguments @ ..] = command else {
-        bail!("external artifact version probe is empty");
-    };
-    let output = bijux_dna_process::capture(
-        Command::new(program).args(arguments),
-        bijux_dna_process::CaptureLimits {
-            timeout: std::time::Duration::from_secs(30),
-            max_output_bytes: MAX_VERSION_OUTPUT_BYTES,
-        },
-        "external artifact version probe",
-    )?;
-    if output.timed_out {
-        bail!("external artifact version probe exceeded its 30-second deadline");
-    }
-    if output.output_limit_exceeded {
-        bail!("external artifact version output exceeds the bounded evidence limit");
-    }
-    let byte_count = output.stdout.len().saturating_add(output.stderr.len());
-    if byte_count > MAX_VERSION_OUTPUT_BYTES {
-        bail!("external artifact version output exceeds the bounded evidence limit");
-    }
-    if !output.status.success() {
-        bail!("external artifact version probe exited with {}", output.status);
-    }
-    let mut bytes = output.stdout;
-    if !bytes.is_empty() && !output.stderr.is_empty() && !bytes.ends_with(b"\n") {
-        bytes.push(b'\n');
-    }
-    bytes.extend(output.stderr);
-    String::from_utf8(bytes).context("external artifact version output is not UTF-8")
 }

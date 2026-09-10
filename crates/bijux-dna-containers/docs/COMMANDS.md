@@ -56,6 +56,9 @@ library can manage when callers invoke the matching API.
   against a binary or through `apptainer exec`, verifies the declared checksum, and publishes a
   no-copy record. Restricted artifacts must remain outside the repository and active image root;
   blocked and unavailable records remain product-supported but cannot bind an execution command.
+- `admit_external_artifact_with_probe()`: applies the same admission rules through an explicit
+  `ExternalArtifactProbeTransport`. A trusted transport supplies bounded raw observations;
+  version matching and publication remain owned by admission. Transport unavailability is an error.
 - `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
   after strict commit validation and hashes the exact historical catalog bytes.
 - `derive_container_catalog_lock()` and `load_container_catalog_lock()`: derive and admit the
@@ -99,8 +102,8 @@ library can manage when callers invoke the matching API.
 - `src/evidence/tool_contract/recipe_identity.rs`: exact-commit definition and `%files` identity.
 - `src/evidence/tool_contract/version_lock.rs`: committed version-source timestamp derivation for
   deterministic immutable lock publication.
-- `src/evidence/external_artifact/workflow.rs`: operator-artifact version probing and immutable
-  external admission; it never copies or publishes the restricted artifact.
+- `src/evidence/external_artifact/probe/native.rs`: local operator-artifact version observation
+  through shared process capture, with a 30-second deadline and 64 KiB combined raw stream limit.
 - `src/site_policy/repository_freeze.rs`: clean-source verification and commit-addressed Git
   worktree materialization under site-governed roots.
 - `src/site_policy/repository_archive.rs`: bounded Git-bundle creation from an existing snapshot or
