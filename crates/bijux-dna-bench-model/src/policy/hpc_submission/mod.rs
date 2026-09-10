@@ -71,3 +71,6 @@ pub fn plan_hpc_submission<'a>(
     let dependencies = dependencies::admit(jobs, &selected)?;
     Ok(HpcSubmissionPlan { jobs: selected, dependencies })
 }
+
+mod admission;
+pub use admission::validate_hpc_submission_request;

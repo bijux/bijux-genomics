@@ -24,6 +24,7 @@ pub use submission_bundle::{
 
 mod submission_report;
 pub use submission_report::{
-    validate_hpc_submission_report, HpcSubmissionMode, HpcSubmissionSettings,
-    SlurmSubmissionReport, SubmittedJob, HPC_SLURM_SUBMISSION_SCHEMA_VERSION,
+    validate_hpc_scheduler_receipt, validate_hpc_submission_report, HpcSubmissionMode,
+    HpcSubmissionSettings, SlurmSubmissionReport, SubmittedJob,
+    HPC_SLURM_SUBMISSION_SCHEMA_VERSION,
 };

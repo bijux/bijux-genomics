@@ -76,3 +76,41 @@ fn submission_report_rejects_foreign_wire_and_invalid_receipt_closure() -> Resul
     }
     Ok(())
 }
+
+#[test]
+fn submission_request_and_backend_receipts_reject_invalid_identity_before_publication() -> Result<()>
+{
+    use bijux_dna_bench_model::{
+        plan_hpc_submission, validate_hpc_scheduler_receipt, validate_hpc_submission_request,
+        HpcSubmissionMode, HpcSubmissionSelector,
+    };
+    let mut report = crate::hpc_campaign_fixture::campaign();
+    report.planned_jobs[0].depends_on.clear();
+    let plan = plan_hpc_submission(&report.planned_jobs, &HpcSubmissionSelector::All)?;
+    validate_hpc_submission_request(&report, &plan, "1700000000")?;
+    assert!(validate_hpc_submission_request(&report, &plan, " ").is_err());
+    drop(plan);
+    report.planned_jobs[0].outputs.log.clear();
+    let plan = plan_hpc_submission(&report.planned_jobs, &HpcSubmissionSelector::All)?;
+    assert!(validate_hpc_submission_request(&report, &plan, "1700000000").is_err());
+    drop(plan);
+    let mut report = crate::hpc_campaign_fixture::campaign();
+    report.planned_jobs[0].depends_on.clear();
+    let mut repeated = report.planned_jobs[0].clone();
+    repeated.job_name = "distinct-name".into();
+    report.planned_jobs.push(repeated);
+    let plan = plan_hpc_submission(&report.planned_jobs, &HpcSubmissionSelector::All)?;
+    assert!(validate_hpc_submission_request(&report, &plan, "1700000000").is_err());
+    validate_hpc_scheduler_receipt(HpcSubmissionMode::Real, "1234", &[])?;
+    validate_hpc_scheduler_receipt(HpcSubmissionMode::Mock, "mock-0001", &[])?;
+    for (mode, identity, preceding) in [
+        (HpcSubmissionMode::Real, "1234", vec!["1234".into()]),
+        (HpcSubmissionMode::Real, "mock-0001", vec![]),
+        (HpcSubmissionMode::Mock, "1234", vec![]),
+        (HpcSubmissionMode::Real, "1234;foreign", vec![]),
+        (HpcSubmissionMode::Real, "", vec![]),
+    ] {
+        assert!(validate_hpc_scheduler_receipt(mode, identity, &preceding).is_err());
+    }
+    Ok(())
+}

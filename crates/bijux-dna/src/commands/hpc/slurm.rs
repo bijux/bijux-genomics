@@ -2068,6 +2068,13 @@ sample = "{secret}"
             mode: super::SubmissionMode::Real,
             subset: super::SubmissionSubset::All,
         };
+        let untouched = root.path().join("rejected-submission");
+        let mut invalid = single.clone();
+        invalid.planned_jobs[0].outputs.log = untouched.join("job.log").display().to_string();
+        let invalid_result =
+            super::submit_hpc_campaign(invalid, settings.clone(), &locks, " ".into(), &backend);
+        assert!(invalid_result.is_err());
+        assert!(!untouched.exists(), "invalid context must reject before script publication");
         super::submit_hpc_campaign(
             single.clone(),
             settings.clone(),

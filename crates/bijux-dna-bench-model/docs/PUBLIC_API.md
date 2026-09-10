@@ -493,3 +493,5 @@ Execution-mode declarations own closed TOML-compatible shapes and header/assignm
 `select_hpc_redaction_needles` applies campaign sensitive-key policy to explicit decoded values. `redact_hpc_text` shares literal replacement semantics with bundle string redaction; environment acquisition belongs to the benchmark repository reader.
 
 `SlurmSubmissionReport` and `SubmittedJob` own the existing scheduler receipt wire format. `validate_hpc_submission_report` admits unique job identities and ordered in-scope dependencies; unsupported versions and modes reject during decoding. `HpcSubmissionSettings` and `HpcSubmissionMode` carry scope choices without command-parser dependencies. The report records submission, not successful execution.
+
+`validate_hpc_submission_request` admits selected campaign identities and output fields before submission effects. `validate_hpc_scheduler_receipt` applies the report identity rules immediately after a backend response and before operator or encrypted artifact publication; duplicate receipts reject. These checks do not roll back a scheduler side effect that already occurred.

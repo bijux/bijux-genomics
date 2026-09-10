@@ -45,16 +45,7 @@ pub fn validate_hpc_submission_report(report: &SlurmSubmissionReport) -> Result<
             names.insert(job.job_name.as_str()) && planned.insert(job.planned_job_id.as_str()),
             "duplicate submitted campaign job"
         );
-        let scheduler_number = if report.mode == "mock" {
-            job.scheduler_job_id.strip_prefix("mock-").unwrap_or_default()
-        } else {
-            job.scheduler_job_id.as_str()
-        };
-        ensure!(
-            !scheduler_number.is_empty()
-                && scheduler_number.bytes().all(|byte| byte.is_ascii_digit()),
-            "invalid scheduler identity for submission mode"
-        );
+        validate_scheduler_identity(&report.mode, &job.scheduler_job_id)?;
         let mut dependencies = BTreeSet::new();
         for dependency in &job.dependency_scheduler_ids {
             ensure!(
@@ -98,4 +89,34 @@ pub(super) fn deserialize_mode<'de, D: serde::Deserializer<'de>>(
 
 pub(super) fn mode_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
     schemars::json_schema!({"type":"string","enum":["mock","real"]})
+}
+
+/// Admit an external receipt before publishing operator files or encrypted payloads.
+/// # Errors
+/// Rejects malformed mode-specific identities and identities returned for a previous job.
+pub fn validate_hpc_scheduler_receipt(
+    mode: super::HpcSubmissionMode,
+    identity: &str,
+    preceding: &[String],
+) -> Result<()> {
+    let mode = match mode {
+        super::HpcSubmissionMode::Mock => "mock",
+        super::HpcSubmissionMode::Real => "real",
+    };
+    validate_scheduler_identity(mode, identity)?;
+    ensure!(
+        !preceding.iter().any(|prior| prior == identity),
+        "duplicate scheduler receipt identity"
+    );
+    Ok(())
+}
+
+fn validate_scheduler_identity(mode: &str, identity: &str) -> Result<()> {
+    let number =
+        if mode == "mock" { identity.strip_prefix("mock-").unwrap_or_default() } else { identity };
+    ensure!(
+        !number.is_empty() && number.bytes().all(|byte| byte.is_ascii_digit()),
+        "invalid scheduler identity for submission mode"
+    );
+    Ok(())
 }

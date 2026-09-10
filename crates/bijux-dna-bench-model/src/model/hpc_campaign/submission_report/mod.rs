@@ -1,7 +1,7 @@
 //! Versioned scheduler submission receipts and frontend-independent scope settings.
 use serde::{Deserialize, Serialize};
 mod validation;
-pub use validation::validate_hpc_submission_report;
+pub use validation::{validate_hpc_scheduler_receipt, validate_hpc_submission_report};
 
 pub const HPC_SLURM_SUBMISSION_SCHEMA_VERSION: &str = "bijux.hpc.slurm.submission.v1";
 

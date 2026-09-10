@@ -9,6 +9,7 @@ use bijux_dna_bench_model::{
     HpcSubmissionSettings as SubmissionSettings, SlurmSubmissionReport, SubmittedJob,
     HPC_SLURM_SUBMISSION_SCHEMA_VERSION as SLURM_SUBMISSION_SCHEMA_VERSION,
 };
+use bijux_dna_bench_model::{validate_hpc_scheduler_receipt, validate_hpc_submission_request};
 use std::path::Path;
 mod backend;
 mod bundles;
@@ -30,6 +31,7 @@ pub fn submit_hpc_campaign(
         "real Slurm submission cannot encrypt active scheduler output paths; collect terminal outputs before encryption"
     );
     let plan = plan_hpc_submission(&report.planned_jobs, &settings.subset)?;
+    validate_hpc_submission_request(&report, &plan, &submitted_at)?;
     let redaction_needles = collect_hpc_redaction_needles(
         Path::new(&report.env_file_path),
         &report.security.redacted_env_keys,
@@ -60,6 +62,8 @@ pub fn submit_hpc_campaign(
                 &submitted_at,
             )?,
         };
+
+        validate_hpc_scheduler_receipt(settings.mode, &scheduler_job_id, &scheduler_ids)?;
 
         write_operator_files(
             matches!(settings.mode, SubmissionMode::Mock),

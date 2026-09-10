@@ -953,12 +953,14 @@ pub use crate::policy::bundle_redaction::{encode_redacted_hpc_bundle, redact_hpc
 
 pub use crate::policy::hpc_submission::{
     hpc_stage_domain, plan_hpc_submission, render_hpc_submission_script,
-    select_hpc_redaction_needles, HpcSelectedJob, HpcSubmissionPlan, HpcSubmissionSelector,
+    select_hpc_redaction_needles, validate_hpc_submission_request, HpcSelectedJob,
+    HpcSubmissionPlan, HpcSubmissionSelector,
 };
 
 pub use crate::model::hpc_campaign::{
-    assemble_hpc_code_submission, assemble_hpc_results_submission, validate_hpc_submission_report,
-    HpcBundleFoundationLocks, HpcBundleSubmission, HpcCodeFreezeObservation,
-    HpcCodeSubmissionBundle, HpcResultsSubmissionBundle, HpcSubmissionMode, HpcSubmissionSettings,
-    SlurmSubmissionReport, SubmittedJob, HPC_SLURM_SUBMISSION_SCHEMA_VERSION,
+    assemble_hpc_code_submission, assemble_hpc_results_submission, validate_hpc_scheduler_receipt,
+    validate_hpc_submission_report, HpcBundleFoundationLocks, HpcBundleSubmission,
+    HpcCodeFreezeObservation, HpcCodeSubmissionBundle, HpcResultsSubmissionBundle,
+    HpcSubmissionMode, HpcSubmissionSettings, SlurmSubmissionReport, SubmittedJob,
+    HPC_SLURM_SUBMISSION_SCHEMA_VERSION,
 };
