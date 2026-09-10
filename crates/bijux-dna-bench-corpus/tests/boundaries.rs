@@ -12,16 +12,18 @@ fn admit_dependencies(manifest: &toml::Value) -> Result<()> {
         "flate2",
         "bijux-dna-domain-bam",
         "bijux-dna-domain-vcf",
+        "bijux-dna-db-ref",
+        "bijux-dna-infra",
     ]);
     let dependencies = manifest["dependencies"]
         .as_table()
         .ok_or_else(|| anyhow::anyhow!("missing dependencies"))?;
     for (name, declaration) in dependencies {
         ensure!(allowed.contains(name.as_str()), "corpus admission cannot depend on {name}");
-        if name.starts_with("bijux-dna-domain-") {
+        if name.starts_with("bijux-dna-") {
             ensure!(
                 declaration.get("optional").and_then(toml::Value::as_bool) == Some(true),
-                "native domain {name} must remain optional"
+                "specialized dependency {name} must remain optional"
             );
         }
     }

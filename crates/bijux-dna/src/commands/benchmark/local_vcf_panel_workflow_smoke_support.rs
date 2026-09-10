@@ -1,6 +1,6 @@
 #[cfg(test)]
-use bijux_dna_bench_vcf::fixtures::panel::materialize_local_vcf_panel_fixture;
-pub(crate) use bijux_dna_bench_vcf::fixtures::panel::{
+use bijux_dna_bench_corpus::panel_metadata::materialize_local_vcf_panel_fixture;
+pub(crate) use bijux_dna_bench_corpus::panel_metadata::{
     resolve_governed_vcf_panel_asset_contract, GOVERNED_VCF_MAP_ID, GOVERNED_VCF_PANEL_BUILD_ID,
     GOVERNED_VCF_PANEL_ID, GOVERNED_VCF_PANEL_SPECIES_ID,
 };

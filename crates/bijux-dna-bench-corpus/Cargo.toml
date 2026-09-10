@@ -9,6 +9,7 @@ rust-version.workspace = true
 default = []
 alignment = ["dep:bijux-dna-domain-bam"]
 variants = ["dep:bijux-dna-domain-vcf"]
+panel-metadata = ["dep:bijux-dna-db-ref", "dep:bijux-dna-infra"]
 
 [dependencies]
 anyhow.workspace = true
@@ -18,6 +19,9 @@ toml.workspace = true
 flate2.workspace = true
 bijux-dna-domain-bam = { workspace = true, optional = true }
 bijux-dna-domain-vcf = { workspace = true, optional = true }
+
+bijux-dna-db-ref = { workspace = true, optional = true }
+bijux-dna-infra = { workspace = true, optional = true }
 
 [dev-dependencies]
 tempfile.workspace = true

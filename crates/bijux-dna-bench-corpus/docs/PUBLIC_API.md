@@ -20,3 +20,9 @@ Persisted schema identities, field names, default path values, and observed
 validation behavior remain unchanged. Absolute manifest paths remain supported;
 these APIs do not claim path containment, bounded total input size, external
 provenance verification or complete tool substitution.
+
+With `panel-metadata`, `panel_metadata` exposes governed panel/map constants,
+`ResolvedVcfPanelAssetContract`, `ResolvedVcfPanelDerivationContract`,
+`LocalVcfPanelFixtureReport`, authority resolution, metadata materialization and
+fixture exclusion. Existing `bijux-dna-bench-vcf::fixtures::panel` imports remain
+compatible. Only byte-identical existing markers are reusable.

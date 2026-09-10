@@ -10,10 +10,10 @@ use bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_expected_output_ids;
 use serde::Serialize;
 
 use crate::fixtures::inputs::{load_governed_vcf_fixture_inputs, materialize_indexed_vcf_input};
-use crate::fixtures::panel::{
+use crate::inputs::VcfAdapterInputs;
+use bijux_dna_bench_corpus::panel_metadata::{
     materialize_local_vcf_panel_fixture, with_local_vcf_panel_fixture_lock,
 };
-use crate::inputs::VcfAdapterInputs;
 use bijux_dna_bench_model::VcfStageCatalogRow;
 use bijux_dna_bench_model::VcfStageMatrixRow;
 

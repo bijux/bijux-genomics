@@ -23,3 +23,13 @@ These existing contracts have different strengths. Suffix and sidecar existence
 checks are not universally equivalent to native content validation. Extraction
 preserves those semantics; additional scientific admission belongs in the
 relevant family and requires observable regressions.
+
+`panel_metadata` separates wire observations, reference authority admission, marker
+planning, destination admission, materialization and exclusion. The optional
+`panel-metadata` feature admits existing db-ref and infrastructure dependencies
+without changing the default compilation closure. Markers preserve the existing
+metadata-only labels and derivation observations; they are not executable panel
+assets. All destinations are checked before writes. Existing exact markers are
+reused, conflicting bytes are rejected, and atomic create never replaces a file.
+Publication is not a multi-file transaction; callers must control the output
+directory against concurrent ancestry changes.

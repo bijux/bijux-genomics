@@ -6,6 +6,8 @@ pub mod bam;
 pub mod damage;
 pub mod edna;
 pub mod fastq;
+#[cfg(feature = "panel-metadata")]
+pub mod panel_metadata;
 mod paths;
 #[cfg(feature = "variants")]
 pub mod vcf;

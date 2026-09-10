@@ -3,15 +3,17 @@
 ## Ownership
 
 This library owns local corpus manifest admission and typed observations of
-reads, alignments, references, cohorts and truth tables. Its file-reading effects
-are restricted to explicit repository and manifest paths. It does not acquire
+reads, alignments, references, cohorts and truth tables. Its effects are restricted to explicit repository and manifest paths. The optional
+`panel-metadata` feature resolves reference authority and creates metadata-only
+markers under an explicit fixture root; it never replaces reference asset bytes. It does not acquire
 datasets, execute tools, schedule campaigns, print output or aggregate benchmarks.
 
 ## Public API
 
 The `fastq`, `amplicon`, `edna` and `damage` modules are available by default.
 `alignment` enables BAM observations; `variants` enables VCF observations.
-The CLI selects both features. Other consumers can select one native format
+`panel-metadata` independently enables reference metadata and its bounded writer.
+The CLI selects all three features. Other consumers can select one native format
 without compiling the other. Services return typed reports and validation errors.
 See [public API](docs/PUBLIC_API.md) for the family entrypoints.
 

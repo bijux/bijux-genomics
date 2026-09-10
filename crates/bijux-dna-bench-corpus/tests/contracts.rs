@@ -11,6 +11,9 @@ mod damage;
 mod edna;
 #[path = "contracts/fastq.rs"]
 mod fastq;
+#[cfg(feature = "panel-metadata")]
+#[path = "contracts/panel_metadata.rs"]
+mod panel_metadata;
 mod support;
 #[cfg(feature = "variants")]
 #[path = "contracts/vcf.rs"]

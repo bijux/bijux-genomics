@@ -1670,6 +1670,16 @@
       "consumer": "crate:bijux-dna-bench-population",
       "dependency": "crate:bijux-dna-stages-vcf",
       "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-corpus",
+      "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-corpus",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
     }
   ]
 }
