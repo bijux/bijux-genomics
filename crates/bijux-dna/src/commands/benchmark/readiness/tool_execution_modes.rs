@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
@@ -333,149 +333,9 @@ fn validate_mode_definition(mode: &ToolExecutionModeDefinition) -> Result<()> {
     Ok(())
 }
 
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-pub(crate) struct RuntimeProbe {
-    #[serde(default)]
-    install_kind: Option<String>,
-    #[serde(default)]
-    container: Option<RuntimeProbeContainer>,
-    #[serde(default)]
-    help_cmd: Option<String>,
-    #[serde(default)]
-    version_cmd: Option<String>,
-    #[serde(default)]
-    command_template: Vec<String>,
-}
-
-#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
-pub(crate) struct RuntimeProbeContainer {
-    image: String,
-    #[serde(default)]
-    digest: Option<String>,
-}
-
-impl RuntimeProbe {
-    pub(crate) fn install_kind(&self) -> &str {
-        self.install_kind.as_deref().unwrap_or("container")
-    }
-
-    pub(crate) fn has_required_field(&self, field: &str) -> bool {
-        match field {
-            "install_kind" => {
-                self.install_kind.as_deref().map(str::trim).is_some_and(|value| !value.is_empty())
-                    || self.container.is_some()
-            }
-            "container.image" => self
-                .container
-                .as_ref()
-                .map(|container| container.image.trim())
-                .is_some_and(|value| !value.is_empty()),
-            "help_cmd" => {
-                self.help_cmd.as_deref().map(str::trim).is_some_and(|value| !value.is_empty())
-            }
-            "version_cmd" => {
-                self.version_cmd.as_deref().map(str::trim).is_some_and(|value| !value.is_empty())
-            }
-            "command_template" => !self.command_template.is_empty(),
-            _ => false,
-        }
-    }
-
-    pub(crate) fn container_id(&self) -> Option<String> {
-        self.container.as_ref().and_then(|container| {
-            let image = container.image.trim();
-            if image.is_empty() {
-                return None;
-            }
-            match container.digest.as_deref().map(str::trim).filter(|digest| !digest.is_empty()) {
-                Some(digest) => Some(format!("{image}@{digest}")),
-                None => Some(image.to_string()),
-            }
-        })
-    }
-
-    pub(crate) fn command_entrypoint(&self) -> Option<String> {
-        self.command_template
-            .first()
-            .and_then(|value| extract_command_token(value))
-            .or_else(|| self.help_cmd.as_deref().and_then(extract_command_token))
-            .or_else(|| self.version_cmd.as_deref().and_then(extract_command_token))
-    }
-
-    pub(crate) fn version_cmd(&self) -> Option<String> {
-        self.version_cmd
-            .as_deref()
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .map(ToOwned::to_owned)
-    }
-
-    pub(crate) fn help_cmd(&self) -> Option<String> {
-        self.help_cmd
-            .as_deref()
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .map(ToOwned::to_owned)
-    }
-}
-
-fn extract_command_token(raw: &str) -> Option<String> {
-    raw.split_whitespace()
-        .next()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .map(ToOwned::to_owned)
-}
-
-pub(crate) fn load_runtime_probe(
-    repo_root: &Path,
-    domain: &str,
-    tool_id: &str,
-) -> Result<RuntimeProbe> {
-    Ok(load_runtime_probe_with_source(repo_root, domain, tool_id)?.probe)
-}
-
-pub(crate) struct LoadedRuntimeProbe {
-    pub(crate) path: PathBuf,
-    pub(crate) probe: RuntimeProbe,
-}
-
-pub(crate) fn load_runtime_probe_with_source(
-    repo_root: &Path,
-    domain: &str,
-    tool_id: &str,
-) -> Result<LoadedRuntimeProbe> {
-    let mut probe_domains = vec![domain.to_string()];
-    for fallback in ["fastq", "bam", "vcf"] {
-        if !probe_domains.iter().any(|candidate| candidate == fallback) {
-            probe_domains.push(fallback.to_string());
-        }
-    }
-
-    let mut attempted_paths = Vec::new();
-    for probe_domain in probe_domains {
-        let yaml_path = repo_root
-            .join("domain")
-            .join(&probe_domain)
-            .join("tools")
-            .join(format!("{tool_id}.yaml"));
-        attempted_paths.push(yaml_path.display().to_string());
-        if !yaml_path.is_file() {
-            continue;
-        }
-        let raw = fs::read_to_string(&yaml_path)
-            .with_context(|| format!("read {}", yaml_path.display()))?;
-        let probe = bijux_dna_infra::formats::parse_yaml(&raw)
-            .with_context(|| format!("parse {}", yaml_path.display()))?;
-        return Ok(LoadedRuntimeProbe { path: yaml_path, probe });
-    }
-
-    Err(anyhow!(
-        "no governed runtime probe found for tool `{}`; looked in {}",
-        tool_id,
-        attempted_paths.join(", ")
-    ))
-}
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    load_runtime_probe, load_runtime_probe_with_source, BenchmarkRuntimeProbe as RuntimeProbe,
+};
 
 #[derive(Debug, Clone)]
 struct BenchmarkToolEntry {

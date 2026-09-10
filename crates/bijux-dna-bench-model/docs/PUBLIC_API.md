@@ -483,3 +483,5 @@ obligations; schema admission does not certify executable or scientifically comp
 `BenchmarkSourceKind` and `BenchmarkSourceAsset` describe pre-staging content identities independently of filesystem acquisition. The benchmark repository owner observes current files, directories and index-prefix members. Existing variant spellings and fields remain unchanged; these in-memory observations are not a new persisted wire schema.
 
 Runtime declaration classification uses `RuntimeResolutionInput` and returns `RuntimeResolutionSignature`. HPC selection consumes a borrowed `HpcApptainerTarget` and returns `HpcResolution`. Existing resolution vocabulary and unavailable diagnostics are preserved; these in-memory contracts introduce no persisted schema or runtime execution capability.
+
+`BenchmarkRuntimeProbe` is the typed runtime-readiness projection of a domain tool declaration. Its entrypoint, container identity, version/help command and required-field accessors preserve existing interpretation. It intentionally does not validate unrelated full domain fields; repository acquisition separately binds the declared tool identity to the request.

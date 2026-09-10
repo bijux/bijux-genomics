@@ -109,3 +109,5 @@ pub(crate) mod hpc_asset_staging;
 pub(crate) mod source_assets;
 
 pub(crate) mod hpc_scratch;
+
+pub(crate) mod runtime_probe;

@@ -627,3 +627,7 @@ pub use bijux_dna_bench::{
     RESOLUTION_KIND_DOCKER_IMAGE, RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY,
     RESOLUTION_KIND_UNAVAILABLE,
 };
+
+pub use bijux_dna_bench::{
+    load_runtime_probe, load_runtime_probe_with_source, BenchmarkRuntimeProbe, LoadedRuntimeProbe,
+};

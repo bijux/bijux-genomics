@@ -933,3 +933,5 @@ pub use crate::model::runtime_resolution::{
 pub use crate::policy::runtime_resolution::{
     classify_runtime_resolution, select_hpc_runtime_resolution,
 };
+
+pub use crate::model::runtime_probe::BenchmarkRuntimeProbe;

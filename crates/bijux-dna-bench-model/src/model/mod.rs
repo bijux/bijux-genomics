@@ -769,3 +769,5 @@ pub(crate) mod micro_benchmark;
 pub(crate) mod source_assets;
 
 pub(crate) mod runtime_resolution;
+
+pub(crate) mod runtime_probe;
