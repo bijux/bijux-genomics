@@ -24,3 +24,5 @@
 - `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-science --test fastq_environment_slice --no-default-features`
 - `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-science --test tsv_shape --no-default-features`
 - `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-science --test guardrails --no-default-features`
+
+Private compilation cases in `tests/unit/compilation.rs` prove that an admitted observation keeps environment and container views consistent after registry changes and source removal, while a new acquisition observes the new registry. Shared reads never excuse a missing source relationship on another binding. The existing FASTQ slice case remains the generated-output compatibility authority.

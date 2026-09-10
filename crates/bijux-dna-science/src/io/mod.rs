@@ -58,3 +58,5 @@ pub fn list_yaml_files(path: &Path) -> Result<Vec<PathBuf>> {
 
 mod specs;
 pub use specs::load_specs;
+
+pub(crate) mod compilation;

@@ -43,7 +43,7 @@ fn science_source_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/domain")),
-        entries(["mod.rs"]),
+        entries(["compilation.rs", "mod.rs"]),
         "science domain types must stay isolated"
     );
     assert_eq!(
@@ -56,7 +56,7 @@ fn science_source_tree_matches_architecture_contract() {
         entries(["mod.rs"]),
         "science render functions must stay isolated"
     );
-    assert_eq!(dir_entries(&root.join("src/io")), entries(["mod.rs", "specs.rs"]));
+    assert_eq!(dir_entries(&root.join("src/io")), entries(["compilation/", "mod.rs", "specs.rs"]));
     assert_eq!(
         dir_entries(&root.join("src/schema")),
         entries(["authored.rs", "mod.rs", "version.rs"]),
@@ -80,6 +80,7 @@ fn science_test_tree_matches_architecture_contract() {
             "fastq_read_length_truth.rs",
             "guardrails.rs",
             "tsv_shape.rs",
+            "unit/",
         ]),
         "science tests must stay grouped by boundary, contract, generated-output, guardrail, and TSV shape concerns"
     );

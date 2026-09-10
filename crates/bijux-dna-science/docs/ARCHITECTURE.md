@@ -17,12 +17,14 @@ src/
 │   ├── benchmark_gate.rs # fail-closed benchmark science gate evaluation
 │   └── mod.rs             # scientific decision facade
 ├── domain/
+│   ├── compilation.rs # typed upstream observations for one compilation
 │   └── mod.rs       # science data structures and typed science identifiers
 ├── evidence/
 │   ├── fastq_read_lengths.rs # bounded independent FASTQ truth derivation
 │   └── mod.rs               # scientific evidence derivation facade
 ├── errors.rs        # validation error formatting
 ├── io/
+│   ├── compilation/ # shared source resolution, registry and evidence-map readers
 │   ├── mod.rs       # deterministic UTF-8 file IO helpers
 │   └── specs.rs     # authored document acquisition and admitted keyed loading
 ├── lib.rs           # library exports
@@ -59,4 +61,4 @@ domain structs remain in `domain`; filesystem writes stay in `app`, `io`, and
 This crate must not execute tools, choose pipeline routes, or own runtime policy. Those concerns
 remain in planner, engine, runner, and environment crates.
 
-`io/specs` owns authored YAML acquisition and duplicate/version checks. `schema/authored` validates source/claim semantics and relationships without reading files. The historical `compile::load_specs` and `compile::SchemaVersion` paths re-export these owners. `compile` still acquires upstream FASTQ evidence during derivation; separating those format observations from compilation remains necessary. Archive paths in authored records remain logical evidence identifiers; this change does not copy or download upstream archives.
+`io/specs` owns authored YAML acquisition and duplicate/version checks. `schema/authored` validates source/claim semantics and relationships without reading files. The historical `compile::load_specs` and `compile::SchemaVersion` paths re-export these owners. `io/compilation` resolves required sources for each binding and loads one typed `domain/compilation` observation set per call. Registry, execution and stage inputs are shared by all FASTQ derivations. Compilation then operates on borrowed observations without file reads. Acquiring a new observation set re-reads the current files; there is no persistent cache. Independent files are captured sequentially, so this is not an atomic filesystem snapshot. Validating all binding source relationships before reading can change the first diagnostic when multiple inputs are invalid. Archive paths in authored records remain logical evidence identifiers; this change does not copy or download upstream archives.
