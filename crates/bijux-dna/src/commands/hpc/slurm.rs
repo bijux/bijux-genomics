@@ -17,7 +17,9 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_api::v1::api::run::run_command;
+use bijux_dna_api::v1::api::run::{
+    submit_slurm_job, SlurmClientPaths, SlurmDependencyCondition, SlurmSubmitRequest,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -231,6 +233,7 @@ fn write_text(path: &Path, content: &str) -> Result<()> {
 }
 
 fn write_operator_files(
+    write_pending_capture: bool,
     job: &SelectedJob<'_>,
     scheduler_job_id: &str,
     submitted_at: &str,
@@ -253,8 +256,10 @@ fn write_operator_files(
     let err = "pending: scheduler stderr will be captured by slurm runtime wrapper\n";
 
     write_text(log_path, &redact_text(log, redaction_needles))?;
-    write_text(out_path, &redact_text(out.to_string(), redaction_needles))?;
-    write_text(err_path, &redact_text(err.to_string(), redaction_needles))?;
+    if write_pending_capture {
+        write_text(out_path, &redact_text(out.to_string(), redaction_needles))?;
+        write_text(err_path, &redact_text(err.to_string(), redaction_needles))?;
+    }
     Ok(())
 }
 
@@ -441,29 +446,49 @@ fn build_slurm_script(
     )
 }
 
-fn submit_with_sbatch(script_path: &Path, dependency_scheduler_ids: &[String]) -> Result<String> {
-    let mut args = Vec::new();
-    if !dependency_scheduler_ids.is_empty() {
-        args.push(format!("--dependency=afterok:{}", dependency_scheduler_ids.join(":")));
-    }
-    args.push(script_path.display().to_string());
-    let output = run_command("sbatch", &args)
-        .with_context(|| format!("run sbatch for {}", script_path.display()))?;
-    if output.exit_code != 0 {
-        return Err(anyhow!("sbatch failed for {}: {}", script_path.display(), output.stderr));
-    }
-    let stdout = output.stdout;
-    let id = stdout
-        .split_whitespace()
-        .find(|token| token.chars().all(|ch| ch.is_ascii_digit()))
-        .ok_or_else(|| anyhow!("could not parse job id from sbatch output: {stdout}"))?;
-    Ok(id.to_string())
+fn submit_planned_slurm_job(
+    paths: &SlurmClientPaths,
+    job: &SelectedJob<'_>,
+    script_path: &Path,
+    dependency_scheduler_ids: &[String],
+    submitted_at: &str,
+) -> Result<String> {
+    let working_directory = std::env::current_dir().context("resolve Slurm working directory")?;
+    let absolute = |value: &str| {
+        let path = PathBuf::from(value);
+        if path.is_absolute() {
+            path
+        } else {
+            working_directory.join(path)
+        }
+    };
+    let stdout_path = absolute(&job.planned.outputs.out);
+    let stderr_path = absolute(&job.planned.outputs.err);
+    ensure_parent(&stdout_path)?;
+    ensure_parent(&stderr_path)?;
+    let request = SlurmSubmitRequest {
+        run_id: job.planned.job_id.clone(),
+        dependencies: dependency_scheduler_ids.to_vec(),
+        dependency_condition: SlurmDependencyCondition::AfterOk,
+        // The campaign script owns its existing single-task array directive.
+        array: None,
+        script_path: script_path.to_path_buf(),
+        working_directory,
+        stdout_path,
+        stderr_path,
+        submitted_at_utc: submitted_at.to_string(),
+    };
+    submit_slurm_job(paths, &request).map(|handle| handle.job_id)
 }
 
 fn run_submission(
     report: CampaignDryRunReport,
     settings: SubmissionSettings,
 ) -> Result<SlurmSubmissionReport> {
+    anyhow::ensure!(
+        !matches!(settings.mode, SubmissionMode::Real) || !report.security.encrypt_operator_outputs,
+        "real Slurm submission cannot encrypt active scheduler output paths; collect terminal outputs before encryption"
+    );
     let plan = plan_hpc_submission(&report.planned_jobs, &settings.subset)?;
     let redaction_needles = redaction_needles(&report)?;
 
@@ -491,10 +516,22 @@ fn run_submission(
 
         let scheduler_job_id = match settings.mode {
             SubmissionMode::Mock => format!("mock-{:04}", index + 1),
-            SubmissionMode::Real => submit_with_sbatch(&script_path, &dependency_scheduler_ids)?,
+            SubmissionMode::Real => submit_planned_slurm_job(
+                &SlurmClientPaths::default(),
+                selected_job,
+                &script_path,
+                &dependency_scheduler_ids,
+                &submitted_at,
+            )?,
         };
 
-        write_operator_files(selected_job, &scheduler_job_id, &submitted_at, &redaction_needles)?;
+        write_operator_files(
+            matches!(settings.mode, SubmissionMode::Mock),
+            selected_job,
+            &scheduler_job_id,
+            &submitted_at,
+            &redaction_needles,
+        )?;
         emit_primary_encrypted_bundles(
             &report,
             selected_job,
@@ -2423,5 +2460,77 @@ sample = "{secret}"
         let log = std::fs::read_to_string(&report.jobs[0].log_path).expect("read log");
         assert!(!log.contains(secret));
         assert!(log.contains("<redacted>"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn planned_slurm_submission_uses_owner_protocol_and_declared_output_paths() -> anyhow::Result<()>
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let root = tempfile::tempdir()?;
+        let config = write_campaign(root.path());
+        let mut report = super::campaign_dry_run(&config, None, None)?;
+        report.planned_jobs[0].outputs.out =
+            root.path().join("output/one.stdout").display().to_string();
+        report.planned_jobs[0].outputs.err =
+            root.path().join("errors/one.stderr").display().to_string();
+        let plan = super::plan_hpc_submission(&report.planned_jobs, &super::SubmissionSubset::All)?;
+        let job = &plan.jobs()[0];
+        let script = root.path().join("job.sbatch");
+        std::fs::write(&script, "#!/bin/sh\nexit 0\n")?;
+        let executable = root.path().join("fake sbatch");
+        let argument_log = root.path().join("scheduler.args");
+        let quoted_log = super::shell_quote(&argument_log.display().to_string());
+        let fake = format!(
+            "#!/bin/sh\nprintf '%s\\n' \"$@\" > {quoted_log}\nprintf '3459974;cluster\\n'\n"
+        );
+        std::fs::write(&executable, fake)?;
+        std::fs::set_permissions(&executable, std::fs::Permissions::from_mode(0o750))?;
+        let paths = super::SlurmClientPaths {
+            sbatch: executable.clone(),
+            ..super::SlurmClientPaths::default()
+        };
+        assert_eq!(
+            super::submit_planned_slurm_job(&paths, job, &script, &["40".into()], "1700000000")?,
+            "3459974"
+        );
+        std::fs::write(&job.planned.outputs.out, "scheduler stdout\n")?;
+        std::fs::write(&job.planned.outputs.err, "scheduler stderr\n")?;
+        super::write_operator_files(false, job, "3459974", "1700000000", &[])?;
+        assert_eq!(std::fs::read_to_string(&job.planned.outputs.out)?, "scheduler stdout\n");
+        assert_eq!(std::fs::read_to_string(&job.planned.outputs.err)?, "scheduler stderr\n");
+        let expected = vec![
+            "--parsable".to_string(),
+            "--dependency".to_string(),
+            "afterok:40".to_string(),
+            "--chdir".to_string(),
+            std::env::current_dir()?.display().to_string(),
+            "--output".to_string(),
+            job.planned.outputs.out.clone(),
+            "--error".to_string(),
+            job.planned.outputs.err.clone(),
+            script.display().to_string(),
+        ];
+        assert_eq!(std::fs::read_to_string(&argument_log)?.lines().collect::<Vec<_>>(), expected);
+        assert!(std::path::Path::new(&job.planned.outputs.out)
+            .parent()
+            .is_some_and(std::path::Path::is_dir));
+        assert!(std::path::Path::new(&job.planned.outputs.err)
+            .parent()
+            .is_some_and(std::path::Path::is_dir));
+        std::fs::write(&executable, "#!/bin/sh\nprintf 'notice 17\\n3459974\\n'\n")?;
+        assert!(super::submit_planned_slurm_job(&paths, job, &script, &[], "1700000000").is_err());
+        drop(plan);
+        report.security.encrypt_operator_outputs = true;
+        let error = super::run_submission(
+            report,
+            super::SubmissionSettings {
+                mode: super::SubmissionMode::Real,
+                subset: super::SubmissionSubset::All,
+            },
+        )
+        .expect_err("active scheduler output encryption must be rejected before submission");
+        assert!(error.to_string().contains("cannot encrypt active scheduler output paths"));
+        Ok(())
     }
 }

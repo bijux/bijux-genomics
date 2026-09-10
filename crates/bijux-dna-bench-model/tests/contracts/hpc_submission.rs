@@ -106,6 +106,7 @@ fn hpc_submission_rejects_ambiguous_and_unresolved_selected_dependencies() {
     let second = job("second", "bam.align", "align", "one", &["first"]);
     for invalid in [
         vec![first.clone(), first.clone()],
+        vec![first.clone(), job("second", "bam.align", "align", "one", &["first", "first"])],
         vec![job("", "fastq.validate", "check", "one", &[])],
         vec![job("first", "fastq.validate", "check", "one", &["missing"])],
         vec![job("first", "fastq.validate", "check", "one", &["first"])],

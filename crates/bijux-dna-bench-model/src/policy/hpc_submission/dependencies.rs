@@ -1,7 +1,7 @@
 use super::HpcSelectedJob;
 use crate::PlannedJob;
 use anyhow::{ensure, Result};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub(super) fn admit(
     all: &[PlannedJob],
@@ -22,7 +22,9 @@ pub(super) fn admit(
     let mut graph = Vec::with_capacity(selected.len());
     for (index, job) in selected.iter().enumerate() {
         let mut dependencies = Vec::new();
+        let mut declared = BTreeSet::new();
         for name in job.depends_on_names {
+            ensure!(declared.insert(name), "duplicate dependency {name} for {}", job.name);
             ensure!(
                 names.contains_key(name.as_str()),
                 "unknown dependency {name} for {}",
