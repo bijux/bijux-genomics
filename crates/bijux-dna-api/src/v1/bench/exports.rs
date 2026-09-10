@@ -622,18 +622,12 @@ pub use bijux_dna_bench::{
 };
 
 pub use bijux_dna_bench::{
-    classify_runtime_resolution, select_hpc_runtime_resolution, HpcApptainerTarget, HpcResolution,
-    RuntimeResolutionInput, RuntimeResolutionSignature, RESOLUTION_KIND_APPTAINER_IMAGE,
+    classify_runtime_resolution, load_runtime_probe, load_runtime_probe_with_source,
+    load_tool_execution_mode_assignments, load_tool_execution_modes_config,
+    select_hpc_runtime_resolution, BenchmarkRuntimeProbe, HpcApptainerTarget, HpcResolution,
+    LoadedRuntimeProbe, RuntimeResolutionInput, RuntimeResolutionSignature,
+    ToolExecutionModeAssignment, ToolExecutionModesConfig, DEFAULT_TOOL_EXECUTION_MODES_PATH,
+    LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION, RESOLUTION_KIND_APPTAINER_IMAGE,
     RESOLUTION_KIND_DOCKER_IMAGE, RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY,
     RESOLUTION_KIND_UNAVAILABLE,
-};
-
-pub use bijux_dna_bench::{
-    load_runtime_probe, load_runtime_probe_with_source, BenchmarkRuntimeProbe, LoadedRuntimeProbe,
-};
-
-pub use bijux_dna_bench::{
-    load_tool_execution_mode_assignments, load_tool_execution_modes_config,
-    ToolExecutionModeAssignment, ToolExecutionModesConfig, DEFAULT_TOOL_EXECUTION_MODES_PATH,
-    LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
 };
