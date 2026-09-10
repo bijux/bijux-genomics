@@ -36,6 +36,7 @@ src/
 │   └── mod.rs       # stable TSV and JSON rendering
 └── schema/
     ├── authored.rs  # pure source, claim and cross-reference admission
+    ├── evidence_maps/ # rectangular table shape and typed tool/paper/QA admission
     ├── mod.rs       # accepted authored spec versions
     └── version.rs   # shared document version access
 ```
@@ -66,3 +67,5 @@ remain in planner, engine, runner, and environment crates.
 `io/specs` owns authored YAML acquisition and duplicate/version checks. `schema/authored` validates source/claim semantics and relationships without reading files. The historical `compile::load_specs` and `compile::SchemaVersion` paths re-export these owners. `io/compilation` resolves required sources for each binding and loads one typed `domain/compilation` observation set per call. Registry, execution and stage inputs are shared by all FASTQ derivations. Compilation then operates on borrowed observations without file reads. Acquiring a new observation set re-reads the current files; there is no persistent cache. Independent files are captured sequentially, so this is not an atomic filesystem snapshot. Validating all binding source relationships before reading can change the first diagnostic when multiple inputs are invalid. Archive paths in authored records remain logical evidence identifiers; this change does not copy or download upstream archives.
 
 FASTQ closure evaluation belongs to `decision/fastq_closure`: admission reasons, evaluated closure state and risk/gap projections consume borrowed typed observations without repository reads. Compilation coordinates acquisition and projections. Existing closure labels, warnings, ordering and generated evidence bytes remain governed by the same policy; this ownership change is not fresh scientific qualification.
+
+`schema/evidence_maps` admits required unique columns, rectangular rows, declared archive status and unambiguous tool/source/paper identities before compilation indexes them. Multiple papers for one tool remain supported. `io/compilation/maps` only resolves, reads and attaches source context. Additional named columns remain metadata; archive paths/status are declarations rather than observations of external payloads.
