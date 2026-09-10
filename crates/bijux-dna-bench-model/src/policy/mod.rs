@@ -39,3 +39,5 @@ pub(crate) mod hpc_asset_staging;
 pub(crate) mod hpc_scratch;
 
 pub(crate) mod runtime_resolution;
+
+pub(crate) mod tool_execution_modes;

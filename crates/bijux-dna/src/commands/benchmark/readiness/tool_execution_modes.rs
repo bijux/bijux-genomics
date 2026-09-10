@@ -1,9 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::tool_serving_map::{
     collect_bam_tool_serving_map_rows, collect_fastq_tool_serving_map_rows, ToolServingMapRow,
@@ -12,31 +11,8 @@ use super::vcf_tool_serving_map::{collect_vcf_tool_serving_map_rows, VcfToolServ
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_TOOL_EXECUTION_MODES_PATH: &str =
-    "configs/bench/local/tool-execution-modes.toml";
-pub(crate) const LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION: &str =
-    "bijux.bench.local_tool_execution_modes.v1";
 const TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.tool_execution_modes_validation.v1";
-const TOOL_EXECUTION_CLASSIFICATION_SCOPE: &str = "primary_operator_runtime";
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ToolExecutionModesConfig {
-    schema_version: String,
-    classification_scope: String,
-    modes: Vec<ToolExecutionModeDefinition>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ToolExecutionModeDefinition {
-    execution_mode: String,
-    expected_install_kind: String,
-    required_runtime_fields: Vec<String>,
-    summary: String,
-    tool_ids: Vec<String>,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct ToolExecutionModeRow {
@@ -85,13 +61,12 @@ pub(crate) fn validate_tool_execution_modes_path(
     config_path: &Path,
 ) -> Result<ToolExecutionModesValidationReport> {
     let config = load_tool_execution_modes_config(config_path)?;
-    validate_tool_execution_modes_contract(&config)?;
 
     let (_, _, fastq_rows) = collect_fastq_tool_serving_map_rows(repo_root)?;
     let (_, _, bam_rows) = collect_bam_tool_serving_map_rows(repo_root)?;
     let vcf_rows = collect_vcf_tool_serving_map_rows()?;
     let benchmark_tool_index = build_benchmark_tool_index(&fastq_rows, &bam_rows, &vcf_rows);
-    let assignments = build_mode_assignment_index(&config)?;
+    let assignments = config.assignments()?;
 
     let configured_tool_ids = assignments.keys().cloned().collect::<BTreeSet<_>>();
     let benchmark_tool_ids = benchmark_tool_index.keys().cloned().collect::<BTreeSet<_>>();
@@ -168,8 +143,8 @@ pub(crate) fn validate_tool_execution_modes_path(
     Ok(ToolExecutionModesValidationReport {
         schema_version: TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION,
         config_path: path_relative_to_repo(repo_root, config_path),
-        classification_scope: config.classification_scope,
-        mode_count: config.modes.len(),
+        classification_scope: config.classification_scope().to_string(),
+        mode_count: config.mode_count(),
         tool_count: rows.len(),
         multidomain_tool_count,
         mode_counts,
@@ -178,163 +153,10 @@ pub(crate) fn validate_tool_execution_modes_path(
     })
 }
 
-fn load_tool_execution_modes_config(config_path: &Path) -> Result<ToolExecutionModesConfig> {
-    let raw = fs::read_to_string(config_path)
-        .with_context(|| format!("read {}", config_path.display()))?;
-    toml::from_str(&raw).with_context(|| format!("parse {}", config_path.display()))
-}
-
-fn validate_tool_execution_modes_contract(config: &ToolExecutionModesConfig) -> Result<()> {
-    if config.schema_version != LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION {
-        return Err(anyhow!("unsupported tool execution mode schema `{}`", config.schema_version));
-    }
-    if config.classification_scope != TOOL_EXECUTION_CLASSIFICATION_SCOPE {
-        return Err(anyhow!(
-            "unsupported tool execution classification scope `{}`",
-            config.classification_scope
-        ));
-    }
-    if config.modes.is_empty() {
-        return Err(anyhow!(
-            "tool execution mode config must declare at least one `[[modes]]` entry"
-        ));
-    }
-    Ok(())
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct ToolExecutionModeAssignment {
-    pub(crate) execution_mode: String,
-    pub(crate) expected_install_kind: String,
-    pub(crate) required_runtime_fields: Vec<String>,
-    pub(crate) summary: String,
-}
-
-pub(crate) fn load_tool_execution_mode_assignments(
-    config_path: &Path,
-) -> Result<BTreeMap<String, ToolExecutionModeAssignment>> {
-    let config = load_tool_execution_modes_config(config_path)?;
-    validate_tool_execution_modes_contract(&config)?;
-    build_mode_assignment_index(&config)
-}
-
-fn build_mode_assignment_index(
-    config: &ToolExecutionModesConfig,
-) -> Result<BTreeMap<String, ToolExecutionModeAssignment>> {
-    let mut seen_modes = BTreeSet::<String>::new();
-    let mut assignments = BTreeMap::<String, ToolExecutionModeAssignment>::new();
-    for mode in &config.modes {
-        validate_mode_definition(mode)?;
-        if !seen_modes.insert(mode.execution_mode.clone()) {
-            return Err(anyhow!(
-                "tool execution mode config repeats execution_mode `{}`",
-                mode.execution_mode
-            ));
-        }
-        for tool_id in &mode.tool_ids {
-            if let Some(previous) = assignments.get(tool_id) {
-                return Err(anyhow!(
-                    "tool `{}` is assigned to both execution mode `{}` and `{}`",
-                    tool_id,
-                    previous.execution_mode,
-                    mode.execution_mode
-                ));
-            }
-            assignments.insert(
-                tool_id.clone(),
-                ToolExecutionModeAssignment {
-                    execution_mode: mode.execution_mode.clone(),
-                    expected_install_kind: mode.expected_install_kind.clone(),
-                    required_runtime_fields: mode.required_runtime_fields.clone(),
-                    summary: mode.summary.clone(),
-                },
-            );
-        }
-    }
-    Ok(assignments)
-}
-
-fn validate_mode_definition(mode: &ToolExecutionModeDefinition) -> Result<()> {
-    if !matches!(
-        mode.execution_mode.as_str(),
-        "internal" | "binary" | "containerized" | "external" | "r" | "java" | "python" | "mixed"
-    ) {
-        return Err(anyhow!(
-            "tool execution mode `{}` is not one of the governed allowed values",
-            mode.execution_mode
-        ));
-    }
-    if mode.expected_install_kind.trim().is_empty() {
-        return Err(anyhow!(
-            "execution mode `{}` must declare a non-empty `expected_install_kind`",
-            mode.execution_mode
-        ));
-    }
-    if mode.summary.trim().is_empty() {
-        return Err(anyhow!(
-            "execution mode `{}` must declare a non-empty `summary`",
-            mode.execution_mode
-        ));
-    }
-    if mode.required_runtime_fields.is_empty() {
-        return Err(anyhow!(
-            "execution mode `{}` must declare at least one required runtime field",
-            mode.execution_mode
-        ));
-    }
-    let mut sorted_fields = mode.required_runtime_fields.clone();
-    sorted_fields.sort();
-    if sorted_fields != mode.required_runtime_fields {
-        return Err(anyhow!(
-            "execution mode `{}` must keep `required_runtime_fields` sorted lexically",
-            mode.execution_mode
-        ));
-    }
-    let unique_fields = mode.required_runtime_fields.iter().cloned().collect::<BTreeSet<_>>();
-    if unique_fields.len() != mode.required_runtime_fields.len() {
-        return Err(anyhow!(
-            "execution mode `{}` repeats one or more required runtime fields",
-            mode.execution_mode
-        ));
-    }
-    for field in &mode.required_runtime_fields {
-        if !matches!(
-            field.as_str(),
-            "install_kind" | "container.image" | "help_cmd" | "version_cmd" | "command_template"
-        ) {
-            return Err(anyhow!(
-                "execution mode `{}` declares unsupported runtime field `{}`",
-                mode.execution_mode,
-                field
-            ));
-        }
-    }
-    if mode.tool_ids.is_empty() {
-        return Err(anyhow!(
-            "execution mode `{}` must declare at least one tool id",
-            mode.execution_mode
-        ));
-    }
-    let mut sorted_tool_ids = mode.tool_ids.clone();
-    sorted_tool_ids.sort();
-    if sorted_tool_ids != mode.tool_ids {
-        return Err(anyhow!(
-            "execution mode `{}` must keep `tool_ids` sorted lexically",
-            mode.execution_mode
-        ));
-    }
-    let unique_tool_ids = mode.tool_ids.iter().cloned().collect::<BTreeSet<_>>();
-    if unique_tool_ids.len() != mode.tool_ids.len() {
-        return Err(anyhow!(
-            "execution mode `{}` repeats one or more tool ids",
-            mode.execution_mode
-        ));
-    }
-    Ok(())
-}
-
 pub(crate) use bijux_dna_api::v1::api::bench::{
-    load_runtime_probe, load_runtime_probe_with_source, BenchmarkRuntimeProbe as RuntimeProbe,
+    load_runtime_probe, load_runtime_probe_with_source, load_tool_execution_mode_assignments,
+    load_tool_execution_modes_config, BenchmarkRuntimeProbe as RuntimeProbe,
+    ToolExecutionModeAssignment, DEFAULT_TOOL_EXECUTION_MODES_PATH,
 };
 
 #[derive(Debug, Clone)]

@@ -122,6 +122,7 @@ fn bench_tree_matches_architecture_contract() {
             "hpc_resources.rs",
             "source_assets.rs",
             "runtime_probe.rs",
+            "tool_execution_modes.rs",
             "hpc_asset_staging.rs",
             "hpc_scratch.rs",
             "hpc_inputs/",

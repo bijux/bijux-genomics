@@ -833,3 +833,12 @@ pub use crate::repo::runtime_probe::{
     load_runtime_probe, load_runtime_probe_with_source, LoadedRuntimeProbe,
 };
 pub use bijux_dna_bench_model::BenchmarkRuntimeProbe;
+
+pub use crate::repo::tool_execution_modes::{
+    load_tool_execution_mode_assignments, load_tool_execution_modes_config,
+    DEFAULT_TOOL_EXECUTION_MODES_PATH,
+};
+pub use bijux_dna_bench_model::{
+    ToolExecutionModeAssignment, ToolExecutionModesConfig,
+    LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
+};

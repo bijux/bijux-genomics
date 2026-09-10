@@ -771,3 +771,5 @@ pub(crate) mod source_assets;
 pub(crate) mod runtime_resolution;
 
 pub(crate) mod runtime_probe;
+
+pub(crate) mod tool_execution_modes;

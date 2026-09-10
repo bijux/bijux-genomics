@@ -485,3 +485,5 @@ obligations; schema admission does not certify executable or scientifically comp
 Runtime declaration classification uses `RuntimeResolutionInput` and returns `RuntimeResolutionSignature`. HPC selection consumes a borrowed `HpcApptainerTarget` and returns `HpcResolution`. Existing resolution vocabulary and unavailable diagnostics are preserved; these in-memory contracts introduce no persisted schema or runtime execution capability.
 
 `BenchmarkRuntimeProbe` is the typed runtime-readiness projection of a domain tool declaration. Its entrypoint, container identity, version/help command and required-field accessors preserve existing interpretation. It intentionally does not validate unrelated full domain fields; repository acquisition separately binds the declared tool identity to the request.
+
+Execution-mode declarations own closed TOML-compatible shapes and header/assignment admission. Unknown schemas, unsupported required fields and ambiguous tool assignments fail before executable resolution. This policy does not establish actual tool availability.

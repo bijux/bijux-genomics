@@ -631,3 +631,9 @@ pub use bijux_dna_bench::{
 pub use bijux_dna_bench::{
     load_runtime_probe, load_runtime_probe_with_source, BenchmarkRuntimeProbe, LoadedRuntimeProbe,
 };
+
+pub use bijux_dna_bench::{
+    load_tool_execution_mode_assignments, load_tool_execution_modes_config,
+    ToolExecutionModeAssignment, ToolExecutionModesConfig, DEFAULT_TOOL_EXECUTION_MODES_PATH,
+    LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
+};
