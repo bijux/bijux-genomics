@@ -1,0 +1,371 @@
+{
+  "$defs": {
+    "BundleCodeCampaign": {
+      "additionalProperties": false,
+      "properties": {
+        "config_path": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "env_file_path": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "user_policies_applied": {
+          "type": "boolean"
+        },
+        "user_policy_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "domain",
+        "config_path",
+        "env_file_path",
+        "user_policy_path",
+        "user_policies_applied"
+      ],
+      "type": "object"
+    },
+    "BundleCodeFreeze": {
+      "additionalProperties": false,
+      "properties": {
+        "config_references": {
+          "$ref": "#/$defs/BundleConfigReferences"
+        },
+        "dvc_state": {
+          "$ref": "#/$defs/BundleDvcState"
+        },
+        "effective_settings": {
+          "$ref": "#/$defs/BundleEffectiveSettings"
+        },
+        "repository_state": {
+          "$ref": "#/$defs/BundleRepositoryState"
+        },
+        "slurm_script": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "slurm_script",
+        "effective_settings",
+        "config_references",
+        "repository_state",
+        "dvc_state"
+      ],
+      "type": "object"
+    },
+    "BundleConfigReferences": {
+      "additionalProperties": false,
+      "properties": {
+        "campaign_config": {
+          "type": "string"
+        },
+        "env_file": {
+          "type": "string"
+        },
+        "user_policy": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaign_config",
+        "env_file",
+        "user_policy"
+      ],
+      "type": "object"
+    },
+    "BundleDvcState": {
+      "additionalProperties": false,
+      "properties": {
+        "available": {
+          "type": "boolean"
+        },
+        "status_hint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "available",
+        "status_hint"
+      ],
+      "type": "object"
+    },
+    "BundleEffectiveSettings": {
+      "additionalProperties": false,
+      "properties": {
+        "resources": {
+          "$ref": "#/$defs/BundleResources"
+        },
+        "slurm": {
+          "$ref": "#/$defs/BundleSlurm"
+        }
+      },
+      "required": [
+        "slurm",
+        "resources"
+      ],
+      "type": "object"
+    },
+    "BundleJob": {
+      "additionalProperties": false,
+      "properties": {
+        "job_name": {
+          "type": "string"
+        },
+        "planned_job_id": {
+          "type": "string"
+        },
+        "sample": {
+          "type": "string"
+        },
+        "scheduler_job_id": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "submitted_at": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "planned_job_id",
+        "scheduler_job_id",
+        "submitted_at",
+        "job_name",
+        "stage",
+        "tool",
+        "sample"
+      ],
+      "type": "object"
+    },
+    "BundleLocks": {
+      "additionalProperties": false,
+      "properties": {
+        "corpus_lock": {
+          "type": "string"
+        },
+        "database_lock": {
+          "type": "string"
+        },
+        "image_lock": {
+          "type": "string"
+        },
+        "tool_lock": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "corpus_lock",
+        "database_lock",
+        "image_lock",
+        "tool_lock"
+      ],
+      "type": "object"
+    },
+    "BundleOutputs": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "err": {
+          "type": "string"
+        },
+        "log": {
+          "type": "string"
+        },
+        "out": {
+          "type": "string"
+        },
+        "results": {
+          "type": "string"
+        },
+        "scratch_dir": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scratch_dir",
+        "log",
+        "out",
+        "err",
+        "results",
+        "code"
+      ],
+      "type": "object"
+    },
+    "BundlePlan": {
+      "additionalProperties": false,
+      "properties": {
+        "depends_on": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "outputs": {
+          "$ref": "#/$defs/BundleOutputs"
+        }
+      },
+      "required": [
+        "depends_on",
+        "outputs"
+      ],
+      "type": "object"
+    },
+    "BundleRepositoryState": {
+      "additionalProperties": false,
+      "properties": {
+        "git_branch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "git_head": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "git_status_porcelain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BundleResources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpus": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "mem_gb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scratch_gb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "walltime": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cpus",
+        "mem_gb",
+        "walltime",
+        "scratch_gb"
+      ],
+      "type": "object"
+    },
+    "BundleSlurm": {
+      "additionalProperties": false,
+      "properties": {
+        "account_redacted": {
+          "type": "string"
+        },
+        "default_resource_template": {
+          "type": "string"
+        },
+        "partition": {
+          "type": "string"
+        },
+        "project_redacted": {
+          "type": "string"
+        },
+        "qos": {
+          "type": "string"
+        },
+        "retry_attempts": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "retry_backoff_seconds": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "retry_on_exit_codes": {
+          "items": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "site_profile": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "site_profile",
+        "account_redacted",
+        "project_redacted",
+        "partition",
+        "qos",
+        "default_resource_template",
+        "retry_attempts",
+        "retry_backoff_seconds",
+        "retry_on_exit_codes"
+      ],
+      "type": "object"
+    },
+    "CodeBundleVersion": {
+      "enum": [
+        "bijux.hpc.code_bundle.v1"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "campaign": {
+      "$ref": "#/$defs/BundleCodeCampaign"
+    },
+    "code_freeze": {
+      "$ref": "#/$defs/BundleCodeFreeze"
+    },
+    "job": {
+      "$ref": "#/$defs/BundleJob"
+    },
+    "locks": {
+      "$ref": "#/$defs/BundleLocks"
+    },
+    "plan": {
+      "$ref": "#/$defs/BundlePlan"
+    },
+    "schema_version": {
+      "$ref": "#/$defs/CodeBundleVersion"
+    }
+  },
+  "required": [
+    "schema_version",
+    "campaign",
+    "job",
+    "code_freeze",
+    "locks",
+    "plan"
+  ],
+  "title": "HpcCodeSubmissionBundle",
+  "type": "object"
+}

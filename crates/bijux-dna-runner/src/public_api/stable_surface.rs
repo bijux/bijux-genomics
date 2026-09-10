@@ -66,8 +66,8 @@ pub use crate::backend::{
     PREPARED_MANAGED_SLURM_JOB_SCHEMA_V1, SLURM_CANCELLATION_SCHEMA_V1, SLURM_JOB_HANDLE_SCHEMA_V1,
 };
 pub use crate::backend::{
-    decrypt_bundle, digest_file_sha256, sha256_hex, sidecar_path_for, write_encrypted_bundle,
-    BundleDecryptRequest, BundleSidecar, BundleWriteRequest,
+    decrypt_bundle, digest_file_sha256, observe_hpc_code_freeze, sha256_hex, sidecar_path_for,
+    write_encrypted_bundle, BundleDecryptRequest, BundleSidecar, BundleWriteRequest,
 };
 pub use crate::command_runner::{
     invocation_hash, run_command, run_command_with_context, run_command_with_context_and_stdin,

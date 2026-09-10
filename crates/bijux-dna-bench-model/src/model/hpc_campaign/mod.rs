@@ -14,3 +14,10 @@ pub use monitor::{
 
 mod copy_back;
 pub use copy_back::{CopyBackEntry, CopyBackManifestReport, COPY_BACK_MANIFEST_SCHEMA_VERSION};
+
+mod submission_bundle;
+pub use submission_bundle::{
+    assemble_hpc_code_submission, assemble_hpc_results_submission, HpcBundleFoundationLocks,
+    HpcBundleSubmission, HpcCodeFreezeObservation, HpcCodeSubmissionBundle,
+    HpcResultsSubmissionBundle,
+};

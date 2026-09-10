@@ -84,6 +84,7 @@ fn runner_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/backend/bundle")),
         [
             "age.rs",
+            "code_freeze.rs",
             "contracts.rs",
             "mock.rs",
             "mod.rs",

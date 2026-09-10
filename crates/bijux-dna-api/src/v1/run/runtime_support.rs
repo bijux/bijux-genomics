@@ -1,6 +1,6 @@
 pub use bijux_dna_runner::api::{
-    decrypt_bundle, digest_file_sha256, sha256_hex, sidecar_path_for, write_encrypted_bundle,
-    BundleDecryptRequest, BundleSidecar, BundleWriteRequest,
+    decrypt_bundle, digest_file_sha256, observe_hpc_code_freeze, sha256_hex, sidecar_path_for,
+    write_encrypted_bundle, BundleDecryptRequest, BundleSidecar, BundleWriteRequest,
 };
 use std::time::{SystemTime, UNIX_EPOCH};
 

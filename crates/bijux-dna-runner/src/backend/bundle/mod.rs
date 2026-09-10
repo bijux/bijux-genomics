@@ -150,6 +150,9 @@ pub fn decrypt_bundle(request: &BundleDecryptRequest<'_>) -> Result<(BundleSidec
     Ok((sidecar, plaintext))
 }
 
+mod code_freeze;
+pub use code_freeze::observe_hpc_code_freeze;
+
 #[cfg(test)]
 #[path = "../../../tests/contracts/bundle/owner.rs"]
 mod tests;

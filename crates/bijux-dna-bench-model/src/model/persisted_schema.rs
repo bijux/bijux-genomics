@@ -78,6 +78,8 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
     };
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/hpc-results-submission-bundle.schema.json", || schemars::schema_for!(crate::HpcResultsSubmissionBundle)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/hpc-code-submission-bundle.schema.json", || schemars::schema_for!(crate::HpcCodeSubmissionBundle)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/tool-execution-modes-config.schema.json", || schemars::schema_for!(crate::ToolExecutionModesConfig)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/tool-execution-modes-validation.schema.json", || schemars::schema_for!(crate::ToolExecutionModesValidationReport)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-report.schema.json", || schemars::schema_for!(crate::MicroBenchmarkReport)),

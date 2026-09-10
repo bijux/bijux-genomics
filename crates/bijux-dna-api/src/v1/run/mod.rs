@@ -3,8 +3,8 @@
 //! Stability: v1 (stable).
 
 pub use self::runtime_support::{
-    decrypt_bundle, digest_file_sha256, sha256_hex, sidecar_path_for, write_encrypted_bundle,
-    BundleDecryptRequest, BundleSidecar, BundleWriteRequest,
+    decrypt_bundle, digest_file_sha256, observe_hpc_code_freeze, sha256_hex, sidecar_path_for,
+    write_encrypted_bundle, BundleDecryptRequest, BundleSidecar, BundleWriteRequest,
 };
 
 mod entrypoints;

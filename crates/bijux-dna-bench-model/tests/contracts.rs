@@ -173,3 +173,6 @@ mod suite_records;
 
 #[path = "contracts/hpc_submission.rs"]
 mod hpc_submission;
+
+#[path = "contracts/hpc_submission_bundle.rs"]
+mod hpc_submission_bundle;

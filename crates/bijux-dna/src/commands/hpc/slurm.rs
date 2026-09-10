@@ -1,4 +1,8 @@
 pub use bijux_dna_api::v1::api::bench::SlurmMonitorReport;
+use bijux_dna_api::v1::api::bench::{
+    assemble_hpc_code_submission, assemble_hpc_results_submission, HpcBundleFoundationLocks,
+    HpcBundleSubmission,
+};
 use bijux_dna_api::v1::api::bench::{encode_redacted_hpc_bundle, inspect_hpc_replay_payloads};
 use bijux_dna_api::v1::api::bench::{
     hpc_stage_domain as stage_domain, plan_hpc_submission, HpcSelectedJob as SelectedJob,
@@ -8,6 +12,7 @@ use bijux_dna_api::v1::api::bench::{
     quote_slurm_argument as shell_quote, slurm_script_path as script_path_for,
 };
 pub use bijux_dna_api::v1::api::bench::{CopyBackEntry, CopyBackManifestReport};
+use bijux_dna_api::v1::api::run::observe_hpc_code_freeze;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -24,7 +29,7 @@ use crate::commands::cli::{
     SlurmSubmitCrossArgs, SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
 };
 use crate::commands::hpc::{
-    campaign_dry_run, decrypt_bundle, foundation_lock_path, sha256_hex, sidecar_path_for,
+    campaign_dry_run, decrypt_bundle, foundation_lock_path, sidecar_path_for,
     write_encrypted_bundle, BundleDecryptRequest, BundleWriteRequest, CampaignDryRunReport,
 };
 
@@ -253,15 +258,6 @@ fn write_operator_files(
     Ok(())
 }
 
-fn git_stdout(args: &[&str]) -> Option<String> {
-    let arg_vec = args.iter().map(|value| (*value).to_string()).collect::<Vec<_>>();
-    let output = run_command("git", &arg_vec).ok()?;
-    if output.exit_code != 0 {
-        return None;
-    }
-    Some(output.stdout.trim().to_string())
-}
-
 fn build_results_bundle(
     report: &CampaignDryRunReport,
     job: &SelectedJob<'_>,
@@ -269,62 +265,16 @@ fn build_results_bundle(
     submitted_at: &str,
     redaction_needles: &[String],
 ) -> Result<Vec<u8>> {
-    let payload = json!({
-        "schema_version": "bijux.hpc.results_bundle.v1",
-        "campaign": {
-            "id": report.campaign_id,
-            "domain": report.domain,
-            "config_path": report.config_path,
-            "env_file_path": report.env_file_path,
-            "user_policy_path": report.user_policy_path,
-        },
-        "job": {
-            "planned_job_id": job.planned.job_id,
-            "scheduler_job_id": scheduler_job_id,
-            "submitted_at": submitted_at,
-            "job_name": job.name,
-            "stage": job.planned.stage,
-            "tool": job.planned.tool,
-            "sample": job.planned.sample,
-            "resource_template": job.planned.resource_template,
-            "resources": job.planned.resources,
-            "depends_on": job.depends_on_names,
-        },
-        "metrics": {
-            "status": "pending_execution",
-            "submission_mode": "slurm",
-        },
-        "artifacts": {
-            "inventory": [
-                {"kind": "log", "path": job.planned.outputs.log},
-                {"kind": "out", "path": job.planned.outputs.out},
-                {"kind": "err", "path": job.planned.outputs.err},
-            ],
-            "encrypted_targets": [
-                {"kind": "results", "path": job.planned.outputs.results},
-                {"kind": "code", "path": job.planned.outputs.code},
-            ],
-        },
-        "reports": [{
-            "kind": "submission_receipt",
-            "summary": "job submitted or mocked; execution metrics pending runtime wrapper output",
-        }],
-        "traces": {
-            "script_path": script_path_for(Path::new(&job.planned.outputs.log)).display().to_string(),
-            "scheduler_job_id": scheduler_job_id,
-        },
-        "inventories": {
-            "encryption_backend": report.security.encryption_backend,
-            "recipient_fingerprints": report.security.encryption_recipients.iter().map(|recipient| {
-                sha256_hex(recipient.as_bytes()).chars().take(16).collect::<String>()
-            }).collect::<Vec<_>>(),
-        },
-        "appraiser_outputs": [{
-            "name": "submission_ready",
-            "status": "pending",
-            "note": "appraiser jobs are tracked after runtime completion",
-        }],
-    });
+    let script_path = script_path_for(Path::new(&job.planned.outputs.log)).display().to_string();
+    let input = HpcBundleSubmission {
+        campaign: report,
+        job: job.planned,
+        scheduler_job_id,
+        submitted_at,
+        script_path: &script_path,
+    };
+    let payload = serde_json::to_value(assemble_hpc_results_submission(&input))
+        .context("serialize results bundle payload")?;
     encode_redacted_hpc_bundle(payload, redaction_needles)
         .context("serialize results bundle payload")
 }
@@ -337,61 +287,22 @@ fn build_code_bundle(
     submitted_at: &str,
     redaction_needles: &[String],
 ) -> Result<Vec<u8>> {
-    let script = std::fs::read_to_string(script_path)
-        .with_context(|| format!("read {}", script_path.display()))?;
-    let payload = json!({
-        "schema_version": "bijux.hpc.code_bundle.v1",
-        "campaign": {
-            "id": report.campaign_id,
-            "domain": report.domain,
-            "config_path": report.config_path,
-            "env_file_path": report.env_file_path,
-            "user_policy_path": report.user_policy_path,
-            "user_policies_applied": report.user_policies_applied,
-        },
-        "job": {
-            "planned_job_id": job.planned.job_id,
-            "scheduler_job_id": scheduler_job_id,
-            "submitted_at": submitted_at,
-            "job_name": job.name,
-            "stage": job.planned.stage,
-            "tool": job.planned.tool,
-            "sample": job.planned.sample,
-        },
-        "code_freeze": {
-            "slurm_script": script,
-            "effective_settings": {
-                "slurm": report.resolved_slurm,
-                "resources": job.planned.resources,
-            },
-            "config_references": {
-                "campaign_config": report.config_path,
-                "env_file": report.env_file_path,
-                "user_policy": report.user_policy_path,
-            },
-            "repository_state": {
-                "git_head": git_stdout(&["rev-parse", "HEAD"]),
-                "git_branch": git_stdout(&["rev-parse", "--abbrev-ref", "HEAD"]),
-                "git_status_porcelain": git_stdout(&["status", "--porcelain"]),
-            },
-            "dvc_state": {
-                "available": run_command("dvc", &["--version".to_string()])
-                    .map(|output| output.exit_code == 0)
-                    .unwrap_or(false),
-                "status_hint": "capture deferred to runtime wrapper when dvc is configured",
-            },
-        },
-        "locks": {
-            "corpus_lock": prepared_root_lock_path(&report.layout.corpora_root),
-            "database_lock": prepared_root_lock_path(&report.layout.databases_root),
-            "image_lock": prepared_root_lock_path(&report.layout.images_root),
-            "tool_lock": "deferred_to_runtime_registry_capture",
-        },
-        "plan": {
-            "depends_on": job.depends_on_names,
-            "outputs": job.planned.outputs,
-        },
-    });
+    let observation = observe_hpc_code_freeze(script_path)?;
+    let script_path = script_path.display().to_string();
+    let input = HpcBundleSubmission {
+        campaign: report,
+        job: job.planned,
+        scheduler_job_id,
+        submitted_at,
+        script_path: &script_path,
+    };
+    let locks = HpcBundleFoundationLocks {
+        corpus_lock: prepared_root_lock_path(&report.layout.corpora_root),
+        database_lock: prepared_root_lock_path(&report.layout.databases_root),
+        image_lock: prepared_root_lock_path(&report.layout.images_root),
+    };
+    let payload = serde_json::to_value(assemble_hpc_code_submission(&input, observation, locks))
+        .context("serialize code bundle payload")?;
     encode_redacted_hpc_bundle(payload, redaction_needles).context("serialize code bundle payload")
 }
 

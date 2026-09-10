@@ -954,3 +954,9 @@ pub use crate::policy::bundle_redaction::encode_redacted_hpc_bundle;
 pub use crate::policy::hpc_submission::{
     hpc_stage_domain, plan_hpc_submission, HpcSelectedJob, HpcSubmissionPlan, HpcSubmissionSelector,
 };
+
+pub use crate::model::hpc_campaign::{
+    assemble_hpc_code_submission, assemble_hpc_results_submission, HpcBundleFoundationLocks,
+    HpcBundleSubmission, HpcCodeFreezeObservation, HpcCodeSubmissionBundle,
+    HpcResultsSubmissionBundle,
+};
