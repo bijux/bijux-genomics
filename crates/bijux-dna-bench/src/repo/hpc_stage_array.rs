@@ -32,9 +32,10 @@ impl Destinations {
         report: &BenchmarkLocalHpcStageBenchmarkArrayReport,
     ) -> Result<()> {
         if let Some(parent) = self.script.parent() {
-            fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+            bijux_dna_infra::ensure_dir(parent)
+                .with_context(|| format!("create {}", parent.display()))?;
         }
-        fs::write(&self.script, script)
+        bijux_dna_infra::write_string(&self.script, script)
             .with_context(|| format!("write {}", self.script.display()))?;
         bijux_dna_infra::atomic_write_json(&self.manifest, report)?;
         Ok(())
