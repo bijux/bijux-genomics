@@ -57,3 +57,8 @@ reuse it within an operation and explicitly reload to observe file changes.
 The CLI serving map loads each tool once for the current collection and preserves
 missing, mismatched, declared-only, plannable, and runnable dispositions.
 Owner regression cases live under `tests/contracts/selection/`.
+
+Governed BAM case output paths must use `artifacts/runs/bench/local-smoke` under
+the supplied repository root. Planning rejects parent traversal and sample/tool
+path injection while retaining valid relative, absolute, and space-containing
+paths. Filesystem link and concurrent replacement checks remain with materialization.

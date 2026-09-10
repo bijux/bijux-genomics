@@ -1,10 +1,8 @@
-//! Governed BAM benchmark admission.
-use anyhow::anyhow;
-use anyhow::Result;
-use std::path::Path;
-use std::path::PathBuf;
+//! Admission of disposable BAM case output paths.
+use anyhow::{ensure, Context, Result};
+use std::path::{Component, Path, PathBuf};
 
-const BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
+const LOCAL_CASE_OUTPUT_ROOT: &str = "artifacts/runs/bench/local-smoke";
 
 pub(in crate::benchmark::cases) fn local_smoke_case_output_dir(
     repo_root: &Path,
@@ -12,18 +10,36 @@ pub(in crate::benchmark::cases) fn local_smoke_case_output_dir(
     sample_id: &str,
     tool_id: &str,
 ) -> Result<PathBuf> {
-    let resolved_root = if output_root.is_absolute() {
-        output_root.to_path_buf()
+    ensure!(
+        !output_root.components().any(|component| matches!(component, Component::ParentDir)),
+        "local-smoke output_dir must not contain parent traversal"
+    );
+    let relative_root = if output_root.is_absolute() {
+        output_root
+            .strip_prefix(repo_root)
+            .context("local-smoke absolute output_dir must remain inside the repository")?
     } else {
-        repo_root.join(output_root)
+        output_root
     };
-    let readiness_root = repo_root.join(BENCHMARK_READINESS_ROOT_RELATIVE);
-    if resolved_root == readiness_root || resolved_root.starts_with(&readiness_root) {
-        return Err(anyhow!(
-            "local-smoke output_dir must remain disposable under `artifacts/runs/bench/local-smoke` and must not resolve inside `{BENCHMARK_READINESS_ROOT_RELATIVE}`"
-        ));
-    }
+    ensure!(
+        relative_root.starts_with(LOCAL_CASE_OUTPUT_ROOT),
+        "local-smoke output_dir must remain disposable under `{LOCAL_CASE_OUTPUT_ROOT}`"
+    );
+    admit_case_component(sample_id, "sample_id")?;
+    admit_case_component(tool_id, "tool_id")?;
     Ok(output_root.join(sample_id).join(tool_id))
+}
+
+fn admit_case_component(value: &str, label: &str) -> Result<()> {
+    let mut components = Path::new(value).components();
+    ensure!(
+        !value.trim().is_empty()
+            && !value.contains(['/', '\\', '\0'])
+            && matches!(components.next(), Some(Component::Normal(_)))
+            && components.next().is_none(),
+        "local-smoke {label} must be one non-empty path component"
+    );
+    Ok(())
 }
 
 pub(in crate::benchmark::cases) fn float_matches(left: f64, right: f64) -> bool {
@@ -50,3 +66,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "../../../tests/contracts/benchmark/case_output_admission.rs"]
+mod contract_tests;
