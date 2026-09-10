@@ -1,5 +1,6 @@
 //! Owner: hardening campaign databases declarations and pure evidence projections.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog as stage;
 use std::collections::BTreeSet;
 
 const CORPUS_IMPROVEMENT_HARDENING_SCENARIOS: &[ScenarioDefinition] = &[
@@ -141,63 +142,63 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G173",
         title: "add corpus-improvement hardening",
-        stage_ids: &["fastq.validate_reads", "fastq.profile_reads", "bam.align"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::FASTQ_STATS_NEUTRAL, stage::BAM_ALIGN],
         checks: corpus_improvement_hardening,
         scenarios: CORPUS_IMPROVEMENT_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G174",
         title: "add database-improvement hardening",
-        stage_ids: &["bam.align", "vcf.call", "vcf.prepare_reference_panel"],
+        stage_ids: &[stage::BAM_ALIGN, stage::VCF_CALL, stage::VCF_PREPARE_REFERENCE_PANEL],
         checks: database_improvement_hardening,
         scenarios: DATABASE_IMPROVEMENT_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G221",
         title: "add known-sites/dbSNP-like database bundles",
-        stage_ids: &["bam.validate", "vcf.filter", "vcf.postprocess"],
+        stage_ids: &[stage::BAM_VALIDATE, stage::VCF_FILTER, stage::VCF_POSTPROCESS],
         checks: known_sites_dbsnp_like_database_bundles,
         scenarios: KNOWN_SITES_DBSNP_LIKE_DATABASE_BUNDLES_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G222",
         title: "add imputation panel bundles",
-        stage_ids: &["vcf.call", "vcf.impute", "vcf.stats"],
+        stage_ids: &[stage::VCF_CALL, stage::VCF_IMPUTE, stage::VCF_STATS],
         checks: imputation_panel_bundles,
         scenarios: IMPUTATION_PANEL_BUNDLES_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G223",
         title: "add taxonomy database variants",
-        stage_ids: &["fastq.profile_reads", "bam.contamination", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_CONTAMINATION, stage::VCF_STATS],
         checks: taxonomy_database_variants,
         scenarios: TAXONOMY_DATABASE_VARIANTS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G224",
         title: "add contaminant database variants",
-        stage_ids: &["fastq.validate_reads", "bam.contamination", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_CONTAMINATION, stage::VCF_FILTER],
         checks: contaminant_database_variants,
         scenarios: CONTAMINANT_DATABASE_VARIANTS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G225",
         title: "add adapter and primer bank variants",
-        stage_ids: &["fastq.trim_reads", "fastq.profile_reads", "bam.contamination"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::FASTQ_STATS_NEUTRAL, stage::BAM_CONTAMINATION],
         checks: adapter_and_primer_bank_variants,
         scenarios: ADAPTER_AND_PRIMER_BANK_VARIANTS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G226",
         title: "add annotation database variants",
-        stage_ids: &["vcf.call", "vcf.filter", "vcf.postprocess"],
+        stage_ids: &[stage::VCF_CALL, stage::VCF_FILTER, stage::VCF_POSTPROCESS],
         checks: annotation_database_variants,
         scenarios: ANNOTATION_DATABASE_VARIANTS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G227",
         title: "add corpus/database compatibility matrix",
-        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.call"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_ALIGN, stage::VCF_CALL],
         checks: corpus_database_compatibility_matrix,
         scenarios: CORPUS_DATABASE_COMPATIBILITY_MATRIX_SCENARIOS,
     },
@@ -214,7 +215,7 @@ fn corpus_improvement_hardening(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "corpus_hardening_profile_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
         ),
         format!(
             "corpus_hardening_corpus_mismatch_findings={}",
@@ -237,12 +238,12 @@ fn database_improvement_hardening(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "database_hardening_reference_panel_bound={}",
-            rows.iter().any(|row| row.stage_id == "vcf.prepare_reference_panel")
+            rows.iter().any(|row| row.stage_id == stage::VCF_PREPARE_REFERENCE_PANEL)
         ),
         format!(
             "database_hardening_alignment_and_call_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
+            rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
         ),
         format!(
             "database_hardening_non_ready_rows={}",
@@ -262,9 +263,9 @@ fn known_sites_dbsnp_like_database_bundles(input: &CheckInputs<'_>) -> Vec<Strin
         ),
         format!(
             "known_sites_validate_filter_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "known_sites_refuse_rows={}",
@@ -285,9 +286,9 @@ fn imputation_panel_bundles(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "imputation_panel_call_impute_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "vcf.call")
-                && rows.iter().any(|row| row.stage_id == "vcf.impute")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_IMPUTE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "imputation_panel_degraded_rows={}",
@@ -308,9 +309,9 @@ fn taxonomy_database_variants(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "taxonomy_variant_profile_contam_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "taxonomy_variant_non_ready_rows={}",
@@ -331,9 +332,9 @@ fn contaminant_database_variants(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "contaminant_variant_validate_contam_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "contaminant_variant_refuse_rows={}",
@@ -354,9 +355,9 @@ fn adapter_and_primer_bank_variants(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "adapter_primer_trim_profile_contam_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.contamination")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
         ),
         format!(
             "adapter_primer_non_ready_rows={}",
@@ -377,9 +378,9 @@ fn annotation_database_variants(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "annotation_db_call_filter_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "vcf.call")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "annotation_db_refuse_rows={}",
@@ -400,9 +401,9 @@ fn corpus_database_compatibility_matrix(input: &CheckInputs<'_>) -> Vec<String> 
         ),
         format!(
             "corpus_db_matrix_validate_align_call_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
         ),
         format!(
             "corpus_db_matrix_non_ready_rows={}",

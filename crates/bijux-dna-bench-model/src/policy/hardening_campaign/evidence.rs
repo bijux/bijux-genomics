@@ -1,5 +1,6 @@
 //! Owner: hardening campaign evidence declarations and pure evidence projections.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog as stage;
 use std::collections::BTreeSet;
 
 const FLAGSHIP_HPC_BENCHMARK_DASHBOARD_SCENARIOS: &[ScenarioDefinition] = &[
@@ -186,84 +187,84 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G251",
         title: "build flagship HPC benchmark dashboard",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: flagship_hpc_benchmark_dashboard,
         scenarios: FLAGSHIP_HPC_BENCHMARK_DASHBOARD_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G252",
         title: "build per-stage evidence dossiers",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_FILTER],
         checks: per_stage_evidence_dossiers,
         scenarios: PER_STAGE_EVIDENCE_DOSSIERS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G253",
         title: "build per-tool evidence dossiers",
-        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.call"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_ALIGN, stage::VCF_CALL],
         checks: per_tool_evidence_dossiers,
         scenarios: PER_TOOL_EVIDENCE_DOSSIERS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G254",
         title: "build per-corpus evidence dossiers",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_FILTER],
         checks: per_corpus_evidence_dossiers,
         scenarios: PER_CORPUS_EVIDENCE_DOSSIERS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G255",
         title: "build per-database evidence dossiers",
-        stage_ids: &["bam.align", "vcf.impute", "vcf.filter"],
+        stage_ids: &[stage::BAM_ALIGN, stage::VCF_IMPUTE, stage::VCF_FILTER],
         checks: per_database_evidence_dossiers,
         scenarios: PER_DATABASE_EVIDENCE_DOSSIERS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G256",
         title: "build per-image evidence dossiers",
-        stage_ids: &["fastq.trim_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: per_image_evidence_dossiers,
         scenarios: PER_IMAGE_EVIDENCE_DOSSIERS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G257",
         title: "add benchmark-driven stage promotion",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_STATS],
         checks: benchmark_driven_stage_promotion,
         scenarios: BENCHMARK_DRIVEN_STAGE_PROMOTION_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G258",
         title: "add benchmark-driven stage demotion",
-        stage_ids: &["fastq.profile_reads", "bam.contamination", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_CONTAMINATION, stage::VCF_FILTER],
         checks: benchmark_driven_stage_demotion,
         scenarios: BENCHMARK_DRIVEN_STAGE_DEMOTION_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G259",
         title: "add benchmark-driven default backend selection",
-        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.call"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_ALIGN, stage::VCF_CALL],
         checks: benchmark_driven_default_backend_selection,
         scenarios: BENCHMARK_DRIVEN_DEFAULT_BACKEND_SELECTION_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G260",
         title: "add benchmark-driven Slurm resource defaults",
-        stage_ids: &["bam.coverage", "bam.mapping_summary", "vcf.postprocess"],
+        stage_ids: &[stage::BAM_COVERAGE, stage::BAM_MAPPING_SUMMARY, stage::VCF_POSTPROCESS],
         checks: benchmark_driven_slurm_resource_defaults,
         scenarios: BENCHMARK_DRIVEN_SLURM_RESOURCE_DEFAULTS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G279",
         title: "add methods appendix from HPC benchmark evidence",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: methods_appendix_from_hpc_benchmark_evidence,
         scenarios: METHODS_APPENDIX_FROM_HPC_BENCHMARK_EVIDENCE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G280",
         title: "add public caveat summary from HPC benchmark evidence",
-        stage_ids: &["bam.contamination", "vcf.filter", "vcf.stats"],
+        stage_ids: &[stage::BAM_CONTAMINATION, stage::VCF_FILTER, stage::VCF_STATS],
         checks: public_caveat_summary_from_hpc_benchmark_evidence,
         scenarios: PUBLIC_CAVEAT_SUMMARY_FROM_HPC_BENCHMARK_EVIDENCE_SCENARIOS,
     },
@@ -280,9 +281,9 @@ fn flagship_hpc_benchmark_dashboard(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "flagship_dashboard_profile_summary_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "flagship_dashboard_non_ready_rows={}",
@@ -309,9 +310,9 @@ fn per_stage_evidence_dossiers(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "stage_dossier_validate_validate_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "stage_dossier_refuse_rows={}",
@@ -332,9 +333,9 @@ fn per_tool_evidence_dossiers(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "tool_dossier_trim_align_call_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
         ),
         format!(
             "tool_dossier_tool_count={}",
@@ -355,9 +356,9 @@ fn per_corpus_evidence_dossiers(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "corpus_dossier_profile_coverage_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "corpus_dossier_non_ready_rows={}",
@@ -381,9 +382,9 @@ fn per_database_evidence_dossiers(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "database_dossier_align_impute_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.impute")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_IMPUTE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "database_dossier_non_ready_rows={}",
@@ -407,9 +408,9 @@ fn per_image_evidence_dossiers(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "image_dossier_trim_summary_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "image_dossier_non_ready_rows={}",
@@ -440,9 +441,9 @@ fn benchmark_driven_stage_promotion(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "stage_promotion_validate_validate_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "stage_promotion_pass_gate={}",
@@ -469,9 +470,9 @@ fn benchmark_driven_stage_demotion(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "stage_demotion_profile_contamination_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "stage_demotion_requires_demotion={}",
@@ -499,9 +500,9 @@ fn benchmark_driven_default_backend_selection(input: &CheckInputs<'_>) -> Vec<St
         ),
         format!(
             "backend_selection_trim_align_call_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
         ),
         format!(
             "backend_selection_non_ready_rows={}",
@@ -531,9 +532,9 @@ fn benchmark_driven_slurm_resource_defaults(input: &CheckInputs<'_>) -> Vec<Stri
         ),
         format!(
             "slurm_resource_coverage_summary_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "slurm_resource_non_ready_rows={}",
@@ -563,9 +564,9 @@ fn methods_appendix_from_hpc_benchmark_evidence(input: &CheckInputs<'_>) -> Vec<
         ),
         format!(
             "methods_appendix_profile_summary_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "methods_appendix_runtime_repro_findings={}",
@@ -595,9 +596,9 @@ fn public_caveat_summary_from_hpc_benchmark_evidence(input: &CheckInputs<'_>) ->
         ),
         format!(
             "public_caveat_contamination_filter_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "public_caveat_scientific_or_corpus_findings={}",

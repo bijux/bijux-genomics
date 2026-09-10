@@ -63,7 +63,7 @@ fn command_artifact_destination_admission_has_no_directory_or_partial_file_effec
     assert!(!repository.join("created").exists());
     let script = repository.join("commands.sh");
     bijux_dna_infra::write_bytes(&script, b"prior script")?;
-    bijux_dna_infra::ensure_dir(&repository.join("commands.argv.jsonl"))?;
+    bijux_dna_infra::ensure_dir(repository.join("commands.argv.jsonl"))?;
     assert!(publish_rendered_command_artifacts(
         &repository,
         Path::new("commands.sh"),

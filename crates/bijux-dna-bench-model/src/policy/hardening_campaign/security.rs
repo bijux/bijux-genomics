@@ -1,5 +1,6 @@
 //! Owner: hardening campaign security declarations and pure evidence projections.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog as stage;
 use std::collections::BTreeSet;
 
 const ENCRYPTED_BENCHMARK_SHARING_PACKAGE_SCENARIOS: &[ScenarioDefinition] = &[
@@ -156,70 +157,78 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G261",
         title: "add encrypted benchmark sharing package",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        stage_ids: &[
+            stage::FASTQ_STATS_NEUTRAL,
+            stage::BAM_MAPPING_SUMMARY,
+            stage::VCF_POSTPROCESS,
+        ],
         checks: encrypted_benchmark_sharing_package,
         scenarios: ENCRYPTED_BENCHMARK_SHARING_PACKAGE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G262",
         title: "add reviewer decrypt profile",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_POSTPROCESS],
         checks: reviewer_decrypt_profile,
         scenarios: REVIEWER_DECRYPT_PROFILE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G263",
         title: "add confidential issue bundle generator",
-        stage_ids: &["fastq.trim_reads", "bam.contamination", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_CONTAMINATION, stage::VCF_FILTER],
         checks: confidential_issue_bundle_generator,
         scenarios: CONFIDENTIAL_ISSUE_BUNDLE_GENERATOR_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G264",
         title: "add source blame from code bundles",
-        stage_ids: &["fastq.profile_reads", "bam.align", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_ALIGN, stage::VCF_POSTPROCESS],
         checks: source_blame_from_code_bundles,
         scenarios: SOURCE_BLAME_FROM_CODE_BUNDLES_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G265",
         title: "add performance-regression gate from Slurm baselines",
-        stage_ids: &["fastq.trim_reads", "bam.coverage", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_COVERAGE, stage::VCF_STATS],
         checks: performance_regression_gate_from_slurm_baselines,
         scenarios: PERFORMANCE_REGRESSION_GATE_FROM_SLURM_BASELINES_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G266",
         title: "add scientific-regression gate from Slurm baselines",
-        stage_ids: &["bam.mapping_summary", "vcf.filter", "vcf.stats"],
+        stage_ids: &[stage::BAM_MAPPING_SUMMARY, stage::VCF_FILTER, stage::VCF_STATS],
         checks: scientific_regression_gate_from_slurm_baselines,
         scenarios: SCIENTIFIC_REGRESSION_GATE_FROM_SLURM_BASELINES_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G267",
         title: "add security-regression gate from Slurm baselines",
-        stage_ids: &["bam.contamination", "vcf.impute", "vcf.postprocess"],
+        stage_ids: &[stage::BAM_CONTAMINATION, stage::VCF_IMPUTE, stage::VCF_POSTPROCESS],
         checks: security_regression_gate_from_slurm_baselines,
         scenarios: SECURITY_REGRESSION_GATE_FROM_SLURM_BASELINES_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G268",
         title: "add replay-regression gate from code/results bundles",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        stage_ids: &[
+            stage::FASTQ_STATS_NEUTRAL,
+            stage::BAM_MAPPING_SUMMARY,
+            stage::VCF_POSTPROCESS,
+        ],
         checks: replay_regression_gate_from_code_results_bundles,
         scenarios: REPLAY_REGRESSION_GATE_FROM_CODE_RESULTS_BUNDLES_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G274",
         title: "add encryption health budget",
-        stage_ids: &["bam.contamination", "vcf.impute", "vcf.postprocess"],
+        stage_ids: &[stage::BAM_CONTAMINATION, stage::VCF_IMPUTE, stage::VCF_POSTPROCESS],
         checks: encryption_health_budget,
         scenarios: ENCRYPTION_HEALTH_BUDGET_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G278",
         title: "add benchmark re-encryption for archival",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_POSTPROCESS],
         checks: benchmark_re_encryption_for_archival,
         scenarios: BENCHMARK_RE_ENCRYPTION_FOR_ARCHIVAL_SCENARIOS,
     },
@@ -237,9 +246,9 @@ fn encrypted_benchmark_sharing_package(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "encrypted_sharing_profile_summary_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "encrypted_sharing_code_and_results_findings={}",
@@ -264,9 +273,9 @@ fn reviewer_decrypt_profile(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "reviewer_decrypt_validate_validate_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "reviewer_decrypt_encrypted_findings={}",
@@ -293,9 +302,9 @@ fn confidential_issue_bundle_generator(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "confidential_bundle_trim_contamination_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "confidential_bundle_encrypted_findings={}",
@@ -322,9 +331,9 @@ fn source_blame_from_code_bundles(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "source_blame_profile_align_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "source_blame_drift_findings={}",
@@ -355,9 +364,9 @@ fn performance_regression_gate_from_slurm_baselines(input: &CheckInputs<'_>) -> 
         ),
         format!(
             "performance_regression_trim_coverage_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "performance_regression_runtime_findings={}",
@@ -387,9 +396,9 @@ fn scientific_regression_gate_from_slurm_baselines(input: &CheckInputs<'_>) -> V
         ),
         format!(
             "scientific_regression_summary_filter_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "scientific_regression_scientific_findings={}",
@@ -417,9 +426,9 @@ fn security_regression_gate_from_slurm_baselines(input: &CheckInputs<'_>) -> Vec
         ),
         format!(
             "security_regression_contamination_impute_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.impute")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_IMPUTE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "security_regression_encrypted_findings={}",
@@ -447,9 +456,9 @@ fn replay_regression_gate_from_code_results_bundles(input: &CheckInputs<'_>) -> 
         ),
         format!(
             "replay_regression_profile_summary_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "replay_regression_code_freeze_findings={}",
@@ -480,9 +489,9 @@ fn encryption_health_budget(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "encryption_budget_contamination_impute_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.impute")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_IMPUTE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "encryption_budget_encrypted_findings={}",
@@ -510,9 +519,9 @@ fn benchmark_re_encryption_for_archival(input: &CheckInputs<'_>) -> Vec<String> 
         ),
         format!(
             "reencryption_validate_validate_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "reencryption_encrypted_findings={}",

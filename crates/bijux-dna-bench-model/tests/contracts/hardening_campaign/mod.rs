@@ -4,8 +4,8 @@ use super::*;
 use crate::{
     BenchmarkMatrixRow, BenchmarkMatrixSummary, BenchmarkReadiness, BenchmarkSurfaceMatch,
 };
-mod support;
-use support::*;
+mod matrix;
+use matrix::*;
 mod admission;
 mod comparisons;
 mod corpora;

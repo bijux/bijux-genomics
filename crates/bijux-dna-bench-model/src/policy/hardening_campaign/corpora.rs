@@ -1,5 +1,6 @@
 //! Owner: hardening campaign corpora declarations and pure evidence projections.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog as stage;
 use std::collections::BTreeSet;
 
 const MODERN_WGS_BENCHMARK_CORPUS_SCENARIOS: &[ScenarioDefinition] = &[
@@ -306,140 +307,144 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G201",
         title: "build modern WGS benchmark corpus",
-        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.call"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_ALIGN, stage::VCF_CALL],
         checks: modern_wgs_benchmark_corpus,
         scenarios: MODERN_WGS_BENCHMARK_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G202",
         title: "build ancient-DNA benchmark corpus",
-        stage_ids: &["fastq.trim_reads", "bam.contamination", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_CONTAMINATION, stage::VCF_FILTER],
         checks: ancient_dna_benchmark_corpus,
         scenarios: ANCIENT_DNA_BENCHMARK_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G203",
         title: "build eDNA/metabarcoding benchmark corpus",
-        stage_ids: &["fastq.profile_reads", "bam.contamination", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_CONTAMINATION, stage::VCF_STATS],
         checks: edna_metabarcoding_benchmark_corpus,
         scenarios: EDNA_METABARCODING_BENCHMARK_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G204",
         title: "build low-pass population benchmark corpus",
-        stage_ids: &["fastq.profile_reads", "vcf.impute", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::VCF_IMPUTE, stage::VCF_STATS],
         checks: low_pass_population_benchmark_corpus,
         scenarios: LOW_PASS_POPULATION_BENCHMARK_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G205",
         title: "build contamination-heavy benchmark corpus",
-        stage_ids: &["fastq.validate_reads", "bam.contamination", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_CONTAMINATION, stage::VCF_FILTER],
         checks: contamination_heavy_benchmark_corpus,
         scenarios: CONTAMINATION_HEAVY_BENCHMARK_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G206",
         title: "build non-human reference benchmark corpus",
-        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_ALIGN, stage::VCF_POSTPROCESS],
         checks: non_human_reference_benchmark_corpus,
         scenarios: NON_HUMAN_REFERENCE_BENCHMARK_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G207",
         title: "build microbial benchmark corpus",
-        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.call"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_ALIGN, stage::VCF_CALL],
         checks: microbial_benchmark_corpus,
         scenarios: MICROBIAL_BENCHMARK_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G208",
         title: "build structural-variant boundary corpus",
-        stage_ids: &["bam.coverage", "vcf.call", "vcf.filter"],
+        stage_ids: &[stage::BAM_COVERAGE, stage::VCF_CALL, stage::VCF_FILTER],
         checks: structural_variant_boundary_corpus,
         scenarios: STRUCTURAL_VARIANT_BOUNDARY_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G209",
         title: "build CNV boundary corpus",
-        stage_ids: &["bam.coverage", "vcf.filter", "vcf.stats"],
+        stage_ids: &[stage::BAM_COVERAGE, stage::VCF_FILTER, stage::VCF_STATS],
         checks: cnv_boundary_corpus,
         scenarios: CNV_BOUNDARY_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G210",
         title: "build CRAM boundary corpus",
-        stage_ids: &["bam.validate", "bam.mapping_summary", "vcf.filter"],
+        stage_ids: &[stage::BAM_VALIDATE, stage::BAM_MAPPING_SUMMARY, stage::VCF_FILTER],
         checks: cram_boundary_corpus,
         scenarios: CRAM_BOUNDARY_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G211",
         title: "build long-read boundary corpus",
-        stage_ids: &["fastq.validate_reads", "bam.align", "bam.mapping_summary"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_ALIGN, stage::BAM_MAPPING_SUMMARY],
         checks: long_read_boundary_corpus,
         scenarios: LONG_READ_BOUNDARY_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G212",
         title: "build sample-swap corpus",
-        stage_ids: &["fastq.profile_reads", "bam.validate", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_VALIDATE, stage::VCF_STATS],
         checks: sample_swap_corpus,
         scenarios: SAMPLE_SWAP_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G213",
         title: "build duplicate-cohort corpus",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_STATS],
         checks: duplicate_cohort_corpus,
         scenarios: DUPLICATE_COHORT_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G214",
         title: "build panel-choice sensitivity corpus",
-        stage_ids: &["vcf.impute", "vcf.call", "vcf.stats"],
+        stage_ids: &[stage::VCF_IMPUTE, stage::VCF_CALL, stage::VCF_STATS],
         checks: panel_choice_sensitivity_corpus,
         scenarios: PANEL_CHOICE_SENSITIVITY_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G215",
         title: "build annotation-drift corpus",
-        stage_ids: &["vcf.call", "vcf.filter", "vcf.postprocess"],
+        stage_ids: &[stage::VCF_CALL, stage::VCF_FILTER, stage::VCF_POSTPROCESS],
         checks: annotation_drift_corpus,
         scenarios: ANNOTATION_DRIFT_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G216",
         title: "build QC-threshold sensitivity corpus",
-        stage_ids: &["fastq.trim_reads", "bam.coverage", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_COVERAGE, stage::VCF_FILTER],
         checks: qc_threshold_sensitivity_corpus,
         scenarios: QC_THRESHOLD_SENSITIVITY_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G217",
         title: "build artifact-minimization corpus",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        stage_ids: &[
+            stage::FASTQ_STATS_NEUTRAL,
+            stage::BAM_MAPPING_SUMMARY,
+            stage::VCF_POSTPROCESS,
+        ],
         checks: artifact_minimization_corpus,
         scenarios: ARTIFACT_MINIMIZATION_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G218",
         title: "build shared-storage IO stress corpus",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: shared_storage_io_stress_corpus,
         scenarios: SHARED_STORAGE_IO_STRESS_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G219",
         title: "build database-build benchmark corpus",
-        stage_ids: &["bam.align", "vcf.call", "vcf.impute"],
+        stage_ids: &[stage::BAM_ALIGN, stage::VCF_CALL, stage::VCF_IMPUTE],
         checks: database_build_benchmark_corpus,
         scenarios: DATABASE_BUILD_BENCHMARK_CORPUS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G220",
         title: "add truth-set anchored corpus mode",
-        stage_ids: &["fastq.validate_reads", "vcf.call", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::VCF_CALL, stage::VCF_FILTER],
         checks: truth_set_anchored_corpus_mode,
         scenarios: TRUTH_SET_ANCHORED_CORPUS_MODE_SCENARIOS,
     },
@@ -456,9 +461,9 @@ fn modern_wgs_benchmark_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "modern_wgs_validate_align_call_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
         ),
         format!(
             "modern_wgs_non_ready_rows={}",
@@ -480,9 +485,9 @@ fn ancient_dna_benchmark_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "adna_corpus_trim_contam_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "adna_corpus_contamination_findings={}",
@@ -507,9 +512,9 @@ fn edna_metabarcoding_benchmark_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "edna_corpus_profile_contam_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "edna_corpus_non_ready_rows={}",
@@ -533,9 +538,9 @@ fn low_pass_population_benchmark_corpus(input: &CheckInputs<'_>) -> Vec<String> 
         ),
         format!(
             "lowpass_corpus_profile_impute_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "vcf.impute")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_IMPUTE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "lowpass_corpus_degraded_rows={}",
@@ -556,9 +561,9 @@ fn contamination_heavy_benchmark_corpus(input: &CheckInputs<'_>) -> Vec<String> 
         ),
         format!(
             "contamination_heavy_validate_contam_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "contamination_heavy_refuse_rows={}",
@@ -579,9 +584,9 @@ fn non_human_reference_benchmark_corpus(input: &CheckInputs<'_>) -> Vec<String> 
         ),
         format!(
             "nonhuman_corpus_validate_align_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "nonhuman_corpus_code_scope_findings={}",
@@ -602,9 +607,9 @@ fn microbial_benchmark_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "microbial_corpus_trim_align_call_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
         ),
         format!(
             "microbial_corpus_non_ready_rows={}",
@@ -625,9 +630,9 @@ fn structural_variant_boundary_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "sv_boundary_coverage_call_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "sv_boundary_refuse_rows={}",
@@ -651,9 +656,9 @@ fn cnv_boundary_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "cnv_boundary_coverage_filter_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "cnv_boundary_degraded_or_refuse_rows={}",
@@ -676,9 +681,9 @@ fn cram_boundary_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "cram_boundary_validate_summary_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "cram_boundary_refuse_rows={}",
@@ -699,9 +704,9 @@ fn long_read_boundary_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "long_read_boundary_validate_align_summary_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
         ),
         format!(
             "long_read_boundary_degraded_or_refuse_rows={}",
@@ -724,9 +729,9 @@ fn sample_swap_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "sample_swap_profile_validate_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "sample_swap_degraded_rows={}",
@@ -747,9 +752,9 @@ fn duplicate_cohort_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "duplicate_cohort_profile_coverage_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "duplicate_cohort_non_ready_rows={}",
@@ -770,9 +775,9 @@ fn panel_choice_sensitivity_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "panel_choice_impute_call_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "vcf.impute")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::VCF_IMPUTE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "panel_choice_degraded_rows={}",
@@ -793,9 +798,9 @@ fn annotation_drift_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "annotation_drift_call_filter_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "vcf.call")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "annotation_drift_refuse_rows={}",
@@ -816,9 +821,9 @@ fn qc_threshold_sensitivity_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "qc_threshold_trim_coverage_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "qc_threshold_degraded_or_refuse_rows={}",
@@ -841,9 +846,9 @@ fn artifact_minimization_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "artifact_minimization_profile_summary_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "artifact_minimization_non_ready_rows={}",
@@ -867,9 +872,9 @@ fn shared_storage_io_stress_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "shared_storage_io_profile_summary_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "shared_storage_io_non_ready_rows={}",
@@ -890,9 +895,9 @@ fn database_build_benchmark_corpus(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "database_build_align_call_impute_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
-                && rows.iter().any(|row| row.stage_id == "vcf.impute")
+            rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_IMPUTE)
         ),
         format!(
             "database_build_degraded_rows={}",
@@ -913,9 +918,9 @@ fn truth_set_anchored_corpus_mode(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "truth_set_validate_call_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "truth_set_refuse_rows={}",

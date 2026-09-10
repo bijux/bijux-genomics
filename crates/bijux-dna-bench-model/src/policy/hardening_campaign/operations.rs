@@ -1,5 +1,6 @@
 //! Owner: hardening campaign operations declarations and pure evidence projections.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog as stage;
 use std::collections::BTreeSet;
 
 const NIGHTLY_SLURM_MINI_CAMPAIGN_SCENARIOS: &[ScenarioDefinition] = &[
@@ -126,56 +127,64 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G269",
         title: "add nightly Slurm mini-campaign",
-        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_ALIGN, stage::VCF_FILTER],
         checks: nightly_slurm_mini_campaign,
         scenarios: NIGHTLY_SLURM_MINI_CAMPAIGN_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G270",
         title: "add monthly full-campaign mode",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.call"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_CALL],
         checks: monthly_full_campaign_mode,
         scenarios: MONTHLY_FULL_CAMPAIGN_MODE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G271",
         title: "add cost-aware campaign pruning",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_FILTER],
         checks: cost_aware_campaign_pruning,
         scenarios: COST_AWARE_CAMPAIGN_PRUNING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G272",
         title: "add campaign failure budget",
-        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_ALIGN, stage::VCF_FILTER],
         checks: campaign_failure_budget,
         scenarios: CAMPAIGN_FAILURE_BUDGET_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G273",
         title: "add campaign storage budget",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        stage_ids: &[
+            stage::FASTQ_STATS_NEUTRAL,
+            stage::BAM_MAPPING_SUMMARY,
+            stage::VCF_POSTPROCESS,
+        ],
         checks: campaign_storage_budget,
         scenarios: CAMPAIGN_STORAGE_BUDGET_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G275",
         title: "add appraiser health budget",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_STATS],
         checks: appraiser_health_budget,
         scenarios: APPRAISER_HEALTH_BUDGET_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G276",
         title: "add benchmark result retention tiers",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        stage_ids: &[
+            stage::FASTQ_STATS_NEUTRAL,
+            stage::BAM_MAPPING_SUMMARY,
+            stage::VCF_POSTPROCESS,
+        ],
         checks: benchmark_result_retention_tiers,
         scenarios: BENCHMARK_RESULT_RETENTION_TIERS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G277",
         title: "add local benchmark archive format",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_POSTPROCESS],
         checks: local_benchmark_archive_format,
         scenarios: LOCAL_BENCHMARK_ARCHIVE_FORMAT_SCENARIOS,
     },
@@ -192,9 +201,9 @@ fn nightly_slurm_mini_campaign(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "nightly_campaign_validate_align_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "nightly_campaign_non_ready_rows={}",
@@ -215,9 +224,9 @@ fn monthly_full_campaign_mode(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "monthly_campaign_profile_coverage_call_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
         ),
         format!(
             "monthly_campaign_non_ready_rows={}",
@@ -238,9 +247,9 @@ fn cost_aware_campaign_pruning(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "cost_pruning_profile_coverage_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "cost_pruning_non_ready_rows={}",
@@ -262,9 +271,9 @@ fn campaign_failure_budget(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "failure_budget_validate_align_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "failure_budget_refuse_rows={}",
@@ -290,9 +299,9 @@ fn campaign_storage_budget(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "storage_budget_profile_summary_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "storage_budget_runtime_findings={}",
@@ -324,9 +333,9 @@ fn appraiser_health_budget(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "appraiser_budget_validate_validate_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!("appraiser_budget_findings_count={}", findings.len()),
         format!(
@@ -349,9 +358,9 @@ fn benchmark_result_retention_tiers(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "retention_tier_profile_summary_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "retention_tier_encrypted_findings={}",
@@ -378,9 +387,9 @@ fn local_benchmark_archive_format(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "local_archive_profile_coverage_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "local_archive_encrypted_findings={}",

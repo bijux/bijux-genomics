@@ -1,5 +1,6 @@
 //! Owner: hardening campaign comparisons declarations and pure evidence projections.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog as stage;
 use std::collections::BTreeSet;
 
 const FULL_FASTQ_STAGE_TOOL_CAMPAIGN_SCENARIOS: &[ScenarioDefinition] = &[
@@ -156,70 +157,70 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G241",
         title: "run full FASTQ stage/tool campaign",
-        stage_ids: &["fastq.validate_reads", "fastq.trim_reads", "fastq.profile_reads"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::FASTQ_TRIM, stage::FASTQ_STATS_NEUTRAL],
         checks: full_fastq_stage_tool_campaign,
         scenarios: FULL_FASTQ_STAGE_TOOL_CAMPAIGN_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G242",
         title: "run full BAM stage/tool campaign",
-        stage_ids: &["bam.validate", "bam.align", "bam.mapping_summary"],
+        stage_ids: &[stage::BAM_VALIDATE, stage::BAM_ALIGN, stage::BAM_MAPPING_SUMMARY],
         checks: full_bam_stage_tool_campaign,
         scenarios: FULL_BAM_STAGE_TOOL_CAMPAIGN_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G243",
         title: "run full VCF stage/tool campaign",
-        stage_ids: &["vcf.call", "vcf.filter", "vcf.stats"],
+        stage_ids: &[stage::VCF_CALL, stage::VCF_FILTER, stage::VCF_STATS],
         checks: full_vcf_stage_tool_campaign,
         scenarios: FULL_VCF_STAGE_TOOL_CAMPAIGN_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G244",
         title: "run full cross-domain campaign",
-        stage_ids: &["fastq.profile_reads", "bam.align", "vcf.call"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_ALIGN, stage::VCF_CALL],
         checks: full_cross_domain_campaign,
         scenarios: FULL_CROSS_DOMAIN_CAMPAIGN_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G245",
         title: "run all-domain staged campaign",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_POSTPROCESS],
         checks: all_domain_staged_campaign,
         scenarios: ALL_DOMAIN_STAGED_CAMPAIGN_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G246",
         title: "compare local and Slurm execution",
-        stage_ids: &["fastq.trim_reads", "bam.coverage", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_COVERAGE, stage::VCF_FILTER],
         checks: compare_local_and_slurm_execution,
         scenarios: COMPARE_LOCAL_AND_SLURM_EXECUTION_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G247",
         title: "compare Apptainer image versions",
-        stage_ids: &["fastq.trim_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: compare_apptainer_image_versions,
         scenarios: COMPARE_APPTAINER_IMAGE_VERSIONS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G248",
         title: "compare database versions",
-        stage_ids: &["bam.align", "vcf.call", "vcf.impute"],
+        stage_ids: &[stage::BAM_ALIGN, stage::VCF_CALL, stage::VCF_IMPUTE],
         checks: compare_database_versions,
         scenarios: COMPARE_DATABASE_VERSIONS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G249",
         title: "compare corpus scales",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_FILTER],
         checks: compare_corpus_scales,
         scenarios: COMPARE_CORPUS_SCALES_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G250",
         title: "compare cold and warm storage modes",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: compare_cold_and_warm_storage_modes,
         scenarios: COMPARE_COLD_AND_WARM_STORAGE_MODES_SCENARIOS,
     },
@@ -236,9 +237,9 @@ fn full_fastq_stage_tool_campaign(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "full_fastq_validate_trim_profile_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
         ),
         format!(
             "full_fastq_non_ready_rows={}",
@@ -259,9 +260,9 @@ fn full_bam_stage_tool_campaign(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "full_bam_validate_align_summary_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
         ),
         format!(
             "full_bam_non_ready_rows={}",
@@ -282,9 +283,9 @@ fn full_vcf_stage_tool_campaign(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "full_vcf_call_filter_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "vcf.call")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "full_vcf_non_ready_rows={}",
@@ -305,9 +306,9 @@ fn full_cross_domain_campaign(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "full_cross_domain_profile_align_call_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
         ),
         format!(
             "full_cross_domain_non_ready_rows={}",
@@ -328,9 +329,9 @@ fn all_domain_staged_campaign(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "all_domain_series_validate_validate_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "all_domain_series_non_ready_rows={}",
@@ -351,9 +352,9 @@ fn compare_local_and_slurm_execution(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "local_slurm_parity_trim_coverage_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "local_slurm_parity_degraded_or_refuse_rows={}",
@@ -376,9 +377,9 @@ fn compare_apptainer_image_versions(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "image_version_trim_summary_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "image_version_non_ready_rows={}",
@@ -399,9 +400,9 @@ fn compare_database_versions(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "database_version_align_call_impute_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
-                && rows.iter().any(|row| row.stage_id == "vcf.impute")
+            rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_IMPUTE)
         ),
         format!(
             "database_version_non_ready_rows={}",
@@ -422,9 +423,9 @@ fn compare_corpus_scales(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "corpus_scale_profile_coverage_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "corpus_scale_degraded_or_refuse_rows={}",
@@ -447,9 +448,9 @@ fn compare_cold_and_warm_storage_modes(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "storage_mode_profile_summary_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "storage_mode_non_ready_rows={}",

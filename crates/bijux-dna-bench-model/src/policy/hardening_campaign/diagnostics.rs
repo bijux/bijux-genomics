@@ -1,5 +1,6 @@
 //! Owner: hardening campaign diagnostics declarations and pure evidence projections.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog as stage;
 use std::collections::BTreeSet;
 
 const PER_STAGE_HARDENING_PLAYBOOKS_SCENARIOS: &[ScenarioDefinition] = &[
@@ -231,105 +232,109 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
         title: "add per-stage hardening playbooks",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_FILTER],
         checks: per_stage_hardening_playbooks,
         scenarios: PER_STAGE_HARDENING_PLAYBOOKS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G172",
         title: "add per-tool hardening playbooks",
-        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.call"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_ALIGN, stage::VCF_CALL],
         checks: per_tool_hardening_playbooks,
         scenarios: PER_TOOL_HARDENING_PLAYBOOKS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G183",
         title: "add caveat hardening",
-        stage_ids: &["bam.contamination", "vcf.filter", "vcf.stats"],
+        stage_ids: &[stage::BAM_CONTAMINATION, stage::VCF_FILTER, stage::VCF_STATS],
         checks: caveat_hardening,
         scenarios: CAVEAT_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G184",
         title: "add failure taxonomy hardening",
-        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_ALIGN, stage::VCF_FILTER],
         checks: failure_taxonomy_hardening,
         scenarios: FAILURE_TAXONOMY_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G185",
         title: "add benchmark minimizer",
-        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_ALIGN, stage::VCF_FILTER],
         checks: benchmark_minimizer,
         scenarios: BENCHMARK_MINIMIZER_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G186",
         title: "add local investigation workspace",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        stage_ids: &[
+            stage::FASTQ_STATS_NEUTRAL,
+            stage::BAM_MAPPING_SUMMARY,
+            stage::VCF_POSTPROCESS,
+        ],
         checks: local_investigation_workspace,
         scenarios: LOCAL_INVESTIGATION_WORKSPACE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G187",
         title: "add result diff workflow",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_STATS],
         checks: result_diff_workflow,
         scenarios: RESULT_DIFF_WORKFLOW_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G188",
         title: "add code diff workflow",
-        stage_ids: &["fastq.trim_reads", "bam.mapping_summary", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_MAPPING_SUMMARY, stage::VCF_POSTPROCESS],
         checks: code_diff_workflow,
         scenarios: CODE_DIFF_WORKFLOW_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G192",
         title: "add ambiguous-result review queue",
-        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_ALIGN, stage::VCF_FILTER],
         checks: ambiguous_result_review_queue,
         scenarios: AMBIGUOUS_RESULT_REVIEW_QUEUE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G193",
         title: "add suspected upstream tool issue bundle",
-        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.call"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_ALIGN, stage::VCF_CALL],
         checks: suspected_upstream_tool_issue_bundle,
         scenarios: SUSPECTED_UPSTREAM_TOOL_ISSUE_BUNDLE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G194",
         title: "add suspected data issue bundle",
-        stage_ids: &["fastq.validate_reads", "bam.contamination", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_CONTAMINATION, stage::VCF_FILTER],
         checks: suspected_data_issue_bundle,
         scenarios: SUSPECTED_DATA_ISSUE_BUNDLE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G195",
         title: "add suspected runtime issue bundle",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: suspected_runtime_issue_bundle,
         scenarios: SUSPECTED_RUNTIME_ISSUE_BUNDLE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G197",
         title: "add appraiser confidence scores",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_STATS],
         checks: appraiser_confidence_scores,
         scenarios: APPRAISER_CONFIDENCE_SCORES_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G198",
         title: "add benchmark history analytics",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.impute"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_IMPUTE],
         checks: benchmark_history_analytics,
         scenarios: BENCHMARK_HISTORY_ANALYTICS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G199",
         title: "add stage-risk ranking",
-        stage_ids: &["fastq.trim_reads", "bam.coverage", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_COVERAGE, stage::VCF_FILTER],
         checks: stage_risk_ranking,
         scenarios: STAGE_RISK_RANKING_SCENARIOS,
     },
@@ -346,7 +351,7 @@ fn per_stage_hardening_playbooks(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "stage_playbook_validate_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
         ),
         format!(
             "stage_playbook_refuse_rows={}",
@@ -402,9 +407,9 @@ fn caveat_hardening(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "caveat_hardening_contam_filter_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "caveat_hardening_scientific_findings={}",
@@ -492,9 +497,9 @@ fn local_investigation_workspace(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "investigation_workspace_profile_summary_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "investigation_workspace_code_scope_findings={}",
@@ -515,9 +520,9 @@ fn result_diff_workflow(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "result_diff_profile_coverage_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "result_diff_encrypted_result_findings={}",
@@ -542,9 +547,9 @@ fn code_diff_workflow(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "code_diff_trim_summary_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "code_diff_code_scope_findings={}",
@@ -597,9 +602,9 @@ fn suspected_upstream_tool_issue_bundle(input: &CheckInputs<'_>) -> Vec<String> 
         ),
         format!(
             "upstream_tool_bundle_trim_align_call_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
         ),
         format!(
             "upstream_tool_bundle_tool_binding_findings={}",
@@ -627,9 +632,9 @@ fn suspected_data_issue_bundle(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "data_issue_bundle_validate_contam_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.contamination")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_CONTAMINATION)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "data_issue_bundle_corpus_findings={}",
@@ -658,9 +663,9 @@ fn suspected_runtime_issue_bundle(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "runtime_issue_bundle_profile_summary_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "runtime_issue_bundle_runtime_findings={}",
@@ -713,9 +718,9 @@ fn benchmark_history_analytics(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "history_analytics_profile_coverage_impute_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.impute")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_IMPUTE)
         ),
         format!(
             "history_analytics_degraded_or_refuse_rows={}",
@@ -745,9 +750,9 @@ fn stage_risk_ranking(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "stage_risk_ranking_trim_coverage_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_TRIM)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "stage_risk_ranking_critical_findings={}",

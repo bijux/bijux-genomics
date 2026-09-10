@@ -1,5 +1,6 @@
 //! Owner: hardening campaign execution declarations and pure evidence projections.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog as stage;
 use std::collections::BTreeSet;
 
 const APPTAINER_IMAGE_HARDENING_SCENARIOS: &[ScenarioDefinition] = &[
@@ -201,91 +202,95 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G175",
         title: "add Apptainer-image hardening",
-        stage_ids: &["fastq.trim_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_TRIM, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: apptainer_image_hardening,
         scenarios: APPTAINER_IMAGE_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G176",
         title: "add Slurm-wrapper hardening",
-        stage_ids: &["bam.mapping_summary", "bam.coverage", "vcf.stats"],
+        stage_ids: &[stage::BAM_MAPPING_SUMMARY, stage::BAM_COVERAGE, stage::VCF_STATS],
         checks: slurm_wrapper_hardening,
         scenarios: SLURM_WRAPPER_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G177",
         title: "add resource-tuning hardening",
-        stage_ids: &["bam.align", "bam.coverage", "vcf.call"],
+        stage_ids: &[stage::BAM_ALIGN, stage::BAM_COVERAGE, stage::VCF_CALL],
         checks: resource_tuning_hardening,
         scenarios: RESOURCE_TUNING_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G178",
         title: "add IO-staging hardening",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: io_staging_hardening,
         scenarios: IO_STAGING_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G179",
         title: "add encryption hardening",
-        stage_ids: &["bam.contamination", "vcf.impute", "vcf.postprocess"],
+        stage_ids: &[stage::BAM_CONTAMINATION, stage::VCF_IMPUTE, stage::VCF_POSTPROCESS],
         checks: encryption_hardening,
         scenarios: ENCRYPTION_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G180",
         title: "add replay hardening",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        stage_ids: &[
+            stage::FASTQ_STATS_NEUTRAL,
+            stage::BAM_MAPPING_SUMMARY,
+            stage::VCF_POSTPROCESS,
+        ],
         checks: replay_hardening,
         scenarios: REPLAY_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G181",
         title: "add nondeterminism hardening",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: nondeterminism_hardening,
         scenarios: NONDETERMINISM_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G182",
         title: "add output-schema hardening",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_POSTPROCESS],
         checks: output_schema_hardening,
         scenarios: OUTPUT_SCHEMA_HARDENING_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G189",
         title: "add accepted-baseline workflow",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_STATS],
         checks: accepted_baseline_workflow,
         scenarios: ACCEPTED_BASELINE_WORKFLOW_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G190",
         title: "add regression workflow",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_POSTPROCESS],
         checks: regression_workflow,
         scenarios: REGRESSION_WORKFLOW_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G191",
         title: "add hardening sprint generator",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_FILTER],
         checks: hardening_sprint_generator,
         scenarios: HARDENING_SPRINT_GENERATOR_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G196",
         title: "add campaign salvage workflow",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_FILTER],
         checks: campaign_salvage_workflow,
         scenarios: CAMPAIGN_SALVAGE_WORKFLOW_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G200",
         title: "add hardening acceptance rerun",
-        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_ALIGN, stage::VCF_FILTER],
         checks: hardening_acceptance_rerun,
         scenarios: HARDENING_ACCEPTANCE_RERUN_SCENARIOS,
     },
@@ -303,7 +308,7 @@ fn apptainer_image_hardening(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "image_hardening_mapping_summary_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
         ),
         format!(
             "image_hardening_image_mismatch_findings={}",
@@ -327,7 +332,7 @@ fn slurm_wrapper_hardening(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "wrapper_hardening_summary_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
         ),
         format!(
             "wrapper_hardening_runtime_findings={}",
@@ -381,8 +386,8 @@ fn io_staging_hardening(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "io_hardening_profile_to_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "io_hardening_non_ready_rows={}",
@@ -441,9 +446,9 @@ fn replay_hardening(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "replay_hardening_chain_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "replay_hardening_code_freeze_findings={}",
@@ -473,9 +478,9 @@ fn nondeterminism_hardening(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "nondeterminism_profile_summary_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "nondeterminism_repeat_risk_rows={}",
@@ -505,9 +510,9 @@ fn output_schema_hardening(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "output_schema_validate_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "output_schema_code_freeze_findings={}",
@@ -535,9 +540,9 @@ fn accepted_baseline_workflow(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "baseline_workflow_validate_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "baseline_workflow_critical_findings={}",
@@ -562,9 +567,9 @@ fn regression_workflow(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "regression_workflow_profile_coverage_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "regression_workflow_critical_findings={}",
@@ -600,9 +605,9 @@ fn hardening_sprint_generator(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "sprint_generator_profile_coverage_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
     ]
 }
@@ -642,9 +647,9 @@ fn hardening_acceptance_rerun(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "acceptance_rerun_validate_align_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "acceptance_rerun_refuse_rows={}",

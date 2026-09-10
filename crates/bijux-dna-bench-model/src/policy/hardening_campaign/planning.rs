@@ -1,5 +1,6 @@
 //! Owner: hardening campaign planning declarations and pure evidence projections.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog as stage;
 use std::collections::BTreeSet;
 
 const CAMPAIGN_COVERAGE_PLANNER_SCENARIOS: &[ScenarioDefinition] = &[
@@ -201,91 +202,95 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G228",
         title: "add campaign coverage planner",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.impute"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_IMPUTE],
         checks: campaign_coverage_planner,
         scenarios: CAMPAIGN_COVERAGE_PLANNER_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G229",
         title: "add expensive-job budget planner",
-        stage_ids: &["bam.align", "bam.coverage", "vcf.postprocess"],
+        stage_ids: &[stage::BAM_ALIGN, stage::BAM_COVERAGE, stage::VCF_POSTPROCESS],
         checks: expensive_job_budget_planner,
         scenarios: EXPENSIVE_JOB_BUDGET_PLANNER_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G230",
         title: "add campaign splitting by HPC quota",
-        stage_ids: &["fastq.validate_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: campaign_splitting_by_hpc_quota,
         scenarios: CAMPAIGN_SPLITTING_BY_HPC_QUOTA_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G231",
         title: "add campaign reproducibility lock",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_POSTPROCESS],
         checks: campaign_reproducibility_lock,
         scenarios: CAMPAIGN_REPRODUCIBILITY_LOCK_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G232",
         title: "add campaign rerun from lock",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        stage_ids: &[
+            stage::FASTQ_STATS_NEUTRAL,
+            stage::BAM_MAPPING_SUMMARY,
+            stage::VCF_POSTPROCESS,
+        ],
         checks: campaign_rerun_from_lock,
         scenarios: CAMPAIGN_RERUN_FROM_LOCK_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G233",
         title: "add campaign subset from hardening queue",
-        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_ALIGN, stage::VCF_FILTER],
         checks: campaign_subset_from_hardening_queue,
         scenarios: CAMPAIGN_SUBSET_FROM_HARDENING_QUEUE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G234",
         title: "add campaign priority labels",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_STATS],
         checks: campaign_priority_labels,
         scenarios: CAMPAIGN_PRIORITY_LABELS_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G235",
         title: "add warm-start campaign mode",
-        stage_ids: &["bam.validate", "bam.mapping_summary", "vcf.call"],
+        stage_ids: &[stage::BAM_VALIDATE, stage::BAM_MAPPING_SUMMARY, stage::VCF_CALL],
         checks: warm_start_campaign_mode,
         scenarios: WARM_START_CAMPAIGN_MODE_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G236",
         title: "add all-in-one preflight",
-        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.filter"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::BAM_VALIDATE, stage::VCF_FILTER],
         checks: all_in_one_preflight,
         scenarios: ALL_IN_ONE_PREFLIGHT_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G237",
         title: "add all-in-one local import",
-        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_MAPPING_SUMMARY, stage::VCF_STATS],
         checks: all_in_one_local_import,
         scenarios: ALL_IN_ONE_LOCAL_IMPORT_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G238",
         title: "add all-in-one report",
-        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_STATS_NEUTRAL, stage::BAM_COVERAGE, stage::VCF_POSTPROCESS],
         checks: all_in_one_report,
         scenarios: ALL_IN_ONE_REPORT_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G239",
         title: "add campaign comparison report",
-        stage_ids: &["bam.align", "vcf.call", "vcf.stats"],
+        stage_ids: &[stage::BAM_ALIGN, stage::VCF_CALL, stage::VCF_STATS],
         checks: campaign_comparison_report,
         scenarios: CAMPAIGN_COMPARISON_REPORT_SCENARIOS,
     },
     GoalDefinition {
         goal_id: "G240",
         title: "add benchmark-to-docs update hints",
-        stage_ids: &["fastq.validate_reads", "vcf.filter", "vcf.postprocess"],
+        stage_ids: &[stage::FASTQ_VALIDATE_READS, stage::VCF_FILTER, stage::VCF_POSTPROCESS],
         checks: benchmark_to_docs_update_hints,
         scenarios: BENCHMARK_TO_DOCS_UPDATE_HINTS_SCENARIOS,
     },
@@ -302,9 +307,9 @@ fn campaign_coverage_planner(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "campaign_coverage_profile_coverage_impute_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.impute")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_IMPUTE)
         ),
         format!(
             "campaign_coverage_non_ready_rows={}",
@@ -325,9 +330,9 @@ fn expensive_job_budget_planner(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "budget_planner_align_coverage_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "budget_planner_non_ready_rows={}",
@@ -348,9 +353,9 @@ fn campaign_splitting_by_hpc_quota(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "campaign_split_validate_summary_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "campaign_split_non_ready_rows={}",
@@ -371,9 +376,9 @@ fn campaign_reproducibility_lock(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "campaign_lock_validate_validate_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "campaign_lock_non_ready_rows={}",
@@ -394,9 +399,9 @@ fn campaign_rerun_from_lock(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "campaign_rerun_profile_summary_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "campaign_rerun_non_ready_rows={}",
@@ -417,9 +422,9 @@ fn campaign_subset_from_hardening_queue(input: &CheckInputs<'_>) -> Vec<String> 
         ),
         format!(
             "queue_subset_validate_align_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "queue_subset_refuse_rows={}",
@@ -440,9 +445,9 @@ fn campaign_priority_labels(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "priority_label_profile_coverage_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "priority_label_non_ready_rows={}",
@@ -463,9 +468,9 @@ fn warm_start_campaign_mode(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "warm_start_validate_summary_call_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
+            rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
         ),
         format!(
             "warm_start_non_ready_rows={}",
@@ -486,9 +491,9 @@ fn all_in_one_preflight(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "all_in_one_preflight_validate_validate_filter_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.validate")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_VALIDATE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
         ),
         format!(
             "all_in_one_preflight_refuse_rows={}",
@@ -509,9 +514,9 @@ fn all_in_one_local_import(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "all_in_one_import_profile_summary_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_MAPPING_SUMMARY)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "all_in_one_import_non_ready_rows={}",
@@ -532,9 +537,9 @@ fn all_in_one_report(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "all_in_one_report_profile_coverage_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
-                && rows.iter().any(|row| row.stage_id == "bam.coverage")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_STATS_NEUTRAL)
+                && rows.iter().any(|row| row.stage_id == stage::BAM_COVERAGE)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "all_in_one_report_non_ready_rows={}",
@@ -555,9 +560,9 @@ fn campaign_comparison_report(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "campaign_comparison_align_call_stats_bound={}",
-            rows.iter().any(|row| row.stage_id == "bam.align")
-                && rows.iter().any(|row| row.stage_id == "vcf.call")
-                && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            rows.iter().any(|row| row.stage_id == stage::BAM_ALIGN)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_CALL)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_STATS)
         ),
         format!(
             "campaign_comparison_non_ready_rows={}",
@@ -578,9 +583,9 @@ fn benchmark_to_docs_update_hints(input: &CheckInputs<'_>) -> Vec<String> {
         ),
         format!(
             "benchmark_docs_validate_filter_postprocess_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
-                && rows.iter().any(|row| row.stage_id == "vcf.filter")
-                && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            rows.iter().any(|row| row.stage_id == stage::FASTQ_VALIDATE_READS)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_FILTER)
+                && rows.iter().any(|row| row.stage_id == stage::VCF_POSTPROCESS)
         ),
         format!(
             "benchmark_docs_refuse_rows={}",

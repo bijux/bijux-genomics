@@ -238,4 +238,5 @@ pub fn derive_hardening_benchmark_campaign(
 }
 
 #[cfg(test)]
+#[path = "../../../tests/contracts/hardening_campaign/mod.rs"]
 mod tests;
