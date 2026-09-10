@@ -408,3 +408,5 @@ mod simulation;
 pub use simulation::{admit_all_domain_simulation_inputs, AllDomainSimulationInput};
 
 pub(crate) mod vcf_scope;
+
+pub(crate) use readiness::validate_rendered_command_observations;

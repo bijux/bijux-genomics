@@ -23,3 +23,5 @@ pub(crate) mod campaign_monitor;
 pub(crate) mod campaign_copy_back;
 
 pub(crate) mod command_audit;
+
+pub(crate) mod command_artifacts;

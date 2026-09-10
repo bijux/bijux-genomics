@@ -867,3 +867,5 @@ pub use crate::policy::command_audit::evaluate_recorded_command_audit;
 pub use crate::policy::operational_readiness::{
     evaluate_operational_binding_coverage, OperationalBindingEvidence,
 };
+
+pub use crate::policy::command_artifacts::build_rendered_command_artifact_report;

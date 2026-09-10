@@ -11,3 +11,6 @@ pub use dashboard_markdown::render_full_benchmark_dashboard_markdown;
 
 mod command_audit;
 pub use command_audit::write_recorded_command_audit;
+
+mod command_artifacts;
+pub use command_artifacts::publish_rendered_command_artifacts;

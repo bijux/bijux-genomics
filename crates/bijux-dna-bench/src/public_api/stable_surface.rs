@@ -754,3 +754,5 @@ pub use crate::workflow::write_recorded_command_audit;
 pub use bijux_dna_bench_model::{
     evaluate_operational_binding_coverage, OperationalBindingEvidence,
 };
+
+pub use crate::workflow::publish_rendered_command_artifacts;

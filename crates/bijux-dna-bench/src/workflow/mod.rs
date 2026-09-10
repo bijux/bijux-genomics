@@ -392,3 +392,5 @@ pub(crate) mod hpc_campaign;
 pub(crate) mod simulation;
 
 pub use readiness::write_recorded_command_audit;
+
+pub use readiness::publish_rendered_command_artifacts;
