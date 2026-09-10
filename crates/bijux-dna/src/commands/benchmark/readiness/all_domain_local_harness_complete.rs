@@ -1,3 +1,6 @@
+use bijux_dna_api::v1::api::bench::harness::{
+    validate_all_domain_harness_alignment, HarnessAlignmentEvidence,
+};
 use std::collections::BTreeSet;
 use std::env;
 use std::path::{Path, PathBuf};
@@ -54,15 +57,6 @@ pub(crate) struct AllDomainLocalHarnessCompleteGoalCheck {
     pub(crate) output_path: Option<String>,
     pub(crate) ok: bool,
     pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct HarnessBindingKey {
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-    corpus_id: String,
-    asset_profile_id: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -645,7 +639,7 @@ pub(crate) fn render_harness_with_dependencies(
         parser_collector_report.as_ref(),
         missing_result_report.as_ref(),
     ) {
-        if let Err(error) = validate_all_domain_harness_alignment(
+        if let Err(error) = validate_all_domain_harness_alignment(HarnessAlignmentEvidence {
             stage_tool_report,
             expected_results_report,
             rendered_commands_report,
@@ -655,7 +649,7 @@ pub(crate) fn render_harness_with_dependencies(
             completion_check_report,
             parser_collector_report,
             missing_result_report,
-        ) {
+        }) {
             checks.push(AllDomainLocalHarnessCompleteGoalCheck {
                 goal_id: 398,
                 surface: "all-domain local harness alignment".to_string(),
@@ -696,133 +690,6 @@ pub(crate) fn render_harness_with_dependencies(
     };
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)?;
     Ok(report)
-}
-
-fn validate_all_domain_harness_alignment(
-    stage_tool_report: &AllDomainStageToolTableReport,
-    expected_results_report: &AllDomainExpectedBenchmarkResultsReport,
-    rendered_commands_report: &AllDomainRenderedCommandsReport,
-    output_declarations_report: &AllDomainOutputDeclarationsReport,
-    fake_runs_report: &crate::commands::benchmark::local_all_domain_fake_runs::AllDomainFakeRunsReport,
-    fake_failures_report: &crate::commands::benchmark::local_all_domain_fake_failures::AllDomainFakeFailuresManifest,
-    completion_check_report: &crate::commands::benchmark::readiness::all_domain_completion_check::AllDomainCompletionCheckReport,
-    parser_collector_report: &AllDomainParserCollectorReport,
-    missing_result_report: &crate::commands::benchmark::readiness::all_domain_missing_result_audit::AllDomainMissingResultTestReport,
-) -> Result<()> {
-    let expected_result_ids = expected_results_report
-        .rows
-        .iter()
-        .map(|row| row.result_id.clone())
-        .collect::<BTreeSet<_>>();
-    let rendered_result_ids = rendered_commands_report
-        .rows
-        .iter()
-        .map(|row| row.result_id.clone())
-        .collect::<BTreeSet<_>>();
-    let output_result_ids = output_declarations_report
-        .rows
-        .iter()
-        .map(|row| row.result_id.clone())
-        .collect::<BTreeSet<_>>();
-    let fake_run_result_ids =
-        fake_runs_report.results.iter().map(|row| row.result_id.clone()).collect::<BTreeSet<_>>();
-    let fake_failure_result_ids = fake_failures_report
-        .failures
-        .iter()
-        .map(|row| row.result_id.clone())
-        .collect::<BTreeSet<_>>();
-    let completion_result_ids = completion_check_report
-        .rows
-        .iter()
-        .map(|row| row.result_id.clone())
-        .collect::<BTreeSet<_>>();
-    let missing_result_ids =
-        missing_result_report.rows.iter().map(|row| row.result_id.clone()).collect::<BTreeSet<_>>();
-
-    ensure_matching_set("rendered commands", &expected_result_ids, &rendered_result_ids)?;
-    ensure_matching_set("output declarations", &expected_result_ids, &output_result_ids)?;
-    ensure_matching_set("fake runs", &expected_result_ids, &fake_run_result_ids)?;
-    ensure_matching_set("fake failures", &expected_result_ids, &fake_failure_result_ids)?;
-    ensure_matching_set("completion rows", &expected_result_ids, &completion_result_ids)?;
-    ensure_matching_set("missing-result rows", &expected_result_ids, &missing_result_ids)?;
-
-    let parser_fake_run_result_ids = parser_collector_report
-        .rows
-        .iter()
-        .filter_map(|row| {
-            (row.source_kind
-                == crate::commands::benchmark::readiness::all_domain_parser_collector::AllDomainParserCollectorSourceKind::FakeRun)
-                .then(|| row.result_id.clone())
-                .flatten()
-        })
-        .collect::<BTreeSet<_>>();
-    ensure_matching_set(
-        "parser collector fake-run rows",
-        &expected_result_ids,
-        &parser_fake_run_result_ids,
-    )?;
-
-    let expected_bindings =
-        expected_results_report.rows.iter().map(expected_binding_key).collect::<BTreeSet<_>>();
-    let stage_tool_bindings = stage_tool_report
-        .rows
-        .iter()
-        .filter(|row| row.benchmark_status == "benchmark_ready")
-        .map(stage_tool_binding_key)
-        .collect::<BTreeSet<_>>();
-    ensure_matching_binding_set("stage tool table", &expected_bindings, &stage_tool_bindings)?;
-
-    Ok(())
-}
-
-fn ensure_matching_set(
-    label: &str,
-    expected: &BTreeSet<String>,
-    observed: &BTreeSet<String>,
-) -> Result<()> {
-    if expected != observed {
-        let missing = expected.difference(observed).cloned().collect::<Vec<_>>();
-        let extra = observed.difference(expected).cloned().collect::<Vec<_>>();
-        bail!("{label} drifted from the canonical all-domain result slice; missing={missing:?} extra={extra:?}");
-    }
-    Ok(())
-}
-
-fn ensure_matching_binding_set(
-    label: &str,
-    expected: &BTreeSet<HarnessBindingKey>,
-    observed: &BTreeSet<HarnessBindingKey>,
-) -> Result<()> {
-    if expected != observed {
-        let missing = expected.difference(observed).cloned().collect::<Vec<_>>();
-        let extra = observed.difference(expected).cloned().collect::<Vec<_>>();
-        bail!("{label} drifted from the canonical all-domain binding slice; missing={missing:?} extra={extra:?}");
-    }
-    Ok(())
-}
-
-fn expected_binding_key(
-    row: &crate::commands::benchmark::readiness::all_domain_expected_benchmark_results::AllDomainExpectedBenchmarkResultRow,
-) -> HarnessBindingKey {
-    HarnessBindingKey {
-        domain: row.domain.clone(),
-        stage_id: row.stage_id.clone(),
-        tool_id: row.tool_id.clone(),
-        corpus_id: row.corpus_id.clone(),
-        asset_profile_id: row.asset_profile_id.clone(),
-    }
-}
-
-fn stage_tool_binding_key(
-    row: &crate::commands::benchmark::readiness::all_domain_stage_tool_table::AllDomainStageToolTableRow,
-) -> HarnessBindingKey {
-    HarnessBindingKey {
-        domain: row.domain.clone(),
-        stage_id: row.stage_id.clone(),
-        tool_id: row.tool_id.clone(),
-        corpus_id: row.corpus_id.clone(),
-        asset_profile_id: row.asset_profile_id.clone(),
-    }
 }
 
 enum ReportDependency<'a, T> {

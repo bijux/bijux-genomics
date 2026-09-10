@@ -516,3 +516,9 @@ manifest/runtime flag, artifact count, failure reason, aggregate counter, and th
 five governed mutation identities before computing the behavior verdict. Replay
 validation requires a consistent successful declared verdict; it does not prove
 current filesystem state or fresh scientific execution.
+
+`harness::validate_all_domain_harness_alignment` borrows the current typed reports
+and checks exact simulation result coverage and benchmark-ready binding agreement.
+It rejects blank, padded and repeated result identities before set comparison;
+real-smoke parser records use a separate identity space. This policy performs no
+IO and does not certify scientific payloads or external execution.

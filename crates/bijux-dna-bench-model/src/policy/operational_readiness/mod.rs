@@ -144,3 +144,6 @@ mod reporting;
 pub use reporting::{
     evaluate_operational_reporting, OperationalReportingEvidence, OperationalReportingPaths,
 };
+
+/// Pure consistency policy for composed local harness reports.
+pub mod harness;
