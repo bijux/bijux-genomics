@@ -805,18 +805,8 @@ pub fn decrypt_bundle_to_local(args: &SlurmBundleDecryptArgs) -> Result<SlurmDec
         identity_files: &args.identity_file,
     })?;
     let output_path = decrypted_output_path(&args.bundle, &args.out_dir);
-    bijux_dna_api::v1::api::run::atomic_write_bytes(&output_path, &plaintext)
+    bijux_dna_infra::atomic_write_private_bytes(&output_path, &plaintext)
         .with_context(|| format!("write {}", output_path.display()))?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let mut perms = std::fs::metadata(&output_path)
-            .with_context(|| format!("stat {}", output_path.display()))?
-            .permissions();
-        perms.set_mode(0o600);
-        std::fs::set_permissions(&output_path, perms)
-            .with_context(|| format!("chmod {}", output_path.display()))?;
-    }
 
     Ok(SlurmDecryptReport {
         schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
@@ -921,20 +911,8 @@ pub fn import_encrypted_replay(args: &SlurmReplayImportArgs) -> Result<SlurmRepl
         let results_out =
             bundle_output_path(&args.results_bundle, &args.out_dir, ".replay.results.json");
         let code_out = bundle_output_path(&args.code_bundle, &args.out_dir, ".replay.code.json");
-        bijux_dna_api::v1::api::run::atomic_write_bytes(&results_out, &results_plaintext)?;
-        bijux_dna_api::v1::api::run::atomic_write_bytes(&code_out, &code_plaintext)?;
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            for path in [&results_out, &code_out] {
-                let mut perms = std::fs::metadata(path)
-                    .with_context(|| format!("stat {}", path.display()))?
-                    .permissions();
-                perms.set_mode(0o600);
-                std::fs::set_permissions(path, perms)
-                    .with_context(|| format!("chmod {}", path.display()))?;
-            }
-        }
+        bijux_dna_infra::atomic_write_private_bytes(&results_out, &results_plaintext)?;
+        bijux_dna_infra::atomic_write_private_bytes(&code_out, &code_plaintext)?;
     }
 
     let report = SlurmReplayImportReport {
