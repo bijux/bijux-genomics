@@ -170,8 +170,84 @@ const PLANNER_AUDIT_SPECS: &[PlannerCrateAuditSpec] = &[
                 reason: "loads governed local-ready planning inputs and runtime defaults",
             },
             AllowedAuditFileSpec {
-                path: "crates/bijux-dna-planner-bam/src/local_stage_cases.rs",
-                reason: "loads governed local-smoke planning inputs and fixture manifests",
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/ancient/authenticity.rs",
+                reason: "loads governed BAM authenticity case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/ancient/damage.rs",
+                reason: "loads governed BAM damage case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/ancient/sex.rs",
+                reason: "loads governed BAM sex case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/downstream/bias_mitigation.rs",
+                reason: "loads governed BAM bias mitigation case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/downstream/kinship.rs",
+                reason: "loads governed BAM kinship case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/filter.rs",
+                reason: "loads governed BAM filter case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/length_filter.rs",
+                reason: "loads governed BAM length filter case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/mapping_summary.rs",
+                reason: "loads governed BAM mapping summary case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/mapq_filter.rs",
+                reason: "loads governed BAM mapq filter case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/overlap_correction.rs",
+                reason: "loads governed BAM overlap correction case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/qc_pre.rs",
+                reason: "loads governed BAM qc pre case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/validate.rs",
+                reason: "loads governed BAM validate case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/complexity.rs",
+                reason: "loads governed BAM complexity case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/coverage.rs",
+                reason: "loads governed BAM coverage case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/duplication_metrics.rs",
+                reason: "loads governed BAM duplication metrics case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/endogenous_content.rs",
+                reason: "loads governed BAM endogenous content case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/gc_bias.rs",
+                reason: "loads governed BAM gc bias case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/insert_size.rs",
+                reason: "loads governed BAM insert size case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/markdup.rs",
+                reason: "loads governed BAM markdup case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/recalibration.rs",
+                reason: "loads governed BAM recalibration case inputs",
             },
             AllowedAuditFileSpec {
                 path: "crates/bijux-dna-planner-bam/src/selection/domain_tool_specs.rs",

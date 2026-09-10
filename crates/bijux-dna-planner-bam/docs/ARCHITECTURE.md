@@ -13,6 +13,8 @@
 - `src/execution_graph.rs` projects stage plans into `ExecutionGraph`.
 - `src/params.rs`, `src/tool_policy.rs`, `src/stage_activation.rs`, and `src/report_stage.rs` own focused validation and helper behavior.
 
+`src/benchmark/cases/` owns local-smoke planning in pre, qc, ancient, and downstream stage families. Each stage retains its config, input admission, plan construction and feature gate. Shared disposable-output admission and resource hydration stay within benchmark planning.
+
 ## Data Flow
 1. A caller provides a `StagePlanRequest` or `BamPipelineInputs`.
 2. Pipeline helpers load a BAM profile and ordered BAM stages from `bijux-dna-pipelines`.

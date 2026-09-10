@@ -71,6 +71,48 @@ fn dev_crates_planner_no_parser_writes_the_governed_audit_report() {
         }
     }
 
+    let bam_report = crates
+        .iter()
+        .find(|report| {
+            report.get("crate_name").and_then(serde_json::Value::as_str)
+                == Some("bijux-dna-planner-bam")
+        })
+        .expect("bam planner report");
+    let bam_case_paths = bam_report
+        .get("planner_input_read_refs")
+        .and_then(serde_json::Value::as_array)
+        .expect("bam input reads")
+        .iter()
+        .filter_map(|row| row.get("path").and_then(serde_json::Value::as_str))
+        .filter(|path| path.starts_with("crates/bijux-dna-planner-bam/src/benchmark/cases/"))
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        bam_case_paths,
+        std::collections::BTreeSet::from([
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/ancient/authenticity.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/ancient/damage.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/ancient/sex.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/downstream/bias_mitigation.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/downstream/kinship.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/filter.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/length_filter.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/mapping_summary.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/mapq_filter.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/overlap_correction.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/qc_pre.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/validate.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/complexity.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/coverage.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/duplication_metrics.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/endogenous_content.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/gc_bias.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/insert_size.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/markdup.rs",
+            "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/recalibration.rs",
+        ]),
+        "every governed BAM case input reader must remain explicit"
+    );
+
     let fastq_report = crates
         .iter()
         .find(|crate_report| {
