@@ -29,3 +29,5 @@ pub(crate) mod command_artifacts;
 pub(crate) mod micro_report;
 
 pub(crate) mod hpc_array;
+
+pub(crate) mod hpc_resources;

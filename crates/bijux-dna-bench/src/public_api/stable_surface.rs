@@ -799,3 +799,6 @@ pub use crate::workflow::hpc_array::pipeline::{
     collect_hpc_pipeline_array, publish_hpc_pipeline_array, validate_hpc_pipeline_array,
     HpcPipelineArrayDestination, HpcPipelineArrayRequest,
 };
+
+pub use crate::repo::hpc_resources::{load_hpc_job_resources, HPC_JOB_RESOURCE_CONFIG_PATH};
+pub use bijux_dna_bench_model::{resolve_hpc_job_resources, HpcJobResourceHints};

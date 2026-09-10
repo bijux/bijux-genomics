@@ -907,3 +907,7 @@ pub use crate::policy::hpc_array::stage::{build_hpc_stage_array_report, HpcStage
 pub use crate::policy::hpc_array::pipeline::{
     build_hpc_pipeline_array_report, HpcPipelineArrayInputs,
 };
+
+pub use crate::policy::hpc_resources::{
+    project_hpc_job_resources, resolve_hpc_job_resources, HpcJobResourceHints,
+};

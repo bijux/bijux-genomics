@@ -98,3 +98,33 @@ fn assert_schema(file_name: &str, generated: &serde_json::Value) -> anyhow::Resu
     assert_eq!(&serde_json::from_slice::<serde_json::Value>(&std::fs::read(path)?)?, generated);
     Ok(())
 }
+
+#[test]
+fn hpc_resource_projection_checks_units_and_preserves_domain_defaults() -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{project_hpc_job_resources, resolve_hpc_job_resources};
+    let mut config = valid_config();
+    config.rows[0].walltime_minutes = 125;
+    let hints = project_hpc_job_resources(&config)?;
+    let selected = resolve_hpc_job_resources(&hints, "fastq", "fastq.validate_reads", "seqkit");
+    assert_eq!(selected.memory_mb, 4096);
+    assert_eq!(selected.cpus_per_task, 2);
+    assert_eq!(selected.time_limit, "02:05:00");
+    for (domain, cpus, memory, scratch) in
+        [("fastq", 4, 2048, 2), ("bam", 3, 2048, 2), ("vcf", 1, 2048, 2), ("unknown", 1, 1024, 1)]
+    {
+        let fallback = resolve_hpc_job_resources(&hints, domain, "missing", "missing");
+        assert_eq!(
+            (fallback.cpus_per_task, fallback.memory_mb, fallback.scratch_gb),
+            (cpus, memory, scratch)
+        );
+        assert_eq!(fallback.time_limit, "00:20:00");
+    }
+    config.rows[0].memory_gb = u32::MAX / 1024;
+    assert!(project_hpc_job_resources(&config).is_ok());
+    config.rows[0].memory_gb += 1;
+    assert!(project_hpc_job_resources(&config).is_err());
+    config.rows[0].memory_gb = 4;
+    config.rows[0].threads = 0;
+    assert!(project_hpc_job_resources(&config).is_err());
+    Ok(())
+}

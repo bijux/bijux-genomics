@@ -600,3 +600,7 @@ pub use bijux_dna_bench::{
     collect_hpc_pipeline_array, publish_hpc_pipeline_array, validate_hpc_pipeline_array,
     HpcPipelineArrayDestination, HpcPipelineArrayRequest,
 };
+
+pub use bijux_dna_bench::{
+    load_hpc_job_resources, resolve_hpc_job_resources, HPC_JOB_RESOURCE_CONFIG_PATH,
+};

@@ -120,6 +120,7 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/repo")),
         entries([
             "hpc_array.rs",
+            "hpc_resources.rs",
             "micro_run.rs",
             "micro_report/",
             "stage_result.rs",
