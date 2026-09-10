@@ -1,10 +1,10 @@
 //! Native alignment files for local benchmark fixtures, independent of CLI routing.
 mod sorting;
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{bail, Context, Result};
 use noodles_bam as bam;
 use noodles_sam as sam;
 use sorting::sam_record_sort_key;
-use std::{collections::HashMap, fs, io::BufReader, path::Path};
+use std::{fs, io::BufReader, path::Path};
 
 /// Input encoding is explicit; filenames do not establish format compatibility.
 #[derive(Debug, Clone, Copy)]
@@ -17,7 +17,8 @@ pub enum AlignmentInputFormat {
 /// The complete record collection is held in memory.
 ///
 /// # Errors
-/// Fails on unreadable SAM, record encoding, output writing or indexing errors.
+/// Rejects malformed sort fields before opening outputs. Later encoding, writing
+/// or indexing failures can leave a partially published BAM/BAI pair.
 pub fn convert_coordinate_sam_to_bam(
     input_sam: &Path,
     output_bam_path: &Path,
@@ -25,39 +26,30 @@ pub fn convert_coordinate_sam_to_bam(
 ) -> Result<()> {
     use noodles_sam::alignment::io::Write as _;
     use noodles_sam::header::record::value::map::header::{
-        sort_order::COORDINATE, tag::SORT_ORDER,
+        sort_order::COORDINATE,
+        tag::{GROUP_ORDER, SORT_ORDER, SUBSORT_ORDER},
     };
-    use noodles_sam::header::record::value::{map, Map};
 
     let file = fs::File::open(input_sam)
         .with_context(|| format!("open semantic alignment SAM {}", input_sam.display()))?;
     let mut reader = sam::io::Reader::new(BufReader::new(file));
     let mut header =
         reader.read_header().with_context(|| format!("read {}", input_sam.display()))?;
-    *header.header_mut() = Some(
-        Map::<map::Header>::builder()
-            .insert(SORT_ORDER, COORDINATE)
-            .build()
-            .map_err(|error| anyhow!("build coordinate sort-order header: {error}"))?,
-    );
+    let declaration = header.header_mut().get_or_insert_default();
+    declaration.other_fields_mut().insert(SORT_ORDER, COORDINATE.into());
+    declaration.other_fields_mut().shift_remove(&GROUP_ORDER);
+    declaration.other_fields_mut().shift_remove(&SUBSORT_ORDER);
 
     let mut records = reader
         .records()
+        .map(|record| {
+            let record = record?;
+            let key = sam_record_sort_key(&record, &header)?;
+            Ok((key, record))
+        })
         .collect::<std::io::Result<Vec<_>>>()
-        .with_context(|| format!("read SAM records from {}", input_sam.display()))?;
-    let reference_order = header
-        .reference_sequences()
-        .keys()
-        .enumerate()
-        .map(|(index, name)| (String::from_utf8_lossy(name.as_ref()).into_owned(), index))
-        .collect::<HashMap<_, _>>();
-    records.sort_by(|left, right| {
-        sam_record_sort_key(left, &header, &reference_order).cmp(&sam_record_sort_key(
-            right,
-            &header,
-            &reference_order,
-        ))
-    });
+        .with_context(|| format!("admit SAM coordinates from {}", input_sam.display()))?;
+    records.sort_by(|left, right| left.0.cmp(&right.0));
 
     let bam_file = bijux_dna_infra::create_file(output_bam_path)
         .with_context(|| format!("create {}", output_bam_path.display()))?;
@@ -65,7 +57,7 @@ pub fn convert_coordinate_sam_to_bam(
     writer
         .write_header(&header)
         .with_context(|| format!("write BAM header to {}", output_bam_path.display()))?;
-    for record in &records {
+    for (_, record) in &records {
         writer
             .write_alignment_record(&header, record)
             .with_context(|| format!("write BAM record to {}", output_bam_path.display()))?;
