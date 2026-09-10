@@ -112,3 +112,9 @@ grouped in `bench_paths`, `bench_schema_validation` and `bench_planning`.
 Their modules pair JSON with file, TSV, TOML, shell and argv publication contracts
 under each responsibility. All original cases and repository-mutator guards remain;
 test execution can be sharded independently of these shared compilation targets.
+
+Registry coverage and runtime readiness CLI reports compile in
+`bench_registry_coverage` and `bench_runtime_readiness`. Each responsibility pairs
+its JSON and persisted output contracts under `tests/contracts/benchmark/`.
+The original BAM feature gates and repository mutator guards remain; native test
+partitions still schedule individual cases independently of the compilation groups.
