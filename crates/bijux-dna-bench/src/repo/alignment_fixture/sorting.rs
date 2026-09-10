@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Coordinate ordering for miniature native alignment fixtures.
 use noodles_sam as sam;
 use std::io;

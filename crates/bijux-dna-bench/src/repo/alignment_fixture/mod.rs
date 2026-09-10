@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Native alignment files for local benchmark fixtures, independent of CLI routing.
 mod sorting;
 use anyhow::{bail, Context, Result};
