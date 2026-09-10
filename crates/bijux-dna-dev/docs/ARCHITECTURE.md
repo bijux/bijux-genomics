@@ -54,15 +54,12 @@ Command boundaries:
 
 This separation keeps production runtime crates free of development-only automation concerns while preserving a typed, testable control plane for workspace maintenance.
 
-Test boundaries mirror that split:
+Test ownership is detailed in [TESTS.md](TESTS.md):
 
 - `tests/boundaries/architecture.rs` locks the root, source, command, runtime,
   and test tree shown here.
-- `tests/boundaries/command_inventory.rs` keeps `docs/COMMANDS.md` as the SSOT
-  for development commands.
 - `tests/boundaries/dependencies.rs` protects the dependency graph so
   development automation remains outside production crates.
-- `tests/support/workspace_paths.rs` contains shared workspace-root helpers only.
 
 `application/ci/` separates expected test inventory admission, pinned Nextest event admission, and exact cross-shard coverage reconciliation. These modules have no filesystem or process effects. The tooling CI command owns producer/shard execution, logs, hashes and receipt publication.
 
@@ -78,4 +75,4 @@ The partition adapter follows the [pinned Nextest 0.9.100 implementation](https:
 
 Local compiled test discovery partitions the complete native binary metadata into at most five disjoint groups, bounded by the configured build job count. `application/ci/discovery.rs` admits exact selected binary identities, unfiltered case counts, empty suites, ignored flags and unchanged build metadata. `runtime/compiled_products.rs` owns the concurrent processes and logs; the command handler consumes their admitted union. Archive extraction keeps its existing single inventory owner.
 
-Private CI discovery tests live under `tests/unit/ci/` and compile into their owning developer binary. They do not add an integration executable or a second public test facade.
+Private CI discovery tests live under `tests/boundaries/ci/` and compile into their owning developer binary. They do not add an integration executable or a second public test facade.

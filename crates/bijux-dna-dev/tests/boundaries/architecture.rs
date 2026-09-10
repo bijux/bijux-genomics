@@ -198,7 +198,6 @@ fn dev_tree_matches_architecture_contract() {
         "bootstrap.rs",
         "boundaries/",
         "boundaries.rs",
-        "unit/",
         "fixtures/",
         "guardrails.rs",
         "snapshots/",
@@ -219,6 +218,7 @@ fn dev_tree_matches_architecture_contract() {
 
     let boundary_entries = dir_entries(&root.join("tests/boundaries"));
     let expected_boundaries: BTreeSet<_> = [
+        "ci/",
         "architecture.rs",
         "command_inventory.rs",
         "dependencies.rs",

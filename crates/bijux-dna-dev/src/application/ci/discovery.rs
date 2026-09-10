@@ -143,5 +143,5 @@ impl BinaryDiscoveryPlan {
 }
 
 #[cfg(test)]
-#[path = "../../../tests/unit/ci/discovery.rs"]
+#[path = "../../../tests/boundaries/ci/discovery.rs"]
 mod tests;
