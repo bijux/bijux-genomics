@@ -1,4 +1,5 @@
 //! Governed FASTQ benchmark pre profile overrepresented sequences.
+use crate::planner::benchmark::cases::admission::admit_unique_case_samples;
 use crate::planner::benchmark::cases::admission::local_smoke_case_output_dir;
 use crate::planner::benchmark::cases::hydrate_smoke_threads;
 use crate::selection::load_fastq_domain_tool_execution_spec;
@@ -12,7 +13,6 @@ use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_core::prelude::ToolId;
 use bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES;
 use serde::Deserialize;
-use std::collections::BTreeSet;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -58,7 +58,10 @@ pub fn local_profile_overrepresented_sequences_smoke_plans(
     repo_root: &Path,
 ) -> Result<Vec<LocalProfileOverrepresentedSequencesSmokeCasePlan>> {
     let config = load_local_profile_overrepresented_sequences_smoke_config(repo_root)?;
-    ensure_unique_profile_overrepresented_sequences_sample_ids(&config.cases)?;
+    admit_unique_case_samples(
+        "fastq.profile_overrepresented_sequences",
+        config.cases.iter().map(|case| case.sample_id.as_str()),
+    )?;
 
     let stage_id = StageId::new(STAGE_PROFILE_OVERREPRESENTED_SEQUENCES.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
@@ -138,26 +141,6 @@ fn build_local_profile_overrepresented_sequences_smoke_case(
         r2: case.r2,
         plan,
     })
-}
-
-fn ensure_unique_profile_overrepresented_sequences_sample_ids(
-    cases: &[LocalProfileOverrepresentedSequencesSmokeCase],
-) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for case in cases {
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!(
-                "local-smoke fastq.profile_overrepresented_sequences sample_id must not be empty"
-            ));
-        }
-        if !seen.insert(case.sample_id.clone()) {
-            return Err(anyhow!(
-                "duplicate local-smoke fastq.profile_overrepresented_sequences sample_id `{}`",
-                case.sample_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn load_local_profile_overrepresented_sequences_smoke_config(

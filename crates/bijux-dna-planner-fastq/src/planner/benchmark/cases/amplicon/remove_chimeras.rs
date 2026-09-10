@@ -1,4 +1,5 @@
 //! Governed FASTQ benchmark amplicon remove chimeras.
+use crate::planner::benchmark::cases::admission::admit_unique_case_samples;
 use crate::planner::benchmark::cases::admission::local_smoke_case_output_dir;
 use crate::planner::benchmark::cases::hydrate_smoke_threads;
 use crate::selection::load_fastq_domain_tool_execution_spec;
@@ -12,7 +13,6 @@ use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_core::prelude::ToolId;
 use bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_CHIMERAS;
 use serde::Deserialize;
-use std::collections::BTreeSet;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -52,7 +52,10 @@ pub fn local_remove_chimeras_smoke_plans(
     repo_root: &Path,
 ) -> Result<Vec<LocalRemoveChimerasSmokeCasePlan>> {
     let config = load_local_remove_chimeras_smoke_config(repo_root)?;
-    ensure_unique_remove_chimeras_sample_ids(&config.cases)?;
+    admit_unique_case_samples(
+        "fastq.remove_chimeras",
+        config.cases.iter().map(|case| case.sample_id.as_str()),
+    )?;
 
     let stage_id = StageId::new(STAGE_REMOVE_CHIMERAS.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
@@ -102,22 +105,6 @@ fn build_local_remove_chimeras_smoke_case(
     let plan = plan_remove_chimeras(tool_spec, &case.reads, None, &out_dir)?;
 
     Ok(LocalRemoveChimerasSmokeCasePlan { sample_id: case.sample_id, reads: case.reads, plan })
-}
-
-fn ensure_unique_remove_chimeras_sample_ids(cases: &[LocalRemoveChimerasSmokeCase]) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for case in cases {
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!("local-smoke fastq.remove_chimeras sample_id must not be empty"));
-        }
-        if !seen.insert(case.sample_id.clone()) {
-            return Err(anyhow!(
-                "duplicate local-smoke fastq.remove_chimeras sample_id `{}`",
-                case.sample_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn load_local_remove_chimeras_smoke_config(

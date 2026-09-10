@@ -52,3 +52,21 @@ fn local_case_output_admission_rejects_sample_or_tool_path_injection() -> Result
     }
     Ok(())
 }
+
+#[test]
+fn shared_sample_admission_preserves_identity_and_rejects_empty_or_duplicate_ids() -> Result<()> {
+    let stage = "fastq.validate_reads";
+    admit_unique_case_samples(stage, ["sample", " sample", "Sample", "sample with spaces"])?;
+    admit_unique_case_samples(stage, [])?;
+    for (ids, message) in [
+        (vec!["", "valid"], "local-smoke fastq.validate_reads sample_id must not be empty"),
+        (vec!["valid", " \t"], "local-smoke fastq.validate_reads sample_id must not be empty"),
+        (vec!["one", "two", "one"], "duplicate local-smoke fastq.validate_reads sample_id `one`"),
+    ] {
+        match admit_unique_case_samples(stage, ids) {
+            Ok(()) => panic!("invalid sample IDs were accepted"),
+            Err(error) => assert_eq!(error.to_string(), message),
+        }
+    }
+    Ok(())
+}

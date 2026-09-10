@@ -1,4 +1,5 @@
 //! Governed FASTQ benchmark transform extract umis.
+use crate::planner::benchmark::cases::admission::admit_unique_case_samples;
 use crate::planner::benchmark::cases::admission::local_smoke_case_output_dir;
 use crate::planner::benchmark::cases::hydrate_smoke_threads;
 use crate::selection::load_fastq_domain_tool_execution_spec;
@@ -14,7 +15,6 @@ use bijux_dna_domain_fastq::params::umi::UmiFailedExtractionPolicy;
 use bijux_dna_domain_fastq::params::umi::UmiReadNameTransform;
 use bijux_dna_domain_fastq::stages::ids::STAGE_EXTRACT_UMIS;
 use serde::Deserialize;
-use std::collections::BTreeSet;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -73,7 +73,10 @@ pub fn local_extract_umis_smoke_plans(
     repo_root: &Path,
 ) -> Result<Vec<LocalExtractUmisSmokeCasePlan>> {
     let config = load_local_extract_umis_smoke_config(repo_root)?;
-    ensure_unique_extract_umis_sample_ids(&config.cases)?;
+    admit_unique_case_samples(
+        "fastq.extract_umis",
+        config.cases.iter().map(|case| case.sample_id.as_str()),
+    )?;
 
     let stage_id = StageId::new(STAGE_EXTRACT_UMIS.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
@@ -164,22 +167,6 @@ fn build_local_extract_umis_smoke_case(
         failed_extraction_policy: effective_params.failed_extraction_policy,
         plan,
     })
-}
-
-fn ensure_unique_extract_umis_sample_ids(cases: &[LocalExtractUmisSmokeCase]) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for case in cases {
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!("local-smoke fastq.extract_umis sample_id must not be empty"));
-        }
-        if !seen.insert(case.sample_id.clone()) {
-            return Err(anyhow!(
-                "duplicate local-smoke fastq.extract_umis sample_id `{}`",
-                case.sample_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn load_local_extract_umis_smoke_config(repo_root: &Path) -> Result<LocalExtractUmisSmokeConfig> {

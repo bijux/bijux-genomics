@@ -1,4 +1,5 @@
 //! Governed FASTQ benchmark pre validate reads.
+use crate::planner::benchmark::cases::admission::admit_unique_case_samples;
 use crate::planner::benchmark::cases::admission::local_smoke_case_output_dir;
 use crate::planner::benchmark::cases::hydrate_smoke_threads;
 use crate::selection::load_fastq_domain_tool_execution_spec;
@@ -16,7 +17,6 @@ use bijux_dna_domain_fastq::params::validate::PairSyncPolicy;
 use bijux_dna_domain_fastq::params::validate::ValidationMode;
 use bijux_dna_domain_fastq::stages::ids::STAGE_VALIDATE_READS;
 use serde::Deserialize;
-use std::collections::BTreeSet;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -63,7 +63,10 @@ pub fn local_validate_reads_smoke_plans(
     repo_root: &Path,
 ) -> Result<Vec<LocalValidateReadsSmokeCasePlan>> {
     let config = load_local_validate_reads_smoke_config(repo_root)?;
-    ensure_unique_sample_ids(&config.cases)?;
+    admit_unique_case_samples(
+        "fastq.validate_reads",
+        config.cases.iter().map(|case| case.sample_id.as_str()),
+    )?;
 
     let stage_id = StageId::new(STAGE_VALIDATE_READS.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
@@ -140,22 +143,6 @@ fn build_local_validate_reads_smoke_case(
         pair_sync_policy: options.pair_sync_policy,
         plan,
     })
-}
-
-fn ensure_unique_sample_ids(cases: &[LocalValidateReadsSmokeCase]) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for case in cases {
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!("local-smoke fastq.validate_reads sample_id must not be empty"));
-        }
-        if !seen.insert(case.sample_id.clone()) {
-            return Err(anyhow!(
-                "duplicate local-smoke fastq.validate_reads sample_id `{}`",
-                case.sample_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn load_local_validate_reads_smoke_config(

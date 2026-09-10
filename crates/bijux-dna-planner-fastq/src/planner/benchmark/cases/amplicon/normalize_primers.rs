@@ -1,4 +1,5 @@
 //! Governed FASTQ benchmark amplicon normalize primers.
+use crate::planner::benchmark::cases::admission::admit_unique_case_samples;
 use crate::planner::benchmark::cases::admission::local_smoke_case_output_dir;
 use crate::planner::benchmark::cases::hydrate_smoke_threads;
 use crate::selection::load_fastq_domain_tool_execution_spec;
@@ -13,7 +14,6 @@ use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_core::prelude::ToolId;
 use bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS;
 use serde::Deserialize;
-use std::collections::BTreeSet;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -70,7 +70,10 @@ pub fn local_normalize_primers_smoke_plans(
     repo_root: &Path,
 ) -> Result<Vec<LocalNormalizePrimersSmokeCasePlan>> {
     let config = load_local_normalize_primers_smoke_config(repo_root)?;
-    ensure_unique_normalize_primers_sample_ids(&config.cases)?;
+    admit_unique_case_samples(
+        "fastq.normalize_primers",
+        config.cases.iter().map(|case| case.sample_id.as_str()),
+    )?;
 
     let stage_id = StageId::new(STAGE_NORMALIZE_PRIMERS.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
@@ -161,24 +164,6 @@ fn build_local_normalize_primers_smoke_case(
         r2: case.r2,
         plan,
     })
-}
-
-fn ensure_unique_normalize_primers_sample_ids(
-    cases: &[LocalNormalizePrimersSmokeCase],
-) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for case in cases {
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!("local-smoke fastq.normalize_primers sample_id must not be empty"));
-        }
-        if !seen.insert(case.sample_id.clone()) {
-            return Err(anyhow!(
-                "duplicate local-smoke fastq.normalize_primers sample_id `{}`",
-                case.sample_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn load_local_normalize_primers_smoke_config(

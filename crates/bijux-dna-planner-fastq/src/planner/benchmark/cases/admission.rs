@@ -42,6 +42,18 @@ fn admit_case_component(value: &str, label: &str) -> Result<()> {
     Ok(())
 }
 
+pub(in crate::planner::benchmark::cases) fn admit_unique_case_samples<'a>(
+    stage_id: &str,
+    sample_ids: impl IntoIterator<Item = &'a str>,
+) -> Result<()> {
+    let mut seen = std::collections::BTreeSet::new();
+    for sample_id in sample_ids {
+        ensure!(!sample_id.trim().is_empty(), "local-smoke {stage_id} sample_id must not be empty");
+        ensure!(seen.insert(sample_id), "duplicate local-smoke {stage_id} sample_id `{sample_id}`");
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 #[path = "../../../../tests/contracts/benchmark/case_output_admission.rs"]
 mod contract_tests;

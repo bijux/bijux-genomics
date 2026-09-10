@@ -1,4 +1,5 @@
 //! Governed FASTQ benchmark amplicon infer asvs.
+use crate::planner::benchmark::cases::admission::admit_unique_case_samples;
 use crate::planner::benchmark::cases::admission::local_smoke_case_output_dir;
 use crate::planner::benchmark::cases::hydrate_smoke_threads;
 use crate::selection::load_fastq_domain_tool_execution_spec;
@@ -13,7 +14,6 @@ use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_core::prelude::ToolId;
 use bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS;
 use serde::Deserialize;
-use std::collections::BTreeSet;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -60,7 +60,10 @@ struct LocalInferAsvsSmokeCase {
 /// exist, or stage plans cannot be built for the governed smoke cases.
 pub fn local_infer_asvs_smoke_plans(repo_root: &Path) -> Result<Vec<LocalInferAsvsSmokeCasePlan>> {
     let config = load_local_infer_asvs_smoke_config(repo_root)?;
-    ensure_unique_infer_asvs_sample_ids(&config.cases)?;
+    admit_unique_case_samples(
+        "fastq.infer_asvs",
+        config.cases.iter().map(|case| case.sample_id.as_str()),
+    )?;
 
     let stage_id = StageId::new(STAGE_INFER_ASVS.as_str().to_string());
     let tool_id = ToolId::try_from(config.tool_id.as_str())
@@ -140,22 +143,6 @@ fn build_local_infer_asvs_smoke_case(
         chimera_policy: options.chimera_policy.clone(),
         plan,
     })
-}
-
-fn ensure_unique_infer_asvs_sample_ids(cases: &[LocalInferAsvsSmokeCase]) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for case in cases {
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!("local-smoke fastq.infer_asvs sample_id must not be empty"));
-        }
-        if !seen.insert(case.sample_id.clone()) {
-            return Err(anyhow!(
-                "duplicate local-smoke fastq.infer_asvs sample_id `{}`",
-                case.sample_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn load_local_infer_asvs_smoke_config(repo_root: &Path) -> Result<LocalInferAsvsSmokeConfig> {

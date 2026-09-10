@@ -1,4 +1,5 @@
 //! Governed FASTQ benchmark transform trim polyg tails.
+use crate::planner::benchmark::cases::admission::admit_unique_case_samples;
 use crate::planner::benchmark::cases::admission::local_smoke_case_output_dir;
 use crate::planner::benchmark::cases::hydrate_smoke_threads;
 use crate::selection::allowed_tools_for_stage;
@@ -13,7 +14,6 @@ use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_core::prelude::ToolId;
 use bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS;
 use serde::Deserialize;
-use std::collections::BTreeSet;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -63,7 +63,10 @@ pub fn local_trim_polyg_tails_smoke_plans(
     repo_root: &Path,
 ) -> Result<Vec<LocalTrimPolygTailsSmokeCasePlan>> {
     let config = load_local_trim_polyg_tails_smoke_config(repo_root)?;
-    ensure_unique_trim_polyg_tails_sample_ids(&config.cases)?;
+    admit_unique_case_samples(
+        "fastq.trim_polyg_tails",
+        config.cases.iter().map(|case| case.sample_id.as_str()),
+    )?;
 
     let stage_id = StageId::new(STAGE_TRIM_POLYG_TAILS.as_str().to_string());
     let requested_tool_ids = std::iter::once(config.tool_id.clone())
@@ -159,22 +162,6 @@ fn build_local_trim_polyg_tails_smoke_case(
         min_polyg_run: options.min_polyg_run,
         plan,
     })
-}
-
-fn ensure_unique_trim_polyg_tails_sample_ids(cases: &[LocalTrimPolygTailsSmokeCase]) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for case in cases {
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!("local-smoke fastq.trim_polyg_tails sample_id must not be empty"));
-        }
-        if !seen.insert(case.sample_id.clone()) {
-            return Err(anyhow!(
-                "duplicate local-smoke fastq.trim_polyg_tails sample_id `{}`",
-                case.sample_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn load_local_trim_polyg_tails_smoke_config(

@@ -1,4 +1,5 @@
 //! Governed FASTQ benchmark transform merge pairs.
+use crate::planner::benchmark::cases::admission::admit_unique_case_samples;
 use crate::planner::benchmark::cases::admission::local_smoke_case_output_dir;
 use crate::planner::benchmark::cases::hydrate_smoke_threads;
 use crate::selection::allowed_tools_for_stage;
@@ -14,7 +15,6 @@ use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_core::prelude::ToolId;
 use bijux_dna_domain_fastq::stages::ids::STAGE_MERGE_PAIRS;
 use serde::Deserialize;
-use std::collections::BTreeSet;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -83,7 +83,10 @@ fn build_local_merge_pairs_plans(
     include_all_supported_tools: bool,
 ) -> Result<Vec<LocalMergePairsSmokeCasePlan>> {
     let config = load_local_merge_pairs_smoke_config(repo_root)?;
-    ensure_unique_merge_pairs_sample_ids(&config.cases)?;
+    admit_unique_case_samples(
+        "fastq.merge_pairs",
+        config.cases.iter().map(|case| case.sample_id.as_str()),
+    )?;
 
     let stage_id = StageId::new(STAGE_MERGE_PAIRS.as_str().to_string());
     let mut tool_ids = if include_all_supported_tools {
@@ -172,22 +175,6 @@ fn build_local_merge_pairs_smoke_case(
         unmerged_read_policy: options.unmerged_read_policy.clone(),
         plan,
     })
-}
-
-fn ensure_unique_merge_pairs_sample_ids(cases: &[LocalMergePairsSmokeCase]) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for case in cases {
-        if case.sample_id.trim().is_empty() {
-            return Err(anyhow!("local-smoke fastq.merge_pairs sample_id must not be empty"));
-        }
-        if !seen.insert(case.sample_id.clone()) {
-            return Err(anyhow!(
-                "duplicate local-smoke fastq.merge_pairs sample_id `{}`",
-                case.sample_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn load_local_merge_pairs_smoke_config(repo_root: &Path) -> Result<LocalMergePairsSmokeConfig> {
