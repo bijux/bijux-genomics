@@ -110,3 +110,9 @@ own complete capability, range, identity and scientific admission.
 Benchmark enum parameters use the domain enums' serde implementations as the
 single authority for supported wire values. The planner adds benchmark field
 context to failures; it does not maintain another enum variant lookup table.
+
+`assess_fastq_output_declarations` owns report selection and declaration closure.
+A recognized report must occur in the stage and tool-specific expected outputs;
+file suffixes and stage-only defaults cannot establish a tool report. Duplicate
+declarations reject. Report-only tools retain their existing dual raw/normalized
+role, without implying independent raw output or scientific normalization proof.
