@@ -486,3 +486,6 @@ fn step_id_for_plan(plan: &StagePlanV1) -> StepId {
         .clone()
         .unwrap_or_else(|| StepId::new(plan.stage_id.as_str().to_string()))
 }
+
+mod fixture_parameters;
+pub use fixture_parameters::project_local_benchmark_tool_parameters;

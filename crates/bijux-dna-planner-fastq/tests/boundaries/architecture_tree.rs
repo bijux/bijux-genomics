@@ -46,9 +46,14 @@ fn planner_fastq_tree_matches_architecture_contract() {
         "compose/ must keep routing and stage parameter concerns separated"
     );
     assert_eq!(
+        child_entries(&root.join("src/planner/benchmark")),
+        entries(["fixture_parameters.rs", "mod.rs"]),
+        "benchmark graph construction and fixture parameter projection have distinct owners"
+    );
+    assert_eq!(
         child_entries(&root.join("src/planner")),
         entries([
-            "benchmark.rs",
+            "benchmark/",
             "graph_policy.rs",
             "layout_branching.rs",
             "local_readiness.rs",

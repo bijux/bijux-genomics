@@ -28,6 +28,7 @@ The public API is the planner surface exported from `src/lib.rs`.
 - `STAGE_COMPARE_STAGE_TOOLS`
 - `STAGE_SELECT_STAGE_TOOL`
 - `args`
+- `project_local_benchmark_tool_parameters`
 - `plan_fastq_to_fastq__default__v1`
 - `plan_fastq_to_bam__default__v1`
 - `compose_fastq_stage_bindings`
@@ -91,3 +92,9 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - Additions must be documented here and covered by boundary or contract tests.
 - Changes to plan JSON, graph topology, explain payloads, tool selection, or benchmark cohort behavior require snapshot review.
 - Runtime execution and output parsing do not belong in this API.
+
+Local benchmark fixture parameter projection lives in the planner's benchmark owner.
+`project_local_benchmark_tool_parameters` retains the existing tool-specific fixture
+settings and correction-size defaults. Omitted unsupported fixture options are not
+proof that the resulting tool runs are scientifically equivalent. The selected
+adapter still admits its actual parameters, inputs and capabilities before execution.

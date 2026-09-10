@@ -25,6 +25,7 @@ use crate::{
 };
 
 mod benchmark;
+pub use benchmark::project_local_benchmark_tool_parameters;
 mod graph_policy;
 mod layout_branching;
 mod local_readiness;
