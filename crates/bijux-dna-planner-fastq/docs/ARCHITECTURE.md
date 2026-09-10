@@ -60,3 +60,9 @@ src/tool_adapters/stages/
 - Keep command templates in `tool_adapters/`; do not hide runtime parsing in planner glue.
 - Keep benchmark fan-out graph construction in `planner/`; do not mix it into stage adapters.
 - Update this map and the architecture tree test when the layout changes intentionally.
+
+Governed local-smoke case outputs remain under `artifacts/runs/bench/local-smoke`.
+Relative output paths stay relative; absolute paths must use the same subtree
+under the supplied repository root. Parent traversal and sample/tool path injection
+are refused during planning. This is lexical admission; materialization owners
+remain responsible for current filesystem links and concurrent path replacement.
