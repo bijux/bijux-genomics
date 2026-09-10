@@ -200,6 +200,7 @@ fn dna_tree_matches_architecture_contract() {
         "local_vcf_stage_catalog_ready.rs",
         "local_vcf_stage_matrix.rs",
         "local_vcf_stats_smoke.rs",
+        "micro_pipeline_inputs.rs",
         "mod.rs",
         "path_resolution.rs",
         "paths.rs",

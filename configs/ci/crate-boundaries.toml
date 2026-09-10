@@ -202,3 +202,9 @@ name = "bijux-dna-bench-vcf"
 family = "data"
 layer = "support"
 public_surfaces = ["crates/bijux-dna-bench-vcf/src/lib.rs", "crates/bijux-dna-bench-vcf/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-workflows"
+family = "data"
+layer = "support"
+public_surfaces = ["crates/bijux-dna-bench-workflows/src/lib.rs", "crates/bijux-dna-bench-workflows/docs/PUBLIC_API.md"]

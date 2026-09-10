@@ -57,3 +57,6 @@ this CLI or the benchmark aggregation library.
 VCF benchmark commands supply admitted catalog/binding inputs and a reference
 materialization operation to `bijux-dna-bench-vcf`. That owner constructs adapter
 contracts and fixture observations without a normal dependency on CLI or API.
+
+Local micro-workflow orchestration belongs to `bijux-dna-bench-workflows`. CLI wrappers
+adapt arguments, supply fixture operations/tool bindings and present the returned reports.

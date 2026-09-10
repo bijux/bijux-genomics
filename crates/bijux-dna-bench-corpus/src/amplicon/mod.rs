@@ -49,3 +49,9 @@ pub use truth::{
     load_validated_amplicon_expected_asv_rows, load_validated_amplicon_expected_chimera_rows,
     load_validated_amplicon_primer_rows,
 };
+
+mod bundle;
+pub use bundle::{
+    validate_amplicon_truth_manifest_path, AmpliconTruthValidationReport,
+    AMPLICON_TRUTH_FIXTURE_ID, AMPLICON_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
