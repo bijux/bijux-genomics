@@ -555,3 +555,5 @@ pub use bijux_dna_bench::{
 };
 
 pub use bijux_dna_bench::write_recorded_command_audit;
+
+pub use bijux_dna_bench::{evaluate_operational_binding_coverage, OperationalBindingEvidence};

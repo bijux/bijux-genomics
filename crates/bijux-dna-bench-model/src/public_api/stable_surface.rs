@@ -863,3 +863,7 @@ pub use crate::contract::vcf_scope::{
 };
 
 pub use crate::policy::command_audit::evaluate_recorded_command_audit;
+
+pub use crate::policy::operational_readiness::{
+    evaluate_operational_binding_coverage, OperationalBindingEvidence,
+};

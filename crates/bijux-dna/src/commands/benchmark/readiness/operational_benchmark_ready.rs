@@ -1,9 +1,10 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_api::v1::api::bench::{
-    build_operational_benchmark_ready_report, OperationalBenchmarkResultCounts,
+    build_operational_benchmark_ready_report, evaluate_operational_binding_coverage,
+    OperationalBenchmarkResultCounts, OperationalBindingEvidence,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
     OperationalBenchmarkReadyBlocker, OperationalBenchmarkReadyCheck,
@@ -11,19 +12,17 @@ pub(crate) use bijux_dna_api::v1::api::bench::{
 };
 
 use super::all_domain_expected_benchmark_results::{
-    render_all_domain_expected_benchmark_results, AllDomainExpectedBenchmarkResultsReport,
+    render_all_domain_expected_benchmark_results,
     DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
 };
 use super::all_domain_local_harness_complete::{
     render_all_domain_local_harness_complete, DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH,
 };
 use super::all_domain_output_declarations::{
-    render_all_domain_output_declarations, AllDomainOutputDeclarationStatus,
-    DEFAULT_ALL_DOMAIN_OUTPUT_DECLARATIONS_PATH,
+    render_all_domain_output_declarations, DEFAULT_ALL_DOMAIN_OUTPUT_DECLARATIONS_PATH,
 };
 use super::all_domain_parser_collector::{
-    render_all_domain_parser_collector, AllDomainParserCollectorSourceKind,
-    DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH,
+    render_all_domain_parser_collector, DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH,
 };
 use super::all_domain_rendered_commands::{
     render_all_domain_commands, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH,
@@ -70,22 +69,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json";
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct BindingKey {
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-    corpus_id: String,
-    asset_profile_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct PairKey {
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-}
 
 pub(crate) fn run_render_operational_benchmark_ready(
     args: &parse::BenchReadinessRenderOperationalBenchmarkReadyArgs,
@@ -623,147 +606,17 @@ pub(crate) fn render_operational_benchmark_ready(
         },
     );
 
-    if let (Some(expected), Some(table)) = (&expected_results, &stage_tool_table) {
-        let expected_keys =
-            expected.rows.iter().map(binding_key_from_expected).collect::<BTreeSet<_>>();
-        for row in table.rows.iter().filter(|row| row.benchmark_status == "benchmark_ready") {
-            let binding = binding_key_from_table(row);
-            if !expected_keys.contains(&binding) {
-                blockers.insert(binding_blocker(
-                    &binding,
-                    "expected_result_missing",
-                    &expected.output_path,
-                    "benchmark-ready binding is missing a canonical expected-result row",
-                ));
-            }
-        }
-    }
-
-    if let (Some(expected), Some(rendered)) = (&expected_results, &rendered_commands) {
-        let rendered_result_ids =
-            rendered.rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>();
-        for row in &expected.rows {
-            if !rendered_result_ids.contains(row.result_id.as_str()) {
-                blockers.insert(binding_blocker(
-                    &binding_key_from_expected(row),
-                    "adapter_command_missing",
-                    &rendered.output_path,
-                    "canonical benchmark result is missing rendered command coverage",
-                ));
-            }
-        }
-    }
-
-    if let (Some(expected), Some(outputs)) = (&expected_results, &output_declarations) {
-        let output_by_result = outputs
-            .rows
-            .iter()
-            .map(|row| (row.result_id.as_str(), row))
-            .collect::<BTreeMap<_, _>>();
-        for row in &expected.rows {
-            match output_by_result.get(row.result_id.as_str()) {
-                None => {
-                    blockers.insert(binding_blocker(
-                        &binding_key_from_expected(row),
-                        "output_declaration_missing",
-                        &outputs.output_path,
-                        "canonical benchmark result is missing output declarations",
-                    ));
-                }
-                Some(declaration)
-                    if declaration.status != AllDomainOutputDeclarationStatus::Complete =>
-                {
-                    blockers.insert(binding_blocker(
-                        &binding_key_from_expected(row),
-                        "output_declaration_incomplete",
-                        &outputs.output_path,
-                        "canonical benchmark result has incomplete declared outputs",
-                    ));
-                }
-                Some(_) => {}
-            }
-        }
-    }
-
-    if let (Some(expected), Some(parser_rows)) = (&expected_results, &parser_collector) {
-        let fake_run_result_ids = parser_rows
-            .rows
-            .iter()
-            .filter(|row| row.source_kind == AllDomainParserCollectorSourceKind::FakeRun)
-            .filter_map(|row| row.result_id.as_deref())
-            .collect::<BTreeSet<_>>();
-        for row in &expected.rows {
-            if !fake_run_result_ids.contains(row.result_id.as_str()) {
-                blockers.insert(binding_blocker(
-                    &binding_key_from_expected(row),
-                    "parser_evidence_missing",
-                    &parser_rows.output_path,
-                    "canonical benchmark result is missing fake-run parser evidence",
-                ));
-            }
-        }
-    }
-
-    if let (Some(expected), Some(resources)) = (&expected_results, &resource_report) {
-        let resource_pairs =
-            resources.rows.iter().map(binding_key_from_resource).collect::<BTreeSet<_>>();
-        for row in &expected.rows {
-            let binding = binding_key_from_expected(row);
-            if !resource_pairs.contains(&pair_key_from_expected(row)) {
-                blockers.insert(binding_blocker(
-                    &binding,
-                    "resource_hint_missing",
-                    &resources.config_path,
-                    "canonical benchmark result is missing governed resource hints",
-                ));
-            }
-        }
-    }
-
-    if let (Some(expected), Some(table)) = (&expected_results, &stage_tool_table) {
-        let table_by_binding = table
-            .rows
-            .iter()
-            .filter(|row| row.benchmark_status == "benchmark_ready")
-            .map(|row| (binding_key_from_table(row), row))
-            .collect::<BTreeMap<_, _>>();
-        for row in &expected.rows {
-            let binding = binding_key_from_expected(row);
-            match table_by_binding.get(&binding) {
-                None => {
-                    blockers.insert(binding_blocker(
-                    &binding,
-                    "stage_tool_binding_missing",
-                    &table.output_path,
-                    "canonical benchmark result is missing from the all-domain stage/tool table",
-                ));
-                }
-                Some(table_row)
-                    if table_row.corpus_id.trim().is_empty()
-                        || table_row.asset_profile_id.trim().is_empty()
-                        || table_row.adapter_id.trim().is_empty()
-                        || table_row.parser_id.trim().is_empty() =>
-                {
-                    blockers.insert(binding_blocker(
-                        &binding,
-                        "binding_metadata_incomplete",
-                        &table.output_path,
-                        "stage/tool table binding is missing corpus, asset, adapter, or parser identity",
-                    ));
-                }
-                Some(_) => {}
-            }
-        }
-    }
-
-    checks.push(fastq_bam_binding_check(
-        expected_results.as_ref(),
-        stage_tool_table.is_some(),
-        rendered_commands.is_some(),
-        output_declarations.is_some(),
-        parser_collector.is_some(),
-        resource_report.is_some(),
-        &blockers,
+    checks.push(evaluate_operational_binding_coverage(
+        OperationalBindingEvidence {
+            expected_results: expected_results.as_ref(),
+            stage_tool_table: stage_tool_table.as_ref(),
+            rendered_commands: rendered_commands.as_ref(),
+            output_declarations: output_declarations.as_ref(),
+            parser_collector: parser_collector.as_ref(),
+            resource_report: resource_report.as_ref(),
+        },
+        &mut blockers,
+        DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
     ));
 
     if let Some(report) = &result_collector {
@@ -993,150 +846,6 @@ fn failed_check(
     }
 }
 
-fn fastq_bam_binding_check(
-    expected_results: Option<&AllDomainExpectedBenchmarkResultsReport>,
-    has_stage_tool_table: bool,
-    has_rendered_commands: bool,
-    has_output_declarations: bool,
-    has_parser_collector: bool,
-    has_resource_report: bool,
-    blockers: &BTreeSet<OperationalBenchmarkReadyBlocker>,
-) -> OperationalBenchmarkReadyCheck {
-    match expected_results {
-        Some(report) => {
-            let binding_count = report
-                .rows
-                .iter()
-                .filter(|row| row.domain == "fastq" || row.domain == "bam")
-                .count();
-            let blocker_count = blockers
-                .iter()
-                .filter(|blocker| blocker.domain == "fastq" || blocker.domain == "bam")
-                .count();
-            let mut missing_prerequisites = Vec::new();
-            if !has_stage_tool_table {
-                missing_prerequisites.push("all_domain_stage_tool_table");
-            }
-            if !has_rendered_commands {
-                missing_prerequisites.push("all_domain_rendered_commands");
-            }
-            if !has_output_declarations {
-                missing_prerequisites.push("all_domain_output_declarations");
-            }
-            if !has_parser_collector {
-                missing_prerequisites.push("all_domain_parser_collector");
-            }
-            if !has_resource_report {
-                missing_prerequisites.push("stage_tool_resources");
-            }
-            let ok = binding_count > 0 && blocker_count == 0 && missing_prerequisites.is_empty();
-            let detail = if ok {
-                format!(
-                    "validated {binding_count} FASTQ/BAM benchmark-ready bindings through expected-result, command, parser, resource, and output coverage"
-                )
-            } else if !missing_prerequisites.is_empty() {
-                format!(
-                    "FASTQ/BAM benchmark binding coverage is missing prerequisite surfaces: {}",
-                    missing_prerequisites.join(", ")
-                )
-            } else {
-                format!(
-                    "FASTQ/BAM benchmark binding coverage found {blocker_count} blockers across {binding_count} bindings"
-                )
-            };
-            OperationalBenchmarkReadyCheck {
-                surface_id: "fastq_bam_benchmark_binding_coverage".to_string(),
-                output_path: report.output_path.clone(),
-                ok,
-                detail,
-            }
-        }
-        None => failed_check(
-            "fastq_bam_benchmark_binding_coverage",
-            DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
-            "all-domain expected benchmark results did not render".to_string(),
-        ),
-    }
-}
-
-fn binding_key_from_expected(
-    row: &super::all_domain_expected_benchmark_results::AllDomainExpectedBenchmarkResultRow,
-) -> BindingKey {
-    BindingKey {
-        domain: row.domain.clone(),
-        stage_id: row.stage_id.clone(),
-        tool_id: row.tool_id.clone(),
-        corpus_id: row.corpus_id.clone(),
-        asset_profile_id: row.asset_profile_id.clone(),
-    }
-}
-
-fn binding_key_from_table(
-    row: &super::all_domain_stage_tool_table::AllDomainStageToolTableRow,
-) -> BindingKey {
-    BindingKey {
-        domain: row.domain.clone(),
-        stage_id: row.stage_id.clone(),
-        tool_id: row.tool_id.clone(),
-        corpus_id: row.corpus_id.clone(),
-        asset_profile_id: row.asset_profile_id.clone(),
-    }
-}
-
-fn binding_key_from_resource(row: &super::stage_tool_resources::StageToolResourceRow) -> PairKey {
-    PairKey {
-        domain: row.domain.clone(),
-        stage_id: row.stage_id.clone(),
-        tool_id: row.tool_id.clone(),
-    }
-}
-
-fn pair_key_from_expected(
-    row: &super::all_domain_expected_benchmark_results::AllDomainExpectedBenchmarkResultRow,
-) -> PairKey {
-    PairKey {
-        domain: row.domain.clone(),
-        stage_id: row.stage_id.clone(),
-        tool_id: row.tool_id.clone(),
-    }
-}
-
-fn benchmark_asset_profile_id_for_resource_row(
-    row: &super::stage_tool_resources::StageToolResourceRow,
-) -> String {
-    match row.domain.as_str() {
-        "fastq" => "benchmark_ready".to_string(),
-        "bam" => "benchmark_ready".to_string(),
-        "vcf" => match row.stage_id.as_str() {
-            "vcf.call" | "vcf.filter" | "vcf.stats" | "vcf.qc" => "vcf_cohort".to_string(),
-            "vcf.prepare_reference_panel" => "vcf_reference_panel".to_string(),
-            "vcf.phasing" | "vcf.impute" | "vcf.imputation_metrics" => {
-                "vcf_cohort_with_panel".to_string()
-            }
-            _ => "vcf_cohort".to_string(),
-        },
-        _ => "benchmark_ready".to_string(),
-    }
-}
-
-fn binding_blocker(
-    binding: &BindingKey,
-    blocker_type: &str,
-    blocker_path: &str,
-    detail: &str,
-) -> OperationalBenchmarkReadyBlocker {
-    OperationalBenchmarkReadyBlocker {
-        domain: binding.domain.clone(),
-        stage_id: binding.stage_id.clone(),
-        tool_id: binding.tool_id.clone(),
-        corpus_id: binding.corpus_id.clone(),
-        asset_profile_id: binding.asset_profile_id.clone(),
-        blocker_type: blocker_type.to_string(),
-        blocker_path: blocker_path.to_string(),
-        detail: detail.to_string(),
-    }
-}
-
 fn global_blocker(
     domain: &str,
     stage_id: &str,
@@ -1169,52 +878,4 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{benchmark_asset_profile_id_for_resource_row, binding_blocker, BindingKey};
-    use crate::commands::benchmark::readiness::stage_tool_resources::StageToolResourceRow;
-
-    #[test]
-    fn benchmark_resource_asset_profile_maps_vcf_panel_workflow_rows() {
-        let row = StageToolResourceRow {
-            domain: "vcf".to_string(),
-            stage_id: "vcf.impute".to_string(),
-            tool_id: "beagle".to_string(),
-            threads: 8,
-            memory_gb: 16,
-            walltime_minutes: 60,
-            scratch_gb: 8,
-            resource_origin: "planner_stage_constraints_with_stage_walltime_profile".to_string(),
-        };
-
-        assert_eq!(benchmark_asset_profile_id_for_resource_row(&row), "vcf_cohort_with_panel");
-    }
-
-    #[test]
-    fn binding_blocker_keeps_exact_blocker_tuple_fields() {
-        let binding = BindingKey {
-            domain: "vcf".to_string(),
-            stage_id: "vcf.stats".to_string(),
-            tool_id: "bcftools".to_string(),
-            corpus_id: "vcf_production_regression".to_string(),
-            asset_profile_id: "vcf_cohort".to_string(),
-        };
-
-        let blocker = binding_blocker(
-            &binding,
-            "resource_hint_missing",
-            "configs/bench/local/stage-tool-resources.toml",
-            "canonical benchmark result is missing governed resource hints",
-        );
-
-        assert_eq!(blocker.domain, "vcf");
-        assert_eq!(blocker.stage_id, "vcf.stats");
-        assert_eq!(blocker.tool_id, "bcftools");
-        assert_eq!(blocker.corpus_id, "vcf_production_regression");
-        assert_eq!(blocker.asset_profile_id, "vcf_cohort");
-        assert_eq!(blocker.blocker_type, "resource_hint_missing");
-        assert_eq!(blocker.blocker_path, "configs/bench/local/stage-tool-resources.toml");
-    }
 }

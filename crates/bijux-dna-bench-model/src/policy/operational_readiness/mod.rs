@@ -136,3 +136,6 @@ mod tests {
         Ok(())
     }
 }
+
+mod coverage;
+pub use coverage::{evaluate_operational_binding_coverage, OperationalBindingEvidence};
