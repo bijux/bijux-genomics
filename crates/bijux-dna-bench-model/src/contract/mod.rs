@@ -138,8 +138,9 @@ pub use full_benchmark_report::{
     validate_full_benchmark_report, FullBenchmarkReportAdmissionContext,
 };
 pub use full_benchmark_result_collector::{
-    validate_full_benchmark_result_collector, FullBenchmarkResultBinding,
-    FullBenchmarkResultCollectorAdmissionContext,
+    project_full_benchmark_observation_rows, validate_full_benchmark_result_collector,
+    FullBenchmarkResultBinding, FullBenchmarkResultCollectorAdmissionContext,
+    FullBenchmarkSourceObservation,
 };
 pub use interfaces::{
     validate_defined_interface_campaign_alignment, validate_interface_parameter_alignment,

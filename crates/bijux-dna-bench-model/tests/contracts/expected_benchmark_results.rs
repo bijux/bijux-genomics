@@ -87,3 +87,27 @@ fn valid_report() -> AllDomainExpectedBenchmarkResultsReport {
         }],
     }
 }
+
+#[test]
+fn collector_projection_preserves_expected_evidence_without_claiming_execution(
+) -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{
+        project_full_benchmark_observation_rows as project, FullBenchmarkResultStatus,
+        FullBenchmarkResultSurfaceKind, FullBenchmarkSourceObservation as Observation,
+    };
+    let mut report = valid_report();
+    let rows = project(Observation::Expected(&report))?;
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].result_status, FullBenchmarkResultStatus::Expected);
+    assert_eq!(rows[0].surface_kind, FullBenchmarkResultSurfaceKind::BenchmarkExpected);
+    assert_eq!(rows[0].record_id, format!("expected:{}", report.rows[0].result_id));
+    assert_eq!(rows[0].result_id.as_ref(), Some(&report.rows[0].result_id));
+    assert_eq!(rows[0].evidence_path, report.output_path);
+    assert!(rows[0].execution_id.is_none() && rows[0].manifest_path.is_none());
+    report.row_count += 1;
+    assert!(project(Observation::Expected(&report)).is_err());
+    report.row_count -= 1;
+    report.rows[0].expected_metrics.clear();
+    assert!(project(Observation::Expected(&report)).is_err());
+    Ok(())
+}

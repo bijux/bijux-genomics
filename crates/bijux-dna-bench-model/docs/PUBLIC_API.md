@@ -503,3 +503,5 @@ Slurm script-body evidence is owned by `BenchmarkLocalSlurmScriptBodyReport` and
 Slurm dependency inspection interprets borrowed submission jobs and observed script text, then constructs an admitted dependency-source diagnostic. It does not authorize scheduler submission or replace complete manifest/DAG validation.
 
 `evaluate_benchmark_local_hpc_harness_readiness` admits borrowed fake-failure, output-completion, manifest-completion and runtime-metric observations before returning stable local HPC readiness checks. Synthetic evidence remains synthetic; a counter with missing or inconsistent rows cannot establish readiness.
+
+`project_full_benchmark_observation_rows` consumes borrowed `FullBenchmarkSourceObservation` values for expected results, simulation, smoke subsets and failure classifications. Complete existing source admission precedes projection; source kinds, identifiers, missingness and evidence paths remain distinct. Final collector closure and independent scientific execution provenance still require their owning checks.
