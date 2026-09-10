@@ -23,6 +23,9 @@ fn owned_harness_command(relative_path: &Path, arg: &str) -> bool {
     match relative_path.to_str() {
         Some("crates/bijux-dna-science/tests/contracts/archive_sync.rs") => arg == "\"python3\"",
         Some("crates/bijux-dna-dev/tests/bootstrap.rs") => arg == "\"sh\"" || arg == "&binary",
+        Some("crates/bijux-dna-process/tests/contracts.rs") => {
+            matches!(arg, "\"sh\"" | "\"unavailable-capture-contract-executable\"")
+        }
         _ => false,
     }
 }
@@ -39,7 +42,8 @@ fn content_spawns_forbidden_test_command(relative_path: &Path, content: &str) ->
 
 fn is_allowed_command_path(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
-    path_str.contains("/crates/bijux-dna-runner/")
+    path.ends_with("crates/bijux-dna-process/src/capture.rs")
+        || path_str.contains("/crates/bijux-dna-runner/")
         || path_str.contains("/crates/bijux-dna-containers/")
         || path_str.contains("/crates/bijux-dna-containers-qa/")
         || path_str.contains("/crates/bijux-dna-dev/")
@@ -76,7 +80,7 @@ fn policy__contracts__command_spawn_policy__command_spawning_is_confined_to_runn
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "std::process::Command must be confined to bijux-dna-runner or bijux-dna-containers tooling:\n{}",
+        "process construction must remain in the explicit lifecycle and execution owners:\n{}",
         offenders.join("\n")
     );
 }
@@ -149,10 +153,21 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
 
 #[test]
 fn policy__contracts__command_spawn_policy__harness_commands_stay_with_their_exact_owners() {
+    assert!(is_allowed_command_path(Path::new(
+        "/workspace/crates/bijux-dna-process/src/capture.rs"
+    )));
+    assert!(!is_allowed_command_path(Path::new(
+        "/workspace/crates/bijux-dna-process/src/projection.rs"
+    )));
     for (owner, command) in [
         ("crates/bijux-dna-science/tests/contracts/archive_sync.rs", "\"python3\""),
         ("crates/bijux-dna-dev/tests/bootstrap.rs", "\"sh\""),
         ("crates/bijux-dna-dev/tests/bootstrap.rs", "&binary"),
+        ("crates/bijux-dna-process/tests/contracts.rs", "\"sh\""),
+        (
+            "crates/bijux-dna-process/tests/contracts.rs",
+            "\"unavailable-capture-contract-executable\"",
+        ),
     ] {
         let invocation = format!("Command::new({command}).output()?");
         assert!(!content_spawns_forbidden_test_command(Path::new(owner), &invocation));

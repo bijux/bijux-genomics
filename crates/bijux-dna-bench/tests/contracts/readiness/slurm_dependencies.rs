@@ -56,7 +56,7 @@ fn dependency_inspection_preserves_negative_evidence_and_rejects_unsafe_acquisit
     assert_eq!(std::fs::read(repository.path().join(&report_path))?, retained);
     wire["jobs"][0]["script_path"] = serde_json::json!(root.join("stage.sbatch"));
     bijux_dna_infra::atomic_write_json(&repository.path().join(&manifest_path), &wire)?;
-    bijux_dna_infra::write_bytes(&script, &[255])?;
+    bijux_dna_infra::write_bytes(&script, [255])?;
     assert!(inspect().is_err());
     assert_eq!(std::fs::read(repository.path().join(&report_path))?, retained);
     #[cfg(unix)]

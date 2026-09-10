@@ -138,6 +138,12 @@ layer = "governance"
 public_surfaces = ["crates/bijux-dna-policies/src/lib.rs", "crates/bijux-dna-policies/docs/PUBLIC_API.md"]
 
 [[crates]]
+name = "bijux-dna-process"
+family = "execution"
+layer = "foundation"
+public_surfaces = ["crates/bijux-dna-process/src/lib.rs", "crates/bijux-dna-process/docs/PUBLIC_API.md"]
+
+[[crates]]
 name = "bijux-dna-runner"
 family = "execution"
 layer = "runner"

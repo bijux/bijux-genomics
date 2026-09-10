@@ -32,7 +32,7 @@ fn script_inspection_publishes_findings_and_preserves_evidence_on_invalid_acquis
     let retained = std::fs::read(&absolute_output)?;
     let failed: BenchmarkLocalSlurmScriptBodyReport = serde_json::from_slice(&retained)?;
     assert!(!failed.ok && failed.script_count == 1 && failed.findings_count > 0);
-    bijux_dna_infra::write_bytes(&script, &[255])?;
+    bijux_dna_infra::write_bytes(&script, [255])?;
     assert!(inspect().is_err());
     assert_eq!(std::fs::read(&absolute_output)?, retained);
     let large = std::fs::OpenOptions::new().write(true).truncate(true).open(&script)?;
