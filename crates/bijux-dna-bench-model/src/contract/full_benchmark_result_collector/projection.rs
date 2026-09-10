@@ -1,7 +1,8 @@
 //! Model-owned normalization of admitted benchmark observations into collector rows.
 use crate::{
     AllDomainExpectedBenchmarkResultsReport, AllDomainFailureClassificationReport,
-    AllDomainFakeRunsReport, FullBenchmarkResultCollectorRow, FullBenchmarkResultStatus,
+    AllDomainFakeFailuresManifest, AllDomainFakeRunsReport, AllDomainMissingResultStatus,
+    AllDomainMissingResultTestReport, FullBenchmarkResultCollectorRow, FullBenchmarkResultStatus,
     FullBenchmarkResultSurfaceKind, RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport,
 };
 use anyhow::{ensure, Result};
@@ -11,6 +12,8 @@ use anyhow::{ensure, Result};
 pub enum FullBenchmarkSourceObservation<'a> {
     Expected(&'a AllDomainExpectedBenchmarkResultsReport),
     Simulated(&'a AllDomainFakeRunsReport),
+    SimulatedFailures(&'a AllDomainFakeFailuresManifest),
+    MissingResultAudit(&'a AllDomainMissingResultTestReport),
     SmokeSubset(&'a RealSmokeCoreSubsetReport),
     FailureClassification(&'a AllDomainFailureClassificationReport),
 }
@@ -33,6 +36,14 @@ pub fn project_full_benchmark_observation_rows(
         FullBenchmarkSourceObservation::Simulated(report) => {
             crate::validate_all_domain_simulation_report(report)?;
             collect_fake_run_rows(report)
+        }
+        FullBenchmarkSourceObservation::SimulatedFailures(report) => {
+            crate::validate_all_domain_failure_simulation_manifest(report)?;
+            collect_fake_failure_rows(report)
+        }
+        FullBenchmarkSourceObservation::MissingResultAudit(report) => {
+            crate::validate_all_domain_missing_result_audit(report)?;
+            collect_missing_result_rows(report)
         }
         FullBenchmarkSourceObservation::SmokeSubset(report) => {
             ensure!(report.passes_behavior_test, "smoke subset has not passed its behavior checks");
@@ -207,6 +218,71 @@ fn collect_unsupported_pair_rows(
             declared_output_count: 0,
             normalized_metric_count: 0,
             detail: row.detail.clone(),
+        })
+        .collect()
+}
+
+fn collect_fake_failure_rows(
+    report: &AllDomainFakeFailuresManifest,
+) -> Vec<FullBenchmarkResultCollectorRow> {
+    report
+        .failures
+        .iter()
+        .map(|row| FullBenchmarkResultCollectorRow {
+            record_id: format!("fake-failure:{}", row.result_id),
+            source_surface: "all_domain_fake_failures".to_string(),
+            surface_kind: FullBenchmarkResultSurfaceKind::FakeFailure,
+            result_status: FullBenchmarkResultStatus::Failed,
+            domain: row.domain.clone(),
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+            pipeline_id: None,
+            node_id: None,
+            result_id: Some(row.result_id.clone()),
+            execution_id: None,
+            corpus_id: Some(row.corpus_id.clone()),
+            asset_profile_id: Some(row.asset_profile_id.clone()),
+            report_section: None,
+            evidence_path: row.failure_record_path.clone(),
+            manifest_path: None,
+            declared_output_count: row.failed_output_count,
+            normalized_metric_count: 0,
+            detail: format!("fake failure recorded exit_code={}", row.exit_code),
+        })
+        .collect()
+}
+
+fn collect_missing_result_rows(
+    report: &AllDomainMissingResultTestReport,
+) -> Vec<FullBenchmarkResultCollectorRow> {
+    report
+        .rows
+        .iter()
+        .map(|row| FullBenchmarkResultCollectorRow {
+            record_id: format!("missing-audit:{}", row.result_id),
+            source_surface: "all_domain_missing_result_audit".to_string(),
+            surface_kind: FullBenchmarkResultSurfaceKind::MissingResultAudit,
+            result_status: match row.result_status {
+                AllDomainMissingResultStatus::Present => FullBenchmarkResultStatus::Present,
+                AllDomainMissingResultStatus::MissingResult => {
+                    FullBenchmarkResultStatus::MissingResult
+                }
+            },
+            domain: row.domain.clone(),
+            stage_id: row.stage_id.clone(),
+            tool_id: row.tool_id.clone(),
+            pipeline_id: None,
+            node_id: None,
+            result_id: Some(row.result_id.clone()),
+            execution_id: None,
+            corpus_id: Some(row.corpus_id.clone()),
+            asset_profile_id: Some(row.asset_profile_id.clone()),
+            report_section: Some(row.report_section.clone()),
+            evidence_path: row.audit_manifest_path.clone(),
+            manifest_path: Some(row.audit_manifest_path.clone()),
+            declared_output_count: row.expected_output_artifact_ids.len(),
+            normalized_metric_count: row.expected_metrics.len(),
+            detail: row.reason.clone(),
         })
         .collect()
 }

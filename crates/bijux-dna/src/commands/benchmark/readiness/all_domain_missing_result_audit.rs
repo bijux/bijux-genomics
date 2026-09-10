@@ -6,14 +6,13 @@ use super::{
 use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
 use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
-pub(crate) use bijux_dna_api::v1::api::bench::{
-    AllDomainMissingResultStatus, AllDomainMissingResultTestReport,
-    DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
-};
 #[cfg(test)]
 use bijux_dna_api::v1::api::bench::{
-    ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION, BAM_REMOVED_RESULT_ID, FASTQ_REMOVED_RESULT_ID,
-    VCF_REMOVED_RESULT_ID,
+    AllDomainMissingResultStatus, ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION,
+    BAM_REMOVED_RESULT_ID, FASTQ_REMOVED_RESULT_ID, VCF_REMOVED_RESULT_ID,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainMissingResultTestReport, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
 };
 use std::path::{Path, PathBuf};
 

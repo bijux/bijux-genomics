@@ -139,3 +139,37 @@ fn failure_simulation_rejects_a_later_record_link_before_earlier_publication() -
     assert!(!root.path().join(DESTINATION).join("manifest.json").exists());
     Ok(())
 }
+
+#[test]
+fn failure_collector_requires_complete_admitted_simulation_evidence() -> Result<()> {
+    use bijux_dna_bench_model::{
+        project_full_benchmark_observation_rows as project, FullBenchmarkResultStatus as Status,
+        FullBenchmarkSourceObservation as Source,
+    };
+    let root = tempfile::tempdir()?;
+    let (expected, command, outputs) = inputs();
+    let report = fake_run_all_domain_failure_results(
+        root.path(),
+        Path::new(DESTINATION),
+        &[expected],
+        &[command],
+        &[outputs],
+        23,
+    )?;
+    let projected = project(Source::SimulatedFailures(&report))?;
+    assert_eq!(projected.len(), 1);
+    assert_eq!(projected[0].result_status, Status::Failed);
+    assert_eq!(projected[0].result_id.as_deref(), Some(report.failures[0].result_id.as_str()));
+    assert_eq!(projected[0].evidence_path, report.failures[0].failure_record_path);
+    assert_eq!(projected[0].normalized_metric_count, 0);
+    let mut wrong = report.clone();
+    wrong.failed_output_count += 1;
+    assert!(project(Source::SimulatedFailures(&wrong)).is_err());
+    let mut wrong = report.clone();
+    wrong.failures[0].exit_code = 0;
+    assert!(project(Source::SimulatedFailures(&wrong)).is_err());
+    let mut wrong = report;
+    wrong.failures[0].failure_record_path = "artifacts/foreign.json".into();
+    assert!(project(Source::SimulatedFailures(&wrong)).is_err());
+    Ok(())
+}

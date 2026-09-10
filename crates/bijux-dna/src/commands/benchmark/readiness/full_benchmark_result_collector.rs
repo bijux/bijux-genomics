@@ -24,12 +24,10 @@ use super::all_domain_failure_classification::{
     render_all_domain_failure_classification, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
 };
 use super::all_domain_missing_result_audit::{
-    render_all_domain_missing_result_audit, AllDomainMissingResultStatus,
-    AllDomainMissingResultTestReport, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
+    render_all_domain_missing_result_audit, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
 };
 use crate::commands::benchmark::local_all_domain_fake_failures::{
-    fake_run_all_domain_failures, AllDomainFakeFailuresManifest,
-    DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT,
+    fake_run_all_domain_failures, DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT,
 };
 use crate::commands::benchmark::local_all_domain_fake_runs::{
     fake_run_all_domain_benchmark_results, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
@@ -115,8 +113,12 @@ pub(crate) fn render_full_benchmark_result_collector(
     rows.extend(project_full_benchmark_observation_rows(
         FullBenchmarkSourceObservation::Simulated(&fake_run_report),
     )?);
-    rows.extend(collect_fake_failure_rows(&fake_failure_report));
-    rows.extend(collect_missing_result_rows(&missing_result_report));
+    rows.extend(project_full_benchmark_observation_rows(
+        FullBenchmarkSourceObservation::SimulatedFailures(&fake_failure_report),
+    )?);
+    rows.extend(project_full_benchmark_observation_rows(
+        FullBenchmarkSourceObservation::MissingResultAudit(&missing_result_report),
+    )?);
     rows.extend(project_full_benchmark_observation_rows(
         FullBenchmarkSourceObservation::SmokeSubset(&real_smoke_report),
     )?);
@@ -252,71 +254,6 @@ fn collect_pipeline_rows(
         }
     }
     Ok(rows)
-}
-
-fn collect_fake_failure_rows(
-    report: &AllDomainFakeFailuresManifest,
-) -> Vec<FullBenchmarkResultCollectorRow> {
-    report
-        .failures
-        .iter()
-        .map(|row| FullBenchmarkResultCollectorRow {
-            record_id: format!("fake-failure:{}", row.result_id),
-            source_surface: "all_domain_fake_failures".to_string(),
-            surface_kind: FullBenchmarkResultSurfaceKind::FakeFailure,
-            result_status: FullBenchmarkResultStatus::Failed,
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            pipeline_id: None,
-            node_id: None,
-            result_id: Some(row.result_id.clone()),
-            execution_id: None,
-            corpus_id: Some(row.corpus_id.clone()),
-            asset_profile_id: Some(row.asset_profile_id.clone()),
-            report_section: None,
-            evidence_path: row.failure_record_path.clone(),
-            manifest_path: None,
-            declared_output_count: row.failed_output_count,
-            normalized_metric_count: 0,
-            detail: format!("fake failure recorded exit_code={}", row.exit_code),
-        })
-        .collect()
-}
-
-fn collect_missing_result_rows(
-    report: &AllDomainMissingResultTestReport,
-) -> Vec<FullBenchmarkResultCollectorRow> {
-    report
-        .rows
-        .iter()
-        .map(|row| FullBenchmarkResultCollectorRow {
-            record_id: format!("missing-audit:{}", row.result_id),
-            source_surface: "all_domain_missing_result_audit".to_string(),
-            surface_kind: FullBenchmarkResultSurfaceKind::MissingResultAudit,
-            result_status: match row.result_status {
-                AllDomainMissingResultStatus::Present => FullBenchmarkResultStatus::Present,
-                AllDomainMissingResultStatus::MissingResult => {
-                    FullBenchmarkResultStatus::MissingResult
-                }
-            },
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            pipeline_id: None,
-            node_id: None,
-            result_id: Some(row.result_id.clone()),
-            execution_id: None,
-            corpus_id: Some(row.corpus_id.clone()),
-            asset_profile_id: Some(row.asset_profile_id.clone()),
-            report_section: Some(row.report_section.clone()),
-            evidence_path: row.audit_manifest_path.clone(),
-            manifest_path: Some(row.audit_manifest_path.clone()),
-            declared_output_count: row.expected_output_artifact_ids.len(),
-            normalized_metric_count: row.expected_metrics.len(),
-            detail: row.reason.clone(),
-        })
-        .collect()
 }
 
 fn count_surface(

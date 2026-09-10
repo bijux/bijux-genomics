@@ -118,3 +118,35 @@ fn missing_result_verdict_cannot_hide_forged_counts_or_evidence_bindings() -> an
     assert!(validate_all_domain_missing_result_audit(&wrong).is_err());
     Ok(())
 }
+
+#[test]
+fn missing_result_collector_rejects_forged_source_verdicts_and_preserves_missingness(
+) -> anyhow::Result<()> {
+    use crate::{
+        project_full_benchmark_observation_rows as project, FullBenchmarkResultStatus as Status,
+        FullBenchmarkSourceObservation as Source,
+    };
+    let admitted = admit_all_domain_missing_result_audit(report())?;
+    let projected = project(Source::MissingResultAudit(&admitted))?;
+    assert_eq!(projected.len(), 4);
+    assert_eq!(
+        projected.iter().filter(|row| row.result_status == Status::MissingResult).count(),
+        3
+    );
+    assert_eq!(projected.iter().filter(|row| row.result_status == Status::Present).count(), 1);
+    for (output, input) in projected.iter().zip(&admitted.rows) {
+        assert_eq!(output.result_id.as_deref(), Some(input.result_id.as_str()));
+        assert_eq!(output.evidence_path, input.audit_manifest_path);
+        assert_eq!(output.normalized_metric_count, input.expected_metrics.len());
+    }
+    let mut wrong = admitted.clone();
+    wrong.passes_behavior_test = false;
+    assert!(project(Source::MissingResultAudit(&wrong)).is_err());
+    let mut wrong = admitted.clone();
+    wrong.rows.clear();
+    assert!(project(Source::MissingResultAudit(&wrong)).is_err());
+    let mut wrong = admitted;
+    wrong.rows[0].expected_manifest_path = "artifacts/foreign.json".into();
+    assert!(project(Source::MissingResultAudit(&wrong)).is_err());
+    Ok(())
+}
