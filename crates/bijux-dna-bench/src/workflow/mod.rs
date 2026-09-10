@@ -38,7 +38,6 @@ mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
 mod fastq_validate_reads;
 mod full_benchmark_report;
-mod hardening_campaign;
 mod local_corpus_skip;
 mod options;
 mod parameter_authority;
@@ -78,6 +77,9 @@ mod workspace_layout;
 
 pub use pipeline_profiles::{validate_benchmark_pipeline_profiles, PipelineProfileEvidence};
 
+pub use crate::repo::hardening_campaign::{
+    load_hardening_benchmark_campaign_report, publish_hardening_benchmark_campaign_report,
+};
 pub use alias_resolution::{
     choose_canonical_tool_id, legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases,
     normalize_tool_id, required_migration_stage_ids,
@@ -150,6 +152,7 @@ pub use benchmark_matrix::{
     current_benchmark_matrix_timestamp, derive_benchmark_matrix, load_benchmark_matrix_report,
     publish_benchmark_matrix, BenchmarkMatrixRequest,
 };
+pub use bijux_dna_bench_model::derive_hardening_benchmark_campaign;
 pub use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
     load_attempt_lifecycle,
@@ -274,10 +277,6 @@ pub use full_benchmark_report::{
     build_full_benchmark_runtime_rows, build_full_benchmark_stage_rows,
     build_full_benchmark_tool_rows, build_full_benchmark_unsupported_pair_rows,
     render_full_benchmark_report_markdown,
-};
-pub use hardening_campaign::{
-    derive_hardening_benchmark_campaign, load_hardening_benchmark_campaign_report,
-    publish_hardening_benchmark_campaign_report,
 };
 pub use local_corpus_skip::{
     derive_benchmark_local_corpus_skip_report, publish_benchmark_local_corpus_skip_report,

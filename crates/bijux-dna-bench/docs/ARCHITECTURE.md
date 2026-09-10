@@ -60,3 +60,5 @@ Architecture and API contracts enforce the tree, Markdown locations, curated
 exports, panic boundaries and repository/artifact ownership of raw JSON.
 
 `repo/reference_fasta.rs` acquires and publishes paired benchmark FASTA/FAI inputs. The reference owner admits indexable byte layouts first; exact existing regular file pairs retain their identity, and malformed input leaves previous outputs intact.
+
+Hardening campaign decisions belong to `bijux-dna-bench-model::derive_hardening_benchmark_campaign`. `repo/hardening_campaign.rs` admits persisted reports and owns atomic publication. The benchmark facade preserves all three existing public operations; source joins, the goal catalog and check evaluation do not acquire files or depend on runtime services.

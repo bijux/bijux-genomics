@@ -88,3 +88,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --te
 ```
 
 Suite catalog admission rejects missing input, output or parameter contracts when a declared stage uses that boundary. Empty declared identifier sets reject supplied values; unused contracts are not required. Executor and planner stages outside the supplied catalog retain their existing admission path.
+
+`derive_hardening_benchmark_campaign(matrix, appraisal, queue, requested_goals)` is the pure hardening campaign derivation operation. It admits source identities and emits the governed goal catalog, checks and summary; repository persistence and benchmark execution remain downstream.

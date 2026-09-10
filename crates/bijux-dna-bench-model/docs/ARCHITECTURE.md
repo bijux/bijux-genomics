@@ -61,3 +61,5 @@ HPC resume and result-collection requests reuse their selected submission jobs f
 HPC array resource admission and component-wise envelope construction share one pure model owner. CLI array renderers adapt selected rows; both persisted array validators use the same checked walltime contract.
 
 `model/readiness/` groups expected results, parser observations, collected results, full reports, dashboards, and local smoke observations. Public crate-root types and schema entrypoints remain stable; semantic admission belongs to `contract/` and acquisition belongs to service owners. This module layout does not create a separate Cargo compilation unit.
+
+`policy/hardening_campaign/` admits matrix/appraisal/queue identities and builds hardening campaign reports without IO. Goal metadata and check projections are grouped by diagnostics, execution, corpora, databases, planning, comparisons, evidence, security and operations. Existing goal IDs, catalog order, check strings and readiness meanings are preserved. The goal catalog is assembled once; each report uses the caller's current typed observations. Its native tests follow the same policy concerns.

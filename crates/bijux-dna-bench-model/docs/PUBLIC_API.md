@@ -477,3 +477,5 @@ readiness, reference resolution and scientific profile validation are additional
 obligations; schema admission does not certify executable or scientifically compatible inputs.
 
 `BenchmarkLocalStageMatrixConfig` owns the existing FASTQ/BAM local matrix input shape, with generated `benchmark_local_stage_matrix_config_schema()` and the two exact v1 schema identities. VCF retains `LocalVcfStageMatrixConfig`. Structural deserialization rejects unknown fields and readiness values; repository admission additionally checks the requested domain, exact version, non-empty inventory and unique stage identities. Serialization preserves matrix declaration order.
+
+`derive_hardening_benchmark_campaign(matrix, appraisal, queue, requested_goals)` admits source identities and derives the existing hardening report entirely from typed inputs. Catalog scenarios describe benchmark readiness; this operation does not execute or certify a benchmark.

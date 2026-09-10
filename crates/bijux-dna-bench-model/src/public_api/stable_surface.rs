@@ -911,3 +911,5 @@ pub use crate::policy::hpc_array::pipeline::{
 pub use crate::policy::hpc_resources::{
     project_hpc_job_resources, resolve_hpc_job_resources, HpcJobResourceHints,
 };
+
+pub use crate::policy::hardening_campaign::derive_hardening_benchmark_campaign;

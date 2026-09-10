@@ -99,3 +99,5 @@ pub(crate) mod stage_result;
 pub(crate) mod hpc_array;
 
 pub(crate) mod hpc_resources;
+
+pub(crate) mod hardening_campaign;
