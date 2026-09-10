@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Context, Result};
+use std::path::Path;
 
 pub const DEFAULT_CONTAMINANT_PRESET: &str = "illumina_default";
 
@@ -15,14 +16,21 @@ pub struct ContaminantSelection {
 /// # Errors
 /// Returns an error if contaminant configs cannot be loaded or the preset is invalid.
 pub fn resolve_contaminant_selection(preset: Option<&str>) -> Result<ContaminantSelection> {
+    resolve_contaminant_selection_at(Path::new(""), preset)
+}
+
+fn resolve_contaminant_selection_at(
+    root: &Path,
+    preset: Option<&str>,
+) -> Result<ContaminantSelection> {
     let preset_name = match preset {
         Some(name) if !name.trim().is_empty() => name.trim().to_string(),
         Some(_) => return Err(anyhow!("contaminant preset name is empty")),
         None => DEFAULT_CONTAMINANT_PRESET.to_string(),
     };
-    let motifs_path = crate::contaminant_motifs_path();
-    let presets_path = crate::contaminant_presets_path();
-    let references_dir = crate::contaminant_references_dir();
+    let motifs_path = root.join(crate::contaminant_motifs_path());
+    let presets_path = root.join(crate::contaminant_presets_path());
+    let references_dir = root.join(crate::contaminant_references_dir());
     let motifs = crate::load_contaminant_motifs(&motifs_path)?;
     let presets = crate::load_contaminant_presets(&presets_path, &motifs, &references_dir)?;
     let motifs_checksum = bijux_dna_infra::hash_file_sha256(&motifs_path)?;
@@ -37,7 +45,14 @@ pub fn resolve_contaminant_selection(preset: Option<&str>) -> Result<Contaminant
 pub fn resolve_effective_contaminants(
     selection: &ContaminantSelection,
 ) -> Result<crate::EffectiveContaminantSet> {
-    let references_dir = crate::contaminant_references_dir();
+    resolve_effective_contaminants_at(Path::new(""), selection)
+}
+
+fn resolve_effective_contaminants_at(
+    root: &Path,
+    selection: &ContaminantSelection,
+) -> Result<crate::EffectiveContaminantSet> {
+    let references_dir = root.join(crate::contaminant_references_dir());
     crate::resolve_contaminant_preset(
         &selection.motifs,
         &selection.presets,
@@ -54,6 +69,14 @@ pub fn contaminant_bank_provenance_json(
     selection: &ContaminantSelection,
     effective: &crate::EffectiveContaminantSet,
 ) -> Result<serde_json::Value> {
+    contaminant_bank_provenance_at(Path::new(""), selection, effective)
+}
+
+fn contaminant_bank_provenance_at(
+    root: &Path,
+    selection: &ContaminantSelection,
+    effective: &crate::EffectiveContaminantSet,
+) -> Result<serde_json::Value> {
     let enabled_entries: Vec<serde_json::Value> = effective
         .motifs
         .iter()
@@ -66,7 +89,7 @@ pub fn contaminant_bank_provenance_json(
             })
         })
         .collect();
-    let references_dir = crate::contaminant_references_dir();
+    let references_dir = root.join(crate::contaminant_references_dir());
     let references: Vec<serde_json::Value> = effective
         .references
         .iter()
@@ -105,9 +128,20 @@ pub fn contaminant_bank_provenance_json(
 pub fn contaminant_bank_context(
     contaminant_preset: Option<&str>,
 ) -> Result<Option<serde_json::Value>> {
-    let selection = resolve_contaminant_selection(contaminant_preset)?;
-    let effective = resolve_effective_contaminants(&selection)?;
-    Ok(Some(contaminant_bank_provenance_json(&selection, &effective)?))
+    contaminant_bank_context_at(Path::new(""), contaminant_preset)
+}
+
+/// Build contaminant provenance with motifs, presets and FASTA references rooted together.
+/// This does not change the process working directory.
+/// # Errors
+/// Rejects unreadable banks or references and invalid presets.
+pub fn contaminant_bank_context_at(
+    root: &Path,
+    preset: Option<&str>,
+) -> Result<Option<serde_json::Value>> {
+    let selection = resolve_contaminant_selection_at(root, preset)?;
+    let effective = resolve_effective_contaminants_at(root, &selection)?;
+    Ok(Some(contaminant_bank_provenance_at(root, &selection, &effective)?))
 }
 
 #[cfg(test)]

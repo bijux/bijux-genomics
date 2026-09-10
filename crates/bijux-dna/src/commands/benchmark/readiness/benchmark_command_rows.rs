@@ -364,12 +364,20 @@ fn render_fastq_stage_tool_argv(
         .map(|path| resolve_repo_input_path(repo_root, path));
     let reference_fasta =
         find_reference_fasta(base_plan).map(|path| resolve_repo_input_path(repo_root, path));
-    let adapter_bank = load_default_fastq_adapter_bank_context(repo_root)
-        .context("load default FASTQ adapter bank context")?;
-    let polyx_bank = load_default_fastq_polyx_bank_context(repo_root)
+    let adapter_bank = bijux_dna_domain_fastq::banks::adapter_bank_context_at(
+        repo_root,
+        None,
+        None,
+        None,
+        &[],
+        &[],
+    )
+    .context("load default FASTQ adapter bank context")?;
+    let polyx_bank = bijux_dna_domain_fastq::banks::polyx_bank_context_at(repo_root, None)
         .context("load default FASTQ polyx bank context")?;
-    let contaminant_bank = load_default_fastq_contaminant_bank_context(repo_root)
-        .context("load default FASTQ contaminant bank context")?;
+    let contaminant_bank =
+        bijux_dna_domain_fastq::banks::contaminant_bank_context_at(repo_root, None)
+            .context("load default FASTQ contaminant bank context")?;
     let out_dir = benchmark_command_out_dir("fastq", stage_id, tool_id).with_context(|| {
         format!("build benchmark command output dir for `{stage_id}` / `{tool_id}`")
     })?;
@@ -644,113 +652,4 @@ fn ensure_unique_rows(rows: &[BenchmarkCommandRow]) -> Result<()> {
         }
     }
     Ok(())
-}
-
-fn load_default_fastq_adapter_bank_context(repo_root: &Path) -> Result<Option<serde_json::Value>> {
-    let bank_path = repo_root.join(bijux_dna_domain_fastq::adapter_bank_path());
-    let presets_path = repo_root.join(bijux_dna_domain_fastq::adapter_presets_path());
-    let bank = bijux_dna_domain_fastq::load_adapter_bank(&bank_path)
-        .with_context(|| format!("load {}", bank_path.display()))?;
-    let presets = bijux_dna_domain_fastq::load_adapter_presets(&presets_path, &bank)
-        .with_context(|| format!("load {}", presets_path.display()))?;
-    let selection = bijux_dna_domain_fastq::banks::AdapterSelection {
-        bank,
-        presets,
-        preset_name: bijux_dna_domain_fastq::banks::DEFAULT_ADAPTER_PRESET.to_string(),
-        bank_checksum: bijux_dna_infra::hash_file_sha256(&bank_path)?,
-        presets_checksum: bijux_dna_infra::hash_file_sha256(&presets_path)?,
-    };
-    let effective =
-        bijux_dna_domain_fastq::banks::resolve_effective_adapters(&selection, &[], &[])?;
-    Ok(Some(bijux_dna_domain_fastq::banks::adapter_bank_provenance_json(
-        &selection,
-        &effective,
-        &[],
-        &[],
-    )))
-}
-
-fn load_default_fastq_polyx_bank_context(repo_root: &Path) -> Result<Option<serde_json::Value>> {
-    let bank_path = repo_root.join(bijux_dna_domain_fastq::polyx_bank_path());
-    let presets_path = repo_root.join(bijux_dna_domain_fastq::polyx_presets_path());
-    let bank = bijux_dna_domain_fastq::load_polyx_bank(&bank_path)
-        .with_context(|| format!("load {}", bank_path.display()))?;
-    let presets = bijux_dna_domain_fastq::load_polyx_presets(&presets_path, &bank)
-        .with_context(|| format!("load {}", presets_path.display()))?;
-    let selection = bijux_dna_domain_fastq::banks::PolyxSelection {
-        bank,
-        presets,
-        preset_name: bijux_dna_domain_fastq::banks::DEFAULT_POLYX_PRESET.to_string(),
-        bank_checksum: bijux_dna_infra::hash_file_sha256(&bank_path)?,
-        presets_checksum: bijux_dna_infra::hash_file_sha256(&presets_path)?,
-    };
-    let effective = bijux_dna_domain_fastq::banks::resolve_effective_polyx(&selection)?;
-    Ok(Some(bijux_dna_domain_fastq::banks::polyx_bank_provenance_json(&selection, &effective)))
-}
-
-fn load_default_fastq_contaminant_bank_context(
-    repo_root: &Path,
-) -> Result<Option<serde_json::Value>> {
-    let motifs_path = repo_root.join(bijux_dna_domain_fastq::contaminant_motifs_path());
-    let presets_path = repo_root.join(bijux_dna_domain_fastq::contaminant_presets_path());
-    let references_dir = repo_root.join(bijux_dna_domain_fastq::contaminant_references_dir());
-    let motifs = bijux_dna_domain_fastq::load_contaminant_motifs(&motifs_path)
-        .with_context(|| format!("load {}", motifs_path.display()))?;
-    let presets =
-        bijux_dna_domain_fastq::load_contaminant_presets(&presets_path, &motifs, &references_dir)
-            .with_context(|| format!("load {}", presets_path.display()))?;
-    let selection = bijux_dna_domain_fastq::banks::ContaminantSelection {
-        motifs,
-        presets,
-        preset_name: bijux_dna_domain_fastq::banks::DEFAULT_CONTAMINANT_PRESET.to_string(),
-        motifs_checksum: bijux_dna_infra::hash_file_sha256(&motifs_path)?,
-        presets_checksum: bijux_dna_infra::hash_file_sha256(&presets_path)?,
-    };
-    let effective = bijux_dna_domain_fastq::resolve_contaminant_preset(
-        &selection.motifs,
-        &selection.presets,
-        &selection.preset_name,
-        &references_dir,
-    )?;
-    let enabled_entries: Vec<serde_json::Value> = effective
-        .motifs
-        .iter()
-        .map(|entry| {
-            serde_json::json!({
-                "id": entry.id,
-                "sequence": entry.sequence,
-                "rationale": entry.rationale,
-                "source": entry.source,
-            })
-        })
-        .collect();
-    let references = effective
-        .references
-        .iter()
-        .map(|reference| {
-            let path = references_dir.join(&reference.file);
-            let fasta = std::fs::read_to_string(&path)
-                .with_context(|| format!("read {}", path.display()))?;
-            let sha256 = bijux_dna_infra::hash_file_sha256(&path)
-                .with_context(|| format!("hash {}", path.display()))?;
-            Ok(serde_json::json!({
-                "id": reference.id,
-                "file": reference.file,
-                "sha256": sha256,
-                "rationale": reference.rationale,
-                "source": reference.source,
-                "fasta": fasta,
-            }))
-        })
-        .collect::<Result<Vec<_>>>()?;
-    Ok(Some(serde_json::json!({
-        "bank_id": selection.motifs.bank_id,
-        "bank_version": selection.motifs.version,
-        "bank_hash": selection.motifs_checksum,
-        "presets_hash": selection.presets_checksum,
-        "preset": selection.preset_name,
-        "preset_hash": effective.preset_hash,
-        "enabled_entries": enabled_entries,
-        "references": references,
-    })))
 }

@@ -4,10 +4,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::ArtifactRef;
 use bijux_dna_core::prelude::{StageId, ToolExecutionSpecV1, ToolId};
-use bijux_dna_domain_fastq::banks::{
-    adapter_bank_provenance_json, resolve_effective_adapters, AdapterSelection,
-    DEFAULT_ADAPTER_PRESET,
-};
+use bijux_dna_domain_fastq::banks::DEFAULT_ADAPTER_PRESET;
 use bijux_dna_domain_fastq::params::correct::QualityEncoding;
 use bijux_dna_domain_fastq::params::qc_post::{QcAggregationEngine, QcAggregationScope};
 use bijux_dna_domain_fastq::params::umi::{UmiFailedExtractionPolicy, UmiReadNameTransform};
@@ -3831,21 +3828,15 @@ fn load_local_trim_reads_adapter_bank_context(
     repo_root: &Path,
     preset_name: &str,
 ) -> Result<serde_json::Value> {
-    let bank_path = repo_root.join(bijux_dna_domain_fastq::adapter_bank_path());
-    let presets_path = repo_root.join(bijux_dna_domain_fastq::adapter_presets_path());
-    let bank = bijux_dna_domain_fastq::load_adapter_bank(&bank_path)
-        .with_context(|| format!("load {}", bank_path.display()))?;
-    let presets = bijux_dna_domain_fastq::load_adapter_presets(&presets_path, &bank)
-        .with_context(|| format!("load {}", presets_path.display()))?;
-    let selection = AdapterSelection {
-        bank,
-        presets,
-        preset_name: preset_name.to_string(),
-        bank_checksum: bijux_dna_infra::hash_file_sha256(&bank_path)?,
-        presets_checksum: bijux_dna_infra::hash_file_sha256(&presets_path)?,
-    };
-    let effective = resolve_effective_adapters(&selection, &[], &[])?;
-    Ok(adapter_bank_provenance_json(&selection, &effective, &[], &[]))
+    bijux_dna_domain_fastq::banks::adapter_bank_context_at(
+        repo_root,
+        Some(preset_name),
+        None,
+        None,
+        &[],
+        &[],
+    )?
+    .context("adapter bank selection did not produce provenance")
 }
 
 fn load_local_detect_duplicates_premerge_smoke_config(
