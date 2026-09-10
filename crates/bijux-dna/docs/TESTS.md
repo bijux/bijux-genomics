@@ -118,3 +118,8 @@ Registry coverage and runtime readiness CLI reports compile in
 its JSON and persisted output contracts under `tests/contracts/benchmark/`.
 The original BAM feature gates and repository mutator guards remain; native test
 partitions still schedule individual cases independently of the compilation groups.
+
+Stage inventory reports, result admission, completion evidence and runtime metrics
+compile together in `bench_stage_evidence`, with responsibility-specific modules
+under `tests/contracts/benchmark/stage_evidence/`. Original BAM feature annotations
+and repository mutation guards remain; native scheduling still partitions cases.

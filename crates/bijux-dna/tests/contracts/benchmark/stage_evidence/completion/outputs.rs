@@ -4,8 +4,8 @@
 use std::process::Command;
 
 #[cfg(feature = "bam_downstream")]
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+#[cfg(feature = "bam_downstream")]
+use crate::support;
 
 #[cfg(feature = "bam_downstream")]
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
@@ -38,10 +38,10 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[cfg(feature = "bam_downstream")]
 #[test]
-fn bench_local_check_manifest_completion_json_reports_governed_51_stage_slice_complete() {
-    let fake_run_root = "artifacts/benchmark-smoke/simulated-runs/stages-manifest-completion-cli";
+fn bench_local_check_output_completion_json_reports_governed_51_stage_slice_complete() {
+    let fake_run_root = "artifacts/benchmark-smoke/simulated-runs/stages-output-completion-cli";
     let report_output =
-        "artifacts/benchmark-smoke/readiness/local-ready/manifest-completion-report.cli.json";
+        "artifacts/benchmark-smoke/readiness/local-ready/output-completion-report.cli.json";
 
     let _fake_run_manifest = run_cli_json(&[
         "bench",
@@ -54,7 +54,7 @@ fn bench_local_check_manifest_completion_json_reports_governed_51_stage_slice_co
     let payload = run_cli_json(&[
         "bench",
         "local",
-        "check-manifest-completion",
+        "check-output-completion",
         "--fake-run-root",
         fake_run_root,
         "--output",
@@ -64,7 +64,7 @@ fn bench_local_check_manifest_completion_json_reports_governed_51_stage_slice_co
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.local_stage_manifest_completion.v1")
+        Some("bijux.bench.local_stage_output_completion.v1")
     );
     assert_eq!(
         payload.get("fake_run_root").and_then(serde_json::Value::as_str),
