@@ -53,3 +53,6 @@ pub use stage_assets::{
     stage_external_asset_requirement, stage_requires_local_assets, StageAssetClass,
     StageExternalAssetRequirement,
 };
+
+mod hpc_submission;
+pub use hpc_submission::HpcSchedulerSubmissionBackend;

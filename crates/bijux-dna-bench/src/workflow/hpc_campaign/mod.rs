@@ -29,3 +29,6 @@ mod tests;
 
 pub(crate) mod copy_back;
 pub use copy_back::write_campaign_copy_back_manifest;
+
+mod submission;
+pub use submission::{submit_hpc_campaign, HpcSubmissionBackend};

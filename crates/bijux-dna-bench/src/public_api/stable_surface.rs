@@ -685,7 +685,8 @@ pub use bijux_dna_bench_model::{
 
 pub use crate::repo::hpc_campaign::profiles::write_campaign_profiles;
 pub use crate::workflow::hpc_campaign::{
-    campaign_dry_run, campaign_preflight, collect_hpc_redaction_needles, CampaignContext,
+    campaign_dry_run, campaign_preflight, collect_hpc_redaction_needles, submit_hpc_campaign,
+    CampaignContext, HpcSubmissionBackend,
 };
 pub use bijux_dna_bench_model::{
     assemble_hpc_code_submission, assemble_hpc_results_submission, encode_redacted_hpc_bundle,

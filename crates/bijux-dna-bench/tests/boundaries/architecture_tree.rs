@@ -23,6 +23,7 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/artifacts")),
         entries([
             "hpc_array/",
+            "hpc_campaign.rs",
             "simulation.rs",
             "admission/",
             "bam_score_evidence/",
@@ -90,7 +91,8 @@ fn bench_tree_matches_architecture_contract() {
             "environment.rs",
             "monitor.rs",
             "profiles.rs",
-            "redaction.rs"
+            "redaction.rs",
+            "submission.rs"
         ]),
         "campaign acquisition stays separate from planning"
     );
@@ -105,7 +107,8 @@ fn bench_tree_matches_architecture_contract() {
             "policies.rs",
             "preflight.rs",
             "resources.rs",
-            "templates.rs"
+            "templates.rs",
+            "submission/"
         ]),
         "campaign workflows keep their distinct responsibilities"
     );

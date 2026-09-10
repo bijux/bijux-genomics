@@ -21,6 +21,7 @@ pub struct HpcCodeFreezeObservation {
 }
 
 /// Foundation references supplied by the campaign layout adapter.
+#[derive(Debug, Clone)]
 pub struct HpcBundleFoundationLocks {
     pub corpus_lock: String,
     pub database_lock: String,
