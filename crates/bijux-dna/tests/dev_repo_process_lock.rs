@@ -116,10 +116,6 @@ fn vcf_aggregate_readiness_writers_acquire_repository_lock_before_mutation() -> 
             "EnvGuard::new()",
         ),
         (
-            "crates/bijux-dna/tests/contracts/benchmark/vcf_readiness/inventory/all_retained_tools_complete_file.rs",
-            "EnvGuard::new()",
-        ),
-        (
             "crates/bijux-dna/src/commands/benchmark/readiness/vcf_imputation_metrics_ready.rs",
             "build_vcf_imputation_metrics_ready_report(",
         ),
