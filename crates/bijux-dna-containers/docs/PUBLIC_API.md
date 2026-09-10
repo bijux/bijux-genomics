@@ -70,3 +70,9 @@ by `bijux-dna-bench-model` and `bijux-dna-bench`, not this environment-evidence 
 - Stable: the Public Modules and Major Export Groups documented in this file.
 - Experimental: new runtime/build adapters are experimental until they are listed here and covered by the corresponding docs/tests.
 - Internal: module-local helpers and any item not exported through the documented public modules or facade.
+
+External artifact admission rechecks canonical location, regular-file kind, size
+and SHA-256 after version observation and before publishing. The same file
+identity owner serves later verification and command binding. These observations
+detect retained drift; they do not lock external files or prove which inode a
+transport executed when an operator changes and restores a file during a probe.

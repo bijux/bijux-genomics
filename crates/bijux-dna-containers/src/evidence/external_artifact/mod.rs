@@ -4,6 +4,7 @@ mod model;
 mod probe;
 mod request;
 mod schema;
+mod storage;
 mod workflow;
 
 pub use model::{

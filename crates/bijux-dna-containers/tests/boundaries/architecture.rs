@@ -183,7 +183,7 @@ fn execution_policy_tree_matches_architecture_contract() {
 #[test]
 fn inventory_source_tree_matches_ownership_contract() {
     let root = crate_root("bijux-dna-containers");
-    assert_eq!(dir_entries(&root.join("src/evidence/external_artifact")), btree_set(&["admission.rs", "binding.rs", "mod.rs", "model.rs", "probe/", "request.rs", "schema.rs", "workflow.rs"]), "external artifact evidence separates wire models, operation requests, probe observation and publication");
+    assert_eq!(dir_entries(&root.join("src/evidence/external_artifact")), btree_set(&["admission.rs", "binding.rs", "mod.rs", "model.rs", "probe/", "request.rs", "schema.rs", "storage.rs", "workflow.rs"]), "external artifact evidence separates wire models, operation requests, probe observation and publication");
     assert_eq!(
         dir_entries(&root.join("src/evidence/external_artifact/probe")),
         btree_set(&["mod.rs", "native.rs"]),

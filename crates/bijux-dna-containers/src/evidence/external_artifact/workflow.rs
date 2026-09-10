@@ -21,6 +21,7 @@ use super::probe::{
     probe_version, ExternalArtifactProbeTransport, NativeExternalArtifactProbeTransport,
 };
 use super::request::{ExternalArtifactAdmissionRequest, ExternalArtifactInput};
+use super::storage;
 
 /// Admit an operator-provided artifact without copying it into repository or active image storage.
 ///
@@ -200,28 +201,10 @@ pub fn verify_external_artifact_admission(
         bail!("external-artifact tool contract changed");
     }
     if let Some(artifact) = &admission.artifact {
-        let path = Path::new(&artifact.path);
-        let resolved = path.canonicalize().context("resolve current external artifact location")?;
-        if resolved != path {
-            bail!("external artifact canonical location changed");
-        }
-        if path.starts_with(&repository_root) {
-            bail!("external artifact entered the product repository");
-        }
-        if path.starts_with(&distributable_image_root) {
-            bail!("external artifact entered the distributable active image root");
-        }
         if !tool.external_artifact_kinds.iter().any(|kind| kind == artifact.kind.as_str()) {
             bail!("external artifact kind is no longer permitted");
         }
-        let metadata = path.metadata().context("inspect external artifact")?;
-        if !metadata.is_file()
-            || metadata.len() != artifact.size_bytes
-            || bijux_dna_infra::hash_file_sha256(path).context("rehash external artifact")?
-                != artifact.sha256
-        {
-            bail!("external artifact identity changed");
-        }
+        storage::verify(&repository_root, &distributable_image_root, artifact)?;
         validate_persisted_version_probe(&admission, artifact)?;
     }
     Ok(admission)
@@ -267,30 +250,9 @@ fn inspect_artifact(
         bail!("tool {} does not permit {} artifacts", tool.id, input.kind.as_str());
     }
     validate_sha256(input.expected_sha256, "external artifact checksum")?;
-    let artifact_path = input.path.canonicalize().context("canonicalize external artifact")?;
-    if artifact_path.starts_with(repository_root) {
-        bail!("external artifact must remain outside the product repository");
-    }
-    if artifact_path.starts_with(distributable_image_root) {
-        bail!("external artifact must remain outside the distributable active image root");
-    }
-    let metadata = artifact_path.metadata().context("inspect external artifact")?;
-    if !metadata.is_file() {
-        bail!("external artifact is not a regular file");
-    }
-    let sha256 =
-        bijux_dna_infra::hash_file_sha256(&artifact_path).context("hash external artifact")?;
-    if sha256 != input.expected_sha256.to_ascii_lowercase() {
-        bail!("external artifact checksum does not match operator declaration");
-    }
-    let version_probe = probe_version(tool, input, &artifact_path, transport)?;
-    Ok((
-        ExternalArtifactIdentity {
-            kind: input.kind,
-            path: artifact_path.display().to_string(),
-            sha256,
-            size_bytes: metadata.len(),
-        },
-        version_probe,
-    ))
+    let artifact = storage::observe(repository_root, distributable_image_root, input)?;
+    let version_probe = probe_version(tool, input, Path::new(&artifact.path), transport)?;
+    storage::verify(repository_root, distributable_image_root, &artifact)
+        .context("external artifact changed during version observation")?;
+    Ok((artifact, version_probe))
 }

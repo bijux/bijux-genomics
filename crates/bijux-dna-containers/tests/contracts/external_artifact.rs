@@ -569,3 +569,6 @@ mod version_transport {
         Ok(())
     }
 }
+
+#[path = "external_artifact/observation.rs"]
+mod observation;
