@@ -1,4 +1,5 @@
 //! Owner: deterministic stage benchmark Slurm array serialization.
+use super::shell::quote_hpc_shell_value;
 use anyhow::Result;
 use bijux_dna_bench_model::BenchmarkLocalHpcStageBenchmarkArrayReport;
 use std::path::Path;
@@ -109,16 +110,4 @@ BIJUX_HPC_UNAVAILABLE_REASON=\"$UNAVAILABLE_REASON\" \\\n\
 sh -c \"$EXECUTION_COMMAND\" >\"$STDOUT_PATH\" 2>\"$STDERR_PATH\"\n",
     );
     Ok(rendered)
-}
-
-/// Quote a shell assignment or Slurm path, retaining scheduler percent placeholders.
-#[must_use]
-pub fn quote_hpc_shell_value(value: &str) -> String {
-    if value.chars().all(|ch| {
-        ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | '/' | ':' | '+' | '%')
-    }) {
-        value.to_string()
-    } else {
-        format!("'{}'", value.replace('\'', "'\\''"))
-    }
 }

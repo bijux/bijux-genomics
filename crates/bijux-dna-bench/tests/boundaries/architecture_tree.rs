@@ -22,7 +22,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
         entries([
-            "hpc_stage_array.rs",
+            "hpc_array/",
             "simulation.rs",
             "admission/",
             "bam_score_evidence/",
@@ -119,7 +119,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
-            "hpc_stage_array.rs",
+            "hpc_array.rs",
             "micro_run.rs",
             "micro_report/",
             "stage_result.rs",
@@ -187,7 +187,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/workflow")),
         entries([
-            "hpc_stage_array.rs",
+            "hpc_array/",
             "micro_run.rs",
             "micro_report.rs",
             "simulation.rs",

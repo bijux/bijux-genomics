@@ -1,6 +1,6 @@
 //! Owner: stage array assembly and publication from borrowed upstream observations.
-use crate::artifacts::hpc_stage_array::render_stage_benchmark_array_script;
-use crate::repo::hpc_stage_array::{relative, Destinations};
+use crate::artifacts::hpc_array::stage::render_stage_benchmark_array_script;
+use crate::repo::hpc_array::{relative, ArrayKind, Destinations};
 use anyhow::{ensure, Result};
 use bijux_dna_bench_model::{
     build_hpc_stage_array_report, BenchmarkLocalAllDomainSlurmSubmitJob,
@@ -18,7 +18,10 @@ impl HpcStageArrayDestination {
     /// # Errors
     /// Rejects output escape, root directories and invalid file stems.
     pub fn prepare(repo_root: &Path, script: &Path) -> Result<Self> {
-        Ok(Self { root: repo_root.to_path_buf(), paths: Destinations::prepare(repo_root, script)? })
+        Ok(Self {
+            root: repo_root.to_path_buf(),
+            paths: Destinations::prepare(repo_root, script, ArrayKind::Stage)?,
+        })
     }
 }
 /// Selected-job observations are shared by the scratch and execution collectors.
@@ -56,7 +59,7 @@ pub fn validate_hpc_stage_array(
 ) -> Result<BenchmarkLocalHpcStageBenchmarkArrayReport> {
     let report = build(&request)?;
     let script = render_stage_benchmark_array_script(request.repo_root, &report)?;
-    request.destination.paths.validate(&script, &report)?;
+    request.destination.paths.validate(&script, &report, &report.script_path)?;
     Ok(report)
 }
 fn build(request: &HpcStageArrayRequest<'_>) -> Result<BenchmarkLocalHpcStageBenchmarkArrayReport> {

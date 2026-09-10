@@ -96,4 +96,4 @@ pub(crate) mod micro_report;
 
 pub(crate) mod stage_result;
 
-pub(crate) mod hpc_stage_array;
+pub(crate) mod hpc_array;

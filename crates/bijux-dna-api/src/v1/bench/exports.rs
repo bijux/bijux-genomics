@@ -595,3 +595,8 @@ pub use bijux_dna_bench_model::{
 };
 
 pub use bijux_dna_bench::quote_hpc_shell_value;
+
+pub use bijux_dna_bench::{
+    collect_hpc_pipeline_array, publish_hpc_pipeline_array, validate_hpc_pipeline_array,
+    HpcPipelineArrayDestination, HpcPipelineArrayRequest,
+};

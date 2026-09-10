@@ -400,4 +400,4 @@ pub use micro_run::qualify_micro_benchmark_run;
 
 pub(crate) mod micro_report;
 
-pub(crate) mod hpc_stage_array;
+pub(crate) mod hpc_array;

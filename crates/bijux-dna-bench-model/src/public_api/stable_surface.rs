@@ -903,3 +903,7 @@ pub use crate::policy::hpc_array::commands::{
     rendered_essential_pipeline_node_execution_argv,
 };
 pub use crate::policy::hpc_array::stage::{build_hpc_stage_array_report, HpcStageArrayInputs};
+
+pub use crate::policy::hpc_array::pipeline::{
+    build_hpc_pipeline_array_report, HpcPipelineArrayInputs,
+};
