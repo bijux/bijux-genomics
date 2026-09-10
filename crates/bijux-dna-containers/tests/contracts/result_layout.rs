@@ -330,3 +330,83 @@ fn superseded_archive_rejects_forged_attempts_and_cache_destinations_before_muta
     bijux_dna_infra::atomic_write_json(&plan_path, &plan)?;
     Ok(())
 }
+
+#[cfg(unix)]
+#[test]
+fn result_layout_rejects_linked_files_ancestors_locks_cycles_and_special_entries() -> Result<()> {
+    use std::os::unix::fs::symlink;
+    for location in ["file", "tool", "lock", "cycle", "fifo"] {
+        let temp = tempfile::tempdir()?;
+        let (runs, result_root) = nested_result_fixture(temp.path())?;
+        let request = ResultLayoutPlanRequest {
+            runs_root: runs.clone(),
+            result_root: result_root.clone(),
+            created_at_utc: "2026-08-07T03:00:00Z".into(),
+        };
+        let plan = derive_result_layout_plan(&request)?;
+        let plan_path = result_root.join(".governance/result-layout.json");
+        bijux_dna_infra::atomic_write_json(&plan_path, &plan)?;
+        let original_plan = fs::read(&plan_path)?;
+        let outside = temp.path().join("outside");
+        fs::create_dir(&outside)?;
+        fs::write(outside.join("guard"), b"unrelated")?;
+        let source = result_root.join("samtools/run-1001");
+        match location {
+            "cycle" => symlink(&source, source.join("cycle"))?,
+            "fifo" => {
+                assert!(std::process::Command::new("mkfifo")
+                    .arg(source.join("fifo"))
+                    .status()?
+                    .success());
+            }
+            _ => {
+                let replaced = match location {
+                    "file" => source.join("sample.bam"),
+                    "tool" => result_root.join("samtools"),
+                    _ => runs.join("run-1001-samtools/evidence.lock.json"),
+                };
+                fs::rename(&replaced, outside.join("entry"))?;
+                symlink(outside.join("entry"), &replaced)?;
+            }
+        }
+        let Err(error) =
+            apply_result_layout(&plan_path, &runs, &result_root, "2026-08-07T03:01:00Z")
+        else {
+            anyhow::bail!("linked/special result evidence was accepted");
+        };
+        assert!(
+            error.to_string().contains("link") || error.to_string().contains("regular"),
+            "{location}: {error:#}"
+        );
+        assert!(derive_result_layout_plan(&request).is_err());
+        assert!(!result_root.join("run-1001-samtools").exists());
+        assert_eq!(String::from_utf8(fs::read(&plan_path)?)?, String::from_utf8(original_plan)?);
+        assert_eq!(fs::read(outside.join("guard"))?, b"unrelated");
+    }
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn archive_apply_verify_and_rollback_reject_linked_destinations() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let (request, plan_path) = superseded_fixture(temp.path())?;
+    let plan = derive_superseded_result_archive_plan(&request)?;
+    bijux_dna_infra::atomic_write_json(&plan_path, &plan)?;
+    let outside = temp.path().join("outside");
+    fs::create_dir(&outside)?;
+    fs::write(outside.join("guard"), b"unrelated")?;
+    fs::create_dir_all(&request.archive_root)?;
+    std::os::unix::fs::symlink(&outside, request.archive_root.join("run-1001-samtools"))?;
+    for result in [
+        apply_superseded_result_archive(&plan_path, &request, "2026-08-07T03:01:00Z"),
+        verify_superseded_result_archive(&plan_path, &request),
+        rollback_superseded_result_archive(&plan_path, &request, "2026-08-07T03:02:00Z"),
+    ] {
+        assert!(result.is_err_and(|error| error.to_string().contains("link")));
+    }
+    assert_eq!(fs::read(request.result_root.join("run-1001-samtools/sample.bam"))?, b"superseded");
+    assert_eq!(fs::read(outside.join("guard"))?, b"unrelated");
+    assert!(request.result_root.join("python-cache/module.pyc").exists());
+    Ok(())
+}
