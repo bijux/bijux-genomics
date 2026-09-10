@@ -7,11 +7,11 @@ use std::process::Command;
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn render_manifest_path(repo_root: &Path, label: &str) -> PathBuf {
-    support::hpc_dry_run_test_directory(repo_root, label)
-        .expect("temporary HPC dry-run directory")
-        .keep()
-        .join("asset-staging-manifest.json")
+fn render_manifest_path(repo_root: &Path, label: &str) -> (tempfile::TempDir, PathBuf) {
+    let directory = support::hpc_dry_run_test_directory(repo_root, label)
+        .expect("temporary HPC dry-run directory");
+    let path = directory.path().join("asset-staging-manifest.json");
+    (directory, path)
 }
 
 fn run_cli(args: &[&str]) -> std::process::Output {
@@ -33,9 +33,9 @@ fn run_cli(args: &[&str]) -> std::process::Output {
 }
 
 #[test]
-fn bench_local_render_hpc_asset_staging_manifest_reports_governed_inputs() {
+fn bench_local_hpc_asset_staging_preserves_publication_and_rejects_drift() {
     let repo_root = support::repo_root().expect("repo root");
-    let manifest_path = render_manifest_path(&repo_root, "render-hpc-asset-staging-");
+    let (_directory, manifest_path) = render_manifest_path(&repo_root, "render-hpc-asset-staging-");
     let manifest_arg = manifest_path.to_string_lossy().into_owned();
 
     let output = run_cli(&[
@@ -124,5 +124,65 @@ fn bench_local_render_hpc_asset_staging_manifest_reports_governed_inputs() {
                     == Some("bam:corpus-01-mini:bam.align:sample-set:bowtie2")
         }),
         "governed BAM job must keep staged source, staged path, checksum, size, and consumer result id"
+    );
+    let validate_output = run_cli(&[
+        "bench",
+        "local",
+        "validate-hpc-asset-staging-manifest",
+        "--manifest",
+        &manifest_arg,
+    ]);
+    assert!(
+        validate_output.status.success(),
+        "validate command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        validate_output.status,
+        String::from_utf8_lossy(&validate_output.stdout),
+        String::from_utf8_lossy(&validate_output.stderr)
+    );
+
+    let printed_path = String::from_utf8(validate_output.stdout).expect("stdout utf8");
+    assert_eq!(
+        printed_path.trim(),
+        manifest_path
+            .strip_prefix(&repo_root)
+            .expect("manifest path relative to repo root")
+            .to_string_lossy()
+    );
+    let rendered = serde_json::from_slice::<serde_json::Value>(
+        &fs::read(&manifest_path).expect("read manifest"),
+    )
+    .expect("parse manifest");
+    let selected_job_count = rendered
+        .get("selected_job_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("selected job count");
+    let original_body = fs::read_to_string(&manifest_path).expect("read manifest body");
+    let stale_body = original_body.replacen(
+        &format!("\"selected_job_count\": {selected_job_count}"),
+        &format!("\"selected_job_count\": {}", selected_job_count.saturating_sub(1)),
+        1,
+    );
+    assert_ne!(stale_body, original_body, "mutation must change selected job count");
+    fs::write(&manifest_path, stale_body).expect("write stale manifest body");
+
+    let validate_output = run_cli(&[
+        "bench",
+        "local",
+        "validate-hpc-asset-staging-manifest",
+        "--manifest",
+        &manifest_arg,
+    ]);
+    fs::write(&manifest_path, &original_body).expect("restore manifest body");
+    assert_eq!(fs::read_to_string(&manifest_path).expect("read restored manifest"), original_body);
+    assert!(
+        !validate_output.status.success(),
+        "validate command should reject stale manifest\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&validate_output.stdout),
+        String::from_utf8_lossy(&validate_output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&validate_output.stderr);
+    assert!(
+        stderr.contains("selected_job_count"),
+        "stale manifest failure must identify the drifted field, got:\n{stderr}"
     );
 }
