@@ -1,18 +1,14 @@
 use bijux_dna_api::v1::api::bench::{
-    render_micro_benchmark_report_markdown, validate_micro_benchmark_report,
-    MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
+    generate_micro_benchmark_report, MicroBenchmarkExpectedRow as ExpectedMicroCoverageRow,
+    MicroBenchmarkReportRequest, MicroBenchmarkReportSources,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
-    MicroBenchmarkCompleteRow, MicroBenchmarkFailedRow, MicroBenchmarkInsufficientDataRow,
-    MicroBenchmarkMemorySourceRow, MicroBenchmarkMissingRow, MicroBenchmarkReport,
-    MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow, MicroBenchmarkUnavailableRow,
+    MicroBenchmarkReport, DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH,
+    DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH,
 };
-use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
-use serde_json::Value;
+use anyhow::Result;
 
 use super::local_adna_micro_pipeline::{AdnaMicroPipelineReport, AdnaMicroPipelineRow};
 use super::local_amplicon_micro_pipeline::{AmpliconMicroPipelineReport, AmpliconMicroPipelineRow};
@@ -25,35 +21,11 @@ use super::local_fastq_micro_smoke_subset::{
     FastqMicroSmokeFamilyRow, FastqMicroSmokeSubsetReport,
 };
 use super::local_micro_benchmark_run::{
-    MicroBenchmarkExecutionStatus, MicroBenchmarkLogRow, MicroBenchmarkOutputRow,
-    MicroBenchmarkResultRow, MicroBenchmarkRunManifest,
+    MicroBenchmarkLogRow, MicroBenchmarkOutputRow, MicroBenchmarkResultRow,
+    MicroBenchmarkRunManifest,
 };
 use super::local_real_smoke_core_subset::{RealSmokeCoreSubsetReport, RealSmokeCoreSubsetRow};
-use super::local_stage_result_manifest::{
-    load_validated_stage_result_manifest_path, path_relative_to_repo,
-};
 use super::local_vcf_micro_smoke_subset::{VcfMicroSmokeFamilyRow, VcfMicroSmokeSubsetReport};
-use super::path_resolution::{
-    ensure_path_stays_within_benchmark_micro_root, BenchmarkPathResolver,
-};
-use super::readiness::scientific_acceptance_thresholds::{
-    scientific_acceptance_direction_label, scientific_acceptance_insufficiency_behavior_label,
-    scientific_acceptance_pass_rule_label, scientific_acceptance_tolerance_kind_label,
-    ScientificAcceptanceThresholdRow, ScientificAcceptanceThresholdsConfig,
-};
-use super::readiness::stage_tool_resources::{
-    validate_stage_tool_resources_config, StageToolResourceRow, StageToolResourcesConfig,
-};
-
-pub(crate) const DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH: &str =
-    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.md";
-pub(crate) const DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH: &str =
-    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json";
-
-const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH: &str =
-    "configs/bench/local/scientific-acceptance-thresholds.toml";
-const STAGE_TOOL_RESOURCES_PATH: &str = "configs/bench/local/stage-tool-resources.toml";
-const GOVERNED_RUNTIME_SOURCE: &str = "governed_runtime";
 
 pub(crate) struct MicroBenchmarkSourceReports<'a> {
     pub(crate) real_smoke: &'a RealSmokeCoreSubsetReport,
@@ -66,32 +38,6 @@ pub(crate) struct MicroBenchmarkSourceReports<'a> {
     pub(crate) core_germline: &'a CoreGermlineMicroPipelineReport,
 }
 
-#[derive(Debug, Clone)]
-struct ExpectedMicroCoverageRow {
-    component_id: String,
-    execution_id: String,
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-    source_report_path: String,
-}
-
-#[derive(Debug, Clone)]
-struct RuntimeEvidence {
-    elapsed_seconds: Option<f64>,
-    runtime_source: &'static str,
-}
-
-#[derive(Debug, Clone)]
-struct MemoryEvidence {
-    declared_memory_mb: Option<f64>,
-    declared_cpu_threads: Option<u32>,
-    observed_memory_mb: Option<f64>,
-    observed_cpu_threads: Option<u32>,
-    memory_source: &'static str,
-    resource_origin: Option<String>,
-}
-
 pub(crate) fn render_micro_benchmark_report(
     repo_root: &Path,
     manifest: &MicroBenchmarkRunManifest,
@@ -102,263 +48,19 @@ pub(crate) fn render_micro_benchmark_report(
     json_output_path: PathBuf,
     source_reports: MicroBenchmarkSourceReports<'_>,
 ) -> Result<MicroBenchmarkReport> {
-    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
-    let markdown_output_path = benchmark_paths.resolve_repo_relative(&markdown_output_path);
-    let json_output_path = benchmark_paths.resolve_repo_relative(&json_output_path);
-    let governed_runtime_projection = path_relative_to_repo(repo_root, &markdown_output_path)
-        == DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH
-        && path_relative_to_repo(repo_root, &json_output_path)
-            == DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH;
-    ensure_path_stays_within_benchmark_micro_root(
+    let expected = collect_expected_micro_rows(&source_reports);
+    generate_micro_benchmark_report(MicroBenchmarkReportRequest {
         repo_root,
-        &markdown_output_path,
-        "micro benchmark markdown report",
-    )?;
-    ensure_path_stays_within_benchmark_micro_root(
-        repo_root,
-        &json_output_path,
-        "micro benchmark json report",
-    )?;
-    for path in [&markdown_output_path, &json_output_path] {
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-        }
-    }
-
-    let expected_rows = collect_expected_micro_rows(&source_reports);
-    let actual_key_counts =
-        result_rows.iter().fold(BTreeMap::<(&str, &str), usize>::new(), |mut counts, row| {
-            *counts.entry((row.component_id.as_str(), row.execution_id.as_str())).or_default() += 1;
-            counts
-        });
-    let expected_keys = expected_rows
-        .iter()
-        .map(|row| (row.component_id.as_str(), row.execution_id.as_str()))
-        .collect::<BTreeSet<_>>();
-
-    let complete_rows = result_rows
-        .iter()
-        .filter(|row| row.status == MicroBenchmarkExecutionStatus::Succeeded)
-        .map(|row| MicroBenchmarkCompleteRow {
-            execution_id: row.execution_id.clone(),
-            component_id: row.component_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            source_report_path: row.source_report_path.clone(),
-            evidence_path: row.evidence_path.clone(),
-            command: row.command.clone(),
-            reason: row.reason.clone(),
-            normalized_metric_count: row.normalized_metric_count,
-            output_count: row.output_count,
-            log_count: row.log_count,
-        })
-        .collect::<Vec<_>>();
-
-    let unavailable_rows = result_rows
-        .iter()
-        .filter(|row| row.status != MicroBenchmarkExecutionStatus::Succeeded)
-        .map(|row| MicroBenchmarkUnavailableRow {
-            execution_id: row.execution_id.clone(),
-            component_id: row.component_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            execution_status: row.status,
-            source_report_path: row.source_report_path.clone(),
-            command: row.command.clone(),
-            reason: row.reason.clone(),
-        })
-        .collect::<Vec<_>>();
-
-    let mut failed_rows = Vec::new();
-    for ((component_id, execution_id), count) in &actual_key_counts {
-        if *count > 1 {
-            failed_rows.push(MicroBenchmarkFailedRow {
-                row_id: format!("duplicate:{component_id}:{execution_id}"),
-                source_surface: "micro_result_rows".to_string(),
-                component_id: Some((*component_id).to_string()),
-                execution_id: Some((*execution_id).to_string()),
-                domain: None,
-                stage_id: None,
-                tool_id: None,
-                detail: format!(
-                    "micro benchmark result rows duplicated `{component_id}` / `{execution_id}` {count} times"
-                ),
-            });
-        }
-    }
-    for row in result_rows {
-        if !expected_keys.contains(&(row.component_id.as_str(), row.execution_id.as_str())) {
-            failed_rows.push(MicroBenchmarkFailedRow {
-                row_id: format!("unexpected:{}:{}", row.component_id, row.execution_id),
-                source_surface: "micro_result_rows".to_string(),
-                component_id: Some(row.component_id.clone()),
-                execution_id: Some(row.execution_id.clone()),
-                domain: Some(row.domain.clone()),
-                stage_id: Some(row.stage_id.clone()),
-                tool_id: Some(row.tool_id.clone()),
-                detail: "micro benchmark result row has no matching source-report row".to_string(),
-            });
-        }
-        if row.status == MicroBenchmarkExecutionStatus::Succeeded {
-            match &row.evidence_path {
-                Some(evidence_path) if repo_root.join(evidence_path).is_file() => {}
-                Some(_) => failed_rows.push(MicroBenchmarkFailedRow {
-                    row_id: format!("missing-evidence:{}:{}", row.component_id, row.execution_id),
-                    source_surface: "micro_result_rows".to_string(),
-                    component_id: Some(row.component_id.clone()),
-                    execution_id: Some(row.execution_id.clone()),
-                    domain: Some(row.domain.clone()),
-                    stage_id: Some(row.stage_id.clone()),
-                    tool_id: Some(row.tool_id.clone()),
-                    detail: "successful micro benchmark row references a missing evidence file"
-                        .to_string(),
-                }),
-                None => failed_rows.push(MicroBenchmarkFailedRow {
-                    row_id: format!("blank-evidence:{}:{}", row.component_id, row.execution_id),
-                    source_surface: "micro_result_rows".to_string(),
-                    component_id: Some(row.component_id.clone()),
-                    execution_id: Some(row.execution_id.clone()),
-                    domain: Some(row.domain.clone()),
-                    stage_id: Some(row.stage_id.clone()),
-                    tool_id: Some(row.tool_id.clone()),
-                    detail: "successful micro benchmark row is missing an evidence path"
-                        .to_string(),
-                }),
-            }
-        }
-    }
-    for output_row in output_rows.iter().filter(|row| !row.exists) {
-        failed_rows.push(MicroBenchmarkFailedRow {
-            row_id: format!(
-                "missing-output:{}:{}",
-                output_row.component_id, output_row.execution_id
-            ),
-            source_surface: "micro_output_rows".to_string(),
-            component_id: Some(output_row.component_id.clone()),
-            execution_id: Some(output_row.execution_id.clone()),
-            domain: None,
-            stage_id: None,
-            tool_id: None,
-            detail: format!("output row references a missing path `{}`", output_row.path),
-        });
-    }
-    for log_row in log_rows.iter().filter(|row| !row.exists) {
-        failed_rows.push(MicroBenchmarkFailedRow {
-            row_id: format!("missing-log:{}:{}", log_row.component_id, log_row.execution_id),
-            source_surface: "micro_log_rows".to_string(),
-            component_id: Some(log_row.component_id.clone()),
-            execution_id: Some(log_row.execution_id.clone()),
-            domain: None,
-            stage_id: None,
-            tool_id: None,
-            detail: format!("log row references a missing path `{}`", log_row.path),
-        });
-    }
-
-    let missing_rows = expected_rows
-        .iter()
-        .filter(|row| {
-            !actual_key_counts.contains_key(&(row.component_id.as_str(), row.execution_id.as_str()))
-        })
-        .map(|row| MicroBenchmarkMissingRow {
-            component_id: row.component_id.clone(),
-            execution_id: row.execution_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            source_report_path: row.source_report_path.clone(),
-            detail: "source-report row was not collected into the micro benchmark result set"
-                .to_string(),
-        })
-        .collect::<Vec<_>>();
-
-    let insufficient_data_rows = result_rows
-        .iter()
-        .filter_map(|row| detect_insufficient_data_row(repo_root, row).transpose())
-        .collect::<Result<Vec<_>>>()?;
-
-    let stage_tool_resources =
-        load_stage_tool_resources(repo_root.join(STAGE_TOOL_RESOURCES_PATH))?;
-    let science_threshold_rows = load_science_threshold_rows(
-        repo_root.join(SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH),
-        result_rows,
-    )?;
-
-    let mut runtime_rows = Vec::with_capacity(result_rows.len());
-    let mut memory_source_rows = Vec::with_capacity(result_rows.len());
-    let mut runtime_source_counts = BTreeMap::<String, usize>::new();
-    let mut memory_source_counts = BTreeMap::<String, usize>::new();
-    for row in result_rows {
-        let runtime = load_runtime_evidence(repo_root, row, governed_runtime_projection)?;
-        let memory = load_memory_evidence(repo_root, row, &stage_tool_resources)?;
-        runtime_rows.push(MicroBenchmarkRuntimeRow {
-            execution_id: row.execution_id.clone(),
-            component_id: row.component_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            execution_status: row.status,
-            elapsed_seconds: runtime.elapsed_seconds,
-            runtime_source: runtime.runtime_source.to_string(),
-        });
-        memory_source_rows.push(MicroBenchmarkMemorySourceRow {
-            execution_id: row.execution_id.clone(),
-            component_id: row.component_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            execution_status: row.status,
-            declared_memory_mb: memory.declared_memory_mb,
-            declared_cpu_threads: memory.declared_cpu_threads,
-            observed_memory_mb: memory.observed_memory_mb,
-            observed_cpu_threads: memory.observed_cpu_threads,
-            memory_source: memory.memory_source.to_string(),
-            resource_origin: memory.resource_origin,
-        });
-        *runtime_source_counts.entry(runtime.runtime_source.to_string()).or_default() += 1;
-        *memory_source_counts.entry(memory.memory_source.to_string()).or_default() += 1;
-    }
-
-    let mut execution_status_counts = BTreeMap::<String, usize>::new();
-    for row in result_rows {
-        *execution_status_counts.entry(row.status.as_str().to_string()).or_default() += 1;
-    }
-
-    let mut report = MicroBenchmarkReport {
-        schema_version: MICRO_BENCHMARK_REPORT_SCHEMA_VERSION.to_string(),
-        markdown_output_path: path_relative_to_repo(repo_root, &markdown_output_path),
-        json_output_path: path_relative_to_repo(repo_root, &json_output_path),
-        micro_run_manifest_path: manifest.manifest_path.clone(),
-        result_row_count: result_rows.len(),
-        complete_row_count: complete_rows.len(),
-        failed_row_count: failed_rows.len(),
-        missing_row_count: missing_rows.len(),
-        unavailable_row_count: unavailable_rows.len(),
-        insufficient_data_row_count: insufficient_data_rows.len(),
-        runtime_row_count: runtime_rows.len(),
-        memory_source_row_count: memory_source_rows.len(),
-        science_threshold_row_count: science_threshold_rows.len(),
-        passes_behavior_test: false,
-        execution_status_counts,
-        runtime_source_counts,
-        memory_source_counts,
-        complete_rows,
-        failed_rows,
-        missing_rows,
-        unavailable_rows,
-        insufficient_data_rows,
-        runtime_rows,
-        memory_source_rows,
-        science_threshold_rows,
-    };
-    validate_micro_benchmark_report(manifest, result_rows, &mut report)?;
-
-    fs::write(&markdown_output_path, render_micro_benchmark_report_markdown(&report))
-        .with_context(|| format!("write {}", markdown_output_path.display()))?;
-    bijux_dna_infra::atomic_write_json(&json_output_path, &report)?;
-    Ok(report)
+        sources: MicroBenchmarkReportSources {
+            manifest,
+            results: result_rows,
+            outputs: output_rows,
+            logs: log_rows,
+            expected: &expected,
+        },
+        markdown_output_path: &markdown_output_path,
+        json_output_path: &json_output_path,
+    })
 }
 
 fn collect_expected_micro_rows(
@@ -539,268 +241,17 @@ fn expected_core_germline_pipeline_row(
     }
 }
 
-fn detect_insufficient_data_row(
-    repo_root: &Path,
-    row: &MicroBenchmarkResultRow,
-) -> Result<Option<MicroBenchmarkInsufficientDataRow>> {
-    let reason_lower = row.reason.to_ascii_lowercase();
-    if reason_lower.contains("insufficient") {
-        return Ok(Some(MicroBenchmarkInsufficientDataRow {
-            execution_id: row.execution_id.clone(),
-            component_id: row.component_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            source_report_path: row.source_report_path.clone(),
-            evidence_path: row.evidence_path.clone(),
-            detail: row.reason.clone(),
-        }));
-    }
-    let Some(evidence_path) = &row.evidence_path else {
-        return Ok(None);
-    };
-    if !evidence_path.ends_with(".json") {
-        return Ok(None);
-    }
-    let payload = read_json_value(repo_root.join(evidence_path))?;
-    if json_contains_insufficient_marker(&payload) {
-        return Ok(Some(MicroBenchmarkInsufficientDataRow {
-            execution_id: row.execution_id.clone(),
-            component_id: row.component_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            source_report_path: row.source_report_path.clone(),
-            evidence_path: row.evidence_path.clone(),
-            detail: "evidence report retains an insufficient-data marker".to_string(),
-        }));
-    }
-    Ok(None)
-}
-
-fn json_contains_insufficient_marker(value: &Value) -> bool {
-    match value {
-        Value::Object(map) => {
-            const STATUS_KEYS: &[&str] = &["status", "state", "result_status", "summary_status"];
-
-            STATUS_KEYS.iter().any(|key| {
-                map.get(*key).and_then(Value::as_str).is_some_and(text_contains_insufficient_marker)
-            }) || map.get("summary").is_some_and(json_contains_insufficient_marker)
-        }
-        _ => false,
-    }
-}
-
-fn text_contains_insufficient_marker(text: &str) -> bool {
-    let text = text.to_ascii_lowercase();
-    text.contains("insufficient_data")
-        || text.contains("insufficient-data")
-        || text.contains("insufficient_overlap")
-        || text.contains("insufficient-overlap")
-}
-
-fn load_runtime_evidence(
-    repo_root: &Path,
-    row: &MicroBenchmarkResultRow,
-    governed_runtime_projection: bool,
-) -> Result<RuntimeEvidence> {
-    if row.status != MicroBenchmarkExecutionStatus::Succeeded {
-        return Ok(RuntimeEvidence { elapsed_seconds: None, runtime_source: "not_applicable" });
-    }
-    if let Some(manifest_path) = &row.stage_result_manifest_path {
-        if governed_runtime_projection {
-            return Ok(RuntimeEvidence {
-                elapsed_seconds: None,
-                runtime_source: GOVERNED_RUNTIME_SOURCE,
-            });
-        }
-        let manifest = load_validated_stage_result_manifest_path(&repo_root.join(manifest_path))
-            .with_context(|| format!("load {}", repo_root.join(manifest_path).display()))?;
-        return Ok(RuntimeEvidence {
-            elapsed_seconds: Some(manifest.runtime.elapsed_seconds),
-            runtime_source: "stage_result_manifest",
-        });
-    }
-    if let Some(evidence_path) = &row.evidence_path {
-        if evidence_path.ends_with(".json") {
-            let payload = read_json_value(repo_root.join(evidence_path))?;
-            if let Some(elapsed_seconds) = json_optional_f64(&payload, "elapsed_seconds")
-                .or_else(|| json_optional_f64(&payload, "runtime_s"))
-            {
-                return Ok(RuntimeEvidence {
-                    elapsed_seconds: Some(elapsed_seconds),
-                    runtime_source: "evidence_report",
-                });
-            }
-        }
-    }
-    Ok(RuntimeEvidence { elapsed_seconds: None, runtime_source: "not_available" })
-}
-
-fn load_memory_evidence(
-    repo_root: &Path,
-    row: &MicroBenchmarkResultRow,
-    stage_tool_resources: &BTreeMap<(String, String, String), StageToolResourceRow>,
-) -> Result<MemoryEvidence> {
-    if row.status != MicroBenchmarkExecutionStatus::Succeeded {
-        return Ok(MemoryEvidence {
-            declared_memory_mb: None,
-            declared_cpu_threads: None,
-            observed_memory_mb: None,
-            observed_cpu_threads: None,
-            memory_source: "not_applicable",
-            resource_origin: None,
-        });
-    }
-    if let Some(manifest_path) = &row.stage_result_manifest_path {
-        let manifest = load_validated_stage_result_manifest_path(&repo_root.join(manifest_path))
-            .with_context(|| format!("load {}", repo_root.join(manifest_path).display()))?;
-        if manifest.resource_metrics.memory_mb.is_some()
-            || manifest.resource_metrics.cpu_threads.is_some()
-        {
-            return Ok(MemoryEvidence {
-                declared_memory_mb: None,
-                declared_cpu_threads: None,
-                observed_memory_mb: manifest.resource_metrics.memory_mb,
-                observed_cpu_threads: manifest.resource_metrics.cpu_threads,
-                memory_source: "stage_result_manifest",
-                resource_origin: None,
-            });
-        }
-    }
-    if let Some(evidence_path) = &row.evidence_path {
-        if evidence_path.ends_with(".json") {
-            let payload = read_json_value(repo_root.join(evidence_path))?;
-            let observed_memory_mb = json_optional_f64(&payload, "memory_mb")
-                .or_else(|| json_optional_f64(&payload, "peak_memory_mb"));
-            let observed_cpu_threads = json_optional_u32(&payload, "cpu_threads")
-                .or_else(|| json_optional_u32(&payload, "threads"));
-            if observed_memory_mb.is_some() || observed_cpu_threads.is_some() {
-                return Ok(MemoryEvidence {
-                    declared_memory_mb: None,
-                    declared_cpu_threads: None,
-                    observed_memory_mb,
-                    observed_cpu_threads,
-                    memory_source: "evidence_report",
-                    resource_origin: None,
-                });
-            }
-        }
-    }
-    if let Some(resource) =
-        stage_tool_resources.get(&(row.domain.clone(), row.stage_id.clone(), row.tool_id.clone()))
-    {
-        return Ok(MemoryEvidence {
-            declared_memory_mb: Some(f64::from(resource.memory_gb) * 1024.0),
-            declared_cpu_threads: Some(resource.threads),
-            observed_memory_mb: None,
-            observed_cpu_threads: None,
-            memory_source: "declared_stage_tool_resource",
-            resource_origin: Some(resource.resource_origin.clone()),
-        });
-    }
-    Ok(MemoryEvidence {
-        declared_memory_mb: None,
-        declared_cpu_threads: None,
-        observed_memory_mb: None,
-        observed_cpu_threads: None,
-        memory_source: "not_available",
-        resource_origin: None,
-    })
-}
-
-fn load_stage_tool_resources(
-    config_path: PathBuf,
-) -> Result<BTreeMap<(String, String, String), StageToolResourceRow>> {
-    let payload = fs::read_to_string(&config_path)
-        .with_context(|| format!("read {}", config_path.display()))?;
-    let config: StageToolResourcesConfig =
-        toml::from_str(&payload).with_context(|| format!("parse {}", config_path.display()))?;
-    validate_stage_tool_resources_config(&config)?;
-    Ok(config
-        .rows
-        .into_iter()
-        .map(|row| ((row.domain.clone(), row.stage_id.clone(), row.tool_id.clone()), row))
-        .collect())
-}
-
-fn load_science_threshold_rows(
-    config_path: PathBuf,
-    result_rows: &[MicroBenchmarkResultRow],
-) -> Result<Vec<MicroBenchmarkScienceThresholdRow>> {
-    let payload = fs::read_to_string(&config_path)
-        .with_context(|| format!("read {}", config_path.display()))?;
-    let config: ScientificAcceptanceThresholdsConfig =
-        toml::from_str(&payload).with_context(|| format!("parse {}", config_path.display()))?;
-    let stage_tools = result_rows.iter().fold(
-        BTreeMap::<(String, String), BTreeSet<String>>::new(),
-        |mut acc, row| {
-            acc.entry((row.domain.clone(), row.stage_id.clone()))
-                .or_default()
-                .insert(row.tool_id.clone());
-            acc
-        },
-    );
-    let mut rows = config
-        .rows
-        .into_iter()
-        .filter_map(|row| {
-            stage_tools
-                .get(&(row.domain.clone(), row.stage_id.clone()))
-                .map(|tool_ids| science_threshold_row(row, tool_ids))
-        })
-        .collect::<Vec<_>>();
-    rows.sort_by(|left, right| {
-        left.domain
-            .cmp(&right.domain)
-            .then_with(|| left.stage_id.cmp(&right.stage_id))
-            .then_with(|| left.metric_id.cmp(&right.metric_id))
-    });
-    Ok(rows)
-}
-
-fn science_threshold_row(
-    row: ScientificAcceptanceThresholdRow,
-    tool_ids: &BTreeSet<String>,
-) -> MicroBenchmarkScienceThresholdRow {
-    MicroBenchmarkScienceThresholdRow {
-        domain: row.domain,
-        stage_id: row.stage_id,
-        metric_id: row.metric_id,
-        metric_name: row.metric_name,
-        unit: row.unit,
-        direction: scientific_acceptance_direction_label(row.direction).to_string(),
-        tolerance_kind: scientific_acceptance_tolerance_kind_label(row.tolerance_kind).to_string(),
-        tolerance_value: row.tolerance_value,
-        pass_rule: scientific_acceptance_pass_rule_label(row.pass_rule).to_string(),
-        insufficiency_behavior: scientific_acceptance_insufficiency_behavior_label(
-            row.insufficiency_behavior,
-        )
-        .to_string(),
-        required: row.required,
-        declaration_origin: row.declaration_origin,
-        covered_tool_ids: tool_ids.iter().cloned().collect(),
-    }
-}
-
-fn read_json_value(path: PathBuf) -> Result<Value> {
-    let payload = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    serde_json::from_str(&payload).with_context(|| format!("parse {}", path.display()))
-}
-
-fn json_optional_f64(value: &Value, field: &str) -> Option<f64> {
-    value.get(field).and_then(Value::as_f64)
-}
-
-fn json_optional_u32(value: &Value, field: &str) -> Option<u32> {
-    value.get(field).and_then(Value::as_u64).and_then(|value| u32::try_from(value).ok())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bijux_dna_api::v1::api::bench::{
+        validate_micro_benchmark_report, MicroBenchmarkExecutionStatus,
+    };
+    use std::{collections::BTreeMap, fs};
+    const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH: &str =
+        "configs/bench/local/scientific-acceptance-thresholds.toml";
+    const STAGE_TOOL_RESOURCES_PATH: &str = "configs/bench/local/stage-tool-resources.toml";
     use crate::commands::benchmark::readiness::stage_tool_resources::FASTQ_STAGE_TOOL_RESOURCE_ORIGIN;
-    use serde_json::json;
     use tempfile::tempdir;
 
     #[test]
@@ -1168,32 +619,5 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
         validate_micro_benchmark_report(manifest, results, &mut changed)?;
         assert!(changed.passes_behavior_test);
         Ok(())
-    }
-
-    #[test]
-    fn insufficient_marker_detector_matches_nested_json() {
-        let payload = json!({
-            "summary": {
-                "status": "insufficient_data"
-            }
-        });
-        assert!(json_contains_insufficient_marker(&payload));
-    }
-
-    #[test]
-    fn insufficient_marker_detector_ignores_expected_case_level_insufficiency() {
-        let payload = json!({
-            "all_cases_matched": true,
-            "cases": [
-                {
-                    "status": "insufficient",
-                    "insufficiency_reason": "insufficient_overlap_snps"
-                },
-                {
-                    "status": "ok"
-                }
-            ]
-        });
-        assert!(!json_contains_insufficient_marker(&payload));
     }
 }

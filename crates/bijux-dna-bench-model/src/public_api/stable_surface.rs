@@ -891,3 +891,9 @@ pub use crate::model::micro_benchmark::report::{
     MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow, MicroBenchmarkUnavailableRow,
     MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
 };
+
+pub use crate::model::micro_benchmark::report_inputs::{
+    MicroBenchmarkExpectedRow, MicroBenchmarkReportDestinations, MicroBenchmarkReportObservations,
+    MicroBenchmarkReportSources,
+};
+pub use crate::policy::micro_report::summarize_micro_benchmark_report;

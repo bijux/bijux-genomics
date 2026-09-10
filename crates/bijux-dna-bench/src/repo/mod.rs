@@ -91,3 +91,7 @@ pub(crate) mod command_audit;
 pub(crate) mod command_artifacts;
 
 pub(crate) mod micro_run;
+
+pub(crate) mod micro_report;
+
+pub(crate) mod stage_result;

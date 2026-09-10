@@ -578,3 +578,9 @@ pub use bijux_dna_bench::{
     MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow, MicroBenchmarkUnavailableRow,
     MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
 };
+
+pub use bijux_dna_bench::{
+    generate_micro_benchmark_report, MicroBenchmarkExpectedRow, MicroBenchmarkReportRequest,
+    MicroBenchmarkReportSources, DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH,
+    DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH,
+};

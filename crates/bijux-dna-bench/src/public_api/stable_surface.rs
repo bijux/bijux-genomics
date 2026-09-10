@@ -776,3 +776,14 @@ pub use bijux_dna_bench_model::{
     MicroBenchmarkReport, MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow,
     MicroBenchmarkUnavailableRow, MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
 };
+
+pub use crate::repo::micro_report::publication::{
+    DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH, DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH,
+};
+pub use crate::workflow::micro_report::{
+    generate_micro_benchmark_report, MicroBenchmarkReportRequest,
+};
+pub use bijux_dna_bench_model::{
+    summarize_micro_benchmark_report, MicroBenchmarkExpectedRow, MicroBenchmarkReportDestinations,
+    MicroBenchmarkReportObservations, MicroBenchmarkReportSources,
+};
