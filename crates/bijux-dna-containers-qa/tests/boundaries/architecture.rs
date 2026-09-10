@@ -181,7 +181,7 @@ fn assert_qualification_tree(root: &std::path::Path) {
         dir_entries(&root.join("src/qualification")),
         btree_set(&[
             "specification/",
-            "compilation.rs",
+            "compilation/",
             "evaluation.rs",
             "materialization.rs",
             "mod.rs",
@@ -189,6 +189,12 @@ fn assert_qualification_tree(root: &std::path::Path) {
             "planning.rs",
         ]),
         "qualification must separate compilation, materialization, models, planning, and verdict evaluation"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/qualification/compilation")),
+        btree_set(&["binding.rs", "commands.rs", "coverage.rs", "mod.rs", "pipeline.rs", "storage.rs"]),
+        "compilation separates pure projections from filesystem identity and coverage orchestration"
     );
 
     assert_eq!(

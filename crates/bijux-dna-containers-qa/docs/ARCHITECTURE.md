@@ -50,3 +50,5 @@ dataset concerns.
 - Update `COMMANDS.md` before adding any host command execution.
 
 Qualification specification models and generated schemas live in `qualification/specification/model.rs`. Pure identity, selection and lexical path admission live in `admission.rs`; bounded source/selection decoding and schema publication live in `storage.rs`. Compilation and materialization consume this shared contract directly. Filesystem identity, repository HEAD and frozen repository checks remain explicit workflow effects. This module separation does not introduce an independently compiled Cargo package.
+
+Qualification compilation coordinates `binding` input/output projection, `commands` shell and discovery construction, `pipeline` persisted projection, `storage` file/image/frozen-repository identity, and `coverage` per-tool observation. Binding projection performs no filesystem reads; compilation still verifies every declared input digest. Missing or altered input bytes cannot qualify through successful projection.

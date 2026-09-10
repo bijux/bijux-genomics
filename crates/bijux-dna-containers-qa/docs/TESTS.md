@@ -35,3 +35,5 @@ The commands above with `--no-default-features` qualify the independently usable
 
 - Boundary failures mean layout, docs, commands, dependencies, or public exports drifted.
 - Contract failures mean QA evidence shape or support behavior changed.
+
+The retained compiler fixture also checks that pure binding projection survives absent files while the full compiler rejects absent or changed input bytes. Input/output contract mismatches remain projection failures. The original source identities, staged-image rejection and public qualification cases remain covered; illustrative BAM/image fixture bytes do not certify tool execution.
