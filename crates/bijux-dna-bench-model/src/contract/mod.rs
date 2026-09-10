@@ -431,3 +431,5 @@ pub(crate) use readiness::validate_rendered_command_observations;
 pub(crate) mod micro_run;
 
 pub(crate) mod micro_report;
+
+pub use simulation::project_all_domain_simulation_parser_row;

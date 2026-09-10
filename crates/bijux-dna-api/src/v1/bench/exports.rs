@@ -549,10 +549,11 @@ pub use bijux_dna_bench::{
     all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
     all_domain_simulation_output_path, all_domain_simulation_output_role,
     fake_run_all_domain_benchmark_results, fake_run_all_domain_failure_results,
-    render_all_domain_completion_check, render_all_domain_missing_result_audit,
-    render_all_domain_simulation_command_script, validate_all_domain_simulation_report,
-    validate_all_domain_simulation_result, AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry,
-    AllDomainFakeRunResultReport, AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
+    load_all_domain_simulation_parser_row, render_all_domain_completion_check,
+    render_all_domain_missing_result_audit, render_all_domain_simulation_command_script,
+    validate_all_domain_simulation_report, validate_all_domain_simulation_result,
+    AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
+    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
     ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
 };
 

@@ -997,3 +997,5 @@ pub mod completion {
 }
 
 pub use crate::policy::operational_readiness::harness;
+
+pub use crate::contract::project_all_domain_simulation_parser_row;

@@ -869,3 +869,5 @@ pub use bijux_dna_bench_model::{
 
 /// Native alignment-file adapters for small benchmark fixtures.
 pub use crate::repo::alignment_fixture as alignment_fixtures;
+
+pub use crate::repo::simulation::parser::load_all_domain_simulation_parser_row;

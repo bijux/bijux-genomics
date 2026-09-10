@@ -260,3 +260,5 @@ pub(crate) mod missing;
 
 pub(crate) mod completion;
 mod paths;
+
+pub(crate) mod parser;

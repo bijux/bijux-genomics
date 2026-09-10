@@ -311,3 +311,9 @@ and observed-path admission does not prevent concurrent namespace replacement.
 reference-span BED projection for local micro-pipeline fixtures. Record collections
 are sorted in memory; encoding and index errors remain explicit. The pair is not
 published transactionally, and this service is not a production-scale sorter.
+
+`load_all_domain_simulation_parser_row` reads metrics and stage manifests with
+16 MiB limits per document and uses model-owned identity, count, runtime and
+output admission before returning normalized illustrative parser evidence.
+Malformed, unsupported, missing and contradictory inputs are errors; raw
+files remain untouched. This adapter does not prove scientific payload validity.

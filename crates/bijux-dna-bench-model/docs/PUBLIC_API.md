@@ -522,3 +522,9 @@ and checks exact simulation result coverage and benchmark-ready binding agreemen
 It rejects blank, padded and repeated result identities before set comparison;
 real-smoke parser records use a separate identity space. This policy performs no
 IO and does not certify scientific payloads or external execution.
+
+`project_all_domain_simulation_parser_row` admits illustrative metrics against a
+result report and stage manifest before producing the four-field normalized
+parser snapshot. Schema, six identities, counts, metric-name uniqueness, finite
+duration, stage/tool/runtime and exact declared output observations must agree.
+This proves report consistency; it does not verify scientific output contents.

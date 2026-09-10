@@ -12,7 +12,7 @@ fn bench_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/repo/simulation")),
-        entries(["mod.rs", "failure.rs", "missing.rs", "completion.rs", "paths.rs"])
+        entries(["mod.rs", "failure.rs", "missing.rs", "completion.rs", "paths.rs", "parser.rs"])
     );
     assert_eq!(
         dir_entries(&root.join("src/workflow/simulation")),

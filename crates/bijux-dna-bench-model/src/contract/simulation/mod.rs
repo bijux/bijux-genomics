@@ -150,3 +150,6 @@ pub use missing::{
 
 mod completion;
 pub use completion::{admit_all_domain_completion_check, validate_all_domain_completion_check};
+
+mod parser;
+pub use parser::project_all_domain_simulation_parser_row;
