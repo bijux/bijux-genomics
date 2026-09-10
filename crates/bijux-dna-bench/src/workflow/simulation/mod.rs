@@ -94,3 +94,6 @@ pub use failure::fake_run_all_domain_failure_results;
 
 mod missing;
 pub use missing::render_all_domain_missing_result_audit;
+
+mod completion;
+pub use completion::render_all_domain_completion_check;

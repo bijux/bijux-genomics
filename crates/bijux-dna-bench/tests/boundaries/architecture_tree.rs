@@ -6,12 +6,18 @@ fn bench_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
 
     assert_docs_tree(root);
-    for layer in ["repo", "workflow"] {
-        assert_eq!(
-            dir_entries(&root.join("src").join(layer).join("simulation")),
-            entries(["mod.rs", "failure.rs", "missing.rs"])
-        );
-    }
+    assert_eq!(
+        dir_entries(&root.join("src/repo/simulation")),
+        entries(["mod.rs", "failure.rs", "missing.rs", "completion.rs", "paths.rs"])
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/simulation")),
+        entries(["mod.rs", "failure.rs", "missing.rs", "completion/"])
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/simulation/completion")),
+        entries(["mod.rs", "mutation.rs", "observation.rs"])
+    );
     assert_eq!(
         dir_entries(root),
         entries(["Cargo.toml", "README.md", "bench/", "docs/", "src/", "tests/"]),

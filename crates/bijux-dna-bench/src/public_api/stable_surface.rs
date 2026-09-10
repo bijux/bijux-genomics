@@ -726,7 +726,7 @@ pub use crate::artifacts::schema_publication::{
 pub use crate::artifacts::simulation::render_all_domain_simulation_command_script;
 pub use crate::workflow::simulation::{
     fake_run_all_domain_benchmark_results, fake_run_all_domain_failure_results,
-    render_all_domain_missing_result_audit,
+    render_all_domain_completion_check, render_all_domain_missing_result_audit,
 };
 pub use bijux_dna_bench_model::{
     all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,

@@ -1,5 +1,5 @@
 //! Owner: illustrative missing-result fixture paths, bounded observations and report publication.
-use super::{admit_destination, result_root};
+use super::{admit_destination, paths::admit_entry, result_root};
 use anyhow::{ensure, Context, Result};
 use bijux_dna_bench_model::{
     all_domain_simulation_output_ids, all_domain_simulation_output_path,
@@ -9,7 +9,7 @@ use bijux_dna_bench_model::{
 use std::{
     fs,
     io::ErrorKind,
-    path::{Component, Path, PathBuf},
+    path::{Path, PathBuf},
 };
 
 pub(crate) struct MissingResultPaths {
@@ -64,40 +64,6 @@ pub(crate) fn prepare(
         }
     }
     Ok(paths)
-}
-
-fn admit_entry(repo: &Path, path: &Path, directory: bool) -> Result<()> {
-    let relative = path.strip_prefix(repo).context("missing-result path escapes repository")?;
-    ensure!(relative.file_name().is_some(), "missing-result path requires a destination");
-    let mut current = repo.to_path_buf();
-    let mut components = relative.components().peekable();
-    while let Some(component) = components.next() {
-        ensure!(
-            matches!(component, Component::Normal(_)),
-            "missing-result path must be normalized"
-        );
-        current.push(component);
-        match fs::symlink_metadata(&current) {
-            Ok(metadata) => {
-                ensure!(
-                    !metadata.file_type().is_symlink(),
-                    "missing-result path contains a symlink: {}",
-                    current.display()
-                );
-                let wants_directory = components.peek().is_some() || directory;
-                ensure!(
-                    if wants_directory { metadata.is_dir() } else { metadata.is_file() },
-                    "missing-result path has wrong file kind: {}",
-                    current.display()
-                );
-            }
-            Err(error) if error.kind() == ErrorKind::NotFound => {}
-            Err(error) => {
-                return Err(error).with_context(|| format!("inspect {}", current.display()))
-            }
-        }
-    }
-    Ok(())
 }
 
 pub(crate) fn remove_manifest(paths: &MissingResultPaths, requested: &str) -> Result<()> {

@@ -3,7 +3,7 @@ use anyhow::Result;
 use bijux_dna_bench_model::{AllDomainOutputDeclarationStatus, AllDomainRenderedCommandStep};
 use std::fs;
 
-fn inputs(
+pub(super) fn inputs(
 ) -> (AllDomainExpectedBenchmarkResultRow, AllDomainRenderedCommandRow, AllDomainOutputDeclarationRow)
 {
     let expected = AllDomainExpectedBenchmarkResultRow {

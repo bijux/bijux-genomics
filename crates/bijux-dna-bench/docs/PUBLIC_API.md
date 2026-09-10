@@ -296,3 +296,13 @@ invalid evidence. Only the three governed result manifests are removed; unrelate
 fixture files survive reruns. The workflow publishes the admitted report atomically.
 Commands are recorded and never executed. This is not a whole-run transaction or
 protection against concurrent filesystem namespace replacement.
+
+`render_all_domain_completion_check` consumes explicit expected rows, commands and
+output declarations. It admits every source, all five mutation targets and each
+destination before materialization. The workflow preserves unrelated fixture
+evidence, performs only the governed mutations, observes current regular files
+and bounded manifests, and atomically publishes the model-admitted report.
+Malformed manifests remain invalid evidence; IO failures are errors. Absolute
+report paths remain supported; observed links and parent traversal are rejected.
+Commands are never executed. Individual writes are not a whole-run transaction,
+and observed-path admission does not prevent concurrent namespace replacement.
