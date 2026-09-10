@@ -559,3 +559,10 @@ pub use bijux_dna_bench::write_recorded_command_audit;
 pub use bijux_dna_bench::{evaluate_operational_binding_coverage, OperationalBindingEvidence};
 
 pub use bijux_dna_bench::publish_rendered_command_artifacts;
+
+pub use bijux_dna_bench::{
+    qualify_micro_benchmark_run, MicroBenchmarkComponentReport, MicroBenchmarkExecutionStatus,
+    MicroBenchmarkLogRow, MicroBenchmarkNormalizedMetricRow, MicroBenchmarkOutputRow,
+    MicroBenchmarkResultKind, MicroBenchmarkResultRow, MicroBenchmarkRunEvidence,
+    MicroBenchmarkRunManifest, MICRO_BENCHMARK_RUN_COMMAND, MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
+};

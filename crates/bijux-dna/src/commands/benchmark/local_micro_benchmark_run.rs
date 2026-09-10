@@ -1,3 +1,12 @@
+use bijux_dna_api::v1::api::bench::{
+    qualify_micro_benchmark_run, MicroBenchmarkRunEvidence, MICRO_BENCHMARK_RUN_COMMAND,
+    MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    MicroBenchmarkComponentReport, MicroBenchmarkExecutionStatus, MicroBenchmarkLogRow,
+    MicroBenchmarkNormalizedMetricRow, MicroBenchmarkOutputRow, MicroBenchmarkResultKind,
+    MicroBenchmarkResultRow, MicroBenchmarkRunManifest,
+};
 use std::fmt::Write as _;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
@@ -5,8 +14,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_api::v1::api::run::run_command_with_context;
-use serde::Serialize;
-use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use super::local_adna_micro_pipeline::{
@@ -47,110 +54,12 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_MICRO_BENCHMARK_RUN_MANIFEST_PATH: &str =
     "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_RUN.json";
-const MICRO_BENCHMARK_RUN_SCHEMA_VERSION: &str = "bijux.bench.local_micro_benchmark_run.v1";
-const MICRO_BENCHMARK_RUN_COMMAND: &str = "bijux-dna bench run-micro";
 const MICRO_BENCHMARK_RESULT_ROWS_NAME: &str = "MICRO_RESULT_ROWS.json";
 const MICRO_BENCHMARK_OUTPUT_ROWS_NAME: &str = "MICRO_OUTPUT_ROWS.json";
 const MICRO_BENCHMARK_LOG_ROWS_NAME: &str = "MICRO_LOG_ROWS.json";
 const MICRO_BENCHMARK_NORMALIZED_METRICS_NAME: &str = "MICRO_NORMALIZED_METRICS.json";
 const MICRO_BENCHMARK_LOG_NAME: &str = "MICRO_RUN.log";
 const GOVERNED_MICRO_CREATED_AT_UNIX: u64 = 1_704_067_200;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum MicroBenchmarkResultKind {
-    Stage,
-    PipelineBridge,
-    FamilyRepresentative,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum MicroBenchmarkExecutionStatus {
-    Succeeded,
-    ContainerNeeded,
-    Unavailable,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkComponentReport {
-    pub(crate) component_id: String,
-    pub(crate) report_path: String,
-    pub(crate) row_count: usize,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkResultRow {
-    pub(crate) execution_id: String,
-    pub(crate) component_id: String,
-    pub(crate) result_kind: MicroBenchmarkResultKind,
-    pub(crate) domain: String,
-    pub(crate) bridge_source_domain: Option<String>,
-    pub(crate) bridge_target_domain: Option<String>,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) status: MicroBenchmarkExecutionStatus,
-    pub(crate) reason: String,
-    pub(crate) command: Option<String>,
-    pub(crate) source_report_path: String,
-    pub(crate) evidence_path: Option<String>,
-    pub(crate) stage_result_manifest_path: Option<String>,
-    pub(crate) normalized_metric_count: usize,
-    pub(crate) output_count: usize,
-    pub(crate) log_count: usize,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkOutputRow {
-    pub(crate) execution_id: String,
-    pub(crate) component_id: String,
-    pub(crate) artifact_id: String,
-    pub(crate) role: String,
-    pub(crate) path: String,
-    pub(crate) exists: bool,
-    pub(crate) source: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkLogRow {
-    pub(crate) execution_id: String,
-    pub(crate) component_id: String,
-    pub(crate) role: String,
-    pub(crate) path: String,
-    pub(crate) exists: bool,
-    pub(crate) source: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkNormalizedMetricRow {
-    pub(crate) execution_id: String,
-    pub(crate) component_id: String,
-    pub(crate) metric_id: String,
-    pub(crate) value: Value,
-    pub(crate) source_path: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct MicroBenchmarkRunManifest {
-    pub(crate) schema_version: &'static str,
-    pub(crate) manifest_path: String,
-    pub(crate) run_root: String,
-    pub(crate) run_id: String,
-    pub(crate) repo_revision: String,
-    pub(crate) worktree_dirty: bool,
-    pub(crate) created_at_unix: u64,
-    pub(crate) command: &'static str,
-    pub(crate) component_reports: Vec<MicroBenchmarkComponentReport>,
-    pub(crate) result_rows_path: String,
-    pub(crate) output_rows_path: String,
-    pub(crate) log_rows_path: String,
-    pub(crate) normalized_metrics_path: String,
-    pub(crate) result_row_count: usize,
-    pub(crate) output_row_count: usize,
-    pub(crate) log_row_count: usize,
-    pub(crate) normalized_metric_row_count: usize,
-    pub(crate) passes_behavior_test: bool,
-}
 
 pub(crate) fn run_micro_benchmark(args: &parse::BenchRunMicroArgs) -> Result<()> {
     let repo_root = std::env::current_dir().context("resolve current directory")?;
@@ -376,7 +285,7 @@ pub(crate) fn render_micro_benchmark_run(
     bijux_dna_infra::atomic_write_json(&normalized_metrics_path, &normalized_metric_rows)?;
 
     let mut manifest = MicroBenchmarkRunManifest {
-        schema_version: MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
+        schema_version: MICRO_BENCHMARK_RUN_SCHEMA_VERSION.to_string(),
         manifest_path: path_relative_to_repo(repo_root, &manifest_output_path),
         run_root: path_relative_to_repo(repo_root, &run_root),
         run_id: build_run_id(
@@ -389,7 +298,7 @@ pub(crate) fn render_micro_benchmark_run(
         repo_revision,
         worktree_dirty,
         created_at_unix,
-        command: MICRO_BENCHMARK_RUN_COMMAND,
+        command: MICRO_BENCHMARK_RUN_COMMAND.to_string(),
         component_reports: vec![
             MicroBenchmarkComponentReport {
                 component_id: "real_smoke_core_subset".to_string(),
@@ -442,13 +351,15 @@ pub(crate) fn render_micro_benchmark_run(
         normalized_metric_row_count: normalized_metric_rows.len(),
         passes_behavior_test: false,
     };
-    ensure_micro_benchmark_run_contract(
+    qualify_micro_benchmark_run(
         repo_root,
         &mut manifest,
-        &result_rows,
-        &output_rows,
-        &log_rows,
-        &normalized_metric_rows,
+        MicroBenchmarkRunEvidence {
+            results: &result_rows,
+            outputs: &output_rows,
+            logs: &log_rows,
+            metrics: &normalized_metric_rows,
+        },
     )?;
     bijux_dna_infra::atomic_write_json(&manifest_output_path, &manifest)?;
     render_micro_benchmark_report(
@@ -939,150 +850,6 @@ fn append_manifest_outputs(
     (output_count, log_count)
 }
 
-fn ensure_micro_benchmark_run_contract(
-    repo_root: &Path,
-    manifest: &mut MicroBenchmarkRunManifest,
-    result_rows: &[MicroBenchmarkResultRow],
-    output_rows: &[MicroBenchmarkOutputRow],
-    log_rows: &[MicroBenchmarkLogRow],
-    normalized_metric_rows: &[MicroBenchmarkNormalizedMetricRow],
-) -> Result<()> {
-    if manifest.run_root != "artifacts/benchmark-smoke/micro" {
-        bail!(
-            "micro benchmark run root must stay `artifacts/benchmark-smoke/micro`, found `{}`",
-            manifest.run_root
-        );
-    }
-    if manifest.component_reports.len() < 7 {
-        bail!(
-            "micro benchmark run must keep at least seven component reports, found {}",
-            manifest.component_reports.len()
-        );
-    }
-    if result_rows.is_empty() {
-        bail!("micro benchmark run must write at least one result row");
-    }
-    if output_rows.is_empty() {
-        bail!("micro benchmark run must write at least one output row");
-    }
-    if log_rows.is_empty() {
-        bail!("micro benchmark run must write at least one log row");
-    }
-    if normalized_metric_rows.is_empty() {
-        bail!("micro benchmark run must write at least one normalized metric row");
-    }
-    if manifest.result_row_count != result_rows.len()
-        || manifest.output_row_count != output_rows.len()
-        || manifest.log_row_count != log_rows.len()
-        || manifest.normalized_metric_row_count != normalized_metric_rows.len()
-    {
-        bail!("micro benchmark manifest counts drifted from written row sets");
-    }
-    for component in &manifest.component_reports {
-        let component_path = repo_root.join(&component.report_path);
-        if !component_path.is_file() {
-            bail!(
-                "micro benchmark component report `{}` is missing at `{}`",
-                component.component_id,
-                component.report_path
-            );
-        }
-        if !component.report_path.starts_with("artifacts/benchmark-smoke/micro/") {
-            bail!(
-                "micro benchmark component report `{}` must stay under `artifacts/benchmark-smoke/micro`, found `{}`",
-                component.component_id,
-                component.report_path
-            );
-        }
-    }
-    let component_ids = manifest
-        .component_reports
-        .iter()
-        .map(|component| component.component_id.as_str())
-        .collect::<std::collections::BTreeSet<_>>();
-    let expected_component_ids = std::collections::BTreeSet::from([
-        "amplicon_micro_pipeline",
-        "adna_micro_pipeline",
-        "bam_micro_smoke_subset",
-        "core_germline_micro_pipeline",
-        "edna_micro_pipeline",
-        "fastq_micro_smoke_subset",
-        "real_smoke_core_subset",
-        "vcf_micro_smoke_subset",
-    ]);
-    if !expected_component_ids.is_subset(&component_ids) {
-        bail!(
-            "micro benchmark component reports drifted: observed={component_ids:?} expected_at_least={expected_component_ids:?}"
-        );
-    }
-    for result_row in result_rows {
-        match result_row.status {
-            MicroBenchmarkExecutionStatus::Succeeded => {
-                let evidence_path = result_row.evidence_path.as_ref().ok_or_else(|| {
-                    anyhow!(
-                        "successful micro benchmark row `{}` must keep an evidence path",
-                        result_row.execution_id
-                    )
-                })?;
-                if !repo_root.join(evidence_path).is_file() {
-                    bail!(
-                        "successful micro benchmark row `{}` is missing evidence `{}`",
-                        result_row.execution_id,
-                        evidence_path
-                    );
-                }
-            }
-            MicroBenchmarkExecutionStatus::ContainerNeeded
-            | MicroBenchmarkExecutionStatus::Unavailable => {
-                if result_row.normalized_metric_count != 0 {
-                    bail!(
-                        "non-succeeded micro benchmark row `{}` must not claim normalized metrics",
-                        result_row.execution_id
-                    );
-                }
-            }
-        }
-    }
-    for output_row in output_rows {
-        if !output_row.exists {
-            bail!(
-                "micro benchmark output row `{}` references missing path `{}`",
-                output_row.execution_id,
-                output_row.path
-            );
-        }
-    }
-    for log_row in log_rows {
-        if !log_row.exists {
-            bail!(
-                "micro benchmark log row `{}` references missing path `{}`",
-                log_row.execution_id,
-                log_row.path
-            );
-        }
-    }
-    if !normalized_metric_rows
-        .iter()
-        .any(|row| row.execution_id == "vcf.call" || row.execution_id == "vcf.stats")
-    {
-        bail!("micro benchmark normalized metrics must include at least one VCF execution");
-    }
-    if !result_rows
-        .iter()
-        .any(|row| row.component_id == "fastq_micro_smoke_subset" && row.domain == "fastq")
-    {
-        bail!("micro benchmark results must include at least one FASTQ family representative");
-    }
-    if !result_rows
-        .iter()
-        .any(|row| row.component_id == "vcf_micro_smoke_subset" && row.domain == "vcf")
-    {
-        bail!("micro benchmark results must include at least one VCF family representative");
-    }
-    manifest.passes_behavior_test = true;
-    Ok(())
-}
-
 fn real_result_kind(kind: RealSmokeCoreSubsetExecutionKind) -> MicroBenchmarkResultKind {
     match kind {
         RealSmokeCoreSubsetExecutionKind::Stage => MicroBenchmarkResultKind::Stage,
@@ -1196,411 +963,4 @@ fn sha256_hex(bytes: &[u8]) -> String {
         let _ = write!(output, "{byte:02x}");
     }
     output
-}
-
-#[cfg(test)]
-mod tests {
-    use tempfile::tempdir;
-
-    use super::*;
-
-    #[test]
-    fn micro_benchmark_contract_accepts_governed_row_sets() {
-        let temp = tempdir().expect("tempdir");
-        let repo_root = temp.path();
-        let component_core =
-            repo_root.join("artifacts/benchmark-smoke/micro/core/REAL_SMOKE_CORE_SUMMARY.json");
-        let component_fastq =
-            repo_root.join("artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json");
-        let component_bam =
-            repo_root.join("artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json");
-        let component_vcf =
-            repo_root.join("artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json");
-        let component_amplicon = repo_root
-            .join("artifacts/benchmark-smoke/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json");
-        let adna_component = repo_root
-            .join("artifacts/benchmark-smoke/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json");
-        let edna_component = repo_root
-            .join("artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json");
-        let component_pipeline = repo_root.join(
-            "artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json",
-        );
-        let evidence_path =
-            repo_root.join("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/metrics.json");
-        let fastq_evidence_path =
-            repo_root.join("artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json");
-        let vcf_evidence_path =
-            repo_root.join("artifacts/runs/bench/local-smoke/vcf.call/bcftools/stage-result.json");
-        let adna_evidence_path = repo_root
-            .join("artifacts/benchmark-smoke/micro/pipelines/adna/artifacts/vcf.stats/report.json");
-        let edna_evidence_path = repo_root
-            .join("artifacts/benchmark-smoke/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json");
-        let pipeline_evidence_path = repo_root
-            .join("artifacts/benchmark-smoke/micro/pipelines/core-germline/artifacts/vcf.call/report.json");
-        let output_path =
-            repo_root.join("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/stats.txt");
-        let log_path = repo_root.join("artifacts/benchmark-smoke/micro/logs/MICRO_RUN.log");
-        let result_rows_path =
-            repo_root.join("artifacts/benchmark-smoke/micro/results/MICRO_RESULT_ROWS.json");
-        let output_rows_path =
-            repo_root.join("artifacts/benchmark-smoke/micro/outputs/MICRO_OUTPUT_ROWS.json");
-        let log_rows_path =
-            repo_root.join("artifacts/benchmark-smoke/micro/logs/MICRO_LOG_ROWS.json");
-        let normalized_metrics_path = repo_root.join(
-            "artifacts/benchmark-smoke/micro/normalized-metrics/MICRO_NORMALIZED_METRICS.json",
-        );
-
-        for path in [
-            &component_core,
-            &component_fastq,
-            &component_bam,
-            &component_vcf,
-            &component_amplicon,
-            &adna_component,
-            &edna_component,
-            &component_pipeline,
-            &evidence_path,
-            &fastq_evidence_path,
-            &vcf_evidence_path,
-            &adna_evidence_path,
-            &edna_evidence_path,
-            &pipeline_evidence_path,
-            &output_path,
-            &log_path,
-            &result_rows_path,
-            &output_rows_path,
-            &log_rows_path,
-            &normalized_metrics_path,
-        ] {
-            if let Some(parent) = path.parent() {
-                bijux_dna_infra::ensure_dir(parent).expect("create parent");
-            }
-            bijux_dna_infra::write_string(path, "{}").expect("write file");
-        }
-
-        let result_rows = vec![
-            MicroBenchmarkResultRow {
-                execution_id: "vcf.stats".to_string(),
-                component_id: "real_smoke_core_subset".to_string(),
-                result_kind: MicroBenchmarkResultKind::Stage,
-                domain: "vcf".to_string(),
-                bridge_source_domain: None,
-                bridge_target_domain: None,
-                stage_id: "vcf.stats".to_string(),
-                tool_id: "bcftools".to_string(),
-                status: MicroBenchmarkExecutionStatus::Succeeded,
-                reason: "real_smoke_execution".to_string(),
-                command: Some("bcftools stats".to_string()),
-                source_report_path: "artifacts/benchmark-smoke/micro/core/REAL_SMOKE_CORE_SUMMARY.json"
-                    .to_string(),
-                evidence_path: Some(
-                    "artifacts/runs/bench/local-smoke/vcf.stats/bcftools/metrics.json".to_string(),
-                ),
-                stage_result_manifest_path: None,
-                normalized_metric_count: 2,
-                output_count: 1,
-                log_count: 0,
-            },
-            MicroBenchmarkResultRow {
-                execution_id: "fastq.validate_reads".to_string(),
-                component_id: "fastq_micro_smoke_subset".to_string(),
-                result_kind: MicroBenchmarkResultKind::FamilyRepresentative,
-                domain: "fastq".to_string(),
-                bridge_source_domain: None,
-                bridge_target_domain: None,
-                stage_id: "fastq.validate_reads".to_string(),
-                tool_id: "fastq_scan".to_string(),
-                status: MicroBenchmarkExecutionStatus::Succeeded,
-                reason: "governed local smoke".to_string(),
-                command: Some(
-                    "bijux-dna bench local materialize-stage --stage-id fastq.validate_reads"
-                        .to_string(),
-                ),
-                source_report_path: "artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json".to_string(),
-                evidence_path: Some(
-                    "artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
-                ),
-                stage_result_manifest_path: None,
-                normalized_metric_count: 0,
-                output_count: 1,
-                log_count: 0,
-            },
-            MicroBenchmarkResultRow {
-                execution_id: "bam.align".to_string(),
-                component_id: "bam_micro_smoke_subset".to_string(),
-                result_kind: MicroBenchmarkResultKind::FamilyRepresentative,
-                domain: "bam".to_string(),
-                bridge_source_domain: None,
-                bridge_target_domain: None,
-                stage_id: "bam.align".to_string(),
-                tool_id: "bwa".to_string(),
-                status: MicroBenchmarkExecutionStatus::ContainerNeeded,
-                reason: "container image required".to_string(),
-                command: Some(
-                    "bijux-dna bench local run-bam-stage-smoke --stage-id bam.align".to_string(),
-                ),
-                source_report_path: "artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json".to_string(),
-                evidence_path: None,
-                stage_result_manifest_path: None,
-                normalized_metric_count: 0,
-                output_count: 0,
-                log_count: 0,
-            },
-            MicroBenchmarkResultRow {
-                execution_id: "vcf.calling".to_string(),
-                component_id: "vcf_micro_smoke_subset".to_string(),
-                result_kind: MicroBenchmarkResultKind::FamilyRepresentative,
-                domain: "vcf".to_string(),
-                bridge_source_domain: None,
-                bridge_target_domain: None,
-                stage_id: "vcf.call".to_string(),
-                tool_id: "bcftools".to_string(),
-                status: MicroBenchmarkExecutionStatus::Succeeded,
-                reason: "governed local smoke".to_string(),
-                command: Some(
-                    "bijux-dna bench local run-vcf-call-smoke --tool-id bcftools".to_string(),
-                ),
-                source_report_path: "artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json".to_string(),
-                evidence_path: Some(
-                    "artifacts/runs/bench/local-smoke/vcf.call/bcftools/stage-result.json".to_string(),
-                ),
-                stage_result_manifest_path: None,
-                normalized_metric_count: 0,
-                output_count: 1,
-                log_count: 0,
-            },
-            MicroBenchmarkResultRow {
-                execution_id: "vcf.stats".to_string(),
-                component_id: "adna_micro_pipeline".to_string(),
-                result_kind: MicroBenchmarkResultKind::PipelineBridge,
-                domain: "vcf".to_string(),
-                bridge_source_domain: None,
-                bridge_target_domain: None,
-                stage_id: "vcf.stats".to_string(),
-                tool_id: "bcftools".to_string(),
-                status: MicroBenchmarkExecutionStatus::Succeeded,
-                reason: "adna_micro_pipeline_execution".to_string(),
-                command: Some("bijux-dna bench local run-adna-micro-pipeline".to_string()),
-                source_report_path: "artifacts/benchmark-smoke/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json"
-                    .to_string(),
-                evidence_path: Some(
-                    "artifacts/benchmark-smoke/micro/pipelines/adna/artifacts/vcf.stats/report.json".to_string(),
-                ),
-                stage_result_manifest_path: None,
-                normalized_metric_count: 3,
-                output_count: 3,
-                log_count: 0,
-            },
-            MicroBenchmarkResultRow {
-                execution_id: "benchmark.taxonomy_output_judgment".to_string(),
-                component_id: "edna_micro_pipeline".to_string(),
-                result_kind: MicroBenchmarkResultKind::Stage,
-                domain: "benchmark".to_string(),
-                bridge_source_domain: None,
-                bridge_target_domain: None,
-                stage_id: "benchmark.taxonomy_output_judgment".to_string(),
-                tool_id: "bijux".to_string(),
-                status: MicroBenchmarkExecutionStatus::Succeeded,
-                reason: "edna_micro_pipeline_execution".to_string(),
-                command: Some("bijux-dna bench local run-edna-micro-pipeline".to_string()),
-                source_report_path: "artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json"
-                    .to_string(),
-                evidence_path: Some(
-                    "artifacts/benchmark-smoke/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json"
-                        .to_string(),
-                ),
-                stage_result_manifest_path: None,
-                normalized_metric_count: 7,
-                output_count: 2,
-                log_count: 0,
-            },
-            MicroBenchmarkResultRow {
-                execution_id: "vcf.call".to_string(),
-                component_id: "core_germline_micro_pipeline".to_string(),
-                result_kind: MicroBenchmarkResultKind::PipelineBridge,
-                domain: "vcf".to_string(),
-                bridge_source_domain: None,
-                bridge_target_domain: None,
-                stage_id: "vcf.call".to_string(),
-                tool_id: "bcftools".to_string(),
-                status: MicroBenchmarkExecutionStatus::Succeeded,
-                reason: "core_germline_pipeline_execution".to_string(),
-                command: Some("bijux-dna bench local run-core-germline-micro-pipeline".to_string()),
-                source_report_path:
-                    "artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json"
-                        .to_string(),
-                evidence_path: Some(
-                    "artifacts/benchmark-smoke/micro/pipelines/core-germline/artifacts/vcf.call/report.json"
-                        .to_string(),
-                ),
-                stage_result_manifest_path: None,
-                normalized_metric_count: 5,
-                output_count: 2,
-                log_count: 0,
-            },
-        ];
-        let output_rows = vec![
-            MicroBenchmarkOutputRow {
-                execution_id: "vcf.stats".to_string(),
-                component_id: "real_smoke_core_subset".to_string(),
-                artifact_id: "evidence".to_string(),
-                role: "evidence_report".to_string(),
-                path: "artifacts/runs/bench/local-smoke/vcf.stats/bcftools/stats.txt".to_string(),
-                exists: true,
-                source: "real_smoke_core_subset".to_string(),
-            },
-            MicroBenchmarkOutputRow {
-                execution_id: "fastq.validate_reads".to_string(),
-                component_id: "fastq_micro_smoke_subset".to_string(),
-                artifact_id: "evidence".to_string(),
-                role: "family_evidence".to_string(),
-                path: "artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
-                exists: true,
-                source: "fastq_micro_smoke_subset".to_string(),
-            },
-            MicroBenchmarkOutputRow {
-                execution_id: "vcf.calling".to_string(),
-                component_id: "vcf_micro_smoke_subset".to_string(),
-                artifact_id: "evidence".to_string(),
-                role: "family_evidence".to_string(),
-                path: "artifacts/runs/bench/local-smoke/vcf.call/bcftools/stage-result.json".to_string(),
-                exists: true,
-                source: "vcf_micro_smoke_subset".to_string(),
-            },
-            MicroBenchmarkOutputRow {
-                execution_id: "vcf.stats".to_string(),
-                component_id: "adna_micro_pipeline".to_string(),
-                artifact_id: "evidence".to_string(),
-                role: "pipeline_stage_evidence".to_string(),
-                path: "artifacts/benchmark-smoke/micro/pipelines/adna/artifacts/vcf.stats/report.json".to_string(),
-                exists: true,
-                source: "adna_micro_pipeline".to_string(),
-            },
-            MicroBenchmarkOutputRow {
-                execution_id: "benchmark.taxonomy_output_judgment".to_string(),
-                component_id: "edna_micro_pipeline".to_string(),
-                artifact_id: "evidence".to_string(),
-                role: "pipeline_stage_evidence".to_string(),
-                path: "artifacts/benchmark-smoke/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json"
-                    .to_string(),
-                exists: true,
-                source: "edna_micro_pipeline".to_string(),
-            },
-            MicroBenchmarkOutputRow {
-                execution_id: "vcf.call".to_string(),
-                component_id: "core_germline_micro_pipeline".to_string(),
-                artifact_id: "evidence".to_string(),
-                role: "pipeline_stage_evidence".to_string(),
-                path: "artifacts/benchmark-smoke/micro/pipelines/core-germline/artifacts/vcf.call/report.json"
-                    .to_string(),
-                exists: true,
-                source: "core_germline_micro_pipeline".to_string(),
-            },
-        ];
-        let log_rows = vec![MicroBenchmarkLogRow {
-            execution_id: "micro.run".to_string(),
-            component_id: "micro_benchmark_run".to_string(),
-            role: "run_log".to_string(),
-            path: "artifacts/benchmark-smoke/micro/logs/MICRO_RUN.log".to_string(),
-            exists: true,
-            source: "micro_benchmark_run".to_string(),
-        }];
-        let normalized_metric_rows = vec![
-            MicroBenchmarkNormalizedMetricRow {
-                execution_id: "vcf.stats".to_string(),
-                component_id: "real_smoke_core_subset".to_string(),
-                metric_id: "variant_count".to_string(),
-                value: serde_json::json!(42),
-                source_path: "artifacts/runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
-                    .to_string(),
-            },
-            MicroBenchmarkNormalizedMetricRow {
-                execution_id: "vcf.stats".to_string(),
-                component_id: "real_smoke_core_subset".to_string(),
-                metric_id: "snp_count".to_string(),
-                value: serde_json::json!(40),
-                source_path: "artifacts/runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
-                    .to_string(),
-            },
-        ];
-        let mut manifest = MicroBenchmarkRunManifest {
-            schema_version: MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
-            manifest_path: DEFAULT_MICRO_BENCHMARK_RUN_MANIFEST_PATH.to_string(),
-            run_root: "artifacts/benchmark-smoke/micro".to_string(),
-            run_id: "micro-benchmark-123456789abc".to_string(),
-            repo_revision: "0123456789abcdef0123456789abcdef01234567".to_string(),
-            worktree_dirty: false,
-            created_at_unix: 1,
-            command: MICRO_BENCHMARK_RUN_COMMAND,
-            component_reports: vec![
-                MicroBenchmarkComponentReport {
-                    component_id: "real_smoke_core_subset".to_string(),
-                    report_path: "artifacts/benchmark-smoke/micro/core/REAL_SMOKE_CORE_SUMMARY.json".to_string(),
-                    row_count: 1,
-                },
-                MicroBenchmarkComponentReport {
-                    component_id: "fastq_micro_smoke_subset".to_string(),
-                    report_path: "artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json".to_string(),
-                    row_count: 1,
-                },
-                MicroBenchmarkComponentReport {
-                    component_id: "bam_micro_smoke_subset".to_string(),
-                    report_path: "artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json".to_string(),
-                    row_count: 1,
-                },
-                MicroBenchmarkComponentReport {
-                    component_id: "vcf_micro_smoke_subset".to_string(),
-                    report_path: "artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json".to_string(),
-                    row_count: 1,
-                },
-                MicroBenchmarkComponentReport {
-                    component_id: "amplicon_micro_pipeline".to_string(),
-                    report_path: "artifacts/benchmark-smoke/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json"
-                        .to_string(),
-                    row_count: 8,
-                },
-                MicroBenchmarkComponentReport {
-                    component_id: "adna_micro_pipeline".to_string(),
-                    report_path: "artifacts/benchmark-smoke/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json"
-                        .to_string(),
-                    row_count: 15,
-                },
-                MicroBenchmarkComponentReport {
-                    component_id: "edna_micro_pipeline".to_string(),
-                    report_path: "artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json"
-                        .to_string(),
-                    row_count: 5,
-                },
-                MicroBenchmarkComponentReport {
-                    component_id: "core_germline_micro_pipeline".to_string(),
-                    report_path:
-                        "artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json"
-                            .to_string(),
-                    row_count: 12,
-                },
-            ],
-            result_rows_path: "artifacts/benchmark-smoke/micro/results/MICRO_RESULT_ROWS.json".to_string(),
-            output_rows_path: "artifacts/benchmark-smoke/micro/outputs/MICRO_OUTPUT_ROWS.json".to_string(),
-            log_rows_path: "artifacts/benchmark-smoke/micro/logs/MICRO_LOG_ROWS.json".to_string(),
-            normalized_metrics_path:
-                "artifacts/benchmark-smoke/micro/normalized-metrics/MICRO_NORMALIZED_METRICS.json".to_string(),
-            result_row_count: result_rows.len(),
-            output_row_count: output_rows.len(),
-            log_row_count: log_rows.len(),
-            normalized_metric_row_count: normalized_metric_rows.len(),
-            passes_behavior_test: false,
-        };
-
-        ensure_micro_benchmark_run_contract(
-            repo_root,
-            &mut manifest,
-            &result_rows,
-            &output_rows,
-            &log_rows,
-            &normalized_metric_rows,
-        )
-        .expect("micro contract");
-
-        assert!(manifest.passes_behavior_test);
-    }
 }

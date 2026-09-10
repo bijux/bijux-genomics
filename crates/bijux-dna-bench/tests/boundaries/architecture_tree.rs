@@ -116,6 +116,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
+            "micro_run.rs",
             "command_audit.rs",
             "command_artifacts.rs",
             "simulation.rs",
@@ -180,6 +181,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/workflow")),
         entries([
+            "micro_run.rs",
             "simulation.rs",
             "container_qualification/",
             "alias_resolution.rs",

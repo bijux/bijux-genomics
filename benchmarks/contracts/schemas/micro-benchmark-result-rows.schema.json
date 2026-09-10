@@ -1,0 +1,118 @@
+{
+  "$defs": {
+    "MicroBenchmarkExecutionStatus": {
+      "enum": [
+        "succeeded",
+        "container_needed",
+        "unavailable"
+      ],
+      "type": "string"
+    },
+    "MicroBenchmarkResultKind": {
+      "enum": [
+        "stage",
+        "pipeline_bridge",
+        "family_representative"
+      ],
+      "type": "string"
+    },
+    "MicroBenchmarkResultRow": {
+      "additionalProperties": false,
+      "properties": {
+        "bridge_source_domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bridge_target_domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "command": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "component_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "execution_id": {
+          "type": "string"
+        },
+        "log_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "normalized_metric_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "result_kind": {
+          "$ref": "#/$defs/MicroBenchmarkResultKind"
+        },
+        "source_report_path": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_result_manifest_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "$ref": "#/$defs/MicroBenchmarkExecutionStatus"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "execution_id",
+        "component_id",
+        "result_kind",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "status",
+        "reason",
+        "source_report_path",
+        "normalized_metric_count",
+        "output_count",
+        "log_count"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "items": {
+    "$ref": "#/$defs/MicroBenchmarkResultRow"
+  },
+  "title": "Array_of_MicroBenchmarkResultRow",
+  "type": "array"
+}

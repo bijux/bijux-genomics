@@ -763,3 +763,5 @@ pub mod vcf_scoring;
 pub(crate) mod hpc_campaign;
 
 pub(crate) mod simulation;
+
+pub(crate) mod micro_benchmark;

@@ -394,3 +394,6 @@ pub(crate) mod simulation;
 pub use readiness::write_recorded_command_audit;
 
 pub use readiness::publish_rendered_command_artifacts;
+
+mod micro_run;
+pub use micro_run::qualify_micro_benchmark_run;

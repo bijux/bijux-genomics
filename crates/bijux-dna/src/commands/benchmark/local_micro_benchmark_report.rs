@@ -1387,14 +1387,14 @@ resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
         };
 
         let manifest = MicroBenchmarkRunManifest {
-            schema_version: "bijux.bench.local_micro_benchmark_run.v1",
+            schema_version: "bijux.bench.local_micro_benchmark_run.v1".to_string(),
             manifest_path: "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_RUN.json".to_string(),
             run_root: "artifacts/benchmark-smoke/micro".to_string(),
             run_id: "micro-benchmark-test".to_string(),
             repo_revision: "0123456789abcdef0123456789abcdef01234567".to_string(),
             worktree_dirty: false,
             created_at_unix: 1,
-            command: "bijux-dna bench run-micro",
+            command: "bijux-dna bench run-micro".to_string(),
             component_reports: Vec::new(),
             result_rows_path: "artifacts/benchmark-smoke/micro/results/MICRO_RESULT_ROWS.json"
                 .to_string(),

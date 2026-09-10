@@ -1,0 +1,42 @@
+{
+  "$defs": {
+    "MicroBenchmarkLogRow": {
+      "additionalProperties": false,
+      "properties": {
+        "component_id": {
+          "type": "string"
+        },
+        "execution_id": {
+          "type": "string"
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "execution_id",
+        "component_id",
+        "role",
+        "path",
+        "exists",
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "items": {
+    "$ref": "#/$defs/MicroBenchmarkLogRow"
+  },
+  "title": "Array_of_MicroBenchmarkLogRow",
+  "type": "array"
+}

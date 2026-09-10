@@ -756,3 +756,11 @@ pub use bijux_dna_bench_model::{
 };
 
 pub use crate::workflow::publish_rendered_command_artifacts;
+
+pub use crate::workflow::qualify_micro_benchmark_run;
+pub use bijux_dna_bench_model::{
+    MicroBenchmarkComponentReport, MicroBenchmarkExecutionStatus, MicroBenchmarkLogRow,
+    MicroBenchmarkNormalizedMetricRow, MicroBenchmarkOutputRow, MicroBenchmarkResultKind,
+    MicroBenchmarkResultRow, MicroBenchmarkRunEvidence, MicroBenchmarkRunManifest,
+    MICRO_BENCHMARK_RUN_COMMAND, MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
+};

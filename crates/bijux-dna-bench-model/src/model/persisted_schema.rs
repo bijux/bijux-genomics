@@ -78,6 +78,11 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
     };
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-run.schema.json", || schemars::schema_for!(crate::MicroBenchmarkRunManifest)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-result-rows.schema.json", || schemars::schema_for!(Vec<crate::MicroBenchmarkResultRow>)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-output-rows.schema.json", || schemars::schema_for!(Vec<crate::MicroBenchmarkOutputRow>)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-log-rows.schema.json", || schemars::schema_for!(Vec<crate::MicroBenchmarkLogRow>)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-normalized-metric-rows.schema.json", || schemars::schema_for!(Vec<crate::MicroBenchmarkNormalizedMetricRow>)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/removed-from-scope.schema.json", || schemars::schema_for!(super::readiness::coverage::RemovedFromScopeReport)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-parser-fixture-coverage.schema.json", || schemars::schema_for!(super::readiness::coverage::AllDomainParserFixtureCoverageReport)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-output-contract-coverage.schema.json", || schemars::schema_for!(super::readiness::coverage::AllDomainOutputContractCoverageReport)),

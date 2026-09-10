@@ -869,3 +869,13 @@ pub use crate::policy::operational_readiness::{
 };
 
 pub use crate::policy::command_artifacts::build_rendered_command_artifact_report;
+
+pub use crate::contract::micro_run::{
+    validate_micro_benchmark_run_contract, MicroBenchmarkRunEvidence,
+};
+pub use crate::model::micro_benchmark::run::{
+    MicroBenchmarkComponentReport, MicroBenchmarkExecutionStatus, MicroBenchmarkLogRow,
+    MicroBenchmarkNormalizedMetricRow, MicroBenchmarkOutputRow, MicroBenchmarkResultKind,
+    MicroBenchmarkResultRow, MicroBenchmarkRunManifest, MICRO_BENCHMARK_RUN_COMMAND,
+    MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
+};
