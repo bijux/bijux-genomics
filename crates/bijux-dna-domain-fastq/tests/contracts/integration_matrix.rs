@@ -606,3 +606,29 @@ fn reference_index_compatibility_is_queryable_from_domain_api() {
         .is_err());
     }
 }
+
+#[test]
+fn stage_scenario_queries_preserve_complete_records_and_caller_isolation() {
+    let scenarios = bijux_dna_domain_fastq::benchmark_scenarios();
+    assert!(!scenarios.is_empty());
+    for scenario in &scenarios {
+        let selected = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&scenario.stage_id);
+        let expected = scenarios
+            .iter()
+            .filter(|item| item.stage_id == scenario.stage_id)
+            .cloned()
+            .collect::<Vec<_>>();
+        assert_eq!(selected, expected);
+        let mut altered = selected;
+        altered[0].fairness_rules.clear();
+        altered[0].description.push_str(" caller mutation");
+        assert_eq!(
+            bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&scenario.stage_id),
+            expected
+        );
+    }
+    assert!(bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&StageId::from_static(
+        "unknown.stage"
+    ))
+    .is_empty());
+}
