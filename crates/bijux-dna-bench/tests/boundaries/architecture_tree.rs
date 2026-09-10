@@ -387,6 +387,7 @@ fn bench_tree_matches_architecture_contract() {
             "dashboard_markdown.rs",
             "mod.rs",
             "tool_execution_modes.rs",
+            "slurm_dependencies.rs",
             "slurm_scripts.rs"
         ]),
         "readiness evaluation must retain its explicit workflow owner"

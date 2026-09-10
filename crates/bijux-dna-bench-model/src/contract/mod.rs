@@ -188,6 +188,7 @@ pub use local_pipeline_dag::{
 };
 pub use local_runtime_metrics::validate_benchmark_local_runtime_metrics;
 pub use local_slurm_dependency::{
+    build_benchmark_local_slurm_dependency_report, inspect_benchmark_local_slurm_job_dependencies,
     validate_benchmark_local_slurm_dependency_check, validate_benchmark_local_slurm_dry_run,
     validate_benchmark_local_slurm_shell_syntax,
 };

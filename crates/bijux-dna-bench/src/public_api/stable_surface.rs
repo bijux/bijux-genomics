@@ -767,7 +767,8 @@ pub use bijux_dna_bench_model::{
 };
 
 pub use crate::workflow::{
-    publish_rendered_command_artifacts, validate_benchmark_local_slurm_script_bodies,
+    inspect_benchmark_local_slurm_dependencies, publish_rendered_command_artifacts,
+    validate_benchmark_local_slurm_script_bodies,
 };
 
 pub use crate::workflow::qualify_micro_benchmark_run;

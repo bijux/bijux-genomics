@@ -116,3 +116,5 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 }
 
 pub(crate) mod slurm_scripts;
+
+pub(crate) mod slurm_dependencies;
