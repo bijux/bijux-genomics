@@ -78,7 +78,7 @@ impl BundlePair {
         let ciphertext = staged.path().join("new-ciphertext");
         let sidecar = staged.path().join("new-sidecar");
         let (value, bytes) = prepare(&ciphertext)?;
-        fs::write(&sidecar, bytes)?;
+        bijux_dna_infra::write_bytes(&sidecar, bytes)?;
         let intent = PublicationIntent {
             version: 1,
             previous_ciphertext: backup(&self.output, &staged.path().join("old-ciphertext"))?,
@@ -86,17 +86,21 @@ impl BundlePair {
             ciphertext: digest_file_sha256(&ciphertext)?,
             sidecar: digest_file_sha256(&sidecar)?,
         };
-        fs::write(staged.path().join("intent.json"), serde_json::to_vec(&intent)?)?;
+        bijux_dna_infra::write_bytes(
+            staged.path().join("intent.json"),
+            serde_json::to_vec(&intent)?,
+        )?;
         for name in ["new-ciphertext", "new-sidecar", "intent.json"] {
             fs::File::open(staged.path().join(name))?.sync_all()?;
         }
         ensure!(!self.journal.try_exists()?, "bundle publication journal already exists");
-        fs::rename(staged.path(), &self.journal).context("admit prepared bundle publication")?;
+        bijux_dna_infra::rename(staged.path(), &self.journal)
+            .context("admit prepared bundle publication")?;
         let publication = (|| {
             observe(PublicationPoint::Prepared)?;
-            fs::rename(self.journal.join("new-ciphertext"), &self.output)?;
+            bijux_dna_infra::rename(&self.journal.join("new-ciphertext"), &self.output)?;
             observe(PublicationPoint::Ciphertext)?;
-            fs::rename(self.journal.join("new-sidecar"), &self.sidecar)?;
+            bijux_dna_infra::rename(&self.journal.join("new-sidecar"), &self.sidecar)?;
             observe(PublicationPoint::Sidecar)?;
             bijux_dna_infra::atomic_write_bytes(
                 &self.journal.join("committed"),
@@ -182,11 +186,11 @@ impl BundlePair {
         // Interruption during retirement can retain diagnostic files, never a live mixed pair.
         let retired = temp_output_path(&self.journal);
         ensure!(!retired.try_exists()?, "publication retirement path already exists");
-        fs::rename(&self.journal, &retired)?;
+        bijux_dna_infra::rename(&self.journal, &retired)?;
         for path in journal_files(&retired)? {
-            fs::remove_file(path)?;
+            bijux_dna_infra::remove_file(&path)?;
         }
-        fs::remove_dir(retired)?;
+        bijux_dna_infra::remove_empty_dir(&retired)?;
         Ok(())
     }
 }
@@ -215,7 +219,7 @@ fn content_identity(path: &Path) -> Result<Option<String>> {
 fn copy_synced(source: &Path, destination: &Path) -> Result<()> {
     regular_file(source)?;
     regular_file(destination)?;
-    fs::copy(source, destination)?;
+    bijux_dna_infra::copy_file(source, destination)?;
     fs::File::open(destination)?.sync_all()?;
     Ok(())
 }
@@ -252,9 +256,9 @@ fn restore(output: &Path, backup: &Path, previous: Option<&str>, staging: &Path)
     }
     if previous.is_some() {
         copy_synced(backup, staging)?;
-        fs::rename(staging, output)?;
+        bijux_dna_infra::rename(staging, output)?;
     } else if regular_file(output)? {
-        fs::remove_file(output)?;
+        bijux_dna_infra::remove_file(output)?;
     }
     Ok(())
 }

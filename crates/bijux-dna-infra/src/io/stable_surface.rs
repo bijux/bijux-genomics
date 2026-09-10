@@ -1,7 +1,7 @@
 pub use super::error::{classify_io_error, IoError, IoErrorKind};
 pub use super::read::read_to_end_bounded;
 pub use super::remove::{
-    remove_dir_all, remove_file, remove_file_if_exists, remove_path_if_exists,
+    remove_dir_all, remove_empty_dir, remove_file, remove_file_if_exists, remove_path_if_exists,
 };
 pub use super::write::{
     append_line, atomic_create_bytes, atomic_create_json, atomic_create_with, atomic_write_bytes,

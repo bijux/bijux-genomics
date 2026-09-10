@@ -254,3 +254,18 @@ fn remove_path_if_exists_removes_broken_symlink() -> anyhow::Result<()> {
     assert!(std::fs::symlink_metadata(&link).is_err(), "broken symlink should be removed");
     Ok(())
 }
+
+#[test]
+fn empty_directory_removal_preserves_unexpected_contents() -> anyhow::Result<()> {
+    let scratch = bijux_dna_infra::temp_dir("empty-directory-")?;
+    let directory = scratch.path().join("journal");
+    bijux_dna_infra::ensure_dir(&directory)?;
+    let evidence = directory.join("unexpected");
+    bijux_dna_infra::write_bytes(&evidence, b"retain me")?;
+    assert!(bijux_dna_infra::remove_empty_dir(&directory).is_err());
+    assert_eq!(std::fs::read(&evidence)?, b"retain me");
+    bijux_dna_infra::remove_file(&evidence)?;
+    bijux_dna_infra::remove_empty_dir(&directory)?;
+    assert!(!directory.exists());
+    Ok(())
+}
