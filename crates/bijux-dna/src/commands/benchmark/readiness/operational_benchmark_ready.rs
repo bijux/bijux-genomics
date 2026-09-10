@@ -17,7 +17,8 @@ use super::all_domain_expected_benchmark_results::{
     DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
 };
 use super::all_domain_local_harness_complete::{
-    render_all_domain_local_harness_complete, DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH,
+    render_harness_with_dependencies, HarnessReportDependencies,
+    DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH,
 };
 use super::all_domain_output_declarations::{
     render_all_domain_output_declarations, DEFAULT_ALL_DOMAIN_OUTPUT_DECLARATIONS_PATH,
@@ -357,9 +358,16 @@ pub(crate) fn render_operational_benchmark_ready(
         "all_domain_local_harness_complete",
         DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH,
         || {
-            render_all_domain_local_harness_complete(
+            render_harness_with_dependencies(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH),
+                Some(HarnessReportDependencies {
+                    stage_tools: stage_tool_table.as_ref(),
+                    expected_results: expected_results.as_ref(),
+                    commands: rendered_commands.as_ref(),
+                    outputs: output_declarations.as_ref(),
+                    parser: parser_collector.as_ref(),
+                }),
             )
         },
         |report| {
