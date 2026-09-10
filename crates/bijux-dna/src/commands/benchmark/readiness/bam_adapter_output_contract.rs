@@ -1,11 +1,12 @@
-use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_domain_bam::stage_specs::stage_output_ids_in_manifest_order;
-use bijux_dna_planner_bam::stage_api::load_bam_domain_tool_stage_output_contract;
+use bijux_dna_planner_bam::stage_api::{
+    assess_bam_output_declarations, load_bam_domain_tool_stage_output_contract,
+};
 use serde::Serialize;
 
 use super::tool_serving_map::{
@@ -164,24 +165,20 @@ fn render_output_contract_row(
 
     let stage_id = StageId::new(row.stage_id.clone());
     let tool_id = ToolId::new(row.tool_id.clone());
-    match load_bam_domain_tool_stage_output_contract(repo_root, &stage_id, &tool_id) {
-        Ok(contract) => {
+    match load_bam_domain_tool_stage_output_contract(repo_root, &stage_id, &tool_id).and_then(
+        |contract| {
+            assess_bam_output_declarations(&contract).map(|assessment| (contract, assessment))
+        },
+    ) {
+        Ok((contract, assessment)) => {
             let declared_output_ids = contract.declared_output_ids;
             let execution_expected_output_ids = contract.execution_expected_output_ids;
             let stage_expected_artifact_ids = contract.stage_expected_artifact_ids;
-            let normalized_metrics_output_id =
-                normalized_metrics_output_id(&stage_output_ids, &stage_expected_artifact_ids);
-            let raw_output_artifact_ids = raw_output_artifact_ids(
-                &stage_expected_artifact_ids,
-                normalized_metrics_output_id.as_deref(),
-            );
-            let missing_declarations = collect_missing_declarations(
-                &stage_expected_artifact_ids,
-                &declared_output_ids,
-                &execution_expected_output_ids,
-                normalized_metrics_output_id.as_deref(),
-            );
-            let output_contract_status = if missing_declarations.is_empty() {
+            let complete = assessment.is_complete();
+            let normalized_metrics_output_id = assessment.normalized_metrics_output_id;
+            let raw_output_artifact_ids = assessment.raw_output_artifact_ids;
+            let missing_declarations = assessment.missing_declarations;
+            let output_contract_status = if complete {
                 BamAdapterOutputContractStatus::Complete
             } else {
                 BamAdapterOutputContractStatus::Incomplete
@@ -191,7 +188,7 @@ fn render_output_contract_row(
             let stderr_path_template = Some(format!("{path_template_root}/stderr.log"));
             let stage_result_manifest_path_template =
                 Some(format!("{path_template_root}/stage-result.json"));
-            let reason = if missing_declarations.is_empty() {
+            let reason = if complete {
                 format!(
                     "row `{}` / `{}` declares all governed BAM stage outputs, a normalized metrics artifact, and deterministic stdout/stderr/result-manifest paths",
                     row.stage_id, row.tool_id
@@ -248,96 +245,6 @@ fn render_output_contract_row(
 
 fn row_has_adapter(adapter_status: &str) -> bool {
     matches!(adapter_status, "runnable" | "plannable")
-}
-
-fn normalized_metrics_output_id(
-    stage_output_ids: &[String],
-    stage_expected_artifact_ids: &[String],
-) -> Option<String> {
-    let mut candidates = stage_expected_artifact_ids
-        .iter()
-        .filter(|artifact_id| {
-            stage_output_ids.iter().any(|stage_output_id| stage_output_id == *artifact_id)
-        })
-        .cloned()
-        .collect::<Vec<_>>();
-    if candidates.is_empty() {
-        candidates = stage_output_ids.to_vec();
-    }
-
-    for preferred in [
-        "validation_report",
-        "damage_report",
-        "authenticity_report",
-        "contamination_report",
-        "sex_report",
-        "bias_report",
-        "genotyping_report",
-        "kinship_report",
-        "haplogroups",
-        "coverage_summary",
-        "endogenous_report",
-        "duplication_report",
-        "insert_size_report",
-        "gc_bias_report",
-        "align_metrics",
-        "recal_report",
-        "report_json",
-        "summary",
-        "stage_metrics",
-    ] {
-        if candidates.iter().any(|artifact_id| artifact_id == preferred) {
-            return Some(preferred.to_string());
-        }
-    }
-
-    candidates.into_iter().find(|artifact_id| {
-        artifact_id.ends_with("_report")
-            || artifact_id.ends_with("_report_json")
-            || artifact_id.ends_with("_estimate")
-            || artifact_id.ends_with("_summary")
-            || artifact_id.ends_with("_json")
-            || artifact_id.ends_with("_tsv")
-    })
-}
-
-fn raw_output_artifact_ids(
-    stage_expected_artifact_ids: &[String],
-    normalized_metrics_output_id: Option<&str>,
-) -> Vec<String> {
-    stage_expected_artifact_ids
-        .iter()
-        .filter(|artifact_id| Some(artifact_id.as_str()) != normalized_metrics_output_id)
-        .cloned()
-        .collect()
-}
-
-fn collect_missing_declarations(
-    stage_expected_artifact_ids: &[String],
-    declared_output_ids: &[String],
-    execution_expected_output_ids: &[String],
-    normalized_metrics_output_id: Option<&str>,
-) -> Vec<String> {
-    let declared_output_ids_set = declared_output_ids.iter().cloned().collect::<BTreeSet<_>>();
-    let execution_expected_output_ids_set =
-        execution_expected_output_ids.iter().cloned().collect::<BTreeSet<_>>();
-    let mut missing = Vec::new();
-
-    if stage_expected_artifact_ids.is_empty() {
-        missing.push("stage_contract.expected_artifacts".to_string());
-    }
-    for artifact_id in stage_expected_artifact_ids {
-        if !declared_output_ids_set.contains(artifact_id) {
-            missing.push(format!("tool.outputs:{artifact_id}"));
-        }
-        if !execution_expected_output_ids_set.contains(artifact_id) {
-            missing.push(format!("execution_contract.expected_outputs:{artifact_id}"));
-        }
-    }
-    if normalized_metrics_output_id.is_none() {
-        missing.push("normalized_metrics_output".to_string());
-    }
-    missing
 }
 
 fn path_template_root(stage_id: &str, tool_id: &str) -> String {

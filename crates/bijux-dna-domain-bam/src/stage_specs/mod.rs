@@ -16,7 +16,9 @@ use crate::params::{
     QcPreEffectiveParams, SexEffectiveParams, ValidateEffectiveParams,
 };
 
+mod ports;
 mod specs;
+pub use ports::stage_declared_output_ids;
 pub use specs::{required_audit_artifacts, stage_spec, stage_spec_opt, stage_specs};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

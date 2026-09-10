@@ -47,3 +47,9 @@ structured command arguments are preserved. The original `plan_stage` and direct
 alignment adapter retain their caller-relative behavior. Planning does not change
 the process working directory; missing size observations retain the existing zero
 estimate, and sidecar presence alone does not establish scientific compatibility.
+
+`assess_bam_output_declarations` owns report-artifact selection and declaration
+closure. A recognized report must occur in both the stage output contract and
+tool-specific expected artifacts. Missing outputs and duplicate declarations
+are rejected or reported explicitly; stage defaults cannot invent a tool output.
+The result describes declarations, not payload validity or scientific substitution.

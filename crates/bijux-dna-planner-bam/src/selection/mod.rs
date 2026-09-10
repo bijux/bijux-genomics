@@ -18,3 +18,6 @@ pub use readiness::{
     assess_bam_tool_definition, BamToolAdapterStatus, BamToolContractStatus,
     BamToolDefinitionReadiness,
 };
+
+mod output_readiness;
+pub use output_readiness::{assess_bam_output_declarations, BamOutputDeclarationAssessment};

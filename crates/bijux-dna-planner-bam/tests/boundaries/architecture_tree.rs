@@ -84,6 +84,7 @@ fn planner_bam_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/selection")),
         entries([
             "domain_tool_output_contracts.rs",
+            "output_readiness.rs",
             "domain_tool_specs.rs",
             "mod.rs",
             "registry.rs",
