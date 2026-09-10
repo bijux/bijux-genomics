@@ -25,7 +25,6 @@ bijux-dna-containers.workspace = true
 bijux-dna-testkit.workspace = true
 bijux-dna-pipelines.workspace = true
 bijux-dna-core.workspace = true
-bijux-dna-runtime.workspace = true
 bijux-dna-stage-contract.workspace = true
 
 [lints]

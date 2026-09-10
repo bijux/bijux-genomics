@@ -19,6 +19,7 @@
 - `bijux-dna-policies` for guardrail checks.
 - `bijux-dna-testkit` for isolated test directories.
 - `walkdir` for source-tree contract tests.
+- `regex` for runtime-owned stage semantic-version and artifact-name declaration tests.
 
 ## Forbidden Runtime Dependencies
 - CLI/API adapter crates such as `bijux-dna` and `bijux-dna-api`.

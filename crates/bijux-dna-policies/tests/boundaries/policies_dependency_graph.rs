@@ -36,7 +36,6 @@ fn policy__boundaries__policies_dependency_graph__dependency_graph_matches_polic
             "bijux-dna-containers",
             "bijux-dna-core",
             "bijux-dna-pipelines",
-            "bijux-dna-runtime",
             "bijux-dna-stage-contract",
             "bijux-dna-testkit",
             "cargo_metadata",

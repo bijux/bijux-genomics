@@ -11,14 +11,18 @@ source scanning, manifest parsing, diagnostics, and guardrail configuration.
 - `serde` and `serde_json` for typed policy publications and scanner evidence.
 - `toml` for governed config and manifest parsing support.
 - `walkdir` for deterministic repository traversal.
+- `sha2` for evidence and publication digests.
 
 ## Dev Dependencies
 - `cargo_metadata` for dependency graph policy tests.
 - `insta` for policy snapshots.
-- `serde_json` and `serde_yaml` for governed fixture and configuration policy tests.
-- `sha2` for snapshot and fixture stability checks.
-- `bijux-dna` for CLI-surface contract tests that inspect exported registry material.
-- Workspace model crates used only to validate repository contracts: `bijux-dna-core`, `bijux-dna-pipelines`, `bijux-dna-runtime`, `bijux-dna-stage-contract`, and `bijux-dna-testkit`.
+- `serde_yaml` for governed configuration checks.
+- `bijux-dna-containers` for the retained registry-export snapshot contract.
+- `bijux-dna-core`, `bijux-dna-pipelines`, and `bijux-dna-stage-contract` for retained repository contract checks.
+- `bijux-dna-testkit` for repository discovery and fixture support.
+
+Runtime registry parsing and stage artifact/semantic-version declarations are tested
+by `bijux-dna-runtime`; policy tests do not depend on the runtime owner.
 
 ## Forbidden Runtime Dependencies
 - CLI, runner, runtime, environment, API, planner, domain, stage, database, analyzer, benchmark, or pipeline crates.
