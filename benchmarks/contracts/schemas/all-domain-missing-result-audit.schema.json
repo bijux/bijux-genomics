@@ -1,0 +1,157 @@
+{
+  "$defs": {
+    "AllDomainMissingResultRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "audit_manifest_path": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "expected_manifest_path": {
+          "type": "string"
+        },
+        "expected_metrics": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "expected_output_artifact_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "observed_output_artifact_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "report_section": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "result_status": {
+          "$ref": "#/$defs/AllDomainMissingResultStatus"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "expected_manifest_path",
+        "audit_manifest_path",
+        "result_status",
+        "expected_output_artifact_ids",
+        "observed_output_artifact_ids",
+        "expected_metrics",
+        "report_section",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "AllDomainMissingResultStatus": {
+      "enum": [
+        "present",
+        "missing_result"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "expected_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fake_result_root": {
+      "type": "string"
+    },
+    "missing_result_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passes_behavior_test": {
+      "type": "boolean"
+    },
+    "present_result_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "removed_manifest_paths": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "removed_result_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainMissingResultRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_missing_result_audit.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "fake_result_root",
+    "expected_row_count",
+    "present_result_row_count",
+    "missing_result_row_count",
+    "passes_behavior_test",
+    "removed_result_ids",
+    "removed_manifest_paths",
+    "domain_counts",
+    "rows"
+  ],
+  "title": "AllDomainMissingResultTestReport",
+  "type": "object"
+}

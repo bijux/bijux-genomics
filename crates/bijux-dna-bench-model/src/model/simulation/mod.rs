@@ -4,3 +4,6 @@ pub use all_domain::*;
 
 mod failure;
 pub use failure::*;
+
+mod missing;
+pub use missing::*;

@@ -4,7 +4,6 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::all_domain_expected_benchmark_results::{
     collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
@@ -13,7 +12,7 @@ use super::all_domain_output_declarations::{
     collect_all_domain_output_declaration_rows, AllDomainOutputDeclarationRow,
 };
 use crate::commands::benchmark::local_all_domain_fake_runs::{
-    declared_output_ids, fake_run_all_domain_benchmark_results, AllDomainFakeRunResultReport,
+    fake_run_all_domain_benchmark_results, AllDomainFakeRunResultReport,
 };
 use crate::commands::benchmark::local_stage_fake_runs::path_relative_to_repo;
 use crate::commands::benchmark::local_stage_result_manifest::load_validated_stage_result_manifest_path;
@@ -23,57 +22,15 @@ use crate::commands::benchmark::path_resolution::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/missing-result-test-all-domains.json";
-const DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT: &str =
-    "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/missing-result-test";
-const ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_missing_result_audit.v1";
-
-const FASTQ_REMOVED_RESULT_ID: &str =
-    "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2";
-const BAM_REMOVED_RESULT_ID: &str = "bam:corpus-01-bam-mini:bam.coverage:sample-set:samtools";
-const VCF_REMOVED_RESULT_ID: &str = "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum AllDomainMissingResultStatus {
-    Present,
-    MissingResult,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainMissingResultRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) expected_manifest_path: String,
-    pub(crate) audit_manifest_path: String,
-    pub(crate) result_status: AllDomainMissingResultStatus,
-    pub(crate) expected_output_artifact_ids: Vec<String>,
-    pub(crate) observed_output_artifact_ids: Vec<String>,
-    pub(crate) expected_metrics: Vec<String>,
-    pub(crate) report_section: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainMissingResultTestReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) fake_result_root: String,
-    pub(crate) expected_row_count: usize,
-    pub(crate) present_result_row_count: usize,
-    pub(crate) missing_result_row_count: usize,
-    pub(crate) passes_behavior_test: bool,
-    pub(crate) removed_result_ids: Vec<String>,
-    pub(crate) removed_manifest_paths: Vec<String>,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<AllDomainMissingResultRow>,
-}
+use bijux_dna_api::v1::api::bench::{
+    admit_all_domain_missing_result_audit, project_all_domain_missing_result_observation,
+    AllDomainMissingResultObservation,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainMissingResultRow, AllDomainMissingResultStatus, AllDomainMissingResultTestReport,
+    ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION, BAM_REMOVED_RESULT_ID,
+    DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH, FASTQ_REMOVED_RESULT_ID, VCF_REMOVED_RESULT_ID,
+};
 
 #[derive(Debug, Clone)]
 struct AllDomainMissingResultFixture {
@@ -156,7 +113,7 @@ pub(crate) fn render_all_domain_missing_result_audit(
     }
 
     let report = AllDomainMissingResultTestReport {
-        schema_version: ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION,
+        schema_version: ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         fake_result_root: path_relative_to_repo(repo_root, &fixture.fake_result_root),
         expected_row_count,
@@ -172,7 +129,7 @@ pub(crate) fn render_all_domain_missing_result_audit(
         domain_counts,
         rows,
     };
-    let report = ensure_all_domain_missing_result_contract(report)?;
+    let report = admit_all_domain_missing_result_audit(report)?;
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)?;
     Ok(report)
 }
@@ -276,157 +233,26 @@ fn collect_all_domain_missing_result_rows(
                     expected.result_id
                 )
             })?;
-        let expected_output_artifact_ids = declared_output_ids(output_row);
         let manifest_path = repo_root.join(&fake_run.stage_result_path);
-        let manifest_label = fake_run.stage_result_path.clone();
-        if !manifest_path.is_file() {
-            rows.push(AllDomainMissingResultRow {
-                result_id: expected.result_id.clone(),
-                domain: expected.domain.clone(),
-                stage_id: expected.stage_id.clone(),
-                tool_id: expected.tool_id.clone(),
-                corpus_id: expected.corpus_id.clone(),
-                asset_profile_id: expected.asset_profile_id.clone(),
-                expected_manifest_path: manifest_label.clone(),
-                audit_manifest_path: manifest_label,
-                result_status: AllDomainMissingResultStatus::MissingResult,
-                expected_output_artifact_ids,
-                observed_output_artifact_ids: Vec::new(),
-                expected_metrics: expected.expected_metrics.clone(),
-                report_section: expected.report_section.clone(),
-                reason: format!(
-                    "expected all-domain benchmark result `{}` remains visible even though its fake-run manifest is missing",
-                    expected.result_id
-                ),
-            });
-            continue;
-        }
-
-        let manifest = load_validated_stage_result_manifest_path(&manifest_path)
-            .with_context(|| format!("load {}", manifest_path.display()))?;
-        if manifest.stage_id != expected.stage_id || manifest.tool.id != expected.tool_id {
-            return Err(anyhow!(
-                "all-domain fake-run manifest `{}` drifted from `{}` / `{}`",
-                manifest_path.display(),
-                expected.stage_id,
-                expected.tool_id
-            ));
-        }
-        let observed_output_artifact_ids = manifest
-            .outputs
-            .iter()
-            .map(|artifact| artifact.artifact_id.clone())
-            .collect::<Vec<_>>();
-        let observed_output_set =
-            observed_output_artifact_ids.iter().cloned().collect::<BTreeSet<_>>();
-        let expected_output_set =
-            expected_output_artifact_ids.iter().cloned().collect::<BTreeSet<_>>();
-        if observed_output_set != expected_output_set {
-            return Err(anyhow!(
-                "all-domain fake-run manifest `{}` drifted from expected output ids for `{}`",
-                manifest_path.display(),
-                expected.result_id
-            ));
-        }
-
-        rows.push(AllDomainMissingResultRow {
-            result_id: expected.result_id.clone(),
-            domain: expected.domain.clone(),
-            stage_id: expected.stage_id.clone(),
-            tool_id: expected.tool_id.clone(),
-            corpus_id: expected.corpus_id.clone(),
-            asset_profile_id: expected.asset_profile_id.clone(),
-            expected_manifest_path: manifest_label.clone(),
-            audit_manifest_path: manifest_label,
-            result_status: AllDomainMissingResultStatus::Present,
-            expected_output_artifact_ids,
-            observed_output_artifact_ids,
-            expected_metrics: expected.expected_metrics.clone(),
-            report_section: expected.report_section.clone(),
-            reason: format!(
-                "expected all-domain benchmark result `{}` remains present with a validated fake-run manifest",
-                expected.result_id
-            ),
-        });
+        let manifest = if manifest_path.is_file() {
+            Some(
+                load_validated_stage_result_manifest_path(&manifest_path)
+                    .with_context(|| format!("load {}", manifest_path.display()))?,
+            )
+        } else {
+            None
+        };
+        rows.push(project_all_domain_missing_result_observation(
+            AllDomainMissingResultObservation {
+                expected,
+                outputs: output_row,
+                simulated: fake_run,
+                manifest: manifest.as_ref(),
+            },
+        )?);
     }
 
     Ok(rows)
-}
-
-fn ensure_all_domain_missing_result_contract(
-    mut report: AllDomainMissingResultTestReport,
-) -> Result<AllDomainMissingResultTestReport> {
-    if report.rows.len() != report.expected_row_count {
-        return Err(anyhow!(
-            "all-domain missing-result rows must stay aligned with expected rows (rows={}, expected={})",
-            report.rows.len(),
-            report.expected_row_count
-        ));
-    }
-    let expected_missing_row_count = report.removed_result_ids.len();
-    let expected_present_row_count =
-        report.expected_row_count.saturating_sub(expected_missing_row_count);
-    if report.present_result_row_count != expected_present_row_count {
-        return Err(anyhow!(
-            "all-domain missing-result present rows must equal expected rows minus removed results (present={}, expected_present={})",
-            report.present_result_row_count,
-            expected_present_row_count
-        ));
-    }
-    if report.missing_result_row_count != expected_missing_row_count {
-        return Err(anyhow!(
-            "all-domain missing-result rows must equal the removed-result count (missing={}, removed={})",
-            report.missing_result_row_count,
-            expected_missing_row_count
-        ));
-    }
-    if report.removed_manifest_paths.len() != expected_missing_row_count {
-        return Err(anyhow!(
-            "all-domain missing-result test must record one removed manifest path per removed result id"
-        ));
-    }
-
-    let missing_rows = report
-        .rows
-        .iter()
-        .filter(|row| row.result_status == AllDomainMissingResultStatus::MissingResult)
-        .collect::<Vec<_>>();
-    let missing_ids =
-        missing_rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>();
-    let expected_missing_ids =
-        [FASTQ_REMOVED_RESULT_ID, BAM_REMOVED_RESULT_ID, VCF_REMOVED_RESULT_ID]
-            .into_iter()
-            .collect::<BTreeSet<_>>();
-    if missing_ids != expected_missing_ids {
-        return Err(anyhow!(
-            "all-domain missing-result test must keep the governed FASTQ, BAM, and VCF rows visible as missing_result"
-        ));
-    }
-
-    let missing_domain_counts =
-        missing_rows.iter().fold(BTreeMap::<&str, usize>::new(), |mut acc, row| {
-            *acc.entry(row.domain.as_str()).or_default() += 1;
-            acc
-        });
-    for domain in ["fastq", "bam", "vcf"] {
-        if missing_domain_counts.get(domain).copied() != Some(1) {
-            return Err(anyhow!(
-                "all-domain missing-result test must emit exactly one missing_result row for `{domain}`"
-            ));
-        }
-    }
-
-    if report.rows.iter().any(|row| {
-        row.result_status == AllDomainMissingResultStatus::Present
-            && row.observed_output_artifact_ids.is_empty()
-    }) {
-        return Err(anyhow!(
-            "all-domain missing-result test must not hide or strip observed outputs from present rows"
-        ));
-    }
-
-    report.passes_behavior_test = true;
-    Ok(report)
 }
 
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {

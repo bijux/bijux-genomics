@@ -140,3 +140,9 @@ mod failure;
 pub use failure::{
     validate_all_domain_failure_simulation_manifest, validate_all_domain_failure_simulation_record,
 };
+
+mod missing;
+pub use missing::{
+    admit_all_domain_missing_result_audit, project_all_domain_missing_result_observation,
+    validate_all_domain_missing_result_audit, AllDomainMissingResultObservation,
+};

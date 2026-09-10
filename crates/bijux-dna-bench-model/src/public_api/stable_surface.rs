@@ -834,20 +834,26 @@ pub use crate::policy::campaign_monitor::summarize_campaign_monitor;
 
 pub use crate::model::simulation::{
     all_domain_fake_failure_manifest_schema, all_domain_fake_failure_record_schema,
-    all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
-    all_domain_simulation_output_path, all_domain_simulation_output_role,
-    validate_all_domain_simulation_report, validate_all_domain_simulation_result,
-    AllDomainFakeFailureOutputEntry, AllDomainFakeFailureRecord, AllDomainFakeFailuresManifest,
-    AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
-    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION,
-    ALL_DOMAIN_FAKE_FAILURE_RECORD_SCHEMA_VERSION, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
-    ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT,
-    DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+    all_domain_missing_result_audit_schema, all_domain_simulation_elapsed_seconds,
+    all_domain_simulation_output_ids, all_domain_simulation_output_path,
+    all_domain_simulation_output_role, validate_all_domain_simulation_report,
+    validate_all_domain_simulation_result, AllDomainFakeFailureOutputEntry,
+    AllDomainFakeFailureRecord, AllDomainFakeFailuresManifest, AllDomainFakeRunMetrics,
+    AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport, AllDomainFakeRunsReport,
+    AllDomainMissingResultRow, AllDomainMissingResultStatus, AllDomainMissingResultTestReport,
+    ALL_DOMAIN_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION, ALL_DOMAIN_FAKE_FAILURE_RECORD_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION, ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION,
+    ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION, BAM_REMOVED_RESULT_ID,
+    DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+    DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
+    FASTQ_REMOVED_RESULT_ID, VCF_REMOVED_RESULT_ID,
 };
 
 pub use crate::contract::{
-    admit_all_domain_simulation_inputs, validate_all_domain_failure_simulation_manifest,
-    validate_all_domain_failure_simulation_record, AllDomainSimulationInput,
+    admit_all_domain_missing_result_audit, admit_all_domain_simulation_inputs,
+    project_all_domain_missing_result_observation, validate_all_domain_failure_simulation_manifest,
+    validate_all_domain_failure_simulation_record, validate_all_domain_missing_result_audit,
+    AllDomainMissingResultObservation, AllDomainSimulationInput,
 };
 
 pub use crate::model::hpc_campaign::{
