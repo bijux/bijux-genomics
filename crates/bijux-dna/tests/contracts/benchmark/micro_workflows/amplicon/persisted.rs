@@ -1,9 +1,6 @@
-#![allow(clippy::expect_used, clippy::too_many_lines)]
-
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn bench_local_amplicon_micro_pipeline_writes_governed_summary_file() {

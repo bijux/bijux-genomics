@@ -1,10 +1,7 @@
-#![allow(clippy::expect_used, clippy::too_many_lines)]
-
 use std::collections::BTreeSet;
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn bench_local_amplicon_micro_pipeline_reports_validated_amplicon_outputs() {
