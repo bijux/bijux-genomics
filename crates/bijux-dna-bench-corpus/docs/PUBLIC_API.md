@@ -26,3 +26,7 @@ With `panel-metadata`, `panel_metadata` exposes governed panel/map constants,
 `LocalVcfPanelFixtureReport`, authority resolution, metadata materialization and
 fixture exclusion. Existing `bijux-dna-bench-vcf::fixtures::panel` imports remain
 compatible. Only byte-identical existing markers are reusable.
+
+The `panel-metadata` surface also exposes `governed_vcf_panel_species_context`,
+the exact local panel fixture species, build and contig-alias context. Haplotype
+and postprocessing benchmark consumers share this authority.

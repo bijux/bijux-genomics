@@ -63,3 +63,7 @@ adapt arguments, supply fixture operations/tool bindings and present the returne
 
 Population benchmark services belong to `bijux-dna-bench-population`. CLI composition
 acquires explicitly scoped declarations and presents the returned reports.
+
+Reference-panel, phasing, imputation and imputation-quality benchmark services
+belong to `bijux-dna-bench-haplotypes`. CLI composition supplies scoped stage
+declarations and tool bindings, then renders the returned report.

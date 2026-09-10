@@ -9,7 +9,7 @@ rust-version.workspace = true
 default = []
 alignment = ["dep:bijux-dna-domain-bam"]
 variants = ["dep:bijux-dna-domain-vcf"]
-panel-metadata = ["dep:bijux-dna-db-ref", "dep:bijux-dna-infra"]
+panel-metadata = ["dep:bijux-dna-db-ref", "dep:bijux-dna-infra", "dep:bijux-dna-domain-vcf"]
 
 [dependencies]
 anyhow.workspace = true

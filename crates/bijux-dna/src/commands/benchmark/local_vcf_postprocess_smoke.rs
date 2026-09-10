@@ -16,10 +16,10 @@ use super::local_stage_result_manifest::{
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
 use super::local_vcf_call_bam_smoke_support::parse_output_sample_count;
-use super::local_vcf_panel_workflow_smoke_support::governed_vcf_panel_species_context;
 use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use bijux_dna_bench_corpus::panel_metadata::governed_vcf_panel_species_context;
 
 const DEFAULT_VCF_POSTPROCESS_SMOKE_ROOT: &str = "artifacts/runs/bench/local-smoke/vcf.postprocess";
 const LOCAL_VCF_POSTPROCESS_SMOKE_SCHEMA_VERSION: &str =

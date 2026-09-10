@@ -13,3 +13,6 @@ mod exclusion;
 pub use exclusion::with_local_vcf_panel_fixture_lock;
 mod marker_admission;
 mod markers;
+
+mod species;
+pub use species::governed_vcf_panel_species_context;

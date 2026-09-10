@@ -214,3 +214,9 @@ name = "bijux-dna-bench-population"
 family = "data"
 layer = "support"
 public_surfaces = ["crates/bijux-dna-bench-population/src/lib.rs", "crates/bijux-dna-bench-population/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-haplotypes"
+family = "data"
+layer = "support"
+public_surfaces = ["crates/bijux-dna-bench-haplotypes/src/lib.rs", "crates/bijux-dna-bench-haplotypes/docs/PUBLIC_API.md"]
