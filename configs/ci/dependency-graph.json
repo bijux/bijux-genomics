@@ -1543,11 +1543,6 @@
     },
     {
       "consumer": "crate:bijux-dna-bench-vcf",
-      "dependency": "crate:bijux-dna-bench",
-      "kind": "dev"
-    },
-    {
-      "consumer": "crate:bijux-dna-bench-vcf",
       "dependency": "crate:bijux-dna-bench-corpus",
       "kind": "normal"
     },

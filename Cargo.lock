@@ -410,7 +410,6 @@ name = "bijux-dna-bench-vcf"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-bench",
  "bijux-dna-bench-corpus",
  "bijux-dna-bench-model",
  "bijux-dna-db-ref",
@@ -419,6 +418,7 @@ dependencies = [
  "bijux-dna-stages-vcf",
  "serde",
  "serde_json",
+ "serde_yaml",
  "tempfile",
  "toml",
 ]

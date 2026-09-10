@@ -91,6 +91,19 @@ fn normal_dependencies_do_not_reverse_into_composition_or_activate_fastq() -> Re
     ] {
         assert!(!dependencies.contains_key(name), "unexpected {name}");
     }
+    let development = manifest
+        .get("dev-dependencies")
+        .and_then(toml::Value::as_table)
+        .ok_or_else(|| anyhow::anyhow!("missing dev-dependencies"))?;
+    for name in [
+        "bijux-dna",
+        "bijux-dna-api",
+        "bijux-dna-bench",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+    ] {
+        assert!(!development.contains_key(name), "test composition must not compile {name}");
+    }
     assert_eq!(dependencies["bijux-dna-bench-model"]["default-features"].as_bool(), Some(false));
     Ok(())
 }

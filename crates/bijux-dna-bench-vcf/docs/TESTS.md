@@ -8,9 +8,12 @@ CARGO_TARGET_DIR=artifacts/target cargo test --locked -p bijux-dna-bench-vcf --a
 ```
 
 Eleven original adapter contracts cover seven tool families and their emitted
-row counts, identities and declared outputs. The contract harness obtains its
-source catalog and supported pairs through the existing benchmark test provider;
-that is a dev dependency only. Workspace paths resolve at runtime.
+row counts, identities and declared outputs. The contract harness reads the existing
+catalog, matrix and VCF domain declarations and supplies a fixture reference
+operation using the reference owner's FASTA index builder. It does not compile
+the benchmark workflow library. Production provider behavior remains covered by
+public CLI tests; no static duplicate catalog or marker FASTA is introduced.
+Workspace paths resolve at runtime.
 
 Input regressions reject absent, duplicated, foreign and malformed observations
 before the injected reference writer runs. The dependency regression rejects
