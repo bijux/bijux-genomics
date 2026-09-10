@@ -1,3 +1,4 @@
+use bijux_dna_api::v1::api::bench::inspect_hpc_replay_payloads;
 pub use bijux_dna_api::v1::api::bench::SlurmMonitorReport;
 use bijux_dna_api::v1::api::bench::{
     quote_slurm_argument as shell_quote, slurm_script_path as script_path_for,
@@ -950,75 +951,6 @@ fn redact_text(mut text: String, needles: &[String]) -> String {
     text
 }
 
-fn required_result_paths(_payload: &serde_json::Value) -> Vec<&'static str> {
-    vec![
-        "metrics",
-        "artifacts.inventory",
-        "reports",
-        "appraiser_outputs",
-        "job.stage",
-        "job.tool",
-        "job.sample",
-    ]
-}
-
-fn required_code_paths(payload: &serde_json::Value) -> Vec<&'static str> {
-    let _ = payload;
-    vec![
-        "code_freeze.repository_state",
-        "code_freeze.config_references",
-        "code_freeze.slurm_script",
-        "locks.corpus_lock",
-        "locks.database_lock",
-        "locks.image_lock",
-        "plan.outputs",
-    ]
-}
-
-fn has_json_path(root: &serde_json::Value, path: &str) -> bool {
-    let mut node = root;
-    for part in path.split('.') {
-        let Some(next) = node.get(part) else {
-            return false;
-        };
-        node = next;
-    }
-    true
-}
-
-fn validate_results_payload(payload: &serde_json::Value) -> Vec<String> {
-    required_result_paths(payload)
-        .into_iter()
-        .filter(|path| !has_json_path(payload, path))
-        .map(|path| format!("missing results field `{path}`"))
-        .collect()
-}
-
-fn validate_code_payload(payload: &serde_json::Value) -> Vec<String> {
-    required_code_paths(payload)
-        .into_iter()
-        .filter(|path| !has_json_path(payload, path))
-        .map(|path| format!("missing code field `{path}`"))
-        .collect()
-}
-
-fn appraiser_output_policy_issues(results_payload: &serde_json::Value) -> Vec<String> {
-    let mut issues = Vec::new();
-    if !has_json_path(results_payload, "appraiser_outputs") {
-        issues.push("results payload lacks `appraiser_outputs`".to_string());
-    }
-    if let Some(entries) = results_payload.get("artifacts").and_then(|v| v.get("inventory")) {
-        if entries.as_array().is_some_and(|rows| {
-            rows.iter().any(|row| {
-                row.get("kind") == Some(&serde_json::Value::String("appraiser_output".to_string()))
-            })
-        }) {
-            issues.push("appraiser output must not be listed as plaintext artifact".to_string());
-        }
-    }
-    issues
-}
-
 fn normalized_sidecar_for_bundle(
     bundle_path: &Path,
     original_sidecar: &Path,
@@ -1158,32 +1090,33 @@ pub fn import_encrypted_replay(args: &SlurmReplayImportArgs) -> Result<SlurmRepl
         identity_files: &args.identity_file,
     })?;
 
-    let results_out =
-        bundle_output_path(&args.results_bundle, &args.out_dir, ".replay.results.json");
-    let code_out = bundle_output_path(&args.code_bundle, &args.out_dir, ".replay.code.json");
-    bijux_dna_api::v1::api::run::atomic_write_bytes(&results_out, &results_plaintext)?;
-    bijux_dna_api::v1::api::run::atomic_write_bytes(&code_out, &code_plaintext)?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        for path in [&results_out, &code_out] {
-            let mut perms = std::fs::metadata(path)
-                .with_context(|| format!("stat {}", path.display()))?
-                .permissions();
-            perms.set_mode(0o600);
-            std::fs::set_permissions(path, perms)
-                .with_context(|| format!("chmod {}", path.display()))?;
+    let admission = inspect_hpc_replay_payloads(
+        &results_meta,
+        &results_plaintext,
+        &code_meta,
+        &code_plaintext,
+    )?;
+    let replay_feasible = admission.admitted();
+    let checks = admission.into_issues();
+    if replay_feasible {
+        let results_out =
+            bundle_output_path(&args.results_bundle, &args.out_dir, ".replay.results.json");
+        let code_out = bundle_output_path(&args.code_bundle, &args.out_dir, ".replay.code.json");
+        bijux_dna_api::v1::api::run::atomic_write_bytes(&results_out, &results_plaintext)?;
+        bijux_dna_api::v1::api::run::atomic_write_bytes(&code_out, &code_plaintext)?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            for path in [&results_out, &code_out] {
+                let mut perms = std::fs::metadata(path)
+                    .with_context(|| format!("stat {}", path.display()))?
+                    .permissions();
+                perms.set_mode(0o600);
+                std::fs::set_permissions(path, perms)
+                    .with_context(|| format!("chmod {}", path.display()))?;
+            }
         }
     }
-
-    let results_json: serde_json::Value =
-        serde_json::from_slice(&results_plaintext).context("parse results replay payload")?;
-    let code_json: serde_json::Value =
-        serde_json::from_slice(&code_plaintext).context("parse code replay payload")?;
-    let mut checks = Vec::new();
-    checks.extend(validate_results_payload(&results_json));
-    checks.extend(validate_code_payload(&code_json));
-    let replay_feasible = checks.is_empty();
 
     let report = SlurmReplayImportReport {
         schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
@@ -1438,27 +1371,26 @@ pub fn verify_results_policy(
         args.results_sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.results_bundle));
     let code_sidecar =
         args.code_sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.code_bundle));
-    let (_, results_plaintext) = decrypt_bundle(&BundleDecryptRequest {
+    let (results_meta, results_plaintext) = decrypt_bundle(&BundleDecryptRequest {
         bundle_path: &args.results_bundle,
         sidecar_path: Some(&results_sidecar),
         identity_files: &args.identity_file,
     })?;
-    let (_, code_plaintext) = decrypt_bundle(&BundleDecryptRequest {
+    let (code_meta, code_plaintext) = decrypt_bundle(&BundleDecryptRequest {
         bundle_path: &args.code_bundle,
         sidecar_path: Some(&code_sidecar),
         identity_files: &args.identity_file,
     })?;
-    let results_json: serde_json::Value =
-        serde_json::from_slice(&results_plaintext).context("parse results bundle json")?;
-    let code_json: serde_json::Value =
-        serde_json::from_slice(&code_plaintext).context("parse code bundle json")?;
-
-    let mut issues = validate_results_payload(&results_json);
-    issues.extend(validate_code_payload(&code_json));
-    issues.extend(appraiser_output_policy_issues(&results_json));
-    let results_complete = validate_results_payload(&results_json).is_empty();
-    let code_complete = validate_code_payload(&code_json).is_empty();
-    let appraiser_policy_ok = appraiser_output_policy_issues(&results_json).is_empty();
+    let admission = inspect_hpc_replay_payloads(
+        &results_meta,
+        &results_plaintext,
+        &code_meta,
+        &code_plaintext,
+    )?;
+    let results_complete = admission.results_complete();
+    let code_complete = admission.code_complete();
+    let appraiser_policy_ok = admission.appraiser_policy_ok();
+    let issues = admission.into_issues();
 
     Ok(SlurmResultsPolicyReport {
         schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
@@ -2372,6 +2304,61 @@ sample = "sample-retry"
         assert!(imported.replay_feasible);
         assert!(imported.completeness_checks.is_empty());
         assert!(root.path().join("replay/import-replay-report.json").is_file());
+        let (meta, plaintext) = super::decrypt_bundle(&BundleDecryptRequest {
+            bundle_path: std::path::Path::new(&first.results_path),
+            sidecar_path: None,
+            identity_files: &[],
+        })
+        .expect("original results");
+        let mut foreign: serde_json::Value = serde_json::from_slice(&plaintext).expect("payload");
+        foreign["campaign"]["id"] = serde_json::json!("foreign-campaign");
+        for (name, bytes, malformed) in [
+            ("malformed", b"{".to_vec(), true),
+            ("foreign", serde_json::to_vec(&foreign).expect("foreign payload"), false),
+        ] {
+            let bundle = root.path().join(format!("{name}.results"));
+            super::write_encrypted_bundle(&BundleWriteRequest {
+                output_path: &bundle,
+                bundle_kind: &meta.bundle_kind,
+                campaign_id: &meta.campaign_id,
+                domain: &meta.domain,
+                stage: &meta.stage,
+                tool: &meta.tool,
+                sample: &meta.sample,
+                planned_job_id: &meta.planned_job_id,
+                scheduler_job_id: &meta.scheduler_job_id,
+                submitted_at: &meta.submitted_at,
+                backend: &meta.backend,
+                recipients: &meta.recipients,
+                plaintext: &bytes,
+            })
+            .expect("transport-valid invalid payload");
+            let output = root.path().join(format!("reject-{name}"));
+            let imported = import_encrypted_replay(&SlurmReplayImportArgs {
+                results_bundle: bundle.clone(),
+                results_sidecar: None,
+                code_bundle: std::path::PathBuf::from(&first.code_path),
+                code_sidecar: None,
+                out_dir: output.clone(),
+                identity_file: Vec::new(),
+                allow_unsafe_destination: false,
+                json: false,
+            });
+            if malformed {
+                assert!(imported.is_err());
+            } else {
+                let rejected = imported.expect("diagnostic report");
+                assert!(!rejected.replay_feasible);
+                assert!(!rejected.completeness_checks.is_empty());
+            }
+            assert!(!super::bundle_output_path(&bundle, &output, ".replay.results.json").exists());
+            assert!(!super::bundle_output_path(
+                std::path::Path::new(&first.code_path),
+                &output,
+                ".replay.code.json"
+            )
+            .exists());
+        }
     }
 
     #[test]

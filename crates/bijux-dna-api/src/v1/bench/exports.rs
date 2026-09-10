@@ -491,10 +491,11 @@ pub use bijux_dna_bench::{
 };
 
 pub use bijux_dna_bench::{
-    campaign_dry_run, campaign_preflight, is_supported_encryption_backend, write_campaign_profiles,
-    CampaignCheck, CampaignConfig, CampaignContext, CampaignDryRunReport, CampaignJob,
-    CampaignLayout, CampaignMeta, CampaignPolicies, CampaignPreflightReport, CampaignSecurity,
-    CampaignSlurm, CorpusSizeScalePolicy, LayoutPolicies, OutputTemplates, PlannedJob,
+    campaign_dry_run, campaign_preflight, inspect_hpc_replay_payloads,
+    is_supported_encryption_backend, write_campaign_profiles, CampaignCheck, CampaignConfig,
+    CampaignContext, CampaignDryRunReport, CampaignJob, CampaignLayout, CampaignMeta,
+    CampaignPolicies, CampaignPreflightReport, CampaignSecurity, CampaignSlurm,
+    CorpusSizeScalePolicy, HpcReplayPayloadAdmission, LayoutPolicies, OutputTemplates, PlannedJob,
     PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
     ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
 };

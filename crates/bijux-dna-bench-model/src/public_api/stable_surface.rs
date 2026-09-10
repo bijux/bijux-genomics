@@ -946,3 +946,5 @@ pub use crate::model::tool_execution_modes::{
     ToolExecutionModeAssignment, ToolExecutionModesConfig,
     LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
 };
+
+pub use crate::contract::{inspect_hpc_replay_payloads, HpcReplayPayloadAdmission};
