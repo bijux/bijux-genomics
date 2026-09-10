@@ -34,7 +34,7 @@ fn run_cli(args: &[&str]) -> std::process::Output {
 }
 
 #[test]
-fn bench_local_render_hpc_pipeline_node_array_reports_governed_dependency_manifest() {
+fn bench_local_hpc_pipeline_node_array_preserves_publication_and_rejects_drift() {
     let repo_root = support::repo_root().expect("repo root");
     let (_temp_dir, script_path, manifest_path) =
         render_paths(&repo_root, "render-hpc-pipeline-node-array-");
@@ -188,5 +188,66 @@ fn bench_local_render_hpc_pipeline_node_array_reports_governed_dependency_manife
             "DEPENDENCY_JOB_IDS='pipeline:core-germline-fastq-bam-vcf:vcf.filter,pipeline:core-germline-fastq-bam-vcf:vcf.stats'"
         ),
         "rendered script must keep the dependency manifest linkage for governed nodes"
+    );
+    assert_validated_script_path(&repo_root, &script_path);
+    assert_rejected_drift(
+        &script_path,
+        &manifest_path,
+        "pipeline:core-germline-fastq-bam-vcf:vcf.stats",
+        "pipeline:core-germline-fastq-bam-vcf:broken",
+        "manifest",
+    );
+    assert_rejected_drift(
+        &script_path,
+        &script_path,
+        "#SBATCH --job-name=bijux-pipeline-node-array",
+        "#SBATCH --job-name=bijux-pipeline-node-array-broken",
+        "script",
+    );
+}
+
+fn assert_validated_script_path(repo_root: &Path, script_path: &Path) {
+    let script = script_path.to_string_lossy();
+    let output =
+        run_cli(&["bench", "local", "validate-hpc-pipeline-node-array", "--script", &script]);
+    assert!(
+        output.status.success(),
+        "validate command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        String::from_utf8(output.stdout).expect("stdout utf8").trim(),
+        script_path.strip_prefix(repo_root).expect("relative script path").to_string_lossy()
+    );
+}
+
+fn assert_rejected_drift(
+    script_path: &Path,
+    changed_path: &Path,
+    original: &str,
+    replacement: &str,
+    surface: &str,
+) {
+    let bytes = fs::read_to_string(changed_path).expect("read publication");
+    assert!(bytes.contains(original), "mutation must change the {surface}");
+    let changed = bytes.replacen(original, replacement, 1);
+    fs::write(changed_path, &changed).expect("write changed publication");
+    let script = script_path.to_string_lossy();
+    let output =
+        run_cli(&["bench", "local", "validate-hpc-pipeline-node-array", "--script", &script]);
+    fs::write(changed_path, &bytes).expect("restore original publication");
+    assert_eq!(fs::read_to_string(changed_path).expect("read restored publication"), bytes);
+    assert!(
+        !output.status.success(),
+        "validate command should reject {surface} drift\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains(surface) && stderr.contains("drifted"),
+        "failure must identify {surface} drift: {stderr}"
     );
 }
