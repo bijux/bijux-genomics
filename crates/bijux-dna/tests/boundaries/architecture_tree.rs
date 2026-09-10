@@ -123,7 +123,7 @@ fn dna_tree_matches_architecture_contract() {
         "local_bam_stage_smoke.rs",
         "local_benchmark_summary.rs",
         "local_core_germline_micro_pipeline.rs",
-        "local_corpus_fixture/",
+        "local_corpus_fixture.rs",
         "local_corpus_skip_report.rs",
         "local_corpus_stage_compatibility.rs",
         "local_cross_domain_sample_consistency.rs",

@@ -46,3 +46,10 @@ they do not grant the CLI ownership of the behavior they expose.
 ## Notes
 The family-level contract is indexed in
 [docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md](../../../docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md).
+
+Corpus fixture commands and benchmark workflows consume `bijux-dna-bench-corpus`
+for local manifest and payload admission. The CLI enables its `alignment` and
+`variants` features and owns argument defaults, service invocation, JSON/text
+presentation and exit mapping. Corpus models and validation do not belong in
+the command crate; downstream owners can use that service without compiling
+this CLI or the benchmark aggregation library.

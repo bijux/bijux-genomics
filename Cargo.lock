@@ -227,6 +227,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-api",
+ "bijux-dna-bench-corpus",
  "bijux-dna-core",
  "bijux-dna-db-ena",
  "bijux-dna-db-ref",
@@ -368,6 +369,20 @@ dependencies = [
  "tempfile",
  "toml",
  "walkdir",
+]
+
+[[package]]
+name = "bijux-dna-bench-corpus"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-domain-bam",
+ "bijux-dna-domain-vcf",
+ "flate2",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "toml",
 ]
 
 [[package]]

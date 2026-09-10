@@ -184,6 +184,7 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_documented_boundary
     let allowed = BTreeSet::from([
         "bijux-dna-analyze".to_string(),
         "bijux-dna-api".to_string(),
+        "bijux-dna-bench-corpus".to_string(),
         "bijux-dna-core".to_string(),
         "bijux-dna-db-ref".to_string(),
         "bijux-dna-domain-bam".to_string(),

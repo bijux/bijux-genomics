@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
@@ -7,12 +7,12 @@ use serde::Deserialize;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) mod amplicon;
-pub(crate) mod bam;
-pub(crate) mod damage;
-pub(crate) mod edna;
-pub(crate) mod fastq;
-pub(crate) mod vcf;
+pub(crate) use bijux_dna_bench_corpus::amplicon;
+pub(crate) use bijux_dna_bench_corpus::bam;
+pub(crate) use bijux_dna_bench_corpus::damage;
+pub(crate) use bijux_dna_bench_corpus::edna;
+pub(crate) use bijux_dna_bench_corpus::fastq;
+pub(crate) use bijux_dna_bench_corpus::vcf;
 
 #[derive(Debug, Deserialize)]
 struct ManifestSchemaProbe {
@@ -94,16 +94,4 @@ fn load_manifest_schema_version(manifest_path: &Path) -> Result<String> {
     let probe: ManifestSchemaProbe =
         toml::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))?;
     Ok(probe.schema_version)
-}
-
-fn resolve_manifest_relative_path(manifest_dir: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        manifest_dir.join(path)
-    }
-}
-
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
 }

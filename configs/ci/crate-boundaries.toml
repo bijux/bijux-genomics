@@ -190,3 +190,9 @@ name = "bijux-dna-testkit"
 family = "foundation"
 layer = "test-support"
 public_surfaces = ["crates/bijux-dna-testkit/src/lib.rs", "crates/bijux-dna-testkit/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-corpus"
+family = "data"
+layer = "support"
+public_surfaces = ["crates/bijux-dna-bench-corpus/src/lib.rs", "crates/bijux-dna-bench-corpus/docs/PUBLIC_API.md"]

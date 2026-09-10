@@ -38,6 +38,7 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_documented_ada
     let allowlist = [
         "bijux-dna-analyze",
         "bijux-dna-api",
+        "bijux-dna-bench-corpus",
         "bijux-dna-core",
         "bijux-dna-db-ref",
         "bijux-dna-domain-compiler",
