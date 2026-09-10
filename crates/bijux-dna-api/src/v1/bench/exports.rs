@@ -491,7 +491,7 @@ pub use bijux_dna_bench::{
 };
 
 pub use bijux_dna_bench::{
-    campaign_dry_run, campaign_preflight, inspect_hpc_replay_payloads,
+    campaign_dry_run, campaign_preflight, encode_redacted_hpc_bundle, inspect_hpc_replay_payloads,
     is_supported_encryption_backend, write_campaign_profiles, CampaignCheck, CampaignConfig,
     CampaignContext, CampaignDryRunReport, CampaignJob, CampaignLayout, CampaignMeta,
     CampaignPolicies, CampaignPreflightReport, CampaignSecurity, CampaignSlurm,

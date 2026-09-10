@@ -67,3 +67,5 @@ HPC array resource admission and component-wise envelope construction share one 
 Execution-mode validation uses model-owned report contracts and scope/probe admission, benchmark-owned fresh observation, and CLI serving-map adaptation. Successful declaration validation does not establish executable availability or scientific compatibility.
 
 `contract/hpc_replay_payload.rs` admits replay payload structure and exact campaign/job identity against each transport sidecar and its paired bundle. It parses plaintext once and returns diagnostics before publication. This projection preserves extensible result fields; it does not replace full domain-result schemas or prove execution, scientific completeness, authenticity of an untrusted sidecar, or crash-atomic pair publication.
+
+`policy/bundle_redaction.rs` applies HPC bundle replacements to string values before JSON encoding. It preserves schema keys and nonstring values, handles escaped quotes/control characters, and retains existing replacement order. Text operator logs remain a distinct format; content redaction does not establish replay or scientific admissibility.

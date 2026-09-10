@@ -948,3 +948,5 @@ pub use crate::model::tool_execution_modes::{
 };
 
 pub use crate::contract::{inspect_hpc_replay_payloads, HpcReplayPayloadAdmission};
+
+pub use crate::policy::bundle_redaction::encode_redacted_hpc_bundle;

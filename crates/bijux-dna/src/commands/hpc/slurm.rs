@@ -1,5 +1,5 @@
-use bijux_dna_api::v1::api::bench::inspect_hpc_replay_payloads;
 pub use bijux_dna_api::v1::api::bench::SlurmMonitorReport;
+use bijux_dna_api::v1::api::bench::{encode_redacted_hpc_bundle, inspect_hpc_replay_payloads};
 use bijux_dna_api::v1::api::bench::{
     quote_slurm_argument as shell_quote, slurm_script_path as script_path_for,
 };
@@ -357,9 +357,8 @@ fn build_results_bundle(
             "note": "appraiser jobs are tracked after runtime completion",
         }],
     });
-    let text =
-        serde_json::to_string_pretty(&payload).context("serialize results bundle payload")?;
-    Ok(redact_text(text, redaction_needles).into_bytes())
+    encode_redacted_hpc_bundle(payload, redaction_needles)
+        .context("serialize results bundle payload")
 }
 
 fn build_code_bundle(
@@ -425,8 +424,7 @@ fn build_code_bundle(
             "outputs": job.planned.outputs,
         },
     });
-    let text = serde_json::to_string_pretty(&payload).context("serialize code bundle payload")?;
-    Ok(redact_text(text, redaction_needles).into_bytes())
+    encode_redacted_hpc_bundle(payload, redaction_needles).context("serialize code bundle payload")
 }
 
 fn emit_primary_encrypted_bundles(
