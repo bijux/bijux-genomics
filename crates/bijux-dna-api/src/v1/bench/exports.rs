@@ -493,14 +493,15 @@ pub use bijux_dna_bench::{
 pub use bijux_dna_bench::{
     assemble_hpc_code_submission, assemble_hpc_results_submission, campaign_dry_run,
     campaign_preflight, encode_redacted_hpc_bundle, hpc_stage_domain, inspect_hpc_replay_payloads,
-    is_supported_encryption_backend, plan_hpc_submission, write_campaign_profiles, CampaignCheck,
-    CampaignConfig, CampaignContext, CampaignDryRunReport, CampaignJob, CampaignLayout,
-    CampaignMeta, CampaignPolicies, CampaignPreflightReport, CampaignSecurity, CampaignSlurm,
-    CorpusSizeScalePolicy, HpcBundleFoundationLocks, HpcBundleSubmission, HpcCodeFreezeObservation,
-    HpcCodeSubmissionBundle, HpcReplayPayloadAdmission, HpcResultsSubmissionBundle, HpcSelectedJob,
-    HpcSubmissionPlan, HpcSubmissionSelector, LayoutPolicies, OutputTemplates, PlannedJob,
-    PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
-    ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
+    is_supported_encryption_backend, plan_hpc_submission, render_hpc_submission_script,
+    write_campaign_profiles, CampaignCheck, CampaignConfig, CampaignContext, CampaignDryRunReport,
+    CampaignJob, CampaignLayout, CampaignMeta, CampaignPolicies, CampaignPreflightReport,
+    CampaignSecurity, CampaignSlurm, CorpusSizeScalePolicy, HpcBundleFoundationLocks,
+    HpcBundleSubmission, HpcCodeFreezeObservation, HpcCodeSubmissionBundle,
+    HpcReplayPayloadAdmission, HpcResultsSubmissionBundle, HpcSelectedJob, HpcSubmissionPlan,
+    HpcSubmissionSelector, LayoutPolicies, OutputTemplates, PlannedJob, PlannedLayout,
+    PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies, ResourceTemplate,
+    ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
 };
 
 pub use bijux_dna_bench::{

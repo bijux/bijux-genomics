@@ -487,3 +487,5 @@ Runtime declaration classification uses `RuntimeResolutionInput` and returns `Ru
 `BenchmarkRuntimeProbe` is the typed runtime-readiness projection of a domain tool declaration. Its entrypoint, container identity, version/help command and required-field accessors preserve existing interpretation. It intentionally does not validate unrelated full domain fields; repository acquisition separately binds the declared tool identity to the request.
 
 Execution-mode declarations own closed TOML-compatible shapes and header/assignment admission. Unknown schemas, unsupported required fields and ambiguous tool assignments fail before executable resolution. This policy does not establish actual tool availability.
+
+`render_hpc_submission_script` projects one campaign attempt from planned jobs and explicit foundation lock references. Scheduler directives precede executable statements; metadata is quoted as literal shell arguments. Header control characters and malformed dependency identities are rejected before script publication. Rendering performs no IO and does not certify stage execution.

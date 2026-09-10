@@ -1,6 +1,8 @@
 //! Pure selection and dependency admission for one scheduler submission scope.
 mod dependencies;
+mod script;
 mod selection;
+pub use script::render_hpc_submission_script;
 
 use crate::PlannedJob;
 use anyhow::Result;

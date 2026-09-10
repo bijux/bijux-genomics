@@ -1,0 +1,70 @@
+use bijux_dna_bench_model::{
+    CampaignDryRunReport, PlannedJob, PlannedLayout, PlannedOutputs, PlannedSecurity,
+    ResolvedSlurm, ResourceTemplate,
+};
+
+pub(crate) fn campaign() -> CampaignDryRunReport {
+    CampaignDryRunReport {
+        schema_version: "bijux.hpc.campaign.dry_run.v1",
+        config_path: "campaign.toml".into(),
+        env_file_path: "private.env".into(),
+        user_policy_path: "user.toml".into(),
+        user_policies_applied: true,
+        campaign_id: "mini".into(),
+        domain: "fastq".into(),
+        layout: PlannedLayout {
+            corpora_root: "corpora".into(),
+            databases_root: "databases".into(),
+            images_root: "images".into(),
+            scratch_root: "scratch".into(),
+            logs_root: "logs".into(),
+            encrypted_results_root: "results".into(),
+            encrypted_code_root: "code".into(),
+            appraiser_imports_root: "imports".into(),
+            baselines_root: "baselines".into(),
+        },
+        resolved_slurm: ResolvedSlurm {
+            site_profile: "local".into(),
+            account_redacted: "account".into(),
+            project_redacted: "project".into(),
+            partition: "short".into(),
+            qos: "normal".into(),
+            default_resource_template: "small".into(),
+            retry_attempts: 2,
+            retry_backoff_seconds: 7,
+            retry_on_exit_codes: vec![75],
+        },
+        security: PlannedSecurity {
+            encryption_backend: "mock-envelope-v1".into(),
+            encryption_recipients: vec!["alice".into()],
+            encryption_identity_files: vec![],
+            encrypt_operator_outputs: false,
+            redacted_env_keys: vec![],
+        },
+        planned_jobs: vec![PlannedJob {
+            job_id: "planned-1".into(),
+            job_name: "validate-one".into(),
+            stage: "fastq.validate_reads".into(),
+            tool: "checker".into(),
+            sample: "one".into(),
+            corpus_size_class: None,
+            array_task: None,
+            depends_on: vec!["prepare".into()],
+            resource_template: "small".into(),
+            resources: ResourceTemplate {
+                cpus: 3,
+                mem_gb: 7,
+                walltime: "00:12:00".into(),
+                scratch_gb: 11,
+            },
+            outputs: PlannedOutputs {
+                scratch_dir: "scratch/one".into(),
+                log: "logs/one.log".into(),
+                out: "logs/one.out".into(),
+                err: "logs/one.err".into(),
+                results: "results/one.bundle".into(),
+                code: "code/one.bundle".into(),
+            },
+        }],
+    }
+}

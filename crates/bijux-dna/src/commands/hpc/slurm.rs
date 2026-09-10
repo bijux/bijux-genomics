@@ -1,3 +1,6 @@
+#[cfg(test)]
+use bijux_dna_api::v1::api::bench::quote_slurm_argument as shell_quote;
+use bijux_dna_api::v1::api::bench::slurm_script_path as script_path_for;
 pub use bijux_dna_api::v1::api::bench::SlurmMonitorReport;
 use bijux_dna_api::v1::api::bench::{
     assemble_hpc_code_submission, assemble_hpc_results_submission, HpcBundleFoundationLocks,
@@ -7,9 +10,6 @@ use bijux_dna_api::v1::api::bench::{encode_redacted_hpc_bundle, inspect_hpc_repl
 use bijux_dna_api::v1::api::bench::{
     hpc_stage_domain as stage_domain, plan_hpc_submission, HpcSelectedJob as SelectedJob,
     HpcSubmissionSelector as SubmissionSubset,
-};
-use bijux_dna_api::v1::api::bench::{
-    quote_slurm_argument as shell_quote, slurm_script_path as script_path_for,
 };
 pub use bijux_dna_api::v1::api::bench::{CopyBackEntry, CopyBackManifestReport};
 use bijux_dna_api::v1::api::run::observe_hpc_code_freeze;
@@ -191,32 +191,6 @@ fn now_timestamp_compact() -> String {
 
 fn prepared_root_lock_path(root: &str) -> String {
     foundation_lock_path(Path::new(root)).display().to_string()
-}
-
-fn prepared_root_shell_block(report: &CampaignDryRunReport) -> String {
-    let corpora_root = shell_quote(&report.layout.corpora_root);
-    let databases_root = shell_quote(&report.layout.databases_root);
-    let images_root = shell_quote(&report.layout.images_root);
-    let corpora_lock = shell_quote(&prepared_root_lock_path(&report.layout.corpora_root));
-    let databases_lock = shell_quote(&prepared_root_lock_path(&report.layout.databases_root));
-    let images_lock = shell_quote(&prepared_root_lock_path(&report.layout.images_root));
-    format!(
-        "export BIJUX_CORPORA_ROOT={corpora_root}\n\
-export BIJUX_DATABASES_ROOT={databases_root}\n\
-export BIJUX_IMAGES_ROOT={images_root}\n\
-export BIJUX_CORPORA_PREPARE_LOCK={corpora_lock}\n\
-export BIJUX_DATABASES_PREPARE_LOCK={databases_lock}\n\
-export BIJUX_IMAGES_PREPARE_LOCK={images_lock}\n\
-for bijux_prepare_lock in \\\n\
-  \"$BIJUX_CORPORA_PREPARE_LOCK\" \\\n\
-  \"$BIJUX_DATABASES_PREPARE_LOCK\" \\\n\
-  \"$BIJUX_IMAGES_PREPARE_LOCK\"; do\n\
-  if [ ! -f \"$bijux_prepare_lock\" ]; then\n\
-    echo \"missing prepared foundation lock: $bijux_prepare_lock\" >&2\n\
-    exit 97\n\
-  fi\n\
-done\n"
-    )
 }
 
 fn ensure_parent(path: &Path) -> Result<()> {
@@ -409,40 +383,18 @@ fn build_slurm_script(
     job: &SelectedJob<'_>,
     script_path: &Path,
     dependency_scheduler_ids: &[String],
-) -> String {
-    let dependency_line = if dependency_scheduler_ids.is_empty() {
-        String::new()
-    } else {
-        format!("#SBATCH --dependency=afterok:{}\n", dependency_scheduler_ids.join(":"))
+) -> Result<String> {
+    let locks = HpcBundleFoundationLocks {
+        corpus_lock: prepared_root_lock_path(&report.layout.corpora_root),
+        database_lock: prepared_root_lock_path(&report.layout.databases_root),
+        image_lock: prepared_root_lock_path(&report.layout.images_root),
     };
-    let array_line =
-        job.planned.array_task.map_or_else(String::new, |task| format!("#SBATCH --array={task}\n"));
-    let prepared_root_block = prepared_root_shell_block(report);
-
-    format!(
-        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\n{}\nexport BIJUX_SCRATCH_DIR={}\nexport BIJUX_SCRATCH_IN=$BIJUX_SCRATCH_DIR/in\nexport BIJUX_SCRATCH_OUT=$BIJUX_SCRATCH_DIR/out\nmkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\"\ncleanup() {{\n  rm -rf \"$BIJUX_SCRATCH_DIR\"\n}}\ntrap cleanup EXIT\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\n# Each scheduler job executes exactly one attempt. Retry and supersession are\n# separate lifecycle transitions, never a blocking loop inside this script.\necho \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK scratch=$BIJUX_SCRATCH_DIR\\\"\n",
-        shell_quote(job.name),
-        job.planned.resources.cpus,
-        job.planned.resources.mem_gb,
-        shell_quote(&job.planned.resources.walltime),
-        shell_quote(&report.resolved_slurm.partition),
-        shell_quote(&report.resolved_slurm.qos),
-        dependency_line,
-        array_line,
-        report.campaign_id,
-        report.domain,
-        job.planned.stage,
-        job.planned.tool,
-        job.planned.sample,
-        script_path.display(),
-        job.planned.array_task.unwrap_or(0),
-        prepared_root_block,
-        shell_quote(&job.planned.outputs.scratch_dir),
-        shell_quote(&report.env_file_path),
-        shell_quote(&report.env_file_path),
-        job.planned.stage,
-        job.planned.tool,
-        job.planned.sample
+    bijux_dna_api::v1::api::bench::render_hpc_submission_script(
+        report,
+        job.planned,
+        &script_path.display().to_string(),
+        dependency_scheduler_ids,
+        &locks,
     )
 }
 
@@ -501,7 +453,7 @@ fn run_submission(
 
         let script_path = script_path_for(Path::new(&selected_job.planned.outputs.log));
         let script =
-            build_slurm_script(&report, selected_job, &script_path, &dependency_scheduler_ids);
+            build_slurm_script(&report, selected_job, &script_path, &dependency_scheduler_ids)?;
         write_text(&script_path, &script)?;
         #[cfg(unix)]
         {

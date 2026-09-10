@@ -688,14 +688,14 @@ pub use crate::workflow::hpc_campaign::{campaign_dry_run, campaign_preflight, Ca
 pub use bijux_dna_bench_model::{
     assemble_hpc_code_submission, assemble_hpc_results_submission, encode_redacted_hpc_bundle,
     hpc_stage_domain, inspect_hpc_replay_payloads, is_supported_encryption_backend,
-    plan_hpc_submission, CampaignCheck, CampaignConfig, CampaignDryRunReport, CampaignJob,
-    CampaignLayout, CampaignMeta, CampaignPolicies, CampaignPreflightReport, CampaignSecurity,
-    CampaignSlurm, CorpusSizeScalePolicy, HpcBundleFoundationLocks, HpcBundleSubmission,
-    HpcCodeFreezeObservation, HpcCodeSubmissionBundle, HpcReplayPayloadAdmission,
-    HpcResultsSubmissionBundle, HpcSelectedJob, HpcSubmissionPlan, HpcSubmissionSelector,
-    LayoutPolicies, OutputTemplates, PlannedJob, PlannedLayout, PlannedOutputs, PlannedSecurity,
-    ResolvedSlurm, ResourcePolicies, ResourceTemplate, ResourceTemplates, SiteProfile,
-    SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
+    plan_hpc_submission, render_hpc_submission_script, CampaignCheck, CampaignConfig,
+    CampaignDryRunReport, CampaignJob, CampaignLayout, CampaignMeta, CampaignPolicies,
+    CampaignPreflightReport, CampaignSecurity, CampaignSlurm, CorpusSizeScalePolicy,
+    HpcBundleFoundationLocks, HpcBundleSubmission, HpcCodeFreezeObservation,
+    HpcCodeSubmissionBundle, HpcReplayPayloadAdmission, HpcResultsSubmissionBundle, HpcSelectedJob,
+    HpcSubmissionPlan, HpcSubmissionSelector, LayoutPolicies, OutputTemplates, PlannedJob,
+    PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
+    ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
 };
 
 pub use crate::workflow::hpc_campaign::monitor_campaign;
