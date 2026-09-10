@@ -28,6 +28,7 @@ The public API is the planner surface exported from `src/lib.rs`.
 - `STAGE_COMPARE_STAGE_TOOLS`
 - `STAGE_SELECT_STAGE_TOOL`
 - `args`
+- `decode_local_benchmark_stage_parameters`
 - `project_local_benchmark_tool_parameters`
 - `plan_fastq_to_fastq__default__v1`
 - `plan_fastq_to_bam__default__v1`
@@ -98,3 +99,10 @@ Local benchmark fixture parameter projection lives in the planner's benchmark ow
 settings and correction-size defaults. Omitted unsupported fixture options are not
 proof that the resulting tool runs are scientifically equivalent. The selected
 adapter still admits its actual parameters, inputs and capabilities before execution.
+
+`decode_local_benchmark_stage_parameters` binds a requested stage to its observed
+plan before reading raw or effective parameters. Present raw fields consumed by the
+decoder require their declared scalar types and integer widths; absent/null fields
+retain existing defaults. Effective records use domain typed decoding. Unconsumed
+raw fields remain available to their upstream contracts, and tool adapters still
+own complete capability, range, identity and scientific admission.

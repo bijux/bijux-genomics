@@ -47,7 +47,7 @@ fn planner_fastq_tree_matches_architecture_contract() {
     );
     assert_eq!(
         child_entries(&root.join("src/planner/benchmark")),
-        entries(["fixture_parameters.rs", "mod.rs"]),
+        entries(["fixture_parameters.rs", "mod.rs", "parameter_values.rs", "plan_parameters.rs"]),
         "benchmark graph construction and fixture parameter projection have distinct owners"
     );
     assert_eq!(
