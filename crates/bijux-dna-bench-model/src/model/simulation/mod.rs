@@ -7,3 +7,5 @@ pub use failure::*;
 
 mod missing;
 pub use missing::*;
+
+pub(crate) mod completion;

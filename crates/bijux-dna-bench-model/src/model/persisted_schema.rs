@@ -78,6 +78,7 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
     };
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-completion-check.schema.json", || schemars::schema_for!(super::simulation::completion::AllDomainCompletionCheckReport)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-missing-result-audit.schema.json", || schemars::schema_for!(super::simulation::AllDomainMissingResultTestReport)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-all-domain-fake-failure-record.schema.json", || schemars::schema_for!(super::simulation::AllDomainFakeFailureRecord)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-all-domain-fake-failures.schema.json", || schemars::schema_for!(super::simulation::AllDomainFakeFailuresManifest)),

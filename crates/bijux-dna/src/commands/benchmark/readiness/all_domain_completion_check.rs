@@ -3,7 +3,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::all_domain_expected_benchmark_results::{
     collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
@@ -23,95 +22,17 @@ use crate::commands::benchmark::path_resolution::BenchmarkPathResolver;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/completion-check-all-domains.json";
-const DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_FIXTURE_ROOT: &str =
-    "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/completion-check";
-const ALL_DOMAIN_COMPLETION_CHECK_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_completion_check.v1";
-
-const MUTATION_MISSING_DECLARED_OUTPUT: &str = "missing_declared_output";
-const MUTATION_MISSING_NORMALIZED_METRICS: &str = "missing_normalized_metrics";
-const MUTATION_MISSING_MANIFEST: &str = "missing_manifest";
-const MUTATION_REQUIRED_FILE_EMPTY: &str = "required_file_empty";
-const MUTATION_EXECUTION_NOT_SUCCESSFUL: &str = "execution_not_successful";
-
-const REASON_MISSING_MANIFEST: &str = "missing_manifest";
-const REASON_INVALID_MANIFEST: &str = "invalid_manifest";
-const REASON_REQUIRED_FILES_INCOMPLETE: &str = "required_files_incomplete";
-const REASON_MISSING_DECLARED_OUTPUTS: &str = "missing_declared_outputs";
-const REASON_MISSING_NORMALIZED_METRICS: &str = "missing_normalized_metrics";
-const REASON_EXECUTION_NOT_SUCCESSFUL: &str = "execution_not_successful";
-const REASON_MANIFEST_OUTPUT_MISMATCH: &str = "manifest_output_mismatch";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum AllDomainCompletionStatus {
-    Complete,
-    Incomplete,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainCompletionRequiredFile {
-    pub(crate) file_id: String,
-    pub(crate) path: String,
-    pub(crate) exists: bool,
-    pub(crate) non_empty: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainCompletionSeededMutation {
-    pub(crate) mutation_id: String,
-    pub(crate) result_id: String,
-    pub(crate) evidence_path: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainCompletionCheckRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) command_script_path: String,
-    pub(crate) stdout_path: String,
-    pub(crate) stderr_path: String,
-    pub(crate) metrics_path: String,
-    pub(crate) stage_result_path: String,
-    pub(crate) manifest_exists: bool,
-    pub(crate) manifest_valid: bool,
-    pub(crate) manifest_output_match: bool,
-    pub(crate) exit_code_zero: bool,
-    pub(crate) runtime_status: Option<String>,
-    pub(crate) exit_code: Option<i32>,
-    pub(crate) declared_output_count: usize,
-    pub(crate) present_declared_output_count: usize,
-    pub(crate) missing_declared_output_ids: Vec<String>,
-    pub(crate) normalized_metrics_count: usize,
-    pub(crate) present_normalized_metrics_count: usize,
-    pub(crate) missing_normalized_metric_ids: Vec<String>,
-    pub(crate) required_file_count: usize,
-    pub(crate) ready_required_file_count: usize,
-    pub(crate) required_files: Vec<AllDomainCompletionRequiredFile>,
-    pub(crate) completion_status: AllDomainCompletionStatus,
-    pub(crate) failure_reasons: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainCompletionCheckReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) fixture_root: String,
-    pub(crate) row_count: usize,
-    pub(crate) complete_row_count: usize,
-    pub(crate) incomplete_row_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) failure_reason_counts: BTreeMap<String, usize>,
-    pub(crate) passes_behavior_test: bool,
-    pub(crate) seeded_mutations: Vec<AllDomainCompletionSeededMutation>,
-    pub(crate) rows: Vec<AllDomainCompletionCheckRow>,
-}
+use bijux_dna_api::v1::api::bench::completion::admit_all_domain_completion_check;
+pub(crate) use bijux_dna_api::v1::api::bench::completion::{
+    AllDomainCompletionCheckReport, AllDomainCompletionCheckRow, AllDomainCompletionRequiredFile,
+    AllDomainCompletionSeededMutation, AllDomainCompletionStatus,
+    ALL_DOMAIN_COMPLETION_CHECK_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_COMPLETION_CHECK_PATH,
+    MUTATION_EXECUTION_NOT_SUCCESSFUL, MUTATION_MISSING_DECLARED_OUTPUT, MUTATION_MISSING_MANIFEST,
+    MUTATION_MISSING_NORMALIZED_METRICS, MUTATION_REQUIRED_FILE_EMPTY,
+    REASON_EXECUTION_NOT_SUCCESSFUL, REASON_INVALID_MANIFEST, REASON_MANIFEST_OUTPUT_MISMATCH,
+    REASON_MISSING_DECLARED_OUTPUTS, REASON_MISSING_MANIFEST, REASON_MISSING_NORMALIZED_METRICS,
+    REASON_REQUIRED_FILES_INCOMPLETE,
+};
 
 pub(crate) fn run_render_all_domain_completion_check(
     args: &parse::BenchReadinessRenderAllDomainCompletionCheckArgs,
@@ -179,7 +100,7 @@ pub(crate) fn render_all_domain_completion_check(
     }
 
     let report = AllDomainCompletionCheckReport {
-        schema_version: ALL_DOMAIN_COMPLETION_CHECK_SCHEMA_VERSION,
+        schema_version: ALL_DOMAIN_COMPLETION_CHECK_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         fixture_root: path_relative_to_repo(repo_root, &fixture_root),
         row_count: rows.len(),
@@ -191,7 +112,7 @@ pub(crate) fn render_all_domain_completion_check(
         seeded_mutations,
         rows,
     };
-    let report = ensure_all_domain_completion_check_contract(report)?;
+    let report = admit_all_domain_completion_check(report)?;
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)?;
     Ok(report)
 }
@@ -534,81 +455,6 @@ fn ensure_completion_row_alignment(
         ));
     }
     Ok(())
-}
-
-fn ensure_all_domain_completion_check_contract(
-    mut report: AllDomainCompletionCheckReport,
-) -> Result<AllDomainCompletionCheckReport> {
-    if report.complete_row_count + report.incomplete_row_count != report.row_count {
-        return Err(anyhow!(
-            "all-domain completion checker row counts do not sum to the total row count"
-        ));
-    }
-    let expected_incomplete_row_count = report.seeded_mutations.len();
-    let expected_complete_row_count =
-        report.row_count.saturating_sub(expected_incomplete_row_count);
-    if report.incomplete_row_count != expected_incomplete_row_count {
-        return Err(anyhow!(
-            "all-domain completion checker incomplete rows must equal the seeded mutation count (incomplete={}, seeded={})",
-            report.incomplete_row_count,
-            expected_incomplete_row_count
-        ));
-    }
-    let passes_behavior_test = {
-        let row_by_result_id =
-            report.rows.iter().map(|row| (row.result_id.as_str(), row)).collect::<BTreeMap<_, _>>();
-        let mutation_by_id = report
-            .seeded_mutations
-            .iter()
-            .map(|mutation| (mutation.mutation_id.as_str(), mutation.result_id.as_str()))
-            .collect::<BTreeMap<_, _>>();
-
-        report.complete_row_count == expected_complete_row_count
-            && report.incomplete_row_count == expected_incomplete_row_count
-            && matches_seeded_reason(
-                &row_by_result_id,
-                mutation_by_id.get(MUTATION_MISSING_DECLARED_OUTPUT).copied(),
-                REASON_MISSING_DECLARED_OUTPUTS,
-            )
-            && matches_seeded_reason(
-                &row_by_result_id,
-                mutation_by_id.get(MUTATION_MISSING_NORMALIZED_METRICS).copied(),
-                REASON_MISSING_NORMALIZED_METRICS,
-            )
-            && matches_seeded_reason(
-                &row_by_result_id,
-                mutation_by_id.get(MUTATION_MISSING_MANIFEST).copied(),
-                REASON_MISSING_MANIFEST,
-            )
-            && matches_seeded_reason(
-                &row_by_result_id,
-                mutation_by_id.get(MUTATION_REQUIRED_FILE_EMPTY).copied(),
-                REASON_REQUIRED_FILES_INCOMPLETE,
-            )
-            && matches_seeded_reason(
-                &row_by_result_id,
-                mutation_by_id.get(MUTATION_EXECUTION_NOT_SUCCESSFUL).copied(),
-                REASON_EXECUTION_NOT_SUCCESSFUL,
-            )
-    };
-
-    report.passes_behavior_test = passes_behavior_test;
-
-    if !report.passes_behavior_test {
-        return Err(anyhow!("all-domain completion checker failed the governed behavior test"));
-    }
-    Ok(report)
-}
-
-fn matches_seeded_reason(
-    rows: &BTreeMap<&str, &AllDomainCompletionCheckRow>,
-    result_id: Option<&str>,
-    required_reason: &str,
-) -> bool {
-    result_id.and_then(|result_id| rows.get(result_id)).is_some_and(|row| {
-        row.completion_status == AllDomainCompletionStatus::Incomplete
-            && row.failure_reasons.iter().any(|reason| reason == required_reason)
-    })
 }
 
 fn find_result<'a>(

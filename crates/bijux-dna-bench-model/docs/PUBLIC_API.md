@@ -509,3 +509,10 @@ Slurm dependency inspection interprets borrowed submission jobs and observed scr
 Failure simulation owns closed `AllDomainFakeFailureRecord` and `AllDomainFakeFailuresManifest` v1 wire contracts, `AllDomainFakeFailureOutputEntry`, their schema functions and version/root constants. `validate_all_domain_failure_simulation_record` and `validate_all_domain_failure_simulation_manifest` reject schema, identity, output-role/path, count and outcome contradictions. These artifacts describe illustrative failures and do not attest tool execution.
 
 Missing-result audit observations use closed `AllDomainMissingResultTestReport`, `AllDomainMissingResultRow` and `AllDomainMissingResultStatus` contracts. `AllDomainMissingResultObservation` borrows aligned declarations, simulation rows and an optional typed stage manifest; `project_all_domain_missing_result_observation` preserves source identity and missingness without I/O. `admit_all_domain_missing_result_audit` computes the verdict after complete declared-content checks; `validate_all_domain_missing_result_audit` admits replay. The schema function, version/default-path constants and governed removal identities belong to the model. These are illustrative manifest-presence checks, not fresh scientific execution evidence.
+
+The `completion` namespace owns closed all-domain completion reports, schema/version
+identity, and pure admission. Admission checks every row, required-file identity,
+manifest/runtime flag, artifact count, failure reason, aggregate counter, and the
+five governed mutation identities before computing the behavior verdict. Replay
+validation requires a consistent successful declared verdict; it does not prove
+current filesystem state or fresh scientific execution.

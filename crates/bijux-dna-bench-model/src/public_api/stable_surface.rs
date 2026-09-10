@@ -987,3 +987,11 @@ pub use crate::model::hpc_campaign::{
     HpcSubmissionMode, HpcSubmissionSettings, SlurmSubmissionReport, SubmittedJob,
     HPC_SLURM_SUBMISSION_SCHEMA_VERSION,
 };
+
+/// Closed completion observations and their pure admission boundary.
+pub mod completion {
+    pub use crate::contract::{
+        admit_all_domain_completion_check, validate_all_domain_completion_check,
+    };
+    pub use crate::model::simulation::completion::*;
+}

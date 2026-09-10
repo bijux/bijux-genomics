@@ -147,3 +147,6 @@ pub use missing::{
     project_all_domain_missing_result_observation, validate_all_domain_missing_result_audit,
     AllDomainMissingResultObservation,
 };
+
+mod completion;
+pub use completion::{admit_all_domain_completion_check, validate_all_domain_completion_check};
