@@ -35,9 +35,9 @@ are supplied through the shared stage contract by an application composition roo
   reference admission uses db-ref's complete catalog schemas; execution admission
   applies pure model rules before site lookup. Pipeline inventory adapters supply
   explicit-root readiness and VCF profile evidence.
-- `artifacts/` owns source identities, output admission and serialization.
-  `artifacts/source_assets.rs` inspects files, directories and index-prefix bundles
-  with typed source kinds and member digests. `artifacts/writer/` separates
+- Benchmark source identity types belong to `bijux-dna-bench-model`;
+  `repo/source_assets.rs` inspects current files, directories and index-prefix bundles.
+  `artifacts/` owns output admission and serialization. `artifacts/writer/` separates
   observation reading, observation writing and structured JSON output.
 
 ## Dependency Direction

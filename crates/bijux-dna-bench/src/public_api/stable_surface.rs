@@ -647,9 +647,8 @@ pub use bijux_dna_science::decision::{
     evaluate_benchmark_gate_policy, validate_benchmark_gate_policy,
 };
 
-pub use crate::artifacts::{
-    inspect_benchmark_source_asset, BenchmarkSourceAsset, BenchmarkSourceKind,
-};
+pub use crate::repo::source_assets::inspect_benchmark_source_asset;
+pub use bijux_dna_bench_model::{BenchmarkSourceAsset, BenchmarkSourceKind};
 
 pub use crate::repo::materialize_benchmark_reference_fasta;
 

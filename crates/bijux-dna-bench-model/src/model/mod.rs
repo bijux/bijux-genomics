@@ -765,3 +765,5 @@ pub(crate) mod hpc_campaign;
 pub(crate) mod simulation;
 
 pub(crate) mod micro_benchmark;
+
+pub(crate) mod source_assets;

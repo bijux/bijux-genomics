@@ -1,50 +1,11 @@
-//! Owner: bijux-dna-bench
-//! Read-only inspection of benchmark source files, directories, and index-prefix bundles.
-
-use std::collections::BTreeSet;
-use std::fs;
-use std::path::{Path, PathBuf};
-
+//! Owner: current source file, directory and index-prefix acquisition.
+use crate::{BenchmarkSourceAsset, BenchmarkSourceKind};
 use anyhow::{anyhow, ensure, Context, Result};
-
-/// Storage representation of a benchmark input, independent of execution backend.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum BenchmarkSourceKind {
-    /// One declared input file.
-    File,
-    /// A directory tree, hashed by sorted relative member paths.
-    Directory,
-    /// Files sharing a declared index prefix followed by a dot.
-    PrefixBundle,
-}
-
-impl BenchmarkSourceKind {
-    /// Stable spelling used in persisted source-asset manifests.
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::File => "file",
-            Self::Directory => "directory",
-            Self::PrefixBundle => "prefix_bundle",
-        }
-    }
-}
-
-/// Content identity of a source input before staging or execution.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BenchmarkSourceAsset {
-    /// Physical representation of the input.
-    pub kind: BenchmarkSourceKind,
-    /// Caller-declared path, retained for provenance and staging.
-    pub source_path: String,
-    /// File SHA-256 or the stable sorted-member digest for compound inputs.
-    pub checksum_sha256: String,
-    /// Total bytes across regular-file members.
-    pub size_bytes: u64,
-    /// Number of regular-file members represented by the digest.
-    pub member_count: usize,
-}
-
+use std::{
+    collections::BTreeSet,
+    fs,
+    path::{Path, PathBuf},
+};
 /// Inspect a source relative to the caller's root without creating outputs.
 ///
 /// Missing files may denote index-prefix bundles; an absent bundle returns `None`.

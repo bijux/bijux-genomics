@@ -33,7 +33,6 @@ fn bench_tree_matches_architecture_contract() {
             "schema_publication.rs",
             "command_artifacts.rs",
             "micro_report.rs",
-            "source_assets.rs",
             "writer/"
         ]),
         "artifacts tree must separate source inspection, output admission, and serialization"
@@ -121,6 +120,7 @@ fn bench_tree_matches_architecture_contract() {
         entries([
             "hpc_array.rs",
             "hpc_resources.rs",
+            "source_assets.rs",
             "hpc_asset_staging.rs",
             "hpc_inputs/",
             "hardening_campaign.rs",
