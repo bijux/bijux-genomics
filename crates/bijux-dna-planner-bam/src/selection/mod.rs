@@ -7,7 +7,8 @@ pub use domain_tool_output_contracts::{
     load_bam_domain_tool_stage_output_contract, BamDomainToolStageOutputContract,
 };
 pub use domain_tool_specs::{
-    load_bam_domain_tool_contract_metadata, load_bam_domain_tool_execution_spec,
-    load_bam_domain_tool_planning_spec, BamDomainToolContractMetadata, BamDomainToolSupportLevel,
+    load_bam_domain_tool_contract_metadata, load_bam_domain_tool_definition,
+    load_bam_domain_tool_execution_spec, load_bam_domain_tool_planning_spec,
+    BamDomainToolContractMetadata, BamDomainToolDefinition, BamDomainToolSupportLevel,
 };
 pub use tool_selection::*;

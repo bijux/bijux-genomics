@@ -28,3 +28,9 @@ The public API is the planner surface exported from `src/lib.rs`.
 - Additions must be documented here and covered by boundary or contract tests.
 - Changes to plan JSON, execution graph topology, explain payloads, or tool selection behavior require snapshot review.
 - Runtime execution behavior does not belong in this API.
+
+`stage_api::load_bam_domain_tool_definition` returns an immutable
+`BamDomainToolDefinition` for one observed tool YAML. Its `contract_metadata`,
+`planning_spec`, and `execution_spec` methods project that same observation.
+Existing path-based loaders remain available and reload on each call. Definition
+reuse is scoped by the caller; it does not cache changing repository files globally.

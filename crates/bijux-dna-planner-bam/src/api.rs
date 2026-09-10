@@ -41,9 +41,10 @@ pub mod stage_api {
     pub use crate::report_stage::report_stage_step;
     pub use crate::selection::{
         allowed_tools_for_stage, default_tool_for_stage, load_bam_domain_tool_contract_metadata,
-        load_bam_domain_tool_execution_spec, load_bam_domain_tool_planning_spec,
-        load_bam_domain_tool_stage_output_contract, BamDomainToolContractMetadata,
-        BamDomainToolStageOutputContract, BamDomainToolSupportLevel,
+        load_bam_domain_tool_definition, load_bam_domain_tool_execution_spec,
+        load_bam_domain_tool_planning_spec, load_bam_domain_tool_stage_output_contract,
+        BamDomainToolContractMetadata, BamDomainToolDefinition, BamDomainToolStageOutputContract,
+        BamDomainToolSupportLevel,
     };
     pub use crate::stages::stage_registry;
     pub use crate::{plan_stage, StagePlanRequest};

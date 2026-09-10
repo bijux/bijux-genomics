@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_bam::{
     bam_scientific_report_contract_for_stage, bam_stage_completeness, BamStage,
 };
@@ -12,8 +12,8 @@ use bijux_dna_domain_fastq::{
     stage_tool_capability_contract, BenchmarkReadinessLevel, RuntimeNormalizationLevel,
 };
 use bijux_dna_planner_bam::stage_api::{
-    allowed_tools_for_stage as allowed_bam_tools_for_stage, load_bam_domain_tool_contract_metadata,
-    load_bam_domain_tool_execution_spec, load_bam_domain_tool_planning_spec,
+    allowed_tools_for_stage as allowed_bam_tools_for_stage, load_bam_domain_tool_definition,
+    BamDomainToolDefinition,
 };
 use serde::Serialize;
 
@@ -268,6 +268,7 @@ pub(crate) fn collect_bam_tool_serving_map_rows(
     let integrated_container_tool_ids = load_benchmark_integrated_container_tool_ids(repo_root)?;
     let inventory = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?;
     let mut rows = Vec::new();
+    let mut definitions = BTreeMap::new();
     let mut tool_ids = BTreeSet::new();
     for inventory_stage in &inventory.stages {
         let stage = BamStage::try_from(inventory_stage.stage_id.as_str())
@@ -286,11 +287,16 @@ pub(crate) fn collect_bam_tool_serving_map_rows(
                 continue;
             }
             tool_ids.insert(tool_id.as_str().to_string());
+            let definition = definitions
+                .entry(tool_id.clone())
+                .or_insert_with(|| load_bam_domain_tool_definition(repo_root, &tool_id))
+                .as_ref()
+                .ok();
             rows.push(ToolServingMapRow {
                 tool_id: tool_id.as_str().to_string(),
                 stage_id: stage_id.as_str().to_string(),
-                support_status: bam_support_status_label(repo_root, &stage_id, &tool_id),
-                adapter_status: bam_adapter_status_label(repo_root, &stage_id, &tool_id),
+                support_status: bam_support_status_label(definition, &stage_id),
+                adapter_status: bam_adapter_status_label(definition, &stage_id),
                 parser_status: parser_status.to_string(),
                 corpus_status: corpus_status.clone(),
             });
@@ -392,8 +398,12 @@ pub(crate) fn load_corpus_status_by_stage(repo_root: &Path) -> Result<BTreeMap<S
         .collect::<Result<BTreeMap<_, _>>>()
 }
 
-fn bam_support_status_label(repo_root: &Path, stage_id: &StageId, tool_id: &ToolId) -> String {
-    let Ok(metadata) = load_bam_domain_tool_contract_metadata(repo_root, tool_id) else {
+fn bam_support_status_label(
+    definition: Option<&BamDomainToolDefinition>,
+    stage_id: &StageId,
+) -> String {
+    let Some(metadata) = definition.and_then(|definition| definition.contract_metadata().ok())
+    else {
         return "missing_contract".to_string();
     };
     let admitted = metadata.stage_ids.iter().any(|candidate| candidate == stage_id)
@@ -404,10 +414,16 @@ fn bam_support_status_label(repo_root: &Path, stage_id: &StageId, tool_id: &Tool
     metadata.pair_support_level(stage_id).as_str().to_string()
 }
 
-fn bam_adapter_status_label(repo_root: &Path, stage_id: &StageId, tool_id: &ToolId) -> String {
-    if load_bam_domain_tool_execution_spec(repo_root, stage_id, tool_id).is_ok() {
+fn bam_adapter_status_label(
+    definition: Option<&BamDomainToolDefinition>,
+    stage_id: &StageId,
+) -> String {
+    let Some(definition) = definition else {
+        return "declared_only".to_string();
+    };
+    if definition.execution_spec(stage_id).is_ok() {
         "runnable".to_string()
-    } else if load_bam_domain_tool_planning_spec(repo_root, stage_id, tool_id).is_ok() {
+    } else if definition.planning_spec(stage_id).is_ok() {
         "plannable".to_string()
     } else {
         "declared_only".to_string()
