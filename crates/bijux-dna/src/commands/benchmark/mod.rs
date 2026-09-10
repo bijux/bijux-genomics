@@ -137,3 +137,5 @@ pub(crate) mod vcf_benchmark_bindings;
 pub(crate) mod workspace;
 
 mod micro_pipeline_inputs;
+
+mod population_inputs;

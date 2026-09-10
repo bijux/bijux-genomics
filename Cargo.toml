@@ -1,11 +1,13 @@
 [workspace]
 resolver = "2"
-members = ["crates/bijux-dna",
+members = [
+  "crates/bijux-dna",
   "crates/bijux-dna-analyze",
   "crates/bijux-dna-api",
   "crates/bijux-dna-bench",
   "crates/bijux-dna-bench-corpus",
   "crates/bijux-dna-bench-model",
+  "crates/bijux-dna-bench-population",
   "crates/bijux-dna-bench-vcf",
   "crates/bijux-dna-bench-workflows",
   "crates/bijux-dna-containers",
@@ -91,6 +93,7 @@ bijux-dna-api = { path = "crates/bijux-dna-api" }
 bijux-dna-bench = { path = "crates/bijux-dna-bench" }
 bijux-dna-bench-corpus = { path = "crates/bijux-dna-bench-corpus", default-features = false }
 bijux-dna-bench-vcf = { path = "crates/bijux-dna-bench-vcf" }
+bijux-dna-bench-population = { path = "crates/bijux-dna-bench-population" }
 bijux-dna-bench-workflows = { path = "crates/bijux-dna-bench-workflows", default-features = false }
 bijux-dna-bench-model = { path = "crates/bijux-dna-bench-model", default-features = false }
 bijux-dna-core = { path = "crates/bijux-dna-core" }

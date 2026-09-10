@@ -228,6 +228,7 @@ dependencies = [
  "anyhow",
  "bijux-dna-api",
  "bijux-dna-bench-corpus",
+ "bijux-dna-bench-population",
  "bijux-dna-bench-vcf",
  "bijux-dna-bench-workflows",
  "bijux-dna-core",
@@ -403,6 +404,24 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "toml",
+]
+
+[[package]]
+name = "bijux-dna-bench-population"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-bench-corpus",
+ "bijux-dna-bench-model",
+ "bijux-dna-core",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-infra",
+ "bijux-dna-stages-vcf",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
  "toml",
 ]
 

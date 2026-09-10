@@ -60,3 +60,6 @@ contracts and fixture observations without a normal dependency on CLI or API.
 
 Local micro-workflow orchestration belongs to `bijux-dna-bench-workflows`. CLI wrappers
 adapt arguments, supply fixture operations/tool bindings and present the returned reports.
+
+Population benchmark services belong to `bijux-dna-bench-population`. CLI composition
+acquires explicitly scoped declarations and presents the returned reports.

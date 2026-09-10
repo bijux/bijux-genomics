@@ -41,6 +41,7 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_documented_ada
         "bijux-dna-bench-corpus",
         "bijux-dna-bench-vcf",
         "bijux-dna-bench-workflows",
+        "bijux-dna-bench-population",
         "bijux-dna-core",
         "bijux-dna-db-ref",
         "bijux-dna-domain-compiler",

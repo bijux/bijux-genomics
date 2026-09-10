@@ -498,6 +498,16 @@
       "gates": [
         "crate-tests:bijux-dna-bench-workflows"
       ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-population",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-population/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-population"
+      ]
     }
   ],
   "edges": [
@@ -1624,6 +1634,41 @@
     {
       "consumer": "crate:bijux-dna-bench-workflows",
       "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-population",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-stages-vcf",
       "kind": "normal"
     }
   ]
