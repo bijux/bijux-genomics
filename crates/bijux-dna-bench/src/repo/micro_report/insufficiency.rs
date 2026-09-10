@@ -1,11 +1,10 @@
 //! Owner: admit report-level insufficiency markers from legacy evidence payloads.
-use super::read_json_value;
+use super::acquisition::ResultEvidence;
 use anyhow::Result;
 use bijux_dna_bench_model::{MicroBenchmarkInsufficientDataRow, MicroBenchmarkResultRow};
 use serde_json::Value;
-use std::path::Path;
 pub(super) fn detect_insufficient_data_row(
-    repo_root: &Path,
+    evidence: &mut ResultEvidence<'_>,
     row: &MicroBenchmarkResultRow,
 ) -> Result<Option<MicroBenchmarkInsufficientDataRow>> {
     let reason_lower = row.reason.to_ascii_lowercase();
@@ -27,8 +26,8 @@ pub(super) fn detect_insufficient_data_row(
     if !evidence_path.ends_with(".json") {
         return Ok(None);
     }
-    let payload = read_json_value(repo_root.join(evidence_path))?;
-    if json_contains_insufficient_marker(&payload) {
+    let payload = evidence.json()?;
+    if json_contains_insufficient_marker(payload) {
         return Ok(Some(MicroBenchmarkInsufficientDataRow {
             execution_id: row.execution_id.clone(),
             component_id: row.component_id.clone(),

@@ -1,12 +1,11 @@
 //! Owner: runtime and memory evidence acquisition with declared-resource fallback.
-use super::read_json_value;
-use anyhow::{Context, Result};
+use super::acquisition::ResultEvidence;
+use anyhow::Result;
 use bijux_dna_bench_model::{
     MicroBenchmarkExecutionStatus, MicroBenchmarkResultRow, StageToolResourceRow,
 };
 use serde_json::Value;
 use std::collections::BTreeMap;
-use std::path::Path;
 const GOVERNED_RUNTIME_SOURCE: &str = "governed_runtime";
 #[derive(Debug, Clone)]
 pub(super) struct RuntimeEvidence {
@@ -25,24 +24,21 @@ pub(super) struct MemoryEvidence {
 }
 
 pub(super) fn load_runtime_evidence(
-    repo_root: &Path,
+    evidence: &mut ResultEvidence<'_>,
     row: &MicroBenchmarkResultRow,
     governed_runtime_projection: bool,
 ) -> Result<RuntimeEvidence> {
     if row.status != MicroBenchmarkExecutionStatus::Succeeded {
         return Ok(RuntimeEvidence { elapsed_seconds: None, runtime_source: "not_applicable" });
     }
-    if let Some(manifest_path) = &row.stage_result_manifest_path {
+    if row.stage_result_manifest_path.is_some() {
         if governed_runtime_projection {
             return Ok(RuntimeEvidence {
                 elapsed_seconds: None,
                 runtime_source: GOVERNED_RUNTIME_SOURCE,
             });
         }
-        let manifest = crate::repo::stage_result::load_benchmark_stage_result_manifest(
-            &repo_root.join(manifest_path),
-        )
-        .with_context(|| format!("load {}", repo_root.join(manifest_path).display()))?;
+        let manifest = evidence.stage_result()?;
         return Ok(RuntimeEvidence {
             elapsed_seconds: Some(manifest.runtime.elapsed_seconds),
             runtime_source: "stage_result_manifest",
@@ -50,9 +46,9 @@ pub(super) fn load_runtime_evidence(
     }
     if let Some(evidence_path) = &row.evidence_path {
         if evidence_path.ends_with(".json") {
-            let payload = read_json_value(repo_root.join(evidence_path))?;
-            if let Some(elapsed_seconds) = json_optional_f64(&payload, "elapsed_seconds")
-                .or_else(|| json_optional_f64(&payload, "runtime_s"))
+            let payload = evidence.json()?;
+            if let Some(elapsed_seconds) = json_optional_f64(payload, "elapsed_seconds")
+                .or_else(|| json_optional_f64(payload, "runtime_s"))
             {
                 return Ok(RuntimeEvidence {
                     elapsed_seconds: Some(elapsed_seconds),
@@ -65,7 +61,7 @@ pub(super) fn load_runtime_evidence(
 }
 
 pub(super) fn load_memory_evidence(
-    repo_root: &Path,
+    evidence: &mut ResultEvidence<'_>,
     row: &MicroBenchmarkResultRow,
     stage_tool_resources: &BTreeMap<(String, String, String), StageToolResourceRow>,
 ) -> Result<MemoryEvidence> {
@@ -79,11 +75,8 @@ pub(super) fn load_memory_evidence(
             resource_origin: None,
         });
     }
-    if let Some(manifest_path) = &row.stage_result_manifest_path {
-        let manifest = crate::repo::stage_result::load_benchmark_stage_result_manifest(
-            &repo_root.join(manifest_path),
-        )
-        .with_context(|| format!("load {}", repo_root.join(manifest_path).display()))?;
+    if row.stage_result_manifest_path.is_some() {
+        let manifest = evidence.stage_result()?;
         if manifest.resource_metrics.memory_mb.is_some()
             || manifest.resource_metrics.cpu_threads.is_some()
         {
@@ -99,11 +92,11 @@ pub(super) fn load_memory_evidence(
     }
     if let Some(evidence_path) = &row.evidence_path {
         if evidence_path.ends_with(".json") {
-            let payload = read_json_value(repo_root.join(evidence_path))?;
-            let observed_memory_mb = json_optional_f64(&payload, "memory_mb")
-                .or_else(|| json_optional_f64(&payload, "peak_memory_mb"));
-            let observed_cpu_threads = json_optional_u32(&payload, "cpu_threads")
-                .or_else(|| json_optional_u32(&payload, "threads"));
+            let payload = evidence.json()?;
+            let observed_memory_mb = json_optional_f64(payload, "memory_mb")
+                .or_else(|| json_optional_f64(payload, "peak_memory_mb"));
+            let observed_cpu_threads = json_optional_u32(payload, "cpu_threads")
+                .or_else(|| json_optional_u32(payload, "threads"));
             if observed_memory_mb.is_some() || observed_cpu_threads.is_some() {
                 return Ok(MemoryEvidence {
                     declared_memory_mb: None,

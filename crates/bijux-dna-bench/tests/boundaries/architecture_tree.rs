@@ -18,7 +18,7 @@ fn bench_tree_matches_architecture_contract() {
         "src tree must match the documented benchmark layout"
     );
 
-    assert_eq!(dir_entries(&root.join("src/repo/micro_report")),entries(["mod.rs","declarations.rs","insufficiency.rs","resources.rs","publication.rs"]),"micro report acquisition separates declaration, legacy evidence and publication responsibilities");
+    assert_eq!(dir_entries(&root.join("src/repo/micro_report")),entries(["mod.rs","acquisition.rs","declarations.rs","insufficiency.rs","resources.rs","publication.rs"]),"micro report acquisition separates declaration, legacy evidence and publication responsibilities");
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
         entries([

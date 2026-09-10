@@ -1,9 +1,11 @@
 //! Owner: repository observation capture for one micro-benchmark report.
+mod acquisition;
 mod declarations;
 mod insufficiency;
 pub(crate) mod publication;
 mod resources;
-use anyhow::{Context, Result};
+use acquisition::ResultEvidence;
+use anyhow::Result;
 use bijux_dna_bench_model::{
     MicroBenchmarkMemorySourceRow, MicroBenchmarkReportObservations, MicroBenchmarkResultRow,
     MicroBenchmarkRuntimeRow,
@@ -11,9 +13,7 @@ use bijux_dna_bench_model::{
 use declarations::{load_science_threshold_rows, load_stage_tool_resources};
 use insufficiency::detect_insufficient_data_row;
 use resources::{load_memory_evidence, load_runtime_evidence};
-use serde_json::Value;
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH: &str =
     "configs/bench/local/scientific-acceptance-thresholds.toml";
 const STAGE_TOOL_RESOURCES_PATH: &str = "configs/bench/local/stage-tool-resources.toml";
@@ -22,11 +22,7 @@ pub(crate) fn capture(
     result_rows: &[MicroBenchmarkResultRow],
     governed_runtime_projection: bool,
 ) -> Result<MicroBenchmarkReportObservations> {
-    let insufficient_data_rows = result_rows
-        .iter()
-        .filter_map(|row| detect_insufficient_data_row(repo_root, row).transpose())
-        .collect::<Result<Vec<_>>>()?;
-
+    let mut insufficient_data_rows = Vec::new();
     let stage_tool_resources =
         load_stage_tool_resources(repo_root.join(STAGE_TOOL_RESOURCES_PATH))?;
     let science_threshold_rows = load_science_threshold_rows(
@@ -37,8 +33,16 @@ pub(crate) fn capture(
     let mut runtime_rows = Vec::with_capacity(result_rows.len());
     let mut memory_source_rows = Vec::with_capacity(result_rows.len());
     for row in result_rows {
-        let runtime = load_runtime_evidence(repo_root, row, governed_runtime_projection)?;
-        let memory = load_memory_evidence(repo_root, row, &stage_tool_resources)?;
+        let mut evidence = ResultEvidence::new(
+            repo_root,
+            row.evidence_path.as_deref(),
+            row.stage_result_manifest_path.as_deref(),
+        );
+        if let Some(insufficient) = detect_insufficient_data_row(&mut evidence, row)? {
+            insufficient_data_rows.push(insufficient);
+        }
+        let runtime = load_runtime_evidence(&mut evidence, row, governed_runtime_projection)?;
+        let memory = load_memory_evidence(&mut evidence, row, &stage_tool_resources)?;
         runtime_rows.push(MicroBenchmarkRuntimeRow {
             execution_id: row.execution_id.clone(),
             component_id: row.component_id.clone(),
@@ -77,8 +81,4 @@ pub(crate) fn capture(
         memory: memory_source_rows,
         thresholds: science_threshold_rows,
     })
-}
-fn read_json_value(path: PathBuf) -> Result<Value> {
-    let payload = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    serde_json::from_str(&payload).with_context(|| format!("parse {}", path.display()))
 }
