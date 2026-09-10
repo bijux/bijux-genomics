@@ -1,8 +1,7 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_pipelines::PipelineProfile;
-use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
-use serde_json::Value;
+use bijux_dna_stage_contract::StagePlanV1;
 use std::collections::BTreeSet;
 
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-bam.v1";
@@ -44,32 +43,7 @@ impl BamPlanner {
 /// Returns an error if the stage cannot be planned with the provided inputs.
 #[allow(clippy::needless_pass_by_value)]
 pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
-    let stage = bijux_dna_domain_bam::BamStage::try_from(request.stage_id)?;
-    tool_policy::enforce(stage, &request.tool.tool_id.0, request.params, request.reference)?;
-    let mut plan = stage_dispatch::plan(stage, &request)?;
-    let mut details = serde_json::Map::new();
-    details.insert("defaults_diff".to_string(), serde_json::json!({}));
-    if let Some(Ok(hash)) = bijux_dna_domain_bam::stage_contract_hash(request.stage_id) {
-        details.insert("contract_hash".to_string(), Value::String(hash));
-    }
-    let input_bytes = request
-        .bam
-        .and_then(|path| std::fs::metadata(path).ok())
-        .map_or(0, |metadata| metadata.len());
-    details.insert(
-        "resource_plan".to_string(),
-        serde_json::to_value(bijux_dna_domain_bam::estimate_bam_stage_resources(
-            request.stage_id,
-            input_bytes,
-        ))
-        .unwrap_or_else(|error| serde_json::json!({ "serialization_error": error.to_string() })),
-    );
-    plan.reason = PlanDecisionReason::new(
-        PlanReasonKind::Default,
-        format!("tool {} selected by planner", plan.tool_id.0),
-    );
-    plan.reason.details = Value::Object(details);
-    Ok(plan)
+    stage_dispatch::plan_stage_at(std::path::Path::new(""), request)
 }
 
 /// # Errors

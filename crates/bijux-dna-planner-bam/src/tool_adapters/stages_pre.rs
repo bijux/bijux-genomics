@@ -126,11 +126,26 @@ pub mod align {
         params: &AlignEffectiveParams,
         out_dir: &Path,
     ) -> anyhow::Result<StagePlanV1> {
+        plan_at(Path::new(""), tool, r1, r2, reference, sample_id, params, out_dir)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub(crate) fn plan_at(
+        repo_root: &Path,
+        tool: &ToolExecutionSpecV1,
+        r1: &Path,
+        r2: Option<&Path>,
+        reference: &Path,
+        sample_id: &str,
+        params: &AlignEffectiveParams,
+        out_dir: &Path,
+    ) -> anyhow::Result<StagePlanV1> {
         let outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::Align,
             out_dir,
         );
-        let _assets = crate::tool_adapters::stages_support::ensure_reference_assets(
+        let _assets = crate::tool_adapters::stages_support::ensure_reference_assets_at(
+            repo_root,
             reference,
             params.build_indices,
             true,

@@ -40,3 +40,10 @@ an optional observed definition and a stage identity. Its typed contract and ada
 statuses preserve independent metadata admission and planning/execution-spec viability.
 The stable status labels remain available through `as_str`. Runnable spec viability
 does not assert tool installation, successful execution, or scientific qualification.
+
+`stage_api::plan_stage_at(root, request)` resolves current BAM size and reference
+sidecar observations relative to an explicit root. Logical input/output paths and
+structured command arguments are preserved. The original `plan_stage` and direct
+alignment adapter retain their caller-relative behavior. Planning does not change
+the process working directory; missing size observations retain the existing zero
+estimate, and sidecar presence alone does not establish scientific compatibility.

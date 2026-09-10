@@ -94,7 +94,7 @@ fn planner_bam_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/stage_dispatch")),
-        entries(["adna.rs", "downstream.rs", "mod.rs", "post.rs", "pre.rs"]),
+        entries(["adna.rs", "downstream.rs", "mod.rs", "planning.rs", "post.rs", "pre.rs"]),
         "stage dispatch must stay partitioned by BAM planning family"
     );
     assert_eq!(

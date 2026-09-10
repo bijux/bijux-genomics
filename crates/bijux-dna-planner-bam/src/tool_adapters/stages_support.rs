@@ -95,14 +95,23 @@ pub fn ensure_reference_assets(
     build_indices: bool,
     require_dict: bool,
 ) -> Result<ReferenceAssets> {
+    ensure_reference_assets_at(Path::new(""), reference, build_indices, require_dict)
+}
+
+pub(crate) fn ensure_reference_assets_at(
+    repo_root: &Path,
+    reference: &Path,
+    build_indices: bool,
+    require_dict: bool,
+) -> Result<ReferenceAssets> {
     let fasta = reference.to_path_buf();
     let fai = reference_fai_path(reference);
     let dict = reference.with_extension("dict");
     if !build_indices {
-        if !fai.exists() {
+        if !repo_root.join(&fai).exists() {
             anyhow::bail!("reference index missing: {}", fai.display());
         }
-        if require_dict && !dict.exists() {
+        if require_dict && !repo_root.join(&dict).exists() {
             anyhow::bail!("reference dict missing: {}", dict.display());
         }
     }

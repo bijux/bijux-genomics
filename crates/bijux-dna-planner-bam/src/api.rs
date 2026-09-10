@@ -47,6 +47,7 @@ pub mod stage_api {
         BamDomainToolDefinition, BamDomainToolStageOutputContract, BamDomainToolSupportLevel,
         BamToolAdapterStatus, BamToolContractStatus, BamToolDefinitionReadiness,
     };
+    pub use crate::stage_dispatch::plan_stage_at;
     pub use crate::stages::stage_registry;
     pub use crate::{plan_stage, StagePlanRequest};
     pub use bijux_dna_stages_bam::stage_specs::*;

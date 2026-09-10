@@ -330,3 +330,84 @@ fn reference_assets_use_fasta_fai_sidecar() -> Result<()> {
     assert!(assets.dict.ends_with("reference.dict"));
     Ok(())
 }
+
+#[test]
+fn rooted_stage_planning_observes_current_bam_size_without_rewriting_logical_paths() -> Result<()> {
+    use bijux_dna_planner_bam::{stage_api::plan_stage_at, StagePlanRequest};
+    let directory = bijux_dna_infra::temp_dir("bam-planning-root")?;
+    let root = directory.path().join("repository with spaces");
+    std::fs::create_dir_all(&root)?;
+    let bam = Path::new("sample with spaces.bam");
+    let tool = dummy_tool("samtools");
+    let cwd = std::env::current_dir()?;
+    let plan = || {
+        plan_stage_at(
+            &root,
+            StagePlanRequest {
+                stage_id: "bam.validate",
+                tool: &tool,
+                out_dir: Path::new("planned outputs"),
+                bam: Some(bam),
+                bam_index: None,
+                r1: None,
+                r2: None,
+                reference: None,
+                sample_id: None,
+                params: None,
+            },
+        )
+    };
+    std::fs::write(root.join(bam), b"first observed bytes")?;
+    let first = plan()?;
+    assert_eq!(first.reason.details["resource_plan"]["input_bytes"], 20);
+    assert!(first.io.inputs.iter().any(|input| input.path == bam));
+    assert!(first.command.template.iter().all(|arg| !arg.contains(&root.display().to_string())));
+    std::fs::write(root.join(bam), b"replacement")?;
+    let second = plan()?;
+    assert_eq!(second.reason.details["resource_plan"]["input_bytes"], 11);
+    assert_eq!(first.command.template, second.command.template);
+    std::fs::remove_file(root.join(bam))?;
+    assert_eq!(plan()?.reason.details["resource_plan"]["input_bytes"], 0);
+    assert_eq!(std::env::current_dir()?, cwd);
+    Ok(())
+}
+
+#[test]
+fn rooted_alignment_admits_reference_sidecars_without_rewriting_command_paths() -> Result<()> {
+    use bijux_dna_planner_bam::{stage_api::plan_stage_at, StagePlanRequest};
+    let directory = bijux_dna_infra::temp_dir("bam-reference-root")?;
+    let root = directory.path().join("repository with spaces");
+    std::fs::create_dir_all(&root)?;
+    let reference = Path::new("reference with spaces.fasta");
+    std::fs::write(root.join(reference), b">chrM\nACGT\n")?;
+    std::fs::write(root.join("reference with spaces.fasta.fai"), b"chrM\t4\t6\t4\t5\n")?;
+    std::fs::write(root.join("reference with spaces.dict"), b"@SQ\tSN:chrM\tLN:4\n")?;
+    let tool = dummy_tool("bwa");
+    let cwd = std::env::current_dir()?;
+    let plan = |reference: &Path| {
+        plan_stage_at(
+            &root,
+            StagePlanRequest {
+                stage_id: "bam.align",
+                tool: &tool,
+                out_dir: Path::new("aligned outputs"),
+                bam: None,
+                bam_index: None,
+                r1: Some(Path::new("reads with spaces.fastq")),
+                r2: None,
+                reference: Some(reference),
+                sample_id: Some("sample"),
+                params: None,
+            },
+        )
+    };
+    let relative = plan(reference)?;
+    assert!(relative.io.inputs.iter().any(|input| input.path == reference));
+    assert!(relative.command.template.iter().all(|arg| !arg.contains(&root.display().to_string())));
+    let absolute = plan(&root.join(reference))?;
+    assert!(absolute.io.inputs.iter().any(|input| input.path == root.join(reference)));
+    std::fs::remove_file(root.join("reference with spaces.dict"))?;
+    assert!(plan(reference).is_err());
+    assert_eq!(std::env::current_dir()?, cwd);
+    Ok(())
+}
