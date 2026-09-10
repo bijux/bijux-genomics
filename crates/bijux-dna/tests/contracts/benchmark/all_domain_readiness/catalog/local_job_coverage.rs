@@ -3,8 +3,7 @@
 use std::collections::BTreeSet;
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");

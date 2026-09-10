@@ -2,11 +2,10 @@
 
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
-fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_file() {
+fn bench_readiness_all_domain_no_planned_rows_writes_governed_json_file() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
@@ -19,7 +18,7 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_f
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["bench", "readiness", "render-all-domain-no-not-benchmark-ready-rows"])
+        .args(["bench", "readiness", "render-all-domain-no-planned-rows"])
         .output()
         .expect("run cli");
 
@@ -34,17 +33,17 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_f
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json"
+        "artifacts/benchmark-smoke/readiness/all-domains/no-planned-rows.json"
     );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
-        .expect("read all-domain no-not-benchmark-ready-rows report");
+        .expect("read all-domain no-planned-rows report");
     let payload: serde_json::Value = serde_json::from_str(&payload).expect("parse report json");
 
-    assert_eq!(
-        payload.get("executable_active_row_count").and_then(serde_json::Value::as_u64),
-        payload.get("active_row_count").and_then(serde_json::Value::as_u64)
-    );
+    assert!(payload
+        .get("active_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|count| count > 0));
     assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
@@ -52,7 +51,19 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_f
     let removed_rows =
         payload.get("removed_rows").and_then(serde_json::Value::as_array).expect("removed rows");
     assert!(
-        removed_rows.is_empty(),
-        "all-domain active scope file must no longer carry removed benchmark rows"
+        removed_rows.iter().all(|row| {
+            !(row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5"))
+        }),
+        "vcf.phasing/shapeit5 must remain active once phasing is benchmark ready"
+    );
+    assert!(
+        removed_rows.iter().all(|row| {
+            !(row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.imputation_metrics")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle"))
+        }),
+        "active imputation metrics rows must not appear in the no-planned-rows file"
     );
 }

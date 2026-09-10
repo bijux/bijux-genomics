@@ -2,8 +2,7 @@
 
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn bench_readiness_all_domain_active_stage_catalog_writes_governed_tsv_file() {

@@ -3,8 +3,7 @@
 use std::fs;
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn bench_readiness_all_domain_no_declared_only_rows_writes_governed_json_file() {

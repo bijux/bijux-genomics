@@ -2,11 +2,10 @@
 
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
-fn bench_readiness_all_domain_active_scope_blockers_writes_governed_tsv_file() {
+fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_file() {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
@@ -19,7 +18,7 @@ fn bench_readiness_all_domain_active_scope_blockers_writes_governed_tsv_file() {
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["bench", "readiness", "render-all-domain-active-scope-blockers"])
+        .args(["bench", "readiness", "render-all-domain-no-not-benchmark-ready-rows"])
         .output()
         .expect("run cli");
 
@@ -34,19 +33,25 @@ fn bench_readiness_all_domain_active_scope_blockers_writes_governed_tsv_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "artifacts/benchmark-smoke/readiness/all-domains/active-scope-blockers.tsv"
+        "artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json"
     );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
-        .expect("read active-scope blockers TSV");
-    let mut lines = payload.lines();
-    assert_eq!(
-        lines.next(),
-        Some(
-            "domain\tstage_id\ttool_id\tcorpus_id\tasset_profile_id\tadapter_id\tparser_id\tschema_id\tstatus\tadapter_status\tscope_exit_kind\tblocker_type\tblocker_path\treason\tstage_removed_from_active_scope\ttool_removed_from_active_scope\tabsent_from_active_matrix\tabsent_from_rendered_commands\tabsent_from_expected_results\tabsent_from_full_benchmark_report"
-        )
-    );
+        .expect("read all-domain no-not-benchmark-ready-rows report");
+    let payload: serde_json::Value = serde_json::from_str(&payload).expect("parse report json");
 
-    let rows = lines.collect::<Vec<_>>();
-    assert!(rows.is_empty(), "all supported VCF stages must be admitted to active scope");
+    assert_eq!(
+        payload.get("executable_active_row_count").and_then(serde_json::Value::as_u64),
+        payload.get("active_row_count").and_then(serde_json::Value::as_u64)
+    );
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+
+    let removed_rows =
+        payload.get("removed_rows").and_then(serde_json::Value::as_array).expect("removed rows");
+    assert!(
+        removed_rows.is_empty(),
+        "all-domain active scope file must no longer carry removed benchmark rows"
+    );
 }

@@ -2,8 +2,7 @@
 
 use std::process::Command;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
@@ -34,52 +33,60 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_no_declared_only_rows_reports_clean_active_scope() {
-    let payload =
-        run_cli_json(&["bench", "readiness", "render-all-domain-no-declared-only-rows", "--json"]);
+fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_scope(
+) -> anyhow::Result<()> {
+    let payload = run_cli_json(&[
+        "bench",
+        "readiness",
+        "render-all-domain-no-not-benchmark-ready-rows",
+        "--json",
+    ]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.all_domain_no_declared_only_rows.v1")
+        Some("bijux.bench.readiness.all_domain_no_not_benchmark_ready_rows.v1")
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("artifacts/benchmark-smoke/readiness/all-domains/no-declared-only-rows.json")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json")
     );
-    let active_row_count = support::json_u64(&payload, "active_row_count").expect("active rows");
+    let executable_active_row_count = support::json_u64(&payload, "executable_active_row_count")
+        .expect("executable_active_row_count");
+    let active_row_count =
+        support::json_u64(&payload, "active_row_count").expect("active_row_count");
+    let removed_row_count =
+        support::json_u64(&payload, "removed_row_count").expect("removed_row_count");
+    assert_eq!(executable_active_row_count, active_row_count + removed_row_count);
     assert!(active_row_count > 0);
-    assert_eq!(
-        payload.get("lifecycle_active_row_count").and_then(serde_json::Value::as_u64),
-        Some(active_row_count)
-    );
-    assert_eq!(
-        payload.get("lifecycle_active_stage_count").and_then(serde_json::Value::as_u64),
-        payload.get("active_stage_count").and_then(serde_json::Value::as_u64)
-    );
-    assert_eq!(
-        payload.get("lifecycle_active_tool_count").and_then(serde_json::Value::as_u64),
-        payload.get("active_tool_count").and_then(serde_json::Value::as_u64)
-    );
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(removed_row_count, 0);
     assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
-    let removed_adapter_status_counts = payload
-        .get("removed_adapter_status_counts")
+    let removed_status_counts = payload
+        .get("removed_status_counts")
         .and_then(serde_json::Value::as_object)
-        .expect("removed adapter status counts");
+        .expect("removed status counts");
     assert!(
-        removed_adapter_status_counts.is_empty(),
-        "active scope must not remove any lifecycle-active rows for declaration-only adapters once executable-adapter filtering is enforced"
+        removed_status_counts.is_empty(),
+        "removed status counts must be empty once the active slice is clean"
     );
 
-    let removed_rows =
-        payload.get("removed_rows").and_then(serde_json::Value::as_array).expect("removed rows");
-    assert!(removed_rows.is_empty(), "active scope must not retain declared-only rows");
-
+    let removed_rows = support::json_array(&payload, "removed_rows")?;
+    assert_eq!(removed_rows.len() as u64, removed_row_count);
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
-    assert!(violations.is_empty(), "active scope must not retain rows without executable adapters");
+    assert!(violations.is_empty(), "active scope must not retain not_benchmark_ready rows");
+    assert!(
+        removed_rows.is_empty(),
+        "all-domain active scope must no longer remove any benchmark rows"
+    );
+    assert!(
+        removed_rows.iter().all(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) != Some("fastq.index_reference")
+        }),
+        "asset-backed index-reference rows must stay in active scope once benchmark ready"
+    );
+    Ok(())
 }
