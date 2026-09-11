@@ -161,3 +161,5 @@ the canonical repository path at publication time. Relative and absolute reposit
 literals escape shell metacharacters; path contents cannot expand into commands.
 An external script must be regenerated if its repository moves. Paths must be
 representable as UTF-8 when embedded into the script.
+
+The `evidence::parsers::failure` service owns the seven governed malformed-output probes, fixture snapshots, domain-parser dispatch and compatible JSON report. It admits every source fixture and known publication destination before creating probe artifacts, refuses symbolic links and special files, and preserves unrelated evidence. Missing-index publication removes only that declared probe file. The CLI only chooses the output and presents the result. This is captured-fixture parser rejection evidence; it does not certify fresh native-tool execution. Publication is atomic per file, without filesystem locking or a multi-artifact transaction.

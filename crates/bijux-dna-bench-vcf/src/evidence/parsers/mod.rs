@@ -11,3 +11,5 @@ pub use projection::collect_vcf_parser_fixture_coverage_rows_from_retained;
 pub use publication::render_vcf_parser_fixture_coverage;
 pub const VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_parser_fixture_coverage.v1";
+
+pub mod failure;
