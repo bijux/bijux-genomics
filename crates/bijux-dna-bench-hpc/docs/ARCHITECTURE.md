@@ -8,3 +8,5 @@ Simulation timings and injected failures are synthetic policy evidence. Per-file
 
 
 The readiness service groups inventory/materialization, harness observations, corpus families, pipeline/watchdog checks and campaign/SLURM checks by responsibility. Provider projections are nonserialized views of consumed fields; canonical provider reports and the persisted readiness schema retain their existing owners. Request paths are supplied explicitly. Only a mock campaign submission port is available.
+
+Dry-run assessment separates provider acquisition, cross-provider checks, summary/behavior projection and canonical publication/replay. Provider results use benchmark-model types directly. A request acquires each top-level provider once; nested provider acquisition remains owned by its adapter. Replay reacquires evidence on every call, preserving drift detection.

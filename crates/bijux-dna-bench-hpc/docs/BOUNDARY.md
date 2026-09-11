@@ -11,3 +11,5 @@ The benchmark-model dependency disables default features; its own transitive dom
 
 
 Readiness orchestration has no CLI, API, benchmark umbrella, planner or runner dependency. It accepts explicit provider ports and writes local diagnostic/support artifacts through infrastructure publication helpers. The local campaign port cannot request remote submission. TOML serialization owns escaping of generated local profile path values.
+
+Dry-run evidence providers return canonical model reports. The owner performs local report reads and infrastructure publication after injected output admission; it never discovers roots, launches processes or submits remote work. Nine private checks are grouped by their enduring artifact or scheduling responsibility; persisted numeric goal identities remain unchanged.

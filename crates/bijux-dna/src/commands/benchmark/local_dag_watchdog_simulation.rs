@@ -62,10 +62,10 @@ pub(crate) fn run_simulate_dag_watchdog(
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use super::{
-        simulate_dag_watchdog_path, LocalDagWatchdogScenario, DEFAULT_COMPLETION_RULES_REPORT_PATH,
-        DEFAULT_FAILURE_ISOLATION_REPORT_PATH, DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH,
-        DEFAULT_PARTIAL_RESUME_REPORT_PATH,
+    use super::{simulate_dag_watchdog_path, LocalDagWatchdogScenario};
+    use bijux_dna_bench_hpc::watchdog::{
+        DEFAULT_COMPLETION_RULES_REPORT_PATH, DEFAULT_FAILURE_ISOLATION_REPORT_PATH,
+        DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH, DEFAULT_PARTIAL_RESUME_REPORT_PATH,
     };
 
     fn repo_root() -> std::path::PathBuf {

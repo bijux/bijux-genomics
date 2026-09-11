@@ -22,3 +22,5 @@ Owner tests exercise invalid DAG admission, dependency ordering, retained output
 
 
 Local submission readiness accepts typed stage, harness, corpus, pipeline, SLURM and local campaign evidence ports. CLI composition provides current adapters; this owner does not depend on command parsing or remote submission. Existing report schemas and all 99 diagnostic checks remain authoritative.
+
+`dry_run` owns nine cross-provider decisions, report publication and fresh replay. One request evidence record preserves acquisition failures without duplicate report/error inputs. The CLI supplies canonical provider paths, local collectors and path admission. No remote submission method is exposed.

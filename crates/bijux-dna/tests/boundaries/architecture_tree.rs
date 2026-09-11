@@ -135,6 +135,7 @@ fn dna_tree_matches_architecture_contract() {
         "local_hpc_asset_staging_manifest.rs",
         "local_hpc_candidate_run_manifest.rs",
         "local_hpc_dependency_simulation.rs",
+        "local_hpc_dry_run_ready/",
         "local_hpc_dry_run_ready.rs",
         "local_hpc_execution_resolver.rs",
         "local_hpc_input_discovery.rs",

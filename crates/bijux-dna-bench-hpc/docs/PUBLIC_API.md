@@ -6,3 +6,5 @@ The result is the original `LocalDagWatchdogSimulationReport` with unchanged nod
 
 
 `readiness::validate_hpc_submission_ready` consumes `ReadinessContext` and a report path. The context borrows a `LocalReadinessBackend` and explicit input path declarations. Provider traits are grouped by independent responsibilities under `readiness::ports`. A failed assessment still publishes the full validated report and returns an error. Provider projections do not claim fresh scientific execution or tool equivalence.
+
+`dry_run::{render_hpc_dry_run_ready, validate_hpc_dry_run_ready_path}` consumes `DryRunContext` with explicit repository root, canonical provider paths, nine typed evidence operations and output policy. Output admission precedes acquisition. Validation parses and semantically validates the persisted report before reacquisition and exact byte comparison. Failed assessments still publish all nine diagnostics; they do not certify remote readiness.

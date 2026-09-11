@@ -6,3 +6,5 @@ Run `cargo nextest run --config-file configs/rust/nextest.toml --profile full --
 
 
 The readiness contracts substitute an unavailable evidence provider without compiling the CLI. They retain all 99 diagnostic identities, prove continued independent assessment after provider failures, and preserve existing bytes when report-parent admission fails. A profile policy regression round-trips quoted and backslash-containing roots through the canonical TOML serializer. Original stage/pipeline mapping assertions remain with their declarations.
+
+Dry-run owner contracts exercise provider failures, output refusal before acquisition, malformed persisted evidence and fresh acquisition during replay. The original public command test retains render, validation and drift rejection against local adapters.

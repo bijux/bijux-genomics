@@ -1,0 +1,20 @@
+//! Cross-provider readiness decisions preserve independent failure diagnostics.
+mod asset_coverage;
+mod diagnostics;
+pub(super) use asset_coverage::asset_coverage;
+mod scratch_coverage;
+pub(super) use scratch_coverage::scratch_coverage;
+mod execution_resolution;
+pub(super) use execution_resolution::execution_resolution;
+mod stage_array;
+pub(super) use stage_array::stage_array;
+mod pipeline_array;
+pub(super) use pipeline_array::pipeline_array;
+mod dependency_blocking;
+pub(super) use dependency_blocking::dependency_blocking;
+mod resume_policy;
+pub(super) use resume_policy::resume_policy;
+mod collection_states;
+pub(super) use collection_states::collection_states;
+mod candidate_admission;
+pub(super) use candidate_admission::candidate_admission;

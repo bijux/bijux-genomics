@@ -1111,7 +1111,11 @@ fn thin_cli_uses_model_owned_local_hpc_dry_run_readiness_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_hpc_dry_run_readiness"));
+    assert!(contents.contains("bijux_dna_bench_hpc::dry_run::validate_hpc_dry_run_ready_path"));
+    let owner =
+        fs::read_to_string(repo_root.join("crates/bijux-dna-bench-hpc/src/dry_run/publication.rs"))
+            .expect("read dry-run publication owner");
+    assert!(owner.contains("validate_benchmark_local_hpc_dry_run_readiness"));
     assert!(!contents.contains("struct LocalHpcDryRunReadyGoalCheck {"));
     assert!(!contents.contains("struct LocalHpcDryRunReadySummary {"));
     assert!(!contents.contains("struct LocalHpcDryRunReadyBehavior {"));
