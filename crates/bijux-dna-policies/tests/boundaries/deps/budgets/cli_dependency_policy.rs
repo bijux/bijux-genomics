@@ -39,6 +39,7 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_documented_ada
         "bijux-dna-analyze",
         "bijux-dna-api",
         "bijux-dna-bench-campaign",
+        "bijux-dna-bench-parser-proofs",
         "bijux-dna-bench-corpus",
         "bijux-dna-bench-vcf",
         "bijux-dna-bench-workflows",

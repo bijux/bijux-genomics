@@ -15,6 +15,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-analyze",
         "bijux-dna-bench",
         "bijux-dna-bench-campaign",
+        "bijux-dna-bench-parser-proofs",
         "bijux-dna-bench-corpus",
         "bijux-dna-bench-vcf",
         "bijux-dna-bench-workflows",
@@ -223,6 +224,11 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     bijux_dna_policies::policy_assert!(
         deps_for("bijux-dna-bench-campaign") == BTreeSet::from(["bijux-dna-bench-corpus".to_string()]),
         "corpus campaigns must depend only on canonical corpus ownership, without CLI/API/native engine back edges"
+    );
+
+    bijux_dna_policies::policy_assert!(
+        deps_for("bijux-dna-bench-parser-proofs") == BTreeSet::from(["bijux-dna-bench-bam-proofs".to_string(), "bijux-dna-bench-fastq".to_string(), "bijux-dna-infra".to_string()]),
+        "parser proof owner depends only on optional native parser owners and filesystem primitives"
     );
 
     let bench = deps_for("bijux-dna-bench");

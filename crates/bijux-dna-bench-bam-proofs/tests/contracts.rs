@@ -4,3 +4,6 @@ mod downstream_admission;
 mod retained_admission;
 #[path = "contracts/source_admission.rs"]
 mod source_admission;
+
+#[path = "contracts/parser_probes.rs"]
+mod parser_probes;

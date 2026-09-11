@@ -39,6 +39,12 @@ fn is_allowed_path(path: &Path) -> bool {
     if campaign_identity_paths.iter().any(|suffix| path_str.ends_with(suffix)) {
         return true;
     }
+    // Canonical parser family catalogs and the BAM genotyping wire producer own these identities.
+    if path_str.contains("/crates/bijux-dna-bench-parser-proofs/src/catalog/")
+        || path_str.ends_with("/crates/bijux-dna-bench-bam-proofs/src/parser_probes/genotyping.rs")
+    {
+        return true;
+    }
     if path_str.contains("/crates/bijux-dna-bench/") {
         return true;
     }

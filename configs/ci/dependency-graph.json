@@ -618,6 +618,16 @@
       "gates": [
         "crate-tests:bijux-dna-bench-campaign"
       ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-parser-proofs",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-parser-proofs/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-parser-proofs"
+      ]
     }
   ],
   "edges": [
@@ -2114,6 +2124,26 @@
     {
       "consumer": "crate:bijux-dna-bench-campaign",
       "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-parser-proofs",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-parser-proofs",
+      "dependency": "crate:bijux-dna-bench-bam-proofs",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-parser-proofs",
+      "dependency": "crate:bijux-dna-bench-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-parser-proofs",
+      "dependency": "crate:bijux-dna-infra",
       "kind": "normal"
     }
   ]

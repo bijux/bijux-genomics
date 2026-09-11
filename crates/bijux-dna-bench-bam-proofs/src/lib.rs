@@ -16,3 +16,5 @@ pub mod genotyping;
 mod input;
 pub mod kinship;
 pub mod retained_tools;
+
+pub mod parser_probes;

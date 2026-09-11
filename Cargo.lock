@@ -237,6 +237,7 @@ dependencies = [
  "bijux-dna-bench-genotypes",
  "bijux-dna-bench-haplotypes",
  "bijux-dna-bench-hpc",
+ "bijux-dna-bench-parser-proofs",
  "bijux-dna-bench-population",
  "bijux-dna-bench-variants",
  "bijux-dna-bench-vcf",
@@ -556,6 +557,19 @@ dependencies = [
  "serde_json",
  "sha2",
  "toml",
+]
+
+[[package]]
+name = "bijux-dna-bench-parser-proofs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-bench-bam-proofs",
+ "bijux-dna-bench-fastq",
+ "bijux-dna-infra",
+ "serde",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]

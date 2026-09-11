@@ -30,6 +30,13 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
     // Campaign lifecycle effects are scoped to admitted publication/cache roots;
     // adjacent contracts exercise those effects against isolated fixtures.
     let effect_owner_paths = [
+        "crates/bijux-dna-bench-bam-proofs/src/parser_probes/alignment.rs",
+        "crates/bijux-dna-bench-bam-proofs/src/parser_probes/authenticity.rs",
+        "crates/bijux-dna-bench-bam-proofs/src/parser_probes/contamination.rs",
+        "crates/bijux-dna-bench-bam-proofs/src/parser_probes/damage.rs",
+        "crates/bijux-dna-bench-bam-proofs/src/parser_probes/genotyping.rs",
+        "crates/bijux-dna-bench-bam-proofs/src/parser_probes/kinship.rs",
+        "crates/bijux-dna-bench-bam-proofs/src/parser_probes/sex.rs",
         "crates/bijux-dna-dev/src/runtime/owned_artifacts.rs",
         "crates/bijux-dna-bench-campaign/src/cache/cloning.rs",
         "crates/bijux-dna-bench-campaign/src/cache/lifecycle.rs",

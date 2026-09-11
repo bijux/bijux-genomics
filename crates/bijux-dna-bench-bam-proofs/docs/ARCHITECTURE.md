@@ -48,3 +48,11 @@ Kinship requests its canonical parser observation directly. Its admission still 
 the king binding and scientific snapshot, but unrelated FASTQ/VCF parser execution
 and the all-family report are not prerequisites of the kinship proof. The all-family
 parser command remains responsible for complete parser coverage.
+
+## Tiny parser proof producers
+
+`parser_probes/` owns alignment, contamination, damage, authenticity, genotyping,
+kinship and sex tiny proof generation. Callers pass typed inputs projected from
+canonical configuration; no planner or CLI dependency enters this owner. `reports`
+selects retained canonical BAM parsers. Synthetic scalar estimates retain their
+parser-fixture meaning and do not claim backend execution or scientific accuracy.
