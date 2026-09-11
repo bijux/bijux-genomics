@@ -6,3 +6,8 @@ pub mod inputs;
 pub mod parsers;
 mod paths;
 mod policy;
+
+pub mod commands;
+pub mod declarations;
+pub mod output_contract;
+pub mod report_map;

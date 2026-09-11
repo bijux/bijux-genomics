@@ -2080,6 +2080,11 @@
       "consumer": "crate:bijux-dna-bench-bam-proofs",
       "dependency": "crate:bijux-dna-infra",
       "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-fastq",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
     }
   ]
 }

@@ -13,6 +13,7 @@ serde.workspace = true
 bijux-dna-domain-fastq.workspace = true
 bijux-dna-stage-contract.workspace = true
 bijux-dna-infra.workspace = true
+bijux-dna-core.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

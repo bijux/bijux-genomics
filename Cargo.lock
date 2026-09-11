@@ -458,6 +458,7 @@ name = "bijux-dna-bench-fastq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-core",
  "bijux-dna-domain-fastq",
  "bijux-dna-infra",
  "bijux-dna-stage-contract",
