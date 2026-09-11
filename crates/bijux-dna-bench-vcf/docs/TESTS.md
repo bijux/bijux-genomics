@@ -22,3 +22,9 @@ public CLI contracts separately verify stdout, persisted reports and consumers.
 
 Native tool execution requires the usual repository runner bindings. Marker
 fixtures support adapter declaration checks, not full scientific substitution.
+
+## Serving evidence contracts
+
+`tests/contracts/serving.rs` retains the original governed matrix/report assertions.
+It also proves serving projection does not invoke the reference materializer and
+that an unknown parser contract fails before any output directory is created.

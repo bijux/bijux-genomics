@@ -31,3 +31,10 @@ See [architecture](docs/ARCHITECTURE.md) for dependency direction and limitation
 `tests/contracts.rs` retains original adapter observations; `tests/boundaries.rs`
 checks admitted input and dependency behavior. [Tests](docs/TESTS.md) lists
 execution commands and what the fixtures establish.
+
+## Evidence services
+
+`evidence::serving` projects tool-serving observations from a single admitted
+`VcfAdapterInputs` catalog/binding snapshot. It checks the governed serving contract
+before publishing the established TSV/report. CLI wrappers acquire declarations and
+render the returned report; projection performs no reference materialization.

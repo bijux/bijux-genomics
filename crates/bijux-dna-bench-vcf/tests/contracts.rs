@@ -15,3 +15,6 @@ mod phasing;
 #[path = "contracts/plink.rs"]
 mod plink;
 mod support;
+
+#[path = "contracts/serving.rs"]
+mod serving;

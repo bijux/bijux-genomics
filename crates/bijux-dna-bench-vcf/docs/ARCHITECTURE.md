@@ -30,3 +30,16 @@ Imputation also owns a named output layout that derives paths and declarations;
 EIGENSOFT command generation borrows a named collection of parameter/output files.
 These private contracts preserve serialized public report fields while avoiding
 large positional tuples and tool dispatch inside report publication.
+
+## Serving evidence
+
+`evidence/serving/model` owns the serving row/report wire records. `projection`
+derives support, adapter, parser, corpus, asset and benchmark statuses from admitted
+catalog/binding inputs. `contract` checks the existing governed bindings, uniqueness
+and expected input cardinality. It uses the same input snapshot and never reloads
+global declarations. `publication` atomically writes the compatible TSV through infrastructure after
+projection passes.
+
+Reference materialization is an explicit adapter capability but is unused by serving
+projection. Unknown parser contracts fail before publication creates directories.
+Native fixture contracts and stage normalized metrics retain separate identities.

@@ -18,3 +18,12 @@ remain family-specific. Errors propagate admission, source and publication failu
 Reference writing is delegated through the caller-supplied operation. Native VCF
 indexing delegates to the stage execution owner. Panel metadata markers are
 explicitly synthetic and are not interchangeable native reference panels.
+
+## Tool-serving evidence
+
+`evidence::serving::collect_vcf_tool_serving_map_rows(&VcfAdapterInputs)` returns
+validated serving observations without filesystem effects.
+`render_vcf_tool_serving_map(&VcfAdapterInputs, &Path, &Path)` publishes the existing
+TSV and returns the compatible row counts and status report. Admission and projection
+errors occur before output creation. Supported parser and governed binding semantics
+remain unchanged.
