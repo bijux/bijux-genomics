@@ -418,6 +418,7 @@ dependencies = [
  "bijux-dna-infra",
  "bijux-dna-stage-contract",
  "flate2",
+ "serde",
  "serde_json",
  "tempfile",
 ]

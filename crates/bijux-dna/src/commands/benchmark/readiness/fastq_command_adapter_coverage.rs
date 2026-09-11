@@ -1,71 +1,14 @@
-use std::collections::BTreeMap;
-use std::fs;
-use std::path::{Path, PathBuf};
-
+use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
-use serde::Serialize;
-
-use super::tool_serving_map::{collect_fastq_tool_serving_map_rows, ToolServingMapRow};
-use crate::commands::cli::parse;
-use crate::commands::cli::render;
-
-pub(crate) const DEFAULT_FASTQ_COMMAND_ADAPTER_COVERAGE_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/fastq/fastq-command-adapter-coverage.tsv";
-const FASTQ_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.fastq_command_adapter_coverage.v1";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum FastqBenchmarkStatus {
-    BenchmarkReady,
-    NotBenchmarkReady,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum FastqAdapterCoverageKind {
-    Covered,
-    Missing,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum FastqReadinessGapKind {
-    None,
-    Corpus,
-    Parser,
-    Adapter,
-    Support,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct FastqCommandAdapterCoverageRow {
-    pub(crate) tool_id: String,
-    pub(crate) stage_id: String,
-    pub(crate) benchmark_status: FastqBenchmarkStatus,
-    pub(crate) adapter_coverage: FastqAdapterCoverageKind,
-    pub(crate) readiness_gap: FastqReadinessGapKind,
-    pub(crate) support_status: String,
-    pub(crate) adapter_status: String,
-    pub(crate) parser_status: String,
-    pub(crate) corpus_status: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct FastqCommandAdapterCoverageReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) row_count: usize,
-    pub(crate) benchmark_ready_row_count: usize,
-    pub(crate) benchmark_ready_adapter_covered_row_count: usize,
-    pub(crate) benchmark_ready_adapter_missing_row_count: usize,
-    pub(crate) readiness_gap_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<FastqCommandAdapterCoverageRow>,
-}
-
+#[cfg(test)]
+use bijux_dna_bench_fastq::readiness::adapters::FASTQ_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION;
+pub(crate) use bijux_dna_bench_fastq::readiness::adapters::{
+    FastqAdapterCoverageKind, FastqBenchmarkStatus, FastqCommandAdapterCoverageReport,
+    FastqCommandAdapterCoverageRow, FastqReadinessGapKind,
+    DEFAULT_FASTQ_COMMAND_ADAPTER_COVERAGE_PATH,
+};
+use bijux_dna_bench_fastq::readiness::inputs::FastqServingSnapshot;
+use std::path::{Path, PathBuf};
 pub(crate) fn run_render_fastq_command_adapter_coverage(
     args: &parse::BenchReadinessRenderFastqCommandAdapterCoverageArgs,
 ) -> Result<()> {
@@ -83,213 +26,38 @@ pub(crate) fn run_render_fastq_command_adapter_coverage(
     }
     Ok(())
 }
-
 pub(crate) fn render_fastq_command_adapter_coverage(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<FastqCommandAdapterCoverageReport> {
-    let output_path = repo_relative_path(repo_root, &output_path);
-    let (stage_count, tool_count, rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
-
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_fastq_command_adapter_coverage_tsv(&rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    let benchmark_ready_row_count = rows
-        .iter()
-        .filter(|row| row.benchmark_status == FastqBenchmarkStatus::BenchmarkReady)
-        .count();
-    let benchmark_ready_adapter_covered_row_count = rows
-        .iter()
-        .filter(|row| {
-            row.benchmark_status == FastqBenchmarkStatus::BenchmarkReady
-                && row.adapter_coverage == FastqAdapterCoverageKind::Covered
-        })
-        .count();
-    let benchmark_ready_adapter_missing_row_count = rows
-        .iter()
-        .filter(|row| {
-            row.benchmark_status == FastqBenchmarkStatus::BenchmarkReady
-                && row.adapter_coverage == FastqAdapterCoverageKind::Missing
-        })
-        .count();
-
-    let mut readiness_gap_counts = BTreeMap::<String, usize>::new();
-    for row in &rows {
-        if row.readiness_gap != FastqReadinessGapKind::None {
-            *readiness_gap_counts
-                .entry(readiness_gap_label(row.readiness_gap).to_string())
-                .or_default() += 1;
-        }
-    }
-
-    Ok(FastqCommandAdapterCoverageReport {
-        schema_version: FASTQ_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION,
-        output_path: path_relative_to_repo(repo_root, &output_path),
-        stage_count,
-        tool_count,
-        row_count: rows.len(),
-        benchmark_ready_row_count,
-        benchmark_ready_adapter_covered_row_count,
-        benchmark_ready_adapter_missing_row_count,
-        readiness_gap_counts,
-        rows,
-    })
+    let input = inputs(repo_root)?;
+    bijux_dna_bench_fastq::readiness::adapters::render_fastq_command_adapter_coverage(
+        repo_root,
+        &output_path,
+        input,
+    )
 }
-
 pub(crate) fn collect_fastq_command_adapter_coverage_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<FastqCommandAdapterCoverageRow>)> {
-    let (stage_count, tool_count, serving_rows) = collect_fastq_tool_serving_map_rows(repo_root)?;
-    let rows = serving_rows.iter().map(render_coverage_row).collect::<Vec<_>>();
-    Ok((stage_count, tool_count, rows))
+    let input = inputs(repo_root)?;
+    bijux_dna_bench_fastq::readiness::adapters::collect_fastq_command_adapter_coverage_rows(input)
 }
-
-fn render_coverage_row(row: &ToolServingMapRow) -> FastqCommandAdapterCoverageRow {
-    let support_eligible = row_has_governed_support(row);
-    let adapter_covered = row_has_adapter(row);
-    let parser_eligible = row_has_normalized_parser(row);
-    let benchmark_scope_ready = row_has_benchmark_scope(row);
-    let readiness_gap =
-        if support_eligible && adapter_covered && parser_eligible && benchmark_scope_ready {
-            FastqReadinessGapKind::None
-        } else if support_eligible && adapter_covered && parser_eligible {
-            FastqReadinessGapKind::Corpus
-        } else if support_eligible && adapter_covered {
-            FastqReadinessGapKind::Parser
-        } else if support_eligible {
-            FastqReadinessGapKind::Adapter
-        } else {
-            FastqReadinessGapKind::Support
-        };
-    let benchmark_status = if readiness_gap == FastqReadinessGapKind::None {
-        FastqBenchmarkStatus::BenchmarkReady
-    } else {
-        FastqBenchmarkStatus::NotBenchmarkReady
-    };
-    let adapter_coverage = if adapter_covered {
-        FastqAdapterCoverageKind::Covered
-    } else {
-        FastqAdapterCoverageKind::Missing
-    };
-    let reason = match readiness_gap {
-        FastqReadinessGapKind::None => format!(
-            "row `{}` / `{}` is benchmark_ready with governed support, adapter-backed command rendering, normalized parser output, and governed benchmark-scope coverage",
-            row.stage_id, row.tool_id
-        ),
-        FastqReadinessGapKind::Corpus => format!(
-            "row `{}` / `{}` has governed support, adapter-backed command rendering, and normalized parser output but still resolves only `{}` benchmark-scope coverage",
-            row.stage_id, row.tool_id, row.corpus_status
-        ),
-        FastqReadinessGapKind::Parser => format!(
-            "row `{}` / `{}` has governed support and adapter-backed command rendering but no normalized parser contract (`{}`)",
-            row.stage_id, row.tool_id, row.parser_status
-        ),
-        FastqReadinessGapKind::Adapter => format!(
-            "row `{}` / `{}` has governed benchmark support but no runnable or plannable command adapter (`{}`)",
-            row.stage_id, row.tool_id, row.adapter_status
-        ),
-        FastqReadinessGapKind::Support => format!(
-            "row `{}` / `{}` is not yet in governed benchmark support for HPC readiness (`{}`)",
-            row.stage_id, row.tool_id, row.support_status
-        ),
-    };
-
-    FastqCommandAdapterCoverageRow {
-        tool_id: row.tool_id.clone(),
-        stage_id: row.stage_id.clone(),
-        benchmark_status,
-        adapter_coverage,
-        readiness_gap,
-        support_status: row.support_status.clone(),
-        adapter_status: row.adapter_status.clone(),
-        parser_status: row.parser_status.clone(),
-        corpus_status: row.corpus_status.clone(),
-        reason,
-    }
-}
-
-fn row_has_governed_support(row: &ToolServingMapRow) -> bool {
-    matches!(
-        row.support_status.as_str(),
-        "governed_execution" | "governed_benchmark_cohort" | "observer_specialized_benchmark"
-    )
-}
-
-fn row_has_adapter(row: &ToolServingMapRow) -> bool {
-    matches!(row.adapter_status.as_str(), "runnable" | "plannable")
-}
-
-fn row_has_normalized_parser(row: &ToolServingMapRow) -> bool {
-    row.parser_status != "not_normalized"
-}
-
-fn row_has_benchmark_scope(row: &ToolServingMapRow) -> bool {
-    row.corpus_status.starts_with("fixture:") || row.corpus_status.starts_with("asset:")
-}
-
-fn render_fastq_command_adapter_coverage_tsv(rows: &[FastqCommandAdapterCoverageRow]) -> String {
-    let mut rendered = String::from(
-        "tool_id\tstage_id\tbenchmark_status\tadapter_coverage\treadiness_gap\tsupport_status\tadapter_status\tparser_status\tcorpus_status\treason\n",
-    );
-    for row in rows {
-        rendered.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-            sanitize_tsv(&row.tool_id),
-            sanitize_tsv(&row.stage_id),
-            sanitize_tsv(benchmark_status_label(row.benchmark_status)),
-            sanitize_tsv(adapter_coverage_label(row.adapter_coverage)),
-            sanitize_tsv(readiness_gap_label(row.readiness_gap)),
-            sanitize_tsv(&row.support_status),
-            sanitize_tsv(&row.adapter_status),
-            sanitize_tsv(&row.parser_status),
-            sanitize_tsv(&row.corpus_status),
-            sanitize_tsv(&row.reason),
-        ));
-    }
-    rendered
-}
-
-fn benchmark_status_label(status: FastqBenchmarkStatus) -> &'static str {
-    match status {
-        FastqBenchmarkStatus::BenchmarkReady => "benchmark_ready",
-        FastqBenchmarkStatus::NotBenchmarkReady => "not_benchmark_ready",
-    }
-}
-
-fn adapter_coverage_label(coverage: FastqAdapterCoverageKind) -> &'static str {
-    match coverage {
-        FastqAdapterCoverageKind::Covered => "covered",
-        FastqAdapterCoverageKind::Missing => "missing",
-    }
-}
-
-fn readiness_gap_label(gap: FastqReadinessGapKind) -> &'static str {
-    match gap {
-        FastqReadinessGapKind::None => "none",
-        FastqReadinessGapKind::Corpus => "corpus",
-        FastqReadinessGapKind::Parser => "parser",
-        FastqReadinessGapKind::Adapter => "adapter",
-        FastqReadinessGapKind::Support => "support",
-    }
-}
-
-fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
-    if candidate.is_absolute() {
-        candidate.to_path_buf()
-    } else {
-        repo_root.join(candidate)
-    }
-}
-
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
-}
-
-fn sanitize_tsv(value: &str) -> String {
-    value.replace(['\t', '\n', '\r'], " ")
+fn inputs(repo_root: &Path) -> Result<FastqServingSnapshot> {
+    let (stage_count, tool_count, rows) =
+        super::tool_serving_map::collect_fastq_tool_serving_map_rows(repo_root)?;
+    let rows = rows
+        .into_iter()
+        .map(|row| bijux_dna_bench_fastq::readiness::inputs::FastqServingRow {
+            stage_id: row.stage_id,
+            tool_id: row.tool_id,
+            support_status: row.support_status,
+            adapter_status: row.adapter_status,
+            parser_status: row.parser_status,
+            corpus_status: row.corpus_status,
+        })
+        .collect();
+    Ok(FastqServingSnapshot { stage_count, tool_count, rows })
 }
 
 #[cfg(test)]
@@ -320,9 +88,9 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "fastuniq"
                 && row.stage_id == "fastq.remove_duplicates"
-                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.benchmark_status.as_str() == "benchmark_ready"
+                && row.adapter_coverage.as_str() == "covered"
+                && row.readiness_gap.as_str() == "none"
         }));
         assert!(report.readiness_gap_counts.is_empty());
         assert!(
@@ -336,72 +104,72 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "fastqc"
                 && row.stage_id == "fastq.validate_reads"
-                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.benchmark_status.as_str() == "benchmark_ready"
+                && row.adapter_coverage.as_str() == "covered"
+                && row.readiness_gap.as_str() == "none"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "kraken2"
                 && row.stage_id == "fastq.screen_taxonomy"
-                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+                && row.benchmark_status.as_str() == "benchmark_ready"
                 && row.corpus_status == "fixture:corpus-02-edna-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bowtie2_build"
                 && row.stage_id == "fastq.index_reference"
-                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.benchmark_status.as_str() == "benchmark_ready"
+                && row.adapter_coverage.as_str() == "covered"
+                && row.readiness_gap.as_str() == "none"
                 && row.corpus_status == "asset:reference-index-assets"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "star"
                 && row.stage_id == "fastq.index_reference"
-                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.benchmark_status.as_str() == "benchmark_ready"
+                && row.adapter_coverage.as_str() == "covered"
+                && row.readiness_gap.as_str() == "none"
                 && row.corpus_status == "asset:reference-index-assets"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "fastqc"
                 && row.stage_id == "fastq.detect_adapters"
-                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.benchmark_status.as_str() == "benchmark_ready"
+                && row.adapter_coverage.as_str() == "covered"
+                && row.readiness_gap.as_str() == "none"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "fastp"
                 && row.stage_id == "fastq.filter_reads"
-                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.benchmark_status.as_str() == "benchmark_ready"
+                && row.adapter_coverage.as_str() == "covered"
+                && row.readiness_gap.as_str() == "none"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "fastp"
                 && row.stage_id == "fastq.trim_polyg_tails"
-                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.benchmark_status.as_str() == "benchmark_ready"
+                && row.adapter_coverage.as_str() == "covered"
+                && row.readiness_gap.as_str() == "none"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "cutadapt"
                 && row.stage_id == "fastq.trim_terminal_damage"
-                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "none"
+                && row.benchmark_status.as_str() == "benchmark_ready"
+                && row.adapter_coverage.as_str() == "covered"
+                && row.readiness_gap.as_str() == "none"
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
         for tool_id in ["fastq_scan", "fastqc", "seqkit"] {
             assert!(report.rows.iter().any(|row| {
                 row.tool_id == tool_id
                     && row.stage_id == "fastq.profile_overrepresented_sequences"
-                    && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                    && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                    && super::readiness_gap_label(row.readiness_gap) == "none"
+                    && row.benchmark_status.as_str() == "benchmark_ready"
+                    && row.adapter_coverage.as_str() == "covered"
+                    && row.readiness_gap.as_str() == "none"
                     && row.corpus_status == "fixture:corpus-01-mini"
             }));
         }
@@ -409,9 +177,9 @@ mod tests {
             assert!(report.rows.iter().any(|row| {
                 row.tool_id == tool_id
                     && row.stage_id == "fastq.screen_taxonomy"
-                    && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                    && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                    && super::readiness_gap_label(row.readiness_gap) == "none"
+                    && row.benchmark_status.as_str() == "benchmark_ready"
+                    && row.adapter_coverage.as_str() == "covered"
+                    && row.readiness_gap.as_str() == "none"
                     && row.corpus_status == "fixture:corpus-02-edna-mini"
             }));
         }

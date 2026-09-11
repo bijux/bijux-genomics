@@ -19,3 +19,7 @@ Input admission, record observation, fixture publication, stage-specific report 
 ## Tests
 
 Run `cargo nextest run -p bijux-dna-bench-fastq --all-targets` with the repository nextest configuration. [Tests](docs/TESTS.md) describes malformed-input, retained-evidence and compression regressions.
+
+## Readiness evidence
+
+`readiness` owns command-adapter coverage, active binding selection, parser coverage and governed fixture coverage. Applications supply typed serving and scope observations. Services admit source identities and cardinalities before report publication; unsupported parser statuses never establish normalized coverage.
