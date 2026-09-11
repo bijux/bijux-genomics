@@ -1,6 +1,7 @@
 use anyhow::{anyhow, ensure, Result};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 pub(super) fn required_input_path(
+    repo_root: &Path,
     plan: &bijux_dna_stage_contract::StagePlanV1,
     artifact_name: &str,
 ) -> Result<PathBuf> {
@@ -8,12 +9,13 @@ pub(super) fn required_input_path(
         .inputs
         .iter()
         .find(|artifact| artifact.name.as_str() == artifact_name)
-        .map(|artifact| artifact.path.clone())
+        .map(|artifact| repo_root.join(&artifact.path))
         .ok_or_else(|| {
             anyhow!("plan `{}` is missing input `{artifact_name}`", plan.stage_id.as_str())
         })
 }
 pub(super) fn optional_input_path(
+    repo_root: &Path,
     plan: &bijux_dna_stage_contract::StagePlanV1,
     artifact_name: &str,
 ) -> Option<PathBuf> {
@@ -21,7 +23,7 @@ pub(super) fn optional_input_path(
         .inputs
         .iter()
         .find(|artifact| artifact.name.as_str() == artifact_name)
-        .map(|artifact| artifact.path.clone())
+        .map(|artifact| repo_root.join(&artifact.path))
 }
 pub(super) fn admit_stage(
     plan: &bijux_dna_stage_contract::StagePlanV1,

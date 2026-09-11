@@ -19,7 +19,7 @@ pub fn generate_index_reference_probe(
         bijux_dna_domain_fastq::stages::STAGE_INDEX_REFERENCE.as_str(),
     )?;
 
-    let reference_fasta = required_input_path(plan, "reference_fasta")?;
+    let reference_fasta = required_input_path(repo_root, plan, "reference_fasta")?;
     let reference_bytes = fs::metadata(&reference_fasta)
         .with_context(|| format!("stat {}", reference_fasta.display()))?
         .len();

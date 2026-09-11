@@ -19,8 +19,8 @@ pub fn generate_screen_taxonomy_probe(
         bijux_dna_domain_fastq::stages::STAGE_SCREEN_TAXONOMY.as_str(),
     )?;
 
-    let input_r1 = required_input_path(plan, "reads_r1")?;
-    let input_r2 = optional_input_path(plan, "reads_r2");
+    let input_r1 = required_input_path(repo_root, plan, "reads_r1")?;
+    let input_r2 = optional_input_path(repo_root, plan, "reads_r2");
     let stats_r1 = count_fastq_stats(&input_r1)?;
     let stats_r2 = input_r2.as_ref().map(|path| count_fastq_stats(path)).transpose()?;
     let effective_params: bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams =
