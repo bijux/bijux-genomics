@@ -8,3 +8,9 @@ canonical local acquisition and publication in default and all-feature configura
 
 Strict lint and native Cargo graph checks enforce ownership. Focused qualification does
 not establish final-workspace coverage, hosted CI latency or universal tool substitution.
+
+Downstream owner contracts cover nonfinite genotyping metrics, sample cardinality,
+producer output ordering/multiplicity, explicit kinship insufficiency, malformed parser
+counts, BAM locality and VCF isolation. Public provider contracts retain prior report
+bytes on readiness failure and check the feature-disabled entrypoints. Four original
+CLI genotyping/kinship contracts exercise the canonical enabled composition.

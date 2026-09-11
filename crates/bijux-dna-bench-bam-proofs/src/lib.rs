@@ -11,4 +11,7 @@ pub mod ports;
 pub mod recalibration;
 pub mod sex;
 
+pub mod downstream;
+pub mod genotyping;
 mod input;
+pub mod kinship;

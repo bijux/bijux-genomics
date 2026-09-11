@@ -1,7 +1,7 @@
 # BAM scientific proof architecture
 
 Readiness declarations and scientific completion are separate compilation owners.
-The four-method declaration port returns existing canonical reports. The six-operation
+The four-method declaration port returns existing canonical reports. The eight-operation
 native port retains exact smoke-writer identity and requires an admitted explicit root.
 The CLI adapter refuses root disagreement before native effects, without changing process
 working directory or global environment variables.
@@ -17,6 +17,13 @@ coverage/insufficiency behavior and published schemas retain their existing cont
 Publication retains failed assessments before returning their domain-specific errors.
 Atomic replacement applies per report, not transactionally across provider effects.
 
-Genotyping and kinship also require pipeline and downstream parser/VCF evidence. Those
-composition dependencies remain separately governed and are not falsely represented by
-these eight scientific completion capabilities.
+Genotyping and kinship use `DownstreamContext` to consume parser snapshots, pipeline
+nodes, VCF count/missingness observations and canonical kinship readiness. These are
+nonserialized inputs containing exactly the evidence used by the scientific assessment.
+The CLI projects the canonical providers without sorting, filtering, deduplicating or
+inventing values. Pipeline admission and the retained checks remain their respective
+authorities; canonical serialized pipeline/parser/VCF models are not duplicated here.
+
+The `bam_downstream` feature activates these two scientific services and the existing BAM
+evidence feature. Disabled builds retain their explicit feature requirement before any
+provider effects. No extra normal, dev or build dependencies are introduced.

@@ -2,8 +2,6 @@ use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
 use bijux_dna_bench_bam_evidence::readiness::kinship as owner;
 pub(crate) use owner::BamKinshipReadyReport;
-#[cfg(feature = "bam_downstream")]
-pub(crate) use owner::BamKinshipReadyRow;
 use std::path::{Path, PathBuf};
 pub(crate) const DEFAULT_BAM_KINSHIP_READY_PATH: &str =
     "artifacts/benchmark-smoke/readiness/bam/kinship-ready.json";

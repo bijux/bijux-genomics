@@ -42,6 +42,8 @@ pub enum NativeProofKind {
     Haplogroups,
     Recalibration,
     Sex,
+    Genotyping,
+    Kinship,
 }
 /// Adapter for existing native proof publication; no process-global root changes are allowed.
 pub trait NativeProofWriter {

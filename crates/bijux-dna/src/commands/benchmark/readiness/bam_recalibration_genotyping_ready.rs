@@ -110,6 +110,3 @@ mod tests {
         }
     }
 }
-
-#[cfg(feature = "bam_downstream")]
-pub(crate) use owner::BamRecalibrationGenotypingReadyRow;

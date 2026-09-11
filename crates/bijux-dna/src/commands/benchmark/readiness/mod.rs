@@ -179,3 +179,6 @@ pub(crate) mod version_probes;
 mod vcf_adapter_inputs;
 
 mod bam_stage_proofs;
+
+#[cfg(feature = "bam_downstream")]
+mod bam_downstream_proofs;

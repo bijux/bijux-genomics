@@ -8,7 +8,7 @@ use bijux_dna_bench_bam_proofs::ports::{NativeProofKind, NativeProofWriter, Read
 use bijux_dna_bench_bam_proofs::ProofContext;
 use std::cell::Cell;
 use std::path::{Path, PathBuf};
-struct Refused;
+pub(super) struct Refused;
 impl ReadinessEvidence for Refused {
     fn damage_authenticity(&self, _root: &Path) -> Result<BamDamageAuthenticityReadyReport> {
         bail!("canonical readiness unavailable")
@@ -29,7 +29,7 @@ impl ReadinessEvidence for Refused {
         bail!("canonical readiness unavailable")
     }
 }
-struct NativeCalls(Cell<usize>);
+pub(super) struct NativeCalls(pub(super) Cell<usize>);
 impl NativeProofWriter for NativeCalls {
     fn write(&self, _root: &Path, _kind: NativeProofKind) -> Result<PathBuf> {
         self.0.set(self.0.get() + 1);

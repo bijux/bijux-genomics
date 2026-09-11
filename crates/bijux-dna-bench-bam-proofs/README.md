@@ -32,3 +32,7 @@ CLI contracts cover real canonical composition. See [tests](docs/TESTS.md).
 
 Provider effects are explicit local artifact acquisition/publication; the owner publishes
 reports through infrastructure primitives and performs no process or network effects.
+
+Genotyping and kinship use typed downstream evidence adapters under `bam_downstream`.
+The owner depends on canonical evidence and BAM semantics; parser/pipeline/VCF
+orchestration remains injected, with no additional compile dependency on those services.

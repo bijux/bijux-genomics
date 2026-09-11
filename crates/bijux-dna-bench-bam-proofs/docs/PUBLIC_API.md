@@ -11,3 +11,10 @@ operation is selected. The owner reads referenced evidence, checks retained scie
 conditions, publishes complete or incomplete reports, and returns an error for incomplete
 coverage. Existing generic JSON presence checks and path-existence limitations remain
 visible; they are not promoted into stronger scientific guarantees.
+
+`DownstreamContext` adds `ParserEvidence`, `PipelineEvidence`, `VariantEvidence` and
+`KinshipReadiness`. Genotyping and kinship retain their existing row/report schemas.
+Pipeline nodes preserve ordered/multiple inputs and outputs; missingness cardinality is
+derived from canonical observed vectors. Each proof selects its exact native operation.
+Parser snapshots retain existing missing-value behavior: genotyping marks unsupported
+observations incomplete; kinship rejects missing or mistyped required values.

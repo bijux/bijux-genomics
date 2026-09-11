@@ -11,6 +11,19 @@ impl NativeProofWriter for NativeAdapter {
             bail!("native BAM proof repository differs from the requested evidence root");
         }
         match kind {
+            #[cfg(feature = "bam_downstream")]
+            NativeProofKind::Genotyping => {
+                bijux_dna_api::v1::api::bam::write_local_genotyping_plan()
+            }
+            #[cfg(feature = "bam_downstream")]
+            NativeProofKind::Kinship => {
+                bijux_dna_api::v1::api::bam::write_local_kinship_smoke_report()
+            }
+            #[cfg(not(feature = "bam_downstream"))]
+            NativeProofKind::Genotyping | NativeProofKind::Kinship => {
+                bail!("requested BAM native proof requires bam_downstream")
+            }
+
             NativeProofKind::Authenticity => {
                 bijux_dna_api::v1::api::bam::write_local_authenticity_smoke_report()
             }
