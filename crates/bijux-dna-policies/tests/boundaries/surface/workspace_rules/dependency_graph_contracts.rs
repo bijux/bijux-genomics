@@ -20,6 +20,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-bench-population",
         "bijux-dna-bench-genotypes",
         "bijux-dna-bench-bindings",
+        "bijux-dna-bench-bam-proofs",
         "bijux-dna-bench-bam-evidence",
         "bijux-dna-bench-vcf-evidence",
         "bijux-dna-bench-artifacts",

@@ -1,7 +1,7 @@
 use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
 use bijux_dna_bench_bam_evidence::readiness::overlap_endogenous as owner;
-pub(crate) use owner::{BamOverlapEndogenousReadyReport, BamOverlapEndogenousReadyRow};
+pub(crate) use owner::BamOverlapEndogenousReadyReport;
 use std::path::{Path, PathBuf};
 pub(crate) const DEFAULT_BAM_OVERLAP_ENDOGENOUS_READY_PATH: &str =
     "artifacts/benchmark-smoke/readiness/bam/overlap-endogenous-ready.json";

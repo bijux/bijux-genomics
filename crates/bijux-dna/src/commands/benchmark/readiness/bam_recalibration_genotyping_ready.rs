@@ -1,7 +1,7 @@
 use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
 use bijux_dna_bench_bam_evidence::readiness::recalibration_genotyping as owner;
-pub(crate) use owner::{BamRecalibrationGenotypingReadyReport, BamRecalibrationGenotypingReadyRow};
+pub(crate) use owner::BamRecalibrationGenotypingReadyReport;
 use std::path::{Path, PathBuf};
 pub(crate) const DEFAULT_BAM_RECALIBRATION_GENOTYPING_READY_PATH: &str =
     "artifacts/benchmark-smoke/readiness/bam/recalibration-genotyping-ready.json";
@@ -110,3 +110,6 @@ mod tests {
         }
     }
 }
+
+#[cfg(feature = "bam_downstream")]
+pub(crate) use owner::BamRecalibrationGenotypingReadyRow;

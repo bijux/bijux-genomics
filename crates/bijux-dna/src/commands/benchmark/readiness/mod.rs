@@ -177,3 +177,5 @@ pub(crate) mod vcf_undercovered_stages;
 pub(crate) mod version_probes;
 
 mod vcf_adapter_inputs;
+
+mod bam_stage_proofs;

@@ -1,9 +1,7 @@
 use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
 use bijux_dna_bench_bam_evidence::readiness::contamination_sex_haplogroups as owner;
-pub(crate) use owner::{
-    BamContaminationSexHaplogroupsReadyReport, BamContaminationSexHaplogroupsReadyRow,
-};
+pub(crate) use owner::BamContaminationSexHaplogroupsReadyReport;
 use std::path::{Path, PathBuf};
 pub(crate) const DEFAULT_BAM_CONTAMINATION_SEX_HAPLOGROUPS_READY_PATH: &str =
     "artifacts/benchmark-smoke/readiness/bam/contamination-sex-haplogroups-ready.json";

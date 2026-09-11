@@ -1,0 +1,15 @@
+mod contracts;
+mod declarations;
+mod models;
+mod observations;
+mod paths;
+mod publication;
+mod rows;
+mod service;
+pub use declarations::DEFAULT_BAM_HAPLOGROUPS_COMPLETE_PATH;
+pub use models::{BamHaplogroupsCompleteReport, BamHaplogroupsCompleteRow};
+pub use publication::render_bam_haplogroups_complete;
+mod checks;
+mod explanation;
+mod projection;
+mod report;

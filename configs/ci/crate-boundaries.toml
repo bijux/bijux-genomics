@@ -268,3 +268,9 @@ name = "bijux-dna-bench-bindings"
 family = "analysis"
 layer = "analysis"
 public_surfaces = ["crates/bijux-dna-bench-bindings/src/lib.rs", "crates/bijux-dna-bench-bindings/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-bam-proofs"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-bam-proofs/src/lib.rs", "crates/bijux-dna-bench-bam-proofs/docs/PUBLIC_API.md"]

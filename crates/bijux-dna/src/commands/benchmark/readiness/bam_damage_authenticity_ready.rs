@@ -1,7 +1,7 @@
 use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
 use bijux_dna_bench_bam_evidence::readiness::damage_authenticity as owner;
-pub(crate) use owner::{BamDamageAuthenticityReadyReport, BamDamageAuthenticityReadyRow};
+pub(crate) use owner::BamDamageAuthenticityReadyReport;
 use std::path::{Path, PathBuf};
 pub(crate) const DEFAULT_BAM_DAMAGE_AUTHENTICITY_READY_PATH: &str =
     "artifacts/benchmark-smoke/readiness/bam/damage-authenticity-ready.json";

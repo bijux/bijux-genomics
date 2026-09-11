@@ -190,6 +190,7 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_documented_boundary
         "bijux-dna-bench-population".to_string(),
         "bijux-dna-bench-genotypes".to_string(),
         "bijux-dna-bench-bindings".to_string(),
+        "bijux-dna-bench-bam-proofs".to_string(),
         "bijux-dna-bench-bam-evidence".to_string(),
         "bijux-dna-bench-vcf-evidence".to_string(),
         "bijux-dna-bench-artifacts".to_string(),
