@@ -25,5 +25,3 @@ pub(crate) fn run_local_vcf_admixture_smoke(
         &inputs, repo_root, tool_id,
     )
 }
-
-pub(crate) use bijux_dna_bench_population::admixture::LocalVcfAdmixtureSmokeRow;

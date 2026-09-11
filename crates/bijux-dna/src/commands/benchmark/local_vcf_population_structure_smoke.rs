@@ -25,8 +25,3 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         &inputs, repo_root, tool_id,
     )
 }
-
-pub(crate) use bijux_dna_bench_population::population_structure::{
-    ConsumedAdmixtureReport, ConsumedPcaReport, LocalVcfPopulationStructureDistanceSummary,
-    LocalVcfPopulationStructureSampleGroup,
-};

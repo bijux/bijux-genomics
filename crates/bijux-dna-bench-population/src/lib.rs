@@ -54,3 +54,9 @@ mod publication_contracts;
 #[allow(clippy::expect_used)]
 #[path = "../tests/contracts/inputs.rs"]
 mod input_contracts;
+
+pub mod readiness;
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+#[path = "../tests/contracts/readiness.rs"]
+mod readiness_contracts;

@@ -7,7 +7,7 @@ bijux-dna-bench-corpus	bijux-dna-db-ref bijux-dna-domain-bam bijux-dna-domain-vc
 bijux-dna-bench-genotypes	bijux-dna-bench-artifacts bijux-dna-bench-corpus bijux-dna-bench-model bijux-dna-bench-vcf-evidence bijux-dna-core bijux-dna-domain-vcf bijux-dna-infra bijux-dna-stages-vcf
 bijux-dna-bench-haplotypes	bijux-dna-bench-artifacts bijux-dna-bench-corpus bijux-dna-bench-model bijux-dna-core bijux-dna-db-ref bijux-dna-domain-vcf bijux-dna-infra bijux-dna-stage-contract bijux-dna-stages-vcf
 bijux-dna-bench-model	bijux-dna-core bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-stage-contract bijux-dna-testkit
-bijux-dna-bench-population	bijux-dna-bench-corpus bijux-dna-bench-model bijux-dna-core bijux-dna-domain-vcf bijux-dna-infra bijux-dna-stages-vcf
+bijux-dna-bench-population	bijux-dna-bench-corpus bijux-dna-bench-model bijux-dna-bench-vcf-evidence bijux-dna-core bijux-dna-domain-vcf bijux-dna-infra bijux-dna-stages-vcf
 bijux-dna-bench-variants	bijux-dna-bench-artifacts bijux-dna-bench-corpus bijux-dna-bench-model bijux-dna-bench-vcf-evidence bijux-dna-core bijux-dna-domain-vcf bijux-dna-infra bijux-dna-stages-vcf
 bijux-dna-bench-vcf	bijux-dna-bench-corpus bijux-dna-bench-model bijux-dna-bench-vcf-evidence bijux-dna-db-ref bijux-dna-domain-vcf bijux-dna-infra bijux-dna-stages-vcf
 bijux-dna-bench-vcf-evidence

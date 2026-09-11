@@ -474,6 +474,7 @@ dependencies = [
  "anyhow",
  "bijux-dna-bench-corpus",
  "bijux-dna-bench-model",
+ "bijux-dna-bench-vcf-evidence",
  "bijux-dna-core",
  "bijux-dna-domain-vcf",
  "bijux-dna-infra",
