@@ -426,6 +426,7 @@ name = "bijux-dna-bench-corpus"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-core",
  "bijux-dna-db-ref",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-vcf",

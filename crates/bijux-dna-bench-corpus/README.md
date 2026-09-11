@@ -29,3 +29,10 @@ ownership and the scientific limits of the retained contracts.
 `tests/contracts.rs` collects the six input families into one integration target;
 `tests/boundaries.rs` checks dependency direction and optional native features.
 See [test execution](docs/TESTS.md) for commands and coverage.
+
+## BAM corpus assignment
+
+With `alignment` enabled, `bam::assignment` owns fixture routing and
+scientific sample, reference, artifact and threshold admission for governed BAM
+benchmark inputs. Three typed observation ports adapt inventory, command coverage
+and compatibility without adding a frontend or benchmark orchestration dependency.

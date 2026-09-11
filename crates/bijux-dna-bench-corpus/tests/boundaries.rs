@@ -14,6 +14,7 @@ fn admit_dependencies(manifest: &toml::Value) -> Result<()> {
         "bijux-dna-domain-vcf",
         "bijux-dna-db-ref",
         "bijux-dna-infra",
+        "bijux-dna-core",
     ]);
     let dependencies = manifest["dependencies"]
         .as_table()

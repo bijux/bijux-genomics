@@ -33,3 +33,17 @@ assets. All destinations are checked before writes. Existing exact markers are
 reused, conflicting bytes are rejected, and atomic create never replaces a file.
 Publication is not a multi-file transaction; callers must control the output
 directory against concurrent ancestry changes.
+
+## BAM assignment
+
+`bam/assignment` pairs its original wire records with corpus routing.
+Fixture acquisition reuses the BAM and damage owners directly. Governed configuration
+admission precedes evidence-profile formatting and seven independent stage projections.
+Sample/reference/path identity and genotyping/kinship contract checks stay beside
+their consumed corpus schemas. Non-finite thresholds reject before publication.
+
+Inventory, command coverage and compatibility are independent injected authorities.
+Canonical domain BAM assignment rules remain in their domain owner; core supplies
+stage identities. Core and infrastructure stay optional through `alignment`,
+leaving default corpus compilation free of specialized workspace dependencies.
+TSV publication uses infrastructure atomic replacement, with exact declared columns.

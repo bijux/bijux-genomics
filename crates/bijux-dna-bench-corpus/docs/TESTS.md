@@ -19,3 +19,15 @@ Dependency regressions reject CLI, benchmark aggregation, execution and runtime
 edges, mandatory native dependencies, and implicitly enabled native defaults.
 These tests establish declared local admission behavior. They do not prove
 interchangeability of every external scientific tool or performance on HPC.
+
+## BAM assignment contracts
+
+Owner regressions reuse the existing governed fixture/configuration corpus to test
+valid admission, foreign sample rejection, non-finite posterior rejection, reference
+build substitution and pairwise relationship loss. Small local files test canonical
+path identity, including Unix aliases. Injected source failures verify acquisition
+ordering and preserve previous output. Duplicate compatibility stages cannot overwrite.
+
+Three original CLI contracts and the original inline routing assertions retain text,
+JSON and TSV coverage. Default, alignment and all-feature owner inventories remain
+separate; assignment regressions require alignment, and alias coverage requires Unix.

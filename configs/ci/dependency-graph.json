@@ -2040,6 +2040,11 @@
       "consumer": "crate:bijux-dna-bench-bam-evidence",
       "dependency": "crate:bijux-dna-bench-bindings",
       "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-corpus",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
     }
   ]
 }
