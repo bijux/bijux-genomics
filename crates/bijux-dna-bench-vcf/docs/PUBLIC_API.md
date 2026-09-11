@@ -129,3 +129,17 @@ native smoke execution. Adapter acquisition rejects ambiguous retained declarati
 before materialization. The CLI shares one admitted adapter observation context across
 common evidence and PCA projection. Script and argv publication retain their existing
 paths and representations; both serialize before either file is written.
+
+## Registry coverage audits
+
+`evidence::registry::{matrix, orphans, undercoverage}` owns explicit-input registry
+coverage reports. One typed snapshot merges the two authored registry documents,
+retaining status unions and production stage membership. Conflicting binaries,
+malformed arrays, blank or padded identities and repeated entries within a document
+are refused before publication. Repeated tools across the two documents remain valid
+when their binary declarations agree.
+
+The matrix audit reports declaration drift, including unregistered pairs. Orphan
+and undercoverage audits retain their strict coverage contracts. Each acquires its
+sources once, reuses one serving report and atomically publishes compatible JSON or
+TSV. These declaration audits do not establish scientific execution compatibility.

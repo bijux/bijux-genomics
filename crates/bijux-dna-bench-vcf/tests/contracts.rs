@@ -41,3 +41,15 @@ mod parsers;
 
 #[path = "contracts/pca_evidence.rs"]
 mod pca_evidence;
+
+#[path = "contracts/registry_matrix.rs"]
+mod registry_matrix;
+
+#[path = "contracts/registry_orphans.rs"]
+mod registry_orphans;
+
+#[path = "contracts/registry_undercoverage.rs"]
+mod registry_undercoverage;
+
+#[path = "contracts/registry_admission.rs"]
+mod registry_admission;

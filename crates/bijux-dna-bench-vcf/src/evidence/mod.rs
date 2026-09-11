@@ -8,3 +8,5 @@ pub mod scope;
 pub mod serving;
 
 pub mod pca;
+
+pub mod registry;
