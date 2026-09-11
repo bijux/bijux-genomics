@@ -222,7 +222,15 @@ fn thin_cli_uses_model_owned_local_vcf_imputation_metrics_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_vcf_imputation_metrics_smoke_report"));
+    assert!(contents.contains(
+        "bijux_dna_bench_haplotypes::imputation_metrics::run_local_vcf_imputation_metrics_smoke"
+    ));
+    let owner = ["crates/bijux-dna-bench-haplotypes/src/imputation_metrics/workflow.rs"]
+        .into_iter()
+        .map(|path| fs::read_to_string(repo_root.join(path)).expect("read validator owner"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(owner.contains("validate_benchmark_local_vcf_imputation_metrics_smoke_report"));
     assert!(!contents.contains("struct QualityFieldAvailability"));
     assert!(!contents.contains("struct LocalVcfImputationMetricsSmokeReport"));
     assert!(!contents.contains("bijux.bench.local_vcf_imputation_metrics_smoke.v1"));
@@ -236,7 +244,13 @@ fn thin_cli_uses_model_owned_local_vcf_ibd_smoke_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_vcf_ibd_smoke_report"));
+    assert!(contents.contains("bijux_dna_bench_population::ibd::run_local_vcf_ibd_smoke"));
+    let owner = ["crates/bijux-dna-bench-population/src/ibd/workflow.rs"]
+        .into_iter()
+        .map(|path| fs::read_to_string(repo_root.join(path)).expect("read validator owner"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(owner.contains("validate_benchmark_local_vcf_ibd_smoke_report"));
     assert!(!contents.contains("struct LocalVcfIbdSmokeRow"));
     assert!(!contents.contains("struct LocalVcfIbdInsufficientOverlapProbe"));
     assert!(!contents.contains("struct LocalVcfIbdSmokeReport"));
@@ -251,8 +265,17 @@ fn thin_cli_uses_model_owned_local_vcf_call_smoke_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_vcf_call_smoke_metrics"));
-    assert!(contents.contains("validate_benchmark_local_vcf_call_smoke_report"));
+    assert!(contents.contains("bijux_dna_bench_genotypes::call::run_local_vcf_call_smoke"));
+    let owner = [
+        "crates/bijux-dna-bench-genotypes/src/call/observations/stage.rs",
+        "crates/bijux-dna-bench-genotypes/src/call/publication/report.rs",
+    ]
+    .into_iter()
+    .map(|path| fs::read_to_string(repo_root.join(path)).expect("read validator owner"))
+    .collect::<Vec<_>>()
+    .join("\n");
+    assert!(owner.contains("validate_benchmark_local_vcf_call_smoke_metrics"));
+    assert!(owner.contains("validate_benchmark_local_vcf_call_smoke_report"));
     assert!(!contents.contains("struct LocalVcfCallSmokeMetrics"));
     assert!(!contents.contains("struct LocalVcfCallSmokeReport"));
     assert!(!contents.contains("bijux.bench.local_vcf_call_smoke.metrics.v1"));
@@ -267,8 +290,17 @@ fn thin_cli_uses_model_owned_local_vcf_call_gl_smoke_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_vcf_call_gl_smoke_metrics"));
-    assert!(contents.contains("validate_benchmark_local_vcf_call_gl_smoke_report"));
+    assert!(contents.contains("bijux_dna_bench_genotypes::call_gl::run_local_vcf_call_gl_smoke"));
+    let owner = [
+        "crates/bijux-dna-bench-genotypes/src/call_gl/observations/stage.rs",
+        "crates/bijux-dna-bench-genotypes/src/call_gl/publication/report.rs",
+    ]
+    .into_iter()
+    .map(|path| fs::read_to_string(repo_root.join(path)).expect("read validator owner"))
+    .collect::<Vec<_>>()
+    .join("\n");
+    assert!(owner.contains("validate_benchmark_local_vcf_call_gl_smoke_metrics"));
+    assert!(owner.contains("validate_benchmark_local_vcf_call_gl_smoke_report"));
     assert!(!contents.contains("struct LocalVcfCallGlSmokeMetrics"));
     assert!(!contents.contains("struct LocalVcfCallGlSmokeReport"));
     assert!(!contents.contains("bijux.bench.local_vcf_call_gl_smoke.metrics.v1"));
@@ -828,7 +860,17 @@ fn thin_cli_uses_model_owned_comparable_metric_contracts() {
         ),
     ] {
         let source = fs::read_to_string(cli_root.join(file_name)).expect("read readiness command");
-        assert!(source.contains(validator));
+        if file_name == "vcf_comparable_metrics.rs" {
+            assert!(source
+                .contains("bijux_dna_bench_vcf::evidence::metrics::render_vcf_comparable_metrics"));
+            let owner = fs::read_to_string(
+                repo_root.join("crates/bijux-dna-bench-vcf/src/evidence/metrics/service.rs"),
+            )
+            .expect("read VCF metric owner");
+            assert!(owner.contains(validator));
+        } else {
+            assert!(source.contains(validator));
+        }
         for forbidden_type in forbidden_types {
             assert!(!source.contains(forbidden_type));
         }

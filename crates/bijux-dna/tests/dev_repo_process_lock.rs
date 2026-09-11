@@ -116,8 +116,8 @@ fn vcf_aggregate_readiness_writers_acquire_repository_lock_before_mutation() -> 
             "EnvGuard::new()",
         ),
         (
-            "crates/bijux-dna/src/commands/benchmark/readiness/vcf_imputation_metrics_ready.rs",
-            "build_vcf_imputation_metrics_ready_report(",
+            "crates/bijux-dna/tests/contracts/readiness/imputation_metrics_backend_coverage.rs",
+            "render_vcf_imputation_metrics_ready(",
         ),
     ] {
         let source = std::fs::read_to_string(repo_root.join(relative))?;

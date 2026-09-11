@@ -75,7 +75,12 @@ fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
     .into_iter()
     .map(str::to_string)
     .collect::<BTreeSet<_>>();
+    let development_only = ["bijux-dna-bench-population", "bijux-dna-bench-vcf"]
+        .into_iter()
+        .map(str::to_string)
+        .collect::<BTreeSet<_>>();
     let mut observed = BTreeSet::new();
+    let mut observed_development = BTreeSet::new();
     for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if entry.file_name() != "Cargo.toml" {
             continue;
@@ -90,8 +95,28 @@ fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
             .and_then(|path| path.file_name())
             .and_then(|name| name.to_str())
             .unwrap_or("");
-        observed.insert(name.to_string());
+        if development_only.contains(name) {
+            let mut manifest: toml::Value = toml::from_str(&content).expect("parse Cargo.toml");
+            let development = manifest
+                .as_table_mut()
+                .expect("manifest table")
+                .remove("dev-dependencies")
+                .expect("development-only YAML owner declares dev-dependencies");
+            assert!(
+                development.get("serde_yaml").is_some(),
+                "{name} must keep YAML under dev-dependencies"
+            );
+            let production = manifest.to_string();
+            assert!(
+                !production.contains("serde_yaml") && !production.contains("serde-yaml"),
+                "{name} must not introduce YAML into normal, build or target dependencies"
+            );
+            observed_development.insert(name.to_string());
+        } else {
+            observed.insert(name.to_string());
+        }
     }
+    assert_eq!(observed_development, development_only, "exact development-only YAML owners");
     bijux_dna_policies::policy_assert!(
         observed == expected,
         "serde_yaml owners must match the exact product boundary: expected {:?}, observed {:?}",

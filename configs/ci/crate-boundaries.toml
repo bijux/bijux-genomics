@@ -226,3 +226,33 @@ name = "bijux-dna-bench-haplotypes"
 family = "data"
 layer = "support"
 public_surfaces = ["crates/bijux-dna-bench-haplotypes/src/lib.rs", "crates/bijux-dna-bench-haplotypes/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-artifacts"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-artifacts/src/lib.rs", "crates/bijux-dna-bench-artifacts/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-fastq"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-fastq/src/lib.rs", "crates/bijux-dna-bench-fastq/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-genotypes"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-genotypes/src/lib.rs", "crates/bijux-dna-bench-genotypes/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-variants"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-variants/src/lib.rs", "crates/bijux-dna-bench-variants/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-vcf-evidence"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-vcf-evidence/src/lib.rs", "crates/bijux-dna-bench-vcf-evidence/docs/PUBLIC_API.md"]
