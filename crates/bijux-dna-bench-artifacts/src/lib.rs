@@ -9,3 +9,5 @@ pub use admission::{execution_parent, PublicationPlan};
 pub use model::{PublicationSchema, PublishedArtifactPaths, ReportOwner};
 mod contract;
 mod stage_result;
+
+pub mod schemas;

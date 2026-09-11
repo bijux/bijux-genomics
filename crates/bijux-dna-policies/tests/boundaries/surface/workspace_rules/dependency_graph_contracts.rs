@@ -20,6 +20,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-bench-population",
         "bijux-dna-bench-genotypes",
         "bijux-dna-bench-vcf-evidence",
+        "bijux-dna-bench-artifacts",
         "bijux-dna-bench-haplotypes",
         "bijux-dna-bench-variants",
         "bijux-dna-bench-model",
@@ -222,6 +223,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             dep == "bijux-dna-core"
                 || dep == "bijux-dna-analyze"
                 || dep == "bijux-dna-bench-model"
+                || dep == "bijux-dna-bench-artifacts"
                 || dep == "bijux-dna-containers"
                 || dep == "bijux-dna-db-ena"
                 || dep == "bijux-dna-db-ref"

@@ -11,6 +11,7 @@ name = "bijux-dna"
 path = "src/bin/bijux-dna.rs"
 
 [dependencies]
+bijux-dna-bench-artifacts.workspace = true
 bijux-dna-bench-vcf.workspace = true
 bijux-dna-bench-vcf-evidence.workspace = true
 bijux-dna-bench-population.workspace = true

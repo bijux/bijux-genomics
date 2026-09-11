@@ -227,6 +227,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-api",
+ "bijux-dna-bench-artifacts",
  "bijux-dna-bench-corpus",
  "bijux-dna-bench-genotypes",
  "bijux-dna-bench-haplotypes",
@@ -349,6 +350,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-analyze",
+ "bijux-dna-bench-artifacts",
  "bijux-dna-bench-model",
  "bijux-dna-containers",
  "bijux-dna-core",
