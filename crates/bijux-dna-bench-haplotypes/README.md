@@ -29,3 +29,8 @@ execution paths while public reports expose stable output addresses.
 
 [Verification](docs/TESTS.md) retains scientific fixture and tool-substitution
 contracts, alongside input admission and publication regressions.
+
+Immutable execution admission and stable file publication are owned by
+`bijux-dna-bench-artifacts`. This crate supplies the existing haplotype inventory
+filename/schema and scientific report identity; native paths/checksums and prior
+execution retention remain compatible.

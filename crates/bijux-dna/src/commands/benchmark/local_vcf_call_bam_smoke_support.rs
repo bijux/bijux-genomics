@@ -120,15 +120,7 @@ pub(crate) fn resolve_vcf_call_matrix_row(
     Ok(matrix_row)
 }
 
-pub(crate) fn parse_output_sample_count(vcf_path: &Path) -> Result<u64> {
-    let raw = bijux_dna_stages_vcf::vcf_io::read_vcf_text(vcf_path)?;
-    let sample_header = raw
-        .lines()
-        .find(|line| line.starts_with("#CHROM\t"))
-        .ok_or_else(|| anyhow!("VCF output is missing the #CHROM header"))?;
-    let sample_count = sample_header.split('\t').skip(9).count();
-    u64::try_from(sample_count).map_err(|_| anyhow!("VCF output sample count overflowed u64"))
-}
+pub(crate) use bijux_dna_stages_vcf::vcf_io::vcf_sample_count as parse_output_sample_count;
 
 pub(crate) fn materialize_reference_fasta(
     source_reference: &Path,

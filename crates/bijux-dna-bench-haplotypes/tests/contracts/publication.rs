@@ -53,6 +53,7 @@ fn publication_preserves_native_paths_checksums_and_prior_downstream_references(
         &first,
         &destination,
         &owner(),
+        &crate::publication::SCHEMA,
     )?
     .publish()?;
     let second = execution(&destination, "second", b"replacement phased variants")?;
@@ -61,6 +62,7 @@ fn publication_preserves_native_paths_checksums_and_prior_downstream_references(
         &second,
         &destination,
         &owner(),
+        &crate::publication::SCHEMA,
     )?
     .publish()?;
     assert_eq!(fs::read(first.join("manifest.json"))?, original_manifest);
@@ -95,6 +97,7 @@ fn collisions_are_rejected_before_replacing_previous_files() -> Result<()> {
         &first,
         &destination,
         &owner(),
+        &crate::publication::SCHEMA,
     )?
     .publish()?;
     fs::write(destination.join("z-unknown.txt"), b"user evidence")?;
@@ -104,7 +107,8 @@ fn collisions_are_rejected_before_replacing_previous_files() -> Result<()> {
         destination.parent().expect("repository"),
         &second,
         &destination,
-        &owner()
+        &owner(),
+        &crate::publication::SCHEMA
     )
     .is_err());
     assert_eq!(fs::read(destination.join("phased.vcf"))?, b"old");
@@ -124,6 +128,7 @@ fn obsolete_owned_stable_files_retire_while_unknown_evidence_survives() -> Resul
         &first,
         &destination,
         &owner(),
+        &crate::publication::SCHEMA,
     )?
     .publish()?;
     fs::write(destination.join("diagnostics/user.txt"), b"user evidence")?;
@@ -133,6 +138,7 @@ fn obsolete_owned_stable_files_retire_while_unknown_evidence_survives() -> Resul
         &second,
         &destination,
         &owner(),
+        &crate::publication::SCHEMA,
     )?
     .publish()?;
     assert!(!destination.join("diagnostics/old.txt").exists());
@@ -151,6 +157,7 @@ fn malformed_and_foreign_inventory_cannot_authorize_replacement_or_retirement() 
         &first,
         &destination,
         &owner(),
+        &crate::publication::SCHEMA,
     )?
     .publish()?;
     let inventory = destination.join("haplotype-artifact-ownership.json");
@@ -168,7 +175,8 @@ fn malformed_and_foreign_inventory_cannot_authorize_replacement_or_retirement() 
             destination.parent().expect("repository"),
             &second,
             &destination,
-            &owner()
+            &owner(),
+            &crate::publication::SCHEMA
         )
         .is_err());
         assert_eq!(fs::read(destination.join("phased.vcf"))?, b"old");
@@ -188,6 +196,7 @@ fn symlinked_stable_artifact_cannot_redirect_publication() -> Result<()> {
         &first,
         &destination,
         &owner(),
+        &crate::publication::SCHEMA,
     )?
     .publish()?;
     let foreign = root.join("foreign.txt");
@@ -199,7 +208,8 @@ fn symlinked_stable_artifact_cannot_redirect_publication() -> Result<()> {
         destination.parent().expect("repository"),
         &second,
         &destination,
-        &owner()
+        &owner(),
+        &crate::publication::SCHEMA
     )
     .is_err());
     assert_eq!(fs::read(&foreign)?, b"user evidence");
@@ -229,7 +239,8 @@ fn stable_stage_result_projects_addresses_without_mutating_execution_record() ->
     let run = execution(&destination, "first", b"phased variants")?;
     stage_result(&run, "published/executions/first/phased.vcf")?;
     let original = fs::read(run.join("stage-result.json"))?;
-    PublicationPlan::admit(&repository, &run, &destination, &owner())?.publish()?;
+    PublicationPlan::admit(&repository, &run, &destination, &owner(), &crate::publication::SCHEMA)?
+        .publish()?;
     assert_eq!(fs::read(run.join("stage-result.json"))?, original);
     let published: serde_json::Value =
         serde_json::from_slice(&fs::read(destination.join("stage-result.json"))?)?;
@@ -244,11 +255,25 @@ fn escaping_stage_result_is_rejected_before_replacing_stable_outputs() -> Result
     let repository = temp.path().canonicalize()?;
     let destination = repository.join("published");
     let first = execution(&destination, "first", b"old")?;
-    PublicationPlan::admit(&repository, &first, &destination, &owner())?.publish()?;
+    PublicationPlan::admit(
+        &repository,
+        &first,
+        &destination,
+        &owner(),
+        &crate::publication::SCHEMA,
+    )?
+    .publish()?;
     let second = execution(&destination, "second", b"new")?;
     for invalid in ["foreign.vcf", "published/executions/second/../../foreign.vcf"] {
         stage_result(&second, invalid)?;
-        assert!(PublicationPlan::admit(&repository, &second, &destination, &owner()).is_err());
+        assert!(PublicationPlan::admit(
+            &repository,
+            &second,
+            &destination,
+            &owner(),
+            &crate::publication::SCHEMA
+        )
+        .is_err());
         assert_eq!(fs::read(destination.join("phased.vcf"))?, b"old");
     }
     Ok(())

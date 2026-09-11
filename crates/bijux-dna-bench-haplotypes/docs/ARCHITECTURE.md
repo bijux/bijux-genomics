@@ -19,3 +19,8 @@ remain because downstream reports can still reference them. Deleting retained
 executions requires dependency-aware retention; no automatic garbage collection is
 claimed. Individual file replacement is atomic; a whole publication is not a
 filesystem transaction. Concurrent mutation of one publication root is unsupported.
+
+Immutable execution admission and stable file publication are owned by
+`bijux-dna-bench-artifacts`. This crate supplies the existing haplotype inventory
+filename/schema and scientific report identity; native paths/checksums and prior
+execution retention remain compatible.

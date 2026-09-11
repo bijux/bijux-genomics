@@ -8,6 +8,8 @@ use schemars::JsonSchema;
 #[cfg(test)]
 use serde::{Deserialize, Serialize};
 
+mod sample_header;
+pub use sample_header::sample_count_from_vcf_text;
 mod genotype_calls;
 pub use genotype_calls::genotypes_equivalent_unphased;
 mod schema;

@@ -93,6 +93,7 @@ pub fn run_local_vcf_imputation_metrics_smoke(
             stage: &report.stage_id,
             tool: &report.tool_id,
         },
+        &crate::publication::SCHEMA,
     )?;
     // Native manifests and checksums name this execution; keep it before replacing stable files.
     let _retained_execution = execution_dir.keep();
