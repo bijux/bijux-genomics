@@ -9,6 +9,7 @@ members = [
   "crates/bijux-dna-bench-bam-evidence",
   "crates/bijux-dna-bench-bam-proofs",
   "crates/bijux-dna-bench-bindings",
+  "crates/bijux-dna-bench-campaign",
   "crates/bijux-dna-bench-corpus",
   "crates/bijux-dna-bench-fastq",
   "crates/bijux-dna-bench-genotypes",
@@ -101,6 +102,7 @@ bijux-dna-analyze = { path = "crates/bijux-dna-analyze" }
 bijux-dna = { path = "crates/bijux-dna" }
 bijux-dna-api = { path = "crates/bijux-dna-api" }
 bijux-dna-bench = { path = "crates/bijux-dna-bench" }
+bijux-dna-bench-campaign = { path = "crates/bijux-dna-bench-campaign" }
 bijux-dna-bench-corpus = { path = "crates/bijux-dna-bench-corpus", default-features = false }
 bijux-dna-bench-genotypes = { path = "crates/bijux-dna-bench-genotypes", version = "0.1.0" }
 bijux-dna-bench-haplotypes = { path = "crates/bijux-dna-bench-haplotypes" }

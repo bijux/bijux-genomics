@@ -5,9 +5,11 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use sha2::Digest as _;
 
-use super::path_display;
+fn path_display(path: &Path) -> String {
+    path.to_string_lossy().replace('\\', "/")
+}
 
-pub(super) fn artifact_bundle_manifest_fields(
+pub(crate) fn artifact_bundle_manifest_fields(
     path_key: &str,
     digest_prefix: &str,
     path: &Path,
@@ -60,7 +62,11 @@ fn artifact_bundle_members(path: &Path) -> Result<Vec<PathBuf>> {
     Ok(members)
 }
 
-pub(crate) fn artifact_bundle_size_bytes(path: &Path) -> Result<u64> {
+/// Measure the canonical artifact bundle members.
+///
+/// # Errors
+/// Propagates member discovery, metadata and file-read failures.
+pub fn artifact_bundle_size_bytes(path: &Path) -> Result<u64> {
     let mut total = 0_u64;
     for member in artifact_bundle_members(path)? {
         if member.is_file() {
@@ -91,7 +97,11 @@ pub(crate) fn artifact_bundle_size_bytes(path: &Path) -> Result<u64> {
     Ok(total)
 }
 
-pub(crate) fn sha256_artifact_bundle(path: &Path) -> Result<String> {
+/// Hash the canonical artifact bundle identity.
+///
+/// # Errors
+/// Propagates member discovery, metadata and file-read failures.
+pub fn sha256_artifact_bundle(path: &Path) -> Result<String> {
     let members = artifact_bundle_members(path)?;
     if members.is_empty() {
         return Err(anyhow!("missing artifact bundle: {}", path.display()));
@@ -163,7 +173,11 @@ pub(crate) fn resolve_artifact_lineage_json(path: &Path) -> Option<PathBuf> {
     candidate.is_file().then_some(candidate)
 }
 
-pub(crate) fn sha256_file_hex(path: &Path) -> Result<String> {
+/// Hash the bytes of one file.
+///
+/// # Errors
+/// Propagates member discovery, metadata and file-read failures.
+pub fn sha256_file_hex(path: &Path) -> Result<String> {
     let mut handle = fs::File::open(path).with_context(|| format!("open {}", path.display()))?;
     let mut digest = sha2::Sha256::new();
     let mut buffer = vec![0_u8; 1024 * 1024];

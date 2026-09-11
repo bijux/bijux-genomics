@@ -14,6 +14,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-api",
         "bijux-dna-analyze",
         "bijux-dna-bench",
+        "bijux-dna-bench-campaign",
         "bijux-dna-bench-corpus",
         "bijux-dna-bench-vcf",
         "bijux-dna-bench-workflows",
@@ -218,6 +219,11 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             "bijux-dna-analyze must not depend on workspace crate {dep}"
         );
     }
+
+    bijux_dna_policies::policy_assert!(
+        deps_for("bijux-dna-bench-campaign") == BTreeSet::from(["bijux-dna-bench-corpus".to_string()]),
+        "corpus campaigns must depend only on canonical corpus ownership, without CLI/API/native engine back edges"
+    );
 
     let bench = deps_for("bijux-dna-bench");
     for dep in &bench {

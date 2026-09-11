@@ -27,7 +27,21 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-runner/src/backend/slurm/qualification/",
         "crates/bijux-dna-stages-vcf/src/",
     ];
-    let effect_owner_paths = ["crates/bijux-dna-dev/src/runtime/owned_artifacts.rs"];
+    // Campaign lifecycle effects are scoped to admitted publication/cache roots;
+    // adjacent contracts exercise those effects against isolated fixtures.
+    let effect_owner_paths = [
+        "crates/bijux-dna-dev/src/runtime/owned_artifacts.rs",
+        "crates/bijux-dna-bench-campaign/src/cache/cloning.rs",
+        "crates/bijux-dna-bench-campaign/src/cache/lifecycle.rs",
+        "crates/bijux-dna-bench-campaign/src/cache/contracts.rs",
+        "crates/bijux-dna-bench-campaign/src/cache/warmup.rs",
+        "crates/bijux-dna-bench-campaign/src/campaign/service.rs",
+        "crates/bijux-dna-bench-campaign/src/campaign/publication.rs",
+        "crates/bijux-dna-bench-campaign/src/campaign/contracts.rs",
+        "crates/bijux-dna-bench-campaign/src/qc/prepare.rs",
+        "crates/bijux-dna-bench-campaign/src/qc/upstream.rs",
+        "crates/bijux-dna-bench-campaign/src/qc/contracts.rs",
+    ];
     let legacy_allowlist: BTreeSet<&str> = BTreeSet::from([
         "crates/bijux-dna/src/commands/bench_suite/bench_suite_part1.rs",
         "crates/bijux-dna/src/commands/benchmark_config.rs",

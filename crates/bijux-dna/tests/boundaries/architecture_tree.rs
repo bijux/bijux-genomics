@@ -213,7 +213,6 @@ fn dna_tree_matches_architecture_contract() {
         "schema_paths.rs",
         "schema_validation.rs",
         "scratch_repository.rs",
-        "stage_catalog.rs",
         "suite/",
         "taxonomy_database.rs",
         "repo_locking.rs",
@@ -243,22 +242,12 @@ fn dna_tree_matches_architecture_contract() {
 
     let benchmark_corpus_fastq_entries =
         dir_entries(&root.join("src/commands/benchmark/corpus_fastq"));
-    let expected_benchmark_corpus_fastq: BTreeSet<_> = [
-        "artifact_bundle.rs",
-        "mod.rs",
-        "models.rs",
-        "report_qc_support.rs",
-        "runtime_support.rs",
-        "sortmerna_support.rs",
-        "stage_preparation.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        benchmark_corpus_fastq_entries, expected_benchmark_corpus_fastq,
-        "corpus fastq benchmark tree must separate run models, runtime support, stage preparation, and governed support"
-    );
+    let expected_benchmark_corpus_fastq: BTreeSet<_> =
+        ["adapters.rs", "contracts.rs", "defaults.rs", "mod.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(benchmark_corpus_fastq_entries, expected_benchmark_corpus_fastq, "corpus command composition owns request adaptation, canonical workspace paths and native execution adapters");
 
     let cli_entries = dir_entries(&root.join("src/commands/cli"));
     let expected_cli: BTreeSet<_> = [

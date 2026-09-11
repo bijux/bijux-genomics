@@ -23,6 +23,22 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.contains("/crates/bijux-dna-analyze/") {
         return true;
     }
+    // Campaign registries and parameter projections consume persisted stage identities.
+    // Keep the allowance at the owning records and projections, not the whole crate.
+    let campaign_identity_paths = [
+        "/crates/bijux-dna-bench-campaign/src/catalog.rs",
+        "/crates/bijux-dna-bench-campaign/src/catalog/contracts.rs",
+        "/crates/bijux-dna-bench-campaign/src/planning/manifest.rs",
+        "/crates/bijux-dna-bench-campaign/src/cache/layout.rs",
+        "/crates/bijux-dna-bench-campaign/src/campaign/service.rs",
+        "/crates/bijux-dna-bench-campaign/src/campaign/samples.rs",
+        "/crates/bijux-dna-bench-campaign/src/qc/prepare.rs",
+        "/crates/bijux-dna-bench-campaign/src/qc/model.rs",
+        "/crates/bijux-dna-bench-campaign/src/qc/contracts.rs",
+    ];
+    if campaign_identity_paths.iter().any(|suffix| path_str.ends_with(suffix)) {
+        return true;
+    }
     if path_str.contains("/crates/bijux-dna-bench/") {
         return true;
     }

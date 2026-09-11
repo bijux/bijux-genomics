@@ -1,11 +1,11 @@
 use anyhow::{anyhow, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct CorpusFastqStageCatalogEntry {
-    pub(crate) stage_id: &'static str,
-    pub(crate) bench_subcommand: &'static str,
-    pub(crate) report_dir: &'static str,
-    pub(crate) strict_resume_report: bool,
+pub struct CorpusFastqStageCatalogEntry {
+    pub stage_id: &'static str,
+    pub bench_subcommand: &'static str,
+    pub report_dir: &'static str,
+    pub strict_resume_report: bool,
 }
 
 const CORPUS_FASTQ_STAGE_CATALOG: &[CorpusFastqStageCatalogEntry] = &[
@@ -131,12 +131,17 @@ const CORPUS_FASTQ_STAGE_CATALOG: &[CorpusFastqStageCatalogEntry] = &[
     },
 ];
 
-pub(crate) fn corpus_fastq_stage_catalog_entry(
-    stage_id: &str,
-) -> Result<CorpusFastqStageCatalogEntry> {
+/// Resolve the governed command and report layout for a corpus stage.
+///
+/// # Errors
+/// Rejects unsupported corpus benchmark stages.
+pub fn corpus_fastq_stage_catalog_entry(stage_id: &str) -> Result<CorpusFastqStageCatalogEntry> {
     CORPUS_FASTQ_STAGE_CATALOG
         .iter()
         .copied()
         .find(|entry| entry.stage_id == stage_id)
         .ok_or_else(|| anyhow!("unsupported corpus benchmark stage `{stage_id}`"))
 }
+
+#[cfg(test)]
+mod contracts;
