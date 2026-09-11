@@ -588,6 +588,16 @@
       "gates": [
         "crate-tests:bijux-dna-bench-bam-evidence"
       ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-bindings",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-bindings/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-bindings"
+      ]
     }
   ],
   "edges": [
@@ -2009,6 +2019,21 @@
     {
       "consumer": "crate:bijux-dna-bench-bam-evidence",
       "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-bindings",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bindings",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bindings",
+      "dependency": "crate:bijux-dna-infra",
       "kind": "normal"
     }
   ]
