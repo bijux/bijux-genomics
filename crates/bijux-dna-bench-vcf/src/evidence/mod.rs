@@ -3,4 +3,5 @@ pub mod commands;
 pub mod expectations;
 pub mod output_coverage;
 pub mod reports;
+pub mod scope;
 pub mod serving;

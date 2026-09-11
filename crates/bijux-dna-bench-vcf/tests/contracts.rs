@@ -30,3 +30,6 @@ mod output_coverage;
 
 #[path = "contracts/reports.rs"]
 mod reports;
+
+#[path = "contracts/scope.rs"]
+mod scope;

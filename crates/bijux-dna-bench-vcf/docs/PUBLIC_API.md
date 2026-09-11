@@ -85,3 +85,16 @@ The pure projection performs no filesystem acquisition. The publication entry po
 acquires expected observations using one request context and atomically writes the
 compatible TSV after all placement contracts pass. Report declarations remain
 separate from native payload validation and scientific acceptance.
+
+## Retained scope
+
+`evidence::scope` receives admitted VCF inputs, explicit active binding identities,
+expected results and the registry root. The caller owns acquisition of all-domain
+active observations. Scope admission preserves full stage/tool/corpus/asset identity
+before projecting the stable pair-oriented report. Ambiguous pairs and foreign or
+repeated active/expected identities are rejected. Registry decoding rejects malformed
+stage identifiers instead of omitting them from the retained set.
+
+The owner preserves active, complete and removed classifications and their governed
+proof paths. TSV publication is atomic after projection and scope contracts pass.
+Scope membership is distinct from native tool execution or scientific acceptance.
