@@ -58,10 +58,18 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<VcfAllRetainedToolsCompleteReport> {
+    let session = bijux_dna_bench_vcf::evidence::readiness::VcfReadinessEvidenceSession::new(
+        repo_root,
+        crate::commands::benchmark::local_slurm_run_paths::LOCAL_SLURM_DRY_RUN_RUN_ID,
+        super::vcf_adapter_inputs::load,
+        super::vcf_stage_readiness_support::active_evidence,
+    );
+    let render_scientific =
+        |root: &Path, stage, output| render_direct(root, stage, output, &session);
     let ports = VcfCompletionPorts {
         direct: DirectReadinessPorts {
             output_path: direct_output_path,
-            render: render_direct,
+            render: &render_scientific,
             external_bindings: load_external_artifact_binding_keys,
         },
         evidence: EvidencePublicationPorts {
@@ -120,67 +128,58 @@ fn render_direct(
     repo_root: &Path,
     stage: DirectReadinessStage,
     output_path: PathBuf,
+    session: &bijux_dna_bench_vcf::evidence::readiness::VcfReadinessEvidenceSession<'_>,
 ) -> Result<()> {
+    let (commands, snapshot) = session.evidence()?;
+
     match stage {
         DirectReadinessStage::Call => {
-            vcf_call_ready::render_vcf_call_ready(repo_root, output_path).map(|_| ())
+            vcf_call_ready::render_vcf_call_ready_with_evidence(repo_root,output_path,commands,snapshot).map(|_| ())
         }
         DirectReadinessStage::CallDiploid => {
-            vcf_call_diploid_ready::render_vcf_call_diploid_ready(repo_root, output_path)
+            vcf_call_diploid_ready::render_vcf_call_diploid_ready_with_evidence(repo_root,output_path,commands,snapshot)
                 .map(|_| ())
         }
         DirectReadinessStage::CallPseudohaploid => {
-            vcf_call_pseudohaploid_ready::render_vcf_call_pseudohaploid_ready(
-                repo_root,
-                output_path,
-            )
+            vcf_call_pseudohaploid_ready::render_vcf_call_pseudohaploid_ready_with_evidence(repo_root,output_path,commands,snapshot)
             .map(|_| ())
         }
         DirectReadinessStage::CallGl => {
-            vcf_call_gl_ready::render_vcf_call_gl_ready(repo_root, output_path).map(|_| ())
+            vcf_call_gl_ready::render_vcf_call_gl_ready_with_evidence(repo_root,output_path,commands,snapshot).map(|_| ())
         }
         DirectReadinessStage::DamageFilter => {
-            vcf_damage_filter_ready::render_vcf_damage_filter_ready(repo_root, output_path)
+            vcf_damage_filter_ready::render_vcf_damage_filter_ready_with_evidence(repo_root,output_path,commands,snapshot)
                 .map(|_| ())
         }
         DirectReadinessStage::GlPropagation => {
-            vcf_gl_propagation_ready::render_vcf_gl_propagation_ready(repo_root, output_path)
+            vcf_gl_propagation_ready::render_vcf_gl_propagation_ready_with_evidence(repo_root,output_path,commands,snapshot)
                 .map(|_| ())
         }
         DirectReadinessStage::Filter => {
-            vcf_filter_ready::render_vcf_filter_ready(repo_root, output_path).map(|_| ())
+            vcf_filter_ready::render_vcf_filter_ready_with_evidence(repo_root,output_path,commands,snapshot).map(|_| ())
         }
         DirectReadinessStage::Stats => {
-            vcf_stats_ready::render_vcf_stats_ready(repo_root, output_path).map(|_| ())
+            vcf_stats_ready::render_vcf_stats_ready_with_evidence(repo_root,output_path,commands,snapshot).map(|_| ())
         }
         DirectReadinessStage::Qc => {
-            vcf_qc_ready::render_vcf_qc_ready(repo_root, output_path).map(|_| ())
+            vcf_qc_ready::render_vcf_qc_ready_with_evidence(repo_root,output_path,commands,snapshot).map(|_| ())
         }
         DirectReadinessStage::PrepareReferencePanel => {
-            vcf_prepare_reference_panel_ready::render_vcf_prepare_reference_panel_ready(
-                repo_root,
-                output_path,
-            )
+            vcf_prepare_reference_panel_ready::render_vcf_prepare_reference_panel_ready_with_evidence(repo_root,output_path,commands,snapshot)
             .map(|_| ())
         }
         DirectReadinessStage::ImputationMetrics => {
-            vcf_imputation_metrics_ready::render_vcf_imputation_metrics_ready(
-                repo_root,
-                output_path,
-            )
+            vcf_imputation_metrics_ready::render_vcf_imputation_metrics_ready_with_evidence(repo_root,output_path,commands,snapshot)
             .map(|_| ())
         }
         DirectReadinessStage::Pca => {
-            vcf_pca_ready::render_vcf_pca_ready(repo_root, output_path).map(|_| ())
+            vcf_pca_ready::render_vcf_pca_ready_with_evidence(repo_root,output_path,commands,snapshot).map(|_| ())
         }
         DirectReadinessStage::Admixture => {
-            vcf_admixture_ready::render_vcf_admixture_ready(repo_root, output_path).map(|_| ())
+            vcf_admixture_ready::render_vcf_admixture_ready_with_evidence(repo_root,output_path,commands,snapshot).map(|_| ())
         }
         DirectReadinessStage::PopulationStructure => {
-            vcf_population_structure_ready::render_vcf_population_structure_ready(
-                repo_root,
-                output_path,
-            )
+            vcf_population_structure_ready::render_vcf_population_structure_ready_with_evidence(repo_root,output_path,commands,snapshot)
             .map(|_| ())
         }
     }

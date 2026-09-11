@@ -7,7 +7,7 @@ use std::{
 };
 pub(crate) fn render_and_validate_direct_vcf_ready_output(
     repo_root: &Path,
-    ports: &DirectReadinessPorts,
+    ports: &DirectReadinessPorts<'_>,
     stage: DirectReadinessStage,
     label: &str,
     expected_rows: u64,

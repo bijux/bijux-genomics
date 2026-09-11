@@ -7,7 +7,7 @@ use super::record_goal_check;
 use std::path::Path;
 pub(super) fn call(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -30,7 +30,7 @@ pub(super) fn call(
 }
 pub(super) fn call_diploid(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -53,7 +53,7 @@ pub(super) fn call_diploid(
 }
 pub(super) fn call_pseudohaploid(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -77,7 +77,7 @@ pub(super) fn call_pseudohaploid(
 }
 pub(super) fn call_gl(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -100,7 +100,7 @@ pub(super) fn call_gl(
 }
 pub(super) fn gl_propagation(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {

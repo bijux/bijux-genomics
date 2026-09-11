@@ -12,7 +12,7 @@ use std::path::Path;
 use std::path::PathBuf;
 pub(super) fn prepare_reference_panel(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -36,7 +36,7 @@ pub(super) fn prepare_reference_panel(
 }
 pub(super) fn phasing(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -105,7 +105,7 @@ pub(super) fn phasing(
 }
 pub(super) fn imputation(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -151,7 +151,7 @@ pub(super) fn imputation(
 }
 pub(super) fn imputation_metrics(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {

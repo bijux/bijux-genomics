@@ -14,7 +14,7 @@ use std::path::Path;
 use std::path::PathBuf;
 pub(super) fn retained_scope(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {

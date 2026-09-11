@@ -11,7 +11,7 @@ use std::path::Path;
 pub fn render_vcf_all_retained_tools_complete(
     repo_root: &Path,
     output_path: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
 ) -> Result<VcfAllRetainedToolsCompleteReport> {
     let absolute_output_path = repo_relative_path(repo_root, output_path);
     if let Some(parent) = absolute_output_path.parent() {

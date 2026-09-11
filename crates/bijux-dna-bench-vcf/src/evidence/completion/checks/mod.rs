@@ -12,7 +12,7 @@ mod scope;
 mod variants;
 pub(super) fn collect(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {

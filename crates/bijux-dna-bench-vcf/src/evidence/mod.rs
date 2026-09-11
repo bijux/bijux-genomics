@@ -22,3 +22,5 @@ pub mod adapters;
 pub mod smoke;
 
 pub mod completion;
+
+pub mod readiness;

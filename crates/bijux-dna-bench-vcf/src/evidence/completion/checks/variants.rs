@@ -7,7 +7,7 @@ use super::record_goal_check;
 use std::path::Path;
 pub(super) fn damage_filter(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -30,7 +30,7 @@ pub(super) fn damage_filter(
 }
 pub(super) fn filter(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -53,7 +53,7 @@ pub(super) fn filter(
 }
 pub(super) fn stats(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -76,7 +76,7 @@ pub(super) fn stats(
 }
 pub(super) fn qc(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {

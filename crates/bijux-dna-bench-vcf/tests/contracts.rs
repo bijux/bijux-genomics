@@ -80,3 +80,6 @@ mod adapter_readiness;
 
 #[path = "contracts/smoke_declarations.rs"]
 mod smoke_declarations;
+
+#[path = "contracts/readiness_session.rs"]
+mod readiness_session;

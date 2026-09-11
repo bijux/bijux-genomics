@@ -54,9 +54,9 @@ impl DirectReadinessStage {
     }
 }
 /// Composition provides concrete scientific execution and canonical external bindings.
-pub struct DirectReadinessPorts {
+pub struct DirectReadinessPorts<'a> {
     pub output_path: fn(DirectReadinessStage) -> &'static str,
-    pub render: fn(&Path, DirectReadinessStage, PathBuf) -> Result<()>,
+    pub render: &'a DirectReadinessRenderer<'a>,
     pub external_bindings: ExternalBindingProvider,
 }
 /// Typed evidence publication ports preserve their independently owned report contracts.
@@ -75,11 +75,15 @@ pub struct AdapterPublicationPorts {
     pub descent: fn(&Path, PathBuf) -> Result<VcfDescentFamilyAdapterReport>,
 }
 /// Explicit execution authorities for the complete retained-tool diagnostic.
-pub struct VcfCompletionPorts {
-    pub direct: DirectReadinessPorts,
+pub struct VcfCompletionPorts<'a> {
+    pub direct: DirectReadinessPorts<'a>,
     pub evidence: EvidencePublicationPorts,
     pub adapters: AdapterPublicationPorts,
 }
 
 /// Canonical external stage/tool bindings supplied by delivery composition.
 pub type ExternalBindingProvider = fn(&Path) -> Result<BTreeSet<(String, String)>>;
+
+/// Borrowed scientific renderer can reuse request-owned evidence without global mutation.
+pub type DirectReadinessRenderer<'a> =
+    dyn Fn(&Path, DirectReadinessStage, PathBuf) -> Result<()> + 'a;

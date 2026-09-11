@@ -32,11 +32,11 @@ fn no_external(_: &Path) -> Result<BTreeSet<(String, String)>> {
 fn licensed(_: &Path) -> Result<BTreeSet<(String, String)>> {
     Ok(BTreeSet::from([("vcf.call_gl".to_owned(), "angsd".to_owned())]))
 }
-fn ports() -> VcfCompletionPorts {
+fn ports() -> VcfCompletionPorts<'static> {
     VcfCompletionPorts {
         direct: DirectReadinessPorts {
             output_path: DirectReadinessStage::stage_id,
-            render: unavailable_direct,
+            render: &unavailable_direct,
             external_bindings: no_external,
         },
         evidence: EvidencePublicationPorts {

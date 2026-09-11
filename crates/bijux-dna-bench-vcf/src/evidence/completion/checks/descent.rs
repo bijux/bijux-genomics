@@ -10,7 +10,7 @@ use std::path::Path;
 use std::path::PathBuf;
 pub(super) fn runs_of_homozygosity(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -39,7 +39,7 @@ pub(super) fn runs_of_homozygosity(
 }
 pub(super) fn identity_by_descent(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
@@ -68,7 +68,7 @@ pub(super) fn identity_by_descent(
 }
 pub(super) fn demography(
     repo_root: &Path,
-    ports: &VcfCompletionPorts,
+    ports: &VcfCompletionPorts<'_>,
     _state: &mut CompletionState,
     checks: &mut Vec<VcfAllRetainedToolsCompleteGoalCheck>,
 ) {
