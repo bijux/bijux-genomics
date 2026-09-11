@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_bench_vcf_evidence::model::expectations::VcfExpectedBenchmarkResultRow;
 use std::collections::BTreeSet;
-pub(super) fn ensure_vcf_expected_benchmark_result_contract(
+pub(crate) fn ensure_vcf_expected_benchmark_result_contract(
     rows: &[VcfExpectedBenchmarkResultRow],
     expected_row_count: usize,
 ) -> Result<()> {

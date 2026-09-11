@@ -1915,6 +1915,16 @@
       "consumer": "crate:bijux-dna-bench-haplotypes",
       "dependency": "crate:bijux-dna-bench-vcf-evidence",
       "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-bench-artifacts",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
     }
   ]
 }

@@ -22,3 +22,5 @@ when a readable schema disagrees. Unreadable or malformed inputs return an error
 `schemas::vcf_report` publishes and reports the VCF stage schema portfolio. Schema
 file writes are atomic individually; the portfolio is not a multi-file transaction.
 Validation of schema files is separate from scientific validation of result payloads.
+
+`results::load_benchmark_stage_result_manifest` loads persisted JSON and applies the canonical benchmark model validator. Benchmark orchestration retains a compatibility reexport; VCF evidence consumes this independent IO owner. Structural manifest admission does not establish output-file existence or scientific acceptance.

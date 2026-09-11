@@ -64,3 +64,8 @@ mod parser_failure_admission;
 
 #[path = "contracts/missing_inputs.rs"]
 mod missing_inputs;
+
+#[path = "contracts/missing_result_admission.rs"]
+mod missing_result_admission;
+#[path = "contracts/missing_results.rs"]
+mod missing_results;
