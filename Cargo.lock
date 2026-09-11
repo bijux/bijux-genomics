@@ -401,6 +401,7 @@ name = "bijux-dna-bench-bam-evidence"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-bench-bindings",
  "bijux-dna-core",
  "bijux-dna-infra",
  "serde",

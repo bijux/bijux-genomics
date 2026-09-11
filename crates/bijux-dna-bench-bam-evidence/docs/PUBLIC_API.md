@@ -16,3 +16,21 @@ Coverage statuses describe existing declarations. Parser-fixture coverage does n
 execute parsers, validate new payloads, or prove scientific equivalence. Synthetic
 owner observations exercise engineering boundaries only. Canonical acquisition and
 native adapter semantics remain separately tested by their existing owners.
+
+## BAM readiness contracts
+
+Six public `readiness` family modules export their existing row/report models and
+`render_bam_*_ready` functions. `ReadinessContext` carries the repository root,
+seven canonical evidence addresses, a `DeclarationEvidence` provider and a
+`LocalProofWriter` provider. `LocalProofKind` enumerates the twelve supported
+native proof operations; the evidence layer never silently substitutes another kind.
+
+The `bam_downstream` feature controls haplogroups, genotyping and kinship bindings.
+Schema input is the canonical normalized-metrics JSON declaration; published source
+inputs reuse shared canonical report types. Serialized model fields, condition
+precedence, report counts, artifact identities and CLI output defaults are retained.
+
+Acquisition failure returns the original error before report replacement. An assessed
+incomplete report is atomically published before returning its readiness failure.
+Provider publications are independent effects, not a transaction. Duplicate report-map
+binding identities are now rejected as ambiguous evidence.

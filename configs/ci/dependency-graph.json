@@ -2035,6 +2035,11 @@
       "consumer": "crate:bijux-dna-bench-bindings",
       "dependency": "crate:bijux-dna-infra",
       "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bam-evidence",
+      "dependency": "crate:bijux-dna-bench-bindings",
+      "kind": "normal"
     }
   ]
 }

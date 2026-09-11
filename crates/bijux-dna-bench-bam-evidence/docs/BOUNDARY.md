@@ -10,3 +10,8 @@ Validation command: cargo nextest run --config-file configs/rust/nextest.toml --
 Local report writes use infrastructure primitives and atomic per-file replacement.
 Provider adapters may acquire and publish their canonical local evidence. Neither
 provider provenance nor declaration completeness establishes fresh scientific execution.
+
+Six readiness families also consume canonical serving and expected-result schemas
+from bijux-dna-bench-bindings. DeclarationEvidence and LocalProofWriter keep schema
+acquisition and native proof production outside this dependency closure. Report-map
+rows join by stage/tool identity; distinct tools within a stage remain distinct.

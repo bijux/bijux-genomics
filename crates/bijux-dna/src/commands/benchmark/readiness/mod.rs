@@ -51,6 +51,7 @@ pub(crate) mod bam_normalized_metrics_schema;
 pub(crate) mod bam_overlap_correction_complete;
 pub(crate) mod bam_overlap_endogenous_ready;
 pub(crate) mod bam_parser_fixture_coverage;
+mod bam_readiness;
 pub(crate) mod bam_recalibration_complete;
 pub(crate) mod bam_recalibration_genotyping_ready;
 pub(crate) mod bam_rendered_commands;

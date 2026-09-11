@@ -31,3 +31,14 @@ have distinct owners. See [architecture](docs/ARCHITECTURE.md).
 
 Owner regressions inject observed declarations and exercise rejection and publication;
 CLI contract cases retain canonical acquisition coverage. See [tests](docs/TESTS.md).
+
+## Readiness families
+
+The `readiness` namespace owns contamination/sex/haplogroups,
+recalibration/genotyping, damage/authenticity, insert size/GC bias,
+overlap/endogenous content and kinship assessments. These consume canonical
+serving and expected-result wire schemas from `bijux-dna-bench-bindings`.
+`DeclarationEvidence` separates published observations from
+`LocalProofWriter` native proof production. Both enter through an explicit
+`ReadinessContext`. The `bam_downstream` feature admits retained downstream
+bindings without importing their native execution crates.

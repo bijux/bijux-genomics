@@ -39,7 +39,7 @@ bijux-dna-bench-population: bijux-dna-bench-vcf-evidence bijux-dna-bench-model b
 bijux-dna-bench-workflows: bijux-dna-bench-corpus bijux-dna-core bijux-dna-infra bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-stages-vcf bijux-dna-db-ref
 bijux-dna-bench-vcf: bijux-dna-bench-artifacts bijux-dna-core bijux-dna-bench-vcf-evidence bijux-dna-bench-model bijux-dna-bench-corpus bijux-dna-db-ref bijux-dna-domain-vcf bijux-dna-stages-vcf bijux-dna-infra
 bijux-dna-bench-bindings: bijux-dna-core bijux-dna-infra
-bijux-dna-bench-bam-evidence: bijux-dna-core bijux-dna-infra
+bijux-dna-bench-bam-evidence: bijux-dna-bench-bindings bijux-dna-core bijux-dna-infra
 bijux-dna-bench-vcf-evidence:
 bijux-dna-bench-model: bijux-dna-analyze bijux-dna-core bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-policies bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-core: bijux-dna-infra bijux-dna-policies bijux-dna-testkit
@@ -104,3 +104,10 @@ Local submission readiness also belongs to `bijux-dna-bench-hpc`. Six explicit e
 BAM declaration evidence is owned by `bijux-dna-bench-bam-evidence`. Typed observation ports retain native domain/planner and shared cross-domain schema authority in their existing owners. The evidence crate owns coverage projection, report placement, exact binding consistency and local diagnostic publication, with no normal or test dependency on native BAM, planners, CLI, API or the benchmark umbrella. Declaration readiness alone does not establish executed payload validity or scientific substitutability.
 
 Shared FASTQ/BAM serving maps and expected-result evidence belong to `bijux-dna-bench-bindings`. The owner admits typed canonical observations, rejects ambiguous bindings, projects the original wire records and publishes reports. Native domain, planner, corpus and scheduler path authorities enter through explicit adapters; they are excluded from the binding owner dependency closure. Declaration evidence is not scientific interchangeability proof.
+
+### BAM readiness evidence inputs
+
+`bijux-dna-bench-bam-evidence -> bijux-dna-bench-bindings` is a normal dependency
+for canonical serving and expected-result report schemas. BAM readiness proof production
+enters through a typed port; native BAM, planner, API and CLI crates remain outside
+the evidence owner's normal and development dependency closure.

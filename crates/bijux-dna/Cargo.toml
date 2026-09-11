@@ -56,7 +56,7 @@ schemars.workspace = true
 zip.workspace = true
 
 [features]
-bam_downstream = ["bijux-dna-api/bam_downstream"]
+bam_downstream = ["bijux-dna-api/bam_downstream", "bijux-dna-bench-bam-evidence/bam_downstream"]
 bench = ["bijux-dna-api/bench"]
 docker-runner = ["bijux-dna-api/docker-runner"]
 report-html = ["bijux-dna-api/report-html"]
