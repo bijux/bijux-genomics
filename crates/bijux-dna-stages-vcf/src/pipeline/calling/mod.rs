@@ -1,9 +1,11 @@
-mod damage_and_propagation;
+mod damage_filter;
+mod gl_propagation;
 mod types;
 mod variant_records;
 
 use super::*;
-pub use damage_and_propagation::*;
+pub use damage_filter::*;
+pub use gl_propagation::*;
 pub use types::*;
 pub(crate) use variant_records::*;
 

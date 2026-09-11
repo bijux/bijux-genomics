@@ -5,7 +5,8 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_stages_vcf::pipeline::{
-    run_damage_filter_stage, DamageFilterStageParams, DamageUdgRegime,
+    run_damage_filter_stage_with_policy, DamageFilterPolicy, DamageFilterStageParams,
+    DamageUdgRegime,
 };
 use bijux_dna_stages_vcf::vcf_io::{read_vcf_text, vcf_validate_input, VcfFieldRequirement};
 use serde::Serialize;
@@ -20,7 +21,6 @@ use super::local_vcf_call_bam_smoke_support::parse_output_sample_count;
 use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
-use crate::commands::router::runtime::ProcessEnvGuard;
 
 const DEFAULT_VCF_DAMAGE_FILTER_SMOKE_ROOT: &str =
     "artifacts/runs/bench/local-smoke/vcf.damage_filter";
@@ -150,20 +150,12 @@ pub(crate) fn run_local_vcf_damage_filter_smoke(
         min_qual: 30.0,
         max_damage_ratio: 0.35,
     };
-    let _env_guard = ProcessEnvGuard::capture(&[
-        "BIJUX_VCF_DAMAGE_MASK_MODE",
-        "BIJUX_VCF_DAMAGE_TERMINAL_THRESHOLD",
-        "BIJUX_VCF_DAMAGE_PMD_MIN",
-        "BIJUX_LIBRARY_TYPE",
-    ]);
-    std::env::set_var("BIJUX_VCF_DAMAGE_MASK_MODE", "remove");
-    std::env::set_var("BIJUX_VCF_DAMAGE_TERMINAL_THRESHOLD", "0.50");
-    std::env::set_var("BIJUX_VCF_DAMAGE_PMD_MIN", "3.0");
-    std::env::remove_var("BIJUX_LIBRARY_TYPE");
+    let policy = DamageFilterPolicy::recommended(DamageUdgRegime::NonUdg);
     let stage_outputs =
-        run_damage_filter_stage(&input_vcf, &stage_root, &params).with_context(|| {
-            format!("run governed VCF damage_filter smoke from {}", input_vcf.display())
-        })?;
+        run_damage_filter_stage_with_policy(&input_vcf, &stage_root, &params, &policy)
+            .with_context(|| {
+                format!("run governed VCF damage_filter smoke from {}", input_vcf.display())
+            })?;
 
     let output_vcf = output_root.join(DEFAULT_OUTPUT_VCF_NAME);
     fs::copy(&stage_outputs.filtered_vcf, &output_vcf).with_context(|| {
