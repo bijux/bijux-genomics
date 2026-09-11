@@ -6,12 +6,12 @@ use anyhow::Result;
 use super::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
 use super::vcf_adapter_output_coverage::collect_vcf_adapter_output_coverage_rows_with_observations;
 use super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows_with_observations;
-use super::vcf_parser_fixture_coverage::collect_vcf_parser_fixture_coverage_rows_from_retained;
 use super::vcf_rendered_commands::{
     render_vcf_commands_with_observations, VcfRenderedCommandsReport,
     DEFAULT_VCF_RENDERED_COMMANDS_PATH,
 };
 use super::vcf_report_map::collect_vcf_report_map_rows_from_expected;
+use bijux_dna_bench_vcf::evidence::parsers::collect_vcf_parser_fixture_coverage_rows_from_retained;
 use bijux_dna_bench_vcf::evidence::scope::collect_vcf_active_stage_tool_matrix_rows_from_expected;
 
 pub(crate) use bijux_dna_bench_vcf_evidence::snapshot::VcfStageReadinessBinding;
@@ -57,8 +57,7 @@ pub(crate) fn collect_vcf_stage_readiness_bindings(
     )?;
     let evidence = VcfEvidenceSnapshot::admit(VcfEvidenceRows {
         parsers: collect_vcf_parser_fixture_coverage_rows_from_retained(
-            repo_root,
-            retained.clone(),
+            &inputs, repo_root, &retained,
         )?
         .2,
         retained,

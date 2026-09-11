@@ -33,3 +33,8 @@ mod reports;
 
 #[path = "contracts/scope.rs"]
 mod scope;
+
+#[path = "contracts/parser_admission.rs"]
+mod parser_admission;
+#[path = "contracts/parsers.rs"]
+mod parsers;

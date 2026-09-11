@@ -98,3 +98,20 @@ stage identifiers instead of omitting them from the retained set.
 The owner preserves active, complete and removed classifications and their governed
 proof paths. TSV publication is atomic after projection and scope contracts pass.
 Scope membership is distinct from native tool execution or scientific acceptance.
+
+## Parser fixture coverage
+
+`evidence::parsers` observes fixtures for explicit inputs and borrowed retained
+bindings. Identity, adapter, parser and normalized stage schema metadata are checked
+before filesystem acquisition. The fixture parser and fixture schema have their own
+namespaces; they are not substitutes for the normalized stage schema identifiers.
+
+Coverage requires governed raw files and an expected JSON envelope with matching
+schema/stage/tool/parser identities and an object-valued normalized payload. This
+checks the envelope, not scientific payload semantics or native parser execution.
+Fixture discovery does not follow symbolic links. Existing domain parser fixture
+bank tests remain responsible for exercising the normalizers.
+
+Known missing or invalid fixtures produce an atomic diagnostic TSV and an incomplete
+coverage error. Malformed requests and traversal errors leave an existing report
+unchanged. The caller owns acquisition of active observations and CLI presentation.
