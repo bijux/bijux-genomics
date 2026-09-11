@@ -13,3 +13,7 @@ pub const DEFAULT_VCF_RENDERED_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.sh";
 pub const VCF_RENDERED_COMMANDS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_rendered_commands.v1";
+
+#[cfg(test)]
+#[path = "../../../tests/contracts/script_repository_root.rs"]
+mod script_repository_root;

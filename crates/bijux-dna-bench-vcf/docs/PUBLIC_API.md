@@ -154,3 +154,10 @@ each file is replaced atomically. This is not a transaction across both files.
 
 The CLI supplies retained scope and presents the report. Existing command schema,
 ordering, escaping, script structure and companion-path rules remain compatible.
+
+Scripts written beneath the repository without parent traversal retain their
+relative root and move with that repository. Scripts written elsewhere anchor to
+the canonical repository path at publication time. Relative and absolute repository
+literals escape shell metacharacters; path contents cannot expand into commands.
+An external script must be regenerated if its repository moves. Paths must be
+representable as UTF-8 when embedded into the script.

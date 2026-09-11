@@ -31,3 +31,28 @@ pub(super) fn repo_root_relative_to_output(repo_root: &Path, output_path: &Path)
         std::iter::repeat_n("..", depth).collect::<Vec<_>>().join("/")
     }
 }
+
+pub(super) enum ScriptRepositoryRoot {
+    Relative(String),
+    Absolute(String),
+}
+pub(super) fn script_repository_root(
+    repo_root: &Path,
+    output_path: &Path,
+) -> anyhow::Result<ScriptRepositoryRoot> {
+    use anyhow::Context;
+    let is_owned = output_path.strip_prefix(repo_root).is_ok_and(|path| {
+        !path.components().any(|part| matches!(part, std::path::Component::ParentDir))
+    });
+    if is_owned {
+        return Ok(ScriptRepositoryRoot::Relative(repo_root_relative_to_output(
+            repo_root,
+            output_path,
+        )));
+    }
+    let canonical = repo_root
+        .canonicalize()
+        .with_context(|| format!("resolve script repository {}", repo_root.display()))?;
+    let path = canonical.to_str().context("script repository path must be valid UTF-8")?;
+    Ok(ScriptRepositoryRoot::Absolute(path.to_owned()))
+}

@@ -8,9 +8,14 @@ pub fn render_vcf_commands_shell_script(
     rows: &[VcfRenderedCommandRow],
     repo_root_relative_to_output: &str,
 ) -> String {
-    let mut rendered = format!(
+    let repo_root_relative_to_output = escape_double_quoted_literal(repo_root_relative_to_output);
+    let rendered = format!(
         "#!/usr/bin/env bash\nset -euo pipefail\nrepo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{repo_root_relative_to_output}\" && pwd)\"\n"
     );
+    append_script_commands(rendered, rows)
+}
+
+fn append_script_commands(mut rendered: String, rows: &[VcfRenderedCommandRow]) -> String {
     rendered.push_str("cd \"$repo_root\"\n\n");
     for (index, row) in rows.iter().enumerate() {
         rendered.push_str("# ");
@@ -27,6 +32,28 @@ pub fn render_vcf_commands_shell_script(
         }
     }
     rendered
+}
+
+/// Render an out-of-repository script anchored to an explicit repository path.
+#[must_use]
+pub fn render_vcf_commands_shell_script_at_repository(
+    rows: &[VcfRenderedCommandRow],
+    repository: &str,
+) -> String {
+    let quoted = render_shell_command(&[repository.to_owned()]);
+    let header =
+        format!("#!/usr/bin/env bash\nset -euo pipefail\nrepo_root=\"$(cd -- {quoted} && pwd)\"\n");
+    append_script_commands(header, rows)
+}
+fn escape_double_quoted_literal(value: &str) -> String {
+    let mut escaped = String::new();
+    for character in value.chars() {
+        if matches!(character, '\\' | '"' | '$' | '`') {
+            escaped.push('\\');
+        }
+        escaped.push(character);
+    }
+    escaped
 }
 
 /// Project the established structured argv wire records.
