@@ -15,7 +15,7 @@ pub(crate) fn collect_vcf_rendered_command_rows(
 ) -> Result<Vec<VcfRenderedCommandRow>> {
     let inputs = super::vcf_adapter_inputs::load(repo_root)?;
     let observations = VcfAdapterObservations::new(&inputs, repo_root);
-    let expected=super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows_with_observations(&inputs, &observations)?;
+    let expected=super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows_with_observations(&observations)?;
     let retained=super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows_from_expected(repo_root, expected)?;
     collect_vcf_rendered_command_rows_with_observations(&observations, &retained)
 }

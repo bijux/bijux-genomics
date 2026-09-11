@@ -25,8 +25,7 @@ pub(crate) fn collect_vcf_stage_readiness_bindings(
 ) -> Result<(VcfRenderedCommandsReport, Vec<VcfStageReadinessBinding>)> {
     let inputs = super::vcf_adapter_inputs::load(repo_root)?;
     let observations = VcfAdapterObservations::new(&inputs, repo_root);
-    let expected =
-        collect_vcf_expected_benchmark_result_rows_with_observations(&inputs, &observations)?;
+    let expected = collect_vcf_expected_benchmark_result_rows_with_observations(&observations)?;
     let retained =
         collect_vcf_active_stage_tool_matrix_rows_from_expected(repo_root, expected.clone())?;
     let active = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?

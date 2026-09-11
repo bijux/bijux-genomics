@@ -53,6 +53,10 @@ impl<'a> VcfAdapterObservations<'a> {
         }
     }
 
+    pub(crate) fn inputs(&self) -> &VcfAdapterInputs {
+        self.inputs
+    }
+
     pub(crate) fn repo_root(&self) -> &Path {
         self.repo_root
     }

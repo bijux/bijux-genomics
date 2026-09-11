@@ -45,3 +45,17 @@ remains the command authority for PLINK2 ROH. Other duplicate command authoritie
 are rejected. Repeated consumers in the same request reuse acquired inputs; there
 is no global cache or cross-request filesystem freshness claim. This API establishes
 command contracts and fixture observations, not execution of every external tool.
+
+## Expected result declarations
+
+`evidence::expectations` consumes the same request observation context to validate
+stage output IDs, required metrics, corpus/assets and report placement. The context
+supplies the admitted catalog and bindings, preventing a caller from mixing independent
+metadata and acquisition snapshots. Repeated adapter reads reuse that request's acquired
+reports. Unsupported duplicate output authorities fail; PLINK2 ROH explicitly belongs
+to descent and Beagle imputation outputs to the imputation family.
+
+Collection returns the existing typed expected-result rows. Publication writes the
+compatible TSV atomically only after projection and governed requirements pass. These
+are expected result declarations and fixture observations; external execution evidence
+and scientific acceptance remain separate responsibilities.

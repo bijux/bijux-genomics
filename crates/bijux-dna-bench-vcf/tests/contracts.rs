@@ -21,3 +21,6 @@ mod serving;
 
 #[path = "contracts/observations.rs"]
 mod observations;
+
+#[path = "contracts/expectations.rs"]
+mod expectations;
