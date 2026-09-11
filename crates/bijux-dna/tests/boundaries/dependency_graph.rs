@@ -14,6 +14,7 @@ const NORMAL_DEPS: &[&str] = &[
     "bijux-dna-bench-haplotypes",
     "bijux-dna-bench-variants",
     "bijux-dna-bench-fastq",
+    "bijux-dna-bench-hpc",
     "bijux-dna-core",
     "bijux-dna-db-ena",
     "bijux-dna-db-ref",

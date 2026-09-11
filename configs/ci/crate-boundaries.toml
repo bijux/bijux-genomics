@@ -30,6 +30,12 @@ layer = "analysis"
 public_surfaces = ["crates/bijux-dna-bench/src/lib.rs", "crates/bijux-dna-bench/docs/PUBLIC_API.md"]
 
 [[crates]]
+name = "bijux-dna-bench-hpc"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-hpc/src/lib.rs", "crates/bijux-dna-bench-hpc/docs/PUBLIC_API.md"]
+
+[[crates]]
 name = "bijux-dna-bench-model"
 family = "analysis"
 layer = "analysis"

@@ -568,6 +568,16 @@
       "gates": [
         "crate-tests:bijux-dna-bench-fastq"
       ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-hpc",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-hpc/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-hpc"
+      ]
     }
   ],
   "edges": [
@@ -1954,6 +1964,26 @@
     {
       "consumer": "crate:bijux-dna-bench-fastq",
       "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-hpc",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-hpc",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-hpc",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-hpc",
+      "dependency": "crate:bijux-dna-infra",
       "kind": "normal"
     }
   ]
