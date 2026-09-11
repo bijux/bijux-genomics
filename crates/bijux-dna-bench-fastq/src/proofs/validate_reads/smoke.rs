@@ -60,19 +60,25 @@ pub(super) fn load_fastq_validate_reads_smoke_evidence(
             parse_validated_reads_manifest(&validated_reads_manifest_json)
                 .context("parse smoke validated-reads manifest")?;
 
+        parseable &= validation_report.validate_consistency().is_ok()
+            && validated_reads_manifest.validate_against(&validation_report).is_ok()
+            && repo_root.join(&validated_reads_manifest.validation_report)
+                == validation_report_path;
+
         let derived_layout = paired_mode_label(validated_reads_manifest.paired_mode).to_string();
         layout_normalized &= derived_layout == case.layout;
 
-        let derived_total = validation_report.validated_reads_r1
-            + validation_report.validated_reads_r2.unwrap_or(0);
-        read_count_normalized &= derived_total == case.input_read_count_total;
+        let derived_total = validation_report
+            .validated_reads_r1
+            .checked_add(validation_report.validated_reads_r2.unwrap_or(0));
+        read_count_normalized &= derived_total == Some(case.input_read_count_total);
         if case.layout == "paired_end" {
             read_count_normalized &= validation_report.validated_pairs == case.input_pair_count;
         }
 
         let derived_status = if validation_report.strict_pass { "pass" } else { "fail" };
         validation_status_normalized &= derived_status == case.validation_status;
-        failure_reason_normalized &= true;
+        failure_reason_normalized &= validation_report.has_consistent_outcome();
         failure_classes
             .push(validate_failure_class_label(&validation_report.failure_class).to_string());
 
@@ -140,3 +146,7 @@ pub(super) fn validate_failure_class_label(
         bijux_dna_domain_fastq::ValidateFailureClass::HeaderSyncMismatch => "header_sync_mismatch",
     }
 }
+
+#[cfg(test)]
+#[path = "smoke_contracts.rs"]
+mod tests;
