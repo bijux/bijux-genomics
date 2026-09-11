@@ -1,7 +1,5 @@
 use super::models::BamKinshipCompleteReport;
 #[cfg(feature = "bam_downstream")]
-use super::paths::repo_relative_path;
-#[cfg(feature = "bam_downstream")]
 use super::service::build_bam_kinship_complete_report;
 use crate::downstream::DownstreamContext;
 use anyhow::anyhow;
@@ -19,7 +17,8 @@ pub fn render_bam_kinship_complete(
     output_path: &Path,
 ) -> Result<BamKinshipCompleteReport> {
     let repo_root = context.proofs.repo_root;
-    let output_path = repo_relative_path(repo_root, output_path);
+    // Publication resolves against the request root; report paths remain repository-relative.
+    let output_path = repo_root.join(output_path);
     if let Some(parent) = output_path.parent() {
         bijux_dna_infra::ensure_dir(parent)
             .with_context(|| format!("create {}", parent.display()))?;

@@ -20,7 +20,7 @@ mod enabled {
         fn genotyping(&self, _root: &Path) -> Result<ParserObservation> {
             bail!("unexpected parser acquisition")
         }
-        fn all(&self, _root: &Path) -> Result<Vec<ParserObservation>> {
+        fn kinship(&self, _root: &Path) -> Result<ParserObservation> {
             bail!("unexpected parser acquisition")
         }
     }
@@ -88,6 +88,44 @@ mod enabled {
         assert!(error.to_string().contains("canonical readiness unavailable"));
         assert_eq!(native.0.get(), 0);
         assert_eq!(std::fs::read(output)?, b"prior evidence");
+        Ok(())
+    }
+    #[test]
+    fn genotyping_relative_output_parent_belongs_to_requested_root() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let working_directory = std::env::current_dir()?;
+        let native = NativeCalls(Cell::new(0));
+        let output = Path::new("evidence/assessment.json");
+        let error = bijux_dna_bench_bam_proofs::genotyping::render_bam_genotyping_complete(
+            &context(dir.path(), &native),
+            output,
+        )
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("failed readiness accepted"))?;
+        assert!(error.to_string().contains("canonical readiness unavailable"));
+        assert!(dir.path().join("evidence").is_dir());
+        assert!(!dir.path().join(output).exists());
+        assert_eq!(std::env::current_dir()?, working_directory);
+        assert_eq!(native.0.get(), 0);
+        Ok(())
+    }
+    #[test]
+    fn kinship_relative_output_parent_belongs_to_requested_root() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let working_directory = std::env::current_dir()?;
+        let native = NativeCalls(Cell::new(0));
+        let output = Path::new("evidence/assessment.json");
+        let error = bijux_dna_bench_bam_proofs::kinship::render_bam_kinship_complete(
+            &context(dir.path(), &native),
+            output,
+        )
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("failed readiness accepted"))?;
+        assert!(error.to_string().contains("canonical readiness unavailable"));
+        assert!(dir.path().join("evidence").is_dir());
+        assert!(!dir.path().join(output).exists());
+        assert_eq!(std::env::current_dir()?, working_directory);
+        assert_eq!(native.0.get(), 0);
         Ok(())
     }
 }

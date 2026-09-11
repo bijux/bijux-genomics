@@ -27,7 +27,7 @@ pub(super) fn build_bam_kinship_complete_report(
     let readiness = context.kinship.kinship(repo_root)?;
     let smoke_path = context.proofs.native.write(repo_root, NativeProofKind::Kinship)?;
     let smoke_report: LocalKinshipSmokeReport = crate::input::read_json(&smoke_path)?;
-    let parser_smoke = ParserObservations { rows: context.parsers.all(repo_root)? };
+    let parser_smoke = ParserObservations { rows: vec![context.parsers.kinship(repo_root)?] };
     let bam_pipeline_report_path = repo_root
         .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-kinship.json");
     let bam_pipeline = context.pipelines.validate(

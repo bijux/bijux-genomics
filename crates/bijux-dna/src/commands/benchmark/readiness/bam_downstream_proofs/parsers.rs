@@ -1,6 +1,6 @@
 use super::super::real_output_parser_probe::{
-    render_bam_genotyping_parser_smoke_row, render_real_output_parser_smoke,
-    RealOutputParserSmokeRow, DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH,
+    render_bam_genotyping_parser_smoke_row, render_bam_kinship_parser_smoke_row,
+    RealOutputParserSmokeRow,
 };
 use anyhow::Result;
 use bijux_dna_bench_bam_proofs::downstream::{
@@ -12,12 +12,8 @@ impl ParserEvidence for ParserAdapter {
     fn genotyping(&self, root: &Path) -> Result<ParserObservation> {
         Ok(observe(render_bam_genotyping_parser_smoke_row(root)?))
     }
-    fn all(&self, root: &Path) -> Result<Vec<ParserObservation>> {
-        Ok(render_real_output_parser_smoke(root, DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH.into())?
-            .rows
-            .into_iter()
-            .map(observe)
-            .collect())
+    fn kinship(&self, root: &Path) -> Result<ParserObservation> {
+        Ok(observe(render_bam_kinship_parser_smoke_row(root)?))
     }
 }
 fn observe(row: RealOutputParserSmokeRow) -> ParserObservation {

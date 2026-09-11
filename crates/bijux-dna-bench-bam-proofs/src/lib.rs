@@ -15,3 +15,4 @@ pub mod downstream;
 pub mod genotyping;
 mod input;
 pub mod kinship;
+pub mod retained_tools;

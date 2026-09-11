@@ -14,3 +14,8 @@ producer output ordering/multiplicity, explicit kinship insufficiency, malformed
 counts, BAM locality and VCF isolation. Public provider contracts retain prior report
 bytes on readiness failure and check the feature-disabled entrypoints. Four original
 CLI genotyping/kinship contracts exercise the canonical enabled composition.
+
+Retained-tool contracts exercise missing/foreign binding identities, exact stage proof
+cardinality, continued diagnostics after a failed stage, provider refusal before aggregate
+replacement, and rejection of a foreign root before source effects. The original public
+and inline aggregate consumers exercise canonical all-feature composition.

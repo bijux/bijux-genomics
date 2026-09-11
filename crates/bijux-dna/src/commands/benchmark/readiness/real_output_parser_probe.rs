@@ -280,6 +280,24 @@ pub(crate) fn render_bam_genotyping_parser_smoke_row(
     )
 }
 
+pub(crate) fn render_bam_kinship_parser_smoke_row(
+    repo_root: &Path,
+) -> Result<RealOutputParserSmokeRow> {
+    let probe_root = repo_root.join(DEFAULT_PROBE_ROOT);
+    fs::create_dir_all(&probe_root).with_context(|| format!("create {}", probe_root.display()))?;
+    let spec = family_probe_specs()
+        .into_iter()
+        .find(|spec| spec.representative_stage_id == "bam.kinship")
+        .ok_or_else(|| anyhow!("missing canonical bam_kinship parser probe declaration"))?;
+    materialize_probe_row(
+        repo_root,
+        &probe_root,
+        spec.family_id.to_string(),
+        "BAM kinship stage-specific parser proof".to_string(),
+        spec,
+    )
+}
+
 fn materialize_probe_row(
     repo_root: &Path,
     probe_root: &Path,
@@ -1108,20 +1126,21 @@ fn generate_bam_align_probe(repo_root: &Path, probe_root: &Path) -> Result<Mater
             })
         }))
         .context("decode bam.align read_group")?;
-    let (provenance, _mapping) = match plan.tool_id.as_str() {
+    let resolved_r2 = input_r2.as_ref().map(|path| repo_root.join(path));
+    let (mut provenance, _mapping) = match plan.tool_id.as_str() {
         "bowtie2" => bijux_dna_domain_bam::align_fastq_to_bam_bowtie2_style(
-            &reference_fasta,
-            &input_r1,
-            input_r2.as_deref(),
+            &repo_root.join(&reference_fasta),
+            &repo_root.join(&input_r1),
+            resolved_r2.as_deref(),
             &probe_dir,
             &sample_id,
             &read_group,
             string_json(&plan.params, "sensitivity_profile").as_deref(),
         )?,
         _ => bijux_dna_domain_bam::align_fastq_to_bam_bwa_style(
-            &reference_fasta,
-            &input_r1,
-            input_r2.as_deref(),
+            &repo_root.join(&reference_fasta),
+            &repo_root.join(&input_r1),
+            resolved_r2.as_deref(),
             &probe_dir,
             &sample_id,
             &read_group,
@@ -1129,6 +1148,8 @@ fn generate_bam_align_probe(repo_root: &Path, probe_root: &Path) -> Result<Mater
             u64_json(&plan.params, "seed_length").and_then(|value| u32::try_from(value).ok()),
         )?,
     };
+    // Preserve the declared reference address while resolving filesystem reads at the boundary.
+    provenance.reference_fasta = reference_fasta;
     let report_path = probe_dir.join("alignment.provenance.json");
     bijux_dna_infra::atomic_write_json(&report_path, &provenance)?;
     Ok(MaterializedProof {
@@ -1507,6 +1528,62 @@ mod tests {
         assert_eq!(report.family_count, report.rows.len());
         assert_eq!(report.failed_family_count, 0);
         assert!(report.rows.iter().all(|row| row.passed));
+        Ok(())
+    }
+    #[test]
+    fn alignment_probe_resolves_inputs_without_changing_working_directory() -> Result<()> {
+        let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
+        let working_directory = std::env::current_dir()?;
+        let directory = tempfile::tempdir()?;
+        let plan = bijux_dna_planner_bam::stage_api::local_align_plan(&repo_root)?;
+        let declared_reference = super::required_input_path(&plan, "reference_fasta")
+            .or_else(|_| super::required_input_path(&plan, "reference"))?;
+        let proof = super::generate_bam_align_probe(&repo_root, directory.path())?;
+        let provenance: bijux_dna_domain_bam::BamAlignmentProvenanceV1 =
+            serde_json::from_slice(&std::fs::read(proof.proof_path)?)?;
+        assert_eq!(provenance.reference_fasta, declared_reference);
+        assert_eq!(provenance.backend_tool_id, plan.tool_id.as_str());
+        assert_eq!(std::env::current_dir()?, working_directory);
+        assert!(directory.path().join("bam_align/alignment.provenance.json").is_file());
+        Ok(())
+    }
+    #[test]
+    fn kinship_parser_requires_only_its_declared_fixture() -> Result<()> {
+        let source = crate::commands::support::workspace_root::resolve_repo_root()?;
+        let directory = tempfile::tempdir()?;
+        let root = directory.path();
+        let config: super::LocalBamKinshipConfig =
+            super::read_toml_document(&source.join(super::LOCAL_BAM_KINSHIP_CONFIG_PATH))?;
+        let case = config
+            .cases
+            .iter()
+            .find(|case| case.expected_status == "ok")
+            .ok_or_else(|| anyhow::anyhow!("missing governed successful kinship case"))?;
+        let config_path = root.join(super::LOCAL_BAM_KINSHIP_CONFIG_PATH);
+        let fixture = root.join(&case.bam);
+        std::fs::create_dir_all(
+            config_path.parent().ok_or_else(|| anyhow::anyhow!("config parent"))?,
+        )?;
+        std::fs::create_dir_all(
+            fixture.parent().ok_or_else(|| anyhow::anyhow!("fixture parent"))?,
+        )?;
+        std::fs::copy(source.join(super::LOCAL_BAM_KINSHIP_CONFIG_PATH), config_path)?;
+        std::fs::copy(source.join(&case.bam), &fixture)?;
+        let working_directory = std::env::current_dir()?;
+        let row = super::render_bam_kinship_parser_smoke_row(root)?;
+        assert_eq!(row.representative_stage_id, "bam.kinship");
+        assert_eq!(row.representative_tool_id, "king");
+        assert!(row.passed);
+        assert_eq!(
+            row.normalized_snapshot.get("status").and_then(serde_json::Value::as_str),
+            Some("ok")
+        );
+        assert!(root.join(row.proof_path).is_file());
+        assert!(!root.join("assets").exists());
+        assert!(!root.join(super::DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH).exists());
+        assert_eq!(std::env::current_dir()?, working_directory);
+        std::fs::remove_file(fixture)?;
+        assert!(super::render_bam_kinship_parser_smoke_row(root).is_err());
         Ok(())
     }
 }

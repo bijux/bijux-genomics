@@ -10,11 +10,11 @@ pub trait ParserEvidence {
     /// # Errors
     /// Returns canonical acquisition or publication failure without fallback.
     fn genotyping(&self, root: &Path) -> Result<ParserObservation>;
-    /// Acquire all observations.
+    /// Acquire only the canonical kinship parser observation.
     ///
     /// # Errors
     /// Returns canonical acquisition or publication failure without fallback.
-    fn all(&self, root: &Path) -> Result<Vec<ParserObservation>>;
+    fn kinship(&self, root: &Path) -> Result<ParserObservation>;
 }
 /// Acquire existing canonical evidence without linking its orchestration owner.
 pub trait PipelineEvidence {

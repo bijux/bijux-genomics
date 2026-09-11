@@ -27,3 +27,24 @@ authorities; canonical serialized pipeline/parser/VCF models are not duplicated 
 The `bam_downstream` feature activates these two scientific services and the existing BAM
 evidence feature. Disabled builds retain their explicit feature requirement before any
 provider effects. No extra normal, dev or build dependencies are introduced.
+
+Retained-tool completion groups binding identity, provider evidence acquisition, scientific
+stage completion, aggregate conditions and report publication. `RetainedContext` supplies
+three independent provider contracts: binding evidence, qualification evidence and exact
+stage proof identity. Five canonical BAM declaration reports enter unchanged. Other
+providers expose only consumed nonserialized observations; adapters preserve full row
+sequences until the owner derives the retained BAM binding sets.
+
+The CLI composition admits the requested canonical root before any provider or output
+effects. Neither owner nor composition changes the working directory. Stage failures
+remain individual diagnostic checks, allowing later checks to run; acquisition failures
+still stop before aggregate replacement.
+
+Genotyping and kinship separate filesystem publication paths from serialized relative
+paths. Both resolve writes against the explicit request root, even when their caller's
+working directory is a crate directory. Absolute requested destinations remain absolute.
+
+Kinship requests its canonical parser observation directly. Its admission still checks
+the king binding and scientific snapshot, but unrelated FASTQ/VCF parser execution
+and the all-family report are not prerequisites of the kinship proof. The all-family
+parser command remains responsible for complete parser coverage.

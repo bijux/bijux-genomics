@@ -18,3 +18,10 @@ Pipeline nodes preserve ordered/multiple inputs and outputs; missingness cardina
 derived from canonical observed vectors. Each proof selects its exact native operation.
 Parser snapshots retain existing missing-value behavior: genotyping marks unsupported
 observations incomplete; kinship rejects missing or mistyped required values.
+
+`retained_tools::render_bam_all_retained_tools_complete` retains its two serialized report
+records and nineteen diagnostic identities. `BindingEvidence`, `QualificationEvidence`
+and `StageProofs` keep provider failures explicit. Stage proof requests identify one
+capability and one output path; their canonical report cardinalities feed the same
+retained completion conditions. Aggregation preserves the existing binding-set semantics,
+including selection by expected stage and the separate reported cardinality checks.

@@ -182,3 +182,4 @@ mod bam_stage_proofs;
 
 #[cfg(feature = "bam_downstream")]
 mod bam_downstream_proofs;
+mod bam_retained_proofs;
