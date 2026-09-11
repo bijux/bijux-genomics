@@ -53,3 +53,6 @@ mod registry_undercoverage;
 
 #[path = "contracts/registry_admission.rs"]
 mod registry_admission;
+
+#[path = "contracts/command_publication.rs"]
+mod command_publication;

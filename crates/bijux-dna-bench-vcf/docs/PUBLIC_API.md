@@ -143,3 +143,14 @@ The matrix audit reports declaration drift, including unregistered pairs. Orphan
 and undercoverage audits retain their strict coverage contracts. Each acquires its
 sources once, reuses one serving report and atomically publishes compatible JSON or
 TSV. These declaration audits do not establish scientific execution compatibility.
+
+## Retained command publication
+
+`evidence::commands` admits retained stage/tool/corpus/asset/adapter/parser/schema
+identities before adapter acquisition, projects the active command set and publishes
+compatible shell and structured argv artifacts. The request root must match the
+observation context. Both outputs are serialized before either file is written;
+each file is replaced atomically. This is not a transaction across both files.
+
+The CLI supplies retained scope and presents the report. Existing command schema,
+ordering, escaping, script structure and companion-path rules remain compatible.
