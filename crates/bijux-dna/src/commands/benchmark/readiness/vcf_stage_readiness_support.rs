@@ -59,7 +59,7 @@ pub(crate) fn collect_vcf_stage_readiness_bindings(
         active,
         commands: command_report.rows.clone(),
         outputs: collect_vcf_adapter_output_coverage_rows_with_observations(&observations)?,
-        reports: collect_vcf_report_map_rows_from_expected(expected.clone())?,
+        reports: collect_vcf_report_map_rows_from_expected(&inputs, expected.clone())?,
         expected,
     })?;
     Ok((command_report, evidence.stage_bindings(stage_id)?.to_vec()))

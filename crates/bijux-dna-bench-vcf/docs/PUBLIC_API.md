@@ -72,3 +72,16 @@ Compatible family reports are published at their governed paths. The coverage TS
 published atomically after coverage validation. Stream and stage-result paths are
 expected paths under the supplied run identity. Coverage establishes declarations;
 it does not establish file existence, valid native payloads or scientific substitution.
+
+## Report placement
+
+`evidence::reports` projects expected results against explicitly admitted inputs.
+Admission checks the complete set of stage/tool/corpus/asset bindings and their
+outputs, stage metrics and catalog sections. Omitted, repeated or foreign bindings
+fail before report publication. The owner retains the governed sections, summary
+tables and failure columns; the CLI supplies requests and renders the response.
+
+The pure projection performs no filesystem acquisition. The publication entry point
+acquires expected observations using one request context and atomically writes the
+compatible TSV after all placement contracts pass. Report declarations remain
+separate from native payload validation and scientific acceptance.

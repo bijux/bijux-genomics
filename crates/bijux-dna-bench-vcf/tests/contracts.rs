@@ -27,3 +27,6 @@ mod expectations;
 
 #[path = "contracts/output_coverage.rs"]
 mod output_coverage;
+
+#[path = "contracts/reports.rs"]
+mod reports;
