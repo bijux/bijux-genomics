@@ -999,3 +999,5 @@ pub mod completion {
 pub use crate::policy::operational_readiness::harness;
 
 pub use crate::contract::project_all_domain_simulation_parser_row;
+
+pub use crate::model::scope_views::DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH;

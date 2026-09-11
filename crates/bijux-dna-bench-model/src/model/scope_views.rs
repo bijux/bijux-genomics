@@ -120,3 +120,7 @@ fn retained_tools_schema_version(_: &mut SchemaGenerator) -> Schema {
 fn stage_registry_extra_pairs_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "string", "const": STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1})
 }
+
+/// Canonical publication address for the all-domain active scope view.
+pub const DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv";

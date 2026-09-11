@@ -24,8 +24,7 @@ use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv";
+pub(crate) use bijux_dna_api::v1::api::bench::DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH;
 pub(crate) const STATUS_BENCHMARK_READY: &str = "benchmark_ready";
 pub(crate) const STATUS_NOT_BENCHMARK_READY: &str = "not_benchmark_ready";
 pub(crate) const STATUS_PLANNED: &str = "planned";
