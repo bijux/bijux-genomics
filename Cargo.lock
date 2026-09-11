@@ -228,6 +228,7 @@ dependencies = [
  "anyhow",
  "bijux-dna-api",
  "bijux-dna-bench-corpus",
+ "bijux-dna-bench-genotypes",
  "bijux-dna-bench-haplotypes",
  "bijux-dna-bench-population",
  "bijux-dna-bench-variants",
@@ -400,6 +401,25 @@ dependencies = [
  "flate2",
  "serde",
  "serde_json",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
+name = "bijux-dna-bench-genotypes"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-bench-artifacts",
+ "bijux-dna-bench-corpus",
+ "bijux-dna-bench-model",
+ "bijux-dna-core",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-infra",
+ "bijux-dna-stages-vcf",
+ "serde",
+ "serde_json",
+ "sha2",
  "tempfile",
  "toml",
 ]

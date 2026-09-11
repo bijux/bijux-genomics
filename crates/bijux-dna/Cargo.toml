@@ -14,6 +14,7 @@ path = "src/bin/bijux-dna.rs"
 bijux-dna-bench-vcf.workspace = true
 bijux-dna-bench-population.workspace = true
 bijux-dna-bench-haplotypes.workspace = true
+bijux-dna-bench-genotypes.workspace = true
 bijux-dna-bench-variants.workspace = true
 bijux-dna-bench-workflows = { workspace = true, features = ["genomics"] }
 bijux-dna-bench-corpus = { workspace = true, features = ["alignment", "variants", "panel-metadata"] }

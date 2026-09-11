@@ -24,12 +24,13 @@ Enforced by:
 
 ## Executable Boundary Map
 ```boundaries
-bijux-dna: bijux-dna-bench-variants bijux-dna-bench-haplotypes bijux-dna-bench-population bijux-dna-bench-workflows bijux-dna-bench-vcf bijux-dna-bench-corpus bijux-dna-analyze bijux-dna-api bijux-dna-core bijux-dna-db-ena bijux-dna-db-ref bijux-dna-domain-bam bijux-dna-domain-compiler bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-infra bijux-dna-planner-bam bijux-dna-planner-fastq bijux-dna-planner-vcf bijux-dna-policies bijux-dna-stage-contract bijux-dna-stages-fastq bijux-dna-stages-vcf bijux-dna-testkit
+bijux-dna: bijux-dna-bench-genotypes bijux-dna-bench-variants bijux-dna-bench-haplotypes bijux-dna-bench-population bijux-dna-bench-workflows bijux-dna-bench-vcf bijux-dna-bench-corpus bijux-dna-analyze bijux-dna-api bijux-dna-core bijux-dna-db-ena bijux-dna-db-ref bijux-dna-domain-bam bijux-dna-domain-compiler bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-infra bijux-dna-planner-bam bijux-dna-planner-fastq bijux-dna-planner-vcf bijux-dna-policies bijux-dna-stage-contract bijux-dna-stages-fastq bijux-dna-stages-vcf bijux-dna-testkit
 bijux-dna-analyze: bijux-dna-bench bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra bijux-dna-pipelines bijux-dna-planner-bam bijux-dna-planner-fastq bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
 bijux-dna-api: bijux-dna-analyze bijux-dna-bench bijux-dna-bench-model bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-engine bijux-dna-containers bijux-dna-containers-qa bijux-dna-infra bijux-dna-pipelines bijux-dna-planner-bam bijux-dna-planner-fastq bijux-dna-policies bijux-dna-runner bijux-dna-runtime bijux-dna-science bijux-dna-stage-contract bijux-dna-stages-bam bijux-dna-stages-fastq bijux-dna-stages-vcf bijux-dna-testkit
 bijux-dna-bench: bijux-dna-analyze bijux-dna-bench-model bijux-dna-containers bijux-dna-core bijux-dna-db-ena bijux-dna-db-ref bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-science bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-bench-corpus: bijux-dna-db-ref bijux-dna-domain-bam bijux-dna-domain-vcf bijux-dna-infra
 bijux-dna-bench-artifacts: bijux-dna-bench-model bijux-dna-infra
+bijux-dna-bench-genotypes: bijux-dna-bench-artifacts bijux-dna-bench-corpus bijux-dna-bench-model bijux-dna-core bijux-dna-domain-vcf bijux-dna-infra bijux-dna-stages-vcf
 bijux-dna-bench-variants: bijux-dna-bench-artifacts bijux-dna-bench-model bijux-dna-bench-corpus bijux-dna-core bijux-dna-domain-vcf bijux-dna-infra bijux-dna-stages-vcf
 bijux-dna-bench-haplotypes: bijux-dna-bench-artifacts bijux-dna-bench-model bijux-dna-bench-corpus bijux-dna-core bijux-dna-infra bijux-dna-db-ref bijux-dna-domain-vcf bijux-dna-stage-contract bijux-dna-stages-vcf
 bijux-dna-bench-population: bijux-dna-bench-model bijux-dna-bench-corpus bijux-dna-core bijux-dna-infra bijux-dna-domain-vcf bijux-dna-stages-vcf
@@ -71,3 +72,9 @@ See [BOUNDARY_DIAGRAM.md](BOUNDARY_DIAGRAM.md) for the canonical diagram.
 Boundary violations fail CI dependency/effect policies.
 
 `bijux-dna-process` owns OS process capture and cancellation with no workspace production dependencies. Containers and runner share that transport while retaining separate command meaning, evidence interpretation and lifecycle policy. Independent compilation follows the leaf graph; elapsed build gains require measurement.
+
+Genotype benchmark composition calls `bijux-dna-bench-genotypes` with explicit
+stage declarations. This owner depends on corpus alignment validation, VCF domain
+and stage execution, benchmark model schemas, and shared artifact publication.
+Calling, GL, diploid, pseudohaploid and likelihood-propagation workflows belong
+there; the CLI acquires declarations and renders the resulting reports.

@@ -170,7 +170,6 @@ fn dna_tree_matches_architecture_contract() {
         "local_taxonomy_output_judgment.rs",
         "local_tool_comparison_template.rs",
         "local_vcf_admixture_smoke.rs",
-        "local_vcf_call_bam_smoke_support.rs",
         "local_vcf_call_diploid_smoke.rs",
         "local_vcf_call_gl_smoke.rs",
         "local_vcf_call_pseudohaploid_smoke.rs",

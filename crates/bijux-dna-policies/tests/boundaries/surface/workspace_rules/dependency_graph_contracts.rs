@@ -18,6 +18,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-bench-vcf",
         "bijux-dna-bench-workflows",
         "bijux-dna-bench-population",
+        "bijux-dna-bench-genotypes",
         "bijux-dna-bench-haplotypes",
         "bijux-dna-bench-variants",
         "bijux-dna-bench-model",
