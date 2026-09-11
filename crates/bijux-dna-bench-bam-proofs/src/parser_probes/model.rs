@@ -65,7 +65,7 @@ pub struct AlignmentProbe<'a> {
 /// Declared contamination parser fixture parameters; estimates remain synthetic.
 pub struct ContaminationProbe<'a> {
     pub tool_id: &'a str,
-    pub scope: &'a str,
+    pub scope: bijux_dna_domain_bam::params::ContaminationScope,
     pub assumptions: &'a str,
 }
 

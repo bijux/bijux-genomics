@@ -10,17 +10,18 @@ pub fn generate_bam_contamination_probe(
     probe_root: &Path,
     request: &ContaminationProbe<'_>,
 ) -> Result<MaterializedProof> {
+    bijux_dna_domain_bam::params::validate_contamination_tool_scope(
+        request.tool_id,
+        request.scope,
+    )?;
+    let method = request.tool_id;
+    let scope_value = serde_json::to_value(request.scope)?;
+    let scope = scope_value
+        .as_str()
+        .ok_or_else(|| anyhow::anyhow!("contamination scope must serialize as a string"))?;
     let probe_dir = probe_root.join("bam_contamination");
     fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
     let report_path = probe_dir.join("contamination.summary.json");
-    let scope = request.scope;
-    let method = if scope == "mitochondrial" || request.tool_id == "schmutzi" {
-        "schmutzi"
-    } else if request.tool_id == "contammix" {
-        "contammix"
-    } else {
-        "verifybamid2"
-    };
     let assumptions = vec![request.assumptions.to_string(), format!("scope:{scope}")];
     bijux_dna_infra::atomic_write_json(
         &report_path,

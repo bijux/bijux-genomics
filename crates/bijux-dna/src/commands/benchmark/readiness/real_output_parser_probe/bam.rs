@@ -64,7 +64,10 @@ pub(super) fn generate_bam_contamination_probe(
         probe_root,
         &owner::ContaminationProbe {
             tool_id: plan.tool_id.as_str(),
-            scope: string_json(&plan.params, "scope").as_deref().unwrap_or("both"),
+            scope: serde_json::from_value(
+                plan.params.get("scope").cloned().unwrap_or_else(|| serde_json::json!("both")),
+            )
+            .context("decode bam.contamination scope")?,
             assumptions: string_json(&plan.params, "assumptions")
                 .as_deref()
                 .unwrap_or("governed tiny contamination parser smoke"),

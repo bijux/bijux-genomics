@@ -56,3 +56,9 @@ kinship and sex tiny proof generation. Callers pass typed inputs projected from
 canonical configuration; no planner or CLI dependency enters this owner. `reports`
 selects retained canonical BAM parsers. Synthetic scalar estimates retain their
 parser-fixture meaning and do not claim backend execution or scientific accuracy.
+
+Parser alignment requests admit only canonical BWA or Bowtie2 backends before
+reading inputs or creating output directories. Contamination requests carry the
+canonical typed scope and share domain tool/scope admission with the planner.
+Generated method and observed tool identity agree; unknown tools never select a
+fallback implementation. Synthetic estimates still establish parser behavior only.

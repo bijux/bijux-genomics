@@ -11,20 +11,23 @@ pub fn generate_bam_align_probe(
     probe_root: &Path,
     request: &AlignmentProbe<'_>,
 ) -> Result<MaterializedProof> {
+    let backend = super::inputs::alignment_backend(request.tool_id)?;
     let probe_dir = probe_root.join("bam_align");
     fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
     let resolved_r2 = request.input_r2.map(|path| repo_root.join(path));
-    let (mut provenance, _mapping) = match request.tool_id {
-        "bowtie2" => bijux_dna_domain_bam::align_fastq_to_bam_bowtie2_style(
-            &repo_root.join(request.reference_fasta),
-            &repo_root.join(request.input_r1),
-            resolved_r2.as_deref(),
-            &probe_dir,
-            request.sample_id,
-            request.read_group,
-            request.sensitivity_profile,
-        )?,
-        _ => bijux_dna_domain_bam::align_fastq_to_bam_bwa_style(
+    let (mut provenance, _mapping) = match backend {
+        super::inputs::AlignmentBackend::Bowtie2 => {
+            bijux_dna_domain_bam::align_fastq_to_bam_bowtie2_style(
+                &repo_root.join(request.reference_fasta),
+                &repo_root.join(request.input_r1),
+                resolved_r2.as_deref(),
+                &probe_dir,
+                request.sample_id,
+                request.read_group,
+                request.sensitivity_profile,
+            )?
+        }
+        super::inputs::AlignmentBackend::Bwa => bijux_dna_domain_bam::align_fastq_to_bam_bwa_style(
             &repo_root.join(request.reference_fasta),
             &repo_root.join(request.input_r1),
             resolved_r2.as_deref(),

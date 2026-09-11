@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::id_catalog;
-use bijux_dna_domain_bam::params::{BamEffectiveParams, ContaminationScope};
+use bijux_dna_domain_bam::params::BamEffectiveParams;
 use bijux_dna_domain_bam::BamStage;
 use serde_json::Value;
 use std::path::Path;
@@ -82,30 +82,18 @@ pub fn enforce(
                     id_catalog::BAM_CONTAMINATION
                 ));
             }
-            let scope = effective.scope;
+            bijux_dna_domain_bam::params::validate_contamination_tool_scope(
+                tool_id,
+                effective.scope,
+            )?;
             match tool_id {
-                id_catalog::TOOL_SCHMUTZI
-                    if !matches!(scope, ContaminationScope::Mito | ContaminationScope::Both) =>
-                {
-                    return Err(anyhow!(
-                        "{} tool schmutzi requires scope mito/both",
-                        id_catalog::BAM_CONTAMINATION
-                    ));
-                }
                 id_catalog::TOOL_SCHMUTZI if reference.is_none() => {
                     return Err(anyhow!(
                         "{} tool schmutzi requires mitochondrial reference input",
                         id_catalog::BAM_CONTAMINATION
                     ));
                 }
-                id_catalog::TOOL_VERIFYBAMID2 | id_catalog::TOOL_CONTAMMIX
-                    if !matches!(scope, ContaminationScope::Nuclear | ContaminationScope::Both) =>
-                {
-                    return Err(anyhow!(
-                        "{} tool {tool_id} requires scope nuclear/both",
-                        id_catalog::BAM_CONTAMINATION
-                    ));
-                }
+
                 id_catalog::TOOL_VERIFYBAMID2 | id_catalog::TOOL_CONTAMMIX
                     if effective.reference_panels.is_empty() =>
                 {

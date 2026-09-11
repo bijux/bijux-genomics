@@ -16,3 +16,17 @@ pub(super) fn admit_damage(input: &super::model::DamageProbe<'_>) -> anyhow::Res
     }
     Ok(())
 }
+
+pub(super) enum AlignmentBackend {
+    Bwa,
+    Bowtie2,
+}
+
+pub(super) fn alignment_backend(tool_id: &str) -> anyhow::Result<AlignmentBackend> {
+    use bijux_dna_core::id_catalog::{TOOL_BOWTIE2, TOOL_BWA};
+    match tool_id {
+        TOOL_BWA => Ok(AlignmentBackend::Bwa),
+        TOOL_BOWTIE2 => Ok(AlignmentBackend::Bowtie2),
+        _ => Err(anyhow::anyhow!("unsupported alignment parser proof tool: {tool_id}")),
+    }
+}
