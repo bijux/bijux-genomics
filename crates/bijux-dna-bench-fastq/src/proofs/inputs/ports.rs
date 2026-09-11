@@ -63,6 +63,11 @@ pub trait ValidationEvidence {
     /// # Errors
     /// Preserves canonical acquisition and publication failures.
     fn argv(&self, root: &Path) -> Result<Vec<CommandArgvObservation>>;
+    /// Admit observed validation argv against the canonical typed plan and tool binding.
+    ///
+    /// # Errors
+    /// Rejects unknown bindings and mismatched command, parameter or artifact projections.
+    fn validate_command(&self, root: &Path, command: &CommandArgvObservation) -> Result<()>;
     /// Acquire materialize evidence.
     ///
     /// # Errors

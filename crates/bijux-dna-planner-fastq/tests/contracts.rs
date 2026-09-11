@@ -29,3 +29,6 @@ mod mod_contracts_toolset_modes_rs;
 mod mod_contracts_toolset_overrides_rs;
 #[path = "contracts/toolset_selection.rs"]
 mod mod_contracts_toolset_selection_rs;
+
+#[path = "contracts/validation_command_admission.rs"]
+mod validation_command_admission;

@@ -1,4 +1,4 @@
-use super::contracts::command_has_required_validation_fields;
+use super::contracts::command_is_admitted;
 use super::contracts::required_validated_reads_manifest_fields;
 use super::contracts::required_validation_report_fields;
 use super::declarations::COVERAGE_STATUS_COMPLETE;
@@ -31,7 +31,7 @@ pub(super) fn build_fastq_validate_reads_ready_row(
     let validated_reads_manifest_fields = required_validated_reads_manifest_fields();
     let mut missing_surfaces = Vec::new();
 
-    let command_ready = command_has_required_validation_fields(command_row, &active_row.tool_id);
+    let command_ready = command_is_admitted(context, command_row, &active_row.tool_id);
     if !command_ready {
         missing_surfaces.push("rendered_commands".to_string());
     }

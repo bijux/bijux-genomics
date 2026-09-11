@@ -14,6 +14,14 @@ use bijux_dna_bench_fastq::proofs::inputs::{
 use std::path::Path;
 pub(super) struct ValidationAdapter;
 impl ValidationEvidence for ValidationAdapter {
+    fn validate_command(&self, root: &Path, command: &CommandArgvObservation) -> Result<()> {
+        super::super::benchmark_command_rows::validate_benchmark_validation_command(
+            root,
+            &command.stage_id,
+            &command.tool_id,
+            &command.argv,
+        )
+    }
     fn metrics(&self, root: &Path) -> Result<Vec<ComparableMetricObservation>> {
         Ok(render_fastq_comparable_metrics(root, DEFAULT_FASTQ_COMPARABLE_METRICS_PATH.into())?
             .rows

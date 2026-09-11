@@ -6,21 +6,14 @@ use crate::proofs::inputs::observations::CommandArgvObservation as RenderedComma
 use anyhow::anyhow;
 use anyhow::Result;
 use std::collections::BTreeSet;
-pub(super) fn command_has_required_validation_fields(
+pub(super) fn command_is_admitted(
+    context: &crate::proofs::inputs::ValidationContext<'_>,
     row: &RenderedCommandArgvRow,
     tool_id: &str,
 ) -> bool {
-    let argv_text = row.argv.join(" ");
-    argv_text.contains(&format!("\"stage_id\":\"{FASTQ_VALIDATE_READS_STAGE_ID}\""))
-        && argv_text.contains(&format!("\"tool_id\":\"{tool_id}\""))
-        && argv_text.contains("validation.json")
-        && argv_text.contains("validated_reads_manifest.json")
-        && required_validation_report_fields()
-            .iter()
-            .all(|field| argv_text.contains(&format!("\"{field}\"")))
-        && required_validated_reads_manifest_fields()
-            .iter()
-            .all(|field| argv_text.contains(&format!("\"{field}\"")))
+    row.stage_id == FASTQ_VALIDATE_READS_STAGE_ID
+        && row.tool_id == tool_id
+        && context.validation.validate_command(context.repo_root, row).is_ok()
 }
 
 pub(super) fn ensure_required_tool_set<'a>(

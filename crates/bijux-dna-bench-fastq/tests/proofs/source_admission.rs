@@ -93,6 +93,10 @@ impl SchemaEvidence for Evidence {
     }
 }
 impl ValidationEvidence for Evidence {
+    fn validate_command(&self, root: &Path, _: &CommandArgvObservation) -> Result<()> {
+        self.record(root, "validate_command");
+        bail!("unqualified command")
+    }
     fn metrics(&self, root: &Path) -> Result<Vec<ComparableMetricObservation>> {
         self.record(root, "metrics");
         Ok(vec![])

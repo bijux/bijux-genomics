@@ -35,6 +35,9 @@ impl DeclarationEvidence for RetainedOnly {
     }
 }
 impl ValidationEvidence for RetainedOnly {
+    fn validate_command(&self, _: &Path, _: &CommandArgvObservation) -> Result<()> {
+        bail!("unexpected command admission")
+    }
     fn metrics(&self, _: &Path) -> Result<Vec<ComparableMetricObservation>> {
         bail!("unexpected metric acquisition")
     }
@@ -99,5 +102,33 @@ fn retained_lineage_must_identify_the_actual_report_and_inputs() -> Result<()> {
     assert!(observe(root.path(), &report, &manifest)?.parseable);
     manifest["input_r1"] = json!("foreign.fastq");
     assert!(!observe(root.path(), &report, &manifest)?.parseable);
+    Ok(())
+}
+
+#[test]
+fn convincing_command_text_requires_canonical_projection_admission() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let ports = RetainedOnly;
+    let context = ValidationContext {
+        repo_root: root.path(),
+        declarations: &ports,
+        validation: &ports,
+        paths: ProofPaths {
+            expected_results: "expected.tsv",
+            command_argv: "commands.jsonl",
+            comparable_metrics: "metrics.tsv",
+        },
+    };
+    let (report, manifest) = retained(root.path())?;
+    let command = CommandArgvObservation {
+        stage_id: bijux_dna_core::id_catalog::FASTQ_VALIDATE_READS.to_string(),
+        tool_id: "bijux".into(),
+        readiness_kind: "smoke".into(),
+        argv: vec![
+            "echo".into(),
+            format!("{report} {manifest} validation.json validated_reads_manifest.json"),
+        ],
+    };
+    assert!(!super::super::contracts::command_is_admitted(&context, &command, "bijux"));
     Ok(())
 }
