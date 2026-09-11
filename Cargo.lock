@@ -447,6 +447,7 @@ dependencies = [
  "bijux-dna-domain-bam",
  "bijux-dna-domain-vcf",
  "bijux-dna-infra",
+ "chrono",
  "flate2",
  "schemars",
  "serde",

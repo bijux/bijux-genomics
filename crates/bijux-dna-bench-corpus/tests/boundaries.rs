@@ -7,6 +7,7 @@ fn admit_dependencies(manifest: &toml::Value) -> Result<()> {
     let allowed = BTreeSet::from([
         "anyhow",
         "schemars",
+        "chrono",
         "serde",
         "serde_json",
         "toml",
@@ -22,7 +23,7 @@ fn admit_dependencies(manifest: &toml::Value) -> Result<()> {
         .ok_or_else(|| anyhow::anyhow!("missing dependencies"))?;
     for (name, declaration) in dependencies {
         ensure!(allowed.contains(name.as_str()), "corpus admission cannot depend on {name}");
-        if name.starts_with("bijux-dna-") || name == "schemars" {
+        if name.starts_with("bijux-dna-") || name == "schemars" || name == "chrono" {
             ensure!(
                 declaration.get("optional").and_then(toml::Value::as_bool) == Some(true),
                 "specialized dependency {name} must remain optional"
@@ -47,6 +48,16 @@ fn admit_dependencies(manifest: &toml::Value) -> Result<()> {
                 "normalized admission must only enable source contracts and infrastructure"
             );
         }
+    }
+    if dependencies.contains_key("chrono") {
+        ensure!(
+            manifest["features"]["run-contract"].as_array()
+                == Some(&vec![
+                    toml::Value::String("dep:schemars".into()),
+                    toml::Value::String("dep:chrono".into())
+                ]),
+            "run contracts must only enable schema and timestamp support"
+        );
     }
     let default = manifest["features"]["default"]
         .as_array()
@@ -127,5 +138,31 @@ normalized = ["source-contract", "dep:bijux-dna-infra"]
             .push(toml::Value::String("alignment".into()));
         assert!(admit_dependencies(&changed).is_err(), "{feature}");
     }
+    Ok(())
+}
+
+#[test]
+fn run_contract_rejects_implicit_time_and_native_engine_dependencies() -> Result<()> {
+    let baseline: toml::Value = toml::from_str(
+        r#"
+[dependencies]
+chrono = { version = "1", optional = true }
+schemars = { version = "1", optional = true }
+[features]
+default = []
+source-contract = ["dep:schemars"]
+run-contract = ["dep:schemars", "dep:chrono"]
+"#,
+    )?;
+    admit_dependencies(&baseline)?;
+    let mut changed = baseline.clone();
+    changed["dependencies"]["chrono"]["optional"] = toml::Value::Boolean(false);
+    assert!(admit_dependencies(&changed).is_err());
+    let mut changed = baseline;
+    changed["features"]["run-contract"]
+        .as_array_mut()
+        .ok_or_else(|| anyhow::anyhow!("feature array"))?
+        .push(toml::Value::String("alignment".into()));
+    assert!(admit_dependencies(&changed).is_err());
     Ok(())
 }

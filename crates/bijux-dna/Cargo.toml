@@ -24,7 +24,7 @@ bijux-dna-bench-haplotypes.workspace = true
 bijux-dna-bench-genotypes.workspace = true
 bijux-dna-bench-variants.workspace = true
 bijux-dna-bench-workflows = { workspace = true, features = ["genomics"] }
-bijux-dna-bench-corpus = { workspace = true, features = ["alignment", "variants", "panel-metadata"] }
+bijux-dna-bench-corpus = { workspace = true, features = ["run-contract", "alignment", "variants", "panel-metadata"] }
 bijux-dna-api.workspace = true
 bijux-dna-core.workspace = true
 bijux-dna-domain-bam.workspace = true

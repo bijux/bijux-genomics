@@ -71,8 +71,6 @@ pub(super) fn absolutize(root: &Path, path: &Path) -> PathBuf {
 }
 
 pub(super) fn current_timestamp_utc() -> Result<String> {
-    let elapsed = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .context("resolve benchmark timestamp")?;
-    Ok(format!("unix:{}", elapsed.as_secs()))
+    bijux_dna_bench_corpus::run::format_generated_at_utc(std::time::SystemTime::now())
+        .context("resolve benchmark timestamp")
 }

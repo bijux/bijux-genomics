@@ -17,3 +17,6 @@ pub mod source;
 
 #[cfg(feature = "normalized")]
 pub mod normalized;
+
+#[cfg(feature = "run-contract")]
+pub mod run;

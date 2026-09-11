@@ -50,3 +50,5 @@ Source records live in `src/source`; filesystem and normalized-content admission
 live in `src/normalized`. Campaign execution and archive downloads remain separate
 owners. Manifest admission verifies canonical relative paths, rejects symlinks and
 hashes content in bounded buffers. It does not replace FASTQ record validation.
+
+The optional `run-contract` feature owns persisted FASTQ corpus run records, their generated schema and semantic validation. It formats an explicit publication instant as RFC 3339 UTC; callers provide the clock. Neither source contracts nor run records enable native domain engines.

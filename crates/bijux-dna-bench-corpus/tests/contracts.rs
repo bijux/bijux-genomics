@@ -22,3 +22,7 @@ mod vcf;
 #[cfg(feature = "normalized")]
 #[path = "contracts/normalized.rs"]
 mod normalized;
+
+#[cfg(feature = "run-contract")]
+#[path = "contracts/run.rs"]
+mod run;
