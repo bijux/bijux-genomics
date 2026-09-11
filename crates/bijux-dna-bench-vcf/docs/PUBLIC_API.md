@@ -59,3 +59,16 @@ Collection returns the existing typed expected-result rows. Publication writes t
 compatible TSV atomically only after projection and governed requirements pass. These
 are expected result declarations and fixture observations; external execution evidence
 and scientific acceptance remain separate responsibilities.
+
+## Declared output coverage
+
+`evidence::output_coverage` consumes the request observation context and an explicit
+run identity. Typed borrowed adapter views project raw, normalized and index output
+declarations without serialization or string-based field discovery. Missing required
+outputs remain incomplete; blank or duplicate artifact declarations are rejected.
+The existing canonical ROH and Beagle ownership rules resolve overlapping families.
+
+Compatible family reports are published at their governed paths. The coverage TSV is
+published atomically after coverage validation. Stream and stage-result paths are
+expected paths under the supplied run identity. Coverage establishes declarations;
+it does not establish file existence, valid native payloads or scientific substitution.

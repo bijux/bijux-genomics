@@ -58,10 +58,7 @@ pub(crate) fn collect_vcf_stage_readiness_bindings(
         retained,
         active,
         commands: command_report.rows.clone(),
-        outputs: collect_vcf_adapter_output_coverage_rows_with_observations(
-            repo_root,
-            &observations,
-        )?,
+        outputs: collect_vcf_adapter_output_coverage_rows_with_observations(&observations)?,
         reports: collect_vcf_report_map_rows_from_expected(expected.clone())?,
         expected,
     })?;
