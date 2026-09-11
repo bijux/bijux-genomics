@@ -133,6 +133,7 @@ fn dna_tree_matches_architecture_contract() {
         "local_fastq_micro_smoke_subset.rs",
         "local_hpc_array_support.rs",
         "local_hpc_asset_staging_manifest.rs",
+        "local_hpc_candidate_run_manifest/",
         "local_hpc_candidate_run_manifest.rs",
         "local_hpc_dependency_simulation.rs",
         "local_hpc_dry_run_ready/",
