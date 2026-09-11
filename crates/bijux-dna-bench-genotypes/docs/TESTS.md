@@ -12,3 +12,5 @@ Fixture copies are isolated per case and reuse the authored scientific corpus.
 Qualify default and all-feature inventories, strict lint, dependency closure, public
 consumer cases and policy boundaries on a frozen candidate. Local focused passes do
 not establish complete workspace coverage or hosted Linux timing.
+
+Private owner assertions live under `src/`: capability-local `tests.rs` modules and the crate-level `tests/` group. Existing `#[cfg(test)]` declarations compile each case exactly once in the owner library. Shared fixture support remains under `tests/support/`; no extra integration binary or production test API is required. Command integration tests stay with the CLI.

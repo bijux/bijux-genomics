@@ -11,7 +11,8 @@ struct LexicalState {
 ///
 /// This helper is intended for repository policy scans that inspect source lexically rather than
 /// compiling it. It ignores braces inside comments, strings, and character literals when finding
-/// the end of a test module.
+/// the end of a test module. A leading inner `#![cfg(test)]` attribute identifies a whole
+/// external file as test-only; literal occurrences in production code never do.
 #[must_use]
 pub fn strip_rust_test_modules(raw: &str) -> String {
     partition_rust_test_modules(raw, false)
@@ -27,6 +28,13 @@ pub fn select_rust_test_modules(raw: &str) -> String {
 }
 
 fn partition_rust_test_modules(raw: &str, select_tests: bool) -> String {
+    // A leading inner cfg attribute governs the entire external module file.
+    let first_line = raw.trim_start().lines().next().unwrap_or_default();
+    if first_line.chars().filter(|character| !character.is_whitespace()).collect::<String>()
+        == "#![cfg(test)]"
+    {
+        return if select_tests { raw.to_owned() } else { String::new() };
+    }
     let mut retained = Vec::new();
     let mut pending_attribute_lines = Vec::new();
     let mut awaiting_test_module = false;
@@ -221,6 +229,22 @@ fn has_char_literal_terminator(bytes: &[u8], mut index: usize) -> bool {
 #[cfg(test)]
 mod tests {
     use super::{rust_block_ranges, select_rust_test_modules, strip_rust_test_modules};
+
+    #[test]
+    fn partitions_test_only_files_without_discarding_production_literals() {
+        let tests = "\n #![cfg ( test )]\nuse std::fs;\nfn fixture() { fs::write(\"fixture\", []).unwrap(); }";
+        assert!(strip_rust_test_modules(tests).is_empty());
+        assert_eq!(select_rust_test_modules(tests), tests);
+        for source in [
+            "const EXAMPLE: &str = \"#![cfg(test)]\";\npub fn production() {}",
+            "// #![cfg(test)]\npub fn production() {}",
+            "#![cfg(unix)]\npub fn production() {}",
+            "const EXAMPLE: &str = r\"\n#![cfg(test)]\n\";\npub fn production() {}",
+        ] {
+            assert_eq!(strip_rust_test_modules(source), source);
+            assert!(select_rust_test_modules(source).is_empty());
+        }
+    }
 
     #[test]
     fn scope_ranges_ignore_literal_braces_and_keep_nested_and_unclosed_blocks() {

@@ -7,5 +7,5 @@ pub use workflow::run_local_vcf_call_smoke;
 pub(crate) mod observations;
 pub(crate) mod publication;
 #[cfg(test)]
-#[path = "../../tests/contracts/call.rs"]
+#[path = "tests.rs"]
 mod tests;

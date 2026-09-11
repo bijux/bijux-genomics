@@ -219,5 +219,5 @@ fn stage_outputs(evidence: &NormalizePrimersEvidence) -> BTreeMap<String, String
 }
 
 #[cfg(test)]
-#[path = "../../../tests/contracts/primer_input.rs"]
+#[path = "normalize_primers/tests.rs"]
 mod input_tests;

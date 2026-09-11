@@ -15,5 +15,5 @@ mod report;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../../tests/contracts/statistics.rs"]
+#[path = "tests.rs"]
 mod tests;

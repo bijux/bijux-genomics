@@ -38,5 +38,5 @@ pub(super) const FLOAT_TOLERANCE: f64 = 1e-9;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../../../tests/contracts/imputation_readiness.rs"]
+#[path = "tests.rs"]
 mod tests;

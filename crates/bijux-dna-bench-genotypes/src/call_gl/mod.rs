@@ -6,5 +6,5 @@ pub(crate) mod workflow;
 pub use workflow::run_local_vcf_call_gl_smoke;
 pub(crate) mod publication;
 #[cfg(test)]
-#[path = "../../tests/contracts/call_gl.rs"]
+#[path = "tests.rs"]
 mod tests;
