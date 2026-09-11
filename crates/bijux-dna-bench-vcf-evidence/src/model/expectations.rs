@@ -25,3 +25,6 @@ pub struct VcfExpectedBenchmarkResultsReport {
     pub report_section_counts: BTreeMap<String, usize>,
     pub rows: Vec<VcfExpectedBenchmarkResultRow>,
 }
+
+pub const DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-expected-benchmark-results.tsv";

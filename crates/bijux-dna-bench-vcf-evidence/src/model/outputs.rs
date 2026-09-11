@@ -35,3 +35,6 @@ pub struct VcfAdapterOutputCoverageReport {
     pub incomplete_row_count: usize,
     pub rows: Vec<VcfAdapterOutputCoverageRow>,
 }
+
+pub const DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-adapter-output-coverage.tsv";

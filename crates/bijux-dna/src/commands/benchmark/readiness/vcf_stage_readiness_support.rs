@@ -23,6 +23,13 @@ pub(crate) fn collect_vcf_stage_readiness_bindings(
     repo_root: &Path,
     stage_id: &str,
 ) -> Result<(VcfRenderedCommandsReport, Vec<VcfStageReadinessBinding>)> {
+    let (commands, evidence) = collect_vcf_readiness_evidence(repo_root)?;
+    Ok((commands, evidence.stage_bindings(stage_id)?.to_vec()))
+}
+
+pub(crate) fn collect_vcf_readiness_evidence(
+    repo_root: &Path,
+) -> Result<(VcfRenderedCommandsReport, VcfEvidenceSnapshot)> {
     let inputs = super::vcf_adapter_inputs::load(repo_root)?;
     let observations = VcfAdapterObservations::new(&inputs, repo_root);
     let expected = collect_vcf_expected_benchmark_result_rows_with_observations(&observations)?;
@@ -67,5 +74,5 @@ pub(crate) fn collect_vcf_stage_readiness_bindings(
         reports: collect_vcf_report_map_rows_from_expected(&inputs, expected.clone())?,
         expected,
     })?;
-    Ok((command_report, evidence.stage_bindings(stage_id)?.to_vec()))
+    Ok((command_report, evidence))
 }

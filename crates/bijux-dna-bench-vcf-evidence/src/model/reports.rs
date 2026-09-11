@@ -23,3 +23,6 @@ pub struct VcfReportMapReport {
     pub section_counts: BTreeMap<String, usize>,
     pub rows: Vec<VcfReportMapRow>,
 }
+
+pub const DEFAULT_VCF_REPORT_MAP_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-report-map.tsv";

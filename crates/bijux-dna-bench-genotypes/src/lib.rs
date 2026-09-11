@@ -21,3 +21,8 @@ mod admission_tests;
 #[cfg(test)]
 #[path = "../tests/contracts/publication.rs"]
 mod publication_tests;
+
+pub mod readiness;
+#[cfg(test)]
+#[path = "../tests/contracts/readiness.rs"]
+mod readiness_tests;

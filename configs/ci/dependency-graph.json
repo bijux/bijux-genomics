@@ -1895,6 +1895,11 @@
       "consumer": "crate:bijux-dna-bench",
       "dependency": "crate:bijux-dna-bench-artifacts",
       "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-genotypes",
+      "dependency": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "normal"
     }
   ]
 }

@@ -44,3 +44,6 @@ pub struct VcfParserFixtureCoverageReport {
     pub coverage_status_counts: BTreeMap<String, usize>,
     pub rows: Vec<VcfParserFixtureCoverageRow>,
 }
+
+pub const DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-parser-fixture-coverage.tsv";
