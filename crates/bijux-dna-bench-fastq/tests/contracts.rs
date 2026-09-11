@@ -14,3 +14,6 @@ mod declaration_commands;
 
 #[path = "declarations/report_mapping.rs"]
 mod declaration_report_mapping;
+
+#[path = "proofs/source_admission.rs"]
+mod proof_source_admission;

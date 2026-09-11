@@ -3,9 +3,8 @@ use anyhow::{Context, Result};
 #[cfg(test)]
 use bijux_dna_bench_fastq::readiness::adapters::FASTQ_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION;
 pub(crate) use bijux_dna_bench_fastq::readiness::adapters::{
-    FastqAdapterCoverageKind, FastqBenchmarkStatus, FastqCommandAdapterCoverageReport,
-    FastqCommandAdapterCoverageRow, FastqReadinessGapKind,
-    DEFAULT_FASTQ_COMMAND_ADAPTER_COVERAGE_PATH,
+    FastqBenchmarkStatus, FastqCommandAdapterCoverageReport, FastqCommandAdapterCoverageRow,
+    FastqReadinessGapKind, DEFAULT_FASTQ_COMMAND_ADAPTER_COVERAGE_PATH,
 };
 use bijux_dna_bench_fastq::readiness::inputs::FastqServingSnapshot;
 use std::path::{Path, PathBuf};

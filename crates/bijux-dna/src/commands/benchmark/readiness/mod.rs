@@ -185,3 +185,5 @@ mod bam_downstream_proofs;
 mod bam_retained_proofs;
 
 mod fastq_declaration_evidence;
+
+mod fastq_proof_evidence;
