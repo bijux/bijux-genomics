@@ -20,8 +20,13 @@ impl VariantBenchmarkInputs {
         for row in governed {
             validate_row(&row)?;
             ensure!(
-                [stage::VCF_FILTER, stage::VCF_DAMAGE_FILTER, stage::VCF_POSTPROCESS]
-                    .contains(&row.stage_id.as_str()),
+                [
+                    stage::VCF_FILTER,
+                    stage::VCF_DAMAGE_FILTER,
+                    stage::VCF_POSTPROCESS,
+                    stage::VCF_STATS
+                ]
+                .contains(&row.stage_id.as_str()),
                 "variant processing received a foreign governed stage"
             );
             ensure!(
@@ -60,6 +65,7 @@ fn validate_row(row: &VcfStageMatrixRow) -> Result<()> {
         stage::VCF_DAMAGE_FILTER => VcfDomainStage::DamageFilter,
         stage::VCF_POSTPROCESS => VcfDomainStage::Postprocess,
         stage::VCF_QC => VcfDomainStage::Qc,
+        stage::VCF_STATS => VcfDomainStage::Stats,
         _ => anyhow::bail!("variant declaration has a foreign stage"),
     };
     ensure!(

@@ -38,3 +38,5 @@ mod test_support;
 #[allow(clippy::expect_used)]
 #[path = "../tests/contracts/processing_publication.rs"]
 mod processing_publication_contracts;
+
+pub mod statistics;
