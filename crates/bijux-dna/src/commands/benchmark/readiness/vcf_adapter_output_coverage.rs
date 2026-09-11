@@ -1,9 +1,12 @@
+pub(crate) use bijux_dna_bench_vcf_evidence::model::outputs::{
+    VcfAdapterOutputCoverageReport, VcfAdapterOutputCoverageRow, VcfAdapterOutputCoverageStatus,
+};
+use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
-use serde::Serialize;
 use serde_json::Value;
 
 use super::vcf_angsd_adapter::{render_vcf_angsd_adapter, DEFAULT_VCF_ANGSD_ADAPTER_PATH};
@@ -35,42 +38,6 @@ pub(crate) const DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH: &str =
     "artifacts/benchmark-smoke/readiness/vcf/vcf-adapter-output-coverage.tsv";
 const VCF_ADAPTER_OUTPUT_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_adapter_output_coverage.v1";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum VcfAdapterOutputCoverageStatus {
-    Complete,
-    Incomplete,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct VcfAdapterOutputCoverageRow {
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) raw_outputs: Vec<String>,
-    pub(crate) normalized_metrics: Vec<String>,
-    pub(crate) stdout: String,
-    pub(crate) stderr: String,
-    pub(crate) manifest: String,
-    pub(crate) index_outputs: Vec<String>,
-    pub(crate) status: VcfAdapterOutputCoverageStatus,
-    pub(crate) benchmark_status: String,
-    pub(crate) missing_declarations: Vec<String>,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct VcfAdapterOutputCoverageReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) benchmark_ready_row_count: usize,
-    pub(crate) benchmark_ready_complete_row_count: usize,
-    pub(crate) benchmark_ready_incomplete_row_count: usize,
-    pub(crate) complete_row_count: usize,
-    pub(crate) incomplete_row_count: usize,
-    pub(crate) rows: Vec<VcfAdapterOutputCoverageRow>,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct DeclaredArtifact {

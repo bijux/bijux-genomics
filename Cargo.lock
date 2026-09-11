@@ -233,6 +233,7 @@ dependencies = [
  "bijux-dna-bench-population",
  "bijux-dna-bench-variants",
  "bijux-dna-bench-vcf",
+ "bijux-dna-bench-vcf-evidence",
  "bijux-dna-bench-workflows",
  "bijux-dna-core",
  "bijux-dna-db-ena",
@@ -515,6 +516,15 @@ dependencies = [
  "serde_yaml",
  "tempfile",
  "toml",
+]
+
+[[package]]
+name = "bijux-dna-bench-vcf-evidence"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

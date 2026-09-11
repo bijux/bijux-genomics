@@ -1,3 +1,6 @@
+pub(crate) use bijux_dna_bench_vcf_evidence::model::parsers::{
+    VcfParserFixtureCoverageReport, VcfParserFixtureCoverageRow, VcfParserFixtureCoverageStatus,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -5,7 +8,6 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_domain_vcf::contracts::stage_metrics_contract;
 use bijux_dna_domain_vcf::{find_vcf_parser_fixture_inventory_row, VcfDomainStage};
-use serde::Serialize;
 
 use super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows;
 use crate::commands::cli::parse;
@@ -16,50 +18,6 @@ pub(crate) const DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH: &str =
 const VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_parser_fixture_coverage.v1";
 const VCF_RAW_PARSER_FIXTURE_SCHEMA_VERSION: &str = "bijux.fixture.vcf_raw_parser.v1";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum VcfParserFixtureCoverageStatus {
-    Covered,
-    MissingFixtureInventory,
-    MissingFixtureDirectory,
-    MissingExpectedNormalizedJson,
-    MissingRawFixtures,
-    InvalidExpectedNormalizedJson,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct VcfParserFixtureCoverageRow {
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) adapter_id: String,
-    pub(crate) parser_id: String,
-    pub(crate) schema_id: String,
-    pub(crate) parser_fixture_parser_id: String,
-    pub(crate) parser_fixture_schema_id: String,
-    pub(crate) parser_fixture_root_path: String,
-    pub(crate) expected_normalized_path: String,
-    pub(crate) raw_fixture_count: usize,
-    pub(crate) raw_fixture_paths: Vec<String>,
-    pub(crate) coverage_status: VcfParserFixtureCoverageStatus,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct VcfParserFixtureCoverageReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) row_count: usize,
-    pub(crate) covered_row_count: usize,
-    pub(crate) missing_row_count: usize,
-    pub(crate) parser_fixture_coverage_percent: f64,
-    pub(crate) coverage_status_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<VcfParserFixtureCoverageRow>,
-}
 
 pub(crate) fn run_render_vcf_parser_fixture_coverage(
     args: &parse::BenchReadinessRenderVcfParserFixtureCoverageArgs,

@@ -1,10 +1,16 @@
-use std::collections::{BTreeMap, BTreeSet};
+use bijux_dna_bench_vcf_evidence::commands::admission::{
+    ensure_unique_vcf_rendered_command_rows, render_script_commands,
+    validate_vcf_rendered_command_row,
+};
+pub(crate) use bijux_dna_bench_vcf_evidence::model::commands::{
+    VcfRenderedCommandRow, VcfRenderedCommandStep,
+};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 
-use super::benchmark_command_rows::render_shell_command;
 use super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows;
 use super::vcf_angsd_adapter::render_vcf_angsd_adapter;
 use super::vcf_bcftools_adapter::render_vcf_bcftools_adapter;
@@ -13,27 +19,7 @@ use super::vcf_eigensoft_adapter::render_vcf_eigensoft_adapter;
 use super::vcf_imputation_family_adapter::render_vcf_imputation_family_adapter;
 use super::vcf_phasing_family_adapter::render_vcf_phasing_family_adapter;
 use super::vcf_plink_family_adapter::render_vcf_plink_family_adapter;
-
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
-pub(crate) struct VcfRenderedCommandStep {
-    pub(crate) step_id: String,
-    pub(crate) step_kind: String,
-    pub(crate) consumes_previous_stdout: bool,
-    pub(crate) argv: Vec<String>,
-    pub(crate) command: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
-pub(crate) struct VcfRenderedCommandRow {
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) benchmark_status: String,
-    pub(crate) command_source: String,
-    pub(crate) command_steps: Vec<VcfRenderedCommandStep>,
-    pub(crate) script_commands: Vec<String>,
-    pub(crate) reason: String,
-}
+use bijux_dna_bench_vcf_evidence::commands::projection::render_shell_command;
 
 pub(crate) fn collect_vcf_rendered_command_rows(
     repo_root: &Path,
@@ -299,112 +285,6 @@ pub(crate) fn collect_vcf_adapter_command_row_map(
         row_map.insert(key, row);
     }
     Ok(row_map)
-}
-
-fn render_script_commands(steps: &[VcfRenderedCommandStep]) -> Result<Vec<String>> {
-    let mut commands = Vec::new();
-    let mut current = String::new();
-    let mut have_current = false;
-
-    for step in steps {
-        if step.argv.is_empty() {
-            return Err(anyhow!(
-                "VCF rendered command step `{}` has an empty argv vector",
-                step.step_id
-            ));
-        }
-        if step.consumes_previous_stdout {
-            if !have_current {
-                return Err(anyhow!(
-                    "VCF rendered command step `{}` consumes previous stdout but no source command is open",
-                    step.step_id
-                ));
-            }
-            current.push_str(" | ");
-            current.push_str(&step.command);
-            continue;
-        }
-        if have_current {
-            commands.push(current);
-            current = String::new();
-        }
-        current.push_str(&step.command);
-        have_current = true;
-    }
-
-    if have_current {
-        commands.push(current);
-    }
-    if commands.is_empty() {
-        return Err(anyhow!("VCF rendered command row produced no shell commands"));
-    }
-    Ok(commands)
-}
-
-fn validate_vcf_rendered_command_row(row: &VcfRenderedCommandRow) -> Result<()> {
-    if row.command_steps.is_empty() {
-        return Err(anyhow!(
-            "VCF rendered command row `{}` / `{}` has no command steps",
-            row.stage_id,
-            row.tool_id
-        ));
-    }
-    for step in &row.command_steps {
-        let executable = step
-            .argv
-            .first()
-            .map(|value| value.trim())
-            .filter(|value| !value.is_empty())
-            .ok_or_else(|| {
-                anyhow!(
-                    "VCF rendered command row `{}` / `{}` step `{}` has an empty executable",
-                    row.stage_id,
-                    row.tool_id,
-                    step.step_id
-                )
-            })?;
-        let command_lower = step.command.to_ascii_lowercase();
-        if command_lower.contains("todo") {
-            return Err(anyhow!(
-                "VCF rendered command row `{}` / `{}` step `{}` still contains a to-do marker",
-                row.stage_id,
-                row.tool_id,
-                step.step_id
-            ));
-        }
-        if command_lower.contains("placeholder") {
-            return Err(anyhow!(
-                "VCF rendered command row `{}` / `{}` step `{}` still contains placeholder text",
-                row.stage_id,
-                row.tool_id,
-                step.step_id
-            ));
-        }
-        if executable.eq_ignore_ascii_case("echo") && command_lower.contains("echo execute") {
-            return Err(anyhow!(
-                "VCF rendered command row `{}` / `{}` step `{}` still contains `echo execute`",
-                row.stage_id,
-                row.tool_id,
-                step.step_id
-            ));
-        }
-    }
-    Ok(())
-}
-
-fn ensure_unique_vcf_rendered_command_rows(rows: &[VcfRenderedCommandRow]) -> Result<()> {
-    let mut seen = BTreeSet::new();
-    for row in rows {
-        let key = (row.stage_id.as_str(), row.tool_id.as_str());
-        if !seen.insert(key) {
-            return Err(anyhow!(
-                "VCF rendered command rows encountered duplicate pair `{}` / `{}`",
-                row.stage_id,
-                row.tool_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn should_replace_existing_command_source(

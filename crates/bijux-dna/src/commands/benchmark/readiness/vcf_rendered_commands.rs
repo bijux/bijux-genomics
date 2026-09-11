@@ -1,44 +1,20 @@
+use bijux_dna_bench_vcf_evidence::commands::projection::{
+    render_vcf_command_argv_jsonl, render_vcf_commands_shell_script,
+};
+pub(crate) use bijux_dna_bench_vcf_evidence::model::command_reports::VcfRenderedCommandsReport;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use serde::Serialize;
 
 use super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows;
-use super::vcf_rendered_command_rows::{collect_vcf_rendered_command_rows, VcfRenderedCommandRow};
+use super::vcf_rendered_command_rows::collect_vcf_rendered_command_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_RENDERED_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.sh";
 const VCF_RENDERED_COMMANDS_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_rendered_commands.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct VcfRenderedCommandArgvRow {
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) benchmark_status: String,
-    pub(crate) command_source: String,
-    pub(crate) command_steps: Vec<VcfRenderedCommandArgvStep>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct VcfRenderedCommandArgvStep {
-    pub(crate) step_id: String,
-    pub(crate) step_kind: String,
-    pub(crate) consumes_previous_stdout: bool,
-    pub(crate) argv: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct VcfRenderedCommandsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) argv_output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) rows: Vec<VcfRenderedCommandRow>,
-}
 
 pub(crate) fn run_render_vcf_commands(
     args: &parse::BenchReadinessRenderVcfCommandsArgs,
@@ -97,56 +73,6 @@ pub(crate) fn render_vcf_commands(
         row_count: rows.len(),
         rows,
     })
-}
-
-fn render_vcf_commands_shell_script(
-    rows: &[VcfRenderedCommandRow],
-    repo_root_relative_to_output: &str,
-) -> String {
-    let mut rendered = String::from("#!/usr/bin/env bash\nset -euo pipefail\n");
-    rendered.push_str(&format!(
-        "repo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{repo_root_relative_to_output}\" && pwd)\"\n"
-    ));
-    rendered.push_str("cd \"$repo_root\"\n\n");
-    for (index, row) in rows.iter().enumerate() {
-        rendered.push_str(&format!("# {} / {}\n", row.stage_id, row.tool_id));
-        for command in &row.script_commands {
-            rendered.push_str(command);
-            rendered.push('\n');
-        }
-        if index + 1 < rows.len() {
-            rendered.push('\n');
-        }
-    }
-    rendered
-}
-
-fn render_vcf_command_argv_jsonl(rows: &[VcfRenderedCommandRow]) -> Result<String> {
-    let mut rendered = String::new();
-    for row in rows {
-        let payload = VcfRenderedCommandArgvRow {
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            readiness_kind: row.readiness_kind.clone(),
-            benchmark_status: row.benchmark_status.clone(),
-            command_source: row.command_source.clone(),
-            command_steps: row
-                .command_steps
-                .iter()
-                .map(|step| VcfRenderedCommandArgvStep {
-                    step_id: step.step_id.clone(),
-                    step_kind: step.step_kind.clone(),
-                    consumes_previous_stdout: step.consumes_previous_stdout,
-                    argv: step.argv.clone(),
-                })
-                .collect(),
-        };
-        let line =
-            serde_json::to_string(&payload).context("serialize VCF rendered command argv row")?;
-        rendered.push_str(&line);
-        rendered.push('\n');
-    }
-    Ok(rendered)
 }
 
 fn companion_argv_output_path(output_path: &Path) -> PathBuf {

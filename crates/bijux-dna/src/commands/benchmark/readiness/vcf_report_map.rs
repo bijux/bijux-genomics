@@ -1,10 +1,12 @@
+pub(crate) use bijux_dna_bench_vcf_evidence::model::reports::{
+    VcfReportMapReport, VcfReportMapRow,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_domain_vcf::{find_vcf_parser_fixture_inventory_row, VcfDomainStage};
-use serde::Serialize;
 
 use super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows;
 use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
@@ -14,29 +16,6 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_VCF_REPORT_MAP_PATH: &str =
     "artifacts/benchmark-smoke/readiness/vcf/vcf-report-map.tsv";
 const VCF_REPORT_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_report_map.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct VcfReportMapRow {
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) section_id: String,
-    pub(crate) summary_table: String,
-    pub(crate) metric_columns: Vec<String>,
-    pub(crate) failure_columns: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct VcfReportMapReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) section_count: usize,
-    pub(crate) summary_table_count: usize,
-    pub(crate) section_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<VcfReportMapRow>,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct VcfReportPlacement {

@@ -1,9 +1,11 @@
+pub(crate) use bijux_dna_bench_vcf_evidence::model::scope::{
+    VcfActiveStageToolMatrixReport, VcfActiveStageToolMatrixRow,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
 use super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows;
@@ -41,38 +43,6 @@ const BENCHMARK_NOT_READY_SCOPE_PROOF_PATH: &str =
 struct BindingKey {
     stage_id: String,
     tool_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct VcfActiveStageToolMatrixRow {
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) tool_status: String,
-    pub(crate) stage_support_status: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) adapter_id: String,
-    pub(crate) parser_id: String,
-    pub(crate) schema_id: String,
-    pub(crate) scope_state: String,
-    pub(crate) scope_detail: String,
-    pub(crate) scope_proof_path: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct VcfActiveStageToolMatrixReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) active_row_count: usize,
-    pub(crate) complete_row_count: usize,
-    pub(crate) removed_row_count: usize,
-    pub(crate) scope_state_counts: BTreeMap<String, usize>,
-    pub(crate) scope_detail_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<VcfActiveStageToolMatrixRow>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

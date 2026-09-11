@@ -189,6 +189,7 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_documented_boundary
         "bijux-dna-bench-workflows".to_string(),
         "bijux-dna-bench-population".to_string(),
         "bijux-dna-bench-genotypes".to_string(),
+        "bijux-dna-bench-vcf-evidence".to_string(),
         "bijux-dna-bench-haplotypes".to_string(),
         "bijux-dna-bench-variants".to_string(),
         "bijux-dna-core".to_string(),

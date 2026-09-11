@@ -548,6 +548,16 @@
       "gates": [
         "crate-tests:bijux-dna-bench-genotypes"
       ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-vcf-evidence/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-vcf-evidence"
+      ]
     }
   ],
   "edges": [
@@ -1864,6 +1874,11 @@
     {
       "consumer": "crate:bijux-dna-bench-genotypes",
       "dependency": "crate:bijux-dna-stages-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-vcf-evidence",
       "kind": "normal"
     }
   ]

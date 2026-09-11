@@ -1,3 +1,6 @@
+pub(crate) use bijux_dna_bench_vcf_evidence::model::expectations::{
+    VcfExpectedBenchmarkResultRow, VcfExpectedBenchmarkResultsReport,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -5,7 +8,6 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_domain_vcf::contracts::stage_metrics_contract;
 use bijux_dna_domain_vcf::VcfDomainStage;
-use serde::Serialize;
 
 use super::vcf_angsd_adapter::collect_vcf_angsd_adapter_rows;
 use super::vcf_bcftools_adapter::collect_vcf_bcftools_adapter_rows;
@@ -27,31 +29,6 @@ pub(crate) const DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/vcf/vcf-expected-benchmark-results.tsv";
 const VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_expected_benchmark_results.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct VcfExpectedBenchmarkResultRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) expected_outputs: Vec<String>,
-    pub(crate) expected_metrics: Vec<String>,
-    pub(crate) report_section: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct VcfExpectedBenchmarkResultsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) corpus_count: usize,
-    pub(crate) asset_profile_count: usize,
-    pub(crate) report_section_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<VcfExpectedBenchmarkResultRow>,
-}
 
 pub(crate) fn run_render_vcf_expected_benchmark_results(
     args: &parse::BenchReadinessRenderVcfExpectedBenchmarkResultsArgs,
