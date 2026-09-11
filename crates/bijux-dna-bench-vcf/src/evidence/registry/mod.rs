@@ -7,3 +7,9 @@ pub use admission::VcfRegistrySnapshot;
 pub mod matrix;
 pub mod orphans;
 pub mod undercoverage;
+
+pub(crate) mod smoke;
+
+#[cfg(test)]
+#[path = "../../../tests/contracts/registry_smoke_metadata.rs"]
+mod smoke_contract;

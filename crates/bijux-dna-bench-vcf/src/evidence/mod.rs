@@ -18,3 +18,5 @@ pub mod results;
 pub mod metrics;
 
 pub mod adapters;
+
+pub mod smoke;

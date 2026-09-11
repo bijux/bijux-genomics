@@ -77,3 +77,6 @@ mod parser_readiness;
 
 #[path = "contracts/adapter_readiness.rs"]
 mod adapter_readiness;
+
+#[path = "contracts/smoke_declarations.rs"]
+mod smoke_declarations;
