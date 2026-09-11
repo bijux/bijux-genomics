@@ -13,3 +13,5 @@ pub const VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_parser_fixture_coverage.v1";
 
 pub mod failure;
+
+pub mod readiness;

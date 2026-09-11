@@ -69,3 +69,8 @@ mod missing_inputs;
 mod missing_result_admission;
 #[path = "contracts/missing_results.rs"]
 mod missing_results;
+
+#[path = "contracts/comparable_metrics.rs"]
+mod comparable_metrics;
+#[path = "contracts/parser_readiness.rs"]
+mod parser_readiness;
