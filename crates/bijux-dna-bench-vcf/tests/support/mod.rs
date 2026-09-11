@@ -55,7 +55,7 @@ struct DomainBindings {
 
 /// Exercise the injected operation with genuine FASTA/index bytes. Production provider
 /// reuse/publication policy is independently covered by benchmark and public CLI tests.
-fn reference_fixture(
+pub fn reference_fixture(
     source: &std::path::Path,
     output: &std::path::Path,
 ) -> anyhow::Result<(PathBuf, PathBuf)> {

@@ -18,3 +18,6 @@ mod support;
 
 #[path = "contracts/serving.rs"]
 mod serving;
+
+#[path = "contracts/observations.rs"]
+mod observations;

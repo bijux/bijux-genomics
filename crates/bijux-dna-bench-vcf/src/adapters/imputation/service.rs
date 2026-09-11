@@ -3,9 +3,9 @@
 use super::{
     anyhow, build_imputation_family_row, ensure_vcf_imputation_family_adapter_contract,
     load_registry_tool_contract, path_relative_to_repo, repo_relative_path, BTreeMap, BTreeSet,
-    Context, Path, RegistryToolContract, Result, VcfAdapterInputs,
-    VcfImputationFamilyAdapterReport, VcfImputationFamilyAdapterRow, GOVERNED_IMPUTATION_STAGE_IDS,
-    GOVERNED_IMPUTATION_TOOL_IDS, VCF_IMPUTATION_FAMILY_ADAPTER_SCHEMA_VERSION,
+    Path, RegistryToolContract, Result, VcfAdapterInputs, VcfImputationFamilyAdapterReport,
+    VcfImputationFamilyAdapterRow, GOVERNED_IMPUTATION_STAGE_IDS, GOVERNED_IMPUTATION_TOOL_IDS,
+    VCF_IMPUTATION_FAMILY_ADAPTER_SCHEMA_VERSION,
 };
 
 /// Publish a typed adapter report for admitted VCF bindings.
@@ -13,6 +13,17 @@ use super::{
 /// # Errors
 /// Returns an error for invalid tool contracts, unavailable fixture inputs or failed artifact IO.
 pub fn render_vcf_imputation_family_adapter(
+    inputs: &VcfAdapterInputs,
+    repo_root: &Path,
+    output_path: &Path,
+) -> Result<VcfImputationFamilyAdapterReport> {
+    let report = prepare_vcf_imputation_family_adapter(inputs, repo_root, output_path)?;
+    crate::adapters::report::publish(repo_root, output_path, report)
+}
+
+/// Acquire validated family observations and project a report without publishing it.
+/// Fixture effects are performed only here; the output path is the planned report destination.
+pub(crate) fn prepare_vcf_imputation_family_adapter(
     inputs: &VcfAdapterInputs,
     repo_root: &Path,
     output_path: &Path,
@@ -27,10 +38,6 @@ pub fn render_vcf_imputation_family_adapter(
     let missing_input_test_passed_row_count =
         rows.iter().filter(|row| row.missing_input_test_passed).count();
 
-    if let Some(parent) = output_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
-    }
     let report = VcfImputationFamilyAdapterReport {
         schema_version: VCF_IMPUTATION_FAMILY_ADAPTER_SCHEMA_VERSION,
         domain: "vcf",
@@ -42,7 +49,6 @@ pub fn render_vcf_imputation_family_adapter(
         missing_input_test_passed_row_count,
         rows,
     };
-    bijux_dna_infra::atomic_write_json(&output_path, &report)?;
     Ok(report)
 }
 

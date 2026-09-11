@@ -1,3 +1,4 @@
+use bijux_dna_bench_vcf::adapters::observations::VcfAdapterObservations;
 pub(crate) use bijux_dna_bench_vcf_evidence::model::outputs::{
     VcfAdapterOutputCoverageReport, VcfAdapterOutputCoverageRow, VcfAdapterOutputCoverageStatus,
 };
@@ -9,25 +10,17 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, bail, Context, Result};
 use serde_json::Value;
 
-use super::vcf_angsd_adapter::{render_vcf_angsd_adapter, DEFAULT_VCF_ANGSD_ADAPTER_PATH};
-use super::vcf_bcftools_adapter::{render_vcf_bcftools_adapter, DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH};
-use super::vcf_descent_family_adapter::{
-    render_vcf_descent_family_adapter, DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH,
-};
-use super::vcf_eigensoft_adapter::{
-    render_vcf_eigensoft_adapter, DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH,
-};
-use super::vcf_imputation_family_adapter::{
-    render_vcf_imputation_family_adapter, DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH,
-};
+use super::vcf_angsd_adapter::DEFAULT_VCF_ANGSD_ADAPTER_PATH;
+use super::vcf_bcftools_adapter::DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH;
+use super::vcf_descent_family_adapter::DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH;
+use super::vcf_eigensoft_adapter::DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH;
+use super::vcf_imputation_family_adapter::DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH;
 use super::vcf_phasing_family_adapter::{
-    render_vcf_phasing_family_adapter, DEFAULT_VCF_BEAGLE_ADAPTER_PATH,
-    DEFAULT_VCF_EAGLE_ADAPTER_PATH, DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH,
-    DEFAULT_VCF_SHAPEIT_ADAPTER_PATH,
+    DEFAULT_VCF_BEAGLE_ADAPTER_PATH, DEFAULT_VCF_EAGLE_ADAPTER_PATH,
+    DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH, DEFAULT_VCF_SHAPEIT_ADAPTER_PATH,
 };
 use super::vcf_plink_family_adapter::{
-    render_vcf_plink_family_adapter, DEFAULT_VCF_PLINK2_ADAPTER_PATH,
-    DEFAULT_VCF_PLINK_ADAPTER_PATH,
+    DEFAULT_VCF_PLINK2_ADAPTER_PATH, DEFAULT_VCF_PLINK_ADAPTER_PATH,
 };
 use super::vcf_tool_serving_map::{render_vcf_tool_serving_map, DEFAULT_VCF_TOOL_SERVING_MAP_PATH};
 use crate::commands::benchmark::local_slurm_run_paths::LOCAL_SLURM_DRY_RUN_RUN_ID;
@@ -114,6 +107,15 @@ pub(crate) fn render_vcf_adapter_output_coverage(
 pub(crate) fn collect_vcf_adapter_output_coverage_rows(
     repo_root: &Path,
 ) -> Result<Vec<VcfAdapterOutputCoverageRow>> {
+    let inputs = super::vcf_adapter_inputs::load(repo_root)?;
+    let observations = VcfAdapterObservations::new(&inputs, repo_root);
+    collect_vcf_adapter_output_coverage_rows_with_observations(repo_root, &observations)
+}
+
+pub(crate) fn collect_vcf_adapter_output_coverage_rows_with_observations(
+    repo_root: &Path,
+    observations: &VcfAdapterObservations<'_>,
+) -> Result<Vec<VcfAdapterOutputCoverageRow>> {
     let tool_serving_map =
         render_vcf_tool_serving_map(repo_root, PathBuf::from(DEFAULT_VCF_TOOL_SERVING_MAP_PATH))?;
     let benchmark_ready_pairs = tool_serving_map
@@ -127,97 +129,61 @@ pub(crate) fn collect_vcf_adapter_output_coverage_rows(
     append_serialized_rows(
         &mut owned_rows,
         "bcftools",
-        render_vcf_bcftools_adapter(repo_root, PathBuf::from(DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH))?
-            .rows,
+        observations.publish_bcftools(Path::new(DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH))?.rows,
     )?;
     append_serialized_rows(
         &mut owned_rows,
         "angsd",
-        render_vcf_angsd_adapter(repo_root, PathBuf::from(DEFAULT_VCF_ANGSD_ADAPTER_PATH))?.rows,
+        observations.publish_angsd(Path::new(DEFAULT_VCF_ANGSD_ADAPTER_PATH))?.rows,
     )?;
     append_serialized_rows(
         &mut owned_rows,
         "descent",
-        render_vcf_descent_family_adapter(
-            repo_root,
-            PathBuf::from(DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH),
-        )?
-        .rows,
+        observations.publish_descent(Path::new(DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH))?.rows,
     )?;
     append_serialized_rows(
         &mut owned_rows,
         "eigensoft",
-        render_vcf_eigensoft_adapter(repo_root, PathBuf::from(DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH))?
-            .rows,
+        observations.publish_eigensoft(Path::new(DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH))?.rows,
     )?;
     append_serialized_rows(
         &mut owned_rows,
         "imputation_family",
-        render_vcf_imputation_family_adapter(
-            repo_root,
-            PathBuf::from(DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH),
-        )?
-        .rows,
+        observations
+            .publish_imputation(Path::new(DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH))?
+            .rows,
     )?;
     append_serialized_rows(
         &mut owned_rows,
         "plink",
-        render_vcf_plink_family_adapter(
-            repo_root,
-            "plink",
-            PathBuf::from(DEFAULT_VCF_PLINK_ADAPTER_PATH),
-        )?
-        .rows,
+        observations.publish_plink("plink", Path::new(DEFAULT_VCF_PLINK_ADAPTER_PATH))?.rows,
     )?;
     append_serialized_rows(
         &mut owned_rows,
         "plink2",
-        render_vcf_plink_family_adapter(
-            repo_root,
-            "plink2",
-            PathBuf::from(DEFAULT_VCF_PLINK2_ADAPTER_PATH),
-        )?
-        .rows,
+        observations.publish_plink("plink2", Path::new(DEFAULT_VCF_PLINK2_ADAPTER_PATH))?.rows,
     )?;
     append_serialized_rows(
         &mut owned_rows,
         "shapeit",
-        render_vcf_phasing_family_adapter(
-            repo_root,
-            "shapeit",
-            PathBuf::from(DEFAULT_VCF_SHAPEIT_ADAPTER_PATH),
-        )?
-        .rows,
+        observations.publish_phasing("shapeit", Path::new(DEFAULT_VCF_SHAPEIT_ADAPTER_PATH))?.rows,
     )?;
     append_serialized_rows(
         &mut owned_rows,
         "shapeit5",
-        render_vcf_phasing_family_adapter(
-            repo_root,
-            "shapeit5",
-            PathBuf::from(DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH),
-        )?
-        .rows,
+        observations
+            .publish_phasing("shapeit5", Path::new(DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH))?
+            .rows,
     )?;
     append_serialized_rows(
         &mut owned_rows,
         "eagle",
-        render_vcf_phasing_family_adapter(
-            repo_root,
-            "eagle",
-            PathBuf::from(DEFAULT_VCF_EAGLE_ADAPTER_PATH),
-        )?
-        .rows,
+        observations.publish_phasing("eagle", Path::new(DEFAULT_VCF_EAGLE_ADAPTER_PATH))?.rows,
     )?;
     append_serialized_rows(
         &mut owned_rows,
         "beagle_phasing",
-        render_vcf_phasing_family_adapter(
-            repo_root,
-            "beagle",
-            PathBuf::from(DEFAULT_VCF_BEAGLE_ADAPTER_PATH),
-        )?
-        .rows,
+        observations.publish_phasing("beagle", Path::new(DEFAULT_VCF_BEAGLE_ADAPTER_PATH))?.rows,
     )?;
 
     let mut rows = owned_rows

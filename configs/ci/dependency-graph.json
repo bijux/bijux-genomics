@@ -1880,6 +1880,11 @@
       "consumer": "crate:bijux-dna",
       "dependency": "crate:bijux-dna-bench-vcf-evidence",
       "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "normal"
     }
   ]
 }

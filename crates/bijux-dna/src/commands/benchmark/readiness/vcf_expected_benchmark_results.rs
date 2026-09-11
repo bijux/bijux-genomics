@@ -1,3 +1,4 @@
+use bijux_dna_bench_vcf::adapters::observations::VcfAdapterObservations;
 pub(crate) use bijux_dna_bench_vcf_evidence::model::expectations::{
     VcfExpectedBenchmarkResultRow, VcfExpectedBenchmarkResultsReport,
 };
@@ -9,19 +10,9 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_domain_vcf::contracts::stage_metrics_contract;
 use bijux_dna_domain_vcf::VcfDomainStage;
 
-use super::vcf_angsd_adapter::collect_vcf_angsd_adapter_rows;
-use super::vcf_bcftools_adapter::collect_vcf_bcftools_adapter_rows;
-use super::vcf_descent_family_adapter::collect_vcf_descent_family_adapter_rows;
-use super::vcf_eigensoft_adapter::collect_vcf_eigensoft_adapter_rows_for_tool;
-use super::vcf_imputation_family_adapter::collect_vcf_imputation_family_adapter_rows;
-use super::vcf_phasing_family_adapter::collect_vcf_phasing_family_adapter_rows_for_tool;
-use super::vcf_plink_family_adapter::collect_vcf_plink_family_adapter_rows_for_tool;
 use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
-use crate::commands::benchmark::local_vcf_stage_catalog::{
-    build_vcf_stage_catalog_rows, VcfStageCatalogRow,
-};
+use crate::commands::benchmark::local_vcf_stage_catalog::VcfStageCatalogRow;
 use crate::commands::benchmark::local_vcf_stage_matrix::VcfStageMatrixRow;
-use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -86,57 +77,92 @@ pub(crate) fn render_vcf_expected_benchmark_results(
 pub(crate) fn collect_vcf_expected_benchmark_result_rows(
     repo_root: &Path,
 ) -> Result<Vec<VcfExpectedBenchmarkResultRow>> {
-    let benchmark_ready_rows = collect_vcf_tool_serving_map_rows()?
-        .into_iter()
-        .filter(|row| row.benchmark_status == "benchmark_ready")
-        .collect::<Vec<_>>();
-    let matrix_by_pair = collect_vcf_benchmark_binding_rows()?
+    let inputs = super::vcf_adapter_inputs::load(repo_root)?;
+    let observations = VcfAdapterObservations::new(&inputs, repo_root);
+    collect_vcf_expected_benchmark_result_rows_with_observations(&inputs, &observations)
+}
+
+pub(crate) fn collect_vcf_expected_benchmark_result_rows_with_observations(
+    inputs: &bijux_dna_bench_vcf::inputs::VcfAdapterInputs,
+    observations: &VcfAdapterObservations<'_>,
+) -> Result<Vec<VcfExpectedBenchmarkResultRow>> {
+    let benchmark_ready_rows =
+        bijux_dna_bench_vcf::evidence::serving::collect_vcf_tool_serving_map_rows(inputs)?
+            .into_iter()
+            .filter(|row| row.benchmark_status == "benchmark_ready")
+            .collect::<Vec<_>>();
+    let matrix_by_pair = inputs
+        .bindings()
+        .to_vec()
         .into_iter()
         .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row))
         .collect::<BTreeMap<_, _>>();
-    let catalog_by_stage = build_vcf_stage_catalog_rows()?
+    let catalog_by_stage = inputs
+        .catalog()
+        .to_vec()
         .into_iter()
         .map(|row| (row.stage_id.clone(), row))
         .collect::<BTreeMap<_, _>>();
-    let adapter_rows = collect_vcf_bcftools_adapter_rows(repo_root)?
+    let adapter_rows = observations
+        .bcftools()?
+        .rows
+        .clone()
         .into_iter()
         .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into()))
         .chain(
-            collect_vcf_angsd_adapter_rows(repo_root)?
+            observations
+                .angsd()?
+                .rows
+                .clone()
                 .into_iter()
                 .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
         )
         .chain(
-            collect_vcf_plink_family_adapter_rows_for_tool(repo_root, "plink")?
+            observations
+                .plink("plink")?
+                .rows
+                .clone()
                 .into_iter()
                 .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
         )
         .chain(
-            collect_vcf_plink_family_adapter_rows_for_tool(repo_root, "plink2")?
+            observations
+                .plink("plink2")?
+                .rows
+                .clone()
                 .into_iter()
                 .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
         )
         .chain(
             ["shapeit", "shapeit5", "eagle", "beagle"]
                 .into_iter()
-                .map(|tool_id| collect_vcf_phasing_family_adapter_rows_for_tool(repo_root, tool_id))
+                .map(|tool_id| observations.phasing(tool_id).map(|report| report.rows.clone()))
                 .collect::<Result<Vec<_>>>()?
                 .into_iter()
                 .flatten()
                 .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
         )
         .chain(
-            collect_vcf_imputation_family_adapter_rows(repo_root)?
+            observations
+                .imputation()?
+                .rows
+                .clone()
                 .into_iter()
                 .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
         )
         .chain(
-            collect_vcf_eigensoft_adapter_rows_for_tool(repo_root)?
+            observations
+                .eigensoft()?
+                .rows
+                .clone()
                 .into_iter()
                 .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
         )
         .chain(
-            collect_vcf_descent_family_adapter_rows(repo_root)?
+            observations
+                .descent()?
+                .rows
+                .clone()
                 .into_iter()
                 .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
         )

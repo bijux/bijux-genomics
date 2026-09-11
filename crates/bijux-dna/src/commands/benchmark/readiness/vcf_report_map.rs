@@ -77,6 +77,14 @@ pub(crate) fn render_vcf_report_map(
 
 pub(crate) fn collect_vcf_report_map_rows(repo_root: &Path) -> Result<Vec<VcfReportMapRow>> {
     let expected_rows = collect_vcf_expected_benchmark_result_rows(repo_root)?;
+    collect_vcf_report_map_rows_from_expected(expected_rows)
+}
+
+pub(crate) fn collect_vcf_report_map_rows_from_expected(
+    expected_rows: Vec<
+        bijux_dna_bench_vcf_evidence::model::expectations::VcfExpectedBenchmarkResultRow,
+    >,
+) -> Result<Vec<VcfReportMapRow>> {
     let mut rows = Vec::with_capacity(expected_rows.len());
 
     for row in expected_rows {

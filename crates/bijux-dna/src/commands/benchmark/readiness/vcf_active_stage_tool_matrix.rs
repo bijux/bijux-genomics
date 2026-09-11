@@ -108,6 +108,14 @@ pub(crate) fn render_vcf_active_stage_tool_matrix(
 pub(crate) fn collect_vcf_active_stage_tool_matrix_rows(
     repo_root: &Path,
 ) -> Result<Vec<VcfActiveStageToolMatrixRow>> {
+    let expected = collect_vcf_expected_benchmark_result_rows(repo_root)?;
+    collect_vcf_active_stage_tool_matrix_rows_from_expected(repo_root, expected)
+}
+
+pub(crate) fn collect_vcf_active_stage_tool_matrix_rows_from_expected(
+    repo_root: &Path,
+    expected: Vec<bijux_dna_bench_vcf_evidence::model::expectations::VcfExpectedBenchmarkResultRow>,
+) -> Result<Vec<VcfActiveStageToolMatrixRow>> {
     let retained_bindings = load_retained_vcf_bindings(repo_root)?;
     let catalog_by_stage = build_vcf_stage_catalog_rows()?
         .into_iter()
@@ -126,7 +134,7 @@ pub(crate) fn collect_vcf_active_stage_tool_matrix_rows(
         .filter(|row| row.domain == "vcf")
         .map(|row| BindingKey { stage_id: row.stage_id, tool_id: row.tool_id })
         .collect::<BTreeSet<_>>();
-    let complete_bindings = collect_vcf_expected_benchmark_result_rows(repo_root)?
+    let complete_bindings = expected
         .into_iter()
         .map(|row| BindingKey { stage_id: row.stage_id, tool_id: row.tool_id })
         .collect::<BTreeSet<_>>();

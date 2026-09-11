@@ -2,9 +2,8 @@
 //! bcftools adapter service contracts.
 use super::{
     anyhow, build_bcftools_row, ensure_vcf_bcftools_adapter_contract, path_relative_to_repo,
-    repo_relative_path, BTreeMap, Context, Path, Result, VcfAdapterInputs,
-    VcfBcftoolsAdapterReport, VcfBcftoolsAdapterRow, GOVERNED_BCFTOOLS_TOOL_ID,
-    VCF_BCFTOOLS_ADAPTER_SCHEMA_VERSION,
+    repo_relative_path, BTreeMap, Path, Result, VcfAdapterInputs, VcfBcftoolsAdapterReport,
+    VcfBcftoolsAdapterRow, GOVERNED_BCFTOOLS_TOOL_ID, VCF_BCFTOOLS_ADAPTER_SCHEMA_VERSION,
 };
 
 /// Publish a typed adapter report for admitted VCF bindings.
@@ -12,6 +11,17 @@ use super::{
 /// # Errors
 /// Returns an error for invalid tool contracts, unavailable fixture inputs or failed artifact IO.
 pub fn render_vcf_bcftools_adapter(
+    inputs: &VcfAdapterInputs,
+    repo_root: &Path,
+    output_path: &Path,
+) -> Result<VcfBcftoolsAdapterReport> {
+    let report = prepare_vcf_bcftools_adapter(inputs, repo_root, output_path)?;
+    crate::adapters::report::publish(repo_root, output_path, report)
+}
+
+/// Acquire validated family observations and project a report without publishing it.
+/// Fixture effects are performed only here; the output path is the planned report destination.
+pub(crate) fn prepare_vcf_bcftools_adapter(
     inputs: &VcfAdapterInputs,
     repo_root: &Path,
     output_path: &Path,
@@ -27,26 +37,6 @@ pub fn render_vcf_bcftools_adapter(
         .iter()
         .filter(|row| row.command_steps.iter().any(|step| step.step_kind == "index"))
         .count();
-
-    if let Some(parent) = output_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
-    }
-    let payload = serde_json::to_string_pretty(&VcfBcftoolsAdapterReport {
-        schema_version: VCF_BCFTOOLS_ADAPTER_SCHEMA_VERSION,
-        domain: "vcf",
-        tool_id: GOVERNED_BCFTOOLS_TOOL_ID,
-        output_path: path_relative_to_repo(repo_root, &output_path),
-        row_count: rows.len(),
-        supported_row_count,
-        planned_row_count,
-        argv_valid_row_count,
-        missing_input_test_passed_row_count,
-        indexed_row_count,
-        rows: rows.clone(),
-    })
-    .context("render VCF bcftools adapter report")?;
-    bijux_dna_infra::atomic_write_bytes(&output_path, payload.as_bytes())?;
 
     Ok(VcfBcftoolsAdapterReport {
         schema_version: VCF_BCFTOOLS_ADAPTER_SCHEMA_VERSION,

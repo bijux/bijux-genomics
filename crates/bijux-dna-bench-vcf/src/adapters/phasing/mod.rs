@@ -43,7 +43,7 @@ pub use model::{
 };
 mod registry;
 use registry::load_registry_tool_contract;
-mod service;
+pub(crate) mod service;
 
 pub use service::{
     collect_vcf_phasing_family_adapter_rows_for_tool, render_vcf_phasing_family_adapter,

@@ -32,7 +32,7 @@ use model::{
 };
 mod registry;
 use registry::load_admitted_angsd_stage_ids;
-mod service;
+pub(crate) mod service;
 pub use service::{collect_vcf_angsd_adapter_rows, render_vcf_angsd_adapter};
 
 mod stages;

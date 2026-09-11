@@ -35,7 +35,7 @@ bijux-dna-bench-variants: bijux-dna-bench-artifacts bijux-dna-bench-model bijux-
 bijux-dna-bench-haplotypes: bijux-dna-bench-artifacts bijux-dna-bench-model bijux-dna-bench-corpus bijux-dna-core bijux-dna-infra bijux-dna-db-ref bijux-dna-domain-vcf bijux-dna-stage-contract bijux-dna-stages-vcf
 bijux-dna-bench-population: bijux-dna-bench-model bijux-dna-bench-corpus bijux-dna-core bijux-dna-infra bijux-dna-domain-vcf bijux-dna-stages-vcf
 bijux-dna-bench-workflows: bijux-dna-bench-corpus bijux-dna-core bijux-dna-infra bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-stages-vcf bijux-dna-db-ref
-bijux-dna-bench-vcf: bijux-dna-bench-model bijux-dna-bench-corpus bijux-dna-db-ref bijux-dna-domain-vcf bijux-dna-stages-vcf bijux-dna-infra
+bijux-dna-bench-vcf: bijux-dna-bench-vcf-evidence bijux-dna-bench-model bijux-dna-bench-corpus bijux-dna-db-ref bijux-dna-domain-vcf bijux-dna-stages-vcf bijux-dna-infra
 bijux-dna-bench-vcf-evidence:
 bijux-dna-bench-model: bijux-dna-analyze bijux-dna-core bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-policies bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-core: bijux-dna-infra bijux-dna-policies bijux-dna-testkit
@@ -85,3 +85,8 @@ VCF benchmark evidence admission and command projection belong to
 edges. Full binding identities prevent cross-corpus parser joins; ambiguous and
 contradictory observations fail admission. Acquisition and native execution remain
 separate from the admitted evidence and its scientific interpretation.
+
+VCF adapter evidence acquisition depends on the independent VCF evidence records
+and command contracts. The adapter owner publishes compatible family reports and
+projects their structured commands from one request-local observation context.
+The evidence contract retains no dependency on the acquisition owner.

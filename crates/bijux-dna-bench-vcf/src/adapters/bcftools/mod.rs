@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use bijux_dna_domain_vcf::taxonomy::VcfDomainStage;
 use bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_expected_output_ids;
 use serde::Serialize;
@@ -33,7 +33,7 @@ use model::{
     GOVERNED_RAW_SINGLE_SAMPLE_VCF_PATH, GOVERNED_REFERENCE_FASTA_PATH,
     GOVERNED_REFERENCE_PANEL_VCF_PATH,
 };
-mod service;
+pub(crate) mod service;
 pub use service::{collect_vcf_bcftools_adapter_rows, render_vcf_bcftools_adapter};
 
 mod stages;

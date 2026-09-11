@@ -2,9 +2,9 @@
 //! angsd adapter service contracts.
 use super::{
     anyhow, build_angsd_row, ensure_vcf_angsd_adapter_contract, load_admitted_angsd_stage_ids,
-    path_relative_to_repo, repo_relative_path, BTreeMap, BTreeSet, Context, Path, Result,
-    VcfAdapterInputs, VcfAngsdAdapterReport, VcfAngsdAdapterRow, GOVERNED_ANGSD_TOOL_ID,
-    GOVERNED_ANGSD_TOOL_STATUS, VCF_ANGSD_ADAPTER_SCHEMA_VERSION,
+    path_relative_to_repo, repo_relative_path, BTreeMap, BTreeSet, Path, Result, VcfAdapterInputs,
+    VcfAngsdAdapterReport, VcfAngsdAdapterRow, GOVERNED_ANGSD_TOOL_ID, GOVERNED_ANGSD_TOOL_STATUS,
+    VCF_ANGSD_ADAPTER_SCHEMA_VERSION,
 };
 
 /// Publish a typed adapter report for admitted VCF bindings.
@@ -12,6 +12,17 @@ use super::{
 /// # Errors
 /// Returns an error for invalid tool contracts, unavailable fixture inputs or failed artifact IO.
 pub fn render_vcf_angsd_adapter(
+    inputs: &VcfAdapterInputs,
+    repo_root: &Path,
+    output_path: &Path,
+) -> Result<VcfAngsdAdapterReport> {
+    let report = prepare_vcf_angsd_adapter(inputs, repo_root, output_path)?;
+    crate::adapters::report::publish(repo_root, output_path, report)
+}
+
+/// Acquire validated family observations and project a report without publishing it.
+/// Fixture effects are performed only here; the output path is the planned report destination.
+pub(crate) fn prepare_vcf_angsd_adapter(
     inputs: &VcfAdapterInputs,
     repo_root: &Path,
     output_path: &Path,
@@ -28,28 +39,6 @@ pub fn render_vcf_angsd_adapter(
     let bam_list_row_count = rows.iter().filter(|row| row.bam_list_path.is_some()).count();
     let parser_output_row_count =
         rows.iter().filter(|row| !row.parser_output_ids.is_empty()).count();
-
-    if let Some(parent) = output_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
-    }
-    let payload = serde_json::to_string_pretty(&VcfAngsdAdapterReport {
-        schema_version: VCF_ANGSD_ADAPTER_SCHEMA_VERSION,
-        domain: "vcf",
-        tool_id: GOVERNED_ANGSD_TOOL_ID,
-        tool_status: GOVERNED_ANGSD_TOOL_STATUS,
-        output_path: path_relative_to_repo(repo_root, &output_path),
-        row_count: rows.len(),
-        supported_stage_row_count,
-        benchmark_ready_row_count,
-        argv_valid_row_count,
-        missing_input_test_passed_row_count,
-        bam_list_row_count,
-        parser_output_row_count,
-        rows: rows.clone(),
-    })
-    .context("render VCF angsd adapter report")?;
-    bijux_dna_infra::atomic_write_bytes(&output_path, payload.as_bytes())?;
 
     Ok(VcfAngsdAdapterReport {
         schema_version: VCF_ANGSD_ADAPTER_SCHEMA_VERSION,

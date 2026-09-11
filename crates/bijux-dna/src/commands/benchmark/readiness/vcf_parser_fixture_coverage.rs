@@ -100,10 +100,16 @@ pub(crate) fn render_vcf_parser_fixture_coverage(
 pub(crate) fn collect_vcf_parser_fixture_coverage_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<VcfParserFixtureCoverageRow>)> {
-    let active_rows = collect_vcf_active_stage_tool_matrix_rows(repo_root)?
-        .into_iter()
-        .filter(|row| row.scope_state == "active")
-        .collect::<Vec<_>>();
+    let retained = collect_vcf_active_stage_tool_matrix_rows(repo_root)?;
+    collect_vcf_parser_fixture_coverage_rows_from_retained(repo_root, retained)
+}
+
+pub(crate) fn collect_vcf_parser_fixture_coverage_rows_from_retained(
+    repo_root: &Path,
+    retained: Vec<bijux_dna_bench_vcf_evidence::model::scope::VcfActiveStageToolMatrixRow>,
+) -> Result<(usize, usize, Vec<VcfParserFixtureCoverageRow>)> {
+    let active_rows =
+        retained.into_iter().filter(|row| row.scope_state == "active").collect::<Vec<_>>();
 
     let stage_count =
         active_rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>().len();

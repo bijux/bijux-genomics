@@ -1,3 +1,4 @@
+use bijux_dna_bench_vcf::adapters::observations::VcfAdapterObservations;
 use bijux_dna_bench_vcf_evidence::commands::projection::{
     render_vcf_command_argv_jsonl, render_vcf_commands_shell_script,
 };
@@ -7,8 +8,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 
-use super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows;
-use super::vcf_rendered_command_rows::collect_vcf_rendered_command_rows;
+use super::vcf_rendered_command_rows::collect_vcf_rendered_command_rows_with_observations;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -36,13 +36,23 @@ pub(crate) fn render_vcf_commands(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<VcfRenderedCommandsReport> {
+    let inputs = super::vcf_adapter_inputs::load(repo_root)?;
+    let observations = VcfAdapterObservations::new(&inputs, repo_root);
+    let expected=super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows_with_observations(&inputs,&observations)?;
+    let retained=super::vcf_active_stage_tool_matrix::collect_vcf_active_stage_tool_matrix_rows_from_expected(repo_root,expected)?;
+    render_vcf_commands_with_observations(repo_root, output_path, &observations, &retained)
+}
+
+pub(crate) fn render_vcf_commands_with_observations(
+    repo_root: &Path,
+    output_path: PathBuf,
+    observations: &VcfAdapterObservations<'_>,
+    retained: &[bijux_dna_bench_vcf_evidence::model::scope::VcfActiveStageToolMatrixRow],
+) -> Result<VcfRenderedCommandsReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
     let argv_output_path = companion_argv_output_path(&output_path);
-    let rows = collect_vcf_rendered_command_rows(repo_root)?;
-    let active_row_count = collect_vcf_active_stage_tool_matrix_rows(repo_root)?
-        .into_iter()
-        .filter(|row| row.scope_state == "active")
-        .count();
+    let rows = collect_vcf_rendered_command_rows_with_observations(observations, retained)?;
+    let active_row_count = retained.iter().filter(|row| row.scope_state == "active").count();
     if rows.len() != active_row_count {
         bail!(
             "VCF rendered commands must cover every active VCF row (expected {active_row_count}, found {})",
