@@ -38,3 +38,6 @@ mod scope;
 mod parser_admission;
 #[path = "contracts/parsers.rs"]
 mod parsers;
+
+#[path = "contracts/pca_evidence.rs"]
+mod pca_evidence;

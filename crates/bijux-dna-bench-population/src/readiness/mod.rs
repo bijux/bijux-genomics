@@ -3,3 +3,5 @@ mod evidence;
 pub use evidence::ReadinessCommandPaths;
 pub mod admixture;
 pub mod population_structure;
+
+pub mod pca;

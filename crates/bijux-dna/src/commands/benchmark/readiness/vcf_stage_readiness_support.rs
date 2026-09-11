@@ -32,7 +32,15 @@ pub(crate) fn collect_vcf_readiness_evidence(
 ) -> Result<(VcfRenderedCommandsReport, VcfEvidenceSnapshot)> {
     let inputs = super::vcf_adapter_inputs::load(repo_root)?;
     let observations = VcfAdapterObservations::new(&inputs, repo_root);
-    let expected = collect_vcf_expected_benchmark_result_rows_with_observations(&observations)?;
+    collect_vcf_readiness_evidence_with_observations(&observations)
+}
+
+pub(crate) fn collect_vcf_readiness_evidence_with_observations(
+    observations: &VcfAdapterObservations<'_>,
+) -> Result<(VcfRenderedCommandsReport, VcfEvidenceSnapshot)> {
+    let inputs = observations.inputs();
+    let repo_root = observations.repo_root();
+    let expected = collect_vcf_expected_benchmark_result_rows_with_observations(observations)?;
     let active: Vec<ActiveVcfBinding> =
         collect_all_domain_active_stage_tool_matrix_rows(repo_root)?
             .into_iter()
@@ -51,7 +59,7 @@ pub(crate) fn collect_vcf_readiness_evidence(
             .collect();
     let active_keys = active.iter().map(|row| row.key.clone()).collect::<Vec<_>>();
     let retained = collect_vcf_active_stage_tool_matrix_rows_from_expected(
-        &inputs,
+        inputs,
         repo_root,
         &active_keys,
         &expected,
@@ -59,19 +67,19 @@ pub(crate) fn collect_vcf_readiness_evidence(
     let command_report = render_vcf_commands_with_observations(
         repo_root,
         PathBuf::from(DEFAULT_VCF_RENDERED_COMMANDS_PATH),
-        &observations,
+        observations,
         &retained,
     )?;
     let evidence = VcfEvidenceSnapshot::admit(VcfEvidenceRows {
         parsers: collect_vcf_parser_fixture_coverage_rows_from_retained(
-            &inputs, repo_root, &retained,
+            inputs, repo_root, &retained,
         )?
         .2,
         retained,
         active,
         commands: command_report.rows.clone(),
-        outputs: collect_vcf_adapter_output_coverage_rows_with_observations(&observations)?,
-        reports: collect_vcf_report_map_rows_from_expected(&inputs, expected.clone())?,
+        outputs: collect_vcf_adapter_output_coverage_rows_with_observations(observations)?,
+        reports: collect_vcf_report_map_rows_from_expected(inputs, expected.clone())?,
         expected,
     })?;
     Ok((command_report, evidence))

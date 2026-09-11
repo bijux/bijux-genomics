@@ -60,3 +60,8 @@ pub mod readiness;
 #[allow(clippy::expect_used)]
 #[path = "../tests/contracts/readiness.rs"]
 mod readiness_contracts;
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+#[path = "../tests/contracts/pca_readiness.rs"]
+mod pca_readiness_contracts;

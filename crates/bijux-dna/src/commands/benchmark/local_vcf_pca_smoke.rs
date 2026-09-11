@@ -21,5 +21,3 @@ pub(crate) fn run_local_vcf_pca_smoke(
     let inputs = super::population_inputs::supported(repo_root)?;
     bijux_dna_bench_population::pca::run_local_vcf_pca_smoke(&inputs, repo_root, tool_id)
 }
-
-pub(crate) use bijux_dna_bench_population::pca::LocalVcfPcaSmokeRow;

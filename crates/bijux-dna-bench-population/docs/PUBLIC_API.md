@@ -27,3 +27,17 @@ malformed input agreement refuses before lock acquisition.
 `ReadinessCommandPaths` re-exports the independent VCF evidence address record.
 Publication addresses do not establish command readiness. The CLI acquires input
 observations and presents the resulting report.
+
+## PCA readiness evidence
+
+PCA command and declared output projection lives in the VCF adapter evidence owner;
+scientific assessment and report publication live in the population readiness owner.
+`PcaAdapterEvidence` carries a full stage/tool/corpus/asset binding, adapter/parser/schema
+identity, structured command and declared output addresses through the independent
+VCF evidence crate. Publication addresses are not executed scientific proof.
+
+Population readiness checks immutable snapshot agreement before readiness locks and
+native smoke execution. Adapter acquisition rejects ambiguous retained declarations
+before materialization. The CLI shares one admitted adapter observation context across
+common evidence and PCA projection. Script and argv publication retain their existing
+paths and representations; both serialize before either file is written.

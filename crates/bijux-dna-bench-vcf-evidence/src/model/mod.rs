@@ -6,3 +6,5 @@ pub mod outputs;
 pub mod parsers;
 pub mod reports;
 pub mod scope;
+
+pub mod pca;

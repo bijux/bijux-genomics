@@ -115,3 +115,17 @@ bank tests remain responsible for exercising the normalizers.
 Known missing or invalid fixtures produce an atomic diagnostic TSV and an incomplete
 coverage error. Malformed requests and traversal errors leave an existing report
 unchanged. The caller owns acquisition of active observations and CLI presentation.
+
+## PCA readiness evidence
+
+PCA command and declared output projection lives in the VCF adapter evidence owner;
+scientific assessment and report publication live in the population readiness owner.
+`PcaAdapterEvidence` carries a full stage/tool/corpus/asset binding, adapter/parser/schema
+identity, structured command and declared output addresses through the independent
+VCF evidence crate. Publication addresses are not executed scientific proof.
+
+Population readiness checks immutable snapshot agreement before readiness locks and
+native smoke execution. Adapter acquisition rejects ambiguous retained declarations
+before materialization. The CLI shares one admitted adapter observation context across
+common evidence and PCA projection. Script and argv publication retain their existing
+paths and representations; both serialize before either file is written.

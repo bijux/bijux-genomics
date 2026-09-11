@@ -1,8 +1,7 @@
 use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
 pub(crate) use bijux_dna_bench_vcf::adapters::eigensoft::{
-    VcfEigensoftAdapterArtifact, VcfEigensoftAdapterReport, VcfEigensoftAdapterRow,
-    DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH,
+    VcfEigensoftAdapterReport, VcfEigensoftAdapterRow, DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH,
 };
 use std::path::{Path, PathBuf};
 

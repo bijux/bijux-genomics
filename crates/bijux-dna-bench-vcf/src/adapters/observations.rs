@@ -53,11 +53,15 @@ impl<'a> VcfAdapterObservations<'a> {
         }
     }
 
-    pub(crate) fn inputs(&self) -> &VcfAdapterInputs {
+    /// Borrow the exact admitted declarations associated with these observations.
+    #[must_use]
+    pub fn inputs(&self) -> &VcfAdapterInputs {
         self.inputs
     }
 
-    pub(crate) fn repo_root(&self) -> &Path {
+    /// Borrow the repository context associated with these observations.
+    #[must_use]
+    pub fn repo_root(&self) -> &Path {
         self.repo_root
     }
 

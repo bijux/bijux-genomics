@@ -1,8 +1,8 @@
 use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
 pub(crate) use bijux_dna_bench_vcf::adapters::plink::{
-    VcfPlinkFamilyAdapterArtifact, VcfPlinkFamilyAdapterReport, VcfPlinkFamilyAdapterRow,
-    DEFAULT_VCF_PLINK2_ADAPTER_PATH, DEFAULT_VCF_PLINK_ADAPTER_PATH,
+    VcfPlinkFamilyAdapterReport, VcfPlinkFamilyAdapterRow, DEFAULT_VCF_PLINK2_ADAPTER_PATH,
+    DEFAULT_VCF_PLINK_ADAPTER_PATH,
 };
 use std::path::{Path, PathBuf};
 
