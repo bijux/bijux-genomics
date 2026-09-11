@@ -5,12 +5,11 @@ use super::{
     state::{ReadinessCounts, ReadinessState},
 };
 use crate::adapters::observations::VcfAdapterObservations;
+/// Independent composition authority for active full stage/tool/corpus/asset bindings.
+pub use crate::evidence::scope::ActiveBindingProvider;
 use anyhow::{bail, Context, Result};
-use bijux_dna_bench_vcf_evidence::snapshot::VcfStageReadinessBindingKey;
 use bijux_dna_domain_vcf::vcf_parser_fixture_inventory;
 use std::path::{Path, PathBuf};
-/// Independent composition authority for active full stage/tool/corpus/asset bindings.
-pub type ActiveBindingProvider = fn(&Path) -> Result<Vec<VcfStageReadinessBindingKey>>;
 /// Publish the complete governed parser-readiness diagnostic using shared observations.
 ///
 /// # Errors

@@ -16,3 +16,5 @@ pub mod inputs;
 pub mod results;
 
 pub mod metrics;
+
+pub mod adapters;

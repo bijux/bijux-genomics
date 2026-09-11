@@ -74,3 +74,6 @@ mod missing_results;
 mod comparable_metrics;
 #[path = "contracts/parser_readiness.rs"]
 mod parser_readiness;
+
+#[path = "contracts/adapter_readiness.rs"]
+mod adapter_readiness;
