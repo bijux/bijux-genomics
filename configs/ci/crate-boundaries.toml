@@ -256,3 +256,9 @@ name = "bijux-dna-bench-vcf-evidence"
 family = "analysis"
 layer = "analysis"
 public_surfaces = ["crates/bijux-dna-bench-vcf-evidence/src/lib.rs", "crates/bijux-dna-bench-vcf-evidence/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-bam-evidence"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-bam-evidence/src/lib.rs", "crates/bijux-dna-bench-bam-evidence/docs/PUBLIC_API.md"]

@@ -15,6 +15,7 @@ bijux-dna-bench-artifacts.workspace = true
 bijux-dna-bench-fastq.workspace = true
 bijux-dna-bench-hpc.workspace = true
 bijux-dna-bench-vcf.workspace = true
+bijux-dna-bench-bam-evidence.workspace = true
 bijux-dna-bench-vcf-evidence.workspace = true
 bijux-dna-bench-population.workspace = true
 bijux-dna-bench-haplotypes.workspace = true

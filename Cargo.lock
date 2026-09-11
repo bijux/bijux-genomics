@@ -228,6 +228,7 @@ dependencies = [
  "anyhow",
  "bijux-dna-api",
  "bijux-dna-bench-artifacts",
+ "bijux-dna-bench-bam-evidence",
  "bijux-dna-bench-corpus",
  "bijux-dna-bench-fastq",
  "bijux-dna-bench-genotypes",
@@ -388,6 +389,18 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-bench-model",
+ "bijux-dna-infra",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "bijux-dna-bench-bam-evidence"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-core",
  "bijux-dna-infra",
  "serde",
  "serde_json",

@@ -43,6 +43,7 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_documented_ada
         "bijux-dna-bench-workflows",
         "bijux-dna-bench-population",
         "bijux-dna-bench-genotypes",
+        "bijux-dna-bench-bam-evidence",
         "bijux-dna-bench-vcf-evidence",
         "bijux-dna-bench-artifacts",
         "bijux-dna-bench-haplotypes",
