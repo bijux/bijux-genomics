@@ -356,6 +356,7 @@ dependencies = [
  "anyhow",
  "bijux-dna-analyze",
  "bijux-dna-bench-artifacts",
+ "bijux-dna-bench-corpus",
  "bijux-dna-bench-model",
  "bijux-dna-containers",
  "bijux-dna-core",
@@ -447,6 +448,7 @@ dependencies = [
  "bijux-dna-domain-vcf",
  "bijux-dna-infra",
  "flate2",
+ "schemars",
  "serde",
  "serde_json",
  "tempfile",
@@ -528,6 +530,7 @@ name = "bijux-dna-bench-model"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-bench-corpus",
  "bijux-dna-core",
  "bijux-dna-domain-fastq",
  "bijux-dna-domain-vcf",

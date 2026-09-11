@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-corpus
 //! Bounded legacy manifest decoding and current content identity checks.
 
 use std::collections::BTreeMap;

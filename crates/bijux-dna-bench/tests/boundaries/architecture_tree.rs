@@ -185,14 +185,8 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/repo/corpus")),
-        entries(["bam.rs", "fastq.rs", "mod.rs", "normalized_fastq/"]),
-        "corpus tree must separate governed admission from normalized read metadata"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/repo/corpus/normalized_fastq")),
-        entries(["manifest.rs", "mod.rs"]),
-        "normalized corpus admission must separate manifest IO from sample metadata"
+        entries(["bam.rs", "fastq.rs", "mod.rs"]),
+        "corpus facade delegates normalized read metadata to the independent corpus owner"
     );
 
     assert_eq!(

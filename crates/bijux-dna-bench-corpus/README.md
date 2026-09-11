@@ -36,3 +36,17 @@ With `alignment` enabled, `bam::assignment` owns fixture routing and
 scientific sample, reference, artifact and threshold admission for governed BAM
 benchmark inputs. Three typed observation ports adapt inventory, command coverage
 and compatibility without adding a frontend or benchmark orchestration dependency.
+
+## Governed sources and normalized reads
+
+The `source-contract` feature owns corpus classification, source policies,
+evaluation design, FASTQ source schemas and semantic admission. It requires no
+benchmark orchestration or genomics engine. The `normalized` feature adds bounded
+source loading, ordered read discovery, accession/cohort closure and manifest
+content verification. These features do not enable alignment, variant or panel
+capabilities.
+
+Source records live in `src/source`; filesystem and normalized-content admission
+live in `src/normalized`. Campaign execution and archive downloads remain separate
+owners. Manifest admission verifies canonical relative paths, rejects symlinks and
+hashes content in bounded buffers. It does not replace FASTQ record validation.

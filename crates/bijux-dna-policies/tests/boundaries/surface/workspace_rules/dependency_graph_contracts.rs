@@ -228,6 +228,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             dep == "bijux-dna-core"
                 || dep == "bijux-dna-analyze"
                 || dep == "bijux-dna-bench-model"
+                || dep == "bijux-dna-bench-corpus"
                 || dep == "bijux-dna-bench-artifacts"
                 || dep == "bijux-dna-containers"
                 || dep == "bijux-dna-db-ena"

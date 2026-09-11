@@ -14,7 +14,7 @@ pub const BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2: &str =
 pub const BENCHMARK_DATA_FITNESS_SCHEMA_V1: &str = "bijux.benchmark.data_fitness.v1";
 pub const CORPUS_ACQUISITION_SCHEMA_V1: &str = "bijux.benchmark.corpus_acquisition.v1";
 pub const CORPUS_ACQUISITION_SCHEMA_V2: &str = "bijux.benchmark.corpus_acquisition.v2";
-pub const FASTQ_CORPUS_SOURCE_SCHEMA_V1: &str = "bijux.benchmark.fastq_corpus_source.v1";
+pub use bijux_dna_bench_corpus::source::FASTQ_CORPUS_SOURCE_SCHEMA_V1;
 pub const FASTQ_COMPARABLE_METRICS_SCHEMA_V1: &str =
     "bijux.bench.readiness.fastq_comparable_metrics.v1";
 pub const BAM_COMPARABLE_METRICS_SCHEMA_V1: &str =

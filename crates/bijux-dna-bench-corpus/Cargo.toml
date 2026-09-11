@@ -7,11 +7,14 @@ rust-version.workspace = true
 
 [features]
 default = []
+source-contract = ["dep:schemars"]
+normalized = ["source-contract", "dep:bijux-dna-infra"]
 alignment = ["dep:bijux-dna-domain-bam", "dep:bijux-dna-core", "dep:bijux-dna-infra"]
 variants = ["dep:bijux-dna-domain-vcf"]
 panel-metadata = ["dep:bijux-dna-db-ref", "dep:bijux-dna-infra", "dep:bijux-dna-domain-vcf"]
 
 [dependencies]
+schemars = { workspace = true, optional = true }
 anyhow.workspace = true
 serde.workspace = true
 serde_json.workspace = true

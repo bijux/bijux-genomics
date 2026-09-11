@@ -806,7 +806,7 @@ fn thin_cli_uses_model_owned_fastq_corpus_source_contract() {
 
     assert!(corpus_metadata.contains("load_fastq_corpus_source_for_id"));
     let owner = fs::read_to_string(
-        repo_root.join("crates/bijux-dna-bench/src/repo/corpus/normalized_fastq/mod.rs"),
+        repo_root.join("crates/bijux-dna-bench-corpus/src/normalized/loading.rs"),
     )
     .expect("read corpus admission owner");
     assert!(owner.contains("load_fastq_corpus_source_spec(path)"));

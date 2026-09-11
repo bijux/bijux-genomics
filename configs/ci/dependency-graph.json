@@ -2085,6 +2085,16 @@
       "consumer": "crate:bijux-dna-bench-fastq",
       "dependency": "crate:bijux-dna-core",
       "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-model",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
     }
   ]
 }

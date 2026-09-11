@@ -18,3 +18,7 @@ mod support;
 #[cfg(feature = "variants")]
 #[path = "contracts/vcf.rs"]
 mod vcf;
+
+#[cfg(feature = "normalized")]
+#[path = "contracts/normalized.rs"]
+mod normalized;
