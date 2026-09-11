@@ -229,6 +229,7 @@ dependencies = [
  "bijux-dna-api",
  "bijux-dna-bench-artifacts",
  "bijux-dna-bench-corpus",
+ "bijux-dna-bench-fastq",
  "bijux-dna-bench-genotypes",
  "bijux-dna-bench-haplotypes",
  "bijux-dna-bench-population",
@@ -406,6 +407,19 @@ dependencies = [
  "serde_json",
  "tempfile",
  "toml",
+]
+
+[[package]]
+name = "bijux-dna-bench-fastq"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-domain-fastq",
+ "bijux-dna-infra",
+ "bijux-dna-stage-contract",
+ "flate2",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]

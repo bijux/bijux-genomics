@@ -47,6 +47,7 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_documented_ada
         "bijux-dna-bench-artifacts",
         "bijux-dna-bench-haplotypes",
         "bijux-dna-bench-variants",
+        "bijux-dna-bench-fastq",
         "bijux-dna-core",
         "bijux-dna-db-ref",
         "bijux-dna-domain-compiler",

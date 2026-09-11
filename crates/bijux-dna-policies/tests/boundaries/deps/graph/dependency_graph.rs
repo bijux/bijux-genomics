@@ -193,6 +193,7 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_documented_boundary
         "bijux-dna-bench-artifacts".to_string(),
         "bijux-dna-bench-haplotypes".to_string(),
         "bijux-dna-bench-variants".to_string(),
+        "bijux-dna-bench-fastq".to_string(),
         "bijux-dna-core".to_string(),
         "bijux-dna-db-ref".to_string(),
         "bijux-dna-domain-bam".to_string(),

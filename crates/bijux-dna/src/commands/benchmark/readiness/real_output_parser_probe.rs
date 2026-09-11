@@ -1,12 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
-use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use flate2::read::MultiGzDecoder;
-use flate2::write::GzEncoder;
-use flate2::Compression;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -138,12 +134,6 @@ enum ParseKind {
 struct MaterializedProof {
     proof_path: PathBuf,
     observed_tool_id: String,
-}
-
-#[derive(Debug, Clone)]
-struct FastqReadStats {
-    reads: u64,
-    bases: u64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -721,94 +711,124 @@ fn parse_proof(
 ) -> Result<(Value, BTreeMap<String, Value>)> {
     match parse_kind {
         ParseKind::FastqIndexReference => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_index_reference_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::IndexReference,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqCorrectErrors => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_correct_errors_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::CorrectErrors,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqDepleteHost => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_deplete_host_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::DepleteHost,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqDepleteRrna => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_deplete_rrna_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::DepleteRrna,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqTrimReads => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_trim_reads_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::TrimReads,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqMergePairs => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_merge_pairs_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::MergePairs,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqFilterReads => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_filter_reads_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::FilterReads,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqProfileReads => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::ProfileReads,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqReportQc => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_report_qc_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::ReportQc,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqRemoveDuplicates => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_remove_duplicates_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::RemoveDuplicates,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqExtractUmis => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_extract_umis_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::ExtractUmis,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqScreenTaxonomy => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_screen_taxonomy_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::ScreenTaxonomy,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqInferAsvs => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_infer_asvs_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::InferAsvs,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqNormalizeAbundance => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_normalize_abundance_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::NormalizeAbundance,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::FastqDetectDuplicatesPremerge => {
-            let raw = fs::read_to_string(proof_path)
-                .with_context(|| format!("read {}", proof_path.display()))?;
-            let _ = bijux_dna_domain_fastq::observer::parse_detect_duplicates_premerge_report(&raw)
-                .with_context(|| format!("parse {}", proof_path.display()))?;
+            let value = bijux_dna_bench_fastq::probes::reports::parse_report(
+                proof_path,
+                bijux_dna_bench_fastq::probes::reports::FastqReportKind::DetectDuplicatesPremerge,
+            )?;
+            let snapshot = json_snapshot(&value, snapshot_keys);
+            return Ok((value, snapshot));
         }
         ParseKind::BamValidationSummary => {
             let _: bijux_dna_domain_bam::BamValidationSummaryV1 = serde_json::from_str(
@@ -1014,373 +1034,42 @@ fn generate_index_reference_probe(
     probe_root: &Path,
 ) -> Result<MaterializedProof> {
     let plan = bijux_dna_planner_fastq::stage_api::local_index_reference_plan(repo_root)?;
-    let probe_dir = probe_root.join("reference_indexing");
-    fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
-    let reference_fasta = required_input_path(&plan, "reference_fasta")?;
-    let reference_bytes = fs::metadata(&reference_fasta)
-        .with_context(|| format!("stat {}", reference_fasta.display()))?
-        .len();
-    let tool_id = plan.tool_id.as_str().to_string();
-    let index_root = probe_dir.join("reference_index");
-    fs::create_dir_all(&index_root).with_context(|| format!("create {}", index_root.display()))?;
-    let extension = if tool_id == "bowtie2_build" { "bt2" } else { "idx" };
-    let emitted_path = index_root.join(format!("reference.1.{extension}"));
-    fs::write(&emitted_path, b"bijux-index\n")
-        .with_context(|| format!("write {}", emitted_path.display()))?;
-    let emitted_files = vec![bijux_dna_domain_fastq::IndexReferenceFileEntryV1 {
-        relative_path: emitted_path
-            .strip_prefix(&index_root)
-            .unwrap_or(&emitted_path)
-            .display()
-            .to_string(),
-        bytes: fs::metadata(&emitted_path)
-            .with_context(|| format!("stat {}", emitted_path.display()))?
-            .len(),
-    }];
-    let index_bytes = emitted_files.iter().map(|entry| entry.bytes).sum::<u64>();
-    let report_path = probe_dir.join("index_reference_report.json");
-    let report = bijux_dna_domain_fastq::IndexReferenceReportV1 {
-        schema_version: bijux_dna_domain_fastq::INDEX_REFERENCE_REPORT_SCHEMA_VERSION.to_string(),
-        stage: "fastq.index_reference".to_string(),
-        stage_id: "fastq.index_reference".to_string(),
-        tool_id: tool_id.clone(),
-        threads: u64_json(&plan.effective_params, "threads")
-            .and_then(|value| u32::try_from(value).ok())
-            .unwrap_or(1),
-        index_format: tool_id.clone(),
-        reference_fasta: path_relative_to_repo(repo_root, &reference_fasta),
-        reference_bytes,
-        reference_index: path_relative_to_repo(repo_root, &index_root),
-        report_json: path_relative_to_repo(repo_root, &report_path),
-        index_prefix: Some("reference".to_string()),
-        index_file_count: emitted_files.len() as u64,
-        index_bytes,
-        emitted_files,
-        runtime_s: Some(0.0),
-        memory_mb: Some(0.0),
-        exit_code: Some(0),
-        backend_metrics: Some(serde_json::json!({ "probe": "governed_tiny_index_reference" })),
-    };
-    bijux_dna_infra::atomic_write_json(&report_path, &report)?;
-    Ok(MaterializedProof { proof_path: report_path, observed_tool_id: tool_id })
+    let proof = bijux_dna_bench_fastq::probes::generate_index_reference_probe(
+        repo_root, probe_root, &plan,
+    )?;
+    Ok(MaterializedProof { proof_path: proof.proof_path, observed_tool_id: proof.observed_tool_id })
 }
 
 fn generate_correct_errors_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
     let cases = bijux_dna_planner_fastq::stage_api::local_correct_errors_smoke_plans(repo_root)?;
     let case =
         cases.first().ok_or_else(|| anyhow!("missing governed local correct-errors smoke case"))?;
-    let probe_dir = probe_root.join("error_correction");
-    fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
-    let input_r1 = repo_root.join(&case.r1);
-    let input_r2 = case.r2.as_ref().map(|path| repo_root.join(path));
-    let output_r1 = probe_dir.join("corrected_R1.fastq.gz");
-    copy_file(&input_r1, &output_r1)?;
-    let output_r2 = if let Some(input) = input_r2.as_ref() {
-        let path = probe_dir.join("corrected_R2.fastq.gz");
-        copy_file(input, &path)?;
-        Some(path)
-    } else {
-        None
-    };
-    let stats_r1 = count_fastq_stats(&input_r1)?;
-    let stats_r2 = input_r2.as_ref().map(|path| count_fastq_stats(path)).transpose()?;
-    let reads_in = stats_r1.reads + stats_r2.as_ref().map_or(0, |stats| stats.reads);
-    let bases_in = stats_r1.bases + stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let pairs_in = input_r2
-        .as_ref()
-        .map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
-    let report_path = probe_dir.join("correct_report.json");
-    let engine = match case.plan.tool_id.as_str() {
-        "lighter" => bijux_dna_domain_fastq::params::correct::CorrectionEngine::Lighter,
-        "musket" => bijux_dna_domain_fastq::params::correct::CorrectionEngine::Musket,
-        "bayeshammer" => bijux_dna_domain_fastq::params::correct::CorrectionEngine::Bayeshammer,
-        _ => bijux_dna_domain_fastq::params::correct::CorrectionEngine::Rcorrector,
-    };
-    let report = bijux_dna_domain_fastq::CorrectErrorsReportV1 {
-        schema_version: bijux_dna_domain_fastq::CORRECT_ERRORS_REPORT_SCHEMA_VERSION.to_string(),
-        stage: "fastq.correct_errors".to_string(),
-        stage_id: "fastq.correct_errors".to_string(),
-        tool_id: case.plan.tool_id.as_str().to_string(),
-        paired_mode: if input_r2.is_some() {
-            bijux_dna_domain_fastq::PairedMode::PairedEnd
-        } else {
-            bijux_dna_domain_fastq::PairedMode::SingleEnd
+    let proof = bijux_dna_bench_fastq::probes::generate_correct_errors_probe(
+        repo_root,
+        probe_root,
+        &bijux_dna_bench_fastq::probes::CorrectErrorsProbeInput {
+            plan: &case.plan,
+            r1: &case.r1,
+            r2: case.r2.as_deref(),
+            quality_encoding: case.quality_encoding.clone(),
+            conservative_mode: case.conservative_mode,
         },
-        threads: u64_json(&case.plan.effective_params, "threads")
-            .and_then(|value| u32::try_from(value).ok())
-            .unwrap_or(1),
-        correction_engine: engine,
-        quality_encoding: case.quality_encoding.clone(),
-        kmer_size: u64_json(&case.plan.effective_params, "kmer_size")
-            .and_then(|value| u32::try_from(value).ok()),
-        musket_kmer_budget: u64_json(&case.plan.effective_params, "musket_kmer_budget"),
-        genome_size: u64_json(&case.plan.effective_params, "genome_size"),
-        max_memory_gb: u64_json(&case.plan.effective_params, "max_memory_gb")
-            .and_then(|value| u32::try_from(value).ok()),
-        trusted_kmer_artifact: None,
-        conservative_mode: case.conservative_mode,
-        input_r1: path_relative_to_repo(repo_root, &input_r1),
-        input_r2: input_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
-        output_r1: path_relative_to_repo(repo_root, &output_r1),
-        output_r2: output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
-        report_json: path_relative_to_repo(repo_root, &report_path),
-        corrected_reads: Some(reads_in),
-        changed_reads: Some(0),
-        unchanged_reads: Some(reads_in),
-        reads_in: Some(reads_in),
-        reads_out: Some(reads_in),
-        bases_in: Some(bases_in),
-        bases_out: Some(bases_in),
-        pairs_in,
-        pairs_out: pairs_in,
-        mean_q_before: None,
-        mean_q_after: None,
-        kmer_fix_rate: Some(0.0),
-        correction_effect: Some(
-            serde_json::json!({ "outputs_changed": false, "probe": "governed_tiny_copy" }),
-        ),
-        runtime_s: Some(0.0),
-        memory_mb: Some(0.0),
-        exit_code: Some(0),
-        raw_backend_report: None,
-        raw_backend_report_format: None,
-        backend_metrics: Some(serde_json::json!({ "changed_reads": 0_u64 })),
-    };
-    bijux_dna_infra::atomic_write_json(&report_path, &report)?;
-    Ok(MaterializedProof {
-        proof_path: report_path,
-        observed_tool_id: case.plan.tool_id.as_str().to_string(),
-    })
+    )?;
+    Ok(MaterializedProof { proof_path: proof.proof_path, observed_tool_id: proof.observed_tool_id })
 }
 
 fn generate_deplete_host_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
     let plan = bijux_dna_planner_fastq::stage_api::local_deplete_host_plan(repo_root)?;
-    let probe_dir = probe_root.join("deplete_host");
-    fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
-    let input_r1 = required_input_path(&plan, "reads_r1")?;
-    let input_r2 = optional_input_path(&plan, "reads_r2");
-    let output_r1 = probe_dir.join("host_depleted_R1.fastq.gz");
-    copy_file(&input_r1, &output_r1)?;
-    let output_r2 = if let Some(input) = input_r2.as_ref() {
-        let path = probe_dir.join("host_depleted_R2.fastq.gz");
-        copy_file(input, &path)?;
-        Some(path)
-    } else {
-        None
-    };
-    let removed_r1 = probe_dir.join("removed_host_R1.fastq.gz");
-    write_empty_gzip(&removed_r1)?;
-    let removed_r2 = if input_r2.is_some() {
-        let path = probe_dir.join("removed_host_R2.fastq.gz");
-        write_empty_gzip(&path)?;
-        Some(path)
-    } else {
-        None
-    };
-    let stats_r1 = count_fastq_stats(&input_r1)?;
-    let stats_r2 = input_r2.as_ref().map(|path| count_fastq_stats(path)).transpose()?;
-    let reads_in = stats_r1.reads + stats_r2.as_ref().map_or(0, |stats| stats.reads);
-    let bases_in = stats_r1.bases + stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let pairs_in = input_r2
-        .as_ref()
-        .map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
-    let report_path = probe_dir.join("host_depletion_report.json");
-    let report = bijux_dna_domain_fastq::DepleteHostReportV1 {
-        schema_version: bijux_dna_domain_fastq::DEPLETE_HOST_REPORT_SCHEMA_VERSION.to_string(),
-        stage: "fastq.deplete_host".to_string(),
-        stage_id: "fastq.deplete_host".to_string(),
-        tool_id: plan.tool_id.as_str().to_string(),
-        paired_mode: if input_r2.is_some() {
-            bijux_dna_domain_fastq::PairedMode::PairedEnd
-        } else {
-            bijux_dna_domain_fastq::PairedMode::SingleEnd
-        },
-        threads: u64_json(&plan.effective_params, "threads")
-            .and_then(|value| u32::try_from(value).ok())
-            .unwrap_or(1),
-        reference_scope: serde_json::from_value(
-            plan.effective_params
-                .get("reference_scope")
-                .cloned()
-                .unwrap_or(Value::String("host".to_string())),
-        )
-        .unwrap_or(bijux_dna_domain_fastq::params::screen::ReferenceScope::Host),
-        reference_catalog_id: string_json(&plan.effective_params, "reference_catalog_id")
-            .unwrap_or_else(|| "host_reference".to_string()),
-        reference_index_artifact_id: string_json(
-            &plan.effective_params,
-            "reference_index_artifact_id",
-        )
-        .unwrap_or_else(|| "reference_index".to_string()),
-        reference_index_backend: string_json(&plan.effective_params, "reference_index_backend")
-            .unwrap_or_else(|| "bowtie2_build".to_string()),
-        reference_build_id: optional_string_json(&plan.effective_params, "reference_build_id"),
-        reference_digest: optional_string_json(&plan.effective_params, "reference_digest"),
-        masking_policy: serde_json::from_value(
-            plan.effective_params
-                .get("masking_policy")
-                .cloned()
-                .unwrap_or(Value::String("unmasked".to_string())),
-        )
-        .unwrap_or(bijux_dna_domain_fastq::params::screen::ReferenceMaskingPolicy::Unmasked),
-        decoy_policy: serde_json::from_value(
-            plan.effective_params
-                .get("decoy_policy")
-                .cloned()
-                .unwrap_or(Value::String("none".to_string())),
-        )
-        .unwrap_or(bijux_dna_domain_fastq::params::screen::ReferenceDecoyPolicy::None),
-        decoy_catalog_id: optional_string_json(&plan.effective_params, "decoy_catalog_id"),
-        identity_threshold: f64_json(&plan.effective_params, "identity_threshold").unwrap_or(0.95),
-        retained_read_policy: serde_json::from_value(
-            plan.effective_params
-                .get("retained_read_policy")
-                .cloned()
-                .unwrap_or(Value::String("keep_non_host_reads".to_string())),
-        )
-        .unwrap_or(bijux_dna_domain_fastq::params::screen::ReadRetentionPolicy::KeepNonHostReads),
-        emit_removed_reads: bool_json(&plan.effective_params, "emit_removed_reads").unwrap_or(true),
-        report_format: serde_json::from_value(
-            plan.effective_params
-                .get("report_format")
-                .cloned()
-                .unwrap_or(Value::String("bowtie2_metrics_file".to_string())),
-        )
-        .unwrap_or(bijux_dna_domain_fastq::params::screen::MappingReportFormat::Bowtie2MetricsFile),
-        retain_unmapped_pairs: bool_json(&plan.effective_params, "retain_unmapped_pairs")
-            .unwrap_or(false),
-        input_r1: path_relative_to_repo(repo_root, &input_r1),
-        input_r2: input_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
-        output_r1: path_relative_to_repo(repo_root, &output_r1),
-        output_r2: output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
-        removed_host_r1: path_relative_to_repo(repo_root, &removed_r1),
-        removed_host_r2: removed_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
-        report_json: path_relative_to_repo(repo_root, &report_path),
-        reads_in,
-        reads_out: reads_in,
-        reads_removed: 0,
-        bases_in,
-        bases_out: bases_in,
-        bases_removed: 0,
-        pairs_in,
-        pairs_out: pairs_in,
-        host_fraction_removed: 0.0,
-        runtime_s: Some(0.0),
-        memory_mb: Some(0.0),
-        exit_code: Some(0),
-        raw_backend_report: None,
-        raw_backend_report_format: None,
-        backend_metrics: Some(
-            serde_json::json!({ "reads_removed": 0_u64, "bases_removed": 0_u64 }),
-        ),
-    };
-    bijux_dna_infra::atomic_write_json(&report_path, &report)?;
-    Ok(MaterializedProof {
-        proof_path: report_path,
-        observed_tool_id: plan.tool_id.as_str().to_string(),
-    })
+    let proof =
+        bijux_dna_bench_fastq::probes::generate_deplete_host_probe(repo_root, probe_root, &plan)?;
+    Ok(MaterializedProof { proof_path: proof.proof_path, observed_tool_id: proof.observed_tool_id })
 }
 
 fn generate_deplete_rrna_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
     let plan = bijux_dna_planner_fastq::stage_api::local_deplete_rrna_plan(repo_root)?;
-    let probe_dir = probe_root.join("deplete_rrna");
-    fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
-    let input_r1 = required_input_path(&plan, "reads_r1")?;
-    let input_r2 = optional_input_path(&plan, "reads_r2");
-    let output_r1 = probe_dir.join("rrna_filtered_R1.fastq.gz");
-    copy_file(&input_r1, &output_r1)?;
-    let output_r2 = if let Some(input) = input_r2.as_ref() {
-        let path = probe_dir.join("rrna_filtered_R2.fastq.gz");
-        copy_file(input, &path)?;
-        Some(path)
-    } else {
-        None
-    };
-    let removed_r1 = probe_dir.join("removed_rrna_R1.fastq.gz");
-    write_empty_gzip(&removed_r1)?;
-    let removed_r2 = if input_r2.is_some() {
-        let path = probe_dir.join("removed_rrna_R2.fastq.gz");
-        write_empty_gzip(&path)?;
-        Some(path)
-    } else {
-        None
-    };
-    let report_tsv = probe_dir.join("rrna_report.tsv");
-    fs::write(&report_tsv, "sample_id\treads_removed\nlocal_smoke\t0\n")
-        .with_context(|| format!("write {}", report_tsv.display()))?;
-    let stats_r1 = count_fastq_stats(&input_r1)?;
-    let stats_r2 = input_r2.as_ref().map(|path| count_fastq_stats(path)).transpose()?;
-    let reads_in = stats_r1.reads + stats_r2.as_ref().map_or(0, |stats| stats.reads);
-    let bases_in = stats_r1.bases + stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let pairs_in = input_r2
-        .as_ref()
-        .map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
-    let report_path = probe_dir.join("rrna_report.json");
-    let report = bijux_dna_domain_fastq::DepleteRrnaReportV1 {
-        schema_version: bijux_dna_domain_fastq::DEPLETE_RRNA_REPORT_SCHEMA_VERSION.to_string(),
-        stage: "fastq.deplete_rrna".to_string(),
-        stage_id: "fastq.deplete_rrna".to_string(),
-        tool_id: plan.tool_id.as_str().to_string(),
-        paired_mode: if input_r2.is_some() {
-            bijux_dna_domain_fastq::PairedMode::PairedEnd
-        } else {
-            bijux_dna_domain_fastq::PairedMode::SingleEnd
-        },
-        threads: u64_json(&plan.effective_params, "threads")
-            .and_then(|value| u32::try_from(value).ok())
-            .unwrap_or(1),
-        rrna_db: optional_string_json(&plan.effective_params, "contaminant_db"),
-        database_artifact_id: string_json(&plan.effective_params, "database_artifact_id")
-            .unwrap_or_else(|| "rrna_reference".to_string()),
-        database_build_id: optional_string_json(&plan.effective_params, "database_build_id"),
-        database_digest: optional_string_json(&plan.effective_params, "database_digest"),
-        screening_engine: serde_json::from_value(
-            plan.effective_params
-                .get("screening_engine")
-                .cloned()
-                .unwrap_or(Value::String("sortmerna".to_string())),
-        )
-        .unwrap_or(bijux_dna_domain_fastq::params::screen::RrnaScreeningEngine::Sortmerna),
-        report_format: serde_json::from_value(
-            plan.effective_params
-                .get("report_format")
-                .cloned()
-                .unwrap_or(Value::String("summary_tsv_and_json".to_string())),
-        )
-        .unwrap_or(bijux_dna_domain_fastq::params::screen::RrnaReportFormat::SummaryTsvAndJson),
-        emit_removed_reads: bool_json(&plan.effective_params, "emit_removed_reads").unwrap_or(true),
-        min_identity: f64_json(&plan.params, "min_identity"),
-        retained_read_role: "rrna_filtered_reads".to_string(),
-        rejected_read_role: "removed_rrna_reads".to_string(),
-        input_r1: path_relative_to_repo(repo_root, &input_r1),
-        input_r2: input_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
-        output_r1: path_relative_to_repo(repo_root, &output_r1),
-        output_r2: output_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
-        removed_reads_r1: path_relative_to_repo(repo_root, &removed_r1),
-        removed_reads_r2: removed_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
-        rrna_report_tsv: path_relative_to_repo(repo_root, &report_tsv),
-        rrna_report_json: path_relative_to_repo(repo_root, &report_path),
-        reads_in,
-        reads_out: reads_in,
-        reads_removed: 0,
-        bases_in,
-        bases_out: bases_in,
-        bases_removed: 0,
-        pairs_in,
-        pairs_out: pairs_in,
-        rrna_fraction_removed: 0.0,
-        runtime_s: Some(0.0),
-        memory_mb: Some(0.0),
-        exit_code: Some(0),
-        raw_backend_report: None,
-        raw_backend_report_format: None,
-        backend_metrics: Some(serde_json::json!({ "reads_removed": 0_u64 })),
-    };
-    bijux_dna_infra::atomic_write_json(&report_path, &report)?;
-    Ok(MaterializedProof {
-        proof_path: report_path,
-        observed_tool_id: plan.tool_id.as_str().to_string(),
-    })
+    let proof =
+        bijux_dna_bench_fastq::probes::generate_deplete_rrna_probe(repo_root, probe_root, &plan)?;
+    Ok(MaterializedProof { proof_path: proof.proof_path, observed_tool_id: proof.observed_tool_id })
 }
 
 fn generate_screen_taxonomy_probe(
@@ -1388,88 +1077,10 @@ fn generate_screen_taxonomy_probe(
     probe_root: &Path,
 ) -> Result<MaterializedProof> {
     let plan = bijux_dna_planner_fastq::stage_api::local_screen_taxonomy_plan(repo_root)?;
-    let probe_dir = probe_root.join("screen_taxonomy");
-    fs::create_dir_all(&probe_dir).with_context(|| format!("create {}", probe_dir.display()))?;
-    let input_r1 = required_input_path(&plan, "reads_r1")?;
-    let input_r2 = optional_input_path(&plan, "reads_r2");
-    let unclassified_r1 = probe_dir.join("unclassified_R1.fastq.gz");
-    write_empty_gzip(&unclassified_r1)?;
-    let unclassified_r2 = if input_r2.is_some() {
-        let path = probe_dir.join("unclassified_R2.fastq.gz");
-        write_empty_gzip(&path)?;
-        Some(path)
-    } else {
-        None
-    };
-    let report_tsv = probe_dir.join("taxonomy_screen.tsv");
-    fs::write(&report_tsv, "tax_id\tname\treads\tfraction\n9606\tHomo sapiens\t4\t1.000000\n")
-        .with_context(|| format!("write {}", report_tsv.display()))?;
-    let effective_params: bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams =
-        serde_json::from_value(plan.effective_params.clone())
-            .context("parse governed screen_taxonomy effective params")?;
-    let stats_r1 = count_fastq_stats(&input_r1)?;
-    let stats_r2 = input_r2.as_ref().map(|path| count_fastq_stats(path)).transpose()?;
-    let reads_in = stats_r1.reads + stats_r2.as_ref().map_or(0, |stats| stats.reads);
-    let bases_in = stats_r1.bases + stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let pairs_in = input_r2
-        .as_ref()
-        .map(|_| stats_r1.reads.min(stats_r2.as_ref().map_or(0, |stats| stats.reads)));
-    let entries = vec![bijux_dna_domain_fastq::TaxonomyScreenSummaryEntryV1 {
-        label: "Homo sapiens".to_string(),
-        percent: 100.0,
-    }];
-    let report_path = probe_dir.join("classification_report.json");
-    let report = bijux_dna_domain_fastq::ScreenTaxonomyReportV1 {
-        schema_version: bijux_dna_domain_fastq::SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION.to_string(),
-        stage: "fastq.screen_taxonomy".to_string(),
-        stage_id: "fastq.screen_taxonomy".to_string(),
-        tool_id: plan.tool_id.as_str().to_string(),
-        paired_mode: if input_r2.is_some() {
-            bijux_dna_domain_fastq::PairedMode::PairedEnd
-        } else {
-            bijux_dna_domain_fastq::PairedMode::SingleEnd
-        },
-        threads: effective_params.threads,
-        classifier: effective_params.classifier,
-        report_format: effective_params.report_format,
-        assignment_format: effective_params.assignment_format,
-        database_catalog_id: effective_params.database_catalog_id,
-        database_artifact_id: effective_params.database_artifact_id,
-        database_build_id: effective_params.database_build_id,
-        database_digest: effective_params.database_digest,
-        database_namespace: effective_params.database_namespace,
-        database_scope: effective_params.database_scope,
-        minimum_confidence: effective_params.minimum_confidence,
-        emit_unclassified: effective_params.emit_unclassified,
-        interpretation_boundary: effective_params.interpretation_boundary,
-        truth_conditions: effective_params.truth_conditions,
-        input_r1: path_relative_to_repo(repo_root, &input_r1),
-        input_r2: input_r2.as_ref().map(|path| path_relative_to_repo(repo_root, path)),
-        screen_report_tsv: path_relative_to_repo(repo_root, &report_tsv),
-        classification_report_json: path_relative_to_repo(repo_root, &report_path),
-        unclassified_reads_r1: Some(path_relative_to_repo(repo_root, &unclassified_r1)),
-        unclassified_reads_r2: unclassified_r2
-            .as_ref()
-            .map(|path| path_relative_to_repo(repo_root, path)),
-        reads_in: Some(reads_in),
-        reads_out: Some(reads_in),
-        bases_in: Some(bases_in),
-        bases_out: Some(bases_in),
-        pairs_in,
-        pairs_out: pairs_in,
-        contamination_rate: Some(0.0),
-        classified_fraction: Some(1.0),
-        unclassified_fraction: Some(0.0),
-        summary_entries: entries.clone(),
-        top_taxa: entries,
-        runtime_s: Some(0.0),
-        memory_mb: Some(0.0),
-    };
-    bijux_dna_infra::atomic_write_json(&report_path, &report)?;
-    Ok(MaterializedProof {
-        proof_path: report_path,
-        observed_tool_id: plan.tool_id.as_str().to_string(),
-    })
+    let proof = bijux_dna_bench_fastq::probes::generate_screen_taxonomy_probe(
+        repo_root, probe_root, &plan,
+    )?;
+    Ok(MaterializedProof { proof_path: proof.proof_path, observed_tool_id: proof.observed_tool_id })
 }
 
 fn generate_bam_align_probe(repo_root: &Path, probe_root: &Path) -> Result<MaterializedProof> {
@@ -1780,44 +1391,6 @@ fn optional_input_path(
         .map(|artifact| artifact.path.clone())
 }
 
-fn count_fastq_stats(path: &Path) -> Result<FastqReadStats> {
-    let reader: Box<dyn Read> = match path.extension().and_then(|value| value.to_str()) {
-        Some("gz") => Box::new(MultiGzDecoder::new(
-            fs::File::open(path).with_context(|| format!("open {}", path.display()))?,
-        )),
-        _ => Box::new(fs::File::open(path).with_context(|| format!("open {}", path.display()))?),
-    };
-    let mut lines = BufReader::new(reader).lines();
-    let mut reads = 0_u64;
-    let mut bases = 0_u64;
-    while let Some(_header) = lines.next() {
-        let sequence = lines
-            .next()
-            .ok_or_else(|| anyhow!("malformed FASTQ {}", path.display()))?
-            .with_context(|| format!("read sequence from {}", path.display()))?;
-        let _plus = lines
-            .next()
-            .ok_or_else(|| anyhow!("malformed FASTQ {}", path.display()))?
-            .with_context(|| format!("read plus from {}", path.display()))?;
-        let _quality = lines
-            .next()
-            .ok_or_else(|| anyhow!("malformed FASTQ {}", path.display()))?
-            .with_context(|| format!("read quality from {}", path.display()))?;
-        reads += 1;
-        bases += sequence.len() as u64;
-    }
-    Ok(FastqReadStats { reads, bases })
-}
-
-fn write_empty_gzip(path: &Path) -> Result<()> {
-    let file =
-        bijux_dna_infra::create_file(path).with_context(|| format!("create {}", path.display()))?;
-    let mut encoder = GzEncoder::new(file, Compression::default());
-    encoder.write_all(&[]).with_context(|| format!("write {}", path.display()))?;
-    encoder.finish().with_context(|| format!("finish {}", path.display()))?;
-    Ok(())
-}
-
 fn copy_file(source: &Path, destination: &Path) -> Result<()> {
     if let Some(parent) = destination.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -1883,33 +1456,8 @@ fn string_json(value: &Value, key: &str) -> Option<String> {
     value.get(key).and_then(Value::as_str).map(ToOwned::to_owned)
 }
 
-fn optional_string_json(value: &Value, key: &str) -> Option<String> {
-    string_json(value, key)
-}
-
-fn bool_json(value: &Value, key: &str) -> Option<bool> {
-    value.get(key).and_then(Value::as_bool)
-}
-
 fn u64_json(value: &Value, key: &str) -> Option<u64> {
     value.get(key).and_then(Value::as_u64)
-}
-
-fn f64_json(value: &Value, key: &str) -> Option<f64> {
-    value.get(key).and_then(Value::as_f64)
-}
-
-fn array_of_strings_json(value: &Value, key: &str) -> Vec<String> {
-    value
-        .get(key)
-        .and_then(Value::as_array)
-        .map(|entries| {
-            entries
-                .iter()
-                .filter_map(|entry| entry.as_str().map(ToOwned::to_owned))
-                .collect::<Vec<_>>()
-        })
-        .unwrap_or_default()
 }
 
 #[cfg(test)]
