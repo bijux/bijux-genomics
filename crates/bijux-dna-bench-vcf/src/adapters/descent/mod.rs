@@ -39,3 +39,7 @@ pub(crate) mod service;
 pub use service::{collect_vcf_descent_family_adapter_rows, render_vcf_descent_family_adapter};
 
 mod stages;
+
+#[cfg(test)]
+#[path = "../../../tests/contracts/descent_input_observation.rs"]
+mod input_observation;

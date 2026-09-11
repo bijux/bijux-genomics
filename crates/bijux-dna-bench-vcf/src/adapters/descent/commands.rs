@@ -53,7 +53,7 @@ pub(super) fn build_descent_family_row(
         missing_input_expected_error_fragment,
         missing_input_observed_error,
         missing_input_test_passed,
-    ) = run_missing_input_probe(stage_id, &required_inputs)?;
+    ) = run_missing_input_probe(repo_root, stage_id, &required_inputs)?;
     let benchmark_status = if matrix_row.is_some() {
         "benchmark_ready".to_string()
     } else {

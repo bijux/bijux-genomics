@@ -10,17 +10,12 @@ pub(super) fn validate_required_inputs(
     stage_id: &str,
     required_inputs: &[VcfDescentFamilyAdapterArtifact],
 ) -> Result<()> {
-    for input in required_inputs {
-        let candidate = repo_root.join(&input.path);
-        if !candidate.exists() {
-            bail!(
-                "VCF descent-family adapter row `{stage_id}` is missing required input `{}` at `{}`",
-                input.artifact_id,
-                input.path
-            );
-        }
-    }
-    Ok(())
+    crate::adapters::inputs::validate_required_files(
+        repo_root,
+        stage_id,
+        crate::adapters::inputs::InputContext::Adapter { family: "descent-family", descent: true },
+        required_inputs.iter().map(|input| (input.artifact_id.as_str(), input.path.as_str())),
+    )
 }
 
 pub(super) fn validate_command_steps(
@@ -68,23 +63,28 @@ pub(super) fn validate_command_steps(
 }
 
 pub(super) fn run_missing_input_probe(
+    repo_root: &Path,
     stage_id: &str,
     required_inputs: &[VcfDescentFamilyAdapterArtifact],
 ) -> Result<(String, String, String, bool)> {
     let input = required_inputs
         .first()
         .ok_or_else(|| super::anyhow!("governed descent rows must keep a required input"))?;
-    let expected = format!("required input `{}`", input.artifact_id);
-    let observed = format!(
-        "VCF descent-family adapter for `{stage_id}` is missing required input `{}` at `artifacts/benchmark-smoke/readiness/adapters/probes/{stage_id}/{}.missing`",
-        input.artifact_id, input.artifact_id
+    let mut mutated = required_inputs.to_vec();
+    mutated[0].path = format!(
+        "artifacts/benchmark-smoke/readiness/adapters/probes/{stage_id}/{}.missing",
+        input.artifact_id
     );
-    Ok((
-        input.artifact_id.clone(),
-        expected.clone(),
-        observed.clone(),
-        observed.contains(&expected),
-    ))
+    let expected = format!("required input `{}`", input.artifact_id);
+    let observed = match validate_required_inputs(repo_root, stage_id, &mutated) {
+        Ok(()) => format!(
+            "VCF descent-family adapter row `{stage_id}` unexpectedly accepted missing input `{}`",
+            input.artifact_id
+        ),
+        Err(error) => error.to_string(),
+    };
+    let passed = observed.contains(&expected);
+    Ok((input.artifact_id.clone(), expected, observed, passed))
 }
 
 pub(super) fn ensure_vcf_descent_family_adapter_contract(

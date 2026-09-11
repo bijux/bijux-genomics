@@ -1,7 +1,5 @@
 use anyhow::Result;
-pub(crate) use bijux_dna_bench_vcf::fixtures::inputs::{
-    load_governed_vcf_fixture_inputs, path_relative_to_repo,
-};
+pub(crate) use bijux_dna_bench_vcf::fixtures::inputs::path_relative_to_repo;
 use std::path::Path;
 pub(crate) fn materialize_reference_fasta_with_index(
     repo_root: &Path,

@@ -9,3 +9,5 @@ pub mod observations;
 pub mod phasing;
 pub mod plink;
 pub(crate) mod report;
+
+pub(crate) mod inputs;

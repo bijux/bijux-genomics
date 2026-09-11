@@ -11,17 +11,12 @@ pub(super) fn validate_required_inputs(
     stage_id: &str,
     inputs: &[VcfPhasingFamilyAdapterArtifact],
 ) -> Result<()> {
-    for input in inputs {
-        let resolved = repo_root.join(&input.path);
-        if !resolved.is_file() {
-            return Err(anyhow!(
-                "VCF phasing-family adapter for `{stage_id}` is missing required input `{}` at `{}`",
-                input.artifact_id,
-                input.path
-            ));
-        }
-    }
-    Ok(())
+    crate::adapters::inputs::validate_required_files(
+        repo_root,
+        stage_id,
+        crate::adapters::inputs::InputContext::Adapter { family: "phasing-family", descent: false },
+        inputs.iter().map(|input| (input.artifact_id.as_str(), input.path.as_str())),
+    )
 }
 
 pub(super) fn validate_command_steps(

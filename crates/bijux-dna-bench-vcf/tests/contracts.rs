@@ -61,3 +61,6 @@ mod command_publication;
 mod parser_failure;
 #[path = "contracts/parser_failure_admission.rs"]
 mod parser_failure_admission;
+
+#[path = "contracts/missing_inputs.rs"]
+mod missing_inputs;
