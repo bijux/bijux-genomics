@@ -2,14 +2,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+pub(crate) use bijux_dna_api::v1::api::bench::BenchmarkLocalStageOutputCompletionEntry as BenchLocalStageOutputCompletionEntry;
 use bijux_dna_api::v1::api::bench::{
     validate_benchmark_local_stage_output_completion, BenchmarkLocalStageMissingOutputEntry,
     BenchmarkLocalStageOutputCompletionEntry, BenchmarkLocalStageOutputCompletionReport,
     BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1,
-};
-pub(crate) use bijux_dna_api::v1::api::bench::{
-    BenchmarkLocalStageOutputCompletionEntry as BenchLocalStageOutputCompletionEntry,
-    BenchmarkLocalStageOutputCompletionReport as BenchLocalStageOutputCompletionReport,
 };
 
 use crate::commands::benchmark::local_stage_commands::{

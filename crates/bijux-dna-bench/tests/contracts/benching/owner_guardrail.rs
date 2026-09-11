@@ -1127,7 +1127,11 @@ fn thin_cli_uses_model_owned_local_hpc_submission_readiness_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_hpc_submission_readiness"));
+    assert!(contents.contains("bijux_dna_bench_hpc::readiness::validate_hpc_submission_ready"));
+    let owner =
+        fs::read_to_string(repo_root.join("crates/bijux-dna-bench-hpc/src/readiness/service.rs"))
+            .expect("read HPC readiness owner");
+    assert!(owner.contains("validate_benchmark_local_hpc_submission_readiness"));
     assert!(!contents.contains("struct BenchLocalHpcSubmissionReadyGoalCheck {"));
     assert!(!contents.contains("struct BenchLocalHpcSubmissionReadyReport {"));
     assert!(!contents.contains("\"bijux.bench.local_hpc_submission_ready.v1\""));

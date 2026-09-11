@@ -8,3 +8,6 @@ Forbidden effects: Working-directory discovery, global environment mutation, pro
 Validation command: cargo nextest run --config-file configs/rust/nextest.toml --profile full --locked --offline -p bijux-dna-bench-hpc --all-targets
 
 The benchmark-model dependency disables default features; its own transitive domain contracts remain part of the native closure. Simulation timing and injected failure reports establish policy examples. They do not demonstrate remote backend execution or scientific performance. See [public inputs and outputs](PUBLIC_API.md) and [architecture](ARCHITECTURE.md).
+
+
+Readiness orchestration has no CLI, API, benchmark umbrella, planner or runner dependency. It accepts explicit provider ports and writes local diagnostic/support artifacts through infrastructure publication helpers. The local campaign port cannot request remote submission. TOML serialization owns escaping of generated local profile path values.

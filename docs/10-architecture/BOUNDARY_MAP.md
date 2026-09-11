@@ -96,3 +96,5 @@ The evidence contract retains no dependency on the acquisition owner.
 FASTQ synthetic report probes and typed report observations belong to `bijux-dna-bench-fastq`. Composition supplies governed plans; its normal dependency closure excludes application, planner and sibling benchmark services. The probe reports identify synthetic copy-through, empty-output and index-marker observations rather than backend execution.
 
 Local watchdog simulation policy belongs to `bijux-dna-bench-hpc`. Typed DAG input admission, scheduling, scenario assessment and atomic report publication are independent of CLI and backend transport. Simulated evidence does not establish remote execution readiness.
+
+Local submission readiness also belongs to `bijux-dna-bench-hpc`. Six explicit evidence interfaces isolate its99check orchestration from CLI, backend, corpus and campaign implementations. CLI composition maps canonical inputs and preserves feature refusal; persisted readiness schemas remain in benchmark models. The local campaign interface permits mock submission only.

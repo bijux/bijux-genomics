@@ -149,6 +149,7 @@ fn dna_tree_matches_architecture_contract() {
         "local_hpc_simulation_tree.rs",
         "local_hpc_stage_benchmark_array.rs",
         "local_hpc_submission_ready.rs",
+        "local_hpc_submission_ready/",
         "local_micro_benchmark_report.rs",
         "local_micro_benchmark_run.rs",
         "local_pipeline_dag.rs",

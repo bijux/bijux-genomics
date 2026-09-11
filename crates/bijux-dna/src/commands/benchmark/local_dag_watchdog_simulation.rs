@@ -5,8 +5,6 @@ use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
 pub(crate) use bijux_dna_bench_hpc::watchdog::{
     LocalDagWatchdogScenario, LocalDagWatchdogSimulationReport,
-    DEFAULT_COMPLETION_RULES_REPORT_PATH, DEFAULT_FAILURE_ISOLATION_REPORT_PATH,
-    DEFAULT_NO_GLOBAL_WAIT_REPORT_PATH, DEFAULT_PARTIAL_RESUME_REPORT_PATH,
 };
 use std::path::Path;
 const FASTQ_CORE_PREPROCESS_PIPELINE_REPORT_PATH: &str =
