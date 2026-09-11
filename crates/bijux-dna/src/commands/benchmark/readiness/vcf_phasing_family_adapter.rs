@@ -3,7 +3,6 @@ use anyhow::{Context, Result};
 pub(crate) use bijux_dna_bench_vcf::adapters::phasing::{
     VcfPhasingFamilyAdapterReport, VcfPhasingFamilyAdapterRow, DEFAULT_VCF_BEAGLE_ADAPTER_PATH,
     DEFAULT_VCF_EAGLE_ADAPTER_PATH, DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH,
-    DEFAULT_VCF_SHAPEIT_ADAPTER_PATH,
 };
 use std::path::{Path, PathBuf};
 

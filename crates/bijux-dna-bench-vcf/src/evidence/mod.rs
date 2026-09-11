@@ -20,3 +20,5 @@ pub mod metrics;
 pub mod adapters;
 
 pub mod smoke;
+
+pub mod completion;
