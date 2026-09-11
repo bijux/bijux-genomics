@@ -1,3 +1,7 @@
+pub(crate) use bijux_dna_api::v1::api::env::delivery::{
+    load_benchmark_integrated_container_tool_ids, load_external_artifact_binding_keys,
+    load_external_artifact_tool_contracts, ExternalArtifactToolContract,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
@@ -6,49 +10,10 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::ids::ToolId;
 use bijux_dna_planner_bam::stage_api::load_bam_domain_tool_contract_metadata;
 use bijux_dna_planner_fastq::stage_api::load_fastq_domain_tool_contract_metadata;
-use serde::Deserialize;
 
 use crate::commands::benchmark::local_stage_inventory::{
     load_local_stage_inventory, BenchLocalDomain,
 };
-
-const CONTAINER_CATALOG_PATH: &str = "containers/contracts/catalog.toml";
-const CONTAINER_CATALOG_SCHEMA_VERSION: &str = "bijux.container.catalog.v1";
-
-#[derive(Debug, Deserialize)]
-struct ReadinessContainerCatalog {
-    schema_version: String,
-    tools: Vec<ReadinessContainerCatalogTool>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ReadinessContainerCatalogTool {
-    id: String,
-    version: String,
-    product_support: String,
-    artifact_delivery: String,
-    redistribution_permitted: bool,
-    #[serde(default)]
-    external_artifact_supported: bool,
-    domains: Vec<String>,
-    stage_ids: Vec<String>,
-    expected_bin: String,
-    version_command: String,
-    help_command: String,
-    expected_version_regex: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct ExternalArtifactToolContract {
-    pub(crate) tool_id: String,
-    pub(crate) domains: Vec<String>,
-    pub(crate) stage_ids: Vec<String>,
-    pub(crate) expected_bin: String,
-    pub(crate) version_command: String,
-    pub(crate) help_command: String,
-    pub(crate) expected_version_regex: String,
-    pub(crate) declared_version: String,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum ReadinessDomain {
@@ -167,153 +132,6 @@ pub(crate) fn load_benchmark_stage_ids(
 ) -> Result<BTreeSet<String>> {
     let inventory = load_local_stage_inventory(repo_root, domain.bench_local_domain())?;
     Ok(inventory.stages.iter().map(|entry| entry.stage_id.clone()).collect::<BTreeSet<_>>())
-}
-
-pub(crate) fn load_benchmark_integrated_container_tool_ids(
-    repo_root: &Path,
-) -> Result<BTreeSet<String>> {
-    let integrated_tool_ids = load_readiness_container_catalog(repo_root)?
-        .tools
-        .into_iter()
-        .filter(|tool| tool.product_support == "supported")
-        .map(|tool| tool.id)
-        .collect::<BTreeSet<_>>();
-    if integrated_tool_ids.is_empty() {
-        return Err(anyhow!("container catalog does not integrate any executable tools"));
-    }
-    Ok(integrated_tool_ids)
-}
-
-pub(crate) fn load_external_artifact_tool_contracts(
-    repo_root: &Path,
-) -> Result<Vec<ExternalArtifactToolContract>> {
-    let mut contracts = load_readiness_container_catalog(repo_root)?
-        .tools
-        .into_iter()
-        .filter(|tool| tool.external_artifact_supported)
-        .map(|mut tool| {
-            if tool.product_support != "supported"
-                || tool.artifact_delivery == "redistributable_image"
-                || tool.redistribution_permitted
-            {
-                return Err(anyhow!(
-                    "external artifact tool `{}` must remain supported with non-redistributable external delivery",
-                    tool.id
-                ));
-            }
-            tool.domains.sort();
-            tool.domains.dedup();
-            tool.stage_ids.sort();
-            tool.stage_ids.dedup();
-            if tool.domains.is_empty() || tool.stage_ids.is_empty() {
-                return Err(anyhow!(
-                    "external artifact tool `{}` must declare domains and stage ids",
-                    tool.id
-                ));
-            }
-            if [
-                tool.expected_bin.as_str(),
-                tool.version_command.as_str(),
-                tool.help_command.as_str(),
-                tool.expected_version_regex.as_str(),
-                tool.version.as_str(),
-            ]
-            .iter()
-            .any(|value| value.trim().is_empty())
-            {
-                return Err(anyhow!(
-                    "external artifact tool `{}` must declare complete runtime verification metadata",
-                    tool.id
-                ));
-            }
-            for stage_id in &tool.stage_ids {
-                let domain = stage_id.split_once('.').map(|(domain, _)| domain).ok_or_else(|| {
-                    anyhow!(
-                        "external artifact tool `{}` has malformed stage id `{stage_id}`",
-                        tool.id
-                    )
-                })?;
-                if !tool.domains.iter().any(|candidate| candidate == domain) {
-                    return Err(anyhow!(
-                        "external artifact tool `{}` stage `{stage_id}` is outside its declared domains",
-                        tool.id
-                    ));
-                }
-            }
-            Ok(ExternalArtifactToolContract {
-                tool_id: tool.id,
-                domains: tool.domains,
-                stage_ids: tool.stage_ids,
-                expected_bin: tool.expected_bin,
-                version_command: tool.version_command,
-                help_command: tool.help_command,
-                expected_version_regex: tool.expected_version_regex,
-                declared_version: tool.version,
-            })
-        })
-        .collect::<Result<Vec<_>>>()?;
-    contracts.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
-    if contracts.is_empty() {
-        return Err(anyhow!(
-            "container catalog does not declare any operator-provided external artifacts"
-        ));
-    }
-    Ok(contracts)
-}
-
-pub(crate) fn load_external_artifact_binding_keys(
-    repo_root: &Path,
-) -> Result<BTreeSet<(String, String)>> {
-    Ok(load_external_artifact_tool_contracts(repo_root)?
-        .into_iter()
-        .flat_map(|contract| {
-            contract.stage_ids.into_iter().map(move |stage_id| (stage_id, contract.tool_id.clone()))
-        })
-        .collect())
-}
-
-fn load_readiness_container_catalog(repo_root: &Path) -> Result<ReadinessContainerCatalog> {
-    let catalog_path = repo_root.join(CONTAINER_CATALOG_PATH);
-    let raw = fs::read_to_string(&catalog_path)
-        .with_context(|| format!("read {}", catalog_path.display()))?;
-    let catalog: ReadinessContainerCatalog =
-        toml::from_str(&raw).with_context(|| format!("parse {}", catalog_path.display()))?;
-    if catalog.schema_version != CONTAINER_CATALOG_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "unsupported container catalog schema `{}` in {}",
-            catalog.schema_version,
-            catalog_path.display()
-        ));
-    }
-
-    let mut known_tool_ids = BTreeSet::new();
-    for tool in &catalog.tools {
-        if !known_tool_ids.insert(tool.id.as_str()) {
-            return Err(anyhow!(
-                "container catalog repeats tool id `{}` in {}",
-                tool.id,
-                catalog_path.display()
-            ));
-        }
-        if !matches!(tool.product_support.as_str(), "supported" | "retired" | "excluded") {
-            return Err(anyhow!(
-                "container catalog tool `{}` has unsupported product state `{}`",
-                tool.id,
-                tool.product_support
-            ));
-        }
-        if !matches!(
-            tool.artifact_delivery.as_str(),
-            "redistributable_image" | "external_artifact" | "private_site_build" | "site_module"
-        ) {
-            return Err(anyhow!(
-                "container catalog tool `{}` has unsupported artifact delivery `{}`",
-                tool.id,
-                tool.artifact_delivery
-            ));
-        }
-    }
-    Ok(catalog)
 }
 
 pub(crate) fn load_tool_contracts(
@@ -542,23 +360,10 @@ fn string_list(value: &toml::Value, key: &str, path: &Path) -> Result<Vec<String
 mod tests {
     use std::path::PathBuf;
 
-    use super::{load_benchmark_integrated_container_tool_ids, load_registry_tool_matrix};
+    use super::load_registry_tool_matrix;
 
     fn repo_root() -> PathBuf {
         crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
-    }
-
-    #[test]
-    fn benchmark_integration_keeps_external_artifacts_in_scope() {
-        let tool_ids = load_benchmark_integrated_container_tool_ids(&repo_root())
-            .expect("load benchmark-integrated container tools");
-
-        for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
-            assert!(
-                tool_ids.contains(tool_id),
-                "external artifact `{tool_id}` must not be excluded by redistribution policy"
-            );
-        }
     }
 
     #[test]
