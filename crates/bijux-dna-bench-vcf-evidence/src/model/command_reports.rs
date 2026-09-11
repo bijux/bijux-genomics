@@ -27,3 +27,10 @@ pub struct VcfRenderedCommandsReport {
     pub row_count: usize,
     pub rows: Vec<VcfRenderedCommandRow>,
 }
+
+/// Publication addresses supplied alongside admitted command observations.
+/// These locations do not establish command or scientific readiness.
+pub struct VcfCommandPublicationPaths {
+    pub output_path: String,
+    pub argv_output_path: String,
+}

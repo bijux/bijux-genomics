@@ -12,11 +12,7 @@ pub(crate) fn run_vcf_qc_smoke(args: &parse::BenchLocalRunVcfQcSmokeArgs) -> Res
     Ok(())
 }
 
-pub(crate) use bijux_dna_bench_variants::qc::{
-    LocalVcfQcSmokeHeterozygosity, LocalVcfQcSmokeHweSummary, LocalVcfQcSmokeMafSummary,
-    LocalVcfQcSmokeReport, LocalVcfQcSmokeSampleMissingnessRow,
-    LocalVcfQcSmokeVariantMissingnessRow,
-};
+pub(crate) use bijux_dna_bench_variants::qc::LocalVcfQcSmokeReport;
 
 pub(crate) fn run_local_vcf_qc_smoke(
     repo_root: &std::path::Path,

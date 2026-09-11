@@ -40,3 +40,9 @@ mod test_support;
 mod processing_publication_contracts;
 
 pub mod statistics;
+
+pub mod readiness;
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+#[path = "../tests/contracts/readiness.rs"]
+mod readiness_contracts;

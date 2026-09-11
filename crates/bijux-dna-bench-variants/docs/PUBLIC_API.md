@@ -28,3 +28,19 @@ Statistics uses the variant artifact ownership protocol. Each successful executi
 remains under `executions`; stable artifacts and stage-result addresses are projected
 by the shared publisher. Unowned prior metrics are refused without replacement.
 Report field names, schema identifiers and stable output locations remain compatible.
+
+## Variant readiness
+
+`readiness::{qc, stats, filter, damage_filter}` owns stage readiness assessment,
+scientific smoke policy and report publication beside the variant execution services.
+Callers supply admitted `VariantBenchmarkInputs`, an immutable `VcfEvidenceSnapshot`,
+command publication addresses, repository root and report path. The owner verifies
+snapshot corpus, asset, adapter, parser and schema agreement before native work.
+QC binds each retained tool to its own admitted declaration.
+
+`ReadinessCommandPaths` aliases the independent VCF evidence publication-address
+record, shared with genotype readiness. Addresses do not establish command readiness;
+that observation comes from the snapshot. Existing wire fields, scientific predicates,
+active-scope selection and incomplete diagnostic publication remain compatible.
+Coverage policy, scientific QC policy, wire projection and publication have separate
+modules. These local reports do not establish remote or full tool substitution proof.

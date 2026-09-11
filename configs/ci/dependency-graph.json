@@ -1900,6 +1900,11 @@
       "consumer": "crate:bijux-dna-bench-genotypes",
       "dependency": "crate:bijux-dna-bench-vcf-evidence",
       "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-variants",
+      "dependency": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "normal"
     }
   ]
 }

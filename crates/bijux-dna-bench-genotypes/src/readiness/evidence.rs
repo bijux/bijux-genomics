@@ -1,11 +1,8 @@
 use crate::inputs::GenotypeBenchmarkInputs;
 use anyhow::{ensure, Result};
+pub use bijux_dna_bench_vcf_evidence::model::command_reports::VcfCommandPublicationPaths as ReadinessCommandPaths;
 use bijux_dna_bench_vcf_evidence::snapshot::{VcfEvidenceSnapshot, VcfStageReadinessBinding};
-/// Publication locations accompanying independently admitted command observations.
-pub struct ReadinessCommandPaths {
-    pub output_path: String,
-    pub argv_output_path: String,
-}
+
 #[expect(
     clippy::struct_excessive_bools,
     reason = "Each independent evidence surface has its own observed coverage; combinations are valid incomplete evidence."
