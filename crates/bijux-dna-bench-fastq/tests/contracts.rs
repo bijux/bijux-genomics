@@ -17,3 +17,6 @@ mod declaration_report_mapping;
 
 #[path = "proofs/source_admission.rs"]
 mod proof_source_admission;
+
+#[path = "proofs/qc_fixture.rs"]
+mod qc_fixture;

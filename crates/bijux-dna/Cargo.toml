@@ -11,6 +11,7 @@ name = "bijux-dna"
 path = "src/bin/bijux-dna.rs"
 
 [dependencies]
+bijux-dna-bench-stage = { workspace = true, features = ["execution"] }
 bijux-dna-bench-campaign.workspace = true
 bijux-dna-bench-parser-proofs = { workspace = true, features = ["fastq", "bam"] }
 bijux-dna-bench-artifacts.workspace = true

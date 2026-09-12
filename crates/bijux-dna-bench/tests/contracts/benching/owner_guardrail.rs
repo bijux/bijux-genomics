@@ -656,7 +656,7 @@ fn thin_cli_uses_model_owned_local_hpc_execution_resolver_contract() {
 }
 
 #[test]
-fn thin_cli_uses_model_owned_local_stage_inventory_contracts() {
+fn thin_cli_uses_owner_admitted_local_stage_inventory_contracts() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source =
         repo_root.join("crates/bijux-dna/src/commands/benchmark/local_stage_inventory.rs");
@@ -666,11 +666,12 @@ fn thin_cli_uses_model_owned_local_stage_inventory_contracts() {
     assert!(contents.contains("load_benchmark_local_stage_inventory"));
     assert!(contents.contains("render_benchmark_all_domain_stage_inventory"));
     for (owner, validator) in [
-        ("repo/stage_inventory/mod.rs", "validate_benchmark_local_stage_inventory"),
-        ("workflow/stage_inventory.rs", "validate_benchmark_local_all_domain_stage_inventory"),
+        ("repository/mod.rs", "validate_benchmark_local_stage_inventory"),
+        ("repository/publication.rs", "validate_benchmark_local_all_domain_stage_inventory"),
     ] {
-        let source = fs::read_to_string(repo_root.join("crates/bijux-dna-bench/src").join(owner))
-            .expect("read stage inventory owner");
+        let source =
+            fs::read_to_string(repo_root.join("crates/bijux-dna-bench-stage/src").join(owner))
+                .expect("read stage inventory owner");
         assert!(source.contains(validator), "{owner} must admit its model contract");
     }
     assert!(!contents.contains("struct BenchLocalStageInventory"));

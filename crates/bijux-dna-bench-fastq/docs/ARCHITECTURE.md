@@ -9,3 +9,7 @@ Readiness services group models, input evaluation, contracts, TSV serialization 
 Output contracts, report mapping and command publication own their complete projections under readiness. Three explicit evidence ports preserve canonical planner assessments, ordered inventory/support declarations, and independently structured argv/shell representations. The CLI only acquires and adapts those observations. Core stage identifiers are a direct dependency already present through the FASTQ domain; no application or umbrella dependency is added.
 
 Stage proof services separate canonical acquisition, full binding admission, row assessment, schema/smoke interpretation and report publication. Declaration, schema and validation ports retain owner models and minimal nonserialized observations without frontend dependencies. Eight existing wire models and failure semantics remain stable.
+
+## Governed QC fixtures
+
+`proofs/qc_fixture/` owns template admission, contributor projection, lineage and publication. Application composition supplies configuration and output roots. The service reads and validates inputs before effects, refuses conflicting copies and preserves unrelated files. Existing governed reports remain replaceable, including read-only prior payloads. These fixtures do not claim external MultiQC execution.

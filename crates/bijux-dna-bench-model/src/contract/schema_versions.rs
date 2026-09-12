@@ -141,10 +141,9 @@ pub const BENCHMARK_STAGE_RESULT_SCHEMA_V2: &str = "bijux.bench.stage_result.v2"
 pub const BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1: &str =
     "bijux.bench.stage_result_validation.v1";
 pub const BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1: &str = "bijux.bench.local_runtime_metrics.v1";
-pub const BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1: &str = "bijux.bench.local_stage_inventory.v1";
-pub const BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3: &str = "bijux.bench.local_stage_commands.v3";
-pub const BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1: &str =
-    "bijux.bench.local_all_domain_stage_inventory.v1";
+pub use bijux_dna_bench_stage::BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1;
+pub use bijux_dna_bench_stage::BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3;
+pub use bijux_dna_bench_stage::BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1;
 pub const BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1: &str = "bijux.bench.local_hpc_job_graph.v1";
 pub const BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_asset_staging_manifest.v1";

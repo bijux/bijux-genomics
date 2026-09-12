@@ -9,6 +9,7 @@ rust-version.workspace = true
 container-qualification = ["dep:bijux-dna-policies"]
 
 [dependencies]
+bijux-dna-bench-stage = { workspace = true, features = ["repository"] }
 bijux-dna-bench-corpus = { workspace = true, default-features = false, features = ["normalized"] }
 bijux-dna-bench-artifacts.workspace = true
 regex.workspace = true

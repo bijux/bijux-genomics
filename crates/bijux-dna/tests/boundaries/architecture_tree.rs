@@ -162,7 +162,7 @@ fn dna_tree_matches_architecture_contract() {
         "local_slurm_script_bodies.rs",
         "local_slurm_shell_syntax.rs",
         "local_slurm_submit_manifest.rs",
-        "local_stage_commands.rs",
+        "local_stage_commands/",
         "local_stage_fake_runs.rs",
         "local_stage_inventory.rs",
         "local_stage_manifest_completion.rs",

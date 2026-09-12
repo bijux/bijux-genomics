@@ -45,6 +45,10 @@ fn is_allowed_path(path: &Path) -> bool {
     {
         return true;
     }
+    // Inventory domains own their persisted stage-prefix admission.
+    if path_str.ends_with("/crates/bijux-dna-bench-stage/src/repository/domain.rs") {
+        return true;
+    }
     if path_str.contains("/crates/bijux-dna-bench/") {
         return true;
     }

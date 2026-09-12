@@ -16,6 +16,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-bench",
         "bijux-dna-bench-campaign",
         "bijux-dna-bench-parser-proofs",
+        "bijux-dna-bench-stage",
         "bijux-dna-bench-corpus",
         "bijux-dna-bench-vcf",
         "bijux-dna-bench-workflows",
@@ -231,6 +232,16 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "parser proof owner depends only on optional native parser owners and filesystem primitives"
     );
 
+    bijux_dna_policies::policy_assert!(
+        deps_for("bijux-dna-bench-stage")
+            == BTreeSet::from([
+                "bijux-dna-core".to_string(),
+                "bijux-dna-infra".to_string(),
+                "bijux-dna-stage-contract".to_string()
+            ]),
+        "stage owner depends only on optional shared plan contracts and IO primitives"
+    );
+
     let bench = deps_for("bijux-dna-bench");
     for dep in &bench {
         if is_guardrails(dep) {
@@ -240,6 +251,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             dep == "bijux-dna-core"
                 || dep == "bijux-dna-analyze"
                 || dep == "bijux-dna-bench-model"
+                || dep == "bijux-dna-bench-stage"
                 || dep == "bijux-dna-bench-corpus"
                 || dep == "bijux-dna-bench-artifacts"
                 || dep == "bijux-dna-containers"

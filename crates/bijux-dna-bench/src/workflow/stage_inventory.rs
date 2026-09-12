@@ -1,66 +1,21 @@
-//! Owner: bijux-dna-bench
-//! Aggregate and publish admitted local stage inventories.
-
-use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
-
+//! Compose domain matrix adapters before owner publication.
 use crate::repo::{load_benchmark_local_stage_inventory, BenchmarkLocalStageInventoryDomain};
-use anyhow::{Context, Result};
-use bijux_dna_bench_model::{
-    validate_benchmark_local_all_domain_stage_inventory, BenchmarkLocalAllDomainStageInventory,
-    BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1,
-};
-
-/// Publish a report for the requested domain order after every inventory is admitted.
+use anyhow::Result;
+use bijux_dna_bench_model::BenchmarkLocalAllDomainStageInventory;
+use std::path::{Path, PathBuf};
+/// Publish the requested inventories in declared domain order.
 ///
 /// # Errors
-/// Returns an error for invalid/duplicate domain selections, inadmissible matrices, or output IO.
+/// Propagates domain admission or publication failures.
 pub fn render_benchmark_all_domain_stage_inventory(
     repo_root: &Path,
     domains: &[BenchmarkLocalStageInventoryDomain],
     output_path: PathBuf,
 ) -> Result<BenchmarkLocalAllDomainStageInventory> {
-    let absolute_output_path = repo_relative_path(repo_root, &output_path);
-    if let Some(parent) = absolute_output_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
-    }
-
     let inventories = domains
         .iter()
         .copied()
         .map(|domain| load_benchmark_local_stage_inventory(repo_root, domain))
         .collect::<Result<Vec<_>>>()?;
-    let selected_domains =
-        inventories.iter().map(|inventory| inventory.domain.clone()).collect::<Vec<_>>();
-    let domain_counts = inventories
-        .iter()
-        .map(|inventory| (inventory.domain.clone(), inventory.stage_count))
-        .collect::<BTreeMap<_, _>>();
-    let total_stage_count = inventories.iter().map(|inventory| inventory.stage_count).sum();
-
-    let report = BenchmarkLocalAllDomainStageInventory {
-        schema_version: BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1.to_string(),
-        output_path: path_relative_to_repo(repo_root, &absolute_output_path),
-        selected_domains,
-        domain_counts,
-        total_stage_count,
-        inventories,
-    };
-    validate_benchmark_local_all_domain_stage_inventory(&report)?;
-    bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)
-        .with_context(|| format!("write {}", absolute_output_path.display()))?;
-    Ok(report)
-}
-
-fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        repo_root.join(path)
-    }
-}
-
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+    bijux_dna_bench_stage::repository::publish_inventories(repo_root, inventories, &output_path)
 }

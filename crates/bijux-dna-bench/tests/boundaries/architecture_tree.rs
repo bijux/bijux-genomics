@@ -177,7 +177,7 @@ fn bench_tree_matches_architecture_contract() {
             "run_artifacts/",
             "run_metadata.rs",
             "sqlite/",
-            "stage_inventory/",
+            "stage_inventory.rs",
             "workspace_paths.rs",
         ]),
         "repo tree must stay split between repository policy and persisted artifacts"

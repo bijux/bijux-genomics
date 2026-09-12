@@ -18,6 +18,7 @@ members = [
   "crates/bijux-dna-bench-model",
   "crates/bijux-dna-bench-parser-proofs",
   "crates/bijux-dna-bench-population",
+  "crates/bijux-dna-bench-stage",
   "crates/bijux-dna-bench-variants",
   "crates/bijux-dna-bench-vcf",
   "crates/bijux-dna-bench-vcf-evidence",
@@ -56,6 +57,7 @@ license = "Apache-2.0"
 rust-version = "1.95"
 
 [workspace.dependencies]
+bijux-dna-bench-stage = { path = "crates/bijux-dna-bench-stage" }
 bijux-dna-process = { path = "crates/bijux-dna-process" }
 aho-corasick = "1"
 anyhow = "1"

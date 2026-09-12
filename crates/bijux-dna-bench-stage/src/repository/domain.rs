@@ -1,8 +1,8 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-stage
 //! Domain selection and governed matrix identities for stage inventory admission.
 
-use super::super::DEFAULT_VCF_STAGE_MATRIX_PATH;
-use bijux_dna_bench_model::{
+const DEFAULT_VCF_STAGE_MATRIX_PATH: &str = "configs/bench/local/vcf-stage-matrix.toml";
+use crate::{
     BENCHMARK_LOCAL_BAM_STAGE_MATRIX_SCHEMA_V1, BENCHMARK_LOCAL_FASTQ_STAGE_MATRIX_SCHEMA_V1,
 };
 
@@ -33,7 +33,8 @@ impl BenchmarkLocalStageInventoryDomain {
         }
     }
 
-    pub(super) const fn matrix_relative_path(self) -> &'static str {
+    #[must_use]
+    pub const fn matrix_relative_path(self) -> &'static str {
         match self {
             Self::Fastq => "configs/bench/local/fastq-stage-matrix.toml",
             Self::Bam => "configs/bench/local/bam-stage-matrix.toml",
@@ -41,7 +42,8 @@ impl BenchmarkLocalStageInventoryDomain {
         }
     }
 
-    pub(super) const fn expected_matrix_schema_version(self) -> &'static str {
+    #[must_use]
+    pub const fn expected_matrix_schema_version(self) -> &'static str {
         match self {
             Self::Fastq => BENCHMARK_LOCAL_FASTQ_STAGE_MATRIX_SCHEMA_V1,
             Self::Bam => BENCHMARK_LOCAL_BAM_STAGE_MATRIX_SCHEMA_V1,

@@ -24,10 +24,11 @@ Enforced by:
 
 ## Executable Boundary Map
 ```boundaries
-bijux-dna: bijux-dna-bench-parser-proofs bijux-dna-bench-campaign bijux-dna-bench-bam-proofs bijux-dna-bench-bindings bijux-dna-bench-bam-evidence bijux-dna-bench-hpc bijux-dna-bench-fastq bijux-dna-bench-artifacts bijux-dna-bench-vcf-evidence bijux-dna-bench-genotypes bijux-dna-bench-variants bijux-dna-bench-haplotypes bijux-dna-bench-population bijux-dna-bench-workflows bijux-dna-bench-vcf bijux-dna-bench-corpus bijux-dna-analyze bijux-dna-api bijux-dna-core bijux-dna-db-ena bijux-dna-db-ref bijux-dna-domain-bam bijux-dna-domain-compiler bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-infra bijux-dna-planner-bam bijux-dna-planner-fastq bijux-dna-planner-vcf bijux-dna-policies bijux-dna-stage-contract bijux-dna-stages-fastq bijux-dna-stages-vcf bijux-dna-testkit
+bijux-dna: bijux-dna-bench-stage bijux-dna-bench-parser-proofs bijux-dna-bench-campaign bijux-dna-bench-bam-proofs bijux-dna-bench-bindings bijux-dna-bench-bam-evidence bijux-dna-bench-hpc bijux-dna-bench-fastq bijux-dna-bench-artifacts bijux-dna-bench-vcf-evidence bijux-dna-bench-genotypes bijux-dna-bench-variants bijux-dna-bench-haplotypes bijux-dna-bench-population bijux-dna-bench-workflows bijux-dna-bench-vcf bijux-dna-bench-corpus bijux-dna-analyze bijux-dna-api bijux-dna-core bijux-dna-db-ena bijux-dna-db-ref bijux-dna-domain-bam bijux-dna-domain-compiler bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-infra bijux-dna-planner-bam bijux-dna-planner-fastq bijux-dna-planner-vcf bijux-dna-policies bijux-dna-stage-contract bijux-dna-stages-fastq bijux-dna-stages-vcf bijux-dna-testkit
 bijux-dna-analyze: bijux-dna-bench bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra bijux-dna-pipelines bijux-dna-planner-bam bijux-dna-planner-fastq bijux-dna-policies bijux-dna-runtime bijux-dna-testkit
 bijux-dna-api: bijux-dna-analyze bijux-dna-bench bijux-dna-bench-model bijux-dna-core bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-engine bijux-dna-containers bijux-dna-containers-qa bijux-dna-infra bijux-dna-pipelines bijux-dna-planner-bam bijux-dna-planner-fastq bijux-dna-policies bijux-dna-runner bijux-dna-runtime bijux-dna-science bijux-dna-stage-contract bijux-dna-stages-bam bijux-dna-stages-fastq bijux-dna-stages-vcf bijux-dna-testkit
-bijux-dna-bench: bijux-dna-bench-corpus bijux-dna-bench-artifacts bijux-dna-analyze bijux-dna-bench-model bijux-dna-containers bijux-dna-core bijux-dna-db-ena bijux-dna-db-ref bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-science bijux-dna-stage-contract bijux-dna-testkit
+bijux-dna-bench: bijux-dna-bench-stage bijux-dna-bench-corpus bijux-dna-bench-artifacts bijux-dna-analyze bijux-dna-bench-model bijux-dna-containers bijux-dna-core bijux-dna-db-ena bijux-dna-db-ref bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-science bijux-dna-stage-contract bijux-dna-testkit
+bijux-dna-bench-stage: bijux-dna-core bijux-dna-infra bijux-dna-stage-contract
 bijux-dna-bench-parser-proofs: bijux-dna-bench-bam-proofs bijux-dna-bench-fastq bijux-dna-infra
 bijux-dna-bench-campaign: bijux-dna-bench-corpus
 bijux-dna-bench-corpus: bijux-dna-db-ref bijux-dna-domain-bam bijux-dna-domain-vcf bijux-dna-infra bijux-dna-core
@@ -44,7 +45,7 @@ bijux-dna-bench-bindings: bijux-dna-core bijux-dna-infra
 bijux-dna-bench-bam-proofs: bijux-dna-bench-bam-evidence bijux-dna-domain-bam bijux-dna-core bijux-dna-infra
 bijux-dna-bench-bam-evidence: bijux-dna-bench-bindings bijux-dna-core bijux-dna-infra
 bijux-dna-bench-vcf-evidence:
-bijux-dna-bench-model: bijux-dna-bench-corpus bijux-dna-analyze bijux-dna-core bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-policies bijux-dna-stage-contract bijux-dna-testkit
+bijux-dna-bench-model: bijux-dna-bench-stage bijux-dna-bench-corpus bijux-dna-analyze bijux-dna-core bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-policies bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-core: bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-db-ena: bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-db-ref: bijux-dna-domain-vcf bijux-dna-policies
@@ -120,3 +121,5 @@ BAM scientific completion belongs to `bijux-dna-bench-bam-proofs`. It consumes c
 Corpus campaign scheduling, resume decisions, QC preparation and shared-index lifecycle belong to `bijux-dna-bench-campaign`. Source and run schemas remain in `bijux-dna-bench-corpus`; callers inject canonical workspace paths, execution and publication time. Native stage engines are outside the campaign compilation boundary.
 
 Parser proof catalog, schema dispatch and report aggregation belong to `bijux-dna-bench-parser-proofs`. FASTQ and BAM native parsers are optional features; default compilation uses infrastructure only. Seven tiny BAM producers belong to the existing BAM proof owner. Application composition injects canonical planner/configuration inputs through materialization ports.
+
+Local stage inventory, readiness and command wire records belong to `bijux-dna-bench-stage`. Its default schema build has no workspace dependency; repository admission and execution projection are independent optional features. Canonical VCF matrix and native planner composition remain domain adapters. FASTQ governed QC fixture publication belongs to `bijux-dna-bench-fastq`.
