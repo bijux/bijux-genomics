@@ -67,7 +67,7 @@ nix = { version = "0.31", features = ["signal", "process"] }
 filetime = "0.2"
 fs4 = "0.13.1"
 serde_yaml = "0.9"
-opentelemetry = "0.32"
+opentelemetry = "0.33"
 opentelemetry_sdk = "0.32"
 insta = "1"
 noodles-bam = "0.90"
