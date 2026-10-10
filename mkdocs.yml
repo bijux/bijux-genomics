@@ -28,7 +28,6 @@ watch:
   - artifacts
   - docs
   - crates
-  - scripts
   - configs
   - containers
   - makes
