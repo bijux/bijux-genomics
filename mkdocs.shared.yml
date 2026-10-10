@@ -1,0 +1,152 @@
+strict: true
+use_directory_urls: true
+dev_addr: 127.0.0.1:8000
+theme:
+  name: material
+  language: en
+  custom_dir: docs/overrides
+  logo: assets/bijux_logo.png
+  favicon: assets/site-icons/favicon.ico
+  font: false
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: lime
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.path
+    - navigation.tracking
+    - navigation.instant
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - content.code.select
+    - content.action.edit
+    - content.action.view
+    - navigation.footer
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - social:
+      enabled: !ENV [ENABLE_SOCIAL_CARDS, false]
+      cache_dir: artifacts/docs/.cache/social
+  - autorefs
+  - redirects
+  - tags
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+  - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+
+markdown_extensions:
+  - def_list
+  - tables
+  - admonition
+  - footnotes
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      base_path:
+        - .
+        - docs
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: bijux-diagram
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.mark
+  - pymdownx.magiclink
+  - pymdownx.tasklist
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.keys
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra_css:
+  - assets/styles/extra.css
+
+extra_javascript:
+  - assets/javascripts/mermaid-init.js
+  - assets/javascripts/shell/theme-persistence.js
+  - assets/javascripts/shell/viewport-profile.js
+  - assets/javascripts/shell/nav-state.js
+  - assets/javascripts/shell/detail-tabs.js
+  - assets/javascripts/shell/nav-reveal.js
+  - assets/javascripts/shell/search-recovery.js
+  - assets/javascripts/shell/content-reflow.js
+  - assets/javascripts/external-links.js
+  - assets/javascripts/shell/bootstrap.js
+  - assets/javascripts/navigation-sync.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+extra:
+  bijux:
+    nav_mode: default
+    theme_key: bijux:theme
+    hub_links:
+      - key: bijux
+        label: Bijux
+        url: https://bijux.io/
+      - key: bijux-core
+        label: Core
+        url: https://bijux.io/bijux-core/
+      - key: bijux-canon
+        label: Canon
+        url: https://bijux.io/bijux-canon/
+      - key: bijux-atlas
+        label: Atlas
+        url: https://bijux.io/bijux-atlas/
+      - key: bijux-proteomics
+        label: Proteomics
+        url: https://bijux.io/bijux-proteomics/
+      - key: bijux-pollenomics
+        label: Pollenomics
+        url: https://bijux.io/bijux-pollenomics/
+      - key: bijux-phylogenetics
+        label: Phylogenetics
+        url: https://bijux.io/bijux-phylogenetics/
+      - key: bijux-gnss
+        label: GNSS
+        url: https://bijux.io/bijux-gnss/
+      - key: bijux-masterclass
+        label: Masterclass
+        url: https://bijux.io/bijux-masterclass/
+
+copyright: "© 2026 Bijan Mousavi <bijan@bijux.io>"
+exclude_docs: |
+  /overrides/
+  /hooks/
+  /assets/styles/README.md
+  /assets/javascripts/shell/README.md
