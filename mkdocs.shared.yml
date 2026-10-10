@@ -143,7 +143,6 @@ extra:
       - key: bijux-masterclass
         label: Masterclass
         url: https://bijux.io/bijux-masterclass/
-
 copyright: "© 2026 Bijan Mousavi <bijan@bijux.io>"
 exclude_docs: |
   /overrides/
