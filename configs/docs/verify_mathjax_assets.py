@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import sys
 
-MANIFEST_SHA256 = '1239205e627da3ad22565ac4804419f4cc46d610763527d5d469ebdf6eac76fe'
+MANIFEST_SHA256 = 'b55ec1239a37d8167adcaed601c36e0390dc0a150000a339ddb5e8a76b74a9eb'
 ARCHIVE_SHA256 = '1b9c0a1c44df864e915690558e72adb9cc5203360daefd385084ced3b6c64c09'
 ASSET_ROOT = 'docs/assets/vendor/mathjax'
 

@@ -11,9 +11,10 @@
   "asset_root": "docs/assets/vendor/mathjax",
   "files": [
     {
-      "path": "LICENSE",
+      "path": "LICENSE.txt",
       "bytes": 11358,
-      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "archive_member": "package/LICENSE"
     },
     {
       "path": "a11y/assistive-mml.js",

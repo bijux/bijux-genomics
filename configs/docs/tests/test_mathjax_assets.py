@@ -1,7 +1,9 @@
 """Exercise provenance and source-asset refusal without executing scientific pipelines."""
 from __future__ import annotations
 
+import hashlib
 import importlib.util
+import json
 from pathlib import Path
 import shutil
 import tempfile
@@ -31,6 +33,13 @@ class MathJaxAssets(unittest.TestCase):
 
     def test_reviewed_source_and_native_font_component_roster_pass(self):
         self.assertEqual(assets.verify(self.root)['files'], 94)
+
+    def test_public_license_preserves_immutable_package_bytes(self):
+        source = json.loads((self.root/'configs/docs/mathjax-source.json').read_text())
+        license = next(record for record in source['files'] if record['path'] == 'LICENSE.txt')
+        self.assertEqual(license['archive_member'], 'package/LICENSE')
+        self.assertEqual(hashlib.sha256((self.root/assets.ASSET_ROOT/'LICENSE.txt').read_bytes()).hexdigest(),
+                         'cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30')
 
     def test_missing_native_font_is_refused(self):
         next((self.root/assets.ASSET_ROOT).rglob('*.woff')).unlink()
