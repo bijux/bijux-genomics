@@ -167,6 +167,5 @@ exclude_docs: |
   /hooks/
   /assets/styles/README.md
   /assets/javascripts/shell/README.md
-
 hooks:
   - configs/docs/publish_site_assets.py
