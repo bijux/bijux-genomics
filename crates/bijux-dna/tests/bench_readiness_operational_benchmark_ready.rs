@@ -17,6 +17,12 @@ fn read_committed_json() -> serde_json::Value {
 #[test]
 fn bench_readiness_operational_benchmark_ready_reports_green_surface() {
     let payload = read_committed_json();
+    let repo_root = support::repo_root().expect("repo root");
+    let active_matrix = std::fs::read_to_string(
+        repo_root.join("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv"),
+    )
+    .expect("read active stage-tool matrix");
+    let active_row_count = active_matrix.lines().skip(1).count() as u64;
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -28,7 +34,7 @@ fn bench_readiness_operational_benchmark_ready_reports_green_surface() {
     );
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(141)
+        Some(active_row_count)
     );
     assert_eq!(payload.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(

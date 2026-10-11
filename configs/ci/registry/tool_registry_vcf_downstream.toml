@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/** + containers/contracts/catalog.toml
-# source_commit: 3663f2fb07fa6207bec8b88ca27102d178c48a8b
+# source_commit: 612475f7096a976dc2327b1fb157340e2acbea30
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -139,7 +139,7 @@ require_labels = true
 id = "germline"
 tool_id = "germline"
 domain = "vcf"
-status = "planned"
+status = "production"
 stage_ids = ["vcf.ibd"]
 version = "1.5.3"
 default_version = "1.5.3"
@@ -161,12 +161,10 @@ healthcheck_cmd = "germline --help"
 expected_bin = "germline"
 expected_artifacts = ["ibd_segments", "metrics.json"]
 metrics_schema = "bijux.vcf.ibd.v1"
-comparability_notes = "Planned tool; compare only within pinned profile and reference build."
+comparability_notes = "Compare only within the same phased-marker profile, reference build, and segment thresholds."
 dockerfile = "containers/docker/Dockerfile.arm64.germline"
 apptainer_def = "containers/apptainer/germline.def"
 require_labels = true
-
-smoke_minimal_rationale = "No deterministic stage fixture is admitted for this planned tool; help/version probes remain non-qualification checks."
 
 [[tools]]
 id = "glimpse"
@@ -205,7 +203,7 @@ smoke_minimal_rationale = "No deterministic stage fixture is admitted for this p
 id = "ibdhap"
 tool_id = "ibdhap"
 domain = "vcf"
-status = "planned"
+status = "production"
 stage_ids = ["vcf.ibd"]
 version = "3.4"
 default_version = "3.4"
@@ -232,13 +230,11 @@ dockerfile = "containers/docker/Dockerfile.arm64.ibdhap"
 apptainer_def = "containers/apptainer/ibdhap.def"
 require_labels = true
 
-smoke_minimal_rationale = "No deterministic stage fixture is admitted for this planned tool; help/version probes remain non-qualification checks."
-
 [[tools]]
 id = "ibdne"
 tool_id = "ibdne"
 domain = "vcf"
-status = "planned"
+status = "production"
 stage_ids = ["vcf.demography"]
 version = "23Apr20.ae9"
 default_version = "23Apr20.ae9"
@@ -260,25 +256,23 @@ healthcheck_cmd = "ibdne --help"
 expected_bin = "ibdne"
 expected_artifacts = ["demography_report", "metrics.json"]
 metrics_schema = "bijux.vcf.demography.v1"
-comparability_notes = "Planned tool; compare only within pinned profile and reference build."
+comparability_notes = "Compare only within the same segment filters, generation model, recombination map, and cohort ascertainment."
 dockerfile = "containers/docker/Dockerfile.arm64.ibdne"
 apptainer_def = "containers/apptainer/ibdne.def"
 require_labels = true
-
-smoke_minimal_rationale = "No deterministic stage fixture is admitted for this planned tool; help/version probes remain non-qualification checks."
 
 [[tools]]
 id = "ibdseq"
 tool_id = "ibdseq"
 domain = "vcf"
-status = "planned"
+status = "production"
 stage_ids = ["vcf.ibd"]
 version = "r1206"
 default_version = "r1206"
 upstream = "https://faculty.washington.edu/browning/ibdseq.html"
 version_rule = "pinned"
 license = "Apache-2.0"
-citation = "planned"
+citation = "upstream:https://faculty.washington.edu/browning/ibdseq.html"
 pinned_commit = "sha256:a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8ec"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/ibdseq:r1206"
@@ -293,12 +287,10 @@ healthcheck_cmd = "ibdseq --help"
 expected_bin = "ibdseq"
 expected_artifacts = ["ibd_segments", "metrics.json"]
 metrics_schema = "bijux.vcf.ibd.v1"
-comparability_notes = "Planned tool; compare only within pinned profile and reference build."
+comparability_notes = "Compare only within the same marker filters, allele-frequency model, reference build, and LOD thresholds."
 dockerfile = "containers/docker/Dockerfile.arm64.ibdseq"
 apptainer_def = "containers/apptainer/ibdseq.def"
 require_labels = true
-
-smoke_minimal_rationale = "No deterministic stage fixture is admitted for this planned tool; help/version probes remain non-qualification checks."
 
 [[tools]]
 id = "impute5"

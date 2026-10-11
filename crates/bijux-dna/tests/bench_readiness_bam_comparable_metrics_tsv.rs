@@ -59,7 +59,7 @@ fn bench_readiness_bam_comparable_metrics_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.damage\tdeclared\t6\taddeam,damageprofiler,mapdamage2,ngsbriggs,pmdtools,pydamage\tmapdamage2\tfixture:corpus-01-adna-damage-mini\t3\tterminal_c_to_t_5p,terminal_g_to_a_3p,damage_signal\tstage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
+            row == &"bam.damage\tdeclared\t5\taddeam,damageprofiler,mapdamage2,pmdtools,pydamage\tmapdamage2\tfixture:corpus-01-adna-damage-mini\t3\tterminal_c_to_t_5p,terminal_g_to_a_3p,damage_signal\tstage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
         }),
         "TSV must retain the governed BAM damage comparable row"
     );

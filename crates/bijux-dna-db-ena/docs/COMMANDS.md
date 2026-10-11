@@ -26,6 +26,8 @@ Both commands accept the shared selectors `--project`, `--sample`, and
 | `select-record-urls` | `EnaRecord::preferred_urls` | Select source URLs using the requested ENA source and URL preference. |
 | `build-download-tasks` | `download::build_download_tasks` | Convert records and download config into deterministic output tasks. |
 | `download-tasks` | `download::download_tasks` | Execute or dry-run planned download tasks. |
+| `download-verified-files` | `download::download_verified_files` | Stream checksum-pinned HTTPS objects through bounded no-clobber transfer. |
+| `verify-existing-files` | `download::verify_existing_files` | Re-hash existing checksum-pinned HTTPS acquisition outputs with bounded parallelism and no network or mutation. |
 | `write-manifest` | `manifest_store::write_manifest` | Persist the helper binary manifest to the requested path. |
 
 ## Local Verification Commands

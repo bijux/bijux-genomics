@@ -15,13 +15,14 @@ uuid.workspace = true
 bijux-dna-core.workspace = true
 bijux-dna-bench-model.workspace = true
 bijux-dna-runtime.workspace = true
-bijux-dna-environment.workspace = true
+bijux-dna-containers.workspace = true
 bijux-dna-infra.workspace = true
 sha2.workspace = true
 walkdir.workspace = true
 
 [dev-dependencies]
 bijux-dna-policies.workspace = true
+bijux-dna-testkit.workspace = true
 assert_cmd.workspace = true
 tempfile.workspace = true
 cargo_metadata.workspace = true

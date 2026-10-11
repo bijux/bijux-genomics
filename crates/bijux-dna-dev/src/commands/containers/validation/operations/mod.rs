@@ -12,7 +12,7 @@ use super::{
     check_tool_name_collision, checked_container_type, compare_frontend_local_sif_hash,
     container_artifact_dir, docker_image_labels, dockerfile_paths, ensure_no_args, env_or_default,
     env_or_empty, failure_lines, fs, generate_local_apptainer_digests, list_tools_for_stage,
-    load_runtime_manifest_rows, load_toml, lock_items_by_tool, merge_outcomes, metadata,
+    load_runtime_manifest_rows, load_toml, merge_outcomes, metadata,
     missing_container_label_markers, normalized_version_output, path_from_arg, primary_tools_csv,
     read_json, read_utf8, registry_tool_id, registry_tool_rows, require_tools_or_stage,
     resolved_smoke_tools, run_argv, run_bijux_with_env, run_environment_prep_for,

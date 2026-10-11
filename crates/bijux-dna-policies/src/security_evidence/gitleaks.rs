@@ -48,46 +48,57 @@ fn is_redacted(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::parse_gitleaks_report;
+    use anyhow::Result;
 
     #[test]
-    fn counts_redacted_findings() {
+    fn counts_redacted_findings() -> Result<()> {
         let report = parse_gitleaks_report(
             br#"[
               {"RuleID":"generic-api-key","File":"etc/tool.conf","StartLine":4,"Secret":"REDACTED"},
               {"RuleID":"private-key","File":"opt/key","StartLine":1,"Secret":"********"}
             ]"#,
-        )
-        .expect("parse report");
+        )?;
         assert_eq!(report.finding_count, 2);
+        Ok(())
     }
 
     #[test]
-    fn accepts_empty_report() {
-        let report = parse_gitleaks_report(b"[]").expect("parse empty report");
+    fn accepts_empty_report() -> Result<()> {
+        let report = parse_gitleaks_report(b"[]")?;
         assert_eq!(report.finding_count, 0);
+        Ok(())
     }
 
     #[test]
-    fn rejects_unredacted_secret_material() {
+    fn rejects_unredacted_secret_material() -> Result<()> {
         let raw = br#"[
           {"RuleID":"generic-api-key","File":"etc/tool.conf","StartLine":4,"Secret":"actual-token"}
         ]"#;
-        let error = parse_gitleaks_report(raw).expect_err("secret material must fail");
+        let Err(error) = parse_gitleaks_report(raw) else {
+            anyhow::bail!("unredacted secret material was accepted");
+        };
         assert!(error.to_string().contains("unredacted secret"));
+        Ok(())
     }
 
     #[test]
-    fn rejects_incomplete_finding_identity() {
+    fn rejects_incomplete_finding_identity() -> Result<()> {
         let raw = br#"[
           {"RuleID":"","File":"etc/tool.conf","StartLine":0,"Secret":"REDACTED"}
         ]"#;
-        let error = parse_gitleaks_report(raw).expect_err("identity must fail");
+        let Err(error) = parse_gitleaks_report(raw) else {
+            anyhow::bail!("incomplete finding identity was accepted");
+        };
         assert!(error.to_string().contains("without rule or file identity"));
+        Ok(())
     }
 
     #[test]
-    fn rejects_malformed_json() {
-        let error = parse_gitleaks_report(b"{}").expect_err("object must fail");
+    fn rejects_malformed_json() -> Result<()> {
+        let Err(error) = parse_gitleaks_report(b"{}") else {
+            anyhow::bail!("non-array Gitleaks report was accepted");
+        };
         assert!(error.to_string().contains("parse Gitleaks"));
+        Ok(())
     }
 }

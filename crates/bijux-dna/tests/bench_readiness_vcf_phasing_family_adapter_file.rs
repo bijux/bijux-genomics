@@ -35,10 +35,10 @@ fn bench_readiness_vcf_phasing_family_adapter_writes_governed_json_files() {
         );
     }
 
-    for (tool_id, schema_version, benchmark_ready_count) in [
-        ("shapeit5", "bijux.bench.readiness.vcf_shapeit5_adapter.v1", 1_u64),
-        ("eagle", "bijux.bench.readiness.vcf_eagle_adapter.v1", 0_u64),
-        ("beagle", "bijux.bench.readiness.vcf_beagle_adapter.v1", 0_u64),
+    for (tool_id, schema_version, row_count, benchmark_ready_count) in [
+        ("shapeit5", "bijux.bench.readiness.vcf_shapeit5_adapter.v1", 1_u64, 1_u64),
+        ("eagle", "bijux.bench.readiness.vcf_eagle_adapter.v1", 1_u64, 0_u64),
+        ("beagle", "bijux.bench.readiness.vcf_beagle_adapter.v1", 3_u64, 2_u64),
     ] {
         let report_path =
             repo_root.join(format!("benchmarks/readiness/adapters/{tool_id}.vcf.json"));
@@ -53,7 +53,7 @@ fn bench_readiness_vcf_phasing_family_adapter_writes_governed_json_files() {
             payload.get("schema_version").and_then(serde_json::Value::as_str),
             Some(schema_version)
         );
-        assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(1));
+        assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
         assert_eq!(
             payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
             Some(benchmark_ready_count)
@@ -61,7 +61,11 @@ fn bench_readiness_vcf_phasing_family_adapter_writes_governed_json_files() {
         let row = payload
             .get("rows")
             .and_then(serde_json::Value::as_array)
-            .and_then(|rows| rows.first())
+            .and_then(|rows| {
+                rows.iter().find(|row| {
+                    row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
+                })
+            })
             .expect("adapter row");
         assert_eq!(row.get("stage_id").and_then(serde_json::Value::as_str), Some("vcf.phasing"));
 

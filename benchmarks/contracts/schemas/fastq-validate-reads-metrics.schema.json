@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "expected_read_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "file_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "pair_sync_checked_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "pair_sync_failure_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.fastq.validate_reads.metrics.v1",
+      "type": "string"
+    },
+    "strict_pass_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "validated_read_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "sample_count",
+    "file_count",
+    "expected_read_count",
+    "validated_read_count",
+    "strict_pass_count",
+    "pair_sync_checked_count",
+    "pair_sync_failure_count",
+    "input_bytes",
+    "output_bytes"
+  ],
+  "title": "BenchmarkFastqValidationMetrics",
+  "type": "object"
+}

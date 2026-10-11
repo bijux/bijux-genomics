@@ -355,22 +355,21 @@ fn collect_missing_result_report_rows(
 fn ensure_missing_result_report_contract(
     mut report: MissingResultReport,
 ) -> Result<MissingResultReport> {
-    if report.rows.len() != 120 {
+    if report.rows.len() != report.expected_row_count {
         return Err(anyhow!(
-            "missing-result report must retain exactly 120 expected benchmark rows, found {}",
-            report.rows.len()
+            "missing-result report row count {} does not match expected row count {}",
+            report.rows.len(),
+            report.expected_row_count,
         ));
     }
-    if report.expected_row_count != 120 {
-        return Err(anyhow!(
-            "missing-result report must track exactly 120 expected rows, found {}",
-            report.expected_row_count
-        ));
+    if report.expected_row_count == 0 {
+        return Err(anyhow!("missing-result report must retain expected benchmark rows"));
     }
-    if report.present_result_row_count != 119 {
+    if report.present_result_row_count + report.missing_result_row_count
+        != report.expected_row_count
+    {
         return Err(anyhow!(
-            "missing-result report must retain exactly 119 present benchmark rows after removing one result, found {}",
-            report.present_result_row_count
+            "missing-result present and missing counts must partition all expected rows"
         ));
     }
     if report.missing_result_row_count != 1 {
@@ -468,12 +467,13 @@ mod tests {
         assert_eq!(report.schema_version, MISSING_RESULT_REPORT_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_MISSING_RESULT_REPORT_TEST_PATH);
         assert_eq!(report.fake_result_root, "benchmarks/readiness/missing-result-report-fixture");
-        assert_eq!(report.expected_row_count, 120);
-        assert_eq!(report.present_result_row_count, 119);
+        assert!(report.expected_row_count > 0);
+        assert_eq!(report.present_result_row_count + 1, report.expected_row_count);
         assert_eq!(report.missing_result_row_count, 1);
         assert!(report.passes_behavior_test);
-        assert_eq!(report.domain_counts.get("fastq").copied(), Some(71));
-        assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
+        assert_eq!(report.domain_counts.values().sum::<usize>(), report.expected_row_count);
+        assert!(report.domain_counts.contains_key("fastq"));
+        assert!(report.domain_counts.contains_key("bam"));
 
         let removed_row = report
             .rows

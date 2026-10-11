@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 use super::AlignmentBoundary;
 use anyhow::{Context, Result};
-use bijux_dna_environment::resolve::ReferenceRecord;
+use bijux_dna_containers::resolve::ReferenceRecord;
 use bijux_dna_infra::hash_file_sha256;
 use bijux_dna_pipelines::PipelineProfile;
 

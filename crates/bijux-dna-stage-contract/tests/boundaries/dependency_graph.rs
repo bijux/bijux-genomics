@@ -20,7 +20,7 @@ fn normal_dependency_graph_matches_stage_contract_boundary() {
     for forbidden in [
         "bijux-dna-api",
         "bijux-dna-engine",
-        "bijux-dna-environment",
+        "bijux-dna-containers",
         "bijux-dna-runner",
         "bijux-dna-runtime",
     ] {

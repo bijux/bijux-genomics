@@ -11,7 +11,8 @@ mod source_scan;
 
 pub use public_api::{check, GuardrailConfig};
 pub use qualification::{
-    evaluate_publication_freshness, EvidenceDecision, EvidenceDimension, EvidenceVerdict,
+    evaluate_publication_freshness, render_qualification_report_json,
+    render_qualification_report_markdown, EvidenceDecision, EvidenceDimension, EvidenceVerdict,
     ImmutablePublicationIdentity, PublicationArtifactIdentity, PublicationAuthority,
     PublicationDisposition, PublicationFreshnessEvaluation, PublicationFreshnessVerdict,
     PublicationIdentityMismatch, QualificationAssessment, QualificationClaim,

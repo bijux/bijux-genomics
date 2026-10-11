@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -48,18 +49,34 @@ fn bench_readiness_fastq_parser_fixture_coverage_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq/fastq-parser-fixture-coverage.tsv")
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(42));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(71));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    let row_count = u64::try_from(rows.len()).expect("row count fits u64");
+    let stage_count = u64::try_from(
+        rows.iter()
+            .filter_map(|row| row.get("stage_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len(),
+    )
+    .expect("stage count fits u64");
+    let tool_count = u64::try_from(
+        rows.iter()
+            .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len(),
+    )
+    .expect("tool count fits u64");
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(stage_count));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(
+        payload.get("covered_row_count").and_then(serde_json::Value::as_u64),
+        Some(row_count)
+    );
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("parser_fixture_coverage_percent").and_then(serde_json::Value::as_f64),
         Some(100.0)
     );
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 71);
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
             && row.get("parser_fixture_reference_kind").and_then(serde_json::Value::as_str)

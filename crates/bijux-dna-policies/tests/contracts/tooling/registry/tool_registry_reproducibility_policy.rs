@@ -120,25 +120,7 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registry_
             if !help_cmd.contains(expected_bin) {
                 offenders.push(format!("{rel}: tool={id}: help_cmd must invoke expected_bin"));
             }
-            let dockerfile_path = root.join(dockerfile);
-            if !dockerfile.is_empty() && dockerfile_path.exists() {
-                let content = std::fs::read_to_string(&dockerfile_path).unwrap_or_default();
-                if !(content.contains("ENTRYPOINT") || content.contains("CMD [")) {
-                    offenders.push(format!("{rel}: tool={id}: dockerfile missing ENTRYPOINT/CMD"));
-                }
-                if !content.contains(expected_bin) {
-                    offenders.push(format!(
-                        "{rel}: tool={id}: dockerfile must reference expected_bin `{expected_bin}`"
-                    ));
-                }
-                if content.contains("ENTRYPOINT [\"/bin/sh\", \"-c\",")
-                    && content.contains("\"$@\"")
-                {
-                    offenders.push(format!(
-                        "{rel}: tool={id}: dockerfile must not use shell-form ENTRYPOINT with `$@`; use an exec-form entrypoint for deterministic argument forwarding"
-                    ));
-                }
-            }
+            check_production_dockerfile(&root, rel, &id, dockerfile, expected_bin, &mut offenders);
         }
     }
 
@@ -147,6 +129,35 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registry_
         "production tool registry reproducibility violations:\n{}",
         offenders.join("\n")
     );
+}
+
+fn check_production_dockerfile(
+    root: &std::path::Path,
+    registry_path: &str,
+    tool_id: &str,
+    dockerfile: &str,
+    expected_bin: &str,
+    offenders: &mut Vec<String>,
+) {
+    let dockerfile_path = root.join(dockerfile);
+    if dockerfile.is_empty() || !dockerfile_path.exists() {
+        return;
+    }
+    let content = std::fs::read_to_string(&dockerfile_path).unwrap_or_default();
+    if !(content.contains("ENTRYPOINT") || content.contains("CMD [")) {
+        offenders
+            .push(format!("{registry_path}: tool={tool_id}: dockerfile missing ENTRYPOINT/CMD"));
+    }
+    if !content.contains(expected_bin) {
+        offenders.push(format!(
+            "{registry_path}: tool={tool_id}: dockerfile must reference expected_bin `{expected_bin}`"
+        ));
+    }
+    if content.contains("ENTRYPOINT [\"/bin/sh\", \"-c\",") && content.contains("\"$@\"") {
+        offenders.push(format!(
+            "{registry_path}: tool={tool_id}: dockerfile must not use shell-form ENTRYPOINT with `$@`; use an exec-form entrypoint for deterministic argument forwarding"
+        ));
+    }
 }
 
 #[test]

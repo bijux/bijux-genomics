@@ -271,17 +271,17 @@ fn materialize_variant_assets(
         download_file(http, &assets.snpeff.core_url, &snpeff_core_zip_path, "snpeff_core_zip")?,
         extract_vcf_header(&source_vcf_path, &old_header_path)?,
     ];
-    artifacts.extend(prepare_namespace_assets(
-        &source_vcf_path,
-        &assembly_report_path,
-        &old_header_path,
-        &updated_header_path,
-        &body_contigs_path,
-        &header_contigs_path,
-        &contig_map_path,
-        &missing_contigs_path,
-        &validation_ok_path,
-    )?);
+    artifacts.extend(prepare_namespace_assets(&NamespaceAssetPaths {
+        vcf: &source_vcf_path,
+        assembly_report: &assembly_report_path,
+        old_header: &old_header_path,
+        updated_header: &updated_header_path,
+        body_contigs: &body_contigs_path,
+        header_contigs: &header_contigs_path,
+        contig_map: &contig_map_path,
+        missing_contigs: &missing_contigs_path,
+        validation_ok: &validation_ok_path,
+    })?);
     artifacts.push(rename_vcf_to_refseq(
         &source_vcf_path,
         &updated_header_path,
@@ -562,41 +562,43 @@ fn extract_vcf_header(vcf_path: &Path, output_path: &Path) -> Result<Materialize
     })
 }
 
-fn prepare_namespace_assets(
-    vcf_path: &Path,
-    assembly_report_path: &Path,
-    old_header_path: &Path,
-    updated_header_path: &Path,
-    body_contigs_path: &Path,
-    header_contigs_path: &Path,
-    contig_map_path: &Path,
-    missing_contigs_path: &Path,
-    validation_ok_path: &Path,
-) -> Result<Vec<MaterializedArtifact>> {
+struct NamespaceAssetPaths<'a> {
+    vcf: &'a Path,
+    assembly_report: &'a Path,
+    old_header: &'a Path,
+    updated_header: &'a Path,
+    body_contigs: &'a Path,
+    header_contigs: &'a Path,
+    contig_map: &'a Path,
+    missing_contigs: &'a Path,
+    validation_ok: &'a Path,
+}
+
+fn prepare_namespace_assets(paths: &NamespaceAssetPaths<'_>) -> Result<Vec<MaterializedArtifact>> {
     if [
-        updated_header_path,
-        body_contigs_path,
-        header_contigs_path,
-        contig_map_path,
-        missing_contigs_path,
-        validation_ok_path,
+        paths.updated_header,
+        paths.body_contigs,
+        paths.header_contigs,
+        paths.contig_map,
+        paths.missing_contigs,
+        paths.validation_ok,
     ]
     .iter()
     .all(|path| file_is_nonempty(path))
     {
         return Ok(vec![
-            reused_artifact("updated_header", updated_header_path),
-            reused_artifact("body_contigs", body_contigs_path),
-            reused_artifact("header_contigs", header_contigs_path),
-            reused_artifact("contig_map", contig_map_path),
-            reused_artifact("missing_contigs", missing_contigs_path),
-            reused_artifact("validation_ok", validation_ok_path),
+            reused_artifact("updated_header", paths.updated_header),
+            reused_artifact("body_contigs", paths.body_contigs),
+            reused_artifact("header_contigs", paths.header_contigs),
+            reused_artifact("contig_map", paths.contig_map),
+            reused_artifact("missing_contigs", paths.missing_contigs),
+            reused_artifact("validation_ok", paths.validation_ok),
         ]);
     }
 
-    let body_contigs = collect_body_contigs(vcf_path)?;
-    let mappings = parse_assembly_report(assembly_report_path)?;
-    let header = VcfHeader::from_file(old_header_path)?;
+    let body_contigs = collect_body_contigs(paths.vcf)?;
+    let mappings = parse_assembly_report(paths.assembly_report)?;
+    let header = VcfHeader::from_file(paths.old_header)?;
 
     let mut resolved = Vec::new();
     let mut missing = Vec::new();
@@ -610,13 +612,13 @@ fn prepare_namespace_assets(
 
     let mapped_targets =
         resolved.iter().map(|(_source, row)| row.target.clone()).collect::<Vec<_>>();
-    header.write_refseq_header(updated_header_path, &mapped_targets)?;
-    bijux_dna_infra::write_string(body_contigs_path, &join_lines(&body_contigs))
-        .with_context(|| format!("write {}", body_contigs_path.display()))?;
-    bijux_dna_infra::write_string(header_contigs_path, &join_lines(&mapped_targets))
-        .with_context(|| format!("write {}", header_contigs_path.display()))?;
-    bijux_dna_infra::write_string(missing_contigs_path, &join_lines(&missing))
-        .with_context(|| format!("write {}", missing_contigs_path.display()))?;
+    header.write_refseq_header(paths.updated_header, &mapped_targets)?;
+    bijux_dna_infra::write_string(paths.body_contigs, &join_lines(&body_contigs))
+        .with_context(|| format!("write {}", paths.body_contigs.display()))?;
+    bijux_dna_infra::write_string(paths.header_contigs, &join_lines(&mapped_targets))
+        .with_context(|| format!("write {}", paths.header_contigs.display()))?;
+    bijux_dna_infra::write_string(paths.missing_contigs, &join_lines(&missing))
+        .with_context(|| format!("write {}", paths.missing_contigs.display()))?;
 
     let mut mapping_tsv = String::from(
         "source_contig\ttarget_contig\tsequence_name\tassigned_molecule\tgenbank_accession\trefseq_accession\tucsc_style_name\n",
@@ -636,22 +638,22 @@ fn prepare_namespace_assets(
         .map_err(std::io::Error::other)
         .context("render contig map")?;
     }
-    bijux_dna_infra::write_string(contig_map_path, &mapping_tsv)
-        .with_context(|| format!("write {}", contig_map_path.display()))?;
+    bijux_dna_infra::write_string(paths.contig_map, &mapping_tsv)
+        .with_context(|| format!("write {}", paths.contig_map.display()))?;
 
     if !missing.is_empty() {
         bail!("assembly report does not cover all VCF body contigs: {}", missing.join(", "));
     }
-    bijux_dna_infra::write_string(validation_ok_path, "ok\n")
-        .with_context(|| format!("write {}", validation_ok_path.display()))?;
+    bijux_dna_infra::write_string(paths.validation_ok, "ok\n")
+        .with_context(|| format!("write {}", paths.validation_ok.display()))?;
 
     Ok(vec![
-        built_artifact("updated_header", updated_header_path),
-        built_artifact("body_contigs", body_contigs_path),
-        built_artifact("header_contigs", header_contigs_path),
-        built_artifact("contig_map", contig_map_path),
-        built_artifact("missing_contigs", missing_contigs_path),
-        built_artifact("validation_ok", validation_ok_path),
+        built_artifact("updated_header", paths.updated_header),
+        built_artifact("body_contigs", paths.body_contigs),
+        built_artifact("header_contigs", paths.header_contigs),
+        built_artifact("contig_map", paths.contig_map),
+        built_artifact("missing_contigs", paths.missing_contigs),
+        built_artifact("validation_ok", paths.validation_ok),
     ])
 }
 
@@ -1049,7 +1051,7 @@ mod tests {
     use super::{
         build_fai, extract_vcf_header, install_snpeff_core, install_snpeff_database,
         load_contig_map, prepare_namespace_assets, rename_vcf_to_refseq, write_snpeff_config,
-        LocalPipelineSnpEffAssets,
+        LocalPipelineSnpEffAssets, NamespaceAssetPaths,
     };
 
     #[test]
@@ -1100,17 +1102,17 @@ mod tests {
         );
 
         extract_vcf_header(&source_vcf, &old_header).expect("extract header");
-        prepare_namespace_assets(
-            &source_vcf,
-            &assembly_report,
-            &old_header,
-            &updated_header,
-            &body_contigs,
-            &header_contigs,
-            &contig_map,
-            &missing_contigs,
-            &validation_ok,
-        )
+        prepare_namespace_assets(&NamespaceAssetPaths {
+            vcf: &source_vcf,
+            assembly_report: &assembly_report,
+            old_header: &old_header,
+            updated_header: &updated_header,
+            body_contigs: &body_contigs,
+            header_contigs: &header_contigs,
+            contig_map: &contig_map,
+            missing_contigs: &missing_contigs,
+            validation_ok: &validation_ok,
+        })
         .expect("prepare namespace");
         rename_vcf_to_refseq(&source_vcf, &updated_header, &contig_map, &refseq_vcf)
             .expect("rename vcf");

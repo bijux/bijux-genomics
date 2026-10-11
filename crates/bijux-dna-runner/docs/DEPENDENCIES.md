@@ -11,13 +11,14 @@
 - `walkdir` for deterministic directory input hashing.
 - `bijux-dna-core` for execution steps, tool execution specs, IDs, hashing helpers, canonical JSON, and manifests.
 - `bijux-dna-runtime` for the `Runner` trait, invocations, runner results, and artifact handoff.
-- `bijux-dna-environment` for runtime kind, image catalog, image resolution, and platform contracts.
+- `bijux-dna-containers` for runtime kind, image catalog, image resolution, and platform contracts.
 - `bijux-dna-infra` for governed filesystem writes, temp dirs, path helpers, and hashing.
 
 The Slurm backend introduces no scheduler library or async runtime dependency. It invokes the configured `sbatch`, `squeue`, `sacct`, and `scancel` executables through the standard process boundary.
 
 ## Dev Dependencies
 - `bijux-dna-policies` for guardrail checks.
+- `bijux-dna-testkit` for shared workspace source scanning support.
 - `cargo_metadata` for dependency boundary tests.
 - `assert_cmd` for command-runner contract tests.
 - `tempfile` for isolated filesystem tests.

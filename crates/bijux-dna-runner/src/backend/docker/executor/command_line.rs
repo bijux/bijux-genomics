@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use bijux_dna_environment::api::ResolvedImage;
+use bijux_dna_containers::api::ResolvedImage;
 
 use super::StageExecutionPlan;
 
@@ -69,7 +69,7 @@ mod tests {
     use std::collections::BTreeMap;
     use std::path::Path;
 
-    use bijux_dna_environment::api::{ResolvedImage, RuntimeKind};
+    use bijux_dna_containers::api::{ResolvedImage, RuntimeKind};
 
     use super::{build_docker_run_command, command_string};
     use crate::backend::docker::executor::StageExecutionPlan;

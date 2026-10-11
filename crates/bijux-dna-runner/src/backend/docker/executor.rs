@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_environment::api::ResolvedImage;
+use bijux_dna_containers::api::ResolvedImage;
 
 pub use crate::backend::docker::image_resolution::resolve_image_for_run;
 use command_line::{build_docker_run_command, command_string};

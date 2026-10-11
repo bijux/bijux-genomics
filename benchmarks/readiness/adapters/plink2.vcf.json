@@ -2,7 +2,7 @@
   "schema_version": "bijux.bench.readiness.vcf_plink2_adapter.v1",
   "domain": "vcf",
   "tool_id": "plink2",
-  "tool_status": "experimental",
+  "tool_status": "production",
   "output_path": "benchmarks/readiness/adapters/plink2.vcf.json",
   "row_count": 5,
   "benchmark_ready_row_count": 5,
@@ -13,7 +13,7 @@
   "rows": [
     {
       "tool_id": "plink2",
-      "tool_status": "experimental",
+      "tool_status": "production",
       "stage_id": "vcf.admixture",
       "stage_status": "supported",
       "benchmark_status": "benchmark_ready",
@@ -102,7 +102,7 @@
     },
     {
       "tool_id": "plink2",
-      "tool_status": "experimental",
+      "tool_status": "production",
       "stage_id": "vcf.pca",
       "stage_status": "supported",
       "benchmark_status": "benchmark_ready",
@@ -191,7 +191,7 @@
     },
     {
       "tool_id": "plink2",
-      "tool_status": "experimental",
+      "tool_status": "production",
       "stage_id": "vcf.population_structure",
       "stage_status": "supported",
       "benchmark_status": "benchmark_ready",
@@ -320,7 +320,7 @@
     },
     {
       "tool_id": "plink2",
-      "tool_status": "experimental",
+      "tool_status": "production",
       "stage_id": "vcf.qc",
       "stage_status": "supported",
       "benchmark_status": "benchmark_ready",
@@ -427,7 +427,7 @@
     },
     {
       "tool_id": "plink2",
-      "tool_status": "experimental",
+      "tool_status": "production",
       "stage_id": "vcf.roh",
       "stage_status": "supported",
       "benchmark_status": "benchmark_ready",

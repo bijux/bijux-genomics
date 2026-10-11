@@ -297,7 +297,7 @@ mod contracts {
             );
         }
 
-        assert!(ibd_raw.contains("status: \"planned\""));
+        assert!(ibd_raw.contains("status: \"supported\""));
         assert!(ibd_raw.contains("- name: \"ibd_segments\""));
         assert!(ibd_raw.contains("required_outputs: [\"ibd_segments\"]"));
         for metric_id in
@@ -335,9 +335,9 @@ mod contracts {
             );
         }
 
-        assert!(demography_raw.contains("status: \"planned\""));
+        assert!(demography_raw.contains("status: \"supported\""));
         assert!(demography_raw.contains("- name: \"demography_report\""));
-        assert!(demography_raw.contains("required_inputs: [\"ibd_segments\"]"));
+        assert!(demography_raw.contains("required_inputs: [\"ibd_segments\", \"genetic_map_tsv\"]"));
         assert!(demography_raw.contains("required_outputs: [\"demography_report\"]"));
         assert!(demography_raw.contains("data_type: \"tsv\""));
         assert!(demography_raw.contains("planned_out_of_scope: []"));
@@ -428,11 +428,12 @@ mod contracts {
 
         let ibd = stage_io_contract(VcfDomainStage::Ibd)
             .unwrap_or_else(|| panic!("missing stage IO contract for ibd"));
+        assert_eq!(ibd.required_inputs, vec!["filtered_vcf", "genetic_map_tsv"]);
         assert_eq!(ibd.required_outputs, vec!["ibd_segments"]);
 
         let demography = stage_io_contract(VcfDomainStage::Demography)
             .unwrap_or_else(|| panic!("missing stage IO contract for demography"));
-        assert_eq!(demography.required_inputs, vec!["ibd_segments"]);
+        assert_eq!(demography.required_inputs, vec!["ibd_segments", "genetic_map_tsv"]);
         assert_eq!(demography.inputs[0].data_type, "tsv");
         assert_eq!(demography.required_outputs, vec!["demography_report"]);
 

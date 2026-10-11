@@ -7,30 +7,15 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::validate_pipeline_parameter_config;
 use bijux_dna_bench_model::{
+    BenchmarkEffectiveParameterValue as EffectiveValue, BenchmarkEffectiveParameters,
     BenchmarkExecutionParameterEvidence, BenchmarkPipelineParameterConfig,
+    BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
 };
-use serde::Serialize;
 
 const STAGE_ID: &str = "bam.mapping_summary";
 const PARAMETER_SCHEMA: &str = "bijux.bam.params.mapping_summary.v1";
 const DEFAULTS_PROVIDER: &str =
     "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::MappingSummary)";
-
-#[derive(Serialize)]
-struct EffectiveParameters<'a> {
-    schema_version: &'static str,
-    stage_id: &'static str,
-    parameter_schema_version: &'static str,
-    defaults_provider: &'static str,
-    overrides: BTreeMap<String, String>,
-    resolved_by_sample: BTreeMap<&'a str, EffectiveSampleParameters>,
-}
-
-#[derive(Serialize)]
-struct EffectiveSampleParameters {
-    schema_version: &'static str,
-    regions: Option<String>,
-}
 
 pub(super) fn ensure_parameter_evidence(
     repository_root: &Path,
@@ -53,15 +38,18 @@ pub(super) fn ensure_parameter_evidence(
 
     let overrides_path = attempt_directory.join("config-pipeline-parameters.yml");
     ensure_bytes(&overrides_path, &source_bytes)?;
-    let effective = EffectiveParameters {
-        schema_version: "bijux.benchmark.effective_parameters.v1",
-        stage_id: STAGE_ID,
-        parameter_schema_version: PARAMETER_SCHEMA,
-        defaults_provider: DEFAULTS_PROVIDER,
+    let effective = BenchmarkEffectiveParameters {
+        schema_version: BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        parameter_schema_version: PARAMETER_SCHEMA.to_string(),
+        defaults_provider: DEFAULTS_PROVIDER.to_string(),
         overrides: BTreeMap::new(),
         resolved_by_sample: BTreeMap::from([(
-            sample_id,
-            EffectiveSampleParameters { schema_version: PARAMETER_SCHEMA, regions: None },
+            sample_id.to_string(),
+            BTreeMap::from([
+                ("schema_version".to_string(), EffectiveValue::Text(PARAMETER_SCHEMA.to_string())),
+                ("regions".to_string(), EffectiveValue::Null),
+            ]),
         )]),
     };
     let mut effective_bytes = serde_json::to_vec_pretty(&effective)?;

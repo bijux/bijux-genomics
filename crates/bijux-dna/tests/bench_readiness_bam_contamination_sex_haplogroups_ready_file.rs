@@ -43,18 +43,13 @@ fn bench_readiness_bam_contamination_sex_haplogroups_ready_writes_governed_json_
     let report: serde_json::Value = serde_json::from_str(&payload)
         .expect("parse BAM contamination/sex/haplogroups readiness JSON");
 
-    #[cfg(feature = "bam_downstream")]
-    let expected_row_count = 7;
-    #[cfg(not(feature = "bam_downstream"))]
-    let expected_row_count = 6;
-
     assert_eq!(
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.bam_contamination_sex_haplogroups_ready.v1")
     );
     assert_eq!(
         report.get("complete_row_count").and_then(serde_json::Value::as_u64),
-        Some(expected_row_count)
+        report.get("active_row_count").and_then(serde_json::Value::as_u64)
     );
     assert_eq!(report.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
 
@@ -72,9 +67,9 @@ fn bench_readiness_bam_contamination_sex_haplogroups_ready_writes_governed_json_
         }));
     assert!(expected_tool_ids.get("bam.sex").and_then(serde_json::Value::as_array).is_some_and(
         |tools| {
-            tools.iter().any(|tool| tool.as_str() == Some("angsd"))
-                && tools.iter().any(|tool| tool.as_str() == Some("rxy"))
+            tools.iter().any(|tool| tool.as_str() == Some("rxy"))
                 && tools.iter().any(|tool| tool.as_str() == Some("yleaf"))
+                && tools.iter().all(|tool| tool.as_str() != Some("angsd"))
         }
     ));
 

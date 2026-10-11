@@ -2,8 +2,8 @@ use bijux_dna_bench::{
     benchmark_attempt_directory, ensure_stage_campaign_attempts, load_attempt_lifecycle,
     load_checked_in_benchmark_planning_contracts,
     plan_stage_campaign_attempts as derive_campaign_plan, plan_stage_campaign_retry_attempts,
-    verify_campaign_plan_source, BenchmarkCampaignPlan, BenchmarkLifecycleStatus,
-    BenchmarkStageCampaignRegistry,
+    recover_stage_campaign_retry_lineage, verify_campaign_plan_source, BenchmarkCampaignPlan,
+    BenchmarkLifecycleStatus, BenchmarkStageCampaignRegistry,
 };
 
 fn plan_stage_campaign_attempts(
@@ -290,6 +290,293 @@ fn campaign_retry_rejects_nonterminal_predecessors() -> anyhow::Result<()> {
     )
     .is_err());
     Ok(())
+}
+
+#[test]
+fn campaign_retry_recovery_selects_explicit_complete_tool_lineage() -> anyhow::Result<()> {
+    let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-campaign-retry-recovery");
+    initialize_retry_recovery_fixture(temporary.path(), &registry)?;
+
+    let lineage = recover_stage_campaign_retry_lineage(
+        temporary.path(),
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-005",
+    )?;
+
+    assert_eq!(lineage.len(), 6);
+    assert_eq!(
+        lineage
+            .iter()
+            .map(|record| (record.identity.tool_id.as_str(), record.identity.attempt_id.as_str()))
+            .collect::<Vec<_>>(),
+        [
+            ("seqfu", "attempt-003"),
+            ("seqfu", "attempt-004"),
+            ("seqfu", "attempt-005"),
+            ("seqkit", "attempt-003"),
+            ("seqkit", "attempt-004"),
+            ("seqkit", "attempt-005"),
+        ]
+    );
+    let retry = plan_stage_campaign_retry_attempts(
+        &registry,
+        &"a".repeat(40),
+        &"b".repeat(64),
+        lineage,
+        "attempt-006",
+        "2026-08-05T01:00:00Z",
+    )?;
+    assert_eq!(retry.cycle.attempts.len(), 8);
+    assert_eq!(
+        retry
+            .cycle
+            .attempts
+            .iter()
+            .filter(|record| record.current_status() == Some(BenchmarkLifecycleStatus::Planned))
+            .count(),
+        2
+    );
+    Ok(())
+}
+
+#[test]
+fn campaign_retry_recovery_rejects_missing_predecessor_and_cycles() -> anyhow::Result<()> {
+    let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
+    let missing = bijux_dna_testkit::tempdir_for("benchmark-campaign-missing-predecessor");
+    initialize_retry_recovery_fixture(missing.path(), &registry)?;
+    rewrite_origin_supersession(
+        missing.path(),
+        &registry,
+        "seqfu",
+        "attempt-003",
+        Some("attempt-999"),
+    )?;
+    assert!(recover_stage_campaign_retry_lineage(
+        missing.path(),
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-005",
+    )
+    .is_err());
+
+    let cycle = bijux_dna_testkit::tempdir_for("benchmark-campaign-lineage-cycle");
+    initialize_retry_recovery_fixture(cycle.path(), &registry)?;
+    rewrite_origin_supersession(
+        cycle.path(),
+        &registry,
+        "seqfu",
+        "attempt-003",
+        Some("attempt-005"),
+    )?;
+    assert!(recover_stage_campaign_retry_lineage(
+        cycle.path(),
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-005",
+    )
+    .is_err());
+    Ok(())
+}
+
+#[test]
+fn campaign_retry_recovery_rejects_nonterminal_and_identity_drift() -> anyhow::Result<()> {
+    let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
+    let nonterminal = bijux_dna_testkit::tempdir_for("benchmark-campaign-nonterminal-tip");
+    let planned = plan_stage_campaign_attempts(
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+    ensure_stage_campaign_attempts(nonterminal.path(), &planned)?;
+    assert!(recover_stage_campaign_retry_lineage(
+        nonterminal.path(),
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-001",
+    )
+    .is_err());
+
+    let drift = bijux_dna_testkit::tempdir_for("benchmark-campaign-retry-identity-drift");
+    initialize_retry_recovery_fixture(drift.path(), &registry)?;
+    rewrite_origin_tool(drift.path(), &registry, "seqfu", "attempt-005", "seqkit")?;
+    assert!(recover_stage_campaign_retry_lineage(
+        drift.path(),
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-005",
+    )
+    .is_err());
+
+    let run_drift = bijux_dna_testkit::tempdir_for("benchmark-campaign-retry-run-drift");
+    initialize_retry_recovery_fixture(run_drift.path(), &registry)?;
+    rewrite_origin_run(run_drift.path(), &registry, "seqfu", "attempt-005", "run-2043")?;
+    assert!(recover_stage_campaign_retry_lineage(
+        run_drift.path(),
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-005",
+    )
+    .is_err());
+    Ok(())
+}
+
+#[test]
+fn campaign_retry_recovery_rejects_detached_execution_evidence() -> anyhow::Result<()> {
+    let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-campaign-competing-lineage");
+    initialize_retry_recovery_fixture(temporary.path(), &registry)?;
+    let extra = plan_stage_campaign_attempts(
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-006",
+        "2026-08-05T00:20:00Z",
+    )?;
+    ensure_stage_campaign_attempts(temporary.path(), &extra)?;
+    for record in extra.cycle.attempts {
+        bijux_dna_runtime::record_attempt_superseded(
+            temporary.path(),
+            &record.identity,
+            "2026-08-05T00:21:00Z",
+            "independent terminal lineage retained for ambiguity test",
+        )?;
+    }
+
+    assert!(recover_stage_campaign_retry_lineage(
+        temporary.path(),
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-005",
+    )
+    .is_err());
+    Ok(())
+}
+
+fn initialize_retry_recovery_fixture(
+    root: &std::path::Path,
+    registry: &BenchmarkStageCampaignRegistry,
+) -> anyhow::Result<()> {
+    for (attempt_id, observed_at) in
+        [("attempt-001", "2026-08-05T00:00:00Z"), ("attempt-002", "2026-08-05T00:01:00Z")]
+    {
+        let detached = plan_stage_campaign_attempts(
+            registry,
+            "run-2042",
+            "current-source-campaign",
+            attempt_id,
+            observed_at,
+        )?;
+        ensure_stage_campaign_attempts(root, &detached)?;
+    }
+    let mut predecessor = None;
+    for (attempt_id, planned_at, terminal_at) in [
+        ("attempt-003", "2026-08-05T00:02:00Z", "2026-08-05T00:03:00Z"),
+        ("attempt-004", "2026-08-05T00:04:00Z", "2026-08-05T00:05:00Z"),
+        ("attempt-005", "2026-08-05T00:06:00Z", "2026-08-05T00:07:00Z"),
+    ] {
+        let mut plan = plan_stage_campaign_attempts(
+            registry,
+            "run-2042",
+            "current-source-campaign",
+            attempt_id,
+            planned_at,
+        )?;
+        for record in &mut plan.cycle.attempts {
+            record.supersedes_attempt_id = predecessor.map(str::to_string);
+        }
+        for record in &plan.cycle.attempts {
+            bijux_dna_bench::initialize_attempt_lifecycle(root, record)?;
+        }
+        for record in plan.cycle.attempts {
+            bijux_dna_runtime::record_attempt_superseded(
+                root,
+                &record.identity,
+                terminal_at,
+                "terminal retry lineage retained for recovery contract test",
+            )?;
+        }
+        predecessor = Some(attempt_id);
+    }
+    Ok(())
+}
+
+fn rewrite_origin_supersession(
+    root: &std::path::Path,
+    registry: &BenchmarkStageCampaignRegistry,
+    tool_id: &str,
+    attempt_id: &str,
+    supersedes_attempt_id: Option<&str>,
+) -> anyhow::Result<()> {
+    let identity = retry_fixture_identity(registry, tool_id, attempt_id)?;
+    let path = benchmark_attempt_directory(root, &identity)?.join("attempt.json");
+    let mut record: bijux_dna_bench::BenchmarkAttemptRecordV2 =
+        serde_json::from_slice(&std::fs::read(&path)?)?;
+    record.supersedes_attempt_id = supersedes_attempt_id.map(str::to_string);
+    std::fs::write(path, serde_json::to_vec_pretty(&record)?)?;
+    Ok(())
+}
+
+fn rewrite_origin_tool(
+    root: &std::path::Path,
+    registry: &BenchmarkStageCampaignRegistry,
+    tool_id: &str,
+    attempt_id: &str,
+    replacement: &str,
+) -> anyhow::Result<()> {
+    let identity = retry_fixture_identity(registry, tool_id, attempt_id)?;
+    let path = benchmark_attempt_directory(root, &identity)?.join("attempt.json");
+    let mut record: bijux_dna_bench::BenchmarkAttemptRecordV2 =
+        serde_json::from_slice(&std::fs::read(&path)?)?;
+    record.identity.tool_id = replacement.to_string();
+    std::fs::write(path, serde_json::to_vec_pretty(&record)?)?;
+    Ok(())
+}
+
+fn rewrite_origin_run(
+    root: &std::path::Path,
+    registry: &BenchmarkStageCampaignRegistry,
+    tool_id: &str,
+    attempt_id: &str,
+    replacement: &str,
+) -> anyhow::Result<()> {
+    let identity = retry_fixture_identity(registry, tool_id, attempt_id)?;
+    let path = benchmark_attempt_directory(root, &identity)?.join("attempt.json");
+    let mut record: bijux_dna_bench::BenchmarkAttemptRecordV2 =
+        serde_json::from_slice(&std::fs::read(&path)?)?;
+    record.identity.run.run_id = replacement.to_string();
+    std::fs::write(path, serde_json::to_vec_pretty(&record)?)?;
+    Ok(())
+}
+
+fn retry_fixture_identity(
+    registry: &BenchmarkStageCampaignRegistry,
+    tool_id: &str,
+    attempt_id: &str,
+) -> anyhow::Result<bijux_dna_bench::BenchmarkAttemptIdentity> {
+    let plan = plan_stage_campaign_attempts(
+        registry,
+        "run-2042",
+        "current-source-campaign",
+        attempt_id,
+        "2026-08-05T00:00:00Z",
+    )?;
+    plan.cycle
+        .attempts
+        .into_iter()
+        .find(|record| record.identity.tool_id == tool_id)
+        .map(|record| record.identity)
+        .ok_or_else(|| anyhow::anyhow!("retry fixture tool is absent"))
 }
 
 #[test]

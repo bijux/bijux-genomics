@@ -75,28 +75,76 @@ to replace either path:
 
 ```console
 study_root="/home/bijan/lu2024-12-24/Dardel/STUDY"
-image_commit="$(git rev-parse HEAD)"
-frozen_repository="$(pwd)"
+image_commit="${image_commit:?set exact image campaign commit}"
+source_repository="${study_root}/artifacts/source-checkouts/bijux-genomics-${image_commit:0:10}"
+image_root="${study_root}/containers/staging/${image_commit}"
+build_evidence_root="${study_root}/containers/evidence/image-campaigns/${image_commit}"
+run_evidence_root="${run_evidence_root:?set governed run-evidence root}"
 attempt_id="${attempt_id:?set immutable attempt id}"
 inventory_root="${study_root}/containers/evidence/inventory/${image_commit}/${attempt_id}"
 mkdir -p "${inventory_root}"
 
 cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- \
+  "${source_repository}" \
   "${study_root}" \
+  "${image_root}" \
+  "${build_evidence_root}" \
+  "${run_evidence_root}" \
   "${inventory_root}/scan.json" \
   "${inventory_root}/image-inventory.json"
 canonical_inventory="${inventory_root}/image-inventory.json"
 ```
 
+The source checkout and all evidence roots are mandatory. This allows a newer
+automation binary to inventory an older exact-commit image campaign without
+misstating the campaign's repository identity or scanning an unrelated active
+image tree.
+
+## Activate a reviewed image campaign
+
+Activation is a separate no-clobber transaction. It selects the unique
+canonical image for every retained tool from the immutable campaign inventory,
+rechecks each source identity, and publishes same-filesystem hard links into
+the active root without removing staging evidence. The plan persists progress
+after every image and accepts an interrupted publication only when source and
+target are the same inode.
+
+```console
+activation_root="${study_root}/containers/evidence/activation/${image_commit}/${attempt_id}"
+activation_plan="${activation_root}/image-activation-plan.json"
+mkdir -p "${activation_root}"
+
+cargo run -p bijux-dna-dev -- containers run image-activation -- \
+  plan "${study_root}" "${canonical_inventory}" "${image_root}" \
+  "${study_root}/containers/apptainer" "${activation_plan}" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+cargo run -p bijux-dna-dev -- containers run image-activation -- \
+  apply "${activation_plan}" "${image_root}" \
+  "${study_root}/containers/apptainer" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+cargo run -p bijux-dna-dev -- containers run image-activation -- \
+  verify "${activation_plan}" "${image_root}" \
+  "${study_root}/containers/apptainer"
+```
+
+Review the complete preview before applying it. Rollback removes only the
+verified active links recorded by the plan and leaves every staging source in
+place.
+
 ## Reconcile canonical image storage
 
 Storage reconciliation is a typed, reversible environment workflow. It accepts
-only inventory rows classified as unreferenced obsolete or interrupted,
+inventory rows classified as historical run dependencies, unreferenced
+obsolete, or interrupted,
 rechecks every regular-file size and digest, and refuses targets outside a
 same-filesystem quarantine beneath the image root. Planning and report
 publication are no-clobber operations. Apply and rollback persist progress
 after every rename and resume only when the discovered file matches the locked
-identity.
+identity. Historical dependencies leave the active top level but remain
+checksummed under the `historical/` quarantine category; their run-reference
+authority remains in the plan's immutable source inventory.
 
 Preview the exact move set before applying it:
 
@@ -150,6 +198,7 @@ runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/
 publication_root="${runtime_root}/publication"
 
 cargo run -p bijux-dna-dev -- containers run runtime-verification -- execute \
+  "${source_repository}" \
   /home/bijan/lu2024-12-24/Dardel/STUDY \
   "${canonical_inventory}" \
   "$(command -v apptainer)" \
@@ -173,9 +222,10 @@ publication binds each tool to its identity evidence and smoke manifest with
 
 A passing runtime campaign qualifies only the version and help dimensions.
 Real one-sample execution remains a governed Slurm run, and scientific,
-benchmark, security, and release claims remain independent. The command must
-run from the clean frozen repository whose HEAD matches the inventory commit;
-later movement of an active checkout cannot silently change the campaign.
+benchmark, security, and release claims remain independent. The explicit
+source repository must be the clean checkout whose HEAD matches the inventory
+commit; later movement of the automation checkout cannot silently change the
+campaign.
 
 ## Govern qualification run identities
 
@@ -229,18 +279,19 @@ The validator re-hashes every declared input, image, and frozen repository
 before submission. A missing file or checksum mismatch is a hard failure; the
 executor never substitutes a fixture.
 
-Scientific data selection and admission belong to the root benchmark authority,
-not to container runtime contracts. Container runs consume its verified index
+Scientific data selection and admission belong to `bijux-dna-bench`, not to
+container runtime contracts. Container runs consume its verified index
 instead of encoding knowledge of individual catalog shapes:
 
 ```console
 study=/home/bijan/lu2024-12-24/Dardel/STUDY
 evidence="$study/data/evidence/indexes/$(git rev-parse HEAD)"
-python3 -B benchmarks/data_catalog.py \
+cargo run -q -p bijux-dna -- bench data-index \
   --catalog-root "$study/data/catalog" \
   --data-root "$study/data" \
   --output "$evidence/data-index.json" \
-  --report "$evidence/data-index.md"
+  --report "$evidence/data-index.md" \
+  --created-at-utc "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 The benchmark-owned index recalculates every governed file SHA-256, replaces execution-site

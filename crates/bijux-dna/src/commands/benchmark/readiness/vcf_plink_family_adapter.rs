@@ -447,6 +447,39 @@ fn build_stage_contract(
                 ],
             )],
         ),
+        ("plink", VcfDomainStage::PopulationStructure) => (
+            "domain/vcf/fixtures/vcf.population_structure/plink.txt".to_string(),
+            "population_structure_report".to_string(),
+            json_output_path("population_structure_report"),
+            vec!["population_mds".to_string(), "plink_log".to_string()],
+            vec!["population_structure_report".to_string()],
+            vec![
+                artifact("population_mds", "report_tsv", &raw_path("mds")),
+                artifact("plink_log", "log", &raw_path("log")),
+                artifact(
+                    "population_structure_report",
+                    "report_json",
+                    &json_output_path("population_structure_report"),
+                ),
+            ],
+            vec![step(
+                "population_structure",
+                "multidimensional_scaling",
+                vec![
+                    "plink",
+                    "--vcf",
+                    GOVERNED_COHORT_VCF_PATH,
+                    "--double-id",
+                    "--allow-extra-chr",
+                    "--cluster",
+                    "--mds-plot",
+                    "2",
+                    "--out",
+                    output_prefix,
+                ],
+                &["population_mds", "plink_log"],
+            )],
+        ),
         ("plink2", VcfDomainStage::Qc) => (
             "domain/vcf/fixtures/vcf.qc/plink2.txt".to_string(),
             "qc_report".to_string(),
@@ -794,6 +827,10 @@ fn validate_command_steps(
             ensure_join_contains(stage_id, &joined, "--freq")?;
             ensure_join_contains(stage_id, &joined, "--missing")?;
         }
+        ("plink", "vcf.population_structure") => {
+            ensure_join_contains(stage_id, &joined, "--cluster")?;
+            ensure_join_contains(stage_id, &joined, "--mds-plot")?;
+        }
         ("plink2", "vcf.qc") => {
             ensure_join_contains(stage_id, &joined, "--missing")?;
             ensure_join_contains(stage_id, &joined, "--freq")?;
@@ -968,12 +1005,12 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.vcf_plink_adapter.v1");
         assert_eq!(report.tool_id, "plink");
-        assert_eq!(report.tool_status, "experimental");
-        assert_eq!(report.row_count, 2);
+        assert_eq!(report.tool_status, "planned");
+        assert_eq!(report.row_count, 3);
         assert_eq!(report.benchmark_ready_row_count, 1);
-        assert_eq!(report.parser_output_row_count, 2);
-        assert_eq!(report.normalized_metrics_row_count, 2);
-        assert_eq!(report.raw_output_declared_row_count, 2);
+        assert_eq!(report.parser_output_row_count, 3);
+        assert_eq!(report.normalized_metrics_row_count, 3);
+        assert_eq!(report.raw_output_declared_row_count, 3);
 
         let qc = report.rows.iter().find(|row| row.stage_id == "vcf.qc").expect("plink qc row");
         assert_eq!(qc.normalized_metrics_artifact_id, "qc_report");
@@ -990,6 +1027,12 @@ mod tests {
             admixture.command_steps[0].argv.iter().any(|part| part == "--make-bed"),
             "plink admixture row must retain cohort-preparation outputs"
         );
+        let population_structure = report
+            .rows
+            .iter()
+            .find(|row| row.stage_id == "vcf.population_structure")
+            .expect("plink population_structure row");
+        assert!(population_structure.command_steps[0].argv.iter().any(|part| part == "--mds-plot"));
     }
 
     #[test]
@@ -1004,7 +1047,7 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.vcf_plink2_adapter.v1");
         assert_eq!(report.tool_id, "plink2");
-        assert_eq!(report.tool_status, "experimental");
+        assert_eq!(report.tool_status, "production");
         assert_eq!(report.row_count, 5);
         assert_eq!(report.benchmark_ready_row_count, 5);
         assert_eq!(report.parser_output_row_count, 5);

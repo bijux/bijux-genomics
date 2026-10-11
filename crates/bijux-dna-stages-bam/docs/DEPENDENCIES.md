@@ -24,7 +24,7 @@ dependency graph must stay below planner, runtime, runner, API, and CLI layers.
 ## Forbidden Normal Dependencies
 - `bijux-dna-api`
 - `bijux-dna-engine`
-- `bijux-dna-environment`
+- `bijux-dna-containers`
 - `bijux-dna-pipelines`
 - `bijux-dna-planner-*`
 - `bijux-dna-runner`

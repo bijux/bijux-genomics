@@ -12,7 +12,6 @@ Model contracts:
 - `BenchmarkSuiteSpec`
 - `BenchmarkObservation`
 - `BenchmarkSummary`
-- `BenchmarkDecision`
 - `BenchmarkStageCampaignRegistry`
 - `BenchmarkStageCampaignSpec`
 - `BenchmarkStageCoverage`
@@ -35,7 +34,6 @@ Model contracts:
 - `BenchmarkScientificProfile`
 - `BenchmarkProfileAssignment`
 - `BenchmarkComparisonMetricTolerance`
-- `DecisionRationale`
 - `BenchmarkLifecycleStatus`
 - `BenchmarkJobReference`
 - `BenchmarkSchedulerTerminalState`
@@ -63,6 +61,14 @@ Model contracts:
 - `BenchmarkExecutionResources`
 - `BenchmarkExecutionRuntimePolicy`
 - `BenchmarkExecutionAcceptance`
+- `CorpusAcquisitionPlan`
+- `CorpusAcquisitionSample`
+- `CorpusAcquisitionFile`
+- `CorpusAcquisitionLayout`
+- `GovernedDataCatalog`
+- `GovernedDataCatalogSample`
+- `GovernedDataCatalogFile`
+- `CorpusMaterializationDisposition`
 - `BenchmarkAttemptRecord`
 - `BenchmarkCycleStatus`
 - `BenchmarkGraphNode`
@@ -87,6 +93,12 @@ Policy and diagnostics:
 - `GateDecision`
 - `GateViolation`
 - `BenchError`
+- `SUITE_SCHEMA_V1`
+- `CORPUS_SCHEMA_V1`
+- `BUNDLE_SCHEMA_V1`
+- `OBSERVATION_SCHEMA_V1`
+- `SUMMARY_SCHEMA_V1`
+- `DECISION_SCHEMA_V1`
 - `BENCHMARK_ATTEMPT_SCHEMA_V1`
 - `BENCHMARK_ATTEMPT_SCHEMA_V2`
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V1`
@@ -100,6 +112,8 @@ Policy and diagnostics:
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
 - `BENCHMARK_STAGE_REPORT_SCHEMA_V1`
+- `CORPUS_ACQUISITION_SCHEMA_V1`
+- `GOVERNED_DATA_CATALOG_SCHEMA_V1`
 
 Statistics:
 
@@ -108,10 +122,21 @@ Statistics:
 Schema derivation:
 
 - `benchmark_campaign_plan_schema`
+- `benchmark_suite_spec_schema`
+- `benchmark_corpus_manifest_schema`
+- `benchmark_bundle_manifest_schema`
+- `benchmark_observation_schema`
+- `benchmark_summary_schema`
+- `gate_decision_schema`
 - `benchmark_execution_spec_schema`
 - `benchmark_scheduler_observation_schema`
+- `corpus_acquisition_plan_schema`
+- `governed_data_catalog_schema`
 - `validate_scheduler_observation`
 - `validate_execution_spec`
+- `validate_corpus_acquisition_plan`
+- `validate_governed_data_catalog`
+- `validate_utc_timestamp`
 
 Namespaces:
 

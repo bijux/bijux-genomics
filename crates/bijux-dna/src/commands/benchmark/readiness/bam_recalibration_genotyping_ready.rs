@@ -142,19 +142,19 @@ fn bam_binding_specs() -> Vec<BamBindingSpec> {
     #[cfg(feature = "bam_downstream")]
     specs.push(BamBindingSpec {
         stage_id: "bam.genotyping",
-        tool_id: "angsd",
+        tool_id: "bcftools",
         fixture_id: "corpus-01-genotyping-mini",
         required_output_ids: &GENOTYPING_REQUIRED_OUTPUT_IDS,
         normalized_metrics_output_id: "genotyping_report",
         schema_extension_id: "bam_genotyping_normalized_v1",
         expected_local_proof_kind: LOCAL_PROOF_KIND_READY_PLAN,
-        expected_local_proof_tool_id: "angsd",
+        expected_local_proof_tool_id: "bcftools",
         required_local_proof_fields: &GENOTYPING_REQUIRED_LOCAL_PROOF_FIELDS,
         required_local_proof_output_ids: &GENOTYPING_REQUIRED_LOCAL_PROOF_OUTPUT_IDS,
         required_local_proof_command_fragments: &GENOTYPING_REQUIRED_LOCAL_PROOF_COMMAND_FRAGMENTS,
         report_section_id: "downstream_readiness",
         summary_table_id: "variant_readiness",
-        report_anchor_tool_id: "angsd",
+        report_anchor_tool_id: "bcftools",
     });
     specs
 }

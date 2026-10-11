@@ -220,6 +220,18 @@ Visible aliases are part of the operator surface:
   outside `benchmarks/`.
 - `bijux-dna bench run`
 - `bijux-dna bench run-micro`
+- `bijux-dna bench materialize-fastq-corpus`
+- `bijux-dna bench corpus-materialization prepare`
+  Validates a typed scheduler specification and publishes immutable runner-owned Slurm material,
+  including the recoverable prepared-job record. It does not submit a job.
+- `bijux-dna bench corpus-materialization submit`
+  Loads the immutable prepared-job record, persists submission intent, invokes `sbatch` once, and
+  returns the retained handle without waiting.
+- `bijux-dna bench corpus-materialization status`
+  Observes one retained job once through `squeue` and, when absent, `sacct`; it never polls.
+- `bijux-dna bench corpus-materialization collect`
+  Performs one observation and publishes terminal evidence only after scheduler accounting and the
+  complete admitted catalog closure validate.
   `run-micro` writes `runs/bench/micro/MICRO_BENCHMARK_RUN.json` plus governed aggregate row sets
   for result rows, output rows, log rows, and normalized metrics under `runs/bench/micro/`, and
   also writes the governed Markdown and JSON micro benchmark report pair

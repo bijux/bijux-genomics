@@ -64,7 +64,7 @@ tool_ids = ["bedtools", "mosdepth", "samtools"]
 corpus_catalog_ids = ["ena-prjeb22390-err2112767-bam"]
 reference_catalog_ids = ["equcab3-gcf-002863925.1"]
 database_catalog_ids = []
-input_size_keys = ["bam_input_bytes", "bam_index_input_bytes", "reference_index_input_bytes"]
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes"]
 result_artifact = "coverage-summary.tsv"
 runtime = "apptainer"
 scheduler = "slurm"
@@ -200,6 +200,55 @@ limitations = [
 ]
 
 [[campaigns]]
+run_id = "run-2011"
+slug = "bam-duplication-metrics"
+domain = "bam"
+stage_id = "bam.duplication_metrics"
+evidence_tier = "qualification"
+profile_id = "bam-observational-qc"
+corpus_ids = ["ancient-horse-alignment-qualification"]
+scientific_question = "Do Picard and Samtools derive consistent duplicate-read counts for the same governed ancient horse alignment, and what resources does each implementation consume?"
+comparison_scope = "duplicate detection over one governed coordinate-sorted EquCab3 BAM"
+tool_ids = ["picard", "samtools"]
+corpus_catalog_ids = ["ena-prjeb22390-err2112767-bam"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes"]
+result_artifact = "duplication-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads_by_tool = { picard = 1, samtools = 4 }
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "cross_tool_duplicate_accounting_consistency_not_library_complexity_truth"
+interpretation = "This campaign compares duplicate-read accounting after each tool performs duplicate detection under one normalized count contract. Agreement is an interoperability check for this BAM, not an independent truth estimate of molecular library complexity."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "peak_rss_kib",
+  "input_bytes",
+  "output_bytes",
+]
+scientific_metrics = [
+  "examined_reads",
+  "duplicate_reads",
+  "duplication_fraction",
+]
+comparison_metrics = [
+  {id = "examined_reads", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "duplicate_reads", absolute_tolerance = 2.0, relative_tolerance = 0.01},
+  {id = "duplication_fraction", absolute_tolerance = 0.000001, relative_tolerance = 0.01},
+]
+limitations = [
+  "The corpus is one low-coverage ancient horse library and cannot establish agreement across all library structures or sequencing technologies.",
+  "Picard and Samtools implement different duplicate-scoring and optical-duplicate models, so small count differences are interpreted within declared tolerances rather than as truth error.",
+  "Duplicate fraction is an operational BAM statistic and does not independently estimate original molecular diversity.",
+]
+
+[[campaigns]]
 run_id = "run-2042"
 slug = "fastq-profile-read-lengths"
 domain = "fastq"
@@ -264,6 +313,62 @@ limitations = [
 ]
 
 [[campaigns]]
+run_id = "run-2030"
+slug = "fastq-detect-adapters"
+domain = "fastq"
+stage_id = "fastq.detect_adapters"
+evidence_tier = "qualification"
+profile_id = "fastq-observational-qc"
+corpus_ids = ["human-short-read-diversity"]
+scientific_question = "What governed adapter-evidence summaries does the retained FastQC implementation emit across the full admitted human short-read diversity cohort, and what resources does the inspection stage consume?"
+comparison_scope = "thirty FASTQ files from twenty ancient and modern human runs spanning single- and paired-end layouts"
+tool_ids = ["fastqc"]
+corpus_catalog_ids = ["human-short-read-diversity"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["fastq_input_bytes"]
+result_artifact = "adapter-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 4
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "governed_adapter_evidence_reproducibility_not_library_truth"
+interpretation = "This campaign measures a reproducible governed adapter-inspection report over the admitted cohort. It does not establish library-preparation truth, optimal trimming policy, or malformed-input sensitivity beyond the declared inspection contract."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_input_operations",
+  "filesystem_output_operations",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+]
+scientific_metrics = [
+  "sample_count",
+  "file_count",
+  "reads_in",
+  "samples_with_detected_adapters",
+  "max_detection_confidence",
+  "max_adapter_content_max",
+  "adapter_content_mean_mean",
+  "duplication_rate_mean",
+  "overrepresented_sequence_count",
+]
+comparison_metrics = []
+limitations = [
+  "FastQC is currently the only retained governed adapter-inspection backend, so this campaign is a qualification report rather than a cross-tool fairness comparison.",
+  "Observed adapter evidence over real human libraries does not by itself prove library-preparation truth or optimal downstream trimming choices.",
+  "The governed report supplements backend-native evidence with one normalized adapter-bank interpretation, so the result characterizes the complete stage contract rather than raw FastQC output alone.",
+  "Warm-cache repetitions characterize stable execution after one warmup and exclude cold shared-filesystem startup.",
+]
+
+[[campaigns]]
 run_id = "run-2043"
 slug = "fastq-profile-reads"
 domain = "fastq"
@@ -319,4 +424,63 @@ limitations = [
   "Minimum and maximum read lengths are cross-tool consistency observations because the admission catalog records reads and bases but not length extrema.",
   "Warm-cache repetitions characterize stable parsing after one warmup and do not measure cold shared-filesystem startup.",
   "The campaign covers the admitted gzip-compressed Illumina FASTQ files and does not generalize to every valid FASTQ encoding or compression format.",
+]
+
+[[campaigns]]
+run_id = "run-2051"
+slug = "fastq-validate-reads"
+domain = "fastq"
+stage_id = "fastq.validate_reads"
+evidence_tier = "comparative"
+profile_id = "fastq-observational-qc"
+corpus_ids = ["human-short-read-diversity"]
+scientific_question = "Do all retained FASTQ validation backends complete the same canonical strict-validation contract over every independently admitted file in the real human short-read diversity cohort, including paired-header synchronization?"
+comparison_scope = "thirty FASTQ files from twenty ancient and modern human runs spanning single- and paired-end layouts"
+tool_ids = ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]
+corpus_catalog_ids = ["human-short-read-diversity"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["fastq_input_bytes"]
+result_artifact = "validation-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 4
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "canonical_strict_validation_concordance_on_independently_admitted_valid_fastq"
+interpretation = "Exact completion across the independently admitted cohort establishes that each retained backend can participate in the governed strict-validation stage for these valid files. It does not establish equal native malformed-input sensitivity because canonical structural and pair-synchronization checks supplement every backend."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_input_operations",
+  "filesystem_output_operations",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+]
+scientific_metrics = [
+  "sample_count",
+  "file_count",
+  "validated_read_count",
+  "strict_pass_count",
+  "pair_sync_checked_count",
+  "pair_sync_failure_count",
+]
+comparison_metrics = [
+  {id = "sample_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "file_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "validated_read_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "strict_pass_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "pair_sync_failure_count", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+]
+limitations = [
+  "The cohort contains valid gzip-compressed Illumina FASTQ inputs; malformed-input sensitivity and compression-format breadth require separate challenge campaigns.",
+  "The governed stage combines each native backend with the same crate-owned strict stream and paired-header checks, so this campaign compares complete stage implementations rather than isolated native validators.",
+  "Successful validation establishes structural acceptance and pair synchronization, not biological sequence correctness or sample identity.",
+  "Warm-cache repetitions characterize stable validation after one warmup and exclude cold shared-filesystem startup.",
 ]

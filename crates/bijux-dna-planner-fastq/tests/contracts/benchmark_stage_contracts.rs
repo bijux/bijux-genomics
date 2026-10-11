@@ -22,6 +22,16 @@ fn configured_read_length_overrides(root: &Path) -> Result<(Option<u32>, Option<
     Ok((threads, histogram_bins))
 }
 
+fn configured_validation_threads(root: &Path) -> Result<Option<u32>> {
+    let path = root.join("benchmarks/contracts/config-pipeline-parameters.yml");
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let config: serde_json::Value = serde_json::from_str(&raw)
+        .with_context(|| format!("parse JSON-compatible YAML {}", path.display()))?;
+    Ok(config["stages"]["fastq.validate_reads"]["overrides"]["threads"]
+        .as_u64()
+        .and_then(|value| value.try_into().ok()))
+}
+
 #[test]
 fn read_length_benchmark_contract_is_planner_derived() -> Result<()> {
     let root = workspace_root();
@@ -47,6 +57,33 @@ fn read_length_benchmark_contract_is_planner_derived() -> Result<()> {
     assert!(contract.tools.iter().all(|tool| {
         tool.single_end.effective_params["threads"] == 4
             && tool.paired_end.effective_params["histogram_bins"] == 100
+    }));
+    Ok(())
+}
+
+#[test]
+fn validation_benchmark_contract_is_planner_derived() -> Result<()> {
+    let root = workspace_root();
+    let contract = bijux_dna_planner_fastq::validate_reads_benchmark_contract(
+        &root,
+        configured_validation_threads(&root)?,
+    )?;
+    let rendered = serde_json::to_string_pretty(&contract)? + "\n";
+    let path = root.join("benchmarks/contracts/planner/fastq-validate-reads.planner-contract.json");
+    if std::env::var_os("UPDATE_BENCHMARK_CONTRACTS").is_some() {
+        std::fs::create_dir_all(path.parent().unwrap_or_else(|| Path::new(".")))?;
+        std::fs::write(&path, rendered)?;
+        return Ok(());
+    }
+    let expected =
+        std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    assert_eq!(rendered, expected);
+    let tool_ids = contract.tools.iter().map(|tool| tool.tool_id.as_str()).collect::<Vec<_>>();
+    assert_eq!(tool_ids, ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]);
+    assert!(contract.tools.iter().all(|tool| {
+        tool.single_end.effective_params["threads"] == 4
+            && tool.single_end.effective_params["pair_sync_policy"] == "not_applicable"
+            && tool.paired_end.effective_params["pair_sync_policy"] == "require_header_sync"
     }));
     Ok(())
 }

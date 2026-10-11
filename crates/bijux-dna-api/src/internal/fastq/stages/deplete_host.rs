@@ -14,6 +14,7 @@ use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_deplete_host_v1, insert_fastq_deplete_host_v1,
 };
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDepleteHostMetrics};
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
@@ -24,7 +25,6 @@ use bijux_dna_domain_fastq::metrics::ratio_u64;
 use bijux_dna_domain_fastq::params::screen::HostDepletionEffectiveParams;
 use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST;
 use bijux_dna_domain_fastq::{DepleteHostReportV1, PairedMode, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::hash_file_sha256;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_deplete_host_tools;

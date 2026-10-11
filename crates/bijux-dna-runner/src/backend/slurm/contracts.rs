@@ -26,7 +26,8 @@ impl Default for SlurmClientPaths {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SlurmSubmitRequest {
     pub run_id: String,
     pub script_path: PathBuf,

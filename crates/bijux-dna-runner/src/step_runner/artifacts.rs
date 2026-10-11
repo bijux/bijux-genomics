@@ -1,9 +1,9 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_core::metrics::{ToolInvocationSpecV1, ToolInvocationV1};
-use bijux_dna_environment::api::RuntimeKind;
 
 use super::effects::{runner_failure, RunnerEffectKind};
 use super::identity::{infer_tool_version_from_image, runtime_platform_identity};

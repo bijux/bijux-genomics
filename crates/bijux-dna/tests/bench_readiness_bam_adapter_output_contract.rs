@@ -47,11 +47,18 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/bam-adapter-output-contract.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(49));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    assert_eq!(
+        payload.get("adapter_row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert_eq!(
         payload.get("complete_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(49)
+        Some(rows.len() as u64)
     );
     assert_eq!(
         payload.get("incomplete_adapter_row_count").and_then(serde_json::Value::as_u64),
@@ -62,8 +69,12 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
         Some(0)
     );
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 49, "report must retain the governed BAM 49-row slice");
+    assert!(rows.iter().all(|row| {
+        !matches!(
+            row.get("tool_id").and_then(serde_json::Value::as_str),
+            Some("angsd" | "ngsbriggs")
+        )
+    }));
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")
@@ -152,7 +163,7 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
     );
     assert!(
         rows.iter().any(|row| {
-            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
                 && row.get("adapter_status").and_then(serde_json::Value::as_str) == Some("runnable")
                 && row.get("output_contract_status").and_then(serde_json::Value::as_str)
@@ -160,6 +171,6 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
                 && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
                     == Some("genotyping_report")
         }),
-        "report must retain the governed angsd genotyping contract row"
+        "report must retain the governed bcftools genotyping contract row"
     );
 }

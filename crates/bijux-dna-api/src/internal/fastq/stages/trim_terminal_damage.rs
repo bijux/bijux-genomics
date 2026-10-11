@@ -9,6 +9,7 @@ use bijux_dna_analyze::load::sqlite::query_shared::{
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkRecord, FastqTrimTerminalDamageMetrics,
 };
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -17,7 +18,6 @@ use bijux_dna_domain_fastq::params::trim::{
     parse_terminal_damage_execution_policy, terminal_damage_execution_policy_label,
     TrimTerminalDamageParams,
 };
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::fastq::trim_terminal_damage::{
     plan_trim_terminal_damage_with_options, TrimTerminalDamagePlanOptions,

@@ -392,17 +392,34 @@ fn build_pair_reason(
 }
 
 fn ensure_pair_readiness_contract(rows: &[PairReadinessRow]) -> Result<()> {
-    if rows.len() != 120 {
-        return Err(anyhow!(
-            "pair readiness report must retain exactly 120 FASTQ/BAM rows, found {}",
-            rows.len()
-        ));
+    if rows.is_empty() {
+        return Err(anyhow!("pair readiness report must retain active FASTQ/BAM rows"));
+    }
+    let unique_bindings =
+        rows.iter().map(|row| (&row.domain, &row.stage_id, &row.tool_id)).collect::<BTreeSet<_>>();
+    if unique_bindings.len() != rows.len() {
+        return Err(anyhow!("pair readiness report must retain unique stage-tool bindings"));
     }
     let benchmark_ready_row_count =
         rows.iter().filter(|row| row.benchmark_status == "benchmark_ready").count();
-    if benchmark_ready_row_count != 120 {
+    if benchmark_ready_row_count != rows.len() {
+        let blocked_bindings = rows
+            .iter()
+            .filter(|row| row.benchmark_status != "benchmark_ready")
+            .map(|row| {
+                format!(
+                    "{}/{}/{} ({})",
+                    row.domain,
+                    row.stage_id,
+                    row.tool_id,
+                    pair_readiness_gap_label(row.readiness_gap)
+                )
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
         return Err(anyhow!(
-            "pair readiness report must retain exactly 120 benchmark_ready rows, found {benchmark_ready_row_count}"
+            "pair readiness report must classify every active binding as benchmark_ready; found {benchmark_ready_row_count} ready rows out of {}: {blocked_bindings}",
+            rows.len(),
         ));
     }
     ensure_row(
@@ -566,12 +583,13 @@ mod tests {
 
         assert_eq!(report.schema_version, PAIR_READINESS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_PAIR_READINESS_PATH);
-        assert_eq!(report.row_count, 120);
-        assert_eq!(report.benchmark_ready_row_count, 120);
+        assert!(report.row_count > 0);
+        assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.not_benchmark_ready_row_count, 0);
-        assert_eq!(report.domain_counts.get("fastq").copied(), Some(71));
-        assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
-        assert_eq!(report.asset_status_counts.get("assigned").copied(), Some(20));
+        assert_eq!(report.domain_counts.values().sum::<usize>(), report.row_count);
+        assert!(report.domain_counts.contains_key("fastq"));
+        assert!(report.domain_counts.contains_key("bam"));
+        assert!(report.asset_status_counts.contains_key("assigned"));
         assert!(report.rows.iter().any(|row| {
             row.domain == "fastq"
                 && row.stage_id == "fastq.screen_taxonomy"

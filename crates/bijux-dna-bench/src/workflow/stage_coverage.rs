@@ -16,7 +16,7 @@ use bijux_dna_bench_model::{
     BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
     BenchmarkStageExecutionStatus,
 };
-use bijux_dna_environment::api::{
+use bijux_dna_containers::api::{
     load_container_catalog, validate_container_catalog, ContainerCatalog,
 };
 
@@ -218,7 +218,7 @@ pub fn publish_checked_in_stage_coverage(
         &interfaces,
     )?;
     let catalog = load_container_catalog(repository_root)?;
-    let repository_commit = bijux_dna_environment::api::repository_head_commit(repository_root)?;
+    let repository_commit = bijux_dna_containers::api::repository_head_commit(repository_root)?;
     let current_report_sources =
         current_report_sources(repository_root, &reports, &repository_commit)?;
     let coverage = derive_stage_coverage_with_current_sources(

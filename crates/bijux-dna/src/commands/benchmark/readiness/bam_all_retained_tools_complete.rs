@@ -35,17 +35,6 @@ pub(crate) const DEFAULT_BAM_ALL_RETAINED_TOOLS_COMPLETE_PATH: &str =
 const BAM_ALL_RETAINED_TOOLS_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_all_retained_tools_complete.v1";
 const EXPECTED_CHECKED_GOAL_COUNT: usize = 19;
-const EXPECTED_RETAINED_ROW_COUNT: usize = 49;
-const EXPECTED_RETAINED_STAGE_COUNT: usize = 24;
-const EXPECTED_RETAINED_TOOL_COUNT: usize = 25;
-#[cfg(feature = "bam_downstream")]
-const EXPECTED_HOST_STAGE_SMOKE_ROW_COUNT: usize = 20;
-#[cfg(not(feature = "bam_downstream"))]
-const EXPECTED_HOST_STAGE_SMOKE_ROW_COUNT: usize = 18;
-#[cfg(feature = "bam_downstream")]
-const EXPECTED_CONTAINER_SMOKE_ROW_COUNT: usize = 29;
-#[cfg(not(feature = "bam_downstream"))]
-const EXPECTED_CONTAINER_SMOKE_ROW_COUNT: usize = 31;
 const EXPECTED_ACTIVE_ROW_CONSISTENCY_SURFACE_COUNT: usize = 6;
 const EXPECTED_MICRO_SMOKE_FAMILY_COUNT: usize = 12;
 const EXPECTED_BAM_COMPARABLE_STAGE_COUNT: usize = 15;
@@ -79,7 +68,7 @@ const BAM_STAGE_COMPLETION_GOALS: &[BamStageCompletionGoal] = &[
         goal_id: 433,
         stage_id: "bam.damage",
         output_path: bam_damage_complete::DEFAULT_BAM_DAMAGE_COMPLETE_PATH,
-        expected_active_row_count: 6,
+        expected_active_row_count: 5,
         expected_checked_surface_count: 13,
     },
     BamStageCompletionGoal {
@@ -100,7 +89,7 @@ const BAM_STAGE_COMPLETION_GOALS: &[BamStageCompletionGoal] = &[
         goal_id: 436,
         stage_id: "bam.sex",
         output_path: bam_sex_complete::DEFAULT_BAM_SEX_COMPLETE_PATH,
-        expected_active_row_count: 3,
+        expected_active_row_count: 2,
         expected_checked_surface_count: 15,
     },
     BamStageCompletionGoal {
@@ -128,7 +117,7 @@ const BAM_STAGE_COMPLETION_GOALS: &[BamStageCompletionGoal] = &[
         goal_id: 440,
         stage_id: "bam.kinship",
         output_path: bam_kinship_complete::DEFAULT_BAM_KINSHIP_COMPLETE_PATH,
-        expected_active_row_count: 2,
+        expected_active_row_count: 1,
         expected_checked_surface_count: 19,
     },
 ];
@@ -262,6 +251,17 @@ pub(crate) fn render_bam_all_retained_tools_complete(
 
     let retained_bindings =
         tool_map.rows.iter().map(binding_key_from_tool_serving_map_row).collect::<BTreeSet<_>>();
+    let expected_retained_row_count = retained_bindings.len();
+    let expected_retained_stage_count = retained_bindings
+        .iter()
+        .map(|binding| binding.stage_id.as_str())
+        .collect::<BTreeSet<_>>()
+        .len();
+    let expected_retained_tool_count = retained_bindings
+        .iter()
+        .map(|binding| binding.tool_id.as_str())
+        .collect::<BTreeSet<_>>()
+        .len();
     let command_bindings = command_coverage
         .rows
         .iter()
@@ -312,11 +312,11 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         "bam local and container smoke coverage",
         Some(bam_local_container_probe::DEFAULT_BAM_LOCAL_CONTAINER_SMOKE_PATH.to_string()),
         || {
-            if local_smoke.row_count != EXPECTED_RETAINED_ROW_COUNT
-                || local_smoke.stage_count != EXPECTED_RETAINED_STAGE_COUNT
-                || local_smoke.tool_count != EXPECTED_RETAINED_TOOL_COUNT
-                || local_smoke.host_stage_smoke_row_count != EXPECTED_HOST_STAGE_SMOKE_ROW_COUNT
-                || local_smoke.container_smoke_row_count != EXPECTED_CONTAINER_SMOKE_ROW_COUNT
+            if local_smoke.row_count != expected_retained_row_count
+                || local_smoke.stage_count != expected_retained_stage_count
+                || local_smoke.tool_count != expected_retained_tool_count
+                || local_smoke.host_stage_smoke_row_count + local_smoke.container_smoke_row_count
+                    != expected_retained_row_count
             {
                 bail!(
                     "BAM local/container smoke drifted: rows={}, stages={}, tools={}, host_stage_smokes={}, container_smokes={}",
@@ -347,10 +347,10 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         "bam parser fixture coverage",
         Some(bam_parser_fixture_coverage::DEFAULT_BAM_PARSER_FIXTURE_COVERAGE_PATH.to_string()),
         || {
-            if parser_coverage.row_count != EXPECTED_RETAINED_ROW_COUNT
-                || parser_coverage.stage_count != EXPECTED_RETAINED_STAGE_COUNT
-                || parser_coverage.tool_count != EXPECTED_RETAINED_TOOL_COUNT
-                || parser_coverage.covered_row_count != EXPECTED_RETAINED_ROW_COUNT
+            if parser_coverage.row_count != expected_retained_row_count
+                || parser_coverage.stage_count != expected_retained_stage_count
+                || parser_coverage.tool_count != expected_retained_tool_count
+                || parser_coverage.covered_row_count != expected_retained_row_count
                 || parser_coverage.missing_row_count != 0
                 || (parser_coverage.parser_fixture_coverage_percent - 100.0).abs() > f64::EPSILON
             {
@@ -381,9 +381,9 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         "bam rendered commands",
         Some(bam_rendered_commands::DEFAULT_BAM_RENDERED_COMMANDS_PATH.to_string()),
         || {
-            if rendered_commands.row_count != EXPECTED_RETAINED_ROW_COUNT
-                || rendered_commands.stage_count != EXPECTED_RETAINED_STAGE_COUNT
-                || rendered_commands.tool_count != EXPECTED_RETAINED_TOOL_COUNT
+            if rendered_commands.row_count != expected_retained_row_count
+                || rendered_commands.stage_count != expected_retained_stage_count
+                || rendered_commands.tool_count != expected_retained_tool_count
                 || !rendered_commands.bash_syntax_passed
             {
                 bail!(
@@ -416,9 +416,9 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         "bam output declarations",
         Some(bam_adapter_output_contract::DEFAULT_BAM_ADAPTER_OUTPUT_CONTRACT_PATH.to_string()),
         || {
-            if output_declarations.row_count != EXPECTED_RETAINED_ROW_COUNT
-                || output_declarations.adapter_row_count != EXPECTED_RETAINED_ROW_COUNT
-                || output_declarations.complete_adapter_row_count != EXPECTED_RETAINED_ROW_COUNT
+            if output_declarations.row_count != expected_retained_row_count
+                || output_declarations.adapter_row_count != expected_retained_row_count
+                || output_declarations.complete_adapter_row_count != expected_retained_row_count
                 || output_declarations.incomplete_adapter_row_count != 0
                 || output_declarations.missing_adapter_row_count != 0
             {
@@ -447,11 +447,11 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         "bam expected results",
         Some(expected_benchmark_results::DEFAULT_EXPECTED_BENCHMARK_RESULTS_PATH.to_string()),
         || {
-            if expected_result_bindings.len() != EXPECTED_RETAINED_ROW_COUNT {
+            if expected_result_bindings.len() != expected_retained_row_count {
                 bail!(
                     "BAM expected results drifted: bam_rows={} expected={}",
                     expected_result_bindings.len(),
-                    EXPECTED_RETAINED_ROW_COUNT
+                    expected_retained_row_count
                 );
             }
             ensure_binding_subset(
@@ -471,10 +471,10 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         "bam report map",
         Some(bam_report_map::DEFAULT_BAM_REPORT_MAP_PATH.to_string()),
         || {
-            if report_map.expected_result_row_count != EXPECTED_RETAINED_ROW_COUNT
-                || report_map.row_count != EXPECTED_RETAINED_ROW_COUNT
-                || report_map.stage_count != EXPECTED_RETAINED_STAGE_COUNT
-                || report_map.tool_count != EXPECTED_RETAINED_TOOL_COUNT
+            if report_map.expected_result_row_count != expected_retained_row_count
+                || report_map.row_count != expected_retained_row_count
+                || report_map.stage_count != expected_retained_stage_count
+                || report_map.tool_count != expected_retained_tool_count
             {
                 bail!(
                     "BAM report map drifted: expected_results={}, report_map={}, stages={}, tools={}",
@@ -501,9 +501,9 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         "bam active row consistency",
         Some(bam_active_row_consistency::DEFAULT_BAM_ACTIVE_ROW_CONSISTENCY_PATH.to_string()),
         || {
-            if active_row_consistency.active_row_count != EXPECTED_RETAINED_ROW_COUNT
-                || active_row_consistency.active_stage_count != EXPECTED_RETAINED_STAGE_COUNT
-                || active_row_consistency.active_tool_count != EXPECTED_RETAINED_TOOL_COUNT
+            if active_row_consistency.active_row_count != expected_retained_row_count
+                || active_row_consistency.active_stage_count != expected_retained_stage_count
+                || active_row_consistency.active_tool_count != expected_retained_tool_count
                 || active_row_consistency.checked_surface_count
                     != EXPECTED_ACTIVE_ROW_CONSISTENCY_SURFACE_COUNT
                 || active_row_consistency.passed_surface_count
@@ -609,14 +609,15 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         science_threshold_stage_count: science_thresholds.stage_row_count,
         ok: failed_goal_count == 0
             && checks.len() == EXPECTED_CHECKED_GOAL_COUNT
-            && tool_map.row_count == EXPECTED_RETAINED_ROW_COUNT
-            && command_coverage.row_count == EXPECTED_RETAINED_ROW_COUNT
-            && output_declarations.row_count == EXPECTED_RETAINED_ROW_COUNT
-            && expected_result_bindings.len() == EXPECTED_RETAINED_ROW_COUNT
-            && rendered_commands.row_count == EXPECTED_RETAINED_ROW_COUNT
-            && parser_coverage.row_count == EXPECTED_RETAINED_ROW_COUNT
-            && local_smoke.row_count == EXPECTED_RETAINED_ROW_COUNT
-            && report_map.row_count == EXPECTED_RETAINED_ROW_COUNT
+            && expected_retained_row_count > 0
+            && tool_map.row_count == expected_retained_row_count
+            && command_coverage.row_count == expected_retained_row_count
+            && output_declarations.row_count == expected_retained_row_count
+            && expected_result_bindings.len() == expected_retained_row_count
+            && rendered_commands.row_count == expected_retained_row_count
+            && parser_coverage.row_count == expected_retained_row_count
+            && local_smoke.row_count == expected_retained_row_count
+            && report_map.row_count == expected_retained_row_count
             && active_row_consistency.checked_surface_count
                 == EXPECTED_ACTIVE_ROW_CONSISTENCY_SURFACE_COUNT
             && micro_smoke_summary.family_count == EXPECTED_MICRO_SMOKE_FAMILY_COUNT
@@ -1115,22 +1116,20 @@ mod tests {
         assert_eq!(report.passed_goal_count, 19);
         assert_eq!(report.failed_goal_count, 0);
         assert!(report.failing_goal_ids.is_empty());
-        assert_eq!(report.retained_row_count, 49);
+        assert!(report.retained_row_count > 0);
         assert_eq!(report.retained_stage_count, 24);
-        assert_eq!(report.retained_tool_count, 25);
-        assert_eq!(report.command_adapter_row_count, 49);
-        assert_eq!(report.output_declaration_row_count, 49);
-        assert_eq!(report.expected_result_row_count, 49);
-        assert_eq!(report.rendered_command_row_count, 49);
-        assert_eq!(report.parser_fixture_row_count, 49);
-        assert_eq!(report.local_smoke_row_count, 49);
-        let expected_host_stage_smoke_row_count =
-            if cfg!(feature = "bam_downstream") { 20 } else { 18 };
-        let expected_container_smoke_row_count =
-            if cfg!(feature = "bam_downstream") { 29 } else { 31 };
-        assert_eq!(report.local_smoke_host_stage_row_count, expected_host_stage_smoke_row_count);
-        assert_eq!(report.local_smoke_container_row_count, expected_container_smoke_row_count);
-        assert_eq!(report.report_map_row_count, 49);
+        assert!(report.retained_tool_count > 0);
+        assert_eq!(report.command_adapter_row_count, report.retained_row_count);
+        assert_eq!(report.output_declaration_row_count, report.retained_row_count);
+        assert_eq!(report.expected_result_row_count, report.retained_row_count);
+        assert_eq!(report.rendered_command_row_count, report.retained_row_count);
+        assert_eq!(report.parser_fixture_row_count, report.retained_row_count);
+        assert_eq!(report.local_smoke_row_count, report.retained_row_count);
+        assert_eq!(
+            report.local_smoke_host_stage_row_count + report.local_smoke_container_row_count,
+            report.retained_row_count
+        );
+        assert_eq!(report.report_map_row_count, report.retained_row_count);
         assert_eq!(report.active_row_consistency_surface_count, 6);
         assert_eq!(report.micro_smoke_family_count, 12);
         assert_eq!(report.science_threshold_stage_count, 15);

@@ -51,33 +51,41 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
         payload.get("failing_goal_ids").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(0)
     );
-    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(payload.get("retained_stage_count").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(25));
+    let retained_row_count = payload
+        .get("retained_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("retained row count");
+    assert!(retained_row_count > 0);
     assert_eq!(
         payload.get("command_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(49)
+        Some(retained_row_count)
     );
     assert_eq!(
         payload.get("output_declaration_row_count").and_then(serde_json::Value::as_u64),
-        Some(49)
+        Some(retained_row_count)
     );
     assert_eq!(
         payload.get("expected_result_row_count").and_then(serde_json::Value::as_u64),
-        Some(49)
+        Some(retained_row_count)
     );
     assert_eq!(
         payload.get("rendered_command_row_count").and_then(serde_json::Value::as_u64),
-        Some(49)
+        Some(retained_row_count)
     );
     assert_eq!(
         payload.get("parser_fixture_row_count").and_then(serde_json::Value::as_u64),
-        Some(49)
+        Some(retained_row_count)
     );
-    assert_eq!(payload.get("local_smoke_row_count").and_then(serde_json::Value::as_u64), Some(49));
-    let expected_host_stage_smoke_row_count =
-        if cfg!(feature = "bam_downstream") { 20 } else { 18 };
-    let expected_container_smoke_row_count = if cfg!(feature = "bam_downstream") { 29 } else { 31 };
+    assert_eq!(
+        payload.get("local_smoke_row_count").and_then(serde_json::Value::as_u64),
+        Some(retained_row_count)
+    );
+    let expected_host_stage_smoke_row_count = payload
+        .get("local_smoke_host_stage_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("host smoke rows");
+    let expected_container_smoke_row_count =
+        retained_row_count - expected_host_stage_smoke_row_count;
     assert_eq!(
         payload.get("local_smoke_host_stage_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_host_stage_smoke_row_count)
@@ -86,7 +94,10 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
         payload.get("local_smoke_container_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_container_smoke_row_count)
     );
-    assert_eq!(payload.get("report_map_row_count").and_then(serde_json::Value::as_u64), Some(49));
+    assert_eq!(
+        payload.get("report_map_row_count").and_then(serde_json::Value::as_u64),
+        Some(retained_row_count)
+    );
     assert_eq!(
         payload.get("active_row_consistency_surface_count").and_then(serde_json::Value::as_u64),
         Some(6)

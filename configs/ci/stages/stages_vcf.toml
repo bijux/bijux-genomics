@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/** + containers/contracts/catalog.toml
-# source_commit: 3663f2fb07fa6207bec8b88ca27102d178c48a8b
+# source_commit: 612475f7096a976dc2327b1fb157340e2acbea30
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -65,7 +65,7 @@ tools = ["bcftools", "angsd"]
 
 [[stages]]
 id = "vcf.demography"
-status = "planned"
+status = "supported"
 output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.demography.v1"
@@ -92,12 +92,12 @@ tools = ["bcftools", "angsd"]
 
 [[stages]]
 id = "vcf.ibd"
-status = "planned"
+status = "supported"
 output_kinds = ["tsv"]
 experimental = true
 metrics_schema = "bijux.vcf.ibd.v1"
 smoke_required = true
-tools = ["germline", "ibdseq", "ibdhap"]
+tools = ["germline", "ibdseq"]
 
 [[stages]]
 id = "vcf.imputation_metrics"

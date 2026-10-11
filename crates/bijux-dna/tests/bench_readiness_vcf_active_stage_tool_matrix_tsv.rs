@@ -1,9 +1,35 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
+use std::path::Path;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
+
+fn retained_registry_bindings(repo_root: &Path) -> BTreeSet<(String, String)> {
+    let mut bindings = BTreeSet::new();
+    for relative_path in [
+        "configs/ci/registry/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry_vcf_downstream.toml",
+    ] {
+        let raw = std::fs::read_to_string(repo_root.join(relative_path)).expect("read registry");
+        let parsed: toml::Value = toml::from_str(&raw).expect("parse registry");
+        for tool in parsed["tools"].as_array().expect("registry tools") {
+            if tool["status"].as_str() == Some("unsupported") {
+                continue;
+            }
+            let tool_id = tool["id"].as_str().expect("tool id");
+            for stage_id in tool["stage_ids"].as_array().expect("tool stage ids") {
+                bindings.insert((
+                    stage_id.as_str().expect("stage id").to_string(),
+                    tool_id.to_string(),
+                ));
+            }
+        }
+    }
+    bindings
+}
 
 #[test]
 fn bench_readiness_vcf_active_stage_tool_matrix_writes_governed_tsv_file() {
@@ -45,24 +71,33 @@ fn bench_readiness_vcf_active_stage_tool_matrix_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 42);
+    let actual_bindings = rows
+        .iter()
+        .map(|row| {
+            let mut columns = row.split('\t');
+            (
+                columns.next().expect("row stage id").to_string(),
+                columns.next().expect("row tool id").to_string(),
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(actual_bindings.len(), rows.len());
+    assert_eq!(actual_bindings, retained_registry_bindings(&repo_root));
     assert!(rows.iter().any(|row| {
         row == &"vcf.call\tbcftools\tproduction\tsupported\tvcf_production_regression\tbam_bundle\tvcf.adapter.calling\tvcf.parser.call_summary\tbijux.schemas.bench.vcf-normalized-metrics.call.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.call` / `bcftools` is part of the governed all-domain active benchmark matrix"
     }));
-    assert!(rows.iter().any(|row| {
-        row == &"vcf.call_gl\tangsd\tplanned\tsupported\tvcf_production_regression\tbam_bundle\tvcf.adapter.calling\tvcf.parser.call_summary\tbijux.schemas.bench.vcf-normalized-metrics.call-gl.v1\tremoved_from_scope\tbenchmark_not_ready\tbenchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json\tbinding `vcf.call_gl` / `angsd` is retained for a supported stage but remains outside active scope because it is not benchmark ready"
-    }));
+    assert!(rows.iter().all(|row| !row.contains("\tunsupported\t")));
     assert!(rows.iter().any(|row| {
         row == &"vcf.impute\tbeagle\tproduction\tsupported\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.impute.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.impute` / `beagle` is part of the governed all-domain active benchmark matrix"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf.admixture\tplink2\texperimental,production\tsupported\tvcf_production_regression\tvcf_cohort\tvcf.adapter.population_structure\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.admixture.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.admixture` / `plink2` is part of the governed all-domain active benchmark matrix"
+        row == &"vcf.admixture\tplink2\tproduction\tsupported\tvcf_production_regression\tvcf_cohort\tvcf.adapter.population_structure\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.admixture.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.admixture` / `plink2` is part of the governed all-domain active benchmark matrix"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf.pca\teigensoft\texperimental,production\tsupported\tvcf_production_regression\tvcf_cohort\tvcf.adapter.population_structure\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.pca.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.pca` / `eigensoft` is part of the governed all-domain active benchmark matrix"
+        row == &"vcf.pca\teigensoft\tproduction\tsupported\tvcf_production_regression\tvcf_cohort\tvcf.adapter.population_structure\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.pca.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.pca` / `eigensoft` is part of the governed all-domain active benchmark matrix"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf.pca\tplink2\texperimental,production\tsupported\tvcf_production_regression\tvcf_cohort\tvcf.adapter.population_structure\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.pca.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.pca` / `plink2` is part of the governed all-domain active benchmark matrix"
+        row == &"vcf.pca\tplink2\tproduction\tsupported\tvcf_production_regression\tvcf_cohort\tvcf.adapter.population_structure\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.pca.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.pca` / `plink2` is part of the governed all-domain active benchmark matrix"
     }));
     assert!(rows.iter().any(|row| {
         row == &"vcf.imputation_metrics\tbeagle\tproduction\tsupported\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.imputation_metrics` / `beagle` is part of the governed all-domain active benchmark matrix"
@@ -74,9 +109,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_writes_governed_tsv_file() {
         row == &"vcf.qc\tbcftools\tproduction\tsupported\tvcf_production_regression\tvcf_cohort\tvcf.adapter.quality_control\tvcf.parser.qc_report\tbijux.schemas.bench.vcf-normalized-metrics.qc.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.qc` / `bcftools` is part of the governed all-domain active benchmark matrix"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf.phasing\teagle\texperimental,planned\tsupported\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.phasing.v1\tremoved_from_scope\tbenchmark_not_ready\tbenchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json\tbinding `vcf.phasing` / `eagle` is retained for a supported stage but remains outside active scope because it is not benchmark ready"
+        row == &"vcf.phasing\teagle\tplanned\tsupported\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.phasing.v1\tremoved_from_scope\tbenchmark_not_ready\tbenchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json\tbinding `vcf.phasing` / `eagle` is retained for a supported stage but remains outside active scope because it is not benchmark ready"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"vcf.roh\tplink2\texperimental,production\tsupported\tvcf_production_regression\tvcf_cohort\tvcf.adapter.roh\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.roh.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.roh` / `plink2` is part of the governed all-domain active benchmark matrix"
+        row == &"vcf.roh\tplink2\tproduction\tsupported\tvcf_production_regression\tvcf_cohort\tvcf.adapter.roh\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.roh.v1\tactive\tactive\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `vcf.roh` / `plink2` is part of the governed all-domain active benchmark matrix"
     }));
 }

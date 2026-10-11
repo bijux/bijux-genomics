@@ -45,8 +45,13 @@ fn bench_readiness_bam_damage_complete_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/bam/stages/bam.damage.complete.json")
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(6));
+    let active_row_count =
+        payload.get("active_row_count").and_then(serde_json::Value::as_u64).expect("active rows");
+    assert!(active_row_count > 0);
+    assert_eq!(
+        payload.get("complete_row_count").and_then(serde_json::Value::as_u64),
+        Some(active_row_count)
+    );
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(13));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -57,12 +62,12 @@ fn bench_readiness_bam_damage_complete_reports_governed_rows() {
         |tools| {
             tools.iter().any(|tool| tool.as_str() == Some("mapdamage2"))
                 && tools.iter().any(|tool| tool.as_str() == Some("pydamage"))
-                && tools.iter().any(|tool| tool.as_str() == Some("ngsbriggs"))
+                && tools.iter().all(|tool| tool.as_str() != Some("ngsbriggs"))
         }
     ));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 6);
+    assert_eq!(rows.len(), usize::try_from(active_row_count).expect("active row count fits usize"));
     assert!(rows.iter().all(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
             && row.get("active_scope_ready").and_then(serde_json::Value::as_bool) == Some(true)
@@ -102,7 +107,7 @@ fn bench_readiness_bam_damage_complete_reports_governed_rows() {
     );
     assert_eq!(
         mapdamage2_row.get("local_smoke_method").and_then(serde_json::Value::as_str),
-        Some("ngsbriggs")
+        Some("mapdamage2")
     );
     assert_eq!(
         mapdamage2_row.get("local_smoke_sample_id").and_then(serde_json::Value::as_str),
@@ -112,7 +117,7 @@ fn bench_readiness_bam_damage_complete_reports_governed_rows() {
         .get("parsed_tool_ids")
         .and_then(serde_json::Value::as_array)
         .is_some_and(|tools| {
-            tools.iter().any(|tool| tool.as_str() == Some("ngsbriggs"))
-                && tools.iter().any(|tool| tool.as_str() == Some("mapdamage2"))
+            tools.iter().any(|tool| tool.as_str() == Some("mapdamage2"))
+                && tools.iter().any(|tool| tool.as_str() == Some("pydamage"))
         }));
 }

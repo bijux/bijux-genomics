@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "coverage_fraction": {
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "type": "number"
+    },
+    "covered_bases": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "mean_depth": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "reference_bases": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.coverage.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.coverage",
+      "type": "string"
+    },
+    "tool_id": {
+      "enum": [
+        "bedtools",
+        "mosdepth",
+        "samtools"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_id",
+    "reference_bases",
+    "covered_bases",
+    "coverage_fraction",
+    "mean_depth"
+  ],
+  "title": "BenchmarkBamCoverageResult",
+  "type": "object"
+}

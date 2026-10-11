@@ -78,7 +78,7 @@ pub fn estimate_library_complexity_prealign(
         schema_version: ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_REPORT_SCHEMA_VERSION.to_string(),
         stage: "fastq.estimate_library_complexity_prealign".to_string(),
         stage_id: "fastq.estimate_library_complexity_prealign".to_string(),
-        tool_id: "bijux".to_string(),
+        tool_id: "bijux_dna".to_string(),
         paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         complexity_policy: "prealign_kmer".to_string(),
         estimate_method: "kmer_redundancy".to_string(),

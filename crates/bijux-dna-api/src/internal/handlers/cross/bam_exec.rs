@@ -2,9 +2,9 @@ use std::path::{Path, PathBuf};
 
 use super::AlignmentBoundary;
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_containers::resolve::ReferenceRecord;
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_domain_bam::metrics as bam_metrics;
-use bijux_dna_environment::resolve::ReferenceRecord;
 use bijux_dna_pipelines::PipelineProfile;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 

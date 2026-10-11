@@ -124,6 +124,15 @@ fn stage_interface_contracts_accept_aligned_catalog() -> anyhow::Result<()> {
 }
 
 #[test]
+fn stage_interface_contracts_allow_no_input_derived_parameters() -> anyhow::Result<()> {
+    let mut catalog = interface_catalog();
+    catalog.interfaces[0].input_derived_parameters.clear();
+
+    validate_stage_interface_catalog(&catalog)?;
+    Ok(())
+}
+
+#[test]
 fn stage_interface_contracts_reject_incomplete_adapter_coverage() {
     let mut catalog = interface_catalog();
     catalog.interfaces[0].adapters.remove("seqkit");
@@ -153,7 +162,7 @@ fn checked_interface_schemas_match_model_authority() -> anyhow::Result<()> {
             serde_json::to_value(bijux_dna_bench_model::benchmark_stage_interface_catalog_schema())?,
         ),
         (
-            repository_root.join("benchmarks/contracts/config-pipeline-parameters.schema.json"),
+            repository_root.join("benchmarks/contracts/schemas/pipeline-parameters.schema.json"),
             serde_json::to_value(
                 bijux_dna_bench_model::benchmark_pipeline_parameter_config_schema(),
             )?,

@@ -42,11 +42,41 @@ ENA_FIELDS = (
     "last_updated",
 )
 MD5 = re.compile(r"[0-9a-f]{32}")
+CATALOG_ID = re.compile(r"[a-z0-9][a-z0-9-]*")
 ENA_LAYOUT = {"se": "SINGLE", "pe": "PAIRED"}
+SAMPLE_CONTEXT_FIELDS = (
+    "accession",
+    "study_accession",
+    "sample_accession",
+    "experiment_accession",
+    "era",
+    "layout",
+    "size_band",
+    "selection_reason",
+    "scientific_name",
+    "library_source",
+    "library_strategy",
+    "library_selection",
+    "instrument_platform",
+    "instrument_model",
+    "archive_base_count",
+    "archive_read_count",
+    "first_public",
+    "last_updated",
+)
 
 
 class AcquisitionError(RuntimeError):
     """Raised when public source metadata cannot identify exact corpus files."""
+
+
+def sample_context(sample: dict[str, Any]) -> dict[str, Any]:
+    try:
+        return {key: sample[key] for key in SAMPLE_CONTEXT_FIELDS}
+    except KeyError as exc:
+        raise AcquisitionError(
+            f"acquisition plan sample lacks scientific context: {exc.args[0]}"
+        ) from exc
 
 
 def sha256_file(path: Path) -> str:
@@ -55,6 +85,74 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def load_plan(path: Path) -> dict[str, Any]:
+    try:
+        plan = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise AcquisitionError(f"cannot read acquisition plan {path}: {exc}") from exc
+    if not isinstance(plan, dict) or plan.get("schema_version") != PLAN_SCHEMA:
+        raise AcquisitionError("acquisition plan schema is unsupported")
+    portfolio_id = plan.get("portfolio_id")
+    if not isinstance(portfolio_id, str) or CATALOG_ID.fullmatch(portfolio_id) is None:
+        raise AcquisitionError("acquisition plan has no valid portfolio identity")
+    samples = plan.get("samples")
+    if not isinstance(samples, list) or len(samples) != plan.get("sample_count"):
+        raise AcquisitionError("acquisition plan sample count disagrees with its records")
+    accessions: set[str] = set()
+    targets: set[tuple[str, str]] = set()
+    file_count = 0
+    total_size = 0
+    for sample in samples:
+        if not isinstance(sample, dict):
+            raise AcquisitionError("acquisition plan sample is not an object")
+        sample_context(sample)
+        accession = sample.get("accession")
+        layout = sample.get("layout")
+        files = sample.get("files")
+        if (
+            not isinstance(accession, str)
+            or not accession
+            or accession in accessions
+            or layout not in {"se", "pe"}
+            or not isinstance(files, list)
+        ):
+            raise AcquisitionError("acquisition plan sample identity is invalid")
+        accessions.add(accession)
+        if len(files) != (1 if layout == "se" else 2):
+            raise AcquisitionError(f"acquisition file count disagrees for {accession}")
+        for record in files:
+            if not isinstance(record, dict):
+                raise AcquisitionError(f"acquisition file is invalid for {accession}")
+            name = record.get("name")
+            url = record.get("source_url")
+            digest = record.get("source_md5")
+            size = record.get("size_bytes")
+            if (
+                not isinstance(name, str)
+                or Path(name).name != name
+                or not name.endswith(".fastq.gz")
+                or not isinstance(url, str)
+                or not url.startswith("https://")
+                or not isinstance(digest, str)
+                or MD5.fullmatch(digest) is None
+                or not isinstance(size, int)
+                or isinstance(size, bool)
+                or size <= 0
+            ):
+                raise AcquisitionError(
+                    f"acquisition file identity is invalid for {accession}"
+                )
+            identity = (accession, name)
+            if identity in targets:
+                raise AcquisitionError(f"acquisition target repeats: {accession}/{name}")
+            targets.add(identity)
+            file_count += 1
+            total_size += size
+    if file_count != plan.get("file_count") or total_size != plan.get("total_size_bytes"):
+        raise AcquisitionError("acquisition plan aggregate file identity disagrees")
+    return plan
 
 
 def load_spec(path: Path) -> dict[str, Any]:

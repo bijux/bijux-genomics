@@ -23,7 +23,6 @@ cutadapt	fastq.trim_terminal_damage	governed_benchmark_cohort	runnable	benchmark
 dada2	fastq.infer_asvs	governed_execution	runnable	parse_normalized	fixture:corpus-03-amplicon-mini
 fastp	fastq.filter_low_complexity	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 fastp	fastq.filter_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
-fastp	fastq.profile_read_lengths	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 fastp	fastq.trim_polyg_tails	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 fastp	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 fastq_scan	fastq.profile_overrepresented_sequences	observer_specialized_benchmark	runnable	comparable	fixture:corpus-01-mini
@@ -46,7 +45,6 @@ musket	fastq.correct_errors	governed_benchmark_cohort	runnable	benchmark_normali
 pear	fastq.merge_pairs	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 prinseq	fastq.filter_low_complexity	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 prinseq	fastq.filter_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
-prinseq	fastq.profile_read_lengths	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 prinseq	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 rcorrector	fastq.correct_errors	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqfu	fastq.profile_read_lengths	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
@@ -54,10 +52,10 @@ seqfu	fastq.profile_reads	governed_benchmark_cohort	runnable	benchmark_normalize
 seqkit	fastq.filter_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqkit	fastq.normalize_abundance	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-03-amplicon-mini
 seqkit	fastq.profile_overrepresented_sequences	observer_specialized_benchmark	runnable	comparable	fixture:corpus-01-mini
+seqkit	fastq.profile_read_lengths	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqkit	fastq.profile_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqkit	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqkit	fastq.trim_terminal_damage	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
-seqkit_stats	fastq.profile_read_lengths	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqkit_stats	fastq.profile_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 seqtk	fastq.validate_reads	observer_specialized_benchmark	runnable	comparable	fixture:corpus-01-mini
 skewer	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini

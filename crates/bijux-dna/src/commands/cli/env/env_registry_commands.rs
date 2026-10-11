@@ -1220,7 +1220,7 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
     }
 
     let env_src = std::fs::read_to_string(
-        cwd.join("crates/bijux-dna-environment/src/evidence/tool_contract/smoke.rs"),
+        cwd.join("crates/bijux-dna-containers/src/evidence/tool_contract/smoke.rs"),
     )
     .context("read environment-owned Apptainer smoke policy")?;
     for required in ["--containall", "--cleanenv", "--bind", "--network", "none"] {

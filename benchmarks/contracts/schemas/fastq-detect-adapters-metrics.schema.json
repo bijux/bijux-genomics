@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "adapter_content_mean_mean": {
+      "format": "double",
+      "type": "number"
+    },
+    "bases_in": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "bases_out": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "candidate_adapter_count_total": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "duplication_rate_mean": {
+      "format": "double",
+      "type": "number"
+    },
+    "file_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "kmer_warning_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "max_adapter_content_max": {
+      "format": "double",
+      "type": "number"
+    },
+    "max_detection_confidence": {
+      "format": "double",
+      "type": "number"
+    },
+    "mean_q_mean": {
+      "format": "double",
+      "type": "number"
+    },
+    "n_rate_mean": {
+      "format": "double",
+      "type": "number"
+    },
+    "output_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "overrepresented_sequence_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "reads_in": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "reads_out": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "samples_with_detected_adapters": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.fastq.detect_adapters.metrics.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "sample_count",
+    "file_count",
+    "reads_in",
+    "reads_out",
+    "bases_in",
+    "bases_out",
+    "mean_q_mean",
+    "candidate_adapter_count_total",
+    "samples_with_detected_adapters",
+    "max_detection_confidence",
+    "max_adapter_content_max",
+    "adapter_content_mean_mean",
+    "duplication_rate_mean",
+    "n_rate_mean",
+    "kmer_warning_count",
+    "overrepresented_sequence_count",
+    "input_bytes",
+    "output_bytes"
+  ],
+  "title": "BenchmarkFastqAdapterMetrics",
+  "type": "object"
+}

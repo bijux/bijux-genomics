@@ -38,15 +38,15 @@ pub(crate) const DEFAULT_VCF_ALL_RETAINED_TOOLS_COMPLETE_PATH: &str =
 const VCF_ALL_RETAINED_TOOLS_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_all_retained_tools_complete.v1";
 const EXPECTED_CHECKED_GOAL_COUNT: usize = 24;
-const EXPECTED_RETAINED_ROW_COUNT: usize = 42;
+const EXPECTED_RETAINED_ROW_COUNT: usize = 35;
 const EXPECTED_RETAINED_STAGE_COUNT: usize = 20;
-const EXPECTED_RETAINED_TOOL_COUNT: usize = 16;
-const EXPECTED_ACTIVE_ROW_COUNT: usize = 21;
-const EXPECTED_REMOVED_ROW_COUNT: usize = 21;
-const EXPECTED_ACTIVE_STAGE_COUNT: usize = 18;
-const EXPECTED_ACTIVE_TOOL_COUNT: usize = 6;
+const EXPECTED_RETAINED_TOOL_COUNT: usize = 14;
+const EXPECTED_ACTIVE_ROW_COUNT: usize = 24;
+const EXPECTED_REMOVED_ROW_COUNT: usize = 11;
+const EXPECTED_ACTIVE_STAGE_COUNT: usize = 20;
+const EXPECTED_ACTIVE_TOOL_COUNT: usize = 9;
 const EXPECTED_HOST_STAGE_SMOKE_ROW_COUNT: usize = 20;
-const EXPECTED_CONTAINER_SMOKE_ROW_COUNT: usize = 22;
+const EXPECTED_CONTAINER_SMOKE_ROW_COUNT: usize = 15;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct VcfBindingKey {
@@ -200,10 +200,9 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                     "VCF active retained matrix drifted: active_stages={active_stage_count}, active_tools={active_tool_count}"
                 );
             }
-            Ok(
-                "validated the governed 42-row retained VCF matrix with 21 active bindings across 18 active stages"
-                    .to_string(),
-            )
+            Ok(format!(
+                "validated the governed {retained_row_count}-row retained VCF matrix with {active_row_count} active bindings across {active_stage_count} active stages"
+            ))
         },
     );
 
@@ -385,7 +384,8 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 )?,
                 "shapeit5",
                 "benchmark_ready",
-                true,
+                1,
+                1,
                 "shapeit5 phasing adapter",
             )?;
             ensure_single_phasing_output(
@@ -395,7 +395,8 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 )?,
                 "beagle",
                 "not_benchmark_ready",
-                false,
+                3,
+                2,
                 "beagle phasing adapter",
             )?;
             ensure_single_phasing_output(
@@ -405,7 +406,8 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 )?,
                 "eagle",
                 "not_benchmark_ready",
-                false,
+                1,
+                0,
                 "eagle phasing adapter",
             )?;
             Ok(
@@ -565,9 +567,9 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
             ensure_descent_family_output_contract(&payload)?;
             ensure_descent_family_output(&payload, "germline", "vcf.ibd", "benchmark_ready")?;
             ensure_descent_family_output(&payload, "ibdhap", "vcf.ibd", "not_benchmark_ready")?;
-            ensure_descent_family_output(&payload, "ibdseq", "vcf.ibd", "not_benchmark_ready")?;
+            ensure_descent_family_output(&payload, "ibdseq", "vcf.ibd", "benchmark_ready")?;
             Ok(
-                "validated the retained IBD family with germline benchmark-ready and ibdhap/ibdseq explicitly governed as non-benchmark-ready"
+                "validated GERMLINE and IBDseq as segment-call benchmarks while retaining IBDHap outside that comparison because it reports posterior IBD-state probabilities"
                     .to_string(),
             )
         },
@@ -871,16 +873,16 @@ fn ensure_single_phasing_output(
     payload: &Value,
     tool_id: &str,
     expected_benchmark_status: &str,
-    expect_benchmark_ready_row: bool,
+    expected_total_rows: u64,
+    expected_total_benchmark_ready_rows: u64,
     label: &str,
 ) -> Result<()> {
-    let expected_benchmark_ready_row_count = u64::from(expect_benchmark_ready_row);
-    if json_u64(payload, "row_count") != Some(1)
+    if json_u64(payload, "row_count") != Some(expected_total_rows)
         || json_u64(payload, "benchmark_ready_row_count")
-            != Some(expected_benchmark_ready_row_count)
-        || json_u64(payload, "parser_output_row_count") != Some(1)
-        || json_u64(payload, "indexed_row_count") != Some(1)
-        || json_u64(payload, "missing_input_test_passed_row_count") != Some(1)
+            != Some(expected_total_benchmark_ready_rows)
+        || json_u64(payload, "parser_output_row_count") != Some(expected_total_rows)
+        || json_u64(payload, "indexed_row_count") != Some(expected_total_rows)
+        || json_u64(payload, "missing_input_test_passed_row_count") != Some(expected_total_rows)
     {
         bail!(
             "{label} drifted: rows={}, benchmark_ready={}, parser_outputs={}, indexed={}, missing_input_passed={}",
@@ -932,7 +934,7 @@ fn ensure_imputation_family_output(
 fn ensure_descent_family_output_contract(payload: &Value) -> Result<()> {
     if json_u64(payload, "row_count") != Some(5)
         || json_u64(payload, "tool_count") != Some(5)
-        || json_u64(payload, "benchmark_ready_row_count") != Some(3)
+        || json_u64(payload, "benchmark_ready_row_count") != Some(4)
         || json_u64(payload, "parser_output_row_count") != Some(5)
         || json_u64(payload, "normalized_output_row_count") != Some(5)
         || json_u64(payload, "missing_input_test_passed_row_count") != Some(5)

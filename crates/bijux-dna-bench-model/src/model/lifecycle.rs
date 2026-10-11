@@ -4,12 +4,12 @@
 //! Must not perform IO or depend on workflow orchestration.
 
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
-use serde::{Deserialize, Serialize};
+use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
 use crate::contract::{
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
     BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
 };
@@ -135,6 +135,26 @@ pub struct BenchmarkAttemptMigrationLedger {
     pub plan_sha256: String,
     pub updated_at_utc: String,
     pub entries: Vec<BenchmarkAttemptMigrationLedgerEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkAttemptMigrationVerificationEntry {
+    pub source: String,
+    pub target: String,
+    pub state: BenchmarkAttemptMigrationState,
+    pub current_location: String,
+    pub files: Vec<BenchmarkArchiveFileRecord>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkAttemptMigrationVerification {
+    #[serde(deserialize_with = "deserialize_migration_verification_schema_version")]
+    #[schemars(schema_with = "benchmark_attempt_migration_verification_schema_version")]
+    pub schema_version: String,
+    pub plan_id: String,
+    pub entries: Vec<BenchmarkAttemptMigrationVerificationEntry>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -356,6 +376,26 @@ pub struct BenchmarkCycleStatus {
     pub attempts: Vec<BenchmarkAttemptRecord>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BenchmarkAttemptDocument {
+    V1(BenchmarkAttemptRecord),
+    V2(BenchmarkAttemptRecordV2),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum BenchmarkCycleDocument {
+    V1(BenchmarkCycleStatus),
+    V2(BenchmarkCycleStatusV2),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkAttemptV1MigrationContext {
+    pub observed_at_utc: String,
+    pub accounting: Vec<BenchmarkSchedulerAccounting>,
+    pub evidence: Vec<BenchmarkEvidenceReference>,
+    pub terminal_reason: Option<String>,
+}
+
 impl BenchmarkAttemptRecord {
     #[must_use]
     pub fn v1(
@@ -482,6 +522,11 @@ pub fn benchmark_attempt_migration_ledger_schema() -> Schema {
 }
 
 #[must_use]
+pub fn benchmark_attempt_migration_verification_schema() -> Schema {
+    schemars::schema_for!(BenchmarkAttemptMigrationVerification)
+}
+
+#[must_use]
 pub fn benchmark_cycle_status_schema() -> Schema {
     schemars::schema_for!(BenchmarkCycleStatus)
 }
@@ -534,6 +579,29 @@ fn benchmark_attempt_migration_ledger_schema_version(_: &mut SchemaGenerator) ->
         "type": "string",
         "const": BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1,
     })
+}
+
+fn benchmark_attempt_migration_verification_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1,
+    })
+}
+
+fn deserialize_migration_verification_schema_version<'de, D>(
+    deserializer: D,
+) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer)?;
+    if value == BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1 {
+        Ok(value)
+    } else {
+        Err(D::Error::custom(format!(
+            "unsupported benchmark attempt migration verification: {value}"
+        )))
+    }
 }
 
 fn benchmark_cycle_status_schema_version(_: &mut SchemaGenerator) -> Schema {

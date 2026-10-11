@@ -12,8 +12,7 @@ use super::bam_recalibration_genotyping_ready::{
 };
 #[cfg(feature = "bam_downstream")]
 use super::real_output_parser_probe::{
-    render_real_output_parser_smoke, RealOutputParserSmokeReport,
-    DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH,
+    render_bam_genotyping_parser_smoke_row, RealOutputParserSmokeRow,
 };
 #[cfg(feature = "bam_downstream")]
 use super::vcf_qc_ready::{
@@ -295,10 +294,7 @@ fn build_bam_genotyping_complete_report(
             .with_context(|| format!("read {}", local_plan_path.display()))?,
     )
     .with_context(|| format!("parse {}", local_plan_path.display()))?;
-    let parser_smoke = render_real_output_parser_smoke(
-        repo_root,
-        PathBuf::from(DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH),
-    )?;
+    let parser_row = render_bam_genotyping_parser_smoke_row(repo_root)?;
     let vcf_stats = render_vcf_stats_ready(repo_root, PathBuf::from(DEFAULT_VCF_STATS_READY_PATH))?;
     let vcf_qc = render_vcf_qc_ready(repo_root, PathBuf::from(DEFAULT_VCF_QC_READY_PATH))?;
     let bam_pipeline_report_path =
@@ -343,7 +339,6 @@ fn build_bam_genotyping_complete_report(
         ));
     }
 
-    let parser_row = find_parser_smoke_row(&parser_smoke)?;
     let stats_row = find_vcf_stats_row(&vcf_stats)?;
     let qc_row = find_vcf_qc_row(&vcf_qc)?;
     let bam_pipeline_node = find_pipeline_node(&bam_pipeline, EXPECTED_STAGE_ID)?;
@@ -358,7 +353,7 @@ fn build_bam_genotyping_complete_report(
                 &local_plan_path,
                 readiness_row,
                 &local_plan,
-                parser_row,
+                &parser_row,
                 &bam_pipeline,
                 bam_pipeline_node,
                 &cross_pipeline,
@@ -411,7 +406,7 @@ fn build_bam_genotyping_complete_row(
     local_plan_path: &Path,
     readiness_row: &BamRecalibrationGenotypingReadyRow,
     local_plan: &LocalGenotypingPlan,
-    parser_row: &super::real_output_parser_probe::RealOutputParserSmokeRow,
+    parser_row: &RealOutputParserSmokeRow,
     bam_pipeline: &crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport,
     bam_pipeline_node: &LocalPipelineDagValidationNodeReport,
     cross_pipeline: &crate::commands::benchmark::local_pipeline_dag::LocalPipelineDagValidationReport,
@@ -665,21 +660,6 @@ fn build_bam_genotyping_complete_row(
 }
 
 #[cfg(feature = "bam_downstream")]
-fn find_parser_smoke_row(
-    report: &RealOutputParserSmokeReport,
-) -> Result<&super::real_output_parser_probe::RealOutputParserSmokeRow> {
-    report
-        .rows
-        .iter()
-        .find(|row| {
-            row.representative_stage_id == EXPECTED_STAGE_ID
-                && row.representative_tool_id == EXPECTED_TOOL_ID
-        })
-        .ok_or_else(|| {
-            anyhow!("missing real-output parser-smoke row for `bam.genotyping` / `bcftools`")
-        })
-}
-
 #[cfg(feature = "bam_downstream")]
 fn find_vcf_stats_row(report: &VcfStatsReadyReport) -> Result<&VcfStatsReadyRow> {
     report

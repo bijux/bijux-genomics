@@ -1,6 +1,6 @@
 {
   "domain": "vcf",
-  "graph_hash": "1d240b2498ee5a44556622438f0737ebc63e73ec27c261fa9231e858bc59f03e",
+  "graph_hash": "8ec63631a332b1a82e5f7128ecd79a5880d83a49d925e3c9fcc2170c51ac5678",
   "ordered_steps": [
     {
       "advisory": false,
@@ -260,7 +260,7 @@
           "role": "variant"
         }
       ],
-      "cache_key": "3b0eb62c7355b49a14a4e1c94e9c8a61e748d16cc412424ef2bf0139206622e4",
+      "cache_key": "44c167b17c3158ca7ce54a2ee9eb9ab485c8a61508a163167379a7d520731b68",
       "dependencies": [
         "vcf.filter"
       ],
@@ -961,7 +961,7 @@
           "role": "variant"
         }
       ],
-      "cache_key": "44cf4b341d1f2a801581c388bfa5a398b0b4fce2587cfb8e562eb87a7cd52801",
+      "cache_key": "3dc288f49a8ecc11ccaef1e3c025cd2c5652c2e17602761ec7f60f9f1cc64c35",
       "dependencies": [
         "vcf.phasing"
       ],
@@ -1864,7 +1864,7 @@
           "role": "summary_tsv"
         }
       ],
-      "cache_key": "4014ddc26713a2e70a35234835cbfc25763008fb4d5582012482e74a5e36b24b",
+      "cache_key": "5881c07501bab32f6c03b3b8ced43da2087f8ada49086047741d116be2b6cb85",
       "dependencies": [
         "vcf.roh"
       ],
@@ -1900,7 +1900,7 @@
         "command": [
           "sh",
           "-lc",
-          "plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --make-bed --out 'out/ibd_segments.cohort' >/dev/null 2>&1 && germline -input 'out/ibd_segments.cohort' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output 'out/ibd_segments' > 'out/ibd_segments.log' 2>&1"
+          "plink2 --vcf 'out/postprocess_vcf.vcf.gz' --double-id --allow-extra-chr --recode ped --out 'out/ibd_segments.cohort' >/dev/null 2>&1 && germline -silent -input 'out/ibd_segments.cohort.ped' 'out/ibd_segments.cohort.map' -output 'out/ibd_segments' -bits 50 -min_m 1 -err_hom 2 -err_het 0 > 'out/ibd_segments.log' 2>&1"
         ],
         "image": "quay.io/biocontainers/germline:1.5.3--hdfd78af_0",
         "out_dir": "out/vcf_ibd",
@@ -1924,7 +1924,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "d62f0b672931f6956ea5c809a9439dfd9bb176c5d5b3b1fec6b24b273a05d760",
+      "cache_key": "2e79965b4e6306bb3cd06f74a9bc698f0693d0669dcc31bb45c6008a5adbe579",
       "dependencies": [
         "vcf.ibd"
       ],
@@ -1956,7 +1956,7 @@
         "command": [
           "sh",
           "-lc",
-          "ibdne --ibd 'out/ibd_segments.tsv' --out 'out/demography_report' > 'out/demography_report.log' 2>&1"
+          "cat 'out/ibd_segments.tsv' | ibdne map='artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz' out='out/demography_report' nthreads=8 nboots=0 seed=15052011 > 'out/demography_report.log' 2>&1"
         ],
         "image": "quay.io/biocontainers/ibdne:23.05.23.ae9f5b3--hdfd78af_0",
         "out_dir": "out/vcf_demography",
@@ -2185,7 +2185,7 @@
     }
   ],
   "pipeline_id": "vcf-to-vcf__downstream_diploid_sctx_0a9734ff9d35__v2",
-  "plan_fingerprint": "0e95b973285951d1a049b578b0b4d79c1f60c514c5977e07fb1e7553158bc3ad",
+  "plan_fingerprint": "611d1ad1bcf83240077b3abbaf5651fa1799f96bcc25371577278a1b308d8074",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "policy": "PreferAccuracy",
   "profile_id": "vcf-downstream",

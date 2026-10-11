@@ -58,7 +58,7 @@ END {
     complete = (value["primary_reads"] > 0 && value["mapped_primary_reads"] > 0 && value["paired_primary_reads"] > 0) ? "true" : "false"
     printf "{\"schema_version\":\"bijux.benchmark.downstream_probe.v1\",\"stage_id\":\"benchmark.bam.mapping_summary.compare\",\"input_contract\":\"bijux.benchmark.bam.mapping_summary.bundle.v1\",\"complete\":%s}\n", complete
   } else if (mode == "metrics") {
-    printf "{\"primary_reads\":%s,\"mapped_primary_reads\":%s,\"mapped_primary_fraction\":%s,\"paired_primary_reads\":%s,\"bam_input_bytes\":%s,\"bam_index_input_bytes\":%s,\"input_bytes\":%s,\"output_bytes\":%s}\n", value["primary_reads"], value["mapped_primary_reads"], value["mapped_primary_fraction"], value["paired_primary_reads"], bam_input_bytes, bam_index_input_bytes, input_bytes, output_bytes
+    printf "{\"schema_version\":\"bijux.benchmark.bam.mapping_summary.metrics.v1\",\"primary_reads\":%s,\"mapped_primary_reads\":%s,\"mapped_primary_fraction\":%s,\"paired_primary_reads\":%s,\"bam_input_bytes\":%s,\"bam_index_input_bytes\":%s,\"input_bytes\":%s,\"output_bytes\":%s}\n", value["primary_reads"], value["mapped_primary_reads"], value["mapped_primary_fraction"], value["paired_primary_reads"], bam_input_bytes, bam_index_input_bytes, input_bytes, output_bytes
   } else {
     exit 2
   }

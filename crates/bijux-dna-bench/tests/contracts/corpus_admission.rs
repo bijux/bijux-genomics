@@ -3,7 +3,8 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_dna_bench::{
-    admit_bam_benchmark_corpus, admit_fastq_benchmark_corpus, BenchmarkFastqLayout,
+    admit_bam_benchmark_corpus, admit_bam_genotyping_corpus, admit_fastq_benchmark_corpus,
+    BenchmarkFastqLayout,
 };
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -22,6 +23,12 @@ struct BamCorpusFixture {
     study_root: PathBuf,
     data_index: PathBuf,
     bam: PathBuf,
+}
+
+struct BamGenotypingCorpusFixture {
+    _temp: TempDir,
+    study_root: PathBuf,
+    data_index: PathBuf,
 }
 
 #[test]
@@ -48,6 +55,37 @@ fn rejects_bam_bytes_that_drift_after_index_publication() -> Result<()> {
     let error = admit_bam_benchmark_corpus(&fixture.study_root, &fixture.data_index, "horse-bam")
         .expect_err("tampered BAM bytes must be rejected");
     assert!(error.to_string().contains("size differs"));
+    Ok(())
+}
+
+#[test]
+fn admits_complete_bam_genotyping_authority_closure() -> Result<()> {
+    let fixture = bam_genotyping_corpus_fixture()?;
+    let admitted = admit_bam_genotyping_corpus(&fixture.study_root, &fixture.data_index)?;
+
+    assert_eq!(admitted.bam.sample_id, "ERR2112767");
+    assert_eq!(admitted.bam_input_bytes, 14);
+    assert_eq!(admitted.reference_input_bytes, 16);
+    assert_eq!(admitted.database_input_bytes, 37);
+    assert_eq!(admitted.input_bytes, 67);
+    Ok(())
+}
+
+#[test]
+fn rejects_genotyping_index_identity_that_disagrees_with_catalog() -> Result<()> {
+    let fixture = bam_genotyping_corpus_fixture()?;
+    let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
+    let records = index["records"].as_array_mut().expect("records array");
+    let known_sites = records
+        .iter_mut()
+        .find(|record| record["id"] == "ensembl-113-equcab3-refseq-known-sites-10mb")
+        .expect("known-sites record");
+    known_sites["files"][1]["sha256"] = Value::String("f".repeat(64));
+    write_json(&fixture.data_index, &index)?;
+
+    let error = admit_bam_genotyping_corpus(&fixture.study_root, &fixture.data_index)
+        .expect_err("cross-authority genotyping disagreement must be rejected");
+    assert!(error.to_string().contains("catalog and data index disagree"));
     Ok(())
 }
 
@@ -93,7 +131,7 @@ fn rejects_file_bytes_that_drift_after_index_publication() -> Result<()> {
 fn rejects_catalog_and_index_file_identity_disagreement() -> Result<()> {
     let fixture = corpus_fixture()?;
     let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
-    index["records"][0]["files"][0]["sha256"] = Value::String("0".repeat(64));
+    index["records"][0]["files"][0]["sha256"] = Value::String("f".repeat(64));
     write_json(&fixture.data_index, &index)?;
 
     let error =
@@ -168,6 +206,7 @@ fn corpus_fixture() -> Result<CorpusFixture> {
             "role": "raw-fastq",
             "sha256": sha256,
             "size_bytes": bytes.len(),
+            "legacy_fields": ["path", "sha256", "size_bytes"],
         }));
     }
     let catalog = json!({
@@ -181,18 +220,26 @@ fn corpus_fixture() -> Result<CorpusFixture> {
     });
     write_json(&catalog_path, &catalog)?;
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
-    let index = json!({
-        "schema_version": "bijux.data_index.v1",
-        "created_at_utc": "2026-08-05T00:00:00Z",
-        "records": [{
-            "id": CORPUS_ID,
-            "benchmark_eligibility": "eligible",
-            "integrity_status": "verified",
-            "catalog_path": "study://data/catalog/human-short-read-diversity.json",
-            "catalog_sha256": catalog_sha256,
-            "files": index_files,
-        }],
-    });
+    let index = governed_data_index(vec![json!({
+        "id": CORPUS_ID,
+        "benchmark_eligibility": "eligible",
+        "integrity_status": "verified",
+        "catalog_path": "study://data/catalog/human-short-read-diversity.json",
+        "catalog_sha256": catalog_sha256,
+        "purpose": "exercise FASTQ corpus admission",
+        "source_identities": ["source:test-fixture"],
+        "access_classification": "test-only",
+        "redistribution_classification": "test-only",
+        "scientific_name": "Homo sapiens",
+        "reference_assembly": null,
+        "temporal_provenance": {
+            "field": "created_at_utc",
+            "timestamp": "2026-08-05T00:00:00Z"
+        },
+        "files": index_files,
+        "known_limitations": ["synthetic test data"],
+        "missing_provenance": [],
+    })]);
     write_json(&data_index, &index)?;
 
     Ok(CorpusFixture {
@@ -239,32 +286,265 @@ fn bam_corpus_fixture() -> Result<BamCorpusFixture> {
     });
     write_json(&catalog_path, &catalog)?;
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
-    let index = json!({
-        "schema_version": "bijux.data_index.v1",
-        "records": [{
-            "id": "horse-bam",
-            "benchmark_eligibility": "eligible",
-            "integrity_status": "verified",
-            "catalog_path": "study://data/catalog/horse-bam.json",
-            "catalog_sha256": catalog_sha256,
-            "files": [
-                {
-                    "path": "study://data/corpora/horse-bam/ERR2112767.sorted.bam",
-                    "role": "coordinate-sorted-deduplicated-bam",
-                    "sha256": bam_sha256,
-                    "size_bytes": 9,
-                },
-                {
-                    "path": "study://data/corpora/horse-bam/ERR2112767.sorted.bam.bai",
-                    "role": "bam-index",
-                    "sha256": index_sha256,
-                    "size_bytes": 5,
-                },
-            ],
-        }],
-    });
+    let index = governed_data_index(vec![json!({
+        "id": "horse-bam",
+        "benchmark_eligibility": "eligible",
+        "integrity_status": "verified",
+        "catalog_path": "study://data/catalog/horse-bam.json",
+        "catalog_sha256": catalog_sha256,
+        "files": [
+            {
+                "path": "study://data/corpora/horse-bam/ERR2112767.sorted.bam",
+                "role": "coordinate-sorted-deduplicated-bam",
+                "sha256": bam_sha256,
+                "size_bytes": 9,
+                "legacy_fields": ["path", "sha256", "size_bytes"],
+            },
+            {
+                "path": "study://data/corpora/horse-bam/ERR2112767.sorted.bam.bai",
+                "role": "bam-index",
+                "sha256": index_sha256,
+                "size_bytes": 5,
+                "legacy_fields": ["path", "sha256", "size_bytes"],
+            },
+        ],
+        "purpose": "exercise BAM corpus admission",
+        "source_identities": ["source:test-fixture"],
+        "access_classification": "test-only",
+        "redistribution_classification": "test-only",
+        "scientific_name": "Equus caballus",
+        "reference_assembly": "EquCab3.0",
+        "temporal_provenance": {
+            "field": "created_at_utc",
+            "timestamp": "2026-08-05T00:00:00Z"
+        },
+        "known_limitations": ["synthetic test data"],
+        "missing_provenance": [],
+    })]);
     write_json(&data_index, &index)?;
     Ok(BamCorpusFixture { _temp: temp, study_root, data_index, bam })
+}
+
+fn bam_genotyping_corpus_fixture() -> Result<BamGenotypingCorpusFixture> {
+    let temp = tempfile::tempdir()?;
+    let study_root = temp.path().join("STUDY");
+    let data_index = study_root.join("data/evidence/indexes/source/data-index.json");
+    fs::create_dir_all(data_index.parent().expect("index parent"))?;
+
+    let bam_root = study_root.join("data/corpora/ena-prjeb22390-err2112767-bam");
+    let reference_root = study_root.join("data/references/equcab3-gcf-002863925.1");
+    let database_root =
+        study_root.join("data/databases/ensembl-113-equcab3-refseq-known-sites-10mb");
+    let catalog_root = study_root.join("data/catalog");
+    fs::create_dir_all(&bam_root)?;
+    fs::create_dir_all(&reference_root)?;
+    fs::create_dir_all(&database_root)?;
+    fs::create_dir_all(&catalog_root)?;
+
+    let bam_files = write_authority_files(
+        &study_root,
+        &[
+            (
+                bam_root.join("ERR2112767.sorted.bam"),
+                "coordinate-sorted-deduplicated-bam",
+                b"BAM-bytes".as_slice(),
+            ),
+            (bam_root.join("ERR2112767.sorted.bam.bai"), "bam-index", b"index".as_slice()),
+        ],
+    )?;
+    let reference_files = write_authority_files(
+        &study_root,
+        &[
+            (reference_root.join("EquCab3.0.fna"), "catalog.files.0", b">chr1\nAC\n".as_slice()),
+            (reference_root.join("EquCab3.0.fna.fai"), "catalog.files.1", b"chr1\t2\n".as_slice()),
+        ],
+    )?;
+    let known_sites_files = write_authority_files(
+        &study_root,
+        &[
+            (
+                database_root.join("known-sites.vcf.gz"),
+                "normalized-known-sites-vcf",
+                b"compressed-vcf".as_slice(),
+            ),
+            (
+                database_root.join("known-sites.vcf.gz.csi"),
+                "known-sites-vcf-index",
+                b"csi".as_slice(),
+            ),
+            (
+                database_root.join("known-sites.bed"),
+                "zero-based-candidate-regions",
+                b"chr1\t0\t2\n".as_slice(),
+            ),
+        ],
+    )?;
+    let allele_files = write_authority_files(
+        &study_root,
+        &[(
+            database_root.join("known-sites.alleles.tsv"),
+            "bcftools-constrained-calling-alleles",
+            b"chr1\t1\tA,C\n".as_slice(),
+        )],
+    )?;
+
+    let bam_catalog = catalog_root.join("ena-prjeb22390-err2112767-bam.json");
+    write_json(
+        &bam_catalog,
+        &json!({
+            "schema_version": "bijux.data_catalog.v1",
+            "id": "ena-prjeb22390-err2112767-bam",
+            "run_accession": "ERR2112767",
+            "files": catalog_files(&study_root, &bam_files, false),
+        }),
+    )?;
+    let reference_catalog = catalog_root.join("equcab3-gcf-002863925.1.json");
+    write_json(
+        &reference_catalog,
+        &json!({
+            "schema_version": "bijux.data_catalog.v1",
+            "id": "equcab3-gcf-002863925.1",
+            "files": catalog_files(&study_root, &reference_files, true),
+        }),
+    )?;
+    let known_sites_catalog = catalog_root.join("ensembl-113-equcab3-refseq-known-sites-10mb.json");
+    write_json(
+        &known_sites_catalog,
+        &json!({
+            "schema_version": "bijux.data_catalog.v1",
+            "id": "ensembl-113-equcab3-refseq-known-sites-10mb",
+            "files": catalog_files(&study_root, &known_sites_files, false),
+        }),
+    )?;
+    let alleles_catalog =
+        catalog_root.join("ensembl-113-equcab3-refseq-genotyping-inputs-10mb.json");
+    write_json(
+        &alleles_catalog,
+        &json!({
+            "schema_version": "bijux.data_catalog.v1",
+            "id": "ensembl-113-equcab3-refseq-genotyping-inputs-10mb",
+            "files": catalog_files(&study_root, &allele_files, false),
+        }),
+    )?;
+
+    let records = vec![
+        index_record(&study_root, "ena-prjeb22390-err2112767-bam", &bam_catalog, &bam_files)?,
+        index_record(&study_root, "equcab3-gcf-002863925.1", &reference_catalog, &reference_files)?,
+        index_record(
+            &study_root,
+            "ensembl-113-equcab3-refseq-known-sites-10mb",
+            &known_sites_catalog,
+            &known_sites_files,
+        )?,
+        index_record(
+            &study_root,
+            "ensembl-113-equcab3-refseq-genotyping-inputs-10mb",
+            &alleles_catalog,
+            &allele_files,
+        )?,
+    ];
+    write_json(&data_index, &governed_data_index(records))?;
+    Ok(BamGenotypingCorpusFixture { _temp: temp, study_root, data_index })
+}
+
+fn write_authority_files(
+    study_root: &Path,
+    files: &[(PathBuf, &str, &[u8])],
+) -> Result<Vec<Value>> {
+    files
+        .iter()
+        .map(|(path, role, bytes)| {
+            fs::write(path, bytes)?;
+            Ok(json!({
+                "path": format!("study://{}", path.strip_prefix(study_root)?.display()),
+                "role": role,
+                "sha256": bijux_dna_infra::hash_bytes_sha256(bytes),
+                "size_bytes": bytes.len(),
+                "legacy_fields": ["path", "sha256", "size_bytes"],
+            }))
+        })
+        .collect()
+}
+
+fn catalog_files(study_root: &Path, files: &[Value], governed: bool) -> Vec<Value> {
+    files
+        .iter()
+        .map(|file| {
+            let relative = file["path"].as_str().expect("file path").trim_start_matches("study://");
+            let path = study_root.join(relative);
+            if governed {
+                json!({
+                    "governed_path": path,
+                    "governed_sha256": file["sha256"],
+                    "governed_size_bytes": file["size_bytes"],
+                })
+            } else {
+                json!({
+                    "path": path,
+                    "kind": file["role"],
+                    "sha256": file["sha256"],
+                    "size_bytes": file["size_bytes"],
+                })
+            }
+        })
+        .collect()
+}
+
+fn index_record(study_root: &Path, id: &str, catalog: &Path, files: &[Value]) -> Result<Value> {
+    Ok(json!({
+        "id": id,
+        "benchmark_eligibility": "eligible",
+        "integrity_status": "verified",
+        "catalog_path": format!("study://{}", catalog.strip_prefix(study_root)?.display()),
+        "catalog_sha256": bijux_dna_infra::hash_file_sha256(catalog)?,
+        "purpose": "exercise governed genotyping admission",
+        "source_identities": ["source:test-fixture"],
+        "access_classification": "test-only",
+        "redistribution_classification": "test-only",
+        "scientific_name": "Equus caballus",
+        "reference_assembly": "EquCab3.0",
+        "temporal_provenance": {
+            "field": "created_at_utc",
+            "timestamp": "2026-08-05T00:00:00Z"
+        },
+        "files": files,
+        "known_limitations": ["synthetic test data"],
+        "missing_provenance": [],
+    }))
+}
+
+fn governed_data_index(mut records: Vec<Value>) -> Value {
+    records.sort_by(|left, right| {
+        left["id"].as_str().expect("record id").cmp(right["id"].as_str().expect("record id"))
+    });
+    for record in &mut records {
+        record["files"].as_array_mut().expect("record files").sort_by(|left, right| {
+            left["path"]
+                .as_str()
+                .expect("file path")
+                .cmp(right["path"].as_str().expect("file path"))
+        });
+    }
+    let file_count =
+        records.iter().map(|record| record["files"].as_array().unwrap().len()).sum::<usize>();
+    let size_bytes = records
+        .iter()
+        .flat_map(|record| record["files"].as_array().expect("record files"))
+        .map(|file| file["size_bytes"].as_u64().expect("file size"))
+        .sum::<u64>();
+    json!({
+        "schema_version": "bijux.data_index.v1",
+        "created_at_utc": "2026-08-05T00:00:00Z",
+        "data_root": "study://data",
+        "summary": {
+            "record_count": records.len(),
+            "file_count": file_count,
+            "size_bytes": size_bytes,
+            "integrity_verified_count": records.len(),
+            "benchmark_eligibility": {"eligible": records.len()},
+        },
+        "records": records,
+    })
 }
 
 fn write_json(path: &Path, value: &Value) -> Result<()> {

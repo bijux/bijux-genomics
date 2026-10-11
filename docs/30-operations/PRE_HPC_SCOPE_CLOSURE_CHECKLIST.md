@@ -27,7 +27,7 @@ Prevents subjective scope debates and forces auditable closure criteria.
 - `cargo test -p bijux-dna-runtime --test contracts mod_contracts_telemetry_contract_rs`
 - `cargo test -p bijux-dna-api --test contracts v1_dry_run_manifest`
 - `cargo test -p bijux-dna --test contracts cli_behavior`
-- `cargo test -p bijux-dna-environment-qa --test contracts`
+- `cargo test -p bijux-dna-containers-qa --test contracts`
 
 ## Failure modes
 - Unknown telemetry events deserialize successfully.

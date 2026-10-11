@@ -1,0 +1,176 @@
+{
+  "$defs": {
+    "BenchmarkStageResultCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "rendered": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "rendered"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStageResultOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "type": "string"
+        },
+        "declared_path": {
+          "type": "string"
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "realized_path": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "declared_path",
+        "realized_path",
+        "role",
+        "optional",
+        "exists"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStageResultResourceMetricSource": {
+      "enum": [
+        "measured",
+        "estimated",
+        "not_available"
+      ],
+      "type": "string"
+    },
+    "BenchmarkStageResultResourceMetrics": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu_threads": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "memory_mb": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/BenchmarkStageResultResourceMetricSource"
+        }
+      },
+      "required": [
+        "source"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStageResultRuntime": {
+      "additionalProperties": false,
+      "properties": {
+        "elapsed_seconds": {
+          "format": "double",
+          "type": "number"
+        },
+        "exit_code": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "finished_at": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "started_at": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/BenchmarkStageResultStatus"
+        }
+      },
+      "required": [
+        "mode",
+        "status",
+        "started_at",
+        "finished_at",
+        "elapsed_seconds",
+        "exit_code"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStageResultStatus": {
+      "enum": [
+        "succeeded",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "BenchmarkStageResultTool": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "command": {
+      "$ref": "#/$defs/BenchmarkStageResultCommand"
+    },
+    "outputs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageResultOutput"
+      },
+      "type": "array"
+    },
+    "resource_metrics": {
+      "$ref": "#/$defs/BenchmarkStageResultResourceMetrics"
+    },
+    "runtime": {
+      "$ref": "#/$defs/BenchmarkStageResultRuntime"
+    },
+    "schema_version": {
+      "const": "bijux.bench.stage_result.v2",
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "tool": {
+      "$ref": "#/$defs/BenchmarkStageResultTool"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool",
+    "command",
+    "runtime",
+    "resource_metrics",
+    "outputs"
+  ],
+  "title": "BenchmarkStageResultManifest",
+  "type": "object"
+}

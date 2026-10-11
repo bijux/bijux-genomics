@@ -47,3 +47,24 @@ pub(super) fn bench_bam_pipeline_args_to_api(
         allow_planned: args.allow_planned,
     }
 }
+
+pub(crate) fn handle_stage_command(
+    command: &crate::commands::cli::parse::DnaCommand,
+) -> anyhow::Result<bool> {
+    let crate::commands::cli::parse::DnaCommand::Fastq(root) = command else {
+        return Ok(false);
+    };
+    let crate::commands::cli::parse::FastqCommand::EstimateLibraryComplexityPrealign(args) =
+        &root.command
+    else {
+        return Ok(false);
+    };
+    let report = bijux_dna_api::v1::api::fastq::estimate_library_complexity_prealign_report(
+        &args.r1,
+        args.r2.as_deref(),
+        Some(args.kmer_size),
+        &args.out,
+    )?;
+    println!("{}", serde_json::to_string(&report)?);
+    Ok(true)
+}

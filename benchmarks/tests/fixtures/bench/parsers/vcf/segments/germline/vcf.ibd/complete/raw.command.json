@@ -4,6 +4,6 @@
   "argv": [
     "sh",
     "-lc",
-    "plink2 --vcf 'cohort.vcf.gz' --double-id --allow-extra-chr --make-bed --out 'cohort' >/dev/null 2>&1 && germline -input 'cohort' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output 'ibd_segments' > 'raw.log' 2>&1"
+    "plink2 --vcf 'cohort.vcf.gz' --double-id --allow-extra-chr --recode ped --out 'cohort' >/dev/null 2>&1 && germline -silent -input 'cohort.ped' 'cohort.map' -output 'ibd_segments' -bits 50 -min_m 1 -err_hom 2 -err_het 0 > 'raw.log' 2>&1"
   ]
 }

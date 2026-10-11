@@ -186,7 +186,7 @@ fn bench_readiness_bam_stage_decision_table_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.genotyping\tbenchmark_ready\tangsd\tangsd\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-genotyping-mini\tstage `bam.genotyping` is benchmark_ready via `angsd` with a fixture-backed parser-validated BAM benchmark row"
+            row == &"bam.genotyping\tbenchmark_ready\tbcftools\tbcftools\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-genotyping-mini\tstage `bam.genotyping` is benchmark_ready via `bcftools` with a fixture-backed parser-validated BAM benchmark row"
         }),
         "TSV must publish the governed benchmark-ready classification for bam.genotyping"
     );

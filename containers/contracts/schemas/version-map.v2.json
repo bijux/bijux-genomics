@@ -1,0 +1,60 @@
+{
+  "$defs": {
+    "ContainerVersionMapItem": {
+      "additionalProperties": false,
+      "properties": {
+        "date_pinned": {
+          "type": "string"
+        },
+        "pinned_commit": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "source_sha256": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "version",
+        "source",
+        "source_sha256",
+        "pinned_commit",
+        "date_pinned"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/ContainerVersionMapItem"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.container.version_map.v2",
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "source",
+    "items"
+  ],
+  "title": "ContainerVersionMap",
+  "type": "object"
+}

@@ -47,27 +47,36 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/output-declarations-all-domains.tsv")
     );
-    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    let rows = support::json_array(&payload, "rows");
+    let row_count = u64::try_from(rows.len()).expect("row count fits u64");
+    assert_eq!(support::json_u64(&payload, "row_count"), Some(row_count));
     assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
     assert_eq!(support::json_u64(&payload, "complete_row_count"), Some(row_count));
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(21));
+    for domain in ["fastq", "bam", "vcf"] {
+        let expected_count = u64::try_from(
+            rows.iter()
+                .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some(domain))
+                .count(),
+        )
+        .expect("domain count fits u64");
+        assert_eq!(
+            domain_counts.get(domain).and_then(serde_json::Value::as_u64),
+            Some(expected_count)
+        );
+    }
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let status_counts = support::json_object(&payload, "status_counts");
     assert_eq!(status_counts.get("complete").and_then(serde_json::Value::as_u64), Some(row_count));
 
-    let rows = support::json_array(&payload, "rows");
-    assert_eq!(rows.len() as u64, row_count);
     let result_ids = rows
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(result_ids.len() as u64, row_count);
+    assert_eq!(u64::try_from(result_ids.len()).expect("result count fits u64"), row_count);
 
     let taxonomy = rows
         .iter()

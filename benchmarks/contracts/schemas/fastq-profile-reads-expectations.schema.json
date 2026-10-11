@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "data_index_sha256": {
+      "type": "string"
+    },
+    "expected_profile_sha256": {
+      "type": "string"
+    },
+    "file_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "read_length_derivation_sha256": {
+      "type": "string"
+    },
+    "sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.fastq.profile_reads.expectations.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "sample_count",
+    "file_count",
+    "data_index_sha256",
+    "catalog_sha256",
+    "read_length_derivation_sha256",
+    "expected_profile_sha256"
+  ],
+  "title": "FastqProfileReadsExpectationsProvenance",
+  "type": "object"
+}

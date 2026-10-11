@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use bijux_dna_environment::api::{docker_image_exists, PlatformSpec, ResolvedImage, ToolImageSpec};
+use bijux_dna_containers::api::{docker_image_exists, PlatformSpec, ResolvedImage, ToolImageSpec};
 use tracing::warn;
 
 pub(super) fn resolve_docker_image_for_run(

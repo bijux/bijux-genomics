@@ -42,7 +42,7 @@ fn policy__boundaries__domain_dependency_policy__domain_crates_use_only_pure_dep
         "bollard",
         "bijux-dna-runtime",
         "bijux-dna-engine",
-        "bijux-dna-environment",
+        "bijux-dna-containers",
     ];
     let domains = [
         root.join("crates/bijux-dna-domain-fastq/Cargo.toml"),

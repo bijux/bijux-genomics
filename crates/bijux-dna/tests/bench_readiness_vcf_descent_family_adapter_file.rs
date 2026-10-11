@@ -46,7 +46,7 @@ fn bench_readiness_vcf_descent_family_adapter_writes_governed_json_file() {
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(4)
     );
     assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(5));
 
@@ -67,8 +67,7 @@ fn bench_readiness_vcf_descent_family_adapter_writes_governed_json_file() {
         .filter_map(|artifact| artifact.get("artifact_id"))
         .filter_map(serde_json::Value::as_str)
         .collect::<Vec<_>>();
-    for artifact_id in ["cohort_bed", "cohort_bim", "cohort_fam", "germline_match", "ibd_segments"]
-    {
+    for artifact_id in ["cohort_ped", "cohort_map", "germline_match", "logs_txt", "ibd_segments"] {
         assert!(
             germline_outputs.iter().any(|candidate| candidate == &artifact_id),
             "germline row must declare `{artifact_id}`"

@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use chrono::{Local, NaiveDate, Utc};
 use regex::Regex;
-use serde::Serialize;
 use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
@@ -17,9 +16,9 @@ mod command_support;
 mod content_support;
 mod contracts;
 mod dispatch;
+mod image_activation;
 mod inventory;
 mod metadata;
-mod qualification;
 mod qualification_registry;
 mod registry_catalog;
 mod runtime;
@@ -32,9 +31,9 @@ mod versioning;
 pub(crate) use self::registry_catalog::container_support_summary;
 
 use self::command_support::{
-    append_named_outcome, failure_lines, git_last_modified_timestamp, iso_root_path, iso_run_id,
-    json_string_pretty, out_path_arg, path_from_arg, policy_path, read_json, read_utf8,
-    run_container_runtime_check, success_line, write_utf8,
+    append_named_outcome, failure_lines, iso_root_path, iso_run_id, json_string_pretty,
+    out_path_arg, path_from_arg, policy_path, read_json, read_utf8, run_container_runtime_check,
+    success_line, write_utf8,
 };
 use self::content_support::{
     line_has_network_command, load_toml, markdown_code_value, sha256_hex, table_array_strings,
@@ -59,8 +58,7 @@ use self::runtime::{
     run_runtime_smoke_contract,
 };
 use self::version_state::{
-    append_toml_table, container_version_deprecations_path, lock_items_by_tool, lock_json_path,
-    parse_date, read_lock_json, tool_versions, VersionMapItem,
+    append_toml_table, container_version_deprecations_path, parse_date, tool_versions,
 };
 
 pub fn run_native_container_command(

@@ -37,10 +37,10 @@ fn common_input_root(paths: &[PathBuf]) -> Option<PathBuf> {
 #[allow(clippy::too_many_lines)]
 pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     let runner_contract = match request.runner {
-        bijux_dna_environment::api::RuntimeKind::Local => RunnerContractKind::Local,
-        bijux_dna_environment::api::RuntimeKind::Docker => RunnerContractKind::Docker,
-        bijux_dna_environment::api::RuntimeKind::Apptainer => RunnerContractKind::Apptainer,
-        other @ bijux_dna_environment::api::RuntimeKind::Singularity => {
+        bijux_dna_containers::api::RuntimeKind::Local => RunnerContractKind::Local,
+        bijux_dna_containers::api::RuntimeKind::Docker => RunnerContractKind::Docker,
+        bijux_dna_containers::api::RuntimeKind::Apptainer => RunnerContractKind::Apptainer,
+        other @ bijux_dna_containers::api::RuntimeKind::Singularity => {
             return Err(anyhow!("runner {other} not supported for execute_run stage coverage"));
         }
     };
@@ -317,17 +317,17 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         .is_some_and(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
     {
         let secondary_runner = match request.runner {
-            bijux_dna_environment::api::RuntimeKind::Local => {
-                bijux_dna_environment::api::RuntimeKind::Local
+            bijux_dna_containers::api::RuntimeKind::Local => {
+                bijux_dna_containers::api::RuntimeKind::Local
             }
-            bijux_dna_environment::api::RuntimeKind::Docker => {
-                bijux_dna_environment::api::RuntimeKind::Apptainer
+            bijux_dna_containers::api::RuntimeKind::Docker => {
+                bijux_dna_containers::api::RuntimeKind::Apptainer
             }
-            bijux_dna_environment::api::RuntimeKind::Apptainer => {
-                bijux_dna_environment::api::RuntimeKind::Docker
+            bijux_dna_containers::api::RuntimeKind::Apptainer => {
+                bijux_dna_containers::api::RuntimeKind::Docker
             }
-            bijux_dna_environment::api::RuntimeKind::Singularity => {
-                bijux_dna_environment::api::RuntimeKind::Singularity
+            bijux_dna_containers::api::RuntimeKind::Singularity => {
+                bijux_dna_containers::api::RuntimeKind::Singularity
             }
         };
         if secondary_runner != request.runner {

@@ -109,6 +109,7 @@ pub(crate) fn render_vcf_adapters_ready(
     let mut bcftools_adapter_report = None;
     let mut shapeit5_adapter_report = None;
     let mut imputation_family_adapter_report = None;
+    let mut descent_family_adapter_report = None;
     let mut adapter_output_coverage_report = None;
     let mut plink_adapter_report = None;
     let mut plink2_family_adapter_report = None;
@@ -124,11 +125,11 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_TOOL_SERVING_MAP_PATH),
             )?;
-            if report.row_count != 23
+            if report.row_count != 24
                 || report.stage_count != 20
-                || report.tool_count != 8
-                || report.benchmark_ready_row_count != 21
-                || report.not_benchmark_ready_row_count != 2
+                || report.tool_count != 9
+                || report.benchmark_ready_row_count != 24
+                || report.not_benchmark_ready_row_count != 0
             {
                 bail!(
                     "VCF tool-serving map drifted: rows={}, stages={}, tools={}, benchmark_ready={}, not_benchmark_ready={}",
@@ -141,7 +142,7 @@ pub(crate) fn render_vcf_adapters_ready(
             }
             benchmark_ready_pair_count = report.benchmark_ready_row_count;
             tool_serving_map_report = Some(report);
-            Ok("validated 23 governed VCF stage-tool rows with 21 canonical benchmark-ready pairs"
+            Ok("validated 24 governed VCF stage-tool rows across all 20 supported stages"
                 .to_string())
         },
     );
@@ -154,10 +155,10 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_orphan_tools(repo_root, PathBuf::from(DEFAULT_VCF_ORPHAN_TOOLS_PATH))?;
-            if report.orphan_count != 8
+            if report.orphan_count != 7
                 || report.required_tool_count != 16
                 || report.registered_tool_count != 16
-                || report.served_tool_count != 8
+                || report.served_tool_count != 9
                 || report.rows.iter().any(|row| {
                     row.served_stage_count != 0 || row.decision != "future_not_benchmark_ready"
                 })
@@ -165,7 +166,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 bail!("VCF orphan-tool report drifted from the governed orphan tool slice");
             }
             Ok(
-                "validated 8 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
+                "validated 7 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
                     .to_string(),
             )
         },
@@ -181,7 +182,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_UNDERCOVERED_STAGES_PATH),
             )?;
-            if report.stage_count != 20 || report.undercovered_stage_count != 10 {
+            if report.stage_count != 20 || report.undercovered_stage_count != 9 {
                 bail!(
                     "VCF undercovered-stage report drifted: stage_count={}, undercovered_stage_count={}",
                     report.stage_count,
@@ -192,13 +193,13 @@ pub(crate) fn render_vcf_adapters_ready(
                 report.decision_counts.get("future_not_benchmark_ready").copied().unwrap_or(0);
             let limit_to_specialized_tool =
                 report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
-            if future_not_benchmark_ready != 8 || limit_to_specialized_tool != 2 {
+            if future_not_benchmark_ready != 7 || limit_to_specialized_tool != 2 {
                 bail!(
                     "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={future_not_benchmark_ready}, limit_to_specialized_tool={limit_to_specialized_tool}"
                 );
             }
             Ok(
-                "validated 10 governed undercovered VCF stages with explicit future vs specialized decisions"
+                "validated 9 governed undercovered VCF stages with explicit future vs specialized decisions"
                     .to_string(),
             )
         },
@@ -218,12 +219,12 @@ pub(crate) fn render_vcf_adapters_ready(
                 serde_json::from_str(&payload).context("parse VCF matrix-registry JSON")?;
             if report.get("passes_gate").and_then(serde_json::Value::as_bool) != Some(true)
                 || report.get("stage_count").and_then(serde_json::Value::as_u64) != Some(20)
-                || report.get("matrix_row_count").and_then(serde_json::Value::as_u64) != Some(23)
-                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64) != Some(42)
+                || report.get("matrix_row_count").and_then(serde_json::Value::as_u64) != Some(24)
+                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64) != Some(41)
                 || report
                     .get("benchmark_ready_registry_pair_count")
                     .and_then(serde_json::Value::as_u64)
-                    != Some(18)
+                    != Some(20)
                 || report.get("unregistered_matrix_pair_count").and_then(serde_json::Value::as_u64)
                     != Some(0)
                 || report
@@ -318,7 +319,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 "plink2",
                 PathBuf::from(DEFAULT_VCF_PLINK2_ADAPTER_PATH),
             )?;
-            if plink_report.row_count != 2
+            if plink_report.row_count != 3
                 || plink_report.benchmark_ready_row_count != 1
                 || plink_report.parser_output_row_count != plink_report.row_count
                 || plink_report.normalized_metrics_row_count != plink_report.row_count
@@ -413,7 +414,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 "beagle",
                 PathBuf::from(DEFAULT_VCF_BEAGLE_ADAPTER_PATH),
             )?;
-            for report in [&shapeit5_report, &eagle_report, &beagle_report] {
+            for report in [&shapeit5_report, &eagle_report] {
                 if report.row_count != 1
                     || report.parser_output_row_count != 1
                     || report.indexed_row_count != 1
@@ -422,9 +423,16 @@ pub(crate) fn render_vcf_adapters_ready(
                     bail!("VCF phasing adapter report for `{}` drifted from the governed retained row contract", report.tool_id);
                 }
             }
+            if beagle_report.row_count != 3
+                || beagle_report.parser_output_row_count != 3
+                || beagle_report.indexed_row_count != 3
+                || beagle_report.missing_input_test_passed_row_count != 3
+            {
+                bail!("VCF phasing adapter report for `beagle` drifted from the governed retained row contract");
+            }
             if shapeit5_report.benchmark_ready_row_count != 1
                 || eagle_report.benchmark_ready_row_count != 0
-                || beagle_report.benchmark_ready_row_count != 0
+                || beagle_report.benchmark_ready_row_count != 2
             {
                 bail!("VCF phasing benchmark-ready ownership drifted across retained backends");
             }
@@ -469,12 +477,13 @@ pub(crate) fn render_vcf_adapters_ready(
             )?;
             if report.row_count != 5
                 || report.tool_count != 5
-                || report.benchmark_ready_row_count != 3
+                || report.benchmark_ready_row_count != 4
                 || report.parser_output_row_count != report.row_count
                 || report.missing_input_test_passed_row_count != report.row_count
             {
                 bail!("VCF descent-family adapter report drifted from the governed retained row contract");
             }
+            descent_family_adapter_report = Some(report);
             Ok("validated retained IBD, ROH, and demography adapter rows".to_string())
         },
     );
@@ -489,12 +498,12 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH),
             )?;
-            if report.row_count != 39
-                || report.benchmark_ready_row_count != 21
-                || report.benchmark_ready_complete_row_count != 21
+            if report.row_count != 40
+                || report.benchmark_ready_row_count != 24
+                || report.benchmark_ready_complete_row_count != 24
                 || report.benchmark_ready_incomplete_row_count != 0
                 || report.complete_row_count != 36
-                || report.incomplete_row_count != 3
+                || report.incomplete_row_count != 4
             {
                 bail!("VCF adapter output coverage report drifted from the governed completeness contract");
             }
@@ -615,6 +624,10 @@ pub(crate) fn render_vcf_adapters_ready(
                 imputation_family_adapter_report.as_ref().ok_or_else(|| {
                     anyhow!("VCF imputation-family adapter check did not produce a report")
                 })?;
+            let descent_family_adapter_report =
+                descent_family_adapter_report.as_ref().ok_or_else(|| {
+                    anyhow!("VCF descent-family adapter check did not produce a report")
+                })?;
             let rendered_commands_report = rendered_commands_report
                 .as_ref()
                 .ok_or_else(|| anyhow!("VCF rendered commands check did not produce a report"))?;
@@ -692,6 +705,19 @@ pub(crate) fn render_vcf_adapters_ready(
             );
             adapter_pairs.extend(
                 imputation_family_adapter_report
+                    .rows
+                    .iter()
+                    .filter(|row| {
+                        row.benchmark_status == "benchmark_ready"
+                            && row.argv_validation_passed
+                            && row.missing_input_test_passed
+                            && benchmark_ready_pairs
+                                .contains(&(row.stage_id.clone(), row.tool_id.clone()))
+                    })
+                    .map(|row| (row.stage_id.clone(), row.tool_id.clone())),
+            );
+            adapter_pairs.extend(
+                descent_family_adapter_report
                     .rows
                     .iter()
                     .filter(|row| {

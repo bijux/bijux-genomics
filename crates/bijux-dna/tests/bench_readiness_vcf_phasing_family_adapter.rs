@@ -43,10 +43,7 @@ fn bench_readiness_vcf_shapeit5_adapter_reports_governed_row() {
     );
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(payload.get("tool_id").and_then(serde_json::Value::as_str), Some("shapeit5"));
-    assert_eq!(
-        payload.get("tool_status").and_then(serde_json::Value::as_str),
-        Some("experimental")
-    );
+    assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/adapters/shapeit5.vcf.json")
@@ -111,10 +108,7 @@ fn bench_readiness_vcf_eagle_adapter_reports_governed_row() {
         Some("bijux.bench.readiness.vcf_eagle_adapter.v1")
     );
     assert_eq!(payload.get("tool_id").and_then(serde_json::Value::as_str), Some("eagle"));
-    assert_eq!(
-        payload.get("tool_status").and_then(serde_json::Value::as_str),
-        Some("experimental")
-    );
+    assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("planned"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/adapters/eagle.vcf.json")
@@ -166,30 +160,31 @@ fn bench_readiness_vcf_beagle_adapter_reports_governed_row() {
         Some("bijux.bench.readiness.vcf_beagle_adapter.v1")
     );
     assert_eq!(payload.get("tool_id").and_then(serde_json::Value::as_str), Some("beagle"));
-    assert_eq!(
-        payload.get("tool_status").and_then(serde_json::Value::as_str),
-        Some("experimental")
-    );
+    assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/adapters/beagle.vcf.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(0)
+        Some(2)
     );
-    assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("indexed_row_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("indexed_row_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
         payload.get("missing_input_test_passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(3)
     );
 
     let row = payload
         .get("rows")
         .and_then(serde_json::Value::as_array)
-        .and_then(|rows| rows.first())
+        .and_then(|rows| {
+            rows.iter().find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
+            })
+        })
         .expect("beagle row");
     assert_eq!(row.get("stage_id").and_then(serde_json::Value::as_str), Some("vcf.phasing"));
     assert_eq!(

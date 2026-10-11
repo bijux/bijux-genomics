@@ -7,15 +7,15 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_fastq_read_length_expectations, AdmittedFastqCorpus, BenchmarkFastqLayout,
+    FastqProfileReadsExpectationsProvenance, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
 };
-use serde::Serialize;
 
 use super::storage::{ensure_directory_chain, ensure_immutable_file, verify_directory_closure};
 use super::FastqReadLengthExpectationPublication;
 
 const PROFILE_HEADER: &str = "sample_id\tinput_layout\tfile_count\tread_count\tbase_count";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FastqProfileReadsExpectationSample {
     pub sample_id: String,
     pub input_layout: BenchmarkFastqLayout,
@@ -31,18 +31,6 @@ pub struct FastqProfileReadsExpectationPublication {
     pub provenance_path: PathBuf,
     pub admitted_corpus: AdmittedFastqCorpus,
     pub samples: Vec<FastqProfileReadsExpectationSample>,
-}
-
-#[derive(Serialize)]
-struct ProfileProvenance<'a> {
-    schema_version: &'static str,
-    corpus_id: &'a str,
-    sample_count: u64,
-    file_count: u64,
-    data_index_sha256: &'a str,
-    catalog_sha256: &'a str,
-    read_length_derivation_sha256: &'a str,
-    expected_profile_sha256: String,
 }
 
 /// Publish exact per-sample read and base counts from independently decoded FASTQ evidence.
@@ -91,14 +79,14 @@ pub fn ensure_fastq_profile_reads_expectations(
     let profile_bytes = render_profile(&samples).into_bytes();
     let profile_path = root.join("expected-profile.tsv");
     ensure_immutable_file(&profile_path, &profile_bytes)?;
-    let provenance = ProfileProvenance {
-        schema_version: "bijux.benchmark.fastq.profile_reads.expectations.v1",
-        corpus_id: &read_lengths.expectations.corpus_id,
+    let provenance = FastqProfileReadsExpectationsProvenance {
+        schema_version: FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1.to_string(),
+        corpus_id: read_lengths.expectations.corpus_id.clone(),
         sample_count: read_lengths.expectations.sample_count,
         file_count: read_lengths.expectations.file_count,
-        data_index_sha256: &read_lengths.expectations.data_index_sha256,
-        catalog_sha256: &read_lengths.expectations.catalog_sha256,
-        read_length_derivation_sha256: &read_lengths.expectations.derivation_sha256,
+        data_index_sha256: read_lengths.expectations.data_index_sha256.clone(),
+        catalog_sha256: read_lengths.expectations.catalog_sha256.clone(),
+        read_length_derivation_sha256: read_lengths.expectations.derivation_sha256.clone(),
         expected_profile_sha256: bijux_dna_infra::hash_bytes_sha256(&profile_bytes),
     };
     let mut provenance_bytes =

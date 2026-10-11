@@ -10,7 +10,7 @@ use bijux_dna_bench_model::{
     BenchmarkAttemptIdentity, BenchmarkCampaignPlan, BenchmarkExecutionSpec,
     BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
 };
-use bijux_dna_environment::api::{
+use bijux_dna_containers::api::{
     load_container_catalog, load_image_inventory_publication, resolve_current_apptainer_image,
     validate_container_inventory_catalog, ContainerCatalog, ContainerImageInventoryPublication,
     CurrentApptainerImage,

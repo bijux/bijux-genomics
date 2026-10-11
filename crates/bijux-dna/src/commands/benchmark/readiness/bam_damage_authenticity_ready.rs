@@ -88,7 +88,7 @@ const AUTHENTICITY_REQUIRED_LOCAL_SMOKE_FIELDS: [&str; 13] = [
     "mapping_summary",
 ];
 
-const BAM_BINDING_SPECS: [BamBindingSpec; 9] = [
+const BAM_BINDING_SPECS: [BamBindingSpec; 8] = [
     BamBindingSpec {
         stage_id: "bam.authenticity",
         tool_id: "authenticct",
@@ -147,17 +147,6 @@ const BAM_BINDING_SPECS: [BamBindingSpec; 9] = [
     BamBindingSpec {
         stage_id: "bam.damage",
         tool_id: "mapdamage2",
-        required_output_ids: &DAMAGE_REQUIRED_OUTPUT_IDS,
-        normalized_metrics_output_id: "damage_report",
-        schema_extension_id: "bam_damage_normalized_v1",
-        required_local_smoke_fields: &DAMAGE_REQUIRED_LOCAL_SMOKE_FIELDS,
-        report_section_id: "ancient_signal",
-        summary_table_id: "damage_authenticity",
-        report_anchor_tool_id: "mapdamage2",
-    },
-    BamBindingSpec {
-        stage_id: "bam.damage",
-        tool_id: "ngsbriggs",
         required_output_ids: &DAMAGE_REQUIRED_OUTPUT_IDS,
         normalized_metrics_output_id: "damage_report",
         schema_extension_id: "bam_damage_normalized_v1",
@@ -1203,14 +1192,14 @@ mod tests {
         .expect("render BAM damage/authenticity readiness");
 
         assert_eq!(report.schema_version, BAM_DAMAGE_AUTHENTICITY_READY_SCHEMA_VERSION);
-        assert_eq!(report.active_row_count, 9);
-        assert_eq!(report.complete_row_count, 9);
+        assert_eq!(report.active_row_count, 8);
+        assert_eq!(report.complete_row_count, 8);
         assert_eq!(report.incomplete_row_count, 0);
         assert_eq!(report.checked_surface_count, 8);
         assert_eq!(report.stage_count, 2);
         assert_eq!(report.violation_count, 0);
         assert!(report.ok);
-        assert_eq!(report.rows.len(), 9);
+        assert_eq!(report.rows.len(), 8);
         assert!(report.rows.iter().all(|row| {
             row.active_scope_ready
                 && row.command_ready

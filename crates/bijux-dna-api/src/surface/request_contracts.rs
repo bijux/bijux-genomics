@@ -172,7 +172,7 @@ pub struct PlanRunResult {
 /// Stability: v1 (stable).
 pub struct ExecuteRunRequest {
     pub plan: bijux_dna_stage_contract::StagePlanV1,
-    pub runner: bijux_dna_environment::api::RuntimeKind,
+    pub runner: bijux_dna_containers::api::RuntimeKind,
 }
 
 #[derive(Debug, Clone)]
@@ -618,7 +618,7 @@ pub struct PlanResponse {
 /// Stability: v1 (stable).
 pub struct ExecuteRequest {
     pub graph: bijux_dna_core::contract::ExecutionGraph,
-    pub runner: bijux_dna_environment::api::RuntimeKind,
+    pub runner: bijux_dna_containers::api::RuntimeKind,
     pub run_dir: PathBuf,
     #[serde(default)]
     pub mode: bijux_dna_runtime::run_layout::RunExecutionModeV1,

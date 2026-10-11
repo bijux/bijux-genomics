@@ -51,11 +51,25 @@ fn bench_readiness_tool_execution_modes_report_governs_all_benchmark_tools() {
         Some("primary_operator_runtime")
     );
     assert_eq!(payload.get("mode_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(65));
-    assert_eq!(payload.get("multidomain_tool_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("tool_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    let multidomain_tool_count = rows
+        .iter()
+        .filter(|row| {
+            row.get("domains")
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(|domains| domains.len() > 1)
+        })
+        .count() as u64;
+    assert_eq!(
+        payload.get("multidomain_tool_count").and_then(serde_json::Value::as_u64),
+        Some(multidomain_tool_count)
+    );
     let multiqc = rows
         .iter()
         .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("multiqc"))

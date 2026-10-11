@@ -27,8 +27,6 @@ pub(super) use crate::workflow::stage_report::{hash_json, read_json, MAX_REPORT_
 
 pub(super) const RUN_ID: &str = "run-2042";
 pub(super) const STAGE_ID: &str = "fastq.profile_read_lengths";
-pub(super) const BUNDLE_SCHEMA: &str = "bijux.benchmark.fastq.profile_read_lengths.bundle.v1";
-pub(super) const METRICS_SCHEMA: &str = "bijux.benchmark.fastq.profile_read_lengths.metrics.v1";
 const REPORT_FILE_STEM: &str = "run-2042-fastq-profile-read-lengths";
 
 #[derive(Debug, Clone, PartialEq)]
@@ -66,7 +64,7 @@ pub fn publish_fastq_profile_read_lengths_stage_report(
     let interface_path = repository_root.join("benchmarks/contracts/stage-interfaces.toml");
     let registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)?;
     verify_campaign_plan_source(plan, &plan.repository_commit, &registry_sha256)?;
-    let repository_commit = bijux_dna_environment::api::repository_head_commit(&repository_root)?;
+    let repository_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)?;
     if repository_commit != plan.repository_commit {
         bail!("benchmark report source worktree differs from campaign plan");
     }

@@ -28,11 +28,11 @@ fn content_spawns_forbidden_test_command(content: &str) -> bool {
 fn is_allowed_command_path(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
     path_str.contains("/crates/bijux-dna-runner/")
-        || path_str.contains("/crates/bijux-dna-environment/src/build/")
-        || path_str.contains("/crates/bijux-dna-environment/src/bin/")
-        || path_str.contains("/crates/bijux-dna-environment/src/resolve/")
-        || path_str.contains("/crates/bijux-dna-environment-qa/src/bin/")
-        || path_str.contains("/crates/bijux-dna-environment-qa/src/image_qa/")
+        || path_str.contains("/crates/bijux-dna-containers/src/build/")
+        || path_str.contains("/crates/bijux-dna-containers/src/bin/")
+        || path_str.contains("/crates/bijux-dna-containers/src/resolve/")
+        || path_str.contains("/crates/bijux-dna-containers-qa/src/bin/")
+        || path_str.contains("/crates/bijux-dna-containers-qa/src/image_qa/")
         || path_str.contains("/crates/bijux-dna-dev/")
         || path_str.contains("/crates/bijux-dna-stages-vcf/")
 }
@@ -66,7 +66,7 @@ fn policy__contracts__command_spawn_policy__command_spawning_is_confined_to_runn
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "std::process::Command must be confined to bijux-dna-runner or bijux-dna-environment tooling:\n{}",
+        "std::process::Command must be confined to bijux-dna-runner or bijux-dna-containers tooling:\n{}",
         offenders.join("\n")
     );
 }
@@ -104,9 +104,8 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
             || path_str
                 .contains("/crates/bijux-dna-api/tests/contracts/v1_fastq_small_integration.rs")
             || path_str.contains("/crates/bijux-dna-runner/tests/boundaries/architecture.rs")
-            || path_str
-                .contains("/crates/bijux-dna-environment-qa/tests/boundaries/architecture.rs")
-            || path_str.contains("/crates/bijux-dna-environment/tests/contracts/resolve_runtime.rs")
+            || path_str.contains("/crates/bijux-dna-containers-qa/tests/boundaries/architecture.rs")
+            || path_str.contains("/crates/bijux-dna-containers/tests/contracts/resolve_runtime.rs")
             || path_str.contains("/crates/bijux-dna-runtime/tests/contracts/run_layout_contract.rs")
             || path_str.contains(
                 "/crates/bijux-dna-runtime/tests/schemas/schema/runtime_schema_snapshots.rs",

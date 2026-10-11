@@ -1,6 +1,141 @@
 schema_version = "bijux.benchmark.stage_interfaces.v1"
 
 [[interfaces]]
+stage_id = "bam.genotyping"
+accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
+output_contract = "bijux.benchmark.bam.genotyping.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/bam-genotyping-result.schema.json"
+parameter_schema_version = "bijux.bam.params.genotyping.v1"
+default_provider = "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Genotyping)"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = []
+input_derived_parameters = ["reference", "candidate_sites", "candidate_regions"]
+immutable_parameters = ["schema_version", "caller", "min_posterior", "min_call_rate"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["bcftools"]
+provenance_sources = [
+  "domain/bam/stages/genotyping.yaml",
+  "crates/bijux-dna-domain-bam/src/stage_specs/stage_specs_downstream.rs",
+  "crates/bijux-dna-planner-bam/src/tool_adapters/stages_post.rs",
+  "benchmarks/execution/bam_genotyping.awk",
+]
+
+[interfaces.adapters]
+bcftools = "bijux_dna_planner_bam::tool_adapters::bam::genotyping"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.bam.genotyping.consume"
+input_contract = "bijux.benchmark.bam.genotyping.bundle.v1"
+source = "benchmarks/execution/bam_genotyping.awk"
+assertions = [
+  "candidate-site genotypes normalize to one tool-independent metric bundle",
+  "called and alternate genotype counts cannot exceed covered candidate sites",
+  "the normalized genotype table is deterministic across measured repetitions",
+]
+
+[[interfaces]]
+stage_id = "bam.coverage"
+accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
+output_contract = "bijux.benchmark.bam.coverage.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/bam-coverage-result.schema.json"
+parameter_schema_version = "bijux.bam.params.coverage.v1"
+default_provider = "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Coverage)"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = []
+input_derived_parameters = ["regions"]
+immutable_parameters = ["schema_version", "depth_thresholds", "regime_mode"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["bedtools", "mosdepth", "samtools"]
+provenance_sources = [
+  "domain/bam/stages/coverage.yaml",
+  "crates/bijux-dna-domain-bam/src/stage_specs/stage_specs_core.rs",
+  "crates/bijux-dna-planner-bam/src/tool_adapters/stages_post.rs",
+  "benchmarks/execution/bam_coverage.awk",
+]
+
+[interfaces.adapters]
+bedtools = "bijux_dna_planner_bam::tool_adapters::bam::coverage"
+mosdepth = "bijux_dna_planner_bam::tool_adapters::bam::coverage"
+samtools = "bijux_dna_planner_bam::tool_adapters::bam::coverage"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.bam.coverage.compare"
+input_contract = "bijux.benchmark.bam.coverage.bundle.v1"
+source = "benchmarks/execution/bam_coverage.awk"
+assertions = [
+  "every retained tool normalizes to reference bases, covered bases, coverage fraction, and mean depth",
+  "covered bases cannot exceed the declared reference span",
+  "cross-tool comparison consumes one tool-independent bundle",
+]
+
+[[interfaces]]
+stage_id = "bam.duplication_metrics"
+accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
+output_contract = "bijux.benchmark.bam.duplication_metrics.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/bam-duplication-metrics-result.schema.json"
+parameter_schema_version = "bijux.bam.params.duplication_metrics.v1"
+default_provider = "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::DuplicationMetrics)"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = []
+input_derived_parameters = []
+immutable_parameters = ["schema_version", "optical_duplicates", "umi_policy", "duplicate_action"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["picard", "samtools"]
+provenance_sources = [
+  "domain/bam/stages/duplication_metrics.yaml",
+  "crates/bijux-dna-domain-bam/src/stage_specs/stage_specs_core.rs",
+  "crates/bijux-dna-planner-bam/src/tool_adapters/stages_post.rs",
+  "benchmarks/execution/bam_duplication_metrics.awk",
+]
+
+[interfaces.adapters]
+picard = "bijux_dna_planner_bam::tool_adapters::bam::duplication_metrics"
+samtools = "bijux_dna_planner_bam::tool_adapters::bam::duplication_metrics"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.bam.duplication_metrics.compare"
+input_contract = "bijux.benchmark.bam.duplication_metrics.bundle.v1"
+source = "benchmarks/execution/bam_duplication_metrics.awk"
+assertions = [
+  "every retained tool reports examined reads, duplicate reads, and duplication fraction",
+  "duplicate reads cannot exceed examined reads",
+  "the normalized duplication fraction is derived from the normalized counts",
+]
+
+[[interfaces]]
+stage_id = "bam.endogenous_content"
+accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
+output_contract = "bijux.benchmark.bam.endogenous_content.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/bam-endogenous-content-result.schema.json"
+parameter_schema_version = "bijux.bam.params.endogenous_content.v1"
+default_provider = "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::EndogenousContent)"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = []
+input_derived_parameters = ["host_reference_scope"]
+immutable_parameters = ["schema_version", "primary_exclude_flags", "mapped_primary_exclude_flags", "mapped_nonduplicate_primary_exclude_flags"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["samtools"]
+provenance_sources = [
+  "domain/bam/stages/endogenous_content.yaml",
+  "crates/bijux-dna-domain-bam/src/stage_specs/stage_specs_core.rs",
+  "crates/bijux-dna-planner-bam/src/tool_adapters/stages_post.rs",
+  "benchmarks/execution/bam_endogenous_content.awk",
+]
+
+[interfaces.adapters]
+samtools = "bijux_dna_planner_bam::tool_adapters::bam::endogenous_content"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.bam.endogenous_content.consume"
+input_contract = "bijux.benchmark.bam.endogenous_content.bundle.v1"
+source = "benchmarks/execution/bam_endogenous_content.awk"
+assertions = [
+  "primary read counts exclude secondary and supplementary records",
+  "mapped primary counts additionally exclude unmapped records",
+  "mapped nonduplicate primary counts additionally exclude duplicate records",
+]
+
+[[interfaces]]
 stage_id = "bam.mapping_summary"
 accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
 output_contract = "bijux.benchmark.bam.mapping_summary.bundle.v1"
@@ -84,6 +219,53 @@ assertions = [
 ]
 
 [[interfaces]]
+stage_id = "fastq.detect_adapters"
+accepted_input_contracts = [
+  "bijux.fastq.artifact.single_end.v1",
+  "bijux.fastq.artifact.paired_end.v1",
+]
+output_contract = "bijux.benchmark.fastq.detect_adapters.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/fastq-detect-adapters-result.schema.json"
+parameter_schema_version = "bijux.fastq.params.detect_adapters.v1"
+default_provider = "bijux_dna_domain_fastq::params::defaults::detect_adapters_defaults"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = ["threads"]
+input_derived_parameters = ["paired_mode"]
+immutable_parameters = [
+  "schema_version",
+  "sample_reads",
+  "inspection_mode",
+  "report_only",
+  "evidence_engine",
+  "evidence_scope",
+  "evidence_format",
+  "evidence_artifact_id",
+]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["fastqc"]
+provenance_sources = [
+  "domain/fastq/stages/detect_adapters.yaml",
+  "crates/bijux-dna-domain-fastq/src/params/quality/detect_adapters.rs",
+  "crates/bijux-dna-domain-fastq/src/params/defaults/quality.rs",
+  "crates/bijux-dna-domain-fastq/src/artifacts/detect_adapters.rs",
+  "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/detect_adapters.rs",
+  "benchmarks/execution/fastq_detect_adapters.sh",
+]
+
+[interfaces.adapters]
+fastqc = "bijux_dna_planner_fastq::tool_adapters::fastq::detect_adapters"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.fastq.detect_adapters.compare"
+input_contract = "bijux.benchmark.fastq.detect_adapters.bundle.v1"
+source = "benchmarks/execution/fastq_detect_adapters.sh"
+assertions = [
+  "the retained backend emits one governed adapter-inspection report per admitted sample without mutating reads",
+  "the normalized summary preserves deterministic adapter-evidence fields across repeated executions over the same admitted inputs",
+  "the resulting report_json artifacts remain consumable by governed QC aggregation without backend-specific branching",
+]
+
+[[interfaces]]
 stage_id = "fastq.profile_reads"
 accepted_input_contracts = [
   "bijux.fastq.artifact.single_end.v1",
@@ -122,4 +304,47 @@ assertions = [
   "every retained tool output normalizes to the same benchmark bundle schema",
   "every normalized bundle contributes the same required comparison fields",
   "the comparison consumer accepts each tool result without tool-specific branching",
+]
+
+[[interfaces]]
+stage_id = "fastq.validate_reads"
+accepted_input_contracts = [
+  "bijux.fastq.artifact.single_end.v1",
+  "bijux.fastq.artifact.paired_end.v1",
+]
+output_contract = "bijux.benchmark.fastq.validate_reads.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/fastq-validate-reads-result.schema.json"
+parameter_schema_version = "bijux.fastq.params.validate_reads.v1"
+default_provider = "bijux_dna_domain_fastq::params::defaults::validate_defaults"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+planner_contract = "benchmarks/contracts/planner/fastq-validate-reads.planner-contract.json"
+operator_override_keys = ["threads", "validation_mode"]
+input_derived_parameters = ["paired_mode", "pair_sync_policy"]
+immutable_parameters = ["schema_version"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]
+provenance_sources = [
+  "domain/fastq/stages/validate_reads.yaml",
+  "crates/bijux-dna-domain-fastq/src/params/quality/validate.rs",
+  "crates/bijux-dna-domain-fastq/src/params/defaults/quality.rs",
+  "crates/bijux-dna-domain-fastq/src/artifacts/validate_reads.rs",
+  "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/validate_reads.rs",
+  "benchmarks/contracts/planner/fastq-validate-reads.planner-contract.json",
+]
+
+[interfaces.adapters]
+fastq_scan = "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+fastqc = "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+fastqvalidator = "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+fqtools = "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+seqtk = "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.fastq.validate_reads.compare"
+input_contract = "bijux.benchmark.fastq.validate_reads.bundle.v1"
+source = "benchmarks/execution/fastq_validate_reads.awk"
+assertions = [
+  "every retained backend completes the same strict validation and lineage contract",
+  "validated read counts exactly equal independently admitted read counts",
+  "paired samples complete canonical normalized-header synchronization without failure",
 ]

@@ -55,11 +55,11 @@ pub(super) fn maybe_write_site_lock(out_dir: &Path) -> Result<()> {
         root.push(comp.as_os_str());
     }
     let lock_path = root.join("site_lock.json");
-    let apptainer_version = bijux_dna_environment::api::run_shell_capture("apptainer --version")
+    let apptainer_version = bijux_dna_containers::api::run_shell_capture("apptainer --version")
         .ok()
         .map(|raw| raw.trim().to_string())
         .filter(|v| !v.is_empty());
-    let kernel = bijux_dna_environment::api::run_shell_capture("uname -r")
+    let kernel = bijux_dna_containers::api::run_shell_capture("uname -r")
         .ok()
         .map(|raw| raw.trim().to_string())
         .filter(|v| !v.is_empty());

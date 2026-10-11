@@ -222,7 +222,6 @@ fn ensure_vcf_orphan_tool_contract(
         ("eagle", "eagle", 0usize, "future_not_benchmark_ready"),
         ("glimpse", "glimpse", 0usize, "future_not_benchmark_ready"),
         ("ibdhap", "ibdhap", 0usize, "future_not_benchmark_ready"),
-        ("ibdseq", "ibdseq", 0usize, "future_not_benchmark_ready"),
         ("impute5", "impute5", 0usize, "future_not_benchmark_ready"),
         ("minimac4", "minimac4", 0usize, "future_not_benchmark_ready"),
         ("shapeit", "shapeit", 0usize, "future_not_benchmark_ready"),

@@ -15,14 +15,19 @@ const OUTPUT_JSON: &str = "artifacts/architecture/benchmark-container-ownership-
 const OUTPUT_MARKDOWN: &str = "artifacts/architecture/benchmark-container-ownership-audit.md";
 const OUTPUT_SCHEMA: &str =
     "artifacts/architecture/benchmark-container-ownership-audit.schema.json";
-const LEGACY_AUTHORITIES: [&str; 2] =
-    ["benchmarks/benchmark_evidence.py", "containers/contracts/container_validation.py"];
+const LEGACY_AUTHORITIES: [&str; 5] = [
+    "containers/contracts/qualification_report.py",
+    "containers/contracts/container_validation.py",
+    "benchmarks/scripts/benchmark_evidence.py",
+    "benchmarks/scripts/benchmark_portfolio.py",
+    "benchmarks/scripts/benchmark_registry.py",
+];
 const CRATE_SCOPES: [&str; 11] = [
     "crates/bijux-dna-bench-model/",
     "crates/bijux-dna-bench/",
     "crates/bijux-dna-runtime/",
     "crates/bijux-dna-runner/",
-    "crates/bijux-dna-environment/",
+    "crates/bijux-dna-containers/",
     "crates/bijux-dna-stage-contract/",
     "crates/bijux-dna-science/",
     "crates/bijux-dna-policies/",
@@ -129,7 +134,7 @@ fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
         ensure!(!row.path.is_empty(), "ownership row has an empty path");
         ensure!(paths.insert(&row.path), "duplicate ownership row for {}", row.path);
         ensure!(!row.scope.is_empty(), "{} has no scope", row.path);
-        ensure!(!row.classification.is_empty(), "{} is unclassified", row.path);
+        ensure!(row.classification != "unclassified", "{} is unclassified", row.path);
         ensure!(!row.current_owner.is_empty(), "{} has no current owner", row.path);
         ensure!(!row.target_owner.is_empty(), "{} has no target owner", row.path);
         ensure!(!row.replacement.is_empty(), "{} has no replacement contract", row.path);
@@ -141,10 +146,14 @@ fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
             audit.summary.legacy_authority_callers.contains_key(authority),
             "legacy authority caller inventory missing {authority}"
         );
-        ensure!(
-            audit.files.iter().any(|row| row.path == authority),
-            "legacy authority row missing {authority}"
-        );
+        if audit.files.iter().any(|row| row.path == authority) {
+            ensure!(
+                audit.files.iter().any(|row| {
+                    row.path == authority && row.classification == "duplicate legacy logic"
+                }),
+                "present legacy authority is not classified as duplicate logic: {authority}"
+            );
+        }
     }
     let bench_consumers = audit
         .summary
@@ -179,7 +188,10 @@ fn build_audit(workspace: &Workspace) -> Result<OwnershipAudit> {
         summary: AuditSummary {
             generated_from_commit: git_value(workspace, &["rev-parse", "HEAD"])?.trim().to_string(),
             total_files: rows.len(),
-            unclassified_files: 0,
+            unclassified_files: rows
+                .iter()
+                .filter(|row| row.classification == "unclassified")
+                .count(),
             classification_counts,
             scope_counts,
             dependency_consumers: dependency_consumers(&files),
@@ -304,11 +316,17 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
             "readiness and simulation cannot substitute for admitted execution evidence",
         );
     }
+    if path.starts_with("benchmarks/reports/") || path.starts_with("containers/reports/") {
+        return (
+            "generated artifact",
+            "the file is a governed publication derived from canonical crate evidence",
+        );
+    }
     if path.starts_with("crates/bijux-dna-bench-model/")
         || path.starts_with("crates/bijux-dna-bench/")
         || path.starts_with("crates/bijux-dna-runtime/")
         || path.starts_with("crates/bijux-dna-runner/")
-        || path.starts_with("crates/bijux-dna-environment/")
+        || path.starts_with("crates/bijux-dna-containers/")
         || path.starts_with("crates/bijux-dna-stage-contract/")
         || path.starts_with("crates/bijux-dna-science/")
         || path.starts_with("crates/bijux-dna-policies/")
@@ -349,15 +367,24 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
         );
     }
     if path.ends_with(".py") {
-        if path.starts_with("benchmarks/runs/") || path.contains("/adapters/") {
+        if path == "benchmarks/data_catalog.py"
+            || path.starts_with("benchmarks/runs/")
+            || path.contains("/adapters/")
+        {
             return (
                 "thin external adapter",
-                "the file is an exceptional process adapter and must remain contract-bound",
+                "the file only translates an external process invocation to a crate-owned command",
             );
         }
         return (
             "duplicate legacy logic",
             "root Python must not own lifecycle, validation, admission, or publication decisions",
+        );
+    }
+    if path.starts_with("benchmarks/execution/") {
+        return (
+            "thin external adapter",
+            "the external tool adapter normalizes process I/O under crate-owned contracts",
         );
     }
     if path.starts_with(".github/workflows/") || path == "Makefile" || path.starts_with("makes/") {
@@ -375,10 +402,45 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
             "automation may invoke stable product commands without owning their decisions",
         );
     }
-    (
-        "declarative product asset",
-        "the file declares inputs, recipes, schemas, interfaces, documentation, or publications",
-    )
+    if is_declarative_asset(path) {
+        return (
+            "declarative product asset",
+            "the file declares inputs, recipes, schemas, interfaces, or documentation",
+        );
+    }
+    ("unclassified", "the ownership audit has no explicit rule for this product file")
+}
+
+fn is_declarative_asset(path: &str) -> bool {
+    [
+        "benchmarks/configs/",
+        "benchmarks/contracts/",
+        "benchmarks/corpora/",
+        "benchmarks/runs/",
+        "benchmarks/schemas/",
+        "benchmarks/tests/fixtures/",
+        "containers/apptainer/",
+        "containers/contracts/",
+        "containers/docker/",
+        "containers/docs/",
+        "containers/licenses/",
+        "containers/network/",
+        "containers/runs/",
+        "containers/tools/",
+        "containers/versions/",
+    ]
+    .iter()
+    .any(|prefix| path.starts_with(prefix))
+        || matches!(
+            path,
+            "benchmarks/README.md"
+                | "benchmarks/tests/README.md"
+                | "containers/README.md"
+                | "containers/index.md"
+                | "containers/TOOL_IDS.txt"
+                | "crates/bijux-dna-api/Cargo.toml"
+        )
+        || path.starts_with("crates/") && path.ends_with("/Cargo.toml")
 }
 
 fn current_owner(path: &str) -> String {
@@ -399,7 +461,7 @@ fn target_owner(path: &str, classification: &str) -> String {
         return "bijux-dna-runner and bijux-dna-runtime".to_string();
     }
     if path.starts_with("containers/") || path.contains("image") || path.contains("container") {
-        return "bijux-dna-environment".to_string();
+        return "bijux-dna-containers".to_string();
     }
     if path.contains("science") || path.contains("metric") || path.contains("truth") {
         return "bijux-dna-science".to_string();
@@ -420,7 +482,6 @@ fn legacy_callers(files: &[SourceFile]) -> BTreeMap<String, Vec<String>> {
         .map(|authority| {
             let mut matches = files
                 .iter()
-                .filter(|file| file.path != *authority)
                 .filter(|file| is_executable_reference(&file.path))
                 .filter(|file| references_legacy_authority(&file.path, &file.content, authority))
                 .map(|file| file.path.clone())
@@ -523,8 +584,8 @@ mod tests {
     use regex::Regex;
 
     use super::{
-        classify, render_markdown, validate_audit, AuditSummary, OwnershipAudit, SourceFile,
-        LEGACY_AUTHORITIES,
+        classify, legacy_callers, render_markdown, validate_audit, AuditSummary, OwnershipAudit,
+        SourceFile, LEGACY_AUTHORITIES,
     };
 
     #[test]
@@ -558,6 +619,62 @@ mod tests {
             assert!(row.removal_gate.contains("real-STUDY import"), "{authority}");
             assert_eq!(row.schema_refs, ["bijux.benchmark.registry.v1"], "{authority}");
         }
+        Ok(())
+    }
+
+    #[test]
+    fn root_execution_helpers_are_thin_adapters() -> anyhow::Result<()> {
+        let row = classify(
+            &SourceFile {
+                path: "benchmarks/execution/fastq_validate_reads.awk".to_string(),
+                content: String::new(),
+            },
+            &Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?,
+            &BTreeMap::new(),
+        );
+        assert_eq!(row.classification, "thin external adapter");
+        Ok(())
+    }
+
+    #[test]
+    fn generated_publications_are_not_declarative_authority() -> anyhow::Result<()> {
+        let row = classify(
+            &SourceFile {
+                path: "benchmarks/reports/stage-benchmark-coverage.json".to_string(),
+                content: String::new(),
+            },
+            &Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?,
+            &BTreeMap::new(),
+        );
+        assert_eq!(row.classification, "generated artifact");
+        Ok(())
+    }
+
+    #[test]
+    fn legacy_inventory_retains_removed_authorities_and_self_callers() {
+        let callers = legacy_callers(&[SourceFile {
+            path: "containers/contracts/container_validation.py".to_string(),
+            content: "python3 containers/contracts/container_validation.py execute".to_string(),
+        }]);
+        assert_eq!(callers.len(), LEGACY_AUTHORITIES.len());
+        assert_eq!(
+            callers["containers/contracts/container_validation.py"],
+            ["containers/contracts/container_validation.py"]
+        );
+        assert!(callers["benchmarks/scripts/benchmark_registry.py"].is_empty());
+    }
+
+    #[test]
+    fn unknown_product_paths_fail_closed() -> anyhow::Result<()> {
+        let row = classify(
+            &SourceFile {
+                path: "benchmarks/unknown-control-plane.rs".to_string(),
+                content: String::new(),
+            },
+            &Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?,
+            &BTreeMap::new(),
+        );
+        assert_eq!(row.classification, "unclassified");
         Ok(())
     }
 

@@ -115,7 +115,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.ibd",
-            status: "planned",
+            status: "supported",
             default_tool_id: "germline",
             metrics_schema: "bijux.vcf.ibd.v1",
             smoke_supported: true,
@@ -169,7 +169,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         },
         VcfStageSpec {
             stage_id: "vcf.demography",
-            status: "planned",
+            status: "supported",
             default_tool_id: "ibdne",
             metrics_schema: "bijux.vcf.demography.v1",
             smoke_supported: true,

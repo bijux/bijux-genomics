@@ -5,4 +5,4 @@ pub mod gate_policy;
 pub mod outcomes;
 
 pub use gate_policy::{GatePolicy, GatePolicyOverrides};
-pub use outcomes::{GateDecision, GateViolation};
+pub use outcomes::{gate_decision_schema, GateDecision, GateViolation};

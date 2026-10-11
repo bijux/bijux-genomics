@@ -365,6 +365,25 @@ pub fn write_local_estimate_library_complexity_prealign_smoke_report() -> Result
     crate::internal::fastq::stages::estimate_library_complexity_prealign::write_local_estimate_library_complexity_prealign_smoke_report()
 }
 
+/// Estimate pre-alignment FASTQ library complexity and write its governed report.
+///
+/// # Errors
+/// Returns an error when the FASTQ inputs are missing, malformed, or incoherent, when the k-mer
+/// size is invalid, or when the report cannot be written.
+pub fn estimate_library_complexity_prealign_report(
+    r1: &Path,
+    r2: Option<&Path>,
+    kmer_size: Option<u32>,
+    report_json: &Path,
+) -> Result<bijux_dna_domain_fastq::EstimateLibraryComplexityPrealignReportV1> {
+    crate::internal::fastq::stages::estimate_library_complexity_prealign::estimate_library_complexity_prealign_report(
+        r1,
+        r2,
+        kmer_size,
+        report_json,
+    )
+}
+
 /// Materialize the governed local-smoke `fastq.normalize_primers` artifacts.
 ///
 /// The written summary artifact lives at `runs/bench/local-smoke/fastq.normalize_primers/report.json`

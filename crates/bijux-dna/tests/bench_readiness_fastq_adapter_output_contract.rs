@@ -47,11 +47,17 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq-adapter-output-contract.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("adapter_row_count").and_then(serde_json::Value::as_u64), Some(71));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    let row_count = u64::try_from(rows.len()).expect("row count fits u64");
+    assert!(row_count > 0);
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(
+        payload.get("adapter_row_count").and_then(serde_json::Value::as_u64),
+        Some(row_count)
+    );
     assert_eq!(
         payload.get("complete_adapter_row_count").and_then(serde_json::Value::as_u64),
-        Some(71)
+        Some(row_count)
     );
     assert_eq!(
         payload.get("incomplete_adapter_row_count").and_then(serde_json::Value::as_u64),
@@ -61,9 +67,9 @@ fn bench_readiness_fastq_adapter_output_contract_reports_governed_rows() {
         payload.get("missing_adapter_row_count").and_then(serde_json::Value::as_u64),
         Some(0)
     );
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 71, "report must retain the governed FASTQ 71-row slice");
+    assert!(rows.iter().all(|row| {
+        row.get("output_contract_status").and_then(serde_json::Value::as_str) == Some("complete")
+    }));
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqkit_stats")

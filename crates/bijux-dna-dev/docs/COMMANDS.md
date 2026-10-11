@@ -266,6 +266,7 @@ generate-tool-ids
 generate-tool-name-map
 generate-version-lock
 generate-versions-index-sha
+image-activation
 image-qa
 image-smoke-vcf
 image-storage
@@ -442,9 +443,9 @@ validate-frontend-mini-domain-stacks
 `benchmark-campaign-cycle prepare` composes benchmark-owned corpus and execution-spec preparation
 with runner-owned Slurm materialization. It selects crate-owned material by the source-locked run
 identity, initializes or recovers every attempt, and records `ready` lifecycle evidence without
-submitting or polling scheduler jobs. The command currently supports the complete run-2004 BAM
-mapping-summary campaign and run-2042/run-2043 FASTQ campaigns, and fails closed for campaigns
-without crate-owned material.
+submitting or polling scheduler jobs. The benchmark crate owns executable material for every
+campaign in the current registry: run-2001 through run-2004, run-2011, run-2042, and run-2043.
+Registry closure tests fail when a declared campaign lacks crate-owned material.
 
 Every campaign operation that creates or consumes a source-locked plan requires an explicit
 `--repository-root`. The operator binary may come from a newer clean worktree, but source identity,
@@ -467,6 +468,7 @@ without polling, and the command never loops or waits for scheduler state to cha
 validation to rehash exact output closure, evaluate declared metrics and the downstream probe,
 publish immutable acceptance evidence, and record `passed` lifecycle transitions.
 
-`benchmark-campaign-cycle publish-fastq-profile-reads` replays admitted run-2043 attempt closure,
-validates normalized TSV, bundle, metrics, and downstream-probe agreement for every repetition,
-then no-clobber publishes the comparative stage report.
+`benchmark-campaign-cycle publish` selects the report implementation from the source-locked plan,
+replays the admitted attempt closure, and no-clobber publishes JSON and Markdown identities. Each
+campaign implementation retains its own normalized output, metric, science, comparison, and
+downstream-probe validation; the operator command does not branch on scientific report semantics.

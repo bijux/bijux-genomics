@@ -12,6 +12,7 @@ gating, and deterministic artifact persistence.
 - Typed retained-tool catalog, campaign registry, and admitted stage reports for
   stage-coverage derivation.
 - Governed data-index/catalog authorities and exact corpus files for expectation derivation.
+- Typed checksum-pinned acquisition plans for real FASTQ corpus materialization.
 - Optional existing `observations.jsonl` when `BenchRunOptions.resume` is true.
 - Runtime manifests and metric payloads that have already been produced by other
   crates.
@@ -26,6 +27,7 @@ gating, and deterministic artifact persistence.
 - Versioned stage-coverage JSON, Markdown, and generated JSON Schema publications.
 - Immutable exact FASTQ summaries, histograms, row identities, and expectation manifests.
 - Complete stage-specific execution material consumed by the immutable execution-spec builder.
+- No-clobber governed data catalogs published only after complete source and FASTQ validation.
 
 ## Required Invariants
 
@@ -35,6 +37,9 @@ gating, and deterministic artifact persistence.
 - Output ordering must be deterministic.
 - Gate decisions must include rationale and metric evidence.
 - Benchmark operations must not execute tools or product workflows.
+- Corpus materialization must delegate streamed source verification to `bijux-dna-db-ena`,
+  reject unsafe paths and existing catalog authority, validate every gzip FASTQ record,
+  and make all admitted files read-only before publishing the catalog.
 - Corpus expectation publication must re-hash every source file, derive truth through
   `bijux-dna-science`, reject symlinks/conflicts, and publish its manifest last.
 - Run-2042 material must bind all 30 FASTQ files, 20 summary/histogram pairs,

@@ -59,7 +59,7 @@ pub(super) fn build_stage_report(
     } else {
         BenchmarkReportVerdict::Passed
     };
-    let catalog_sha256 = bijux_dna_environment::api::catalog_identity_at_commit(
+    let catalog_sha256 = bijux_dna_containers::api::catalog_identity_at_commit(
         repository_root,
         &plan.repository_commit,
     )?;

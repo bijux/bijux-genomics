@@ -123,6 +123,7 @@ fn script_preflight(spec: &BenchmarkExecutionSpec, execution_spec_sha256: &str) 
         "cleanup() { rm -rf \"${SCRATCH_ROOT}\"; }".to_string(),
         "trap cleanup EXIT".to_string(),
         "command -v apptainer >/dev/null".to_string(),
+        "test -x /usr/bin/time".to_string(),
         "command -v sha256sum >/dev/null".to_string(),
         "command -v git >/dev/null".to_string(),
         "test \"$(git -C \"${REPOSITORY_ROOT}\" rev-parse HEAD)\" = ".to_string()
@@ -173,7 +174,7 @@ fn append_measurement_commands(lines: &mut Vec<String>, spec: &BenchmarkExecutio
         lines.push(container_invocation(spec, &spec.commands.warmup));
     }
     for repetition in 1..=spec.measurement.measured_repetitions {
-        let command = spec
+        let measured_command = spec
             .commands
             .measured
             .iter()
@@ -183,11 +184,12 @@ fn append_measurement_commands(lines: &mut Vec<String>, spec: &BenchmarkExecutio
             .measurement
             .resource_file_template
             .replace("{repetition}", &repetition.to_string());
+        let resource_format = "wall_seconds\tuser_seconds\tsystem_seconds\tmax_rss_kb\tfilesystem_inputs\tfilesystem_outputs\texit_code\n%e\t%U\t%S\t%M\t%I\t%O\t%x";
         lines.push(format!(
-            "/usr/bin/time --quiet --output={} --format={} {}",
+            "'/usr/bin/time' '-o' {} '-f' {} {}",
             result_shell_path(&format!("{resource_path}.partial")),
-            shell_quote("wall_seconds\tuser_seconds\tsystem_seconds\tmax_rss_kb\tfilesystem_inputs\tfilesystem_outputs\texit_code\n%e\t%U\t%S\t%M\t%I\t%O\t%x"),
-            container_invocation(spec, &command)
+            shell_quote(resource_format),
+            container_invocation(spec, &measured_command),
         ));
         lines.push(format!(
             "mv {} {}",

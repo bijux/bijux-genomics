@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "alternate_genotypes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "bam_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "called_genotypes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "covered_sites": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "database_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "mean_depth_at_covered_sites": {
+      "format": "double",
+      "type": "number"
+    },
+    "output_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "reference_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.genotyping.metrics.v1",
+      "type": "string"
+    },
+    "total_records": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "total_records",
+    "covered_sites",
+    "called_genotypes",
+    "alternate_genotypes",
+    "mean_depth_at_covered_sites",
+    "bam_input_bytes",
+    "reference_input_bytes",
+    "database_input_bytes",
+    "input_bytes",
+    "output_bytes"
+  ],
+  "title": "BenchmarkBamGenotypingMetrics",
+  "type": "object"
+}

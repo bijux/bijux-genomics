@@ -29,7 +29,7 @@ fn db_ref_rejects_downstream_workspace_dependencies() {
         "bijux-dna-core",
         "bijux-dna-db-ena",
         "bijux-dna-engine",
-        "bijux-dna-environment",
+        "bijux-dna-containers",
         "bijux-dna-infra",
         "bijux-dna-pipelines",
         "bijux-dna-planner-bam",

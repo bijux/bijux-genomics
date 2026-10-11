@@ -28,6 +28,7 @@ fn commands_doc_lists_managed_library_operations() {
         "select-record-urls",
         "build-download-tasks",
         "download-tasks",
+        "download-verified-files",
         "write-manifest",
     ];
 

@@ -5,10 +5,10 @@
   "passed_goal_count": 15,
   "failed_goal_count": 0,
   "failing_goal_ids": [],
-  "benchmark_ready_pair_count": 21,
-  "adapter_complete_pair_count": 21,
-  "output_complete_pair_count": 21,
-  "rendered_command_pair_count": 21,
+  "benchmark_ready_pair_count": 24,
+  "adapter_complete_pair_count": 24,
+  "output_complete_pair_count": 24,
+  "rendered_command_pair_count": 24,
   "ok": true,
   "checks": [
     {
@@ -16,21 +16,21 @@
       "surface": "vcf tool-serving map",
       "output_path": "benchmarks/readiness/vcf-tool-serving-map.tsv",
       "ok": true,
-      "detail": "validated 23 governed VCF stage-tool rows with 21 canonical benchmark-ready pairs"
+      "detail": "validated 24 governed VCF stage-tool rows across all 20 supported stages"
     },
     {
       "goal_id": 232,
       "surface": "vcf orphan tools",
       "output_path": "benchmarks/readiness/vcf-orphan-tools.tsv",
       "ok": true,
-      "detail": "validated 8 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
+      "detail": "validated 7 governed orphan VCF tools with explicit future_not_benchmark_ready decisions"
     },
     {
       "goal_id": 233,
       "surface": "vcf undercovered stages",
       "output_path": "benchmarks/readiness/vcf-undercovered-stages.tsv",
       "ok": true,
-      "detail": "validated 10 governed undercovered VCF stages with explicit future vs specialized decisions"
+      "detail": "validated 9 governed undercovered VCF stages with explicit future vs specialized decisions"
     },
     {
       "goal_id": 234,
@@ -114,7 +114,7 @@
       "surface": "vcf adapter benchmark-ready pair completeness",
       "output_path": "benchmarks/readiness/VCF_ADAPTERS_READY.json",
       "ok": true,
-      "detail": "validated 21 benchmark-ready VCF pairs across tool-serving map, executable adapters, output declarations, and rendered commands"
+      "detail": "validated 24 benchmark-ready VCF pairs across tool-serving map, executable adapters, output declarations, and rendered commands"
     }
   ]
 }

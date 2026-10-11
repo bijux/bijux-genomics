@@ -13,6 +13,7 @@ repository.
 This crate owns:
 
 - Benchmark observation, suite, summary, decision, graph, and policy types.
+- Checksum-pinned corpus acquisition plans and admitted scientific data catalogs.
 - Permanent benchmark run identities and append-only attempt lifecycle types.
 - Schema ids and validation entrypoints for benchmark model contracts.
 - Deterministic comparison reports for benchmark summaries.

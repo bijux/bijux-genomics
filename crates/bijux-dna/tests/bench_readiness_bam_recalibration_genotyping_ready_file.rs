@@ -71,7 +71,7 @@ fn bench_readiness_bam_recalibration_genotyping_ready_writes_governed_json_file(
     assert!(expected_tool_ids
         .get("bam.genotyping")
         .and_then(serde_json::Value::as_array)
-        .is_some_and(|tools| tools.iter().any(|tool| tool.as_str() == Some("angsd"))));
+        .is_some_and(|tools| tools.iter().any(|tool| tool.as_str() == Some("bcftools"))));
 
     let expected_local_proof_kind = report
         .get("expected_local_proof_kind_by_stage")

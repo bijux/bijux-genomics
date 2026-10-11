@@ -40,6 +40,12 @@ empty output roots and zero-job execution before dry-run or transfer work.
 the configured job count and retry count. Failed output paths in
 `DownloadReport` are sorted for stable reports.
 
+`download::download_verified_files` is the governed transfer boundary. It
+accepts only HTTPS sources and absolute canonical output parents, streams each
+object through bounded memory, verifies declared byte count and MD5, derives
+SHA-256, and publishes without replacing an existing destination. Existing
+files are re-hashed and must match the declared identity before reuse.
+
 ## Verification
 
 Run from the repository root:

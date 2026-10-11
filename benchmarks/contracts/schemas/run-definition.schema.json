@@ -1,0 +1,147 @@
+{
+  "$defs": {
+    "BenchmarkContractLock": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_id": {
+          "type": "string"
+        },
+        "repository_path": {
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_id",
+        "repository_path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkCorpusRole": {
+      "additionalProperties": false,
+      "properties": {
+        "corpus_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "corpus_ids"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRunState": {
+      "enum": [
+        "active",
+        "reserved",
+        "retired"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "acceptance_policy_id": {
+      "type": "string"
+    },
+    "citation_key": {
+      "type": "string"
+    },
+    "contracts": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkContractLock"
+      },
+      "type": "array"
+    },
+    "corpus_roles": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkCorpusRole"
+      },
+      "type": "array"
+    },
+    "identity": {
+      "$ref": "#/$defs/BenchmarkRunIdentity"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.run_definition.v1",
+      "type": "string"
+    },
+    "state": {
+      "$ref": "#/$defs/BenchmarkRunState"
+    },
+    "state_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "supersedes_run_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "title": {
+      "type": "string"
+    },
+    "tool_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "identity",
+    "title",
+    "purpose",
+    "owner",
+    "state",
+    "tool_ids",
+    "contracts",
+    "corpus_roles",
+    "acceptance_policy_id",
+    "citation_key",
+    "supersedes_run_ids"
+  ],
+  "title": "BenchmarkRunDefinition",
+  "type": "object"
+}

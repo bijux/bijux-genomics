@@ -1,23 +1,43 @@
 //! Owner: bijux-dna-bench
-//! Input and mount closure for FASTQ read-profile attempts.
+//! Shared immutable input closure for real-corpus FASTQ observational campaigns.
 
 use std::collections::BTreeSet;
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
-use bijux_dna_bench_model::{BenchmarkExecutionInput, BenchmarkExecutionInputKind};
+use bijux_dna_bench_model::{
+    BenchmarkExecutionInput, BenchmarkExecutionInputKind, BenchmarkFastqLayout,
+};
 
-use crate::FastqProfileReadsExpectationPublication;
+use super::FastqProfileReadsExpectationPublication;
 
-pub(super) fn execution_inputs(
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(in crate::workflow) struct FastqCampaignSample {
+    pub sample_id: String,
+    pub input_layout: &'static str,
+    pub mounted_fastq: Vec<String>,
+    pub expected_read_count: u64,
+}
+
+pub(in crate::workflow) fn campaign_execution_inputs(
     publication: &FastqProfileReadsExpectationPublication,
-) -> Result<(Vec<BenchmarkExecutionInput>, Vec<String>)> {
+) -> Result<(Vec<BenchmarkExecutionInput>, Vec<FastqCampaignSample>)> {
     let mut inputs = Vec::new();
     let mut ids = BTreeSet::new();
     let mut mounts = BTreeSet::new();
-    let mut mounted_fastq = Vec::new();
-    for sample in &publication.admitted_corpus.samples {
-        for file in &sample.files {
+    let mut samples = Vec::new();
+    if publication.admitted_corpus.samples.len() != publication.samples.len() {
+        bail!("FASTQ admission and expectation sample counts differ");
+    }
+    for (admitted, expected) in publication.admitted_corpus.samples.iter().zip(&publication.samples)
+    {
+        if admitted.sample_id != expected.sample_id
+            || admitted.files.len() as u64 != expected.file_count
+        {
+            bail!("FASTQ admission and expectation sample identities differ");
+        }
+        let mut mounted_fastq = Vec::new();
+        for file in &admitted.files {
             let name = file_name(&file.path)?;
             let mount = format!("/input/{name}");
             push_input(
@@ -32,6 +52,15 @@ pub(super) fn execution_inputs(
             )?;
             mounted_fastq.push(mount);
         }
+        samples.push(FastqCampaignSample {
+            sample_id: admitted.sample_id.clone(),
+            input_layout: match admitted.input_layout {
+                BenchmarkFastqLayout::SingleEnd => "single_end",
+                BenchmarkFastqLayout::PairedEnd => "paired_end",
+            },
+            mounted_fastq,
+            expected_read_count: expected.read_count,
+        });
     }
     for (id, path, mount, digest, kind) in [
         (
@@ -79,6 +108,15 @@ pub(super) fn execution_inputs(
             digest,
         )?;
     }
+    Ok((inputs, samples))
+}
+
+pub(super) fn profile_execution_inputs(
+    publication: &FastqProfileReadsExpectationPublication,
+) -> Result<(Vec<BenchmarkExecutionInput>, Vec<String>)> {
+    let (inputs, samples) = campaign_execution_inputs(publication)?;
+    let mounted_fastq =
+        samples.into_iter().flat_map(|sample| sample.mounted_fastq).collect::<Vec<_>>();
     Ok((inputs, mounted_fastq))
 }
 
@@ -94,7 +132,7 @@ fn push_input(
     sha256: String,
 ) -> Result<()> {
     if !ids.insert(id.clone()) || !mounts.insert(mount_path.clone()) {
-        bail!("FASTQ profile input identity or mount is duplicated");
+        bail!("FASTQ campaign input identity or mount is duplicated");
     }
     inputs.push(BenchmarkExecutionInput { id, kind, path, mount_path, sha256 });
     Ok(())
@@ -113,9 +151,9 @@ fn file_name(path: &str) -> Result<String> {
         .file_name()
         .and_then(|name| name.to_str())
         .map(str::to_string)
-        .context("FASTQ profile input lacks a UTF-8 file name")
+        .context("FASTQ campaign input lacks a UTF-8 file name")
 }
 
 fn path_text(path: &Path) -> Result<&str> {
-    path.to_str().context("FASTQ profile evidence path is not UTF-8")
+    path.to_str().context("FASTQ campaign evidence path is not UTF-8")
 }

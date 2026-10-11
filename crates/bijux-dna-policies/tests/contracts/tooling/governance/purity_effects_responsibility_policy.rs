@@ -133,7 +133,7 @@ fn policy__contracts__purity_effects_responsibility_policy__planner_engine_runne
     let engine = crate_dependencies(&root, "bijux-dna-engine");
     let runner = crate_dependencies(&root, "bijux-dna-runner");
 
-    for dep in ["bijux-dna-runner", "bijux-dna-environment"] {
+    for dep in ["bijux-dna-runner", "bijux-dna-containers"] {
         bijux_dna_policies::policy_assert!(
             !planner_fastq.contains(dep),
             "planner-fastq must not depend on {dep}"
@@ -152,7 +152,7 @@ fn policy__contracts__purity_effects_responsibility_policy__planner_engine_runne
     }
 
     bijux_dna_policies::policy_assert!(
-        runner.contains("bijux-dna-environment"),
+        runner.contains("bijux-dna-containers"),
         "runner must depend on environment for image/runtime resolution"
     );
 }

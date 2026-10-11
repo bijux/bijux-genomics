@@ -7,10 +7,10 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::validate_pipeline_parameter_config;
 use bijux_dna_bench_model::{
+    BenchmarkEffectiveParameterValue as EffectiveValue, BenchmarkEffectiveParameters,
     BenchmarkExecutionParameterEvidence, BenchmarkFastqLayout, BenchmarkParameterValue,
-    BenchmarkPipelineParameterConfig,
+    BenchmarkPipelineParameterConfig, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
 };
-use serde::Serialize;
 
 use crate::AdmittedFastqCorpus;
 
@@ -18,24 +18,6 @@ const STAGE_ID: &str = "fastq.profile_read_lengths";
 const PARAMETER_SCHEMA: &str = "bijux.fastq.params.read_length_profile.v1";
 const DEFAULTS_PROVIDER: &str =
     "bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults";
-
-#[derive(Serialize)]
-struct EffectiveParameters {
-    schema_version: &'static str,
-    stage_id: &'static str,
-    parameter_schema_version: &'static str,
-    defaults_provider: &'static str,
-    overrides: BTreeMap<&'static str, i64>,
-    resolved_by_sample: BTreeMap<String, EffectiveSampleParameters>,
-}
-
-#[derive(Serialize)]
-struct EffectiveSampleParameters {
-    schema_version: &'static str,
-    paired_mode: &'static str,
-    threads: i64,
-    histogram_bins: i64,
-}
 
 pub(super) fn ensure_parameter_evidence(
     repository_root: &Path,
@@ -62,27 +44,36 @@ pub(super) fn ensure_parameter_evidence(
 
     let overrides_path = attempt_directory.join("config-pipeline-parameters.yml");
     ensure_bytes(&overrides_path, &source_bytes)?;
-    let effective = EffectiveParameters {
-        schema_version: "bijux.benchmark.effective_parameters.v1",
-        stage_id: STAGE_ID,
-        parameter_schema_version: PARAMETER_SCHEMA,
-        defaults_provider: DEFAULTS_PROVIDER,
-        overrides: BTreeMap::from([("histogram_bins", 100), ("threads", 4)]),
+    let effective = BenchmarkEffectiveParameters {
+        schema_version: BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        parameter_schema_version: PARAMETER_SCHEMA.to_string(),
+        defaults_provider: DEFAULTS_PROVIDER.to_string(),
+        overrides: expected_overrides,
         resolved_by_sample: corpus
             .samples
             .iter()
             .map(|sample| {
                 (
                     sample.sample_id.clone(),
-                    EffectiveSampleParameters {
-                        schema_version: PARAMETER_SCHEMA,
-                        paired_mode: match sample.input_layout {
-                            BenchmarkFastqLayout::SingleEnd => "single_end",
-                            BenchmarkFastqLayout::PairedEnd => "paired_end",
-                        },
-                        threads: 4,
-                        histogram_bins: 100,
-                    },
+                    BTreeMap::from([
+                        (
+                            "schema_version".to_string(),
+                            EffectiveValue::Text(PARAMETER_SCHEMA.to_string()),
+                        ),
+                        (
+                            "paired_mode".to_string(),
+                            EffectiveValue::Text(
+                                match sample.input_layout {
+                                    BenchmarkFastqLayout::SingleEnd => "single_end",
+                                    BenchmarkFastqLayout::PairedEnd => "paired_end",
+                                }
+                                .to_string(),
+                            ),
+                        ),
+                        ("threads".to_string(), EffectiveValue::Integer(4)),
+                        ("histogram_bins".to_string(), EffectiveValue::Integer(100)),
+                    ]),
                 )
             })
             .collect(),

@@ -4,7 +4,7 @@ statement: "Every admitted FASTQ execution-support stage must either have behavi
 scope: "fastq environment QA closure"
 subject: "fastq_admitted_execution_stages"
 predicate: "must_have_qa_coverage_or_blocker"
-object: "crates/bijux-dna-environment-qa"
+object: "crates/bijux-dna-containers-qa"
 status: "accepted"
 owner: "bijux-genomics"
 review_due: "2026-10-01"

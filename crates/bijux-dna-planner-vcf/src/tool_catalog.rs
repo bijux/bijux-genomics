@@ -62,7 +62,7 @@ pub(crate) fn image_for_tool(tool: &str) -> ContainerImageRefV1 {
         "plink2" => "quay.io/biocontainers/plink2:2.00a3.7--h5ef6573_0",
         "eigensoft" => "quay.io/biocontainers/eigensoft:7.2.1--h9ee0642_4",
         "germline" => "quay.io/biocontainers/germline:1.5.3--hdfd78af_0",
-        "ibdseq" => "quay.io/bijux/ibdseq:3.0-planned",
+        "ibdseq" => "bijuxdna/ibdseq:r1206",
         "ibdhap" => "quay.io/biocontainers/ibdhap:1.0.0--h9ee0642_0",
         "ibdne" => "quay.io/biocontainers/ibdne:23.05.23.ae9f5b3--hdfd78af_0",
         _ => "quay.io/biocontainers/bcftools:1.20--h8b25389_0",

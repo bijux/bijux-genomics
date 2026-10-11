@@ -6,12 +6,19 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
+use bijux_dna_bench_model::normalized_result::{
+    bam::{
+        BenchmarkBamMappingSummaryMetrics as MappingSummaryMetrics,
+        BenchmarkBamMappingSummaryResult as MappingSummaryBundle,
+        BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1 as BUNDLE_SCHEMA,
+    },
+    BenchmarkDownstreamProbeRecord as DownstreamProbe,
+};
 use bijux_dna_bench_model::{
     BenchmarkExecutionSpec, BenchmarkMetricDistribution, BenchmarkScientificValue,
 };
-use serde::Deserialize;
 
-use super::{BUNDLE_SCHEMA, STAGE_ID};
+use super::STAGE_ID;
 use crate::workflow::stage_report::{
     distribution, read_json, ResourceObservation, MAX_REPORT_INPUT_BYTES,
 };
@@ -20,41 +27,6 @@ const FLOAT_TOLERANCE: f64 = 1e-12;
 const MAX_EXACT_INTEGER: u64 = 1 << 53;
 const SCIENTIFIC_METRICS: [&str; 4] =
     ["primary_reads", "mapped_primary_reads", "mapped_primary_fraction", "paired_primary_reads"];
-
-#[derive(Debug, Clone, Deserialize, PartialEq)]
-#[serde(deny_unknown_fields)]
-struct MappingSummaryBundle {
-    schema_version: String,
-    stage_id: String,
-    tool_id: String,
-    sample_id: String,
-    primary_reads: u64,
-    mapped_primary_reads: u64,
-    mapped_primary_fraction: f64,
-    paired_primary_reads: u64,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct MappingSummaryMetrics {
-    primary_reads: u64,
-    mapped_primary_reads: u64,
-    mapped_primary_fraction: f64,
-    paired_primary_reads: u64,
-    bam_input_bytes: u64,
-    bam_index_input_bytes: u64,
-    input_bytes: u64,
-    output_bytes: u64,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DownstreamProbe {
-    schema_version: String,
-    stage_id: String,
-    input_contract: String,
-    complete: bool,
-}
 
 #[derive(Debug, Clone)]
 pub(super) struct ScientificObservation {

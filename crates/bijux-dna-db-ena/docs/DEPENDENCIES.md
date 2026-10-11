@@ -8,10 +8,13 @@ handling, but it must not depend on downstream workspace layers.
 
 - `anyhow`: binary and transfer error context.
 - `clap`: helper-binary argument parsing.
+- `md5`: ENA source checksum verification during governed transfer.
 - `rayon`: bounded parallel download execution.
 - `reqwest`: blocking HTTP client for ENA metadata and file endpoints.
 - `serde`: typed contract serialization.
 - `serde_json`: manifest persistence.
+- `sha2`: local content identity derivation for admitted downloads.
+- `tempfile`: private no-clobber transfer publication.
 - `thiserror`: typed client and query validation errors.
 
 ## Dev Dependencies

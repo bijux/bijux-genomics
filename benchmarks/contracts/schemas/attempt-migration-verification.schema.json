@@ -1,0 +1,91 @@
+{
+  "$defs": {
+    "BenchmarkArchiveFileRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "pattern": "^(submission|result)/[^/].+$",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "size_bytes",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkAttemptMigrationState": {
+      "enum": [
+        "planned",
+        "applied",
+        "rolled_back"
+      ],
+      "type": "string"
+    },
+    "BenchmarkAttemptMigrationVerificationEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "current_location": {
+          "type": "string"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkArchiveFileRecord"
+          },
+          "type": "array"
+        },
+        "source": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/BenchmarkAttemptMigrationState"
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "state",
+        "current_location",
+        "files"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkAttemptMigrationVerificationEntry"
+      },
+      "type": "array"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.attempt_migration_verification.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "plan_id",
+    "entries"
+  ],
+  "title": "BenchmarkAttemptMigrationVerification",
+  "type": "object"
+}

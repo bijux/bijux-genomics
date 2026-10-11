@@ -39,7 +39,7 @@ fn core_manifest_rejects_downstream_crate_dependencies() {
         "bijux-dna-analyze",
         "bijux-dna-bench",
         "bijux-dna-engine",
-        "bijux-dna-environment",
+        "bijux-dna-containers",
         "bijux-dna-infra",
         "bijux-dna-pipelines",
     ];

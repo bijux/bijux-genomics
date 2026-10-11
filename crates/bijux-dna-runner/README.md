@@ -16,6 +16,11 @@ Benchmark callers first use `prepare_benchmark_slurm_job` to turn a persisted ex
 specification into exact scheduler material, then use `submit_prepared_benchmark_job` for
 intent-first, non-waiting, duplicate-safe scheduler submission.
 
+Corpus acquisition callers use the parallel `prepare_corpus_materialization_slurm_job`,
+`submit_prepared_corpus_materialization_job`, one-shot observe, and terminal collect operations.
+These bind a frozen repository, exact executable, checksum-pinned plan, and governed data root
+without moving transfer or FASTQ validation into the runner.
+
 ## Key contracts it owns/consumes
 The runner owns backend execution specs, command invocation identity, stdout/stderr capture, exit mapping, runner artifacts, replay verification, and the dependency/effect boundary around those responsibilities.
 

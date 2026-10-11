@@ -59,10 +59,21 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
     assert_eq!(incomplete_row_count, 5);
     assert_eq!(payload.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
 
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(u64::try_from(rows.len()).expect("row count fits u64"), row_count);
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(21));
+    for domain in ["fastq", "bam", "vcf"] {
+        let expected_count = u64::try_from(
+            rows.iter()
+                .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some(domain))
+                .count(),
+        )
+        .expect("domain count fits u64");
+        assert_eq!(
+            domain_counts.get(domain).and_then(serde_json::Value::as_u64),
+            Some(expected_count)
+        );
+    }
 
     let failure_reason_counts = payload
         .get("failure_reason_counts")
@@ -122,9 +133,6 @@ fn bench_readiness_all_domain_completion_check_reports_governed_completion_rules
         mutation_result_ids.get("execution_not_successful").copied(),
         Some("bam:corpus-01-bam-mini:bam.qc_pre:sample-set:multiqc")
     );
-
-    let rows = support::json_array(&payload, "rows");
-    assert_eq!(rows.len() as u64, row_count);
 
     let missing_declared = rows
         .iter()

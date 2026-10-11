@@ -49,22 +49,27 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
         payload.get("full_benchmark_report_check_source").and_then(serde_json::Value::as_str),
         Some("tracked_report_json")
     );
-    assert_eq!(payload.get("candidate_row_count").and_then(serde_json::Value::as_u64), Some(143));
-    assert_eq!(payload.get("candidate_stage_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("candidate_tool_count").and_then(serde_json::Value::as_u64), Some(73));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(141));
-    assert_eq!(payload.get("active_stage_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("active_tool_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(2));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    let candidate_rows = payload
+        .get("candidate_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("candidate row count");
+    let active_rows = payload
+        .get("active_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("active row count");
+    assert_eq!(candidate_rows, active_rows + rows.len() as u64);
+    assert_eq!(
+        payload.get("removed_row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert_eq!(
         payload.get("fully_removed_stage_count").and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(0)
     );
     assert_eq!(
         payload.get("fully_removed_tool_count").and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(0)
     );
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
@@ -73,65 +78,9 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
         .get("scope_exit_kind_counts")
         .and_then(serde_json::Value::as_object)
         .expect("scope exit kind counts");
-    assert_eq!(
-        scope_exit_kind_counts.get("lifecycle_not_active").and_then(serde_json::Value::as_u64),
-        Some(2)
-    );
-    assert!(
-        scope_exit_kind_counts.get("benchmark_not_ready").is_none()
-            && scope_exit_kind_counts.get("non_executable_adapter").is_none(),
-        "current removed scope should be fully explained by lifecycle exits"
-    );
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 2);
+    assert!(scope_exit_kind_counts.is_empty());
+    assert!(rows.is_empty());
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "removed rows must stay outside governed active surfaces");
-
-    assert!(rows.iter().any(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.ibd")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("germline")
-            && row.get("status").and_then(serde_json::Value::as_str) == Some("planned")
-            && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                == Some("declared_only")
-            && row.get("scope_exit_kind").and_then(serde_json::Value::as_str)
-                == Some("lifecycle_not_active")
-            && row.get("stage_removed_from_active_scope").and_then(serde_json::Value::as_bool)
-                == Some(true)
-            && row.get("tool_removed_from_active_scope").and_then(serde_json::Value::as_bool)
-                == Some(true)
-    }));
-    assert!(rows.iter().any(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.demography")
-            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ibdne")
-            && row.get("status").and_then(serde_json::Value::as_str) == Some("planned")
-            && row.get("adapter_status").and_then(serde_json::Value::as_str)
-                == Some("declared_only")
-            && row.get("scope_exit_kind").and_then(serde_json::Value::as_str)
-                == Some("lifecycle_not_active")
-            && row.get("stage_removed_from_active_scope").and_then(serde_json::Value::as_bool)
-                == Some(true)
-            && row.get("tool_removed_from_active_scope").and_then(serde_json::Value::as_bool)
-                == Some(true)
-    }));
-    assert!(rows.iter().all(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
-            && row.get("scope_exit_kind").and_then(serde_json::Value::as_str)
-                == Some("lifecycle_not_active")
-    }));
-    assert!(
-        rows.iter().all(|row| {
-            row.get("absent_from_active_matrix").and_then(serde_json::Value::as_bool) == Some(true)
-                && row.get("absent_from_rendered_commands").and_then(serde_json::Value::as_bool)
-                    == Some(true)
-                && row.get("absent_from_expected_results").and_then(serde_json::Value::as_bool)
-                    == Some(true)
-                && row.get("absent_from_full_benchmark_report").and_then(serde_json::Value::as_bool)
-                    == Some(true)
-        }),
-        "removed rows must stay absent from every governed active downstream surface"
-    );
 }

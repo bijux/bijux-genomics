@@ -4,11 +4,13 @@
 use std::collections::BTreeMap;
 
 use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
-use serde::{Deserialize, Serialize};
+use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
-use crate::contract::BENCHMARK_EXECUTION_SPEC_SCHEMA_V1;
+use crate::contract::{
+    BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+};
 
-use super::BenchmarkAttemptIdentity;
+use super::{BenchmarkAttemptIdentity, BenchmarkParameterValue};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -70,6 +72,31 @@ pub struct BenchmarkExecutionParameterEvidence {
     pub effective_path: String,
     #[schemars(schema_with = "sha256_identity_schema")]
     pub effective_sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkEffectiveParameters {
+    #[serde(deserialize_with = "deserialize_effective_parameters_schema_version")]
+    #[schemars(schema_with = "effective_parameters_schema_version")]
+    pub schema_version: String,
+    pub stage_id: String,
+    pub parameter_schema_version: String,
+    pub defaults_provider: String,
+    pub overrides: BTreeMap<String, BenchmarkParameterValue>,
+    pub resolved_by_sample: BTreeMap<String, BTreeMap<String, BenchmarkEffectiveParameterValue>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(untagged)]
+pub enum BenchmarkEffectiveParameterValue {
+    Null,
+    Boolean(bool),
+    Integer(i64),
+    Number(f64),
+    Text(String),
+    List(Vec<Self>),
+    Object(BTreeMap<String, Self>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -221,11 +248,37 @@ pub fn benchmark_execution_spec_schema() -> Schema {
     schemars::schema_for!(BenchmarkExecutionSpec)
 }
 
+#[must_use]
+pub fn benchmark_effective_parameters_schema() -> Schema {
+    schemars::schema_for!(BenchmarkEffectiveParameters)
+}
+
 fn benchmark_execution_spec_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
     })
+}
+
+fn effective_parameters_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
+    })
+}
+
+fn deserialize_effective_parameters_schema_version<'de, D>(
+    deserializer: D,
+) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer)?;
+    if value == BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1 {
+        Ok(value)
+    } else {
+        Err(D::Error::custom(format!("unsupported benchmark effective parameters: {value}")))
+    }
 }
 
 fn sha256_identity_schema(_: &mut SchemaGenerator) -> Schema {

@@ -2,10 +2,10 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::Result;
+use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_core::prelude::cache::CacheKey;
 use bijux_dna_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
-use bijux_dna_environment::api::RuntimeKind;
 
 mod apptainer_args;
 mod apptainer_execution;

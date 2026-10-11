@@ -50,8 +50,8 @@ Parallel consumers that must not own execution truth:
 | `bijux-dna-domain-fastq` | FASTQ stage vocabulary, FASTQ invariants, typed FASTQ truth | run layout, backend spawning, API response shaping | `src/lib.rs`, `docs/PUBLIC_API.md` | domain layer |
 | `bijux-dna-domain-vcf` | VCF stage vocabulary, cohort/reference invariants, typed VCF truth | run layout, backend spawning, API response shaping | `src/lib.rs`, `docs/PUBLIC_API.md` | domain layer |
 | `bijux-dna-engine` | explicit-plan execution orchestration and lifecycle coordination | hidden planning, domain catalog truth, CLI parsing | `src/lib.rs`, `docs/PUBLIC_API.md` | engine over runtime/runner |
-| `bijux-dna-environment` | runtime platform resolution, image/platform discovery, environment contracts | planner defaults, scientific policy ownership | `src/lib.rs`, `docs/PUBLIC_API.md` | execution support |
-| `bijux-dna-environment-qa` | environment QA assertions and readiness checks | production runtime dependencies from product crates | `src/lib.rs`, `docs/PUBLIC_API.md` | QA-only support |
+| `bijux-dna-containers` | runtime platform resolution, image/platform discovery, environment contracts | planner defaults, scientific policy ownership | `src/lib.rs`, `docs/PUBLIC_API.md` | execution support |
+| `bijux-dna-containers-qa` | environment QA assertions and readiness checks | production runtime dependencies from product crates | `src/lib.rs`, `docs/PUBLIC_API.md` | QA-only support |
 | `bijux-dna-infra` | generic filesystem/config helpers and low-level utilities | domain semantics, planner/runtime policy truth | `src/lib.rs`, `docs/PUBLIC_API.md` | foundational leaf |
 | `bijux-dna-pipelines` | workflow/profile composition, defaults ledgers, template-level invariants | backend execution, CLI policy ownership | `src/lib.rs`, `docs/PUBLIC_API.md` | pipeline composition |
 | `bijux-dna-planner-bam` | BAM stage selection, plan assembly, explain output | backend spawning, run persistence, CLI formatting | `src/lib.rs`, `docs/PUBLIC_API.md` | planner layer |

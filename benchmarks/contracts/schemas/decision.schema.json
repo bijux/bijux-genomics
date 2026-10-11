@@ -1,0 +1,89 @@
+{
+  "$defs": {
+    "GateViolation": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "type": "string"
+        },
+        "metric_id": {
+          "type": "string"
+        },
+        "observed": {
+          "format": "double",
+          "type": "number"
+        },
+        "threshold": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "metric_id",
+        "observed",
+        "threshold",
+        "direction"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "completeness_score": {
+      "format": "double",
+      "type": "number"
+    },
+    "dataset_id": {
+      "type": "string"
+    },
+    "missing_metrics": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "params_hash": {
+      "type": "string"
+    },
+    "passes": {
+      "type": "boolean"
+    },
+    "rationale_trace": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.gate.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    },
+    "violations": {
+      "items": {
+        "$ref": "#/$defs/GateViolation"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "dataset_id",
+    "stage_id",
+    "tool_id",
+    "params_hash",
+    "passes",
+    "violations",
+    "missing_metrics",
+    "completeness_score",
+    "rationale_trace"
+  ],
+  "title": "GateDecision",
+  "type": "object"
+}

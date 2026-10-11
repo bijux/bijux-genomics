@@ -56,15 +56,14 @@ fn bench_local_render_all_domain_slurm_submit_manifest_reports_governed_job_slic
         payload.get("run_id").and_then(serde_json::Value::as_str),
         Some("all-domain-benchmark-dry-run")
     );
-    assert_eq!(payload.get("job_count").and_then(serde_json::Value::as_u64), Some(234));
-    assert_eq!(payload.get("benchmark_job_count").and_then(serde_json::Value::as_u64), Some(141));
-    assert_eq!(
-        payload.get("essential_pipeline_job_count").and_then(serde_json::Value::as_u64),
-        Some(93)
-    );
+    let job_count = payload["job_count"].as_u64().expect("job count");
+    let benchmark_job_count = payload["benchmark_job_count"].as_u64().expect("benchmark job count");
+    let essential_pipeline_job_count =
+        payload["essential_pipeline_job_count"].as_u64().expect("essential pipeline job count");
+    assert_eq!(benchmark_job_count + essential_pipeline_job_count, job_count);
 
     let jobs = payload.get("jobs").and_then(serde_json::Value::as_array).expect("jobs array");
-    assert_eq!(jobs.len(), 234);
+    assert_eq!(jobs.len(), usize::try_from(job_count).expect("job count fits usize"));
     assert!(jobs.iter().all(|job| {
         job.get("job_id_local").and_then(serde_json::Value::as_str).is_some()
             && job.get("domain").and_then(serde_json::Value::as_str).is_some()

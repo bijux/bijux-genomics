@@ -2,35 +2,50 @@
 //! Typed models for bench (suite, observation, summary, decision).
 //! Must not perform IO or depend on repo/policy/compare logic.
 
+pub mod admission;
 pub mod corpus;
-pub mod decision;
 pub mod execution;
 pub mod graph;
 pub mod interfaces;
 pub mod lifecycle;
+pub mod materialization;
+pub mod normalized_result;
 pub mod observation;
 pub mod planning;
+pub mod protocol;
+pub mod publication;
+pub mod replay;
 pub mod report;
+pub mod stage_result;
 pub mod suite;
 pub mod summary;
 
 #[allow(unused_imports)]
-pub use corpus::{
-    AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile,
-    AdmittedFastqCorpusSample, BackendComparisonSpec, BenchmarkBundleManifest,
-    BenchmarkCorpusManifest, BenchmarkFastqLayout, CorpusDatasetSpec, CorpusDomain, CorpusScale,
-    DriftScenarioSpec, FastqReadLengthExpectationSample, FastqReadLengthExpectations, TruthSetHook,
-    TruthSetStatus,
+pub use admission::{
+    benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
+    BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
 };
-pub use decision::BenchmarkDecision;
+#[allow(unused_imports)]
+pub use corpus::{
+    benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema,
+    benchmark_data_index_schema, fastq_profile_reads_expectations_schema, AdmittedBamCorpus,
+    AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
+    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex,
+    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
+    BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusDatasetSpec,
+    CorpusDomain, CorpusScale, DataIntegrityStatus, DriftScenarioSpec,
+    FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
+    FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
+};
 #[allow(unused_imports)]
 pub use execution::{
-    benchmark_execution_spec_schema, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
-    BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance, BenchmarkExecutionCachePolicy,
-    BenchmarkExecutionCommands, BenchmarkExecutionDeterminism, BenchmarkExecutionDownstreamProbe,
-    BenchmarkExecutionImage, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
-    BenchmarkExecutionInterface, BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs,
-    BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
+    benchmark_effective_parameters_schema, benchmark_execution_spec_schema,
+    BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator,
+    BenchmarkEffectiveParameterValue, BenchmarkEffectiveParameters, BenchmarkExecutionAcceptance,
+    BenchmarkExecutionCachePolicy, BenchmarkExecutionCommands, BenchmarkExecutionDeterminism,
+    BenchmarkExecutionDownstreamProbe, BenchmarkExecutionImage, BenchmarkExecutionInput,
+    BenchmarkExecutionInputKind, BenchmarkExecutionInterface, BenchmarkExecutionMeasurement,
+    BenchmarkExecutionOutputs, BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
     BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
     BenchmarkExecutionSpec,
 };
@@ -43,18 +58,28 @@ pub use interfaces::{
 };
 #[allow(unused_imports)]
 pub use lifecycle::{
-    benchmark_campaign_plan_schema, benchmark_scheduler_observation_schema,
-    BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
-    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationEntry,
+    benchmark_attempt_migration_verification_schema, benchmark_campaign_plan_schema,
+    benchmark_scheduler_observation_schema, BenchmarkArchiveFileRecord,
+    BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive, BenchmarkAttemptDisposition,
+    BenchmarkAttemptDocument, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationEntry,
     BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
     BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
-    BenchmarkAttemptMigrationState, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatus,
-    BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkJobReference,
-    BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkSchedulerAccounting,
-    BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
-    BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
-    BenchmarkSchedulerTerminalState,
+    BenchmarkAttemptMigrationState, BenchmarkAttemptMigrationVerification,
+    BenchmarkAttemptMigrationVerificationEntry, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
+    BenchmarkAttemptTransition, BenchmarkAttemptV1MigrationContext, BenchmarkCampaignPlan,
+    BenchmarkCycleDocument, BenchmarkCycleStatus, BenchmarkCycleStatusV2,
+    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
+    BenchmarkSchedulerObservation, BenchmarkSchedulerObservationDraft,
+    BenchmarkSchedulerObservedState, BenchmarkSchedulerTerminalState,
+};
+#[allow(unused_imports)]
+pub use materialization::{
+    corpus_acquisition_plan_schema, corpus_materialization_publication_schema,
+    governed_data_catalog_schema, CorpusAcquisitionFile, CorpusAcquisitionLayout,
+    CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusMaterializationDisposition,
+    CorpusMaterializationPublication, GovernedDataCatalog, GovernedDataCatalogFile,
+    GovernedDataCatalogSample,
 };
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]
@@ -71,6 +96,24 @@ pub use planning::{
     BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus,
 };
 #[allow(unused_imports)]
+pub use protocol::{
+    benchmark_case_definition_schema, benchmark_run_definition_schema, BenchmarkCaseDefinition,
+    BenchmarkCaseInputLock, BenchmarkCaseQualificationReceipt, BenchmarkContractLock,
+    BenchmarkCorpusRole, BenchmarkRunDefinition, BenchmarkRunState,
+};
+#[allow(unused_imports)]
+pub use publication::{
+    benchmark_citation_record_schema, benchmark_evidence_book_schema,
+    benchmark_publication_receipt_schema, BenchmarkCitationAssetIdentity, BenchmarkCitationRecord,
+    BenchmarkCitationToolIdentity, BenchmarkEvidenceBook, BenchmarkEvidenceBookEntry,
+    BenchmarkEvidenceBookStatus, BenchmarkPublicationReceipt,
+};
+#[allow(unused_imports)]
+pub use replay::{
+    benchmark_replay_receipt_schema, BenchmarkReplayOutcome, BenchmarkReplayReceipt,
+    BenchmarkReplaySemanticIdentity,
+};
+#[allow(unused_imports)]
 pub use report::{
     AdmittedBenchmarkStageReport, BenchmarkComparisonMetric, BenchmarkComparisonStatus,
     BenchmarkCrossToolComparison, BenchmarkMetricDistribution, BenchmarkReportComparability,
@@ -80,6 +123,15 @@ pub use report::{
     BenchmarkStageReportDesign, BenchmarkToolReport,
 };
 #[allow(unused_imports)]
-pub use suite::{BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec};
+pub use stage_result::{
+    benchmark_stage_result_schema, BenchmarkStageResultCommand, BenchmarkStageResultManifest,
+    BenchmarkStageResultOutput, BenchmarkStageResultResourceMetricSource,
+    BenchmarkStageResultResourceMetrics, BenchmarkStageResultRuntime, BenchmarkStageResultStatus,
+    BenchmarkStageResultTool,
+};
+#[allow(unused_imports)]
+pub use suite::{
+    benchmark_suite_spec_schema, BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec,
+};
 #[allow(unused_imports)]
 pub use summary::{BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum};

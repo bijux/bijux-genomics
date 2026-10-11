@@ -1,7 +1,8 @@
 use super::super::stats::{
-    FastqOverrepresentedProfileParams, FastqReadLengthProfileParams, FastqStatsParams,
-    OVERREPRESENTED_PROFILE_SCHEMA_VERSION, READ_LENGTH_PROFILE_SCHEMA_VERSION,
-    STATS_SCHEMA_VERSION,
+    FastqEstimateLibraryComplexityPrealignParams, FastqOverrepresentedProfileParams,
+    FastqReadLengthProfileParams, FastqStatsParams,
+    ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SCHEMA_VERSION, OVERREPRESENTED_PROFILE_SCHEMA_VERSION,
+    READ_LENGTH_PROFILE_SCHEMA_VERSION, STATS_SCHEMA_VERSION,
 };
 use super::shared::paired_mode;
 
@@ -31,5 +32,20 @@ pub fn overrepresented_profile_defaults(paired: bool) -> FastqOverrepresentedPro
         paired_mode: paired_mode(paired),
         threads: 2,
         top_k: 50,
+    }
+}
+
+#[must_use]
+pub fn estimate_library_complexity_prealign_defaults(
+    paired: bool,
+) -> FastqEstimateLibraryComplexityPrealignParams {
+    FastqEstimateLibraryComplexityPrealignParams {
+        schema_version: ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_SCHEMA_VERSION.to_string(),
+        paired_mode: paired_mode(paired),
+        complexity_policy: "prealign_kmer".to_string(),
+        estimate_method: "kmer_redundancy".to_string(),
+        advisory_only: true,
+        modifies_reads: false,
+        kmer_size: Some(31),
     }
 }

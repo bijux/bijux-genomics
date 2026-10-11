@@ -126,6 +126,24 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         cargo_mk.contains("NEXTEST_SLOW_NAME_EXPR ?= test(/::slow__/)"),
         "make test lanes must use the shared slow__ namespace"
     );
+    assert_shared_full_suite_contract(
+        &cargo_mk,
+        &shared_cargo_mk,
+        &root_mk,
+        &rust_gate,
+        &pinned_gate,
+        &slow_roster,
+    );
+}
+
+fn assert_shared_full_suite_contract(
+    cargo_mk: &str,
+    shared_cargo_mk: &str,
+    root_mk: &str,
+    rust_gate: &str,
+    pinned_gate: &str,
+    slow_roster: &str,
+) {
     bijux_dna_policies::policy_assert!(
         root_mk.contains("bijux-makes/environment.mk")
             && root_mk.contains("bijux-makes-rs/bijux.mk"),

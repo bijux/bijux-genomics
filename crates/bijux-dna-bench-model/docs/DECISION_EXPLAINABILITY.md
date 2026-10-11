@@ -1,26 +1,11 @@
 # Decision Explainability
 
-Benchmark decisions must be inspectable without re-running a benchmark. This
-crate owns two explainability surfaces: versioned benchmark decisions and gate
-policy decisions.
-
-## BenchmarkDecision
-
-`BenchmarkDecision` carries:
-
-- `schema_version` fixed to `bijux.bench.decision.v1`.
-- `stage_id`, `tool_id`, and `objective` identifying what was evaluated.
-- `passes` as the final boolean outcome.
-- `rationale`, an ordered list of `DecisionRationale` records.
-- `missing_metrics`, an ordered list of required metrics absent from the input.
-
-Each `DecisionRationale` records `metric_id`, `observed`, `direction`, `note`,
-`weight`, and `contribution`. Callers must be able to explain why a metric
-helped or hurt a decision from those fields alone.
+Benchmark decisions must be inspectable without re-running a benchmark. The
+model crate owns one persisted explainability surface: gate policy decisions.
 
 ## GateDecision
 
-`GateDecision` carries:
+`GateDecision` is the sole benchmark decision contract and carries:
 
 - `schema_version` fixed to `bijux.bench.gate.v1`.
 - `dataset_id`, `stage_id`, `tool_id`, and `params_hash` identity.

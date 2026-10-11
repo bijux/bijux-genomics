@@ -21,15 +21,15 @@ const EXPECTED_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.damage_evidence.v1";
 const EXPECTED_STAGE_METRICS_SCHEMA_VERSION: &str = "bijux.bam.damage.stage_metrics.v1";
 const EXPECTED_PARSER_OUTPUT_SCHEMA_VERSION: &str = "bijux.bam.damage.parser_output.v1";
 const EXPECTED_SAMPLE_ID: &str = "adna_damage_non_udg";
-const EXPECTED_METHOD: &str = "ngsbriggs";
+const EXPECTED_METHOD: &str = "mapdamage2";
 const EXPECTED_TERMINAL_C_TO_T_5P: f64 = 0.18;
 const EXPECTED_TERMINAL_G_TO_A_3P: f64 = 0.11;
 const EXPECTED_SHORT_FRAGMENT_FRACTION: f64 = 1.0;
 const EXPECTED_DAMAGE_SIGNAL: &str = "moderate";
 const EXPECTED_STRICT_PROFILE_UPGRADED: bool = false;
 const CHECKED_SURFACE_COUNT: usize = 13;
-const EXPECTED_TOOL_IDS: [&str; 6] =
-    ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"];
+const EXPECTED_TOOL_IDS: [&str; 5] =
+    ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"];
 const REQUIRED_OUTPUT_IDS: [&str; 4] =
     ["damage_report", "terminal_position_metrics", "parser_output", "stage_metrics"];
 const REQUIRED_SUMMARY_METRIC_NAMES: [&str; 7] = [
@@ -724,8 +724,8 @@ mod tests {
                 .expect("render BAM damage completion report");
 
         assert_eq!(report.schema_version, BAM_DAMAGE_COMPLETE_SCHEMA_VERSION);
-        assert_eq!(report.active_row_count, 6);
-        assert_eq!(report.complete_row_count, 6);
+        assert_eq!(report.active_row_count, 5);
+        assert_eq!(report.complete_row_count, 5);
         assert_eq!(report.incomplete_row_count, 0);
         assert_eq!(report.checked_surface_count, 13);
         assert_eq!(report.missing_tool_ids, Vec::<String>::new());

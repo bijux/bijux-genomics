@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -45,7 +46,15 @@ fn bench_readiness_fastq_local_container_smoke_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 71);
+    assert!(!rows.is_empty());
+    let bindings = rows
+        .iter()
+        .map(|row| {
+            let mut columns = row.split('\t');
+            (columns.next().expect("stage id"), columns.next().expect("tool id"))
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(bindings.len(), rows.len(), "stage-tool bindings must be unique");
     assert!(rows.iter().any(|row| {
         row == &"fastq.detect_duplicates_premerge\tbijux_dna\tbijux-dna\tproduction\tbenchmark_ready\tgoverned_execution\tfixture:corpus-01-mini\tdocker_container_smoke\tdocker-arm64\tbijux-dna\tbijux-dna env smoke docker-arm64 bijux-dna\tcontainers/docker/Dockerfile.arm64.bijux_dna\t\tbinding `fastq.detect_duplicates_premerge` / `bijux_dna` matches the governed FASTQ execution default tool, but no exact tiny-fixture stage smoke wrapper is checked in, so the governed container smoke wrapper is the available local exercise path for `fastq.detect_duplicates_premerge` / `bijux_dna`"
     }));

@@ -5,8 +5,10 @@ use super::BenchBamCommand;
 mod active_scope;
 mod config;
 mod corpus_fastq;
+mod data_index;
 mod fastq;
 mod local;
+mod materialization;
 mod matrix;
 mod micro;
 mod paths;
@@ -22,6 +24,7 @@ pub use self::config::{
     BenchWriteScreenTaxonomyDatabaseLineageArgs,
 };
 pub use self::corpus_fastq::BenchCorpusFastqArgs;
+pub use self::data_index::BenchDataIndexArgs;
 pub use self::fastq::BenchFastqCommand;
 pub use self::fastq::{
     BenchFastqClusterOtusArgs, BenchFastqCorrectArgs, BenchFastqDepleteHostArgs,
@@ -84,6 +87,12 @@ pub use self::local::{
     BenchLocalValidateTaxonomyDatabaseFixtureArgs, BenchLocalValidateVcfNoEmptyOutputArgs,
     BenchLocalValidateVcfReferenceCompatibilityArgs, BenchLocalValidateVcfSampleCompatibilityArgs,
     BenchLocalValidateVcfSmokeSuiteReadyArgs, BenchLocalValidateVcfStageCatalogReadyArgs,
+};
+pub use self::materialization::{
+    BenchCorpusMaterializationCollectArgs, BenchCorpusMaterializationCommand,
+    BenchCorpusMaterializationPrepareArgs, BenchCorpusMaterializationSlurmArgs,
+    BenchCorpusMaterializationStatusArgs, BenchCorpusMaterializationSubmitArgs,
+    BenchMaterializeFastqCorpusArgs,
 };
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
 pub use self::micro::BenchRunMicroArgs;
@@ -227,6 +236,15 @@ pub enum BenchCommand {
     Run(BenchRunArgs),
     #[command(name = "run-micro")]
     RunMicro(BenchRunMicroArgs),
+    #[command(name = "data-index")]
+    DataIndex(BenchDataIndexArgs),
+    #[command(name = "materialize-fastq-corpus")]
+    MaterializeFastqCorpus(BenchMaterializeFastqCorpusArgs),
+    #[command(name = "corpus-materialization")]
+    CorpusMaterialization {
+        #[command(subcommand)]
+        command: BenchCorpusMaterializationCommand,
+    },
     Status,
     #[command(name = "workspace-value")]
     WorkspaceValue(BenchWorkspaceValueArgs),

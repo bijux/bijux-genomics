@@ -86,10 +86,11 @@ mod tests {
     }
 
     #[test]
-    fn governed_fast_expression_negates_both_slow_sources() {
-        let workspace = Workspace::resolve().expect("workspace");
-        let expression = governed_fast_expression(&workspace).expect("fast expression");
+    fn governed_fast_expression_negates_both_slow_sources() -> anyhow::Result<()> {
+        let workspace = Workspace::resolve()?;
+        let expression = governed_fast_expression(&workspace)?;
         assert!(expression.starts_with("not (test(/::slow__/)"));
         assert!(expression.contains(" or test(/(?:^|::)(?:"));
+        Ok(())
     }
 }

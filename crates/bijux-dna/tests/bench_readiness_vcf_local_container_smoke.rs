@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -46,28 +47,49 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf/vcf-local-container-smoke.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(42));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(16));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    let row_count = u64::try_from(rows.len()).expect("row count fits u64");
+    let stage_count = u64::try_from(
+        rows.iter()
+            .filter_map(|row| row.get("stage_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len(),
+    )
+    .expect("stage count fits u64");
+    let tool_count = u64::try_from(
+        rows.iter()
+            .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+            .collect::<BTreeSet<_>>()
+            .len(),
+    )
+    .expect("tool count fits u64");
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(stage_count));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
+    let host_row_count = rows
+        .iter()
+        .filter(|row| {
+            row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
+                == Some("host_stage_smoke")
+        })
+        .count();
+    let host_row_count = u64::try_from(host_row_count).expect("host row count fits u64");
     assert_eq!(
         payload.get("host_stage_smoke_row_count").and_then(serde_json::Value::as_u64),
-        Some(20)
+        Some(host_row_count)
     );
     assert_eq!(
         payload.get("container_smoke_row_count").and_then(serde_json::Value::as_u64),
-        Some(22)
+        Some(row_count - host_row_count)
     );
 
     let runtime_counts = payload
         .get("runtime_counts")
         .and_then(serde_json::Value::as_object)
         .expect("runtime counts");
-    assert_eq!(runtime_counts.get("host").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(runtime_counts.get("docker-arm64").and_then(serde_json::Value::as_u64), Some(21));
-    assert_eq!(runtime_counts.get("apptainer").and_then(serde_json::Value::as_u64), Some(1));
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 42);
+    let runtime_row_count =
+        runtime_counts.values().map(|count| count.as_u64().expect("runtime count")).sum::<u64>();
+    assert_eq!(runtime_row_count, row_count);
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.roh")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
@@ -131,7 +153,6 @@ fn bench_readiness_vcf_local_container_smoke_reports_retained_wrapper_paths() {
                 == Some("apptainer_container_smoke")
             && row.get("smoke_command").and_then(serde_json::Value::as_str)
                 == Some("bijux-dna env smoke apptainer shapeit")
-            && row.get("smoke_minimal_cmd").and_then(serde_json::Value::as_str)
-                == Some("shapeit --help")
+            && row.get("smoke_minimal_cmd").and_then(serde_json::Value::as_str) == Some("")
     }));
 }

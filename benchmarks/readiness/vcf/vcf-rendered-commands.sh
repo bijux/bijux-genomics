@@ -26,6 +26,9 @@ bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.call_pseudohaploid/
 bcftools filter -e '((REF="C" && ALT="T") || (REF="G" && ALT="A")) && INFO/PMD>3' benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf -Oz -o benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz
 bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz
 
+# vcf.demography / ibdne
+sh -lc 'cat '"'"'benchmarks/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/ibd_segments.tsv'"'"' | ibdne map='"'"'benchmarks/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/genetic.map'"'"' out='"'"'benchmarks/readiness/adapters/descent/ibdne/vcf.demography/demography_report'"'"' nthreads=8 nboots=0 seed=15052011 > '"'"'benchmarks/readiness/adapters/descent/ibdne/vcf.demography/demography_report.log'"'"' 2>&1'
+
 # vcf.filter / bcftools
 bcftools filter -s LOWQUAL -e 'QUAL<30' benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf -Oz -o benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf.vcf.gz
 bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf.vcf.gz
@@ -33,6 +36,12 @@ bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.filter/filtered_vcf
 # vcf.gl_propagation / bcftools
 bcftools annotate -x 'INFO,^FORMAT/GL,^FORMAT/PL,^FORMAT/GP' benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_raw_single_sample.vcf -Oz -o benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz
 bcftools index -t benchmarks/readiness/adapters/bcftools/vcf.gl_propagation/gl_propagated_vcf.vcf.gz
+
+# vcf.ibd / germline
+sh -lc 'plink2 --vcf '"'"'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf'"'"' --double-id --allow-extra-chr --recode ped --out '"'"'benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.cohort'"'"' >/dev/null 2>&1 && germline -silent -input '"'"'benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.cohort.ped'"'"' '"'"'benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.cohort.map'"'"' -output '"'"'benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments'"'"' -bits 50 -min_m 1 -err_hom 2 -err_het 0 > '"'"'benchmarks/readiness/adapters/descent/germline/vcf.ibd/ibd_segments.log'"'"' 2>&1'
+
+# vcf.ibd / ibdseq
+sh -lc 'ibdseq gt='"'"'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf'"'"' out='"'"'benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments'"'"' nthreads=8 > '"'"'benchmarks/readiness/adapters/descent/ibdseq/vcf.ibd/ibd_segments.log'"'"' 2>&1'
 
 # vcf.imputation_metrics / beagle
 sh -lc 'beagle gt='"'"'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz'"'"' ref='"'"'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_mini/panel.vcf.gz'"'"' map='"'"'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/reference/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz'"'"' out='"'"'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputed'"'"' impute=true nthreads=8 seed=42 > '"'"'benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/logs.txt'"'"' 2>&1'

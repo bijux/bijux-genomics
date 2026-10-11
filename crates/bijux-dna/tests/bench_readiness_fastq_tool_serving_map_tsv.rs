@@ -86,7 +86,7 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed profile-reads row for {tool_id}"
         );
     }
-    for tool_id in ["fastp", "prinseq", "seqfu", "seqkit_stats"] {
+    for tool_id in ["seqfu", "seqkit"] {
         assert!(
             rows.iter().any(|row| {
                 row == &format!(
@@ -96,6 +96,13 @@ fn bench_readiness_fastq_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain the governed profile-read-lengths row for {tool_id}"
         );
     }
+    assert!(rows.iter().all(|row| {
+        let mut columns = row.split('\t');
+        let tool_id = columns.next();
+        let stage_id = columns.next();
+        stage_id != Some("fastq.profile_read_lengths")
+            || !matches!(tool_id, Some("fastp" | "prinseq" | "seqkit_stats"))
+    }));
     for tool_id in ["fastq_scan", "fastqc", "seqkit"] {
         assert!(
             rows.iter().any(|row| {

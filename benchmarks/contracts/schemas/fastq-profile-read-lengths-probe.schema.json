@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "consumer_stage_id": {
+      "const": "benchmark.fastq.profile_read_lengths.compare",
+      "type": "string"
+    },
+    "file_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "input_contract": {
+      "const": "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
+      "type": "string"
+    },
+    "maximum_read_length": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "minimum_read_length": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "read_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.fastq.read_length_qc.probe.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "consumer_stage_id",
+    "input_contract",
+    "sample_count",
+    "file_count",
+    "read_count",
+    "minimum_read_length",
+    "maximum_read_length"
+  ],
+  "title": "BenchmarkFastqReadLengthProbe",
+  "type": "object"
+}

@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use bijux_dna_environment::api::{PlatformSpec, ToolImageCatalog};
+use bijux_dna_containers::api::{PlatformSpec, ToolImageCatalog};
 
 /// QA hooks are a no-op in production API builds.
 ///

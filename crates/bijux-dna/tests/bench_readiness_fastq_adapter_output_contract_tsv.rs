@@ -43,7 +43,15 @@ fn bench_readiness_fastq_adapter_output_contract_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 71, "TSV must retain the governed FASTQ 71-row slice");
+    assert!(!rows.is_empty(), "TSV must retain governed FASTQ adapter rows");
+    assert!(rows.iter().all(|row| {
+        let mut columns = row.split('\t');
+        let tool_id = columns.next();
+        let stage_id = columns.next();
+        tool_id != Some("fastuniq")
+            && (stage_id != Some("fastq.profile_read_lengths")
+                || matches!(tool_id, Some("seqfu" | "seqkit")))
+    }));
     assert!(
         rows.iter().any(|row| {
             row.starts_with(

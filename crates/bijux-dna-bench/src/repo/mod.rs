@@ -3,6 +3,7 @@
 
 mod bam_corpus_authority;
 mod corpus_authority;
+mod data_index_authority;
 mod repo_root;
 mod repository;
 mod run_artifacts;
@@ -10,8 +11,14 @@ mod run_metadata;
 pub mod sqlite;
 mod workspace_paths;
 
-pub use bam_corpus_authority::admit_bam_benchmark_corpus;
+pub use bam_corpus_authority::{
+    admit_bam_benchmark_corpus, admit_bam_genotyping_corpus, AdmittedBamGenotypingCorpus,
+};
 pub use corpus_authority::admit_fastq_benchmark_corpus;
+pub use data_index_authority::{
+    build_benchmark_data_index, publish_benchmark_data_index, render_benchmark_data_index_markdown,
+    BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
+};
 pub use repo_root::resolve_repo_root;
 pub use repository::RunRepository;
 pub(crate) use run_artifacts::load_observations;

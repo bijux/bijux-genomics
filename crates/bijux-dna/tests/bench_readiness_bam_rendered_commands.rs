@@ -51,21 +51,21 @@ fn bench_readiness_bam_rendered_commands_report_tracks_active_rows() {
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/bam/bam-rendered-commands.argv.jsonl")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert_eq!(
         payload
             .get("command_source_counts")
             .and_then(serde_json::Value::as_object)
             .and_then(|counts| counts.get("fastq_bam_command_adapter"))
             .and_then(serde_json::Value::as_u64),
-        Some(49)
+        Some(rows.len() as u64)
     );
     assert_eq!(payload.get("bash_syntax_passed").and_then(serde_json::Value::as_bool), Some(true));
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 49);
     assert!(rows.iter().all(|row| {
         row.get("benchmark_status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
             && row.get("command_source").and_then(serde_json::Value::as_str)
@@ -127,13 +127,13 @@ fn bench_readiness_bam_rendered_commands_report_tracks_active_rows() {
     )
     .expect("read BAM rendered command argv jsonl");
     let argv_rows = argv_jsonl.lines().collect::<Vec<_>>();
-    assert_eq!(argv_rows.len(), 49);
+    assert_eq!(argv_rows.len(), rows.len());
     let genotyping = argv_rows
         .iter()
         .map(|line| serde_json::from_str::<serde_json::Value>(line).expect("argv row json"))
         .find(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
         })
         .expect("genotyping argv row");
     assert_eq!(

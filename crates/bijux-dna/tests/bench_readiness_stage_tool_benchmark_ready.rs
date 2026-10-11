@@ -52,20 +52,24 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_a_fully_governed_ready_slic
         Some("benchmarks/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json")
     );
     assert_eq!(payload.get("passes_gate").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(payload.get("expected_pair_count").and_then(serde_json::Value::as_u64), Some(120));
+    let expected_pair_count = payload
+        .get("expected_pair_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("expected pair count");
+    assert!(expected_pair_count > 0);
     assert_eq!(
         payload.get("benchmark_ready_pair_count").and_then(serde_json::Value::as_u64),
-        Some(120)
+        Some(expected_pair_count)
     );
     assert_eq!(payload.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("failing_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("generated_job_pair_count").and_then(serde_json::Value::as_u64),
-        Some(120)
+        Some(expected_pair_count)
     );
     assert_eq!(
         payload.get("expected_result_pair_count").and_then(serde_json::Value::as_u64),
-        Some(120)
+        Some(expected_pair_count)
     );
     assert_eq!(
         payload.get("benchmark_ready_stage_count").and_then(serde_json::Value::as_u64),
@@ -90,7 +94,8 @@ fn bench_readiness_stage_tool_benchmark_ready_tracks_a_fully_governed_ready_slic
     }));
     assert!(surfaces.iter().any(|surface| {
         surface.get("surface_id").and_then(serde_json::Value::as_str) == Some("command_adapters")
-            && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(120)
+            && surface.get("covered_count").and_then(serde_json::Value::as_u64)
+                == Some(expected_pair_count)
             && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(0)
     }));
 

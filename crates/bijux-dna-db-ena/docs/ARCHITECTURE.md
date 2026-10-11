@@ -36,7 +36,8 @@ src/
 │   ├── report.rs
 │   ├── runtime.rs
 │   ├── task.rs
-│   └── transfer.rs
+│   ├── transfer.rs
+│   └── verified_transfer.rs
 ├── lib.rs
 ├── main.rs
 ├── manifest_store.rs
@@ -59,6 +60,7 @@ src/
 - `client/filereport/`: request-field contracts, header validation, and row decoding
 - `download/runtime.rs`: pool and HTTP runtime setup
 - `download/transfer.rs`: retried file transfer loop
+- `download/verified_transfer.rs`: checksum-pinned, no-clobber governed transfer
 - `download/output_layout.rs`: output path naming policy
 - `model/source_selection.rs`: ENA result/source selection contracts
 

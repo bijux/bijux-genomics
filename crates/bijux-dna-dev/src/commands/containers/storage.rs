@@ -33,7 +33,7 @@ fn plan(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcom
     let image_root = path_from_arg(workspace, image_root);
     let quarantine_root = path_from_arg(workspace, quarantine_root);
     let study_root = path_from_arg(workspace, study_root);
-    let request = bijux_dna_environment::api::ImageStoragePlanRequest {
+    let request = bijux_dna_containers::api::ImageStoragePlanRequest {
         inventory_path: &inventory,
         image_root: &image_root,
         quarantine_root: &quarantine_root,
@@ -41,7 +41,7 @@ fn plan(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcom
         created_at_utc,
     };
     let output = path_from_arg(workspace, output);
-    let plan = bijux_dna_environment::api::create_image_storage_plan(&request, &output)?;
+    let plan = bijux_dna_containers::api::create_image_storage_plan(&request, &output)?;
     success_line(format!(
         "planned {} reversible image moves at {}",
         plan.file_count,
@@ -54,7 +54,7 @@ fn apply(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutco
         anyhow::bail!(USAGE);
     };
     let plan = path_from_arg(workspace, plan);
-    let applied = bijux_dna_environment::api::apply_image_storage_plan(
+    let applied = bijux_dna_containers::api::apply_image_storage_plan(
         &plan,
         &path_from_arg(workspace, image_root),
         observed_at_utc,
@@ -66,7 +66,7 @@ fn verify(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutc
     let [plan, image_root] = args else {
         anyhow::bail!(USAGE);
     };
-    let verified = bijux_dna_environment::api::verify_image_storage_plan(
+    let verified = bijux_dna_containers::api::verify_image_storage_plan(
         &path_from_arg(workspace, plan),
         &path_from_arg(workspace, image_root),
     )?;
@@ -77,7 +77,7 @@ fn rollback(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOu
     let [plan, image_root, observed_at_utc] = args else {
         anyhow::bail!(USAGE);
     };
-    let restored = bijux_dna_environment::api::rollback_image_storage_plan(
+    let restored = bijux_dna_containers::api::rollback_image_storage_plan(
         &path_from_arg(workspace, plan),
         &path_from_arg(workspace, image_root),
         observed_at_utc,
@@ -95,9 +95,9 @@ fn report(workspace: &Workspace, args: &[String], check: bool) -> Result<Contain
     let markdown_output = path_from_arg(workspace, markdown_output);
     if check {
         let publication =
-            bijux_dna_environment::api::derive_image_storage_report(&plan, &after_inventory)?;
+            bijux_dna_containers::api::derive_image_storage_report(&plan, &after_inventory)?;
         let markdown =
-            bijux_dna_environment::api::render_image_storage_report_markdown(&publication);
+            bijux_dna_containers::api::render_image_storage_report_markdown(&publication);
         let expected_json = serde_json::to_string_pretty(&publication)?;
         if read_utf8(&json_output)? != expected_json || read_utf8(&markdown_output)? != markdown {
             return Ok(ContainerCommandOutcome::failure(
@@ -106,7 +106,7 @@ fn report(workspace: &Workspace, args: &[String], check: bool) -> Result<Contain
         }
         return success_line("image-storage report: OK");
     }
-    bijux_dna_environment::api::publish_image_storage_report(
+    bijux_dna_containers::api::publish_image_storage_report(
         &plan,
         &after_inventory,
         &json_output,
@@ -121,8 +121,8 @@ fn report(workspace: &Workspace, args: &[String], check: bool) -> Result<Contain
 
 fn generate_schemas(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let (plan_path, report_path) = schema_paths(workspace, args)?;
-    bijux_dna_environment::api::write_image_storage_plan_schema(&plan_path)?;
-    bijux_dna_environment::api::write_image_storage_report_schema(&report_path)?;
+    bijux_dna_containers::api::write_image_storage_plan_schema(&plan_path)?;
+    bijux_dna_containers::api::write_image_storage_report_schema(&report_path)?;
     success_line(format!(
         "generated image-storage schemas at {} and {}",
         plan_path.display(),
@@ -138,8 +138,8 @@ fn check_schemas(workspace: &Workspace, args: &[String]) -> Result<ContainerComm
     let report_path = workspace.path(REPORT_SCHEMA_PATH);
     let checked_plan: serde_json::Value = serde_json::from_str(&read_utf8(&plan_path)?)?;
     let checked_report: serde_json::Value = serde_json::from_str(&read_utf8(&report_path)?)?;
-    if checked_plan != bijux_dna_environment::api::image_storage_plan_schema()
-        || checked_report != bijux_dna_environment::api::image_storage_report_schema()
+    if checked_plan != bijux_dna_containers::api::image_storage_plan_schema()
+        || checked_report != bijux_dna_containers::api::image_storage_report_schema()
     {
         return Ok(ContainerCommandOutcome::failure(
             "image-storage schemas drifted from Rust environment types\n",

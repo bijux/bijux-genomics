@@ -37,7 +37,7 @@ mod tests {
             schema_version: DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION.to_string(),
             stage: "fastq.detect_duplicates_premerge".to_string(),
             stage_id: "fastq.detect_duplicates_premerge".to_string(),
-            tool_id: "bijux".to_string(),
+            tool_id: "bijux_dna".to_string(),
             paired_mode: PairedMode::PairedEnd,
             duplicate_detection_policy: "report_only".to_string(),
             measurement_scope: "premerge_sequence_signature".to_string(),

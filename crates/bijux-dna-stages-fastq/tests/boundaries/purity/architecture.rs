@@ -53,7 +53,7 @@ fn stages_fastq_has_no_execution_calls() -> Result<(), Box<dyn std::error::Error
         "run_merge_container",
         "RuntimeKind",
         "bijux_dna_engine::",
-        "bijux_dna_environment::",
+        "bijux_dna_containers::",
     ];
     let mut offenders = Vec::new();
     for path in files {

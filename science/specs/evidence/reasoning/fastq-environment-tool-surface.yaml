@@ -15,4 +15,4 @@ evidence_ids:
 assumption_ids:
   - "assumption.fastq.governance-authority-window"
 residual_risk: "This slice traces current governance surfaces, so stale authored defaults or incomplete registry metadata will still compile if the underlying authority files drift together."
-conclusion: "Compile the FASTQ environment matrix from execution support, stage contracts, and tool registry, while tracing deterministic environment semantics from bijux-dna-environment docs."
+conclusion: "Compile the FASTQ environment matrix from execution support, stage contracts, and tool registry, while tracing deterministic environment semantics from bijux-dna-containers docs."

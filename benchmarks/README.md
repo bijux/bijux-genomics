@@ -76,56 +76,67 @@ governed data-catalog record before a comparative campaign can consume them.
 Materialize the resolved plan under the governed data root:
 
 ```console
-python3 -B benchmarks/corpus_materialization.py \
+bijux-dna bench materialize-fastq-corpus \
   --plan "$STUDY/data/evidence/acquisition-plans/$commit/human-short-read-diversity.json" \
   --data-root "$STUDY/data" \
-  --jobs 4
+  --jobs 4 \
+  --retries 2 \
+  --timeout-seconds 120 \
+  --admitted-at-utc "$admitted_at_utc"
 ```
 
-For a queued materialization, first freeze only the benchmark-owned source at
-the exact clean commit:
+For a queued materialization, author one
+`bijux.runner.corpus_materialization_slurm_spec.v1` JSON specification. The
+typed contract binds the permanent run and attempt identities, clean frozen
+repository path and commit, Linux `bijux-dna` executable path and SHA-256,
+acquisition plan path and SHA-256, governed data and evidence roots, scheduler
+resources, transfer limits, and admission timestamp. For an idempotent replay
+of an admitted corpus, `existing_catalog_sha256` binds the exact governed
+catalog that must already exist; omit it only for first admission.
+
+Prepare immutable scheduler material from that specification, then submit it
+exactly once without waiting:
 
 ```console
-python3 -B containers/contracts/container_validation.py freeze-repository \
-  --governance containers/contracts/sites/lunarc.yml \
-  --commit "$commit" \
-  --scope sources \
-  --path benchmarks \
-  --namespace benchmark-campaigns
-```
-
-Prepare the non-secret pipeline, explicit credential-reference contract, and
-Slurm submission from that frozen source, then submit it:
-
-```console
-specification="$STUDY/data/evidence/materializations/$commit/human-short-read-diversity"
-python3 -B benchmarks/corpus_materialization_spec.py prepare \
-  --governance containers/contracts/sites/lunarc.yml \
-  --plan "$STUDY/data/evidence/acquisition-plans/$commit/human-short-read-diversity.json" \
-  --repository . \
-  --frozen-repository "$frozen" \
-  --output "$specification" \
-  --jobs 4
-python3 -B benchmarks/corpus_materialization_spec.py submit \
+specification="$STUDY/data/evidence/materializations/run-$run_id/specification.json"
+bijux-dna bench corpus-materialization prepare \
+  --specification "$specification" \
+  --submitted-at-utc "$submitted_at_utc"
+bijux-dna bench corpus-materialization submit \
   --specification "$specification"
+```
+
+Observe one scheduler snapshot without polling:
+
+```console
+bijux-dna bench corpus-materialization status \
+  --specification "$specification" \
+  --observed-at-utc "$observed_at_utc"
 ```
 
 After the job is terminal, collect scheduler accounting, re-hash the admitted
-FASTQ files and catalog, and publish the commit-scoped data index:
+FASTQ files and catalog, and publish immutable materialization evidence:
 
 ```console
-python3 -B benchmarks/corpus_materialization_spec.py collect \
-  --specification "$specification"
+bijux-dna bench corpus-materialization collect \
+  --specification "$specification" \
+  --collected-at-utc "$collected_at_utc"
 ```
 
 Collection refuses active jobs and existing evidence. A completed Slurm state
 is insufficient by itself: catalog identity, file count, byte total, per-file
 SHA-256, and positive read counts must all pass before the corpus receives a
-passing materialization record and data index.
+passing materialization evidence record.
 
-This transfer job uses site Python only for checksum-pinned public data
-acquisition; it runs no scientific application. FASTQ, BAM, and VCF stage
-campaigns remain strictly container-only.
+The generated transfer job invokes only the exact checksum-bound Rust
+executable; it runs no Python and no scientific application. FASTQ, BAM, and
+VCF stage campaigns remain strictly container-only.
+
+`benchmarks/adapters/materialize_fastq_corpus.py` and
+`benchmarks/adapters/corpus_materialization_slurm.py` are argument-only
+compatibility adapters. They replace their process with the same `bijux-dna`
+commands, use `BIJUX_DNA_BIN` when set, and own no transfer, validation,
+scheduler, evidence, or publication decisions.
 
 The materializer streams each file into a private partial path, verifies the
 declared compressed byte count and ENA MD5, and atomically publishes it. It
@@ -140,17 +151,18 @@ data index from the study catalog:
 ```console
 commit=$(git rev-parse HEAD)
 evidence="$STUDY/data/evidence/indexes/$commit"
-python3 -B benchmarks/data_catalog.py \
+cargo run -q -p bijux-dna -- bench data-index \
   --catalog-root "$STUDY/data/catalog" \
   --data-root "$STUDY/data" \
   --output "$evidence/data-index.json" \
-  --report "$evidence/data-index.md"
+  --report "$evidence/data-index.md" \
+  --created-at-utc "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
-The index re-hashes every admitted file and publishes only `study://data/...`
-identities. A record remains ineligible when file integrity, source identity,
-retrieval or admission time, access classification, redistribution policy, or
-known limitations are missing.
+The `bijux-dna-bench` authority re-hashes every admitted file and publishes
+only `study://data/...` identities. A record remains ineligible when file
+integrity, source identity, retrieval or admission time, access classification,
+redistribution policy, or known limitations are missing.
 
 [`contracts/stage-campaigns.toml`](contracts/stage-campaigns.toml) assigns stable `run-2001+` campaign
 identities and labels each execution as `qualification` or `comparative`.
@@ -239,10 +251,10 @@ scripts under
 `submit` returns without polling; later `reconcile` observations and `admit`
 calls preserve scheduler accounting and validate the exact output closure.
 
-Measured Apptainer images include GNU `time` as a non-scientific runtime
-dependency. The campaign records wall, user, system, and peak-resident-memory
-values inside the same container boundary as the tool; a missing measurement
-binary fails evidence instead of silently dropping resource metrics.
+Measured Apptainer invocations are wrapped by GNU `time` on the Slurm host. The campaign records
+wall, user, system, and peak-resident-memory values for the complete isolated container invocation;
+tool images do not carry an undeclared timing-package dependency. A missing host measurement binary
+fails the job preflight instead of silently dropping resource metrics.
 
 The current BAM-genotyping campaign uses one warmup and three measured warm
 cache repetitions. Candidate-site recovery is reported honestly: the Ensembl
@@ -336,64 +348,28 @@ cargo run -p bijux-dna-dev -- hpc run benchmark-attempt-migration -- \
   --ledger "$migration_root/migration-ledger.json"
 ```
 
-```console
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2001 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2001-bam-genotyping" \
-  --json-output benchmarks/reports/run-2001-bam-genotyping.json \
-  --markdown-output benchmarks/reports/run-2001-bam-genotyping.md
+Current campaign execution is owned by the Rust `benchmark-campaign-cycle`
+workflow. It plans immutable `run-<id>-<domain>-<stage>` attempt trees,
+prepares crate-owned execution material, submits Slurm jobs, reconciles
+scheduler observations, and admits only complete result closures. Run
+`cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle --` for
+the exact command contract. `run-2002` and `run-2003` have executable material
+but intentionally have no current report until fresh Slurm attempts pass
+reconciliation and admission.
 
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2002 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2002-bam-coverage" \
-  --json-output benchmarks/reports/run-2002-bam-coverage.json \
-  --markdown-output benchmarks/reports/run-2002-bam-coverage.md
+Benchmark execution admission and report publication are owned exclusively by
+`bijux-dna-bench`, with operator composition in `bijux-dna-dev`. Historical
+reports retain their original source comments as provenance, but no Python
+benchmark evidence control plane remains. The superseded BAM coverage and
+endogenous-content reports are retained byte-for-byte as
+[historical run-2002 evidence](reports/historical/run-2002-bam-coverage.md)
+and [historical run-2003 evidence](reports/historical/run-2003-bam-endogenous-content.md).
 
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2003 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2003-bam-endogenous-content" \
-  --json-output benchmarks/reports/run-2003-bam-endogenous-content.json \
-  --markdown-output benchmarks/reports/run-2003-bam-endogenous-content.md
-
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2004 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2004-bam-mapping-summary" \
-  --json-output benchmarks/reports/run-2004-bam-mapping-summary.json \
-  --markdown-output benchmarks/reports/run-2004-bam-mapping-summary.md
-
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2042 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2042-fastq-profile-read-lengths" \
-  --json-output benchmarks/reports/run-2042-fastq-profile-read-lengths.json \
-  --markdown-output benchmarks/reports/run-2042-fastq-profile-read-lengths.md
-
-python3 -B benchmarks/benchmark_evidence.py \
-  --registry benchmarks/contracts/stage-campaigns.toml \
-  --catalog containers/contracts/catalog.toml \
-  --run-id run-2043 \
-  --stage-result-root "$STUDY/results/benchmarks/run-2043-fastq-profile-reads" \
-  --json-output benchmarks/reports/run-2043-fastq-profile-reads.json \
-  --markdown-output benchmarks/reports/run-2043-fastq-profile-reads.md
-```
-
-The reviewed [BAM-genotyping report](reports/run-2001-bam-genotyping.md)
-records performance and candidate-site observations. The [BAM-coverage
-report](reports/run-2002-bam-coverage.md) compares the complete retained
-tool closure under their honestly declared concurrency. The [endogenous-content
-report](reports/run-2003-bam-endogenous-content.md) publishes the mapping
-proxy with its biological claim boundary. All reports keep large run products
-on the governed study filesystem. The [FASTQ read-length report](reports/run-2042-fastq-profile-read-lengths.md)
-records exact per-record length agreement for the two retained backends. The
-[FASTQ profile report](reports/run-2043-fastq-profile-reads.md)
-publishes the first real multi-tool comparison and its explicit operational
-substitution boundary.
+The checked-in [BAM mapping-summary report](reports/run-2004-bam-mapping-summary.md),
+[FASTQ read-length report](reports/run-2042-fastq-profile-read-lengths.md), and
+[FASTQ profile report](reports/run-2043-fastq-profile-reads.md) are published
+from admitted campaign attempts by crate-owned report workflows. BAM
+genotyping uses the same Rust admission and publication authority. A report is
+current only when its source, data, image, scheduler, output, science, and
+downstream-probe locks validate together. All large run products remain on the
+governed study filesystem.

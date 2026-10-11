@@ -4,6 +4,6 @@
   "argv": [
     "sh",
     "-lc",
-    "ibdhap --vcf 'cohort.vcf.gz' --out 'ibdhap.segments.tsv' > 'raw.log' 2>&1"
+    "ibdhap analyze-vcf --vcf 'cohort.vcf.gz' --genetic-map 'genetic-map.tsv' --sample sample_a --sample sample_b --region chr1:1-1000000 --work-dir 'work' --scores 'ibd-state-probabilities.tsv' --identifiers 'haplotype-identifiers.tsv' --summary 'metrics.json' > 'raw.log' 2>&1"
   ]
 }

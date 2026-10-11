@@ -1,0 +1,196 @@
+{
+  "$defs": {
+    "BenchmarkAcceptanceExpectedValue": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "format": "int64",
+          "type": "integer"
+        },
+        {
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "BenchmarkAcceptanceOperator": {
+      "enum": [
+        "equal",
+        "greater_or_equal",
+        "greater_than",
+        "less_or_equal",
+        "less_than"
+      ],
+      "type": "string"
+    },
+    "BenchmarkAttemptIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "run": {
+          "$ref": "#/$defs/BenchmarkRunIdentity"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "run",
+        "attempt_id",
+        "tool_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkMetricAssessment": {
+      "additionalProperties": false,
+      "properties": {
+        "expected": {
+          "$ref": "#/$defs/BenchmarkAcceptanceExpectedValue"
+        },
+        "id": {
+          "type": "string"
+        },
+        "json_pointer": {
+          "type": "string"
+        },
+        "observed": {
+          "$ref": "#/$defs/BenchmarkAcceptanceExpectedValue"
+        },
+        "operator": {
+          "$ref": "#/$defs/BenchmarkAcceptanceOperator"
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "path",
+        "json_pointer",
+        "operator",
+        "expected",
+        "observed",
+        "unit",
+        "passed"
+      ],
+      "type": "object"
+    },
+    "BenchmarkOutputFileEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "admitted_at_utc": {
+      "type": "string"
+    },
+    "completion_sha256": {
+      "type": "string"
+    },
+    "downstream_probe": {
+      "$ref": "#/$defs/BenchmarkOutputFileEvidence"
+    },
+    "execution_spec_sha256": {
+      "type": "string"
+    },
+    "identity": {
+      "$ref": "#/$defs/BenchmarkAttemptIdentity"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkMetricAssessment"
+      },
+      "type": "array"
+    },
+    "output_manifest_sha256": {
+      "type": "string"
+    },
+    "outputs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkOutputFileEvidence"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.execution_admission.v1",
+      "type": "string"
+    },
+    "validation_files": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkOutputFileEvidence"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "identity",
+    "admitted_at_utc",
+    "execution_spec_sha256",
+    "completion_sha256",
+    "output_manifest_sha256",
+    "downstream_probe",
+    "validation_files",
+    "outputs",
+    "metrics"
+  ],
+  "title": "BenchmarkExecutionAdmission",
+  "type": "object"
+}

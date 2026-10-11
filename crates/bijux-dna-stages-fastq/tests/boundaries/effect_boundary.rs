@@ -14,7 +14,7 @@ fn production_code_keeps_effects_inside_stage_boundary() {
         "reqwest",
         "bijux_dna_engine::",
         "bijux_dna_runner::",
-        "bijux_dna_environment::",
+        "bijux_dna_containers::",
     ];
     let write_effects = [
         "std::fs::write",

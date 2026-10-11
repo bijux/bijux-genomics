@@ -416,46 +416,43 @@ mod tests {
     use std::fs;
 
     #[test]
-    fn local_pipeline_config_path_prefers_yaml_bundle_directory() {
-        let tempdir = tempfile::tempdir().expect("tempdir");
+    fn local_pipeline_config_path_prefers_yaml_bundle_directory() -> anyhow::Result<()> {
+        let tempdir = tempfile::tempdir()?;
         let config_root = tempdir.path();
         let bundle_dir = config_root.join("horse-cross");
-        fs::create_dir_all(&bundle_dir).expect("create bundle dir");
-        fs::write(bundle_dir.join("config.yaml"), "pipeline_id: horse-cross\n")
-            .expect("write config yaml");
-        fs::write(bundle_dir.join("stages.yaml"), "nodes: []\n").expect("write stages yaml");
+        fs::create_dir_all(&bundle_dir)?;
+        fs::write(bundle_dir.join("config.yaml"), "pipeline_id: horse-cross\n")?;
+        fs::write(bundle_dir.join("stages.yaml"), "nodes: []\n")?;
 
-        let resolved = local_pipeline_config_path(config_root, "horse-cross")
-            .expect("resolve local pipeline config path");
+        let resolved = local_pipeline_config_path(config_root, "horse-cross")?;
 
         assert_eq!(resolved, bundle_dir);
+        Ok(())
     }
 
     #[test]
-    fn discover_local_pipeline_config_paths_includes_yaml_bundle_directories() {
-        let tempdir = tempfile::tempdir().expect("tempdir");
+    fn discover_local_pipeline_config_paths_includes_yaml_bundle_directories() -> anyhow::Result<()>
+    {
+        let tempdir = tempfile::tempdir()?;
         let config_root = tempdir.path();
-        fs::write(config_root.join("alpha.toml"), "pipeline_id = 'alpha'\n")
-            .expect("write alpha config");
+        fs::write(config_root.join("alpha.toml"), "pipeline_id = 'alpha'\n")?;
 
         let bundle_dir = config_root.join("horse-cross");
-        fs::create_dir_all(&bundle_dir).expect("create bundle dir");
-        fs::write(bundle_dir.join("config.yaml"), "pipeline_id: horse-cross\n")
-            .expect("write config yaml");
-        fs::write(bundle_dir.join("stages.yaml"), "nodes: []\n").expect("write stages yaml");
+        fs::create_dir_all(&bundle_dir)?;
+        fs::write(bundle_dir.join("config.yaml"), "pipeline_id: horse-cross\n")?;
+        fs::write(bundle_dir.join("stages.yaml"), "nodes: []\n")?;
 
         let incomplete_dir = config_root.join("ignore-me");
-        fs::create_dir_all(&incomplete_dir).expect("create incomplete dir");
-        fs::write(incomplete_dir.join("config.yaml"), "pipeline_id: ignore-me\n")
-            .expect("write incomplete config");
+        fs::create_dir_all(&incomplete_dir)?;
+        fs::write(incomplete_dir.join("config.yaml"), "pipeline_id: ignore-me\n")?;
 
-        let discovered =
-            discover_local_pipeline_config_paths(config_root).expect("discover config paths");
+        let discovered = discover_local_pipeline_config_paths(config_root)?;
         let discovered_ids = discovered
             .iter()
-            .map(|path| local_pipeline_id_for_path(path).expect("extract pipeline id"))
-            .collect::<Vec<_>>();
+            .map(|path| local_pipeline_id_for_path(path))
+            .collect::<anyhow::Result<Vec<_>>>()?;
 
         assert_eq!(discovered_ids, vec!["alpha".to_string(), "horse-cross".to_string()]);
+        Ok(())
     }
 }

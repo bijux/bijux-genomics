@@ -5,12 +5,12 @@ use crate::tool_selection::filter_tools_by_role;
 use crate::{execution_kernel, execution_kernel::NetworkPolicy};
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench_results_fastq::SqliteBenchResultsRepository;
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_core::contract::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::ContainerImageRefV1;
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::RawFailure;
 use bijux_dna_planner_fastq::{

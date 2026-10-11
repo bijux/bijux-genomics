@@ -1,0 +1,153 @@
+{
+  "$defs": {
+    "BenchmarkFastqAdapterResultRow": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_content_max": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "adapter_content_mean": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "adapter_trimmed_fraction": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "bases_in": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "bases_out": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "candidate_adapter_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "detected_adapter_ids": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "detection_confidence": {
+          "minimum": 0,
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "detection_threshold": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "duplication_rate": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "file_count": {
+          "maximum": 2,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "input_layout": {
+          "enum": [
+            "single_end",
+            "paired_end"
+          ],
+          "type": "string"
+        },
+        "kmer_warning_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "mean_q": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "n_rate": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "overrepresented_sequence_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "reads_in": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "reads_out": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "sample_id": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "sample_id",
+        "input_layout",
+        "file_count",
+        "reads_in",
+        "reads_out",
+        "bases_in",
+        "bases_out",
+        "mean_q",
+        "candidate_adapter_count",
+        "detected_adapter_ids",
+        "detection_confidence",
+        "detection_threshold",
+        "adapter_trimmed_fraction",
+        "adapter_content_max",
+        "adapter_content_mean",
+        "duplication_rate",
+        "n_rate",
+        "kmer_warning_count",
+        "overrepresented_sequence_count"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "results": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkFastqAdapterResultRow"
+      },
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.fastq.detect_adapters.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "fastq.detect_adapters",
+      "type": "string"
+    },
+    "tool_id": {
+      "const": "fastqc",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "results"
+  ],
+  "title": "BenchmarkFastqAdapterResult",
+  "type": "object"
+}

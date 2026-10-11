@@ -14,6 +14,7 @@ use bijux_dna_analyze::load::sqlite::bench::{
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkRecord, FastqNormalizePrimersMetrics, MetricSet,
 };
+use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_core::contract::{ExecutionStep, ToolRegistry};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -22,7 +23,6 @@ use bijux_dna_domain_fastq::params::edna::PrimerNormalizationEffectiveParams;
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::contract::normalize_primers as run_normalize_primers;
 use bijux_dna_domain_fastq::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
-use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;

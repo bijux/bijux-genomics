@@ -40,13 +40,13 @@ fn policy__boundaries__dependency_boundaries__stages_do_not_depend_on_environmen
     let mut offenders = Vec::new();
     for manifest in manifests {
         let deps = parse_dependency_names(&manifest);
-        if deps.iter().any(|dep| dep == "bijux-dna-environment") {
-            offenders.push(format!("{} depends on bijux-dna-environment", manifest.display()));
+        if deps.iter().any(|dep| dep == "bijux-dna-containers") {
+            offenders.push(format!("{} depends on bijux-dna-containers", manifest.display()));
         }
     }
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "stages crates must not depend on bijux-dna-environment:\n{}",
+        "stages crates must not depend on bijux-dna-containers:\n{}",
         offenders.join("\n")
     );
 }
@@ -199,7 +199,7 @@ fn policy__boundaries__dependency_boundaries__pipelines_do_not_depend_on_stages_
         "bijux-dna-stages-bam",
         "bijux-dna-engine",
         "bijux-dna-runner",
-        "bijux-dna-environment",
+        "bijux-dna-containers",
     ];
     let offenders: Vec<String> = denylist
         .iter()
@@ -216,7 +216,7 @@ fn policy__boundaries__dependency_boundaries__pipelines_do_not_depend_on_stages_
 #[test]
 fn policy__boundaries__dependency_boundaries__environment_has_no_engine_or_runner_dependencies() {
     let root = repo_root();
-    let manifest = root.join("crates/bijux-dna-environment/Cargo.toml");
+    let manifest = root.join("crates/bijux-dna-containers/Cargo.toml");
     let deps = parse_dependency_names(&manifest);
     let denylist = ["bijux-dna-engine", "bijux-dna-runner"];
     let offenders: Vec<String> = denylist
@@ -226,7 +226,7 @@ fn policy__boundaries__dependency_boundaries__environment_has_no_engine_or_runne
         .collect();
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "bijux-dna-environment must not depend on engine/runner:\n{}",
+        "bijux-dna-containers must not depend on engine/runner:\n{}",
         offenders.join("\n")
     );
 }
@@ -243,17 +243,17 @@ fn policy__boundaries__dependency_boundaries__production_crates_do_not_depend_on
         if !path.exists() {
             continue;
         }
-        if path.to_string_lossy().contains("bijux-dna-environment-qa") {
+        if path.to_string_lossy().contains("bijux-dna-containers-qa") {
             continue;
         }
         let deps = parse_dependency_names(&path);
-        if deps.iter().any(|dep| dep == "bijux-dna-environment-qa") {
-            offenders.push(format!("{} depends on bijux-dna-environment-qa", path.display()));
+        if deps.iter().any(|dep| dep == "bijux-dna-containers-qa") {
+            offenders.push(format!("{} depends on bijux-dna-containers-qa", path.display()));
         }
     }
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "production crates must not depend on bijux-dna-environment-qa:\n{}",
+        "production crates must not depend on bijux-dna-containers-qa:\n{}",
         offenders.join("\n")
     );
 }

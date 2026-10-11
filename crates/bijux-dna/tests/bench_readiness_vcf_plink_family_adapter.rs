@@ -43,26 +43,29 @@ fn bench_readiness_vcf_plink_adapter_reports_governed_rows() {
     );
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(payload.get("tool_id").and_then(serde_json::Value::as_str), Some("plink"));
-    assert_eq!(
-        payload.get("tool_status").and_then(serde_json::Value::as_str),
-        Some("experimental")
-    );
+    assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("planned"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/adapters/plink.vcf.json")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(2));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
         Some(1)
     );
     assert_eq!(
         payload.get("missing_input_test_passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(rows.len() as u64)
     );
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 2);
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.population_structure")
+            && row.get("benchmark_status").and_then(serde_json::Value::as_str)
+                == Some("not_benchmark_ready")
+    }));
 
     let qc_row = rows
         .iter()
@@ -135,10 +138,7 @@ fn bench_readiness_vcf_plink2_adapter_reports_governed_rows() {
     );
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(payload.get("tool_id").and_then(serde_json::Value::as_str), Some("plink2"));
-    assert_eq!(
-        payload.get("tool_status").and_then(serde_json::Value::as_str),
-        Some("experimental")
-    );
+    assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/adapters/plink2.vcf.json")

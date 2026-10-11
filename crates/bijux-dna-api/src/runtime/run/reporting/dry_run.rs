@@ -7,7 +7,7 @@ use super::planner_manifest_support::plan_manifest_from_request;
 use super::{summary_artifact, Result};
 use crate::request_args::PlanRequest;
 use crate::request_args::{DryRunRequest, DryRunResponse};
-use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_runtime::run_layout::{
     CancellationPolicyV1, CheckpointPolicyV1, ExecutorDescriptorV1, RunCheckpointV1,
     RunEnvironment, RunExecutionModeV1, RunExecutorDescriptorV1, RunLifecycleStateV1,

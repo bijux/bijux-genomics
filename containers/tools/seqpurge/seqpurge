@@ -2,9 +2,14 @@
 set -eu
 
 if [ -z "${XDG_RUNTIME_DIR:-}" ] || [ ! -d "$XDG_RUNTIME_DIR" ] || [ ! -w "$XDG_RUNTIME_DIR" ]; then
-    XDG_RUNTIME_DIR="${TMPDIR:-/tmp}/bijux-seqpurge-$(id -u)"
+    runtime_base="${TMPDIR:-/tmp}"
+    XDG_RUNTIME_DIR="$runtime_base/bijux-seqpurge-$(id -u)"
     umask 077
-    mkdir -p "$XDG_RUNTIME_DIR"
+    runtime_probe="$XDG_RUNTIME_DIR/.bijux-write-probe-$$"
+    if ! (mkdir -p "$XDG_RUNTIME_DIR" && : > "$runtime_probe" && rm -f "$runtime_probe") 2>/dev/null; then
+        XDG_RUNTIME_DIR="/tmp/bijux-seqpurge-$(id -u)"
+        mkdir -p "$XDG_RUNTIME_DIR"
+    fi
     chmod 0700 "$XDG_RUNTIME_DIR"
     export XDG_RUNTIME_DIR
 fi

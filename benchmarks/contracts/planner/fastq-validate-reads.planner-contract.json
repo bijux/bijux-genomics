@@ -1,0 +1,832 @@
+{
+  "schema_version": "bijux.benchmark.planner_stage_contract.v1",
+  "stage_id": "fastq.validate_reads",
+  "parameter_schema_version": "bijux.fastq.params.validate_reads.v1",
+  "default_provider": "bijux_dna_domain_fastq::params::defaults::validate_defaults",
+  "output_contract": "bijux.fastq.validate.report.v1",
+  "observation_authority": "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads",
+  "result_attribution": "backend_execution_with_shared_strict_stream_validation",
+  "domain_defaults": {
+    "single_end": {
+      "pair_sync_policy": "not_applicable",
+      "paired_mode": "single_end",
+      "schema_version": "bijux.fastq.params.validate_reads.v1",
+      "threads": 4,
+      "validation_mode": "strict"
+    },
+    "paired_end": {
+      "pair_sync_policy": "require_header_sync",
+      "paired_mode": "paired_end",
+      "schema_version": "bijux.fastq.params.validate_reads.v1",
+      "threads": 4,
+      "validation_mode": "strict"
+    }
+  },
+  "tools": [
+    {
+      "tool_id": "fastq_scan",
+      "single_end": {
+        "stage_id": "fastq.validate_reads",
+        "stage_instance_id": "fastq.validate_reads.tool.fastq_scan",
+        "stage_version": 1,
+        "tool_id": "fastq_scan",
+        "tool_version": "0.0.1",
+        "image": {
+          "image": "bijuxdna/fastq_scan",
+          "digest": "sha256:973e958d84a4a5d779a71e34f890b0a5335607e1fe56207c8a145409fd2937ad"
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-lc",
+            "set +e && 'fastq_scan' '__BIJUX_READS_R1__' > '__BIJUX_RESULT_ROOT__/validation_r1.log' 2>&1\nstatus_r1=$? && status_r2=0 && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream '__BIJUX_READS_R1__' 2>> '__BIJUX_RESULT_ROOT__/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastq_scan\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"single_end\",\"validated_stream_ids\":[\"reads_r1\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"__BIJUX_READS_R1__\"' 'null' '\"__BIJUX_RESULT_ROOT__/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > '__BIJUX_RESULT_ROOT__/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastq_scan\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":1,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"__BIJUX_READS_R1__\"' 'null' '\"__BIJUX_RESULT_ROOT__/validation_r1.log\"' 'null' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > '__BIJUX_RESULT_ROOT__/validation.json' && exit \"$exit_code\""
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 8,
+          "tmp_gb": 4,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "validation_report",
+              "path": "__BIJUX_RESULT_ROOT__/validation.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "validated_reads_manifest",
+              "path": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+              "role": "stage_report",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": null,
+          "out_dir": "__BIJUX_RESULT_ROOT__",
+          "pair_sync_policy": "not_applicable",
+          "report_json": "__BIJUX_RESULT_ROOT__/validation.json",
+          "threads": 4,
+          "tool": "fastq_scan",
+          "validated_reads_manifest": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+          "validation_mode": "strict"
+        },
+        "effective_params": {
+          "pair_sync_policy": "not_applicable",
+          "paired_mode": "single_end",
+          "schema_version": "bijux.fastq.params.validate_reads.v1",
+          "threads": 4,
+          "validation_mode": "strict"
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "planner default",
+          "details": {}
+        }
+      },
+      "paired_end": {
+        "stage_id": "fastq.validate_reads",
+        "stage_instance_id": "fastq.validate_reads.tool.fastq_scan",
+        "stage_version": 1,
+        "tool_id": "fastq_scan",
+        "tool_version": "0.0.1",
+        "image": {
+          "image": "bijuxdna/fastq_scan",
+          "digest": "sha256:973e958d84a4a5d779a71e34f890b0a5335607e1fe56207c8a145409fd2937ad"
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-lc",
+            "set +e && 'fastq_scan' '__BIJUX_READS_R1__' > '__BIJUX_RESULT_ROOT__/validation_r1.log' 2>&1\nstatus_r1=$? && 'fastq_scan' '__BIJUX_READS_R2__' > '__BIJUX_RESULT_ROOT__/validation_r2.log' 2>&1\nstatus_r2=$? && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream '__BIJUX_READS_R1__' 2>> '__BIJUX_RESULT_ROOT__/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && inspection_r2=$(inspect_fastq_stream '__BIJUX_READS_R2__' 2>> '__BIJUX_RESULT_ROOT__/validation_r2.log'); inspect_status_r2=$?; true && validated_reads_r2=$(printf '%s' \"$inspection_r2\" | cut -f1) && inspection_class_r2=$(printf '%s' \"$inspection_r2\" | cut -f2) && if [ \"$inspect_status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r2; fi; fi && validated_pairs=$validated_reads_r1 && pair_sync_checked=true && pair_sync_pass=true && pair_count_match=true && cat_fastq '__BIJUX_READS_R1__' | awk 'NR % 4 == 1 { header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }' > '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' && cat_fastq '__BIJUX_READS_R2__' | awk 'NR % 4 == 1 { header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }' > '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' && validated_reads_r2=$(wc -l < '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' | tr -d '[:space:]') && validated_pairs=$validated_reads_r1 && if [ \"$validated_reads_r1\" -ne \"$validated_reads_r2\" ]; then pair_count_match=false; pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=96; fi; fi && if ! cmp -s '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt'; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi && rm -f '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastq_scan\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"require_header_sync\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"paired_end\",\"validated_stream_ids\":[\"reads_r1\",\"reads_r2\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"__BIJUX_READS_R1__\"' '\"__BIJUX_READS_R2__\"' '\"__BIJUX_RESULT_ROOT__/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > '__BIJUX_RESULT_ROOT__/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastq_scan\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"require_header_sync\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":2,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"__BIJUX_READS_R1__\"' '\"__BIJUX_READS_R2__\"' '\"__BIJUX_RESULT_ROOT__/validation_r1.log\"' '\"__BIJUX_RESULT_ROOT__/validation_r2.log\"' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > '__BIJUX_RESULT_ROOT__/validation.json' && exit \"$exit_code\""
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 8,
+          "tmp_gb": 4,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            },
+            {
+              "name": "reads_r2",
+              "path": "__BIJUX_READS_R2__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "validation_report",
+              "path": "__BIJUX_RESULT_ROOT__/validation.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "validated_reads_manifest",
+              "path": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+              "role": "stage_report",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": "__BIJUX_READS_R2__",
+          "out_dir": "__BIJUX_RESULT_ROOT__",
+          "pair_sync_policy": "require_header_sync",
+          "report_json": "__BIJUX_RESULT_ROOT__/validation.json",
+          "threads": 4,
+          "tool": "fastq_scan",
+          "validated_reads_manifest": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+          "validation_mode": "strict"
+        },
+        "effective_params": {
+          "pair_sync_policy": "require_header_sync",
+          "paired_mode": "paired_end",
+          "schema_version": "bijux.fastq.params.validate_reads.v1",
+          "threads": 4,
+          "validation_mode": "strict"
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "planner default",
+          "details": {}
+        }
+      }
+    },
+    {
+      "tool_id": "fastqc",
+      "single_end": {
+        "stage_id": "fastq.validate_reads",
+        "stage_instance_id": "fastq.validate_reads.tool.fastqc",
+        "stage_version": 1,
+        "tool_id": "fastqc",
+        "tool_version": "latest-pinned",
+        "image": {
+          "image": "bijuxdna/fastqc",
+          "digest": "sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-lc",
+            "set +e && mkdir -p '__BIJUX_RESULT_ROOT__/validation_fastqc_reads_r1'\n'fastqc' '--quiet' '--threads' '4' '--outdir' '__BIJUX_RESULT_ROOT__/validation_fastqc_reads_r1' '__BIJUX_READS_R1__' > '__BIJUX_RESULT_ROOT__/validation_r1.log' 2>&1\nstatus_r1=$?\nrm -rf '__BIJUX_RESULT_ROOT__/validation_fastqc_reads_r1' && status_r2=0 && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream '__BIJUX_READS_R1__' 2>> '__BIJUX_RESULT_ROOT__/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqc\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"single_end\",\"validated_stream_ids\":[\"reads_r1\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"__BIJUX_READS_R1__\"' 'null' '\"__BIJUX_RESULT_ROOT__/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > '__BIJUX_RESULT_ROOT__/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqc\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":1,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"__BIJUX_READS_R1__\"' 'null' '\"__BIJUX_RESULT_ROOT__/validation_r1.log\"' 'null' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > '__BIJUX_RESULT_ROOT__/validation.json' && exit \"$exit_code\""
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 8,
+          "tmp_gb": 4,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "validation_report",
+              "path": "__BIJUX_RESULT_ROOT__/validation.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "validated_reads_manifest",
+              "path": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+              "role": "stage_report",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": null,
+          "out_dir": "__BIJUX_RESULT_ROOT__",
+          "pair_sync_policy": "not_applicable",
+          "report_json": "__BIJUX_RESULT_ROOT__/validation.json",
+          "threads": 4,
+          "tool": "fastqc",
+          "validated_reads_manifest": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+          "validation_mode": "strict"
+        },
+        "effective_params": {
+          "pair_sync_policy": "not_applicable",
+          "paired_mode": "single_end",
+          "schema_version": "bijux.fastq.params.validate_reads.v1",
+          "threads": 4,
+          "validation_mode": "strict"
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "planner default",
+          "details": {}
+        }
+      },
+      "paired_end": {
+        "stage_id": "fastq.validate_reads",
+        "stage_instance_id": "fastq.validate_reads.tool.fastqc",
+        "stage_version": 1,
+        "tool_id": "fastqc",
+        "tool_version": "latest-pinned",
+        "image": {
+          "image": "bijuxdna/fastqc",
+          "digest": "sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789"
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-lc",
+            "set +e && mkdir -p '__BIJUX_RESULT_ROOT__/validation_fastqc_reads_r1'\n'fastqc' '--quiet' '--threads' '4' '--outdir' '__BIJUX_RESULT_ROOT__/validation_fastqc_reads_r1' '__BIJUX_READS_R1__' > '__BIJUX_RESULT_ROOT__/validation_r1.log' 2>&1\nstatus_r1=$?\nrm -rf '__BIJUX_RESULT_ROOT__/validation_fastqc_reads_r1' && mkdir -p '__BIJUX_RESULT_ROOT__/validation_fastqc_reads_r2'\n'fastqc' '--quiet' '--threads' '4' '--outdir' '__BIJUX_RESULT_ROOT__/validation_fastqc_reads_r2' '__BIJUX_READS_R2__' > '__BIJUX_RESULT_ROOT__/validation_r2.log' 2>&1\nstatus_r2=$?\nrm -rf '__BIJUX_RESULT_ROOT__/validation_fastqc_reads_r2' && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream '__BIJUX_READS_R1__' 2>> '__BIJUX_RESULT_ROOT__/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && inspection_r2=$(inspect_fastq_stream '__BIJUX_READS_R2__' 2>> '__BIJUX_RESULT_ROOT__/validation_r2.log'); inspect_status_r2=$?; true && validated_reads_r2=$(printf '%s' \"$inspection_r2\" | cut -f1) && inspection_class_r2=$(printf '%s' \"$inspection_r2\" | cut -f2) && if [ \"$inspect_status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r2; fi; fi && validated_pairs=$validated_reads_r1 && pair_sync_checked=true && pair_sync_pass=true && pair_count_match=true && cat_fastq '__BIJUX_READS_R1__' | awk 'NR % 4 == 1 { header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }' > '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' && cat_fastq '__BIJUX_READS_R2__' | awk 'NR % 4 == 1 { header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }' > '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' && validated_reads_r2=$(wc -l < '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' | tr -d '[:space:]') && validated_pairs=$validated_reads_r1 && if [ \"$validated_reads_r1\" -ne \"$validated_reads_r2\" ]; then pair_count_match=false; pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=96; fi; fi && if ! cmp -s '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt'; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi && rm -f '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqc\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"require_header_sync\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"paired_end\",\"validated_stream_ids\":[\"reads_r1\",\"reads_r2\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"__BIJUX_READS_R1__\"' '\"__BIJUX_READS_R2__\"' '\"__BIJUX_RESULT_ROOT__/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > '__BIJUX_RESULT_ROOT__/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqc\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"require_header_sync\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":2,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"__BIJUX_READS_R1__\"' '\"__BIJUX_READS_R2__\"' '\"__BIJUX_RESULT_ROOT__/validation_r1.log\"' '\"__BIJUX_RESULT_ROOT__/validation_r2.log\"' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > '__BIJUX_RESULT_ROOT__/validation.json' && exit \"$exit_code\""
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 8,
+          "tmp_gb": 4,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            },
+            {
+              "name": "reads_r2",
+              "path": "__BIJUX_READS_R2__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "validation_report",
+              "path": "__BIJUX_RESULT_ROOT__/validation.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "validated_reads_manifest",
+              "path": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+              "role": "stage_report",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": "__BIJUX_READS_R2__",
+          "out_dir": "__BIJUX_RESULT_ROOT__",
+          "pair_sync_policy": "require_header_sync",
+          "report_json": "__BIJUX_RESULT_ROOT__/validation.json",
+          "threads": 4,
+          "tool": "fastqc",
+          "validated_reads_manifest": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+          "validation_mode": "strict"
+        },
+        "effective_params": {
+          "pair_sync_policy": "require_header_sync",
+          "paired_mode": "paired_end",
+          "schema_version": "bijux.fastq.params.validate_reads.v1",
+          "threads": 4,
+          "validation_mode": "strict"
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "planner default",
+          "details": {}
+        }
+      }
+    },
+    {
+      "tool_id": "fastqvalidator",
+      "single_end": {
+        "stage_id": "fastq.validate_reads",
+        "stage_instance_id": "fastq.validate_reads.tool.fastqvalidator",
+        "stage_version": 1,
+        "tool_id": "fastqvalidator",
+        "tool_version": "latest-pinned",
+        "image": {
+          "image": "bijuxdna/fastqvalidator",
+          "digest": "sha256:3e01ccfed0313ffb63e8b9a8c4044a47249906d0b7b32c68caccf81f0a532edc"
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-lc",
+            "set +e && 'fastqvalidator' '--file' '__BIJUX_READS_R1__' > '__BIJUX_RESULT_ROOT__/validation_r1.log' 2>&1\nstatus_r1=$? && status_r2=0 && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream '__BIJUX_READS_R1__' 2>> '__BIJUX_RESULT_ROOT__/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"single_end\",\"validated_stream_ids\":[\"reads_r1\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"__BIJUX_READS_R1__\"' 'null' '\"__BIJUX_RESULT_ROOT__/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > '__BIJUX_RESULT_ROOT__/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":1,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"__BIJUX_READS_R1__\"' 'null' '\"__BIJUX_RESULT_ROOT__/validation_r1.log\"' 'null' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > '__BIJUX_RESULT_ROOT__/validation.json' && exit \"$exit_code\""
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 8,
+          "tmp_gb": 4,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "validation_report",
+              "path": "__BIJUX_RESULT_ROOT__/validation.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "validated_reads_manifest",
+              "path": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+              "role": "stage_report",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": null,
+          "out_dir": "__BIJUX_RESULT_ROOT__",
+          "pair_sync_policy": "not_applicable",
+          "report_json": "__BIJUX_RESULT_ROOT__/validation.json",
+          "threads": 4,
+          "tool": "fastqvalidator",
+          "validated_reads_manifest": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+          "validation_mode": "strict"
+        },
+        "effective_params": {
+          "pair_sync_policy": "not_applicable",
+          "paired_mode": "single_end",
+          "schema_version": "bijux.fastq.params.validate_reads.v1",
+          "threads": 4,
+          "validation_mode": "strict"
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "planner default",
+          "details": {}
+        }
+      },
+      "paired_end": {
+        "stage_id": "fastq.validate_reads",
+        "stage_instance_id": "fastq.validate_reads.tool.fastqvalidator",
+        "stage_version": 1,
+        "tool_id": "fastqvalidator",
+        "tool_version": "latest-pinned",
+        "image": {
+          "image": "bijuxdna/fastqvalidator",
+          "digest": "sha256:3e01ccfed0313ffb63e8b9a8c4044a47249906d0b7b32c68caccf81f0a532edc"
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-lc",
+            "set +e && 'fastqvalidator' '--file' '__BIJUX_READS_R1__' > '__BIJUX_RESULT_ROOT__/validation_r1.log' 2>&1\nstatus_r1=$? && 'fastqvalidator' '--file' '__BIJUX_READS_R2__' > '__BIJUX_RESULT_ROOT__/validation_r2.log' 2>&1\nstatus_r2=$? && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream '__BIJUX_READS_R1__' 2>> '__BIJUX_RESULT_ROOT__/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && inspection_r2=$(inspect_fastq_stream '__BIJUX_READS_R2__' 2>> '__BIJUX_RESULT_ROOT__/validation_r2.log'); inspect_status_r2=$?; true && validated_reads_r2=$(printf '%s' \"$inspection_r2\" | cut -f1) && inspection_class_r2=$(printf '%s' \"$inspection_r2\" | cut -f2) && if [ \"$inspect_status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r2; fi; fi && validated_pairs=$validated_reads_r1 && pair_sync_checked=true && pair_sync_pass=true && pair_count_match=true && cat_fastq '__BIJUX_READS_R1__' | awk 'NR % 4 == 1 { header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }' > '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' && cat_fastq '__BIJUX_READS_R2__' | awk 'NR % 4 == 1 { header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }' > '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' && validated_reads_r2=$(wc -l < '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' | tr -d '[:space:]') && validated_pairs=$validated_reads_r1 && if [ \"$validated_reads_r1\" -ne \"$validated_reads_r2\" ]; then pair_count_match=false; pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=96; fi; fi && if ! cmp -s '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt'; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi && rm -f '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"require_header_sync\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"paired_end\",\"validated_stream_ids\":[\"reads_r1\",\"reads_r2\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"__BIJUX_READS_R1__\"' '\"__BIJUX_READS_R2__\"' '\"__BIJUX_RESULT_ROOT__/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > '__BIJUX_RESULT_ROOT__/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"require_header_sync\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":2,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"__BIJUX_READS_R1__\"' '\"__BIJUX_READS_R2__\"' '\"__BIJUX_RESULT_ROOT__/validation_r1.log\"' '\"__BIJUX_RESULT_ROOT__/validation_r2.log\"' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > '__BIJUX_RESULT_ROOT__/validation.json' && exit \"$exit_code\""
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 8,
+          "tmp_gb": 4,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            },
+            {
+              "name": "reads_r2",
+              "path": "__BIJUX_READS_R2__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "validation_report",
+              "path": "__BIJUX_RESULT_ROOT__/validation.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "validated_reads_manifest",
+              "path": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+              "role": "stage_report",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": "__BIJUX_READS_R2__",
+          "out_dir": "__BIJUX_RESULT_ROOT__",
+          "pair_sync_policy": "require_header_sync",
+          "report_json": "__BIJUX_RESULT_ROOT__/validation.json",
+          "threads": 4,
+          "tool": "fastqvalidator",
+          "validated_reads_manifest": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+          "validation_mode": "strict"
+        },
+        "effective_params": {
+          "pair_sync_policy": "require_header_sync",
+          "paired_mode": "paired_end",
+          "schema_version": "bijux.fastq.params.validate_reads.v1",
+          "threads": 4,
+          "validation_mode": "strict"
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "planner default",
+          "details": {}
+        }
+      }
+    },
+    {
+      "tool_id": "fqtools",
+      "single_end": {
+        "stage_id": "fastq.validate_reads",
+        "stage_instance_id": "fastq.validate_reads.tool.fqtools",
+        "stage_version": 1,
+        "tool_id": "fqtools",
+        "tool_version": "2.3",
+        "image": {
+          "image": "bijuxdna/fqtools",
+          "digest": "sha256:d7190221f5582bdabccecb3bae06d463d81c0cb06d47a80fa4c1b3c4704d4bf6"
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-lc",
+            "set +e && 'fqtools' 'validate' '__BIJUX_READS_R1__' > '__BIJUX_RESULT_ROOT__/validation_r1.log' 2>&1\nstatus_r1=$? && status_r2=0 && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream '__BIJUX_READS_R1__' 2>> '__BIJUX_RESULT_ROOT__/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fqtools\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"single_end\",\"validated_stream_ids\":[\"reads_r1\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"__BIJUX_READS_R1__\"' 'null' '\"__BIJUX_RESULT_ROOT__/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > '__BIJUX_RESULT_ROOT__/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fqtools\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":1,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"__BIJUX_READS_R1__\"' 'null' '\"__BIJUX_RESULT_ROOT__/validation_r1.log\"' 'null' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > '__BIJUX_RESULT_ROOT__/validation.json' && exit \"$exit_code\""
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 8,
+          "tmp_gb": 4,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "validation_report",
+              "path": "__BIJUX_RESULT_ROOT__/validation.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "validated_reads_manifest",
+              "path": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+              "role": "stage_report",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": null,
+          "out_dir": "__BIJUX_RESULT_ROOT__",
+          "pair_sync_policy": "not_applicable",
+          "report_json": "__BIJUX_RESULT_ROOT__/validation.json",
+          "threads": 4,
+          "tool": "fqtools",
+          "validated_reads_manifest": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+          "validation_mode": "strict"
+        },
+        "effective_params": {
+          "pair_sync_policy": "not_applicable",
+          "paired_mode": "single_end",
+          "schema_version": "bijux.fastq.params.validate_reads.v1",
+          "threads": 4,
+          "validation_mode": "strict"
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "planner default",
+          "details": {}
+        }
+      },
+      "paired_end": {
+        "stage_id": "fastq.validate_reads",
+        "stage_instance_id": "fastq.validate_reads.tool.fqtools",
+        "stage_version": 1,
+        "tool_id": "fqtools",
+        "tool_version": "2.3",
+        "image": {
+          "image": "bijuxdna/fqtools",
+          "digest": "sha256:d7190221f5582bdabccecb3bae06d463d81c0cb06d47a80fa4c1b3c4704d4bf6"
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-lc",
+            "set +e && 'fqtools' 'validate' '__BIJUX_READS_R1__' > '__BIJUX_RESULT_ROOT__/validation_r1.log' 2>&1\nstatus_r1=$? && 'fqtools' 'validate' '__BIJUX_READS_R2__' > '__BIJUX_RESULT_ROOT__/validation_r2.log' 2>&1\nstatus_r2=$? && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream '__BIJUX_READS_R1__' 2>> '__BIJUX_RESULT_ROOT__/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && inspection_r2=$(inspect_fastq_stream '__BIJUX_READS_R2__' 2>> '__BIJUX_RESULT_ROOT__/validation_r2.log'); inspect_status_r2=$?; true && validated_reads_r2=$(printf '%s' \"$inspection_r2\" | cut -f1) && inspection_class_r2=$(printf '%s' \"$inspection_r2\" | cut -f2) && if [ \"$inspect_status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r2; fi; fi && validated_pairs=$validated_reads_r1 && pair_sync_checked=true && pair_sync_pass=true && pair_count_match=true && cat_fastq '__BIJUX_READS_R1__' | awk 'NR % 4 == 1 { header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }' > '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' && cat_fastq '__BIJUX_READS_R2__' | awk 'NR % 4 == 1 { header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }' > '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' && validated_reads_r2=$(wc -l < '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' | tr -d '[:space:]') && validated_pairs=$validated_reads_r1 && if [ \"$validated_reads_r1\" -ne \"$validated_reads_r2\" ]; then pair_count_match=false; pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=96; fi; fi && if ! cmp -s '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt'; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi && rm -f '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fqtools\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"require_header_sync\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"paired_end\",\"validated_stream_ids\":[\"reads_r1\",\"reads_r2\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"__BIJUX_READS_R1__\"' '\"__BIJUX_READS_R2__\"' '\"__BIJUX_RESULT_ROOT__/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > '__BIJUX_RESULT_ROOT__/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fqtools\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"require_header_sync\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":2,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"__BIJUX_READS_R1__\"' '\"__BIJUX_READS_R2__\"' '\"__BIJUX_RESULT_ROOT__/validation_r1.log\"' '\"__BIJUX_RESULT_ROOT__/validation_r2.log\"' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > '__BIJUX_RESULT_ROOT__/validation.json' && exit \"$exit_code\""
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 8,
+          "tmp_gb": 4,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            },
+            {
+              "name": "reads_r2",
+              "path": "__BIJUX_READS_R2__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "validation_report",
+              "path": "__BIJUX_RESULT_ROOT__/validation.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "validated_reads_manifest",
+              "path": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+              "role": "stage_report",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": "__BIJUX_READS_R2__",
+          "out_dir": "__BIJUX_RESULT_ROOT__",
+          "pair_sync_policy": "require_header_sync",
+          "report_json": "__BIJUX_RESULT_ROOT__/validation.json",
+          "threads": 4,
+          "tool": "fqtools",
+          "validated_reads_manifest": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+          "validation_mode": "strict"
+        },
+        "effective_params": {
+          "pair_sync_policy": "require_header_sync",
+          "paired_mode": "paired_end",
+          "schema_version": "bijux.fastq.params.validate_reads.v1",
+          "threads": 4,
+          "validation_mode": "strict"
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "planner default",
+          "details": {}
+        }
+      }
+    },
+    {
+      "tool_id": "seqtk",
+      "single_end": {
+        "stage_id": "fastq.validate_reads",
+        "stage_instance_id": "fastq.validate_reads.tool.seqtk",
+        "stage_version": 1,
+        "tool_id": "seqtk",
+        "tool_version": "latest-pinned",
+        "image": {
+          "image": "bijuxdna/seqtk",
+          "digest": "sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024"
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-lc",
+            "set +e && 'seqtk' 'seq' '__BIJUX_READS_R1__' > '__BIJUX_RESULT_ROOT__/validation_r1.log' 2>&1\nstatus_r1=$? && status_r2=0 && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream '__BIJUX_READS_R1__' 2>> '__BIJUX_RESULT_ROOT__/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"seqtk\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"single_end\",\"validated_stream_ids\":[\"reads_r1\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"__BIJUX_READS_R1__\"' 'null' '\"__BIJUX_RESULT_ROOT__/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > '__BIJUX_RESULT_ROOT__/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"seqtk\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":1,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"__BIJUX_READS_R1__\"' 'null' '\"__BIJUX_RESULT_ROOT__/validation_r1.log\"' 'null' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > '__BIJUX_RESULT_ROOT__/validation.json' && exit \"$exit_code\""
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 8,
+          "tmp_gb": 4,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "validation_report",
+              "path": "__BIJUX_RESULT_ROOT__/validation.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "validated_reads_manifest",
+              "path": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+              "role": "stage_report",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": null,
+          "out_dir": "__BIJUX_RESULT_ROOT__",
+          "pair_sync_policy": "not_applicable",
+          "report_json": "__BIJUX_RESULT_ROOT__/validation.json",
+          "threads": 4,
+          "tool": "seqtk",
+          "validated_reads_manifest": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+          "validation_mode": "strict"
+        },
+        "effective_params": {
+          "pair_sync_policy": "not_applicable",
+          "paired_mode": "single_end",
+          "schema_version": "bijux.fastq.params.validate_reads.v1",
+          "threads": 4,
+          "validation_mode": "strict"
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "planner default",
+          "details": {}
+        }
+      },
+      "paired_end": {
+        "stage_id": "fastq.validate_reads",
+        "stage_instance_id": "fastq.validate_reads.tool.seqtk",
+        "stage_version": 1,
+        "tool_id": "seqtk",
+        "tool_version": "latest-pinned",
+        "image": {
+          "image": "bijuxdna/seqtk",
+          "digest": "sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024"
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-lc",
+            "set +e && 'seqtk' 'seq' '__BIJUX_READS_R1__' > '__BIJUX_RESULT_ROOT__/validation_r1.log' 2>&1\nstatus_r1=$? && 'seqtk' 'seq' '__BIJUX_READS_R2__' > '__BIJUX_RESULT_ROOT__/validation_r2.log' 2>&1\nstatus_r2=$? && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream '__BIJUX_READS_R1__' 2>> '__BIJUX_RESULT_ROOT__/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && inspection_r2=$(inspect_fastq_stream '__BIJUX_READS_R2__' 2>> '__BIJUX_RESULT_ROOT__/validation_r2.log'); inspect_status_r2=$?; true && validated_reads_r2=$(printf '%s' \"$inspection_r2\" | cut -f1) && inspection_class_r2=$(printf '%s' \"$inspection_r2\" | cut -f2) && if [ \"$inspect_status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r2; fi; fi && validated_pairs=$validated_reads_r1 && pair_sync_checked=true && pair_sync_pass=true && pair_count_match=true && cat_fastq '__BIJUX_READS_R1__' | awk 'NR % 4 == 1 { header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }' > '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' && cat_fastq '__BIJUX_READS_R2__' | awk 'NR % 4 == 1 { header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }' > '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' && validated_reads_r2=$(wc -l < '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' | tr -d '[:space:]') && validated_pairs=$validated_reads_r1 && if [ \"$validated_reads_r1\" -ne \"$validated_reads_r2\" ]; then pair_count_match=false; pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=96; fi; fi && if ! cmp -s '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt'; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi && rm -f '__BIJUX_RESULT_ROOT__/validation_r1.headers.txt' '__BIJUX_RESULT_ROOT__/validation_r2.headers.txt' && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"seqtk\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"require_header_sync\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"paired_end\",\"validated_stream_ids\":[\"reads_r1\",\"reads_r2\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"__BIJUX_READS_R1__\"' '\"__BIJUX_READS_R2__\"' '\"__BIJUX_RESULT_ROOT__/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > '__BIJUX_RESULT_ROOT__/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"seqtk\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"require_header_sync\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":2,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"__BIJUX_READS_R1__\"' '\"__BIJUX_READS_R2__\"' '\"__BIJUX_RESULT_ROOT__/validation_r1.log\"' '\"__BIJUX_RESULT_ROOT__/validation_r2.log\"' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > '__BIJUX_RESULT_ROOT__/validation.json' && exit \"$exit_code\""
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 8,
+          "tmp_gb": 4,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            },
+            {
+              "name": "reads_r2",
+              "path": "__BIJUX_READS_R2__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "validation_report",
+              "path": "__BIJUX_RESULT_ROOT__/validation.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "validated_reads_manifest",
+              "path": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+              "role": "stage_report",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": "__BIJUX_READS_R2__",
+          "out_dir": "__BIJUX_RESULT_ROOT__",
+          "pair_sync_policy": "require_header_sync",
+          "report_json": "__BIJUX_RESULT_ROOT__/validation.json",
+          "threads": 4,
+          "tool": "seqtk",
+          "validated_reads_manifest": "__BIJUX_RESULT_ROOT__/validated_reads_manifest.json",
+          "validation_mode": "strict"
+        },
+        "effective_params": {
+          "pair_sync_policy": "require_header_sync",
+          "paired_mode": "paired_end",
+          "schema_version": "bijux.fastq.params.validate_reads.v1",
+          "threads": 4,
+          "validation_mode": "strict"
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "planner default",
+          "details": {}
+        }
+      }
+    }
+  ]
+}

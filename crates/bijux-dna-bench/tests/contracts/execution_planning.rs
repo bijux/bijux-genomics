@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use anyhow::Context;
 use bijux_dna_bench::{
@@ -10,7 +11,7 @@ use bijux_dna_bench::{
     BenchmarkExecutionInput, BenchmarkExecutionInputKind, BenchmarkExecutionMaterial,
     BenchmarkExecutionParameterEvidence, BenchmarkExecutionSpec,
 };
-use bijux_dna_environment::api::{
+use bijux_dna_containers::api::{
     load_container_catalog, load_image_inventory_publication, ContainerCatalog,
     CurrentApptainerImage,
 };
@@ -355,5 +356,84 @@ fn execution_builder_rejects_image_and_catalog_authority_drift() -> anyhow::Resu
         .ok_or_else(|| anyhow::anyhow!("container catalog omits seqkit"))?;
     seqkit.stage_ids.clear();
     assert!(build(&catalog, &image()).is_err());
+    Ok(())
+}
+
+#[test]
+fn duplication_normalizer_closes_both_backend_shapes() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bam-duplication-normalizer")?;
+    let picard = temporary.path().join("picard.metrics.txt");
+    let samtools = temporary.path().join("samtools.stats.txt");
+    std::fs::write(
+        &picard,
+        b"## METRICS CLASS\nLIBRARY\tUNPAIRED_READS_EXAMINED\tREAD_PAIRS_EXAMINED\tUNPAIRED_READ_DUPLICATES\tREAD_PAIR_DUPLICATES\tPERCENT_DUPLICATION\nlib\t2\t4\t0\t1\t0.200000\n",
+    )?;
+    std::fs::write(&samtools, b"EXAMINED: 10\nDUPLICATE TOTAL: 2\n")?;
+    let expected = "metric\tvalue\nexamined_reads\t10\nduplicate_reads\t2\nduplication_fraction\t0.200000000000\n";
+    assert_eq!(normalize_duplication("picard", &picard)?, expected);
+    assert_eq!(normalize_duplication("samtools", &samtools)?, expected);
+    Ok(())
+}
+
+fn normalize_duplication(source: &str, input: &Path) -> anyhow::Result<String> {
+    let script =
+        super::support::repo_root()?.join("benchmarks/execution/bam_duplication_metrics.awk");
+    let output = Command::new("awk")
+        .args(["-v", "mode=summary", "-v", &format!("source={source}"), "-f"])
+        .arg(script)
+        .arg(input)
+        .output()?;
+    anyhow::ensure!(output.status.success(), "duplication AWK failed");
+    Ok(String::from_utf8(output.stdout)?)
+}
+
+#[test]
+fn genotyping_normalizer_derives_candidate_site_metrics() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bam-genotyping-normalizer")?;
+    let genotypes = temporary.path().join("genotypes.tsv");
+    std::fs::write(
+        &genotypes,
+        b"chr1\t1\tA\tG\t0/0\t3\nchr1\t2\tC\tT\t0/1\t2\nchr1\t3\tG\tA\t./.\t0\n",
+    )?;
+    let script = super::support::repo_root()?.join("benchmarks/execution/bam_genotyping.awk");
+    let output = Command::new("awk")
+        .args(["-v", "mode=summary", "-f"])
+        .arg(&script)
+        .arg(genotypes)
+        .output()?;
+    anyhow::ensure!(output.status.success(), "genotyping AWK failed");
+    assert_eq!(
+        String::from_utf8(output.stdout)?,
+        "metric\tvalue\ntotal_records\t3\ncovered_sites\t2\ncalled_genotypes\t2\nalternate_genotypes\t1\nmean_depth_at_covered_sites\t2.500000000000\n"
+    );
+
+    let summary = temporary.path().join("summary.tsv");
+    std::fs::write(
+        &summary,
+        b"metric\tvalue\ntotal_records\t3\ncovered_sites\t2\ncalled_genotypes\t2\nalternate_genotypes\t1\nmean_depth_at_covered_sites\t2.500000000000\n",
+    )?;
+    let output = Command::new("awk")
+        .args([
+            "-v",
+            "mode=metrics",
+            "-v",
+            "bam_input_bytes=26592222",
+            "-v",
+            "reference_input_bytes=2539168129",
+            "-v",
+            "database_input_bytes=8534981",
+            "-v",
+            "input_bytes=2574295332",
+            "-v",
+            "output_bytes=4484572",
+            "-f",
+        ])
+        .arg(script)
+        .arg(summary)
+        .output()?;
+    anyhow::ensure!(output.status.success(), "genotyping metrics AWK failed");
+    let metrics: serde_json::Value = serde_json::from_slice(&output.stdout)?;
+    assert_eq!(metrics["reference_input_bytes"], 2_539_168_129_u64);
+    assert_eq!(metrics["input_bytes"], 2_574_295_332_u64);
     Ok(())
 }

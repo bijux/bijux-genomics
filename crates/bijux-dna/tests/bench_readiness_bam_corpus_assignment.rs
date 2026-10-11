@@ -70,10 +70,14 @@ fn bench_readiness_bam_corpus_assignment_json_reports_governed_stage_contracts()
         payload.get("schema_version").and_then(Value::as_str),
         Some("bijux.bench.readiness.bam_corpus_assignment.v3")
     );
-    assert_eq!(payload.get("row_count").and_then(Value::as_u64), Some(49));
-
     let rows = payload.get("rows").and_then(Value::as_array).expect("rows array");
-
+    assert_eq!(
+        payload.get("row_count").and_then(Value::as_u64),
+        Some(u64::try_from(rows.len()).expect("row count fits u64"))
+    );
+    assert!(rows.iter().all(|row| {
+        !matches!(row.get("tool_id").and_then(Value::as_str), Some("angsd" | "ngsbriggs"))
+    }));
     let find_row = |tool_id: &str, stage_id: &str| {
         rows.iter()
             .find(|row| {
@@ -159,7 +163,7 @@ fn bench_readiness_bam_corpus_assignment_json_reports_governed_stage_contracts()
         Some("haplogroups,summary,stage_metrics")
     );
 
-    let genotyping = find_row("angsd", "bam.genotyping");
+    let genotyping = find_row("bcftools", "bam.genotyping");
     assert_eq!(
         genotyping.get("sample_id").and_then(Value::as_str),
         Some("human_like_genotyping_candidate_panel")
@@ -217,22 +221,6 @@ fn bench_readiness_bam_corpus_assignment_json_reports_governed_stage_contracts()
     );
     assert_eq!(
         kinship.get("skip_behavior").and_then(Value::as_str),
-        Some(
-            "human_like_kinship_low_overlap_pair=stop_without_pairwise_results;human_like_kinship_related_pair=emit_pairwise_results"
-        )
-    );
-
-    let kinship_angsd = find_row("angsd", "bam.kinship");
-    assert_eq!(
-        kinship_angsd.get("sample_id").and_then(Value::as_str),
-        Some("human_like_kinship_low_overlap_pair,human_like_kinship_related_pair")
-    );
-    assert_eq!(
-        kinship_angsd.get("expected_outputs").and_then(Value::as_str),
-        Some("kinship_report,summary,kinship_segments,stage_metrics")
-    );
-    assert_eq!(
-        kinship_angsd.get("skip_behavior").and_then(Value::as_str),
         Some(
             "human_like_kinship_low_overlap_pair=stop_without_pairwise_results;human_like_kinship_related_pair=emit_pairwise_results"
         )

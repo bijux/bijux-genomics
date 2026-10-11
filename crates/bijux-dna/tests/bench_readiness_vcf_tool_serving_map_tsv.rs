@@ -43,7 +43,7 @@ fn bench_readiness_vcf_tool_serving_map_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 23, "TSV must retain the governed VCF row count");
+    assert_eq!(rows.len(), 24, "TSV must retain the governed VCF row count");
     for row in [
         "bcftools\tvcf.qc\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "bcftools\tvcf.call\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
@@ -59,7 +59,9 @@ fn bench_readiness_vcf_tool_serving_map_writes_governed_tsv_columns() {
         "beagle\tvcf.impute\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "plink2\tvcf.population_structure\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "plink2\tvcf.roh\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
-        "ibdne\tvcf.demography\tplanned\tdeclared_only\tparse_normalized\tfixture:vcf_production_regression\tnot_required\tnot_benchmark_ready",
+        "ibdne\tvcf.demography\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tnot_required\tbenchmark_ready",
+        "germline\tvcf.ibd\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
+        "ibdseq\tvcf.ibd\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
     ] {
         assert!(
             rows.iter().any(|candidate| candidate == &row),

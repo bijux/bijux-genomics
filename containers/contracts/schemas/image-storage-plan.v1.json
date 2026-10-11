@@ -57,6 +57,7 @@
     },
     "ImageStorageMoveCategory": {
       "enum": [
+        "historical",
         "obsolete",
         "interrupted"
       ],

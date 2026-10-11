@@ -184,7 +184,7 @@ fn validate_stage_interface_shape(
     validate_text_list(
         &interface.input_derived_parameters,
         "stage interface input_derived_parameters",
-        false,
+        true,
     )?;
     validate_text_list(
         &interface.immutable_parameters,

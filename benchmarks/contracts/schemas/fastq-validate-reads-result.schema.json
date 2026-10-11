@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "expected_read_count": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "file_count": {
+      "const": 30,
+      "type": "integer"
+    },
+    "pair_sync_checked_count": {
+      "maximum": 20,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "pair_sync_failure_count": {
+      "const": 0,
+      "type": "integer"
+    },
+    "sample_count": {
+      "const": 20,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.fastq.validate_reads.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "fastq.validate_reads",
+      "type": "string"
+    },
+    "strict_pass_count": {
+      "const": 20,
+      "type": "integer"
+    },
+    "tool_id": {
+      "enum": [
+        "fastq_scan",
+        "fastqc",
+        "fastqvalidator",
+        "fqtools",
+        "seqtk"
+      ],
+      "type": "string"
+    },
+    "validated_read_count": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_count",
+    "file_count",
+    "expected_read_count",
+    "validated_read_count",
+    "strict_pass_count",
+    "pair_sync_checked_count",
+    "pair_sync_failure_count"
+  ],
+  "title": "BenchmarkFastqValidationResult",
+  "type": "object"
+}

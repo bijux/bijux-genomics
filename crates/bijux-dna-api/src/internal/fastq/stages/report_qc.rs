@@ -18,6 +18,7 @@ use bijux_dna_analyze::quality::insert_fastq_qc_post_v1;
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkContext, BenchmarkRecord, FastqQcPostMetrics,
 };
+use bijux_dna_containers::api::{resolve_image, PlatformSpec, RuntimeKind, ToolImageCatalog};
 use bijux_dna_core::contract::ArtifactRole;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -31,7 +32,6 @@ use bijux_dna_domain_fastq::{
     GovernedQcContributorV1, GovernedQcInputsManifestV1, GovernedQcManifestContributorV1,
     ReportQcReportV1, GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION, REPORT_QC_REPORT_SCHEMA_VERSION,
 };
-use bijux_dna_environment::api::{resolve_image, PlatformSpec, RuntimeKind, ToolImageCatalog};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_qc_post_tools;
@@ -619,6 +619,7 @@ mod tests {
     use std::collections::BTreeMap;
     use std::path::PathBuf;
 
+    use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
     use bijux_dna_core::contract::{ArtifactRole, ToolConstraints};
     use bijux_dna_core::ids::{ArtifactId, ToolId};
     use bijux_dna_core::prelude::measure::SeqkitMetrics;
@@ -627,7 +628,6 @@ mod tests {
     };
     use bijux_dna_domain_fastq::params::qc_post::{QcAggregationEngine, QcAggregationScope};
     use bijux_dna_domain_fastq::ReportQcReportV1;
-    use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
     use bijux_dna_runner::step_runner::StageResultV1;
 
     #[test]

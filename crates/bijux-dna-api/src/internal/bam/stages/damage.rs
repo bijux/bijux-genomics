@@ -223,16 +223,8 @@ fn materialize_local_damage_smoke_case(
     bijux_dna_infra::ensure_dir(&case_out_dir)?;
 
     let input_bam = repo_root.join(&case.bam);
-    let damage_mapdamage2_path = case_out_dir.join("damage.mapdamage2.txt");
     write_local_damage_primary_artifact(&case_out_dir, case)?;
-    bijux_dna_infra::atomic_write_bytes(
-        &damage_mapdamage2_path,
-        render_mapdamage2_misincorporation(
-            case.expected_terminal_c_to_t_5p,
-            case.expected_terminal_g_to_a_3p,
-        )
-        .as_bytes(),
-    )?;
+    write_local_damage_comparison_artifact(&case_out_dir, case)?;
     write_udg_regime(&case_out_dir, &case.plan)?;
     let output_paths = resolve_local_damage_output_paths(repo_root, &case.plan, &case_out_dir)?;
 
@@ -481,12 +473,9 @@ fn write_local_damage_primary_artifact(
     stage_dir: &Path,
     case: &bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan,
 ) -> Result<()> {
-    let metrics_json = serde_json::json!({
-        "schema_version": "bijux.bam.damage.v1",
-        "ct_5p": case.expected_terminal_c_to_t_5p,
-        "ga_3p": case.expected_terminal_g_to_a_3p,
-        "pmd_score_histogram": [[0, 8], [1, 13], [2, 21]],
-    });
+    if case.plan.tool_id.as_str() == "mapdamage2" {
+        return write_local_mapdamage2_artifact(stage_dir, case);
+    }
     let path = match case.plan.tool_id.as_str() {
         "addeam" => stage_dir.join("damage.addeam.json"),
         "damageprofiler" => stage_dir.join("damage.profiler.json"),
@@ -499,8 +488,49 @@ fn write_local_damage_primary_artifact(
             ));
         }
     };
-    bijux_dna_infra::atomic_write_json(&path, &metrics_json)
+    write_local_damage_json_artifact(&path, case)
+}
+
+fn write_local_damage_comparison_artifact(
+    stage_dir: &Path,
+    case: &bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan,
+) -> Result<()> {
+    if case.plan.tool_id.as_str() == "mapdamage2" {
+        write_local_damage_json_artifact(&stage_dir.join("damage.pydamage.json"), case)
+    } else {
+        write_local_mapdamage2_artifact(stage_dir, case)
+    }
+}
+
+fn write_local_damage_json_artifact(
+    path: &Path,
+    case: &bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan,
+) -> Result<()> {
+    let metrics_json = serde_json::json!({
+        "schema_version": "bijux.bam.damage.v1",
+        "ct_5p": case.expected_terminal_c_to_t_5p,
+        "ga_3p": case.expected_terminal_g_to_a_3p,
+        "pmd_score_histogram": [[0, 8], [1, 13], [2, 21]],
+    });
+    bijux_dna_infra::atomic_write_json(path, &metrics_json)
         .with_context(|| format!("write {}", path.display()))?;
+    Ok(())
+}
+
+fn write_local_mapdamage2_artifact(
+    stage_dir: &Path,
+    case: &bijux_dna_planner_bam::stage_api::LocalDamageSmokeCasePlan,
+) -> Result<()> {
+    let path = stage_dir.join("damage.mapdamage2.txt");
+    bijux_dna_infra::atomic_write_bytes(
+        &path,
+        render_mapdamage2_misincorporation(
+            case.expected_terminal_c_to_t_5p,
+            case.expected_terminal_g_to_a_3p,
+        )
+        .as_bytes(),
+    )
+    .with_context(|| format!("write {}", path.display()))?;
     Ok(())
 }
 

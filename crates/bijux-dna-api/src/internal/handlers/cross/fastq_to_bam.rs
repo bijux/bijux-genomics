@@ -13,8 +13,8 @@ use crate::internal::handlers::fastq::StageExecutionSummary;
 use crate::reference_resolution::{LocalReferenceResolver, ReferenceResolver};
 use crate::request_args::FastqCrossArgs;
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_containers::resolve::{ReferenceBuildRequest, ReferenceRegistry};
 use bijux_dna_core::contract::ToolRegistry;
-use bijux_dna_environment::resolve::{ReferenceBuildRequest, ReferenceRegistry};
 use bijux_dna_infra::bench_base_dir;
 use bijux_dna_pipelines::registry;
 use bijux_dna_pipelines::{Domain, InvariantsPreset, PipelineProfile};
@@ -26,9 +26,9 @@ use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 #[allow(clippy::too_many_lines)]
 pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
-    catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,
-    platform: &bijux_dna_environment::api::PlatformSpec,
-    runner_override: Option<bijux_dna_environment::api::RuntimeKind>,
+    catalog: &std::collections::HashMap<String, bijux_dna_containers::api::ToolImageSpec, S>,
+    platform: &bijux_dna_containers::api::PlatformSpec,
+    runner_override: Option<bijux_dna_containers::api::RuntimeKind>,
     preprocess_args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
     cross_args: &FastqCrossArgs,
     profile: &PipelineProfile,

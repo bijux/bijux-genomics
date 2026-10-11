@@ -9,8 +9,8 @@ fn policy__boundaries__qa_dependency_policy__production_crates_do_not_depend_on_
     let qa = metadata
         .packages
         .iter()
-        .find(|pkg| pkg.name == "bijux-dna-environment-qa")
-        .expect("bijux-dna-environment-qa missing");
+        .find(|pkg| pkg.name == "bijux-dna-containers-qa")
+        .expect("bijux-dna-containers-qa missing");
     let mut offenders = Vec::new();
     let resolve = metadata.resolve.as_ref().expect("resolve graph missing");
     for node in &resolve.nodes {
@@ -25,7 +25,7 @@ fn policy__boundaries__qa_dependency_policy__production_crates_do_not_depend_on_
     }
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "production crates must not depend on bijux-dna-environment-qa.\n\
+        "production crates must not depend on bijux-dna-containers-qa.\n\
 Keep QA isolated and invoked manually.\n\
 See docs/40-policies/STYLE.md.\n\
 Offenders: {offenders:?}"

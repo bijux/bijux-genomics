@@ -6,9 +6,9 @@ use walkdir::WalkDir;
 
 const ALLOWLIST: &[(&str, &str)] = &[
     ("/crates/bijux-dna-runner/", "execution backends"),
-    ("/crates/bijux-dna-environment-qa/", "qa harness"),
+    ("/crates/bijux-dna-containers-qa/", "qa harness"),
     ("/crates/bijux-dna/", "cli entrypoints"),
-    ("/crates/bijux-dna-environment/", "runtime resolution probes"),
+    ("/crates/bijux-dna-containers/", "runtime resolution probes"),
     ("/crates/bijux-dna-infra/", "filesystem helpers"),
     (
         "/crates/bijux-dna-core/src/foundation/input_assessment.rs",
@@ -61,7 +61,7 @@ fn policy__boundaries__effect_boundary_map__effect_boundary_map() {
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
         "Effect boundary violation: process/Docker/FS effects are only allowed in boundary crates.\n\
-Fix by moving effects into bijux-dna-runner or bijux-dna-environment-qa, or add a narrow allowlist with a reason.\n\
+Fix by moving effects into bijux-dna-runner or bijux-dna-containers-qa, or add a narrow allowlist with a reason.\n\
 See docs/40-policies/STYLE.md for boundary rules.\n\
 Offenders:\n{}",
         offenders.join("\n")

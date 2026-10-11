@@ -48,8 +48,15 @@ fn bench_readiness_bam_kinship_complete_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/bam/stages/bam.kinship.complete.json")
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    assert_eq!(
+        payload.get("active_row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    assert_eq!(
+        payload.get("complete_row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("local_smoke_case_count").and_then(serde_json::Value::as_u64), Some(2));
@@ -66,11 +73,13 @@ fn bench_readiness_bam_kinship_complete_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("expected_tool_ids").and_then(serde_json::Value::as_array),
-        Some(&vec![serde_json::json!("angsd"), serde_json::json!("king")])
+        Some(&vec![serde_json::json!("king")])
     );
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 2);
+    assert_eq!(rows.len(), 1);
+    assert_eq!(rows[0].get("tool_id").and_then(serde_json::Value::as_str), Some("king"));
+    assert!(rows
+        .iter()
+        .all(|row| row.get("tool_id").and_then(serde_json::Value::as_str) != Some("angsd")));
 
     for row in rows {
         assert_eq!(row.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.kinship"));

@@ -3,11 +3,11 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use anyhow::Context;
 use serde::Serialize;
 
+pub use bijux_dna_containers::api::{load_image_catalog, load_platform, RuntimeKind};
 pub use bijux_dna_core::contract::ExecutionManifest;
 pub use bijux_dna_core::prelude::{
     run_dir, PathSpec, Profile, RunSpec, StageId, ToolId, ToolRegistry, ToolRole,
 };
-pub use bijux_dna_environment::api::{load_image_catalog, load_platform, RuntimeKind};
 pub use bijux_dna_infra::RUN_LAYOUT_CONTRACT;
 pub use bijux_dna_infra::{
     atomic_write_bytes, ensure_dir, init_logging, temp_dir, temp_dir_in, write_bytes,
