@@ -1,4 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
+use std::path::Path;
+use std::process::Command;
 
 use anyhow::Result;
 use bijux_dna_bench::{
@@ -8,15 +11,19 @@ use bijux_dna_bench::{
     ensure_benchmark_admitted_case_observation_set, ensure_benchmark_case_aggregation_set,
     ensure_benchmark_case_matrix, load_benchmark_admitted_case_observation_set,
     load_benchmark_case_aggregation_set, load_benchmark_case_matrix,
-    load_checked_in_benchmark_planning_contracts, plan_benchmark_case_matrix,
+    load_checked_in_benchmark_campaign_plan, load_checked_in_benchmark_planning_contracts,
+    plan_benchmark_case_attempts, plan_benchmark_case_matrix, plan_benchmark_case_retry_attempts,
     validate_benchmark_admitted_case_observation_set, validate_benchmark_case_aggregation_set,
     validate_benchmark_case_aggregations, validate_benchmark_case_matrix,
-    BenchmarkAdmittedCaseObservationV2, BenchmarkCaseExecutionEvidenceV1,
-    BenchmarkCaseMatrixRequest, BenchmarkCaseRepetitionObservationV1, BenchmarkDataSnapshotRoleV1,
-    BenchmarkDataSnapshotV1, BenchmarkReportImage, BenchmarkReportInputLock,
+    verify_campaign_plan_source, verify_case_campaign_plan_source,
+    BenchmarkAdmittedCaseObservationV2, BenchmarkAttemptTransition,
+    BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest,
+    BenchmarkCaseRepetitionObservationV1, BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
+    BenchmarkLifecycleStatus, BenchmarkReportImage, BenchmarkReportInputLock,
     BenchmarkReportSlurmJob, BenchmarkScientificValue, BenchmarkStageCampaignRegistry,
     BenchmarkStageInterfaceCatalog, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
 };
+use bijux_dna_bench_model::append_attempt_transition;
 use bijux_dna_core::{
     contract::ToolConstraints,
     ids::{StageId, ToolId},
@@ -62,6 +69,175 @@ fn checked_in_campaigns_plan_through_one_order_independent_engine() -> Result<()
         serde_json::to_vec(&matrix)? == reordered_bytes,
         "case matrix bytes changed with semantically unordered authority input"
     );
+    Ok(())
+}
+
+#[test]
+fn checked_in_campaigns_close_the_canonical_binding_registry() -> Result<()> {
+    let mut fixture = planning_fixture()?;
+    fixture.bindings = canonical_tool_bindings()?;
+
+    let matrix = plan(&fixture)?;
+
+    assert_eq!(matrix.cases.len(), EXISTING_CASE_COUNT);
+    assert_eq!(
+        matrix.cases.iter().map(|case| case.run_id.as_str()).collect::<BTreeSet<_>>().len(),
+        EXISTING_CAMPAIGN_COUNT
+    );
+    Ok(())
+}
+
+#[test]
+fn generic_cases_have_collision_free_attempt_identities() -> Result<()> {
+    let matrix = plan(&planning_fixture()?)?;
+    let plan = plan_benchmark_case_attempts(
+        &matrix,
+        "production-portfolio-20260814",
+        "attempt-001",
+        "2026-08-14T12:00:00Z",
+    )?;
+
+    let matrix_sha256 = bijux_dna_bench::benchmark_case_matrix_sha256(&matrix)?;
+    assert_eq!(plan.case_matrix_sha256.as_deref(), Some(matrix_sha256.as_str()));
+    verify_case_campaign_plan_source(&plan, &matrix)?;
+    assert!(verify_campaign_plan_source(
+        &plan,
+        &matrix.repository_commit,
+        &matrix.campaign_registry_sha256,
+    )
+    .is_err());
+    assert_eq!(plan.cycle.attempts.len(), matrix.cases.len());
+    let identities = plan
+        .cycle
+        .attempts
+        .iter()
+        .map(|attempt| {
+            (
+                attempt.identity.case_id.as_deref(),
+                attempt.identity.tool_id.as_str(),
+                attempt.identity.attempt_id.as_str(),
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(identities.len(), matrix.cases.len());
+    assert!(plan.cycle.attempts.iter().all(|attempt| attempt.identity.case_id.is_some()));
+    Ok(())
+}
+
+#[test]
+fn case_scoped_plan_loading_requires_the_exact_matrix_authority() -> Result<()> {
+    let repository = clean_source_repository()?;
+    let repository_commit = git_stdout(repository.path(), &["rev-parse", "HEAD"])?;
+    let campaign_registry_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository.path().join("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
+    let mut fixture = planning_fixture()?;
+    fixture.bindings = canonical_tool_bindings()?;
+    let interface_catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository.path().join("benchmarks/contracts/stage-interfaces.toml"),
+    )?;
+    let binding_bytes =
+        serde_json::to_vec(&fixture.bindings.bindings().cloned().collect::<Vec<_>>())?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &repository_commit,
+        campaign_registry_sha256: &campaign_registry_sha256,
+        interface_catalog_sha256: &interface_catalog_sha256,
+        tool_binding_registry_sha256: &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
+        campaigns: &fixture.campaigns,
+        interfaces: &fixture.interfaces,
+        bindings: &fixture.bindings,
+        data_snapshots: &fixture.snapshots,
+    })?;
+    let plan = plan_benchmark_case_attempts(
+        &matrix,
+        "production-portfolio-20260814",
+        "attempt-001",
+        "2026-08-14T12:00:00Z",
+    )?;
+    let output = bijux_dna_infra::temp_dir("case-scoped-plan-authority")?;
+    let matrix_path = output.path().join("case-matrix.json");
+    let plan_path = output.path().join("campaign-plan.json");
+    ensure_benchmark_case_matrix(&matrix_path, &matrix)?;
+    fs::write(&plan_path, serde_json::to_vec_pretty(&plan)?)?;
+
+    assert!(load_checked_in_benchmark_campaign_plan(repository.path(), &plan_path, None).is_err());
+    assert_eq!(
+        load_checked_in_benchmark_campaign_plan(repository.path(), &plan_path, Some(&matrix_path),)?,
+        plan
+    );
+
+    let stale_matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &repository_commit,
+        campaign_registry_sha256: &campaign_registry_sha256,
+        interface_catalog_sha256: &"9".repeat(64),
+        tool_binding_registry_sha256: &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
+        campaigns: &fixture.campaigns,
+        interfaces: &fixture.interfaces,
+        bindings: &fixture.bindings,
+        data_snapshots: &fixture.snapshots,
+    })?;
+    let stale_plan = plan_benchmark_case_attempts(
+        &stale_matrix,
+        "production-portfolio-20260814",
+        "attempt-001",
+        "2026-08-14T12:00:00Z",
+    )?;
+    let stale_matrix_path = output.path().join("stale-case-matrix.json");
+    let stale_plan_path = output.path().join("stale-campaign-plan.json");
+    ensure_benchmark_case_matrix(&stale_matrix_path, &stale_matrix)?;
+    fs::write(&stale_plan_path, serde_json::to_vec_pretty(&stale_plan)?)?;
+    assert!(load_checked_in_benchmark_campaign_plan(
+        repository.path(),
+        &stale_plan_path,
+        Some(&stale_matrix_path),
+    )
+    .is_err_and(|error| error.to_string().contains("current execution source authorities")));
+    Ok(())
+}
+
+#[test]
+fn generic_case_retries_preserve_the_complete_matrix_lineage() -> Result<()> {
+    let matrix = plan(&planning_fixture()?)?;
+    let initial = plan_benchmark_case_attempts(
+        &matrix,
+        "production-portfolio-20260814",
+        "attempt-001",
+        "2026-08-14T12:00:00Z",
+    )?;
+    let mut terminal = initial.cycle.attempts;
+    for attempt in &mut terminal {
+        append_attempt_transition(
+            attempt,
+            BenchmarkAttemptTransition {
+                sequence: 2,
+                from_status: Some(BenchmarkLifecycleStatus::Planned),
+                to_status: BenchmarkLifecycleStatus::BlockedExternal,
+                observed_at_utc: "2026-08-14T12:01:00Z".to_string(),
+                reason: Some("required execution artifact is not admitted".to_string()),
+                jobs: Vec::new(),
+                accounting: Vec::new(),
+                evidence: Vec::new(),
+            },
+        )?;
+    }
+
+    let retry = plan_benchmark_case_retry_attempts(
+        &matrix,
+        terminal,
+        "attempt-002",
+        "2026-08-14T12:02:00Z",
+    )?;
+    let active = retry
+        .cycle
+        .attempts
+        .iter()
+        .filter(|attempt| attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned))
+        .collect::<Vec<_>>();
+    assert_eq!(active.len(), matrix.cases.len());
+    assert!(active.iter().all(|attempt| {
+        attempt.supersedes_attempt_id.as_deref() == Some("attempt-001")
+            && attempt.identity.case_id.is_some()
+    }));
     Ok(())
 }
 
@@ -530,7 +706,18 @@ fn campaign_binding_normalized_output_drift_is_refused() -> Result<()> {
     fixture.bindings = replacement;
 
     let error = plan(&fixture).expect_err("normalized stage output drift must fail planning");
-    assert!(error.to_string().contains("emits no declared stage output"));
+    assert!(format!("{error:#}").contains("downstream consumer semantics"));
+    Ok(())
+}
+
+#[test]
+fn campaign_downstream_probe_drift_is_refused() -> Result<()> {
+    let mut fixture = planning_fixture()?;
+    let interface = fixture.interfaces.interfaces.first_mut().expect("checked-in interface");
+    interface.downstream_probe.consumer_stage_id = "benchmark.invalid.consumer.probe".to_string();
+
+    let error = plan(&fixture).expect_err("downstream probe drift must fail planning");
+    assert!(error.to_string().contains("canonical downstream probe"));
     Ok(())
 }
 
@@ -773,6 +960,73 @@ fn planning_fixture() -> Result<PlanningFixture> {
         })
         .collect();
     Ok(PlanningFixture { campaigns, interfaces, bindings, snapshots })
+}
+
+fn clean_source_repository() -> Result<tempfile::TempDir> {
+    let repository = bijux_dna_infra::temp_dir("case-plan-source-repository")?;
+    let source_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    copy_directory(
+        &source_root.join("benchmarks/contracts"),
+        &repository.path().join("benchmarks/contracts"),
+    )?;
+    copy_directory(
+        &source_root.join("benchmarks/execution"),
+        &repository.path().join("benchmarks/execution"),
+    )?;
+    copy_directory(&source_root.join("domain"), &repository.path().join("domain"))?;
+    copy_interface_references(&source_root, repository.path())?;
+    for arguments in [
+        vec!["init", "--initial-branch=main"],
+        vec!["config", "user.email", "tests@bijux.invalid"],
+        vec!["config", "user.name", "Bijux Tests"],
+        vec!["add", "benchmarks/contracts", "benchmarks/execution", "crates", "domain"],
+        vec!["commit", "-m", "test: seed campaign registry"],
+    ] {
+        git_stdout(repository.path(), &arguments)?;
+    }
+    Ok(repository)
+}
+
+fn copy_interface_references(source_root: &Path, destination_root: &Path) -> Result<()> {
+    let catalog =
+        fs::read_to_string(source_root.join("benchmarks/contracts/stage-interfaces.toml"))?;
+    for relative in catalog.split('"').skip(1).step_by(2).map(Path::new) {
+        let source = source_root.join(relative);
+        if !source.is_file() {
+            continue;
+        }
+        let destination = destination_root.join(relative);
+        fs::create_dir_all(destination.parent().expect("interface source parent"))?;
+        fs::copy(source, destination)?;
+    }
+    Ok(())
+}
+
+fn copy_directory(source: &Path, destination: &Path) -> Result<()> {
+    fs::create_dir_all(destination)?;
+    for entry in fs::read_dir(source)? {
+        let entry = entry?;
+        let source_path = entry.path();
+        let destination_path = destination.join(entry.file_name());
+        let file_type = entry.file_type()?;
+        if file_type.is_dir() {
+            copy_directory(&source_path, &destination_path)?;
+        } else {
+            anyhow::ensure!(file_type.is_file(), "contract fixture source is not a regular file");
+            fs::copy(source_path, destination_path)?;
+        }
+    }
+    Ok(())
+}
+
+fn git_stdout(repository: &Path, arguments: &[&str]) -> Result<String> {
+    let output = Command::new("git").current_dir(repository).args(arguments).output()?;
+    anyhow::ensure!(
+        output.status.success(),
+        "Git fixture command failed: {}",
+        String::from_utf8_lossy(&output.stderr).trim()
+    );
+    Ok(String::from_utf8(output.stdout)?.trim().to_string())
 }
 
 fn binding(

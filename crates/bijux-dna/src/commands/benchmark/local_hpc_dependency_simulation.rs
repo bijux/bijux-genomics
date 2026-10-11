@@ -3,7 +3,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_dependency_simulation, BenchmarkLocalHpcDependencySimulationCase,
+    BenchmarkLocalHpcDependencySimulationJob, BenchmarkLocalHpcDependencySimulationReport,
+    BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_REFERENCE_BLOCKED_JOB_ID, BENCHMARK_LOCAL_HPC_REFERENCE_CONTINUED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_REFERENCE_FAILURE_JOB_ID, BENCHMARK_LOCAL_HPC_RELATEDNESS_BLOCKED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RELATEDNESS_CONTINUED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RELATEDNESS_FAILURE_JOB_ID,
+};
 
 use super::local_hpc_job_graph::{collect_local_hpc_job_graph, LocalHpcJobGraph};
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
@@ -11,18 +19,17 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_VERSION: &str =
-    "bijux.bench.local_hpc_dependency_simulation.v1";
+    BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_DEPENDENCY_SIMULATION_PATH: &str =
     "runs/bench/hpc-dry-run/slurm-dependency-simulation.json";
-const RELATEDNESS_IBD_FAILURE_JOB_ID: &str = "pipeline:relatedness-segments-vcf:vcf.ibd";
-const RELATEDNESS_BLOCKED_DESCENDANT_JOB_ID: &str =
-    "pipeline:relatedness-segments-vcf:vcf.demography";
-const RELATEDNESS_CONTINUED_SIBLING_JOB_ID: &str = "pipeline:relatedness-segments-vcf:vcf.roh";
-const REFERENCE_PANEL_FAILURE_JOB_ID: &str =
-    "pipeline:reference-panel-imputation:vcf.prepare_reference_panel";
+const RELATEDNESS_IBD_FAILURE_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RELATEDNESS_FAILURE_JOB_ID;
+const RELATEDNESS_BLOCKED_DESCENDANT_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RELATEDNESS_BLOCKED_JOB_ID;
+const RELATEDNESS_CONTINUED_SIBLING_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RELATEDNESS_CONTINUED_JOB_ID;
+const REFERENCE_PANEL_FAILURE_JOB_ID: &str = BENCHMARK_LOCAL_HPC_REFERENCE_FAILURE_JOB_ID;
 const REFERENCE_PANEL_BLOCKED_DESCENDANT_JOB_ID: &str =
-    "pipeline:reference-panel-imputation:vcf.phasing";
-const REFERENCE_PANEL_CONTINUED_SIBLING_JOB_ID: &str = "pipeline:reference-panel-imputation:vcf.qc";
+    BENCHMARK_LOCAL_HPC_REFERENCE_BLOCKED_JOB_ID;
+const REFERENCE_PANEL_CONTINUED_SIBLING_JOB_ID: &str =
+    BENCHMARK_LOCAL_HPC_REFERENCE_CONTINUED_JOB_ID;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum LocalHpcDependencySimulationStatus {
@@ -41,58 +48,9 @@ impl LocalHpcDependencySimulationStatus {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcDependencySimulationJob {
-    pub(crate) job_id_local: String,
-    pub(crate) job_kind: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) pipeline_id: Option<String>,
-    pub(crate) node_id: Option<String>,
-    pub(crate) stage_id: String,
-    pub(crate) dependency_count: usize,
-    pub(crate) dependencies: Vec<String>,
-    pub(crate) dependent_count: usize,
-    pub(crate) dependents: Vec<String>,
-    pub(crate) blocking_dependencies: Vec<String>,
-    pub(crate) status: String,
-    pub(crate) descendant_of_failed_job: bool,
-    pub(crate) unrelated_to_failed_job: bool,
-    pub(crate) start_second: u64,
-    pub(crate) finish_second: u64,
-    pub(crate) duration_seconds: u64,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcDependencySimulationCase {
-    pub(crate) case_id: String,
-    pub(crate) failed_job_id: String,
-    pub(crate) blocked_descendant_job_id: String,
-    pub(crate) continued_sibling_job_id: String,
-    pub(crate) descendant_job_ids: Vec<String>,
-    pub(crate) blocked_job_ids: Vec<String>,
-    pub(crate) continued_unrelated_job_ids: Vec<String>,
-    pub(crate) continued_benchmark_job_ids: Vec<String>,
-    pub(crate) simulated_makespan_seconds: u64,
-    pub(crate) blocked_only_descendants: bool,
-    pub(crate) unrelated_branches_continue: bool,
-    pub(crate) benchmark_jobs_continue: bool,
-    pub(crate) proven: bool,
-    pub(crate) jobs: Vec<LocalHpcDependencySimulationJob>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcDependencySimulationReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) manifest_path: String,
-    pub(crate) output_path: String,
-    pub(crate) job_count: usize,
-    pub(crate) benchmark_job_count: usize,
-    pub(crate) essential_pipeline_job_count: usize,
-    pub(crate) dependency_count: usize,
-    pub(crate) case_count: usize,
-    pub(crate) all_cases_proven: bool,
-    pub(crate) cases: Vec<LocalHpcDependencySimulationCase>,
-}
+pub(crate) type LocalHpcDependencySimulationJob = BenchmarkLocalHpcDependencySimulationJob;
+pub(crate) type LocalHpcDependencySimulationCase = BenchmarkLocalHpcDependencySimulationCase;
+pub(crate) type LocalHpcDependencySimulationReport = BenchmarkLocalHpcDependencySimulationReport;
 
 pub(crate) fn run_render_hpc_dependency_simulation(
     args: &parse::BenchLocalRenderHpcDependencySimulationArgs,
@@ -203,7 +161,7 @@ fn build_hpc_dependency_simulation(
     ];
     let all_cases_proven = cases.iter().all(|case_report| case_report.proven);
     let report = LocalHpcDependencySimulationReport {
-        schema_version: LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_VERSION,
+        schema_version: LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_VERSION.to_string(),
         manifest_path: graph.manifest_path.clone(),
         output_path: path_relative_to_repo(repo_root, absolute_output_path),
         job_count: graph.job_count,
@@ -214,7 +172,7 @@ fn build_hpc_dependency_simulation(
         all_cases_proven,
         cases,
     };
-    ensure_hpc_dependency_simulation_contract(&graph, &report)?;
+    validate_benchmark_local_hpc_dependency_simulation(&report)?;
     Ok(report)
 }
 
@@ -396,58 +354,6 @@ fn descendants_of(graph: &LocalHpcJobGraph, failed_job_id: &str) -> Result<Vec<S
     }
 
     Ok(descendants)
-}
-
-fn ensure_hpc_dependency_simulation_contract(
-    graph: &LocalHpcJobGraph,
-    report: &LocalHpcDependencySimulationReport,
-) -> Result<()> {
-    if report.job_count != graph.job_count
-        || report.benchmark_job_count != graph.benchmark_job_count
-        || report.essential_pipeline_job_count != graph.essential_pipeline_job_count
-        || report.dependency_count != graph.dependency_count
-    {
-        return Err(anyhow!(
-            "HPC dependency simulation report must stay aligned with the governed HPC job graph"
-        ));
-    }
-    if report.case_count != report.cases.len() || report.cases.is_empty() {
-        return Err(anyhow!(
-            "HPC dependency simulation report must keep at least one proven case row"
-        ));
-    }
-    let valid_job_ids =
-        graph.nodes.iter().map(|node| node.job_id_local.as_str()).collect::<BTreeSet<_>>();
-    for case_report in &report.cases {
-        if case_report.jobs.len() != graph.job_count {
-            return Err(anyhow!(
-                "HPC dependency simulation case `{}` must keep one job row per governed HPC job",
-                case_report.case_id
-            ));
-        }
-        for job_id_local in case_report
-            .blocked_job_ids
-            .iter()
-            .chain(case_report.continued_unrelated_job_ids.iter())
-            .chain(case_report.continued_benchmark_job_ids.iter())
-            .chain(case_report.descendant_job_ids.iter())
-            .chain(std::iter::once(&case_report.failed_job_id))
-        {
-            if !valid_job_ids.contains(job_id_local.as_str()) {
-                return Err(anyhow!(
-                    "HPC dependency simulation case `{}` references unknown job `{job_id_local}`",
-                    case_report.case_id
-                ));
-            }
-        }
-        if !case_report.proven {
-            return Err(anyhow!(
-                "HPC dependency simulation case `{}` did not prove the required descendant-only blocking invariant",
-                case_report.case_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {

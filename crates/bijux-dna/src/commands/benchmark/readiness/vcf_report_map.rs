@@ -427,10 +427,10 @@ mod tests {
         assert_eq!(report.summary_table_count, 12);
         assert_eq!(report.section_counts.get("variant_calling"), Some(&6));
         assert_eq!(report.section_counts.get("quality_control"), Some(&5));
-        assert_eq!(report.section_counts.get("imputation"), Some(&4));
-        assert_eq!(report.section_counts.get("population_structure"), Some(&4));
+        assert_eq!(report.section_counts.get("imputation"), Some(&8));
+        assert_eq!(report.section_counts.get("population_structure"), Some(&7));
         assert_eq!(report.section_counts.get("runs_of_homozygosity"), Some(&1));
-        assert_eq!(report.section_counts.get("identity_by_descent"), Some(&2));
+        assert_eq!(report.section_counts.get("identity_by_descent"), Some(&3));
         assert_eq!(report.section_counts.get("demography"), Some(&1));
         assert_eq!(report.section_counts.get("normalization"), Some(&1));
         assert_eq!(report.section_counts.get("reference_panel_preparation"), Some(&1));

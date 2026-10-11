@@ -19,7 +19,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.source https://gitlab.pasteur.fr/GIPhy/AlienTrimmer
     org.opencontainers.image.revision 6ec40283b87f845dbb833342633258c8e7c18333
     org.opencontainers.image.created governed-by-build-evidence
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.licenses AGPL-3.0-only
     org.opencontainers.image.version 3.2
     io.bijux.tool.version 3.2
     org.opencontainers.image.tool alientrimmer
@@ -49,7 +49,10 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
         curl \
         openjdk-17-jdk-headless
 
-    curl --fail --location --silent --show-error "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer/-/archive/${ALIENTRIMMER_VERSION}/AlienTrimmer-${ALIENTRIMMER_VERSION}.tar.gz" \
+    curl --fail --location --silent --show-error \
+        --retry 5 --retry-delay 3 --retry-all-errors \
+        --connect-timeout 20 --max-time 300 --retry-max-time 300 \
+        "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer/-/archive/${ALIENTRIMMER_VERSION}/AlienTrimmer-${ALIENTRIMMER_VERSION}.tar.gz" \
         -o /tmp/alientrimmer.tar.gz
     echo "${ALIENTRIMMER_SHA256}  /tmp/alientrimmer.tar.gz" | sha256sum --check --strict
     tar --extract --gzip --file /tmp/alientrimmer.tar.gz --directory /opt

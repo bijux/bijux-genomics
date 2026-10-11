@@ -11,7 +11,9 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionInterface, BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs,
     BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
     BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
-    BenchmarkExecutionSpec, BenchmarkRunIdentity, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BenchmarkExecutionSpec, BenchmarkRunIdentity, BenchmarkStagePlanManifest,
+    BenchmarkStagePlanReference, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1,
 };
 use bijux_dna_containers::api::{
     freeze_repository, ContainerGovernance, ContainerPathPolicy, ContainerPreflightPolicy,
@@ -113,6 +115,19 @@ fn fixture() -> anyhow::Result<Fixture> {
     std::fs::create_dir_all(&result_root)?;
     std::fs::write(&image_path, b"seqkit image")?;
     std::fs::write(&input_path, b"fastq input")?;
+    let mut required_files = vec![
+        "repetitions/repetition-1.metrics.json".to_string(),
+        "repetitions/repetition-1.resource.tsv".to_string(),
+        "repetitions/repetition-2.resource.tsv".to_string(),
+        "repetitions/repetition-3.resource.tsv".to_string(),
+    ];
+    for repetition in 1..=3 {
+        let instance = format!("measured-repetition-{repetition}--sample-a");
+        required_files.extend([
+            format!("repetitions/{instance}/raw.tsv"),
+            format!("repetitions/{instance}/resource.tsv"),
+        ]);
+    }
 
     let spec = BenchmarkExecutionSpec {
         schema_version: BENCHMARK_EXECUTION_SPEC_SCHEMA_V1.to_string(),
@@ -123,6 +138,7 @@ fn fixture() -> anyhow::Result<Fixture> {
                 domain: "fastq".to_string(),
                 stage_id: "fastq.profile_read_lengths".to_string(),
             },
+            case_id: None,
             attempt_id: "attempt-001".to_string(),
             tool_id: "seqkit".to_string(),
         },
@@ -190,12 +206,7 @@ fn fixture() -> anyhow::Result<Fixture> {
         outputs: BenchmarkExecutionOutputs {
             result_root: result_root.display().to_string(),
             mount_path: "/result".to_string(),
-            required_files: vec![
-                "repetitions/repetition-1.metrics.json".to_string(),
-                "repetitions/repetition-1.resource.tsv".to_string(),
-                "repetitions/repetition-2.resource.tsv".to_string(),
-                "repetitions/repetition-3.resource.tsv".to_string(),
-            ],
+            required_files,
         },
         resources: BenchmarkExecutionResources {
             account: "lu2024-12-24".to_string(),
@@ -232,7 +243,53 @@ fn fixture() -> anyhow::Result<Fixture> {
             }],
         },
     };
-    std::fs::write(result_root.join("execution-spec.json"), serde_json::to_vec_pretty(&spec)?)?;
+    let execution_spec_path = result_root.join("execution-spec.json");
+    std::fs::write(&execution_spec_path, serde_json::to_vec_pretty(&spec)?)?;
+    let mut plans = Vec::new();
+    for repetition in 1..=3 {
+        let instance = format!("measured-repetition-{repetition}--sample-a");
+        let relative = format!("stage-plans/repetition-{repetition}/sample-a.json");
+        let path = result_root.join(&relative);
+        std::fs::create_dir_all(path.parent().ok_or_else(|| anyhow::anyhow!("plan parent"))?)?;
+        std::fs::write(
+            &path,
+            serde_json::to_vec_pretty(&serde_json::json!({
+                "stage_instance_id": instance,
+                "command": {
+                    "template": [
+                        "sh",
+                        "-c",
+                        format!(
+                            "printf '%s\\n' raw > /result/repetitions/{instance}/raw.tsv"
+                        )
+                    ]
+                },
+                "io": {
+                    "outputs": [{
+                        "path": format!("/result/repetitions/{instance}/raw.tsv")
+                    }]
+                },
+                "out_dir": result_root.join("repetitions").join(&instance)
+            }))?,
+        )?;
+        plans.push(BenchmarkStagePlanReference {
+            repetition,
+            execution_unit_id: "sample-a".to_owned(),
+            stage_instance_id: instance,
+            path: relative,
+            sha256: bijux_dna_infra::hash_file_sha256(&path)?,
+        });
+    }
+    let manifest = BenchmarkStagePlanManifest {
+        schema_version: BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1.to_owned(),
+        identity: spec.identity.clone(),
+        execution_spec_sha256: bijux_dna_infra::hash_file_sha256(&execution_spec_path)?,
+        plans,
+    };
+    std::fs::write(
+        result_root.join("stage-plan-manifest.json"),
+        serde_json::to_vec_pretty(&manifest)?,
+    )?;
     Ok(Fixture { root, spec, input_path })
 }
 
@@ -279,8 +336,60 @@ fn benchmark_slurm_material_is_isolated_complete_and_restart_safe() -> anyhow::R
     assert!(script.contains("%e\t%U\t%S\t%M\t%I\t%O\t%x' 'apptainer' 'exec' "));
     assert!(!script.contains("{repetition}"));
     assert!(script.contains("output-sha256.tsv"));
+    assert!(script.contains("stage-plan-manifest.json"));
+    assert!(script.contains("raw > /result/repetitions/measured-repetition-3--sample-a/raw.tsv"));
+    assert!(script.contains("repetitions/measured-repetition-3--sample-a/resource.tsv.partial"));
+    let stage_plan_position = script
+        .find("measured-repetition-3--sample-a/raw.tsv")
+        .ok_or_else(|| anyhow::anyhow!("missing stage-plan command"))?;
+    let aggregate_position = script
+        .find(
+            "'/usr/bin/time' '-o' \"${RESULT_ROOT}/\"'repetitions/repetition-1.resource.tsv.partial'",
+        )
+        .ok_or_else(|| anyhow::anyhow!("missing aggregate command"))?;
+    assert!(stage_plan_position < aggregate_position);
     assert!(script.contains("completed.json.partial"));
     assert!(Command::new("bash").arg("-n").arg(&first.request.script_path).status()?.success());
+    Ok(())
+}
+
+#[test]
+fn benchmark_slurm_material_rejects_stage_plan_outputs_outside_required_closure(
+) -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    let result_root = PathBuf::from(&fixture.spec.outputs.result_root);
+    let plan_path = result_root.join("stage-plans/repetition-1/sample-a.json");
+    let mut plan: serde_json::Value = serde_json::from_slice(&std::fs::read(&plan_path)?)?;
+    plan["io"]["outputs"][0]["path"] = serde_json::Value::String(
+        "/result/repetitions/measured-repetition-1--sample-a/undeclared.tsv".to_owned(),
+    );
+    std::fs::write(&plan_path, serde_json::to_vec_pretty(&plan)?)?;
+    let manifest_path = result_root.join("stage-plan-manifest.json");
+    let mut manifest: BenchmarkStagePlanManifest =
+        serde_json::from_slice(&std::fs::read(&manifest_path)?)?;
+    manifest.plans[0].sha256 = bijux_dna_infra::hash_file_sha256(&plan_path)?;
+    std::fs::write(&manifest_path, serde_json::to_vec_pretty(&manifest)?)?;
+
+    assert!(prepare_benchmark_slurm_job(&fixture.spec, "2026-08-05T02:10:00Z")
+        .is_err_and(|error| error.to_string().contains("required output authority")));
+    Ok(())
+}
+
+#[test]
+fn benchmark_slurm_material_rejects_missing_or_mutated_stage_plan_authority() -> anyhow::Result<()>
+{
+    let mutated = fixture()?;
+    let result_root = PathBuf::from(&mutated.spec.outputs.result_root);
+    std::fs::write(result_root.join("stage-plans/repetition-2/sample-a.json"), b"mutated")?;
+    assert!(prepare_benchmark_slurm_job(&mutated.spec, "2026-08-05T02:10:00Z")
+        .is_err_and(|error| error.to_string().contains("digest differs")));
+
+    let missing = fixture()?;
+    std::fs::remove_file(
+        PathBuf::from(&missing.spec.outputs.result_root).join("stage-plan-manifest.json"),
+    )?;
+    assert!(prepare_benchmark_slurm_job(&missing.spec, "2026-08-05T02:10:00Z")
+        .is_err_and(|error| error.to_string().contains("immutable JSON")));
     Ok(())
 }
 

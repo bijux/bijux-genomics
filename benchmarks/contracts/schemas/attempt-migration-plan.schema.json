@@ -37,6 +37,12 @@
         "attempt_id": {
           "type": "string"
         },
+        "case_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "disposition": {
           "$ref": "#/$defs/BenchmarkAttemptDisposition"
         },

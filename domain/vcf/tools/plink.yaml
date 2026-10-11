@@ -4,19 +4,19 @@ stage_ids: ["vcf.qc", "vcf.admixture", "vcf.population_structure"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
-default_version: "planned"
+default_version: "1.90b7.2"
 upstream: "https://www.cog-genomics.org/plink/"
-pin_strategy: "container_digest"
+pin_strategy: "source_sha256"
 license: "GPL-3.0"
-citation: "planned"
+citation: "upstream:https://www.cog-genomics.org/plink/"
 version_cmd: "plink --version"
 help_cmd: "plink --help"
 expected_artifacts: ["qc_report", "admixture_report", "population_structure_report", "metrics.json"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.population_structure.v1"
-comparability_notes: "Planned tool; compare only within pinned profile and reference build."
+comparability_notes: "Compare only within the same pinned profile, reference build, and analysis thresholds."
 container:
-  image: "containers/docker/Dockerfile.arm64.plink"
-  digest: "planned"
+  image: "containers/apptainer/plink.def"
+  digest: "sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3"

@@ -1,0 +1,8 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phase set">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	cohort_alpha	cohort_beta
+1	101	.	A	G	60	PASS	.	GT:PS	0|1:101	1|0:101
+1	120	.	C	T	61	PASS	.	GT:PS	0|1:101	0|1:101
+1	145	.	G	A	59	PASS	.	GT:PS	1|0:145	0|1:145
+1	160	.	T	C	58	PASS	.	GT:PS	0|1:145	1|0:145

@@ -1,12 +1,19 @@
 //! Owner: bijux-dna-bench
 //! Input and mount closure shared by BAM observational campaigns.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::PathBuf;
 
 use anyhow::{bail, Result};
 use bijux_dna_bench_model::{
     AdmittedBamCohort, AdmittedBamCorpus, AdmittedReferenceBundle, BenchmarkExecutionInput,
     BenchmarkExecutionInputKind,
+};
+use bijux_dna_core::contract::ArtifactRole;
+
+use super::super::{
+    BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
+    BenchmarkStagePlanUnitMaterial,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -42,6 +49,30 @@ pub(in crate::workflow) fn execution_inputs(
             &corpus.catalog_sha256,
         ),
     ]
+}
+
+pub(in crate::workflow) fn single_bam_stage_plan_unit(
+    sample_id: &str,
+    bam_mount: &str,
+    outputs: Vec<BenchmarkStagePlanOutputMaterial>,
+) -> BenchmarkStagePlanUnitMaterial {
+    BenchmarkStagePlanUnitMaterial {
+        execution_unit_id: sample_id
+            .to_ascii_lowercase()
+            .chars()
+            .map(|character| if character.is_ascii_alphanumeric() { character } else { '-' })
+            .collect(),
+        inputs: vec![BenchmarkStagePlanInputMaterial {
+            binding_name: "bam".to_owned(),
+            path: PathBuf::from(bam_mount),
+            role: ArtifactRole::Bam,
+        }],
+        outputs,
+        scientific_defaults: BTreeMap::new(),
+        input_derived: BTreeMap::new(),
+        operator_overrides: BTreeMap::new(),
+        immutable_parameters: BTreeSet::new(),
+    }
 }
 
 pub(in crate::workflow) fn cohort_execution_inputs(

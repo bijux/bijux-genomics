@@ -18,7 +18,7 @@ use super::contracts::{
 };
 use super::validation::{
     canonical_directory, ensure_json_identity, read_json, require_utc_timestamp,
-    validate_specification,
+    validate_recorded_specification, validate_specification,
 };
 use crate::backend::slurm::{
     cancel_slurm_job, collect_slurm_job, observe_slurm_job, submit_slurm_job, SlurmArraySpec,
@@ -71,6 +71,13 @@ pub fn submit_prepared_container_qualification_job(
 ) -> Result<SlurmJobHandle> {
     let scheduler_root = scheduler_root(&prepared.request)?;
     recheck_prepared(prepared, &scheduler_root)?;
+    let persisted_spec: ContainerQualificationSlurmSpec = read_json(
+        &scheduler_root
+            .parent()
+            .context("qualification scheduler root has no evidence parent")?
+            .join("qualification-spec.json"),
+    )?;
+    validate_specification(&persisted_spec)?;
     let persisted: PreparedContainerQualificationSlurmJob =
         read_json(&scheduler_root.join("prepared-job.json"))?;
     if persisted != *prepared {
@@ -118,6 +125,13 @@ pub fn load_prepared_container_qualification_slurm_job(
     spec: &ContainerQualificationSlurmSpec,
 ) -> Result<PreparedContainerQualificationSlurmJob> {
     validate_specification(spec)?;
+    load_recorded_prepared_container_qualification_slurm_job(spec)
+}
+
+fn load_recorded_prepared_container_qualification_slurm_job(
+    spec: &ContainerQualificationSlurmSpec,
+) -> Result<PreparedContainerQualificationSlurmJob> {
+    validate_recorded_specification(spec)?;
     let evidence_root = canonical_directory(&spec.evidence_root, "qualification evidence root")?;
     let persisted_spec: ContainerQualificationSlurmSpec =
         read_json(&evidence_root.join("qualification-spec.json"))?;
@@ -151,7 +165,7 @@ pub fn load_prepared_container_qualification_slurm_job(
 pub fn load_container_qualification_slurm_job_handle(
     spec: &ContainerQualificationSlurmSpec,
 ) -> Result<SlurmJobHandle> {
-    let prepared = load_prepared_container_qualification_slurm_job(spec)?;
+    let prepared = load_recorded_prepared_container_qualification_slurm_job(spec)?;
     let scheduler_root = scheduler_root(&prepared.request)?;
     let intent: SubmissionIntent = read_json(&scheduler_root.join("submission-intent.json"))?;
     if submission_intent(&prepared) != intent {
@@ -206,7 +220,7 @@ pub fn admit_container_qualification_collection(
     admitted_at_utc: &str,
 ) -> Result<ContainerQualificationAdmission> {
     require_utc_timestamp(admitted_at_utc, "qualification admission timestamp")?;
-    validate_specification(spec)?;
+    validate_recorded_specification(spec)?;
     if let Some(admission) = load_container_qualification_admission(spec)? {
         return Ok(admission);
     }
@@ -270,7 +284,7 @@ pub fn collect_container_qualification_slurm_job(
     collected_at_utc: &str,
 ) -> Result<ContainerQualificationCollection> {
     require_utc_timestamp(collected_at_utc, "collection timestamp")?;
-    validate_specification(spec)?;
+    validate_recorded_specification(spec)?;
     let handle = load_container_qualification_slurm_job_handle(spec)?;
     let terminal_path = spec.evidence_root.join("scheduler-evidence.json");
     if regular_file_exists(&terminal_path, "qualification terminal evidence")? {

@@ -705,12 +705,23 @@ fn admit_record_role(
     record: &BenchmarkDataIndexRecord,
     role: &str,
 ) -> Result<AdmittedBamCorpusFile> {
-    let mut matches = record.files.iter().filter(|file| file.role == role);
+    let mut matches = record.files.iter().filter(|file| record_role_matches(&file.role, role));
     let file = matches.next().with_context(|| format!("{} lacks role {role}", record.id))?;
     if matches.next().is_some() {
         bail!("{} contains duplicate role {role}", record.id);
     }
     admit_materialized_file(study_root, file, role)
+}
+
+fn record_role_matches(observed: &str, required: &str) -> bool {
+    observed == required
+        || matches!(
+            (
+                observed.strip_prefix("catalog.preserved_catalog."),
+                required.strip_prefix("catalog."),
+            ),
+            (Some(observed_suffix), Some(required_suffix)) if observed_suffix == required_suffix
+        )
 }
 
 fn checked_sum(values: &[u64]) -> Result<u64> {

@@ -8,6 +8,7 @@ use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
 use crate::contract::{
     BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1,
 };
 
 use super::{BenchmarkAttemptIdentity, BenchmarkParameterValue};
@@ -243,6 +244,28 @@ pub struct BenchmarkExecutionSpec {
     pub acceptance: BenchmarkExecutionAcceptance,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStagePlanReference {
+    pub repetition: u32,
+    pub execution_unit_id: String,
+    pub stage_instance_id: String,
+    pub path: String,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStagePlanManifest {
+    #[schemars(schema_with = "benchmark_stage_plan_manifest_schema_version")]
+    pub schema_version: String,
+    pub identity: BenchmarkAttemptIdentity,
+    #[schemars(schema_with = "sha256_identity_schema")]
+    pub execution_spec_sha256: String,
+    pub plans: Vec<BenchmarkStagePlanReference>,
+}
+
 #[must_use]
 pub fn benchmark_execution_spec_schema() -> Schema {
     schemars::schema_for!(BenchmarkExecutionSpec)
@@ -251,6 +274,11 @@ pub fn benchmark_execution_spec_schema() -> Schema {
 #[must_use]
 pub fn benchmark_effective_parameters_schema() -> Schema {
     schemars::schema_for!(BenchmarkEffectiveParameters)
+}
+
+#[must_use]
+pub fn benchmark_stage_plan_manifest_schema() -> Schema {
+    schemars::schema_for!(BenchmarkStagePlanManifest)
 }
 
 fn benchmark_execution_spec_schema_version(_: &mut SchemaGenerator) -> Schema {
@@ -264,6 +292,13 @@ fn effective_parameters_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
+    })
+}
+
+fn benchmark_stage_plan_manifest_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1,
     })
 }
 

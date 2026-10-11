@@ -4,6 +4,7 @@
 mod aggregation;
 mod persistence;
 mod planning;
+mod plugins;
 mod reporting;
 
 pub use aggregation::{
@@ -30,4 +31,5 @@ pub use persistence::{
 pub use planning::{
     plan_benchmark_case_matrix, validate_benchmark_case_matrix, BenchmarkCaseMatrixRequest,
 };
+pub use plugins::{BenchmarkStageNormalization, BenchmarkStagePluginRegistry};
 pub use reporting::build_benchmark_stage_report_from_case_aggregations;

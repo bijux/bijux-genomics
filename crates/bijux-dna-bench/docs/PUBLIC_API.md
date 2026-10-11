@@ -77,6 +77,14 @@ The `public_api` module itself is private. Stable exports are owned by
 - `ensure_stage_campaign_attempts(root, plan)` validates source locks, then preflights and crash-safely initializes every immutable planned attempt in a campaign cycle.
 - `resolve_benchmark_runtime(platform, runtime_override)` applies the benchmark-owned container-runtime policy before execution is allocated.
 - `plan_benchmark_cases(request)` selects one permanent run, closes its governed data and tool bindings, and immutably publishes its generic case matrix.
+- `BenchmarkStagePluginRegistry` validates complete, non-ambiguous plugin
+  coverage and generically materializes or normalizes a binding-backed stage.
+- `BenchmarkStageNormalization` returns the normalized plugin output together
+  with its stage-owned downstream evaluation without converting scientific
+  failure into control-flow failure.
+- `build_benchmark_stage_plans(spec, binding, catalog_tool, units)` constructs the complete
+  immutable measured-repetition by execution-unit plan matrix while rejecting identity, path,
+  parameter, and resource drift.
 - `admit_benchmark_cases(request)` validates normalized observations against their exact case matrix and publishes an immutable admitted set.
 - `aggregate_benchmark_cases(request)` validates an admitted observation set and publishes deterministic case aggregations.
 - `benchmark_attempt_directory(root, identity)` derives the permanent attempt path from validated identity.
@@ -148,6 +156,8 @@ including:
 - `BenchmarkCycleStatusV2`
 - `BenchmarkCampaignPlan`
 - `BenchmarkExecutionSpec`
+- `BenchmarkStagePlanManifest`
+- `BenchmarkStagePlanReference`
 - `CorpusMaterializationRequest`
 - `CorpusMaterializationPublication`
 - `CorpusAcquisitionPlan`
@@ -183,6 +193,7 @@ including:
 - `BenchError`
 - `BenchRunOptions`
 - `benchmark_execution_spec_schema`
+- `benchmark_stage_plan_manifest_schema`
 - `benchmark_suite_spec_schema`
 - `benchmark_corpus_manifest_schema`
 - `benchmark_bundle_manifest_schema`
@@ -191,11 +202,17 @@ including:
 - `benchmark_summary_schema`
 - `gate_decision_schema`
 - `validate_execution_spec`
+- `validate_stage_plan_manifest`
 - `build_execution_spec`
 - `BenchmarkExecutionMaterial`
+- `BenchmarkStagePlanInputMaterial`
+- `BenchmarkStagePlanOutputMaterial`
+- `BenchmarkStagePlanUnitMaterial`
 - `load_execution_authorities`
 - `BenchmarkExecutionAuthorities`
 - `ensure_execution_spec`
+- `ensure_stage_plan_manifest`
+- `load_stage_plan_manifest`
 
 ## Export Policy
 

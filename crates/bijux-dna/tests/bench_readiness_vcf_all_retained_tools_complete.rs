@@ -131,9 +131,10 @@ fn bench_readiness_vcf_all_retained_tools_complete_reports_licensed_evidence_blo
         .find(|check| check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(347))
         .expect("goal 347 check");
     assert!(
-        goal_347.get("detail").and_then(serde_json::Value::as_str).is_some_and(|detail| detail
-            .contains("shapeit5 active")
-            && detail.contains("beagle/eagle")),
+        goal_347
+            .get("detail")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|detail| detail.contains("every supported backend")),
         "goal 347 detail must keep the retained phasing family explicit"
     );
 

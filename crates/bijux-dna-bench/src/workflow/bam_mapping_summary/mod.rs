@@ -15,11 +15,16 @@ use bijux_dna_bench_model::{
     BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator, BenchmarkAttemptIdentity,
     BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
 };
+use bijux_dna_core::contract::ArtifactRole;
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
 use self::inputs::execution_inputs;
 use self::parameters::ensure_parameter_evidence;
-use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
+use super::bam_observation::single_bam_stage_plan_unit;
+use super::{
+    load_attempt_lifecycle, BenchmarkExecutionMaterial, BenchmarkStagePlanOutputMaterial,
+    BenchmarkStagePlanUnitMaterial,
+};
 
 pub(crate) use report::publish_bam_mapping_summary_stage_report_with_presentation_authority;
 pub use report::{
@@ -115,6 +120,7 @@ pub fn prepare_bam_mapping_summary_material_from_corpus(
     let parameters =
         ensure_parameter_evidence(repository_root, &attempt_directory, &corpus.sample_id)?;
     let measured_repetitions = 3;
+    let stage_plan_units = stage_plan_units(&identity.tool_id)?;
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),
         prepared_at_utc: prepared_at_utc.to_string(),
@@ -141,8 +147,26 @@ pub fn prepare_bam_mapping_summary_material_from_corpus(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: Some(stage_plan_units),
     };
     Ok(BamMappingSummaryMaterial { execution, admitted_corpus: corpus.clone() })
+}
+
+fn stage_plan_units(tool_id: &str) -> Result<Vec<BenchmarkStagePlanUnitMaterial>> {
+    let (binding_name, relative_path) = match tool_id {
+        "picard" => ("alignment_summary_metrics", "alignment-summary-metrics.tsv"),
+        "samtools" => ("flagstat", "flagstat.tsv"),
+        _ => bail!("unsupported BAM mapping-summary stage-plan tool"),
+    };
+    Ok(vec![single_bam_stage_plan_unit(
+        SAMPLE_ID,
+        "/input/ERR2112767.sorted.bam",
+        vec![BenchmarkStagePlanOutputMaterial {
+            binding_name: binding_name.to_owned(),
+            relative_path: relative_path.into(),
+            role: ArtifactRole::SummaryTsv,
+        }],
+    )])
 }
 
 fn acceptance() -> BenchmarkExecutionAcceptance {
@@ -174,7 +198,7 @@ mod tests {
 
     use bijux_dna_bench_model::{AdmittedBamCorpus, AdmittedBamCorpusFile};
 
-    use super::prepare_bam_mapping_summary_material_from_corpus;
+    use super::{prepare_bam_mapping_summary_material_from_corpus, stage_plan_units};
 
     #[test]
     fn material_closes_both_run_2004_tools() -> anyhow::Result<()> {
@@ -220,7 +244,32 @@ mod tests {
             assert_eq!(material.execution.parameters.effective_path, "effective-parameters.json");
             assert_eq!(material.execution.required_files.len(), 18);
             assert_eq!(material.execution.acceptance.metrics.len(), 4);
+            assert_eq!(material.execution.stage_plan_units.as_ref().map(Vec::len), Some(1));
         }
+        Ok(())
+    }
+
+    #[test]
+    fn stage_plan_units_match_each_canonical_mapping_summary_binding() -> anyhow::Result<()> {
+        let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+        for tool_id in ["picard", "samtools"] {
+            let units = stage_plan_units(tool_id)?;
+            let binding = bindings
+                .binding(
+                    &bijux_dna_core::ids::StageId::new(super::STAGE_ID),
+                    &bijux_dna_core::ids::ToolId::new(tool_id),
+                )
+                .expect("canonical mapping-summary binding");
+            assert_eq!(
+                units[0]
+                    .outputs
+                    .iter()
+                    .map(|output| output.binding_name.as_str())
+                    .collect::<Vec<_>>(),
+                binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>()
+            );
+        }
+        assert!(stage_plan_units("unknown").is_err());
         Ok(())
     }
 

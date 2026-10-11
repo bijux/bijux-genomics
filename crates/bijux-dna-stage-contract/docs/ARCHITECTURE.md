@@ -8,6 +8,11 @@ metadata explicit.
 
 ```text
 src/
+├── downstream_probe/
+│   ├── evaluation.rs       # normalized semantic consumer evaluation
+│   ├── mod.rs              # downstream-probe public module surface
+│   ├── model.rs            # probe declarations and evaluation outcomes
+│   └── registry.rs         # one canonical consumer per semantic stage
 ├── execution_plan/
 │   ├── edge.rs             # artifact-bound plan edges
 │   ├── mod.rs              # execution-plan public module surface
@@ -52,10 +57,11 @@ interpret those payloads; this crate does not execute them.
 
 - Keep the crate root limited to `Cargo.toml`, `README.md`, `docs/`, `src/`,
   and `tests/`.
-- Keep source modules scoped to the six source areas listed above.
+- Keep source modules scoped to the seven source areas listed above.
 - Add new modules only when they express stable contract vocabulary that cannot
   live inside an existing source area. Tool bindings are a separate stable
   concern because generic planners consume them independently of stage-plugin
-  result parsing.
+  result parsing. Downstream probes are separate because one tool-independent
+  semantic consumer must close every implementation of a stage.
 - Update boundary tests and docs in the same change as any intentional layout
   change.

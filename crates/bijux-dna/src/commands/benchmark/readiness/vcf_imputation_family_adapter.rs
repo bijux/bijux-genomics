@@ -928,9 +928,9 @@ fn ensure_vcf_imputation_family_adapter_contract(
     }
     let benchmark_ready_row_count =
         rows.iter().filter(|row| row.benchmark_status == "benchmark_ready").count();
-    if benchmark_ready_row_count != 4 {
+    if benchmark_ready_row_count != 8 {
         return Err(anyhow!(
-            "VCF imputation-family adapter benchmark-ready count drifted: expected 4, found {benchmark_ready_row_count}"
+            "VCF imputation-family adapter benchmark-ready count drifted: expected 8, found {benchmark_ready_row_count}"
         ));
     }
     Ok(())
@@ -994,7 +994,7 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.vcf_imputation_family_adapter.v1");
         assert_eq!(report.row_count, 8);
         assert_eq!(report.tool_count, 4);
-        assert_eq!(report.benchmark_ready_row_count, 4);
+        assert_eq!(report.benchmark_ready_row_count, 8);
         assert_eq!(report.parser_output_row_count, 8);
         assert_eq!(report.missing_input_test_passed_row_count, 8);
         assert!(report.rows.iter().any(|row| {

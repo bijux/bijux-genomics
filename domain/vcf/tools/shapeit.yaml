@@ -4,11 +4,11 @@ stage_ids: ["vcf.phasing"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 default_version: "4.2.2"
 upstream: "https://github.com/odelaneau/shapeit4"
-pin_strategy: "container_digest"
+pin_strategy: "source_sha256"
 license: "MIT"
 citation: "paper:https://doi.org/10.1038/s41467-018-07713-4"
 version_cmd: "shapeit --version"
@@ -19,4 +19,4 @@ metrics_schema_id: "bijux.vcf.phasing.v1"
 comparability_notes: "Legacy SHAPEIT4 comparison requires the same panel build, genetic map, and pinned execution profile."
 container:
   image: "containers/apptainer/shapeit.def"
-  digest: "registry_lock"
+  digest: "sha256:2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9"

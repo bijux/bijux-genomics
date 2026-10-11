@@ -3,7 +3,7 @@
 # purpose = Governed execution-mode classification for local FASTQ, BAM, and VCF benchmark tools.
 # authority = bijux-dna-bench
 # stability = evolving
-# last_updated = 2026-08-12
+# last_updated = 2026-08-13
 
 schema_version = "bijux.bench.local_tool_execution_modes.v1"
 classification_scope = "primary_operator_runtime"
@@ -39,6 +39,7 @@ tool_ids = [
   "clumpify",
   "contammix",
   "damageprofiler",
+  "eagle",
   "eigensoft",
   "fastp",
   "fastq_scan",
@@ -47,6 +48,8 @@ tool_ids = [
   "flash2",
   "fqtools",
   "germline",
+  "glimpse",
+  "ibdhap",
   "kaiju",
   "king",
   "kraken2",
@@ -54,6 +57,7 @@ tool_ids = [
   "leehom",
   "lighter",
   "mapdamage2",
+  "minimac4",
   "mosdepth",
   "musket",
   "pear",
@@ -71,6 +75,7 @@ tool_ids = [
   "seqkit_stats",
   "seqprep",
   "seqtk",
+  "shapeit",
   "shapeit5",
   "skewer",
   "sortmerna",

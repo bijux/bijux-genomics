@@ -1,0 +1,287 @@
+{
+  "$defs": {
+    "BenchmarkLocalHpcResumeSimulationBehavior": {
+      "additionalProperties": false,
+      "properties": {
+        "dependency_rerun_job_id": {
+          "type": "string"
+        },
+        "dependency_rerun_propagates": {
+          "type": "boolean"
+        },
+        "failed_stage_result_job_id": {
+          "type": "string"
+        },
+        "failed_stage_result_reruns": {
+          "type": "boolean"
+        },
+        "missing_manifest_job_id": {
+          "type": "string"
+        },
+        "missing_manifest_reruns": {
+          "type": "boolean"
+        },
+        "proven": {
+          "type": "boolean"
+        },
+        "stale_partial_output_job_id": {
+          "type": "string"
+        },
+        "stale_partial_output_reruns": {
+          "type": "boolean"
+        },
+        "unrelated_valid_job_id": {
+          "type": "string"
+        },
+        "unrelated_valid_job_skips": {
+          "type": "boolean"
+        },
+        "valid_completed_job_id": {
+          "type": "string"
+        },
+        "valid_completed_job_skips": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "failed_stage_result_job_id",
+        "dependency_rerun_job_id",
+        "unrelated_valid_job_id",
+        "missing_manifest_job_id",
+        "stale_partial_output_job_id",
+        "valid_completed_job_id",
+        "failed_stage_result_reruns",
+        "dependency_rerun_propagates",
+        "unrelated_valid_job_skips",
+        "missing_manifest_reruns",
+        "stale_partial_output_reruns",
+        "valid_completed_job_skips",
+        "proven"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcResumeSimulationJob": {
+      "additionalProperties": false,
+      "properties": {
+        "completion_detail": {
+          "type": "string"
+        },
+        "completion_state": {
+          "type": "string"
+        },
+        "declared_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "dependency_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "job_id_local": {
+          "type": "string"
+        },
+        "job_kind": {
+          "type": "string"
+        },
+        "manifest_valid": {
+          "type": "boolean"
+        },
+        "missing_output_paths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "node_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pipeline_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "present_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "rerun_dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "result_root": {
+          "type": "string"
+        },
+        "resume_action": {
+          "type": "string"
+        },
+        "runtime_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_result_manifest_path": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id_local",
+        "job_kind",
+        "stage_id",
+        "tool_id",
+        "dependency_count",
+        "dependencies",
+        "completion_state",
+        "completion_detail",
+        "manifest_valid",
+        "declared_output_count",
+        "present_output_count",
+        "missing_output_paths",
+        "resume_action",
+        "reason",
+        "rerun_dependencies",
+        "result_root",
+        "stage_result_manifest_path"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "behavior": {
+      "$ref": "#/$defs/BenchmarkLocalHpcResumeSimulationBehavior"
+    },
+    "benchmark_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "dependency_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "dependency_rerun_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "essential_pipeline_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failed_stage_result_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "invalid_stage_result_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "jobs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalHpcResumeSimulationJob"
+      },
+      "type": "array"
+    },
+    "manifest_path": {
+      "type": "string"
+    },
+    "missing_stage_result_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "rerun_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_hpc_resume_simulation.v1",
+      "type": "string"
+    },
+    "simulation_root": {
+      "type": "string"
+    },
+    "skip_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stale_partial_output_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "valid_completed_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "manifest_path",
+    "output_path",
+    "simulation_root",
+    "job_count",
+    "benchmark_job_count",
+    "essential_pipeline_job_count",
+    "dependency_count",
+    "valid_completed_job_count",
+    "failed_stage_result_job_count",
+    "invalid_stage_result_job_count",
+    "missing_stage_result_job_count",
+    "stale_partial_output_job_count",
+    "skip_job_count",
+    "rerun_job_count",
+    "dependency_rerun_job_count",
+    "behavior",
+    "jobs"
+  ],
+  "title": "BenchmarkLocalHpcResumeSimulationReport",
+  "type": "object"
+}

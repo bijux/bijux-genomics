@@ -46,18 +46,18 @@ fn bench_readiness_vcf_admixture_ready_writes_governed_json_file() {
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.vcf_admixture_ready.v1")
     );
-    assert_eq!(report.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(report.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let rows = report.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 1);
+    assert_eq!(rows.len(), 2);
 
     let observed_tools = rows
         .iter()
         .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(observed_tools, BTreeSet::from(["plink2"]));
+    assert_eq!(observed_tools, BTreeSet::from(["plink", "plink2"]));
 
     assert!(rows.iter().all(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.admixture")
@@ -65,6 +65,7 @@ fn bench_readiness_vcf_admixture_ready_writes_governed_json_file() {
             && row.get("smoke_selected_k").and_then(serde_json::Value::as_u64) == Some(2)
             && row.get("smoke_sample_count").and_then(serde_json::Value::as_u64) == Some(4)
             && row.get("smoke_population_count").and_then(serde_json::Value::as_u64) == Some(2)
+            && row.get("smoke_tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
             && row
                 .get("smoke_input_vcf_path")
                 .and_then(serde_json::Value::as_str)

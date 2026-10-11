@@ -5,15 +5,23 @@ use std::path::Path;
 fn runtime_source_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
 
+    assert_runtime_root_tree(root);
+    assert_runtime_source_groups(root);
+}
+
+fn assert_runtime_root_tree(root: &Path) {
     assert_eq!(
         dir_entries(root),
         entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
         "runtime crate root must stay minimal"
     );
+}
 
+fn assert_runtime_source_groups(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src")),
         entries([
+            "attempt_sequence/",
             "environment.rs",
             "lib.rs",
             "manifests/",
@@ -27,6 +35,8 @@ fn runtime_source_tree_matches_architecture_contract() {
         ]),
         "runtime src tree must stay grouped by contract owner"
     );
+
+    assert_attempt_sequence_tree(root);
 
     assert_eq!(
         dir_entries(&root.join("src/manifests")),
@@ -111,6 +121,14 @@ fn runtime_source_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/runner")),
         entries(["contract_kinds.rs", "contracts.rs", "mod.rs", "model.rs", "stable_surface.rs"]),
         "runtime runner modules must define contracts without backend execution"
+    );
+}
+
+fn assert_attempt_sequence_tree(root: &Path) {
+    assert_eq!(
+        dir_entries(&root.join("src/attempt_sequence")),
+        entries(["mod.rs", "reservation.rs"]),
+        "runtime attempt sequence reservation must stay in its owned module"
     );
 }
 

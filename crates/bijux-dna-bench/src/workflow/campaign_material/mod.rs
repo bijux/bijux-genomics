@@ -9,7 +9,7 @@ use std::path::Path;
 use anyhow::{bail, Result};
 use bijux_dna_bench_model::{
     AdmittedAlignmentTruthSet, AdmittedBamCohort, AdmittedBamCorpus, AdmittedFastqCorpus,
-    AdmittedReferenceBundle, BenchmarkAttemptIdentity,
+    AdmittedReferenceBundle, BenchmarkAttemptIdentity, BenchmarkCorpusSnapshotV1,
 };
 
 use super::{
@@ -60,6 +60,55 @@ pub enum BenchmarkCampaignEvidence {
     BamObservation(AdmittedBamCorpus),
     FastqReadLengths(FastqReadLengthExpectationPublication),
     FastqProfileReads(FastqProfileReadsExpectationPublication),
+}
+
+impl BenchmarkCampaignEvidence {
+    /// Return the exact primary corpus snapshot admitted for campaign execution.
+    #[must_use]
+    pub fn primary_corpus_snapshot(&self) -> BenchmarkCorpusSnapshotV1 {
+        match self {
+            Self::BamAlignment { corpus, .. } => fastq_corpus_snapshot(corpus),
+            Self::BamGenotyping(corpus) => bam_corpus_snapshot(&corpus.bam),
+            Self::BamPicardCohort { cohort, .. } => BenchmarkCorpusSnapshotV1 {
+                corpus_id: cohort.corpus_id.clone(),
+                snapshot_sha256: cohort.catalog_sha256.clone(),
+                sample_ids: sorted_sample_ids(
+                    cohort.samples.iter().map(|sample| sample.sample_id.as_str()),
+                ),
+            },
+            Self::BamObservation(corpus) => bam_corpus_snapshot(corpus),
+            Self::FastqReadLengths(publication) => {
+                fastq_corpus_snapshot(&publication.admitted_corpus)
+            }
+            Self::FastqProfileReads(publication) => {
+                fastq_corpus_snapshot(&publication.admitted_corpus)
+            }
+        }
+    }
+}
+
+fn fastq_corpus_snapshot(corpus: &AdmittedFastqCorpus) -> BenchmarkCorpusSnapshotV1 {
+    BenchmarkCorpusSnapshotV1 {
+        corpus_id: corpus.corpus_id.clone(),
+        snapshot_sha256: corpus.catalog_sha256.clone(),
+        sample_ids: sorted_sample_ids(
+            corpus.samples.iter().map(|sample| sample.sample_id.as_str()),
+        ),
+    }
+}
+
+fn bam_corpus_snapshot(corpus: &AdmittedBamCorpus) -> BenchmarkCorpusSnapshotV1 {
+    BenchmarkCorpusSnapshotV1 {
+        corpus_id: corpus.corpus_id.clone(),
+        snapshot_sha256: corpus.catalog_sha256.clone(),
+        sample_ids: vec![corpus.sample_id.clone()],
+    }
+}
+
+fn sorted_sample_ids<'a>(samples: impl Iterator<Item = &'a str>) -> Vec<String> {
+    let mut samples = samples.map(str::to_owned).collect::<Vec<_>>();
+    samples.sort();
+    samples
 }
 
 /// Immutable operator and source authorities shared by one campaign attempt.
@@ -333,7 +382,12 @@ fn prepare_bam_observation_material(
 mod tests {
     use std::collections::BTreeSet;
 
-    use super::{benchmark_campaign_has_executable_material, EXECUTABLE_CAMPAIGN_RUN_IDS};
+    use bijux_dna_bench_model::{AdmittedBamCorpus, AdmittedBamCorpusFile};
+
+    use super::{
+        benchmark_campaign_has_executable_material, BenchmarkCampaignEvidence,
+        EXECUTABLE_CAMPAIGN_RUN_IDS,
+    };
 
     #[test]
     fn executable_campaign_material_covers_the_declared_registry() -> anyhow::Result<()> {
@@ -348,5 +402,30 @@ mod tests {
         assert!(declared.iter().all(|run_id| benchmark_campaign_has_executable_material(run_id)));
         assert!(!benchmark_campaign_has_executable_material("run-9999"));
         Ok(())
+    }
+
+    #[test]
+    fn campaign_evidence_exposes_its_exact_primary_corpus_snapshot() {
+        let file = AdmittedBamCorpusFile {
+            path: "/study/data/sample.bam".to_string(),
+            sha256: "a".repeat(64),
+            size_bytes: 42,
+        };
+        let evidence = BenchmarkCampaignEvidence::BamObservation(AdmittedBamCorpus {
+            corpus_id: "real-bam-corpus".to_string(),
+            sample_id: "sample-a".to_string(),
+            data_index_path: "/study/data-index.json".to_string(),
+            data_index_sha256: "b".repeat(64),
+            catalog_path: "/study/catalog.json".to_string(),
+            catalog_sha256: "c".repeat(64),
+            bam: file.clone(),
+            bam_index: file,
+            input_bytes: 84,
+        });
+
+        let snapshot = evidence.primary_corpus_snapshot();
+        assert_eq!(snapshot.corpus_id, "real-bam-corpus");
+        assert_eq!(snapshot.snapshot_sha256, "c".repeat(64));
+        assert_eq!(snapshot.sample_ids, ["sample-a"]);
     }
 }

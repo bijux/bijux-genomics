@@ -7,6 +7,10 @@ use super::{
     ToolBindingRegistry, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
 };
 
+mod bam;
+mod fastq;
+mod vcf;
+
 const BAM: &str = "bijux.bam.artifact.coordinate_sorted_indexed.v1";
 const DIRECTORY: &str = "bijux.auxiliary.artifact.directory.v1";
 const FILE: &str = "bijux.auxiliary.artifact.file.v1";
@@ -118,6 +122,15 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     ]
     .into_boxed_slice()
     {
+        registry.insert(binding)?;
+    }
+    for binding in fastq::canonical_fastq_portfolio_bindings() {
+        registry.insert(binding)?;
+    }
+    for binding in bam::canonical_bam_portfolio_bindings() {
+        registry.insert(binding)?;
+    }
+    for binding in vcf::canonical_distributable_vcf_bindings() {
         registry.insert(binding)?;
     }
     Ok(registry)
@@ -359,7 +372,7 @@ fn alientrimmer_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(1, 2, 1),
         &[
             "qualification_requires_paired_reads_from_the_same_library",
@@ -401,7 +414,7 @@ fn atropos_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(4, 8, 4),
         &[
             "qualification_requires_paired_reads_from_the_same_library",
@@ -435,7 +448,7 @@ fn fastx_clipper_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(1, 2, 1),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
@@ -460,7 +473,7 @@ fn skewer_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(2, 2, 1),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
@@ -488,7 +501,7 @@ fn trim_galore_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(2, 4, 2),
         &[
             "qualification_requires_paired_reads_from_the_same_library",
@@ -523,7 +536,7 @@ fn trimmomatic_trim_reads() -> ToolBindingV1 {
         ],
         "bijux.benchmark.fastq.trim_reads.bundle.v1",
         "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
-        "bijux.stage_probe.fastq.trim_reads.v1",
+        "benchmark.fastq.trim_reads.compare",
         resources(2, 4, 2),
         &[
             "qualification_requires_paired_reads_from_the_same_library",
@@ -1130,7 +1143,7 @@ fn validate_reads_binding(
         &[output("validation_report", JSON), output("validated_reads_manifest", JSON)],
         &["/bin/sh", "-c", &command],
         "bijux.benchmark.fastq.validate_reads.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::pre::validate_reads",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads",
         "benchmark.fastq.validate_reads.compare",
         resources(4, 8, 4),
         &[
@@ -1155,9 +1168,9 @@ fn seqfu_profile_read_lengths() -> ToolBindingV1 {
             "'${executable}' tab '${input:reads_r1}' | awk -F '\\t' '{print $1 \"\\t\" length($3)}' > '${output:length_distribution_tsv}'",
         ],
         "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths",
         "benchmark.fastq.profile_read_lengths.compare",
-        resources(2, 4, 4),
+        resources(1, 4, 4),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
             "histogram_bins_are_applied_by_the_shared_result_normalizer",
@@ -1180,9 +1193,9 @@ fn seqfu_profile_reads() -> ToolBindingV1 {
             "'${executable}' stats --threads '${parameter:threads}' --gc '${input:reads_r1}' > '${output:qc_tsv}'",
         ],
         "bijux.benchmark.fastq.profile_reads.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads",
         "benchmark.fastq.profile_reads.compare",
-        resources(2, 4, 4),
+        resources(4, 4, 4),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
             "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
@@ -1204,9 +1217,9 @@ fn seqkit_profile_read_lengths() -> ToolBindingV1 {
             "'${executable}' fx2tab --name --only-id --length --threads '${parameter:threads}' '${input:reads_r1}' | awk -F '\\t' 'NF < 2 { exit 2 } { print $1 \"\\t\" $NF }' > '${output:length_distribution_tsv}'",
         ],
         "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths",
         "benchmark.fastq.profile_read_lengths.compare",
-        resources(2, 4, 4),
+        resources(4, 4, 4),
         &[
             "qualification_uses_the_governed_single_end_profile_when_selected_for_this_stage",
             "histogram_bins_are_applied_by_the_shared_result_normalizer",
@@ -1229,9 +1242,9 @@ fn seqkit_profile_reads() -> ToolBindingV1 {
             "'${executable}' stats -a -T -j '${parameter:threads}' '${input:reads_r1}' > '${output:qc_tsv}'",
         ],
         "bijux.benchmark.fastq.profile_reads.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads",
         "benchmark.fastq.profile_reads.compare",
-        resources(2, 4, 4),
+        resources(4, 4, 4),
         &[
             "qualification_uses_the_governed_single_end_profile_when_selected_for_this_stage",
             "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
@@ -1253,9 +1266,9 @@ fn seqkit_stats_profile_reads() -> ToolBindingV1 {
             "'${executable}' -a -T -j '${parameter:threads}' '${input:reads_r1}' > '${output:qc_tsv}'",
         ],
         "bijux.benchmark.fastq.profile_reads.bundle.v1",
-        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads",
         "benchmark.fastq.profile_reads.compare",
-        resources(2, 2, 2),
+        resources(4, 2, 2),
         &[
             "qualification_binding_uses_the_governed_single_end_profile",
             "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
@@ -1629,7 +1642,7 @@ fn rxy_sex() -> ToolBindingV1 {
         ],
         "bijux.benchmark.bam.sex.bundle.v1",
         "parse_sex_json",
-        "bijux.stage_probe.bam.sex.v1",
+        "benchmark.bam.sex.compare",
         resources(1, 8, 8),
         &[
             "classification_profile_must_match_the_governed_reference_and_interpretation_scope",
@@ -1800,6 +1813,7 @@ pub fn canonical_tool_bindings() -> Result<ToolBindingRegistry> {
     for binding in canonical_retained_tool_bindings()?.bindings() {
         registry.insert(binding.clone())?;
     }
+    crate::downstream_probes_for_bindings(&registry)?;
     Ok(registry)
 }
 
@@ -1811,14 +1825,16 @@ fn bowtie2_align() -> ToolBindingV1 {
         &[
             input("reads_r1", FASTQ_PAIRED),
             input("reads_r2", FASTQ_PAIRED),
-            input("reference_index", "bijux.auxiliary.artifact.index.v1"),
+            input("reference", FASTA),
         ],
         &["threads", "read_group_id", "read_group_sample"],
         &[output("raw_sam", SAM)],
         &[
             "${executable}",
-            "-x",
-            "${input:reference_index}",
+            "--bijux-align-reference",
+            "${input:reference}",
+            "--bijux-index-threads",
+            "${parameter:threads}",
             "-1",
             "${input:reads_r1}",
             "-2",
@@ -1840,7 +1856,7 @@ fn bowtie2_align() -> ToolBindingV1 {
         &[
             "paired_end_binding",
             "canonical_preset_is_very_sensitive",
-            "reference_index_must_match_the_admitted_reference_fasta",
+            "scratch_reference_index_is_derived_from_the_admitted_reference_fasta",
         ],
     )
 }
@@ -2172,14 +2188,22 @@ fn external_binding(
         inputs: inputs.to_vec(),
         parameters: vec![],
         outputs: outputs.to_vec(),
-        normalized_output_contract_id: outputs
-            .first()
-            .map_or_else(String::new, |output| output.artifact_contract_id.clone()),
+        normalized_output_contract_id: format!("bijux.benchmark.{stage_id}.bundle.v1"),
         command_template: command_template.iter().map(ToString::to_string).collect(),
         resources,
         normalizer_id: normalizer_id.to_string(),
-        downstream_probe_id: format!("bijux.stage_probe.{stage_id}.v1"),
+        downstream_probe_id: external_downstream_probe_id(stage_id),
         limitations: binding_limitations,
+    }
+}
+
+fn external_downstream_probe_id(stage_id: &str) -> String {
+    match stage_id {
+        "bam.damage" => "benchmark.bam.damage.consume".to_string(),
+        "bam.kinship" | "bam.sex" | "fastq.remove_duplicates" => {
+            format!("benchmark.{stage_id}.compare")
+        }
+        _ => format!("bijux.stage_probe.{stage_id}.v1"),
     }
 }
 

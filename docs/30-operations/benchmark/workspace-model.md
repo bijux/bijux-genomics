@@ -12,7 +12,9 @@ Use these terms consistently in code, docs, and commit messages:
 - `local cache mirror`: the local path named by `workspace.local.cache_mirror_root` that mirrors the remote shared cache layout
 
 `configs/bench/benchmark.toml` is the authority for every root in this model.
-`bijux-dna` consumes that authority directly, and Make wrappers must preserve that ownership rather than restating benchmark path rules.
+`bijux-dna-bench` consumes that authority through the stable `bijux-dna-api` composition surface;
+the `bijux-dna` CLI and Make wrappers must preserve that ownership rather than restating benchmark
+path rules.
 
 ## Root Roles
 

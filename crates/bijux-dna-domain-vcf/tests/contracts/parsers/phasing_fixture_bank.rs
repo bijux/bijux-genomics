@@ -17,6 +17,20 @@ struct VcfPhasingFixtureCase {
 
 const VCF_PHASING_FIXTURE_CASES: &[VcfPhasingFixtureCase] = &[
     VcfPhasingFixtureCase {
+        tool_id: "shapeit",
+        parser_id: "parse_shapeit_phasing_metrics",
+        required_files: &[
+            "raw.command.json",
+            "raw.phased.vcf",
+            "raw.unphased.vcf",
+            "raw.phase_block_stats.tsv",
+            "raw.switch_error_proxy.tsv",
+            "raw.phasing_qc.json",
+            "raw.phasing_manifest.json",
+            "expected.normalized.json",
+        ],
+    },
+    VcfPhasingFixtureCase {
         tool_id: "shapeit5",
         parser_id: "parse_shapeit5_phasing_metrics",
         required_files: &[
@@ -64,7 +78,7 @@ const VCF_PHASING_FIXTURE_CASES: &[VcfPhasingFixtureCase] = &[
 fn vcf_phasing_fixture_bank_covers_governed_tool_set() {
     let governed_tool_ids =
         VCF_PHASING_FIXTURE_CASES.iter().map(|case| case.tool_id).collect::<Vec<_>>();
-    assert_eq!(governed_tool_ids, vec!["shapeit5", "eagle", "beagle"]);
+    assert_eq!(governed_tool_ids, vec!["shapeit", "shapeit5", "eagle", "beagle"]);
     for case in VCF_PHASING_FIXTURE_CASES {
         let dir = fixture_dir(case);
         assert!(dir.exists(), "missing fixture directory: {}", dir.display());

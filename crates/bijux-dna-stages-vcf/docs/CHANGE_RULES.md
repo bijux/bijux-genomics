@@ -27,7 +27,8 @@ Use these rules when changing `bijux-dna-stages-vcf`.
 
 ## Dependencies
 
-- Do not add API, planner, runner, runtime, or environment dependencies here.
-- Prefer domain, reference-db, core, and infra dependencies already used by the
-  crate.
+- Do not add API, planner, runtime, or environment dependencies here. Runner is
+  the sole process-execution edge, and stage-contract is the shared plugin edge.
+- Prefer domain, stage-contract, reference-db, core, and infra dependencies
+  already used by the crate.
 - Add dependency-boundary tests with any dependency graph change.

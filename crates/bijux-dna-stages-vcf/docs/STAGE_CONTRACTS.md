@@ -29,6 +29,11 @@ artifact paths, and contract tests covering success or refusal behavior.
 
 ## Artifact Duties
 
+- `VcfStagePlugin` must accept every managed stage ID without selecting or
+  dispatching on a tool ID.
+- Plugin output normalization uses the stage catalog's declared parser identity
+  and preserves missing or semantically invalid outputs as failed invariants
+  and a failed stage verdict.
 - Stage runners write only under caller-provided output directories.
 - Stage runners emit typed metrics, manifests, warnings, sidecars, or readiness
   artifacts appropriate to the stage family.

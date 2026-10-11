@@ -5,6 +5,7 @@
 #![allow(dead_code)]
 
 mod active_scope;
+mod all_domain_failure_classification;
 mod all_domain_parser_collector;
 mod appraisal;
 mod benchmark_matrix;
@@ -22,21 +23,38 @@ mod domain_campaign;
 mod dossier_index;
 mod essential_pipeline_readiness;
 mod execution;
+mod expected_benchmark_results;
+mod full_benchmark_report;
+mod full_benchmark_result_collector;
 mod interfaces;
 mod lifecycle;
 mod local_benchmark_summary;
 mod local_corpus_run;
 mod local_corpus_skip;
 mod local_corpus_stage_compatibility;
+mod local_essential_pipeline_fake_run;
 mod local_hpc_asset_staging;
+mod local_hpc_candidate_run;
+mod local_hpc_dependency_simulation;
+mod local_hpc_dry_run_readiness;
+mod local_hpc_execution_resolver;
+mod local_hpc_pipeline_node_array;
 mod local_hpc_result_collection_simulation;
+mod local_hpc_resume_simulation;
 mod local_hpc_scratch_layout;
+mod local_hpc_stage_benchmark_array;
+mod local_hpc_submission_readiness;
 mod local_pipeline_dag;
 mod local_runtime_metrics;
+mod local_slurm_dependency;
+mod local_slurm_submit;
+mod local_stage_commands;
 mod local_stage_completion;
+mod local_stage_fake_run;
 mod local_stage_inventory;
 mod local_vcf_smoke;
 mod materialization;
+mod output_declarations;
 mod planning;
 mod protocol;
 mod publication;
@@ -52,12 +70,19 @@ mod replay;
 mod report;
 mod run_index;
 mod schema_versions;
+mod scientific_acceptance;
 mod scope_views;
 mod source_authority;
 mod stage_result;
+mod stage_tool_assets;
 mod stage_tool_closure;
+mod stage_tool_containers;
+mod stage_tool_resources;
 mod suite;
 pub use active_scope::validate_active_scope_fast_validation_report;
+pub use all_domain_failure_classification::{
+    validate_all_domain_failure_classification, REQUIRED_ALL_DOMAIN_FAILURE_CLASSES,
+};
 pub use all_domain_parser_collector::validate_all_domain_parser_collector;
 pub use appraisal::{validate_appraisal_report, validate_hardening_queue_report};
 pub use benchmark_matrix::validate_benchmark_matrix_report;
@@ -83,7 +108,15 @@ pub use domain_campaign::{
 };
 pub use dossier_index::validate_benchmark_dossier_index;
 pub use essential_pipeline_readiness::validate_benchmark_essential_pipeline_readiness;
-pub use execution::validate_execution_spec;
+pub use execution::{validate_execution_spec, validate_stage_plan_manifest};
+pub use expected_benchmark_results::validate_all_domain_expected_benchmark_results;
+pub use full_benchmark_report::{
+    validate_full_benchmark_report, FullBenchmarkReportAdmissionContext,
+};
+pub use full_benchmark_result_collector::{
+    validate_full_benchmark_result_collector, FullBenchmarkResultBinding,
+    FullBenchmarkResultCollectorAdmissionContext,
+};
 pub use interfaces::{
     validate_defined_interface_campaign_alignment, validate_interface_parameter_alignment,
     validate_pipeline_parameter_config, validate_stage_interface_catalog,
@@ -98,17 +131,46 @@ pub use local_benchmark_summary::validate_benchmark_local_summary;
 pub use local_corpus_run::validate_benchmark_local_corpus_run;
 pub use local_corpus_skip::validate_benchmark_local_corpus_skip_report;
 pub use local_corpus_stage_compatibility::validate_benchmark_local_corpus_stage_compatibility_report;
+pub use local_essential_pipeline_fake_run::{
+    validate_benchmark_local_essential_pipeline_fake_run_node_metrics,
+    validate_benchmark_local_essential_pipeline_fake_run_node_report,
+    validate_benchmark_local_essential_pipeline_fake_run_pipeline_report,
+    validate_benchmark_local_essential_pipeline_fake_runs_report,
+};
 pub use local_hpc_asset_staging::validate_benchmark_local_hpc_asset_staging_manifest;
+pub use local_hpc_candidate_run::validate_benchmark_local_hpc_candidate_run_manifest;
+pub use local_hpc_dependency_simulation::validate_benchmark_local_hpc_dependency_simulation;
+pub use local_hpc_dry_run_readiness::validate_benchmark_local_hpc_dry_run_readiness;
+pub use local_hpc_execution_resolver::validate_benchmark_local_hpc_execution_resolver;
+pub use local_hpc_pipeline_node_array::validate_benchmark_local_hpc_pipeline_node_array;
 pub use local_hpc_result_collection_simulation::validate_benchmark_local_hpc_result_collection_simulation_report;
+pub use local_hpc_resume_simulation::validate_benchmark_local_hpc_resume_simulation;
 pub use local_hpc_scratch_layout::validate_benchmark_local_hpc_scratch_layout;
+pub use local_hpc_stage_benchmark_array::validate_benchmark_local_hpc_stage_benchmark_array;
+pub use local_hpc_submission_readiness::validate_benchmark_local_hpc_submission_readiness;
 pub use local_pipeline_dag::{
     validate_benchmark_local_pipeline_dag_validation,
     validate_benchmark_local_pipeline_dag_validation_set,
 };
 pub use local_runtime_metrics::validate_benchmark_local_runtime_metrics;
+pub use local_slurm_dependency::{
+    validate_benchmark_local_slurm_dependency_check, validate_benchmark_local_slurm_dry_run,
+    validate_benchmark_local_slurm_shell_syntax,
+};
+pub use local_slurm_submit::{
+    validate_benchmark_local_all_domain_slurm_submit_manifest,
+    validate_benchmark_local_slurm_submit_manifest,
+};
+pub use local_stage_commands::validate_benchmark_local_stage_commands;
 pub use local_stage_completion::{
     validate_benchmark_local_stage_manifest_completion,
     validate_benchmark_local_stage_output_completion,
+};
+pub use local_stage_fake_run::{
+    validate_benchmark_local_stage_fake_failure_manifest,
+    validate_benchmark_local_stage_fake_failure_record,
+    validate_benchmark_local_stage_fake_run_manifest,
+    validate_benchmark_local_stage_fake_run_result,
 };
 pub use local_stage_inventory::{
     validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_stage_inventory,
@@ -118,6 +180,9 @@ pub use materialization::{
     validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
     validate_governed_data_catalog, validate_governed_data_catalog_document,
     validate_governed_preserved_data_catalog, validate_utc_timestamp,
+};
+pub use output_declarations::{
+    validate_all_domain_output_declaration_rows, validate_all_domain_output_declarations_report,
 };
 pub use planning::{
     validate_benchmark_local_hpc_job_graph, validate_benchmark_portfolio,
@@ -159,9 +224,11 @@ pub use run_index::{
     validate_benchmark_run_index, validate_benchmark_run_publication_pointer,
 };
 pub use schema_versions::{
-    ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1,
-    ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1, BAM_COMPARABLE_METRICS_SCHEMA_V1,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1,
+    ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1, ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1,
+    ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1, ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1,
+    BAM_COMPARABLE_METRICS_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
@@ -178,15 +245,31 @@ pub use schema_versions::{
     BENCHMARK_DATA_SOURCE_SCHEMA_V1, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_ESSENTIAL_PIPELINE_READINESS_SCHEMA_V1, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
     BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1,
-    BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_NODE_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_PIPELINE_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_DRY_RUN_READINESS_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,
-    BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1, BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_SUBMISSION_READINESS_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
-    BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
+    BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_DRY_RUN_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3,
+    BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_FAKE_RUN_MANIFEST_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1, BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1,
     BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
@@ -199,18 +282,27 @@ pub use schema_versions::{
     BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
     BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
-    BENCHMARK_STAGE_REPORT_SCHEMA_V1, BENCHMARK_STAGE_RESULT_SCHEMA_V2,
-    BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1, BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
-    BENCHMARK_SUITE_RUN_MANIFEST_SCHEMA_V2, BUNDLE_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_CENTRIC_REPORT_SCHEMA_V1, CORPUS_SCHEMA_V1,
-    DECISION_SCHEMA_V1, FASTQ_COMPARABLE_METRICS_SCHEMA_V1, FASTQ_CORPUS_SOURCE_SCHEMA_V1,
-    FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_SCHEMA_V2, GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1,
-    OBSERVATION_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
-    SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1,
-    VCF_COMPARABLE_METRICS_SCHEMA_V1,
+    BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
+    BENCHMARK_STAGE_RESULT_SCHEMA_V2, BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1,
+    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BENCHMARK_SUITE_RUN_MANIFEST_SCHEMA_V2, BUNDLE_SCHEMA_V1,
+    CORPUS_ACQUISITION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_CENTRIC_REPORT_SCHEMA_V1,
+    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, FASTQ_COMPARABLE_METRICS_SCHEMA_V1,
+    FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
+    FULL_BENCHMARK_REPORT_SCHEMA_V1, FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
+    OBSERVATION_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1,
+    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1,
+    STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1,
+    STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1, SUITE_SCHEMA_V1,
+    SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+};
+pub use scientific_acceptance::{
+    validate_scientific_acceptance_thresholds_config,
+    validate_scientific_acceptance_thresholds_report,
 };
 pub use scope_views::{
     validate_all_domain_active_stage_tool_matrix, validate_all_domain_retained_tools,
@@ -220,5 +312,12 @@ pub use source_authority::validate_benchmark_data_source_spec;
 pub use stage_result::{
     validate_benchmark_stage_result_manifest, validate_benchmark_stage_result_validation_report,
 };
+pub use stage_tool_assets::{validate_stage_tool_assets_config, validate_stage_tool_assets_report};
 pub use stage_tool_closure::validate_benchmark_stage_tool_closure;
+pub use stage_tool_containers::{
+    validate_stage_tool_containers_config, validate_stage_tool_containers_report,
+};
+pub use stage_tool_resources::{
+    validate_stage_tool_resources_config, validate_stage_tool_resources_report,
+};
 pub use suite::validate_suite;

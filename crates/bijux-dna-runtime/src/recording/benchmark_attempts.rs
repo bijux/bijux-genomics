@@ -603,12 +603,15 @@ fn acquire_attempt_lock(
     validate_attempt_identity(identity).context("validate benchmark attempt lock identity")?;
     let run_directory =
         benchmark_run_directory_name(&identity.run).context("derive benchmark lock directory")?;
-    let lock_path = benchmark_root
+    let campaign_lock_dir = benchmark_root
         .join(".lifecycle-locks")
         .join(run_directory)
         .join(&identity.tool_id)
-        .join(&identity.campaign_id)
-        .join(format!("{}.lock", identity.attempt_id));
+        .join(&identity.campaign_id);
+    let lock_path = identity.case_id.as_ref().map_or_else(
+        || campaign_lock_dir.join(format!("{}.lock", identity.attempt_id)),
+        |case_id| campaign_lock_dir.join(case_id).join(format!("{}.lock", identity.attempt_id)),
+    );
     bijux_dna_infra::FileLock::try_acquire(&lock_path)
         .with_context(|| format!("acquire benchmark attempt lock {}", lock_path.display()))
 }
@@ -636,6 +639,7 @@ fn layout_identity(
         run_directory,
         tool_id: identity.tool_id.clone(),
         campaign_id: identity.campaign_id.clone(),
+        execution_unit_id: identity.case_id.clone(),
         attempt_id: identity.attempt_id.clone(),
     }
 }

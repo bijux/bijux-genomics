@@ -23,6 +23,7 @@ src/
 │   ├── mod.rs
 │   └── output/
 │       ├── collected_metrics.rs
+│       ├── contract.rs
 │       ├── envelope.rs
 │       └── mod.rs
 ├── stage_specs.rs
@@ -37,7 +38,8 @@ src/
 - `metrics/` discovers known output files in a stage output directory and folds them into
   `BamMetricsV1`.
 - `plugin/` checks BAM stage support, materializes the planned invocation, parses existing
-  outputs, and builds a metrics envelope.
+  outputs, evaluates exact artifact and scientific invariants, emits a fail-closed stage verdict,
+  and builds a metrics envelope and governed report part.
 
 ## Stage Phases
 

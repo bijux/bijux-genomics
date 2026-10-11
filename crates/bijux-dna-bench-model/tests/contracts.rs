@@ -1,6 +1,8 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/active_scope.rs"]
 mod mod_contracts_active_scope_rs;
+#[path = "contracts/all_domain_failure_classification.rs"]
+mod mod_contracts_all_domain_failure_classification_rs;
 #[path = "contracts/all_domain_parser_collector.rs"]
 mod mod_contracts_all_domain_parser_collector_rs;
 #[path = "contracts/appraisal.rs"]
@@ -39,8 +41,14 @@ mod mod_contracts_domain_campaign_rs;
 mod mod_contracts_dossier_index_rs;
 #[path = "contracts/essential_pipeline_readiness.rs"]
 mod mod_contracts_essential_pipeline_readiness_rs;
+#[path = "contracts/expected_benchmark_results.rs"]
+mod mod_contracts_expected_benchmark_results_rs;
 #[path = "contracts/fastq_expectations.rs"]
 mod mod_contracts_fastq_expectations_rs;
+#[path = "contracts/full_benchmark_report.rs"]
+mod mod_contracts_full_benchmark_report_rs;
+#[path = "contracts/full_benchmark_result_collector.rs"]
+mod mod_contracts_full_benchmark_result_collector_rs;
 #[path = "contracts/local_benchmark_summary.rs"]
 mod mod_contracts_local_benchmark_summary_rs;
 #[path = "contracts/local_corpus_run.rs"]
@@ -49,18 +57,44 @@ mod mod_contracts_local_corpus_run_rs;
 mod mod_contracts_local_corpus_skip_rs;
 #[path = "contracts/local_corpus_stage_compatibility.rs"]
 mod mod_contracts_local_corpus_stage_compatibility_rs;
+#[path = "contracts/local_essential_pipeline_fake_run.rs"]
+mod mod_contracts_local_essential_pipeline_fake_run_rs;
 #[path = "contracts/local_hpc_asset_staging.rs"]
 mod mod_contracts_local_hpc_asset_staging_rs;
+#[path = "contracts/local_hpc_candidate_run.rs"]
+mod mod_contracts_local_hpc_candidate_run_rs;
+#[path = "contracts/local_hpc_dependency_simulation.rs"]
+mod mod_contracts_local_hpc_dependency_simulation_rs;
+#[path = "contracts/local_hpc_dry_run_readiness.rs"]
+mod mod_contracts_local_hpc_dry_run_readiness_rs;
+#[path = "contracts/local_hpc_execution_resolver.rs"]
+mod mod_contracts_local_hpc_execution_resolver_rs;
+#[path = "contracts/local_hpc_pipeline_node_array.rs"]
+mod mod_contracts_local_hpc_pipeline_node_array_rs;
 #[path = "contracts/local_hpc_result_collection_simulation.rs"]
 mod mod_contracts_local_hpc_result_collection_simulation_rs;
+#[path = "contracts/local_hpc_resume_simulation.rs"]
+mod mod_contracts_local_hpc_resume_simulation_rs;
 #[path = "contracts/local_hpc_scratch_layout.rs"]
 mod mod_contracts_local_hpc_scratch_layout_rs;
+#[path = "contracts/local_hpc_stage_benchmark_array.rs"]
+mod mod_contracts_local_hpc_stage_benchmark_array_rs;
+#[path = "contracts/local_hpc_submission_readiness.rs"]
+mod mod_contracts_local_hpc_submission_readiness_rs;
 #[path = "contracts/local_pipeline_dag.rs"]
 mod mod_contracts_local_pipeline_dag_rs;
 #[path = "contracts/local_runtime_metrics.rs"]
 mod mod_contracts_local_runtime_metrics_rs;
+#[path = "contracts/local_slurm_dependency.rs"]
+mod mod_contracts_local_slurm_dependency_rs;
+#[path = "contracts/local_slurm_submit.rs"]
+mod mod_contracts_local_slurm_submit_rs;
+#[path = "contracts/local_stage_commands.rs"]
+mod mod_contracts_local_stage_commands_rs;
 #[path = "contracts/local_stage_completion.rs"]
 mod mod_contracts_local_stage_completion_rs;
+#[path = "contracts/local_stage_fake_run.rs"]
+mod mod_contracts_local_stage_fake_run_rs;
 #[path = "contracts/local_stage_inventory.rs"]
 mod mod_contracts_local_stage_inventory_rs;
 #[path = "contracts/local_vcf_smoke.rs"]
@@ -69,6 +103,8 @@ mod mod_contracts_local_vcf_smoke_rs;
 mod mod_contracts_materialization_rs;
 #[path = "contracts/normalized_result.rs"]
 mod mod_contracts_normalized_result_rs;
+#[path = "contracts/output_declarations.rs"]
+mod mod_contracts_output_declarations_rs;
 #[path = "contracts/protocol.rs"]
 mod mod_contracts_protocol_rs;
 #[path = "contracts/publication_findings.rs"]
@@ -89,13 +125,21 @@ mod mod_contracts_remediation_queue_rs;
 mod mod_contracts_replay_rs;
 #[path = "contracts/run_index.rs"]
 mod mod_contracts_run_index_rs;
+#[path = "contracts/scientific_acceptance.rs"]
+mod mod_contracts_scientific_acceptance_rs;
 #[path = "contracts/scope_views.rs"]
 mod mod_contracts_scope_views_rs;
 #[path = "contracts/source_authority.rs"]
 mod mod_contracts_source_authority_rs;
 #[path = "contracts/stage_result.rs"]
 mod mod_contracts_stage_result_rs;
+#[path = "contracts/stage_tool_assets.rs"]
+mod mod_contracts_stage_tool_assets_rs;
 #[path = "contracts/stage_tool_closure.rs"]
 mod mod_contracts_stage_tool_closure_rs;
+#[path = "contracts/stage_tool_containers.rs"]
+mod mod_contracts_stage_tool_containers_rs;
+#[path = "contracts/stage_tool_resources.rs"]
+mod mod_contracts_stage_tool_resources_rs;
 #[path = "contracts/suite_validation.rs"]
 mod mod_contracts_suite_validation_rs;

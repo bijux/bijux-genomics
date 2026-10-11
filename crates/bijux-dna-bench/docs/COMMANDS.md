@@ -75,6 +75,7 @@ These operations are exported through the crate root and `public_api`.
 | `benchmark-execution-spec-schema` | `benchmark_execution_spec_schema()` | Derive the governed JSON Schema for immutable executable benchmark specifications. |
 | `validate-benchmark-execution-spec` | `validate_execution_spec(spec)` | Reject incomplete source locks, mutable result roots, in-place retries, undeclared acceptance outputs, and inconsistent runtime policy. |
 | `build-benchmark-execution-spec` | `build_execution_spec(registry, interfaces, catalog, plan, identity, image, material)` | Derive one executable attempt from aligned campaign, interface, catalog, source, image, and domain-material authorities. |
+| `build-benchmark-stage-plans` | `build_benchmark_stage_plans(spec, binding, catalog_tool, units)` | Derive the complete immutable repetition-by-unit plan matrix from canonical binding, container, path, parameter, and resource authorities. |
 | `load-benchmark-execution-authorities` | `load_execution_authorities(repository_root, inventory_path, repository_commit, plan)` | Load and hash exact campaign, interface, catalog, and image-inventory authorities, rejecting source or closure drift. |
 | `ensure-benchmark-execution-spec` | `ensure_execution_spec(benchmark_root, spec)` | Crash-safely persist one immutable executable specification beside its wholly planned attempt lifecycle. |
 | `load-benchmark-execution-spec` | `load_execution_spec(benchmark_root, identity)` | Load and validate a persisted executable specification against its immutable attempt identity. |

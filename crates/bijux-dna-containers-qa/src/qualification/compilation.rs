@@ -12,7 +12,8 @@ use bijux_dna_containers::api::{
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
-    canonical_tool_bindings, render_tool_command, ToolBinding, ToolBindingRenderContext,
+    canonical_tool_bindings, render_tool_command, OutputDiscoveryV1, ToolBinding,
+    ToolBindingRenderContext,
 };
 use schemars::{schema_for, JsonSchema, Schema};
 use serde::{Deserialize, Serialize};
@@ -316,13 +317,8 @@ fn materialize_pipeline(
     image_sha256: &str,
     command: &[String],
 ) -> Result<ContainerPipelineV2> {
-    let required_files = source
-        .outputs
-        .iter()
-        .map(|output| output.path.clone())
-        .chain([PathBuf::from("qualification-metrics.json")])
-        .collect::<Vec<_>>();
-    let real = wrap_real_command(command);
+    let required_files = required_qualification_files(source, binding)?;
+    let real = wrap_real_command(command, source, binding)?;
     let domain = run.stage_id.split_once('.').map_or(run.stage_id.as_str(), |value| value.0);
     let pipeline_value = json!({
         "schema_version": CONTAINER_PIPELINE_SCHEMA_V2,
@@ -417,6 +413,30 @@ fn materialize_pipeline(
     Ok(pipeline)
 }
 
+fn required_qualification_files(
+    source: &QualificationSpecificationSourceV1,
+    binding: &impl ToolBinding,
+) -> Result<Vec<PathBuf>> {
+    Ok(source
+        .outputs
+        .iter()
+        .map(|output| {
+            let binding_output = binding
+                .outputs()
+                .iter()
+                .find(|value| value.name == output.binding_output)
+                .context("qualification output disappeared from its binding")?;
+            Ok(match binding_output.discovery {
+                OutputDiscoveryV1::ExactPath => output.path.clone(),
+                OutputDiscoveryV1::Glob { .. } => glob_manifest_path(&output.path),
+            })
+        })
+        .collect::<Result<Vec<_>>>()?
+        .into_iter()
+        .chain([PathBuf::from("qualification-metrics.json")])
+        .collect())
+}
+
 /// Derive per-tool readiness for the generic compiler without treating unrelated tools as gates.
 ///
 /// # Errors
@@ -458,7 +478,7 @@ pub fn derive_qualification_specification_coverage(
                 "the current catalog-bound canonical image is unavailable".to_string(),
             )
         } else if let Some(path) = source_path.as_ref() {
-            match load_source(path).and_then(|source| {
+            match load_qualification_specification_source(path).and_then(|source| {
                 compile_container_qualification_specification(request, &source).map(|_| ())
             }) {
                 Ok(()) => (
@@ -587,10 +607,27 @@ fn resolve_current_image(
         bail!("qualification tool does not resolve to exactly one admitted canonical image");
     };
     let image_path = resolve_governed_path(&source.governed_study_root, &candidate.path)?;
-    if hash(&image_path)? != digest {
+    let active_image_root = source.governed_study_root.join("containers/apptainer");
+    if image_path.parent() != Some(active_image_root.as_path())
+        || image_path.extension().and_then(|value| value.to_str()) != Some("sif")
+    {
+        bail!("qualification image is not a canonical SIF under the active image root");
+    }
+    let metadata = fs::symlink_metadata(&image_path)
+        .with_context(|| format!("inspect qualification image {}", image_path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        bail!("qualification image is not a regular file under the active image root");
+    }
+    let canonical_active_root =
+        active_image_root.canonicalize().context("canonicalize qualification active image root")?;
+    let canonical_image = image_path.canonicalize().context("canonicalize qualification image")?;
+    if canonical_image.parent() != Some(canonical_active_root.as_path()) {
+        bail!("qualification image resolves outside the active image root");
+    }
+    if hash(&canonical_image)? != digest {
         bail!("qualification image bytes differ from the selected inventory identity");
     }
-    Ok((image_path, digest.to_string()))
+    Ok((canonical_image, digest.to_string()))
 }
 
 fn render_context(
@@ -698,15 +735,65 @@ fn validate_input(input: &QualificationSpecificationInputV1, study_root: &Path) 
     Ok(())
 }
 
-fn wrap_real_command(argv: &[String]) -> Vec<String> {
+fn wrap_real_command(
+    argv: &[String],
+    source: &QualificationSpecificationSourceV1,
+    binding: &impl ToolBinding,
+) -> Result<Vec<String>> {
     let command = argv.iter().map(|token| shell_quote(token)).collect::<Vec<_>>().join(" ");
-    vec![
+    let mut postconditions = Vec::new();
+    for output in &source.outputs {
+        let binding_output = binding
+            .outputs()
+            .iter()
+            .find(|value| value.name == output.binding_output)
+            .context("qualification output disappeared from its binding")?;
+        if let OutputDiscoveryV1::Glob { pattern } = &binding_output.discovery {
+            let expected = format!("${{output:{}}}*", output.binding_output);
+            if pattern != &expected {
+                bail!("qualification output uses an unsupported discovery pattern");
+            }
+            let parent = output.path.parent().unwrap_or_else(|| Path::new(""));
+            let base = output
+                .path
+                .file_name()
+                .and_then(|value| value.to_str())
+                .context("qualification glob output has no UTF-8 basename")?;
+            let search_root = if parent.as_os_str().is_empty() {
+                PathBuf::from("/result")
+            } else {
+                Path::new("/result").join(parent)
+            };
+            let manifest = Path::new("/result").join(glob_manifest_path(&output.path));
+            let partial_manifest = Path::new("/result/.qualification-glob-manifests")
+                .join(format!("{}.txt.partial", output.binding_output));
+            postconditions.push(format!(
+                "mkdir -p {}; find {} -maxdepth 1 -mindepth 1 -name {} -print > {}; test -s {}; mv {} {}",
+                shell_quote("/result/.qualification-glob-manifests"),
+                shell_quote(&search_root.display().to_string()),
+                shell_quote(&format!("{base}*")),
+                shell_quote(&partial_manifest.display().to_string()),
+                shell_quote(&partial_manifest.display().to_string()),
+                shell_quote(&partial_manifest.display().to_string()),
+                shell_quote(&manifest.display().to_string()),
+            ));
+        }
+    }
+    let postconditions = postconditions.join("; ");
+    let separator = if postconditions.is_empty() { "" } else { "; " };
+    Ok(vec![
         "/bin/sh".to_string(),
         "-c".to_string(),
         format!(
-            "set -eu; {command}; printf '%s\\n' '{{\"tool_completed\":1}}' > /result/qualification-metrics.json"
+            "set -eu; {command}; {postconditions}{separator}printf '%s\\n' '{{\"tool_completed\":1}}' > /result/qualification-metrics.json"
         ),
-    ]
+    ])
+}
+
+fn glob_manifest_path(path: &Path) -> PathBuf {
+    let mut value = path.as_os_str().to_os_string();
+    value.push(".glob-manifest.txt");
+    PathBuf::from(value)
 }
 
 fn validate_negative_command(
@@ -758,13 +845,26 @@ fn resolve_governed_path(study_root: &Path, value: &str) -> Result<PathBuf> {
     Ok(study_root.join(relative))
 }
 
-fn load_source(path: &Path) -> Result<QualificationSpecificationSourceV1> {
-    let bytes =
-        fs::read(path).with_context(|| format!("read qualification source {}", path.display()))?;
-    if path.extension().and_then(|value| value.to_str()) == Some("json") {
-        serde_json::from_slice(&bytes).context("parse qualification source JSON")
-    } else {
-        serde_yaml::from_slice(&bytes).context("parse qualification source YAML")
+/// Load one declarative qualification source from JSON or YAML.
+///
+/// # Errors
+/// Returns an error when the source cannot be read or decoded.
+pub fn load_qualification_specification_source(
+    path: &Path,
+) -> Result<QualificationSpecificationSourceV1> {
+    let metadata = fs::symlink_metadata(path)
+        .with_context(|| format!("inspect qualification source {}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        bail!("qualification source is not a regular file: {}", path.display());
+    }
+    let bytes = bijux_dna_infra::read_to_end_bounded(path, 16 * 1024 * 1024)
+        .with_context(|| format!("read qualification source {}", path.display()))?;
+    match path.extension().and_then(|value| value.to_str()) {
+        Some("json") => serde_json::from_slice(&bytes).context("parse qualification source JSON"),
+        Some("yaml" | "yml") => {
+            serde_yaml::from_slice(&bytes).context("parse qualification source YAML")
+        }
+        _ => bail!("qualification source must use a JSON or YAML extension"),
     }
 }
 
@@ -813,6 +913,15 @@ fn require_path_under(path: &Path, root: &Path, label: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn qualification_source_loader_rejects_undeclared_encodings() -> Result<()> {
+        let temporary = bijux_dna_infra::temp_dir("qualification-source-encoding")?;
+        let path = temporary.path().join("source.toml");
+        fs::write(&path, b"schema_version = 'unsupported'\n")?;
+        assert!(load_qualification_specification_source(&path).is_err());
+        Ok(())
+    }
 
     #[test]
     fn compiler_emits_current_stage_bound_pipeline_and_refuses_stale_authority() -> Result<()> {
@@ -914,6 +1023,7 @@ mod tests {
             anyhow::bail!("ANGSD lacks admitted external-artifact evidence in the test inventory");
         };
         assert!(!error.to_string().contains("retained distributable"));
+        assert_staged_image_refused(&request, &source)?;
         Ok(())
     }
 
@@ -959,7 +1069,8 @@ mod tests {
         let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
-        assert_eq!(coverage.summary.binding_ready_count, 52);
+        assert_runtime_contract_tools(&coverage);
+        assert_eq!(coverage.summary.binding_ready_count, 81);
         for tool_id in [
             "addeam",
             "angsd",
@@ -970,17 +1081,30 @@ mod tests {
             "bayeshammer",
             "bbduk",
             "bbmerge",
+            "bcftools",
+            "beagle",
+            "bijux_dna",
             "bowtie2_build",
             "centrifuge",
+            "clumpify",
+            "cutadapt",
             "dada2",
             "damageprofiler",
+            "eagle",
+            "eigensoft",
             "fastp",
             "fastqc",
             "fastqvalidator",
+            "fastq_scan",
             "fastuniq",
             "fastx_clipper",
             "flash2",
             "fqtools",
+            "germline",
+            "glimpse",
+            "ibdhap",
+            "ibdne",
+            "ibdseq",
             "impute5",
             "kaiju",
             "kraken2",
@@ -988,10 +1112,13 @@ mod tests {
             "leehom",
             "lighter",
             "mapdamage2",
+            "minimac4",
             "ngsbriggs",
             "musket",
             "pear",
             "pmdtools",
+            "plink",
+            "plink2",
             "prinseq",
             "pydamage",
             "seqfu",
@@ -999,8 +1126,11 @@ mod tests {
             "seqkit_stats",
             "seqprep",
             "seqtk",
+            "shapeit",
+            "shapeit5",
             "skewer",
             "star",
+            "sortmerna",
             "trim_galore",
             "trimmomatic",
             "vsearch",
@@ -1013,6 +1143,29 @@ mod tests {
             assert!(unit.binding_ready);
         }
         Ok(())
+    }
+
+    fn assert_runtime_contract_tools(coverage: &QualificationSpecificationCoverage) {
+        let observed = coverage
+            .units
+            .iter()
+            .filter(|unit| !unit.binding_ready)
+            .map(|unit| format!("{}/{}", unit.stage_id, unit.tool_id))
+            .collect::<BTreeSet<_>>();
+        let expected = [
+            "container.runtime/bracken",
+            "container.runtime/diamond",
+            "container.runtime/dustmasker",
+            "container.runtime/fastq_screen",
+            "container.runtime/metaphlan",
+            "container.runtime/qualimap",
+            "container.runtime/seqpurge",
+            "container.runtime/spades",
+        ]
+        .into_iter()
+        .map(ToString::to_string)
+        .collect();
+        assert_eq!(observed, expected);
     }
 
     fn assert_negative_refusals(
@@ -1036,9 +1189,84 @@ mod tests {
         Ok(())
     }
 
+    fn assert_staged_image_refused(
+        request: &QualificationSpecificationCompilationRequest,
+        source: &QualificationSpecificationSourceV1,
+    ) -> Result<()> {
+        let staged_image = source.governed_study_root.join("containers/staging/bedtools.sif");
+        fs::create_dir_all(staged_image.parent().context("staged image has no parent")?)?;
+        fs::write(&staged_image, b"immutable image bytes\n")?;
+        let mut inventory =
+            bijux_dna_containers::api::load_image_inventory_publication(&request.inventory_path)?;
+        let tool = inventory
+            .tools
+            .iter_mut()
+            .find(|tool| tool.tool == "bedtools")
+            .context("test inventory lacks bedtools")?;
+        let selected = tool.selected_image_sha256.as_deref().context("bedtools is not selected")?;
+        let candidate = tool
+            .candidates
+            .iter_mut()
+            .find(|candidate| candidate.sha256 == selected)
+            .context("bedtools selected image has no candidate")?;
+        candidate.path = "study://containers/staging/bedtools.sif".to_string();
+        bijux_dna_infra::atomic_write_json(&request.inventory_path, &inventory)?;
+        let mut staged = source.clone();
+        staged.inventory_sha256 = hash(&request.inventory_path)?;
+        let Err(error) = compile_container_qualification_specification(request, &staged) else {
+            anyhow::bail!("staged qualification image was accepted as active");
+        };
+        assert!(error.to_string().contains("active image root"));
+        Ok(())
+    }
+
     #[test]
     fn source_schema_refuses_unknown_fields() {
         let value = serde_json::json!({"schema_version": QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1, "unknown": true});
         assert!(serde_json::from_value::<QualificationSpecificationSourceV1>(value).is_err());
+    }
+
+    #[test]
+    fn glob_outputs_require_a_manifest_built_outside_the_matching_prefix() -> Result<()> {
+        let bindings = canonical_tool_bindings()?;
+        let binding = bindings
+            .binding(&StageId::new("vcf.pca"), &ToolId::new("plink2"))
+            .context("test binding is absent")?;
+        let source = QualificationSpecificationSourceV1 {
+            schema_version: QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1.to_string(),
+            catalog_sha256: "1".repeat(64),
+            registry_sha256: "2".repeat(64),
+            inventory_sha256: "3".repeat(64),
+            governed_study_root: PathBuf::from("/study"),
+            repository_path: PathBuf::from("/study/source"),
+            repository_commit: "4".repeat(40),
+            run_id: "run-1064".to_string(),
+            tool_id: "plink2".to_string(),
+            campaign: "qualification".to_string(),
+            corpus: "cohort".to_string(),
+            corpus_role: "vcf".to_string(),
+            sample: "sample".to_string(),
+            operator: "operator".to_string(),
+            submitted_at_utc: "2026-08-13T18:00:00Z".to_string(),
+            result_root: PathBuf::from("/study/results/run-1064-plink2"),
+            inputs: Vec::new(),
+            parameters: BTreeMap::new(),
+            outputs: vec![QualificationSpecificationOutputV1 {
+                binding_output: "pca_report".to_string(),
+                artifact_contract_id: "bijux.auxiliary.artifact.table.v1".to_string(),
+                path: PathBuf::from("pca_report"),
+            }],
+            negative_command: vec!["plink2".to_string(), "--bad".to_string()],
+            site: QualificationSpecificationSiteResourcesV1 {
+                account: "account".to_string(),
+                partition: "partition".to_string(),
+                walltime: "00:30:00".to_string(),
+            },
+        };
+        let command = wrap_real_command(&["true".to_string()], &source, binding)?;
+        assert!(command[2].contains("/result/.qualification-glob-manifests/pca_report.txt.partial"));
+        assert!(command[2].contains("/result/pca_report.glob-manifest.txt"));
+        assert!(!command[2].contains("> '/result/pca_report.glob-manifest.txt'; test"));
+        Ok(())
     }
 }

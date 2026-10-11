@@ -20,6 +20,7 @@ use super::vcf_imputation_family_adapter::{
 use super::vcf_phasing_family_adapter::{
     render_vcf_phasing_family_adapter, DEFAULT_VCF_BEAGLE_ADAPTER_PATH,
     DEFAULT_VCF_EAGLE_ADAPTER_PATH, DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH,
+    DEFAULT_VCF_SHAPEIT_ADAPTER_PATH,
 };
 use super::vcf_plink_family_adapter::{
     render_vcf_plink_family_adapter, DEFAULT_VCF_PLINK2_ADAPTER_PATH,
@@ -208,6 +209,16 @@ pub(crate) fn collect_vcf_adapter_output_coverage_rows(
             repo_root,
             "plink2",
             PathBuf::from(DEFAULT_VCF_PLINK2_ADAPTER_PATH),
+        )?
+        .rows,
+    )?;
+    append_serialized_rows(
+        &mut owned_rows,
+        "shapeit",
+        render_vcf_phasing_family_adapter(
+            repo_root,
+            "shapeit",
+            PathBuf::from(DEFAULT_VCF_SHAPEIT_ADAPTER_PATH),
         )?
         .rows,
     )?;
@@ -610,7 +621,7 @@ mod tests {
         .expect("render VCF adapter output coverage");
 
         assert_eq!(report.schema_version, VCF_ADAPTER_OUTPUT_COVERAGE_SCHEMA_VERSION);
-        assert_eq!(report.row_count, 38);
+        assert_eq!(report.row_count, 39);
         let benchmark_ready_row_count = collect_vcf_tool_serving_map_rows()
             .expect("collect VCF tool-serving rows")
             .into_iter()

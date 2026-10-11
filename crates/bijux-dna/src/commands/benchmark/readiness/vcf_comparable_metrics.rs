@@ -206,7 +206,7 @@ fn collect_retained_tools_by_stage(repo_root: &Path) -> Result<BTreeMap<String, 
             row.missing_input_test_passed,
         );
     }
-    for tool_id in ["shapeit5", "eagle", "beagle"] {
+    for tool_id in ["shapeit", "shapeit5", "eagle", "beagle"] {
         for row in crate::commands::benchmark::readiness::vcf_phasing_family_adapter::render_vcf_phasing_family_adapter(
             repo_root,
             tool_id,
@@ -341,7 +341,7 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_VCF_COMPARABLE_METRICS_PATH);
         assert_eq!(report.stage_count, 10);
         assert_eq!(report.multi_tool_stage_count, 10);
-        assert_eq!(report.retained_tool_row_count, 28);
+        assert_eq!(report.retained_tool_row_count, 29);
         assert_eq!(report.row_count, 29);
 
         assert!(report.rows.iter().any(|row| {
@@ -366,7 +366,12 @@ mod tests {
                 && row.metric_id == "switch_error_proxy"
                 && row.direction.as_str() == "lower_is_better"
                 && row.tools_covered
-                    == vec!["beagle".to_string(), "eagle".to_string(), "shapeit5".to_string()]
+                    == vec![
+                        "beagle".to_string(),
+                        "eagle".to_string(),
+                        "shapeit".to_string(),
+                        "shapeit5".to_string(),
+                    ]
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.impute"

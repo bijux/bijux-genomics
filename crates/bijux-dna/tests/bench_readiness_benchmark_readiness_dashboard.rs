@@ -42,15 +42,31 @@ fn bench_readiness_benchmark_readiness_dashboard_tracks_governed_summary_counts(
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.benchmark_readiness_dashboard.v1")
+        Some("bijux.bench.readiness.benchmark_readiness_dashboard.v2")
+    );
+    assert_eq!(payload.get("production_ready").and_then(serde_json::Value::as_bool), Some(false));
+    assert_eq!(payload.get("product_stage_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(payload.get("product_pair_count").and_then(serde_json::Value::as_u64), Some(159));
+    assert_eq!(payload.get("active_protocol_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(
+        payload.get("reserved_protocol_count").and_then(serde_json::Value::as_u64),
+        Some(59)
+    );
+    assert_eq!(
+        payload.get("fixture_covered_pair_count").and_then(serde_json::Value::as_u64),
+        Some(120)
+    );
+    assert_eq!(
+        payload.get("fixture_excluded_pair_count").and_then(serde_json::Value::as_u64),
+        Some(39)
     );
     assert_eq!(
         payload.get("markdown_output_path").and_then(serde_json::Value::as_str),
-        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md")
+        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_FIXTURE_HARNESS_READINESS.md")
     );
     assert_eq!(
         payload.get("json_output_path").and_then(serde_json::Value::as_str),
-        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json")
+        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_FIXTURE_HARNESS_READINESS.json")
     );
     let expected_pair_count = payload
         .get("expected_pair_count")
@@ -72,7 +88,10 @@ fn bench_readiness_benchmark_readiness_dashboard_tracks_governed_summary_counts(
     let tool_count =
         matrix.get("tool_count").and_then(serde_json::Value::as_u64).expect("tool count");
     assert!(tool_count > 0);
-    assert_eq!(matrix.get("surface_status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert_eq!(
+        matrix.get("surface_status").and_then(serde_json::Value::as_str),
+        Some("fixture_ready")
+    );
 
     let adapters = payload.get("adapters").expect("adapter summary");
     assert_eq!(

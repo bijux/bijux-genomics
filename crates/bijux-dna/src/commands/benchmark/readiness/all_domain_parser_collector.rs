@@ -565,7 +565,7 @@ mod tests {
         assert_eq!(report.source_kind_counts.get("real_smoke"), Some(&4));
         assert_eq!(report.domain_counts.get("fastq"), Some(&72));
         assert_eq!(report.domain_counts.get("bam"), Some(&50));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&30));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&41));
 
         let fastq_smoke = report
             .rows

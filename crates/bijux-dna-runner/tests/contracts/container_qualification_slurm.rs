@@ -15,7 +15,8 @@ use bijux_dna_runner::api::{
     cancel_container_qualification_slurm_job, collect_container_qualification_slurm_job,
     execute_container_qualification, load_container_qualification_admission,
     load_container_qualification_slurm_spec, load_prepared_container_qualification_slurm_job,
-    prepare_container_qualification_slurm_job, prepare_historical_container_qualification_replay,
+    load_recorded_container_qualification_slurm_spec, prepare_container_qualification_slurm_job,
+    prepare_historical_container_qualification_replay,
     rollback_failed_container_qualification_attempt_archive,
     submit_prepared_container_qualification_job, ContainerQualificationExecution,
     ContainerQualificationPreparationRequest, ContainerQualificationSchedulerStatus,
@@ -54,6 +55,42 @@ fn preparation_archives_exact_contracts_and_renders_frozen_execution() -> Result
     assert_eq!(
         prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?,
         prepared
+    );
+    Ok(())
+}
+
+#[test]
+fn preparation_freezes_the_executor_before_the_source_authority_changes() -> Result<()> {
+    let fixture = fixture()?;
+    let source_executor = fixture.request.executor_program_path.clone();
+    let source_sha256 = bijux_dna_infra::hash_file_sha256(&source_executor)?;
+
+    prepare_container_qualification_slurm_job(&fixture.request, "2026-08-07T09:50:00Z")?;
+    let spec_path = fixture.evidence_root.join("qualification-spec.json");
+    let spec = load_container_qualification_slurm_spec(&spec_path)?;
+
+    assert_eq!(spec.executor_program_sha256, source_sha256);
+    assert_eq!(
+        spec.executor_program_path,
+        fixture
+            .containers_root
+            .join("evidence/executables")
+            .join(&source_sha256)
+            .join("bijux-dna-dev")
+    );
+    assert_ne!(spec.executor_program_path, source_executor);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt as _;
+        assert_eq!(fs::metadata(&spec.executor_program_path)?.permissions().mode() & 0o222, 0);
+    }
+
+    write_executable(&source_executor, "#!/bin/sh\nexit 23\n")?;
+    assert_ne!(bijux_dna_infra::hash_file_sha256(&source_executor)?, source_sha256);
+    assert_eq!(load_container_qualification_slurm_spec(&spec_path)?, spec);
+    assert_eq!(
+        load_prepared_container_qualification_slurm_job(&spec)?.specification_sha256,
+        bijux_dna_infra::hash_file_sha256(&spec_path)?
     );
     Ok(())
 }
@@ -502,6 +539,20 @@ fn lifecycle_is_duplicate_safe_non_waiting_collectable_and_cancellable() -> Resu
     let recovered = submit_prepared_container_qualification_job(&scheduler, &prepared)?;
     assert_eq!(first, recovered);
     assert_eq!(fs::read_to_string(&calls)?, "x");
+
+    fs::remove_file(&spec.executor_program_path)?;
+    assert!(load_container_qualification_slurm_spec(
+        &fixture.evidence_root.join("qualification-spec.json")
+    )
+    .is_err_and(|error| error.to_string().contains("executor program")));
+    assert_eq!(
+        load_recorded_container_qualification_slurm_spec(
+            &fixture.evidence_root.join("qualification-spec.json")
+        )?,
+        spec
+    );
+    assert!(submit_prepared_container_qualification_job(&scheduler, &prepared)
+        .is_err_and(|error| error.to_string().contains("executor program")));
 
     write_executable(&scheduler.squeue, "#!/bin/sh\nprintf 'RUNNING\n'\n")?;
     let active =

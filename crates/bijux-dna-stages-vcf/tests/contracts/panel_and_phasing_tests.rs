@@ -330,6 +330,8 @@
 
     #[test]
     fn chunked_regions_emit_chunks_json_and_merged_output() {
+        const FIXTURE_TOOL_DIGEST: &str =
+            "sha256:58fce1f6a3f8f959af4c362baf7b21e40e5ad70f7cb8f81f61b97b50a2f220c1";
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
         let species = SpeciesContext {
@@ -357,6 +359,7 @@
                 panel_vcf: input,
                 out_dir: dir.path(),
                 species: &species,
+                tool_digest: FIXTURE_TOOL_DIGEST,
             },
             &ChunkingPlanParams {
                 window_size_bp: 10_000_000,
@@ -372,6 +375,56 @@
         assert!(outputs.chunks_json.exists());
         let logs_root = dir.path().join("logs").join("vcf.chunked_merge");
         assert!(logs_root.exists(), "chunk logs root must exist");
+        let provenance_paths = std::fs::read_dir(dir.path().join("chunks"))
+            .unwrap_or_else(|err| panic!("read chunk directory: {err}"))
+            .filter_map(Result::ok)
+            .map(|entry| entry.path())
+            .filter(|path| path.extension().is_some_and(|extension| extension == "json"))
+            .collect::<Vec<_>>();
+        assert!(!provenance_paths.is_empty(), "chunk provenance must be emitted");
+        for path in provenance_paths {
+            let provenance: serde_json::Value = serde_json::from_slice(
+                &std::fs::read(&path)
+                    .unwrap_or_else(|err| panic!("read {}: {err}", path.display())),
+            )
+            .unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
+            assert_eq!(
+                provenance.get("tool_digest").and_then(serde_json::Value::as_str),
+                Some(FIXTURE_TOOL_DIGEST),
+                "chunk provenance must preserve the admitted execution artifact identity"
+            );
+        }
+    }
+
+    #[test]
+    fn chunked_regions_reject_unqualified_tool_identity_before_execution() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                .to_string(),
+            contigs: vec![ContigSpec { name: "1".to_string(), length_bp: 248956422 }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let error = run_chunked_regions(
+            ChunkRunContext {
+                input_vcf: input,
+                panel_vcf: input,
+                out_dir: dir.path(),
+                species: &species,
+                tool_digest: "unqualified",
+            },
+            &ChunkingPlanParams::default(),
+            ChunkFailurePolicy::FailFast,
+            None,
+        )
+        .expect_err("an unqualified tool identity must be rejected");
+        assert!(error.to_string().contains("must use the sha256 scheme"));
+        assert!(!dir.path().join("chunks").exists());
     }
 
     #[test]

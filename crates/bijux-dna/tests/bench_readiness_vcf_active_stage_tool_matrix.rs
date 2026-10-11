@@ -117,6 +117,12 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     assert_eq!(rows.len() as u64, row_count);
+    assert!(rows.iter().all(|row| {
+        matches!(
+            row.get("tool_status").and_then(serde_json::Value::as_str),
+            Some("production" | "supported")
+        )
+    }));
     let actual_bindings = rows
         .iter()
         .map(|row| {
@@ -258,7 +264,7 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("eagle")
-            && row.get("tool_status").and_then(serde_json::Value::as_str) == Some("planned")
+            && row.get("tool_status").and_then(serde_json::Value::as_str) == Some("production")
             && row.get("stage_support_status").and_then(serde_json::Value::as_str)
                 == Some("supported")
             && row.get("scope_state").and_then(serde_json::Value::as_str)

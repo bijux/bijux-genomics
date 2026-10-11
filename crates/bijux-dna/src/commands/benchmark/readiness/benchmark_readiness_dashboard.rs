@@ -31,16 +31,18 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BENCHMARK_READINESS_DASHBOARD_MARKDOWN_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md";
+    "artifacts/benchmark-smoke/readiness/FASTQ_BAM_FIXTURE_HARNESS_READINESS.md";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_DASHBOARD_JSON_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json";
+    "artifacts/benchmark-smoke/readiness/FASTQ_BAM_FIXTURE_HARNESS_READINESS.json";
 const BENCHMARK_READINESS_DASHBOARD_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.benchmark_readiness_dashboard.v1";
+    "bijux.bench.readiness.benchmark_readiness_dashboard.v2";
+const FIXTURE_HARNESS_SCOPE: &str =
+    "FASTQ/BAM fixture harness only; VCF and production evidence excluded";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub(crate) enum DashboardSurfaceStatus {
-    Complete,
+    FixtureReady,
     AttentionRequired,
 }
 
@@ -145,6 +147,15 @@ pub(crate) struct BenchmarkReadinessBlockedPair {
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct BenchmarkReadinessDashboardReport {
     pub(crate) schema_version: &'static str,
+    pub(crate) evidence_scope: &'static str,
+    pub(crate) production_ready: bool,
+    pub(crate) production_blockers: Vec<String>,
+    pub(crate) product_stage_count: usize,
+    pub(crate) product_pair_count: usize,
+    pub(crate) active_protocol_count: usize,
+    pub(crate) reserved_protocol_count: usize,
+    pub(crate) fixture_covered_pair_count: usize,
+    pub(crate) fixture_excluded_pair_count: usize,
     pub(crate) markdown_output_path: String,
     pub(crate) json_output_path: String,
     pub(crate) expected_pair_count: usize,
@@ -187,6 +198,11 @@ pub(crate) fn render_benchmark_readiness_dashboard(
     let json_output_path = derive_json_output_path(&markdown_output_path);
 
     let pair_rows = collect_pair_readiness_rows(repo_root)?;
+    let run_registry = bijux_dna_api::v1::api::bench::publish_checked_in_benchmark_run_registry(
+        repo_root,
+        bijux_dna_api::v1::api::bench::BenchmarkRunRegistryWriteMode::Check,
+    )?;
+    let product_pair_count = run_registry.runs.iter().map(|run| run.tool_ids.len()).sum::<usize>();
     let stage_reports = collect_stage_centric_stage_reports(repo_root)?;
     let expected_result_rows = collect_expected_benchmark_result_rows(repo_root)?;
     let parser_gate = render_parser_completeness_gate(
@@ -222,6 +238,21 @@ pub(crate) fn render_benchmark_readiness_dashboard(
 
     let report = BenchmarkReadinessDashboardReport {
         schema_version: BENCHMARK_READINESS_DASHBOARD_SCHEMA_VERSION,
+        evidence_scope: "fixture_harness_only",
+        production_ready: false,
+        production_blockers: vec![
+            "the dashboard covers only the FASTQ/BAM fixture harness".to_string(),
+            "toy, fixture, fake, micro, smoke, and synthetic-only inputs are not publication evidence"
+                .to_string(),
+            "production readiness requires admitted attempts and complete report-hash closure"
+                .to_string(),
+        ],
+        product_stage_count: run_registry.summary.run_count,
+        product_pair_count,
+        active_protocol_count: run_registry.summary.active_count,
+        reserved_protocol_count: run_registry.summary.reserved_count,
+        fixture_covered_pair_count: matrix.expected_pair_count,
+        fixture_excluded_pair_count: product_pair_count.saturating_sub(matrix.expected_pair_count),
         markdown_output_path: path_relative_to_repo(repo_root, &markdown_output_path),
         json_output_path: path_relative_to_repo(repo_root, &json_output_path),
         expected_pair_count: matrix.expected_pair_count,
@@ -270,11 +301,11 @@ fn summarize_matrix(
 
     BenchmarkReadinessMatrixSummary {
         surface_status: if blocked_pair_count == 0 {
-            DashboardSurfaceStatus::Complete
+            DashboardSurfaceStatus::FixtureReady
         } else {
             DashboardSurfaceStatus::AttentionRequired
         },
-        scope: "all governed fastq and bam stage-tool pairs".to_string(),
+        scope: FIXTURE_HARNESS_SCOPE.to_string(),
         output_path: DEFAULT_PAIR_READINESS_PATH.to_string(),
         expected_pair_count,
         ready_pair_count,
@@ -299,11 +330,11 @@ fn summarize_adapters(pair_rows: &[PairReadinessRow]) -> BenchmarkReadinessAdapt
 
     BenchmarkReadinessAdapterSummary {
         surface_status: if attention_required_pair_count == 0 {
-            DashboardSurfaceStatus::Complete
+            DashboardSurfaceStatus::FixtureReady
         } else {
             DashboardSurfaceStatus::AttentionRequired
         },
-        scope: "all governed fastq and bam stage-tool pairs".to_string(),
+        scope: FIXTURE_HARNESS_SCOPE.to_string(),
         total_pair_count: pair_rows.len(),
         ready_pair_count,
         attention_required_pair_count,
@@ -324,7 +355,7 @@ fn summarize_parsers(report: &ParserCompletenessGateReport) -> BenchmarkReadines
 
     BenchmarkReadinessParserSummary {
         surface_status: if report.gate_failed_row_count == 0 {
-            DashboardSurfaceStatus::Complete
+            DashboardSurfaceStatus::FixtureReady
         } else {
             DashboardSurfaceStatus::AttentionRequired
         },
@@ -379,11 +410,11 @@ fn summarize_corpora(
 
     Ok(BenchmarkReadinessCorpusSummary {
         surface_status: if blocked_pair_count == 0 {
-            DashboardSurfaceStatus::Complete
+            DashboardSurfaceStatus::FixtureReady
         } else {
             DashboardSurfaceStatus::AttentionRequired
         },
-        scope: "all governed fastq and bam stage-tool pairs".to_string(),
+        scope: FIXTURE_HARNESS_SCOPE.to_string(),
         total_pair_count: pair_rows.len(),
         ready_pair_count,
         blocked_pair_count,
@@ -409,7 +440,7 @@ fn summarize_assets(report: &CorpusAssetCoverageGateReport) -> BenchmarkReadines
 
     BenchmarkReadinessAssetSummary {
         surface_status: if report.benchmark_ready_asset_missing_row_count == 0 {
-            DashboardSurfaceStatus::Complete
+            DashboardSurfaceStatus::FixtureReady
         } else {
             DashboardSurfaceStatus::AttentionRequired
         },
@@ -443,7 +474,7 @@ fn summarize_reports(
 
     BenchmarkReadinessReportSurfaceSummary {
         surface_status: if blocked_output_count == 0 {
-            DashboardSurfaceStatus::Complete
+            DashboardSurfaceStatus::FixtureReady
         } else {
             DashboardSurfaceStatus::AttentionRequired
         },
@@ -530,6 +561,18 @@ fn ensure_benchmark_readiness_dashboard_contract(
             "benchmark readiness dashboard pair summary drifted from the governed contract"
         ));
     }
+    if report.production_ready
+        || report.evidence_scope != "fixture_harness_only"
+        || report.production_blockers.is_empty()
+        || report.product_stage_count == 0
+        || report.product_pair_count <= report.fixture_covered_pair_count
+        || report.fixture_excluded_pair_count
+            != report.product_pair_count.saturating_sub(report.fixture_covered_pair_count)
+    {
+        return Err(anyhow!(
+            "fixture readiness dashboard was misclassified as production evidence"
+        ));
+    }
     if report.matrix.stage_count == 0 || report.matrix.tool_count == 0 {
         return Err(anyhow!(
             "benchmark readiness dashboard matrix inventory drifted from the governed contract"
@@ -589,15 +632,27 @@ fn ensure_blocked_pair(
 fn render_benchmark_readiness_dashboard_markdown(
     report: &BenchmarkReadinessDashboardReport,
 ) -> String {
-    let mut rendered = String::from("# FASTQ + BAM Benchmark Readiness Dashboard\n\n");
+    let mut rendered = String::from("# FASTQ + BAM Fixture Harness Readiness Dashboard\n\n");
     rendered.push_str("## Summary\n\n");
     rendered.push_str(&format!(
-        "- Expected pairs: {}\n- Ready pairs: {}\n- Blocked pairs: {}\n- Exact blocker counts: {}\n\n",
-        report.expected_pair_count,
+        "- Evidence scope: {}\n- Production ready: {}\n- Product stages: {}\n- Product pairs: {}\n- Active protocols: {}\n- Reserved protocols: {}\n- Fixture-covered pairs: {}\n- Fixture-excluded pairs: {}\n- Fixture-ready pairs: {}\n- Fixture-blocked pairs: {}\n- Exact fixture blocker counts: {}\n\n",
+        report.evidence_scope,
+        report.production_ready,
+        report.product_stage_count,
+        report.product_pair_count,
+        report.active_protocol_count,
+        report.reserved_protocol_count,
+        report.fixture_covered_pair_count,
+        report.fixture_excluded_pair_count,
         report.ready_pair_count,
         report.blocked_pair_count,
         render_count_map(&report.blocker_counts),
     ));
+    rendered.push_str("Production blockers:\n\n");
+    for blocker in &report.production_blockers {
+        rendered.push_str(&format!("- {blocker}\n"));
+    }
+    rendered.push('\n');
 
     rendered.push_str("## Surface Summary\n\n");
     rendered.push_str("| Surface | Status | Scope | Total | Ready | Blocked | Evidence |\n");
@@ -719,7 +774,7 @@ fn render_count_map(counts: &BTreeMap<String, usize>) -> String {
 
 fn dashboard_surface_status_label(status: DashboardSurfaceStatus) -> &'static str {
     match status {
-        DashboardSurfaceStatus::Complete => "complete",
+        DashboardSurfaceStatus::FixtureReady => "fixture_ready",
         DashboardSurfaceStatus::AttentionRequired => "attention_required",
     }
 }
@@ -796,6 +851,14 @@ mod tests {
         .expect("render benchmark readiness dashboard");
 
         assert!(report.expected_pair_count > 0);
+        assert!(!report.production_ready);
+        assert_eq!(report.evidence_scope, "fixture_harness_only");
+        assert_eq!(report.product_stage_count, 71);
+        assert_eq!(report.product_pair_count, 159);
+        assert_eq!(report.active_protocol_count, 12);
+        assert_eq!(report.reserved_protocol_count, 59);
+        assert_eq!(report.fixture_covered_pair_count, 120);
+        assert_eq!(report.fixture_excluded_pair_count, 39);
         assert_eq!(report.ready_pair_count, report.expected_pair_count);
         assert_eq!(report.blocked_pair_count, 0);
         assert_eq!(report.matrix.stage_count, 51);
@@ -824,14 +887,14 @@ mod tests {
             .markdown_output_path
             .ends_with(DEFAULT_BENCHMARK_READINESS_DASHBOARD_MARKDOWN_PATH));
         let markdown = std::fs::read_to_string(output_path).expect("read markdown");
-        assert!(markdown.contains("# FASTQ + BAM Benchmark Readiness Dashboard"));
-        assert!(markdown.contains(&format!("- Expected pairs: {}", report.expected_pair_count)));
-        assert!(markdown.contains(&format!("- Ready pairs: {}", report.ready_pair_count)));
-        assert!(markdown.contains("- Blocked pairs: 0"));
+        assert!(markdown.contains("# FASTQ + BAM Fixture Harness Readiness Dashboard"));
+        assert!(markdown.contains("- Production ready: false"));
+        assert!(markdown.contains("- Product pairs: 159"));
+        assert!(markdown.contains("- Fixture-excluded pairs: 39"));
         assert!(markdown
-            .contains("| Matrix | complete | all governed fastq and bam stage-tool pairs |"));
+            .contains("| Matrix | fixture_ready | FASTQ/BAM fixture harness only; VCF and production evidence excluded |"));
         assert!(markdown
-            .contains("| Corpora | complete | all governed fastq and bam stage-tool pairs |"));
+            .contains("| Corpora | fixture_ready | FASTQ/BAM fixture harness only; VCF and production evidence excluded |"));
         assert!(markdown.contains(
             "| pair_readiness | artifacts/benchmark-smoke/readiness/pair-readiness.tsv |"
         ));

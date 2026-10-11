@@ -20,6 +20,7 @@ fn stages_vcf_tree_matches_architecture_contract() {
             "path_contract.rs",
             "pipeline/",
             "pipeline_sections/",
+            "plugin/",
             "repo_root.rs",
             "stage_specs.rs",
             "vcf_io.rs",
@@ -53,6 +54,12 @@ fn stages_vcf_tree_matches_architecture_contract() {
             "qc/",
         ]),
         "pipeline tree must remain decomposed by stage family"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/plugin")),
+        btree_set(&["invocation.rs", "mod.rs", "output.rs"]),
+        "plugin tree must separate invocation and normalized output ownership"
     );
 }
 

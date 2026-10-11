@@ -107,6 +107,86 @@ manifest-presence and declared-output completeness records. The benchmark model
 owns their identities, rows, counters, completion invariants, and schema
 generation; the CLI only observes the filesystem and publishes admitted records.
 
+`schemas/local-stage-fake-runs.schema.json`,
+`schemas/local-stage-fake-failures.schema.json`, and
+`schemas/local-stage-fake-failure-record.schema.json` define disposable local
+stage execution simulations and their persisted failure evidence. The
+benchmark model owns record and schema identities, stage and artifact
+cardinality, successful-output closure, non-zero failure semantics, governed
+root containment, and semantic admission; the CLI only materializes simulated
+outputs and writes admitted records below the disposable run root.
+
+`schemas/local-essential-pipeline-fake-runs.schema.json`,
+`schemas/local-essential-pipeline-fake-run-pipeline.schema.json`, and
+`schemas/local-essential-pipeline-fake-run-node-metrics.schema.json` define
+disposable complete-pipeline execution simulations. The benchmark model owns
+their portfolio, topology, node, binding-lineage, counter, timing, output, and
+governed-path invariants; the CLI only resolves declared pipeline commands and
+materializes admitted simulation evidence.
+
+`schemas/all-domain-failure-classification.schema.json` defines the exhaustive
+failure taxonomy consumed by aggregate benchmark reports. The benchmark model
+owns the eight required classes, exact class and trigger counts, missing-class
+closure, schema identity, and admission verdict; the CLI only executes the
+governed probes and supplies their evidence paths and observations.
+
+`schemas/all-domain-expected-benchmark-results.schema.json` defines the
+canonical expected-result inventory consumed by lifecycle, failure,
+completion, scheduler, dashboard, and report surfaces. The benchmark model
+owns row identity, aggregate closure, schema generation, and admission; the
+CLI derives the inventory from governed stage, tool, corpus, output, metric,
+and report-section authorities.
+
+`schemas/all-domain-output-declarations.schema.json` defines the canonical
+FASTQ, BAM, and VCF raw-output, normalized-metric, log, manifest, and index
+declarations consumed by execution and collection. The benchmark model owns
+row identity, output-shape and path admission, required proof rows, canonical
+ordering, aggregate closure, and schema generation.
+
+`schemas/stage-tool-resources.schema.json` and
+`schemas/stage-tool-resources-report.schema.json` define the canonical
+resource configuration and its readiness projection. The benchmark model owns
+stage-tool identity, positive resource bounds, deterministic ordering,
+aggregate closure, schema generation, and admission.
+
+`schemas/stage-tool-assets.schema.json` and
+`schemas/stage-tool-assets-report.schema.json` define benchmark asset bindings
+and their readiness projection. The benchmark model owns binding identity,
+safe persisted paths, canonical ordering, declaration provenance, aggregate
+closure, schema generation, and admission.
+
+`schemas/stage-tool-containers.schema.json` and
+`schemas/stage-tool-containers-report.schema.json` define the canonical
+benchmark-ready FASTQ, BAM, and VCF runtime declarations, including container,
+external-artifact, command-entrypoint, and workspace-binary locations. The
+generic projection consumes the all-domain active stage/tool matrix rather
+than maintaining domain-specific scheduler branches. Model-owned admission
+rejects malformed runtime shapes, duplicate identities, unsafe report paths,
+placeholder container identities, and aggregate drift before these declarations
+reach lifecycle planning.
+
+`schemas/full-benchmark-report.schema.json` defines the persisted aggregate
+FASTQ, BAM, and VCF report, including stage, tool, corpus, pipeline, runtime,
+memory, failure, missing-result, comparable-metric, and unsupported-pair
+sections. The benchmark model owns its records, generated schema, source-count
+closure, identity and path invariants, and admission verdict; the CLI collects
+the governed inputs and materializes JSON and Markdown presentations.
+
+`schemas/full-benchmark-result-collector.schema.json` defines the canonical
+row-level union of expected, simulated, real-smoke, missing-result,
+insufficient-data, and unsupported-pair evidence consumed by aggregate reports.
+The benchmark model owns its records, generated schema, source/status/domain
+closure, binding distinctions, safe evidence paths, and admission verdict; the
+CLI only collects governed source surfaces and materializes the admitted JSON.
+
+`schemas/scientific-acceptance-thresholds.schema.json` and
+`schemas/scientific-acceptance-thresholds-report.schema.json` define the
+persisted scientific comparison policy and its readiness projection. The
+benchmark model owns metric identity, direction, tolerance, pass-rule,
+insufficiency behavior, aggregate closure, schema generation, and admission;
+the CLI only derives rows from reviewed comparable-metric contracts and writes
+validated presentations.
+
 `schemas/local-stage-inventory.schema.json` and
 `schemas/local-all-domain-stage-inventory.schema.json` define the domain-local
 and aggregate local benchmark stage inventories. The benchmark model owns
@@ -135,6 +215,56 @@ source kinds, checksums, shared-source consistency, consumer lineage,
 repository containment, canonical ordering, and exact counters; the CLI only
 discovers repository inputs and assembles the validated manifest.
 
+`schemas/local-hpc-candidate-run-manifest.schema.json` defines the persisted
+bounded candidate subset chosen for an initial HPC execution. The benchmark
+model owns representative identity, resource and input ceilings, stop
+conditions, behavior proofs, canonical ordering, exact counters, and schema
+generation; the CLI only derives candidates from admitted planning inputs and
+publishes the validated manifest.
+
+`schemas/local-hpc-execution-resolver.schema.json` defines persisted selected
+tool scope and its admitted host, Apptainer, or unavailable execution
+resolution. The benchmark model owns ordering, scope closure, availability
+reasoning, exact counters, and schema generation; the CLI only observes runtime
+probes and assembles the admitted report.
+
+`schemas/local-hpc-resume-simulation.schema.json` defines the persisted decision
+to skip a valid completed job or rerun an incomplete job and its dependent
+closure. The benchmark model owns completion evidence, topological dependency
+propagation, seeded behavior proofs, exact counters, and schema generation; the
+CLI only constructs the isolated simulation tree and publishes the admitted
+report.
+
+`schemas/local-hpc-dependency-simulation.schema.json` defines persisted
+failure-isolation cases over the governed HPC job graph. The benchmark model
+owns reciprocal topology, simulated status and timing, descendant scope,
+continued independent work, seeded behavior proofs, exact counters, and schema
+generation; the CLI only simulates the graph and publishes the admitted report.
+
+`schemas/local-hpc-stage-benchmark-array.schema.json` defines the persisted
+homogeneous Slurm array for independent stage benchmark results. The benchmark
+model owns row identity, execution availability, paths, commands, resource
+envelopes, exact counters, and schema generation; the CLI only joins admitted
+planning inputs and renders the script plus manifest.
+
+`schemas/local-hpc-pipeline-node-array.schema.json` defines the persisted local
+HPC pipeline-node array. The benchmark model owns ordered dependency lineage,
+projected upstream results, expected outputs, paths, commands, exact counters,
+resource-envelope closure, and schema generation; the CLI only joins admitted
+planning inputs and renders the script plus manifest.
+
+`schemas/local-hpc-dry-run-readiness.schema.json` defines the persisted closure
+of the governed local HPC dry-run surfaces. The benchmark model owns the exact
+goal inventory, pass/fail counters, behavior proof, readiness verdict, summary
+cardinality, safe evidence paths, and schema generation; the CLI only joins the
+admitted component reports and publishes the validated closure.
+
+`schemas/local-hpc-submission-readiness.schema.json` defines the persisted
+closure of all 99 local HPC submission-readiness goals. The benchmark model
+owns goal and category inventory, pass/fail counters, verdict closure, safe
+evidence paths, and schema generation; the CLI only evaluates the governed
+surfaces and publishes the admitted report.
+
 `schemas/local-hpc-result-collection-simulation.schema.json` defines the
 persisted complete, failed, missing, insufficient, and unavailable collection
 outcomes. The benchmark model owns status distinctions, evidence lineage,
@@ -159,6 +289,39 @@ aggregate of governed local pipeline DAG validation records. The benchmark
 model owns its schema identity, deterministic ordering, child admission, and
 aggregate closure; the CLI only discovers declarations and writes the admitted
 set.
+
+`schemas/local-slurm-dependency-check.schema.json` defines persisted scheduler
+dependency-source evidence. The benchmark model owns its record types, schema
+identity, source classification, per-job verdicts, uniqueness, and aggregate
+closure; the CLI only reads rendered scripts and manifests, validates the
+derived record, and writes it.
+
+`schemas/local-slurm-shell-syntax.schema.json` defines persisted one-shot
+`bash -n` evidence for rendered scheduler scripts. The benchmark model owns its
+record types, schema identity, per-script verdicts, uniqueness, and aggregate
+closure; the CLI only discovers scripts, executes the bounded syntax check,
+validates the derived record, and writes it.
+
+`schemas/local-slurm-dry-run.schema.json` defines the persisted one-shot Slurm
+script-rendering record. The benchmark model owns domain identity, readiness
+vocabulary, resource and path invariants, uniqueness, aggregate closure, and
+the generated schema; the CLI only derives run paths and writes script bodies.
+
+`schemas/local-slurm-submit-manifest.schema.json` defines persisted local Slurm
+jobs, resources, logs, artifact outputs, sample scopes, and dependency edges.
+The benchmark model owns these records, their generated schema, and admission
+closure; the CLI only projects admitted plans into one-shot submission inputs.
+
+`schemas/local-all-domain-slurm-submit-manifest.schema.json` extends that
+authority across benchmark-result and essential-pipeline jobs. The model owns
+job-kind identity, resource, output, count, and dependency closure; the CLI
+only resolves governed benchmark and pipeline inputs into the shared record.
+
+`schemas/local-stage-commands.schema.json` defines persisted stage commands,
+argument vectors, resource ceilings, and input/output artifact projections.
+The benchmark model owns these records, their schema, identity uniqueness, and
+aggregate admission; the CLI only derives commands from governed stage plans
+and writes the shell, JSON, and JSONL projections.
 
 `schemas/local-benchmark-summary.schema.json` defines the persisted local
 readiness rollup. The benchmark model owns its stage and status vocabulary,

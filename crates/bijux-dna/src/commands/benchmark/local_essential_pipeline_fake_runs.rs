@@ -1,9 +1,25 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_essential_pipeline_fake_run_node_metrics,
+    validate_benchmark_local_essential_pipeline_fake_run_node_report,
+    validate_benchmark_local_essential_pipeline_fake_run_pipeline_report,
+    validate_benchmark_local_essential_pipeline_fake_runs_report,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_NODE_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_PIPELINE_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalEssentialPipelineFakeRunInputBinding as EssentialPipelineFakeRunInputBinding,
+    BenchmarkLocalEssentialPipelineFakeRunNodeMetrics as EssentialPipelineFakeRunNodeMetrics,
+    BenchmarkLocalEssentialPipelineFakeRunNodeReport as EssentialPipelineFakeRunNodeReport,
+    BenchmarkLocalEssentialPipelineFakeRunOutputEntry as EssentialPipelineFakeRunOutputEntry,
+    BenchmarkLocalEssentialPipelineFakeRunPipelineReport as EssentialPipelineFakeRunPipelineReport,
+    BenchmarkLocalEssentialPipelineFakeRunsReport as EssentialPipelineFakeRunsReport,
+};
 
 use super::local_pipeline_dag::{
     benchmark_local_pipeline_config_path, validate_pipeline_dag_path,
@@ -30,92 +46,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_FAKE_RUN_ROOT: &str =
     "artifacts/benchmark-smoke/simulated-runs/pipelines/essential";
-const ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_VERSION: &str =
-    "bijux.bench.local_essential_pipeline_fake_runs.v1";
-const ESSENTIAL_PIPELINE_FAKE_RUN_PIPELINE_SCHEMA_VERSION: &str =
-    "bijux.bench.local_essential_pipeline_fake_run_pipeline.v1";
-const ESSENTIAL_PIPELINE_FAKE_RUN_NODE_METRICS_SCHEMA_VERSION: &str =
-    "bijux.bench.local_essential_pipeline_fake_run_node_metrics.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct EssentialPipelineFakeRunOutputEntry {
-    pub(crate) artifact_id: String,
-    pub(crate) declared_output: String,
-    pub(crate) fake_run_path: String,
-    pub(crate) role: String,
-    pub(crate) exists: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct EssentialPipelineFakeRunInputBinding {
-    pub(crate) input_id: String,
-    pub(crate) source: String,
-    pub(crate) producer_node_id: Option<String>,
-    pub(crate) fake_run_path: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct EssentialPipelineFakeRunNodeMetrics {
-    pub(crate) schema_version: &'static str,
-    pub(crate) pipeline_id: String,
-    pub(crate) node_id: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) dependency_count: usize,
-    pub(crate) external_input_count: usize,
-    pub(crate) upstream_input_count: usize,
-    pub(crate) command_step_count: usize,
-    pub(crate) output_count: usize,
-    pub(crate) materialized_byte_count: u64,
-    pub(crate) simulated_elapsed_seconds: f64,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) upstream_bindings: Vec<EssentialPipelineFakeRunInputBinding>,
-    pub(crate) external_bindings: Vec<EssentialPipelineFakeRunInputBinding>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct EssentialPipelineFakeRunNodeReport {
-    pub(crate) pipeline_id: String,
-    pub(crate) node_id: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) domain: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) command_source: String,
-    pub(crate) dependency_count: usize,
-    pub(crate) command_step_count: usize,
-    pub(crate) declared_output_count: usize,
-    pub(crate) created_output_count: usize,
-    pub(crate) command_script_path: String,
-    pub(crate) stdout_path: String,
-    pub(crate) stderr_path: String,
-    pub(crate) metrics_path: String,
-    pub(crate) stage_result_path: String,
-    pub(crate) outputs: Vec<EssentialPipelineFakeRunOutputEntry>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct EssentialPipelineFakeRunPipelineReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) pipeline_id: String,
-    pub(crate) pipeline_manifest_path: String,
-    pub(crate) node_count: usize,
-    pub(crate) created_output_count: usize,
-    pub(crate) topological_order: Vec<String>,
-    pub(crate) nodes: Vec<EssentialPipelineFakeRunNodeReport>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct EssentialPipelineFakeRunsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) fake_run_root: String,
-    pub(crate) root_manifest_path: String,
-    pub(crate) pipeline_count: usize,
-    pub(crate) node_count: usize,
-    pub(crate) created_output_count: usize,
-    pub(crate) pipelines: Vec<EssentialPipelineFakeRunPipelineReport>,
-}
 
 #[derive(Clone)]
 struct ProducedOutput {
@@ -203,7 +133,7 @@ pub(crate) fn fake_run_essential_pipelines(
 
     let root_manifest_path = absolute_output_root.join("manifest.json");
     let manifest = EssentialPipelineFakeRunsReport {
-        schema_version: ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_V1.to_string(),
         fake_run_root: path_relative_to_repo(repo_root, &absolute_output_root),
         root_manifest_path: path_relative_to_repo(repo_root, &root_manifest_path),
         pipeline_count: pipeline_reports.len(),
@@ -211,7 +141,10 @@ pub(crate) fn fake_run_essential_pipelines(
         created_output_count: total_created_outputs,
         pipelines: pipeline_reports,
     };
-    ensure_essential_pipeline_fake_run_contract(&manifest)?;
+    validate_benchmark_local_essential_pipeline_fake_runs_report(
+        &manifest,
+        ESSENTIAL_PIPELINE_IDS,
+    )?;
     bijux_dna_infra::atomic_write_json(&root_manifest_path, &manifest)?;
     Ok(manifest)
 }
@@ -279,7 +212,7 @@ fn fake_run_pipeline(
 
     let pipeline_manifest_path = pipeline_root.join("manifest.json");
     let pipeline_manifest = EssentialPipelineFakeRunPipelineReport {
-        schema_version: ESSENTIAL_PIPELINE_FAKE_RUN_PIPELINE_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_PIPELINE_SCHEMA_V1.to_string(),
         pipeline_id: pipeline_id.to_string(),
         pipeline_manifest_path: path_relative_to_repo(repo_root, &pipeline_manifest_path),
         node_count: node_reports.len(),
@@ -287,6 +220,11 @@ fn fake_run_pipeline(
         topological_order: dag_report.topological_order.clone(),
         nodes: node_reports,
     };
+    let governed_fake_run_root = path_relative_to_repo(repo_root, fake_run_root);
+    validate_benchmark_local_essential_pipeline_fake_run_pipeline_report(
+        Path::new(&governed_fake_run_root),
+        &pipeline_manifest,
+    )?;
     bijux_dna_infra::atomic_write_json(&pipeline_manifest_path, &pipeline_manifest)?;
     Ok(pipeline_manifest)
 }
@@ -376,7 +314,8 @@ fn fake_run_node(
     }
 
     let metrics = EssentialPipelineFakeRunNodeMetrics {
-        schema_version: ESSENTIAL_PIPELINE_FAKE_RUN_NODE_METRICS_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_NODE_METRICS_SCHEMA_V1
+            .to_string(),
         pipeline_id: context.pipeline_id.to_string(),
         node_id: context.node.node_id.clone(),
         stage_id: context.node.stage_id.clone(),
@@ -395,6 +334,7 @@ fn fake_run_node(
         upstream_bindings: upstream_bindings.clone(),
         external_bindings: external_bindings.clone(),
     };
+    validate_benchmark_local_essential_pipeline_fake_run_node_metrics(&metrics)?;
     bijux_dna_infra::atomic_write_json(&artifacts.metrics_path, &metrics)?;
 
     let stage_result = BenchStageResultManifestV1 {
@@ -451,7 +391,11 @@ fn fake_run_node(
         stage_result_path: path_relative_to_repo(repo_root, &artifacts.stage_result_path),
         outputs,
     };
-    ensure_node_report_contract(pipeline_root, &report)?;
+    let governed_pipeline_root = path_relative_to_repo(repo_root, pipeline_root);
+    validate_benchmark_local_essential_pipeline_fake_run_node_report(
+        Path::new(&governed_pipeline_root),
+        &report,
+    )?;
     Ok(report)
 }
 
@@ -746,84 +690,6 @@ fn stage_domain(stage_id: &str) -> Result<&'static str> {
             "essential pipeline fake-runner cannot derive a domain from stage `{stage_id}`"
         ))
     }
-}
-
-fn ensure_node_report_contract(
-    _pipeline_root: &Path,
-    report: &EssentialPipelineFakeRunNodeReport,
-) -> Result<()> {
-    if report.declared_output_count == 0
-        || report.created_output_count != report.declared_output_count
-    {
-        return Err(anyhow!(
-            "essential pipeline fake-runner node `{}` / `{}` did not materialize every declared output",
-            report.pipeline_id,
-            report.node_id
-        ));
-    }
-    for relative_path in [
-        &report.command_script_path,
-        &report.stdout_path,
-        &report.stderr_path,
-        &report.metrics_path,
-        &report.stage_result_path,
-    ] {
-        if relative_path.trim().is_empty() {
-            return Err(anyhow!(
-                "essential pipeline fake-runner node `{}` / `{}` has an empty artifact path",
-                report.pipeline_id,
-                report.node_id
-            ));
-        }
-    }
-    if report.outputs.iter().any(|output| !output.exists || output.fake_run_path.trim().is_empty())
-    {
-        return Err(anyhow!(
-            "essential pipeline fake-runner node `{}` / `{}` is missing a materialized output path",
-            report.pipeline_id,
-            report.node_id
-        ));
-    }
-    Ok(())
-}
-
-fn ensure_essential_pipeline_fake_run_contract(
-    report: &EssentialPipelineFakeRunsReport,
-) -> Result<()> {
-    if report.pipeline_count != ESSENTIAL_PIPELINE_IDS.len() {
-        return Err(anyhow!(
-            "essential pipeline fake-runner must cover all {} governed pipelines",
-            ESSENTIAL_PIPELINE_IDS.len()
-        ));
-    }
-    let unique_pipelines = report
-        .pipelines
-        .iter()
-        .map(|pipeline| pipeline.pipeline_id.as_str())
-        .collect::<BTreeSet<_>>();
-    if unique_pipelines.len() != report.pipelines.len() {
-        return Err(anyhow!("essential pipeline fake-runner cannot repeat pipeline identifiers"));
-    }
-    let unique_nodes = report
-        .pipelines
-        .iter()
-        .flat_map(|pipeline| {
-            pipeline.nodes.iter().map(|node| format!("{}:{}", pipeline.pipeline_id, node.node_id))
-        })
-        .collect::<BTreeSet<_>>();
-    if unique_nodes.len() != report.node_count {
-        return Err(anyhow!(
-            "essential pipeline fake-runner must keep exactly one node record per governed pipeline node"
-        ));
-    }
-    if report.pipelines.iter().map(|pipeline| pipeline.node_count).sum::<usize>()
-        != report.node_count
-    {
-        return Err(anyhow!(
-            "essential pipeline fake-runner root counts must match pipeline node counts"
-        ));
-    }
-    Ok(())
 }
 
 fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {

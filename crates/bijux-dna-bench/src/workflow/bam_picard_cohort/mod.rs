@@ -14,14 +14,19 @@ use bijux_dna_bench_model::{
     BenchmarkAttemptIdentity, BenchmarkEffectiveParameterValue as EffectiveValue,
     BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
 };
+use bijux_dna_core::contract::ArtifactRole;
 
 use self::commands::{
     measured_command, negative_command, required_files, warmup_command, PicardCohortCommandPolicy,
 };
 use super::bam_observation::{
-    cohort_execution_inputs, ensure_cohort_parameter_evidence, BamParameterPolicy,
+    cohort_execution_inputs, ensure_cohort_parameter_evidence, single_bam_stage_plan_unit,
+    BamCohortCommandSample, BamParameterPolicy,
 };
-use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
+use super::{
+    load_attempt_lifecycle, BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial,
+    BenchmarkStagePlanOutputMaterial, BenchmarkStagePlanUnitMaterial,
+};
 
 pub use report::{publish_bam_gc_bias_stage_report, publish_bam_insert_size_stage_report};
 pub(crate) use report::{
@@ -113,6 +118,7 @@ pub fn prepare_bam_picard_cohort_material(
         scientific_metrics: stage.scientific_metrics,
         reference_input_bytes,
     };
+    let stage_plan_units = stage_plan_units(&stage, &command_samples);
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),
         prepared_at_utc: prepared_at_utc.to_string(),
@@ -146,12 +152,66 @@ pub fn prepare_bam_picard_cohort_material(
                 unit: "samples".to_string(),
             }],
         },
+        stage_plan_units: Some(stage_plan_units),
     };
     Ok(BamPicardCohortMaterial {
         execution,
         admitted_cohort: cohort.clone(),
         admitted_reference: reference.cloned(),
     })
+}
+
+fn stage_plan_units(
+    stage: &StagePolicy,
+    samples: &[BamCohortCommandSample],
+) -> Vec<BenchmarkStagePlanUnitMaterial> {
+    samples
+        .iter()
+        .map(|sample| {
+            let outputs = if stage.requires_reference {
+                vec![
+                    output("gc_bias_metrics", "gc-bias-metrics.tsv", ArtifactRole::SummaryTsv),
+                    output("gc_bias_summary", "gc-bias-summary.json", ArtifactRole::SummaryJson),
+                    output("gc_bias_chart", "gc-bias-chart.pdf", ArtifactRole::Report),
+                ]
+            } else {
+                vec![
+                    output(
+                        "insert_size_metrics",
+                        "insert-size-metrics.tsv",
+                        ArtifactRole::SummaryTsv,
+                    ),
+                    output(
+                        "insert_size_histogram",
+                        "insert-size-histogram.pdf",
+                        ArtifactRole::Report,
+                    ),
+                ]
+            };
+            let mut unit =
+                single_bam_stage_plan_unit(&sample.sample_id, &sample.bam_mount, outputs);
+            if stage.requires_reference {
+                unit.inputs.push(BenchmarkStagePlanInputMaterial {
+                    binding_name: "reference".to_owned(),
+                    path: PathBuf::from("/input/reference/reference.fasta"),
+                    role: ArtifactRole::Reference,
+                });
+            }
+            unit
+        })
+        .collect()
+}
+
+fn output(
+    binding_name: &str,
+    relative_path: &str,
+    role: ArtifactRole,
+) -> BenchmarkStagePlanOutputMaterial {
+    BenchmarkStagePlanOutputMaterial {
+        binding_name: binding_name.to_owned(),
+        relative_path: relative_path.into(),
+        role,
+    }
 }
 
 fn validate_cohort(cohort: &AdmittedBamCohort) -> Result<()> {
@@ -289,6 +349,25 @@ mod tests {
             assert!(material.execution.measured_command[2].contains("sample-09"));
             assert_eq!(material.execution.acceptance.metrics[0].id, "sample_count");
             assert!(material.execution.required_files.len() > 150);
+            assert_eq!(material.execution.stage_plan_units.as_ref().map(Vec::len), Some(10));
+            let unit = &material.execution.stage_plan_units.as_ref().expect("stage-plan units")[0];
+            let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+            let binding = bindings
+                .binding(
+                    &bijux_dna_core::ids::StageId::new(
+                        &plan.cycle.attempts[0].identity.run.stage_id,
+                    ),
+                    &bijux_dna_core::ids::ToolId::new("picard"),
+                )
+                .expect("canonical Picard cohort binding");
+            assert_eq!(
+                unit.inputs.iter().map(|input| input.binding_name.as_str()).collect::<Vec<_>>(),
+                binding.inputs.iter().map(|input| input.name.as_str()).collect::<Vec<_>>()
+            );
+            assert_eq!(
+                unit.outputs.iter().map(|output| output.binding_name.as_str()).collect::<Vec<_>>(),
+                binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>()
+            );
         }
         Ok(())
     }

@@ -125,6 +125,7 @@ fn validate_manifest(tool_id: &str, manifest: &serde_json::Value) -> Result<()> 
 
 fn required_command_tokens(tool_id: &str) -> Result<&'static [&'static str]> {
     match tool_id {
+        "shapeit" => Ok(&["shapeit", "--input", "--reference", "--map", "--output"]),
         "shapeit5" => Ok(&["shapeit5", "phase_common", "--reference", "--map", "--output"]),
         "eagle" => Ok(&["eagle", "--vcfTarget", "--vcfRef", "--geneticMapFile", "--outPrefix"]),
         "beagle" => Ok(&["beagle", "gt=", "ref=", "map=", "out="]),

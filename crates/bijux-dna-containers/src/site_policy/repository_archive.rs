@@ -16,15 +16,16 @@ use super::validation::validate_container_governance_host;
 
 const ARCHIVE_DIRECTORY: &str = "archives";
 
-/// Create a checksum-bound Git bundle and prove that it restores the frozen snapshot exactly.
+/// Create a checksum-bound Git bundle and prove that it contains the frozen snapshot exactly.
 ///
 /// The source snapshot is never removed by this operation. Alternate-backed historical snapshots
-/// are accepted only while their referenced objects remain readable; the restoration proof must
-/// produce a self-contained checkout before the archive is published.
+/// are accepted only while their referenced objects remain readable. The proof verifies the bundle
+/// against an empty bare repository, so missing prerequisite objects fail without duplicating a
+/// working tree on a storage-constrained governed filesystem.
 ///
 /// # Errors
 /// Returns an error when the request escapes the governed root, repository identity differs, the
-/// bundle is incomplete, or a self-contained restoration cannot be proven.
+/// bundle is incomplete, or self-contained restoration cannot be proven.
 pub fn archive_frozen_repository(
     request: &RepositoryFreezeArchiveRequest,
 ) -> Result<RepositoryFreezeArchiveReceipt> {
@@ -76,14 +77,7 @@ pub fn archive_frozen_repository(
             .context("create frozen repository bundle")?;
         ensure_command_succeeded(&output, "git bundle create")?;
         verify_bundle(&request.snapshot, &partial_bundle)?;
-        prove_restoration(
-            &archive_root,
-            &identity,
-            &partial_bundle,
-            &request.commit,
-            &sparse_checkout_paths,
-            &tracked_index_sha256,
-        )
+        prove_self_contained_bundle(&archive_root, &identity, &partial_bundle, &request.commit)
     })();
     if let Err(error) = archive_result {
         let cleanup = remove_file_if_present(&partial_bundle);
@@ -166,14 +160,7 @@ pub fn verify_frozen_repository_archive(
     };
     verify_bundle(verification_repository, &receipt.bundle_path)?;
     let identity = archive_identity(&relative, &request.commit);
-    prove_restoration(
-        &archive_root,
-        &identity,
-        &receipt.bundle_path,
-        &request.commit,
-        &receipt.sparse_checkout_paths,
-        &receipt.tracked_index_sha256,
-    )
+    prove_self_contained_bundle(&archive_root, &identity, &receipt.bundle_path, &request.commit)
 }
 
 /// Remove a frozen checkout only after its archive and restoration proof validate.
@@ -329,42 +316,49 @@ fn sparse_checkout_paths(repository: &Path) -> Result<Vec<PathBuf>> {
     Ok(output.lines().filter(|line| !line.is_empty()).map(PathBuf::from).collect())
 }
 
-fn prove_restoration(
+fn prove_self_contained_bundle(
     archive_root: &Path,
     identity: &str,
     bundle: &Path,
     commit: &str,
-    sparse_paths: &[PathBuf],
-    tracked_index_sha256: &str,
 ) -> Result<()> {
-    let proof = archive_root.join(format!(".{identity}.restore-proof"));
-    ensure!(proof.symlink_metadata().is_err(), "repository restoration proof path exists");
+    let proof = archive_root.join(format!(".{identity}.bundle-proof.git"));
+    ensure!(proof.symlink_metadata().is_err(), "repository bundle proof path exists");
     let result = (|| {
-        restore_bundle(bundle, &proof, commit, sparse_paths)?;
+        let output = Command::new("git")
+            .args(["init", "--bare", "--quiet"])
+            .arg(&proof)
+            .output()
+            .context("initialize repository archive proof")?;
+        ensure_command_succeeded(&output, "git init --bare archive proof")?;
+        verify_bundle(&proof, bundle)?;
         ensure!(
-            !proof.join(".git/objects/info/alternates").exists(),
-            "restored repository depends on alternate objects"
+            git_text(&proof, &["rev-parse", "--is-bare-repository"])? == "true",
+            "repository archive proof is not bare"
         );
         ensure!(
-            git_text(&proof, &["rev-parse", "HEAD"])? == commit,
-            "restored repository commit drifted"
+            !proof.join("objects/info/alternates").exists(),
+            "repository archive proof depends on alternate objects"
         );
+        let output = Command::new("git")
+            .args(["bundle", "list-heads"])
+            .arg(bundle)
+            .arg("HEAD")
+            .output()
+            .context("list repository archive bundle heads")?;
+        ensure_command_succeeded(&output, "git bundle list-heads")?;
         ensure!(
-            git_text(&proof, &["status", "--porcelain"])?.is_empty(),
-            "restored repository is dirty"
-        );
-        ensure!(
-            sha256_text(&git_text(&proof, &["ls-files", "-s"])?) == tracked_index_sha256,
-            "restored repository index drifted"
+            String::from_utf8(output.stdout)?.trim() == format!("{commit} HEAD"),
+            "repository archive bundle commit drifted"
         );
         Ok(())
     })();
     let cleanup = remove_tree(&proof);
     result.with_context(|| {
         if cleanup {
-            "prove frozen repository restoration"
+            "prove frozen repository bundle completeness"
         } else {
-            "prove frozen repository restoration; cleanup failed"
+            "prove frozen repository bundle completeness; cleanup failed"
         }
     })
 }
@@ -521,7 +515,7 @@ mod tests {
 
     use anyhow::{ensure, Context, Result};
 
-    use super::verify_bundle;
+    use super::{prove_self_contained_bundle, verify_bundle};
 
     #[test]
     fn bundle_verification_uses_explicit_repository_context() -> Result<()> {
@@ -547,6 +541,55 @@ mod tests {
             .output()?;
         ensure!(!ambient.status.success(), "ambient non-repository unexpectedly verified bundle");
         verify_bundle(&repository, &bundle)
+    }
+
+    #[test]
+    fn restoration_proof_requires_a_complete_bundle_without_materializing_a_checkout() -> Result<()>
+    {
+        let root = tempfile::tempdir()?;
+        let repository = root.path().join("repository");
+        std::fs::create_dir(&repository)?;
+        git(&repository, &["init", "--quiet"])?;
+        git(&repository, &["config", "user.name", "Bijux Test"])?;
+        git(&repository, &["config", "user.email", "test@bijux.invalid"])?;
+        std::fs::write(repository.join("source.txt"), "first\n")?;
+        git(&repository, &["add", "source.txt"])?;
+        git(&repository, &["commit", "--quiet", "-m", "first"])?;
+        std::fs::write(repository.join("source.txt"), "second\n")?;
+        git(&repository, &["commit", "--quiet", "-am", "second"])?;
+        let commit = git_text(&repository, &["rev-parse", "HEAD"])?;
+
+        let complete = root.path().join("complete.bundle");
+        create_bundle(&repository, &complete, &["HEAD"])?;
+        prove_self_contained_bundle(root.path(), "complete", &complete, &commit)?;
+        assert!(!root.path().join(".complete.bundle-proof.git").exists());
+
+        let incremental = root.path().join("incremental.bundle");
+        create_bundle(&repository, &incremental, &["HEAD", "^HEAD~1"])?;
+        assert!(
+            prove_self_contained_bundle(root.path(), "incremental", &incremental, &commit).is_err()
+        );
+        assert!(!root.path().join(".incremental.bundle-proof.git").exists());
+        Ok(())
+    }
+
+    fn create_bundle(repository: &Path, bundle: &Path, revisions: &[&str]) -> Result<()> {
+        let mut command = Command::new("git");
+        command.arg("-C").arg(repository).args(["bundle", "create"]).arg(bundle);
+        command.args(revisions);
+        let output = command.output()?;
+        ensure!(
+            output.status.success(),
+            "git bundle create failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        Ok(())
+    }
+
+    fn git_text(repository: &Path, arguments: &[&str]) -> Result<String> {
+        let output = Command::new("git").arg("-C").arg(repository).args(arguments).output()?;
+        ensure!(output.status.success(), "git {} failed", arguments.join(" "));
+        Ok(String::from_utf8(output.stdout)?.trim().to_string())
     }
 
     fn git(repository: &Path, arguments: &[&str]) -> Result<()> {

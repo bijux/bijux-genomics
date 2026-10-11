@@ -5,7 +5,9 @@ mod inputs;
 mod parameters;
 mod report;
 
-pub(super) use inputs::{cohort_execution_inputs, execution_inputs, BamCohortCommandSample};
+pub(super) use inputs::{
+    cohort_execution_inputs, execution_inputs, single_bam_stage_plan_unit, BamCohortCommandSample,
+};
 pub(super) use parameters::{
     ensure_alignment_parameter_evidence, ensure_cohort_parameter_evidence,
     ensure_parameter_evidence, BamParameterPolicy,

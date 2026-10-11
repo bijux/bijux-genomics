@@ -1,0 +1,1028 @@
+{
+  "$defs": {
+    "AllDomainFailureClassificationRow": {
+      "additionalProperties": false,
+      "properties": {
+        "class_id": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": "string"
+        },
+        "observed_error": {
+          "type": "string"
+        },
+        "observed_status": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_surface": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "triggered": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "class_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "source_surface",
+        "evidence_path",
+        "observed_status",
+        "observed_error",
+        "detail",
+        "triggered"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkComparableMetricRow": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_status": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "insufficiency_behavior": {
+          "type": "string"
+        },
+        "metric_id": {
+          "type": "string"
+        },
+        "metric_name": {
+          "type": "string"
+        },
+        "pass_rule": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tolerance_kind": {
+          "type": "string"
+        },
+        "tolerance_value": {
+          "format": "double",
+          "type": "number"
+        },
+        "tool_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "metric_id",
+        "metric_name",
+        "direction",
+        "tolerance_kind",
+        "tolerance_value",
+        "pass_rule",
+        "insufficiency_behavior",
+        "required",
+        "tool_ids",
+        "contract_status",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkCorpusSectionRow": {
+      "additionalProperties": false,
+      "properties": {
+        "corpus_id": {
+          "type": "string"
+        },
+        "domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "missing_result_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pipeline_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "present_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tool_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "unsupported_pair_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "corpus_id",
+        "row_count",
+        "present_row_count",
+        "missing_result_row_count",
+        "unsupported_pair_row_count",
+        "domains",
+        "stage_ids",
+        "tool_ids",
+        "pipeline_ids"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkFailureRow": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": "string"
+        },
+        "record_id": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "record_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "evidence_path",
+        "detail"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkFailuresSection": {
+      "additionalProperties": false,
+      "properties": {
+        "classification_rows": {
+          "items": {
+            "$ref": "#/$defs/AllDomainFailureClassificationRow"
+          },
+          "type": "array"
+        },
+        "failure_class_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rows": {
+          "items": {
+            "$ref": "#/$defs/FullBenchmarkFailureRow"
+          },
+          "type": "array"
+        },
+        "simulated_failure_domain_counts": {
+          "additionalProperties": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "simulated_failure_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "simulated_failure_row_count",
+        "failure_class_row_count",
+        "simulated_failure_domain_counts",
+        "rows",
+        "classification_rows"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkMemoryRow": {
+      "additionalProperties": false,
+      "properties": {
+        "declared_cpu_threads": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "declared_memory_mb": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "domain": {
+          "type": "string"
+        },
+        "memory_source": {
+          "type": "string"
+        },
+        "real_smoke_cpu_threads": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "real_smoke_memory_mb": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "report_row_id": {
+          "type": "string"
+        },
+        "row_status": {
+          "$ref": "#/$defs/FullBenchmarkReportRowStatus"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "report_row_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "row_status",
+        "memory_source"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkMissingResultRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "audit_manifest_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "report_section": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "report_section",
+        "evidence_path",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkPipelineSection": {
+      "additionalProperties": false,
+      "properties": {
+        "row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rows": {
+          "items": {
+            "$ref": "#/$defs/FullBenchmarkPipelineSectionRow"
+          },
+          "type": "array"
+        },
+        "unmapped_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "row_count",
+        "unmapped_row_count",
+        "rows"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkPipelineSectionRow": {
+      "additionalProperties": false,
+      "properties": {
+        "domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "missing_result_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "present_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tool_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "unsupported_pair_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "pipeline_id",
+        "row_count",
+        "present_row_count",
+        "missing_result_row_count",
+        "unsupported_pair_row_count",
+        "domains",
+        "stage_ids",
+        "tool_ids"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkReportRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "comparable_metric_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "declared_cpu_threads": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "declared_memory_mb": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "detail": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": "string"
+        },
+        "expected_metric_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "expected_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "manifest_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pipeline_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "real_smoke_cpu_threads": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "real_smoke_elapsed_seconds": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "real_smoke_execution_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "real_smoke_memory_mb": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "report_row_id": {
+          "type": "string"
+        },
+        "report_section": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "row_status": {
+          "$ref": "#/$defs/FullBenchmarkReportRowStatus"
+        },
+        "simulated_elapsed_seconds": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "report_row_id",
+        "row_status",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "report_section",
+        "pipeline_ids",
+        "expected_output_count",
+        "expected_metric_count",
+        "comparable_metric_count",
+        "evidence_path",
+        "detail"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkReportRowStatus": {
+      "enum": [
+        "present",
+        "missing_result",
+        "unsupported_pair"
+      ],
+      "type": "string"
+    },
+    "FullBenchmarkRuntimeRow": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "real_smoke_elapsed_seconds": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "real_smoke_execution_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "report_row_id": {
+          "type": "string"
+        },
+        "row_status": {
+          "$ref": "#/$defs/FullBenchmarkReportRowStatus"
+        },
+        "runtime_source": {
+          "type": "string"
+        },
+        "simulated_elapsed_seconds": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "report_row_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "row_status",
+        "runtime_source"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkStageSectionRow": {
+      "additionalProperties": false,
+      "properties": {
+        "corpus_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "missing_result_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pipeline_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "present_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "report_sections": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "unsupported_pair_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "row_count",
+        "present_row_count",
+        "missing_result_row_count",
+        "unsupported_pair_row_count",
+        "tool_ids",
+        "corpus_ids",
+        "pipeline_ids",
+        "report_sections"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkToolSectionRow": {
+      "additionalProperties": false,
+      "properties": {
+        "corpus_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "missing_result_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pipeline_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "present_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "unsupported_pair_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tool_id",
+        "row_count",
+        "present_row_count",
+        "missing_result_row_count",
+        "unsupported_pair_row_count",
+        "domains",
+        "stage_ids",
+        "corpus_ids",
+        "pipeline_ids"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkUnsupportedPairRow": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "tool_id",
+        "evidence_path",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "comparable_metric_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "comparable_metrics": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkComparableMetricRow"
+      },
+      "type": "array"
+    },
+    "corpus_centric": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkCorpusSectionRow"
+      },
+      "type": "array"
+    },
+    "corpus_centric_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "expected_result_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "explicit_unsupported_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failure_class_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failure_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failures": {
+      "$ref": "#/$defs/FullBenchmarkFailuresSection"
+    },
+    "json_output_path": {
+      "type": "string"
+    },
+    "markdown_output_path": {
+      "type": "string"
+    },
+    "memory": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkMemoryRow"
+      },
+      "type": "array"
+    },
+    "memory_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_result_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_results": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkMissingResultRow"
+      },
+      "type": "array"
+    },
+    "passes_behavior_test": {
+      "type": "boolean"
+    },
+    "pipeline_centric": {
+      "$ref": "#/$defs/FullBenchmarkPipelineSection"
+    },
+    "pipeline_centric_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "present_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_status_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkReportRow"
+      },
+      "type": "array"
+    },
+    "runtime": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkRuntimeRow"
+      },
+      "type": "array"
+    },
+    "runtime_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.full_benchmark_report.v1",
+      "type": "string"
+    },
+    "stage_centric": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkStageSectionRow"
+      },
+      "type": "array"
+    },
+    "stage_centric_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "tool_centric": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkToolSectionRow"
+      },
+      "type": "array"
+    },
+    "tool_centric_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "unsupported_pair_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "unsupported_pairs": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkUnsupportedPairRow"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "markdown_output_path",
+    "json_output_path",
+    "row_count",
+    "expected_result_row_count",
+    "explicit_unsupported_row_count",
+    "present_row_count",
+    "missing_result_row_count",
+    "unsupported_pair_row_count",
+    "stage_centric_row_count",
+    "tool_centric_row_count",
+    "corpus_centric_row_count",
+    "pipeline_centric_row_count",
+    "runtime_row_count",
+    "memory_row_count",
+    "comparable_metric_row_count",
+    "failure_row_count",
+    "failure_class_row_count",
+    "passes_behavior_test",
+    "domain_counts",
+    "row_status_counts",
+    "rows",
+    "stage_centric",
+    "tool_centric",
+    "corpus_centric",
+    "pipeline_centric",
+    "runtime",
+    "memory",
+    "failures",
+    "missing_results",
+    "comparable_metrics",
+    "unsupported_pairs"
+  ],
+  "title": "FullBenchmarkReport",
+  "type": "object"
+}

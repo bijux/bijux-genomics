@@ -3,7 +3,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_execution_resolver, BenchmarkLocalHpcExecutionResolverReport,
+    BenchmarkLocalHpcExecutionResolverRow, BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1,
+};
 
 use super::local_hpc_input_discovery::path_relative_to_repo;
 use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
@@ -22,44 +25,15 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_VERSION: &str =
-    "bijux.bench.local_hpc_execution_resolver.v1";
+    BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_EXECUTION_RESOLVER_PATH: &str =
     "runs/bench/hpc-dry-run/execution-resolver.tsv";
 const UNCLASSIFIED_EXECUTION_MODE: &str = "unclassified";
 const UNCLASSIFIED_EXECUTION_MODE_SUMMARY: &str =
     "Selected tool is outside the governed benchmark execution-mode map; the resolver falls back to governed runtime probe evidence.";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcExecutionResolverRow {
-    pub(crate) tool_id: String,
-    pub(crate) lookup_tool_id: String,
-    pub(crate) execution_mode: String,
-    pub(crate) execution_mode_summary: String,
-    pub(crate) domains: Vec<String>,
-    pub(crate) selected_stage_ids: Vec<String>,
-    pub(crate) selected_job_count: usize,
-    pub(crate) selected_job_ids: Vec<String>,
-    pub(crate) selected_result_ids: Vec<String>,
-    pub(crate) selected_pipeline_ids: Vec<String>,
-    pub(crate) selected_node_ids: Vec<String>,
-    pub(crate) install_kind: String,
-    pub(crate) resolution_kind: String,
-    pub(crate) resolution_target: String,
-    pub(crate) command_entrypoint: Option<String>,
-    pub(crate) runtime_probe_paths: Vec<String>,
-    pub(crate) registry_paths: Vec<String>,
-    pub(crate) unavailable_reason: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalHpcExecutionResolverReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) resolution_counts: BTreeMap<String, usize>,
-    pub(crate) unclassified_tool_count: usize,
-    pub(crate) rows: Vec<LocalHpcExecutionResolverRow>,
-}
+pub(crate) type LocalHpcExecutionResolverRow = BenchmarkLocalHpcExecutionResolverRow;
+pub(crate) type LocalHpcExecutionResolverReport = BenchmarkLocalHpcExecutionResolverReport;
 
 #[derive(Debug, Clone, Default)]
 struct SelectedToolScopeAccumulator {
@@ -195,15 +169,13 @@ fn build_hpc_execution_resolver(
         })
         .collect::<Result<Vec<_>>>()?;
     rows.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
-    ensure_execution_resolver_contract(&rows)?;
-
     let mut resolution_counts = BTreeMap::<String, usize>::new();
     for row in &rows {
         *resolution_counts.entry(row.resolution_kind.clone()).or_default() += 1;
     }
 
-    Ok(LocalHpcExecutionResolverReport {
-        schema_version: LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_VERSION,
+    let report = LocalHpcExecutionResolverReport {
+        schema_version: LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, absolute_output),
         row_count: rows.len(),
         unclassified_tool_count: rows
@@ -212,7 +184,9 @@ fn build_hpc_execution_resolver(
             .count(),
         resolution_counts,
         rows,
-    })
+    };
+    validate_benchmark_local_hpc_execution_resolver(&report)?;
+    Ok(report)
 }
 
 fn collect_selected_tool_scope(repo_root: &Path) -> Result<Vec<SelectedToolScope>> {
@@ -466,94 +440,6 @@ fn render_hpc_execution_resolver_tsv(rows: &[LocalHpcExecutionResolverRow]) -> S
 
 fn sanitize_tsv_field(value: &str) -> String {
     value.replace(['\t', '\n', '\r'], " ")
-}
-
-fn ensure_execution_resolver_contract(rows: &[LocalHpcExecutionResolverRow]) -> Result<()> {
-    if rows.is_empty() {
-        return Err(anyhow!("HPC execution resolver must cover at least one selected tool"));
-    }
-
-    let observed_tool_ids = rows.iter().map(|row| row.tool_id.as_str()).collect::<Vec<_>>();
-    let sorted_tool_ids = {
-        let mut sorted = observed_tool_ids.clone();
-        sorted.sort_unstable();
-        sorted
-    };
-    if observed_tool_ids != sorted_tool_ids {
-        return Err(anyhow!("HPC execution resolver rows must remain sorted lexically by tool_id"));
-    }
-
-    let unique_tool_ids = observed_tool_ids.iter().copied().collect::<BTreeSet<_>>();
-    if unique_tool_ids.len() != rows.len() {
-        return Err(anyhow!("HPC execution resolver rows must keep tool_id values unique"));
-    }
-
-    for row in rows {
-        if row.selected_job_count == 0 {
-            return Err(anyhow!(
-                "HPC execution resolver row `{}` must cover at least one selected job",
-                row.tool_id
-            ));
-        }
-        if row.selected_job_count != row.selected_job_ids.len() {
-            return Err(anyhow!(
-                "HPC execution resolver row `{}` selected_job_count must match selected_job_ids length",
-                row.tool_id
-            ));
-        }
-        if row.execution_mode.trim().is_empty() || row.execution_mode_summary.trim().is_empty() {
-            return Err(anyhow!(
-                "HPC execution resolver row `{}` must keep execution mode metadata populated",
-                row.tool_id
-            ));
-        }
-        if row.domains.is_empty() || row.selected_stage_ids.is_empty() {
-            return Err(anyhow!(
-                "HPC execution resolver row `{}` must preserve selected domain and stage scope",
-                row.tool_id
-            ));
-        }
-        match row.resolution_kind.as_str() {
-            RESOLUTION_KIND_HOST_BINARY | RESOLUTION_KIND_APPTAINER_IMAGE => {
-                if row.resolution_target.trim().is_empty() {
-                    return Err(anyhow!(
-                        "HPC execution resolver row `{}` must populate resolution_target for `{}`",
-                        row.tool_id,
-                        row.resolution_kind
-                    ));
-                }
-                if row.unavailable_reason.is_some() {
-                    return Err(anyhow!(
-                        "HPC execution resolver row `{}` must not carry unavailable_reason when resolution_kind is `{}`",
-                        row.tool_id,
-                        row.resolution_kind
-                    ));
-                }
-            }
-            RESOLUTION_KIND_UNAVAILABLE => {
-                if row.unavailable_reason.as_deref().map(str::trim).is_none_or(str::is_empty) {
-                    return Err(anyhow!(
-                        "HPC execution resolver row `{}` must explain unavailable resolution",
-                        row.tool_id
-                    ));
-                }
-                if !row.resolution_target.is_empty() {
-                    return Err(anyhow!(
-                        "HPC execution resolver row `{}` must leave resolution_target empty when unavailable",
-                        row.tool_id
-                    ));
-                }
-            }
-            other => {
-                return Err(anyhow!(
-                    "HPC execution resolver row `{}` uses unsupported resolution_kind `{other}`",
-                    row.tool_id
-                ));
-            }
-        }
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]

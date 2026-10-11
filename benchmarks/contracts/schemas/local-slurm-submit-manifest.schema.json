@@ -1,0 +1,213 @@
+{
+  "$defs": {
+    "BenchmarkLocalSlurmSubmitJob": {
+      "additionalProperties": false,
+      "properties": {
+        "compatibility_kind": {
+          "type": "string"
+        },
+        "compatibility_note": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "job_name": {
+          "type": "string"
+        },
+        "logs": {
+          "$ref": "#/$defs/BenchmarkLocalSlurmSubmitLogs"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalStageArtifactEntry"
+          },
+          "type": "array"
+        },
+        "pipeline_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "readiness_kind": {
+          "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+        },
+        "resources": {
+          "$ref": "#/$defs/BenchmarkLocalSlurmSubmitResources"
+        },
+        "result_root": {
+          "type": "string"
+        },
+        "sample_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sample_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "script_path": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_name",
+        "domain",
+        "sample_ids",
+        "tool_id",
+        "readiness_kind",
+        "resources",
+        "script_path",
+        "logs",
+        "result_root",
+        "outputs",
+        "dependencies",
+        "compatibility_kind",
+        "compatibility_note"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalSlurmSubmitLogs": {
+      "additionalProperties": false,
+      "properties": {
+        "stderr_path": {
+          "type": "string"
+        },
+        "stdout_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stdout_path",
+        "stderr_path"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalSlurmSubmitResources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpus_per_task": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "memory_mb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "time_limit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cpus_per_task",
+        "memory_mb",
+        "time_limit"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageArtifactEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "type": "string"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "path",
+        "role",
+        "optional"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "dependency_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "jobs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalSlurmSubmitJob"
+      },
+      "type": "array"
+    },
+    "manifest_path": {
+      "type": "string"
+    },
+    "root_path": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_slurm_submit_manifest.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "root_path",
+    "manifest_path",
+    "run_id",
+    "job_count",
+    "dependency_count",
+    "jobs"
+  ],
+  "title": "BenchmarkLocalSlurmSubmitManifest",
+  "type": "object"
+}

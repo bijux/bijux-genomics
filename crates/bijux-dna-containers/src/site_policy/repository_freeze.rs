@@ -38,6 +38,7 @@ pub fn freeze_repository(request: &RepositoryFreezeRequest) -> Result<PathBuf> {
         verify_read_only_snapshot(&target)?;
         return Ok(target);
     }
+    ensure_freeze_storage_capacity(request)?;
     if let Some(parent) = target.parent() {
         std::fs::create_dir_all(parent)
             .with_context(|| format!("create frozen repository parent {}", parent.display()))?;
@@ -51,6 +52,59 @@ pub fn freeze_repository(request: &RepositoryFreezeRequest) -> Result<PathBuf> {
         ));
     }
     Ok(target)
+}
+
+fn ensure_freeze_storage_capacity(request: &RepositoryFreezeRequest) -> Result<()> {
+    let path = existing_ancestor(&request.governance.paths.frozen_repositories)?;
+    let available_bytes = df_available(path, "-Pk")?
+        .checked_mul(1024)
+        .context("available filesystem byte count overflowed")?;
+    ensure!(
+        available_bytes >= request.governance.preflight.minimum_available_bytes,
+        "repository freeze requires at least {} available bytes but only {available_bytes} are available",
+        request.governance.preflight.minimum_available_bytes
+    );
+    let available_inodes = df_available(path, "-Pi")?;
+    ensure!(
+        available_inodes >= request.governance.preflight.minimum_available_inodes,
+        "repository freeze requires at least {} available inodes but only {available_inodes} are available",
+        request.governance.preflight.minimum_available_inodes
+    );
+    Ok(())
+}
+
+fn existing_ancestor(path: &Path) -> Result<&Path> {
+    let mut candidate = path;
+    loop {
+        if candidate.try_exists().with_context(|| {
+            format!("inspect repository freeze storage path {}", candidate.display())
+        })? {
+            return Ok(candidate);
+        }
+        candidate = candidate.parent().with_context(|| {
+            format!("repository freeze storage path has no existing ancestor: {}", path.display())
+        })?;
+    }
+}
+
+fn df_available(path: &Path, mode: &str) -> Result<u64> {
+    let output = Command::new("df")
+        .env("LC_ALL", "C")
+        .arg(mode)
+        .arg(path)
+        .output()
+        .with_context(|| format!("inspect repository freeze storage at {}", path.display()))?;
+    if !output.status.success() {
+        bail!("df {mode} failed: {}", String::from_utf8_lossy(&output.stderr).trim());
+    }
+    let stdout = String::from_utf8(output.stdout).context("df output is not UTF-8")?;
+    stdout
+        .lines()
+        .last()
+        .and_then(|line| line.split_whitespace().nth(3))
+        .context("df output omits available storage")?
+        .parse::<u64>()
+        .context("df available storage is not an integer")
 }
 
 /// Verify that a repository snapshot is commit-exact, self-contained, clean, and read-only.

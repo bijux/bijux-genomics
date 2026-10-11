@@ -9,10 +9,10 @@
     "identity_policy": "existing_ids_immutable"
   },
   "source_contract_sha256": {
-    "benchmarks/contracts/portfolio.toml": "1a52e85a0c3ef8b2b2bfac1b4334db6dd2fb3641383bb2ba9ec6f96bce01871d",
+    "benchmarks/contracts/portfolio.toml": "3114fe7216160e729253c9a07ea94e7ad9503644ba4d5006c5d1190d138c7a72",
     "benchmarks/contracts/stage-campaigns.toml": "a078200374a0e58254a1b4578385086805e5f2637366d2bb787b4beb05ce6ced",
     "benchmarks/contracts/stage-interfaces.toml": "6534c02c1dfe60dc4481f0fa544e7b2d5dd9c457ac4f744a82a6c7ccc602b82c",
-    "containers/contracts/catalog.toml": "7dc269495d5dcb614763e84b13751b1f7f5f7ff8f2c7d66c7a3485b63c8ac904"
+    "containers/contracts/catalog.toml": "7315eeaae2364f99df38ad66fa46d9a2b3e3dc64d8757619b714df94de9d780a"
   },
   "summary": {
     "run_count": 71,

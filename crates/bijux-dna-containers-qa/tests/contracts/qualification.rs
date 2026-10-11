@@ -1,6 +1,8 @@
+use std::collections::BTreeSet;
 use std::fs;
 #[cfg(unix)]
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use std::path::PathBuf;
 #[cfg(unix)]
 use std::process::Command;
 
@@ -22,6 +24,81 @@ use bijux_dna_containers_qa::api::{
     QualificationProbeObservation,
 };
 use serde_json::json;
+
+#[test]
+fn checked_merge_qualification_selections_close_their_binding_inputs_and_parameters() -> Result<()>
+{
+    use bijux_dna_core::ids::{StageId, ToolId};
+    use bijux_dna_stage_contract::ToolBinding;
+
+    let repository = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let selection_root = repository.join("containers/contracts/qualification-selections");
+    let registry = bijux_dna_containers::api::load_qualification_run_registry(
+        &repository,
+        &repository.join("containers/contracts/qualification-runs.toml"),
+    )?;
+    let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+    let mut observed = BTreeSet::new();
+    for entry in fs::read_dir(&selection_root)? {
+        let entry = entry?;
+        if entry.path().extension().and_then(|value| value.to_str()) != Some("json") {
+            continue;
+        }
+        let path = entry.path();
+        let selection = bijux_dna_containers_qa::api::load_qualification_source_selection(&path)?;
+        let file_tool = path.file_stem().and_then(|value| value.to_str()).unwrap_or_default();
+        assert_eq!(selection.tool_id, file_tool);
+        let registered = registry
+            .tools
+            .iter()
+            .find(|tool| tool.tool_id == selection.tool_id)
+            .context("selection tool is absent from the qualification registry")?;
+        if registered.stage_id != "fastq.merge_pairs" {
+            continue;
+        }
+        assert!(observed.insert(selection.tool_id.clone()));
+        assert_eq!(registered.input_role, selection.corpus_role);
+        let binding = bindings
+            .binding(&StageId::new(&registered.stage_id), &ToolId::new(&selection.tool_id))
+            .context("selection stage/tool binding is absent")?;
+        let selected_inputs = selection
+            .inputs
+            .iter()
+            .map(|input| input.binding_input.as_str())
+            .collect::<BTreeSet<_>>();
+        let required_inputs = binding
+            .inputs()
+            .iter()
+            .filter(|input| input.required)
+            .map(|input| input.name.as_str())
+            .collect::<BTreeSet<_>>();
+        assert_eq!(selected_inputs, required_inputs);
+        let declared_parameters = binding
+            .parameters()
+            .iter()
+            .map(|parameter| parameter.name.as_str())
+            .collect::<BTreeSet<_>>();
+        assert!(selection
+            .parameters
+            .keys()
+            .all(|name| declared_parameters.contains(name.as_str())));
+        assert!(binding.parameters().iter().filter(|parameter| parameter.required).all(
+            |parameter| {
+                selection.parameters.get(&parameter.name).is_some_and(|value| !value.is_empty())
+            }
+        ));
+        assert_eq!(selection.inputs.len(), 2);
+        assert_eq!(selection.inputs[0].catalog_id, selection.inputs[1].catalog_id);
+    }
+    assert_eq!(
+        observed,
+        ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "seqprep"]
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    );
+    Ok(())
+}
 
 #[test]
 fn plans_and_accepts_complete_pipeline_evidence() -> Result<()> {

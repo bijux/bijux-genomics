@@ -7,17 +7,22 @@ use bijux_dna_policies::{validate_ci_build_authority, CiBuildAuthority};
 use serde::{Deserialize, Serialize};
 
 use super::{
-    artifact_env, artifact_root_path, ci_test_env, ensure_help_only, env_or_default, fs,
-    merge_outcomes, read_coverage_runner_flag, resolved_nextest_expression,
-    resolved_nextest_profile, resolved_nextest_threads, resolved_run_ignored, run_check_ids,
-    run_make_target, run_program_with_env, set_assets_readonly, write_json_pretty, Context,
-    OpsCommandOutcome, Result, Workspace,
+    artifact_env, artifact_env_with_common_test_env, artifact_root_path, ci_test_env,
+    ensure_help_only, env_or_default, fs, merge_outcomes, read_coverage_runner_flag,
+    resolved_nextest_expression, resolved_nextest_profile, resolved_nextest_threads,
+    resolved_run_ignored, run_check_ids, run_make_target, run_program_with_env,
+    set_assets_readonly, write_json_pretty, Context, OpsCommandOutcome, Result, Workspace,
 };
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 
 const FULL_SHARDS_SCHEMA_V3: &str = "bijux.ci.full_shards.v3";
-const FAST_GROUPS_SCHEMA_V1: &str = "bijux.ci.fast_groups.v1";
-const FAST_TIMING_HISTORY_SCHEMA_V1: &str = "bijux.ci.fast_timing_history.v1";
+const FAST_GROUPS_SCHEMA_V2: &str = "bijux.ci.fast_groups.v2";
+const FAST_TIMING_SCHEMA_V3: &str = "bijux.ci.fast_timing.v3";
+const FAST_TIMING_HISTORY_SCHEMA_V3: &str = "bijux.ci.fast_timing_history.v3";
+#[cfg(unix)]
+const SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES: usize = 107;
+#[cfg(unix)]
+const SCCACHE_UNIX_RUNTIME_TMPDIR: &str = "/tmp";
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -129,6 +134,7 @@ struct FastGroupContract {
     schema_version: String,
     max_parallelism: usize,
     warm_cache_target_milliseconds: u64,
+    minimum_cache_hit_ratio_basis_points: u64,
     history_limit: usize,
     report_root: String,
     timing_report: String,
@@ -143,6 +149,7 @@ struct FastReferenceRunner {
     os: String,
     architecture: String,
     rust_toolchain: String,
+    compiler_wrapper: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -170,8 +177,51 @@ struct FastTimingObservation {
     architecture: String,
     #[serde(default)]
     rust_toolchain: String,
+    #[serde(default)]
+    compiler_wrapper: String,
     cache_state: String,
+    #[serde(default)]
+    cache_authority: String,
+    #[serde(default)]
+    build_authority: String,
+    #[serde(default)]
+    cache_hit_ratio_basis_points: u64,
     wall_time_milliseconds: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct FastBuildAuthority {
+    target: PathBuf,
+    shared: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+struct FastCacheStats {
+    cache_location: String,
+    compile_requests: u64,
+    requests_executed: u64,
+    cache_hits: u64,
+    cache_misses: u64,
+    cache_writes: u64,
+    cache_errors: u64,
+    cache_timeouts: u64,
+    cache_read_errors: u64,
+    cache_write_errors: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+struct FastCacheDelta {
+    cache_location: String,
+    compile_requests: u64,
+    requests_executed: u64,
+    cache_hits: u64,
+    cache_misses: u64,
+    cache_writes: u64,
+    cache_errors: u64,
+    cache_timeouts: u64,
+    cache_read_errors: u64,
+    cache_write_errors: u64,
+    hit_ratio_basis_points: u64,
 }
 
 pub(in super::super) fn tooling_ci_fmt(
@@ -319,7 +369,15 @@ pub(in super::super) fn tooling_ci_fast(
 
     let report_root = ci_output_path(workspace, &contract.report_root)?;
     bijux_dna_infra::ensure_dir(&report_root)?;
-    let envs = artifact_env(workspace)?;
+    let build_authority = ci_fast_build_authority(workspace)?;
+    let compiler_wrapper = compiler_wrapper_program(workspace)?;
+    let sccache_runtime_env = resolve_ci_fast_sccache_runtime_env(
+        compiler_wrapper.as_deref(),
+        std::env::var_os("SCCACHE_SERVER_UDS").map(PathBuf::from),
+    )?;
+    let cache_before = compiler_wrapper.as_deref().and_then(|wrapper| {
+        read_sccache_stats(workspace, wrapper, &sccache_runtime_env).ok().flatten()
+    });
     let started = Instant::now();
     let mut pending =
         contract.groups.iter().map(|group| group.id.as_str()).collect::<BTreeSet<_>>();
@@ -376,14 +434,16 @@ pub(in super::super) fn tooling_ci_fast(
         }
         let specs = ready
             .iter()
-            .map(|group| ParallelProcessSpec {
-                label: group.id.clone(),
-                program: group.program.clone(),
-                args: group.args.clone(),
-                envs: envs.clone(),
-                current_dir: None,
+            .map(|group| {
+                Ok(ParallelProcessSpec {
+                    label: group.id.clone(),
+                    program: group.program.clone(),
+                    args: group.args.clone(),
+                    envs: ci_fast_group_env(workspace, &build_authority, &sccache_runtime_env)?,
+                    current_dir: None,
+                })
             })
-            .collect();
+            .collect::<Result<Vec<_>>>()?;
         let outputs = ProcessRunner::new(workspace).run_parallel(specs)?;
         for (group, completed) in ready.into_iter().zip(outputs) {
             let log_path = report_root.join(format!("{}.log", group.id));
@@ -429,18 +489,41 @@ pub(in super::super) fn tooling_ci_fast(
     let all_passed = failed.is_empty() && passed.len() == contract.groups.len();
     let source_commit = source_commit(workspace)?;
     let source_worktree_clean = source_worktree_clean(workspace)?;
-    let cache_state = std::env::var("BIJUX_CI_CACHE_STATE")
+    let requested_cache_state = std::env::var("BIJUX_CI_CACHE_STATE")
         .unwrap_or_else(|_| "unspecified".to_string())
         .to_ascii_lowercase();
     let actual_os = std::env::consts::OS.to_string();
     let actual_architecture = std::env::consts::ARCH.to_string();
     let actual_rust_toolchain = rust_toolchain_version(workspace)?;
+    let actual_compiler_wrapper = compiler_wrapper_identity(workspace)?;
+    let cache_after = compiler_wrapper.as_deref().and_then(|wrapper| {
+        read_sccache_stats(workspace, wrapper, &sccache_runtime_env).ok().flatten()
+    });
+    let cache_delta = cache_stats_delta(cache_before.as_ref(), cache_after.as_ref());
+    let shared_cache_authority =
+        cache_delta.as_ref().is_some_and(|delta| !delta.cache_location.contains(&source_commit));
+    let shared_build_authority = build_authority.shared
+        && !build_authority.target.to_string_lossy().contains(&source_commit);
+    let observed_warm_cache = requested_cache_state == "warm"
+        && shared_cache_authority
+        && shared_build_authority
+        && cache_delta.as_ref().is_some_and(|delta| {
+            delta.requests_executed > 0
+                && delta.hit_ratio_basis_points >= contract.minimum_cache_hit_ratio_basis_points
+                && delta.cache_errors == 0
+                && delta.cache_timeouts == 0
+                && delta.cache_read_errors == 0
+                && delta.cache_write_errors == 0
+        });
+    let cache_state = if observed_warm_cache { "warm_verified" } else { "unverified" };
     let eligible_reference_observation = all_passed
         && source_worktree_clean
-        && cache_state == "warm"
+        && observed_warm_cache
         && actual_os == contract.reference_runner.os
         && actual_architecture == contract.reference_runner.architecture
-        && actual_rust_toolchain == contract.reference_runner.rust_toolchain;
+        && actual_rust_toolchain == contract.reference_runner.rust_toolchain
+        && actual_compiler_wrapper.as_deref()
+            == Some(contract.reference_runner.compiler_wrapper.as_str());
     let history_path = ci_output_path(workspace, &contract.timing_history)?;
     let mut history = load_fast_timing_history(&history_path)?;
     if eligible_reference_observation {
@@ -450,7 +533,16 @@ pub(in super::super) fn tooling_ci_fast(
             os: actual_os.clone(),
             architecture: actual_architecture.clone(),
             rust_toolchain: actual_rust_toolchain.clone(),
-            cache_state: cache_state.clone(),
+            compiler_wrapper: actual_compiler_wrapper.clone().unwrap_or_default(),
+            cache_state: cache_state.to_string(),
+            cache_authority: cache_delta
+                .as_ref()
+                .map(|delta| delta.cache_location.clone())
+                .unwrap_or_default(),
+            build_authority: build_authority.target.display().to_string(),
+            cache_hit_ratio_basis_points: cache_delta
+                .as_ref()
+                .map_or(0, |delta| delta.hit_ratio_basis_points),
             wall_time_milliseconds,
         });
         if history.observations.len() > contract.history_limit {
@@ -476,7 +568,7 @@ pub(in super::super) fn tooling_ci_fast(
     write_json_pretty(
         &ci_output_path(workspace, &contract.timing_report)?,
         &serde_json::json!({
-            "schema_version": "bijux.ci.fast_timing.v1",
+            "schema_version": FAST_TIMING_SCHEMA_V3,
             "source_commit": source_commit,
             "contract_sha256": bijux_dna_infra::hash_file_sha256(&contract_path)?,
             "observed_at_utc": chrono::Utc::now().to_rfc3339(),
@@ -484,15 +576,29 @@ pub(in super::super) fn tooling_ci_fast(
                 "os": actual_os,
                 "architecture": actual_architecture,
                 "rust_toolchain": actual_rust_toolchain,
+                "compiler_wrapper": actual_compiler_wrapper,
+                "sccache_server_uds": sccache_runtime_env.iter().find_map(|(key, value)|
+                    (key == "SCCACHE_SERVER_UDS").then_some(value)),
+                "sccache_runtime_tmpdir": sccache_runtime_env.iter().find_map(|(key, value)|
+                    (key == "TMPDIR").then_some(value)),
                 "cache_state": cache_state,
+                "requested_cache_state": requested_cache_state,
+                "shared_cache_authority": shared_cache_authority,
+                "build_authority": build_authority.target,
+                "shared_build_authority": shared_build_authority,
+                "cache_before": cache_before,
+                "cache_after": cache_after,
+                "cache_delta": cache_delta,
                 "source_worktree_clean": source_worktree_clean,
             },
             "reference_runner": {
                 "os": contract.reference_runner.os,
                 "architecture": contract.reference_runner.architecture,
                 "rust_toolchain": contract.reference_runner.rust_toolchain,
+                "compiler_wrapper": contract.reference_runner.compiler_wrapper,
             },
             "warm_cache_target_milliseconds": contract.warm_cache_target_milliseconds,
+            "minimum_cache_hit_ratio_basis_points": contract.minimum_cache_hit_ratio_basis_points,
             "eligible_reference_observation": eligible_reference_observation,
             "wall_time_milliseconds": wall_time_milliseconds,
             "all_passed": all_passed,
@@ -508,6 +614,95 @@ pub(in super::super) fn tooling_ci_fast(
         }),
     )?;
     Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
+}
+
+fn ci_fast_group_env(
+    workspace: &Workspace,
+    authority: &FastBuildAuthority,
+    sccache_runtime_env: &[(String, String)],
+) -> Result<Vec<(String, String)>> {
+    let mut envs = artifact_env_with_common_test_env(workspace)?;
+    envs.push(("CARGO_TARGET_DIR".to_string(), authority.target.display().to_string()));
+    envs.push(("CARGO_NET_OFFLINE".to_string(), "true".to_string()));
+    envs.extend_from_slice(sccache_runtime_env);
+    Ok(envs)
+}
+
+fn resolve_ci_fast_sccache_runtime_env(
+    compiler_wrapper: Option<&str>,
+    configured_socket: Option<PathBuf>,
+) -> Result<Vec<(String, String)>> {
+    let uses_sccache = compiler_wrapper
+        .and_then(|wrapper| Path::new(wrapper).file_name())
+        .and_then(|name| name.to_str())
+        == Some("sccache");
+    if !uses_sccache {
+        return Ok(Vec::new());
+    }
+
+    #[cfg(unix)]
+    {
+        let socket = configured_socket.unwrap_or_else(|| {
+            PathBuf::from(format!("/tmp/bijux-sccache-{}.sock", std::process::id()))
+        });
+        if !socket.is_absolute()
+            || socket
+                .components()
+                .any(|component| matches!(component, Component::ParentDir | Component::CurDir))
+        {
+            anyhow::bail!("SCCACHE_SERVER_UDS must be absolute and normalized");
+        }
+        if socket.as_os_str().as_encoded_bytes().len() > SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES {
+            anyhow::bail!(
+                "SCCACHE_SERVER_UDS exceeds the Unix socket path limit of \
+                {SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES} bytes"
+            );
+        }
+        Ok(vec![
+            ("SCCACHE_SERVER_UDS".to_string(), socket.display().to_string()),
+            ("TMPDIR".to_string(), SCCACHE_UNIX_RUNTIME_TMPDIR.to_string()),
+        ])
+    }
+
+    #[cfg(not(unix))]
+    {
+        let _ = configured_socket;
+        Ok(Vec::new())
+    }
+}
+
+fn ci_fast_build_authority(workspace: &Workspace) -> Result<FastBuildAuthority> {
+    resolve_ci_fast_build_authority(
+        workspace,
+        std::env::var_os("BIJUX_CI_FAST_TARGET_DIR").map(PathBuf::from),
+    )
+}
+
+fn resolve_ci_fast_build_authority(
+    workspace: &Workspace,
+    configured: Option<PathBuf>,
+) -> Result<FastBuildAuthority> {
+    let shared = configured.is_some();
+    let target = configured.unwrap_or(artifact_root_path(workspace)?.join("ci/ci-fast-target"));
+    if shared
+        && (!target.is_absolute()
+            || target
+                .components()
+                .any(|component| matches!(component, Component::ParentDir | Component::CurDir)))
+    {
+        anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must be absolute and normalized");
+    }
+    bijux_dna_infra::ensure_dir(&target)?;
+    let canonical_target = target.canonicalize().context("canonicalize ci-fast build authority")?;
+    if shared && canonical_target != target {
+        anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must not traverse symbolic path aliases");
+    }
+    let target = canonical_target;
+    let source = workspace.root.canonicalize().context("canonicalize ci-fast source root")?;
+    if shared && (target.starts_with(&source) || source.starts_with(&target)) {
+        anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must be disjoint from the source workspace");
+    }
+    Ok(FastBuildAuthority { target, shared })
 }
 
 pub(in super::super) fn tooling_ci_slow(
@@ -942,9 +1137,9 @@ fn full_shard_roots(
     let artifact_root = ci_output_path(workspace, &contract.shard_artifact_root)?.join(&shard.id);
     Ok(FullShardRoots {
         archive_extract: artifact_root.join("nextest/archive"),
-        cargo_target: artifact_root.join("target/cargo"),
-        test_target: artifact_root.join("target/test"),
-        coverage_target: artifact_root.join("target/coverage"),
+        cargo_target: isolated_build_tree(&artifact_root, "cargo"),
+        test_target: isolated_build_tree(&artifact_root, "test"),
+        coverage_target: isolated_build_tree(&artifact_root, "coverage"),
         test_tmp: artifact_root.join("tmp/test"),
         coverage_tmp: artifact_root.join("tmp/coverage"),
         test_profraw: artifact_root.join("coverage/profraw-test"),
@@ -959,11 +1154,15 @@ fn full_archive_roots(
 ) -> Result<FullArchiveRoots> {
     let artifact_root = ci_output_path(workspace, &contract.archive_root)?;
     Ok(FullArchiveRoots {
-        cargo_target: artifact_root.join("target/cargo"),
+        cargo_target: isolated_build_tree(&artifact_root, "cargo"),
         archive_file: artifact_root.join("workspace-tests.tar.zst"),
         build_log: artifact_root.join("build.log"),
         artifact_root,
     })
+}
+
+fn isolated_build_tree(artifact_root: &Path, consumer: &str) -> PathBuf {
+    artifact_root.join("build").join(consumer)
 }
 
 fn ci_output_path(workspace: &Workspace, configured: &str) -> Result<PathBuf> {
@@ -1189,14 +1388,16 @@ fn validate_full_shard_contract(contract: &FullShardContract) -> Result<()> {
 }
 
 fn validate_fast_group_contract(contract: &FastGroupContract) -> Result<()> {
-    if contract.schema_version != FAST_GROUPS_SCHEMA_V1
+    if contract.schema_version != FAST_GROUPS_SCHEMA_V2
         || !(2..=16).contains(&contract.max_parallelism)
         || !(2..=16).contains(&contract.groups.len())
         || !(5..=100).contains(&contract.history_limit)
         || contract.warm_cache_target_milliseconds == 0
+        || !(1..=10_000).contains(&contract.minimum_cache_hit_ratio_basis_points)
         || contract.reference_runner.os.is_empty()
         || contract.reference_runner.architecture.is_empty()
         || contract.reference_runner.rust_toolchain.is_empty()
+        || contract.reference_runner.compiler_wrapper != "sccache"
     {
         anyhow::bail!("ci-fast group contract is incomplete");
     }
@@ -1252,13 +1453,18 @@ fn validate_fast_group_contract(contract: &FastGroupContract) -> Result<()> {
 fn load_fast_timing_history(path: &Path) -> Result<FastTimingHistory> {
     if !path.try_exists()? {
         return Ok(FastTimingHistory {
-            schema_version: FAST_TIMING_HISTORY_SCHEMA_V1.to_string(),
+            schema_version: FAST_TIMING_HISTORY_SCHEMA_V3.to_string(),
             observations: Vec::new(),
         });
     }
-    let history: FastTimingHistory = serde_json::from_slice(&fs::read(path)?)
+    let mut history: FastTimingHistory = serde_json::from_slice(&fs::read(path)?)
         .with_context(|| format!("parse {}", path.display()))?;
-    if history.schema_version != FAST_TIMING_HISTORY_SCHEMA_V1 {
+    if matches!(
+        history.schema_version.as_str(),
+        "bijux.ci.fast_timing_history.v1" | "bijux.ci.fast_timing_history.v2"
+    ) {
+        history.schema_version = FAST_TIMING_HISTORY_SCHEMA_V3.to_string();
+    } else if history.schema_version != FAST_TIMING_HISTORY_SCHEMA_V3 {
         anyhow::bail!("unsupported ci-fast timing history schema");
     }
     Ok(history)
@@ -1299,6 +1505,113 @@ fn rust_toolchain_version(workspace: &Workspace) -> Result<String> {
         .context("parse ci-fast Rust toolchain")
 }
 
+fn compiler_wrapper_identity(workspace: &Workspace) -> Result<Option<String>> {
+    let Some(wrapper) = compiler_wrapper_program(workspace)? else {
+        return Ok(None);
+    };
+    let output = ProcessRunner::new(workspace).run(&[wrapper.as_str(), "--version"])?;
+    if !output.status.success() {
+        return Ok(None);
+    }
+    let version = String::from_utf8(output.stdout)?;
+    Ok(parse_compiler_wrapper_identity(&version))
+}
+
+fn compiler_wrapper_program(workspace: &Workspace) -> Result<Option<String>> {
+    Ok(artifact_env_with_common_test_env(workspace)?
+        .into_iter()
+        .rev()
+        .find_map(|(key, value)| (key == "RUSTC_WRAPPER").then_some(value))
+        .filter(|value| !value.trim().is_empty()))
+}
+
+fn parse_compiler_wrapper_identity(version: &str) -> Option<String> {
+    version.split_whitespace().next().filter(|name| *name == "sccache").map(ToOwned::to_owned)
+}
+
+fn read_sccache_stats(
+    workspace: &Workspace,
+    wrapper: &str,
+    runtime_env: &[(String, String)],
+) -> Result<Option<FastCacheStats>> {
+    let output = ProcessRunner::new(workspace).run_owned_with_env(
+        wrapper,
+        &["--show-stats".to_string(), "--stats-format=json".to_string()],
+        runtime_env,
+    )?;
+    if !output.status.success() {
+        return Ok(None);
+    }
+    parse_sccache_stats(&serde_json::from_slice(&output.stdout)?).map(Some)
+}
+
+fn parse_sccache_stats(value: &serde_json::Value) -> Result<FastCacheStats> {
+    let stats = value.get("stats").unwrap_or(value);
+    let count = |name: &str| -> Result<u64> {
+        stats
+            .get(name)
+            .and_then(serde_json::Value::as_u64)
+            .with_context(|| format!("sccache statistics omit {name}"))
+    };
+    let grouped_count = |name: &str| -> Result<u64> {
+        let group = stats.get(name).context("sccache statistics omit grouped counter")?;
+        Ok(group
+            .get("counts")
+            .or_else(|| group.get("adv_counts"))
+            .and_then(serde_json::Value::as_object)
+            .into_iter()
+            .flat_map(|counts| counts.values())
+            .filter_map(serde_json::Value::as_u64)
+            .sum())
+    };
+    Ok(FastCacheStats {
+        cache_location: value
+            .get("cache_location")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .to_string(),
+        compile_requests: count("compile_requests")?,
+        requests_executed: count("requests_executed")?,
+        cache_hits: grouped_count("cache_hits")?,
+        cache_misses: grouped_count("cache_misses")?,
+        cache_writes: count("cache_writes")?,
+        cache_errors: grouped_count("cache_errors")?,
+        cache_timeouts: count("cache_timeouts")?,
+        cache_read_errors: count("cache_read_errors")?,
+        cache_write_errors: count("cache_write_errors")?,
+    })
+}
+
+fn cache_stats_delta(
+    before: Option<&FastCacheStats>,
+    after: Option<&FastCacheStats>,
+) -> Option<FastCacheDelta> {
+    let (before, after) = (before?, after?);
+    if before.cache_location.is_empty() || before.cache_location != after.cache_location {
+        return None;
+    }
+    let delta = |end: u64, start: u64| end.checked_sub(start);
+    let requests_executed = delta(after.requests_executed, before.requests_executed)?;
+    let cache_hits = delta(after.cache_hits, before.cache_hits)?;
+    let cache_misses = delta(after.cache_misses, before.cache_misses)?;
+    let cacheable_requests = cache_hits.checked_add(cache_misses)?;
+    let hit_ratio_basis_points =
+        cache_hits.saturating_mul(10_000).checked_div(cacheable_requests).unwrap_or(0);
+    Some(FastCacheDelta {
+        cache_location: after.cache_location.clone(),
+        compile_requests: delta(after.compile_requests, before.compile_requests)?,
+        requests_executed,
+        cache_hits,
+        cache_misses,
+        cache_writes: delta(after.cache_writes, before.cache_writes)?,
+        cache_errors: delta(after.cache_errors, before.cache_errors)?,
+        cache_timeouts: delta(after.cache_timeouts, before.cache_timeouts)?,
+        cache_read_errors: delta(after.cache_read_errors, before.cache_read_errors)?,
+        cache_write_errors: delta(after.cache_write_errors, before.cache_write_errors)?,
+        hit_ratio_basis_points,
+    })
+}
+
 fn duration_milliseconds(duration: Duration) -> u64 {
     u64::try_from(duration.as_millis()).unwrap_or(u64::MAX)
 }
@@ -1324,7 +1637,11 @@ fn reference_timing_samples(
             observation.os == reference.os
                 && observation.architecture == reference.architecture
                 && observation.rust_toolchain == reference.rust_toolchain
-                && observation.cache_state == "warm"
+                && observation.compiler_wrapper == reference.compiler_wrapper
+                && observation.cache_state == "warm_verified"
+                && !observation.cache_authority.is_empty()
+                && !observation.build_authority.is_empty()
+                && observation.cache_hit_ratio_basis_points > 0
         })
         .map(|observation| observation.wall_time_milliseconds)
         .collect()
@@ -1467,15 +1784,18 @@ pub(in super::super) fn tooling_ci_coverage(
 #[cfg(test)]
 mod tests {
     use super::{
-        artifact_root_path, ci_output_path, ci_output_path_under, full_archive_args,
-        full_archive_roots, full_shard_args, full_shard_env, full_shard_root_receipt,
-        full_shard_roots, materialize_full_shard_workspace, percentile, read_ci_build_authority,
-        reference_timing_samples, remove_full_shard_ephemera, set_full_archive_readonly,
-        validate_ci_test_executor_observation, validate_fast_group_contract,
-        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
-        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
-        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
-        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
+        artifact_root_path, cache_stats_delta, ci_fast_group_env, ci_output_path,
+        ci_output_path_under, full_archive_args, full_archive_roots, full_shard_args,
+        full_shard_env, full_shard_root_receipt, full_shard_roots, isolated_build_tree,
+        materialize_full_shard_workspace, parse_compiler_wrapper_identity, parse_sccache_stats,
+        percentile, read_ci_build_authority, reference_timing_samples, remove_full_shard_ephemera,
+        resolve_ci_fast_build_authority, resolve_ci_fast_sccache_runtime_env,
+        set_full_archive_readonly, validate_ci_test_executor_observation,
+        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
+        validate_full_shard_root_set, FastCacheStats, FastGroup, FastGroupContract,
+        FastReferenceRunner, FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard,
+        FullShardContract, FullShardCoverage, FullShardEphemera, FullShardRoots,
+        FAST_TIMING_HISTORY_SCHEMA_V3,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -1507,9 +1827,10 @@ mod tests {
 
     fn fast_contract() -> FastGroupContract {
         FastGroupContract {
-            schema_version: "bijux.ci.fast_groups.v1".to_string(),
+            schema_version: "bijux.ci.fast_groups.v2".to_string(),
             max_parallelism: 2,
             warm_cache_target_milliseconds: 300_000,
+            minimum_cache_hit_ratio_basis_points: 8_000,
             history_limit: 40,
             report_root: "artifacts/ci/ci-fast-groups".to_string(),
             timing_report: "artifacts/ci/ci-fast-timing.json".to_string(),
@@ -1518,6 +1839,7 @@ mod tests {
                 os: "linux".to_string(),
                 architecture: "x86_64".to_string(),
                 rust_toolchain: "1.95.0".to_string(),
+                compiler_wrapper: "sccache".to_string(),
             },
             groups: ["metadata", "unit"]
                 .into_iter()
@@ -1729,13 +2051,16 @@ mod tests {
         let archive_root = report_root.join("archive");
         let shard_root = report_root.join("shards/hash-1-of-4");
         std::fs::create_dir_all(report_root.join("workspaces/hash-1-of-4"))?;
-        std::fs::create_dir_all(archive_root.join("target/cargo"))?;
+        std::fs::create_dir_all(isolated_build_tree(&archive_root, "cargo"))?;
         std::fs::create_dir_all(&shard_root)?;
         std::fs::write(report_root.join("hash-1-of-4.log"), b"test failure\n")?;
         std::fs::write(report_root.join("full-gate-timing.json"), b"{}\n")?;
         std::fs::write(archive_root.join("build.log"), b"archive build\n")?;
         std::fs::write(archive_root.join("workspace-tests.tar.zst"), b"archive\n")?;
-        std::fs::write(archive_root.join("target/cargo/output"), b"cargo output\n")?;
+        std::fs::write(
+            isolated_build_tree(&archive_root, "cargo").join("output"),
+            b"cargo output\n",
+        )?;
         std::fs::write(shard_root.join("output"), b"shard output\n")?;
         let extracted = shard_root.join("nextest/archive/read-only");
         std::fs::create_dir_all(&extracted)?;
@@ -1761,16 +2086,16 @@ mod tests {
 
         let archive_roots = FullArchiveRoots {
             artifact_root: archive_root.clone(),
-            cargo_target: archive_root.join("target/cargo"),
+            cargo_target: isolated_build_tree(&archive_root, "cargo"),
             archive_file: archive_root.join("workspace-tests.tar.zst"),
             build_log: archive_root.join("build.log"),
         };
         let shard_roots = vec![FullShardRoots {
             artifact_root: shard_root.clone(),
             archive_extract: shard_root.join("nextest/archive"),
-            cargo_target: shard_root.join("target/cargo"),
-            test_target: shard_root.join("target/test"),
-            coverage_target: shard_root.join("target/coverage"),
+            cargo_target: isolated_build_tree(&shard_root, "cargo"),
+            test_target: isolated_build_tree(&shard_root, "test"),
+            coverage_target: isolated_build_tree(&shard_root, "coverage"),
             test_tmp: shard_root.join("tmp/test"),
             coverage_tmp: shard_root.join("tmp/coverage"),
             test_profraw: shard_root.join("coverage/profraw-test"),
@@ -1780,7 +2105,7 @@ mod tests {
         ephemera.retain_bounded_evidence()?;
 
         assert!(!report_root.join("workspaces").exists());
-        assert!(!archive_root.join("target").exists());
+        assert!(!archive_root.join("build").exists());
         assert!(!archive_root.join("workspace-tests.tar.zst").exists());
         assert!(!shard_root.exists());
         assert!(archive_root.join("build.log").is_file());
@@ -1844,6 +2169,151 @@ mod tests {
     }
 
     #[test]
+    fn fast_groups_share_one_gate_target_and_offline_authority() -> anyhow::Result<()> {
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let authority = resolve_ci_fast_build_authority(&workspace, None)?;
+        let runtime_env = resolve_ci_fast_sccache_runtime_env(Some("sccache"), None)?;
+        let first = ci_fast_group_env(&workspace, &authority, &runtime_env)?;
+        let second = ci_fast_group_env(&workspace, &authority, &runtime_env)?;
+
+        assert!(first.iter().any(|(key, value)| key == "CARGO_NET_OFFLINE" && value == "true"));
+        assert!(first.iter().any(|(key, value)| key == "TZ" && value == "UTC"));
+        assert!(first.iter().any(|(key, value)| key == "LC_ALL" && value == "C"));
+        let first_target = first
+            .iter()
+            .rev()
+            .find(|(key, _)| key == "CARGO_TARGET_DIR")
+            .map(|(_, value)| value.as_str());
+        let second_target = second
+            .iter()
+            .rev()
+            .find(|(key, _)| key == "CARGO_TARGET_DIR")
+            .map(|(_, value)| value.as_str());
+        assert_eq!(first_target, second_target);
+        assert!(first_target.is_some_and(|value| value.ends_with("ci/ci-fast-target")));
+        assert!(first.iter().any(|(key, value)| {
+            key == "SCCACHE_SERVER_UDS" && value.starts_with("/tmp/bijux-sccache-")
+        }));
+        assert!(first.iter().any(|(key, value)| key == "TMPDIR" && value == "/tmp"));
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn sccache_transport_rejects_unix_socket_paths_that_cannot_bind() {
+        let too_long = std::path::PathBuf::from(format!("/tmp/{}.sock", "x".repeat(108)));
+        assert!(
+            resolve_ci_fast_sccache_runtime_env(Some("/usr/bin/sccache"), Some(too_long)).is_err()
+        );
+        assert!(resolve_ci_fast_sccache_runtime_env(
+            Some("/usr/bin/sccache"),
+            Some(std::path::PathBuf::from("relative.sock"))
+        )
+        .is_err());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn sccache_transport_replaces_deep_inherited_runtime_tmpdir() -> anyhow::Result<()> {
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let authority = resolve_ci_fast_build_authority(&workspace, None)?;
+        let runtime_env = resolve_ci_fast_sccache_runtime_env(
+            Some("sccache"),
+            Some(std::path::PathBuf::from("/tmp/bijux-sccache-test.sock")),
+        )?;
+        let envs = ci_fast_group_env(&workspace, &authority, &runtime_env)?;
+
+        let tmpdirs = envs
+            .iter()
+            .filter(|(key, _)| key == "TMPDIR")
+            .map(|(_, value)| value.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(tmpdirs, vec!["/tmp"]);
+        Ok(())
+    }
+
+    #[test]
+    fn explicit_fast_build_authority_is_stable_and_source_disjoint() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let root = root.path().canonicalize()?;
+        let source = root.join("workspaces/commit/source");
+        std::fs::create_dir_all(&source)?;
+        let workspace = Workspace { root: source.clone() };
+        let shared = root.join("shared/ci-fast-target");
+
+        let authority = resolve_ci_fast_build_authority(&workspace, Some(shared))?;
+
+        assert!(authority.shared);
+        assert_eq!(authority.target, root.join("shared/ci-fast-target").canonicalize()?);
+        assert!(resolve_ci_fast_build_authority(
+            &workspace,
+            Some(source.join("artifacts/ci-fast-target"))
+        )
+        .is_err());
+        assert!(resolve_ci_fast_build_authority(
+            &workspace,
+            Some(std::path::PathBuf::from("relative-target"))
+        )
+        .is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn sccache_delta_proves_hits_without_trusting_a_label() -> anyhow::Result<()> {
+        let stats = |requests, executed, hits, misses, writes| FastCacheStats {
+            cache_location: "Local disk: /shared/sccache".to_string(),
+            compile_requests: requests,
+            requests_executed: executed,
+            cache_hits: hits,
+            cache_misses: misses,
+            cache_writes: writes,
+            cache_errors: 0,
+            cache_timeouts: 0,
+            cache_read_errors: 0,
+            cache_write_errors: 0,
+        };
+        let before = stats(20, 18, 12, 6, 6);
+        let after = stats(30, 28, 20, 8, 8);
+        let delta = cache_stats_delta(Some(&before), Some(&after))
+            .ok_or_else(|| anyhow::anyhow!("cache delta was unavailable"))?;
+
+        assert_eq!(delta.compile_requests, 10);
+        assert_eq!(delta.requests_executed, 10);
+        assert_eq!(delta.cache_hits, 8);
+        assert_eq!(delta.cache_misses, 2);
+        assert_eq!(delta.hit_ratio_basis_points, 8_000);
+        assert!(cache_stats_delta(Some(&after), Some(&before)).is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn sccache_json_parser_accepts_current_stats_envelope() -> anyhow::Result<()> {
+        let stats = parse_sccache_stats(&serde_json::json!({
+            "stats": {
+                "compile_requests": 10,
+                "requests_executed": 9,
+                "cache_hits": {"counts": {"Rust": 7}, "adv_counts": {"rust": 7}},
+                "cache_misses": {"counts": {"Rust": 2}, "adv_counts": {"rust": 2}},
+                "cache_writes": 2,
+                "cache_errors": {"counts": {}, "adv_counts": {}},
+                "cache_timeouts": 0,
+                "cache_read_errors": 0,
+                "cache_write_errors": 0
+            },
+            "cache_location": "Local disk: /shared/sccache"
+        }))?;
+
+        assert_eq!(stats.cache_hits, 7);
+        assert_eq!(stats.cache_misses, 2);
+        assert_eq!(stats.cache_location, "Local disk: /shared/sccache");
+        Ok(())
+    }
+
+    #[test]
     fn timing_percentiles_use_nearest_rank() {
         assert_eq!(percentile(&[], 95), None);
         assert_eq!(percentile(&[100, 20, 40, 60, 80], 50), Some(60));
@@ -1851,27 +2321,58 @@ mod tests {
     }
 
     #[test]
+    fn reference_wrapper_identity_requires_sccache_version_output() {
+        assert_eq!(
+            parse_compiler_wrapper_identity("sccache 0.10.0\n"),
+            Some("sccache".to_string())
+        );
+        assert_eq!(parse_compiler_wrapper_identity("mock wrapper\n"), None);
+        assert_eq!(parse_compiler_wrapper_identity(""), None);
+    }
+
+    #[test]
     fn timing_samples_require_exact_warm_reference_runner() {
         let reference = fast_contract().reference_runner;
-        let observation =
-            |os: &str, architecture: &str, rust_toolchain: &str, cache_state: &str| {
-                FastTimingObservation {
-                    observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
-                    source_commit: "0123456789abcdef".to_string(),
-                    os: os.to_string(),
-                    architecture: architecture.to_string(),
-                    rust_toolchain: rust_toolchain.to_string(),
-                    cache_state: cache_state.to_string(),
-                    wall_time_milliseconds: 42,
-                }
-            };
+        let observation = |os: &str,
+                           architecture: &str,
+                           rust_toolchain: &str,
+                           compiler_wrapper: &str,
+                           cache_state: &str| {
+            FastTimingObservation {
+                observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
+                source_commit: "0123456789abcdef".to_string(),
+                os: os.to_string(),
+                architecture: architecture.to_string(),
+                rust_toolchain: rust_toolchain.to_string(),
+                compiler_wrapper: compiler_wrapper.to_string(),
+                cache_state: cache_state.to_string(),
+                cache_authority: if cache_state == "warm_verified" {
+                    "/shared/sccache".to_string()
+                } else {
+                    String::new()
+                },
+                build_authority: if cache_state == "warm_verified" {
+                    "/shared/ci-fast-target".to_string()
+                } else {
+                    String::new()
+                },
+                cache_hit_ratio_basis_points: if cache_state == "warm_verified" {
+                    9_000
+                } else {
+                    0
+                },
+                wall_time_milliseconds: 42,
+            }
+        };
         let history = FastTimingHistory {
-            schema_version: FAST_TIMING_HISTORY_SCHEMA_V1.to_string(),
+            schema_version: FAST_TIMING_HISTORY_SCHEMA_V3.to_string(),
             observations: vec![
-                observation("linux", "x86_64", "1.95.0", "warm"),
-                observation("macos", "aarch64", "1.95.0", "warm"),
-                observation("linux", "x86_64", "1.94.0", "warm"),
-                observation("linux", "x86_64", "1.95.0", "cold"),
+                observation("linux", "x86_64", "1.95.0", "sccache", "warm_verified"),
+                observation("linux", "x86_64", "1.95.0", "sccache", "warm"),
+                observation("macos", "aarch64", "1.95.0", "sccache", "warm_verified"),
+                observation("linux", "x86_64", "1.94.0", "sccache", "warm_verified"),
+                observation("linux", "x86_64", "1.95.0", "sccache", "cold"),
+                observation("linux", "x86_64", "1.95.0", "", "warm_verified"),
             ],
         };
 

@@ -11,6 +11,8 @@ helpers, records manifests, and parses stage metrics.
   refusal mapping, manifests, runtime explanation artifacts, and wrapper checks.
 - `pipeline/` owns typed VCF stage families: calling, QC, orchestration,
   population-panel work, and imputation.
+- `plugin/` adapts every VCF domain stage to the shared `StagePlugin`
+  invocation and normalized-output contract without selecting tools.
 - `pipeline_sections/` holds shared execution support that still serves multiple
   pipeline families.
 - `stage_specs.rs` owns the VCF stage catalog and support metadata.

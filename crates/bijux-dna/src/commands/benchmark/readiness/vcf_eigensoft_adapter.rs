@@ -691,7 +691,7 @@ mod tests {
         assert_eq!(report.tool_id, "eigensoft");
         assert_eq!(report.tool_status, "production");
         assert_eq!(report.row_count, 2);
-        assert_eq!(report.benchmark_ready_row_count, 1);
+        assert_eq!(report.benchmark_ready_row_count, 2);
         assert_eq!(report.parser_output_row_count, 2);
         assert_eq!(report.normalized_metrics_row_count, 2);
         assert_eq!(report.conversion_output_row_count, 2);

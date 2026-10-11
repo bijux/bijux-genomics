@@ -3,12 +3,22 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_scientific_acceptance_thresholds_config,
+    validate_scientific_acceptance_thresholds_report,
+    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    ScientificAcceptanceDirection, ScientificAcceptanceInsufficiencyBehavior,
+    ScientificAcceptancePassRule, ScientificAcceptanceThresholdRow,
+    ScientificAcceptanceThresholdsConfig, ScientificAcceptanceThresholdsReport,
+    ScientificAcceptanceToleranceKind,
+};
 use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_bam::{
     stage_comparable_metric_contracts_for_stage, BamScientificInsufficiencyPolicy,
     BamScientificPassDirection, BamScientificToleranceKind,
 };
-use serde::{Deserialize, Serialize};
 
 use super::bam_comparable_metrics::{
     render_bam_comparable_metrics, BamComparableMetricsReport, DEFAULT_BAM_COMPARABLE_METRICS_PATH,
@@ -27,92 +37,13 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH: &str =
     "configs/bench/local/scientific-acceptance-thresholds.toml";
 pub(crate) const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_VERSION: &str =
-    "bijux.bench.local_scientific_acceptance_thresholds.v1";
-const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.scientific_acceptance_thresholds.v1";
+    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1;
 const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_HEADER: &str = "# schema_version = 1\n\
 # owner = bijux-dna-bench\n\
 # purpose = Governed scientific acceptance thresholds for local benchmark comparisons.\n\
 # authority = bijux-dna-bench\n\
 # stability = evolving\n\
 # last_updated = 2026-06-25\n\n";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum ScientificAcceptanceDirection {
-    ExactMatchPreferred,
-    HigherIsBetter,
-    LowerIsBetter,
-    Minimum,
-    Maximum,
-    Range,
-    StructuredMatch,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum ScientificAcceptanceToleranceKind {
-    RelativeFraction,
-    AbsoluteDelta,
-    ExactMatch,
-    NormalizedSetOverlap,
-    NormalizedRecordOverlap,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum ScientificAcceptancePassRule {
-    MatchReference,
-    MeetOrExceedReference,
-    NotExceedReference,
-    RemainWithinReferenceRange,
-    MatchReferenceStructure,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum ScientificAcceptanceInsufficiencyBehavior {
-    RefuseStageComparison,
-    DropMetricFromStage,
-    WarnAndExcludeStage,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct ScientificAcceptanceThresholdsConfig {
-    pub(crate) schema_version: String,
-    pub(crate) rows: Vec<ScientificAcceptanceThresholdRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct ScientificAcceptanceThresholdRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) metric_id: String,
-    pub(crate) metric_name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) unit: Option<String>,
-    pub(crate) direction: ScientificAcceptanceDirection,
-    pub(crate) tolerance_kind: ScientificAcceptanceToleranceKind,
-    pub(crate) tolerance_value: f64,
-    pub(crate) pass_rule: ScientificAcceptancePassRule,
-    pub(crate) insufficiency_behavior: ScientificAcceptanceInsufficiencyBehavior,
-    pub(crate) required: bool,
-    pub(crate) declaration_origin: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct ScientificAcceptanceThresholdsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) config_path: String,
-    pub(crate) comparable_metric_count: usize,
-    pub(crate) row_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) direction_counts: BTreeMap<String, usize>,
-    pub(crate) insufficiency_behavior_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<ScientificAcceptanceThresholdRow>,
-}
 
 pub(crate) fn run_render_scientific_acceptance_thresholds(
     args: &parse::BenchReadinessRenderScientificAcceptanceThresholdsArgs,
@@ -183,12 +114,11 @@ pub(crate) fn render_scientific_acceptance_thresholds_from_reports(
         bam_report,
         vcf_report,
     )?;
-    ensure_unique_rows(&rows)?;
-
     let config = ScientificAcceptanceThresholdsConfig {
         schema_version: SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_VERSION.to_string(),
         rows: rows.clone(),
     };
+    validate_scientific_acceptance_thresholds_config(&config)?;
     let body = toml::to_string_pretty(&config)
         .context("serialize scientific acceptance thresholds config")?;
     let rendered = format!("{SCIENTIFIC_ACCEPTANCE_THRESHOLDS_HEADER}{body}");
@@ -225,8 +155,8 @@ pub(crate) fn render_scientific_acceptance_thresholds_from_reports(
             .or_default() += 1;
     }
 
-    Ok(ScientificAcceptanceThresholdsReport {
-        schema_version: SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_VERSION,
+    let report = ScientificAcceptanceThresholdsReport {
+        schema_version: SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1.to_string(),
         config_path: path_relative_to_repo(repo_root, &output_path),
         comparable_metric_count,
         row_count: rows.len(),
@@ -234,7 +164,9 @@ pub(crate) fn render_scientific_acceptance_thresholds_from_reports(
         direction_counts,
         insufficiency_behavior_counts,
         rows,
-    })
+    };
+    validate_scientific_acceptance_thresholds_report(&report)?;
+    Ok(report)
 }
 
 pub(crate) fn collect_scientific_acceptance_threshold_rows_from_reports(
@@ -297,51 +229,25 @@ pub(crate) fn collect_scientific_acceptance_threshold_rows_from_reports(
 pub(crate) fn scientific_acceptance_direction_label(
     direction: ScientificAcceptanceDirection,
 ) -> &'static str {
-    match direction {
-        ScientificAcceptanceDirection::ExactMatchPreferred => "exact_match_preferred",
-        ScientificAcceptanceDirection::HigherIsBetter => "higher_is_better",
-        ScientificAcceptanceDirection::LowerIsBetter => "lower_is_better",
-        ScientificAcceptanceDirection::Minimum => "minimum",
-        ScientificAcceptanceDirection::Maximum => "maximum",
-        ScientificAcceptanceDirection::Range => "range",
-        ScientificAcceptanceDirection::StructuredMatch => "structured_match",
-    }
+    direction.as_str()
 }
 
 pub(crate) fn scientific_acceptance_tolerance_kind_label(
     kind: ScientificAcceptanceToleranceKind,
 ) -> &'static str {
-    match kind {
-        ScientificAcceptanceToleranceKind::RelativeFraction => "relative_fraction",
-        ScientificAcceptanceToleranceKind::AbsoluteDelta => "absolute_delta",
-        ScientificAcceptanceToleranceKind::ExactMatch => "exact_match",
-        ScientificAcceptanceToleranceKind::NormalizedSetOverlap => "normalized_set_overlap",
-        ScientificAcceptanceToleranceKind::NormalizedRecordOverlap => "normalized_record_overlap",
-    }
+    kind.as_str()
 }
 
 pub(crate) fn scientific_acceptance_pass_rule_label(
     pass_rule: ScientificAcceptancePassRule,
 ) -> &'static str {
-    match pass_rule {
-        ScientificAcceptancePassRule::MatchReference => "match_reference",
-        ScientificAcceptancePassRule::MeetOrExceedReference => "meet_or_exceed_reference",
-        ScientificAcceptancePassRule::NotExceedReference => "not_exceed_reference",
-        ScientificAcceptancePassRule::RemainWithinReferenceRange => "remain_within_reference_range",
-        ScientificAcceptancePassRule::MatchReferenceStructure => "match_reference_structure",
-    }
+    pass_rule.as_str()
 }
 
 pub(crate) fn scientific_acceptance_insufficiency_behavior_label(
     behavior: ScientificAcceptanceInsufficiencyBehavior,
 ) -> &'static str {
-    match behavior {
-        ScientificAcceptanceInsufficiencyBehavior::RefuseStageComparison => {
-            "refuse_stage_comparison"
-        }
-        ScientificAcceptanceInsufficiencyBehavior::DropMetricFromStage => "drop_metric_from_stage",
-        ScientificAcceptanceInsufficiencyBehavior::WarnAndExcludeStage => "warn_and_exclude_stage",
-    }
+    behavior.as_str()
 }
 
 fn fastq_acceptance_row(
@@ -596,25 +502,6 @@ fn scientific_acceptance_pass_rule_from_direction(
     }
 }
 
-fn ensure_unique_rows(rows: &[ScientificAcceptanceThresholdRow]) -> Result<()> {
-    let mut seen = BTreeMap::<(String, String, String), String>::new();
-    for row in rows {
-        let key = (row.domain.clone(), row.stage_id.clone(), row.metric_id.clone());
-        if let Some(origin) = seen.insert(key.clone(), row.declaration_origin.clone()) {
-            return Err(anyhow!(
-                "duplicate scientific acceptance threshold row for `{}:{}/{}`
-first origin: `{origin}`
-second origin: `{}`",
-                key.0,
-                key.1,
-                key.2,
-                row.declaration_origin
-            ));
-        }
-    }
-    Ok(())
-}
-
 fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
     if candidate.is_absolute() {
         candidate.to_path_buf()
@@ -624,7 +511,20 @@ fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+    if let Ok(relative) = path.strip_prefix(repo_root) {
+        return relative.to_string_lossy().replace('\\', "/");
+    }
+    let components = path.components().collect::<Vec<_>>();
+    if let Some(start) = components.iter().position(
+        |component| matches!(component, std::path::Component::Normal(name) if *name == "configs"),
+    ) {
+        return components[start..]
+            .iter()
+            .collect::<PathBuf>()
+            .to_string_lossy()
+            .replace('\\', "/");
+    }
+    path.file_name().unwrap_or(path.as_os_str()).to_string_lossy().into_owned()
 }
 
 #[cfg(test)]

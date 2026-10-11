@@ -29,21 +29,31 @@ pub fn attempt_archive_paths(
     identity: &AttemptLayoutIdentity,
 ) -> Result<AttemptArchivePaths, IoError> {
     let source = attempt_layout_paths(owner_root, identity)?;
-    let archive_dir = owner_root
+    let campaign_archive_dir = owner_root
         .join(ATTEMPT_ARCHIVES_DIR)
         .join(&identity.run_directory)
         .join(&identity.tool_id)
-        .join(&identity.campaign_id)
-        .join(&identity.attempt_id);
+        .join(&identity.campaign_id);
+    let archive_dir = identity.execution_unit_id.as_ref().map_or_else(
+        || campaign_archive_dir.join(&identity.attempt_id),
+        |execution_unit_id| campaign_archive_dir.join(execution_unit_id).join(&identity.attempt_id),
+    );
     let archive_receipt_path = archive_dir
         .join(super::ATTEMPT_LAYOUT_CONTRACT.manifests_dir)
         .join(ATTEMPT_ARCHIVE_RECEIPT);
-    let rollback_receipt_path = owner_root
+    let campaign_rollback_dir = owner_root
         .join(ATTEMPT_ARCHIVE_ROLLBACKS_DIR)
         .join(&identity.run_directory)
         .join(&identity.tool_id)
-        .join(&identity.campaign_id)
-        .join(format!("{}.json", identity.attempt_id));
+        .join(&identity.campaign_id);
+    let rollback_receipt_path = identity.execution_unit_id.as_ref().map_or_else(
+        || campaign_rollback_dir.join(format!("{}.json", identity.attempt_id)),
+        |execution_unit_id| {
+            campaign_rollback_dir
+                .join(execution_unit_id)
+                .join(format!("{}.json", identity.attempt_id))
+        },
+    );
     Ok(AttemptArchivePaths {
         owner_root: owner_root.to_path_buf(),
         source,
@@ -487,6 +497,7 @@ fn archive_transaction_schema(schema_version: &str, rollback: bool) -> serde_jso
             "run_directory": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
             "tool_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
             "campaign_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+            "execution_unit_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
             "attempt_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"}
         }
     });
@@ -570,6 +581,7 @@ mod serialization_tests {
                 run_directory: "run-1001-tool".to_string(),
                 tool_id: "tool".to_string(),
                 campaign_id: "qualification".to_string(),
+                execution_unit_id: None,
                 attempt_id: "attempt-001".to_string(),
             },
         )?;

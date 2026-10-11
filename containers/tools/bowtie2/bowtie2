@@ -12,6 +12,16 @@ case "${1:-}" in
         echo 'bowtie2: error: unsupported option --governed-invalid-option' >&2
         exit 2
         ;;
+    --bijux-align-reference)
+        reference="${2:?missing reference FASTA}"
+        test "${3:-}" = "--bijux-index-threads"
+        threads="${4:?missing index thread allocation}"
+        shift 4
+        index_root="$(mktemp -d /scratch/bijux-bowtie2-index.XXXXXX)"
+        trap 'rm -rf "$index_root"' EXIT HUP INT TERM
+        /opt/bowtie2/bowtie2-build --threads "$threads" "$reference" "$index_root/reference"
+        /opt/bowtie2/bowtie2 -x "$index_root/reference" "$@"
+        ;;
     *)
         exec /opt/bowtie2/bowtie2 "$@"
         ;;

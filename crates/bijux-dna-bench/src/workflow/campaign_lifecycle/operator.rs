@@ -13,10 +13,17 @@ use bijux_dna_bench_model::{
     BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkLifecycleStatus,
 };
 
-use super::{plan_stage_campaign_attempts, verify_campaign_plan_source};
-use crate::workflow::load_stage_campaign_registry;
+use super::{
+    plan_benchmark_case_attempts, plan_stage_campaign_attempts, verify_campaign_plan_source,
+    verify_case_campaign_plan_source,
+};
+use crate::workflow::{
+    load_benchmark_case_matrix, load_stage_campaign_registry,
+    load_stage_interface_catalog_from_repo,
+};
 
 const CAMPAIGN_REGISTRY_PATH: &str = "benchmarks/contracts/stage-campaigns.toml";
+const STAGE_INTERFACE_REGISTRY_PATH: &str = "benchmarks/contracts/stage-interfaces.toml";
 const MAX_PLAN_BYTES: u64 = 16 * 1024 * 1024;
 
 /// Inputs for one source-locked, idempotent benchmark campaign planning pass.
@@ -24,6 +31,7 @@ const MAX_PLAN_BYTES: u64 = 16 * 1024 * 1024;
 pub struct BenchmarkCyclePlanRequest {
     pub repository_root: PathBuf,
     pub run_id: String,
+    pub case_matrix: Option<PathBuf>,
     pub campaign_id: String,
     pub attempt_id: String,
     pub observed_at_utc: String,
@@ -36,6 +44,7 @@ pub struct BenchmarkCycleStatusRequest {
     pub repository_root: PathBuf,
     pub benchmark_root: PathBuf,
     pub plan: PathBuf,
+    pub case_matrix: Option<PathBuf>,
     pub observed_at_utc: String,
 }
 
@@ -46,6 +55,7 @@ pub struct BenchmarkCycleAdmissionRequest {
     pub study_root: PathBuf,
     pub benchmark_root: PathBuf,
     pub plan: PathBuf,
+    pub case_matrix: Option<PathBuf>,
     pub admitted_at_utc: String,
 }
 
@@ -70,16 +80,32 @@ pub fn plan_checked_in_benchmark_campaign(
             .context("require a clean benchmark cycle source repository")?;
     let campaign_registry_sha256 = bijux_dna_infra::hash_file_sha256(&campaign_registry_path)
         .context("hash benchmark campaign registry")?;
-    let registry = load_stage_campaign_registry(&campaign_registry_path)?;
-    let plan = plan_stage_campaign_attempts(
-        &registry,
-        &repository_commit,
-        &campaign_registry_sha256,
-        &request.run_id,
-        &request.campaign_id,
-        &request.attempt_id,
-        &request.observed_at_utc,
-    )?;
+    let plan = if let Some(case_matrix_path) = &request.case_matrix {
+        let matrix = load_benchmark_case_matrix(case_matrix_path)?;
+        if matrix.repository_commit != repository_commit
+            || matrix.campaign_registry_sha256 != campaign_registry_sha256
+            || matrix.cases.iter().any(|case| case.run_id != request.run_id)
+        {
+            bail!("benchmark case matrix differs from the requested source-locked run");
+        }
+        plan_benchmark_case_attempts(
+            &matrix,
+            &request.campaign_id,
+            &request.attempt_id,
+            &request.observed_at_utc,
+        )?
+    } else {
+        let registry = load_stage_campaign_registry(&campaign_registry_path)?;
+        plan_stage_campaign_attempts(
+            &registry,
+            &repository_commit,
+            &campaign_registry_sha256,
+            &request.run_id,
+            &request.campaign_id,
+            &request.attempt_id,
+            &request.observed_at_utc,
+        )?
+    };
     publish_plan(&request.output, &plan)?;
     Ok(plan)
 }
@@ -103,7 +129,11 @@ pub fn status_checked_in_benchmark_campaign(
         .benchmark_root
         .canonicalize()
         .context("canonicalize benchmark cycle evidence root")?;
-    let plan = load_checked_in_benchmark_campaign_plan(&repository_root, &request.plan)?;
+    let plan = load_checked_in_benchmark_campaign_plan(
+        &repository_root,
+        &request.plan,
+        request.case_matrix.as_deref(),
+    )?;
 
     let attempts = plan
         .cycle
@@ -153,7 +183,11 @@ pub fn admit_checked_in_benchmark_campaign(
         .benchmark_root
         .canonicalize()
         .context("canonicalize benchmark admission evidence root")?;
-    let plan = load_checked_in_benchmark_campaign_plan(&repository_root, &request.plan)?;
+    let plan = load_checked_in_benchmark_campaign_plan(
+        &repository_root,
+        &request.plan,
+        request.case_matrix.as_deref(),
+    )?;
     let mut attempts = plan
         .cycle
         .attempts
@@ -163,7 +197,10 @@ pub fn admit_checked_in_benchmark_campaign(
                 && attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned)
         })
         .collect::<Vec<_>>();
-    attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
+    attempts.sort_by(|left, right| {
+        (left.identity.case_id.as_deref(), left.identity.tool_id.as_str())
+            .cmp(&(right.identity.case_id.as_deref(), right.identity.tool_id.as_str()))
+    });
 
     let units = attempts
         .into_iter()
@@ -255,13 +292,15 @@ fn admission_failure(
     }
 }
 
-/// Load a campaign plan only when it matches the exact checked-out source and registry bytes.
+/// Load a campaign plan only when it matches the exact checked-out source, registry bytes, and
+/// case matrix when the plan is case-scoped.
 ///
 /// # Errors
 /// Returns an error when the plan is unsafe, malformed, invalid, or stale for the repository.
 pub fn load_checked_in_benchmark_campaign_plan(
     repository_root: &Path,
     plan_path: &Path,
+    case_matrix_path: Option<&Path>,
 ) -> Result<BenchmarkCampaignPlan> {
     let repository_root =
         repository_root.canonicalize().context("canonicalize benchmark cycle repository")?;
@@ -272,7 +311,45 @@ pub fn load_checked_in_benchmark_campaign_plan(
     let campaign_registry_sha256 =
         bijux_dna_infra::hash_file_sha256(&repository_root.join(CAMPAIGN_REGISTRY_PATH))
             .context("hash benchmark campaign registry")?;
-    verify_campaign_plan_source(&plan, &repository_commit, &campaign_registry_sha256)?;
+    match (plan.case_matrix_sha256.as_ref(), case_matrix_path) {
+        (Some(_), Some(path)) => {
+            let matrix = load_benchmark_case_matrix(path)?;
+            if matrix.repository_commit != repository_commit
+                || matrix.campaign_registry_sha256 != campaign_registry_sha256
+            {
+                bail!("benchmark case matrix source identity is stale");
+            }
+            verify_case_campaign_plan_source(&plan, &matrix)?;
+            let registry =
+                load_stage_campaign_registry(&repository_root.join(CAMPAIGN_REGISTRY_PATH))?;
+            let interface_path = repository_root.join(STAGE_INTERFACE_REGISTRY_PATH);
+            let interfaces =
+                load_stage_interface_catalog_from_repo(&interface_path, &repository_root)?;
+            let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+            let binding_bytes =
+                serde_json::to_vec(&bindings.bindings().cloned().collect::<Vec<_>>())?;
+            super::authorities::validate_case_source_authorities(
+                &matrix,
+                &plan,
+                &registry,
+                &interfaces,
+                &bindings,
+                &repository_commit,
+                &campaign_registry_sha256,
+                &bijux_dna_infra::hash_file_sha256(&interface_path)?,
+                &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
+            )?;
+        }
+        (Some(_), None) => {
+            bail!("case-scoped benchmark plan requires its case-matrix authority");
+        }
+        (None, Some(_)) => {
+            bail!("legacy benchmark plan cannot be paired with a case-matrix authority");
+        }
+        (None, None) => {
+            verify_campaign_plan_source(&plan, &repository_commit, &campaign_registry_sha256)?;
+        }
+    }
     Ok(plan)
 }
 
@@ -376,6 +453,7 @@ mod tests {
         let mut request = BenchmarkCyclePlanRequest {
             repository_root: repository.path().to_path_buf(),
             run_id: "run-2002".to_string(),
+            case_matrix: None,
             campaign_id: "campaign-run-2002".to_string(),
             attempt_id: "attempt-0001".to_string(),
             observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
@@ -399,6 +477,7 @@ mod tests {
         let plan = plan_checked_in_benchmark_campaign(&BenchmarkCyclePlanRequest {
             repository_root: repository.path().to_path_buf(),
             run_id: "run-2002".to_string(),
+            case_matrix: None,
             campaign_id: "campaign-run-2002".to_string(),
             attempt_id: "attempt-0001".to_string(),
             observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
@@ -413,6 +492,7 @@ mod tests {
             repository_root: repository.path().to_path_buf(),
             benchmark_root,
             plan: output,
+            case_matrix: None,
             observed_at_utc: "2026-08-10T00:02:00Z".to_string(),
         })?;
         assert_eq!(status.attempts.len(), 3);
@@ -434,6 +514,7 @@ mod tests {
         let result = plan_checked_in_benchmark_campaign(&BenchmarkCyclePlanRequest {
             repository_root: repository.path().to_path_buf(),
             run_id: "run-2002".to_string(),
+            case_matrix: None,
             campaign_id: "campaign-run-2002".to_string(),
             attempt_id: "attempt-0001".to_string(),
             observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
@@ -451,6 +532,7 @@ mod tests {
         let plan = plan_checked_in_benchmark_campaign(&BenchmarkCyclePlanRequest {
             repository_root: repository.path().to_path_buf(),
             run_id: "run-2002".to_string(),
+            case_matrix: None,
             campaign_id: "campaign-run-2002".to_string(),
             attempt_id: "attempt-0001".to_string(),
             observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
@@ -466,6 +548,7 @@ mod tests {
             study_root,
             benchmark_root: benchmark_root.clone(),
             plan: output,
+            case_matrix: None,
             admitted_at_utc: "2026-08-10T00:01:00Z".to_string(),
         })?;
         assert_eq!(admission.units.len(), 3);

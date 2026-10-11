@@ -127,25 +127,25 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
     );
     assert_eq!(
         command_source_counts.get("vcf_eigensoft_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(2)
     );
     assert_eq!(
         command_source_counts
             .get("vcf_imputation_family_adapter")
             .and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(8)
     );
     assert_eq!(
         command_source_counts.get("vcf_phasing_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
-    );
-    assert_eq!(
-        command_source_counts.get("vcf_descent_family_adapter").and_then(serde_json::Value::as_u64),
         Some(4)
     );
     assert_eq!(
-        command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),
+        command_source_counts.get("vcf_descent_family_adapter").and_then(serde_json::Value::as_u64),
         Some(5)
+    );
+    assert_eq!(
+        command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),
+        Some(7)
     );
 
     let finding_type_counts = payload

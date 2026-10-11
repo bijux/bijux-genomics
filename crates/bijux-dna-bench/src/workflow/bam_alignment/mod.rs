@@ -5,7 +5,7 @@ mod commands;
 mod inputs;
 mod report;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
@@ -16,11 +16,15 @@ use bijux_dna_bench_model::{
     BenchmarkEffectiveParameterValue as EffectiveValue, BenchmarkExecutionAcceptance,
     BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
 };
+use bijux_dna_core::contract::ArtifactRole;
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
-use self::inputs::alignment_execution_inputs;
+use self::inputs::{alignment_execution_inputs, AlignmentCommandSample};
 use super::bam_observation::ensure_alignment_parameter_evidence;
-use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
+use super::{
+    load_attempt_lifecycle, BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial,
+    BenchmarkStagePlanOutputMaterial, BenchmarkStagePlanUnitMaterial,
+};
 
 pub(crate) use report::publish_bam_alignment_stage_report_with_presentation_authority;
 pub use report::{publish_bam_alignment_stage_report, BamAlignmentStageReportPublication};
@@ -93,6 +97,7 @@ pub fn prepare_bam_alignment_material(
             ("emit_stats".to_string(), EffectiveValue::Boolean(true)),
         ]),
     )?;
+    let stage_plan_units = stage_plan_units(&identity.tool_id, &samples)?;
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),
         prepared_at_utc: prepared_at_utc.to_string(),
@@ -119,6 +124,7 @@ pub fn prepare_bam_alignment_material(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: Some(stage_plan_units),
     };
     Ok(BamAlignmentMaterial {
         execution,
@@ -126,6 +132,85 @@ pub fn prepare_bam_alignment_material(
         admitted_reference: reference.clone(),
         admitted_truth: truth.clone(),
     })
+}
+
+fn stage_plan_units(
+    tool_id: &str,
+    samples: &[AlignmentCommandSample],
+) -> Result<Vec<BenchmarkStagePlanUnitMaterial>> {
+    samples
+        .iter()
+        .map(|sample| {
+            let [reads_r1, reads_r2] = sample.fastq_mounts.as_slice() else {
+                bail!("BAM alignment stage plans require an admitted paired-end sample");
+            };
+            let input_derived = match tool_id {
+                "bowtie2" => BTreeMap::from([
+                    ("read_group_id".to_owned(), sample.sample_id.clone()),
+                    ("read_group_sample".to_owned(), sample.sample_id.clone()),
+                ]),
+                "bwa" => BTreeMap::from([(
+                    "read_group".to_owned(),
+                    format!(
+                        "@RG\\tID:{}\\tSM:{}\\tPL:ILLUMINA",
+                        sample.sample_id, sample.sample_id
+                    ),
+                )]),
+                _ => bail!("unsupported BAM alignment stage-plan tool"),
+            };
+            let immutable_parameters = input_derived
+                .keys()
+                .cloned()
+                .chain(std::iter::once("threads".to_owned()))
+                .collect::<BTreeSet<_>>();
+            Ok(BenchmarkStagePlanUnitMaterial {
+                execution_unit_id: sample
+                    .sample_id
+                    .to_ascii_lowercase()
+                    .chars()
+                    .map(
+                        |character| {
+                            if character.is_ascii_alphanumeric() {
+                                character
+                            } else {
+                                '-'
+                            }
+                        },
+                    )
+                    .collect(),
+                inputs: vec![
+                    stage_input("reads_r1", reads_r1, ArtifactRole::Reads),
+                    stage_input("reads_r2", reads_r2, ArtifactRole::Reads),
+                    stage_input(
+                        "reference",
+                        "/input/reference/reference.fasta",
+                        ArtifactRole::Reference,
+                    ),
+                ],
+                outputs: vec![BenchmarkStagePlanOutputMaterial {
+                    binding_name: "raw_sam".to_owned(),
+                    relative_path: "raw.sam".into(),
+                    role: ArtifactRole::Alignment,
+                }],
+                scientific_defaults: BTreeMap::from([("threads".to_owned(), "8".to_owned())]),
+                input_derived,
+                operator_overrides: BTreeMap::new(),
+                immutable_parameters,
+            })
+        })
+        .collect()
+}
+
+fn stage_input(
+    binding_name: &str,
+    path: &str,
+    role: ArtifactRole,
+) -> BenchmarkStagePlanInputMaterial {
+    BenchmarkStagePlanInputMaterial {
+        binding_name: binding_name.to_owned(),
+        path: PathBuf::from(path),
+        role,
+    }
 }
 
 fn validate_evidence(
@@ -190,7 +275,7 @@ fn metric(
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
+    use std::collections::{BTreeMap, BTreeSet};
 
     use bijux_dna_bench_model::{
         AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet, AdmittedBamCorpusFile,
@@ -198,7 +283,7 @@ mod tests {
         AdmittedReferenceBundle, BenchmarkFastqLayout,
     };
 
-    use super::prepare_bam_alignment_material;
+    use super::{prepare_bam_alignment_material, stage_plan_units, AlignmentCommandSample};
 
     #[test]
     fn material_closes_both_run_2005_aligners() -> anyhow::Result<()> {
@@ -235,8 +320,47 @@ mod tests {
             assert_eq!(material.execution.acceptance.metrics.len(), 4);
             assert!(material.execution.measured_command[2].contains("alignment-truth-summary.tsv"));
             assert!(material.execution.required_files.len() > 150);
+            assert_eq!(material.execution.stage_plan_units.as_ref().map(Vec::len), Some(10));
+            let unit = &material.execution.stage_plan_units.as_ref().expect("stage-plan units")[0];
+            let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+            let binding = bindings
+                .binding(
+                    &bijux_dna_core::ids::StageId::new(super::STAGE_ID),
+                    &bijux_dna_core::ids::ToolId::new(attempt.identity.tool_id.as_str()),
+                )
+                .expect("canonical BAM alignment binding");
+            assert_eq!(
+                unit.inputs.iter().map(|input| input.binding_name.as_str()).collect::<Vec<_>>(),
+                binding.inputs.iter().map(|input| input.name.as_str()).collect::<Vec<_>>()
+            );
+            assert_eq!(
+                unit.outputs.iter().map(|output| output.binding_name.as_str()).collect::<Vec<_>>(),
+                binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>()
+            );
+            assert_eq!(
+                unit.scientific_defaults
+                    .keys()
+                    .chain(unit.input_derived.keys())
+                    .map(String::as_str)
+                    .collect::<BTreeSet<_>>(),
+                binding.parameters.iter().map(|parameter| parameter.name.as_str()).collect()
+            );
         }
         Ok(())
+    }
+
+    #[test]
+    fn stage_plan_units_reject_single_end_material_before_execution() {
+        let samples = [AlignmentCommandSample {
+            sample_id: "sample-single".to_owned(),
+            layout: BenchmarkFastqLayout::SingleEnd,
+            fastq_mounts: vec!["/input/panel/sample-single.reads.fastq.gz".to_owned()],
+            fastq_input_bytes: 10,
+            truth_mount: "/input/truth/sample-single.tsv".to_owned(),
+            truth_input_bytes: 3,
+        }];
+        assert!(stage_plan_units("bowtie2", &samples).is_err());
+        assert!(stage_plan_units("bwa", &samples).is_err());
     }
 
     fn source_contracts() -> BTreeMap<String, String> {

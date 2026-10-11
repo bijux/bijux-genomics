@@ -21,6 +21,7 @@ fn identity(attempt_id: &str) -> BenchmarkAttemptIdentity {
             domain: "fastq".to_string(),
             stage_id: "fastq.profile_read_lengths".to_string(),
         },
+        case_id: None,
         attempt_id: attempt_id.to_string(),
         tool_id: "seqkit".to_string(),
     }
@@ -166,6 +167,29 @@ fn lifecycle_store_uses_permanent_run_tool_campaign_and_attempt_identity() -> an
     }
     assert!(directory.join("manifests/attempt-layout.json").is_file());
     assert_eq!(load_attempt_lifecycle(temporary.path(), &record.identity)?, record);
+    Ok(())
+}
+
+#[test]
+fn lifecycle_store_isolates_cases_for_the_same_run_tool_and_attempt_id() -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-case-attempt-identity");
+    let mut first = planned("attempt-001");
+    first.identity.case_id = Some("run-2042-seqkit-corpus-a".to_string());
+    let mut second = planned("attempt-001");
+    second.identity.case_id = Some("run-2042-seqkit-corpus-b".to_string());
+
+    let first_directory = initialize_attempt_lifecycle(temporary.path(), &first)?;
+    let second_directory = initialize_attempt_lifecycle(temporary.path(), &second)?;
+
+    assert_ne!(first_directory, second_directory);
+    assert_eq!(
+        first_directory.strip_prefix(temporary.path())?,
+        std::path::Path::new(
+            "run-2042-fastq-profile-read-lengths/seqkit/attempts/all-domains-20260804/run-2042-seqkit-corpus-a/attempt-001"
+        )
+    );
+    assert_eq!(load_attempt_lifecycle(temporary.path(), &first.identity)?, first);
+    assert_eq!(load_attempt_lifecycle(temporary.path(), &second.identity)?, second);
     Ok(())
 }
 

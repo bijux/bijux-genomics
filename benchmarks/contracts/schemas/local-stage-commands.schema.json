@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "BenchmarkLocalStageArtifactEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "type": "string"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "path",
+        "role",
+        "optional"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageCommandEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "argv": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "command": {
+          "type": "string"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalStageArtifactEntry"
+          },
+          "type": "array"
+        },
+        "memory_mb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalStageArtifactEntry"
+          },
+          "type": "array"
+        },
+        "readiness_kind": {
+          "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "threads": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind",
+        "tool_id",
+        "inputs",
+        "outputs",
+        "threads",
+        "memory_mb",
+        "argv",
+        "command"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "argv_output_path": {
+      "type": "string"
+    },
+    "command_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "commands": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalStageCommandEntry"
+      },
+      "type": "array"
+    },
+    "manifest_output_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_stage_commands.v3",
+      "type": "string"
+    },
+    "script_output_path": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "script_output_path",
+    "manifest_output_path",
+    "argv_output_path",
+    "command_count",
+    "commands"
+  ],
+  "title": "BenchmarkLocalStageCommandManifest",
+  "type": "object"
+}

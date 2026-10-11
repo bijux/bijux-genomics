@@ -134,6 +134,43 @@ pub fn derive_benchmark_stage_tool_closure(
     Ok(report)
 }
 
+/// Derive the complete product-supported stage/tool closure for one domain.
+///
+/// # Errors
+/// Returns an error when the aggregate closure is invalid, the domain is empty, or the domain has
+/// no declared product-supported pairs.
+pub fn derive_supported_domain_stage_tool_pairs(
+    repository_root: &Path,
+    domain: &str,
+) -> Result<Vec<BenchmarkStageToolClosureRow>> {
+    let domain = domain.trim();
+    if domain.is_empty() {
+        bail!("benchmark stage/tool domain must not be empty");
+    }
+
+    let mut rows = derive_benchmark_stage_tool_closure(repository_root)?
+        .rows
+        .into_iter()
+        .filter(|row| row.domain == domain && row.domain_declared)
+        .collect::<Vec<_>>();
+    rows.sort_by(|left, right| {
+        left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
+    });
+    if rows.is_empty() {
+        bail!("benchmark stage/tool closure has no declared product-supported pairs for domain `{domain}`");
+    }
+
+    let pair_count = rows
+        .iter()
+        .map(|row| (row.stage_id.as_str(), row.tool_id.as_str()))
+        .collect::<BTreeSet<_>>()
+        .len();
+    if pair_count != rows.len() {
+        bail!("benchmark stage/tool closure contains duplicate pairs for domain `{domain}`");
+    }
+    Ok(rows)
+}
+
 /// Write or check the checked-in stage/tool closure publication and schema.
 ///
 /// # Errors
@@ -265,6 +302,26 @@ mod tests {
                     && row.domain_declared
                     && row.closure == BenchmarkStageToolClosureDisposition::Aligned
             }));
+        }
+    }
+
+    #[test]
+    fn domain_pair_projection_preserves_every_supported_vcf_binding() {
+        let rows = derive_supported_domain_stage_tool_pairs(&repository_root(), "vcf")
+            .expect("derive supported VCF pairs");
+        assert_eq!(rows.len(), 39);
+        let observed = rows
+            .iter()
+            .map(|row| (row.stage_id.as_str(), row.tool_id.as_str()))
+            .collect::<BTreeSet<_>>();
+        for pair in [
+            ("vcf.call_gl", "angsd"),
+            ("vcf.impute", "impute5"),
+            ("vcf.impute", "glimpse"),
+            ("vcf.phasing", "eagle"),
+            ("vcf.ibd", "ibdhap"),
+        ] {
+            assert!(observed.contains(&pair), "missing supported VCF pair {pair:?}");
         }
     }
 }

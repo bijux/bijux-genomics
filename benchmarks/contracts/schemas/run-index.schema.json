@@ -37,6 +37,12 @@
         "campaign_id": {
           "type": "string"
         },
+        "case_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "run": {
           "$ref": "#/$defs/BenchmarkRunIdentity"
         },

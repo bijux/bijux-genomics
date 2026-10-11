@@ -1,9 +1,9 @@
 use bijux_dna_bench_model::{
-    append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
-    validate_attempt_record_v2, validate_cycle_admission, validate_cycle_preparation,
-    validate_cycle_status_v2, validate_scheduler_observation, BenchmarkArchiveFileRecord,
-    BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive, BenchmarkAttemptDisposition,
-    BenchmarkAttemptIdentity, BenchmarkAttemptMigrationState,
+    append_attempt_transition, benchmark_attempt_identity_sha256, benchmark_run_directory_name,
+    validate_attempt_archive, validate_attempt_record_v2, validate_cycle_admission,
+    validate_cycle_preparation, validate_cycle_status_v2, validate_scheduler_observation,
+    BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
+    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationState,
     BenchmarkAttemptMigrationVerification, BenchmarkAttemptMigrationVerificationEntry,
     BenchmarkAttemptRecordV2, BenchmarkAttemptTransition, BenchmarkCampaignPlan,
     BenchmarkCycleAdmission, BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit,
@@ -30,6 +30,7 @@ fn attempt(attempt_id: &str, tool_id: &str) -> BenchmarkAttemptRecordV2 {
         BenchmarkAttemptIdentity {
             campaign_id: "all-domains-20260804".to_string(),
             run: run_identity(),
+            case_id: None,
             attempt_id: attempt_id.to_string(),
             tool_id: tool_id.to_string(),
         },
@@ -126,6 +127,7 @@ fn archive(disposition: BenchmarkAttemptDisposition) -> BenchmarkAttemptArchive 
     BenchmarkAttemptArchive {
         schema_version: BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1.to_string(),
         run_id: "run-2043".to_string(),
+        case_id: None,
         attempt_id: "slurm-3459974".to_string(),
         tool_id: "seqfu".to_string(),
         slurm_job_id: "3459974".to_string(),
@@ -192,6 +194,33 @@ fn run_directory_name_is_derived_from_validated_identity() {
     let mut aliased = run_identity();
     aliased.run_id = "run-02042".to_string();
     assert!(benchmark_run_directory_name(&aliased).is_err());
+}
+
+#[test]
+fn case_identity_is_additive_and_separates_same_tool_attempts() -> anyhow::Result<()> {
+    let legacy = attempt("attempt-001", "seqkit").identity;
+    let legacy_json = serde_json::to_value(&legacy)?;
+    assert!(legacy_json.get("case_id").is_none());
+
+    let mut first = legacy.clone();
+    first.case_id = Some("run-2042-seqkit-corpus-a".to_string());
+    let mut second = legacy;
+    second.case_id = Some("run-2042-seqkit-corpus-b".to_string());
+    assert_ne!(
+        benchmark_attempt_identity_sha256(&first)?,
+        benchmark_attempt_identity_sha256(&second)?
+    );
+
+    let cycle = BenchmarkCycleStatusV2::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T08:00:00Z".to_string(),
+        vec![
+            BenchmarkAttemptRecordV2::planned(first, "2026-08-04T08:00:00Z".to_string()),
+            BenchmarkAttemptRecordV2::planned(second, "2026-08-04T08:00:00Z".to_string()),
+        ],
+    );
+    validate_cycle_status_v2(&cycle)?;
+    Ok(())
 }
 
 #[test]

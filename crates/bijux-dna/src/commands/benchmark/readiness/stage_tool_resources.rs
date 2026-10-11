@@ -3,6 +3,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    validate_stage_tool_resources_config, StageToolResourceRow, StageToolResourcesConfig,
+    StageToolResourcesReport, BAM_STAGE_TOOL_RESOURCE_ORIGIN, FASTQ_STAGE_TOOL_RESOURCE_ORIGIN,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, VCF_STAGE_TOOL_RESOURCE_ORIGIN,
+};
+use bijux_dna_api::v1::api::bench::{
+    validate_stage_tool_resources_report, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+    STAGE_TOOL_RESOURCES_SCOPE,
+};
 use bijux_dna_core::contract::ToolExecutionSpecV1;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_domain_bam::{estimate_bam_stage_resources_with_origin, BamInputOriginV1};
@@ -10,7 +19,6 @@ use bijux_dna_domain_vcf::VcfDomainStage;
 use bijux_dna_planner_bam::stage_api::load_bam_domain_tool_execution_spec;
 use bijux_dna_planner_fastq::stage_api::load_fastq_domain_tool_execution_spec;
 use bijux_dna_planner_vcf::vcf_stage_resource_constraints;
-use serde::{Deserialize, Serialize};
 
 use super::bam_command_adapter_coverage::{
     collect_bam_command_adapter_coverage_rows, BamBenchmarkStatus,
@@ -24,14 +32,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_RESOURCES_PATH: &str =
     "configs/bench/local/stage-tool-resources.toml";
-pub(crate) const LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION: &str =
-    "bijux.bench.local_stage_tool_resources.v1";
-const STAGE_TOOL_RESOURCES_REPORT_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.stage_tool_resources.v1";
-const STAGE_TOOL_RESOURCES_SCOPE: &str = "benchmark_ready_command_resources";
-const FASTQ_RESOURCE_ORIGIN: &str = "tool_constraints_with_stage_walltime_profile";
-const BAM_RESOURCE_ORIGIN: &str = "tool_constraints_with_tiny_bam_stage_estimate";
-const VCF_RESOURCE_ORIGIN: &str = "planner_stage_constraints_with_stage_walltime_profile";
 const FASTQ_MINUTES_QC: u32 = 10;
 const FASTQ_MINUTES_TRANSFORM: u32 = 15;
 const FASTQ_MINUTES_REFERENCE: u32 = 20;
@@ -44,40 +44,6 @@ const TINY_BAM_RESOURCE_INPUT_PATHS: &[&str] = &[
     "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
     "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam",
 ];
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageToolResourcesConfig {
-    pub(crate) schema_version: String,
-    pub(crate) classification_scope: String,
-    pub(crate) rows: Vec<StageToolResourceRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageToolResourceRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) threads: u32,
-    pub(crate) memory_gb: u32,
-    pub(crate) walltime_minutes: u32,
-    pub(crate) scratch_gb: u32,
-    pub(crate) resource_origin: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct StageToolResourcesReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) config_path: String,
-    pub(crate) classification_scope: &'static str,
-    pub(crate) row_count: usize,
-    pub(crate) benchmark_ready_row_count: usize,
-    pub(crate) nonzero_resource_row_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) resource_origin_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<StageToolResourceRow>,
-}
 
 pub(crate) fn run_render_stage_tool_resources(
     args: &parse::BenchReadinessRenderStageToolResourcesArgs,
@@ -103,10 +69,11 @@ pub(crate) fn render_stage_tool_resources(
     let rows = collect_stage_tool_resource_rows(repo_root)?;
 
     let config = StageToolResourcesConfig {
-        schema_version: LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION.to_string(),
+        schema_version: LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1.to_string(),
         classification_scope: STAGE_TOOL_RESOURCES_SCOPE.to_string(),
         rows: rows.clone(),
     };
+    validate_stage_tool_resources_config(&config)?;
     let rendered = render_stage_tool_resources_toml(&config)?;
 
     if let Some(parent) = output_path.parent() {
@@ -125,17 +92,19 @@ pub(crate) fn render_stage_tool_resources(
         }
     }
 
-    Ok(StageToolResourcesReport {
-        schema_version: STAGE_TOOL_RESOURCES_REPORT_SCHEMA_VERSION,
+    let report = StageToolResourcesReport {
+        schema_version: STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1.to_string(),
         config_path: path_relative_to_repo(repo_root, &output_path),
-        classification_scope: STAGE_TOOL_RESOURCES_SCOPE,
+        classification_scope: STAGE_TOOL_RESOURCES_SCOPE.to_string(),
         row_count: rows.len(),
         benchmark_ready_row_count: rows.len(),
         nonzero_resource_row_count,
         domain_counts,
         resource_origin_counts,
         rows,
-    })
+    };
+    validate_stage_tool_resources_report(&report)?;
+    Ok(report)
 }
 
 fn collect_stage_tool_resource_rows(repo_root: &Path) -> Result<Vec<StageToolResourceRow>> {
@@ -211,7 +180,7 @@ fn render_fastq_resource_row(
         memory_gb: spec.resources.mem_gb.max(1),
         walltime_minutes: fastq_walltime_minutes(stage_id.as_str(), tool_id.as_str()),
         scratch_gb: spec.resources.tmp_gb.max(1),
-        resource_origin: FASTQ_RESOURCE_ORIGIN.to_string(),
+        resource_origin: FASTQ_STAGE_TOOL_RESOURCE_ORIGIN.to_string(),
     }
 }
 
@@ -234,7 +203,7 @@ fn render_bam_resource_row(
         memory_gb: spec.resources.mem_gb.max(estimate.memory_gb).max(1),
         walltime_minutes: estimate.walltime_minutes.max(1),
         scratch_gb: spec.resources.tmp_gb.max(estimate.scratch_gb).max(1),
-        resource_origin: BAM_RESOURCE_ORIGIN.to_string(),
+        resource_origin: BAM_STAGE_TOOL_RESOURCE_ORIGIN.to_string(),
     }
 }
 
@@ -252,7 +221,7 @@ fn render_vcf_resource_row(
         memory_gb: resources.mem_gb.max(1),
         walltime_minutes: vcf_walltime_minutes(stage),
         scratch_gb: resources.tmp_gb.max(1),
-        resource_origin: VCF_RESOURCE_ORIGIN.to_string(),
+        resource_origin: VCF_STAGE_TOOL_RESOURCE_ORIGIN.to_string(),
     }
 }
 
@@ -339,7 +308,10 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+    if let Ok(relative) = path.strip_prefix(repo_root) {
+        return relative.to_string_lossy().replace('\\', "/");
+    }
+    path.file_name().unwrap_or(path.as_os_str()).to_string_lossy().into_owned()
 }
 
 #[cfg(test)]
@@ -348,8 +320,8 @@ mod tests {
 
     #[cfg(feature = "bam_downstream")]
     use super::{
-        render_stage_tool_resources, BAM_RESOURCE_ORIGIN, FASTQ_RESOURCE_ORIGIN,
-        VCF_RESOURCE_ORIGIN,
+        render_stage_tool_resources, BAM_STAGE_TOOL_RESOURCE_ORIGIN,
+        FASTQ_STAGE_TOOL_RESOURCE_ORIGIN, VCF_STAGE_TOOL_RESOURCE_ORIGIN,
     };
 
     fn repo_root() -> PathBuf {
@@ -365,7 +337,7 @@ mod tests {
             .expect("render stage-tool resources");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_resources.v1");
-        assert_eq!(report.config_path, output.path().join("resources.toml").display().to_string());
+        assert_eq!(report.config_path, "resources.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.nonzero_resource_row_count, report.row_count);
@@ -379,17 +351,17 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "fastq.profile_read_lengths"
                 && row.tool_id == "seqfu"
-                && row.resource_origin == FASTQ_RESOURCE_ORIGIN
+                && row.resource_origin == FASTQ_STAGE_TOOL_RESOURCE_ORIGIN
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.align"
                 && row.tool_id == "bwa"
-                && row.resource_origin == BAM_RESOURCE_ORIGIN
+                && row.resource_origin == BAM_STAGE_TOOL_RESOURCE_ORIGIN
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.stats"
                 && row.tool_id == "bcftools"
-                && row.resource_origin == VCF_RESOURCE_ORIGIN
+                && row.resource_origin == VCF_STAGE_TOOL_RESOURCE_ORIGIN
         }));
     }
 
@@ -398,7 +370,7 @@ mod tests {
     fn render_stage_tool_resources_writes_governed_toml_contract() {
         use super::{
             render_stage_tool_resources, StageToolResourcesConfig,
-            LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION, STAGE_TOOL_RESOURCES_SCOPE,
+            LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, STAGE_TOOL_RESOURCES_SCOPE,
         };
 
         let root = repo_root();
@@ -411,7 +383,7 @@ mod tests {
         let config: StageToolResourcesConfig =
             toml::from_str(&raw).expect("parse rendered stage-tool resource config");
 
-        assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION);
+        assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1);
         assert_eq!(config.classification_scope, STAGE_TOOL_RESOURCES_SCOPE);
         assert!(
             !config.rows.is_empty(),
@@ -527,7 +499,7 @@ mod tests {
                 && row.memory_gb == 4
                 && row.walltime_minutes == 20
                 && row.scratch_gb == 8
-                && row.resource_origin == super::VCF_RESOURCE_ORIGIN
+                && row.resource_origin == super::VCF_STAGE_TOOL_RESOURCE_ORIGIN
         }));
     }
 }

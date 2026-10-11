@@ -1,0 +1,212 @@
+{
+  "$defs": {
+    "BenchmarkLocalEssentialPipelineFakeRunNodeReport": {
+      "additionalProperties": false,
+      "properties": {
+        "command_script_path": {
+          "type": "string"
+        },
+        "command_source": {
+          "type": "string"
+        },
+        "command_step_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "created_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "declared_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dependency_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "metrics_path": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalEssentialPipelineFakeRunOutputEntry"
+          },
+          "type": "array"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "readiness_kind": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_result_path": {
+          "type": "string"
+        },
+        "stderr_path": {
+          "type": "string"
+        },
+        "stdout_path": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "pipeline_id",
+        "node_id",
+        "stage_id",
+        "tool_id",
+        "domain",
+        "readiness_kind",
+        "command_source",
+        "dependency_count",
+        "command_step_count",
+        "declared_output_count",
+        "created_output_count",
+        "command_script_path",
+        "stdout_path",
+        "stderr_path",
+        "metrics_path",
+        "stage_result_path",
+        "outputs"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalEssentialPipelineFakeRunOutputEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "type": "string"
+        },
+        "declared_output": {
+          "type": "string"
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "fake_run_path": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "declared_output",
+        "fake_run_path",
+        "role",
+        "exists"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalEssentialPipelineFakeRunPipelineReport": {
+      "additionalProperties": false,
+      "properties": {
+        "created_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "node_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalEssentialPipelineFakeRunNodeReport"
+          },
+          "type": "array"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "pipeline_manifest_path": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "bijux.bench.local_essential_pipeline_fake_run_pipeline.v1",
+          "type": "string"
+        },
+        "topological_order": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "pipeline_id",
+        "pipeline_manifest_path",
+        "node_count",
+        "created_output_count",
+        "topological_order",
+        "nodes"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "created_output_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fake_run_root": {
+      "type": "string"
+    },
+    "node_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "pipeline_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "pipelines": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalEssentialPipelineFakeRunPipelineReport"
+      },
+      "type": "array"
+    },
+    "root_manifest_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_essential_pipeline_fake_runs.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "fake_run_root",
+    "root_manifest_path",
+    "pipeline_count",
+    "node_count",
+    "created_output_count",
+    "pipelines"
+  ],
+  "title": "BenchmarkLocalEssentialPipelineFakeRunsReport",
+  "type": "object"
+}

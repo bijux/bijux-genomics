@@ -2,11 +2,11 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 
 use super::readiness::stage_tool_resources::{
-    StageToolResourcesConfig, DEFAULT_STAGE_TOOL_RESOURCES_PATH,
-    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION,
+    validate_stage_tool_resources_config, StageToolResourcesConfig,
+    DEFAULT_STAGE_TOOL_RESOURCES_PATH,
 };
 
 const DEFAULT_TIME_LIMIT: &str = "00:20:00";
@@ -35,13 +35,7 @@ pub(crate) fn load_local_hpc_job_resource_hints(
     let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     let config = toml::from_str::<StageToolResourcesConfig>(&raw)
         .with_context(|| format!("parse {}", path.display()))?;
-    if config.schema_version != LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "unexpected stage-tool resources schema `{}` in {}",
-            config.schema_version,
-            path.display()
-        ));
-    }
+    validate_stage_tool_resources_config(&config)?;
     Ok(config
         .rows
         .into_iter()

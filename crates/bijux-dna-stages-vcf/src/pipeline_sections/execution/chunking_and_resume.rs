@@ -56,6 +56,7 @@ pub struct ChunkRunContext<'a> {
     pub panel_vcf: &'a Path,
     pub out_dir: &'a Path,
     pub species: &'a SpeciesContext,
+    pub tool_digest: &'a str,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -215,7 +216,16 @@ pub fn run_chunked_regions(
     policy: ChunkFailurePolicy,
     rerun_chunk: Option<&str>,
 ) -> Result<ChunkRunOutputs> {
-    let ChunkRunContext { input_vcf, panel_vcf, out_dir, species: species_context } = context;
+    let ChunkRunContext { input_vcf, panel_vcf, out_dir, species: species_context, tool_digest } =
+        context;
+    let digest = tool_digest
+        .strip_prefix("sha256:")
+        .ok_or_else(|| anyhow!("chunk execution tool digest must use the sha256 scheme"))?;
+    if digest.len() != 64
+        || !digest.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    {
+        bail!("chunk execution tool digest must contain 64 lowercase hexadecimal characters");
+    }
     bijux_dna_infra::ensure_dir(out_dir)?;
     let contract = crate::path_contract::VcfPathContract::canonical(out_dir);
     let stage_logs_dir = contract.logs_dir.join("vcf.chunked_merge");
@@ -328,7 +338,7 @@ pub fn run_chunked_regions(
         let prov = ChunkProvenance {
             chunk_id: chunk.chunk_id.clone(),
             region: chunk.region_string(),
-            tool_digest: "sha256:planner-digest-placeholder".to_string(),
+            tool_digest: tool_digest.to_string(),
             params_digest: checksum_hex(
                 serde_json::to_string(&serde_json::json!({
                     "window_size_bp": params.window_size_bp,

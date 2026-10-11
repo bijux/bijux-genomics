@@ -1,13 +1,45 @@
 //! Owner: bijux-dna-bench-model
 //! Stable crate-root re-exports.
 
+pub use crate::contract::{
+    validate_all_domain_output_declaration_rows, validate_all_domain_output_declarations_report,
+    validate_stage_tool_assets_config, validate_stage_tool_assets_report,
+    validate_stage_tool_containers_config, validate_stage_tool_containers_report,
+    validate_stage_tool_resources_config, validate_stage_tool_resources_report,
+    ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
+    STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1,
+    STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+};
+pub use crate::model::output_declarations::{
+    all_domain_output_declarations_schema, AllDomainOutputDeclarationRow,
+    AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport,
+};
+pub use crate::model::stage_tool_assets::{
+    stage_tool_assets_config_schema, stage_tool_assets_report_schema, StageToolAssetRow,
+    StageToolAssetsConfig, StageToolAssetsReport, STAGE_TOOL_ASSETS_DECLARATION_ORIGIN,
+    STAGE_TOOL_ASSETS_SCOPE,
+};
+pub use crate::model::stage_tool_containers::{
+    stage_tool_containers_config_schema, stage_tool_containers_report_schema,
+    StageToolContainerRow, StageToolContainersConfig, StageToolContainersReport,
+    STAGE_TOOL_CONTAINERS_DECLARATION_ORIGIN, STAGE_TOOL_CONTAINERS_SCOPE,
+};
+pub use crate::model::stage_tool_resources::{
+    stage_tool_resources_config_schema, stage_tool_resources_report_schema, StageToolResourceRow,
+    StageToolResourcesConfig, StageToolResourcesReport, BAM_STAGE_TOOL_RESOURCE_ORIGIN,
+    FASTQ_STAGE_TOOL_RESOURCE_ORIGIN, STAGE_TOOL_RESOURCES_SCOPE, VCF_STAGE_TOOL_RESOURCE_ORIGIN,
+};
+
 pub use crate::compare;
 pub use crate::contract;
+pub use crate::contract::FullBenchmarkReportAdmissionContext;
 pub use crate::contract::{
     append_attempt_transition, benchmark_attempt_identity_sha256, benchmark_run_definition_sha256,
     benchmark_run_directory_name, migrate_benchmark_attempt_v1, parse_benchmark_attempt_document,
     parse_benchmark_cycle_document, validate_active_scope_fast_validation_report,
-    validate_all_domain_active_stage_tool_matrix, validate_all_domain_parser_collector,
+    validate_all_domain_active_stage_tool_matrix, validate_all_domain_expected_benchmark_results,
+    validate_all_domain_failure_classification, validate_all_domain_parser_collector,
     validate_all_domain_retained_tools, validate_appraisal_report, validate_attempt_archive,
     validate_attempt_identity, validate_attempt_record_v1, validate_attempt_record_v2,
     validate_attempt_transition, validate_bam_benchmark_campaign_report,
@@ -16,14 +48,33 @@ pub use crate::contract::{
     validate_benchmark_corpus_dossier_summary, validate_benchmark_data_index,
     validate_benchmark_data_portfolio_audit, validate_benchmark_data_source_spec,
     validate_benchmark_dossier_index, validate_benchmark_essential_pipeline_readiness,
-    validate_benchmark_evidence_book, validate_benchmark_local_all_domain_stage_inventory,
-    validate_benchmark_local_corpus_run, validate_benchmark_local_corpus_skip_report,
+    validate_benchmark_evidence_book, validate_benchmark_local_all_domain_slurm_submit_manifest,
+    validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_corpus_run,
+    validate_benchmark_local_corpus_skip_report,
     validate_benchmark_local_corpus_stage_compatibility_report,
-    validate_benchmark_local_hpc_asset_staging_manifest, validate_benchmark_local_hpc_job_graph,
+    validate_benchmark_local_essential_pipeline_fake_run_node_metrics,
+    validate_benchmark_local_essential_pipeline_fake_run_node_report,
+    validate_benchmark_local_essential_pipeline_fake_run_pipeline_report,
+    validate_benchmark_local_essential_pipeline_fake_runs_report,
+    validate_benchmark_local_hpc_asset_staging_manifest,
+    validate_benchmark_local_hpc_candidate_run_manifest,
+    validate_benchmark_local_hpc_dependency_simulation,
+    validate_benchmark_local_hpc_dry_run_readiness,
+    validate_benchmark_local_hpc_execution_resolver, validate_benchmark_local_hpc_job_graph,
+    validate_benchmark_local_hpc_pipeline_node_array,
     validate_benchmark_local_hpc_result_collection_simulation_report,
-    validate_benchmark_local_hpc_scratch_layout, validate_benchmark_local_pipeline_dag_validation,
+    validate_benchmark_local_hpc_resume_simulation, validate_benchmark_local_hpc_scratch_layout,
+    validate_benchmark_local_hpc_stage_benchmark_array,
+    validate_benchmark_local_hpc_submission_readiness,
+    validate_benchmark_local_pipeline_dag_validation,
     validate_benchmark_local_pipeline_dag_validation_set, validate_benchmark_local_runtime_metrics,
-    validate_benchmark_local_stage_inventory, validate_benchmark_local_stage_manifest_completion,
+    validate_benchmark_local_slurm_dependency_check, validate_benchmark_local_slurm_dry_run,
+    validate_benchmark_local_slurm_shell_syntax, validate_benchmark_local_slurm_submit_manifest,
+    validate_benchmark_local_stage_commands, validate_benchmark_local_stage_fake_failure_manifest,
+    validate_benchmark_local_stage_fake_failure_record,
+    validate_benchmark_local_stage_fake_run_manifest,
+    validate_benchmark_local_stage_fake_run_result, validate_benchmark_local_stage_inventory,
+    validate_benchmark_local_stage_manifest_completion,
     validate_benchmark_local_stage_output_completion, validate_benchmark_local_summary,
     validate_benchmark_local_vcf_smoke_suite, validate_benchmark_matrix_report,
     validate_benchmark_protocol_citation, validate_benchmark_publication_findings,
@@ -42,14 +93,18 @@ pub use crate::contract::{
     validate_data_fitness_rubric, validate_execution_spec,
     validate_fastq_benchmark_campaign_report, validate_fastq_comparable_metrics_report,
     validate_fastq_corpus_source_spec, validate_fastq_read_length_expectations,
+    validate_full_benchmark_report, validate_full_benchmark_result_collector,
     validate_governed_data_catalog, validate_governed_data_catalog_document,
     validate_governed_data_catalog_registry, validate_governed_data_catalog_registry_publication,
     validate_governed_data_catalog_snapshot_publication, validate_governed_preserved_data_catalog,
     validate_hardening_benchmark_campaign_report, validate_hardening_queue_report,
-    validate_scheduler_observation, validate_scientific_readiness, validate_stage_centric_report,
+    validate_scheduler_observation, validate_scientific_acceptance_thresholds_config,
+    validate_scientific_acceptance_thresholds_report, validate_scientific_readiness,
+    validate_stage_centric_report, validate_stage_plan_manifest,
     validate_stage_registry_extra_pairs, validate_stage_universe, validate_tool_centric_report,
     validate_utc_timestamp, validate_vcf_benchmark_campaign_report,
     validate_vcf_comparable_metrics_report, ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1,
+    ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1, ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1,
     ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1, ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1,
     BAM_COMPARABLE_METRICS_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
@@ -69,15 +124,31 @@ pub use crate::contract::{
     BENCHMARK_DATA_SOURCE_SCHEMA_V1, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_ESSENTIAL_PIPELINE_READINESS_SCHEMA_V1, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
     BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
     BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1, BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
     BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1,
-    BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_NODE_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_PIPELINE_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_DRY_RUN_READINESS_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,
-    BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1, BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_SUBMISSION_READINESS_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
-    BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
+    BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_DRY_RUN_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3,
+    BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_FAKE_RUN_MANIFEST_SCHEMA_V1, BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
     BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1, BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1,
     BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
@@ -90,18 +161,24 @@ pub use crate::contract::{
     BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
     BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
-    BENCHMARK_STAGE_REPORT_SCHEMA_V1, BENCHMARK_STAGE_RESULT_SCHEMA_V2,
-    BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1, BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
-    BENCHMARK_SUITE_RUN_MANIFEST_SCHEMA_V2, BUNDLE_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_CENTRIC_REPORT_SCHEMA_V1, CORPUS_SCHEMA_V1,
-    DECISION_SCHEMA_V1, FASTQ_COMPARABLE_METRICS_SCHEMA_V1, FASTQ_CORPUS_SOURCE_SCHEMA_V1,
-    FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_SCHEMA_V2, GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1,
-    OBSERVATION_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
-    SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1,
-    VCF_COMPARABLE_METRICS_SCHEMA_V1,
+    BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
+    BENCHMARK_STAGE_RESULT_SCHEMA_V2, BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1,
+    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BENCHMARK_SUITE_RUN_MANIFEST_SCHEMA_V2, BUNDLE_SCHEMA_V1,
+    CORPUS_ACQUISITION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_CENTRIC_REPORT_SCHEMA_V1,
+    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, FASTQ_COMPARABLE_METRICS_SCHEMA_V1,
+    FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
+    FULL_BENCHMARK_REPORT_SCHEMA_V1, FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
+    REQUIRED_ALL_DOMAIN_FAILURE_CLASSES, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1,
+    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1,
+    STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+};
+pub use crate::contract::{
+    FullBenchmarkResultBinding, FullBenchmarkResultCollectorAdmissionContext,
 };
 pub use crate::diagnostics::BenchError;
 pub use crate::model::active_scope::{
@@ -111,6 +188,10 @@ pub use crate::model::active_scope::{
 pub use crate::model::admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+};
+pub use crate::model::all_domain_failure_classification::{
+    all_domain_failure_classification_schema, AllDomainFailureClassificationReport,
+    AllDomainFailureClassificationRow,
 };
 pub use crate::model::all_domain_parser_collector::{
     all_domain_parser_collector_schema, AllDomainParserCollectorReport,
@@ -191,14 +272,15 @@ pub use crate::model::essential_pipeline_readiness::{
 };
 pub use crate::model::execution::{
     benchmark_effective_parameters_schema, benchmark_execution_spec_schema,
-    BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator,
-    BenchmarkEffectiveParameterValue, BenchmarkEffectiveParameters, BenchmarkExecutionAcceptance,
-    BenchmarkExecutionCachePolicy, BenchmarkExecutionCommands, BenchmarkExecutionDeterminism,
-    BenchmarkExecutionDownstreamProbe, BenchmarkExecutionImage, BenchmarkExecutionInput,
-    BenchmarkExecutionInputKind, BenchmarkExecutionInterface, BenchmarkExecutionMeasurement,
-    BenchmarkExecutionOutputs, BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
+    benchmark_stage_plan_manifest_schema, BenchmarkAcceptanceExpectedValue,
+    BenchmarkAcceptanceMetric, BenchmarkAcceptanceOperator, BenchmarkEffectiveParameterValue,
+    BenchmarkEffectiveParameters, BenchmarkExecutionAcceptance, BenchmarkExecutionCachePolicy,
+    BenchmarkExecutionCommands, BenchmarkExecutionDeterminism, BenchmarkExecutionDownstreamProbe,
+    BenchmarkExecutionImage, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
+    BenchmarkExecutionInterface, BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs,
+    BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
     BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
-    BenchmarkExecutionSpec,
+    BenchmarkExecutionSpec, BenchmarkStagePlanManifest, BenchmarkStagePlanReference,
 };
 pub use crate::model::graph::{
     benchmark_local_hpc_job_graph_schema, BenchmarkGraphNode, BenchmarkGraphNodeKind,
@@ -251,9 +333,53 @@ pub use crate::model::local_corpus_stage_compatibility::{
     benchmark_local_corpus_stage_compatibility_schema, BenchmarkLocalCorpusStageCompatibilityEntry,
     BenchmarkLocalCorpusStageCompatibilityReport, BenchmarkLocalCorpusStageValidatedFixture,
 };
+pub use crate::model::local_essential_pipeline_fake_run::{
+    benchmark_local_essential_pipeline_fake_run_node_metrics_schema,
+    benchmark_local_essential_pipeline_fake_run_pipeline_schema,
+    benchmark_local_essential_pipeline_fake_runs_schema,
+    BenchmarkLocalEssentialPipelineFakeRunInputBinding,
+    BenchmarkLocalEssentialPipelineFakeRunNodeMetrics,
+    BenchmarkLocalEssentialPipelineFakeRunNodeReport,
+    BenchmarkLocalEssentialPipelineFakeRunOutputEntry,
+    BenchmarkLocalEssentialPipelineFakeRunPipelineReport,
+    BenchmarkLocalEssentialPipelineFakeRunsReport,
+};
+pub use crate::model::local_hpc_array::BenchmarkLocalHpcArrayResources;
 pub use crate::model::local_hpc_asset_staging::{
     benchmark_local_hpc_asset_staging_schema, BenchmarkLocalHpcAssetStagingInput,
     BenchmarkLocalHpcAssetStagingJob, BenchmarkLocalHpcAssetStagingManifest,
+};
+pub use crate::model::local_hpc_candidate_run::{
+    benchmark_local_hpc_candidate_run_manifest_schema, BenchmarkLocalHpcCandidateBehavior,
+    BenchmarkLocalHpcCandidateJob, BenchmarkLocalHpcCandidateResourceCeiling,
+    BenchmarkLocalHpcCandidateResourceHint, BenchmarkLocalHpcCandidateRunManifest,
+    BenchmarkLocalHpcCandidateStopCondition, BENCHMARK_LOCAL_HPC_CANDIDATE_CPUS_PER_TASK_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_MEMORY_MB_MAX, BENCHMARK_LOCAL_HPC_CANDIDATE_PROFILE_ID,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_SCRATCH_GB_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_STAGED_INPUT_BYTES_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_WALLTIME_MINUTES_MAX,
+};
+pub use crate::model::local_hpc_dependency_simulation::{
+    benchmark_local_hpc_dependency_simulation_schema, BenchmarkLocalHpcDependencySimulationCase,
+    BenchmarkLocalHpcDependencySimulationJob, BenchmarkLocalHpcDependencySimulationReport,
+    BENCHMARK_LOCAL_HPC_REFERENCE_BLOCKED_JOB_ID, BENCHMARK_LOCAL_HPC_REFERENCE_CONTINUED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_REFERENCE_FAILURE_JOB_ID, BENCHMARK_LOCAL_HPC_RELATEDNESS_BLOCKED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RELATEDNESS_CONTINUED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RELATEDNESS_FAILURE_JOB_ID,
+};
+pub use crate::model::local_hpc_dry_run_readiness::{
+    benchmark_local_hpc_dry_run_readiness_schema, BenchmarkLocalHpcDryRunReadinessBehavior,
+    BenchmarkLocalHpcDryRunReadinessGoalCheck, BenchmarkLocalHpcDryRunReadinessReport,
+    BenchmarkLocalHpcDryRunReadinessSummary,
+};
+pub use crate::model::local_hpc_execution_resolver::{
+    benchmark_local_hpc_execution_resolver_schema, BenchmarkLocalHpcExecutionResolverReport,
+    BenchmarkLocalHpcExecutionResolverRow,
+};
+pub use crate::model::local_hpc_pipeline_node_array::{
+    benchmark_local_hpc_pipeline_node_array_schema, BenchmarkLocalHpcPipelineNodeArrayDependency,
+    BenchmarkLocalHpcPipelineNodeArrayExpectedOutput, BenchmarkLocalHpcPipelineNodeArrayReport,
+    BenchmarkLocalHpcPipelineNodeArrayRow,
 };
 pub use crate::model::local_hpc_result_collection_simulation::{
     benchmark_local_hpc_result_collection_simulation_schema,
@@ -261,10 +387,26 @@ pub use crate::model::local_hpc_result_collection_simulation::{
     BenchmarkLocalHpcResultCollectionSimulationReport,
     BenchmarkLocalHpcResultCollectionSimulationRow,
 };
+pub use crate::model::local_hpc_resume_simulation::{
+    benchmark_local_hpc_resume_simulation_schema, BenchmarkLocalHpcResumeSimulationBehavior,
+    BenchmarkLocalHpcResumeSimulationJob, BenchmarkLocalHpcResumeSimulationReport,
+    BENCHMARK_LOCAL_HPC_RESUME_DEPENDENCY_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_FAILED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_MISSING_MANIFEST_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_STALE_OUTPUT_JOB_ID, BENCHMARK_LOCAL_HPC_RESUME_UNRELATED_JOB_ID,
+    BENCHMARK_LOCAL_HPC_RESUME_VALID_JOB_ID,
+};
 pub use crate::model::local_hpc_scratch_layout::{
     benchmark_local_hpc_scratch_layout_schema, BenchmarkLocalHpcScratchCleanupPolicy,
     BenchmarkLocalHpcScratchInputLink, BenchmarkLocalHpcScratchJobResources,
     BenchmarkLocalHpcScratchLayout, BenchmarkLocalHpcScratchLayoutJob,
+};
+pub use crate::model::local_hpc_stage_benchmark_array::{
+    benchmark_local_hpc_stage_benchmark_array_schema, BenchmarkLocalHpcStageBenchmarkArrayReport,
+    BenchmarkLocalHpcStageBenchmarkArrayRow,
+};
+pub use crate::model::local_hpc_submission_readiness::{
+    benchmark_local_hpc_submission_readiness_schema, BenchmarkLocalHpcSubmissionReadinessGoalCheck,
+    BenchmarkLocalHpcSubmissionReadinessReport,
 };
 pub use crate::model::local_pipeline_dag::{
     benchmark_local_pipeline_dag_validation_schema,
@@ -279,11 +421,38 @@ pub use crate::model::local_runtime_metrics::{
     benchmark_local_runtime_metrics_schema, BenchmarkLocalStageReadinessKind,
     BenchmarkLocalStageRuntimeMetric, BenchmarkLocalStageRuntimeMetricsReport,
 };
+pub use crate::model::local_slurm_dependency::{
+    benchmark_local_slurm_dependency_check_schema, benchmark_local_slurm_dry_run_schema,
+    benchmark_local_slurm_shell_syntax_schema, BenchmarkLocalSlurmDependencyCheckJob,
+    BenchmarkLocalSlurmDependencyCheckReport, BenchmarkLocalSlurmDryRunReport,
+    BenchmarkLocalSlurmScriptEntry, BenchmarkLocalSlurmShellSyntaxEntry,
+    BenchmarkLocalSlurmShellSyntaxReport,
+};
+pub use crate::model::local_slurm_submit::{
+    benchmark_local_all_domain_slurm_submit_manifest_schema,
+    benchmark_local_slurm_submit_manifest_schema, BenchmarkLocalAllDomainSlurmSubmitJob,
+    BenchmarkLocalAllDomainSlurmSubmitManifest, BenchmarkLocalSlurmSubmitJob,
+    BenchmarkLocalSlurmSubmitLogs, BenchmarkLocalSlurmSubmitManifest,
+    BenchmarkLocalSlurmSubmitResources,
+};
+pub use crate::model::local_stage_commands::{
+    benchmark_local_stage_commands_schema, BenchmarkLocalStageArtifactEntry,
+    BenchmarkLocalStageCommandArgvEntry, BenchmarkLocalStageCommandEntry,
+    BenchmarkLocalStageCommandManifest,
+};
 pub use crate::model::local_stage_completion::{
     benchmark_local_stage_manifest_completion_schema,
     benchmark_local_stage_output_completion_schema, BenchmarkLocalStageManifestCompletionEntry,
     BenchmarkLocalStageManifestCompletionReport, BenchmarkLocalStageMissingOutputEntry,
     BenchmarkLocalStageOutputCompletionEntry, BenchmarkLocalStageOutputCompletionReport,
+};
+pub use crate::model::local_stage_fake_run::{
+    benchmark_local_stage_fake_failure_manifest_schema,
+    benchmark_local_stage_fake_failure_record_schema,
+    benchmark_local_stage_fake_run_manifest_schema, BenchmarkLocalStageFakeFailureManifest,
+    BenchmarkLocalStageFakeFailureOutputEntry, BenchmarkLocalStageFakeFailureRecord,
+    BenchmarkLocalStageFakeRunManifest, BenchmarkLocalStageFakeRunOutputEntry,
+    BenchmarkLocalStageFakeRunResult,
 };
 pub use crate::model::local_stage_inventory::{
     benchmark_local_all_domain_stage_inventory_schema, benchmark_local_stage_inventory_schema,
@@ -410,34 +579,48 @@ pub use crate::model::summary::{
     benchmark_summary_schema, MetricSummary, SummaryRow, SummaryStratum,
 };
 pub use crate::model::{
-    all_domain_active_stage_tool_matrix_schema, all_domain_retained_tools_schema,
-    bam_comparable_metrics_schema, benchmark_bundle_manifest_schema,
-    benchmark_corpus_dossier_summary_schema, benchmark_corpus_manifest_schema,
-    benchmark_data_index_schema, corpus_centric_report_schema, fastq_comparable_metrics_schema,
-    fastq_profile_reads_expectations_schema, stage_centric_report_schema,
-    stage_registry_extra_pairs_schema, tool_centric_report_schema, vcf_comparable_metrics_schema,
-    AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet, AdmittedBamCohort,
-    AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
-    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedReferenceBundle,
-    AllDomainActiveStageToolMatrixReport, AllDomainActiveStageToolMatrixRow,
-    AllDomainRetainedToolRow, AllDomainRetainedToolsReport, BackendComparisonSpec,
-    BamComparableMetricsReport, BamComparableMetricsRow, BenchmarkBundleManifest,
-    BenchmarkCorpusDossierHeadline, BenchmarkCorpusDossierSampleResultRow,
-    BenchmarkCorpusDossierSummary, BenchmarkCorpusDossierToolSummary, BenchmarkCorpusManifest,
-    BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkDataIndexRecord,
-    BenchmarkDataIndexSummary, BenchmarkEligibility, BenchmarkFastqLayout,
-    BenchmarkTemporalProvenance, ComparableMetricContractStatus, ComparableMetricDirection,
-    CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
+    all_domain_active_stage_tool_matrix_schema, all_domain_expected_benchmark_results_schema,
+    all_domain_retained_tools_schema, bam_comparable_metrics_schema,
+    benchmark_bundle_manifest_schema, benchmark_corpus_dossier_summary_schema,
+    benchmark_corpus_manifest_schema, benchmark_data_index_schema, corpus_centric_report_schema,
+    fastq_comparable_metrics_schema, fastq_profile_reads_expectations_schema,
+    full_benchmark_report_schema, full_benchmark_result_collector_schema,
+    scientific_acceptance_thresholds_report_schema, scientific_acceptance_thresholds_schema,
+    stage_centric_report_schema, stage_registry_extra_pairs_schema, tool_centric_report_schema,
+    vcf_comparable_metrics_schema, AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet,
+    AdmittedBamCohort, AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile,
+    AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
+    AdmittedReferenceBundle, AllDomainActiveStageToolMatrixReport,
+    AllDomainActiveStageToolMatrixRow, AllDomainExpectedBenchmarkResultRow,
+    AllDomainExpectedBenchmarkResultsReport, AllDomainRetainedToolRow,
+    AllDomainRetainedToolsReport, BackendComparisonSpec, BamComparableMetricsReport,
+    BamComparableMetricsRow, BenchmarkBundleManifest, BenchmarkCorpusDossierHeadline,
+    BenchmarkCorpusDossierSampleResultRow, BenchmarkCorpusDossierSummary,
+    BenchmarkCorpusDossierToolSummary, BenchmarkCorpusManifest, BenchmarkDataIndex,
+    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
+    BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance,
+    ComparableMetricContractStatus, ComparableMetricDirection, CorpusAcquisitionFile,
+    CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
     CorpusCentricCorpusReport, CorpusCentricReport, CorpusCentricStageRow, CorpusDatasetSpec,
     CorpusDomain, CorpusMaterializationDisposition, CorpusScale, CorpusSourcePolicy,
     DataIntegrityStatus, DriftScenarioSpec, FastqComparableMetricsReport,
     FastqComparableMetricsRow, FastqCorpusSourceSample, FastqCorpusSourceSpec,
     FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
-    FastqReadLengthExpectations, GovernedDataCatalog, GovernedDataCatalogFile,
-    GovernedDataCatalogSample, ReadinessComparisonContractStatus, StageCentricReport,
-    StageCentricStageReport, StageCentricToolRow, StageRegistryExtraPairRow,
-    StageRegistryExtraPairsReport, ToolCentricReport, ToolCentricStageRow, ToolCentricToolReport,
-    TruthSetHook, TruthSetStatus, VcfComparableMetricsReport, VcfComparableMetricsRow,
+    FastqReadLengthExpectations, FullBenchmarkComparableMetricRow, FullBenchmarkCorpusSectionRow,
+    FullBenchmarkFailureRow, FullBenchmarkFailuresSection, FullBenchmarkMemoryRow,
+    FullBenchmarkMissingResultRow, FullBenchmarkPipelineSection, FullBenchmarkPipelineSectionRow,
+    FullBenchmarkReport, FullBenchmarkReportRow, FullBenchmarkReportRowStatus,
+    FullBenchmarkResultCollectorReport, FullBenchmarkResultCollectorRow, FullBenchmarkResultStatus,
+    FullBenchmarkResultSurfaceKind, FullBenchmarkRuntimeRow, FullBenchmarkStageSectionRow,
+    FullBenchmarkToolSectionRow, FullBenchmarkUnsupportedPairRow, GovernedDataCatalog,
+    GovernedDataCatalogFile, GovernedDataCatalogSample, ReadinessComparisonContractStatus,
+    ScientificAcceptanceDirection, ScientificAcceptanceInsufficiencyBehavior,
+    ScientificAcceptancePassRule, ScientificAcceptanceThresholdRow,
+    ScientificAcceptanceThresholdsConfig, ScientificAcceptanceThresholdsReport,
+    ScientificAcceptanceToleranceKind, StageCentricReport, StageCentricStageReport,
+    StageCentricToolRow, StageRegistryExtraPairRow, StageRegistryExtraPairsReport,
+    ToolCentricReport, ToolCentricStageRow, ToolCentricToolReport, TruthSetHook, TruthSetStatus,
+    VcfComparableMetricsReport, VcfComparableMetricsRow,
     BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1,
 };
 pub use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};

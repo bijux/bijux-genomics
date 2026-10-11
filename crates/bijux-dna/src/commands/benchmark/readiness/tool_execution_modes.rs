@@ -600,6 +600,17 @@ mod tests {
         assert_eq!(germline.execution_mode, "containerized");
         assert_eq!(germline.domains, vec!["vcf".to_string()]);
 
+        for tool_id in ["eagle", "glimpse", "ibdhap", "minimac4", "shapeit"] {
+            let row = report
+                .rows
+                .iter()
+                .find(|row| row.tool_id == tool_id)
+                .unwrap_or_else(|| panic!("supported VCF tool `{tool_id}` execution mode"));
+            assert_eq!(row.execution_mode, "containerized");
+            assert_eq!(row.expected_install_kind, "container");
+            assert_eq!(row.domains, vec!["vcf".to_string()]);
+        }
+
         let yleaf = report.rows.iter().find(|row| row.tool_id == "yleaf").expect("yleaf row");
         assert_eq!(yleaf.execution_mode, "containerized");
         assert_eq!(yleaf.domains, vec!["bam".to_string()]);

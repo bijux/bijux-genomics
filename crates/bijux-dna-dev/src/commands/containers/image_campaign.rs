@@ -1,6 +1,6 @@
 use super::{path_from_arg, success_line, ContainerCommandOutcome, Result, Workspace};
 
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers run image-campaign -- prepare <campaign-spec> <submitted-at-utc>\n  bijux-dna-dev containers run image-campaign -- submit <campaign-spec>\n  bijux-dna-dev containers run image-campaign -- observe <campaign-spec> <observed-at-utc>\n  bijux-dna-dev containers run image-campaign -- collect <campaign-spec> <collected-at-utc>\n  bijux-dna-dev containers run image-campaign -- execute <repository-root> <study-root> <apptainer> <attempt-root> <attempt-id> <workers> <tools-csv> <completed-at-utc>\n  bijux-dna-dev containers run image-campaign -- verify <repository-root> <study-root> <apptainer> <attempt-root>";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers run image-campaign -- plan <repository-root> <study-root> <executable> <apptainer> <attempt-id> <workers> <tools-csv> <account> <partition> <memory-mb> <walltime>\n  bijux-dna-dev containers run image-campaign -- prepare <campaign-spec> <submitted-at-utc>\n  bijux-dna-dev containers run image-campaign -- submit <campaign-spec>\n  bijux-dna-dev containers run image-campaign -- observe <campaign-spec> <observed-at-utc>\n  bijux-dna-dev containers run image-campaign -- collect <campaign-spec> <collected-at-utc>\n  bijux-dna-dev containers run image-campaign -- execute <repository-root> <study-root> <apptainer> <attempt-root> <attempt-id> <workers> <tools-csv> <completed-at-utc>\n  bijux-dna-dev containers run image-campaign -- verify <repository-root> <study-root> <apptainer> <attempt-root>";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -10,6 +10,7 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
         return success_line(USAGE);
     }
     match operation.as_str() {
+        "plan" => plan(workspace, options),
         "prepare" => prepare(workspace, options),
         "submit" => submit(workspace, options),
         "observe" => observe(workspace, options),
@@ -18,6 +19,47 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
         "verify" => verify(workspace, options),
         _ => anyhow::bail!(USAGE),
     }
+}
+
+fn plan(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+    let [repository_root, study_root, executable, apptainer, attempt_id, workers, tools, account, partition, memory_mb, walltime] =
+        args
+    else {
+        anyhow::bail!(USAGE);
+    };
+    let worker_count = workers
+        .parse::<usize>()
+        .map_err(|_| anyhow::anyhow!("image campaign worker count is invalid"))?;
+    let cpus = u32::try_from(worker_count)
+        .map_err(|_| anyhow::anyhow!("image campaign worker count exceeds CPU range"))?;
+    let memory_mb = memory_mb
+        .parse::<u64>()
+        .map_err(|_| anyhow::anyhow!("image campaign memory is invalid"))?;
+    let selected_tools = tools
+        .split(',')
+        .map(str::trim)
+        .filter(|tool| !tool.is_empty())
+        .map(str::to_string)
+        .collect::<Vec<_>>();
+    let spec = bijux_dna_runner::api::plan_image_campaign_slurm_spec(
+        &bijux_dna_runner::api::ImageCampaignSlurmPlanRequest {
+            repository_path: path_from_arg(workspace, repository_root),
+            executable_path: path_from_arg(workspace, executable),
+            study_root: path_from_arg(workspace, study_root),
+            apptainer_path: path_from_arg(workspace, apptainer),
+            attempt_id: attempt_id.clone(),
+            selected_tools,
+            worker_count,
+            resources: bijux_dna_runner::api::ImageCampaignSlurmResources {
+                account: account.clone(),
+                partition: partition.clone(),
+                cpus,
+                memory_mb,
+                walltime: walltime.clone(),
+            },
+        },
+    )?;
+    json_out(&serde_json::to_value(spec)?)
 }
 
 fn prepare(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
@@ -162,7 +204,7 @@ mod tests {
         )
         .is_err());
         let help = run(&workspace, &["--help".into()])?;
-        for operation in ["prepare", "submit", "observe", "collect", "execute", "verify"] {
+        for operation in ["plan", "prepare", "submit", "observe", "collect", "execute", "verify"] {
             assert!(help.stdout.contains(operation));
         }
         Ok(())

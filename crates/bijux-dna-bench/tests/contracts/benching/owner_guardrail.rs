@@ -114,6 +114,89 @@ fn thin_cli_uses_model_owned_all_domain_parser_collector_contract() {
 }
 
 #[test]
+fn thin_cli_uses_model_owned_all_domain_failure_classification_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root.join(
+        "crates/bijux-dna/src/commands/benchmark/readiness/all_domain_failure_classification.rs",
+    );
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_all_domain_failure_classification"));
+    assert!(!contents.contains("struct AllDomainFailureClassificationRow {"));
+    assert!(!contents.contains("struct AllDomainFailureClassificationReport {"));
+    assert!(!contents.contains("\"bijux.bench.readiness.all_domain_failure_classification.v1\""));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_full_benchmark_report_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root
+        .join("crates/bijux-dna/src/commands/benchmark/readiness/full_benchmark_report.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_full_benchmark_report"));
+    assert!(!contents.contains("struct FullBenchmarkReport {"));
+    assert!(!contents.contains("enum FullBenchmarkReportRowStatus {"));
+    assert!(!contents.contains("ensure_full_benchmark_report_contract"));
+    assert!(!contents.contains("\"bijux.bench.readiness.full_benchmark_report.v1\""));
+    for projection in [
+        "fn build_stage_centric_rows",
+        "fn build_tool_centric_rows",
+        "fn build_corpus_centric_rows",
+        "fn build_pipeline_centric_rows",
+        "fn build_runtime_rows",
+        "fn build_memory_rows",
+        "fn render_full_benchmark_report_markdown",
+        "fn build_failures_section",
+        "fn build_missing_result_rows",
+        "fn build_unsupported_pair_rows",
+        "fn collect_full_benchmark_comparable_metrics",
+    ] {
+        assert!(!contents.contains(projection), "thin CLI reintroduced {projection}");
+    }
+
+    let workflow_source =
+        repo_root.join("crates/bijux-dna-bench/src/workflow/full_benchmark_report.rs");
+    let workflow = fs::read_to_string(&workflow_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", workflow_source.display()));
+    for projection in [
+        "build_full_benchmark_stage_rows",
+        "build_full_benchmark_tool_rows",
+        "build_full_benchmark_corpus_rows",
+        "build_full_benchmark_pipeline_rows",
+        "build_full_benchmark_runtime_rows",
+        "build_full_benchmark_memory_rows",
+        "render_full_benchmark_report_markdown",
+        "build_full_benchmark_failures_section",
+        "build_full_benchmark_missing_result_rows",
+        "build_full_benchmark_unsupported_pair_rows",
+        "build_full_benchmark_comparable_metric_rows",
+    ] {
+        assert!(workflow.contains(projection), "benchmark owner is missing {projection}");
+    }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_full_benchmark_result_collector_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root.join(
+        "crates/bijux-dna/src/commands/benchmark/readiness/full_benchmark_result_collector.rs",
+    );
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_full_benchmark_result_collector"));
+    assert!(!contents.contains("struct FullBenchmarkResultCollectorRow {"));
+    assert!(!contents.contains("struct FullBenchmarkResultCollectorReport {"));
+    assert!(!contents.contains("enum FullBenchmarkResultSurfaceKind {"));
+    assert!(!contents.contains("enum FullBenchmarkResultStatus {"));
+    assert!(!contents.contains("ensure_full_benchmark_result_collector_contract"));
+    assert!(!contents.contains("\"bijux.bench.readiness.full_benchmark_result_collector.v1\""));
+}
+
+#[test]
 fn thin_cli_uses_model_owned_essential_pipeline_readiness_contract() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source = repo_root
@@ -125,6 +208,37 @@ fn thin_cli_uses_model_owned_essential_pipeline_readiness_contract() {
     assert!(!contents.contains("struct EssentialPipelinesReadyGoalCheck"));
     assert!(!contents.contains("struct EssentialPipelinesReadyReport"));
     assert!(!contents.contains("bijux.bench.readiness.essential_pipelines_ready.v1"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_essential_pipeline_fake_run_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root
+        .join("crates/bijux-dna/src/commands/benchmark/local_essential_pipeline_fake_runs.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    for validator in [
+        "validate_benchmark_local_essential_pipeline_fake_run_node_metrics",
+        "validate_benchmark_local_essential_pipeline_fake_run_node_report",
+        "validate_benchmark_local_essential_pipeline_fake_run_pipeline_report",
+        "validate_benchmark_local_essential_pipeline_fake_runs_report",
+    ] {
+        assert!(contents.contains(validator), "thin CLI must invoke {validator}");
+    }
+    for forbidden in [
+        "struct EssentialPipelineFakeRunOutputEntry {",
+        "struct EssentialPipelineFakeRunInputBinding {",
+        "struct EssentialPipelineFakeRunNodeMetrics {",
+        "struct EssentialPipelineFakeRunNodeReport {",
+        "struct EssentialPipelineFakeRunPipelineReport {",
+        "struct EssentialPipelineFakeRunsReport {",
+        "\"bijux.bench.local_essential_pipeline_fake_runs.v1\"",
+        "\"bijux.bench.local_essential_pipeline_fake_run_pipeline.v1\"",
+        "\"bijux.bench.local_essential_pipeline_fake_run_node_metrics.v1\"",
+    ] {
+        assert!(!contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
 }
 
 #[test]
@@ -161,6 +275,37 @@ fn thin_cli_uses_model_owned_local_pipeline_dag_validation_contract() {
 }
 
 #[test]
+fn thin_cli_uses_model_owned_local_slurm_dependency_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_slurm_dependency_check.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+    assert!(contents.contains("validate_benchmark_local_slurm_dependency_check"));
+    assert!(!contents.contains("struct BenchLocalSlurmDependencyCheckReport {"));
+    assert!(!contents.contains("struct BenchLocalSlurmDependencyCheckJob {"));
+    assert!(!contents.contains("bijux.bench.local_slurm_dependency_check.v1"));
+
+    let shell_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_slurm_shell_syntax.rs");
+    let shell_contents = fs::read_to_string(&shell_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", shell_source.display()));
+    assert!(shell_contents.contains("validate_benchmark_local_slurm_shell_syntax"));
+    assert!(!shell_contents.contains("struct BenchLocalSlurmShellSyntaxReport {"));
+    assert!(!shell_contents.contains("struct BenchLocalSlurmShellSyntaxEntry {"));
+    assert!(!shell_contents.contains("bijux.bench.local_slurm_shell_syntax.v1"));
+
+    let dry_run_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_slurm_dry_run.rs");
+    let dry_run_contents = fs::read_to_string(&dry_run_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", dry_run_source.display()));
+    assert!(dry_run_contents.contains("validate_benchmark_local_slurm_dry_run"));
+    assert!(!dry_run_contents.contains("struct BenchLocalSlurmDryRunReport {"));
+    assert!(!dry_run_contents.contains("struct BenchLocalSlurmScriptEntry {"));
+    assert!(!dry_run_contents.contains("bijux.bench.local_slurm_dry_run.v1"));
+}
+
+#[test]
 fn thin_cli_uses_model_owned_local_stage_completion_contracts() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     for (file_name, validator, forbidden) in [
@@ -183,6 +328,107 @@ fn thin_cli_uses_model_owned_local_stage_completion_contracts() {
         assert!(!contents.contains(forbidden));
         assert!(!contents.contains("bijux.bench.local_stage_manifest_completion.v1"));
         assert!(!contents.contains("bijux.bench.local_stage_output_completion.v1"));
+    }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_stage_command_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_stage_commands.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+    assert!(contents.contains("validate_benchmark_local_stage_commands"));
+    for forbidden in [
+        "struct BenchLocalStageArtifactEntry {",
+        "struct BenchLocalStageCommandEntry {",
+        "struct BenchLocalStageCommandManifest {",
+        "struct BenchLocalStageCommandArgvEntry {",
+        "bijux.bench.local_stage_commands.v3",
+    ] {
+        assert!(!contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_slurm_submit_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let submit_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_slurm_submit_manifest.rs");
+    let submit_contents = fs::read_to_string(&submit_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", submit_source.display()));
+    assert!(submit_contents.contains("validate_benchmark_local_slurm_submit_manifest"));
+    for forbidden in [
+        "struct BenchLocalSlurmSubmitManifest {",
+        "struct BenchLocalSlurmSubmitJob {",
+        "struct BenchLocalSlurmSubmitResources {",
+        "struct BenchLocalSlurmSubmitLogs {",
+        "bijux.bench.local_slurm_submit_manifest.v1",
+    ] {
+        assert!(!submit_contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+
+    let dependency_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_slurm_dependency_check.rs");
+    let dependency_contents = fs::read_to_string(&dependency_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", dependency_source.display()));
+    assert!(!dependency_contents.contains("struct BenchLocalSlurmSubmitManifestRecord {"));
+    assert!(!dependency_contents.contains("struct BenchLocalSlurmSubmitJobRecord {"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_all_domain_slurm_submit_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root
+        .join("crates/bijux-dna/src/commands/benchmark/local_all_domain_slurm_submit_manifest.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+    assert!(contents.contains("validate_benchmark_local_all_domain_slurm_submit_manifest"));
+    for forbidden in [
+        "struct BenchLocalAllDomainSlurmSubmitManifest {",
+        "struct BenchLocalAllDomainSlurmSubmitJob {",
+        "struct BenchLocalAllDomainSlurmSubmitResources {",
+        "bijux.bench.local_all_domain_slurm_submit_manifest.v1",
+    ] {
+        assert!(!contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_hpc_candidate_run_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root
+        .join("crates/bijux-dna/src/commands/benchmark/local_hpc_candidate_run_manifest.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+    assert!(contents.contains("validate_benchmark_local_hpc_candidate_run_manifest"));
+    for forbidden in [
+        "struct LocalHpcCandidateResourceCeiling {",
+        "struct LocalHpcCandidateBehavior {",
+        "struct LocalHpcCandidateStopCondition {",
+        "struct LocalHpcCandidateResourceHint {",
+        "struct LocalHpcCandidateJob {",
+        "struct LocalHpcCandidateRunManifest {",
+        "bijux.bench.local_hpc_candidate_run_manifest.v1",
+    ] {
+        assert!(!contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_hpc_execution_resolver_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_hpc_execution_resolver.rs");
+    let contents = fs::read_to_string(&source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", source.display()));
+    assert!(contents.contains("validate_benchmark_local_hpc_execution_resolver"));
+    for forbidden in [
+        "struct LocalHpcExecutionResolverRow {",
+        "struct LocalHpcExecutionResolverReport {",
+        "bijux.bench.local_hpc_execution_resolver.v1",
+    ] {
+        assert!(!contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
     }
 }
 
@@ -464,6 +710,232 @@ fn thin_cli_uses_model_owned_scope_view_contracts() {
         }
         assert!(!source.contains(forbidden_schema));
     }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_hpc_resume_simulation_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_hpc_resume_simulation.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_hpc_resume_simulation"));
+    assert!(!contents.contains("struct LocalHpcResumeSimulationBehavior {"));
+    assert!(!contents.contains("struct LocalHpcResumeSimulationJob {"));
+    assert!(!contents.contains("struct LocalHpcResumeSimulationReport {"));
+    assert!(!contents.contains("\"bijux.bench.local_hpc_resume_simulation.v1\""));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_hpc_dependency_simulation_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root
+        .join("crates/bijux-dna/src/commands/benchmark/local_hpc_dependency_simulation.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_hpc_dependency_simulation"));
+    assert!(!contents.contains("struct LocalHpcDependencySimulationJob {"));
+    assert!(!contents.contains("struct LocalHpcDependencySimulationCase {"));
+    assert!(!contents.contains("struct LocalHpcDependencySimulationReport {"));
+    assert!(!contents.contains("\"bijux.bench.local_hpc_dependency_simulation.v1\""));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_hpc_stage_benchmark_array_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root
+        .join("crates/bijux-dna/src/commands/benchmark/local_hpc_stage_benchmark_array.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_hpc_stage_benchmark_array"));
+    assert!(!contents.contains("struct LocalHpcStageBenchmarkArrayRow {"));
+    assert!(!contents.contains("struct LocalHpcStageBenchmarkArrayReport {"));
+    assert!(!contents.contains("\"bijux.bench.local_hpc_stage_benchmark_array.v1\""));
+
+    let support_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_hpc_array_support.rs");
+    let support = fs::read_to_string(&support_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", support_source.display()));
+    assert!(!support.contains("struct LocalHpcArrayResources {"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_hpc_pipeline_node_array_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_hpc_pipeline_node_array.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_hpc_pipeline_node_array"));
+    assert!(!contents.contains("struct LocalHpcPipelineNodeArrayExpectedOutput {"));
+    assert!(!contents.contains("struct LocalHpcPipelineNodeArrayDependency {"));
+    assert!(!contents.contains("struct LocalHpcPipelineNodeArrayRow {"));
+    assert!(!contents.contains("struct LocalHpcPipelineNodeArrayReport {"));
+    assert!(!contents.contains("\"bijux.bench.local_hpc_pipeline_node_array.v1\""));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_hpc_dry_run_readiness_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_hpc_dry_run_ready.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_hpc_dry_run_readiness"));
+    assert!(!contents.contains("struct LocalHpcDryRunReadyGoalCheck {"));
+    assert!(!contents.contains("struct LocalHpcDryRunReadySummary {"));
+    assert!(!contents.contains("struct LocalHpcDryRunReadyBehavior {"));
+    assert!(!contents.contains("struct LocalHpcDryRunReadyReport {"));
+    assert!(!contents.contains("\"bijux.bench.local_hpc_dry_run_ready.v1\""));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_hpc_submission_readiness_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_hpc_submission_ready.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_hpc_submission_readiness"));
+    assert!(!contents.contains("struct BenchLocalHpcSubmissionReadyGoalCheck {"));
+    assert!(!contents.contains("struct BenchLocalHpcSubmissionReadyReport {"));
+    assert!(!contents.contains("\"bijux.bench.local_hpc_submission_ready.v1\""));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_stage_fake_run_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_stage_fake_runs.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    for validator in [
+        "validate_benchmark_local_stage_fake_run_manifest",
+        "validate_benchmark_local_stage_fake_run_result",
+        "validate_benchmark_local_stage_fake_failure_manifest",
+        "validate_benchmark_local_stage_fake_failure_record",
+    ] {
+        assert!(contents.contains(validator), "thin CLI must invoke {validator}");
+    }
+    for forbidden in [
+        "struct BenchLocalStageFakeRunOutputEntry {",
+        "struct BenchLocalStageFakeRunResult {",
+        "struct BenchLocalStageFakeRunManifest {",
+        "struct BenchLocalStageFakeFailureOutputEntry {",
+        "struct BenchLocalStageFakeFailureRecord {",
+        "struct BenchLocalStageFakeFailureManifest {",
+        "\"bijux.bench.local_stage_fake_runs.v1\"",
+        "\"bijux.bench.local_stage_fake_failures.v1\"",
+        "\"bijux.bench.local_stage_fake_failure_record.v1\"",
+    ] {
+        assert!(!contents.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_scientific_acceptance_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root.join(
+        "crates/bijux-dna/src/commands/benchmark/readiness/scientific_acceptance_thresholds.rs",
+    );
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_scientific_acceptance_thresholds_config"));
+    assert!(contents.contains("validate_scientific_acceptance_thresholds_report"));
+    assert!(!contents.contains("struct ScientificAcceptanceThresholdRow {"));
+    assert!(!contents.contains("struct ScientificAcceptanceThresholdsConfig {"));
+    assert!(!contents.contains("struct ScientificAcceptanceThresholdsReport {"));
+    assert!(!contents.contains("enum ScientificAcceptanceDirection {"));
+    assert!(!contents.contains("bijux.bench.local_scientific_acceptance_thresholds.v1"));
+    assert!(!contents.contains("bijux.bench.readiness.scientific_acceptance_thresholds.v1"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_expected_benchmark_result_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root.join(
+        "crates/bijux-dna/src/commands/benchmark/readiness/all_domain_expected_benchmark_results.rs",
+    );
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_all_domain_expected_benchmark_results"));
+    assert!(!contents.contains("struct AllDomainExpectedBenchmarkResultRow {"));
+    assert!(!contents.contains("struct AllDomainExpectedBenchmarkResultsReport {"));
+    assert!(!contents.contains("bijux.bench.readiness.all_domain_expected_benchmark_results.v1"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_stage_tool_resource_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_resources.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_stage_tool_resources_config"));
+    assert!(contents.contains("validate_stage_tool_resources_report"));
+    assert!(!contents.contains("struct StageToolResourceRow {"));
+    assert!(!contents.contains("struct StageToolResourcesConfig {"));
+    assert!(!contents.contains("struct StageToolResourcesReport {"));
+    assert!(!contents.contains("bijux.bench.local_stage_tool_resources.v1"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_stage_tool_asset_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_assets.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_stage_tool_assets_config"));
+    assert!(contents.contains("validate_stage_tool_assets_report"));
+    assert!(!contents.contains("struct StageToolAssetRow {"));
+    assert!(!contents.contains("struct StageToolAssetsConfig {"));
+    assert!(!contents.contains("struct StageToolAssetsReport {"));
+    assert!(!contents.contains("bijux.bench.local_stage_tool_assets.v1"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_stage_tool_container_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root
+        .join("crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_containers.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_stage_tool_containers_config"));
+    assert!(contents.contains("validate_stage_tool_containers_report"));
+    assert!(!contents.contains("struct StageToolContainerRow {"));
+    assert!(!contents.contains("struct StageToolContainersConfig {"));
+    assert!(!contents.contains("struct StageToolContainersReport {"));
+    assert!(!contents.contains("bijux.bench.local_stage_tool_containers.v1"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_all_domain_output_declaration_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root.join(
+        "crates/bijux-dna/src/commands/benchmark/readiness/all_domain_output_declarations.rs",
+    );
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_all_domain_output_declaration_rows"));
+    assert!(contents.contains("validate_all_domain_output_declarations_report"));
+    assert!(!contents.contains("enum AllDomainOutputDeclarationStatus {"));
+    assert!(!contents.contains("struct AllDomainOutputDeclarationRow {"));
+    assert!(!contents.contains("struct AllDomainOutputDeclarationsReport {"));
+    assert!(!contents.contains("bijux.bench.readiness.all_domain_output_declarations.v1"));
 }
 
 fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {

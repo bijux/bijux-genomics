@@ -254,100 +254,12 @@ fn vcf_tool_class_label(tool_id: &str) -> Result<&'static str> {
 }
 
 fn ensure_vcf_undercovered_stage_contract(rows: &[VcfUndercoveredStageRow]) -> Result<()> {
-    let expected_rows = [
-        (
-            "vcf.admixture",
-            &["cohort_analysis"][..],
-            &["plink2"][..],
-            &["plink"][..],
-            "future_not_benchmark_ready",
-        ),
-        (
-            "vcf.imputation_metrics",
-            &["imputation", "phasing"][..],
-            &["beagle", "impute5"][..],
-            &["glimpse", "minimac4"][..],
-            "future_not_benchmark_ready",
-        ),
-        (
-            "vcf.ibd",
-            &["relatedness"][..],
-            &["germline", "ibdseq"][..],
-            &["ibdhap"][..],
-            "limit_to_specialized_tool",
-        ),
-        (
-            "vcf.impute",
-            &["imputation", "phasing"][..],
-            &["beagle", "impute5"][..],
-            &["glimpse", "minimac4"][..],
-            "future_not_benchmark_ready",
-        ),
-        (
-            "vcf.phasing",
-            &["phasing"][..],
-            &["shapeit5"][..],
-            &["beagle", "eagle", "shapeit"][..],
-            "limit_to_specialized_tool",
-        ),
-        (
-            "vcf.population_structure",
-            &["cohort_analysis", "population_structure"][..],
-            &["plink2"][..],
-            &["eigensoft", "plink"][..],
-            "limit_to_specialized_tool",
-        ),
-    ];
-
-    if rows.len() != expected_rows.len() {
-        return Err(anyhow!(
-            "VCF undercovered-stage report drifted from the governed stage slice (expected {}, found {}: {:?})",
-            expected_rows.len(),
-            rows.len(),
+    if !rows.is_empty() {
+        bail!(
+            "every multi-tool VCF stage must serve its complete supported tool set; undercovered stages: {:?}",
             rows.iter().map(|row| row.stage_id.as_str()).collect::<Vec<_>>()
-        ));
+        );
     }
-
-    for (stage_id, valid_tool_classes, registered_tools, missing_tools, decision) in expected_rows {
-        let row = rows
-            .iter()
-            .find(|row| row.stage_id == stage_id)
-            .ok_or_else(|| anyhow!("VCF undercovered-stage report is missing `{stage_id}`"))?;
-        if row.valid_tool_classes != valid_tool_classes
-            || row.registered_tools != registered_tools
-            || row.missing_tools != missing_tools
-            || row.decision != decision
-        {
-            bail!(
-                "VCF undercovered-stage `{stage_id}` drifted from its governed detector contract"
-            );
-        }
-    }
-
-    for row in rows {
-        if row.registered_tools.is_empty() {
-            bail!(
-                "VCF undercovered-stage `{}` must retain at least one registered tool",
-                row.stage_id
-            );
-        }
-        if row.missing_tools.is_empty() {
-            bail!(
-                "VCF undercovered-stage `{}` must retain at least one missing tool",
-                row.stage_id
-            );
-        }
-        if row.decision != "future_not_benchmark_ready"
-            && row.decision != "limit_to_specialized_tool"
-        {
-            bail!(
-                "VCF undercovered-stage `{}` declared unsupported decision `{}`",
-                row.stage_id,
-                row.decision
-            );
-        }
-    }
-
     Ok(())
 }
 
@@ -408,53 +320,8 @@ mod tests {
         assert_eq!(report.schema_version, VCF_UNDERCOVERED_STAGES_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.undercovered_stage_count, 6);
-        assert_eq!(report.decision_counts.get("future_not_benchmark_ready").copied(), Some(3));
-        assert_eq!(report.decision_counts.get("limit_to_specialized_tool").copied(), Some(3));
-        assert!(report.rows.iter().any(|row| {
-            row.stage_id == "vcf.phasing"
-                && row.registered_tools == vec!["shapeit5".to_string()]
-                && row.missing_tools
-                    == vec!["beagle".to_string(), "eagle".to_string(), "shapeit".to_string()]
-                && row.decision == "limit_to_specialized_tool"
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.stage_id == "vcf.admixture"
-                && row.valid_tool_classes == vec!["cohort_analysis".to_string()]
-                && row.registered_tools == vec!["plink2".to_string()]
-                && row.missing_tools == vec!["plink".to_string()]
-                && row.decision == "future_not_benchmark_ready"
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.stage_id == "vcf.population_structure"
-                && row.valid_tool_classes
-                    == vec!["cohort_analysis".to_string(), "population_structure".to_string()]
-                && row.registered_tools == vec!["plink2".to_string()]
-                && row.missing_tools == vec!["eigensoft".to_string(), "plink".to_string()]
-                && row.decision == "limit_to_specialized_tool"
-        }));
-        assert!(report.rows.iter().all(|row| row.stage_id != "vcf.pca"));
-        assert!(report.rows.iter().all(|row| row.stage_id != "vcf.qc"));
-        assert!(report.rows.iter().any(|row| {
-            row.stage_id == "vcf.ibd"
-                && row.valid_tool_classes == vec!["relatedness".to_string()]
-                && row.registered_tools == vec!["germline".to_string(), "ibdseq".to_string()]
-                && row.missing_tools == vec!["ibdhap".to_string()]
-                && row.decision == "limit_to_specialized_tool"
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.stage_id == "vcf.impute"
-                && row.missing_tools == vec!["glimpse".to_string(), "minimac4".to_string()]
-                && row.decision == "future_not_benchmark_ready"
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.stage_id == "vcf.imputation_metrics"
-                && row.valid_tool_classes == vec!["imputation".to_string(), "phasing".to_string()]
-                && row.registered_tools == vec!["beagle".to_string(), "impute5".to_string()]
-                && row.missing_tools == vec!["glimpse".to_string(), "minimac4".to_string()]
-                && row.decision == "future_not_benchmark_ready"
-        }));
-        assert!(report.rows.iter().all(|row| row.stage_id != "vcf.call_gl"));
-        assert!(report.rows.iter().all(|row| row.stage_id != "vcf.call_pseudohaploid"));
+        assert_eq!(report.undercovered_stage_count, 0);
+        assert!(report.decision_counts.is_empty());
+        assert!(report.rows.is_empty());
     }
 }

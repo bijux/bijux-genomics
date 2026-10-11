@@ -40,14 +40,14 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md"
+        "artifacts/benchmark-smoke/readiness/FASTQ_BAM_FIXTURE_HARNESS_READINESS.md"
     );
 
     let repo_root = sandbox.path();
     let markdown = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read dashboard markdown");
-    let json_path =
-        repo_root.join("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json");
+    let json_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/FASTQ_BAM_FIXTURE_HARNESS_READINESS.json");
     let json_payload = std::fs::read_to_string(&json_path).expect("read dashboard json");
     let json_value: serde_json::Value =
         serde_json::from_str(&json_payload).expect("parse dashboard json");
@@ -69,15 +69,16 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
         .and_then(serde_json::Value::as_u64)
         .expect("tool_section_count");
 
-    assert!(markdown.contains("# FASTQ + BAM Benchmark Readiness Dashboard"));
-    assert!(markdown.contains(&format!("- Expected pairs: {expected_pair_count}")));
-    assert!(markdown.contains(&format!("- Ready pairs: {ready_pair_count}")));
-    assert!(markdown.contains(&format!("- Blocked pairs: {blocked_pair_count}")));
+    assert!(markdown.contains("# FASTQ + BAM Fixture Harness Readiness Dashboard"));
+    assert!(markdown.contains("- Production ready: false"));
+    assert!(markdown.contains("- Product stages: 71"));
+    assert!(markdown.contains("- Product pairs: 159"));
+    assert!(markdown.contains("- Fixture-excluded pairs: 39"));
     assert!(markdown.contains(&format!(
-        "| Matrix | complete | all governed fastq and bam stage-tool pairs | {expected_pair_count} | {ready_pair_count} | {blocked_pair_count} |"
+        "| Matrix | fixture_ready | FASTQ/BAM fixture harness only; VCF and production evidence excluded | {expected_pair_count} | {ready_pair_count} | {blocked_pair_count} |"
     )));
     assert!(markdown.contains(&format!(
-        "| Reports | complete | governed local report surfaces | 5 | 5 | 0 | expected_results={expected_pair_count}, stage_sections=51, tool_sections={tool_section_count}, corpus_sections=8 |"
+        "| Reports | fixture_ready | governed local report surfaces | 5 | 5 | 0 | expected_results={expected_pair_count}, stage_sections=51, tool_sections={tool_section_count}, corpus_sections=8 |"
     )));
     assert!(markdown.contains(
         &format!(
@@ -91,14 +92,14 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
 
     assert_eq!(
         json_value.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.benchmark_readiness_dashboard.v1")
+        Some("bijux.bench.readiness.benchmark_readiness_dashboard.v2")
     );
     assert_eq!(
         json_value.get("markdown_output_path").and_then(serde_json::Value::as_str),
-        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md")
+        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_FIXTURE_HARNESS_READINESS.md")
     );
     assert_eq!(
         json_value.get("json_output_path").and_then(serde_json::Value::as_str),
-        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json")
+        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_FIXTURE_HARNESS_READINESS.json")
     );
 }

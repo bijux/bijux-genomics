@@ -38,7 +38,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
     let config_path = repo_root.join("configs/bench/local/stage-tool-containers.toml");
     let raw = std::fs::read_to_string(&config_path).expect("read config");
     assert!(raw.starts_with("# schema_version = 1\n"));
-    assert!(raw.contains("# last_updated = 2026-06-25\n"));
+    assert!(raw.contains("# last_updated = 2026-08-13\n"));
     let parsed: toml::Value = toml::from_str(&raw).expect("parse config");
 
     assert_eq!(
@@ -50,7 +50,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         Some("benchmark_ready_runtime_declarations")
     );
     let rows = parsed.get("rows").and_then(toml::Value::as_array).expect("rows array");
-    assert!(!rows.is_empty());
+    assert_eq!(rows.len(), 159);
     assert!(rows.iter().all(|row| {
         row.get("container_id").is_some()
             || row.get("command_entrypoint").is_some()
@@ -96,12 +96,16 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
         .iter()
         .filter(|row| row.get("execution_mode").and_then(toml::Value::as_str) == Some("external"))
         .collect::<Vec<_>>();
-    assert_eq!(external_artifact_rows.len(), 4);
+    assert_eq!(external_artifact_rows.len(), 8);
     for (stage_id, tool_id) in [
         ("bam.damage", "ngsbriggs"),
         ("bam.kinship", "angsd"),
         ("bam.sex", "angsd"),
         ("fastq.remove_duplicates", "fastuniq"),
+        ("vcf.call_gl", "angsd"),
+        ("vcf.call_pseudohaploid", "angsd"),
+        ("vcf.imputation_metrics", "impute5"),
+        ("vcf.impute", "impute5"),
     ] {
         let expected_container_id = format!("external-artifact://{tool_id}");
         assert!(external_artifact_rows.iter().any(|row| {

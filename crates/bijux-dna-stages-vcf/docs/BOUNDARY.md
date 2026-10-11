@@ -15,6 +15,8 @@ process spawning must route through `bijux-dna-runner`.
 - Wrapper version checks for declared local VCF tools.
 - VCF-specific command argument assembly that delegates external process
   execution to `bijux-dna-runner`.
+- Shared-stage plugin adaptation for invocation and normalized VCF output
+  observations; the plugin does not select tools or control lifecycle state.
 - Stage manifests, runtime explanations, sidecars, checksums, and refusal codes
   produced by VCF stage execution.
 

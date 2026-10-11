@@ -1,0 +1,260 @@
+{
+  "$defs": {
+    "FullBenchmarkResultCollectorRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "corpus_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "declared_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": "string"
+        },
+        "execution_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "manifest_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "node_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "normalized_metric_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pipeline_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "record_id": {
+          "type": "string"
+        },
+        "report_section": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "result_status": {
+          "$ref": "#/$defs/FullBenchmarkResultStatus"
+        },
+        "source_surface": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "surface_kind": {
+          "$ref": "#/$defs/FullBenchmarkResultSurfaceKind"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "record_id",
+        "source_surface",
+        "surface_kind",
+        "result_status",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "evidence_path",
+        "declared_output_count",
+        "normalized_metric_count",
+        "detail"
+      ],
+      "type": "object"
+    },
+    "FullBenchmarkResultStatus": {
+      "enum": [
+        "expected",
+        "succeeded",
+        "failed",
+        "present",
+        "missing_result",
+        "insufficient_data",
+        "unsupported_pair"
+      ],
+      "type": "string"
+    },
+    "FullBenchmarkResultSurfaceKind": {
+      "enum": [
+        "benchmark_expected",
+        "pipeline_fake_run",
+        "fake_run",
+        "fake_failure",
+        "missing_result_audit",
+        "real_smoke",
+        "failure_classification",
+        "unsupported_pair"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_expected_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "fake_failure_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fake_run_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "insufficient_data_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "insufficient_data_status_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_result_audit_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_result_status_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passes_behavior_test": {
+      "type": "boolean"
+    },
+    "pipeline_fake_run_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "real_smoke_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "result_status_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkResultCollectorRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.full_benchmark_result_collector.v1",
+      "type": "string"
+    },
+    "surface_kind_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "unsupported_pair_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "unsupported_pair_status_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "row_count",
+    "benchmark_expected_row_count",
+    "pipeline_fake_run_row_count",
+    "fake_run_row_count",
+    "fake_failure_row_count",
+    "missing_result_audit_row_count",
+    "real_smoke_row_count",
+    "insufficient_data_row_count",
+    "unsupported_pair_row_count",
+    "missing_result_status_count",
+    "insufficient_data_status_count",
+    "unsupported_pair_status_count",
+    "passes_behavior_test",
+    "surface_kind_counts",
+    "result_status_counts",
+    "domain_counts",
+    "rows"
+  ],
+  "title": "FullBenchmarkResultCollectorReport",
+  "type": "object"
+}

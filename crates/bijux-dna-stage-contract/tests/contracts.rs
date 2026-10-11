@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/downstream_probe.rs"]
+mod mod_contracts_downstream_probe_rs;
 #[path = "contracts/execution_step_metadata.rs"]
 mod mod_contracts_execution_step_metadata_rs;
 #[path = "contracts/stage_instance_ids.rs"]

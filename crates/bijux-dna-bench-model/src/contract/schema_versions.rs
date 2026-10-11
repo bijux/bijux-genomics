@@ -30,6 +30,28 @@ pub const ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1: &str =
     "bijux.bench.readiness.retained_tool_inventory.v1";
 pub const ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1: &str =
     "bijux.bench.readiness.all_domain_parser_collector.v1";
+pub const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1: &str =
+    "bijux.bench.readiness.all_domain_failure_classification.v1";
+pub const ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1: &str =
+    "bijux.bench.readiness.all_domain_expected_benchmark_results.v1";
+pub const ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1: &str =
+    "bijux.bench.readiness.all_domain_output_declarations.v1";
+pub const LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1: &str = "bijux.bench.local_stage_tool_resources.v1";
+pub const STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1: &str =
+    "bijux.bench.readiness.stage_tool_resources.v1";
+pub const LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1: &str = "bijux.bench.local_stage_tool_assets.v1";
+pub const STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.stage_tool_assets.v1";
+pub const LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1: &str =
+    "bijux.bench.local_stage_tool_containers.v1";
+pub const STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1: &str =
+    "bijux.bench.readiness.stage_tool_containers.v1";
+pub const FULL_BENCHMARK_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.full_benchmark_report.v1";
+pub const FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1: &str =
+    "bijux.bench.readiness.full_benchmark_result_collector.v1";
+pub const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1: &str =
+    "bijux.bench.local_scientific_acceptance_thresholds.v1";
+pub const SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1: &str =
+    "bijux.bench.readiness.scientific_acceptance_thresholds.v1";
 pub const STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1: &str =
     "bijux.bench.readiness.stage_registry_extra_pairs.v1";
 pub const BENCHMARK_DATA_SOURCE_SCHEMA_V1: &str = "bijux.benchmark.data_source.v1";
@@ -80,6 +102,7 @@ pub const BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1: &str = "bijux.benchmark.evidence_bo
 pub const BENCHMARK_CITATION_RECORD_SCHEMA_V1: &str = "bijux.benchmark.citation_record.v1";
 pub const BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1: &str = "bijux.benchmark.replay_receipt.v1";
 pub const BENCHMARK_EXECUTION_SPEC_SCHEMA_V1: &str = "bijux.benchmark.execution_spec.v1";
+pub const BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1: &str = "bijux.benchmark.stage_plan_manifest.v1";
 pub const BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.execution_admission.v1";
 pub const BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1: &str =
     "bijux.benchmark.effective_parameters.v1";
@@ -110,28 +133,66 @@ pub const BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1: &str =
     "bijux.bench.stage_result_validation.v1";
 pub const BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1: &str = "bijux.bench.local_runtime_metrics.v1";
 pub const BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1: &str = "bijux.bench.local_stage_inventory.v1";
+pub const BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3: &str = "bijux.bench.local_stage_commands.v3";
 pub const BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1: &str =
     "bijux.bench.local_all_domain_stage_inventory.v1";
 pub const BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1: &str = "bijux.bench.local_hpc_job_graph.v1";
 pub const BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_asset_staging_manifest.v1";
+pub const BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_candidate_run_manifest.v1";
+pub const BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_execution_resolver.v1";
+pub const BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_pipeline_node_array.v1";
+pub const BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_dependency_simulation.v1";
+pub const BENCHMARK_LOCAL_HPC_DRY_RUN_READINESS_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_dry_run_ready.v1";
+pub const BENCHMARK_LOCAL_HPC_SUBMISSION_READINESS_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_submission_ready.v1";
+pub const BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_resume_simulation.v1";
 pub const BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_result_collection_simulation.v1";
 pub const BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_scratch_layout.v1";
+pub const BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1: &str =
+    "bijux.bench.local_hpc_stage_benchmark_array.v1";
 pub const BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1: &str =
     "bijux.bench.local_pipeline_dag_validation.v1";
 pub const BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1: &str =
     "bijux.bench.local_pipeline_dag_validation_set.v1";
+pub const BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1: &str =
+    "bijux.bench.local_slurm_dependency_check.v1";
+pub const BENCHMARK_LOCAL_SLURM_DRY_RUN_SCHEMA_V1: &str = "bijux.bench.local_slurm_dry_run.v1";
+pub const BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1: &str =
+    "bijux.bench.local_slurm_shell_syntax.v1";
+pub const BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1: &str =
+    "bijux.bench.local_slurm_submit_manifest.v1";
+pub const BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1: &str =
+    "bijux.bench.local_all_domain_slurm_submit_manifest.v1";
 pub const BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1: &str =
     "bijux.bench.local_corpus_skip_report.v1";
 pub const BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1: &str = "bijux.fastq.corpus_benchmark_run.v1";
 pub const BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1: &str =
     "bijux.bench.local_corpus_stage_compatibility_validation.v1";
+pub const BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_V1: &str =
+    "bijux.bench.local_essential_pipeline_fake_runs.v1";
+pub const BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_PIPELINE_SCHEMA_V1: &str =
+    "bijux.bench.local_essential_pipeline_fake_run_pipeline.v1";
+pub const BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUN_NODE_METRICS_SCHEMA_V1: &str =
+    "bijux.bench.local_essential_pipeline_fake_run_node_metrics.v1";
 pub const BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1: &str =
     "bijux.bench.local_stage_manifest_completion.v1";
 pub const BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1: &str =
     "bijux.bench.local_stage_output_completion.v1";
+pub const BENCHMARK_LOCAL_STAGE_FAKE_RUN_MANIFEST_SCHEMA_V1: &str =
+    "bijux.bench.local_stage_fake_runs.v1";
+pub const BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_V1: &str =
+    "bijux.bench.local_stage_fake_failures.v1";
+pub const BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_V1: &str =
+    "bijux.bench.local_stage_fake_failure_record.v1";
 pub const BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1: &str = "bijux.bench.local_benchmark_summary.v1";
 pub const BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1: &str =
     "bijux.bench.local_vcf_smoke_suite_ready.v1";

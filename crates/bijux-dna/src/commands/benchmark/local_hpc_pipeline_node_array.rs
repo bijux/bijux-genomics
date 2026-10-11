@@ -3,7 +3,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_pipeline_node_array, BenchmarkLocalHpcPipelineNodeArrayDependency,
+    BenchmarkLocalHpcPipelineNodeArrayExpectedOutput, BenchmarkLocalHpcPipelineNodeArrayReport,
+    BenchmarkLocalHpcPipelineNodeArrayRow, BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1,
+};
 
 use super::local_all_domain_job_execution::{
     render_shell_command, rendered_essential_pipeline_node_execution_argv,
@@ -23,67 +27,15 @@ use super::readiness::essential_pipeline_corpus_assets::ESSENTIAL_PIPELINE_IDS;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_VERSION: &str =
-    "bijux.bench.local_hpc_pipeline_node_array.v1";
 pub(crate) const DEFAULT_HPC_PIPELINE_NODE_ARRAY_SCRIPT_PATH: &str =
     "runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch";
 const PIPELINE_NODE_ARRAY_JOB_NAME: &str = "bijux-pipeline-node-array";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcPipelineNodeArrayExpectedOutput {
-    pub(crate) output_id: String,
-    pub(crate) output_path: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcPipelineNodeArrayDependency {
-    pub(crate) node_id: String,
-    pub(crate) job_id_local: String,
-    pub(crate) array_index: usize,
-    pub(crate) upstream_result_ids: Vec<String>,
-    pub(crate) expected_outputs: Vec<LocalHpcPipelineNodeArrayExpectedOutput>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcPipelineNodeArrayRow {
-    pub(crate) array_index: usize,
-    pub(crate) job_id_local: String,
-    pub(crate) pipeline_id: String,
-    pub(crate) node_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) dependency_job_ids: Vec<String>,
-    pub(crate) upstream_result_ids: Vec<String>,
-    pub(crate) dependencies: Vec<LocalHpcPipelineNodeArrayDependency>,
-    pub(crate) expected_outputs: Vec<LocalHpcPipelineNodeArrayExpectedOutput>,
-    pub(crate) script_path: String,
-    pub(crate) pipeline_node_argv: Vec<String>,
-    pub(crate) pipeline_node_command: String,
-    pub(crate) scratch_root: String,
-    pub(crate) input_links_root: String,
-    pub(crate) output_root: String,
-    pub(crate) log_root: String,
-    pub(crate) stdout_path: String,
-    pub(crate) stderr_path: String,
-    pub(crate) resources: LocalHpcArrayResources,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcPipelineNodeArrayReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) script_path: String,
-    pub(crate) manifest_path: String,
-    pub(crate) wrapper_log_root: String,
-    pub(crate) array_spec: String,
-    pub(crate) pipeline_count: usize,
-    pub(crate) pipeline_job_count: usize,
-    pub(crate) dependency_count: usize,
-    pub(crate) resource_envelope: LocalHpcArrayResources,
-    pub(crate) rows: Vec<LocalHpcPipelineNodeArrayRow>,
-}
+pub(crate) type LocalHpcPipelineNodeArrayExpectedOutput =
+    BenchmarkLocalHpcPipelineNodeArrayExpectedOutput;
+pub(crate) type LocalHpcPipelineNodeArrayDependency = BenchmarkLocalHpcPipelineNodeArrayDependency;
+pub(crate) type LocalHpcPipelineNodeArrayRow = BenchmarkLocalHpcPipelineNodeArrayRow;
+pub(crate) type LocalHpcPipelineNodeArrayReport = BenchmarkLocalHpcPipelineNodeArrayReport;
 
 struct BuiltLocalHpcPipelineNodeArray {
     report: LocalHpcPipelineNodeArrayReport,
@@ -286,8 +238,6 @@ fn build_hpc_pipeline_node_array(
             rows.len()
         ));
     }
-    ensure_pipeline_node_array_contract(&rows)?;
-
     let script_parent = absolute_script_path.parent().ok_or_else(|| {
         anyhow!("pipeline node array output `{}` has no parent", absolute_script_path.display())
     })?;
@@ -302,7 +252,7 @@ fn build_hpc_pipeline_node_array(
     let resource_envelope = compute_resource_envelope(&rows)?;
     let dependency_count = rows.iter().map(|row| row.dependencies.len()).sum::<usize>();
     let report = LocalHpcPipelineNodeArrayReport {
-        schema_version: LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1.to_string(),
         script_path: path_relative_to_repo(repo_root, absolute_script_path),
         manifest_path: path_relative_to_repo(repo_root, &manifest_path),
         wrapper_log_root: path_relative_to_repo(repo_root, &wrapper_log_root),
@@ -313,6 +263,7 @@ fn build_hpc_pipeline_node_array(
         resource_envelope,
         rows,
     };
+    validate_benchmark_local_hpc_pipeline_node_array(&report)?;
     let script_body = render_pipeline_node_array_script(repo_root, &report)?;
     Ok(BuiltLocalHpcPipelineNodeArray { report, script_body, manifest_path })
 }
@@ -528,85 +479,6 @@ fn group_upstream_result_ids_by_dependency(
             .push(upstream_result_id.clone());
     }
     Ok(upstream_result_ids_by_dependency)
-}
-
-fn ensure_pipeline_node_array_contract(rows: &[LocalHpcPipelineNodeArrayRow]) -> Result<()> {
-    if rows.is_empty() {
-        return Err(anyhow!(
-            "HPC pipeline node array must cover at least one selected essential pipeline node"
-        ));
-    }
-    if rows.iter().enumerate().any(|(index, row)| row.array_index != index) {
-        return Err(anyhow!("HPC pipeline node array indexes must stay contiguous and zero-based"));
-    }
-    let unique_job_ids = rows.iter().map(|row| row.job_id_local.as_str()).collect::<BTreeSet<_>>();
-    if unique_job_ids.len() != rows.len() {
-        return Err(anyhow!(
-            "HPC pipeline node array must keep one unique local job id per array row"
-        ));
-    }
-    let unique_pipeline_nodes = rows
-        .iter()
-        .map(|row| format!("{}:{}", row.pipeline_id, row.node_id))
-        .collect::<BTreeSet<_>>();
-    if unique_pipeline_nodes.len() != rows.len() {
-        return Err(anyhow!(
-            "HPC pipeline node array must keep one unique pipeline node per array row"
-        ));
-    }
-    for row in rows {
-        if row.expected_outputs.is_empty() {
-            return Err(anyhow!(
-                "HPC pipeline node array row `{}` must keep expected outputs",
-                row.job_id_local
-            ));
-        }
-        if row.pipeline_node_argv.is_empty() || row.pipeline_node_command.is_empty() {
-            return Err(anyhow!(
-                "HPC pipeline node array row `{}` must keep an execution command",
-                row.job_id_local
-            ));
-        }
-        if row.stdout_path.is_empty() || row.stderr_path.is_empty() {
-            return Err(anyhow!(
-                "HPC pipeline node array row `{}` must keep explicit stdout and stderr paths",
-                row.job_id_local
-            ));
-        }
-        if row.dependency_job_ids.len() != row.dependencies.len() {
-            return Err(anyhow!(
-                "HPC pipeline node array row `{}` must keep one dependency entry per dependency job id",
-                row.job_id_local
-            ));
-        }
-        if row
-            .dependencies
-            .iter()
-            .enumerate()
-            .any(|(index, dependency)| dependency.job_id_local != row.dependency_job_ids[index])
-        {
-            return Err(anyhow!(
-                "HPC pipeline node array row `{}` must keep dependency entries aligned with dependency job ids",
-                row.job_id_local
-            ));
-        }
-        for dependency in &row.dependencies {
-            if dependency.array_index >= row.array_index {
-                return Err(anyhow!(
-                    "HPC pipeline node array dependency `{}` must appear before dependent row `{}`",
-                    dependency.job_id_local,
-                    row.job_id_local
-                ));
-            }
-            if dependency.expected_outputs.is_empty() {
-                return Err(anyhow!(
-                    "HPC pipeline node array dependency `{}` must keep expected outputs",
-                    dependency.job_id_local
-                ));
-            }
-        }
-    }
-    Ok(())
 }
 
 fn compute_resource_envelope(

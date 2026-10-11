@@ -3,7 +3,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    validate_all_domain_output_declaration_rows, AllDomainOutputDeclarationRow,
+    AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport,
+};
+use bijux_dna_api::v1::api::bench::{
+    validate_all_domain_output_declarations_report, ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1,
+};
 
 use super::all_domain_expected_benchmark_results::collect_all_domain_expected_benchmark_result_rows;
 use super::bam_adapter_output_contract::{
@@ -25,51 +31,12 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_OUTPUT_DECLARATIONS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/output-declarations-all-domains.tsv";
-const ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_output_declarations.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {
     domain: String,
     stage_id: String,
     tool_id: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum AllDomainOutputDeclarationStatus {
-    Complete,
-    Incomplete,
-    MissingAdapter,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainOutputDeclarationRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) raw_outputs: Vec<String>,
-    pub(crate) normalized_metrics: Vec<String>,
-    pub(crate) logs: Vec<String>,
-    pub(crate) manifest: String,
-    pub(crate) index_outputs: Vec<String>,
-    pub(crate) status: AllDomainOutputDeclarationStatus,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainOutputDeclarationsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) result_id_count: usize,
-    pub(crate) complete_row_count: usize,
-    pub(crate) incomplete_row_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) status_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<AllDomainOutputDeclarationRow>,
 }
 
 pub(crate) fn run_render_all_domain_output_declarations(
@@ -97,12 +64,6 @@ pub(crate) fn render_all_domain_output_declarations(
     let output_path = repo_relative_path(repo_root, &output_path);
     let rows = collect_all_domain_output_declaration_rows(repo_root)?;
 
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_all_domain_output_declarations_tsv(&rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
     let row_count = rows.len();
     let result_id_count =
         rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>().len();
@@ -113,11 +74,11 @@ pub(crate) fn render_all_domain_output_declarations(
     let mut status_counts = BTreeMap::<String, usize>::new();
     for row in &rows {
         *domain_counts.entry(row.domain.clone()).or_default() += 1;
-        *status_counts.entry(status_label(row.status).to_string()).or_default() += 1;
+        *status_counts.entry(row.status.as_str().to_string()).or_default() += 1;
     }
 
-    Ok(AllDomainOutputDeclarationsReport {
-        schema_version: ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_VERSION,
+    let report = AllDomainOutputDeclarationsReport {
+        schema_version: ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         row_count,
         result_id_count,
@@ -126,7 +87,14 @@ pub(crate) fn render_all_domain_output_declarations(
         domain_counts,
         status_counts,
         rows,
-    })
+    };
+    validate_all_domain_output_declarations_report(&report)?;
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(&output_path, render_all_domain_output_declarations_tsv(&report.rows))
+        .with_context(|| format!("write {}", output_path.display()))?;
+    Ok(report)
 }
 
 pub(crate) fn collect_all_domain_output_declaration_rows(
@@ -300,118 +268,8 @@ pub(crate) fn collect_all_domain_output_declaration_rows(
             .then_with(|| left.tool_id.cmp(&right.tool_id))
             .then_with(|| left.result_id.cmp(&right.result_id))
     });
-    ensure_all_domain_output_declaration_contract(&rows)?;
+    validate_all_domain_output_declaration_rows(&rows)?;
     Ok(rows)
-}
-
-fn ensure_all_domain_output_declaration_contract(
-    rows: &[AllDomainOutputDeclarationRow],
-) -> Result<()> {
-    let mut seen_result_ids = BTreeSet::<&str>::new();
-    for row in rows {
-        if row.result_id.trim().is_empty()
-            || row.domain.trim().is_empty()
-            || row.stage_id.trim().is_empty()
-            || row.tool_id.trim().is_empty()
-            || row.corpus_id.trim().is_empty()
-            || row.asset_profile_id.trim().is_empty()
-            || row.manifest.trim().is_empty()
-        {
-            return Err(anyhow!(
-                "all-domain output declaration row `{}` is missing required columns",
-                row.result_id
-            ));
-        }
-        if !seen_result_ids.insert(row.result_id.as_str()) {
-            return Err(anyhow!(
-                "all-domain output declarations contain duplicate result_id `{}`",
-                row.result_id
-            ));
-        }
-        if row.raw_outputs.is_empty()
-            || row.normalized_metrics.is_empty()
-            || row.logs.len() != 2
-            || row.logs.iter().any(|entry| entry.trim().is_empty())
-        {
-            return Err(anyhow!(
-                "all-domain output declaration row `{}` is missing governed output, normalized-metrics, or log declarations",
-                row.result_id
-            ));
-        }
-        if row.status != AllDomainOutputDeclarationStatus::Complete {
-            return Err(anyhow!(
-                "all-domain output declaration row `{}` is not complete",
-                row.result_id
-            ));
-        }
-    }
-
-    require_output_row(
-        rows,
-        "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
-        "classification_report_json",
-        "screen_report_tsv",
-        "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
-        None,
-    )?;
-    require_output_row(
-        rows,
-        "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
-        "kinship_report",
-        "summary",
-        "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
-        None,
-    )?;
-    require_output_row(
-        rows,
-        "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
-        "called_vcf",
-        "called_vcf",
-        "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
-        Some("called_vcf_tbi"),
-    )?;
-
-    Ok(())
-}
-
-fn require_output_row(
-    rows: &[AllDomainOutputDeclarationRow],
-    result_id: &str,
-    normalized_metric: &str,
-    raw_output: &str,
-    manifest: &str,
-    index_output: Option<&str>,
-) -> Result<()> {
-    let row = rows
-        .iter()
-        .find(|row| row.result_id == result_id)
-        .ok_or_else(|| anyhow!("all-domain output declarations are missing `{result_id}`"))?;
-    if !row.normalized_metrics.iter().any(|candidate| candidate == normalized_metric)
-        || !row.raw_outputs.iter().any(|candidate| candidate == raw_output)
-        || row.manifest != manifest
-        || !row.logs.iter().any(|entry| {
-            entry
-                == &format!(
-                    "stdout={}",
-                    manifest.trim_end_matches("/stage-result.json").to_string() + "/stdout.log"
-                )
-        })
-        || !row.logs.iter().any(|entry| {
-            entry
-                == &format!(
-                    "stderr={}",
-                    manifest.trim_end_matches("/stage-result.json").to_string() + "/stderr.log"
-                )
-        })
-        || index_output.is_some_and(|required| {
-            !row.index_outputs.iter().any(|candidate| candidate == required)
-        })
-    {
-        return Err(anyhow!(
-            "all-domain output declaration row `{result_id}` drifted from the governed output contract"
-        ));
-    }
-    Ok(())
 }
 
 fn render_all_domain_output_declarations_tsv(rows: &[AllDomainOutputDeclarationRow]) -> String {
@@ -432,7 +290,7 @@ fn render_all_domain_output_declarations_tsv(rows: &[AllDomainOutputDeclarationR
             sanitize_tsv(&row.logs.join(",")),
             sanitize_tsv(&row.manifest),
             sanitize_tsv(&row.index_outputs.join(",")),
-            sanitize_tsv(status_label(row.status)),
+            sanitize_tsv(row.status.as_str()),
         ));
     }
     rendered
@@ -492,14 +350,6 @@ fn binding_key(domain: &str, stage_id: &str, tool_id: &str) -> BindingKey {
         domain: domain.to_string(),
         stage_id: stage_id.to_string(),
         tool_id: tool_id.to_string(),
-    }
-}
-
-fn status_label(status: AllDomainOutputDeclarationStatus) -> &'static str {
-    match status {
-        AllDomainOutputDeclarationStatus::Complete => "complete",
-        AllDomainOutputDeclarationStatus::Incomplete => "incomplete",
-        AllDomainOutputDeclarationStatus::MissingAdapter => "missing_adapter",
     }
 }
 

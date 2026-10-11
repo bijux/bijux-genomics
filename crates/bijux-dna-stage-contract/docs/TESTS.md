@@ -6,7 +6,8 @@ contract intent, with taxonomy documented here instead of in `tests/README.md` p
 
 ## Suite Entrypoints
 - `tests/boundaries.rs`: crate ownership, no-execution guardrails, and tree contracts.
-- `tests/contracts.rs`: API, metadata, stage-instance, and versioning behavior.
+- `tests/contracts.rs`: API, downstream-probe, metadata, stage-instance, and
+  versioning behavior.
 - `tests/determinism.rs`: fixture and stable-output checks.
 - `tests/schemas.rs`: public type and schema snapshots.
 - `tests/guardrails.rs`: shared policy guardrail smoke coverage.
@@ -22,6 +23,8 @@ contract intent, with taxonomy documented here instead of in `tests/README.md` p
   contract.
 - `tests/boundaries/guardrails/`: no process execution and guardrail checks.
 - `tests/contracts/versioning/`: semantic-version and SSOT versioning contracts.
+- `tests/contracts/downstream_probe.rs`: stage-owned probe closure and pure
+  semantic evaluation outcomes.
 - `tests/determinism/`: fixture stability checks.
 - `tests/schemas/schema/`: public type, docs, and schema snapshot checks.
 - `tests/support/`: helper modules only; files here must not become standalone

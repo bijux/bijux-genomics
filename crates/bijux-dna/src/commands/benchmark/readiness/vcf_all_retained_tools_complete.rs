@@ -399,6 +399,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         Some(vcf_phasing_family_adapter::DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH.to_string()),
         || {
             for (tool_id, output_path) in [
+                ("shapeit", vcf_phasing_family_adapter::DEFAULT_VCF_SHAPEIT_ADAPTER_PATH),
                 ("shapeit5", vcf_phasing_family_adapter::DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH),
                 ("beagle", vcf_phasing_family_adapter::DEFAULT_VCF_BEAGLE_ADAPTER_PATH),
                 ("eagle", vcf_phasing_family_adapter::DEFAULT_VCF_EAGLE_ADAPTER_PATH),
@@ -409,6 +410,17 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                     PathBuf::from(output_path),
                 )?;
             }
+            ensure_single_phasing_output(
+                &read_governed_json(
+                    repo_root,
+                    vcf_phasing_family_adapter::DEFAULT_VCF_SHAPEIT_ADAPTER_PATH,
+                )?,
+                "shapeit",
+                "benchmark_ready",
+                1,
+                1,
+                "shapeit phasing adapter",
+            )?;
             ensure_single_phasing_output(
                 &read_governed_json(
                     repo_root,
@@ -426,9 +438,9 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                     vcf_phasing_family_adapter::DEFAULT_VCF_BEAGLE_ADAPTER_PATH,
                 )?,
                 "beagle",
-                "not_benchmark_ready",
+                "benchmark_ready",
                 3,
-                2,
+                3,
                 "beagle phasing adapter",
             )?;
             ensure_single_phasing_output(
@@ -437,15 +449,13 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                     vcf_phasing_family_adapter::DEFAULT_VCF_EAGLE_ADAPTER_PATH,
                 )?,
                 "eagle",
-                "not_benchmark_ready",
+                "benchmark_ready",
                 1,
-                0,
+                1,
                 "eagle phasing adapter",
             )?;
-            Ok(
-                "validated the retained phasing family with shapeit5 active and beagle/eagle governed as non-benchmark-ready alternatives"
-                    .to_string(),
-            )
+            Ok("validated executable benchmark-ready phasing rows for every supported backend"
+                .to_string())
         },
     );
 
@@ -467,7 +477,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
             )?;
             if json_u64(&payload, "row_count") != Some(8)
                 || json_u64(&payload, "tool_count") != Some(4)
-                || json_u64(&payload, "benchmark_ready_row_count") != Some(4)
+                || json_u64(&payload, "benchmark_ready_row_count") != Some(8)
                 || json_u64(&payload, "parser_output_row_count") != Some(8)
                 || json_u64(&payload, "missing_input_test_passed_row_count") != Some(8)
             {
@@ -481,23 +491,11 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 );
             }
             ensure_imputation_family_output(&payload, "beagle", "vcf.impute", "benchmark_ready")?;
-            ensure_imputation_family_output(
-                &payload,
-                "glimpse",
-                "vcf.impute",
-                "not_benchmark_ready",
-            )?;
+            ensure_imputation_family_output(&payload, "glimpse", "vcf.impute", "benchmark_ready")?;
             ensure_imputation_family_output(&payload, "impute5", "vcf.impute", "benchmark_ready")?;
-            ensure_imputation_family_output(
-                &payload,
-                "minimac4",
-                "vcf.impute",
-                "not_benchmark_ready",
-            )?;
-            Ok(
-                "validated the retained imputation family with governed Beagle and IMPUTE5 `vcf.impute` rows and explicit planned alternatives"
-                    .to_string(),
-            )
+            ensure_imputation_family_output(&payload, "minimac4", "vcf.impute", "benchmark_ready")?;
+            Ok("validated executable benchmark-ready imputation rows for every supported backend"
+                .to_string())
         },
     );
 
@@ -511,9 +509,9 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 repo_root,
                 vcf_imputation_metrics_ready::DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH,
                 "vcf.imputation_metrics readiness",
-                2,
+                4,
             )?;
-            Ok("validated governed Beagle and IMPUTE5 `vcf.imputation_metrics` rows end-to-end"
+            Ok("validated governed imputation metrics rows for every supported backend end-to-end"
                 .to_string())
         },
     );
@@ -544,9 +542,10 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 repo_root,
                 vcf_admixture_ready::DEFAULT_VCF_ADMIXTURE_READY_PATH,
                 "vcf.admixture readiness",
-                1,
+                2,
             )?;
-            Ok("validated the governed plink2 `vcf.admixture` row end-to-end".to_string())
+            Ok("validated the governed PLINK and PLINK2 `vcf.admixture` backend contracts"
+                .to_string())
         },
     );
 
@@ -562,10 +561,9 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 repo_root,
                 vcf_population_structure_ready::DEFAULT_VCF_POPULATION_STRUCTURE_READY_PATH,
                 "vcf.population_structure readiness",
-                1,
+                3,
             )?;
-            Ok("validated the governed plink2 `vcf.population_structure` row end-to-end"
-                .to_string())
+            Ok("validated the governed EIGENSOFT, PLINK, and PLINK2 `vcf.population_structure` backend contracts".to_string())
         },
     );
 
@@ -608,12 +606,10 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
             )?;
             ensure_descent_family_output_contract(&payload)?;
             ensure_descent_family_output(&payload, "germline", "vcf.ibd", "benchmark_ready")?;
-            ensure_descent_family_output(&payload, "ibdhap", "vcf.ibd", "not_benchmark_ready")?;
+            ensure_descent_family_output(&payload, "ibdhap", "vcf.ibd", "benchmark_ready")?;
             ensure_descent_family_output(&payload, "ibdseq", "vcf.ibd", "benchmark_ready")?;
-            Ok(
-                "validated GERMLINE and IBDseq as segment-call benchmarks while retaining IBDHap outside that comparison because it reports posterior IBD-state probabilities"
-                    .to_string(),
-            )
+            Ok("validated benchmark-ready segment-call rows for GERMLINE, IBDHap, and IBDseq"
+                .to_string())
         },
     );
 
@@ -1052,7 +1048,7 @@ fn ensure_imputation_family_output(
 fn ensure_descent_family_output_contract(payload: &Value) -> Result<()> {
     if json_u64(payload, "row_count") != Some(5)
         || json_u64(payload, "tool_count") != Some(5)
-        || json_u64(payload, "benchmark_ready_row_count") != Some(4)
+        || json_u64(payload, "benchmark_ready_row_count") != Some(5)
         || json_u64(payload, "parser_output_row_count") != Some(5)
         || json_u64(payload, "normalized_output_row_count") != Some(5)
         || json_u64(payload, "missing_input_test_passed_row_count") != Some(5)

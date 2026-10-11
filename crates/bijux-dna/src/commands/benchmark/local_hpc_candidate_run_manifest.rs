@@ -3,7 +3,17 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_candidate_run_manifest, BenchmarkLocalHpcCandidateBehavior,
+    BenchmarkLocalHpcCandidateJob, BenchmarkLocalHpcCandidateResourceCeiling,
+    BenchmarkLocalHpcCandidateResourceHint, BenchmarkLocalHpcCandidateRunManifest,
+    BenchmarkLocalHpcCandidateStopCondition, BENCHMARK_LOCAL_HPC_CANDIDATE_CPUS_PER_TASK_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_MEMORY_MB_MAX, BENCHMARK_LOCAL_HPC_CANDIDATE_PROFILE_ID,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_SCRATCH_GB_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_STAGED_INPUT_BYTES_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_WALLTIME_MINUTES_MAX,
+};
 
 use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
 use super::local_hpc_asset_staging_manifest::{
@@ -23,15 +33,15 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_VERSION: &str =
-    "bijux.bench.local_hpc_candidate_run_manifest.v1";
+    BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_CANDIDATE_RUN_MANIFEST_PATH: &str =
     "artifacts/benchmark-smoke/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json";
-const SMALL_CANDIDATE_PROFILE_ID: &str = "small_runtime_surface_representatives";
-const SMALL_INPUT_FOOTPRINT_MAX_BYTES: u64 = 10 * 1024 * 1024;
-const SMALL_CPUS_PER_TASK_MAX: u32 = 4;
-const SMALL_MEMORY_MB_MAX: u32 = 4096;
-const SMALL_WALLTIME_MINUTES_MAX: u32 = 15;
-const SMALL_SCRATCH_GB_MAX: u32 = 2;
+const SMALL_CANDIDATE_PROFILE_ID: &str = BENCHMARK_LOCAL_HPC_CANDIDATE_PROFILE_ID;
+const SMALL_INPUT_FOOTPRINT_MAX_BYTES: u64 = BENCHMARK_LOCAL_HPC_CANDIDATE_STAGED_INPUT_BYTES_MAX;
+const SMALL_CPUS_PER_TASK_MAX: u32 = BENCHMARK_LOCAL_HPC_CANDIDATE_CPUS_PER_TASK_MAX;
+const SMALL_MEMORY_MB_MAX: u32 = BENCHMARK_LOCAL_HPC_CANDIDATE_MEMORY_MB_MAX;
+const SMALL_WALLTIME_MINUTES_MAX: u32 = BENCHMARK_LOCAL_HPC_CANDIDATE_WALLTIME_MINUTES_MAX;
+const SMALL_SCRATCH_GB_MAX: u32 = BENCHMARK_LOCAL_HPC_CANDIDATE_SCRATCH_GB_MAX;
 
 const EXCLUSION_NON_BENCHMARK_RESULT: &str = "non_benchmark_result";
 const EXCLUSION_HAS_DEPENDENCIES: &str = "has_dependencies";
@@ -44,92 +54,12 @@ const EXCLUSION_RESOURCE_ENVELOPE_EXCEEDED: &str = "resource_envelope_exceeded";
 const EXCLUSION_INPUT_FOOTPRINT_EXCEEDED: &str = "input_footprint_exceeded";
 const EXCLUSION_SUPERSEDED_REPRESENTATIVE: &str = "superseded_by_smaller_representative";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcCandidateResourceCeiling {
-    pub(crate) cpus_per_task_max: u32,
-    pub(crate) memory_mb_max: u32,
-    pub(crate) walltime_minutes_max: u32,
-    pub(crate) scratch_gb_max: u32,
-    pub(crate) staged_input_bytes_max: u64,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcCandidateBehavior {
-    pub(crate) only_benchmark_result_jobs: bool,
-    pub(crate) only_dependency_free_jobs: bool,
-    pub(crate) only_known_assets: bool,
-    pub(crate) only_known_execution_modes: bool,
-    pub(crate) only_available_execution_resolution: bool,
-    pub(crate) only_small_resource_envelopes: bool,
-    pub(crate) only_small_input_footprints: bool,
-    pub(crate) selected_rows_keep_expected_outputs: bool,
-    pub(crate) selected_rows_keep_stop_conditions: bool,
-    pub(crate) vcf_rows_excluded_for_unknown_execution_modes: bool,
-    pub(crate) proven: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcCandidateStopCondition {
-    pub(crate) condition_id: String,
-    pub(crate) source_surface: String,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcCandidateResourceHint {
-    pub(crate) cpus_per_task: u32,
-    pub(crate) memory_mb: u32,
-    pub(crate) time_limit: String,
-    pub(crate) walltime_minutes: u32,
-    pub(crate) scratch_gb: u32,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcCandidateJob {
-    pub(crate) representative_group_id: String,
-    pub(crate) selection_reason: String,
-    pub(crate) job_id_local: String,
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) execution_mode: String,
-    pub(crate) execution_mode_summary: String,
-    pub(crate) resolution_kind: String,
-    pub(crate) resolution_target: String,
-    pub(crate) command_entrypoint: Option<String>,
-    pub(crate) expected_stage_result_manifest_path: String,
-    pub(crate) expected_outputs: Vec<String>,
-    pub(crate) resource_hint: LocalHpcCandidateResourceHint,
-    pub(crate) staged_input_count: usize,
-    pub(crate) staged_input_total_bytes: u64,
-    pub(crate) staged_inputs: Vec<LocalHpcAssetStagingInput>,
-    pub(crate) stop_conditions: Vec<LocalHpcCandidateStopCondition>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcCandidateRunManifest {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) selection_profile_id: String,
-    pub(crate) evaluated_job_count: usize,
-    pub(crate) benchmark_job_count: usize,
-    pub(crate) root_benchmark_job_count: usize,
-    pub(crate) eligible_small_job_count: usize,
-    pub(crate) representative_group_count: usize,
-    pub(crate) selected_job_count: usize,
-    pub(crate) selected_staged_input_count: usize,
-    pub(crate) selected_staged_input_bytes: u64,
-    pub(crate) selected_domain_counts: BTreeMap<String, usize>,
-    pub(crate) selected_execution_mode_counts: BTreeMap<String, usize>,
-    pub(crate) selected_resolution_kind_counts: BTreeMap<String, usize>,
-    pub(crate) exclusion_reason_counts: BTreeMap<String, usize>,
-    pub(crate) resource_ceiling: LocalHpcCandidateResourceCeiling,
-    pub(crate) behavior: LocalHpcCandidateBehavior,
-    pub(crate) rows: Vec<LocalHpcCandidateJob>,
-}
+pub(crate) type LocalHpcCandidateResourceCeiling = BenchmarkLocalHpcCandidateResourceCeiling;
+pub(crate) type LocalHpcCandidateBehavior = BenchmarkLocalHpcCandidateBehavior;
+pub(crate) type LocalHpcCandidateStopCondition = BenchmarkLocalHpcCandidateStopCondition;
+pub(crate) type LocalHpcCandidateResourceHint = BenchmarkLocalHpcCandidateResourceHint;
+pub(crate) type LocalHpcCandidateJob = BenchmarkLocalHpcCandidateJob;
+pub(crate) type LocalHpcCandidateRunManifest = BenchmarkLocalHpcCandidateRunManifest;
 
 #[derive(Debug, Clone)]
 struct EligibleCandidateJob<'a> {
@@ -247,7 +177,7 @@ fn build_hpc_candidate_run_manifest(
         &execution_resolver,
         &resource_hints,
     )?;
-    ensure_candidate_run_manifest_contract(&report)?;
+    validate_benchmark_local_hpc_candidate_run_manifest(&report)?;
     Ok(report)
 }
 
@@ -442,7 +372,7 @@ fn select_candidate_run_rows(
     };
 
     Ok(LocalHpcCandidateRunManifest {
-        schema_version: LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_VERSION,
+        schema_version: LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, absolute_output_path),
         selection_profile_id: SMALL_CANDIDATE_PROFILE_ID.to_string(),
         evaluated_job_count: selected_jobs.len(),
@@ -562,68 +492,6 @@ fn candidate_stop_conditions(
             ),
         },
     ]
-}
-
-fn ensure_candidate_run_manifest_contract(report: &LocalHpcCandidateRunManifest) -> Result<()> {
-    if report.selected_job_count != report.rows.len() {
-        return Err(anyhow!(
-            "HPC candidate run manifest must keep selected_job_count aligned with rows"
-        ));
-    }
-    if report.selected_job_count == 0 {
-        return Err(anyhow!(
-            "HPC candidate run manifest must select at least one representative job"
-        ));
-    }
-    if report.representative_group_count != report.rows.len() {
-        return Err(anyhow!(
-            "HPC candidate run manifest must keep one selected row per representative group"
-        ));
-    }
-    let unique_groups =
-        report.rows.iter().map(|row| row.representative_group_id.as_str()).collect::<BTreeSet<_>>();
-    if unique_groups.len() != report.rows.len() {
-        return Err(anyhow!("HPC candidate run manifest representative groups must stay unique"));
-    }
-    if report.selected_staged_input_count
-        != report.rows.iter().map(|row| row.staged_input_count).sum::<usize>()
-    {
-        return Err(anyhow!(
-            "HPC candidate run manifest must keep selected_staged_input_count aligned with rows"
-        ));
-    }
-    if report.selected_staged_input_bytes
-        != report.rows.iter().map(|row| row.staged_input_total_bytes).sum::<u64>()
-    {
-        return Err(anyhow!(
-            "HPC candidate run manifest must keep selected_staged_input_bytes aligned with rows"
-        ));
-    }
-    if !report.behavior.proven {
-        return Err(anyhow!(
-            "HPC candidate run manifest behavior must stay proven for the selected subset"
-        ));
-    }
-    if !report.selected_domain_counts.contains_key("fastq")
-        || !report.selected_domain_counts.contains_key("bam")
-    {
-        return Err(anyhow!(
-            "HPC candidate run manifest must cover both fastq and bam runtime surfaces"
-        ));
-    }
-    if report.rows.iter().any(|row| row.resource_hint.walltime_minutes > SMALL_WALLTIME_MINUTES_MAX)
-    {
-        return Err(anyhow!(
-            "HPC candidate run manifest cannot admit rows outside the small walltime ceiling"
-        ));
-    }
-    if report.rows.iter().any(|row| row.staged_input_total_bytes > SMALL_INPUT_FOOTPRINT_MAX_BYTES)
-    {
-        return Err(anyhow!(
-            "HPC candidate run manifest cannot admit rows outside the small input-footprint ceiling"
-        ));
-    }
-    Ok(())
 }
 
 fn parse_time_limit_minutes(time_limit: &str) -> Result<u32> {
