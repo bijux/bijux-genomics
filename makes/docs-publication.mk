@@ -14,6 +14,7 @@ gh-docs-build: ## Build and qualify the exact production documentation artifact
 	@bash -euo pipefail -c '\
 	  test "$${DOCS_BUILD_SITE_URL:-$(DOCS_PUBLICATION_SITE_URL)}" = "$(DOCS_PUBLICATION_SITE_URL)" || { echo "Exact production documentation URL required" >&2; exit 1; }; \
 	  test "$${DOCS_SITE_DIR:-$(DOCS_PUBLICATION_SITE_DIR)}" = "$(DOCS_PUBLICATION_SITE_DIR)" || { echo "Exact production documentation artifact required" >&2; exit 1; }; \
+	  "$(DOCS_PUBLICATION_PYTHON)" configs/docs/verify_mathjax_assets.py; \
 	  export SITE_URL="$(DOCS_PUBLICATION_SITE_URL)" PYTHONDONTWRITEBYTECODE=1; \
 	  test -n "$${BIJUX_STD_ROOT:-}" || { echo "Accepted standards checkout required" >&2; exit 1; }; \
 	  source "$(DOCS_PUBLICATION_SHARED)/tooling/scripts/docs_source_authority.sh"; \

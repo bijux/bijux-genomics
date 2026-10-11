@@ -37,6 +37,21 @@ extra:
     text: "© 2025 Bijan Mousavi"
   release_tag: !ENV [RELEASE_TAG, "main"]
 
+# Math rendering uses pinned local component and font assets.
+extra_javascript:
+  - assets/javascripts/mermaid-init.js
+  - assets/javascripts/shell/theme-persistence.js
+  - assets/javascripts/shell/viewport-profile.js
+  - assets/javascripts/shell/nav-state.js
+  - assets/javascripts/shell/detail-tabs.js
+  - assets/javascripts/shell/nav-reveal.js
+  - assets/javascripts/shell/search-recovery.js
+  - assets/javascripts/shell/content-reflow.js
+  - assets/javascripts/external-links.js
+  - assets/javascripts/shell/bootstrap.js
+  - assets/javascripts/navigation-sync.js
+  - assets/vendor/mathjax/tex-mml-chtml.js
+
 watch:
   - artifacts
   - docs
