@@ -19,6 +19,22 @@ pub enum CorpusAcquisitionLayout {
     Pe,
 }
 
+impl CorpusAcquisitionLayout {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Se => "se",
+            Self::Pe => "pe",
+        }
+    }
+}
+
+impl std::fmt::Display for CorpusAcquisitionLayout {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct CorpusSourcePolicy {

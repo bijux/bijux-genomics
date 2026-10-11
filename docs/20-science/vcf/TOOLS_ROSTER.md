@@ -29,11 +29,11 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.pca | supported | plink2, eigensoft | PCA support is governed across the admitted PLINK2 and EIGENSOFT structure-analysis families so sample-complete projections stay comparative. |
 | vcf.admixture | supported | plink, plink2 | Admixture inference stays available through the governed PLINK-family execution surface for ancestry decomposition summaries. |
 | vcf.population_structure | supported | plink, plink2, eigensoft | Population-structure summaries are governed on admitted structure-analysis tooling with explicit consumed PCA and admixture evidence. |
-| vcf.phasing | supported | beagle, shapeit5, eagle | Shapeit5 is the governed active phasing path while Beagle, Eagle, and retained alternatives stay explicit for comparative readiness. |
+| vcf.phasing | supported | beagle, shapeit, shapeit5, eagle | Shapeit5 is the governed active phasing path while Beagle, Eagle, and retained alternatives stay explicit for comparative readiness. |
 | vcf.prepare_reference_panel | supported | bcftools | Reference-panel preparation stays deterministic while the governed Beagle family consumes panel outputs downstream. |
 | vcf.imputation_metrics | supported | beagle, glimpse, impute5, minimac4 | Imputation metrics stay explicitly multi-tool while the governed beagle path anchors benchmark-ready reporting; IMPUTE5 requires a separately licensed institutional installation. |
 | vcf.impute | supported | beagle, glimpse, impute5, minimac4 | Explicit imputation execution is governed through the Beagle baseline while retained alternatives stay comparative; IMPUTE5 is not distributed by Bijux Genomics. |
 | vcf.postprocess | supported | bcftools | Post-imputation normalization remains deterministic and single-tool. |
-| vcf.ibd | planned | germline, ibdseq, ibdhap | IBD keeps an active normalized pairwise-segment contract, but the named external backends remain planned until runtime packaging is production-backed. |
+| vcf.ibd | supported | germline, ibdseq, ibdhap | IBD keeps an active normalized pairwise-segment contract while runtime and publication evidence remain independently qualified. |
 | vcf.roh | supported | plink2 | ROH interval extraction remains available through the governed PLINK2 execution surface with deterministic segment summaries. |
-| vcf.demography | planned | ibdne | Demography keeps an active deterministic Ne contract on normalized IBD segments, but the named IBDNe backend remains planned until runtime packaging is production-backed. |
+| vcf.demography | supported | ibdne | Demography keeps an active deterministic Ne contract on normalized IBD segments while runtime and publication evidence remain independently qualified. |

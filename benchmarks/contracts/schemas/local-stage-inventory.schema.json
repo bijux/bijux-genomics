@@ -1,0 +1,66 @@
+{
+  "$defs": {
+    "BenchmarkLocalStageInventoryEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "readiness_kind": {
+          "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_stage_inventory.v1",
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stage_matrix_path": {
+      "type": "string"
+    },
+    "stage_matrix_schema_version": {
+      "type": "string"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalStageInventoryEntry"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "domain",
+    "stage_matrix_schema_version",
+    "stage_matrix_path",
+    "stage_count",
+    "stages"
+  ],
+  "title": "BenchmarkLocalStageInventory",
+  "type": "object"
+}

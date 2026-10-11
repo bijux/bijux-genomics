@@ -53,16 +53,20 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     );
     assert_eq!(
         payload.get("passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(rows.len() as u64 - 3)
+        Some(rows.len() as u64 - 11)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(11));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("blocked_tool_ids").and_then(serde_json::Value::as_array),
         Some(&vec![
+            serde_json::Value::String("angsd".to_string()),
+            serde_json::Value::String("fastuniq".to_string()),
             serde_json::Value::String("germline".to_string()),
             serde_json::Value::String("ibdne".to_string()),
             serde_json::Value::String("ibdseq".to_string()),
+            serde_json::Value::String("impute5".to_string()),
+            serde_json::Value::String("ngsbriggs".to_string()),
         ])
     );
     assert!(payload
@@ -78,17 +82,27 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
         proof_surface_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>();
     assert_eq!(proof_count, rows.len() as u64);
     for (tool_id, stage_id) in [
+        ("ngsbriggs", "bam.damage"),
         ("angsd", "bam.kinship"),
         ("angsd", "bam.sex"),
         ("fastuniq", "fastq.remove_duplicates"),
-        ("ngsbriggs", "bam.damage"),
+        ("angsd", "vcf.call_gl"),
+        ("angsd", "vcf.call_pseudohaploid"),
+        ("impute5", "vcf.imputation_metrics"),
+        ("impute5", "vcf.impute"),
     ] {
         assert!(rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
-                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
                 && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
-                    == Some(true)
+                    == Some(false)
+                && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
+                    == Some("external_artifact_admission")
+                && row
+                    .get("execution_blocker")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|reason| reason.starts_with("blocked_external_access:"))
         }));
     }
 
@@ -167,7 +181,7 @@ fn bench_readiness_output_contract_audit_write_governed_json_file() {
         Some(rows.len() as u64)
     );
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(11));
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")

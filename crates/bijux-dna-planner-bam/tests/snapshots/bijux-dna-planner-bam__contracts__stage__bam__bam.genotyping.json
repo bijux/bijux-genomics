@@ -5,11 +5,11 @@
     "template": [
       "/bin/sh",
       "-c",
-      "angsd -i tests/fixtures/plan_inputs/default/sample.bam -doGlf 2 -doMajorMinor 1 -doMaf 1 -out out/genotyping && bcftools view out/genotyping.bcf -Oz -o out/genotyping.vcf.gz && tabix -f -p vcf out/genotyping.vcf.gz && python - <<'PY' > out/genotyping.gl.json\nimport json\nprint(json.dumps({\"producer\": \"angsd\", \"gl_source\": \"out/genotyping.glf.gz\", \"bcf_source\": \"out/genotyping.bcf\"}, indent=2))\nPY && python - <<'PY' > out/genotyping.summary.json\nimport json\nprint(json.dumps({\"caller\": \"angsd\", \"reference\": \"\", \"sites\": \"\", \"regions\": \"\", \"bcf\": \"out/genotyping.bcf\", \"vcf\": \"out/genotyping.vcf.gz\", \"tbi\": \"out/genotyping.vcf.gz.tbi\", \"min_posterior\": 0.8, \"min_call_rate\": 0.7}, indent=2))\nPY && python - <<'PY' > out/genotyping.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"producer\": \"bam.genotyping\", \"reference\": \"\", \"sites\": \"\", \"regions\": \"\", \"output_bcf\": \"out/genotyping.bcf\", \"output_vcf\": \"out/genotyping.vcf.gz\"}, indent=2))\nPY"
+      "test -n '' && bcftools mpileup -Ou -f '' tests/fixtures/plan_inputs/default/sample.bam | bcftools call -m -v -Ob -o out/genotyping.raw.bcf && bcftools +tag2tag out/genotyping.raw.bcf -Ob -o out/genotyping.bcf -- --PL-to-GP && rm -f out/genotyping.raw.bcf && bcftools view -Oz -o out/genotyping.vcf.gz out/genotyping.bcf && bcftools index --force --tbi out/genotyping.vcf.gz && variant_count=$(bcftools view -H out/genotyping.vcf.gz | wc -l) && sample_count=$(bcftools query -l out/genotyping.vcf.gz | wc -l) && genotype_counts=$(bcftools query -f '[%GT\\t%GP\\n]' out/genotyping.vcf.gz | awk -v minimum_posterior=\"0.8\" 'BEGIN{called=0; total=0} {total++; highest=0; n=split($2, probabilities, \",\"); for (i=1; i<=n; i++) if (probabilities[i]+0 > highest) highest=probabilities[i]+0; if ($1 != \"./.\" && $1 != \".|.\" && $1 != \".\" && $2 != \".\" && highest >= minimum_posterior) called++} END{printf \"%d %d %.12f\", called, total, total ? called/total : 0}') && set -- $genotype_counts && called_genotypes=$1 && total_genotypes=$2 && call_rate=$3 && awk -v observed=\"$call_rate\" -v required=\"0.7\" 'BEGIN{exit !(observed >= required)}' && printf '{\"producer\":\"bcftools\",\"bcf_source\":\"out/genotyping.bcf\",\"likelihood_field\":\"PL\",\"posterior_field\":\"GP\",\"posterior_derivation\":\"bcftools_tag2tag_PL_to_GP\"}\\n' > out/genotyping.gl.json && printf '{\"caller\":\"bcftools\",\"reference\":\"\",\"sites\":\"\",\"regions\":\"\",\"bcf\":\"out/genotyping.bcf\",\"vcf\":\"out/genotyping.vcf.gz\",\"tbi\":\"out/genotyping.vcf.gz.tbi\",\"minimum_posterior\":0.8,\"minimum_call_rate\":0.7,\"posterior_derivation\":\"bcftools_tag2tag_PL_to_GP\"}\\n' > out/genotyping.summary.json && printf '{\"variant_count\":%s,\"sample_count\":%s,\"confident_called_genotypes\":%s,\"total_genotypes\":%s,\"minimum_posterior\":0.8,\"confident_call_rate\":%s}\\n' \"$variant_count\" \"$sample_count\" \"$called_genotypes\" \"$total_genotypes\" \"$call_rate\" > out/stage_metrics.json && printf '{\"status\":\"ok\",\"producer\":\"bam.genotyping\",\"caller\":\"bcftools\",\"output_bcf\":\"out/genotyping.bcf\",\"output_vcf\":\"out/genotyping.vcf.gz\"}\\n' > out/genotyping.json"
     ]
   },
   "effective_params": {
-    "caller": "angsd",
+    "caller": "bcftools",
     "min_call_rate": 0.7,
     "min_posterior": 0.8
   },
@@ -20,6 +20,7 @@
   "io": {
     "inputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "bam",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -28,30 +29,35 @@
     ],
     "outputs": [
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "genotyping_report",
         "optional": false,
         "path": "out/genotyping.json",
         "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "summary",
         "optional": false,
         "path": "out/genotyping.summary.json",
         "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",
         "role": "metrics_json"
       },
       {
+        "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
         "name": "genotyping_bcf",
         "optional": false,
         "path": "out/genotyping.bcf",
         "role": "variant"
       },
       {
+        "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
         "name": "genotyping_vcf",
         "optional": false,
         "path": "out/genotyping.vcf.gz",
@@ -64,6 +70,7 @@
         "role": "index"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "genotyping_gl",
         "optional": false,
         "path": "out/genotyping.gl.json",
@@ -76,7 +83,7 @@
   "params": {
     "bai": null,
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
-    "caller": "angsd",
+    "caller": "bcftools",
     "min_call_rate": 0.7,
     "min_posterior": 0.8,
     "producer_contract": {
@@ -92,7 +99,7 @@
   "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "b12b34453afc2b09317634d77e6a07edf502b6b1bf6cec37aa28c290b7a39f97",
+      "contract_hash": "c680ec1662b5f2aea32e572318755d0ba88a09c79fc900286fad8abb6e88db13",
       "defaults_diff": {},
       "resource_plan": {
         "cpu_threads": 4,
@@ -113,7 +120,7 @@
       }
     },
     "kind": "default",
-    "summary": "tool angsd selected by planner"
+    "summary": "tool bcftools selected by planner"
   },
   "resources": {
     "mem_gb": 1,
@@ -123,6 +130,6 @@
   },
   "stage_id": "bam.genotyping",
   "stage_version": 1,
-  "tool_id": "angsd",
+  "tool_id": "bcftools",
   "tool_version": "1.0.0"
 }

@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "BenchmarkLocalStageManifestCompletionEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "complete": {
+          "type": "boolean"
+        },
+        "declared_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "manifest_exists": {
+          "type": "boolean"
+        },
+        "present_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "readiness_kind": {
+          "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_manifest_path": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind",
+        "tool_id",
+        "stage_manifest_path",
+        "manifest_exists",
+        "declared_output_count",
+        "present_output_count",
+        "complete"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "complete": {
+      "type": "boolean"
+    },
+    "complete_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fake_run_root": {
+      "type": "string"
+    },
+    "incomplete_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "report_output_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_stage_manifest_completion.v1",
+      "type": "string"
+    },
+    "source_stage_command_manifest_path": {
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalStageManifestCompletionEntry"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "fake_run_root",
+    "report_output_path",
+    "source_stage_command_manifest_path",
+    "stage_count",
+    "complete_stage_count",
+    "incomplete_stage_count",
+    "complete",
+    "stages"
+  ],
+  "title": "BenchmarkLocalStageManifestCompletionReport",
+  "type": "object"
+}

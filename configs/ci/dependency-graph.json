@@ -613,6 +613,11 @@
     },
     {
       "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
       "dependency": "crate:bijux-dna-containers",
       "kind": "normal"
     },
@@ -779,6 +784,11 @@
     {
       "consumer": "crate:bijux-dna-bench-model",
       "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-model",
+      "dependency": "crate:bijux-dna-domain-vcf",
       "kind": "normal"
     },
     {

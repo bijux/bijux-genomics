@@ -53,7 +53,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     skewer --version | grep -Fx 'skewer 0.2.2'
     skewer --help >/dev/null
     rm -rf /opt/skewer.tar.gz /opt/skewer-gcc-compatibility.patch /opt/skewer-978e8e46cba44595ece623e5387749284a86b74b
-    apt-get purge -y --auto-remove curl g++ make patch zlib1g-dev
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

@@ -107,7 +107,8 @@ mod tests {
     #[test]
     fn admitted_sif_uses_the_explicit_apptainer_executable() -> Result<()> {
         let repository_root = repository_root();
-        let temporary = tempfile::tempdir()?;
+        let temporary =
+            tempfile::Builder::new().prefix("bijux-dna-runner-external-").tempdir_in("/tmp")?;
         let active_root = temporary.path().join("active");
         let artifact = temporary.path().join("angsd.sif");
         let apptainer = temporary.path().join("operator-apptainer");

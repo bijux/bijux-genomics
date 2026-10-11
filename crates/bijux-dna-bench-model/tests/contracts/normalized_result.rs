@@ -14,6 +14,10 @@ use bijux_dna_bench_model::normalized_result::bam::{
     BenchmarkBamGenotypingResult, BenchmarkBamInsertSizeCohortMetrics,
     BenchmarkBamInsertSizeMetrics, BenchmarkBamInsertSizeResult, BenchmarkBamMappingSummaryResult,
 };
+use bijux_dna_bench_model::normalized_result::bam_envelope::{
+    bam_normalized_metrics_stage_contracts, render_bam_normalized_metrics_schema,
+    validate_bam_normalized_metrics, BAM_NORMALIZED_METRICS_SCHEMA_VERSION,
+};
 use bijux_dna_bench_model::normalized_result::fastq::{
     fastq_detect_adapters_metrics_schema, fastq_detect_adapters_probe_schema,
     fastq_detect_adapters_result_schema, fastq_profile_read_lengths_metrics_schema,
@@ -23,9 +27,163 @@ use bijux_dna_bench_model::normalized_result::fastq::{
     fastq_validate_reads_probe_schema, fastq_validate_reads_result_schema,
     BenchmarkFastqProfileMetrics, BenchmarkFastqProfileProbe, BenchmarkFastqProfileResult,
 };
+use bijux_dna_bench_model::normalized_result::fastq_envelope::{
+    fastq_normalized_metrics_stage_contracts, render_fastq_normalized_metrics_schema,
+    validate_fastq_normalized_metrics, FASTQ_NORMALIZED_METRICS_SCHEMA_VERSION,
+};
+use bijux_dna_bench_model::normalized_result::vcf_envelope::{
+    render_vcf_normalized_metrics_schema, render_vcf_normalized_metrics_stage_schema,
+    validate_vcf_normalized_metrics, vcf_normalized_metrics_stage_descriptors,
+};
 use bijux_dna_bench_model::normalized_result::{
     bam_downstream_probe_schema, BenchmarkDownstreamProbeRecord,
 };
+
+#[test]
+fn bam_execution_metrics_envelope_is_model_owned_and_matches_checked_schema() -> anyhow::Result<()>
+{
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let checked_path = repository_root.join("benchmarks/schemas/bam-normalized-metrics.v1.json");
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(checked_path)?)?;
+    assert_eq!(checked, render_bam_normalized_metrics_schema());
+
+    let contracts = bam_normalized_metrics_stage_contracts();
+    assert_eq!(contracts.len(), 24);
+    let unique_stage_ids = contracts
+        .iter()
+        .map(|contract| contract.stage_id)
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(unique_stage_ids.len(), contracts.len());
+
+    let payload = serde_json::json!({
+        "schema_version": BAM_NORMALIZED_METRICS_SCHEMA_VERSION,
+        "stage_id": "bam.damage",
+        "tool_id": "mapdamage2",
+        "tool_version": "2.2.3",
+        "execution": {
+            "runtime_s": 1.25,
+            "memory_mb": 128.0,
+            "exit_code": 0,
+            "status": "ok"
+        },
+        "outputs_count": 1,
+        "artifacts": {
+            "required_count": 1,
+            "missing_required": [],
+            "items": {
+                "damage_profile": { "path": "results/mapdamage", "exists": true }
+            }
+        },
+        "contracts": {
+            "bam_invariants": true,
+            "output_contract": true,
+            "tool_wrapper": true
+        },
+        "normalized_keys": [
+            "stage_id",
+            "tool_id",
+            "tool_version",
+            "execution.runtime_s",
+            "execution.memory_mb",
+            "execution.exit_code",
+            "artifacts.required_count",
+            "artifacts.missing_required",
+            "contracts.bam_invariants",
+            "contracts.output_contract",
+            "contracts.tool_wrapper"
+        ]
+    });
+    assert_eq!(validate_bam_normalized_metrics(&payload)?.stage_id, "bam.damage");
+
+    let mut unknown_stage = payload;
+    unknown_stage["stage_id"] = serde_json::json!("bam.unknown");
+    assert!(validate_bam_normalized_metrics(&unknown_stage).is_err());
+    Ok(())
+}
+
+#[test]
+fn fastq_execution_metrics_envelope_is_model_owned_and_matches_checked_schema() -> anyhow::Result<()>
+{
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let checked_path = repository_root.join("benchmarks/schemas/fastq-normalized-metrics.v1.json");
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(checked_path)?)?;
+    assert_eq!(checked, render_fastq_normalized_metrics_schema());
+
+    let contracts = fastq_normalized_metrics_stage_contracts();
+    assert_eq!(contracts.len(), 27);
+    let unique_stage_ids = contracts
+        .iter()
+        .map(|contract| contract.stage_id)
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(unique_stage_ids.len(), contracts.len());
+
+    let payload = serde_json::json!({
+        "schema_version": FASTQ_NORMALIZED_METRICS_SCHEMA_VERSION,
+        "stage": "fastq.validate_reads",
+        "report_json": "validate-reads.json",
+        "validator": "seqkit",
+        "failure_class": null,
+        "strict_pass": true,
+        "exit_code": 0
+    });
+    assert_eq!(validate_fastq_normalized_metrics(&payload)?.stage_id, "fastq.validate_reads");
+
+    let mut unknown_stage = payload;
+    unknown_stage["stage"] = serde_json::json!("fastq.unknown");
+    assert!(validate_fastq_normalized_metrics(&unknown_stage).is_err());
+    Ok(())
+}
+
+#[test]
+fn vcf_execution_metrics_envelope_is_model_owned_and_matches_checked_schemas() -> anyhow::Result<()>
+{
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(
+        repository_root.join("benchmarks/schemas/vcf-normalized-metrics.v1.json"),
+    )?)?;
+    assert_eq!(checked, render_vcf_normalized_metrics_schema()?);
+
+    let descriptors = vcf_normalized_metrics_stage_descriptors()?;
+    assert_eq!(descriptors.len(), 20);
+    let unique_stage_ids = descriptors
+        .iter()
+        .map(|descriptor| descriptor.stage_id.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(unique_stage_ids.len(), descriptors.len());
+    for descriptor in descriptors {
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(
+            repository_root
+                .join("benchmarks/schemas/vcf-normalized-metrics")
+                .join(&descriptor.file_name),
+        )?)?;
+        assert_eq!(checked, render_vcf_normalized_metrics_stage_schema(&descriptor.stage_id)?);
+    }
+
+    let payload = serde_json::json!({
+        "schema_version": "bijux.vcf.call.v1",
+        "stage_id": "vcf.call",
+        "tool_id": "bcftools",
+        "variant_count": 4,
+        "snp_count": 3,
+        "indel_count": 1,
+        "sample_count": 2
+    });
+    assert_eq!(validate_vcf_normalized_metrics(&payload)?.stage_id, "vcf.call");
+
+    let mut unknown_stage = payload;
+    unknown_stage["stage_id"] = serde_json::json!("vcf.unknown");
+    assert!(validate_vcf_normalized_metrics(&unknown_stage).is_err());
+    Ok(())
+}
 
 #[test]
 fn normalized_bam_results_reject_unknown_fields_and_invalid_tools() -> anyhow::Result<()> {

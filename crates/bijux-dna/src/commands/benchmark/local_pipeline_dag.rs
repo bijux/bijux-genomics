@@ -3,7 +3,23 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::{Deserialize, Serialize};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_pipeline_dag_validation,
+    BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalPipelineAncientDnaPolicy as LocalPipelineAncientDnaPolicy,
+    BenchmarkLocalPipelineDagValidationNode as LocalPipelineDagValidationNodeReport,
+    BenchmarkLocalPipelineDagValidationProfile as LocalPipelineDagValidationProfileReport,
+    BenchmarkLocalPipelineDagValidationReport as LocalPipelineDagValidationReport,
+    BenchmarkLocalPipelineExecutionContext as LocalPipelineExecutionContext,
+    BenchmarkLocalPipelineProjectSource as LocalPipelineProjectSource,
+    BenchmarkLocalPipelineReferenceAssets as LocalPipelineReferenceAssets,
+    BenchmarkLocalPipelineReferenceContext as LocalPipelineReferenceContext,
+    BenchmarkLocalPipelineSnpEffAssets as LocalPipelineSnpEffAssets,
+    BenchmarkLocalPipelineVariantAssets as LocalPipelineVariantAssets,
+};
+use serde::Deserialize;
 
 use crate::commands::benchmark::local_corpus_stage_compatibility::{
     validate_corpus_stage_compatibility_path, LocalCorpusStageCompatibilityEntryReport,
@@ -24,8 +40,6 @@ pub(crate) const DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH: &str =
 const LOCAL_PIPELINE_YAML_CONFIG_FILE: &str = "config.yaml";
 const LOCAL_PIPELINE_YAML_STAGES_FILE: &str = "stages.yaml";
 const LOCAL_PIPELINE_DAG_SCHEMA_VERSION: &str = "bijux.bench.local_pipeline_dag.v1";
-const LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_VERSION: &str =
-    "bijux.bench.local_pipeline_dag_validation.v1";
 
 #[derive(Debug, Clone, Copy, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -60,7 +74,7 @@ struct LocalPipelineDagConfig {
     #[serde(default)]
     execution_context: Option<LocalPipelineExecutionContext>,
     #[serde(default)]
-    project_sources: Vec<LocalPipelineProjectSource>,
+    project_sources: Vec<LocalPipelineProjectSourceConfig>,
     #[serde(default)]
     ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
     #[serde(default)]
@@ -83,7 +97,7 @@ struct LocalPipelineDagMetadataConfig {
     #[serde(default)]
     execution_context: Option<LocalPipelineExecutionContext>,
     #[serde(default)]
-    project_sources: Vec<LocalPipelineProjectSource>,
+    project_sources: Vec<LocalPipelineProjectSourceConfig>,
     #[serde(default)]
     ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
     #[serde(default)]
@@ -98,76 +112,13 @@ struct LocalPipelineDagStagesConfig {
     nodes: Vec<LocalPipelineDagNode>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct LocalPipelineReferenceContext {
-    pub(crate) species_id: String,
-    pub(crate) build_id: String,
-    pub(crate) reference_bundle_id: String,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct LocalPipelineExecutionContext {
-    pub(crate) site_profile_id: String,
-    #[serde(default)]
-    pub(crate) default_campaign_config: Option<String>,
-    #[serde(default)]
-    pub(crate) frontend_surfaces: Vec<String>,
-    #[serde(default)]
-    pub(crate) compute_surfaces: Vec<String>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct LocalPipelineProjectSource {
-    pub(crate) project_id: String,
-    pub(crate) metadata_url: String,
+struct LocalPipelineProjectSourceConfig {
+    project_id: String,
+    metadata_url: String,
     #[serde(default = "default_local_pipeline_project_retries")]
-    pub(crate) retries: u32,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct LocalPipelineAncientDnaPolicy {
-    pub(crate) aligner_mode: String,
-    pub(crate) auto_bwa_aln_p75_threshold_bp: u32,
-    pub(crate) adapter_cleanup_tool: String,
-    pub(crate) merge_pairs_in_preprocess: bool,
-    pub(crate) duplicate_stage_id: String,
-    pub(crate) duplicate_tool: String,
-    pub(crate) caller_tool: String,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct LocalPipelineReferenceAssets {
-    pub(crate) directory_name: String,
-    pub(crate) genome_url: String,
-    pub(crate) genome_filename: String,
-    pub(crate) assembly_report_url: String,
-    pub(crate) assembly_report_filename: String,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct LocalPipelineVariantAssets {
-    pub(crate) directory_name: String,
-    pub(crate) source_vcf_url: String,
-    pub(crate) source_vcf_filename: String,
-    pub(crate) refseq_vcf_filename: String,
-    pub(crate) annotated_vcf_filename: String,
-    pub(crate) snpeff: LocalPipelineSnpEffAssets,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct LocalPipelineSnpEffAssets {
-    pub(crate) genome_id: String,
-    pub(crate) database_url: String,
-    pub(crate) database_filename: String,
-    pub(crate) core_url: String,
-    pub(crate) core_filename: String,
+    retries: u32,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -185,53 +136,6 @@ struct LocalPipelineDagNode {
     upstream_inputs: Vec<String>,
     #[serde(default)]
     outputs: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalPipelineDagValidationNodeReport {
-    pub(crate) node_id: String,
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) dependency_count: usize,
-    pub(crate) external_input_count: usize,
-    pub(crate) upstream_input_count: usize,
-    pub(crate) output_count: usize,
-    pub(crate) depends_on: Vec<String>,
-    pub(crate) external_inputs: Vec<String>,
-    pub(crate) upstream_inputs: Vec<String>,
-    pub(crate) outputs: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalPipelineDagValidationProfileReport {
-    pub(crate) profile_id: String,
-    pub(crate) check_count: usize,
-    pub(crate) checks: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalPipelineDagValidationReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) config_path: String,
-    pub(crate) output_path: String,
-    pub(crate) pipeline_id: String,
-    pub(crate) domain: String,
-    pub(crate) default_corpus_id: String,
-    pub(crate) summary: String,
-    pub(crate) reference_context: Option<LocalPipelineReferenceContext>,
-    pub(crate) execution_context: Option<LocalPipelineExecutionContext>,
-    pub(crate) project_source_count: usize,
-    pub(crate) project_sources: Vec<LocalPipelineProjectSource>,
-    pub(crate) ancient_dna_policy: Option<LocalPipelineAncientDnaPolicy>,
-    pub(crate) reference_assets: Option<LocalPipelineReferenceAssets>,
-    pub(crate) variant_assets: Option<LocalPipelineVariantAssets>,
-    pub(crate) node_count: usize,
-    pub(crate) edge_count: usize,
-    pub(crate) acyclic: bool,
-    pub(crate) valid: bool,
-    pub(crate) topological_order: Vec<String>,
-    pub(crate) validation_profiles: Vec<LocalPipelineDagValidationProfileReport>,
-    pub(crate) nodes: Vec<LocalPipelineDagValidationNodeReport>,
 }
 
 pub(crate) fn run_validate_pipeline_dag(
@@ -265,6 +169,7 @@ pub(crate) fn validate_pipeline_dag_path(
     output_path: &Path,
 ) -> Result<LocalPipelineDagValidationReport> {
     let report = load_validated_local_pipeline_dag_report(repo_root, config_path)?;
+    validate_benchmark_local_pipeline_dag_validation(&report)?;
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
@@ -513,8 +418,8 @@ fn validate_pipeline_dag(
         })
         .collect::<Vec<_>>();
 
-    Ok(LocalPipelineDagValidationReport {
-        schema_version: LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_VERSION,
+    let report = LocalPipelineDagValidationReport {
+        schema_version: BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1.to_string(),
         config_path: path_relative_to_repo(repo_root, config_path),
         output_path: path_relative_to_repo(repo_root, output_path),
         pipeline_id: config.pipeline_id.clone(),
@@ -524,7 +429,15 @@ fn validate_pipeline_dag(
         reference_context: config.reference_context.clone(),
         execution_context: config.execution_context.clone(),
         project_source_count: config.project_sources.len(),
-        project_sources: config.project_sources.clone(),
+        project_sources: config
+            .project_sources
+            .iter()
+            .map(|source| LocalPipelineProjectSource {
+                project_id: source.project_id.clone(),
+                metadata_url: source.metadata_url.clone(),
+                retries: source.retries,
+            })
+            .collect(),
         ancient_dna_policy: config.ancient_dna_policy.clone(),
         reference_assets: config.reference_assets.clone(),
         variant_assets: config.variant_assets.clone(),
@@ -535,7 +448,9 @@ fn validate_pipeline_dag(
         topological_order,
         validation_profiles,
         nodes,
-    })
+    };
+    validate_benchmark_local_pipeline_dag_validation(&report)?;
+    Ok(report)
 }
 
 fn build_validation_profiles(
@@ -3220,7 +3135,7 @@ fn validate_operational_asset_requirements(config: &LocalPipelineDagConfig) -> R
     Ok(())
 }
 
-fn validate_project_sources(project_sources: &[LocalPipelineProjectSource]) -> Result<()> {
+fn validate_project_sources(project_sources: &[LocalPipelineProjectSourceConfig]) -> Result<()> {
     let mut seen_project_ids = BTreeSet::new();
     for source in project_sources {
         require_non_empty(
@@ -3359,11 +3274,24 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use super::{validate_pipeline_dag_path, DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH};
+    use super::{
+        validate_pipeline_dag_path, LocalPipelineProjectSourceConfig,
+        DEFAULT_FASTQ_CORE_PREPROCESS_PIPELINE_CONFIG_PATH,
+    };
     use std::fs;
 
     fn repo_root() -> std::path::PathBuf {
         crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
+    }
+
+    #[test]
+    fn project_source_declaration_preserves_default_retry_policy() {
+        let source: LocalPipelineProjectSourceConfig = serde_yaml::from_str(
+            "project_id: ena-study\nmetadata_url: https://example.invalid/study\n",
+        )
+        .expect("parse project source declaration");
+
+        assert_eq!(source.retries, 3);
     }
 
     #[test]

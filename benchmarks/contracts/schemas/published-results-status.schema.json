@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "PublishedResultsStageReport": {
+      "additionalProperties": false,
+      "properties": {
+        "available_run_roots": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "issue_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/StageResultIssue"
+          },
+          "type": "array"
+        },
+        "newest_available_run_root": {
+          "default": "",
+          "type": "string"
+        },
+        "reported_run_root": {
+          "default": "",
+          "type": "string"
+        },
+        "selected_run_root": {
+          "default": "",
+          "type": "string"
+        },
+        "selected_run_root_is_newest": {
+          "default": false,
+          "type": "boolean"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "status",
+        "issue_count",
+        "issues"
+      ],
+      "type": "object"
+    },
+    "StageResultIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "issue_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "issue_id",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "applicable_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "complete_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "incomplete_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "issue_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "published_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.published_results_status.v1",
+      "type": "string"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/PublishedResultsStageReport"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "applicable_stage_count",
+    "published_stage_count",
+    "complete_stage_count",
+    "incomplete_stage_count",
+    "issue_count",
+    "stages"
+  ],
+  "title": "PublishedResultsStatusReport",
+  "type": "object"
+}

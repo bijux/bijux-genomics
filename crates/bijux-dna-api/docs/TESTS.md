@@ -1,6 +1,11 @@
 # Tests
 
 This file is the single test documentation entrypoint for `bijux-dna-api`.
+
+Repository-writing contract tests share one materialized sandbox per test
+process. The support layer pins the process-wide repository override to that
+sandbox and queues overlapping writers through an event-driven mutex while a
+filesystem lock protects against cross-process collisions.
 README files are intentionally not allowed under `tests/`.
 
 ## Suite Entrypoints

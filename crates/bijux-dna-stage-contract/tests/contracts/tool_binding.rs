@@ -15,6 +15,7 @@ use bijux_dna_stage_contract::{
 const ALIGN_STAGE: &str = "bam.align";
 const ALIGN_BUNDLE: &str = "bijux.benchmark.bam.align.bundle.v1";
 const UNSORTED_SAM: &str = "bijux.sam.artifact.unsorted.v1";
+const FASTQ_PAIRED: &str = "bijux.fastq.artifact.paired_end.v1";
 const GENOTYPING_STAGE: &str = "bam.genotyping";
 const COVERAGE_STAGE: &str = "bam.coverage";
 const ENDOGENOUS_CONTENT_STAGE: &str = "bam.endogenous_content";
@@ -23,8 +24,11 @@ const DUPLICATION_METRICS_STAGE: &str = "bam.duplication_metrics";
 const INSERT_SIZE_STAGE: &str = "bam.insert_size";
 const GC_BIAS_STAGE: &str = "bam.gc_bias";
 const SEX_STAGE: &str = "bam.sex";
+const DAMAGE_STAGE: &str = "bam.damage";
+const AUTHENTICITY_STAGE: &str = "bam.authenticity";
 const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
+const TRIM_READS_STAGE: &str = "fastq.trim_reads";
 const CLUSTER_OTUS_STAGE: &str = "fastq.cluster_otus";
 const MERGE_PAIRS_STAGE: &str = "fastq.merge_pairs";
 const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
@@ -42,7 +46,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 40);
+    assert_eq!(retained.bindings().len(), 61);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -66,8 +70,353 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 48);
+    assert_eq!(all.bindings().len(), 69);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_damage_bindings_own_representative_qualification_pairs() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    assert_eq!(
+        registry
+            .bindings_for_stage(&StageId::new(DAMAGE_STAGE))
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
+    );
+    assert_eq!(
+        registry
+            .bindings_for_stage(&StageId::new(AUTHENTICITY_STAGE))
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["authenticct", "damageprofiler", "pmdtools"]
+    );
+    let all = canonical_tool_bindings()?;
+    assert_eq!(
+        all.bindings_for_stage(&StageId::new(DAMAGE_STAGE))
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_addeam_and_mapdamage2_bindings_render_native_profiles() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let addeam = registry
+        .binding(&StageId::new(DAMAGE_STAGE), &ToolId::new("addeam"))
+        .ok_or_else(|| anyhow::anyhow!("canonical AdDeam damage binding is missing"))?;
+    let addeam_command = render_tool_command(
+        addeam,
+        &ToolBindingRenderContext {
+            executable: "addeam".to_owned(),
+            inputs: BTreeMap::from([("bam".to_owned(), "/input/sample.bam".to_owned())]),
+            outputs: BTreeMap::from([(
+                "damage_profiles".to_owned(),
+                "/result/addeam-profiles".to_owned(),
+            )]),
+            ..ToolBindingRenderContext::default()
+        },
+    )?;
+    assert!(addeam_command[2].contains("addeam' profile"));
+    assert!(addeam_command[2].contains("/input/sample.bam"));
+    assert!(addeam_command[2].contains("-both"));
+
+    let mapdamage2 = registry
+        .binding(&StageId::new(DAMAGE_STAGE), &ToolId::new("mapdamage2"))
+        .ok_or_else(|| anyhow::anyhow!("canonical mapDamage2 damage binding is missing"))?;
+    let command = render_tool_command(
+        mapdamage2,
+        &ToolBindingRenderContext {
+            executable: "mapdamage2".to_owned(),
+            inputs: BTreeMap::from([
+                ("bam".to_owned(), "/input/sample.bam".to_owned()),
+                ("reference".to_owned(), "/input/reference.fa".to_owned()),
+            ]),
+            outputs: BTreeMap::from([(
+                "mapdamage2_reports".to_owned(),
+                "/result/mapdamage2".to_owned(),
+            )]),
+            ..ToolBindingRenderContext::default()
+        },
+    )?;
+    assert_eq!(
+        command,
+        [
+            "mapdamage2",
+            "analyze",
+            "--bam",
+            "/input/sample.bam",
+            "--reference",
+            "/input/reference.fa",
+            "--out-dir",
+            "/result/mapdamage2",
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_damageprofiler_and_pydamage_bindings_render_native_directories() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    for (stage, tool, input, input_path, output, directory, fragments) in [
+        (
+            AUTHENTICITY_STAGE,
+            "damageprofiler",
+            "sam",
+            "/input/sample.calmd.sam",
+            "damageprofiler_reports",
+            "/result/damageprofiler",
+            ["damageprofiler' -i", "-title bijux-sample"],
+        ),
+        (
+            DAMAGE_STAGE,
+            "pydamage",
+            "bam",
+            "/input/sample.bam",
+            "pydamage_results",
+            "/result/pydamage",
+            ["--outdir", "--group"],
+        ),
+    ] {
+        let binding = registry
+            .binding(&StageId::new(stage), &ToolId::new(tool))
+            .ok_or_else(|| anyhow::anyhow!("canonical {tool} binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool.to_owned(),
+                inputs: BTreeMap::from([(input.to_owned(), input_path.to_owned())]),
+                outputs: BTreeMap::from([(output.to_owned(), directory.to_owned())]),
+                ..ToolBindingRenderContext::default()
+            },
+        )?;
+        let rendered = command.join(" ");
+        assert!(rendered.contains(input_path));
+        assert!(rendered.contains(directory));
+        for fragment in fragments {
+            assert!(rendered.contains(fragment), "{tool} command omitted `{fragment}`");
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn canonical_authenticct_binding_renders_admitted_deamination_interface() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(AUTHENTICITY_STAGE), &ToolId::new("authenticct"))
+        .ok_or_else(|| anyhow::anyhow!("canonical AuthentiCT binding is missing"))?;
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "authenticct".to_owned(),
+            inputs: BTreeMap::from([("sam".to_owned(), "/input/sample.calmd.sam".to_owned())]),
+            outputs: BTreeMap::from([(
+                "deamination_table".to_owned(),
+                "/result/deamination.tsv".to_owned(),
+            )]),
+            ..ToolBindingRenderContext::default()
+        },
+    )?;
+    assert_eq!(
+        command,
+        [
+            "authenticct",
+            "deamination",
+            "-m",
+            "20",
+            "-l",
+            "30",
+            "-b",
+            "20",
+            "-o",
+            "/result/deamination.tsv",
+            "/input/sample.calmd.sam",
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_pmdtools_bindings_share_native_score_evidence_across_stages() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    for stage in [DAMAGE_STAGE, AUTHENTICITY_STAGE] {
+        let binding = registry
+            .binding(&StageId::new(stage), &ToolId::new("pmdtools"))
+            .ok_or_else(|| anyhow::anyhow!("canonical PMDtools {stage} binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: "pmdtools".to_owned(),
+                inputs: BTreeMap::from([("bam".to_owned(), "/input/sample.bam".to_owned())]),
+                outputs: BTreeMap::from([
+                    ("pmd_scores".to_owned(), "/result/pmd-scores.tsv".to_owned()),
+                    ("pmd_statistics".to_owned(), "/result/pmd-stats.txt".to_owned()),
+                ]),
+                ..ToolBindingRenderContext::default()
+            },
+        )?;
+        let rendered = command.join(" ");
+        assert!(rendered.contains("samtools view -h '/input/sample.bam'"));
+        assert!(rendered.contains("'pmdtools' --printDS --stats"));
+        assert!(rendered.contains("/result/pmd-scores.tsv"));
+        assert!(rendered.contains("/result/pmd-stats.txt"));
+    }
+    Ok(())
+}
+
+#[test]
+fn canonical_trim_read_bindings_preserve_representative_native_shapes() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage = StageId::new(TRIM_READS_STAGE);
+    assert_eq!(
+        registry
+            .bindings_for_stage(&stage)
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["alientrimmer", "atropos", "fastx_clipper", "skewer", "trim_galore", "trimmomatic"]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_paired_trim_bindings_render_native_output_shapes() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage = StageId::new(TRIM_READS_STAGE);
+    let paired_inputs = paired_merge_inputs();
+    let paired_outputs = BTreeMap::from([
+        ("trimmed_reads_r1".to_owned(), "/result/trimmed-R1.fastq.gz".to_owned()),
+        ("trimmed_reads_r2".to_owned(), "/result/trimmed-R2.fastq.gz".to_owned()),
+    ]);
+    for (tool, inputs, parameters, required_fragments) in [
+        (
+            "atropos",
+            paired_inputs.clone(),
+            BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("adapter_r1".to_owned(), "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA".to_owned()),
+                ("adapter_r2".to_owned(), "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT".to_owned()),
+                ("quality_cutoff".to_owned(), "20".to_owned()),
+                ("min_length".to_owned(), "30".to_owned()),
+            ]),
+            ["-pe1", "-pe2", "/result/trimmed-R2.fastq.gz"],
+        ),
+        (
+            "trim_galore",
+            paired_inputs.clone(),
+            BTreeMap::from([
+                ("threads".to_owned(), "2".to_owned()),
+                ("adapter_sequence".to_owned(), "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA".to_owned()),
+                ("quality_cutoff".to_owned(), "20".to_owned()),
+                ("min_length".to_owned(), "30".to_owned()),
+            ]),
+            ["--paired", "r1.list", "r2.list"],
+        ),
+        (
+            "trimmomatic",
+            paired_inputs.clone(),
+            BTreeMap::from([
+                ("threads".to_owned(), "2".to_owned()),
+                ("quality_cutoff".to_owned(), "20".to_owned()),
+                ("min_length".to_owned(), "30".to_owned()),
+            ]),
+            ["PE", "SLIDINGWINDOW:4:20", "MINLEN:30"],
+        ),
+    ] {
+        let binding = registry
+            .binding(&stage, &ToolId::new(tool))
+            .ok_or_else(|| anyhow::anyhow!("canonical {tool} trim binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool.to_owned(),
+                inputs,
+                input_sets: BTreeMap::new(),
+                parameters,
+                outputs: paired_outputs.clone(),
+            },
+        )?;
+        let rendered = command.join(" ");
+        for fragment in required_fragments {
+            assert!(rendered.contains(fragment), "{tool} command omitted {fragment}");
+        }
+        assert_eq!(binding.outputs.len(), 2);
+    }
+
+    let alientrimmer = registry
+        .binding(&stage, &ToolId::new("alientrimmer"))
+        .ok_or_else(|| anyhow::anyhow!("canonical alientrimmer trim binding is missing"))?;
+    let alientrimmer_command = render_tool_command(
+        alientrimmer,
+        &ToolBindingRenderContext {
+            executable: "alientrimmer".to_owned(),
+            inputs: paired_inputs
+                .into_iter()
+                .chain([("adapter_reference".to_owned(), "/input/adapters.fasta".to_owned())])
+                .collect(),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::new(),
+            outputs: paired_outputs,
+        },
+    )?;
+    assert!(alientrimmer_command[2].contains("-a '/input/adapters.fasta'"));
+    assert!(alientrimmer_command[2].contains("$prefix.1.fastq.gz"));
+    assert!(alientrimmer_command[2].contains("$prefix.2.fastq.gz"));
+    Ok(())
+}
+
+#[test]
+fn canonical_single_end_trim_bindings_render_native_output_shapes() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage = StageId::new(TRIM_READS_STAGE);
+    for (tool, parameters, required_fragment) in [
+        (
+            "fastx_clipper",
+            BTreeMap::from([
+                ("adapter_sequence".to_owned(), "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA".to_owned()),
+                ("adapter_match_length".to_owned(), "34".to_owned()),
+                ("min_length".to_owned(), "30".to_owned()),
+            ]),
+            "-M 34",
+        ),
+        (
+            "skewer",
+            BTreeMap::from([
+                ("threads".to_owned(), "2".to_owned()),
+                ("adapter_sequence".to_owned(), "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA".to_owned()),
+                ("quality_cutoff".to_owned(), "20".to_owned()),
+                ("min_length".to_owned(), "30".to_owned()),
+            ]),
+            "skewer-trimmed.fastq.gz",
+        ),
+    ] {
+        let binding = registry
+            .binding(&stage, &ToolId::new(tool))
+            .ok_or_else(|| anyhow::anyhow!("canonical {tool} trim binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool.to_owned(),
+                inputs: BTreeMap::from([("reads_r1".to_owned(), "/input/reads.fastq".to_owned())]),
+                input_sets: BTreeMap::new(),
+                parameters,
+                outputs: BTreeMap::from([(
+                    "trimmed_reads_r1".to_owned(),
+                    "/result/trimmed.fastq.gz".to_owned(),
+                )]),
+            },
+        )?;
+        assert!(command.join(" ").contains(required_fragment));
+        assert_eq!(binding.inputs.len(), 1);
+        assert_eq!(binding.outputs.len(), 1);
+    }
     Ok(())
 }
 
@@ -81,15 +430,168 @@ fn canonical_merge_pair_bindings_preserve_each_native_output_shape() -> Result<(
             .iter()
             .map(|binding| binding.tool_id.to_string())
             .collect::<Vec<_>>(),
-        ["adapterremoval", "bbmerge", "flash2"]
+        ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "seqprep", "vsearch"]
     );
     assert_adapterremoval_merge_binding(&registry, &stage)?;
     assert_bbmerge_merge_binding(&registry, &stage)?;
     assert_flash2_merge_binding(&registry, &stage)?;
+    assert_directory_merge_bindings(&registry, &stage)?;
+    assert_direct_merge_bindings(&registry, &stage)?;
     assert!(registry.bindings_for_stage(&stage).iter().all(|binding| {
         binding.downstream_probe_id == "benchmark.fastq.merge_pairs.consume"
             && binding.normalizer_id == "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs"
     }));
+    Ok(())
+}
+
+#[test]
+fn canonical_error_correction_bindings_preserve_paired_native_outputs() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage = StageId::new(CORRECT_ERRORS_STAGE);
+    assert_eq!(
+        registry
+            .bindings_for_stage(&stage)
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["bayeshammer", "lighter", "musket", "rcorrector"]
+    );
+    let inputs = paired_merge_inputs();
+    let outputs = BTreeMap::from([
+        ("corrected_reads_r1".to_owned(), "/result/corrected-R1.fastq.gz".to_owned()),
+        ("corrected_reads_r2".to_owned(), "/result/corrected-R2.fastq.gz".to_owned()),
+    ]);
+    for (tool, parameters, required_fragments) in [
+        (
+            "bayeshammer",
+            BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("phred_offset".to_owned(), "33".to_owned()),
+                ("max_memory_gb".to_owned(), "16".to_owned()),
+            ]),
+            ["--phred-offset '33'", "r1.list", "r2.list"],
+        ),
+        (
+            "lighter",
+            BTreeMap::from([
+                ("threads".to_owned(), "16".to_owned()),
+                ("kmer_size".to_owned(), "31".to_owned()),
+                ("genome_size".to_owned(), "2506966135".to_owned()),
+            ]),
+            ["-K '31' '2506966135'", "outputs.list", "normalize"],
+        ),
+        (
+            "musket",
+            BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("kmer_size".to_owned(), "21".to_owned()),
+                ("musket_kmer_budget".to_owned(), "134217728".to_owned()),
+            ]),
+            ["-k '21' '134217728'", "-omulti", "-inorder"],
+        ),
+    ] {
+        let binding = registry.binding(&stage, &ToolId::new(tool)).ok_or_else(|| {
+            anyhow::anyhow!("canonical {tool} error-correction binding is missing")
+        })?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool.to_owned(),
+                inputs: inputs.clone(),
+                input_sets: BTreeMap::new(),
+                parameters,
+                outputs: outputs.clone(),
+            },
+        )?;
+        assert_eq!(command[..2], ["/bin/sh", "-c"]);
+        for fragment in required_fragments {
+            assert!(command[2].contains(fragment), "{tool} command omitted {fragment}");
+        }
+        assert!(binding.outputs.iter().all(|output| output.artifact_contract_id == FASTQ_PAIRED));
+    }
+    Ok(())
+}
+
+fn paired_merge_inputs() -> BTreeMap<String, String> {
+    BTreeMap::from([
+        ("reads_r1".to_owned(), "/input/R1.fastq.gz".to_owned()),
+        ("reads_r2".to_owned(), "/input/R2.fastq.gz".to_owned()),
+    ])
+}
+
+fn assert_directory_merge_bindings(registry: &ToolBindingRegistry, stage: &StageId) -> Result<()> {
+    for (tool, output_name, output_path, required_fragment) in [
+        ("leehom", "leehom_result_directory", "/result/leehom", "-fqo '/result/leehom/leehom'"),
+        ("pear", "pear_result_directory", "/result/pear", "-o '/result/pear/pear'"),
+    ] {
+        let binding = registry
+            .binding(stage, &ToolId::new(tool))
+            .ok_or_else(|| anyhow::anyhow!("canonical {tool} merge binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool.to_owned(),
+                inputs: paired_merge_inputs(),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([
+                    ("threads".to_owned(), "4".to_owned()),
+                    ("merge_overlap".to_owned(), "11".to_owned()),
+                    ("min_len".to_owned(), "30".to_owned()),
+                ]),
+                outputs: BTreeMap::from([(output_name.to_owned(), output_path.to_owned())]),
+            },
+        )?;
+        assert_eq!(command[..2], ["sh", "-lc"]);
+        assert!(command[2].contains(required_fragment));
+        assert_eq!(
+            binding.outputs[0].artifact_contract_id,
+            "bijux.auxiliary.artifact.directory.v1"
+        );
+    }
+    Ok(())
+}
+
+fn assert_direct_merge_bindings(registry: &ToolBindingRegistry, stage: &StageId) -> Result<()> {
+    let outputs = BTreeMap::from([
+        ("merged_reads".to_owned(), "/result/merged.fastq.gz".to_owned()),
+        ("unmerged_reads_r1".to_owned(), "/result/unmerged-R1.fastq.gz".to_owned()),
+        ("unmerged_reads_r2".to_owned(), "/result/unmerged-R2.fastq.gz".to_owned()),
+    ]);
+    let seqprep = registry
+        .binding(stage, &ToolId::new("seqprep"))
+        .ok_or_else(|| anyhow::anyhow!("canonical SeqPrep merge binding is missing"))?;
+    let seqprep_command = render_tool_command(
+        seqprep,
+        &ToolBindingRenderContext {
+            executable: "seqprep".to_owned(),
+            inputs: paired_merge_inputs(),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::new(),
+            outputs: outputs.clone(),
+        },
+    )?;
+    assert_eq!(seqprep_command[0], "seqprep");
+    assert!(seqprep_command.windows(2).any(|pair| pair == ["-s", "/result/merged.fastq.gz"]));
+
+    let vsearch = registry
+        .binding(stage, &ToolId::new("vsearch"))
+        .ok_or_else(|| anyhow::anyhow!("canonical VSEARCH merge binding is missing"))?;
+    let vsearch_command = render_tool_command(
+        vsearch,
+        &ToolBindingRenderContext {
+            executable: "vsearch".to_owned(),
+            inputs: paired_merge_inputs(),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("merge_overlap".to_owned(), "11".to_owned()),
+                ("min_len".to_owned(), "30".to_owned()),
+            ]),
+            outputs,
+        },
+    )?;
+    assert!(vsearch_command.contains(&"--fastqout_notmerged_fwd".to_owned()));
+    assert!(vsearch_command.contains(&"--fastq_minmergelen".to_owned()));
     Ok(())
 }
 

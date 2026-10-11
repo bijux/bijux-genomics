@@ -1,0 +1,144 @@
+{
+  "$defs": {
+    "BenchmarkLocalCorpusStageCompatibilityEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_scope_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "compatibility_kind": {
+          "type": "string"
+        },
+        "compatibility_note": {
+          "type": "string"
+        },
+        "corpus_family_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fixture_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "readiness_kind": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind",
+        "compatibility_kind",
+        "compatibility_note"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalCorpusStageValidatedFixture": {
+      "additionalProperties": false,
+      "properties": {
+        "corpus_family_id": {
+          "type": "string"
+        },
+        "fixture_id": {
+          "type": "string"
+        },
+        "fixture_manifest": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "corpus_family_id",
+        "fixture_id",
+        "fixture_manifest",
+        "summary"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "asset_backed_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "corpus_family_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "fixture_backed_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fixture_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fixtures": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalCorpusStageValidatedFixture"
+      },
+      "type": "array"
+    },
+    "matrix_path": {
+      "type": "string"
+    },
+    "planner_only_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_corpus_stage_compatibility_validation.v1",
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalCorpusStageCompatibilityEntry"
+      },
+      "type": "array"
+    },
+    "valid": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "matrix_path",
+    "fixture_count",
+    "stage_count",
+    "fixture_backed_stage_count",
+    "asset_backed_stage_count",
+    "planner_only_stage_count",
+    "corpus_family_counts",
+    "valid",
+    "fixtures",
+    "stages"
+  ],
+  "title": "BenchmarkLocalCorpusStageCompatibilityReport",
+  "type": "object"
+}

@@ -127,7 +127,7 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - Purpose: phase cohort haplotypes before downstream imputation or IBD inference.
 - Inputs/Outputs: filtered VCF plus panel metadata → phased VCF, phasing QC, and phase-set-aware metrics.
 - Metrics: phased genotype count, unphased genotype count, phase-set count, switch-error-compatible status.
-- Tools: beagle, shapeit5, eagle.
+- Tools: beagle, shapeit, shapeit5, eagle.
 - Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/phasing.yaml`, `docs/20-science/vcf/IMPUTATION_SCOPE.md`.
 
@@ -168,12 +168,12 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - References: `domain/vcf/stages/postprocess.yaml`, `domain/vcf/docs/IMPUTATION_CONTRACT.md`.
 
 ### vcf.ibd {#vcf-ibd}
-- Status: planned.
+- Status: supported.
 - Purpose: estimate pairwise IBD segments for relatedness and demographic downstreams with normalized pair rows.
 - Inputs/Outputs: cohort VCF → IBD segments and report.
 - Metrics: pair count, normalized pair rows, status, insufficient reason, insufficient-overlap probe.
 - Tools: germline, ibdseq, ibdhap.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/ibd.yaml`, `docs/20-science/vcf/IBD.md`.
 
 ### vcf.roh {#vcf-roh}
@@ -186,10 +186,10 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - References: `domain/vcf/stages/roh.yaml`, `docs/20-science/vcf/ROH.md`.
 
 ### vcf.demography {#vcf-demography}
-- Status: planned.
+- Status: supported.
 - Purpose: estimate recent Ne-style demography summaries from IBD-derived evidence.
 - Inputs/Outputs: normalized IBD segments → demography report.
 - Metrics: method, inference status, status, insufficiency reason, time bins, and Ne estimates.
 - Tools: ibdne.
-- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Defaults: supported default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/demography.yaml`, `docs/20-science/vcf/DEMOGRAPHY.md`.

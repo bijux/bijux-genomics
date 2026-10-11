@@ -55,7 +55,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     fastqvalidator --version | grep -Fx 'fastqvalidator 0.1.1'
     fastqvalidator --help >/dev/null
     rm -rf /opt/fastqvalidator.tar.gz /opt/libstatgen.tar.gz /opt/fastQValidator-4cb293ca4153459b05ae7983f65a082d56b55c21 /opt/libStatGen-fae4fca874b3b78bf9b61c0eae080c15edd976a4
-    apt-get purge -y --auto-remove curl g++ libbz2-dev make zlib1g-dev
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

@@ -287,6 +287,7 @@ qualification-specification
 registry-tools
 release-evidence
 release-gate
+repository-archive
 repository-freeze
 run-apptainer-frontend-reproducibility
 run-apptainer-frontend-security

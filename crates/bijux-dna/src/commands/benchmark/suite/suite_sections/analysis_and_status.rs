@@ -330,10 +330,9 @@ fn validate_suite_contracts(suite: &SuiteSpec) -> Result<()> {
     if stage_set.len() == 1 {
         return Ok(());
     }
-    for stage_id in crate::commands::benchmark::alias_inventory::required_migration_stage_ids() {
-        if !crate::commands::benchmark::alias_inventory::stage_set_contains_canonical_or_migration_alias(
-            &stage_set,
-            stage_id,
+    for stage_id in bijux_dna_api::v1::api::bench::required_migration_stage_ids() {
+        if !bijux_dna_api::v1::api::bench::stage_set_contains_canonical_or_migration_alias(
+            &stage_set, stage_id,
         ) {
             return Err(anyhow!("suite missing required stage `{stage_id}`"));
         }

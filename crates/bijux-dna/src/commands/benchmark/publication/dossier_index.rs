@@ -2,8 +2,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_dossier_index, BenchmarkDossierIndex as DossierIndex,
+    BenchmarkDossierStageEntry as DossierStageEntry, BENCHMARK_DOSSIER_INDEX_SCHEMA_V1,
+};
 
-use super::models::{DossierIndex, DossierStageEntry};
 use super::{
     benchmark_publication_contracts, benchmark_runtime_corpus_dir_name,
     benchmark_stage_run_relative_root, classify_run_root_source, load_benchmark_config,
@@ -27,12 +30,14 @@ pub(super) fn write_corpus_fastq_dossier_index(
         .map(|contract| build_dossier_stage_entry(cwd, docs_root, workspace, corpus_id, contract))
         .collect::<Result<Vec<_>>>()?;
     let index = DossierIndex {
+        schema_version: BENCHMARK_DOSSIER_INDEX_SCHEMA_V1.to_string(),
         corpus_id: corpus_id.to_string(),
         stage_count: stages.len(),
         published_stage_count: stages.iter().filter(|stage| stage.status == "published").count(),
         missing_stage_count: stages.iter().filter(|stage| stage.status != "published").count(),
         stages,
     };
+    validate_benchmark_dossier_index(&index)?;
 
     fs::create_dir_all(docs_root).with_context(|| format!("create {}", docs_root.display()))?;
     let json_path = docs_root.join(publication_artifact_file_name(corpus_id, "dossier-index.json"));

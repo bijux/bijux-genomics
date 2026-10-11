@@ -3,56 +3,25 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_fastq_comparable_metrics_report, FASTQ_COMPARABLE_METRICS_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    ComparableMetricContractStatus as FastqComparableMetricContractStatus,
+    FastqComparableMetricsReport, FastqComparableMetricsRow,
+};
 use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_fastq::{
     comparable_benchmark_stage_ids, default_execution_tool_for_stage,
     stage_sanity_metrics_for_stage, stage_tool_bindings_for_stage, stage_tool_capability_contract,
     RuntimeNormalizationLevel,
 };
-use serde::Serialize;
 
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_COMPARABLE_METRICS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/fastq/fastq-comparable-metrics.tsv";
-const FASTQ_COMPARABLE_METRICS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.fastq_comparable_metrics.v1";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum FastqComparableMetricContractStatus {
-    Declared,
-    MissingSharedMetrics,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct FastqComparableMetricsRow {
-    pub(crate) stage_id: String,
-    pub(crate) comparison_contract_status: FastqComparableMetricContractStatus,
-    pub(crate) tool_count: usize,
-    pub(crate) tool_ids: Vec<String>,
-    pub(crate) default_tool_id: String,
-    pub(crate) corpus_status: String,
-    pub(crate) shared_metric_field_count: usize,
-    pub(crate) shared_metric_fields: Vec<String>,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct FastqComparableMetricsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) comparable_stage_count: usize,
-    pub(crate) multi_tool_stage_count: usize,
-    pub(crate) comparable_tool_row_count: usize,
-    pub(crate) row_count: usize,
-    pub(crate) declared_stage_count: usize,
-    pub(crate) missing_shared_metric_stage_count: usize,
-    pub(crate) shared_metric_field_count: usize,
-    pub(crate) rows: Vec<FastqComparableMetricsRow>,
-}
-
 pub(crate) fn run_render_fastq_comparable_metrics(
     args: &parse::BenchReadinessRenderFastqComparableMetricsArgs,
 ) -> Result<()> {
@@ -77,14 +46,9 @@ pub(crate) fn render_fastq_comparable_metrics(
     let corpus_status_by_stage = super::tool_serving_map::load_corpus_status_by_stage(repo_root)?;
     let summary = collect_fastq_comparable_metric_rows(&corpus_status_by_stage)?;
 
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_fastq_comparable_metrics_tsv(&summary.rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    Ok(FastqComparableMetricsReport {
-        schema_version: FASTQ_COMPARABLE_METRICS_SCHEMA_VERSION,
+    let rendered = render_fastq_comparable_metrics_tsv(&summary.rows);
+    let report = FastqComparableMetricsReport {
+        schema_version: FASTQ_COMPARABLE_METRICS_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         comparable_stage_count: summary.comparable_stage_count,
         multi_tool_stage_count: summary.rows.len(),
@@ -98,7 +62,15 @@ pub(crate) fn render_fastq_comparable_metrics(
             .map(|row| row.shared_metric_field_count)
             .sum(),
         rows: summary.rows,
-    })
+    };
+    validate_fastq_comparable_metrics_report(&report)
+        .context("validate FASTQ comparable-metrics report")?;
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(&output_path, rendered)
+        .with_context(|| format!("write {}", output_path.display()))?;
+    Ok(report)
 }
 
 #[derive(Debug)]
@@ -295,7 +267,7 @@ mod tests {
 
     use super::{
         comparison_contract_status_label, render_fastq_comparable_metrics,
-        DEFAULT_FASTQ_COMPARABLE_METRICS_PATH, FASTQ_COMPARABLE_METRICS_SCHEMA_VERSION,
+        DEFAULT_FASTQ_COMPARABLE_METRICS_PATH, FASTQ_COMPARABLE_METRICS_SCHEMA_V1,
     };
 
     fn repo_root() -> PathBuf {
@@ -311,7 +283,7 @@ mod tests {
         )
         .expect("render FASTQ comparable metrics");
 
-        assert_eq!(report.schema_version, FASTQ_COMPARABLE_METRICS_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, FASTQ_COMPARABLE_METRICS_SCHEMA_V1);
         assert_eq!(report.comparable_stage_count, 5);
         assert_eq!(report.multi_tool_stage_count, 3);
         assert_eq!(report.comparable_tool_row_count, 12);

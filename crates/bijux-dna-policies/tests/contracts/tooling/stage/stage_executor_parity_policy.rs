@@ -376,7 +376,8 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
 }
 
 #[test]
-fn licensed_external_tools_require_admission_identity_instead_of_repository_recipes() {
+fn policy__contracts__stage_executor_parity_policy__licensed_external_tools_require_admission_identity_instead_of_repository_recipes(
+) {
     let row: toml::Value = toml::from_str(
         r#"
 artifact_delivery = "external_artifact"
@@ -411,7 +412,8 @@ apptainer_def = "containers/apptainer/forbidden.def"
 }
 
 #[test]
-fn redistributable_tools_may_declare_one_supported_runtime_with_its_recipe() {
+fn policy__contracts__stage_executor_parity_policy__redistributable_tools_may_declare_one_supported_runtime_with_its_recipe(
+) {
     let root = support::workspace_root();
     let apptainer_only: toml::Value = toml::from_str(
         r#"

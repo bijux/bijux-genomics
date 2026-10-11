@@ -122,6 +122,10 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         Some(11)
     );
     assert_eq!(
+        command_source_counts.get("vcf_angsd_adapter").and_then(serde_json::Value::as_u64),
+        Some(2)
+    );
+    assert_eq!(
         command_source_counts.get("vcf_eigensoft_adapter").and_then(serde_json::Value::as_u64),
         Some(1)
     );
@@ -129,7 +133,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         command_source_counts
             .get("vcf_imputation_family_adapter")
             .and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(4)
     );
     assert_eq!(
         command_source_counts.get("vcf_phasing_family_adapter").and_then(serde_json::Value::as_u64),

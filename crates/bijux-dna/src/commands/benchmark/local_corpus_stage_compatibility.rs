@@ -3,6 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_corpus_stage_compatibility_report,
+    BenchmarkLocalCorpusStageCompatibilityEntry, BenchmarkLocalCorpusStageCompatibilityReport,
+    BenchmarkLocalCorpusStageValidatedFixture,
+    BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::commands::benchmark::local_corpus_fixture::{amplicon, bam, damage, edna, fastq};
@@ -17,7 +23,7 @@ pub(crate) const DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH: &str =
 pub(crate) const LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_VERSION: &str =
     "bijux.bench.local_corpus_stage_compatibility.v1";
 const LOCAL_CORPUS_STAGE_COMPATIBILITY_VALIDATION_SCHEMA_VERSION: &str =
-    "bijux.bench.local_corpus_stage_compatibility_validation.v1";
+    BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1;
 
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -73,39 +79,11 @@ pub(crate) struct LocalCorpusStageCompatibilityDeclaration {
     pub(crate) benchmark_scope_id: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalCorpusStageValidatedFixture {
-    pub(crate) corpus_family_id: String,
-    pub(crate) fixture_id: String,
-    pub(crate) fixture_manifest: String,
-    pub(crate) summary: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalCorpusStageCompatibilityEntryReport {
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) compatibility_kind: String,
-    pub(crate) corpus_family_id: Option<String>,
-    pub(crate) fixture_id: Option<String>,
-    pub(crate) benchmark_scope_id: Option<String>,
-    pub(crate) compatibility_note: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalCorpusStageCompatibilityValidationReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) matrix_path: String,
-    pub(crate) fixture_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) fixture_backed_stage_count: usize,
-    pub(crate) asset_backed_stage_count: usize,
-    pub(crate) planner_only_stage_count: usize,
-    pub(crate) corpus_family_counts: BTreeMap<String, usize>,
-    pub(crate) valid: bool,
-    pub(crate) fixtures: Vec<LocalCorpusStageValidatedFixture>,
-    pub(crate) stages: Vec<LocalCorpusStageCompatibilityEntryReport>,
-}
+pub(crate) type LocalCorpusStageValidatedFixture = BenchmarkLocalCorpusStageValidatedFixture;
+pub(crate) type LocalCorpusStageCompatibilityEntryReport =
+    BenchmarkLocalCorpusStageCompatibilityEntry;
+pub(crate) type LocalCorpusStageCompatibilityValidationReport =
+    BenchmarkLocalCorpusStageCompatibilityReport;
 
 #[derive(Debug, Clone, Deserialize)]
 struct ManifestSchemaProbe {
@@ -176,8 +154,8 @@ pub(crate) fn validate_corpus_stage_compatibility_path(
         })
         .collect::<Vec<_>>();
 
-    Ok(LocalCorpusStageCompatibilityValidationReport {
-        schema_version: LOCAL_CORPUS_STAGE_COMPATIBILITY_VALIDATION_SCHEMA_VERSION,
+    let report = LocalCorpusStageCompatibilityValidationReport {
+        schema_version: LOCAL_CORPUS_STAGE_COMPATIBILITY_VALIDATION_SCHEMA_VERSION.to_string(),
         matrix_path: path_relative_to_repo(repo_root, matrix_path),
         fixture_count: fixtures.len(),
         stage_count: stage_reports.len(),
@@ -188,7 +166,9 @@ pub(crate) fn validate_corpus_stage_compatibility_path(
         valid: true,
         fixtures,
         stages: stage_reports,
-    })
+    };
+    validate_benchmark_local_corpus_stage_compatibility_report(&report)?;
+    Ok(report)
 }
 
 fn load_corpus_stage_compatibility_matrix(

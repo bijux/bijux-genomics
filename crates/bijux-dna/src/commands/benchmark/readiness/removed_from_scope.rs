@@ -1,10 +1,8 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
-use serde_json::Value;
 
 use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_active_stage_tool_matrix_candidate_rows,
@@ -20,9 +18,6 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_REMOVED_FROM_SCOPE_PATH: &str =
     "artifacts/benchmark-smoke/readiness/removed-from-scope.tsv";
 const REMOVED_FROM_SCOPE_SCHEMA_VERSION: &str = "bijux.bench.readiness.removed_from_scope.v1";
-const TRACKED_FULL_BENCHMARK_REPORT_JSON_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
-const REPORT_SURFACE_SOURCE_TRACKED_JSON: &str = "tracked_report_json";
 const REPORT_SURFACE_SOURCE_EXPECTED_RESULT_CONTRACT: &str = "expected_result_contract";
 pub(crate) const SCOPE_EXIT_KIND_LIFECYCLE_NOT_ACTIVE: &str = "lifecycle_not_active";
 pub(crate) const SCOPE_EXIT_KIND_BENCHMARK_NOT_READY: &str = "benchmark_not_ready";
@@ -141,8 +136,9 @@ pub(crate) fn build_removed_from_scope_report(
         .iter()
         .map(binding_key_from_expected_row)
         .collect::<BTreeSet<_>>();
-    let (full_benchmark_report_check_source, full_report_keys) =
-        collect_full_benchmark_report_keys(repo_root, &expected_result_keys)?;
+    let full_benchmark_report_check_source =
+        REPORT_SURFACE_SOURCE_EXPECTED_RESULT_CONTRACT.to_string();
+    let full_report_keys = expected_result_keys.clone();
 
     let mut rows = Vec::new();
     for row in
@@ -318,47 +314,6 @@ fn ensure_removed_from_scope_contract(
         ));
     }
     Ok(())
-}
-
-fn collect_full_benchmark_report_keys(
-    repo_root: &Path,
-    expected_result_keys: &BTreeSet<BindingKey>,
-) -> Result<(String, BTreeSet<BindingKey>)> {
-    let report_path = repo_root.join(TRACKED_FULL_BENCHMARK_REPORT_JSON_PATH);
-    if !report_path.exists() {
-        return Ok((
-            REPORT_SURFACE_SOURCE_EXPECTED_RESULT_CONTRACT.to_string(),
-            expected_result_keys.clone(),
-        ));
-    }
-    let payload =
-        fs::read(&report_path).with_context(|| format!("read {}", report_path.display()))?;
-    let value: Value = serde_json::from_slice(&payload)
-        .with_context(|| format!("parse {}", report_path.display()))?;
-    let rows = value
-        .get("rows")
-        .and_then(Value::as_array)
-        .ok_or_else(|| anyhow!("full benchmark report JSON is missing `rows`"))?;
-    let mut keys = BTreeSet::new();
-    for row in rows {
-        let domain = required_str_field(row, "domain")?;
-        let stage_id = required_str_field(row, "stage_id")?;
-        let tool_id = required_str_field(row, "tool_id")?;
-        let corpus_id = required_str_field(row, "corpus_id")?;
-        let asset_profile_id = required_str_field(row, "asset_profile_id")?;
-        if corpus_id == "not_applicable" && asset_profile_id == "not_applicable" {
-            continue;
-        }
-        keys.insert(BindingKey { domain, stage_id, tool_id, corpus_id, asset_profile_id });
-    }
-    Ok((REPORT_SURFACE_SOURCE_TRACKED_JSON.to_string(), keys))
-}
-
-fn required_str_field(row: &Value, field: &str) -> Result<String> {
-    row.get(field)
-        .and_then(Value::as_str)
-        .map(ToOwned::to_owned)
-        .ok_or_else(|| anyhow!("full benchmark report JSON row is missing `{field}`"))
 }
 
 fn render_removed_from_scope_tsv(rows: &[RemovedFromScopeRow]) -> String {

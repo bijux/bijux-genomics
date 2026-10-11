@@ -48,7 +48,7 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 | contammix | `bam.contamination` | package/software locator captured; paper mapping still pending | https://bioconductor.org/packages/contamMix |
 | rxy | `bam.sex` | repository-owned implementation of the human R_y method; non-human thresholds require independent validation | https://doi.org/10.1016/j.jas.2013.07.004 |
 | yleaf | `bam.sex`, `bam.haplogroups` | governed paper locator present; runtime closure remains separate | https://github.com/genid/Yleaf |
-| angsd | `bam.sex`, `bam.kinship`, `bam.genotyping` | governed paper locator present; runtime closure remains separate | https://github.com/ANGSD/angsd |
+| angsd | `bam.sex`, `bam.kinship` | governed paper locator present; runtime closure remains separate | https://github.com/ANGSD/angsd |
 | king | `bam.kinship` | governed paper locator present; runtime closure remains separate | https://www.kingrelatedness.com/ |
 
 ## QC Expansion, Cleanup, and Open Citation Backlog

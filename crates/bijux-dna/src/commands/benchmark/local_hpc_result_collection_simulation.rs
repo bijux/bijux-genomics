@@ -3,7 +3,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_result_collection_simulation_report,
+    BenchmarkLocalHpcResultCollectionSimulationBehavior,
+    BenchmarkLocalHpcResultCollectionSimulationReport,
+    BenchmarkLocalHpcResultCollectionSimulationRow,
+    BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1,
+};
 use serde_json::Value;
 
 use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
@@ -22,7 +28,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_VERSION: &str =
-    "bijux.bench.local_hpc_result_collection_simulation.v1";
+    BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_RESULT_COLLECTION_SIMULATION_PATH: &str =
     "runs/bench/hpc-dry-run/result-collection-simulation.json";
 const DEFAULT_HPC_RESULT_COLLECTION_SIMULATION_TREE_NAME: &str =
@@ -59,59 +65,12 @@ impl LocalHpcResultCollectionStatus {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcResultCollectionSimulationRow {
-    pub(crate) record_id: String,
-    pub(crate) source_surface: String,
-    pub(crate) collection_status: String,
-    pub(crate) job_id_local: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) pipeline_id: Option<String>,
-    pub(crate) node_id: Option<String>,
-    pub(crate) evidence_path: String,
-    pub(crate) manifest_path: Option<String>,
-    pub(crate) declared_output_count: usize,
-    pub(crate) present_output_count: usize,
-    pub(crate) detail: String,
-    pub(crate) insufficient_data_reason: Option<String>,
-    pub(crate) unavailable_reason: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcResultCollectionSimulationBehavior {
-    pub(crate) complete_result_job_id: String,
-    pub(crate) failed_result_job_id: String,
-    pub(crate) missing_result_job_id: String,
-    pub(crate) insufficient_result_job_id: String,
-    pub(crate) unavailable_result_job_id: String,
-    pub(crate) complete_row_present: bool,
-    pub(crate) failed_row_present: bool,
-    pub(crate) missing_row_present: bool,
-    pub(crate) insufficient_row_present: bool,
-    pub(crate) unavailable_row_present: bool,
-    pub(crate) failed_distinct_from_missing: bool,
-    pub(crate) insufficient_distinct_from_unavailable: bool,
-    pub(crate) proven: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcResultCollectionSimulationReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) simulation_root: String,
-    pub(crate) execution_resolver_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) complete_row_count: usize,
-    pub(crate) failed_row_count: usize,
-    pub(crate) missing_row_count: usize,
-    pub(crate) insufficient_row_count: usize,
-    pub(crate) unavailable_row_count: usize,
-    pub(crate) behavior: LocalHpcResultCollectionSimulationBehavior,
-    pub(crate) rows: Vec<LocalHpcResultCollectionSimulationRow>,
-}
+pub(crate) type LocalHpcResultCollectionSimulationRow =
+    BenchmarkLocalHpcResultCollectionSimulationRow;
+pub(crate) type LocalHpcResultCollectionSimulationBehavior =
+    BenchmarkLocalHpcResultCollectionSimulationBehavior;
+pub(crate) type LocalHpcResultCollectionSimulationReport =
+    BenchmarkLocalHpcResultCollectionSimulationReport;
 
 pub(crate) fn run_render_hpc_result_collection_simulation(
     args: &parse::BenchLocalRenderHpcResultCollectionSimulationArgs,
@@ -310,7 +269,7 @@ fn build_hpc_result_collection_simulation(
     let unavailable_row_count = count_status(&rows, LocalHpcResultCollectionStatus::Unavailable);
     let behavior = build_behavior(&rows, &unavailable_result_job_id)?;
     let report = LocalHpcResultCollectionSimulationReport {
-        schema_version: LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_VERSION,
+        schema_version: LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, absolute_output_path),
         simulation_root: path_relative_to_repo(repo_root, &simulation_root),
         execution_resolver_path:
@@ -324,7 +283,7 @@ fn build_hpc_result_collection_simulation(
         behavior,
         rows,
     };
-    ensure_result_collection_simulation_contract(&report)?;
+    validate_benchmark_local_hpc_result_collection_simulation_report(&report)?;
     Ok(report)
 }
 
@@ -649,30 +608,4 @@ fn build_behavior(
             && behavior.insufficient_distinct_from_unavailable,
         ..behavior
     })
-}
-
-fn ensure_result_collection_simulation_contract(
-    report: &LocalHpcResultCollectionSimulationReport,
-) -> Result<()> {
-    if report.row_count != 5 || report.rows.len() != 5 {
-        return Err(anyhow!(
-            "HPC result-collection simulation must keep exactly five governed report-input rows"
-        ));
-    }
-    if report.complete_row_count != 1
-        || report.failed_row_count != 1
-        || report.missing_row_count != 1
-        || report.insufficient_row_count != 1
-        || report.unavailable_row_count != 1
-    {
-        return Err(anyhow!(
-            "HPC result-collection simulation must keep one row for each governed collection status"
-        ));
-    }
-    if !report.behavior.proven {
-        return Err(anyhow!(
-            "HPC result-collection simulation must prove complete, failed, missing, insufficient, and unavailable rows stay distinct"
-        ));
-    }
-    Ok(())
 }

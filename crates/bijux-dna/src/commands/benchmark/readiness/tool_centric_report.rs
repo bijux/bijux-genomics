@@ -3,7 +3,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{validate_tool_centric_report, TOOL_CENTRIC_REPORT_SCHEMA_V1};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    ToolCentricReport, ToolCentricStageRow, ToolCentricToolReport,
+};
 
 use super::bam_report_map::collect_bam_report_map_rows;
 use super::fastq_report_map::collect_fastq_report_stage_metadata;
@@ -13,53 +16,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_TOOL_CENTRIC_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/tool-centric-report.md";
-const TOOL_CENTRIC_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.tool_centric_report.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct ToolCentricStageRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) report_section_id: String,
-    pub(crate) report_section_title: String,
-    pub(crate) summary_table_id: String,
-    pub(crate) summary_table_title: String,
-    pub(crate) benchmark_status: String,
-    pub(crate) readiness_gap: String,
-    pub(crate) support_status: String,
-    pub(crate) adapter_status: String,
-    pub(crate) parser_status: String,
-    pub(crate) corpus_status: String,
-    pub(crate) asset_status: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct ToolCentricToolReport {
-    pub(crate) tool_id: String,
-    pub(crate) domains: Vec<String>,
-    pub(crate) stage_count: usize,
-    pub(crate) benchmark_ready_stage_count: usize,
-    pub(crate) blocked_stage_count: usize,
-    pub(crate) report_section_ids: Vec<String>,
-    pub(crate) readiness_gap_counts: BTreeMap<String, usize>,
-    pub(crate) blocked_stage_ids: Vec<String>,
-    pub(crate) stages: Vec<ToolCentricStageRow>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct ToolCentricReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) tool_count: usize,
-    pub(crate) unique_stage_count: usize,
-    pub(crate) row_count: usize,
-    pub(crate) benchmark_ready_row_count: usize,
-    pub(crate) blocked_row_count: usize,
-    pub(crate) blocked_tool_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) readiness_gap_counts: BTreeMap<String, usize>,
-    pub(crate) tools: Vec<ToolCentricToolReport>,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct StageReportPlacement {
@@ -112,14 +68,9 @@ pub(crate) fn render_tool_centric_report(
         }
     }
 
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_tool_centric_markdown(&tools, blocked_tool_count))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    Ok(ToolCentricReport {
-        schema_version: TOOL_CENTRIC_REPORT_SCHEMA_VERSION,
+    let rendered = render_tool_centric_markdown(&tools, blocked_tool_count);
+    let report = ToolCentricReport {
+        schema_version: TOOL_CENTRIC_REPORT_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         tool_count: tools.len(),
         unique_stage_count,
@@ -130,7 +81,14 @@ pub(crate) fn render_tool_centric_report(
         domain_counts,
         readiness_gap_counts,
         tools,
-    })
+    };
+    validate_tool_centric_report(&report).context("validate tool-centric report")?;
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(&output_path, rendered)
+        .with_context(|| format!("write {}", output_path.display()))?;
+    Ok(report)
 }
 
 fn collect_tool_centric_tools(repo_root: &Path) -> Result<Vec<ToolCentricToolReport>> {

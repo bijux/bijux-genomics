@@ -54,14 +54,14 @@ fn fixtures_validate_expected_vcf_filter_truth_reports_governed_bundle() {
         payload.get("expected_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/tests/fixtures/science/vcf-filter-truth/expected.json")
     );
-    assert_eq!(payload.get("validated_case_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("validated_case_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(
         payload.get("validated_stage_ids").and_then(serde_json::Value::as_array),
         Some(&vec![serde_json::json!("vcf.damage_filter"), serde_json::json!("vcf.filter"),])
     );
     assert_eq!(
         payload.get("validated_tool_ids").and_then(serde_json::Value::as_array),
-        Some(&vec![serde_json::json!("angsd"), serde_json::json!("bcftools")])
+        Some(&vec![serde_json::json!("bcftools")])
     );
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 }

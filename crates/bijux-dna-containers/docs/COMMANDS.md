@@ -38,6 +38,12 @@ library can manage when callers invoke the matching API.
   receipt without owning scheduler submission or observation.
 - `freeze_repository()`: runs bounded Git inspection and worktree commands to materialize an
   immutable commit-addressed checkout under site-governed roots.
+- `archive_frozen_repository()` and `verify_frozen_repository_archive()`: create and verify a
+  checksum-bound Git bundle, then clone it into an isolated proof checkout to establish exact
+  commit, sparse-index, cleanliness, and self-contained object identity before publication.
+- `retire_frozen_repository()` and `restore_frozen_repository_archive()`: remove only the exact
+  receipt-bound checkout after archive verification and atomically reconstruct the same read-only
+  sparse checkout when rollback is required.
 - `tracked_repository_files_under()`: runs bounded `git ls-files` inspection for one safe
   repository-relative prefix and returns sorted tracked file identities.
 - `import_run_evidence()`, `plan_final_run_evidence()`, and
@@ -93,6 +99,8 @@ library can manage when callers invoke the matching API.
   external admission; it never copies or publishes the restricted artifact.
 - `src/site_policy/repository_freeze.rs`: clean-source verification and commit-addressed Git
   worktree materialization under site-governed roots.
+- `src/site_policy/repository_archive.rs`: bounded Git-bundle creation, isolated restoration proof,
+  receipt-gated checkout retirement, and atomic rollback under the same governed root.
 - `src/site_policy/repository_tracking.rs`: prefix-scoped tracked-file discovery for governed
   repository publications.
 - `src/execution_contract/pipeline/admission.rs`: execution-site repository identity and clean-state

@@ -1,4 +1,6 @@
 {
+  "schema_version": "bijux.bench.publication_findings.v1",
+  "corpus_id": "corpus-01",
   "generated_at_utc": "2026-03-28T00:00:00Z",
   "findings": [
     {

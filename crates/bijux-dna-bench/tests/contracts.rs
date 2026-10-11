@@ -57,6 +57,8 @@ mod mod_contracts_public_api_rs;
 mod mod_contracts_report_consumer_handshake_rs;
 #[path = "contracts/benching/ssot_ids.rs"]
 mod mod_contracts_ssot_ids_rs;
+#[path = "contracts/stage_result.rs"]
+mod mod_contracts_stage_result_rs;
 #[path = "contracts/benching/suite_catalog.rs"]
 mod mod_contracts_suite_catalog_rs;
 #[path = "workspace_paths.rs"]

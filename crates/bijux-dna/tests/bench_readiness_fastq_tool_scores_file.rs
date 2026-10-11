@@ -67,6 +67,14 @@ fn bench_readiness_fastq_tool_scores_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
+            row.starts_with("fastq.remove_duplicates\tfastuniq\t")
+                && row.contains("\tblocked\t")
+                && row.contains("\tblocked_external_access\t")
+        }),
+        "TSV must retain the supported external FastUniq binding as access-blocked"
+    );
+    assert!(
+        rows.iter().any(|row| {
             row.contains(
                 "fastq.filter_reads\tfastp\tmulti_tool_ranking\toutput_contract\tfastq:corpus-01-mini:fastq.filter_reads:sample-set:fastp"
             ) && row.contains("\tscored\t0.333333\tretained_fraction\t1.000000\t")

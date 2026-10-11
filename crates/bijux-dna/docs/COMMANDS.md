@@ -1600,6 +1600,7 @@ Visible aliases are part of the operator surface:
   stage inventory directly. Multi-domain requests such as `--domain fastq,bam,vcf` write
   `artifacts/benchmark-smoke/readiness/all-domain-stage-list.json` and report separate `domain_counts` plus
   the unified `total_stage_count` so FASTQ, BAM, and VCF coverage cannot silently drift together.
+  Domain-local and aggregate records are published only after benchmark-model admission.
 - `bijux-dna bench local render-vcf-stage-catalog`
   `render-vcf-stage-catalog` writes `configs/bench/local/vcf-stage-catalog.toml`, deriving the
   governed VCF stage catalog from the domain downstream order, stage-spec metadata, and VCF IO
@@ -2075,7 +2076,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local validate-hpc-dependency-simulation`
   `validate-hpc-dependency-simulation` reloads
   `runs/bench/hpc-dry-run/slurm-dependency-simulation.json` and rebuilds the expected simulation
-  report from the current governed HPC job graph. The command fails closed if failed-job choice,
+  report from the current benchmark-model-admitted HPC job graph. The command fails closed if failed-job choice,
   descendant blocking, sibling continuation, benchmark continuation, or any per-job dependency
   status drifts from the governed dry-run dependency contract.
 - `bijux-dna bench local render-hpc-resume-simulation`
@@ -2110,8 +2111,9 @@ Visible aliases are part of the operator surface:
   selected-job, asset-staging, execution-resolver, and resource-hint surfaces, then selects the
   smallest dependency-free benchmark representative for each admitted `(domain, execution_mode)`
   pair. The manifest proves the first HPC candidate run stays limited to small jobs with known
-  assets, known execution mode, expected outputs, and explicit stop conditions while excluding VCF
-  rows until their execution modes are governed.
+  assets, known execution mode, expected outputs, and explicit stop conditions. Rows whose
+  execution modes remain unknown are excluded; a fully governed domain does not need to retain a
+  synthetic unknown-mode exclusion for this proof to pass.
 - `bijux-dna bench local validate-hpc-candidate-run-manifest`
   `validate-hpc-candidate-run-manifest` reloads
   `artifacts/benchmark-smoke/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json` and rebuilds the expected representative
@@ -2169,11 +2171,13 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench local check-manifest-completion`
   `check-manifest-completion` writes `artifacts/benchmark-smoke/readiness/local-ready/manifest-completion-report.json` and
   marks a stage complete only when its fake-run `stage-result.json` exists under the selected
-  `artifacts/benchmark-smoke/simulated-runs/stages/` tree.
+  `artifacts/benchmark-smoke/simulated-runs/stages/` tree. The command publishes only after the
+  benchmark-model manifest-completion contract admits the identity, counters, and stage rows.
 - `bijux-dna bench local check-output-completion`
   `check-output-completion` writes `artifacts/benchmark-smoke/readiness/local-ready/output-completion-report.json` and marks a
   stage complete only when every declared fake-run output exists under the selected
-  `artifacts/benchmark-smoke/simulated-runs/stages/` tree.
+  `artifacts/benchmark-smoke/simulated-runs/stages/` tree. The command publishes only after the
+  benchmark-model output-completion contract admits missing-artifact and counter closure.
 - `bijux-dna bench local collect-runtime-metrics`
   `collect-runtime-metrics` writes `artifacts/benchmark-smoke/readiness/local-ready/runtime-metrics.json` by reading validated
   fake-run `stage-result.json` manifests and extracting per-stage start, end, elapsed, exit, and

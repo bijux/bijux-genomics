@@ -2,23 +2,20 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::sync::OnceLock;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn render_path(label: &str) -> PathBuf {
-    tempfile::Builder::new()
-        .prefix(label)
-        .tempdir()
-        .expect("temporary score directory")
-        .keep()
-        .join("BAM_TOOL_SCORES.tsv")
+fn render_path(sandbox: &support::RepoSandbox, label: &str) -> PathBuf {
+    let output_dir = sandbox.path().join("artifacts/tests/bam-tool-scores").join(label);
+    fs::create_dir_all(&output_dir).expect("create score output directory");
+    output_dir.join("BAM_TOOL_SCORES.tsv")
 }
 
-fn run_cli(repo_root: &Path, home: &Path, args: &[&str]) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(repo_root)
+fn run_cli(sandbox: &support::RepoSandbox, home: &Path, args: &[&str]) -> std::process::Output {
+    sandbox
+        .bijux_dna_command()
         .env("HOME", home)
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -28,16 +25,24 @@ fn run_cli(repo_root: &Path, home: &Path, args: &[&str]) -> std::process::Output
         .expect("run cli")
 }
 
+fn shared_evidence_sandbox() -> &'static support::RepoSandbox {
+    static SANDBOX: OnceLock<support::RepoSandbox> = OnceLock::new();
+    SANDBOX.get_or_init(|| {
+        let sandbox = support::RepoSandbox::new("bam-tool-score-evidence-").expect("repo sandbox");
+        let home = tempfile::tempdir().expect("tempdir");
+        sandbox
+            .materialize_bam_score_evidence(home.path())
+            .expect("materialize BAM score evidence");
+        sandbox
+    })
+}
+
 #[test]
 fn bench_readiness_bam_tool_scores_writes_governed_tsv_columns() {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox = shared_evidence_sandbox();
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output =
-        run_cli(&repo_root, home.path(), &["bench", "readiness", "render-bam-tool-scores"]);
+    let output = run_cli(sandbox, home.path(), &["bench", "readiness", "render-bam-tool-scores"]);
 
     assert!(
         output.status.success(),
@@ -50,7 +55,8 @@ fn bench_readiness_bam_tool_scores_writes_governed_tsv_columns() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(rendered_path.trim(), "artifacts/benchmark-smoke/micro/bam/BAM_TOOL_SCORES.tsv");
 
-    let tsv = fs::read_to_string(repo_root.join(rendered_path.trim())).expect("read BAM score TSV");
+    let tsv =
+        fs::read_to_string(sandbox.path().join(rendered_path.trim())).expect("read BAM score TSV");
     let mut lines = tsv.lines();
     assert_eq!(
         lines.next(),
@@ -64,6 +70,14 @@ fn bench_readiness_bam_tool_scores_writes_governed_tsv_columns() {
         49,
         "TSV must retain one BAM score row per governed benchmark-ready binding"
     );
+    for binding in ["bam.damage\tngsbriggs\t", "bam.kinship\tangsd\t", "bam.sex\tangsd\t"] {
+        let row = rows
+            .iter()
+            .find(|row| row.starts_with(binding))
+            .unwrap_or_else(|| panic!("TSV must retain licensed binding {binding}"));
+        assert!(row.contains("\tblocked\t"));
+        assert!(row.contains("\tblocked_external_access\t"));
+    }
     assert!(
         rows.iter().any(|row| {
             row.contains(
@@ -78,7 +92,7 @@ fn bench_readiness_bam_tool_scores_writes_governed_tsv_columns() {
         rows.iter().any(|row| {
             row.contains("bam.contamination\tverifybamid2\tmulti_tool_ranking\tscientific_comparable_metrics")
                 && row.contains("\tscored\t0.980000\tone_minus_contamination_estimate\t1.000000\t")
-                && row.contains("\tunavailable\t")
+                && row.contains("\tnone\t\t")
                 && row.contains("\tnone\t")
         }),
         "TSV must retain the governed scored verifybamid2 contamination row even when micro execution is unavailable"
@@ -87,7 +101,7 @@ fn bench_readiness_bam_tool_scores_writes_governed_tsv_columns() {
         rows.iter().any(|row| {
             row.contains("bam.align\tbowtie2\tmulti_tool_ranking\tscientific_comparable_metrics")
                 && row.contains("\tinsufficient_evidence\t\t\t\t\t\t\t")
-                && row.contains("\tinsufficient_data\tsucceeded\t")
+                && row.contains("\tinsufficient_data\t\t")
         }),
         "TSV must retain the governed insufficient-evidence BAM align row"
     );
@@ -95,17 +109,14 @@ fn bench_readiness_bam_tool_scores_writes_governed_tsv_columns() {
 
 #[test]
 fn bench_readiness_bam_tool_scores_render_and_validate_custom_file() {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox = shared_evidence_sandbox();
     let home = tempfile::tempdir().expect("tempdir");
-    let output_path = render_path("bam-tool-scores-file-");
+    let output_path = render_path(sandbox, "render-validation");
     let output_arg = output_path.to_string_lossy().into_owned();
-    let reported_path = support::path_relative_to_repo(&repo_root, &output_path);
+    let reported_path = support::path_relative_to_repo(sandbox.path(), &output_path);
 
     let render_output = run_cli(
-        &repo_root,
+        sandbox,
         home.path(),
         &["bench", "readiness", "render-bam-tool-scores", "--output", &output_arg],
     );
@@ -119,7 +130,7 @@ fn bench_readiness_bam_tool_scores_render_and_validate_custom_file() {
     assert_eq!(String::from_utf8(render_output.stdout).expect("stdout utf8").trim(), reported_path);
 
     let validate_output = run_cli(
-        &repo_root,
+        sandbox,
         home.path(),
         &["bench", "readiness", "validate-bam-tool-scores", "--input", &output_arg],
     );
@@ -138,16 +149,13 @@ fn bench_readiness_bam_tool_scores_render_and_validate_custom_file() {
 
 #[test]
 fn bench_readiness_bam_tool_scores_validation_rejects_stale_file() {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox = shared_evidence_sandbox();
     let home = tempfile::tempdir().expect("tempdir");
-    let output_path = render_path("bam-tool-scores-stale-");
+    let output_path = render_path(sandbox, "stale-validation");
     let output_arg = output_path.to_string_lossy().into_owned();
 
     let render_output = run_cli(
-        &repo_root,
+        sandbox,
         home.path(),
         &["bench", "readiness", "render-bam-tool-scores", "--output", &output_arg],
     );
@@ -164,7 +172,7 @@ fn bench_readiness_bam_tool_scores_validation_rejects_stale_file() {
     fs::write(&output_path, stale).expect("write stale TSV");
 
     let validate_output = run_cli(
-        &repo_root,
+        sandbox,
         home.path(),
         &["bench", "readiness", "validate-bam-tool-scores", "--input", &output_arg],
     );

@@ -3,7 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_all_domain_active_stage_tool_matrix, ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainActiveStageToolMatrixReport, AllDomainActiveStageToolMatrixRow,
+};
 
 use super::all_domain_stage_tool_table::collect_all_domain_stage_tool_table_rows;
 use super::bam_command_adapter_coverage::{
@@ -21,8 +26,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv";
-const ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_active_stage_tool_matrix.v1";
 pub(crate) const STATUS_BENCHMARK_READY: &str = "benchmark_ready";
 pub(crate) const STATUS_NOT_BENCHMARK_READY: &str = "not_benchmark_ready";
 pub(crate) const STATUS_PLANNED: &str = "planned";
@@ -35,31 +38,6 @@ struct BindingKey {
     domain: String,
     stage_id: String,
     tool_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainActiveStageToolMatrixRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) adapter_id: String,
-    pub(crate) parser_id: String,
-    pub(crate) schema_id: String,
-    pub(crate) status: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainActiveStageToolMatrixReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) status_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<AllDomainActiveStageToolMatrixRow>,
 }
 
 pub(crate) fn run_render_all_domain_active_stage_tool_matrix(
@@ -87,12 +65,6 @@ pub(crate) fn render_all_domain_active_stage_tool_matrix(
     let output_path = repo_relative_path(repo_root, &output_path);
     let rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
 
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_all_domain_active_stage_tool_matrix_tsv(&rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
     let row_count = rows.len();
     let stage_count = rows
         .iter()
@@ -107,8 +79,9 @@ pub(crate) fn render_all_domain_active_stage_tool_matrix(
         *status_counts.entry(row.status.clone()).or_default() += 1;
     }
 
-    Ok(AllDomainActiveStageToolMatrixReport {
-        schema_version: ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_VERSION,
+    let rendered = render_all_domain_active_stage_tool_matrix_tsv(&rows);
+    let report = AllDomainActiveStageToolMatrixReport {
+        schema_version: ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         row_count,
         stage_count,
@@ -116,7 +89,15 @@ pub(crate) fn render_all_domain_active_stage_tool_matrix(
         domain_counts,
         status_counts,
         rows,
-    })
+    };
+    validate_all_domain_active_stage_tool_matrix(&report)
+        .context("validate all-domain active stage/tool matrix")?;
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(&output_path, rendered)
+        .with_context(|| format!("write {}", output_path.display()))?;
+    Ok(report)
 }
 
 pub(crate) fn collect_all_domain_active_stage_tool_matrix_rows(
@@ -323,27 +304,6 @@ fn ensure_all_domain_active_stage_tool_matrix_contract(
         return Err(anyhow!(
             "all-domain active stage-tool matrix drifted from the governed active-scope tool coverage"
         ));
-    }
-
-    let required_licensed_bindings = [
-        binding_key("bam", "bam.kinship", "angsd"),
-        binding_key("bam", "bam.sex", "angsd"),
-        binding_key("bam", "bam.damage", "ngsbriggs"),
-        binding_key("fastq", "fastq.remove_duplicates", "fastuniq"),
-        binding_key("vcf", "vcf.call_gl", "angsd"),
-        binding_key("vcf", "vcf.call_pseudohaploid", "angsd"),
-        binding_key("vcf", "vcf.imputation_metrics", "impute5"),
-        binding_key("vcf", "vcf.impute", "impute5"),
-    ];
-    for required in required_licensed_bindings {
-        if !row_keys.contains(&required) {
-            return Err(anyhow!(
-                "all-domain active stage-tool matrix is missing supported licensed binding `{}` / `{}` / `{}`",
-                required.domain,
-                required.stage_id,
-                required.tool_id
-            ));
-        }
     }
 
     for row in rows {

@@ -1,0 +1,248 @@
+{
+  "$defs": {
+    "CorpusCentricCorpusReport": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_ready_tool_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "blocked_stage_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "blocked_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "corpus_family_id": {
+          "type": "string"
+        },
+        "domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "fixture_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stage_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stages": {
+          "items": {
+            "$ref": "#/$defs/CorpusCentricStageRow"
+          },
+          "type": "array"
+        },
+        "tool_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "corpus_family_id",
+        "domains",
+        "fixture_ids",
+        "stage_count",
+        "tool_row_count",
+        "benchmark_ready_tool_row_count",
+        "blocked_stage_count",
+        "blocked_stage_ids",
+        "stages"
+      ],
+      "type": "object"
+    },
+    "CorpusCentricStageRow": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_ready_tool_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "blocked_tool_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "blocked_tool_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "canonical_stage_rank": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "comparison_contract_status": {
+          "$ref": "#/$defs/ReadinessComparisonContractStatus"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "fixture_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "report_section_id": {
+          "type": "string"
+        },
+        "report_section_title": {
+          "type": "string"
+        },
+        "shared_metric_field_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "shared_metric_fields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "summary_table_id": {
+          "type": "string"
+        },
+        "summary_table_title": {
+          "type": "string"
+        },
+        "tool_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "tool_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "canonical_stage_rank",
+        "fixture_ids",
+        "report_section_id",
+        "report_section_title",
+        "summary_table_id",
+        "summary_table_title",
+        "comparison_contract_status",
+        "shared_metric_field_count",
+        "shared_metric_fields",
+        "tool_count",
+        "benchmark_ready_tool_count",
+        "blocked_tool_count",
+        "tool_ids",
+        "blocked_tool_ids"
+      ],
+      "type": "object"
+    },
+    "ReadinessComparisonContractStatus": {
+      "enum": [
+        "declared",
+        "not_declared",
+        "not_applicable"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_ready_tool_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "blocked_corpus_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "blocked_tool_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "corpora": {
+      "items": {
+        "$ref": "#/$defs/CorpusCentricCorpusReport"
+      },
+      "type": "array"
+    },
+    "corpus_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "corpus_stage_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.corpus_centric_report.v1",
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "tool_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "corpus_count",
+    "stage_count",
+    "tool_row_count",
+    "benchmark_ready_tool_row_count",
+    "blocked_tool_row_count",
+    "blocked_corpus_count",
+    "domain_counts",
+    "corpus_stage_counts",
+    "corpora"
+  ],
+  "title": "CorpusCentricReport",
+  "type": "object"
+}

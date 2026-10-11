@@ -1,7 +1,11 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_essential_pipeline_readiness, BenchmarkEssentialPipelineReadinessGoalCheck,
+    BenchmarkEssentialPipelineReadinessReport, BENCHMARK_ESSENTIAL_PIPELINE_READINESS_OUTPUT_PATH,
+    BENCHMARK_ESSENTIAL_PIPELINE_READINESS_SCHEMA_V1,
+};
 
 use super::essential_pipeline_corpus_assets::{
     render_essential_pipeline_corpus_assets, DEFAULT_ESSENTIAL_PIPELINE_CORPUS_ASSETS_PATH,
@@ -27,37 +31,10 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINES_READY_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/pipelines/ESSENTIAL_PIPELINES_READY.json";
-const ESSENTIAL_PIPELINES_READY_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.essential_pipelines_ready.v1";
+    BENCHMARK_ESSENTIAL_PIPELINE_READINESS_OUTPUT_PATH;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct EssentialPipelinesReadyGoalCheck {
-    pub(crate) goal_id: u32,
-    pub(crate) surface: String,
-    pub(crate) output_path: Option<String>,
-    pub(crate) ok: bool,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct EssentialPipelinesReadyReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) checked_goal_count: usize,
-    pub(crate) passed_goal_count: usize,
-    pub(crate) failed_goal_count: usize,
-    pub(crate) failing_goal_ids: Vec<u32>,
-    pub(crate) pipeline_count: usize,
-    pub(crate) dag_node_count: usize,
-    pub(crate) corpus_asset_row_count: usize,
-    pub(crate) rendered_command_row_count: usize,
-    pub(crate) fake_run_node_count: usize,
-    pub(crate) fake_run_output_count: usize,
-    pub(crate) report_map_row_count: usize,
-    pub(crate) ok: bool,
-    pub(crate) checks: Vec<EssentialPipelinesReadyGoalCheck>,
-}
+pub(crate) type EssentialPipelinesReadyGoalCheck = BenchmarkEssentialPipelineReadinessGoalCheck;
+pub(crate) type EssentialPipelinesReadyReport = BenchmarkEssentialPipelineReadinessReport;
 
 struct PipelineGoalExpectation {
     goal_id: u32,
@@ -204,6 +181,7 @@ pub(crate) fn render_essential_pipelines_ready(
     let mut dag_node_count = 0usize;
     let mut corpus_asset_row_count = 0usize;
     let mut rendered_command_row_count = 0usize;
+    let mut rendered_command_tool_count = 0usize;
     let mut fake_run_node_count = 0usize;
     let mut fake_run_output_count = 0usize;
     let mut report_map_row_count = 0usize;
@@ -311,6 +289,12 @@ pub(crate) fn render_essential_pipelines_ready(
                 bail!("essential pipeline command rendering drifted");
             }
             rendered_command_row_count = report.row_count;
+            rendered_command_tool_count = report
+                .rows
+                .iter()
+                .map(|row| row.tool_id.as_str())
+                .collect::<std::collections::BTreeSet<_>>()
+                .len();
             Ok("validated executable command rendering for all 93 essential pipeline nodes"
                 .to_string())
         },
@@ -400,7 +384,7 @@ pub(crate) fn render_essential_pipelines_ready(
             )?;
             if report.pipeline_count != 10
                 || report.stage_count != 45
-                || report.tool_count != 25
+                || report.tool_count != rendered_command_tool_count
                 || report.row_count != 267
                 || report.report_section_count != 22
                 || report.failure_column_count != 1
@@ -413,30 +397,13 @@ pub(crate) fn render_essential_pipelines_ready(
         },
     );
 
-    if dag_node_count != 93 {
-        bail!("essential pipeline readiness gate expected 93 DAG nodes, found {dag_node_count}");
-    }
-    if corpus_asset_row_count != dag_node_count
-        || rendered_command_row_count != dag_node_count
-        || fake_run_node_count != dag_node_count
-    {
-        bail!(
-            "essential pipeline readiness gate node counts drifted: dag={dag_node_count}, corpus_assets={corpus_asset_row_count}, commands={rendered_command_row_count}, fake_runs={fake_run_node_count}"
-        );
-    }
-    if fake_run_output_count != report_map_row_count {
-        bail!(
-            "essential pipeline readiness gate output counts drifted: fake_run_outputs={fake_run_output_count}, report_map_rows={report_map_row_count}"
-        );
-    }
-
     let passed_goal_count = checks.iter().filter(|check| check.ok).count();
     let checked_goal_count = checks.len();
     let failed_goal_count = checked_goal_count.saturating_sub(passed_goal_count);
     let failing_goal_ids =
         checks.iter().filter(|check| !check.ok).map(|check| check.goal_id).collect();
     let report = EssentialPipelinesReadyReport {
-        schema_version: ESSENTIAL_PIPELINES_READY_SCHEMA_VERSION,
+        schema_version: BENCHMARK_ESSENTIAL_PIPELINE_READINESS_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         checked_goal_count,
         passed_goal_count,
@@ -452,6 +419,8 @@ pub(crate) fn render_essential_pipelines_ready(
         ok: failed_goal_count == 0,
         checks,
     };
+    validate_benchmark_essential_pipeline_readiness(&report)
+        .context("validate essential-pipeline readiness report")?;
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)
         .with_context(|| format!("write {}", absolute_output_path.display()))?;
     Ok(report)

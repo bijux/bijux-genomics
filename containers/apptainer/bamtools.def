@@ -52,7 +52,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     bamtools --version | grep -Fx 'bamtools 2.5.2'
     bamtools --help >/dev/null 2>&1
     rm -rf /opt/bamtools.tar.gz /opt/bamtools-2.5.2 /opt/bamtools-build
-    apt-get purge -y --auto-remove cmake curl g++ make zlib1g-dev
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

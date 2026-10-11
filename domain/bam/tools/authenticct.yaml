@@ -21,7 +21,7 @@ outputs:
     cardinality: "One"
 execution_contract:
   required_inputs:
-    - "bam"
+    - "sam"
   expected_outputs:
     - "authenticity_report"
     - "summary"
@@ -34,7 +34,7 @@ scope: "pre_hpc_pre_vcf"
 stage_contracts:
   bam.authenticity:
     required_inputs:
-      - "bam"
+      - "sam"
     expected_artifacts:
       - "authenticity_report"
       - "summary"
@@ -50,9 +50,9 @@ comparability:
   non_comparable_with: []
 comparability_notes: "Comparable only within same stage contract and input constraints."
 capabilities:
-  - bam_input
+  - sam_input
 io_contract:
   required_inputs:
-    - bam
+    - sam
 
 notes: "Domain SSOT tool contract entry."

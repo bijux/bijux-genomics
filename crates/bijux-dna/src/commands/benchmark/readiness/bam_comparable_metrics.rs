@@ -2,55 +2,24 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_bam_comparable_metrics_report, BAM_COMPARABLE_METRICS_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BamComparableMetricsReport, BamComparableMetricsRow,
+    ComparableMetricContractStatus as BamComparableMetricContractStatus,
+};
 use bijux_dna_domain_bam::{
     comparable_benchmark_stage_ids, comparable_tool_ids_for_stage,
     stage_comparable_metric_fields_for_stage, BamStage,
 };
 use bijux_dna_planner_bam::stage_api::default_tool_for_stage;
-use serde::Serialize;
 
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_COMPARABLE_METRICS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/bam/bam-comparable-metrics.tsv";
-const BAM_COMPARABLE_METRICS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.bam_comparable_metrics.v1";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum BamComparableMetricContractStatus {
-    Declared,
-    MissingSharedMetrics,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct BamComparableMetricsRow {
-    pub(crate) stage_id: String,
-    pub(crate) comparison_contract_status: BamComparableMetricContractStatus,
-    pub(crate) tool_count: usize,
-    pub(crate) tool_ids: Vec<String>,
-    pub(crate) default_tool_id: String,
-    pub(crate) corpus_status: String,
-    pub(crate) shared_metric_field_count: usize,
-    pub(crate) shared_metric_fields: Vec<String>,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BamComparableMetricsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) comparable_stage_count: usize,
-    pub(crate) multi_tool_stage_count: usize,
-    pub(crate) comparable_tool_row_count: usize,
-    pub(crate) row_count: usize,
-    pub(crate) declared_stage_count: usize,
-    pub(crate) missing_shared_metric_stage_count: usize,
-    pub(crate) shared_metric_field_count: usize,
-    pub(crate) rows: Vec<BamComparableMetricsRow>,
-}
-
 pub(crate) fn run_render_bam_comparable_metrics(
     args: &parse::BenchReadinessRenderBamComparableMetricsArgs,
 ) -> Result<()> {
@@ -75,14 +44,9 @@ pub(crate) fn render_bam_comparable_metrics(
     let corpus_status_by_stage = super::tool_serving_map::load_corpus_status_by_stage(repo_root)?;
     let summary = collect_bam_comparable_metric_rows(&corpus_status_by_stage)?;
 
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_bam_comparable_metrics_tsv(&summary.rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    Ok(BamComparableMetricsReport {
-        schema_version: BAM_COMPARABLE_METRICS_SCHEMA_VERSION,
+    let rendered = render_bam_comparable_metrics_tsv(&summary.rows);
+    let report = BamComparableMetricsReport {
+        schema_version: BAM_COMPARABLE_METRICS_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         comparable_stage_count: summary.comparable_stage_count,
         multi_tool_stage_count: summary.rows.len(),
@@ -96,7 +60,15 @@ pub(crate) fn render_bam_comparable_metrics(
             .map(|row| row.shared_metric_field_count)
             .sum(),
         rows: summary.rows,
-    })
+    };
+    validate_bam_comparable_metrics_report(&report)
+        .context("validate BAM comparable-metrics report")?;
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(&output_path, rendered)
+        .with_context(|| format!("write {}", output_path.display()))?;
+    Ok(report)
 }
 
 #[derive(Debug)]
@@ -253,7 +225,7 @@ mod tests {
 
     use super::{
         comparison_contract_status_label, render_bam_comparable_metrics,
-        BAM_COMPARABLE_METRICS_SCHEMA_VERSION, DEFAULT_BAM_COMPARABLE_METRICS_PATH,
+        BAM_COMPARABLE_METRICS_SCHEMA_V1, DEFAULT_BAM_COMPARABLE_METRICS_PATH,
     };
 
     fn repo_root() -> PathBuf {
@@ -269,7 +241,7 @@ mod tests {
         )
         .expect("render BAM comparable metrics");
 
-        assert_eq!(report.schema_version, BAM_COMPARABLE_METRICS_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, BAM_COMPARABLE_METRICS_SCHEMA_V1);
         assert_eq!(report.comparable_stage_count, 15);
         assert_eq!(report.multi_tool_stage_count, 15);
         assert_eq!(report.comparable_tool_row_count, 40);

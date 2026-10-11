@@ -185,7 +185,7 @@ fn bench_readiness_vcf_call_gl_ready_reports_unadmitted_angsd_evidence() {
         .iter()
         .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd"))
         .expect("ANGSD row");
-    assert_eq!(angsd.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
+    assert_eq!(angsd.get("tool_status").and_then(serde_json::Value::as_str), Some("supported"));
     assert_eq!(angsd.get("command_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(angsd.get("output_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(angsd.get("parser_ready").and_then(serde_json::Value::as_bool), Some(true));

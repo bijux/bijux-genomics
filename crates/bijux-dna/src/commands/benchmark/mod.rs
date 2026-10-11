@@ -22,7 +22,6 @@
     clippy::unnecessary_wraps
 )]
 pub(crate) mod active_scope;
-pub(crate) mod alias_inventory;
 pub(crate) mod benchmark_result_ids;
 pub(crate) mod config;
 pub(crate) mod corpus_fastq;
@@ -129,6 +128,8 @@ pub(crate) mod repo_checks;
 pub(crate) mod repo_locking;
 pub(crate) mod schema_paths;
 pub(crate) mod schema_validation;
+#[cfg(test)]
+pub(crate) mod scratch_repository;
 pub(crate) mod stage_catalog;
 pub(crate) mod suite;
 pub(crate) mod taxonomy_database;

@@ -1,0 +1,174 @@
+{
+  "$defs": {
+    "BenchmarkCorpusSampleRun": {
+      "additionalProperties": true,
+      "properties": {
+        "command": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "exit_code": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "layout": {
+          "type": "string"
+        },
+        "r1": {
+          "type": "string"
+        },
+        "r2": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "report_json": {
+          "type": "string"
+        },
+        "sample_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sample_id",
+        "r1",
+        "layout",
+        "status",
+        "exit_code",
+        "command",
+        "report_json"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": true,
+  "properties": {
+    "config_path": {
+      "type": "string"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "corpus_root": {
+      "type": "string"
+    },
+    "dry_run": {
+      "type": "boolean"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "jobs": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "out_root": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "publication_config_path": {
+      "type": "string"
+    },
+    "repo_root": {
+      "type": "string"
+    },
+    "runs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkCorpusSampleRun"
+      },
+      "type": "array"
+    },
+    "sample_jobs": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "sample_limit": {
+      "format": "uint",
+      "minimum": 0,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "sample_scope": {
+      "type": "string"
+    },
+    "samples_failed": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "samples_total": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "scenario_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.fastq.corpus_benchmark_run.v1",
+      "type": "string"
+    },
+    "stage_args": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "threads": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "tool_kind": {
+      "type": "string"
+    },
+    "tools": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "generated_at_utc",
+    "corpus_id",
+    "stage_id",
+    "scenario_id",
+    "sample_scope",
+    "tool_kind",
+    "platform",
+    "tools",
+    "threads",
+    "jobs",
+    "sample_jobs",
+    "dry_run",
+    "config_path",
+    "publication_config_path",
+    "repo_root",
+    "corpus_root",
+    "out_root",
+    "stage_args",
+    "samples_total",
+    "samples_failed",
+    "runs"
+  ],
+  "title": "BenchmarkCorpusRunManifest",
+  "type": "object"
+}

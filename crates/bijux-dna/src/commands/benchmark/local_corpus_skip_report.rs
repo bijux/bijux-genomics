@@ -1,7 +1,11 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_corpus_skip_report, BenchmarkLocalAssetBackedStage,
+    BenchmarkLocalCorpusFixture, BenchmarkLocalCorpusSkip, BenchmarkLocalCorpusSkipReport,
+    BenchmarkLocalPlannerOnlyStage, BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1,
+};
 
 use crate::commands::benchmark::local_corpus_stage_compatibility::{
     validate_corpus_stage_compatibility_path, LocalCorpusStageCompatibilityValidationReport,
@@ -11,55 +15,11 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORPUS_SKIP_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/corpus-skip-report.json";
-const LOCAL_CORPUS_SKIP_REPORT_SCHEMA_VERSION: &str = "bijux.bench.local_corpus_skip_report.v1";
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalCorpusSkipReportFixture {
-    pub(crate) corpus_id: String,
-    pub(crate) corpus_family_id: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalCorpusSkipEntry {
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) corpus_id: String,
-    pub(crate) corpus_family_id: String,
-    pub(crate) reason: String,
-    pub(crate) replacement_corpus_id: String,
-    pub(crate) replacement_corpus_family_id: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalPlannerOnlyStageReport {
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalAssetBackedStageReport {
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) benchmark_scope_id: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct LocalCorpusSkipReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) matrix_path: String,
-    pub(crate) output_path: String,
-    pub(crate) fixture_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) skip_count: usize,
-    pub(crate) asset_backed_stage_count: usize,
-    pub(crate) planner_only_stage_count: usize,
-    pub(crate) fixtures: Vec<LocalCorpusSkipReportFixture>,
-    pub(crate) skips: Vec<LocalCorpusSkipEntry>,
-    pub(crate) asset_backed_stages: Vec<LocalAssetBackedStageReport>,
-    pub(crate) planner_only_stages: Vec<LocalPlannerOnlyStageReport>,
-}
+pub(crate) type LocalCorpusSkipReport = BenchmarkLocalCorpusSkipReport;
+type LocalCorpusSkipReportFixture = BenchmarkLocalCorpusFixture;
+type LocalCorpusSkipEntry = BenchmarkLocalCorpusSkip;
+type LocalPlannerOnlyStageReport = BenchmarkLocalPlannerOnlyStage;
+type LocalAssetBackedStageReport = BenchmarkLocalAssetBackedStage;
 
 pub(crate) fn run_render_corpus_skip_report(
     args: &parse::BenchLocalRenderCorpusSkipReportArgs,
@@ -94,6 +54,7 @@ pub(crate) fn render_corpus_skip_report_path(
 ) -> Result<LocalCorpusSkipReport> {
     let compatibility = validate_corpus_stage_compatibility_path(repo_root, matrix_path)?;
     let report = build_skip_report(repo_root, output_path, &compatibility);
+    validate_benchmark_local_corpus_skip_report(&report)?;
     if let Some(parent) = output_path.parent() {
         std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
@@ -165,7 +126,7 @@ fn build_skip_report(
     }
 
     LocalCorpusSkipReport {
-        schema_version: LOCAL_CORPUS_SKIP_REPORT_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1.to_string(),
         matrix_path: compatibility.matrix_path.clone(),
         output_path: path_relative_to_repo(repo_root, output_path),
         fixture_count: fixtures.len(),

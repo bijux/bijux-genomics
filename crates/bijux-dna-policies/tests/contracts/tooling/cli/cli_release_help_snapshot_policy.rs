@@ -4,6 +4,10 @@ mod support;
 
 use std::process::Command;
 
+fn normalize_help(input: &str) -> String {
+    input.lines().map(str::trim_end).collect::<Vec<_>>().join("\n")
+}
+
 fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
     std::env::var_os("CARGO_TARGET_DIR")
         .map_or_else(|| root.join("artifacts/target"), std::path::PathBuf::from)
@@ -49,8 +53,8 @@ fn policy__contracts__cli_release_help_snapshot_policy__release_help_matches_sna
     let actual = String::from_utf8(output.stdout).expect("debug help must be valid UTF-8");
 
     assert_eq!(
-        actual.trim(),
-        expected.trim(),
+        normalize_help(&actual),
+        normalize_help(&expected),
         "docs/cli/release_help_snapshot.txt is stale. Regenerate with: cargo run -q -p bijux-dna -- --help > docs/cli/release_help_snapshot.txt"
     );
 }

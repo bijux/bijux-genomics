@@ -131,6 +131,7 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-bench/src/workflow/bam_mapping_summary/parameters.rs",
         "crates/bijux-dna-bench/src/workflow/reference_materialization.rs",
         "crates/bijux-dna-bench/src/workflow/run_index.rs",
+        "crates/bijux-dna-containers/src/site_policy/repository_archive.rs",
         "crates/bijux-dna-containers/src/site_policy/repository_freeze.rs",
         "crates/bijux-dna-runner/src/step_runner/external_artifact.rs",
     ]);
@@ -212,14 +213,6 @@ fn policy__boundaries__workspace__engine_has_no_domain_keywords() {
 fn policy__boundaries__workspace__api_has_no_planning_policy() {
     let root = workspace_root();
     let api_root = root.join("crates").join("bijux-dna-api").join("src");
-    let denylist = [
-        "smart_pipeline",
-        "stage_order",
-        "stage ordering",
-        "normalize_stage",
-        "normalize_tool",
-        "tool_list",
-    ];
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&api_root)
         .into_iter()
@@ -227,8 +220,7 @@ fn policy__boundaries__workspace__api_has_no_planning_policy() {
         .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
     {
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
-        let lower = content.to_lowercase();
-        if denylist.iter().any(|token| lower.contains(token)) {
+        if defines_api_planning_policy(&content) {
             let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
             offenders.push(rel.display().to_string());
         }
@@ -237,6 +229,47 @@ fn policy__boundaries__workspace__api_has_no_planning_policy() {
         offenders.is_empty(),
         "api must not implement planning policy: {offenders:?}"
     );
+}
+
+fn defines_api_planning_policy(source: &str) -> bool {
+    const DECLARATION_KINDS: &[&str] =
+        &["const", "enum", "fn", "mod", "static", "struct", "trait", "type"];
+    const PLANNING_IDENTIFIERS: &[&str] = &[
+        "normalize_stage",
+        "normalize_tool",
+        "smart_pipeline",
+        "smartpipeline",
+        "stage_order",
+        "stageorder",
+        "tool_list",
+    ];
+
+    let normalized = source.to_ascii_lowercase();
+    let tokens = normalized
+        .split(|character: char| !(character.is_ascii_alphanumeric() || character == '_'))
+        .filter(|token| !token.is_empty())
+        .collect::<Vec<_>>();
+    tokens.windows(2).any(|pair| {
+        DECLARATION_KINDS.contains(&pair[0])
+            && PLANNING_IDENTIFIERS
+                .iter()
+                .any(|identifier| {
+                    pair[1].strip_prefix(identifier).is_some_and(|suffix| {
+                        suffix.is_empty() || suffix.starts_with('_')
+                    })
+                })
+    })
+}
+
+#[test]
+fn policy__boundaries__workspace__api_planning_scan_distinguishes_reexports_from_definitions() {
+    assert!(!defines_api_planning_policy(
+        "pub use bijux_dna_bench::{choose_canonical_tool_id, normalize_tool_id};"
+    ));
+    assert!(defines_api_planning_policy(
+        "pub fn normalize_tool_id(tool_id: &str) -> String { tool_id.to_string() }"
+    ));
+    assert!(defines_api_planning_policy("pub struct SmartPipeline;"));
 }
 
 #[test]

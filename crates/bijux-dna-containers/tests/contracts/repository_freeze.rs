@@ -4,10 +4,13 @@ use std::process::Command;
 
 use anyhow::{ensure, Context, Result};
 use bijux_dna_containers::api::{
-    container_governance_schema, freeze_repository, load_container_governance,
-    validate_container_governance, validate_container_governance_host, verify_frozen_repository,
-    write_container_governance_schema, ContainerGovernance, ContainerPathPolicy,
-    ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,
+    archive_frozen_repository, container_governance_schema, freeze_repository,
+    load_container_governance, repository_freeze_archive_receipt_schema,
+    restore_frozen_repository_archive, retire_frozen_repository, validate_container_governance,
+    validate_container_governance_host, verify_frozen_repository, verify_frozen_repository_archive,
+    write_container_governance_schema, write_repository_freeze_archive_receipt_schema,
+    ContainerGovernance, ContainerPathPolicy, ContainerPreflightPolicy, ContainerRuntimePolicy,
+    ContainerSitePolicy, ContainerSlurmPolicy, RepositoryFreezeArchiveRequest,
     RepositoryFreezeRequest, RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
 };
 
@@ -23,6 +26,23 @@ fn tracked_governance_schema_matches_rust_authority() -> Result<()> {
     let output = generated.path().join("config-governance.schema.json");
     write_container_governance_schema(&output)?;
     assert_eq!(std::fs::read_to_string(output)?, tracked);
+    Ok(())
+}
+
+#[test]
+fn tracked_repository_freeze_archive_schema_matches_rust_authority() -> Result<()> {
+    let repository = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let tracked = std::fs::read_to_string(
+        repository.join("containers/contracts/repository-freeze-archive-receipt.schema.json"),
+    )?;
+    let tracked_value: serde_json::Value = serde_json::from_str(&tracked)?;
+    let generated_value = serde_json::to_value(repository_freeze_archive_receipt_schema())?;
+    assert_eq!(tracked_value, generated_value);
+    let generated = tempfile::tempdir()?;
+    let output = generated.path().join("repository-freeze-archive-receipt.schema.json");
+    write_repository_freeze_archive_receipt_schema(&output)?;
+    let written: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(output)?)?;
+    assert_eq!(written, tracked_value);
     Ok(())
 }
 
@@ -221,6 +241,81 @@ fn repository_freeze_rejects_unsafe_sources_and_dirty_authority() -> Result<()> 
     .err()
     .context("dirty source repository was accepted")?;
     assert!(format!("{error:#}").contains("must be clean"));
+    Ok(())
+}
+
+#[test]
+fn repository_freeze_archive_proves_retirement_and_exact_restoration() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let (governance, commit) = fixture(root.path())?;
+    let snapshot = freeze_repository(&request(
+        &governance,
+        &commit,
+        RepositoryFreezeScope::Sources,
+        vec![PathBuf::from("other")],
+    ))?;
+    let archive_request = RepositoryFreezeArchiveRequest {
+        governance,
+        hostname: "worker-7".to_string(),
+        snapshot: snapshot.clone(),
+        commit: commit.clone(),
+    };
+
+    let receipt = archive_frozen_repository(&archive_request)?;
+    assert!(receipt.restoration_verified);
+    assert_eq!(receipt.sparse_checkout_paths, [PathBuf::from("other")]);
+    assert!(receipt.bundle_path.is_file());
+    verify_frozen_repository_archive(&archive_request, &receipt)?;
+
+    retire_frozen_repository(&archive_request, &receipt)?;
+    assert!(!snapshot.exists());
+    retire_frozen_repository(&archive_request, &receipt)?;
+    let restored = restore_frozen_repository_archive(&archive_request, &receipt)?;
+    assert_eq!(restored, snapshot);
+    verify_frozen_repository(&restored, &commit)?;
+    assert_eq!(std::fs::read_to_string(restored.join("other/source.txt"))?, "complete tree\n");
+    assert!(!restored.join("containers/contracts/governance.yml").exists());
+    Ok(())
+}
+
+#[test]
+fn repository_freeze_archive_detaches_historical_alternate_objects() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let (governance, commit) = fixture(root.path())?;
+    let snapshot = governance.paths.frozen_repositories.join("historical/alternate-backed");
+    std::fs::create_dir_all(snapshot.parent().context("historical snapshot parent")?)?;
+    let output = Command::new("git")
+        .args(["clone", "--shared", "--no-checkout", "--quiet"])
+        .arg(&governance.paths.active_repository)
+        .arg(&snapshot)
+        .output()?;
+    ensure!(output.status.success(), "shared clone failed");
+    git(&snapshot, &["sparse-checkout", "set", "--cone", "other"])?;
+    git(&snapshot, &["checkout", "--detach", &commit])?;
+    git(&snapshot, &["remote", "remove", "origin"])?;
+    assert!(snapshot.join(".git/objects/info/alternates").is_file());
+    for entry in walkdir::WalkDir::new(&snapshot).contents_first(true).follow_links(false) {
+        let entry = entry?;
+        if entry.file_type().is_symlink() {
+            continue;
+        }
+        let metadata = entry.metadata()?;
+        let mut permissions = metadata.permissions();
+        permissions.set_mode(permissions.mode() & !0o222);
+        std::fs::set_permissions(entry.path(), permissions)?;
+    }
+
+    let request = RepositoryFreezeArchiveRequest {
+        governance,
+        hostname: "worker-7".to_string(),
+        snapshot: snapshot.clone(),
+        commit: commit.clone(),
+    };
+    let receipt = archive_frozen_repository(&request)?;
+    retire_frozen_repository(&request, &receipt)?;
+    let restored = restore_frozen_repository_archive(&request, &receipt)?;
+    assert!(!restored.join(".git/objects/info/alternates").exists());
+    verify_frozen_repository(&restored, &commit)?;
     Ok(())
 }
 

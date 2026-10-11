@@ -5,15 +5,14 @@ use super::{anyhow, BufRead, Context, ExecutionStep, NetworkPolicy, Result, Stag
 
 mod governance;
 mod metrics;
-mod normalized_metrics_contract;
 
 pub(super) use self::metrics::*;
 #[cfg(test)]
-pub(super) use self::normalized_metrics_contract::{
+pub(super) use bijux_dna_bench_model::normalized_result::fastq_envelope::{
     fastq_normalized_metrics_contract_for_stage, fastq_normalized_metrics_stage_contracts,
     required_metrics_keys,
 };
-pub(super) use self::normalized_metrics_contract::{
+pub(super) use bijux_dna_bench_model::normalized_result::fastq_envelope::{
     render_fastq_normalized_metrics_schema, validate_fastq_normalized_metrics,
 };
 

@@ -233,7 +233,7 @@ fn collect_inventory_readiness_by_stage(
         let inventory = load_local_stage_inventory(repo_root, domain)?;
         for stage in inventory.stages {
             rows.insert(
-                (inventory.domain.to_string(), stage.stage_id),
+                (inventory.domain.clone(), stage.stage_id),
                 stage.readiness_kind.as_str().to_string(),
             );
         }

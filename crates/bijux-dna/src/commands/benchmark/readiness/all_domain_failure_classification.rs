@@ -14,6 +14,7 @@ use super::all_domain_stage_tool_table::{
     render_all_domain_stage_tool_table, AllDomainStageToolTableReport,
     DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH,
 };
+use super::catalog::load_external_artifact_tool_contracts;
 use super::vcf_adapter_missing_input_audit::{
     render_vcf_adapter_missing_input_audit, VcfAdapterMissingInputTestsReport,
     DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH,
@@ -38,8 +39,9 @@ const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION: &str =
 const INSUFFICIENT_DATA_FIXTURE_PATH: &str =
     "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/insufficient_data/expected.normalized.json";
 
-pub(crate) const REQUIRED_FAILURE_CLASSES: [&str; 7] = [
+pub(crate) const REQUIRED_FAILURE_CLASSES: [&str; 8] = [
     "missing_input",
+    "blocked_external_access",
     "tool_not_found",
     "command_failed",
     "missing_output",
@@ -184,6 +186,7 @@ fn collect_all_domain_failure_classification_rows(
 
     let mut rows = vec![
         classify_missing_input(&missing_input_report)?,
+        classify_blocked_external_access(repo_root)?,
         classify_tool_not_found(repo_root, fixture_root, &expected_rows)?,
         classify_command_failed(repo_root, fixture_root, &expected_rows)?,
         classify_missing_output(repo_root, fixture_root, &expected_rows)?,
@@ -193,6 +196,34 @@ fn collect_all_domain_failure_classification_rows(
     ];
     rows.sort_by(|left, right| left.class_id.cmp(&right.class_id));
     Ok(rows)
+}
+
+fn classify_blocked_external_access(repo_root: &Path) -> Result<AllDomainFailureClassificationRow> {
+    let contract = load_external_artifact_tool_contracts(repo_root)?
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("blocked-external-access probe requires an external artifact"))?;
+    let stage_id = contract.stage_ids.first().cloned().ok_or_else(|| {
+        anyhow!("blocked-external-access probe tool `{}` has no declared stage", contract.tool_id)
+    })?;
+    let domain = stage_id
+        .split_once('.')
+        .map(|(domain, _)| domain.to_string())
+        .ok_or_else(|| anyhow!("blocked-external-access probe has malformed stage `{stage_id}`"))?;
+
+    Ok(AllDomainFailureClassificationRow {
+        class_id: "blocked_external_access".to_string(),
+        domain,
+        stage_id,
+        tool_id: contract.tool_id,
+        result_id: None,
+        source_surface: "external_artifact_admission_contract".to_string(),
+        evidence_path: "containers/contracts/catalog.toml".to_string(),
+        observed_status: "blocked_external_access".to_string(),
+        observed_error: "no checksum-admitted operator artifact was supplied to repository-local readiness execution".to_string(),
+        detail: "supported non-redistributable tooling remains in the comparison and is blocked until an exact external artifact admission is available".to_string(),
+        triggered: true,
+    })
 }
 
 fn classify_missing_input(
@@ -583,10 +614,10 @@ mod tests {
             report.fixture_root,
             "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/failure-classification"
         );
-        assert_eq!(report.row_count, 7);
-        assert_eq!(report.triggered_row_count, 7);
-        assert_eq!(report.required_class_count, 7);
-        assert_eq!(report.triggered_class_count, 7);
+        assert_eq!(report.row_count, 8);
+        assert_eq!(report.triggered_row_count, 8);
+        assert_eq!(report.required_class_count, 8);
+        assert_eq!(report.triggered_class_count, 8);
         assert_eq!(report.missing_class_count, 0);
         assert!(report.missing_class_ids.is_empty());
         assert!(report.passes_behavior_test);
@@ -594,6 +625,7 @@ mod tests {
             report.rows.iter().map(|row| row.class_id.as_str()).collect::<BTreeSet<_>>(),
             [
                 "missing_input",
+                "blocked_external_access",
                 "tool_not_found",
                 "command_failed",
                 "missing_output",
@@ -605,6 +637,11 @@ mod tests {
             .collect()
         );
         assert!(report.rows.iter().all(|row| row.triggered));
+        assert!(report.rows.iter().any(|row| {
+            row.class_id == "blocked_external_access"
+                && row.observed_status == "blocked_external_access"
+                && row.evidence_path == "containers/contracts/catalog.toml"
+        }));
         assert!(report.rows.iter().any(|row| {
             row.class_id == "tool_not_found"
                 && row.observed_status == "tool_not_found"

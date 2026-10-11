@@ -85,10 +85,10 @@ fn bench_readiness_vcf_tool_scores_writes_governed_tsv_columns() {
         "TSV must retain one VCF score row per active tool-serving binding"
     );
     for (binding, score_status, failure_class) in [
-        ("vcf.call_gl\tangsd\t", "blocked", "tool_not_found"),
-        ("vcf.call_pseudohaploid\tangsd\t", "insufficient_evidence", "insufficient_data"),
-        ("vcf.imputation_metrics\timpute5\t", "insufficient_evidence", "insufficient_data"),
-        ("vcf.impute\timpute5\t", "insufficient_evidence", "insufficient_data"),
+        ("vcf.call_gl\tangsd\t", "blocked", "blocked_external_access"),
+        ("vcf.call_pseudohaploid\tangsd\t", "blocked", "blocked_external_access"),
+        ("vcf.imputation_metrics\timpute5\t", "blocked", "blocked_external_access"),
+        ("vcf.impute\timpute5\t", "blocked", "blocked_external_access"),
     ] {
         let row = rows
             .iter()

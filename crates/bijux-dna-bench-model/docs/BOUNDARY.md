@@ -11,6 +11,8 @@ Owner: benchmark model contracts and persisted decision records.
   checksummed portable evidence references.
 - Versioned non-barrier campaign-cycle preparation and admission outcomes,
   including generated schemas and pure state/payload consistency validation.
+- Versioned normalized-result records and execution-metrics envelopes, including
+  deterministic schema generation and payload validation.
 - Schema ids and validation entrypoints for suite, observation, summary, and
   gate decision records.
 - Deterministic summary comparison reports.

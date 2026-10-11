@@ -29,8 +29,14 @@ fn policy__contracts__no_runtime_escape_hatch_policy__forbidden_terms_blocked_in
             if !matches!(ext, "rs" | "sh" | "py" | "bash" | "zsh") {
                 continue;
             }
-            let content = std::fs::read_to_string(path).unwrap_or_default().to_lowercase();
-            if forbidden.iter().any(|needle| content.contains(&needle.to_lowercase())) {
+            let content = std::fs::read_to_string(path).unwrap_or_default();
+            let production = if ext == "rs" {
+                bijux_dna_testkit::workspace_support::strip_rust_test_modules(&content)
+            } else {
+                content
+            };
+            let production = production.to_lowercase();
+            if forbidden.iter().any(|needle| production.contains(&needle.to_lowercase())) {
                 offenders.push(path.display().to_string());
             }
         }

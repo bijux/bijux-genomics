@@ -2,6 +2,7 @@
 
 pub mod api {
     pub use crate::qualification::{
+        bind_qualification_source_to_frozen_repository,
         compile_container_qualification_specification, derive_qualification_specification_coverage,
         evaluate_container_qualification, plan_container_qualification,
         qualification_specification_source_schema, write_qualification_specification_source_schema,

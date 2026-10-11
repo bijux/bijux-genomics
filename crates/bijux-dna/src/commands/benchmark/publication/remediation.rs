@@ -3,13 +3,13 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::validate_benchmark_remediation_queue;
 
-use super::models::{
-    RemediationIssue, RemediationIssueGroup, RemediationQueue, RemediationStageEntry,
-};
+use super::docs_status::load_publication_findings;
 use super::{
     benchmark_publication_contracts, load_json_value, publication_artifact_file_name,
-    CorpusBenchmarkContract,
+    BenchmarkPublicationFindings, CorpusBenchmarkContract, RemediationIssue, RemediationIssueGroup,
+    RemediationQueue, RemediationStageEntry, BENCHMARK_REMEDIATION_QUEUE_SCHEMA_V1,
 };
 
 pub(super) fn write_corpus_fastq_remediation_queue(
@@ -23,8 +23,9 @@ pub(super) fn write_corpus_fastq_remediation_queue(
     let results_status = load_json_value(
         &docs_root.join(publication_artifact_file_name(corpus_id, "results-status.json")),
     )?;
-    let findings_payload = load_json_value(
+    let findings_payload = load_publication_findings(
         &docs_root.join(publication_artifact_file_name(corpus_id, "publication-findings.json")),
+        corpus_id,
     )?;
     let dossier_index = load_json_value(
         &docs_root.join(publication_artifact_file_name(corpus_id, "dossier-index.json")),
@@ -40,6 +41,7 @@ pub(super) fn write_corpus_fastq_remediation_queue(
     )?;
     let json_path =
         docs_root.join(publication_artifact_file_name(corpus_id, "remediation-queue.json"));
+    validate_benchmark_remediation_queue(&queue)?;
     fs::write(&json_path, format!("{}\n", serde_json::to_string_pretty(&queue)?))
         .with_context(|| format!("write {}", json_path.display()))?;
     let markdown_path =
@@ -54,7 +56,7 @@ pub(super) fn build_remediation_queue(
     contracts: &[CorpusBenchmarkContract],
     publication_status: &serde_json::Value,
     results_status: &serde_json::Value,
-    findings_payload: &serde_json::Value,
+    findings_payload: &BenchmarkPublicationFindings,
     dossier_index: &serde_json::Value,
 ) -> Result<RemediationQueue> {
     let publication_by_stage = stage_value_lookup(publication_status);
@@ -103,6 +105,7 @@ pub(super) fn build_remediation_queue(
         .collect::<Result<Vec<_>>>()?;
 
     Ok(RemediationQueue {
+        schema_version: BENCHMARK_REMEDIATION_QUEUE_SCHEMA_V1.to_string(),
         corpus_id: corpus_id.to_string(),
         stage_count: stages.len(),
         open_stage_count: stages.iter().filter(|stage| stage.status == "open").count(),
@@ -134,27 +137,16 @@ fn declared_issue_field<'a>(value: &'a serde_json::Value, field: &str) -> Option
         .filter(|entry| !entry.is_empty())
 }
 
-fn findings_lookup(payload: &serde_json::Value) -> BTreeMap<String, Vec<RemediationIssue>> {
+fn findings_lookup(
+    payload: &BenchmarkPublicationFindings,
+) -> BTreeMap<String, Vec<RemediationIssue>> {
     let mut findings_by_stage = BTreeMap::new();
-    for finding in payload.get("findings").and_then(|value| value.as_array()).into_iter().flatten()
-    {
-        let Some(stage_id) = declared_issue_field(finding, "stage_id") else {
-            continue;
-        };
-        let Some(issue_id) = declared_issue_field(finding, "issue_id") else {
-            continue;
-        };
-        let Some(detail) = declared_issue_field(finding, "detail") else {
-            continue;
-        };
-        let Some(severity) = declared_issue_field(finding, "severity") else {
-            continue;
-        };
-        findings_by_stage.entry(stage_id.to_string()).or_insert_with(Vec::new).push(
+    for finding in &payload.findings {
+        findings_by_stage.entry(finding.stage_id.clone()).or_insert_with(Vec::new).push(
             RemediationIssue {
-                issue_id: issue_id.to_string(),
-                detail: detail.to_string(),
-                severity: severity.to_string(),
+                issue_id: finding.issue_id.clone(),
+                detail: finding.detail.clone(),
+                severity: finding.severity.clone(),
                 source: "findings".to_string(),
             },
         );

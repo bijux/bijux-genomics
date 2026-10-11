@@ -1,0 +1,171 @@
+{
+  "$defs": {
+    "BenchmarkLocalReadinessStatus": {
+      "enum": [
+        "ready",
+        "missing_manifest",
+        "missing_outputs",
+        "missing_manifest_and_outputs",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    },
+    "BenchmarkLocalSummaryStage": {
+      "additionalProperties": false,
+      "properties": {
+        "declared_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "manifest_exists": {
+          "type": "boolean"
+        },
+        "memory_mb": {
+          "type": "string"
+        },
+        "missing_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "output_metric": {
+          "type": "string"
+        },
+        "present_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "readiness_kind": {
+          "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+        },
+        "readiness_status": {
+          "$ref": "#/$defs/BenchmarkLocalReadinessStatus"
+        },
+        "runtime_seconds": {
+          "type": "string"
+        },
+        "runtime_status": {
+          "$ref": "#/$defs/BenchmarkStageResultStatus"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind",
+        "tool_id",
+        "readiness_status",
+        "manifest_exists",
+        "declared_output_count",
+        "present_output_count",
+        "missing_output_count",
+        "runtime_seconds",
+        "runtime_status",
+        "memory_mb",
+        "output_metric",
+        "failure_reason"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStageResultStatus": {
+      "enum": [
+        "succeeded",
+        "failed"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "failed_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fake_run_root": {
+      "type": "string"
+    },
+    "incomplete_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "manifest_completion_report_path": {
+      "type": "string"
+    },
+    "markdown_output_path": {
+      "type": "string"
+    },
+    "output_completion_report_path": {
+      "type": "string"
+    },
+    "ready_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "report_output_path": {
+      "type": "string"
+    },
+    "runtime_metrics_report_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_benchmark_summary.v1",
+      "type": "string"
+    },
+    "source_stage_command_manifest_path": {
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalSummaryStage"
+      },
+      "type": "array"
+    },
+    "tool_comparison_template_path": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "fake_run_root",
+    "report_output_path",
+    "markdown_output_path",
+    "source_stage_command_manifest_path",
+    "manifest_completion_report_path",
+    "output_completion_report_path",
+    "runtime_metrics_report_path",
+    "tool_comparison_template_path",
+    "stage_count",
+    "ready_stage_count",
+    "incomplete_stage_count",
+    "failed_stage_count",
+    "stages"
+  ],
+  "title": "BenchmarkLocalSummaryReport",
+  "type": "object"
+}

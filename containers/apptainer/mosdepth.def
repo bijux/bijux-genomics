@@ -46,7 +46,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     chmod 0755 /opt/mosdepth/bin/mosdepth-native /usr/local/bin/mosdepth
     mosdepth --version | grep -Fx 'mosdepth 0.3.11'
     mosdepth --help >/dev/null
-    apt-get purge -y --auto-remove curl
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

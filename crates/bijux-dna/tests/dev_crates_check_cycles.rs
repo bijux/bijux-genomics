@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used)]
 
+use std::collections::BTreeMap;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -84,15 +85,31 @@ fn dev_crates_check_cycles_writes_the_governed_audit_report() {
         .iter()
         .map(|row| row.as_str().expect("topological order entry").to_string())
         .collect::<Vec<_>>();
-    let cli_index = topo_names
-        .iter()
-        .position(|crate_name| crate_name == "bijux-dna")
-        .expect("topological order must include bijux-dna");
-    let dev_index = topo_names
-        .iter()
-        .position(|crate_name| crate_name == "bijux-dna-dev")
-        .expect("topological order must include bijux-dna-dev");
-    assert!(dev_index < cli_index, "dependency order must list bijux-dna-dev before bijux-dna");
     assert_eq!(topo_names.len(), 16, "topological order must cover the full audited crate set");
+    let positions = topo_names
+        .iter()
+        .enumerate()
+        .map(|(index, crate_name)| (crate_name.as_str(), index))
+        .collect::<BTreeMap<_, _>>();
+    for crate_report in crates {
+        let crate_name = crate_report
+            .get("crate_name")
+            .and_then(serde_json::Value::as_str)
+            .expect("audited crate name");
+        let crate_index = positions[crate_name];
+        let dependencies = crate_report
+            .get("direct_workspace_dependencies")
+            .and_then(serde_json::Value::as_array)
+            .expect("audited direct workspace dependencies");
+        for dependency in dependencies.iter().filter_map(serde_json::Value::as_str) {
+            let Some(dependency_index) = positions.get(dependency) else {
+                continue;
+            };
+            assert!(
+                dependency_index < &crate_index,
+                "dependency order must list `{dependency}` before dependent `{crate_name}`"
+            );
+        }
+    }
     assert!(out.is_file(), "audit must write the governed report file");
 }

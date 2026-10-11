@@ -1,0 +1,228 @@
+{
+  "$defs": {
+    "BenchmarkLocalHpcResultCollectionSimulationBehavior": {
+      "additionalProperties": false,
+      "properties": {
+        "complete_result_job_id": {
+          "type": "string"
+        },
+        "complete_row_present": {
+          "type": "boolean"
+        },
+        "failed_distinct_from_missing": {
+          "type": "boolean"
+        },
+        "failed_result_job_id": {
+          "type": "string"
+        },
+        "failed_row_present": {
+          "type": "boolean"
+        },
+        "insufficient_distinct_from_unavailable": {
+          "type": "boolean"
+        },
+        "insufficient_result_job_id": {
+          "type": "string"
+        },
+        "insufficient_row_present": {
+          "type": "boolean"
+        },
+        "missing_result_job_id": {
+          "type": "string"
+        },
+        "missing_row_present": {
+          "type": "boolean"
+        },
+        "proven": {
+          "type": "boolean"
+        },
+        "unavailable_result_job_id": {
+          "type": "string"
+        },
+        "unavailable_row_present": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "complete_result_job_id",
+        "failed_result_job_id",
+        "missing_result_job_id",
+        "insufficient_result_job_id",
+        "unavailable_result_job_id",
+        "complete_row_present",
+        "failed_row_present",
+        "missing_row_present",
+        "insufficient_row_present",
+        "unavailable_row_present",
+        "failed_distinct_from_missing",
+        "insufficient_distinct_from_unavailable",
+        "proven"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcResultCollectionSimulationRow": {
+      "additionalProperties": false,
+      "properties": {
+        "collection_status": {
+          "type": "string"
+        },
+        "declared_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": "string"
+        },
+        "insufficient_data_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "job_id_local": {
+          "type": "string"
+        },
+        "manifest_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "node_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pipeline_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "present_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "record_id": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_surface": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "unavailable_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "record_id",
+        "source_surface",
+        "collection_status",
+        "job_id_local",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "evidence_path",
+        "declared_output_count",
+        "present_output_count",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "behavior": {
+      "$ref": "#/$defs/BenchmarkLocalHpcResultCollectionSimulationBehavior"
+    },
+    "complete_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "execution_resolver_path": {
+      "type": "string"
+    },
+    "failed_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "insufficient_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalHpcResultCollectionSimulationRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_hpc_result_collection_simulation.v1",
+      "type": "string"
+    },
+    "simulation_root": {
+      "type": "string"
+    },
+    "unavailable_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "simulation_root",
+    "execution_resolver_path",
+    "row_count",
+    "complete_row_count",
+    "failed_row_count",
+    "missing_row_count",
+    "insufficient_row_count",
+    "unavailable_row_count",
+    "behavior",
+    "rows"
+  ],
+  "title": "BenchmarkLocalHpcResultCollectionSimulationReport",
+  "type": "object"
+}

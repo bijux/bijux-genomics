@@ -49,9 +49,11 @@ writes under `artifacts/image-qa/<platform>/`; catalog runtime verification writ
 explicit operator-provided study evidence root.
 
 The thin `bijux-dna-dev containers run qualification-specification --` composition surface calls
-the QA-owned pure compiler through the runner facade. Its `compile`, `coverage`,
-`generate-schema`, and `check-schema` operations read declared authorities and write only their
-explicit output paths; they do not execute a tool or contact a scheduler.
+the QA-owned pure compiler through the runner facade. Its `bind-frozen-repository` operation
+verifies the governed, commit-addressed repository snapshot before deriving a source that names
+that immutable execution root. The `compile`, `coverage`, `generate-schema`, and `check-schema`
+operations read declared authorities and write only their explicit output paths; none of these
+operations executes a tool or contacts a scheduler.
 
 ## Process Ownership Files
 

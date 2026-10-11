@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RepositoryFreezeArchiveReceipt",
+  "type": "object",
+  "properties": {
+    "bundle_path": {
+      "type": "string"
+    },
+    "bundle_sha256": {
+      "type": "string"
+    },
+    "commit": {
+      "type": "string"
+    },
+    "restoration_verified": {
+      "type": "boolean"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "snapshot_relative_path": {
+      "type": "string"
+    },
+    "sparse_checkout_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tracked_index_sha256": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "snapshot_relative_path",
+    "commit",
+    "bundle_path",
+    "bundle_sha256",
+    "tracked_index_sha256",
+    "sparse_checkout_paths",
+    "restoration_verified"
+  ],
+  "additionalProperties": false
+}

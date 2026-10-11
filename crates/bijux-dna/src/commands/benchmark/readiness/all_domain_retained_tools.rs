@@ -3,7 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_all_domain_retained_tools, ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainRetainedToolRow, AllDomainRetainedToolsReport,
+};
 
 use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_executable_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
@@ -14,37 +19,9 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_RETAINED_TOOLS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/tools/retained-tool-inventory.tsv";
-const ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.retained_tool_inventory.v1";
 const BENCHMARK_READY_STATUS: &str = "benchmark_ready";
 const STATUS_NOT_BENCHMARK_READY: &str = "not_benchmark_ready";
 const NO_BENCHMARK_READY_STAGE_IDS: &str = "none";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainRetainedToolRow {
-    pub(crate) tool_id: String,
-    pub(crate) domains: Vec<String>,
-    pub(crate) active_stage_count: usize,
-    pub(crate) benchmark_ready_stage_count: usize,
-    pub(crate) active_binding_count: usize,
-    pub(crate) benchmark_ready_binding_count: usize,
-    pub(crate) benchmark_statuses: Vec<String>,
-    pub(crate) active_stage_ids: Vec<String>,
-    pub(crate) benchmark_ready_stage_ids: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainRetainedToolsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) active_matrix_tool_count: usize,
-    pub(crate) benchmark_ready_tool_count: usize,
-    pub(crate) mixed_status_tool_count: usize,
-    pub(crate) not_benchmark_ready_only_tool_count: usize,
-    pub(crate) domain_tool_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<AllDomainRetainedToolRow>,
-}
 
 #[derive(Default)]
 struct ToolAccumulator {
@@ -81,12 +58,6 @@ pub(crate) fn render_all_domain_retained_tools(
     let output_path = repo_relative_path(repo_root, &output_path);
     let rows = collect_all_domain_retained_tool_rows(repo_root)?;
 
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_all_domain_retained_tools_tsv(&rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
     let row_count = rows.len();
     let benchmark_ready_tool_count =
         rows.iter().filter(|row| row.benchmark_ready_binding_count > 0).count();
@@ -101,8 +72,9 @@ pub(crate) fn render_all_domain_retained_tools(
         }
     }
 
-    Ok(AllDomainRetainedToolsReport {
-        schema_version: ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_VERSION,
+    let rendered = render_all_domain_retained_tools_tsv(&rows);
+    let report = AllDomainRetainedToolsReport {
+        schema_version: ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         row_count,
         active_matrix_tool_count: row_count,
@@ -111,7 +83,15 @@ pub(crate) fn render_all_domain_retained_tools(
         not_benchmark_ready_only_tool_count,
         domain_tool_counts,
         rows,
-    })
+    };
+    validate_all_domain_retained_tools(&report)
+        .context("validate all-domain retained-tool inventory")?;
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(&output_path, rendered)
+        .with_context(|| format!("write {}", output_path.display()))?;
+    Ok(report)
 }
 
 pub(crate) fn collect_all_domain_retained_tool_rows(

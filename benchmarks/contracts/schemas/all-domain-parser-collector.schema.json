@@ -1,0 +1,185 @@
+{
+  "$defs": {
+    "AllDomainParserCollectorRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "declared_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "document_kind": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "manifest_exit_code": {
+          "format": "int32",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "manifest_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "manifest_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "normalized_snapshot": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "parsed_path": {
+          "type": "string"
+        },
+        "parsed_schema_version": {
+          "type": "string"
+        },
+        "parsed_top_level_key_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "parsed_top_level_keys": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "record_id": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_kind": {
+          "$ref": "#/$defs/AllDomainParserCollectorSourceKind"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "record_id",
+        "source_kind",
+        "document_kind",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "parsed_path",
+        "parsed_schema_version",
+        "parsed_top_level_key_count",
+        "parsed_top_level_keys",
+        "declared_output_count",
+        "normalized_snapshot"
+      ],
+      "type": "object"
+    },
+    "AllDomainParserCollectorSourceKind": {
+      "enum": [
+        "fake_run",
+        "real_smoke"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "document_kind_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "fake_run_root": {
+      "type": "string"
+    },
+    "fake_run_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fixture_root": {
+      "type": "string"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "real_smoke_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainParserCollectorRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_parser_collector.v1",
+      "type": "string"
+    },
+    "source_kind_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "fixture_root",
+    "fake_run_root",
+    "row_count",
+    "fake_run_row_count",
+    "real_smoke_row_count",
+    "source_kind_counts",
+    "domain_counts",
+    "document_kind_counts",
+    "rows"
+  ],
+  "title": "AllDomainParserCollectorReport",
+  "type": "object"
+}

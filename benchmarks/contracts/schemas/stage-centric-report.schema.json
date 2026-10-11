@@ -1,0 +1,259 @@
+{
+  "$defs": {
+    "ReadinessComparisonContractStatus": {
+      "enum": [
+        "declared",
+        "not_declared",
+        "not_applicable"
+      ],
+      "type": "string"
+    },
+    "StageCentricStageReport": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor_support_status": {
+          "type": "string"
+        },
+        "anchor_tool_id": {
+          "type": "string"
+        },
+        "benchmark_ready_tool_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "blocked_tool_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "blocked_tool_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "canonical_stage_rank": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "comparison_contract_status": {
+          "$ref": "#/$defs/ReadinessComparisonContractStatus"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "readiness_gap_counts": {
+          "additionalProperties": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "report_section_id": {
+          "type": "string"
+        },
+        "report_section_title": {
+          "type": "string"
+        },
+        "shared_metric_field_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "shared_metric_fields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "summary_table_id": {
+          "type": "string"
+        },
+        "summary_table_title": {
+          "type": "string"
+        },
+        "tool_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/StageCentricToolRow"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "canonical_stage_rank",
+        "report_section_id",
+        "report_section_title",
+        "summary_table_id",
+        "summary_table_title",
+        "anchor_tool_id",
+        "anchor_support_status",
+        "comparison_contract_status",
+        "shared_metric_field_count",
+        "shared_metric_fields",
+        "tool_count",
+        "benchmark_ready_tool_count",
+        "blocked_tool_count",
+        "readiness_gap_counts",
+        "blocked_tool_ids",
+        "tools"
+      ],
+      "type": "object"
+    },
+    "StageCentricToolRow": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_status": {
+          "type": "string"
+        },
+        "asset_status": {
+          "type": "string"
+        },
+        "benchmark_status": {
+          "type": "string"
+        },
+        "corpus_status": {
+          "type": "string"
+        },
+        "parser_status": {
+          "type": "string"
+        },
+        "readiness_gap": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "support_status": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool_id",
+        "benchmark_status",
+        "readiness_gap",
+        "support_status",
+        "adapter_status",
+        "parser_status",
+        "corpus_status",
+        "asset_status",
+        "reason"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_ready_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "blocked_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "blocked_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "declared_shared_metric_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "multi_tool_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "not_declared_shared_metric_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "readiness_gap_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.stage_centric_report.v1",
+      "type": "string"
+    },
+    "section_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/StageCentricStageReport"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "stage_count",
+    "multi_tool_stage_count",
+    "blocked_stage_count",
+    "declared_shared_metric_stage_count",
+    "not_declared_shared_metric_stage_count",
+    "row_count",
+    "benchmark_ready_row_count",
+    "blocked_row_count",
+    "domain_counts",
+    "section_counts",
+    "readiness_gap_counts",
+    "stages"
+  ],
+  "title": "StageCentricReport",
+  "type": "object"
+}

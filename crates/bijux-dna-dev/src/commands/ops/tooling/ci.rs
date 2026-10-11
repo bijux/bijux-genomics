@@ -745,6 +745,7 @@ fn remove_full_shard_ephemera(path: &Path) -> Result<()> {
     if metadata.file_type().is_symlink() {
         anyhow::bail!("full shard ephemeral path is a symlink: {}", path.display());
     }
+    make_full_shard_ephemera_removable(path)?;
     if metadata.is_dir() {
         std::fs::remove_dir_all(path)
             .with_context(|| format!("remove full shard ephemeral directory {}", path.display()))
@@ -752,6 +753,34 @@ fn remove_full_shard_ephemera(path: &Path) -> Result<()> {
         std::fs::remove_file(path)
             .with_context(|| format!("remove full shard ephemeral file {}", path.display()))
     }
+}
+
+fn make_full_shard_ephemera_removable(path: &Path) -> Result<()> {
+    for entry in walkdir::WalkDir::new(path).follow_links(false) {
+        let entry = entry.with_context(|| {
+            format!("inspect full shard ephemeral path below {}", path.display())
+        })?;
+        let metadata = entry.path().symlink_metadata().with_context(|| {
+            format!("read full shard ephemeral metadata {}", entry.path().display())
+        })?;
+        if metadata.file_type().is_symlink() {
+            continue;
+        }
+        let mut permissions = metadata.permissions();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+
+            let owner_access = if metadata.is_dir() { 0o700 } else { 0o600 };
+            permissions.set_mode(permissions.mode() | owner_access);
+        }
+        #[cfg(not(unix))]
+        permissions.set_readonly(false);
+        std::fs::set_permissions(entry.path(), permissions).with_context(|| {
+            format!("restore owner access to full shard ephemera {}", entry.path().display())
+        })?;
+    }
+    Ok(())
 }
 
 fn read_ci_build_authority(path: &Path) -> Result<CiBuildAuthority> {
@@ -1049,6 +1078,9 @@ fn full_shard_env(roots: &FullShardRoots, shard_workspace: &Path) -> Result<Vec<
             "BIJUX_BENCHMARK_ROOT".to_string(),
             shard_workspace.join("benchmarks").display().to_string(),
         ),
+        // Archived snapshot assertions retain their compile-time source paths. Shards
+        // therefore fail with a rendered diff but never write pending source files.
+        ("INSTA_UPDATE".to_string(), "no".to_string()),
         ("TZ".to_string(), "UTC".to_string()),
         ("LC_ALL".to_string(), "C".to_string()),
     ])
@@ -1058,6 +1090,8 @@ fn full_shard_root_receipt(roots: &FullShardRoots, shard_workspace: &Path) -> se
     serde_json::json!({
         "repository_root": shard_workspace.display().to_string(),
         "benchmark_root": shard_workspace.join("benchmarks").display().to_string(),
+        "snapshot_source_authority": "archive_compile_time_metadata",
+        "snapshot_update_policy": "no",
         "artifact_root": roots.artifact_root.display().to_string(),
         "iso_root": roots.artifact_root.display().to_string(),
         "archive_extract_dir": roots.archive_extract.display().to_string(),
@@ -1436,11 +1470,12 @@ mod tests {
         artifact_root_path, ci_output_path, ci_output_path_under, full_archive_args,
         full_archive_roots, full_shard_args, full_shard_env, full_shard_root_receipt,
         full_shard_roots, materialize_full_shard_workspace, percentile, read_ci_build_authority,
-        reference_timing_samples, set_full_archive_readonly, validate_ci_test_executor_observation,
-        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
-        validate_full_shard_root_set, FastGroup, FastGroupContract, FastReferenceRunner,
-        FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract,
-        FullShardCoverage, FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
+        reference_timing_samples, remove_full_shard_ephemera, set_full_archive_readonly,
+        validate_ci_test_executor_observation, validate_fast_group_contract,
+        validate_full_archive_roots, validate_full_shard_contract, validate_full_shard_root_set,
+        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
+        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
+        FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
     };
     use crate::runtime::workspace::Workspace;
 
@@ -1555,7 +1590,8 @@ mod tests {
     }
 
     #[test]
-    fn full_shard_runtime_roots_are_absolute_complete_and_disjoint() -> anyhow::Result<()> {
+    fn full_shard_runtime_roots_are_absolute_complete_disjoint_and_read_only() -> anyhow::Result<()>
+    {
         let root =
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
         let workspace = Workspace { root };
@@ -1599,9 +1635,13 @@ mod tests {
             first_env["BIJUX_BENCHMARK_ROOT"],
             shard_workspace.join("benchmarks").display().to_string()
         );
+        assert_eq!(first_env["INSTA_UPDATE"], "no");
+        assert!(!first_env.contains_key("INSTA_WORKSPACE_ROOT"));
         let receipt = full_shard_root_receipt(&roots[0], &shard_workspace);
         assert_eq!(receipt["repository_root"], first_env["BIJUX_REPO_ROOT"]);
         assert_eq!(receipt["benchmark_root"], first_env["BIJUX_BENCHMARK_ROOT"]);
+        assert_eq!(receipt["snapshot_source_authority"], "archive_compile_time_metadata");
+        assert_eq!(receipt["snapshot_update_policy"], first_env["INSTA_UPDATE"]);
         assert_eq!(receipt["artifact_root"], first_env["ARTIFACT_ROOT"]);
         assert_eq!(receipt["iso_root"], first_env["ISO_ROOT"]);
         assert_eq!(receipt["archive_extract_dir"], roots[0].archive_extract.display().to_string());
@@ -1697,6 +1737,27 @@ mod tests {
         std::fs::write(archive_root.join("workspace-tests.tar.zst"), b"archive\n")?;
         std::fs::write(archive_root.join("target/cargo/output"), b"cargo output\n")?;
         std::fs::write(shard_root.join("output"), b"shard output\n")?;
+        let extracted = shard_root.join("nextest/archive/read-only");
+        std::fs::create_dir_all(&extracted)?;
+        let extracted_file = extracted.join("test-binary");
+        std::fs::write(&extracted_file, b"nextest archive member\n")?;
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+
+            std::fs::set_permissions(&extracted_file, std::fs::Permissions::from_mode(0o400))?;
+            std::fs::set_permissions(&extracted, std::fs::Permissions::from_mode(0o500))?;
+            std::fs::set_permissions(
+                shard_root.join("nextest/archive"),
+                std::fs::Permissions::from_mode(0o500),
+            )?;
+            std::fs::set_permissions(
+                shard_root.join("nextest"),
+                std::fs::Permissions::from_mode(0o500),
+            )?;
+            std::fs::set_permissions(&shard_root, std::fs::Permissions::from_mode(0o500))?;
+        }
 
         let archive_roots = FullArchiveRoots {
             artifact_root: archive_root.clone(),
@@ -1725,6 +1786,25 @@ mod tests {
         assert!(archive_root.join("build.log").is_file());
         assert!(report_root.join("hash-1-of-4.log").is_file());
         assert!(report_root.join("full-gate-timing.json").is_file());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn full_shard_ephemera_removes_nested_symlinks_without_following() -> anyhow::Result<()> {
+        use std::os::unix::fs::symlink;
+
+        let root = tempfile::tempdir()?;
+        let ephemeral = root.path().join("ephemeral");
+        let retained = root.path().join("retained");
+        std::fs::create_dir_all(&ephemeral)?;
+        std::fs::write(&retained, b"retained evidence\n")?;
+        symlink(&retained, ephemeral.join("escape"))?;
+
+        remove_full_shard_ephemera(&ephemeral)?;
+
+        assert_eq!(std::fs::read(&retained)?, b"retained evidence\n");
+        assert!(!ephemeral.exists());
         Ok(())
     }
 

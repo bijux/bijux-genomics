@@ -2,43 +2,16 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_job_graph, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalHpcJobGraph as LocalHpcJobGraph,
+    BenchmarkLocalHpcJobGraphNode as LocalHpcJobGraphNode,
+};
 
 use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
 use crate::commands::benchmark::local_all_domain_slurm_submit_manifest::DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH;
-
-const LOCAL_HPC_JOB_GRAPH_SCHEMA_VERSION: &str = "bijux.bench.local_hpc_job_graph.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcJobGraphNode {
-    pub(crate) job_id_local: String,
-    pub(crate) job_kind: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) pipeline_id: Option<String>,
-    pub(crate) node_id: Option<String>,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) dependency_count: usize,
-    pub(crate) dependent_count: usize,
-    pub(crate) dependencies: Vec<String>,
-    pub(crate) dependents: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcJobGraph {
-    pub(crate) schema_version: &'static str,
-    pub(crate) manifest_path: String,
-    pub(crate) job_count: usize,
-    pub(crate) benchmark_job_count: usize,
-    pub(crate) essential_pipeline_job_count: usize,
-    pub(crate) dependency_count: usize,
-    pub(crate) root_job_ids: Vec<String>,
-    pub(crate) topological_order: Vec<String>,
-    pub(crate) nodes: Vec<LocalHpcJobGraphNode>,
-}
 
 pub(crate) fn collect_local_hpc_job_graph(repo_root: &Path) -> Result<LocalHpcJobGraph> {
     let selected_jobs = load_local_hpc_selected_jobs(repo_root)?;
@@ -140,7 +113,7 @@ pub(crate) fn collect_local_hpc_job_graph(repo_root: &Path) -> Result<LocalHpcJo
         })
         .collect::<Result<Vec<_>>>()?;
     let graph = LocalHpcJobGraph {
-        schema_version: LOCAL_HPC_JOB_GRAPH_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1.to_string(),
         manifest_path: DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH.to_string(),
         job_count: nodes.len(),
         benchmark_job_count,
@@ -150,7 +123,7 @@ pub(crate) fn collect_local_hpc_job_graph(repo_root: &Path) -> Result<LocalHpcJo
         topological_order,
         nodes,
     };
-    ensure_hpc_job_graph_contract(&graph)?;
+    validate_benchmark_local_hpc_job_graph(&graph)?;
     Ok(graph)
 }
 
@@ -219,37 +192,4 @@ fn topological_sort(nodes: &BTreeMap<String, LocalHpcJobGraphNode>) -> Result<Ve
     }
 
     Ok(order)
-}
-
-fn ensure_hpc_job_graph_contract(graph: &LocalHpcJobGraph) -> Result<()> {
-    if graph.job_count != graph.benchmark_job_count + graph.essential_pipeline_job_count {
-        return Err(anyhow!(
-            "HPC job graph job count must equal benchmark jobs plus essential pipeline jobs"
-        ));
-    }
-    if graph.topological_order.len() != graph.job_count || graph.nodes.len() != graph.job_count {
-        return Err(anyhow!(
-            "HPC job graph must keep one node and one topological row per selected job"
-        ));
-    }
-    let unique_job_ids =
-        graph.nodes.iter().map(|node| node.job_id_local.as_str()).collect::<BTreeSet<_>>();
-    if unique_job_ids.len() != graph.job_count {
-        return Err(anyhow!("HPC job graph must keep one unique local job id per node"));
-    }
-    for node in &graph.nodes {
-        if node.dependencies.len() != node.dependency_count {
-            return Err(anyhow!(
-                "HPC job graph node `{}` must keep dependency count aligned with dependency rows",
-                node.job_id_local
-            ));
-        }
-        if node.dependents.len() != node.dependent_count {
-            return Err(anyhow!(
-                "HPC job graph node `{}` must keep dependent count aligned with dependent rows",
-                node.job_id_local
-            ));
-        }
-    }
-    Ok(())
 }

@@ -53,10 +53,15 @@ pub fn canonical_external_artifact_tool_bindings() -> Result<ToolBindingRegistry
 /// Returns an error if a binding violates the schema or duplicates a stage/tool pair.
 pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     let mut registry = ToolBindingRegistry::default();
-    for binding in [
+    for binding in vec![
+        addeam_damage(),
         adapterremoval_merge_pairs(),
+        alientrimmer_trim_reads(),
+        atropos_trim_reads(),
+        authenticct_authenticity(),
         bbduk_filter_low_complexity(),
         bbmerge_merge_pairs(),
+        bayeshammer_correct_errors(),
         bcftools_genotyping(),
         bedtools_coverage(),
         bowtie2_build_index_reference(),
@@ -64,20 +69,31 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         bwa_align(),
         centrifuge_screen_taxonomy(),
         dada2_infer_asvs(),
+        damageprofiler_damage(),
+        damageprofiler_authenticity(),
         fastp_filter_low_complexity(),
         fastqc_detect_adapters(),
         fastqvalidator_validate_reads(),
+        fastx_clipper_trim_reads(),
         flash2_merge_pairs(),
         fqtools_validate_reads(),
         kaiju_screen_taxonomy(),
         kraken2_screen_taxonomy(),
         krakenuniq_screen_taxonomy(),
+        leehom_merge_pairs(),
+        lighter_correct_errors(),
+        mapdamage2_damage(),
         mosdepth_coverage(),
+        musket_correct_errors(),
+        pear_merge_pairs(),
         picard_gc_bias(),
         picard_insert_size(),
         picard_duplication_metrics(),
         picard_mapping_summary(),
+        pmdtools_damage(),
+        pmdtools_authenticity(),
         prinseq_filter_low_complexity(),
+        pydamage_damage(),
         rcorrector_correct_errors(),
         rxy_sex(),
         samtools_coverage(),
@@ -90,14 +106,561 @@ pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
         seqkit_profile_read_lengths(),
         seqkit_profile_reads(),
         seqkit_stats_profile_reads(),
+        seqprep_merge_pairs(),
         seqtk_validate_reads(),
+        skewer_trim_reads(),
         star_index_reference(),
+        trim_galore_trim_reads(),
+        trimmomatic_trim_reads(),
         umi_tools_extract_umis(),
         vsearch_cluster_otus(),
-    ] {
+        vsearch_merge_pairs(),
+    ]
+    .into_boxed_slice()
+    {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn addeam_damage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.damage",
+        "addeam",
+        &["bam_input", "terminal_deamination_profiles", "native_profile_directory"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("damage_profiles", DIRECTORY)],
+        &[
+            "/bin/sh",
+            "-c",
+            "set -eu; bam_list=$(mktemp); trap 'rm -f \"$bam_list\"' EXIT; printf '%s\\n' '${input:bam}' > \"$bam_list\"; mkdir -p '${output:damage_profiles}'; '${executable}' profile \"$bam_list\" -classic -both -minq 20 -minl 30 -length 10 -precision 0.001 -minAligned 10000 -minConverge 0.01 -stepsConverge 500 -threads 1 -o '${output:damage_profiles}'",
+        ],
+        "bijux.benchmark.bam.damage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
+        "benchmark.bam.damage.consume",
+        resources(1, 4, 1),
+        &[
+            "the_bam_list_is_materialized_from_the_admitted_single_sample_bam",
+            "native_five_prime_and_three_prime_profiles_are_preserved_before_normalization",
+            "comparative_admission_requires_matching_alignment_and_damage_strata",
+        ],
+    )
+}
+
+fn damageprofiler_authenticity() -> ToolBindingV1 {
+    retained_binding(
+        "bam.authenticity",
+        "damageprofiler",
+        &["sam_input", "terminal_damage_evidence", "native_report_directory"],
+        &[input("sam", SAM)],
+        &[],
+        &[output("damageprofiler_reports", DIRECTORY)],
+        &[
+            "/bin/sh",
+            "-c",
+            "set -eu; mkdir -p '${output:damageprofiler_reports}'; '${executable}' -i '${input:sam}' -o '${output:damageprofiler_reports}' -title bijux-sample",
+        ],
+        "bijux.benchmark.bam.authenticity.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::authenticity::plan",
+        "benchmark.bam.authenticity.consume",
+        resources(1, 8, 4),
+        &[
+            "input_sam_must_retain_recalculated_md_and_nm_tags",
+            "native_damage_tables_plots_and_logs_are_preserved_before_authenticity_normalization",
+            "authenticity_is_a_composed_scientific_verdict_not_the_native_damage_signal_alone",
+        ],
+    )
+}
+
+fn damageprofiler_damage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.damage",
+        "damageprofiler",
+        &["sam_input", "terminal_damage_evidence", "native_report_directory"],
+        &[input("sam", SAM)],
+        &[],
+        &[output("damageprofiler_reports", DIRECTORY)],
+        &[
+            "/bin/sh",
+            "-c",
+            "set -eu; mkdir -p '${output:damageprofiler_reports}'; '${executable}' -i '${input:sam}' -o '${output:damageprofiler_reports}' -title bijux-sample",
+        ],
+        "bijux.benchmark.bam.damage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
+        "benchmark.bam.damage.consume",
+        resources(1, 8, 4),
+        &[
+            "input_sam_must_retain_recalculated_md_and_nm_tags",
+            "native_damage_tables_plots_and_logs_are_preserved_before_damage_normalization",
+            "comparative_admission_requires_matching_alignment_and_damage_strata",
+        ],
+    )
+}
+
+fn authenticct_authenticity() -> ToolBindingV1 {
+    retained_binding(
+        "bam.authenticity",
+        "authenticct",
+        &["sam_input", "terminal_deamination_evidence", "native_deamination_table"],
+        &[input("sam", SAM)],
+        &[],
+        &[output("deamination_table", TABLE)],
+        &[
+            "${executable}",
+            "deamination",
+            "-m",
+            "20",
+            "-l",
+            "30",
+            "-b",
+            "20",
+            "-o",
+            "${output:deamination_table}",
+            "${input:sam}",
+        ],
+        "bijux.benchmark.bam.authenticity.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::authenticity::plan",
+        "benchmark.bam.authenticity.consume",
+        resources(1, 4, 1),
+        &[
+            "input_sam_must_retain_md_tags_from_the_admitted_alignment",
+            "the_native_deamination_table_is_preserved_before_authenticity_normalization",
+            "authenticity_is_a_composed_scientific_verdict_not_the_native_damage_signal_alone",
+        ],
+    )
+}
+
+fn mapdamage2_damage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.damage",
+        "mapdamage2",
+        &["bam_input", "reference_bound_damage_profile", "native_report_directory"],
+        &[input("bam", BAM), input("reference", FASTA)],
+        &[],
+        &[output("mapdamage2_reports", DIRECTORY)],
+        &[
+            "${executable}",
+            "analyze",
+            "--bam",
+            "${input:bam}",
+            "--reference",
+            "${input:reference}",
+            "--out-dir",
+            "${output:mapdamage2_reports}",
+        ],
+        "bijux.benchmark.bam.damage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
+        "benchmark.bam.damage.consume",
+        resources(1, 8, 4),
+        &[
+            "reference_identity_must_match_the_alignment_header",
+            "native_misincorporation_composition_and_length_tables_are_preserved",
+        ],
+    )
+}
+
+fn pydamage_damage() -> ToolBindingV1 {
+    retained_binding(
+        "bam.damage",
+        "pydamage",
+        &["bam_input", "reference_grouped_damage_estimation", "native_result_directory"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("pydamage_results", DIRECTORY)],
+        &[
+            "${executable}",
+            "--outdir",
+            "${output:pydamage_results}",
+            "analyze",
+            "--group",
+            "--process",
+            "2",
+            "${input:bam}",
+        ],
+        "bijux.benchmark.bam.damage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
+        "benchmark.bam.damage.consume",
+        resources(2, 8, 4),
+        &[
+            "native_per_reference_damage_estimates_are_preserved_before_normalization",
+            "comparative_admission_requires_equivalent_reference_grouping_policy",
+        ],
+    )
+}
+
+fn pmdtools_damage() -> ToolBindingV1 {
+    pmdtools_binding(
+        "bam.damage",
+        "bijux.benchmark.bam.damage.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
+        "benchmark.bam.damage.consume",
+    )
+}
+
+fn pmdtools_authenticity() -> ToolBindingV1 {
+    pmdtools_binding(
+        "bam.authenticity",
+        "bijux.benchmark.bam.authenticity.bundle.v1",
+        "bijux_dna_planner_bam::tool_adapters::stages_adna::authenticity::plan",
+        "benchmark.bam.authenticity.consume",
+    )
+}
+
+fn pmdtools_binding(
+    stage_id: &str,
+    normalized_output_contract_id: &str,
+    normalizer_id: &str,
+    downstream_probe_id: &str,
+) -> ToolBindingV1 {
+    retained_binding(
+        stage_id,
+        "pmdtools",
+        &["bam_input", "per_read_pmd_scores", "native_statistics"],
+        &[input("bam", BAM)],
+        &[],
+        &[output("pmd_scores", TABLE), output("pmd_statistics", FILE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "set -eu; samtools view -h '${input:bam}' | '${executable}' --printDS --stats > '${output:pmd_scores}' 2> '${output:pmd_statistics}'",
+        ],
+        normalized_output_contract_id,
+        normalizer_id,
+        downstream_probe_id,
+        resources(1, 4, 2),
+        &[
+            "the_admitted_pmdtools_image_must_include_the_samtools_stream_adapter",
+            "native_per_read_scores_and_statistics_are_preserved_before_normalization",
+            "scientific_verdicts_are_derived_from_normalized_scores_not_process_success",
+        ],
+    )
+}
+
+fn alientrimmer_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "alientrimmer",
+        &["paired_end_reads", "reference_adapter_trimming", "pair_preserving_outputs"],
+        &[
+            input("reads_r1", FASTQ_PAIRED),
+            input("reads_r2", FASTQ_PAIRED),
+            input("adapter_reference", FASTA),
+        ],
+        &[],
+        &[
+            output("trimmed_reads_r1", FASTQ_PAIRED),
+            output("trimmed_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-alientrimmer-work\"; mkdir -p \"$work\"; prefix=\"$work/trimmed\"; '${executable}' -1 '${input:reads_r1}' -2 '${input:reads_r2}' -a '${input:adapter_reference}' -o \"$prefix\" -z -v; test -f \"$prefix.1.fastq.gz\"; test -f \"$prefix.2.fastq.gz\"; cp -- \"$prefix.1.fastq.gz\" '${output:trimmed_reads_r1}'; cp -- \"$prefix.2.fastq.gz\" '${output:trimmed_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(1, 2, 1),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "adapter_reference_identity_is_part_of_each_case",
+            "native_pair_suffixes_are_resolved_before_normalization",
+        ],
+    )
+}
+
+fn atropos_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "atropos",
+        &["paired_end_reads", "explicit_adapter_pair", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "adapter_r1", "adapter_r2", "quality_cutoff", "min_length"],
+        &[output("trimmed_reads_r1", FASTQ_PAIRED), output("trimmed_reads_r2", FASTQ_PAIRED)],
+        &[
+            "${executable}",
+            "trim",
+            "-T",
+            "${parameter:threads}",
+            "-a",
+            "${parameter:adapter_r1}",
+            "-A",
+            "${parameter:adapter_r2}",
+            "-q",
+            "${parameter:quality_cutoff}",
+            "-m",
+            "${parameter:min_length}",
+            "-pe1",
+            "${input:reads_r1}",
+            "-pe2",
+            "${input:reads_r2}",
+            "-o",
+            "${output:trimmed_reads_r1}",
+            "-p",
+            "${output:trimmed_reads_r2}",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "adapter_sequences_and_thresholds_are_explicit_case_parameters",
+            "comparative_admission_requires_the_closed_trim_reads_stage_interface",
+        ],
+    )
+}
+
+fn fastx_clipper_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "fastx_clipper",
+        &["single_end_reads", "explicit_adapter_sequence", "native_fastq_output"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["adapter_sequence", "adapter_match_length", "min_length"],
+        &[output("trimmed_reads_r1", FASTQ_SINGLE)],
+        &[
+            "${executable}",
+            "-Q33",
+            "-a",
+            "${parameter:adapter_sequence}",
+            "-M",
+            "${parameter:adapter_match_length}",
+            "-l",
+            "${parameter:min_length}",
+            "-i",
+            "${input:reads_r1}",
+            "-o",
+            "${output:trimmed_reads_r1}",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(1, 2, 1),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+            "adapter_match_length_must_not_exceed_the_adapter_sequence_length",
+        ],
+    )
+}
+
+fn skewer_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "skewer",
+        &["single_end_reads", "tail_adapter_trimming", "native_fastq_output"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["threads", "adapter_sequence", "quality_cutoff", "min_length"],
+        &[output("trimmed_reads_r1", FASTQ_SINGLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-skewer-work\"; mkdir -p \"$work\"; prefix=\"$work/skewer\"; '${executable}' -m tail -t '${parameter:threads}' -x '${parameter:adapter_sequence}' -q '${parameter:quality_cutoff}' -l '${parameter:min_length}' -z -o \"$prefix\" '${input:reads_r1}'; find \"$work\" -maxdepth 1 -type f \\( -name 'skewer-trimmed.fastq.gz' -o -name 'skewer-trimmed.fastq' \\) | LC_ALL=C sort > \"$work/outputs.list\"; test \"$(wc -l < \"$work/outputs.list\" | tr -d '[:space:]')\" -eq 1; src=$(sed -n '1p' \"$work/outputs.list\"); case \"$src\" in *.gz) cp -- \"$src\" '${output:trimmed_reads_r1}' ;; *) gzip -c -- \"$src\" > '${output:trimmed_reads_r1}' ;; esac",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(2, 2, 1),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+            "native_output_discovery_rejects_missing_or_ambiguous_results",
+        ],
+    )
+}
+
+fn trim_galore_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "trim_galore",
+        &["paired_end_reads", "cutadapt_backed_trimming", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "adapter_sequence", "quality_cutoff", "min_length"],
+        &[
+            output("trimmed_reads_r1", FASTQ_PAIRED),
+            output("trimmed_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-trim-galore-work\"; mkdir -p \"$work\"; '${executable}' --paired --cores '${parameter:threads}' --adapter '${parameter:adapter_sequence}' --quality '${parameter:quality_cutoff}' --length '${parameter:min_length}' --output_dir \"$work\" '${input:reads_r1}' '${input:reads_r2}'; find \"$work\" -maxdepth 1 -type f -name '*_val_1.fq*' | LC_ALL=C sort > \"$work/r1.list\"; find \"$work\" -maxdepth 1 -type f -name '*_val_2.fq*' | LC_ALL=C sort > \"$work/r2.list\"; test \"$(wc -l < \"$work/r1.list\" | tr -d '[:space:]')\" -eq 1; test \"$(wc -l < \"$work/r2.list\" | tr -d '[:space:]')\" -eq 1; normalize() { src=$1; dest=$2; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }; normalize \"$(sed -n '1p' \"$work/r1.list\")\" '${output:trimmed_reads_r1}'; normalize \"$(sed -n '1p' \"$work/r2.list\")\" '${output:trimmed_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(2, 4, 2),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "native_val_mate_outputs_are_resolved_independently",
+            "ambiguous_or_missing_native_mate_outputs_fail_before_admission",
+        ],
+    )
+}
+
+fn trimmomatic_trim_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.trim_reads",
+        "trimmomatic",
+        &["paired_end_reads", "quality_window_trimming", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "quality_cutoff", "min_length"],
+        &[output("trimmed_reads_r1", FASTQ_PAIRED), output("trimmed_reads_r2", FASTQ_PAIRED)],
+        &[
+            "${executable}",
+            "PE",
+            "-threads",
+            "${parameter:threads}",
+            "-phred33",
+            "${input:reads_r1}",
+            "${input:reads_r2}",
+            "${output:trimmed_reads_r1}",
+            "/dev/null",
+            "${output:trimmed_reads_r2}",
+            "/dev/null",
+            "SLIDINGWINDOW:4:${parameter:quality_cutoff}",
+            "MINLEN:${parameter:min_length}",
+        ],
+        "bijux.benchmark.fastq.trim_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::trim_reads",
+        "bijux.stage_probe.fastq.trim_reads.v1",
+        resources(2, 4, 2),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "unpaired_native_outputs_are_scientifically_excluded_from_the_pair_preserving_contract",
+            "quality_window_and_minimum_length_are_explicit_case_parameters",
+        ],
+    )
+}
+
+fn leehom_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "leehom",
+        &["paired_end_reads", "ancient_dna_overlap_merge", "native_result_directory"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("leehom_result_directory", DIRECTORY)],
+        &[
+            "sh",
+            "-lc",
+            "set -eu\nmkdir -p '${output:leehom_result_directory}'\n'${executable}' -fq1 '${input:reads_r1}' -fq2 '${input:reads_r2}' -fqo '${output:leehom_result_directory}/leehom' -t '${parameter:threads}' > '${output:leehom_result_directory}/leehom.log' 2>&1",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "the_native_directory_contains_merged_unmerged_and_backend_log_evidence",
+            "ancient_dna_overlap_behavior_requires_damage_stratified_comparative_evidence",
+        ],
+    )
+}
+
+fn pear_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "pear",
+        &["paired_end_reads", "statistical_overlap_merge", "native_result_directory"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "merge_overlap", "min_len"],
+        &[output("pear_result_directory", DIRECTORY)],
+        &[
+            "sh",
+            "-lc",
+            "set -eu\nmkdir -p '${output:pear_result_directory}'\n'${executable}' -f '${input:reads_r1}' -r '${input:reads_r2}' -o '${output:pear_result_directory}/pear' -j '${parameter:threads}' -v '${parameter:merge_overlap}' -n '${parameter:min_len}' > '${output:pear_result_directory}/pear.log' 2>&1",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "the_native_directory_contains_assembled_unassembled_and_backend_log_evidence",
+            "comparative_admission_requires_identical_overlap_and_minimum_length_policy",
+        ],
+    )
+}
+
+fn seqprep_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "seqprep",
+        &["paired_end_reads", "overlap_merge", "emitted_unmerged_pairs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &[],
+        &[
+            output("merged_reads", FASTQ_SINGLE),
+            output("unmerged_reads_r1", FASTQ_SINGLE),
+            output("unmerged_reads_r2", FASTQ_SINGLE),
+        ],
+        &[
+            "${executable}",
+            "-f",
+            "${input:reads_r1}",
+            "-r",
+            "${input:reads_r2}",
+            "-1",
+            "${output:unmerged_reads_r1}",
+            "-2",
+            "${output:unmerged_reads_r2}",
+            "-s",
+            "${output:merged_reads}",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(1, 2, 1),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "the_native_command_matches_admitted_run_1082_execution_evidence",
+            "executor_captured_streams_preserve_native_seqprep_diagnostics",
+        ],
+    )
+}
+
+fn vsearch_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "vsearch",
+        &["paired_end_reads", "overlap_merge", "emitted_unmerged_pairs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "merge_overlap", "min_len"],
+        &[
+            output("merged_reads", FASTQ_SINGLE),
+            output("unmerged_reads_r1", FASTQ_SINGLE),
+            output("unmerged_reads_r2", FASTQ_SINGLE),
+        ],
+        &[
+            "${executable}",
+            "--fastq_mergepairs",
+            "${input:reads_r1}",
+            "--reverse",
+            "${input:reads_r2}",
+            "--fastqout",
+            "${output:merged_reads}",
+            "--fastqout_notmerged_fwd",
+            "${output:unmerged_reads_r1}",
+            "--fastqout_notmerged_rev",
+            "${output:unmerged_reads_r2}",
+            "--threads",
+            "${parameter:threads}",
+            "--fastq_minovlen",
+            "${parameter:merge_overlap}",
+            "--fastq_minmergelen",
+            "${parameter:min_len}",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "qualification_emits_unmerged_pairs_instead_of_discarding_them",
+            "the_merge_binding_is_independent_of_the_vsearch_otu_clustering_binding",
+        ],
+    )
 }
 
 fn adapterremoval_merge_pairs() -> ToolBindingV1 {
@@ -1099,6 +1662,90 @@ fn rcorrector_correct_errors() -> ToolBindingV1 {
             "paired_end_binding",
             "exactly_two_native_corrected_outputs_are_required",
             "lexical_native_output_order_must_preserve_read_one_before_read_two",
+        ],
+    )
+}
+
+fn bayeshammer_correct_errors() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.correct_errors",
+        "bayeshammer",
+        &["paired_end_reads", "bayesian_kmer_error_correction", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "phred_offset", "max_memory_gb"],
+        &[
+            output("corrected_reads_r1", FASTQ_PAIRED),
+            output("corrected_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-bayeshammer-work\"; rm -rf \"$work\"; mkdir -p \"$work\"; '${executable}' --threads '${parameter:threads}' --phred-offset '${parameter:phred_offset}' -m '${parameter:max_memory_gb}' -1 '${input:reads_r1}' -2 '${input:reads_r2}' -o \"$work\"; find \"$work/corrected\" -maxdepth 1 -type f -name '*_1*.cor.fastq.gz' | LC_ALL=C sort > \"$work/r1.list\"; find \"$work/corrected\" -maxdepth 1 -type f -name '*_2*.cor.fastq.gz' | LC_ALL=C sort > \"$work/r2.list\"; test \"$(wc -l < \"$work/r1.list\" | tr -d '[:space:]')\" -eq 1; test \"$(wc -l < \"$work/r2.list\" | tr -d '[:space:]')\" -eq 1; cp -- \"$(sed -n '1p' \"$work/r1.list\")\" '${output:corrected_reads_r1}'; cp -- \"$(sed -n '1p' \"$work/r2.list\")\" '${output:corrected_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.correct_errors.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::correct_errors",
+        "bijux.stage_probe.fastq.correct_errors.v1",
+        resources(4, 16, 8),
+        &[
+            "paired_end_binding",
+            "native_corrected_mate_names_are_resolved_independently",
+            "ambiguous_or_missing_native_mate_outputs_fail_before_admission",
+        ],
+    )
+}
+
+fn lighter_correct_errors() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.correct_errors",
+        "lighter",
+        &["paired_end_reads", "spectrum_kmer_error_correction", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "kmer_size", "genome_size"],
+        &[
+            output("corrected_reads_r1", FASTQ_PAIRED),
+            output("corrected_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-lighter-work\"; rm -rf \"$work\"; mkdir -p \"$work\"; '${executable}' -K '${parameter:kmer_size}' '${parameter:genome_size}' -t '${parameter:threads}' -od \"$work\" -r '${input:reads_r1}' -r '${input:reads_r2}'; find \"$work\" -maxdepth 1 -type f \\( -name '*.cor.fq' -o -name '*.cor.fastq' -o -name '*.cor.fq.gz' -o -name '*.cor.fastq.gz' \\) | LC_ALL=C sort > \"$work/outputs.list\"; test \"$(wc -l < \"$work/outputs.list\" | tr -d '[:space:]')\" -eq 2; normalize() { src=$1; dest=$2; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }; normalize \"$(sed -n '1p' \"$work/outputs.list\")\" '${output:corrected_reads_r1}'; normalize \"$(sed -n '2p' \"$work/outputs.list\")\" '${output:corrected_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.correct_errors.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::correct_errors",
+        "bijux.stage_probe.fastq.correct_errors.v1",
+        resources(16, 64, 64),
+        &[
+            "paired_end_binding",
+            "genome_size_must_match_the_governed_reference_scope",
+            "exactly_two_native_corrected_outputs_are_required",
+        ],
+    )
+}
+
+fn musket_correct_errors() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.correct_errors",
+        "musket",
+        &["paired_end_reads", "multistage_kmer_error_correction", "pair_preserving_outputs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "kmer_size", "musket_kmer_budget"],
+        &[
+            output("corrected_reads_r1", FASTQ_PAIRED),
+            output("corrected_reads_r2", FASTQ_PAIRED),
+        ],
+        &[
+            "/bin/sh",
+            "-c",
+            "work=\"$TMPDIR/bijux-musket-work\"; rm -rf \"$work\"; mkdir -p \"$work\"; prefix=\"$work/corrected\"; '${executable}' -p '${parameter:threads}' -k '${parameter:kmer_size}' '${parameter:musket_kmer_budget}' -omulti \"$prefix\" -inorder '${input:reads_r1}' '${input:reads_r2}'; normalize() { src=$1; dest=$2; test -f \"$src\"; case \"$src\" in *.gz) cp -- \"$src\" \"$dest\" ;; *) gzip -c -- \"$src\" > \"$dest\" ;; esac; }; normalize \"$prefix.0\" '${output:corrected_reads_r1}'; normalize \"$prefix.1\" '${output:corrected_reads_r2}'",
+        ],
+        "bijux.benchmark.fastq.correct_errors.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::transform::correct_errors",
+        "bijux.stage_probe.fastq.correct_errors.v1",
+        resources(4, 8, 4),
+        &[
+            "paired_end_binding",
+            "musket_kmer_budget_is_an_explicit_reproducibility_parameter",
+            "inorder_preserves_mate_correspondence_in_native_outputs",
         ],
     )
 }

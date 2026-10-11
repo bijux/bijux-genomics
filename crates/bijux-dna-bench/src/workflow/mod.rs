@@ -2,6 +2,7 @@
 //! Benchmark workflow facade over summary, evaluation, suite loading, and suite persistence.
 #![allow(dead_code)]
 
+mod alias_resolution;
 mod appraisal;
 mod attempt_migration;
 mod bam_alignment;
@@ -47,6 +48,7 @@ mod source_authority;
 mod stage_coverage;
 mod stage_families;
 mod stage_report;
+mod stage_result;
 mod stage_tool_closure;
 mod stage_universe;
 mod suite_load;
@@ -56,6 +58,11 @@ mod summary_scope;
 mod summary_statistics;
 mod vcf_campaign;
 
+pub use alias_resolution::{
+    choose_canonical_tool_id, legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases,
+    normalize_tool_id, required_migration_stage_ids,
+    stage_set_contains_canonical_or_migration_alias, LegacyBenchmarkStageAlias,
+};
 pub use appraisal::{
     appraise_matrix_report, hardening_queue_from_appraisal, load_appraisal_report,
     load_hardening_queue_report, publish_appraisal_report, publish_hardening_queue_report,
@@ -241,6 +248,9 @@ pub use stage_families::{
 };
 pub use stage_report::{
     publish_stage_report, render_stage_report_markdown, BenchmarkStageReportPublication,
+};
+pub use stage_result::{
+    load_benchmark_stage_result_manifest, validate_benchmark_stage_result_path,
 };
 pub use stage_tool_closure::{
     derive_benchmark_stage_tool_closure, publish_checked_in_benchmark_stage_tool_closure,

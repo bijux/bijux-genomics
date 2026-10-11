@@ -3,14 +3,19 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::{Deserialize, Serialize};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_stage_inventory,
+    BenchmarkLocalAllDomainStageInventory, BenchmarkLocalStageInventory,
+    BenchmarkLocalStageInventoryEntry, BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1,
+    BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1,
+};
+use serde::Deserialize;
+
+pub(crate) use bijux_dna_api::v1::api::bench::BenchmarkLocalStageReadinessKind as LocalStageReadinessKind;
 
 use super::local_vcf_stage_matrix::{LocalVcfStageMatrixConfig, DEFAULT_VCF_STAGE_MATRIX_PATH};
 use super::path_resolution::BenchmarkPathResolver;
 
-const LOCAL_STAGE_INVENTORY_SCHEMA_VERSION: &str = "bijux.bench.local_stage_inventory.v1";
-const LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_VERSION: &str =
-    "bijux.bench.local_all_domain_stage_inventory.v1";
 const VCF_LOCAL_STAGE_READINESS_KIND: LocalStageReadinessKind = LocalStageReadinessKind::Smoke;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_STAGE_LIST_PATH: &str =
@@ -57,50 +62,6 @@ impl BenchLocalDomain {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum LocalStageReadinessKind {
-    DryRun,
-    Smoke,
-    DryOrSmoke,
-}
-
-impl LocalStageReadinessKind {
-    pub(crate) fn as_str(self) -> &'static str {
-        match self {
-            Self::DryRun => "dry_run",
-            Self::Smoke => "smoke",
-            Self::DryOrSmoke => "dry_or_smoke",
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct BenchLocalStageInventoryEntry {
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: LocalStageReadinessKind,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct BenchLocalStageInventory {
-    pub(crate) schema_version: &'static str,
-    pub(crate) domain: &'static str,
-    pub(crate) stage_matrix_schema_version: String,
-    pub(crate) stage_matrix_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) stages: Vec<BenchLocalStageInventoryEntry>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct BenchLocalAllDomainStageInventory {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) selected_domains: Vec<String>,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) total_stage_count: usize,
-    pub(crate) inventories: Vec<BenchLocalStageInventory>,
-}
-
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct LocalStageMatrix {
@@ -118,7 +79,7 @@ struct LocalStageMatrixEntry {
 pub(crate) fn load_local_stage_inventory(
     cwd: &Path,
     domain: BenchLocalDomain,
-) -> Result<BenchLocalStageInventory> {
+) -> Result<BenchmarkLocalStageInventory> {
     match domain {
         BenchLocalDomain::Fastq | BenchLocalDomain::Bam => {
             load_matrix_backed_stage_inventory(cwd, domain)
@@ -131,7 +92,7 @@ pub(crate) fn render_all_domain_stage_inventory(
     repo_root: &Path,
     domains: &[BenchLocalDomain],
     output_path: PathBuf,
-) -> Result<BenchLocalAllDomainStageInventory> {
+) -> Result<BenchmarkLocalAllDomainStageInventory> {
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
         bijux_dna_infra::ensure_dir(parent)
@@ -144,21 +105,22 @@ pub(crate) fn render_all_domain_stage_inventory(
         .map(|domain| load_local_stage_inventory(repo_root, domain))
         .collect::<Result<Vec<_>>>()?;
     let selected_domains =
-        inventories.iter().map(|inventory| inventory.domain.to_string()).collect::<Vec<_>>();
+        inventories.iter().map(|inventory| inventory.domain.clone()).collect::<Vec<_>>();
     let domain_counts = inventories
         .iter()
-        .map(|inventory| (inventory.domain.to_string(), inventory.stage_count))
+        .map(|inventory| (inventory.domain.clone(), inventory.stage_count))
         .collect::<BTreeMap<_, _>>();
     let total_stage_count = inventories.iter().map(|inventory| inventory.stage_count).sum();
 
-    let report = BenchLocalAllDomainStageInventory {
-        schema_version: LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_VERSION,
+    let report = BenchmarkLocalAllDomainStageInventory {
+        schema_version: BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         selected_domains,
         domain_counts,
         total_stage_count,
         inventories,
     };
+    validate_benchmark_local_all_domain_stage_inventory(&report)?;
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)
         .with_context(|| format!("write {}", absolute_output_path.display()))?;
     Ok(report)
@@ -167,7 +129,7 @@ pub(crate) fn render_all_domain_stage_inventory(
 fn load_matrix_backed_stage_inventory(
     cwd: &Path,
     domain: BenchLocalDomain,
-) -> Result<BenchLocalStageInventory> {
+) -> Result<BenchmarkLocalStageInventory> {
     let benchmark_paths = BenchmarkPathResolver::new(cwd, None);
     let matrix_path = match domain {
         BenchLocalDomain::Fastq => {
@@ -199,17 +161,19 @@ fn load_matrix_backed_stage_inventory(
         matrix.stages.into_iter().map(|entry| (entry.stage_id, entry.readiness_kind)),
     )?;
 
-    Ok(BenchLocalStageInventory {
-        schema_version: LOCAL_STAGE_INVENTORY_SCHEMA_VERSION,
-        domain: domain.as_str(),
+    let inventory = BenchmarkLocalStageInventory {
+        schema_version: BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1.to_string(),
+        domain: domain.as_str().to_string(),
         stage_matrix_schema_version: matrix.schema_version,
         stage_matrix_path: domain.matrix_relative_path().to_string(),
         stage_count: stages.len(),
         stages,
-    })
+    };
+    validate_benchmark_local_stage_inventory(&inventory)?;
+    Ok(inventory)
 }
 
-fn load_vcf_stage_inventory(cwd: &Path) -> Result<BenchLocalStageInventory> {
+fn load_vcf_stage_inventory(cwd: &Path) -> Result<BenchmarkLocalStageInventory> {
     let domain = BenchLocalDomain::Vcf;
     let matrix_path = cwd.join(domain.matrix_relative_path());
     let raw = fs::read_to_string(&matrix_path)
@@ -233,21 +197,23 @@ fn load_vcf_stage_inventory(cwd: &Path) -> Result<BenchLocalStageInventory> {
         matrix.rows.into_iter().map(|row| (row.stage_id, VCF_LOCAL_STAGE_READINESS_KIND)),
     )?;
 
-    Ok(BenchLocalStageInventory {
-        schema_version: LOCAL_STAGE_INVENTORY_SCHEMA_VERSION,
-        domain: domain.as_str(),
+    let inventory = BenchmarkLocalStageInventory {
+        schema_version: BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1.to_string(),
+        domain: domain.as_str().to_string(),
         stage_matrix_schema_version: matrix.schema_version,
         stage_matrix_path: domain.matrix_relative_path().to_string(),
         stage_count: stages.len(),
         stages,
-    })
+    };
+    validate_benchmark_local_stage_inventory(&inventory)?;
+    Ok(inventory)
 }
 
 fn validate_matrix_backed_stage_entries(
     matrix_path: &Path,
     domain: BenchLocalDomain,
     entries: impl Iterator<Item = (String, LocalStageReadinessKind)>,
-) -> Result<Vec<BenchLocalStageInventoryEntry>> {
+) -> Result<Vec<BenchmarkLocalStageInventoryEntry>> {
     let mut seen_stage_ids = BTreeSet::new();
     let mut stages = Vec::new();
     for (stage_id, readiness_kind) in entries {
@@ -267,7 +233,7 @@ fn validate_matrix_backed_stage_entries(
                 domain.as_str()
             ));
         }
-        stages.push(BenchLocalStageInventoryEntry { stage_id, readiness_kind });
+        stages.push(BenchmarkLocalStageInventoryEntry { stage_id, readiness_kind });
     }
     Ok(stages)
 }

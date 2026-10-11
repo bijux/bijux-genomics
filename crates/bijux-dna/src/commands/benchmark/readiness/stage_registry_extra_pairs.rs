@@ -3,7 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_stage_registry_extra_pairs, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    StageRegistryExtraPairRow, StageRegistryExtraPairsReport,
+};
 
 use super::catalog::{
     load_benchmark_stage_ids, load_registry_tool_matrix, load_tool_contracts, ReadinessDomain,
@@ -13,32 +18,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_REGISTRY_EXTRA_PAIRS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/stage-registry-extra-pairs.tsv";
-const STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.stage_registry_extra_pairs.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct StageRegistryExtraPairRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) contract_status: String,
-    pub(crate) registry_sources: Vec<String>,
-    pub(crate) registered_stage_ids: Vec<String>,
-    pub(crate) documented_exception_status: String,
-    pub(crate) documented_exception_reason: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct StageRegistryExtraPairsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) extra_pair_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) ok: bool,
-    pub(crate) rows: Vec<StageRegistryExtraPairRow>,
-}
-
 pub(crate) fn run_render_stage_registry_extra_pairs(
     args: &parse::BenchReadinessRenderStageRegistryExtraPairsArgs,
 ) -> Result<()> {
@@ -160,26 +139,29 @@ pub(crate) fn render_stage_registry_extra_pairs(
             .then_with(|| left.tool_id.cmp(&right.tool_id))
     });
 
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_stage_registry_extra_pairs_tsv(&rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
     let mut domain_counts = BTreeMap::<String, usize>::new();
     for row in &rows {
         *domain_counts.entry(row.domain.clone()).or_default() += 1;
     }
     let ok = rows.iter().all(|row| row.documented_exception_status == "explicit_intent");
 
-    Ok(StageRegistryExtraPairsReport {
-        schema_version: STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION,
+    let rendered = render_stage_registry_extra_pairs_tsv(&rows);
+    let report = StageRegistryExtraPairsReport {
+        schema_version: STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         extra_pair_count: rows.len(),
         domain_counts,
         ok,
         rows,
-    })
+    };
+    validate_stage_registry_extra_pairs(&report)
+        .context("validate stage-registry extra-pairs report")?;
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(&output_path, rendered)
+        .with_context(|| format!("write {}", output_path.display()))?;
+    Ok(report)
 }
 
 fn render_stage_registry_extra_pairs_tsv(rows: &[StageRegistryExtraPairRow]) -> String {
@@ -225,7 +207,7 @@ mod tests {
 
     use super::{
         render_stage_registry_extra_pairs, DEFAULT_STAGE_REGISTRY_EXTRA_PAIRS_PATH,
-        STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION,
+        STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
     };
 
     fn repo_root() -> PathBuf {
@@ -241,7 +223,7 @@ mod tests {
         )
         .expect("render stage registry extra pairs");
 
-        assert_eq!(report.schema_version, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1);
         assert_eq!(report.extra_pair_count, 0);
         assert!(report.ok, "report must pass once registry-only benchmark pairs are retired");
         assert!(report.domain_counts.is_empty());

@@ -285,6 +285,27 @@ fn fastq_to_vcf_minimal_profile_snapshot() {
 }
 
 #[test]
+fn cross_vcf_profiles_use_the_declared_bam_genotyping_binding() {
+    for profile in [bam_to_vcf_default_profile(), fastq_to_vcf_minimal_profile()] {
+        let tool = profile
+            .defaults
+            .tools
+            .iter()
+            .find(|(stage, _)| stage.as_str() == "bam.genotyping")
+            .map(|(_, tool)| tool.as_str());
+        assert_eq!(tool, Some(id_catalog::TOOL_BCFTOOLS), "{}", profile.id.as_str());
+
+        let caller = profile
+            .defaults
+            .params
+            .iter()
+            .find(|(stage, _)| stage.as_str() == "bam.genotyping")
+            .and_then(|(_, params)| params.to_json().get("caller").cloned());
+        assert_eq!(caller.as_ref().and_then(serde_json::Value::as_str), Some("bcftools"));
+    }
+}
+
+#[test]
 fn cross_workflow_templates_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "cross_workflow_templates");

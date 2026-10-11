@@ -18,7 +18,9 @@ This crate owns QA evidence contracts, not production execution contracts.
 - Qualification plan: exactly version, help, real, and negative probes derived from one admitted
   container pipeline, including declared outputs and acceptance metrics.
 - Qualification specification source: exact catalog, registry, inventory, repository, image,
-  governed input, stage-binding, resource, and output identities required for generic compilation.
+  governed input, stage-binding, resource, and output identities required for generic compilation;
+  binding preserves admitted inputs while currentizing result destinations to the exact governed
+  `results/container-validation/<run-id>-<tool-id>` layout.
 - Qualification specification coverage: one independently classified row per retained catalog
   tool; missing bindings, images, or governed sources never block unrelated ready rows.
 - Qualification assessment: immutable output digests, metric observations, and typed failure

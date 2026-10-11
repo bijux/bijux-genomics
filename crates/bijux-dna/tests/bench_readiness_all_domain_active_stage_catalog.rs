@@ -107,10 +107,10 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.trim_reads")
             && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
-            && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(13)
-            && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64) == Some(13)
-            && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(13)
-            && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(13)
+            && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(14)
+            && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64) == Some(14)
+            && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(14)
+            && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(14)
             && row.get("schema_present").and_then(serde_json::Value::as_bool) == Some(true)
             && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(1)
             && row.get("benchmark_statuses").and_then(serde_json::Value::as_array)
@@ -127,6 +127,7 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
                     serde_json::Value::String("leehom".to_string()),
                     serde_json::Value::String("prinseq".to_string()),
                     serde_json::Value::String("seqkit".to_string()),
+                    serde_json::Value::String("seqprep".to_string()),
                     serde_json::Value::String("skewer".to_string()),
                     serde_json::Value::String("trim_galore".to_string()),
                     serde_json::Value::String("trimmomatic".to_string()),

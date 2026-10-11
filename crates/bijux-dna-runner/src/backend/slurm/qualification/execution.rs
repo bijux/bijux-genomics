@@ -6,6 +6,7 @@ use std::fs::{self, File};
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::time::{Duration, Instant};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::{
@@ -28,6 +29,7 @@ use super::validation::{canonical_directory, validate_specification};
 const EXECUTION_EVIDENCE_SCHEMA_V1: &str = "bijux.container.evidence.v1";
 const EXECUTION_EVIDENCE_SCHEMA_V2: &str = "bijux.container.evidence.v2";
 const ISOLATED_RUNTIME_HOSTNAME: &str = "bijux-runtime";
+const MAX_EVIDENCE_PUBLICATION_RESERVE: Duration = Duration::from_mins(2);
 
 struct NativeExecutionWorkspace {
     result_root: PathBuf,
@@ -50,6 +52,10 @@ struct NativeExecutionOutcome {
 pub fn execute_container_qualification(
     spec: &ContainerQualificationSlurmSpec,
 ) -> Result<ContainerQualificationExecution> {
+    let execution_budget = qualification_execution_budget(&spec.resources.walltime)?;
+    let deadline = Instant::now()
+        .checked_add(execution_budget)
+        .context("qualification execution deadline overflow")?;
     validate_specification(spec)?;
     if !matches!(
         spec.schema_version.as_str(),
@@ -62,7 +68,7 @@ pub fn execute_container_qualification(
     let governance = load_container_governance(&spec.governance_path)?;
     let contract = plan_container_qualification(load_container_pipeline(&spec.pipeline_path)?)?;
     let workspace = prepare_execution_workspace(spec, &contract, &governance)?;
-    let outcome = execute_contract(spec, &contract, &workspace)?;
+    let outcome = execute_contract(spec, &contract, &workspace, deadline)?;
     publish_execution_evidence(spec, &governance, &contract, &workspace, outcome)
 }
 
@@ -113,13 +119,14 @@ fn execute_contract(
     spec: &ContainerQualificationSlurmSpec,
     contract: &ContainerQualificationPlan,
     workspace: &NativeExecutionWorkspace,
+    deadline: Instant,
 ) -> Result<NativeExecutionOutcome> {
     let started_at_utc = utc_now();
     let result_root = &workspace.result_root;
     let output_root = &workspace.output_root;
     let scratch = &workspace.scratch;
     let binds = qualification_binds(spec, contract, output_root, scratch);
-    let checks = run_qualification_checks(contract, &binds, scratch, result_root)?;
+    let checks = run_qualification_checks(contract, &binds, scratch, result_root, deadline)?;
     let observations = probe_observations(contract, &checks, result_root)?;
     let assessment =
         evaluate_container_qualification(contract, &observations, result_root, output_root)?;
@@ -131,6 +138,7 @@ fn run_qualification_checks(
     binds: &[(PathBuf, PathBuf, &'static str)],
     scratch: &Path,
     result_root: &Path,
+    deadline: Instant,
 ) -> Result<BTreeMap<String, Value>> {
     contract
         .probes
@@ -146,6 +154,7 @@ fn run_qualification_checks(
                     scratch,
                     result_root,
                     name,
+                    deadline.checked_duration_since(Instant::now()).unwrap_or_default(),
                 )?,
             ))
         })
@@ -288,11 +297,8 @@ fn run_check(
     scratch: &Path,
     result_root: &Path,
     name: &str,
+    timeout: Duration,
 ) -> Result<Value> {
-    let stdout_path = result_root.join(format!("{name}.stdout.log"));
-    let stderr_path = result_root.join(format!("{name}.stderr.log"));
-    let stdout = File::create(&stdout_path)?;
-    let stderr = File::create(&stderr_path)?;
     let mut command = Command::new("apptainer");
     command.args([
         "exec",
@@ -316,16 +322,68 @@ fn run_check(
         .env("LC_ALL", "C")
         .env("PATH", std::env::var("PATH").unwrap_or_default())
         .env("TMPDIR", scratch)
-        .env("TZ", "UTC")
-        .stdout(Stdio::from(stdout))
-        .stderr(Stdio::from(stderr));
-    let status = command.status().with_context(|| format!("execute {name} qualification check"))?;
+        .env("TZ", "UTC");
+    run_supervised_check(command, arguments, result_root, name, timeout)
+}
+
+fn run_supervised_check(
+    mut command: Command,
+    arguments: &[String],
+    result_root: &Path,
+    name: &str,
+    timeout: Duration,
+) -> Result<Value> {
+    let stdout_path = result_root.join(format!("{name}.stdout.log"));
+    let stderr_path = result_root.join(format!("{name}.stderr.log"));
+    let stdout = File::create(&stdout_path)
+        .with_context(|| format!("create {name} qualification stdout"))?;
+    let stderr = File::create(&stderr_path)
+        .with_context(|| format!("create {name} qualification stderr"))?;
+    command.stdout(Stdio::from(stdout)).stderr(Stdio::from(stderr));
+    crate::process_supervision::isolate_process_group(&mut command);
+    let mut child =
+        command.spawn().with_context(|| format!("execute {name} qualification check"))?;
+    let outcome = crate::process_supervision::wait_for_status(
+        &mut child,
+        timeout,
+        &format!("{name} qualification check"),
+    )?;
+    let timeout_milliseconds = u64::try_from(timeout.as_millis()).unwrap_or(u64::MAX);
     Ok(json!({
         "argv": arguments,
-        "exit_code": status.code().unwrap_or(128),
+        "exit_code": if outcome.timed_out { 124 } else { outcome.status.code().unwrap_or(128) },
+        "timed_out": outcome.timed_out,
+        "timeout_milliseconds": timeout_milliseconds,
         "stdout_sha256": bijux_dna_infra::hash_file_sha256(&stdout_path)?,
         "stderr_sha256": bijux_dna_infra::hash_file_sha256(&stderr_path)?,
     }))
+}
+
+fn qualification_execution_budget(walltime: &str) -> Result<Duration> {
+    let mut fields = walltime.split(':');
+    let hours = fields.next().context("qualification walltime omits hours")?;
+    let minutes = fields.next().context("qualification walltime omits minutes")?;
+    let seconds = fields.next().context("qualification walltime omits seconds")?;
+    if fields.next().is_some() || hours.len() < 2 || hours.len() > 3 {
+        bail!("qualification walltime must use HH:MM:SS");
+    }
+    let hours = hours.parse::<u64>().context("parse qualification walltime hours")?;
+    let minutes = minutes.parse::<u64>().context("parse qualification walltime minutes")?;
+    let seconds = seconds.parse::<u64>().context("parse qualification walltime seconds")?;
+    if minutes > 59 || seconds > 59 {
+        bail!("qualification walltime is outside supported bounds");
+    }
+    let total_seconds = hours
+        .checked_mul(60 * 60)
+        .and_then(|value| value.checked_add(minutes * 60))
+        .and_then(|value| value.checked_add(seconds))
+        .context("qualification walltime overflow")?;
+    if total_seconds == 0 {
+        bail!("qualification walltime must be positive");
+    }
+    let reserve_seconds =
+        (total_seconds / 5).max(1).min(MAX_EVIDENCE_PUBLICATION_RESERVE.as_secs());
+    Ok(Duration::from_secs(total_seconds - reserve_seconds))
 }
 
 fn archive_contract(source: &Path, target: &Path) -> Result<()> {
@@ -372,7 +430,10 @@ fn utc_now() -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::archive_contract;
+    use std::process::Command;
+    use std::time::Duration;
+
+    use super::{archive_contract, qualification_execution_budget, run_supervised_check};
 
     #[test]
     fn archive_contract_preserves_an_already_archived_file() -> anyhow::Result<()> {
@@ -384,6 +445,55 @@ mod tests {
         archive_contract(&contract, &contract)?;
 
         assert_eq!(std::fs::read(contract)?, expected);
+        Ok(())
+    }
+
+    #[test]
+    fn qualification_budget_reserves_evidence_publication_time() -> anyhow::Result<()> {
+        assert_eq!(qualification_execution_budget("00:30:00")?, Duration::from_mins(28));
+        assert_eq!(qualification_execution_budget("00:05:00")?, Duration::from_mins(4));
+        assert_eq!(qualification_execution_budget("00:00:01")?, Duration::ZERO);
+        assert!(qualification_execution_budget("00:60:00").is_err());
+        assert!(qualification_execution_budget("00:00:00").is_err());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn supervised_qualification_check_records_nonzero_exit() -> anyhow::Result<()> {
+        let root = bijux_dna_infra::temp_dir("qualification-nonzero-check")?;
+        let arguments = vec!["-c".to_string(), "printf quota >&2; exit 28".to_string()];
+        let mut command = Command::new("sh");
+        command.args(&arguments);
+
+        let result =
+            run_supervised_check(command, &arguments, root.path(), "real", Duration::from_secs(2))?;
+
+        assert_eq!(result["exit_code"], 28);
+        assert_eq!(result["timed_out"], false);
+        assert_eq!(std::fs::read_to_string(root.path().join("real.stderr.log"))?, "quota");
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn supervised_qualification_check_kills_descendants_at_deadline() -> anyhow::Result<()> {
+        let root = bijux_dna_infra::temp_dir("qualification-timeout-check")?;
+        let arguments = vec!["-c".to_string(), "printf started >&2; tail -f /dev/null".to_string()];
+        let mut command = Command::new("sh");
+        command.args(&arguments);
+
+        let result = run_supervised_check(
+            command,
+            &arguments,
+            root.path(),
+            "real",
+            Duration::from_millis(50),
+        )?;
+
+        assert_eq!(result["exit_code"], 124);
+        assert_eq!(result["timed_out"], true);
+        assert_eq!(std::fs::read_to_string(root.path().join("real.stderr.log"))?, "started");
         Ok(())
     }
 }

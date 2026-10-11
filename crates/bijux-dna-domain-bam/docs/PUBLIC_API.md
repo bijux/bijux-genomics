@@ -8,10 +8,12 @@ Public modules exported from `src/lib.rs`:
 - params
 - pipeline_contract
 - prelude
+- reference
 - stage_specs
 - types
 
 Primary stage-spec helpers:
+- `alignment::AlignmentBoundary`
 - `benchmark_corpus_assignment_for_stage_tool`
 - `governed_benchmark_stage_tool_bindings`
 - `BenchmarkCorpusFamily`

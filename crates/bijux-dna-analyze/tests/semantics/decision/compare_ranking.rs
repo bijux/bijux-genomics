@@ -36,7 +36,9 @@ fn compare_and_ranking_snapshot() -> Result<()> {
     )?;
 
     let objective = objective_spec(Objective::Balanced);
-    let comparison = compare_runs(&run_a, &run_b, &objective)?;
+    let mut comparison = compare_runs(&run_a, &run_b, &objective)?;
+    comparison.run_a = "<ROOT>/tests/fixtures/compare_ranking/default/run_a".to_string();
+    comparison.run_b = "<ROOT>/tests/fixtures/compare_ranking/default/run_b".to_string();
 
     let rankings = build_rankings(&[
         RankInput {

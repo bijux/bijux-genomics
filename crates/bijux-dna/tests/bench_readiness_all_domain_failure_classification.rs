@@ -48,10 +48,10 @@ fn bench_readiness_all_domain_failure_classification_reports_each_required_class
         payload.get("fixture_root").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/failure-classification")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(payload.get("triggered_row_count").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(payload.get("required_class_count").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(payload.get("triggered_class_count").and_then(serde_json::Value::as_u64), Some(7));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("triggered_row_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("required_class_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("triggered_class_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("missing_class_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
 
@@ -62,7 +62,7 @@ fn bench_readiness_all_domain_failure_classification_reports_each_required_class
     assert!(missing_class_ids.is_empty());
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 7);
+    assert_eq!(rows.len(), 8);
     assert!(rows.iter().all(|row| row.get("triggered") == Some(&serde_json::Value::Bool(true))));
     assert_eq!(
         rows.iter()
@@ -70,6 +70,7 @@ fn bench_readiness_all_domain_failure_classification_reports_each_required_class
             .collect::<BTreeSet<_>>(),
         [
             "missing_input",
+            "blocked_external_access",
             "tool_not_found",
             "command_failed",
             "missing_output",
@@ -79,6 +80,22 @@ fn bench_readiness_all_domain_failure_classification_reports_each_required_class
         ]
         .into_iter()
         .collect()
+    );
+
+    let blocked_external_access = rows
+        .iter()
+        .find(|row| {
+            row.get("class_id").and_then(serde_json::Value::as_str)
+                == Some("blocked_external_access")
+        })
+        .expect("blocked external access row");
+    assert_eq!(
+        blocked_external_access.get("observed_status").and_then(serde_json::Value::as_str),
+        Some("blocked_external_access")
+    );
+    assert_eq!(
+        blocked_external_access.get("evidence_path").and_then(serde_json::Value::as_str),
+        Some("containers/contracts/catalog.toml")
     );
 
     let tool_not_found = rows

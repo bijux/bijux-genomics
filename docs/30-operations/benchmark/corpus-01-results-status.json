@@ -1,4 +1,5 @@
 {
+  "schema_version": "bijux.bench.published_results_status.v1",
   "corpus_id": "corpus-01",
   "applicable_stage_count": 20,
   "published_stage_count": 19,

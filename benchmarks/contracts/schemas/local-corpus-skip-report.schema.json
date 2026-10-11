@@ -1,0 +1,179 @@
+{
+  "$defs": {
+    "BenchmarkLocalAssetBackedStage": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_scope_id": {
+          "type": "string"
+        },
+        "readiness_kind": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind",
+        "benchmark_scope_id",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalCorpusFixture": {
+      "additionalProperties": false,
+      "properties": {
+        "corpus_family_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "corpus_id",
+        "corpus_family_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalCorpusSkip": {
+      "additionalProperties": false,
+      "properties": {
+        "corpus_family_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "readiness_kind": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "replacement_corpus_family_id": {
+          "type": "string"
+        },
+        "replacement_corpus_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind",
+        "corpus_id",
+        "corpus_family_id",
+        "reason",
+        "replacement_corpus_id",
+        "replacement_corpus_family_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalPlannerOnlyStage": {
+      "additionalProperties": false,
+      "properties": {
+        "readiness_kind": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind",
+        "reason"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "asset_backed_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "asset_backed_stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalAssetBackedStage"
+      },
+      "type": "array"
+    },
+    "fixture_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fixtures": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalCorpusFixture"
+      },
+      "type": "array"
+    },
+    "matrix_path": {
+      "type": "string"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "planner_only_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "planner_only_stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalPlannerOnlyStage"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_corpus_skip_report.v1",
+      "type": "string"
+    },
+    "skip_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "skips": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalCorpusSkip"
+      },
+      "type": "array"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "matrix_path",
+    "output_path",
+    "fixture_count",
+    "stage_count",
+    "skip_count",
+    "asset_backed_stage_count",
+    "planner_only_stage_count",
+    "fixtures",
+    "skips",
+    "asset_backed_stages",
+    "planner_only_stages"
+  ],
+  "title": "BenchmarkLocalCorpusSkipReport",
+  "type": "object"
+}

@@ -78,3 +78,27 @@ pub struct RepositoryFreezeRequest {
     pub checkout_paths: Vec<PathBuf>,
     pub source_namespace: String,
 }
+
+pub const REPOSITORY_FREEZE_ARCHIVE_RECEIPT_SCHEMA_V1: &str =
+    "bijux.container.repository_freeze_archive_receipt.v1";
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RepositoryFreezeArchiveRequest {
+    pub governance: ContainerGovernance,
+    pub hostname: String,
+    pub snapshot: PathBuf,
+    pub commit: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct RepositoryFreezeArchiveReceipt {
+    pub schema_version: String,
+    pub snapshot_relative_path: PathBuf,
+    pub commit: String,
+    pub bundle_path: PathBuf,
+    pub bundle_sha256: String,
+    pub tracked_index_sha256: String,
+    pub sparse_checkout_paths: Vec<PathBuf>,
+    pub restoration_verified: bool,
+}

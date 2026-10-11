@@ -10,6 +10,14 @@ use bijux_dna_bench_model::{
 };
 
 #[test]
+fn corpus_acquisition_layout_has_stable_wire_labels() {
+    assert_eq!(CorpusAcquisitionLayout::Se.as_str(), "se");
+    assert_eq!(CorpusAcquisitionLayout::Pe.as_str(), "pe");
+    assert_eq!(CorpusAcquisitionLayout::Se.to_string(), "se");
+    assert_eq!(CorpusAcquisitionLayout::Pe.to_string(), "pe");
+}
+
+#[test]
 fn fastq_source_contract_accepts_real_data_and_rejects_fixtures() {
     let source = fastq_source_spec();
     assert!(validate_fastq_corpus_source_spec(&source).is_ok());
