@@ -6,7 +6,6 @@ Planner tests protect deterministic plan output, graph topology, command specs, 
 - `tests/boundaries.rs` — shared guardrails and planner boundary checks.
 - `tests/contracts.rs` — plan, graph, explain, command, and fixture contracts.
 - `tests/determinism.rs` — deterministic plan ordering and stable graph behavior.
-- `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 
 ## Boundary Modules
 - `tests/boundaries/architecture_tree.rs` — locks the intentional crate layout.
@@ -40,3 +39,5 @@ Run:
 ```bash
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-planner-fastq --no-default-features
 ```
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

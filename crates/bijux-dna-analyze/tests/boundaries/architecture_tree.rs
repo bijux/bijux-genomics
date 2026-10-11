@@ -146,7 +146,6 @@ fn assert_test_layout(root: &Path) {
             "determinism/",
             "determinism.rs",
             "fixtures/",
-            "guardrails.rs",
             "schemas/",
             "schemas.rs",
             "semantics/",

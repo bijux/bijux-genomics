@@ -296,7 +296,6 @@ dependencies = [
  "bijux-dna-pipelines",
  "bijux-dna-planner-bam",
  "bijux-dna-planner-fastq",
- "bijux-dna-policies",
  "bijux-dna-runtime",
  "bijux-dna-testkit",
  "chrono",
@@ -380,6 +379,7 @@ dependencies = [
  "insta",
  "md5",
  "rayon",
+ "regex",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -396,7 +396,6 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-domain-fastq",
  "bijux-dna-domain-vcf",
- "bijux-dna-policies",
  "bijux-dna-stage-contract",
  "bijux-dna-testkit",
  "chrono",
@@ -466,7 +465,6 @@ name = "bijux-dna-core"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-policies",
  "chrono",
  "insta",
  "regex",
@@ -484,7 +482,6 @@ name = "bijux-dna-db-ena"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-policies",
  "clap",
  "md5",
  "rayon",
@@ -502,7 +499,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-domain-vcf",
- "bijux-dna-policies",
  "serde",
  "serde_json",
  "tempfile",
@@ -726,7 +722,6 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-db-ref",
  "bijux-dna-domain-vcf",
- "bijux-dna-policies",
  "bijux-dna-stage-contract",
  "serde",
  "serde_json",
@@ -769,7 +764,6 @@ dependencies = [
  "bijux-dna-containers-qa",
  "bijux-dna-core",
  "bijux-dna-infra",
- "bijux-dna-policies",
  "bijux-dna-runtime",
  "bijux-dna-testkit",
  "cargo_metadata",
@@ -885,7 +879,6 @@ dependencies = [
  "bijux-dna-db-ref",
  "bijux-dna-domain-vcf",
  "bijux-dna-infra",
- "bijux-dna-policies",
  "bijux-dna-runner",
  "bijux-dna-stage-contract",
  "bijux-dna-testkit",

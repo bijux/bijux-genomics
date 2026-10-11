@@ -1,0 +1,46 @@
+{
+  "$defs": {
+    "MicroBenchmarkOutputRow": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "type": "string"
+        },
+        "component_id": {
+          "type": "string"
+        },
+        "execution_id": {
+          "type": "string"
+        },
+        "exists": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "execution_id",
+        "component_id",
+        "artifact_id",
+        "role",
+        "path",
+        "exists",
+        "source"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "items": {
+    "$ref": "#/$defs/MicroBenchmarkOutputRow"
+  },
+  "title": "Array_of_MicroBenchmarkOutputRow",
+  "type": "array"
+}

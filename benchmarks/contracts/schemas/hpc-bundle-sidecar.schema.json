@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "backend": {
+      "enum": [
+        "mock-envelope-v1",
+        "age-cli"
+      ],
+      "type": "string"
+    },
+    "bundle_kind": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "ciphertext_path": {
+      "type": "string"
+    },
+    "ciphertext_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "plaintext_bytes": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "plaintext_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "planned_job_id": {
+      "type": "string"
+    },
+    "recipient_fingerprints": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "recipients": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "sample": {
+      "type": "string"
+    },
+    "scheduler_job_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.hpc.bundle.sidecar.v1",
+      "type": "string"
+    },
+    "stage": {
+      "type": "string"
+    },
+    "submitted_at": {
+      "type": "string"
+    },
+    "tool": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "bundle_kind",
+    "campaign_id",
+    "domain",
+    "stage",
+    "tool",
+    "sample",
+    "planned_job_id",
+    "scheduler_job_id",
+    "submitted_at",
+    "backend",
+    "recipients",
+    "recipient_fingerprints",
+    "ciphertext_path",
+    "plaintext_sha256",
+    "ciphertext_sha256",
+    "plaintext_bytes"
+  ],
+  "title": "BundleSidecar",
+  "type": "object"
+}

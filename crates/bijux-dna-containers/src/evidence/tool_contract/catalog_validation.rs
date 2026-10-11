@@ -40,10 +40,17 @@ impl ContainerCatalogValidation {
 /// Returns an error when the catalog or a required recipe directory cannot be read.
 pub fn validate_container_catalog(repository_root: &Path) -> Result<ContainerCatalogValidation> {
     let catalog = load_container_catalog(repository_root)?;
+    validate_observed_container_catalog(repository_root, &catalog)
+}
+
+pub(crate) fn validate_observed_container_catalog(
+    repository_root: &Path,
+    catalog: &ContainerCatalog,
+) -> Result<ContainerCatalogValidation> {
     let mut errors = Vec::new();
-    validate_header(repository_root, &catalog, &mut errors);
-    validate_tools(repository_root, &catalog, &mut errors);
-    validate_recipe_closure(repository_root, &catalog, &mut errors)?;
+    validate_header(repository_root, catalog, &mut errors);
+    validate_tools(repository_root, catalog, &mut errors);
+    validate_recipe_closure(repository_root, catalog, &mut errors)?;
 
     let supported_count = catalog.tools.iter().filter(|tool| tool.is_product_supported()).count();
     let redistributable_image_count =

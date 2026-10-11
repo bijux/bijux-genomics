@@ -2,7 +2,6 @@
 
 ## Coverage
 
-- `tests/guardrails.rs` checks policy guardrail registration.
 - `tests/boundaries.rs` locks the documented crate tree, docs placement,
   command inventory, public API docs, and dependency graph.
 - `tests/contracts.rs` exercises deterministic provider and resolution behavior.

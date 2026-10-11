@@ -120,3 +120,22 @@ The full-shard terminal timing includes owned scratch cleanup. The receipt recor
 Full archive compilation products live under `compile-cache/cargo` in the configured scratch authority. A nonblocking exclusive writer lease spans archive production and execution; concurrent producers require distinct scratch authorities. Per-run cleanup removes source workspaces, extraction and runtime outputs, while Cargo products remain available for Cargo's native fingerprint validation on the next run. Retention alone does not certify a cache hit: source checkout timestamps can still invalidate workspace units. Use separate empty scratch authorities for cold measurements and record native fresh/rebuilt units for warm measurements.
 
 A clean tracked source uses an explicitly owned checkout under `compile-cache/workspace`, protected by the same writer lease as the Cargo target. Repeated source identities keep file timestamps; a changed commit updates changed files through Git. Unexpected tracked mutations, untracked inputs, foreign ownership and redirected metadata fail admission. Dirty tracked snapshots still use disposable isolated source workspaces and preserve their captured patch. Cached source and retained Cargo products are local acceleration mechanisms, not substitute evidence for source-qualified archive consumers.
+
+### Local compiled test products
+
+`bijux-dna-dev tooling run ci-test-all-sharded --local-products` compiles the
+complete workspace once and reuses Nextest Cargo/binary metadata in isolated
+shards. Cargo metadata and binary compilation start concurrently. The producer
+holds the compilation-cache writer lease until all consumers and verification
+finish. Test and workspace executable bytes and both metadata files are hashed
+before and after execution; this fingerprint does not claim to cover external
+native libraries or toolchain files. Each consumer retains the existing exact
+case-inventory reconciliation and independent writable runtime roots.
+
+The default archive transport remains available for archive relocation. Local
+receipts declare `local_metadata`, retain separate producer outcomes, and do not
+report metadata as archive bytes. Compile, inventory, shard, and final cleanup
+time remain part of the measured command; no hosted timing claim follows from
+using local products.
+
+The full profile starts the seven isolated readiness/report suites at priority 100. Their long workflows begin early in the existing worker pool; ordinary cases remain priority 0. Prioritization preserves exact case selection, worker limits, retries and isolation groups, and expresses no dependency between tests. Full source-bound timings still include compilation, discovery and cleanup.

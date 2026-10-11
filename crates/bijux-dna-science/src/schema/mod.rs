@@ -6,3 +6,7 @@ pub const REASONING_SCHEMA_VERSION: &str = "bijux.science.reasoning.v1";
 pub const DECISION_SCHEMA_VERSION: &str = "bijux.science.decision.v1";
 pub const BINDING_SCHEMA_VERSION: &str = "bijux.science.binding.v1";
 pub const RELEASE_SCHEMA_VERSION: &str = "bijux.science.release.v1";
+
+pub(crate) mod authored;
+mod version;
+pub use version::SchemaVersion;

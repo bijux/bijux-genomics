@@ -20,7 +20,6 @@
 The Slurm backend introduces no scheduler library or async runtime dependency. It invokes the configured `sbatch`, `squeue`, `sacct`, and `scancel` executables through the standard process boundary. Managed workers reuse these existing dependencies and infra hashing; they add no shell parser, scheduler client, or product crate dependency.
 
 ## Dev Dependencies
-- `bijux-dna-policies` for guardrail checks.
 - `bijux-dna-testkit` for shared workspace source scanning support.
 - `cargo_metadata` for dependency boundary tests.
 - `assert_cmd` for command-runner contract tests.
@@ -35,3 +34,11 @@ The Slurm backend introduces no scheduler library or async runtime dependency. I
 
 ## Boundary Rule
 If a dependency is only needed for tests, policy inspection, or fixture setup, it belongs in `dev-dependencies`.
+
+The existing `bijux-dna-bench-model` dependency supplies campaign bundle sidecars and scheduler evidence contracts. Bundle backends use the existing command binding and process supervision boundary, SHA-256 support and infra filesystem authority. The `age-cli` backend requires a caller-provided `age` executable or declared execution binding; it introduces no mandatory cryptography library.
+
+The runner consumes the container QA qualification library with default features disabled. Qualification specifications, plans and verdicts do not require the image QA command harness or its SQLite analysis. The API's separate dependency explicitly enables verification tools when that broader public capability is compiled.
+
+Bundle recipient admission rejects empty, blank, padded or duplicate declarations before backend effects. On decode, ordered fingerprints must match the declared recipient strings; the deterministic mock envelope must also match those declarations. The age sidecar is unsigned: matching fingerprints are declaration consistency, not proof that the ciphertext targets those recipients. Age decryption authenticates its payload through the supplied identity, while the mock transport provides no confidentiality. No new dependency is required for this admission.
+
+Bundle publication reuses the infrastructure `FileLock` and managed temporary directory authorities. `FileLock::try_acquire_existing` opens an existing lease without creating files or requiring write access, preserving read-only replay inputs. No new runner dependency or Cargo feature is introduced.

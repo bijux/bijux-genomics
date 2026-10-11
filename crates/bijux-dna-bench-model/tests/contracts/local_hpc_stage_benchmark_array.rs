@@ -122,3 +122,65 @@ fn local_hpc_stage_benchmark_array_rejects_overflowing_resource_durations() {
     envelope.resource_envelope.time_limit = "18446744073709551615:00:00".to_string();
     assert!(validate_benchmark_local_hpc_stage_benchmark_array(&envelope).is_err());
 }
+
+#[test]
+fn stage_array_join_rejects_missing_ambiguous_and_mismatched_observations() -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{
+        build_hpc_stage_array_report, BenchmarkLocalAllDomainSlurmSubmitJob,
+        BenchmarkLocalHpcExecutionResolverRow, BenchmarkLocalHpcScratchLayoutJob,
+        HpcStageArrayInputs,
+    };
+    use serde_json::json;
+    let job: BenchmarkLocalAllDomainSlurmSubmitJob = serde_json::from_value(json!({
+        "job_id_local":"benchmark:vcf:run:vcf.qc:profile:bcftools","result_id":"vcf:run:vcf.qc:profile:bcftools",
+        "domain":"vcf","stage_id":"vcf.qc","tool_id":"bcftools","corpus_id":"run","asset_profile_id":"profile",
+        "pipeline_id":null,"node_id":null,"script_path":"artifacts/runs/bench/job.sbatch","stdout":"out","stderr":"err","outputs":["artifacts/runs/bench/result.json"],"dependencies":[],
+        "resources":{"cpus_per_task":1,"memory_mb":1024,"time_limit":"00:10:00"}
+    }))?;
+    let scratch: BenchmarkLocalHpcScratchLayoutJob = serde_json::from_value(json!({
+        "job_id_local":job.job_id_local,"result_id":job.result_id,"job_kind":"benchmark_result",
+        "domain":"vcf","stage_id":"vcf.qc","tool_id":"bcftools","corpus_id":"run","asset_profile_id":"profile",
+        "pipeline_id":null,"node_id":null,"scratch_root":"scratch","input_links_root":"inputs","output_root":"outputs","log_root":"logs","stdout_path":"out","stderr_path":"err",
+        "resources":{"cpus_per_task":1,"memory_mb":1024,"time_limit":"00:10:00","scratch_gb":1},
+        "cleanup_policy":{"policy_id":"preserve","remove_scratch_after_successful_sync":false,"retain_scratch_on_failure":true,"preserve_output_root":true,"preserve_log_root":true,"preserve_staged_inputs":true},"input_links":[]
+    }))?;
+    let execution: BenchmarkLocalHpcExecutionResolverRow = serde_json::from_value(json!({
+        "tool_id":"bcftools","lookup_tool_id":"bcftools","execution_mode":"containerized","execution_mode_summary":"governed execution","domains":["vcf"],"selected_stage_ids":["vcf.qc"],
+        "selected_job_count":1,"selected_job_ids":[job.job_id_local],"selected_result_ids":[job.result_id],"selected_pipeline_ids":[],"selected_node_ids":[],
+        "install_kind":"container","resolution_kind":"apptainer_image","resolution_target":"containers/bcftools.sif","command_entrypoint":null,"runtime_probe_paths":[],"registry_paths":[],"unavailable_reason":null
+    }))?;
+    let build = |jobs: &[BenchmarkLocalAllDomainSlurmSubmitJob],
+                 scratch: &[BenchmarkLocalHpcScratchLayoutJob],
+                 executions: &[BenchmarkLocalHpcExecutionResolverRow]| {
+        build_hpc_stage_array_report(HpcStageArrayInputs {
+            jobs,
+            scratch,
+            executions,
+            script_path: "artifacts/runs/bench/array.sbatch".into(),
+            manifest_path: "artifacts/runs/bench/array-manifest.json".into(),
+            wrapper_log_root: "artifacts/runs/bench/logs/array".into(),
+        })
+    };
+    let jobs = [job];
+    let scratch = [scratch];
+    let executions = [execution];
+    let accepted = build(&jobs, &scratch, &executions)?;
+    assert_eq!(accepted.array_spec, "0-0");
+    assert_eq!(accepted.rows[0].benchmark_result_argv.last(), jobs[0].result_id.as_ref());
+    assert!(build(&[], &scratch, &executions).is_err());
+    assert!(build(&jobs, &[], &executions).is_err());
+    assert!(build(&jobs, &scratch, &[]).is_err());
+    assert!(build(&jobs, &[scratch[0].clone(), scratch[0].clone()], &executions).is_err());
+    assert!(build(&jobs, &scratch, &[executions[0].clone(), executions[0].clone()]).is_err());
+    let mut changed = scratch.clone();
+    changed[0].tool_id = "other".into();
+    assert!(build(&jobs, &changed, &executions).is_err());
+    let mut changed = executions.clone();
+    changed[0].selected_job_ids.clear();
+    assert!(build(&jobs, &scratch, &changed).is_err());
+    let mut changed = executions.clone();
+    changed[0].selected_result_ids.clear();
+    assert!(build(&jobs, &scratch, &changed).is_err());
+    assert!(build(&[jobs[0].clone(), jobs[0].clone()], &scratch, &executions).is_err());
+    Ok(())
+}

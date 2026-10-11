@@ -74,3 +74,31 @@ The benchmark model owns local all-domain SLURM script inventory types, aggregat
 `load_fastq_tool_score_evidence` keeps observed-report IO in `repo` and format adapters in `artifacts/fastq_score_evidence`; raw JSON remains confined to those owners. The loader returns typed model evidence for pure scoring. Missing optional reports contribute no observations, malformed reports and overflowing case totals reject, and authored fixture-reference names never substitute for observed tool outcomes.
 
 `workflow/readiness` evaluates a borrowed `FullBenchmarkDashboardEvidence` view. Coverage counts and cross-report consistency belong to this pure service; the CLI acquires reports and adapts paths and output. Markdown rendering consumes the evaluated report without IO. Readiness coverage alone does not establish backend execution or scientific validity.
+
+## Container qualification capability
+
+`container-qualification` enables composition of admitted benchmark, container,
+security and release facts through the policy and science owners. Repository
+acquisition is separate from pure assessment and publication decisions. The API
+and developer commands enable this capability explicitly; ordinary benchmark
+consumers do not gain a mandatory policy-library dependency. Policy guardrails
+retain an independent development dependency, so testing a minimal benchmark
+build does not require enabling the production qualification capability.
+
+## Configured HPC campaigns
+
+`workflow/hpc_campaign` composes explicit campaign requests. The caller supplies
+its workspace and campaign roots, selected environment bindings, executable
+search path and timestamp. `repo/hpc_campaign` reads declared configuration and
+site profiles, observes filesystem and executable availability, and writes
+built-in profile declarations from `bench/campaign_profiles` to the requested
+output directory. Availability inspection does not execute or submit jobs.
+
+`bijux-dna-bench-model` owns campaign configuration, planned reports, confidential
+source admission, resource-template selection and preflight decisions. Preflight
+receives typed observations covering every configured layout root exactly once.
+The CLI adapts requests and output; Slurm submission remains runner behavior.
+
+## Campaign monitoring
+
+Campaign monitoring composes the local plan with explicit repository observations. The repository adapter resolves paths against the caller's workspace, projects submitted job metadata, rejects ambiguous identities and unsupported declared versions, and reads only the historical 512-byte bundle marker preview. The pure benchmark model aggregates typed observations and owns the monitor output schema. The CLI only adapts arguments and presents the report. Historical marker flags do not establish confidentiality or ciphertext integrity.

@@ -78,6 +78,37 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
     };
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/tool-execution-modes-config.schema.json", || schemars::schema_for!(crate::ToolExecutionModesConfig)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/tool-execution-modes-validation.schema.json", || schemars::schema_for!(crate::ToolExecutionModesValidationReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-report.schema.json", || schemars::schema_for!(crate::MicroBenchmarkReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-run.schema.json", || schemars::schema_for!(crate::MicroBenchmarkRunManifest)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-result-rows.schema.json", || schemars::schema_for!(Vec<crate::MicroBenchmarkResultRow>)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-output-rows.schema.json", || schemars::schema_for!(Vec<crate::MicroBenchmarkOutputRow>)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-log-rows.schema.json", || schemars::schema_for!(Vec<crate::MicroBenchmarkLogRow>)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-normalized-metric-rows.schema.json", || schemars::schema_for!(Vec<crate::MicroBenchmarkNormalizedMetricRow>)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/removed-from-scope.schema.json", || schemars::schema_for!(super::readiness::coverage::RemovedFromScopeReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-parser-fixture-coverage.schema.json", || schemars::schema_for!(super::readiness::coverage::AllDomainParserFixtureCoverageReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-output-contract-coverage.schema.json", || schemars::schema_for!(super::readiness::coverage::AllDomainOutputContractCoverageReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-expected-result-coverage.schema.json", || schemars::schema_for!(super::readiness::coverage::AllDomainExpectedResultCoverageReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-report-map-coverage.schema.json", || schemars::schema_for!(super::readiness::coverage::AllDomainReportMapCoverageReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-local-job-coverage.schema.json", || schemars::schema_for!(super::readiness::coverage::AllDomainLocalJobCoverageReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-no-placeholder-command-check.schema.json", || schemars::schema_for!(super::readiness::coverage::AllDomainNoPlaceholderCommandCheckReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/hpc-copy-back-manifest.schema.json", || schemars::schema_for!(super::hpc_campaign::CopyBackManifestReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-all-domain-fake-run-metrics.schema.json", || schemars::schema_for!(super::simulation::AllDomainFakeRunMetrics)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-all-domain-fake-runs.schema.json", || schemars::schema_for!(super::simulation::AllDomainFakeRunsReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/hpc-campaign-monitor.schema.json", || schemars::schema_for!(crate::SlurmMonitorReport)),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/hpc-bundle-sidecar.schema.json",
+            || schemars::schema_for!(super::hpc_campaign::BundleSidecar),
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/operational-benchmark-ready.schema.json",
+            || schemars::schema_for!(super::readiness::operational::OperationalBenchmarkReadyReport),
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/output-contract-audit.schema.json",
+            || schemars::schema_for!(super::readiness::output_audit::OutputContractTestsReport),
+        ),
         PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/all-domain-stage-tool-table.schema.json",
             || schemars::schema_for!(super::AllDomainStageToolTableReport),

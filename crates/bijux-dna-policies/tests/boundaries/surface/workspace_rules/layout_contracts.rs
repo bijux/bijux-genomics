@@ -2,10 +2,7 @@ const LAYOUT_EXCLUDE_DIRS: &[&str] = &[".git", "target", "artifacts", "site", "n
 
 fn layout_is_excluded(path: &std::path::Path) -> bool {
     path.components().any(|component| {
-        component
-            .as_os_str()
-            .to_str()
-            .is_some_and(|name| LAYOUT_EXCLUDE_DIRS.contains(&name))
+        component.as_os_str().to_str().is_some_and(|name| LAYOUT_EXCLUDE_DIRS.contains(&name))
     })
 }
 
@@ -14,10 +11,7 @@ fn layout_is_excluded(path: &std::path::Path) -> bool {
 fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(&root)
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
         if layout_is_excluded(entry.path()) {
             continue;
         }
@@ -42,16 +36,7 @@ fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
 fn policy__boundaries__workspace__engine_has_no_domain_terms() {
     let root = workspace_root();
     let engine = root.join("crates").join("bijux-dna-engine");
-    let denylist = [
-        "fastq",
-        "bam",
-        "qc",
-        "retention",
-        "adapter",
-        "contaminant",
-        "umi",
-        "polyx",
-    ];
+    let denylist = ["fastq", "bam", "qc", "retention", "adapter", "contaminant", "umi", "polyx"];
     assert_no_domain_terms(&engine, &denylist);
 }
 
@@ -60,16 +45,7 @@ fn policy__boundaries__workspace__engine_has_no_domain_terms() {
 fn policy__boundaries__workspace__runner_has_no_domain_terms() {
     let root = workspace_root();
     let runner = root.join("crates").join("bijux-dna-runner");
-    let denylist = [
-        "fastq",
-        "bam",
-        "qc",
-        "retention",
-        "adapter",
-        "contaminant",
-        "umi",
-        "polyx",
-    ];
+    let denylist = ["fastq", "bam", "qc", "retention", "adapter", "contaminant", "umi", "polyx"];
     assert_no_domain_terms(&runner, &denylist);
 }
 
@@ -97,25 +73,6 @@ fn policy__boundaries__workspace__engine_and_runner_have_no_domain_deps() {
                 "{name} must not depend on {banned}"
             );
         }
-    }
-}
-
-#[test]
-#[allow(clippy::expect_used, clippy::unwrap_used)]
-fn policy__boundaries__workspace__workspace_has_guardrails_tests() {
-    for path in crate_dirs() {
-        let guardrails = path.join("tests").join("guardrails.rs");
-        bijux_dna_policies::policy_assert!(
-            guardrails.exists(),
-            "missing tests/guardrails.rs in {}",
-            path.display()
-        );
-        let content = std::fs::read_to_string(&guardrails).expect("read guardrails test");
-        bijux_dna_policies::policy_assert!(
-            content.contains("GuardrailConfig::for_crate"),
-            "guardrails test must use GuardrailConfig::for_crate in {}",
-            guardrails.display()
-        );
     }
 }
 
@@ -185,10 +142,8 @@ fn policy__boundaries__workspace__workspace_constitution_contract() {
         crates.contains_key("bijux-dna-containers-qa"),
         "missing bijux-dna-containers-qa crate"
     );
-    let env_crates: Vec<_> = crates
-        .keys()
-        .filter(|name| name.starts_with("bijux-dna-env-"))
-        .collect();
+    let env_crates: Vec<_> =
+        crates.keys().filter(|name| name.starts_with("bijux-dna-env-")).collect();
     bijux_dna_policies::policy_assert!(
         env_crates.is_empty(),
         "legacy bijux-dna-env-* crates are forbidden"
@@ -252,13 +207,8 @@ fn policy__boundaries__workspace__engine_src_layout_contract() {
     };
     let src = engine.join("src");
     let allowed_files = BTreeSet::from(["errors.rs", "engine_driver.rs", "lib.rs"]);
-    let allowed_dirs = BTreeSet::from([
-        "control",
-        "engine_config",
-        "executor",
-        "observability",
-        "public_api",
-    ]);
+    let allowed_dirs =
+        BTreeSet::from(["control", "engine_config", "executor", "observability", "public_api"]);
     let mut offenders = Vec::new();
     for entry in std::fs::read_dir(&src).expect("read bijux-dna-engine/src") {
         let entry = entry.expect("engine src entry");
@@ -339,7 +289,8 @@ fn policy__boundaries__workspace__workspace_stages_layout_contract() {
         let stage_specs = src.join("stage_specs");
         let has_stage_specs = stage_specs.exists() || src.join("stage_specs.rs").exists();
         bijux_dna_policies::policy_assert!(has_stage_specs, "{name} missing stage_specs module");
-        let has_plugin = src.join("plugin.rs").exists() || src.join("plugin").join("mod.rs").exists();
+        let has_plugin =
+            src.join("plugin.rs").exists() || src.join("plugin").join("mod.rs").exists();
         bijux_dna_policies::policy_assert!(
             has_plugin,
             "{name} missing src/plugin.rs or src/plugin/mod.rs"

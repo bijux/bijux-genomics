@@ -1,15 +1,13 @@
-use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
-    validate_all_domain_rendered_command_rows, AllDomainExpectedBenchmarkResultRow,
-    ReadinessStageToolBinding as BindingKey, ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION,
+    publish_rendered_command_artifacts, validate_all_domain_rendered_command_rows,
+    AllDomainExpectedBenchmarkResultRow, ReadinessStageToolBinding as BindingKey,
 };
 pub(crate) use bijux_dna_api::v1::api::bench::{
-    AllDomainRenderedCommandArgvRow, AllDomainRenderedCommandArgvStep, AllDomainRenderedCommandRow,
-    AllDomainRenderedCommandStep, AllDomainRenderedCommandsReport,
+    AllDomainRenderedCommandRow, AllDomainRenderedCommandStep, AllDomainRenderedCommandsReport,
 };
 
 use super::all_domain_expected_benchmark_results::collect_all_domain_expected_benchmark_result_rows;
@@ -48,48 +46,8 @@ pub(crate) fn render_all_domain_commands(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<AllDomainRenderedCommandsReport> {
-    let output_path = repo_relative_path(repo_root, &output_path);
-    let argv_output_path = companion_argv_output_path(&output_path);
     let rows = collect_all_domain_rendered_command_rows(repo_root)?;
-
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    if let Some(parent) = argv_output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-
-    let repo_root_ascent = repo_root_ascent_from_output(repo_root, &output_path)?;
-    let rendered_script = render_all_domain_commands_shell_script(&rows, &repo_root_ascent);
-    bijux_dna_infra::atomic_write_bytes(&output_path, rendered_script.as_bytes())?;
-    let argv_jsonl = render_all_domain_command_argv_jsonl(&rows)
-        .context("render all-domain command argv JSONL")?;
-    bijux_dna_infra::atomic_write_bytes(&argv_output_path, argv_jsonl.as_bytes())?;
-
-    let mut domain_counts = BTreeMap::<String, usize>::new();
-    let mut benchmark_status_counts = BTreeMap::<String, usize>::new();
-    let mut command_source_counts = BTreeMap::<String, usize>::new();
-    for row in &rows {
-        *domain_counts.entry(row.domain.clone()).or_default() += 1;
-        *benchmark_status_counts.entry(row.benchmark_status.clone()).or_default() += 1;
-        *command_source_counts.entry(row.command_source.clone()).or_default() += 1;
-    }
-
-    Ok(AllDomainRenderedCommandsReport {
-        schema_version: ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION.to_string(),
-        output_path: path_relative_to_repo(repo_root, &output_path),
-        argv_output_path: path_relative_to_repo(repo_root, &argv_output_path),
-        row_count: rows.len(),
-        result_id_count: rows
-            .iter()
-            .map(|row| row.result_id.as_str())
-            .collect::<BTreeSet<_>>()
-            .len(),
-        domain_counts,
-        benchmark_status_counts,
-        command_source_counts,
-        rows,
-    })
+    publish_rendered_command_artifacts(repo_root, &output_path, rows)
 }
 
 pub(crate) fn collect_all_domain_rendered_command_rows(
@@ -194,89 +152,6 @@ fn vcf_row_to_all_domain_row(
     })
 }
 
-fn repo_root_ascent_from_output(repo_root: &Path, output_path: &Path) -> Result<String> {
-    let output_parent = output_path.parent().ok_or_else(|| {
-        anyhow!("all-domain rendered command output must have a parent directory")
-    })?;
-    let relative_parent = output_parent.strip_prefix(repo_root).with_context(|| {
-        format!(
-            "all-domain rendered command output `{}` must stay within repository root `{}`",
-            output_path.display(),
-            repo_root.display()
-        )
-    })?;
-    if relative_parent
-        .components()
-        .any(|component| !matches!(component, std::path::Component::Normal(_)))
-    {
-        return Err(anyhow!(
-            "all-domain rendered command output parent must be a normalized repository path"
-        ));
-    }
-    let depth = relative_parent.components().count();
-    Ok(if depth == 0 {
-        ".".to_string()
-    } else {
-        (0..depth).map(|_| "..").collect::<Vec<_>>().join("/")
-    })
-}
-
-fn render_all_domain_commands_shell_script(
-    rows: &[AllDomainRenderedCommandRow],
-    repo_root_ascent: &str,
-) -> String {
-    let mut rendered = String::from("#!/usr/bin/env bash\nset -euo pipefail\n");
-    rendered.push_str(&format!(
-        "repo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{repo_root_ascent}\" && pwd)\"\n"
-    ));
-    rendered.push_str("cd \"$repo_root\"\n\n");
-    for (index, row) in rows.iter().enumerate() {
-        rendered.push_str(&format!(
-            "# {} / {} / {} / {}\n",
-            row.result_id, row.domain, row.stage_id, row.tool_id
-        ));
-        for command in &row.script_commands {
-            rendered.push_str(command);
-            rendered.push('\n');
-        }
-        if index + 1 < rows.len() {
-            rendered.push('\n');
-        }
-    }
-    rendered
-}
-
-fn render_all_domain_command_argv_jsonl(rows: &[AllDomainRenderedCommandRow]) -> Result<String> {
-    let mut rendered = String::new();
-    for row in rows {
-        let line = serde_json::to_string(&AllDomainRenderedCommandArgvRow {
-            result_id: row.result_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            corpus_id: row.corpus_id.clone(),
-            asset_profile_id: row.asset_profile_id.clone(),
-            readiness_kind: row.readiness_kind.clone(),
-            benchmark_status: row.benchmark_status.clone(),
-            command_source: row.command_source.clone(),
-            command_steps: row
-                .command_steps
-                .iter()
-                .map(|step| AllDomainRenderedCommandArgvStep {
-                    step_id: step.step_id.clone(),
-                    step_kind: step.step_kind.clone(),
-                    consumes_previous_stdout: step.consumes_previous_stdout,
-                    argv: step.argv.clone(),
-                })
-                .collect(),
-        })
-        .context("serialize all-domain rendered command argv row")?;
-        rendered.push_str(&line);
-        rendered.push('\n');
-    }
-    Ok(rendered)
-}
-
 fn stage_domain(stage_id: &str) -> Result<&'static str> {
     if stage_id.starts_with("fastq.") {
         Ok("fastq")
@@ -295,31 +170,6 @@ fn binding_key(domain: &str, stage_id: &str, tool_id: &str) -> BindingKey {
         stage_id: stage_id.to_string(),
         tool_id: tool_id.to_string(),
     }
-}
-
-fn companion_argv_output_path(output_path: &Path) -> PathBuf {
-    let file_name = output_path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH);
-    let argv_name = if let Some(stem) = file_name.strip_suffix(".sh") {
-        format!("{stem}.argv.jsonl")
-    } else {
-        format!("{file_name}.argv.jsonl")
-    };
-    output_path.with_file_name(argv_name)
-}
-
-fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
-    if path.is_absolute() {
-        path.to_path_buf()
-    } else {
-        repo_root.join(path)
-    }
-}
-
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
 
 #[cfg(test)]

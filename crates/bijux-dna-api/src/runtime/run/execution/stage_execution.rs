@@ -50,7 +50,8 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
     }
     let started_at = Instant::now();
     let run_id = format!("{}__{}", request.plan.stage_id, request.plan.tool_id);
-    let run_artifacts_dir = request.plan.out_dir.join("run_artifacts");
+    let run_artifacts_dir =
+        bijux_dna_runtime::recording::run_artifacts_dir_for_out(&request.plan.out_dir);
     bijux_dna_infra::ensure_dir(&run_artifacts_dir)?;
     maybe_emit_reference_manifest(request, &run_artifacts_dir)?;
     let regime_stamp = resolve_and_write_regime_stamp(request, &run_artifacts_dir)?;
@@ -99,7 +100,9 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         .get("idempotent")
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(true);
-    let resume_meta_path = request.plan.out_dir.join("run_artifacts").join("stage_resume.json");
+    let resume_meta_path =
+        bijux_dna_runtime::recording::run_artifacts_dir_for_out(&request.plan.out_dir)
+            .join("stage_resume.json");
     let output_checksums = || -> std::collections::BTreeMap<String, String> {
         let mut checksums = std::collections::BTreeMap::new();
         for artifact in &request.plan.io.outputs {

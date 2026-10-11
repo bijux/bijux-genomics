@@ -39,7 +39,7 @@ Runner errors use these source-level effect codes:
 - No network access by default.
 - No privileged containers or host-root mounts.
 - No secret logging.
-- Replay must not spawn processes, pull images, or mutate input artifacts.
+- Execution-manifest replay must not spawn processes, pull images, or mutate input artifacts.
 - Ordinary runners must refuse `external-artifact://` image references before filesystem or process
   effects.
 
@@ -61,3 +61,11 @@ Runner errors use these source-level effect codes:
 ## Failure modes
 - Forbidden process, network, or filesystem behavior fails boundary tests.
 - Runtime command failures are recorded as execution failures; see `EXECUTION_SPEC.md`.
+
+## Bundle effects
+
+Bundle requests declare ciphertext paths, recipients and identities. The age adapter performs one supervised command with a five-minute deadline and preserves plaintext bytes without UTF-8 conversion. Plaintext staging uses an exclusively created temporary file adjacent to the declared output, with mode 0600 on Unix before writing. Its owner spans backend execution and removes it after the attempt; backend and cleanup failures are both retained. The deterministic `mock-envelope-v1` transport supports local simulation and provides no confidentiality. The ciphertext and sidecar are separately persisted; interrupted pair publication must be treated as incomplete evidence and fails integrity admission.
+
+Bundle recipient admission rejects empty, blank, padded or duplicate declarations before backend effects. On decode, ordered fingerprints must match the declared recipient strings; the deterministic mock envelope must also match those declarations. The age sidecar is unsigned: matching fingerprints are declaration consistency, not proof that the ciphertext targets those recipients. Age decryption authenticates its payload through the supplied identity, while the mock transport provides no confidentiality. No new dependency is required for this admission.
+
+Bundle publication creates an adjacent `.NAME.publication.lock` and a bounded `.NAME.publication` journal. It stages encrypted outputs and prior-member backups before either visible rename. Recovery restores both prior members or retains the committed pair; contradictory content or foreign journal entries are preserved and reported. Abrupt exit before journal admission or during retirement can retain private staging or retired diagnostic directories. These files contain no newly staged plaintext; mock transport remains non-confidential.

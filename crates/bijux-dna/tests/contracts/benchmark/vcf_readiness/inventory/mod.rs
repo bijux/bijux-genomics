@@ -3,7 +3,6 @@ mod active_stage_tool_matrix_tsv;
 mod adapters_ready;
 mod adapters_ready_file;
 mod all_retained_tools_complete;
-mod all_retained_tools_complete_file;
 mod filter_ready;
 mod filter_ready_file;
 mod matrix_registry_consistency;

@@ -107,7 +107,8 @@ fn assert_evidence_and_test_trees(root: &Path) {
             "model.rs",
             "publication.rs",
             "render.rs",
-            "report.rs"
+            "report.rs",
+            "schema.rs"
         ]),
         "qualification must separate evidence decisions, publication freshness, and reports"
     );

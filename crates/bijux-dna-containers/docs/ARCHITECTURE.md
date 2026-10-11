@@ -70,3 +70,9 @@ CLI, runner, planner, stage, and domain crates.
 - Update `docs/PUBLIC_API.md` when `src/lib.rs` exports change.
 - Update `docs/COMMANDS.md` before adding or removing any `std::process::Command` use.
 - Update boundary tests when the tree changes intentionally.
+
+Qualification registry acquisition, legacy wire normalization, identifier rules, allocation, protocol/citation projection, admission, audit and serialization have separate modules under `evidence/qualification_registry`. Workflow composes those owners. Pure admission and allocation never load files. Audit paths are captured before projection. A run-index source digest and its decoded registry derive from the same acquired byte buffer; catalog and historical inputs remain separate observations rather than an atomic filesystem snapshot.
+
+Image campaign ownership is explicit under `build/campaign`: wire models and schemas, pure scope/identity/progress admission, portable path policy, immutable storage, bounded worker dispatch, current image/receipt verification, and orchestration. Progress decoding delegates semantic validation before outcomes are reused. The five original private selection/attempt cases remain with admission, and public publication/recovery fixtures exercise the service facade. Worker and publication behavior is unchanged; independent source reads do not establish an atomic snapshot.
+
+Result movement separates decoded observations, pure admission, repository effects, flattening and superseded-attempt lifecycle. Saved plans bind each movement to current lock/ledger identities, canonical source and destination, and checked inventory totals before mutation. Evidence digests do not authorize changing a destination or substituting a different attempt.

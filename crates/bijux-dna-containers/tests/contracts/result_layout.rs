@@ -237,3 +237,96 @@ fn child_names(root: &Path) -> Result<Vec<String>> {
     names.sort();
     Ok(names)
 }
+
+#[test]
+fn flat_layout_rejects_identity_destination_and_count_drift_before_mutation() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let (runs, result_root) = nested_result_fixture(temp.path())?;
+    let plan_path = temp.path().join("layout-plan.json");
+    let plan = derive_result_layout_plan(&ResultLayoutPlanRequest {
+        runs_root: runs.clone(),
+        result_root: result_root.clone(),
+        created_at_utc: "2026-08-07T03:00:00Z".to_string(),
+    })?;
+    bijux_dna_infra::atomic_write_json(&plan_path, &plan)?;
+    let source = fs::read(&plan_path)?;
+    let original: serde_json::Value = serde_json::from_slice(&source)?;
+    for (pointer, value) in [
+        ("/moves/0/target", serde_json::json!("run-1009-samtools")),
+        ("/moves/0/source", serde_json::json!("samtools/run-1009")),
+        ("/moves/0/run_id", serde_json::json!("run-1009")),
+        ("/moves/0/tool", serde_json::json!("fastp")),
+        ("/moves/0/file_count", serde_json::json!(2)),
+        ("/run_count", serde_json::json!(2)),
+        ("/file_count", serde_json::json!(2)),
+        ("/size_bytes", serde_json::json!(0)),
+    ] {
+        let mut bad = original.clone();
+        if pointer == "/moves/1/run_id" {
+            bad["moves"][1]["run_id"] = value;
+        } else {
+            *bad.pointer_mut(pointer)
+                .ok_or_else(|| anyhow::anyhow!("missing mutation field {pointer}"))? = value;
+        }
+        if pointer == "/moves/0/file_count" {
+            bad["file_count"] = bad["moves"][0]["file_count"].clone();
+        }
+        let bytes = serde_json::to_vec(&bad)?;
+        fs::write(&plan_path, &bytes)?;
+        assert!(
+            apply_result_layout(&plan_path, &runs, &result_root, "2026-08-07T03:01:00Z").is_err(),
+            "{pointer}"
+        );
+        assert_eq!(fs::read(&plan_path)?, bytes, "failed admission rewrote the plan");
+        assert_eq!(fs::read(result_root.join("samtools/run-1001/sample.bam"))?, b"governed-bam");
+        assert_eq!(child_names(&result_root)?, ["samtools".to_string()]);
+    }
+    fs::write(&plan_path, source)?;
+    Ok(())
+}
+
+#[test]
+fn superseded_archive_rejects_forged_attempts_and_cache_destinations_before_mutation() -> Result<()>
+{
+    let temp = tempfile::tempdir()?;
+    let (request, plan_path) = superseded_fixture(temp.path())?;
+    let plan = derive_superseded_result_archive_plan(&request)?;
+    let original = serde_json::to_value(&plan)?;
+    bijux_dna_infra::atomic_write_json(&plan_path, &plan)?;
+    for (pointer, value) in [
+        ("/moves/0/target", serde_json::json!("run-1009-samtools")),
+        ("/moves/0/run_id", serde_json::json!("run-1009")),
+        ("/moves/0/superseded_by", serde_json::json!("run-1009")),
+        ("/moves/0/evidence_lock_sha256", serde_json::json!("b".repeat(64))),
+        ("/moves/1/target", serde_json::json!("unrelated-cache")),
+        ("/moves/1/run_id", serde_json::json!("run-1009")),
+        ("/move_count", serde_json::json!(3)),
+        ("/size_bytes", serde_json::json!(0)),
+    ] {
+        let mut bad = original.clone();
+        if pointer == "/moves/1/run_id" {
+            bad["moves"][1]["run_id"] = value;
+        } else {
+            *bad.pointer_mut(pointer)
+                .ok_or_else(|| anyhow::anyhow!("missing mutation field {pointer}"))? = value;
+        }
+        let bytes = serde_json::to_vec(&bad)?;
+        fs::write(&plan_path, &bytes)?;
+        assert!(
+            apply_superseded_result_archive(&plan_path, &request, "2026-08-07T03:01:00Z").is_err(),
+            "{pointer}"
+        );
+        assert_eq!(fs::read(&plan_path)?, bytes, "failed admission rewrote the plan");
+        assert_eq!(
+            fs::read(request.result_root.join("run-1001-samtools/sample.bam"))?,
+            b"superseded"
+        );
+        assert_eq!(
+            fs::read(request.result_root.join("run-1002-samtools/sample.bam"))?,
+            b"published"
+        );
+        assert!(!request.archive_root.exists());
+    }
+    bijux_dna_infra::atomic_write_json(&plan_path, &plan)?;
+    Ok(())
+}

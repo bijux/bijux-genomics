@@ -1,12 +1,15 @@
+use bijux_dna_api::v1::api::bench::{
+    build_output_contract_tests_report, evaluate_output_contract_row, load_vcf_execution_blocker,
+    OutputContractProof, OutputContractRuntimePaths,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{OutputContractTestRow, OutputContractTestsReport};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::all_domain_output_declarations::{
     collect_all_domain_output_declaration_rows, AllDomainOutputDeclarationRow,
-    AllDomainOutputDeclarationStatus,
 };
 use super::catalog::load_external_artifact_tool_contracts;
 use super::expected_benchmark_results::collect_expected_benchmark_result_rows;
@@ -42,7 +45,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_OUTPUT_CONTRACT_TESTS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/tools/output-contract-tests.json";
-const OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.output_contract_audit.v1";
 const PROOF_SURFACE_SHARED_STAGE_SMOKE: &str = "shared_stage_smoke";
 const PROOF_SURFACE_DIRECT_TOOL_SMOKE: &str = "direct_tool_smoke";
 const PROOF_SURFACE_DIRECT_DECLARED_OUTPUT_PROOF: &str = "direct_declared_output_proof";
@@ -56,60 +58,6 @@ const RUNTIME_PROOF_SURFACE_EXPECTED_RESULT_PATHS: &str = "expected_benchmark_re
 const RUNTIME_PROOF_SURFACE_DECLARED_VCF_PATHS: &str = "declared_vcf_result_paths";
 const DIRECT_OUTPUT_CONTRACT_PROOF_ROOT: &str =
     "artifacts/benchmark-smoke/simulated-runs/readiness-probes/tools/output-contract-tests";
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct OutputContractTestRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) output_proof_surface: String,
-    pub(crate) output_proof_path: String,
-    pub(crate) proof_tool_id: Option<String>,
-    pub(crate) runtime_path_proof_surface: String,
-    pub(crate) runtime_path_proof_path: String,
-    pub(crate) declared_raw_output_ids: Vec<String>,
-    pub(crate) observed_raw_output_ids: Vec<String>,
-    pub(crate) declared_normalized_metric_ids: Vec<String>,
-    pub(crate) observed_normalized_metric_ids: Vec<String>,
-    pub(crate) declared_index_output_ids: Vec<String>,
-    pub(crate) observed_index_output_ids: Vec<String>,
-    pub(crate) observed_output_paths: Vec<String>,
-    pub(crate) stage_undeclared_output_ids: Vec<String>,
-    pub(crate) declared_logs: Vec<String>,
-    pub(crate) observed_logs: Vec<String>,
-    pub(crate) declared_manifest: String,
-    pub(crate) observed_manifest: String,
-    pub(crate) raw_outputs_matched: bool,
-    pub(crate) normalized_metrics_matched: bool,
-    pub(crate) index_outputs_matched: bool,
-    pub(crate) logs_matched: bool,
-    pub(crate) manifest_matched: bool,
-    pub(crate) no_undeclared_outputs: bool,
-    pub(crate) independent_execution_proven: bool,
-    pub(crate) execution_blocker: Option<String>,
-    pub(crate) passed: bool,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct OutputContractTestsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) passed_row_count: usize,
-    pub(crate) blocked_row_count: usize,
-    pub(crate) failed_row_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) output_proof_surface_counts: BTreeMap<String, usize>,
-    pub(crate) blocked_stage_ids: Vec<String>,
-    pub(crate) blocked_tool_ids: Vec<String>,
-    pub(crate) failed_stage_ids: Vec<String>,
-    pub(crate) failed_tool_ids: Vec<String>,
-    pub(crate) rows: Vec<OutputContractTestRow>,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct FastqBamStageKey {
@@ -229,68 +177,7 @@ fn build_output_contract_audit_report(
             })?;
         rows.push(build_row(&output_row, runtime_path_proof, &fastq_bam_proofs, &vcf_proofs)?);
     }
-    rows.sort_by(|left, right| {
-        left.domain
-            .cmp(&right.domain)
-            .then_with(|| left.stage_id.cmp(&right.stage_id))
-            .then_with(|| left.tool_id.cmp(&right.tool_id))
-            .then_with(|| left.result_id.cmp(&right.result_id))
-    });
-
-    let passed_row_count = rows.iter().filter(|row| row.passed).count();
-    let blocked_row_count = rows.iter().filter(|row| row.execution_blocker.is_some()).count();
-    let failed_row_count =
-        rows.iter().filter(|row| !row.passed && row.execution_blocker.is_none()).count();
-    let mut domain_counts = BTreeMap::<String, usize>::new();
-    let mut output_proof_surface_counts = BTreeMap::<String, usize>::new();
-    for row in &rows {
-        *domain_counts.entry(row.domain.clone()).or_default() += 1;
-        *output_proof_surface_counts.entry(row.output_proof_surface.clone()).or_default() += 1;
-    }
-    let blocked_stage_ids = rows
-        .iter()
-        .filter(|row| row.execution_blocker.is_some())
-        .map(|row| row.stage_id.clone())
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    let blocked_tool_ids = rows
-        .iter()
-        .filter(|row| row.execution_blocker.is_some())
-        .map(|row| row.tool_id.clone())
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    let failed_stage_ids = rows
-        .iter()
-        .filter(|row| !row.passed && row.execution_blocker.is_none())
-        .map(|row| row.stage_id.clone())
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    let failed_tool_ids = rows
-        .iter()
-        .filter(|row| !row.passed && row.execution_blocker.is_none())
-        .map(|row| row.tool_id.clone())
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-
-    Ok(OutputContractTestsReport {
-        schema_version: OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION,
-        output_path: path_relative_to_repo(repo_root, output_path),
-        row_count: rows.len(),
-        passed_row_count,
-        blocked_row_count,
-        failed_row_count,
-        domain_counts,
-        output_proof_surface_counts,
-        blocked_stage_ids,
-        blocked_tool_ids,
-        failed_stage_ids,
-        failed_tool_ids,
-        rows,
-    })
+    Ok(build_output_contract_tests_report(path_relative_to_repo(repo_root, output_path), rows))
 }
 
 fn collect_declared_fastq_bam_output_ids(
@@ -651,18 +538,18 @@ fn collect_local_stage_proof_from_plans(
     }
     let undeclared_stage_output_ids =
         observed_ids.difference(declared_ids).cloned().collect::<Vec<_>>();
-    let independent_execution_proven = !observed_ids.is_empty() && missing_required_count == 0;
+    let fixture_complete = !observed_ids.is_empty() && missing_required_count == 0;
     Ok(LocalStageProof {
         proof_surface: PROOF_SURFACE_SHARED_STAGE_SMOKE,
         proof_path: proof_path.unwrap_or_else(|| {
             format!("materialize {} / {} produced no outputs", stage_id, proof_tool_id)
         }),
-        proof_tool_id: Some(proof_tool_id.to_string()),
+        proof_tool_id: None,
         observed_ids,
         observed_paths_by_id,
         undeclared_stage_output_ids,
-        independent_execution_proven,
-        execution_blocker: None,
+        independent_execution_proven: false,
+        execution_blocker: fixture_complete.then(|| "synthetic_output_contract_only: declared outputs were materialized without executing the selected backend".to_string()),
     })
 }
 
@@ -725,12 +612,12 @@ fn collect_direct_declared_output_proof(
             path_relative_to_repo(repo_root, &proof_root),
             result_ids
         ),
-        proof_tool_id: Some(tool_id.to_string()),
+        proof_tool_id: None,
         observed_ids,
         observed_paths_by_id,
         undeclared_stage_output_ids: Vec::new(),
-        independent_execution_proven: true,
-        execution_blocker: None,
+        independent_execution_proven: false,
+        execution_blocker: Some("synthetic_output_contract_only: declared outputs were materialized without executing the selected backend".to_string()),
     })
 }
 
@@ -851,7 +738,7 @@ fn vcf_tool_proof_from_manifest(
     manifest_path: &str,
     manifest: BenchStageResultManifestV1,
 ) -> Result<VcfToolProof> {
-    let execution_blocker = vcf_execution_blocker(repo_root, &manifest)?;
+    let execution_blocker = load_vcf_execution_blocker(repo_root, &manifest)?;
     let mut observed_ids = BTreeSet::<String>::new();
     let mut observed_paths_by_id = BTreeMap::<String, Vec<String>>::new();
     for output in manifest.outputs {
@@ -875,118 +762,6 @@ fn vcf_tool_proof_from_manifest(
     })
 }
 
-fn vcf_execution_blocker(
-    repo_root: &Path,
-    manifest: &BenchStageResultManifestV1,
-) -> Result<Option<String>> {
-    let report_artifact_id = match manifest.stage_id.as_str() {
-        "vcf.admixture" => "admixture_json",
-        "vcf.phasing" => "phasing_manifest",
-        "vcf.ibd" => "ibd_json",
-        "vcf.pca" => "pca_json",
-        "vcf.population_structure" => "source_population_structure_json",
-        "vcf.demography" => "demography_json",
-        _ => return Ok(None),
-    };
-    let report_output = manifest
-        .outputs
-        .iter()
-        .find(|output| output.artifact_id == report_artifact_id && output.exists)
-        .ok_or_else(|| {
-            anyhow!(
-                "VCF tool proof `{}` / `{}` is missing `{report_artifact_id}`",
-                manifest.stage_id,
-                manifest.tool.id
-            )
-        })?;
-    let report_path = repo_relative_path(repo_root, Path::new(&report_output.realized_path));
-    let report: serde_json::Value = serde_json::from_slice(
-        &std::fs::read(&report_path)
-            .with_context(|| format!("read VCF execution proof {}", report_path.display()))?,
-    )
-    .with_context(|| format!("parse VCF execution proof {}", report_path.display()))?;
-
-    if manifest.stage_id == "vcf.population_structure" {
-        return Ok(population_structure_execution_blocker(&manifest.tool.id, &report));
-    }
-    if manifest.stage_id == "vcf.phasing" {
-        if !report
-            .get("backend_execution_attempted")
-            .and_then(serde_json::Value::as_bool)
-            .unwrap_or(false)
-        {
-            return Ok(Some(format!(
-                "selected VCF tool `{}` was not executed; phasing smoke reported `backend_execution_attempted=false`",
-                manifest.tool.id
-            )));
-        }
-    } else if manifest.stage_id == "vcf.ibd" {
-        let execution_mode =
-            report.get("execution_mode").and_then(serde_json::Value::as_str).unwrap_or("missing");
-        let tool_ok_field = format!("{}_tool_ok", manifest.tool.id);
-        let selected_tool_ok =
-            report.get(&tool_ok_field).and_then(serde_json::Value::as_bool).unwrap_or(false);
-        if execution_mode != "tool_backed" || !selected_tool_ok {
-            return Ok(Some(format!(
-                "selected VCF tool `{}` was not executed; smoke reported execution_mode `{execution_mode}` and `{tool_ok_field}={selected_tool_ok}`",
-                manifest.tool.id
-            )));
-        }
-    } else if !report.get("tool_ok").and_then(serde_json::Value::as_bool).unwrap_or(false) {
-        return Ok(Some(format!(
-            "selected VCF tool `{}` was not executed; smoke reported `tool_ok=false`",
-            manifest.tool.id
-        )));
-    }
-
-    Ok(None)
-}
-
-fn population_structure_execution_blocker(
-    selected_tool_id: &str,
-    report: &serde_json::Value,
-) -> Option<String> {
-    let pca_tool_id = report.pointer("/pca/tool_id").and_then(serde_json::Value::as_str);
-    let pca_tool_ok = report.pointer("/pca/tool_ok").and_then(serde_json::Value::as_bool);
-    let expected_admixture_tool_id =
-        if selected_tool_id == "eigensoft" { "plink2" } else { selected_tool_id };
-    let admixture_tool_id =
-        report.pointer("/admixture/tool_id").and_then(serde_json::Value::as_str);
-    let admixture_tool_ok =
-        report.pointer("/admixture/tool_ok").and_then(serde_json::Value::as_bool);
-    let expected_prune_tool_id = if selected_tool_id == "plink" { "plink" } else { "plink2" };
-    let prune_tool_id =
-        report.pointer("/tool_attempts/prune/tool").and_then(serde_json::Value::as_str);
-    let prune_tool_ok =
-        report.pointer("/tool_attempts/prune/ok").and_then(serde_json::Value::as_bool);
-    let mds_tool_id = report.pointer("/tool_attempts/mds/tool").and_then(serde_json::Value::as_str);
-    let mds_tool_ok = report.pointer("/tool_attempts/mds/ok").and_then(serde_json::Value::as_bool);
-    let mds_plan_ok =
-        selected_tool_id != "plink" || (mds_tool_id == Some("plink") && mds_tool_ok == Some(true));
-    if report.get("toolchain").and_then(serde_json::Value::as_str) == Some(selected_tool_id)
-        && pca_tool_id == Some(selected_tool_id)
-        && pca_tool_ok == Some(true)
-        && admixture_tool_id == Some(expected_admixture_tool_id)
-        && admixture_tool_ok == Some(true)
-        && prune_tool_id == Some(expected_prune_tool_id)
-        && prune_tool_ok == Some(true)
-        && mds_plan_ok
-    {
-        return None;
-    }
-    Some(format!(
-        "selected VCF tool `{selected_tool_id}` did not complete its population-structure component plan; PCA `{}` ok={}, admixture `{}` ok={}, prune `{}` ok={}, MDS `{}` ok={}",
-        pca_tool_id.unwrap_or("missing"),
-        pca_tool_ok.unwrap_or(false),
-        admixture_tool_id.unwrap_or("missing"),
-        admixture_tool_ok.unwrap_or(false),
-        prune_tool_id.unwrap_or("missing"),
-        prune_tool_ok.unwrap_or(false),
-        mds_tool_id.unwrap_or("not_applicable"),
-        mds_tool_ok.unwrap_or(selected_tool_id != "plink"),
-    ))
-}
-
 fn build_row(
     output_row: &AllDomainOutputDeclarationRow,
     runtime_path_proof: &RuntimePathProof,
@@ -998,9 +773,6 @@ fn build_row(
         stage_id: output_row.stage_id.clone(),
         tool_id: output_row.tool_id.clone(),
     };
-    let declared_raw = output_row.raw_outputs.clone();
-    let declared_norm = output_row.normalized_metrics.clone();
-    let declared_index = output_row.index_outputs.clone();
 
     let (
         output_proof_surface,
@@ -1056,126 +828,26 @@ fn build_row(
         }
     };
 
-    let raw_outputs_matched = declared_raw.iter().all(|id| observed_ids.contains(id));
-    let normalized_metrics_matched = declared_norm.iter().all(|id| observed_ids.contains(id));
-    let index_outputs_matched = declared_index.iter().all(|id| observed_ids.contains(id));
-    let logs_matched = string_set(&output_row.logs)
-        == string_set(&[
-            format!("stdout={}", runtime_path_proof.stdout_path),
-            format!("stderr={}", runtime_path_proof.stderr_path),
-        ]);
-    let manifest_matched = output_row.manifest == runtime_path_proof.stage_result_path;
-    let no_undeclared_outputs = stage_undeclared_output_ids.is_empty();
-
-    let observed_raw_output_ids = filter_declared_ids(&observed_ids, &declared_raw);
-    let observed_normalized_metric_ids = filter_declared_ids(&observed_ids, &declared_norm);
-    let observed_index_output_ids = filter_declared_ids(&observed_ids, &declared_index);
-    let observed_output_paths = declared_raw
-        .iter()
-        .chain(declared_norm.iter())
-        .chain(declared_index.iter())
-        .flat_map(|artifact_id| {
-            observed_paths_by_id.get(artifact_id).cloned().unwrap_or_default().into_iter()
-        })
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect::<Vec<_>>();
-    let observed_logs = vec![
-        format!("stdout={}", runtime_path_proof.stdout_path),
-        format!("stderr={}", runtime_path_proof.stderr_path),
-    ];
-    let observed_manifest = runtime_path_proof.stage_result_path.clone();
-    let passed = output_row.status == AllDomainOutputDeclarationStatus::Complete
-        && independent_execution_proven
-        && raw_outputs_matched
-        && normalized_metrics_matched
-        && index_outputs_matched
-        && logs_matched
-        && manifest_matched
-        && no_undeclared_outputs;
-
-    let reason = if passed {
-        format!(
-            "binding `{}` / `{}` keeps governed raw outputs, normalized metrics, index outputs, logs, and manifest paths under `{}` plus `{}`",
-            output_row.stage_id,
-            output_row.tool_id,
+    Ok(evaluate_output_contract_row(
+        output_row,
+        &OutputContractRuntimePaths {
+            runtime_path_proof_surface: runtime_path_proof.runtime_path_proof_surface.to_string(),
+            runtime_path_proof_path: runtime_path_proof.runtime_path_proof_path.clone(),
+            stdout_path: runtime_path_proof.stdout_path.clone(),
+            stderr_path: runtime_path_proof.stderr_path.clone(),
+            stage_result_path: runtime_path_proof.stage_result_path.clone(),
+        },
+        OutputContractProof {
             output_proof_surface,
-            runtime_path_proof.runtime_path_proof_surface
-        )
-    } else if let Some(blocker) = &execution_blocker {
-        format!("execution blocked: {blocker}")
-    } else {
-        let mut failures = Vec::<String>::new();
-        if output_row.status != AllDomainOutputDeclarationStatus::Complete {
-            failures.push("output declaration is not complete".to_string());
-        }
-        if !independent_execution_proven {
-            failures.push(format!(
-                "independent execution proof is missing from `{}`",
-                output_proof_surface
-            ));
-        }
-        if !raw_outputs_matched {
-            failures.push("declared raw outputs are not fully observed".to_string());
-        }
-        if !normalized_metrics_matched {
-            failures.push("declared normalized metrics are not fully observed".to_string());
-        }
-        if !index_outputs_matched {
-            failures.push("declared index outputs are not fully observed".to_string());
-        }
-        if !logs_matched {
-            failures.push(
-                "declared stdout/stderr paths drifted from the fake-run runtime paths".to_string(),
-            );
-        }
-        if !manifest_matched {
-            failures.push(
-                "declared stage-result manifest path drifted from the fake-run runtime path"
-                    .to_string(),
-            );
-        }
-        if !no_undeclared_outputs {
-            failures.push("observed outputs include undeclared artifact ids".to_string());
-        }
-        failures.join("; ")
-    };
-
-    Ok(OutputContractTestRow {
-        result_id: output_row.result_id.clone(),
-        domain: output_row.domain.clone(),
-        stage_id: output_row.stage_id.clone(),
-        tool_id: output_row.tool_id.clone(),
-        corpus_id: output_row.corpus_id.clone(),
-        asset_profile_id: output_row.asset_profile_id.clone(),
-        output_proof_surface,
-        output_proof_path,
-        proof_tool_id,
-        runtime_path_proof_surface: runtime_path_proof.runtime_path_proof_surface.to_string(),
-        runtime_path_proof_path: runtime_path_proof.runtime_path_proof_path.clone(),
-        declared_raw_output_ids: declared_raw,
-        observed_raw_output_ids,
-        declared_normalized_metric_ids: declared_norm,
-        observed_normalized_metric_ids,
-        declared_index_output_ids: declared_index,
-        observed_index_output_ids,
-        observed_output_paths,
-        stage_undeclared_output_ids,
-        declared_logs: output_row.logs.clone(),
-        observed_logs,
-        declared_manifest: output_row.manifest.clone(),
-        observed_manifest,
-        raw_outputs_matched,
-        normalized_metrics_matched,
-        index_outputs_matched,
-        logs_matched,
-        manifest_matched,
-        no_undeclared_outputs,
-        independent_execution_proven,
-        execution_blocker,
-        passed,
-        reason,
-    })
+            output_proof_path,
+            proof_tool_id,
+            observed_ids,
+            observed_paths_by_id,
+            stage_undeclared_output_ids,
+            independent_execution_proven,
+            execution_blocker,
+        },
+    ))
 }
 
 fn expected_runtime_path_proof_for_row(
@@ -1213,18 +885,6 @@ fn declared_log_paths(row: &AllDomainOutputDeclarationRow) -> (String, String) {
         .find_map(|entry| entry.strip_prefix("stderr=").map(ToString::to_string))
         .unwrap_or_default();
     (stdout_path, stderr_path)
-}
-
-fn filter_declared_ids(observed_ids: &BTreeSet<String>, declared_ids: &[String]) -> Vec<String> {
-    declared_ids
-        .iter()
-        .filter(|artifact_id| observed_ids.contains(*artifact_id))
-        .cloned()
-        .collect::<Vec<_>>()
-}
-
-fn string_set(values: &[String]) -> BTreeSet<String> {
-    values.iter().cloned().collect()
 }
 
 fn local_vcf_stage_result_manifest_path(
@@ -1334,8 +994,7 @@ mod tests {
     use super::{
         build_output_contract_audit_report, is_vcf_tool_contract_planning_refusal,
         load_validated_stage_result_manifest_path, local_stage_proof_output_path,
-        local_vcf_stage_result_manifest_path, population_structure_execution_blocker,
-        DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
+        local_vcf_stage_result_manifest_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
     };
     use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
@@ -1475,37 +1134,6 @@ mod tests {
     }
 
     #[test]
-    fn population_structure_admission_requires_exact_successful_component_plan() {
-        for (tool_id, admixture_tool_id, prune_tool_id) in [
-            ("eigensoft", "plink2", "plink2"),
-            ("plink", "plink", "plink"),
-            ("plink2", "plink2", "plink2"),
-        ] {
-            let report = serde_json::json!({
-                "toolchain": tool_id,
-                "tool_attempts": {
-                    "prune": {"tool": prune_tool_id, "ok": true},
-                    "mds": {
-                        "tool": if tool_id == "plink" { Some("plink") } else { None },
-                        "ok": if tool_id == "plink" { Some(true) } else { None }
-                    }
-                },
-                "pca": {"tool_id": tool_id, "tool_ok": true},
-                "admixture": {"tool_id": admixture_tool_id, "tool_ok": true}
-            });
-            assert_eq!(population_structure_execution_blocker(tool_id, &report), None);
-
-            let mut failed_report = report;
-            failed_report["admixture"]["tool_ok"] = serde_json::Value::Bool(false);
-            let blocker = population_structure_execution_blocker(tool_id, &failed_report)
-                .expect("failed component must block admission");
-            assert!(blocker.contains(&format!("selected VCF tool `{tool_id}`")));
-            assert!(blocker.contains("admixture"));
-            assert!(blocker.contains("ok=false"));
-        }
-    }
-
-    #[test]
     fn build_output_contract_audit_report_records_governed_proof_surfaces() {
         let root = repo_root();
         let _cwd_lock = acquire_cwd_lock();
@@ -1519,7 +1147,11 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_audit.v1");
         assert_eq!(report.output_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH);
         assert_eq!(report.row_count, 159);
-        assert!(report.passed_row_count > 0, "report should keep real passing rows");
+        assert!(report
+            .rows
+            .iter()
+            .filter(|row| row.passed)
+            .all(|row| { row.independent_execution_proven && row.execution_blocker.is_none() }));
         assert!(
             report.output_proof_surface_counts.contains_key("shared_stage_smoke"),
             "FASTQ/BAM shared-stage smoke proof must be represented"
@@ -1545,8 +1177,12 @@ mod tests {
             .find(|row| row.stage_id == "vcf.postprocess" && row.tool_id == "bcftools")
             .expect("vcf.postprocess row");
         assert_eq!(vcf_postprocess.output_proof_surface, "direct_tool_smoke");
-        assert!(vcf_postprocess.independent_execution_proven);
-        assert!(vcf_postprocess.passed);
+        assert!(!vcf_postprocess.independent_execution_proven);
+        assert!(!vcf_postprocess.passed);
+        assert!(vcf_postprocess
+            .execution_blocker
+            .as_deref()
+            .is_some_and(|reason| { reason.starts_with("unverified_execution_report:") }));
         for tool_id in ["eigensoft", "plink", "plink2"] {
             let row = report
                 .rows
@@ -1618,10 +1254,17 @@ mod tests {
             "governed proof runs should not leave blocked FASTQ/BAM materialization rows"
         );
         assert_eq!(fastq_index_reference.output_proof_surface, "shared_stage_smoke");
-        assert!(fastq_index_reference.independent_execution_proven);
-        assert!(fastq_index_reference.passed);
+        assert!(!fastq_index_reference.independent_execution_proven);
+        assert!(!fastq_index_reference.passed);
         assert_eq!(bam_genotyping.output_proof_surface, "direct_declared_output_proof");
-        assert!(bam_genotyping.independent_execution_proven);
-        assert!(bam_genotyping.passed);
+        assert!(!bam_genotyping.independent_execution_proven);
+        assert!(!bam_genotyping.passed);
+        for synthetic in [fastq_index_reference, bam_genotyping] {
+            assert!(synthetic.proof_tool_id.is_none());
+            assert!(synthetic
+                .execution_blocker
+                .as_deref()
+                .is_some_and(|reason| { reason.starts_with("synthetic_output_contract_only:") }));
+        }
     }
 }

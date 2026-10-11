@@ -759,3 +759,17 @@ pub use readiness::rendered_commands::{
 pub mod bam_scoring;
 
 pub mod vcf_scoring;
+
+pub(crate) mod hpc_campaign;
+
+pub(crate) mod simulation;
+
+pub(crate) mod micro_benchmark;
+
+pub(crate) mod source_assets;
+
+pub(crate) mod runtime_resolution;
+
+pub(crate) mod runtime_probe;
+
+pub(crate) mod tool_execution_modes;

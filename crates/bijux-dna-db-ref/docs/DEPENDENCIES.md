@@ -14,7 +14,6 @@ must stay below planners, stages, runners, APIs, and CLIs.
 
 ## Dev Dependencies
 
-- `bijux-dna-policies`: crate-local guardrail smoke coverage.
 
 ## Forbidden Workspace Dependencies
 

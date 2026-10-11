@@ -74,11 +74,28 @@ fn runner_tree_matches_architecture_contract() {
 
     let backend_entries = dir_entries(&root.join("src/backend"));
     let expected_backend: BTreeSet<_> =
-        ["docker/", "facade.rs", "kinds.rs", "mod.rs", "slurm/", "stable_surface.rs"]
+        ["bundle/", "docker/", "facade.rs", "kinds.rs", "mod.rs", "slurm/", "stable_surface.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
     assert_eq!(backend_entries, expected_backend, "runner backend tree must stay focused");
+
+    assert_eq!(
+        dir_entries(&root.join("src/backend/bundle")),
+        [
+            "age.rs",
+            "contracts.rs",
+            "mock.rs",
+            "mod.rs",
+            "publication.rs",
+            "recipients.rs",
+            "storage.rs"
+        ]
+        .into_iter()
+        .map(str::to_string)
+        .collect(),
+        "bundle transport separates metadata, backend adapters, storage, and lifecycle"
+    );
 
     let slurm_entries = dir_entries(&root.join("src/backend/slurm"));
     let expected_slurm: BTreeSet<_> = [
@@ -229,7 +246,6 @@ fn runner_tree_matches_architecture_contract() {
         "contracts.rs",
         "determinism/",
         "determinism.rs",
-        "guardrails.rs",
         "schemas/",
         "schemas.rs",
         "semantics/",
@@ -260,7 +276,6 @@ fn runner_tree_matches_architecture_contract() {
         "dependency_graph.rs",
         "docs_layout.rs",
         "effects_boundary.rs",
-        "guardrails.rs",
         "public_api_docs.rs",
     ]
     .into_iter()

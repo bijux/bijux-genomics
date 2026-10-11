@@ -80,7 +80,7 @@ Run from the `bijux-genomics` repository root:
 
 ```sh
 CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-bench-model --no-default-features
-CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test boundaries --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test boundaries --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test contracts --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test determinism --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test schemas --no-default-features
@@ -88,3 +88,11 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --te
 ```
 
 Suite catalog admission rejects missing input, output or parameter contracts when a declared stage uses that boundary. Empty declared identifier sets reject supplied values; unused contracts are not required. Executor and planner stages outside the supplied catalog retain their existing admission path.
+
+`derive_hardening_benchmark_campaign(matrix, appraisal, queue, requested_goals)` is the pure hardening campaign derivation operation. It admits source identities and emits the governed goal catalog, checks and summary; repository persistence and benchmark execution remain downstream.
+
+`assemble_hpc_asset_staging_manifest(output, staging, jobs)` derives canonical order and exact counters, then admits the existing wire contract. `compare_hpc_asset_staging_manifest(path, observed, expected)` detects field, job and source identity drift, including substitutions that preserve counts.
+
+`project_hpc_scratch_job(HpcScratchJobRequest)` derives output/log roots and cleanup policy from explicit job/source inputs without IO. `assemble_hpc_scratch_layout(output, staging, scratch, jobs)` admits lineage and exact counts; `compare_hpc_scratch_layout(path, observed, expected)` rejects current-input drift, including substitutions that preserve counts.
+
+`classify_runtime_resolution(RuntimeResolutionInput)` interprets declared installation and image references; `select_hpc_runtime_resolution(tool, signature, target)` applies host/external-artifact/Apptainer precedence. These pure policies do not establish actual executable availability or authenticate images. Benchmark CLI adapters project existing governed runtime-probe inputs into the model.

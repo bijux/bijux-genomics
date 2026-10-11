@@ -779,3 +779,172 @@ pub use crate::model::vcf_scoring::{
     VcfToolScoreStatus, VcfToolScoresReport, VcfToolScoringInput, VCF_TOOL_SCORES_SCHEMA_VERSION,
 };
 pub use crate::policy::vcf_scoring::{build_vcf_tool_score_rows, build_vcf_tool_scores_report};
+
+pub use crate::model::readiness::output_audit::{
+    OutputContractProof, OutputContractRuntimePaths, OutputContractTestRow,
+    OutputContractTestsReport, OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION,
+};
+pub use crate::policy::output_audit::{
+    build_output_contract_tests_report, evaluate_output_contract_row,
+};
+
+pub use crate::model::readiness::operational::{
+    OperationalBenchmarkReadyBlocker, OperationalBenchmarkReadyCheck,
+    OperationalBenchmarkReadyReport, OperationalBenchmarkResultCounts,
+    OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION,
+};
+pub use crate::policy::operational_readiness::{
+    build_operational_benchmark_ready_report, validate_operational_benchmark_ready_report,
+};
+
+pub use crate::model::hpc_campaign::{
+    is_supported_encryption_backend, CampaignCheck, CampaignConfig, CampaignDryRunReport,
+    CampaignJob, CampaignLayout, CampaignMeta, CampaignPolicies, CampaignPreflightReport,
+    CampaignSecurity, CampaignSlurm, CorpusSizeScalePolicy, LayoutPolicies, OutputTemplates,
+    PlannedJob, PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
+    ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
+};
+
+pub use crate::contract::hpc_campaign::validate_hpc_campaign_config_source;
+
+pub use crate::model::hpc_campaign::{
+    CampaignLayoutObservation, CampaignPreflightInputs, CampaignPreflightObservations,
+};
+pub use crate::policy::hpc_campaign::{
+    evaluate_campaign_preflight, resolve_hpc_campaign_resource_template,
+};
+
+pub use crate::model::hpc_campaign::{
+    sidecar_path_for, BundleSidecar, BUNDLE_SIDECAR_SCHEMA_VERSION,
+};
+
+pub use crate::model::hpc_campaign::{
+    SlurmMonitorEntry, SlurmMonitorReport, SlurmMonitorSnapshot, CAMPAIGN_MONITOR_SCHEMA_VERSION,
+};
+pub use crate::policy::campaign_monitor::summarize_campaign_monitor;
+
+pub use crate::model::simulation::{
+    all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
+    all_domain_simulation_output_path, all_domain_simulation_output_role,
+    validate_all_domain_simulation_report, validate_all_domain_simulation_result,
+    AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
+    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+};
+
+pub use crate::contract::{admit_all_domain_simulation_inputs, AllDomainSimulationInput};
+
+pub use crate::model::hpc_campaign::{
+    CopyBackEntry, CopyBackManifestReport, COPY_BACK_MANIFEST_SCHEMA_VERSION,
+};
+pub use crate::policy::campaign_copy_back::{
+    plan_campaign_copy_back, quote_slurm_argument, slurm_script_path,
+};
+
+pub use crate::model::readiness::coverage::{
+    AllDomainExpectedResultCoverageReport, AllDomainExpectedResultCoverageRow,
+    AllDomainLocalJobCoverageReport, AllDomainLocalJobCoverageRow,
+    AllDomainNoPlaceholderCommandCheckReport, AllDomainNoPlaceholderCommandRow,
+    AllDomainNoPlaceholderCommandStepAudit, AllDomainOutputContractCoverageReport,
+    AllDomainOutputContractCoverageRow, AllDomainParserFixtureCoverageReport,
+    AllDomainParserFixtureCoverageRow, AllDomainReportMapCoverageReport,
+    AllDomainReportMapCoverageRow, RemovedFromScopeReport, RemovedFromScopeRow,
+    ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION,
+    ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_REPORT_MAP_COVERAGE_SCHEMA_VERSION, REMOVED_FROM_SCOPE_SCHEMA_VERSION,
+};
+
+pub use crate::contract::vcf_scope::{
+    validate_vcf_scope_imputation_identity, validate_vcf_scope_postprocess_closure,
+    VcfScopeCoverageEvidence,
+};
+
+pub use crate::policy::command_audit::evaluate_recorded_command_audit;
+
+pub use crate::policy::operational_readiness::{
+    evaluate_operational_binding_coverage, OperationalBindingEvidence,
+};
+
+pub use crate::policy::command_artifacts::build_rendered_command_artifact_report;
+
+pub use crate::contract::micro_run::{
+    validate_micro_benchmark_run_contract, MicroBenchmarkRunEvidence,
+};
+pub use crate::model::micro_benchmark::run::{
+    MicroBenchmarkComponentReport, MicroBenchmarkExecutionStatus, MicroBenchmarkLogRow,
+    MicroBenchmarkNormalizedMetricRow, MicroBenchmarkOutputRow, MicroBenchmarkResultKind,
+    MicroBenchmarkResultRow, MicroBenchmarkRunManifest, MICRO_BENCHMARK_RUN_COMMAND,
+    MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
+};
+
+pub use crate::policy::operational_readiness::{
+    evaluate_operational_reporting, OperationalReportingEvidence, OperationalReportingPaths,
+};
+
+pub use crate::contract::micro_report::validate_micro_benchmark_report;
+pub use crate::model::micro_benchmark::report::{
+    MicroBenchmarkCompleteRow, MicroBenchmarkFailedRow, MicroBenchmarkInsufficientDataRow,
+    MicroBenchmarkMemorySourceRow, MicroBenchmarkMissingRow, MicroBenchmarkReport,
+    MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow, MicroBenchmarkUnavailableRow,
+    MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
+};
+
+pub use crate::model::micro_benchmark::report_inputs::{
+    MicroBenchmarkExpectedRow, MicroBenchmarkReportDestinations, MicroBenchmarkReportObservations,
+    MicroBenchmarkReportSources,
+};
+pub use crate::policy::micro_report::summarize_micro_benchmark_report;
+
+pub use crate::policy::hpc_array::commands::{
+    render_shell_command, rendered_benchmark_result_execution_argv,
+    rendered_essential_pipeline_node_execution_argv,
+};
+pub use crate::policy::hpc_array::stage::{build_hpc_stage_array_report, HpcStageArrayInputs};
+
+pub use crate::policy::hpc_array::pipeline::{
+    build_hpc_pipeline_array_report, HpcPipelineArrayInputs,
+};
+
+pub use crate::policy::hpc_resources::{
+    project_hpc_job_resources, resolve_hpc_job_resources, HpcJobResourceHints,
+};
+
+pub use crate::policy::hardening_campaign::derive_hardening_benchmark_campaign;
+
+pub use crate::policy::hpc_asset_staging::{
+    assemble_hpc_asset_staging_manifest, compare_hpc_asset_staging_manifest,
+};
+
+pub use crate::model::source_assets::{BenchmarkSourceAsset, BenchmarkSourceKind};
+
+pub use crate::policy::hpc_scratch::{
+    assemble_hpc_scratch_layout, compare_hpc_scratch_layout, project_hpc_scratch_job,
+    HpcScratchJobRequest,
+};
+
+pub use crate::model::runtime_resolution::{
+    HpcApptainerTarget, HpcResolution, RuntimeResolutionInput, RuntimeResolutionSignature,
+    RESOLUTION_KIND_APPTAINER_IMAGE, RESOLUTION_KIND_DOCKER_IMAGE,
+    RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY, RESOLUTION_KIND_UNAVAILABLE,
+};
+pub use crate::policy::runtime_resolution::{
+    classify_runtime_resolution, select_hpc_runtime_resolution,
+};
+
+pub use crate::model::runtime_probe::BenchmarkRuntimeProbe;
+
+pub use crate::model::readiness::tool_execution_modes::{
+    ToolExecutionModeRow, ToolExecutionModesValidationReport,
+    TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION,
+};
+pub use crate::policy::tool_execution_validation::ToolExecutionModeValidationPlan;
+
+pub use crate::model::tool_execution_modes::{
+    ToolExecutionModeAssignment, ToolExecutionModesConfig,
+    LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
+};
+
+pub use crate::contract::{inspect_hpc_replay_payloads, HpcReplayPayloadAdmission};

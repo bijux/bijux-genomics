@@ -29,3 +29,7 @@
 - New public modules require this file and the public API docs test to change together.
 - New command surfaces require `COMMANDS.md` and command boundary tests.
 - Public QA record or artifact changes require `CONTRACTS.md` and artifact contract tests.
+
+## Features
+
+`verification-tools` is enabled by default and retains every existing verification module and binary. Disabling default features retains `qualification` and the corresponding `api` exports, together with container contract reexports. Image, runtime and security verification entrypoints require `verification-tools`; Cargo skips their binaries when the feature is absent.

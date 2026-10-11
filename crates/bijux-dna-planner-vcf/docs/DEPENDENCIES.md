@@ -13,7 +13,6 @@
 - `bijux-dna-stage-contract` for stage plan payloads.
 
 ## Dev Dependencies
-- `bijux-dna-policies` for guardrail configuration tests.
 
 ## Forbidden Dependency Families
 - Runtime, runner, engine, CLI, API, environment, and product execution crates.

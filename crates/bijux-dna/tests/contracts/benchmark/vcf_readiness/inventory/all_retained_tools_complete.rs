@@ -113,6 +113,11 @@ fn bench_readiness_vcf_all_retained_tools_complete_reports_licensed_evidence_blo
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks array");
     assert_eq!(checks.len(), 24);
+    let goal_ids = checks
+        .iter()
+        .filter_map(|check| check.get("goal_id").and_then(serde_json::Value::as_u64))
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(goal_ids, (336_u64..=359_u64).collect::<std::collections::BTreeSet<_>>());
     assert_eq!(
         checks
             .iter()

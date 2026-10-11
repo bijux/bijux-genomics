@@ -24,7 +24,6 @@ walkdir.workspace = true
 wait-timeout.workspace = true
 
 [dev-dependencies]
-bijux-dna-policies.workspace = true
 bijux-dna-testkit.workspace = true
 assert_cmd.workspace = true
 tempfile.workspace = true

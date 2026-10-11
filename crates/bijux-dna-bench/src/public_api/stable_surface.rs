@@ -647,9 +647,8 @@ pub use bijux_dna_science::decision::{
     evaluate_benchmark_gate_policy, validate_benchmark_gate_policy,
 };
 
-pub use crate::artifacts::{
-    inspect_benchmark_source_asset, BenchmarkSourceAsset, BenchmarkSourceKind,
-};
+pub use crate::repo::source_assets::inspect_benchmark_source_asset;
+pub use bijux_dna_bench_model::{BenchmarkSourceAsset, BenchmarkSourceKind};
 
 pub use crate::repo::materialize_benchmark_reference_fasta;
 
@@ -664,4 +663,189 @@ pub use bijux_dna_bench_model::{
 
 pub use crate::repo::load_bam_tool_score_evidence;
 
-pub use crate::repo::load_vcf_tool_score_evidence;
+pub use crate::repo::{load_vcf_execution_blocker, load_vcf_tool_score_evidence};
+
+pub use bijux_dna_bench_model::{
+    build_output_contract_tests_report, evaluate_output_contract_row, OutputContractProof,
+    OutputContractRuntimePaths, OutputContractTestRow, OutputContractTestsReport,
+    OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION,
+};
+
+#[cfg(feature = "container-qualification")]
+pub use crate::workflow::{
+    derive_container_qualification_report, derive_container_qualification_report_with_release,
+};
+
+pub use bijux_dna_bench_model::{
+    build_operational_benchmark_ready_report, validate_operational_benchmark_ready_report,
+    OperationalBenchmarkReadyBlocker, OperationalBenchmarkReadyCheck,
+    OperationalBenchmarkReadyReport, OperationalBenchmarkResultCounts,
+    OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION,
+};
+
+pub use crate::repo::hpc_campaign::profiles::write_campaign_profiles;
+pub use crate::workflow::hpc_campaign::{campaign_dry_run, campaign_preflight, CampaignContext};
+pub use bijux_dna_bench_model::{
+    inspect_hpc_replay_payloads, is_supported_encryption_backend, CampaignCheck, CampaignConfig,
+    CampaignDryRunReport, CampaignJob, CampaignLayout, CampaignMeta, CampaignPolicies,
+    CampaignPreflightReport, CampaignSecurity, CampaignSlurm, CorpusSizeScalePolicy,
+    HpcReplayPayloadAdmission, LayoutPolicies, OutputTemplates, PlannedJob, PlannedLayout,
+    PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies, ResourceTemplate,
+    ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
+};
+
+pub use crate::workflow::hpc_campaign::monitor_campaign;
+pub use bijux_dna_bench_model::{SlurmMonitorEntry, SlurmMonitorReport, SlurmMonitorSnapshot};
+
+pub use crate::artifacts::schema_publication::{
+    render_bam_normalized_metrics_schema, render_benchmark_attempt_archive_schema,
+    render_benchmark_attempt_schema, render_benchmark_cycle_status_schema,
+    render_benchmark_pipeline_parameters_schema, render_benchmark_report_admission_schema,
+    render_benchmark_stage_interfaces_schema, render_benchmark_stage_report_schema,
+    render_fastq_normalized_metrics_schema, render_vcf_normalized_metrics_schema,
+    render_vcf_normalized_metrics_stage_schema, validate_vcf_normalized_metrics,
+    vcf_normalized_metrics_stage_schema_descriptors, write_bam_normalized_metrics_schema,
+    write_benchmark_attempt_archive_schema, write_benchmark_attempt_schema,
+    write_benchmark_cycle_status_schema, write_benchmark_pipeline_parameters_schema,
+    write_benchmark_report_admission_schema, write_benchmark_stage_interfaces_schema,
+    write_benchmark_stage_report_schema, write_fastq_normalized_metrics_schema,
+    write_vcf_normalized_metrics_schema, write_vcf_normalized_metrics_stage_schemas,
+};
+
+pub use crate::artifacts::simulation::render_all_domain_simulation_command_script;
+pub use crate::workflow::simulation::fake_run_all_domain_benchmark_results;
+pub use bijux_dna_bench_model::{
+    all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
+    all_domain_simulation_output_path, all_domain_simulation_output_role,
+    validate_all_domain_simulation_report, validate_all_domain_simulation_result,
+    AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
+    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+};
+
+pub use crate::workflow::hpc_campaign::write_campaign_copy_back_manifest;
+pub use bijux_dna_bench_model::{
+    quote_slurm_argument, slurm_script_path, CopyBackEntry, CopyBackManifestReport,
+};
+
+pub use bijux_dna_bench_model::{
+    AllDomainExpectedResultCoverageReport, AllDomainExpectedResultCoverageRow,
+    AllDomainLocalJobCoverageReport, AllDomainLocalJobCoverageRow,
+    AllDomainNoPlaceholderCommandCheckReport, AllDomainNoPlaceholderCommandRow,
+    AllDomainNoPlaceholderCommandStepAudit, AllDomainOutputContractCoverageReport,
+    AllDomainOutputContractCoverageRow, AllDomainParserFixtureCoverageReport,
+    AllDomainParserFixtureCoverageRow, AllDomainReportMapCoverageReport,
+    AllDomainReportMapCoverageRow, RemovedFromScopeReport, RemovedFromScopeRow,
+    ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION,
+    ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_REPORT_MAP_COVERAGE_SCHEMA_VERSION, REMOVED_FROM_SCOPE_SCHEMA_VERSION,
+};
+
+pub use bijux_dna_bench_model::{
+    validate_vcf_scope_imputation_identity, validate_vcf_scope_postprocess_closure,
+    VcfScopeCoverageEvidence,
+};
+
+pub use crate::workflow::write_recorded_command_audit;
+
+pub use bijux_dna_bench_model::{
+    evaluate_operational_binding_coverage, OperationalBindingEvidence,
+};
+
+pub use crate::workflow::publish_rendered_command_artifacts;
+
+pub use crate::workflow::qualify_micro_benchmark_run;
+pub use bijux_dna_bench_model::{
+    MicroBenchmarkComponentReport, MicroBenchmarkExecutionStatus, MicroBenchmarkLogRow,
+    MicroBenchmarkNormalizedMetricRow, MicroBenchmarkOutputRow, MicroBenchmarkResultKind,
+    MicroBenchmarkResultRow, MicroBenchmarkRunEvidence, MicroBenchmarkRunManifest,
+    MICRO_BENCHMARK_RUN_COMMAND, MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
+};
+
+pub use bijux_dna_bench_model::{
+    evaluate_operational_reporting, OperationalReportingEvidence, OperationalReportingPaths,
+};
+
+pub use crate::artifacts::micro_report::render_micro_benchmark_report_markdown;
+pub use bijux_dna_bench_model::{
+    validate_micro_benchmark_report, MicroBenchmarkCompleteRow, MicroBenchmarkFailedRow,
+    MicroBenchmarkInsufficientDataRow, MicroBenchmarkMemorySourceRow, MicroBenchmarkMissingRow,
+    MicroBenchmarkReport, MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow,
+    MicroBenchmarkUnavailableRow, MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
+};
+
+pub use crate::repo::micro_report::publication::{
+    DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH, DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH,
+};
+pub use crate::workflow::micro_report::{
+    generate_micro_benchmark_report, MicroBenchmarkReportRequest,
+};
+pub use bijux_dna_bench_model::{
+    summarize_micro_benchmark_report, MicroBenchmarkExpectedRow, MicroBenchmarkReportDestinations,
+    MicroBenchmarkReportObservations, MicroBenchmarkReportSources,
+};
+
+pub use crate::workflow::hpc_array::stage::{
+    collect_hpc_stage_array, publish_hpc_stage_array, validate_hpc_stage_array,
+    HpcStageArrayDestination, HpcStageArrayRequest,
+};
+
+pub use crate::artifacts::hpc_array::shell::quote_hpc_shell_value;
+
+pub use crate::workflow::hpc_array::pipeline::{
+    collect_hpc_pipeline_array, publish_hpc_pipeline_array, validate_hpc_pipeline_array,
+    HpcPipelineArrayDestination, HpcPipelineArrayRequest,
+};
+
+pub use crate::repo::hpc_resources::{load_hpc_job_resources, HPC_JOB_RESOURCE_CONFIG_PATH};
+pub use bijux_dna_bench_model::{resolve_hpc_job_resources, HpcJobResourceHints};
+
+pub use crate::repo::hpc_inputs::{
+    collect_hpc_job_source_inputs, materialize_stage_id, HpcDiscoveredSourceInput,
+    HpcStageInputHint,
+};
+
+pub use crate::repo::hpc_asset_staging::{
+    load_hpc_asset_staging_manifest, publish_hpc_asset_staging_manifest,
+};
+pub use crate::workflow::{collect_hpc_asset_staging_manifest, HpcAssetStagingRequest};
+pub use bijux_dna_bench_model::compare_hpc_asset_staging_manifest;
+
+pub use crate::repo::hpc_scratch::{load_hpc_scratch_layout, publish_hpc_scratch_layout};
+pub use crate::workflow::hpc_scratch::{
+    collect_hpc_scratch_layout, HpcScratchCommands, HpcScratchPipelineCommands, HpcScratchRequest,
+};
+pub use bijux_dna_bench_model::{
+    assemble_hpc_scratch_layout, compare_hpc_scratch_layout, project_hpc_scratch_job,
+    HpcScratchJobRequest,
+};
+
+pub use bijux_dna_bench_model::{
+    classify_runtime_resolution, select_hpc_runtime_resolution, HpcApptainerTarget, HpcResolution,
+    RuntimeResolutionInput, RuntimeResolutionSignature, RESOLUTION_KIND_APPTAINER_IMAGE,
+    RESOLUTION_KIND_DOCKER_IMAGE, RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY,
+    RESOLUTION_KIND_UNAVAILABLE,
+};
+
+pub use crate::repo::runtime_probe::{
+    load_runtime_probe, load_runtime_probe_with_source, LoadedRuntimeProbe,
+};
+pub use bijux_dna_bench_model::BenchmarkRuntimeProbe;
+
+pub use crate::workflow::evaluate_tool_execution_modes;
+pub use bijux_dna_bench_model::{
+    ToolExecutionModeRow, ToolExecutionModesValidationReport,
+    TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION,
+};
+
+pub use crate::repo::tool_execution_modes::{
+    load_tool_execution_mode_assignments, load_tool_execution_modes_config,
+    DEFAULT_TOOL_EXECUTION_MODES_PATH,
+};
+pub use bijux_dna_bench_model::{
+    ToolExecutionModeAssignment, ToolExecutionModesConfig,
+    LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
+};

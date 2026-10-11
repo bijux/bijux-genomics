@@ -30,7 +30,6 @@ name = "bijux-dna-verify"
 path = "src/api/external_verifier_bin.rs"
 
 [dev-dependencies]
-bijux-dna-policies = { path = "../bijux-dna-policies" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 tempfile.workspace = true
 insta = { version = "1", features = ["json"] }

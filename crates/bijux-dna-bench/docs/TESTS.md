@@ -11,14 +11,12 @@ README files are intentionally not allowed under `tests/`.
 - `tests/determinism.rs` loads stable ordering, compare, and realistic snapshot
   tests.
 - `tests/semantics.rs` loads gate semantic tests.
-- `tests/guardrails.rs` runs the shared crate guardrail policy from the root.
 - `tests/workspace_paths.rs` provides repository path helpers.
 
 ## Boundary Tests
 
 - `tests/boundaries/architecture_tree.rs` protects the root layout, 10-docs
   allowance, Markdown location rules, source layout, and test layout.
-- `tests/boundaries/guardrails.rs` runs shared guardrails for the crate.
 
 ## Contract Tests
 
@@ -65,3 +63,15 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test sem
 `repo::corpus::normalized_fastq::tests` covers deterministic mate discovery, curated accession joins, full and paired cohorts, orphan mates, missing/ambiguous accessions, count drift, and requested corpus identity. The adjacent BAM and FASTQ admission modules retain their existing owner tests.
 
 Normalized corpus admission fixtures cover conflicting mate accessions, missing mates, repeated source/sample identities, stale raw and normalized bytes, manifest schema/duplicate-key/path/size rejection, symlinked authority, missing metadata and valid zero-sized cohorts. Tiny compressed reads exercise content identity without claiming external scientific qualification.
+
+The micro-run acceptance case lives in `tests/contracts/micro_run.rs` under the workflow owner. A compact fixture retains eight component identities, all seven result category/status rows, six output rows, one log and two metrics. It verifies version and nested-field admission, schema roundtrip, contradictory counts, unsupported metric claims and missing current evidence, including removal of stale passing verdicts. Repeated literal construction and unused row-file copies are unnecessary.
+
+Micro-run qualification re-observes output artifacts and file logs before declaring a current pass. The retained fixture supplies a distinct sidecar for deletion, a missing/directory log and an existing traversal path; each must clear a previous passing verdict. Directory output artifacts remain supported. Lexical path admission does not promise content identity or protection against concurrent namespace changes.
+
+The existing micro-report producer fixture also verifies model round-trip, unsupported versions, unknown nested input fields, source-count disagreement, header/vector disagreement and overflowing status totals. These checks reuse its two existing succeeded/unavailable observations and retained publication/section assertions; no extra full fixture or workflow is introduced.
+
+Micro-report coverage policy independently tests expected-source and current-evidence obligations, including unavailable results. Repository parser tests retain both report-level and nested-case insufficiency examples. Destination admission rejects traversal, directory roots and aliased outputs without creating directories. The original CLI producer fixture still checks eight upstream adapters, persisted report fields and all Markdown sections.
+
+Micro-report admission compares the exact multiset of component/execution/domain/stage/tool/status identities against source results for result, runtime and memory sections. The existing two-row fixture rejects substituted identities and equal-total forged status/source distributions, clears stale passing verdicts, and accepts a harmless section permutation. No additional workflow fixture is needed.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

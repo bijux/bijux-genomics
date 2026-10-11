@@ -1,0 +1,151 @@
+{
+  "$defs": {
+    "OperationalBenchmarkReadyBlocker": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "blocker_path": {
+          "type": "string"
+        },
+        "blocker_type": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "blocker_type",
+        "blocker_path",
+        "detail"
+      ],
+      "type": "object"
+    },
+    "OperationalBenchmarkReadyCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "output_path": {
+          "type": "string"
+        },
+        "surface_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "surface_id",
+        "output_path",
+        "ok",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_ready_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "blocker_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "blockers": {
+      "items": {
+        "$ref": "#/$defs/OperationalBenchmarkReadyBlocker"
+      },
+      "type": "array"
+    },
+    "checked_surface_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/OperationalBenchmarkReadyCheck"
+      },
+      "type": "array"
+    },
+    "failed_surface_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "insufficient_data_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_result_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passed_surface_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.operational_benchmark_ready.v1",
+      "type": "string"
+    },
+    "unsupported_pair_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "checked_surface_count",
+    "passed_surface_count",
+    "failed_surface_count",
+    "benchmark_ready_row_count",
+    "blocker_count",
+    "missing_result_row_count",
+    "insufficient_data_row_count",
+    "unsupported_pair_row_count",
+    "ok",
+    "checks",
+    "blockers"
+  ],
+  "title": "OperationalBenchmarkReadyReport",
+  "type": "object"
+}

@@ -30,8 +30,7 @@ use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_STAGE_TOOL_RESOURCES_PATH: &str =
-    "configs/bench/local/stage-tool-resources.toml";
+pub(crate) use bijux_dna_api::v1::api::bench::HPC_JOB_RESOURCE_CONFIG_PATH as DEFAULT_STAGE_TOOL_RESOURCES_PATH;
 const FASTQ_MINUTES_QC: u32 = 10;
 const FASTQ_MINUTES_TRANSFORM: u32 = 15;
 const FASTQ_MINUTES_REFERENCE: u32 = 20;

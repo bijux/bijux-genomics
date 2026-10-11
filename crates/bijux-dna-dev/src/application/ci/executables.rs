@@ -1,4 +1,4 @@
-//! Explicit cross-package executable bindings from the admitted test archive inventory.
+//! Explicit cross-package executable bindings from the admitted compiled test inventory.
 
 use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 const REQUIRED_EXECUTABLES: [&str; 2] = ["bijux-dna", "bijux-dna-dev"];
 
 #[derive(Debug, Serialize)]
-pub(crate) struct ArchivedWorkspaceExecutables {
+pub(crate) struct CompiledWorkspaceExecutables {
     paths: BTreeMap<String, PathBuf>,
 }
 
@@ -32,10 +32,10 @@ struct Executable {
     path: PathBuf,
 }
 
-impl ArchivedWorkspaceExecutables {
+impl CompiledWorkspaceExecutables {
     pub fn parse(raw: &[u8]) -> Result<Self> {
         let inventory: Inventory =
-            serde_json::from_slice(raw).context("parse archived workspace executable inventory")?;
+            serde_json::from_slice(raw).context("parse compiled workspace executable inventory")?;
         let mut paths = BTreeMap::new();
         for executable in inventory.rust_build_meta.non_test_binaries.into_values().flatten() {
             if !REQUIRED_EXECUTABLES.contains(&executable.name.as_str()) {
@@ -43,7 +43,7 @@ impl ArchivedWorkspaceExecutables {
             }
             ensure!(executable.kind == "bin-exe", "workspace executable must be a binary target");
             let relative =
-                executable.path.to_str().context("archive executable path must be UTF-8")?;
+                executable.path.to_str().context("compiled executable path must be UTF-8")?;
             ensure!(
                 !relative.is_empty()
                     && !relative.contains(['\\', '\0'])
@@ -54,37 +54,37 @@ impl ArchivedWorkspaceExecutables {
                         .path
                         .components()
                         .all(|part| matches!(part, Component::Normal(_))),
-                "archive executable path must be a canonical relative path"
+                "compiled executable path must be a canonical relative path"
             );
             let file = executable
                 .path
                 .file_name()
                 .and_then(|name| name.to_str())
-                .context("archive executable requires a file name")?;
+                .context("compiled executable requires a file name")?;
             ensure!(
                 file == executable.name || file == format!("{}.exe", executable.name),
-                "archive executable file name does not match its declared binary"
+                "compiled executable file name does not match its declared binary"
             );
             ensure!(
                 paths.insert(executable.name, executable.path).is_none(),
-                "archive declares an ambiguous workspace executable"
+                "compiled inventory declares an ambiguous workspace executable"
             );
         }
         for name in REQUIRED_EXECUTABLES {
             ensure!(
                 paths.contains_key(name),
-                "archive is missing required workspace executable {name}"
+                "compiled inventory is missing required workspace executable {name}"
             );
         }
         Ok(Self { paths })
     }
 
-    pub fn remapped_environment(&self, extraction_root: &Path) -> Result<Vec<(String, String)>> {
-        ensure!(extraction_root.is_absolute(), "archive extraction root must be absolute");
+    pub fn remapped_environment(&self, target_root: &Path) -> Result<Vec<(String, String)>> {
+        ensure!(target_root.is_absolute(), "compiled target root must be absolute");
         self.paths
             .iter()
             .map(|(name, relative)| {
-                let path = extraction_root.join("target").join(relative);
+                let path = target_root.join(relative);
                 let path = path.to_str().context("remapped executable path must be UTF-8")?;
                 Ok((format!("NEXTEST_BIN_EXE_{name}"), path.to_owned()))
             })

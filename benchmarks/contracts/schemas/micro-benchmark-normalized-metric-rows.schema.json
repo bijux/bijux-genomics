@@ -1,0 +1,36 @@
+{
+  "$defs": {
+    "MicroBenchmarkNormalizedMetricRow": {
+      "additionalProperties": false,
+      "properties": {
+        "component_id": {
+          "type": "string"
+        },
+        "execution_id": {
+          "type": "string"
+        },
+        "metric_id": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "value": true
+      },
+      "required": [
+        "execution_id",
+        "component_id",
+        "metric_id",
+        "value",
+        "source_path"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "items": {
+    "$ref": "#/$defs/MicroBenchmarkNormalizedMetricRow"
+  },
+  "title": "Array_of_MicroBenchmarkNormalizedMetricRow",
+  "type": "array"
+}

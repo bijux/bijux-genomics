@@ -1,9 +1,12 @@
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainReportMapCoverageReport, AllDomainReportMapCoverageRow,
+    ALL_DOMAIN_REPORT_MAP_COVERAGE_SCHEMA_VERSION,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
@@ -19,8 +22,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_REPORT_MAP_COVERAGE_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/report-map-coverage.tsv";
-const ALL_DOMAIN_REPORT_MAP_COVERAGE_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_report_map_coverage.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";
 const COVERAGE_STATUS_MISSING_EXPECTED_RESULT: &str = "missing_expected_result";
 const COVERAGE_STATUS_MISSING_REPORT_MAP: &str = "missing_report_map";
@@ -51,48 +52,6 @@ struct ReportMapSourceRow {
     proof_source: String,
     report_section_id: String,
     summary_table_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainReportMapCoverageRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) adapter_id: String,
-    pub(crate) parser_id: String,
-    pub(crate) schema_id: String,
-    pub(crate) expected_report_section: String,
-    pub(crate) report_section_id: String,
-    pub(crate) summary_table_id: String,
-    pub(crate) proof_source: String,
-    pub(crate) coverage_status: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainReportMapCoverageReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) result_id_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) report_map_binding_count: usize,
-    pub(crate) covered_row_count: usize,
-    pub(crate) missing_row_count: usize,
-    pub(crate) coverage_percent: f64,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) proof_source_counts: BTreeMap<String, usize>,
-    pub(crate) report_section_counts: BTreeMap<String, usize>,
-    pub(crate) summary_table_counts: BTreeMap<String, usize>,
-    pub(crate) coverage_status_counts: BTreeMap<String, usize>,
-    pub(crate) violation_count: usize,
-    pub(crate) ok: bool,
-    pub(crate) rows: Vec<AllDomainReportMapCoverageRow>,
-    pub(crate) violations: Vec<AllDomainReportMapCoverageRow>,
 }
 
 pub(crate) fn run_render_all_domain_report_map_coverage(
@@ -204,7 +163,7 @@ fn build_all_domain_report_map_coverage_report(
         .collect::<Vec<_>>();
 
     let report = AllDomainReportMapCoverageReport {
-        schema_version: ALL_DOMAIN_REPORT_MAP_COVERAGE_SCHEMA_VERSION,
+        schema_version: ALL_DOMAIN_REPORT_MAP_COVERAGE_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, output_path),
         row_count,
         result_id_count,

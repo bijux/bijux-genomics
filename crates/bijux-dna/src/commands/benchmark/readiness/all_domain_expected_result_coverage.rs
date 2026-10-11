@@ -1,9 +1,12 @@
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainExpectedResultCoverageReport, AllDomainExpectedResultCoverageRow,
+    ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_SCHEMA_VERSION,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
@@ -16,8 +19,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/expected-result-coverage.tsv";
-const ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_expected_result_coverage.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";
 const COVERAGE_STATUS_MISSING_EXPECTED_RESULT: &str = "missing_expected_result";
 const NO_VALUE: &str = "none";
@@ -29,45 +30,6 @@ struct CoverageKey {
     tool_id: String,
     corpus_id: String,
     asset_profile_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainExpectedResultCoverageRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) adapter_id: String,
-    pub(crate) parser_id: String,
-    pub(crate) schema_id: String,
-    pub(crate) expected_outputs: Vec<String>,
-    pub(crate) expected_metrics: Vec<String>,
-    pub(crate) report_section: String,
-    pub(crate) coverage_status: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainExpectedResultCoverageReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) result_id_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) expected_result_binding_count: usize,
-    pub(crate) covered_row_count: usize,
-    pub(crate) missing_row_count: usize,
-    pub(crate) coverage_percent: f64,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) report_section_counts: BTreeMap<String, usize>,
-    pub(crate) coverage_status_counts: BTreeMap<String, usize>,
-    pub(crate) violation_count: usize,
-    pub(crate) ok: bool,
-    pub(crate) rows: Vec<AllDomainExpectedResultCoverageRow>,
-    pub(crate) violations: Vec<AllDomainExpectedResultCoverageRow>,
 }
 
 pub(crate) fn run_render_all_domain_expected_result_coverage(
@@ -167,7 +129,7 @@ fn build_all_domain_expected_result_coverage_report(
         .collect::<Vec<_>>();
 
     let report = AllDomainExpectedResultCoverageReport {
-        schema_version: ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_SCHEMA_VERSION,
+        schema_version: ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, output_path),
         row_count,
         result_id_count,

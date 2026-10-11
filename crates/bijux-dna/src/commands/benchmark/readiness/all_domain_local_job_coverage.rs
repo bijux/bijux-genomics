@@ -1,9 +1,12 @@
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainLocalJobCoverageReport, AllDomainLocalJobCoverageRow,
+    ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
@@ -17,8 +20,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_LOCAL_JOB_COVERAGE_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/local-job-coverage.tsv";
-const ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_local_job_coverage.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";
 const COVERAGE_STATUS_MISSING_LOCAL_JOB: &str = "missing_local_job";
 const NO_VALUE: &str = "none";
@@ -30,53 +31,6 @@ struct CoverageKey {
     tool_id: String,
     corpus_id: String,
     asset_profile_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainLocalJobCoverageRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) adapter_id: String,
-    pub(crate) parser_id: String,
-    pub(crate) schema_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) benchmark_status: String,
-    pub(crate) command_source: String,
-    pub(crate) command_step_count: usize,
-    pub(crate) script_command_count: usize,
-    pub(crate) command_step_ids: Vec<String>,
-    pub(crate) primary_executables: Vec<String>,
-    pub(crate) script_output_path: String,
-    pub(crate) argv_output_path: String,
-    pub(crate) coverage_status: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainLocalJobCoverageReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) script_output_path: String,
-    pub(crate) argv_output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) result_id_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) local_job_binding_count: usize,
-    pub(crate) covered_row_count: usize,
-    pub(crate) missing_row_count: usize,
-    pub(crate) coverage_percent: f64,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) command_source_counts: BTreeMap<String, usize>,
-    pub(crate) coverage_status_counts: BTreeMap<String, usize>,
-    pub(crate) violation_count: usize,
-    pub(crate) ok: bool,
-    pub(crate) rows: Vec<AllDomainLocalJobCoverageRow>,
-    pub(crate) violations: Vec<AllDomainLocalJobCoverageRow>,
 }
 
 pub(crate) fn run_render_all_domain_local_job_coverage(
@@ -185,7 +139,7 @@ fn build_all_domain_local_job_coverage_report(
         .collect::<Vec<_>>();
 
     let report = AllDomainLocalJobCoverageReport {
-        schema_version: ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION,
+        schema_version: ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, output_path),
         script_output_path: rendered_report.output_path,
         argv_output_path: rendered_report.argv_output_path,

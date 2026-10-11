@@ -29,7 +29,18 @@ fn run_cli_json() -> serde_json::Value {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+    let payload: serde_json::Value =
+        serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    let persisted: serde_json::Value =
+        serde_json::from_slice(
+            &std::fs::read(sandbox.path().join(
+                "artifacts/benchmark-smoke/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json",
+            ))
+            .expect("read governed report"),
+        )
+        .expect("parse governed report");
+    assert_eq!(payload, persisted);
+    payload
 }
 
 #[test]
@@ -100,6 +111,7 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
         Some(expected_container_smoke_row_count)
     );
     assert_eq!(expected_external_artifact_row_count, 3);
+    assert_eq!(expected_container_smoke_row_count, 26);
     assert_eq!(
         payload.get("report_map_row_count").and_then(serde_json::Value::as_u64),
         Some(retained_row_count)
@@ -120,6 +132,11 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks array");
     assert_eq!(checks.len(), 19);
+    let goal_ids = checks
+        .iter()
+        .filter_map(|check| check.get("goal_id").and_then(serde_json::Value::as_u64))
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(goal_ids, (431_u64..=449_u64).collect::<std::collections::BTreeSet<_>>());
     assert!(checks.iter().all(|check| check.get("ok") == Some(&serde_json::Value::Bool(true))));
 
     let goal_439 = checks

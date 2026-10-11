@@ -30,10 +30,11 @@ pub use checks::no_wait::{
 pub use public_api::{check, GuardrailConfig};
 pub use qualification::{
     evaluate_benchmark_evidence, evaluate_execution_evidence, evaluate_identity_evidence,
-    evaluate_publication_freshness, evaluate_source_identity, render_qualification_report_json,
-    render_qualification_report_markdown, ArtifactAvailability, ArtifactDelivery,
-    BenchmarkEvidenceObservation, DecisionAudit, EvidenceDecision, EvidenceDimension,
-    EvidenceVerdict, ExecutionEvidenceObservation, ExecutionEvidenceStatus,
+    evaluate_publication_freshness, evaluate_source_identity,
+    render_qualification_assessment_schema, render_qualification_report_json,
+    render_qualification_report_markdown, render_qualification_report_schema, ArtifactAvailability,
+    ArtifactDelivery, BenchmarkEvidenceObservation, DecisionAudit, EvidenceDecision,
+    EvidenceDimension, EvidenceVerdict, ExecutionEvidenceObservation, ExecutionEvidenceStatus,
     ImmutablePublicationIdentity, ProductSupport, PublicationArtifactIdentity,
     PublicationAuthority, PublicationDisposition, PublicationFreshnessEvaluation,
     PublicationFreshnessVerdict, PublicationIdentityMismatch, QualificationAssessment,

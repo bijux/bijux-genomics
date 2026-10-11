@@ -11,11 +11,11 @@ fn normal_dependency_graph_matches_boundary() {
 }
 
 #[test]
-fn dev_dependency_graph_stays_within_guardrails_and_isolated_catalog_fixtures() {
+fn dev_dependency_graph_stays_within_isolated_catalog_fixtures() {
     let manifest = read_manifest();
     let dependencies = dependency_names(&manifest, "dev-dependencies");
 
-    assert_eq!(dependencies, entries(["bijux-dna-policies", "tempfile"]));
+    assert_eq!(dependencies, entries(["tempfile"]));
 }
 
 #[test]

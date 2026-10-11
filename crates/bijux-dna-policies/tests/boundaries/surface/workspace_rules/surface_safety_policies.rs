@@ -27,6 +27,7 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-runner/src/backend/slurm/qualification/",
         "crates/bijux-dna-stages-vcf/src/",
     ];
+    let effect_owner_paths = ["crates/bijux-dna-dev/src/runtime/owned_artifacts.rs"];
     let legacy_allowlist: BTreeSet<&str> = BTreeSet::from([
         "crates/bijux-dna/src/commands/bench_suite/bench_suite_part1.rs",
         "crates/bijux-dna/src/commands/benchmark_config.rs",
@@ -156,7 +157,8 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         {
             let rel = entry.path().strip_prefix(&root).unwrap_or(entry.path());
             let rel_string = rel.display().to_string();
-            if legacy_allowlist.contains(rel_string.as_str())
+            if effect_owner_paths.contains(&rel_string.as_str())
+                || legacy_allowlist.contains(rel_string.as_str())
                 || allowed_prefixes.iter().any(|prefix| rel_string.starts_with(prefix))
             {
                 continue;
@@ -179,16 +181,8 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
 fn policy__boundaries__workspace__engine_has_no_domain_keywords() {
     let root = workspace_root();
     let engine_root = root.join("crates").join("bijux-dna-engine").join("src");
-    let denylist = [
-        "fastq",
-        "bam",
-        "qc_post",
-        "retention",
-        "adapter_bank",
-        "adapters",
-        "fastqc",
-        "multiqc",
-    ];
+    let denylist =
+        ["fastq", "bam", "qc_post", "retention", "adapter_bank", "adapters", "fastqc", "multiqc"];
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(&engine_root)
         .into_iter()
@@ -250,13 +244,11 @@ fn defines_api_planning_policy(source: &str) -> bool {
         .collect::<Vec<_>>();
     tokens.windows(2).any(|pair| {
         DECLARATION_KINDS.contains(&pair[0])
-            && PLANNING_IDENTIFIERS
-                .iter()
-                .any(|identifier| {
-                    pair[1].strip_prefix(identifier).is_some_and(|suffix| {
-                        suffix.is_empty() || suffix.starts_with('_')
-                    })
-                })
+            && PLANNING_IDENTIFIERS.iter().any(|identifier| {
+                pair[1]
+                    .strip_prefix(identifier)
+                    .is_some_and(|suffix| suffix.is_empty() || suffix.starts_with('_'))
+            })
     })
 }
 
@@ -319,13 +311,7 @@ fn policy__boundaries__workspace__workspace_bans_thin_mod_rs() {
 fn policy__boundaries__workspace__workspace_domain_symmetry_contract() {
     let crates = collect_workspace_crates();
     let domains = ["bijux-dna-domain-fastq", "bijux-dna-domain-bam"];
-    let required = [
-        "metrics",
-        "params",
-        "types",
-        "invariants",
-        "pipeline_contract",
-    ];
+    let required = ["metrics", "params", "types", "invariants", "pipeline_contract"];
     let mut domain_sets = Vec::new();
     for name in domains {
         let crate_dir = crates
@@ -343,10 +329,7 @@ fn policy__boundaries__workspace__workspace_domain_symmetry_contract() {
             present.len(),
             required.len(),
             "domain {name} missing required modules: {:?}",
-            required
-                .iter()
-                .filter(|item| !present.contains(**item))
-                .collect::<Vec<_>>()
+            required.iter().filter(|item| !present.contains(**item)).collect::<Vec<_>>()
         );
         domain_sets.push((name, present));
     }
@@ -378,12 +361,7 @@ fn policy__boundaries__workspace__engine_src_has_no_domain_id_catalog() {
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
         if needles.iter().any(|needle| content.contains(needle)) {
             offenders.push(
-                entry
-                    .path()
-                    .strip_prefix(&root)
-                    .unwrap_or(entry.path())
-                    .display()
-                    .to_string(),
+                entry.path().strip_prefix(&root).unwrap_or(entry.path()).display().to_string(),
             );
         }
     }
@@ -407,12 +385,7 @@ fn policy__boundaries__workspace__engine_has_no_tool_normalization_policy() {
         let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
         if banned_tokens.iter().any(|token| content.contains(token)) {
             offenders.push(
-                entry
-                    .path()
-                    .strip_prefix(&root)
-                    .unwrap_or(entry.path())
-                    .display()
-                    .to_string(),
+                entry.path().strip_prefix(&root).unwrap_or(entry.path()).display().to_string(),
             );
         }
     }
@@ -437,12 +410,7 @@ fn slow__policy__boundaries__workspace__workspace_bans_resource_fork_artifacts()
         let name = entry.file_name().to_string_lossy();
         if name.starts_with("._") {
             offenders.push(
-                entry
-                    .path()
-                    .strip_prefix(&root)
-                    .unwrap_or(entry.path())
-                    .display()
-                    .to_string(),
+                entry.path().strip_prefix(&root).unwrap_or(entry.path()).display().to_string(),
             );
         }
     }
@@ -491,9 +459,6 @@ const EXCLUDE_DIRS: &[&str] = &[".git", "target", "artifacts", "site", "node_mod
 
 fn is_excluded(path: &std::path::Path) -> bool {
     path.components().any(|component| {
-        component
-            .as_os_str()
-            .to_str()
-            .is_some_and(|name| EXCLUDE_DIRS.contains(&name))
+        component.as_os_str().to_str().is_some_and(|name| EXCLUDE_DIRS.contains(&name))
     })
 }

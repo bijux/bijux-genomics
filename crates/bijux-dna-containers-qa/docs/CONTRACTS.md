@@ -34,7 +34,7 @@ This crate owns QA evidence contracts, not production execution contracts.
 - Summary: `artifacts/image-qa/<platform>/qa.json`
 - Per-run outputs: `artifacts/image-qa/runs/<stage>/<tool>-<uuid>/`
 - Catalog runtime evidence: explicit operator-provided study evidence roots.
-- Fixture contracts: `tests/fixtures/qa_artifacts/default/manifest.json` and `report.json`
+- Qualification contracts: `tests/contracts/qualification.rs` exercises admitted inputs, outputs and failure evidence.
 
 ## Dataset Rules
 

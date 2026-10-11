@@ -21,7 +21,6 @@ spec crates because it owns executable VCF stage helpers.
 
 ## Dev Dependencies
 
-- `bijux-dna-policies`: guardrail policy loading.
 - `bijux-dna-testkit`: deterministic contract test support.
 - `tempfile`: isolated contract-test output directories.
 

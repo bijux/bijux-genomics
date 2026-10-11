@@ -30,3 +30,5 @@
 
 ## Verification
 Run the package test command from `COMMANDS.md` before handoff. For narrow changes, run the matching `--test` entrypoint plus the full package test before final handoff.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

@@ -66,34 +66,161 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     );
     assert_eq!(
         payload.get("passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(rows.len() as u64 - 23)
+        Some(rows.len() as u64 - 159)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(23));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(159));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("blocked_tool_ids").and_then(serde_json::Value::as_array),
         Some(&vec![
+            serde_json::Value::String("adapterremoval".to_string()),
+            serde_json::Value::String("addeam".to_string()),
+            serde_json::Value::String("alientrimmer".to_string()),
             serde_json::Value::String("angsd".to_string()),
+            serde_json::Value::String("atropos".to_string()),
+            serde_json::Value::String("authenticct".to_string()),
+            serde_json::Value::String("bamtools".to_string()),
+            serde_json::Value::String("bamutil".to_string()),
+            serde_json::Value::String("bayeshammer".to_string()),
+            serde_json::Value::String("bbduk".to_string()),
+            serde_json::Value::String("bbmerge".to_string()),
+            serde_json::Value::String("bcftools".to_string()),
             serde_json::Value::String("beagle".to_string()),
+            serde_json::Value::String("bedtools".to_string()),
+            serde_json::Value::String("bijux_dna".to_string()),
+            serde_json::Value::String("bowtie2".to_string()),
+            serde_json::Value::String("bowtie2_build".to_string()),
+            serde_json::Value::String("bwa".to_string()),
+            serde_json::Value::String("centrifuge".to_string()),
+            serde_json::Value::String("clumpify".to_string()),
+            serde_json::Value::String("contammix".to_string()),
+            serde_json::Value::String("cutadapt".to_string()),
+            serde_json::Value::String("dada2".to_string()),
+            serde_json::Value::String("damageprofiler".to_string()),
             serde_json::Value::String("eagle".to_string()),
             serde_json::Value::String("eigensoft".to_string()),
+            serde_json::Value::String("fastp".to_string()),
+            serde_json::Value::String("fastq_scan".to_string()),
+            serde_json::Value::String("fastqc".to_string()),
+            serde_json::Value::String("fastqvalidator".to_string()),
             serde_json::Value::String("fastuniq".to_string()),
+            serde_json::Value::String("fastx_clipper".to_string()),
+            serde_json::Value::String("flash2".to_string()),
+            serde_json::Value::String("fqtools".to_string()),
+            serde_json::Value::String("gatk".to_string()),
             serde_json::Value::String("germline".to_string()),
+            serde_json::Value::String("glimpse".to_string()),
             serde_json::Value::String("ibdhap".to_string()),
             serde_json::Value::String("ibdne".to_string()),
             serde_json::Value::String("ibdseq".to_string()),
             serde_json::Value::String("impute5".to_string()),
+            serde_json::Value::String("kaiju".to_string()),
+            serde_json::Value::String("king".to_string()),
+            serde_json::Value::String("kraken2".to_string()),
+            serde_json::Value::String("krakenuniq".to_string()),
+            serde_json::Value::String("leehom".to_string()),
+            serde_json::Value::String("lighter".to_string()),
+            serde_json::Value::String("mapdamage2".to_string()),
+            serde_json::Value::String("minimac4".to_string()),
+            serde_json::Value::String("mosdepth".to_string()),
+            serde_json::Value::String("multiqc".to_string()),
+            serde_json::Value::String("musket".to_string()),
             serde_json::Value::String("ngsbriggs".to_string()),
+            serde_json::Value::String("pear".to_string()),
+            serde_json::Value::String("picard".to_string()),
             serde_json::Value::String("plink".to_string()),
             serde_json::Value::String("plink2".to_string()),
+            serde_json::Value::String("pmdtools".to_string()),
+            serde_json::Value::String("preseq".to_string()),
+            serde_json::Value::String("prinseq".to_string()),
+            serde_json::Value::String("pydamage".to_string()),
+            serde_json::Value::String("rcorrector".to_string()),
+            serde_json::Value::String("rxy".to_string()),
+            serde_json::Value::String("samtools".to_string()),
+            serde_json::Value::String("schmutzi".to_string()),
+            serde_json::Value::String("seqfu".to_string()),
+            serde_json::Value::String("seqkit".to_string()),
+            serde_json::Value::String("seqkit_stats".to_string()),
+            serde_json::Value::String("seqprep".to_string()),
+            serde_json::Value::String("seqtk".to_string()),
             serde_json::Value::String("shapeit".to_string()),
             serde_json::Value::String("shapeit5".to_string()),
+            serde_json::Value::String("skewer".to_string()),
+            serde_json::Value::String("sortmerna".to_string()),
+            serde_json::Value::String("star".to_string()),
+            serde_json::Value::String("trim_galore".to_string()),
+            serde_json::Value::String("trimmomatic".to_string()),
+            serde_json::Value::String("umi_tools".to_string()),
+            serde_json::Value::String("verifybamid2".to_string()),
+            serde_json::Value::String("vsearch".to_string()),
+            serde_json::Value::String("yleaf".to_string()),
         ])
     );
     assert!(payload
         .get("failed_tool_ids")
         .and_then(serde_json::Value::as_array)
         .is_some_and(Vec::is_empty));
+
+    let synthetic = rows
+        .iter()
+        .filter(|row| {
+            matches!(
+                row["output_proof_surface"].as_str(),
+                Some("shared_stage_smoke" | "direct_declared_output_proof")
+            )
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        synthetic.len(),
+        116,
+        "retain every output-contract fixture without inventing backend execution"
+    );
+    for row in synthetic {
+        assert_eq!(row["passed"], false);
+        assert_eq!(row["independent_execution_proven"], false);
+        assert_eq!(row["proof_tool_id"], serde_json::Value::Null);
+        assert!(row["execution_blocker"]
+            .as_str()
+            .is_some_and(|reason| reason.starts_with("synthetic_output_contract_only:")));
+    }
+    for row in rows.iter().filter(|row| row["passed"] == true) {
+        assert_eq!(row["proof_tool_id"], row["tool_id"]);
+        assert_eq!(row["execution_blocker"], serde_json::Value::Null);
+        assert_eq!(row["independent_execution_proven"], true);
+    }
+
+    for (stage_id, tool_id) in [
+        ("vcf.call", "bcftools"),
+        ("vcf.call_diploid", "bcftools"),
+        ("vcf.call_gl", "bcftools"),
+        ("vcf.call_pseudohaploid", "bcftools"),
+        ("vcf.damage_filter", "bcftools"),
+        ("vcf.filter", "bcftools"),
+        ("vcf.gl_propagation", "bcftools"),
+        ("vcf.imputation_metrics", "beagle"),
+        ("vcf.imputation_metrics", "glimpse"),
+        ("vcf.imputation_metrics", "minimac4"),
+        ("vcf.impute", "beagle"),
+        ("vcf.impute", "glimpse"),
+        ("vcf.impute", "minimac4"),
+        ("vcf.postprocess", "bcftools"),
+        ("vcf.prepare_reference_panel", "bcftools"),
+        ("vcf.qc", "bcftools"),
+        ("vcf.qc", "plink"),
+        ("vcf.qc", "plink2"),
+        ("vcf.roh", "plink2"),
+        ("vcf.stats", "bcftools"),
+    ] {
+        let row = rows
+            .iter()
+            .find(|row| row["stage_id"] == stage_id && row["tool_id"] == tool_id)
+            .expect("retained execution-proof binding");
+        assert_eq!(row["passed"], false);
+        assert_eq!(row["independent_execution_proven"], false);
+        assert!(row["execution_blocker"]
+            .as_str()
+            .is_some_and(|reason| reason.starts_with("unverified_execution_report:")));
+    }
 
     let proof_surface_counts = payload
         .get("output_proof_surface_counts")
@@ -213,8 +340,8 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                 && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
                     == Some("direct_tool_smoke")
                 && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
-                    == Some(true)
-                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+                    == Some(false)
+                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
         }));
         assert!(rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
@@ -222,8 +349,8 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                 && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
                     == Some("direct_tool_smoke")
                 && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
-                    == Some(true)
-                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+                    == Some(false)
+                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
         }));
     }
     for tool_id in ["plink", "plink2"] {
@@ -262,7 +389,7 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
             && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
                 == Some("direct_tool_smoke")
-            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
     }));
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
@@ -270,7 +397,7 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
             && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
                 == Some("direct_tool_smoke")
-            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
     }));
     for tool_id in ["bcftools", "plink", "plink2"] {
         assert!(rows.iter().any(|row| {
@@ -280,8 +407,8 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                 && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
                     == Some("direct_tool_smoke")
                 && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
-                    == Some(true)
-                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+                    == Some(false)
+                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
         }));
     }
 }
@@ -319,7 +446,7 @@ fn bench_readiness_output_contract_audit_write_governed_json_file() {
         Some(rows.len() as u64)
     );
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(23));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(159));
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")

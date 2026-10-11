@@ -176,6 +176,9 @@ fn dev_tree_matches_architecture_contract() {
     let runtime_entries = dir_entries(&root.join("src/runtime"));
     let expected_runtime: BTreeSet<_> = [
         "compilation_cache.rs",
+        "compiled_products.rs",
+        "owned_artifacts.rs",
+        "gate_receipt.rs",
         "mod.rs",
         "process.rs",
         "source_snapshot.rs",
@@ -215,6 +218,7 @@ fn dev_tree_matches_architecture_contract() {
 
     let boundary_entries = dir_entries(&root.join("tests/boundaries"));
     let expected_boundaries: BTreeSet<_> = [
+        "ci/",
         "architecture.rs",
         "command_inventory.rs",
         "dependencies.rs",

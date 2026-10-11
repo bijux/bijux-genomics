@@ -11,7 +11,6 @@ public-surface drift need explicit guardrails.
 - `tests/contracts.rs` — contract behavior, identity, execution, and surface contracts.
 - `tests/schemas.rs` — docs and public-surface locks.
 - `tests/semantics.rs` — identifier catalog, validator, metrics, and input-assessment semantics.
-- `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 
 ## Intent directories
 - `tests/boundaries/` — dependency boundaries, command inventory, and layout contracts.
@@ -49,3 +48,5 @@ public-surface drift need explicit guardrails.
   `ids/{parsing,typed}` partitions.
 - New test intent directories must be backed by tracked tests or fixtures before
   they are added to this contract.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

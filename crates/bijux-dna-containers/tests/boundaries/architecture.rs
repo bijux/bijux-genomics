@@ -52,6 +52,7 @@ fn source_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/evidence/tool_contract")),
         btree_set(&[
             "catalog.rs",
+            "catalog_observation.rs",
             "catalog_lock.rs",
             "catalog_validation.rs",
             "inspection.rs",
@@ -80,7 +81,7 @@ fn source_tree_matches_architecture_contract() {
         btree_set(&[
             "apptainer.rs",
             "builder.rs",
-            "campaign.rs",
+            "campaign/",
             "defaults.rs",
             "entrypoints.rs",
             "mod.rs",
@@ -233,7 +234,21 @@ fn inventory_source_tree_matches_ownership_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/evidence/qualification_registry")),
-        btree_set(&["mod.rs", "model.rs", "schema.rs", "workflow.rs"]),
+        btree_set(&[
+            "mod.rs",
+            "model.rs",
+            "schema.rs",
+            "identity.rs",
+            "history.rs",
+            "legacy.rs",
+            "storage.rs",
+            "admission.rs",
+            "allocation.rs",
+            "protocol.rs",
+            "audit.rs",
+            "render.rs",
+            "workflow.rs"
+        ]),
         "qualification registry must separate persisted models, derivation, and schemas"
     );
     assert_eq!(

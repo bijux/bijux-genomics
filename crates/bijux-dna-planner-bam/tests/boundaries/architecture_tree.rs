@@ -80,7 +80,6 @@ fn planner_bam_tree_matches_architecture_contract() {
             "determinism/",
             "determinism.rs",
             "fixtures/",
-            "guardrails.rs",
             "snapshots/",
         ]),
         "test tree must stay organized by durable intent"

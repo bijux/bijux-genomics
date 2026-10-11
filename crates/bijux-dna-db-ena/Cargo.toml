@@ -21,8 +21,5 @@ sha2 = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 
-[dev-dependencies]
-bijux-dna-policies = { path = "../bijux-dna-policies" }
-
 [lints]
 workspace = true

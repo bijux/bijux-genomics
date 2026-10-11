@@ -1,0 +1,211 @@
+#![allow(clippy::expect_used, clippy::too_many_lines)]
+
+use std::process::Command;
+
+use crate::support;
+
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(args)
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
+#[test]
+fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-all-domain-active-stage-catalog", "--json"]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.readiness.all_domain_active_stage_catalog.v1")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv")
+    );
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(
+        payload.get("stages_with_benchmark_ready_tools").and_then(serde_json::Value::as_u64),
+        Some(71)
+    );
+    assert_eq!(
+        payload.get("not_benchmark_ready_only_stage_count").and_then(serde_json::Value::as_u64),
+        Some(0)
+    );
+    assert_eq!(
+        payload.get("stages_with_parser_rows").and_then(serde_json::Value::as_u64),
+        Some(71)
+    );
+    assert_eq!(payload.get("stages_with_schema").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(
+        payload.get("stages_with_report_rows").and_then(serde_json::Value::as_u64),
+        Some(71)
+    );
+
+    let domain_counts =
+        payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(27));
+    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
+
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(rows.len(), 71);
+
+    let damage = rows
+        .iter()
+        .find(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+        })
+        .expect("bam.damage catalog row");
+    let damage_tools = damage
+        .get("active_tool_ids")
+        .and_then(serde_json::Value::as_array)
+        .expect("bam.damage active tools");
+    let damage_tool_count = u64::try_from(damage_tools.len()).expect("damage tool count fits u64");
+    assert!(damage_tool_count > 0);
+    assert!(damage_tools.iter().any(|tool| tool.as_str() == Some("ngsbriggs")));
+    for count_field in [
+        "active_tool_count",
+        "benchmark_ready_tool_count",
+        "parser_row_count",
+        "parser_covered_row_count",
+        "report_row_count",
+    ] {
+        assert_eq!(
+            damage.get(count_field).and_then(serde_json::Value::as_u64),
+            Some(damage_tool_count)
+        );
+    }
+    assert_eq!(damage.get("readiness_kind").and_then(serde_json::Value::as_str), Some("smoke"));
+    assert_eq!(damage.get("schema_present").and_then(serde_json::Value::as_bool), Some(true));
+
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.trim_reads")
+            && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
+            && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(14)
+            && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64) == Some(14)
+            && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(14)
+            && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(14)
+            && row.get("schema_present").and_then(serde_json::Value::as_bool) == Some(true)
+            && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("benchmark_statuses").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("benchmark_ready".to_string())])
+            && row.get("benchmark_ready_tool_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![
+                    serde_json::Value::String("adapterremoval".to_string()),
+                    serde_json::Value::String("alientrimmer".to_string()),
+                    serde_json::Value::String("atropos".to_string()),
+                    serde_json::Value::String("bbduk".to_string()),
+                    serde_json::Value::String("cutadapt".to_string()),
+                    serde_json::Value::String("fastp".to_string()),
+                    serde_json::Value::String("fastx_clipper".to_string()),
+                    serde_json::Value::String("leehom".to_string()),
+                    serde_json::Value::String("prinseq".to_string()),
+                    serde_json::Value::String("seqkit".to_string()),
+                    serde_json::Value::String("seqprep".to_string()),
+                    serde_json::Value::String("skewer".to_string()),
+                    serde_json::Value::String("trim_galore".to_string()),
+                    serde_json::Value::String("trimmomatic".to_string()),
+                ])
+            && row.get("report_section_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("read_cleanup".to_string())])
+    }));
+
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.stats")
+            && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
+            && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("schema_present").and_then(serde_json::Value::as_bool) == Some(true)
+            && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("benchmark_statuses").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("benchmark_ready".to_string())])
+            && row.get("active_tool_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("bcftools".to_string())])
+            && row.get("benchmark_ready_tool_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("bcftools".to_string())])
+            && row.get("report_section_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("quality_control".to_string())])
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.postprocess")
+            && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
+            && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("schema_present").and_then(serde_json::Value::as_bool) == Some(true)
+            && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("benchmark_statuses").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("benchmark_ready".to_string())])
+            && row.get("active_tool_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("bcftools".to_string())])
+            && row.get("benchmark_ready_tool_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("bcftools".to_string())])
+            && row.get("report_section_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("normalization".to_string())])
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
+            && row.get("stage_id").and_then(serde_json::Value::as_str)
+                == Some("vcf.population_structure")
+            && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
+            && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(3)
+            && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64) == Some(3)
+            && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(3)
+            && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(3)
+            && row.get("schema_present").and_then(serde_json::Value::as_bool) == Some(true)
+            && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(3)
+            && row.get("benchmark_ready_tool_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![
+                    serde_json::Value::String("eigensoft".to_string()),
+                    serde_json::Value::String("plink".to_string()),
+                    serde_json::Value::String("plink2".to_string()),
+                ])
+            && row.get("report_section_ids").and_then(serde_json::Value::as_array)
+                == Some(&vec![serde_json::Value::String("population_structure".to_string())])
+    }));
+    assert!(
+        rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
+                && row.get("stage_id").and_then(serde_json::Value::as_str)
+                    == Some("fastq.report_qc")
+                && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(1)
+                && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64)
+                    == Some(1)
+                && row.get("benchmark_ready_tool_ids").and_then(serde_json::Value::as_array)
+                    == Some(&vec![serde_json::Value::String("multiqc".to_string())])
+                && row.get("report_section_ids").and_then(serde_json::Value::as_array)
+                    == Some(&vec![serde_json::Value::String("quality_profiling".to_string())])
+        }),
+        "active stage catalog must retain the governed fastq.report_qc row"
+    );
+}

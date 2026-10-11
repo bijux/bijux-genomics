@@ -33,7 +33,7 @@ fn run_cli(args: &[&str]) -> std::process::Output {
 }
 
 #[test]
-fn bench_local_render_hpc_scratch_layout_reports_governed_job_layout() {
+fn bench_local_hpc_scratch_layout_preserves_publication_and_rejects_drift() {
     let repo_root = support::repo_root().expect("repo root");
     let (_temp_dir, manifest_path) = render_manifest_path(&repo_root, "render-hpc-scratch-layout-");
     let manifest_arg = manifest_path.to_string_lossy().into_owned();
@@ -114,5 +114,55 @@ fn bench_local_render_hpc_scratch_layout_reports_governed_job_layout() {
                 })
             }),
         "benchmark scratch layout must keep staged source and staged path"
+    );
+    let validate_output =
+        run_cli(&["bench", "local", "validate-hpc-scratch-layout", "--manifest", &manifest_arg]);
+    assert!(
+        validate_output.status.success(),
+        "validate command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        validate_output.status,
+        String::from_utf8_lossy(&validate_output.stdout),
+        String::from_utf8_lossy(&validate_output.stderr)
+    );
+
+    let printed_path = String::from_utf8(validate_output.stdout).expect("stdout utf8");
+    assert_eq!(
+        printed_path.trim(),
+        manifest_path
+            .strip_prefix(&repo_root)
+            .expect("manifest path relative to repo root")
+            .to_string_lossy()
+    );
+    let rendered = serde_json::from_slice::<serde_json::Value>(
+        &fs::read(&manifest_path).expect("read manifest"),
+    )
+    .expect("parse manifest");
+    let input_link_count = rendered
+        .get("input_link_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("input link count");
+    let original_body = fs::read_to_string(&manifest_path).expect("read manifest body");
+    let stale_body = original_body.replacen(
+        &format!("\"input_link_count\": {input_link_count}"),
+        &format!("\"input_link_count\": {}", input_link_count.saturating_sub(1)),
+        1,
+    );
+    assert_ne!(stale_body, original_body, "input-link mutation must change evidence");
+    fs::write(&manifest_path, stale_body).expect("write stale manifest body");
+
+    let validate_output =
+        run_cli(&["bench", "local", "validate-hpc-scratch-layout", "--manifest", &manifest_arg]);
+    fs::write(&manifest_path, &original_body).expect("restore manifest body");
+    assert_eq!(fs::read_to_string(&manifest_path).expect("restored manifest"), original_body);
+    assert!(
+        !validate_output.status.success(),
+        "validate command should reject stale manifest\nstdout:\n{}\nstderr:\n{}",
+        String::from_utf8_lossy(&validate_output.stdout),
+        String::from_utf8_lossy(&validate_output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&validate_output.stderr);
+    assert!(
+        stderr.contains("input_link_count aligned with input links"),
+        "stale manifest failure must identify the input-link invariant, got:\n{stderr}"
     );
 }

@@ -35,9 +35,9 @@ are supplied through the shared stage contract by an application composition roo
   reference admission uses db-ref's complete catalog schemas; execution admission
   applies pure model rules before site lookup. Pipeline inventory adapters supply
   explicit-root readiness and VCF profile evidence.
-- `artifacts/` owns source identities, output admission and serialization.
-  `artifacts/source_assets.rs` inspects files, directories and index-prefix bundles
-  with typed source kinds and member digests. `artifacts/writer/` separates
+- Benchmark source identity types belong to `bijux-dna-bench-model`;
+  `repo/source_assets.rs` inspects current files, directories and index-prefix bundles.
+  `artifacts/` owns output admission and serialization. `artifacts/writer/` separates
   observation reading, observation writing and structured JSON output.
 
 ## Dependency Direction
@@ -60,3 +60,15 @@ Architecture and API contracts enforce the tree, Markdown locations, curated
 exports, panic boundaries and repository/artifact ownership of raw JSON.
 
 `repo/reference_fasta.rs` acquires and publishes paired benchmark FASTA/FAI inputs. The reference owner admits indexable byte layouts first; exact existing regular file pairs retain their identity, and malformed input leaves previous outputs intact.
+
+Hardening campaign decisions belong to `bijux-dna-bench-model::derive_hardening_benchmark_campaign`. `repo/hardening_campaign.rs` admits persisted reports and owns atomic publication. The benchmark facade preserves all three existing public operations; source joins, the goal catalog and check evaluation do not acquire files or depend on runtime services.
+
+`repo/hpc_inputs/` owns current source inspection, stage-hint provenance joins and produced-output exclusion. Its private path classifier handles the supported argv and shell forms. The CLI adapts stage-plan hints and supplies the generated-output root explicitly; source contents are reacquired for each request.
+
+HPC asset staging accepts explicit typed command rows and source hints. Model policy assembles canonical jobs and compares current identities; `repo/hpc_asset_staging.rs` owns destination admission, observations and persistence; `workflow/hpc_asset_staging.rs` composes collection. CLI adapters acquire upstream command/stage declarations and present results.
+
+Scratch layouts separate model policy (job paths, cleanup and admitted aggregate counters), repository observation/persistence, and workflow composition. The service accepts selected jobs, typed command rows, resource declarations and stage input hints. Duplicate or mismatched command identities reject before source observation. Collection does not publish directories; explicit publication uses infrastructure atomic replacement.
+
+Runtime probe acquisition belongs to `repo/runtime_probe.rs`. It validates requested path components and the source declaration tool identity, preserves preferred-domain then canonical fallback order, and returns the exact selected source path. An existing malformed or contradictory preferred declaration fails without fallback. The model carries only the runtime-readiness projection; full domain-tool schema and capability admission remain with the domain contract.
+
+`repo/tool_execution_modes.rs` reads current execution-mode TOML and delegates schema and assignment admission to the model owner. The CLI adapts serving-map bindings. `workflow/readiness/tool_execution_modes.rs` acquires current probes against a model-owned admitted scope and only finishes a report after every requested tool/domain observation passes. The model owns report shape, counts and semantic admission; executable availability remains a separate contract.

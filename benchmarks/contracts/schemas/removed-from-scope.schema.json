@@ -1,0 +1,200 @@
+{
+  "$defs": {
+    "RemovedFromScopeRow": {
+      "additionalProperties": false,
+      "properties": {
+        "absent_from_active_matrix": {
+          "type": "boolean"
+        },
+        "absent_from_expected_results": {
+          "type": "boolean"
+        },
+        "absent_from_full_benchmark_report": {
+          "type": "boolean"
+        },
+        "absent_from_rendered_commands": {
+          "type": "boolean"
+        },
+        "adapter_id": {
+          "type": "string"
+        },
+        "adapter_status": {
+          "type": "string"
+        },
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "parser_id": {
+          "type": "string"
+        },
+        "schema_id": {
+          "type": "string"
+        },
+        "scope_exit_kind": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_removed_from_active_scope": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "tool_removed_from_active_scope": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "adapter_id",
+        "parser_id",
+        "schema_id",
+        "status",
+        "adapter_status",
+        "scope_exit_kind",
+        "stage_removed_from_active_scope",
+        "tool_removed_from_active_scope",
+        "absent_from_active_matrix",
+        "absent_from_rendered_commands",
+        "absent_from_expected_results",
+        "absent_from_full_benchmark_report"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "active_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "active_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "active_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "candidate_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "candidate_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "candidate_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "full_benchmark_report_check_source": {
+      "type": "string"
+    },
+    "fully_removed_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fully_removed_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "removed_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "removed_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "removed_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/RemovedFromScopeRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.removed_from_scope.v1",
+      "type": "string"
+    },
+    "scope_exit_kind_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "violation_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "violations": {
+      "items": {
+        "$ref": "#/$defs/RemovedFromScopeRow"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "full_benchmark_report_check_source",
+    "candidate_row_count",
+    "candidate_stage_count",
+    "candidate_tool_count",
+    "active_row_count",
+    "active_stage_count",
+    "active_tool_count",
+    "removed_row_count",
+    "removed_stage_count",
+    "removed_tool_count",
+    "fully_removed_stage_count",
+    "fully_removed_tool_count",
+    "scope_exit_kind_counts",
+    "violation_count",
+    "ok",
+    "rows",
+    "violations"
+  ],
+  "title": "RemovedFromScopeReport",
+  "type": "object"
+}

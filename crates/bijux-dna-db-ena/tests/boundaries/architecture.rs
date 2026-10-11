@@ -103,7 +103,7 @@ fn db_ena_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("tests")),
-        btree_set(&["boundaries/", "boundaries.rs", "guardrails.rs"]),
+        btree_set(&["boundaries/", "boundaries.rs"]),
         "integration tests must only track active test files and intent directories"
     );
 

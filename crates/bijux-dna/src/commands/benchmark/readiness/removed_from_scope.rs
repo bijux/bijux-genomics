@@ -1,8 +1,10 @@
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    RemovedFromScopeReport, RemovedFromScopeRow, REMOVED_FROM_SCOPE_SCHEMA_VERSION,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_active_stage_tool_matrix_candidate_rows,
@@ -17,7 +19,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_REMOVED_FROM_SCOPE_PATH: &str =
     "artifacts/benchmark-smoke/readiness/removed-from-scope.tsv";
-const REMOVED_FROM_SCOPE_SCHEMA_VERSION: &str = "bijux.bench.readiness.removed_from_scope.v1";
 const REPORT_SURFACE_SOURCE_EXPECTED_RESULT_CONTRACT: &str = "expected_result_contract";
 pub(crate) const SCOPE_EXIT_KIND_LIFECYCLE_NOT_ACTIVE: &str = "lifecycle_not_active";
 pub(crate) const SCOPE_EXIT_KIND_BENCHMARK_NOT_READY: &str = "benchmark_not_ready";
@@ -30,50 +31,6 @@ struct BindingKey {
     tool_id: String,
     corpus_id: String,
     asset_profile_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct RemovedFromScopeRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) adapter_id: String,
-    pub(crate) parser_id: String,
-    pub(crate) schema_id: String,
-    pub(crate) status: String,
-    pub(crate) adapter_status: String,
-    pub(crate) scope_exit_kind: String,
-    pub(crate) stage_removed_from_active_scope: bool,
-    pub(crate) tool_removed_from_active_scope: bool,
-    pub(crate) absent_from_active_matrix: bool,
-    pub(crate) absent_from_rendered_commands: bool,
-    pub(crate) absent_from_expected_results: bool,
-    pub(crate) absent_from_full_benchmark_report: bool,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct RemovedFromScopeReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) full_benchmark_report_check_source: String,
-    pub(crate) candidate_row_count: usize,
-    pub(crate) candidate_stage_count: usize,
-    pub(crate) candidate_tool_count: usize,
-    pub(crate) active_row_count: usize,
-    pub(crate) active_stage_count: usize,
-    pub(crate) active_tool_count: usize,
-    pub(crate) removed_row_count: usize,
-    pub(crate) removed_stage_count: usize,
-    pub(crate) removed_tool_count: usize,
-    pub(crate) fully_removed_stage_count: usize,
-    pub(crate) fully_removed_tool_count: usize,
-    pub(crate) scope_exit_kind_counts: BTreeMap<String, usize>,
-    pub(crate) violation_count: usize,
-    pub(crate) ok: bool,
-    pub(crate) rows: Vec<RemovedFromScopeRow>,
-    pub(crate) violations: Vec<RemovedFromScopeRow>,
 }
 
 pub(crate) fn run_render_removed_from_scope(
@@ -204,7 +161,7 @@ pub(crate) fn build_removed_from_scope_report(
         .collect::<Vec<_>>();
 
     let report = RemovedFromScopeReport {
-        schema_version: REMOVED_FROM_SCOPE_SCHEMA_VERSION,
+        schema_version: REMOVED_FROM_SCOPE_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, output_path),
         full_benchmark_report_check_source,
         candidate_row_count: candidate_rows.len(),

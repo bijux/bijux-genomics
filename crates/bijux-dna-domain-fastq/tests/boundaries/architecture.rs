@@ -345,7 +345,6 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "determinism/",
         "determinism.rs",
         "fixtures/",
-        "guardrails.rs",
         "local_benchmark_catalog.rs",
         "semantics/",
         "semantics.rs",
