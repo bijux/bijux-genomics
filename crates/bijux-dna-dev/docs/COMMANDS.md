@@ -175,6 +175,9 @@ check-docker-unpinned-apt
 check-docker-version-sync
 check-dockerfiles-built
 check-evidence-qualification
+check-image-inventory-publication-schema
+check-image-inventory-report
+check-image-inventory-scan-schema
 check-ghcr-apptainer-publish-matrix
 check-ghcr-publish-matrix
 check-hpc-frontend-policy-enforcement
@@ -198,6 +201,7 @@ check-no-secrets
 check-upstream-provenance
 check-owners
 check-qa-matrix-generated
+check-qualification-report-schema
 check-qualification-schema
 check-rebuild-repro
 check-registry-drift
@@ -243,6 +247,11 @@ env-prep
 env-smoke
 extract-version-map
 generate-contract-lock
+generate-evidence-qualification
+generate-image-inventory
+generate-image-inventory-report
+generate-image-inventory-publication-schema
+generate-image-inventory-scan-schema
 generate-ghcr-apptainer-publish-matrix
 generate-ghcr-publish-matrix
 generate-index
@@ -250,6 +259,7 @@ generate-license-metadata
 generate-local-apptainer-digests
 generate-network-usage
 generate-qa-matrix
+generate-qualification-report-schema
 generate-qualification-schema
 generate-tool-docs
 generate-tool-ids
@@ -258,12 +268,15 @@ generate-version-lock
 generate-versions-index-sha
 image-qa
 image-smoke-vcf
+image-storage
 lint
+qualification-registry
 registry-tools
 release-gate
 run-apptainer-frontend-reproducibility
 run-apptainer-frontend-security
 run-apptainer-frontend-smoke
+runtime-verification
 smoke-apptainer
 smoke-containers-apptainer
 smoke-containers-apptainer-apptainer-run
@@ -333,6 +346,7 @@ run
 
 ### `hpc run <id>`
 ```text
+benchmark-attempt-migration
 benchmark-sync-pull
 benchmark-sync-push
 run-frontend-mini-e2e
@@ -368,8 +382,11 @@ acquire-maps
 acquire-panels
 acquire-reference
 architecture-report
+benchmark-campaign-cycle
 benchmark-integrity-mini
+benchmark-scientific-readiness
 benchmark-smoke-level1
+benchmark-stage-coverage
 bijux
 cargo-targets
 certification-gate
@@ -421,3 +438,35 @@ setup-docs-venv
 simulate-coverage-regime
 validate-frontend-mini-domain-stacks
 ```
+
+`benchmark-campaign-cycle prepare` composes benchmark-owned corpus and execution-spec preparation
+with runner-owned Slurm materialization. It selects crate-owned material by the source-locked run
+identity, initializes or recovers every attempt, and records `ready` lifecycle evidence without
+submitting or polling scheduler jobs. The command currently supports the complete run-2004 BAM
+mapping-summary campaign and run-2042/run-2043 FASTQ campaigns, and fails closed for campaigns
+without crate-owned material.
+
+Every campaign operation that creates or consumes a source-locked plan requires an explicit
+`--repository-root`. The operator binary may come from a newer clean worktree, but source identity,
+contracts, interfaces, and generated execution material are always resolved from that declared
+repository root.
+
+`benchmark-campaign-cycle submit` performs the same complete authority and material preflight
+before the first scheduler effect, then submits every governed tool through the runner's
+intent-first API and records each returned Slurm job identity. It returns after submission without
+observing or polling jobs; repeating it with the same timestamps recovers persisted handles without
+duplicate submission.
+
+`benchmark-campaign-cycle reconcile` performs at most one scheduler observation for each submitted
+or running attempt. Every actual query is first appended to the attempt's typed
+`scheduler-observations/` journal, including repeated running states, before lifecycle reduction
+records running or terminal accounting transitions. Non-runnable lifecycle states are reported
+without polling, and the command never loops or waits for scheduler state to change.
+
+`benchmark-campaign-cycle admit` admits only terminally collected attempts. It uses benchmark-owned
+validation to rehash exact output closure, evaluate declared metrics and the downstream probe,
+publish immutable acceptance evidence, and record `passed` lifecycle transitions.
+
+`benchmark-campaign-cycle publish-fastq-profile-reads` replays admitted run-2043 attempt closure,
+validates normalized TSV, bundle, metrics, and downstream-probe agreement for every repetition,
+then no-clobber publishes the comparative stage report.

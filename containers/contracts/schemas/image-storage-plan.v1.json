@@ -1,0 +1,139 @@
+{
+  "$defs": {
+    "EvidenceSourceIdentity": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "ImageStorageMove": {
+      "additionalProperties": false,
+      "properties": {
+        "applied": {
+          "type": "boolean"
+        },
+        "applied_at_utc": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "category": {
+          "$ref": "#/$defs/ImageStorageMoveCategory"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "category",
+        "source",
+        "target",
+        "size_bytes",
+        "sha256",
+        "applied"
+      ],
+      "type": "object"
+    },
+    "ImageStorageMoveCategory": {
+      "enum": [
+        "obsolete",
+        "interrupted"
+      ],
+      "type": "string"
+    },
+    "ImageStoragePlanState": {
+      "enum": [
+        "previewed",
+        "applying",
+        "applied",
+        "rolling_back",
+        "rolled_back"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "completed_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at_utc": {
+      "type": "string"
+    },
+    "file_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "image_root": {
+      "type": "string"
+    },
+    "inventory": {
+      "$ref": "#/$defs/EvidenceSourceIdentity"
+    },
+    "moves": {
+      "items": {
+        "$ref": "#/$defs/ImageStorageMove"
+      },
+      "type": "array"
+    },
+    "quarantine_root": {
+      "type": "string"
+    },
+    "rolled_back_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "size_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "state": {
+      "$ref": "#/$defs/ImageStoragePlanState"
+    }
+  },
+  "required": [
+    "schema_version",
+    "state",
+    "created_at_utc",
+    "inventory",
+    "image_root",
+    "quarantine_root",
+    "file_count",
+    "size_bytes",
+    "moves"
+  ],
+  "title": "ImageStoragePlan",
+  "type": "object"
+}

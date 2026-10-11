@@ -6,11 +6,13 @@
 - `policy_diagnostics`
 - `public_api`
 - `qualification`
+- `security_evidence`
 
 ## Root Exports
 - `check`
 - `GuardrailConfig`
-- Evidence qualification types and `QUALIFICATION_ASSESSMENT_SCHEMA_V1`
+- `qualification contracts`
+- `security evidence contracts`
 - `policy_assert!`
 - `policy_assert_eq!`
 - `policy_assert_ne!`

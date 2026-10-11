@@ -1,71 +1,76 @@
 {
   "schema_version": "bijux.benchmark.stage_coverage.v1",
+  "summary": {
+    "retained_stage_count": 71,
+    "defined_stage_count": 6,
+    "qualification_stage_count": 4,
+    "comparative_stage_count": 2,
+    "admitted_stage_count": 0,
+    "stale_stage_count": 6,
+    "failed_stage_count": 0,
+    "missing_stage_count": 65
+  },
   "stages": [
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.align",
       "retained_tools": [
         "bowtie2",
         "bwa"
       ],
-      "stage_id": "bam.align"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.authenticity",
       "retained_tools": [
         "authenticct",
         "damageprofiler",
         "pmdtools"
       ],
-      "stage_id": "bam.authenticity"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.bias_mitigation",
       "retained_tools": [
         "mapdamage2"
       ],
-      "stage_id": "bam.bias_mitigation"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.complexity",
       "retained_tools": [
         "preseq"
       ],
-      "stage_id": "bam.complexity"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.contamination",
       "retained_tools": [
         "contammix",
         "schmutzi",
         "verifybamid2"
       ],
-      "stage_id": "bam.contamination"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": "run-2002",
-      "definition_status": "qualification",
-      "execution_status": "admitted",
+      "stage_id": "bam.coverage",
       "retained_tools": [
         "bedtools",
         "mosdepth",
         "samtools"
       ],
-      "stage_id": "bam.coverage"
+      "campaign_run_id": "run-2002",
+      "report_repository_commit": "b087cd5ca6412b19a51cb43e7bf4eb098235b7db",
+      "report_sha256": "36c634cf1b6e65c85b175ea5c7515816bd58f5782b89bed953642ebccfa0a1ef",
+      "definition_status": "qualification",
+      "execution_status": "stale"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.damage",
       "retained_tools": [
         "addeam",
         "damageprofiler",
@@ -73,302 +78,280 @@
         "pmdtools",
         "pydamage"
       ],
-      "stage_id": "bam.damage"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.duplication_metrics",
       "retained_tools": [
         "picard",
         "samtools"
       ],
-      "stage_id": "bam.duplication_metrics"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": "run-2003",
-      "definition_status": "qualification",
-      "execution_status": "admitted",
+      "stage_id": "bam.endogenous_content",
       "retained_tools": [
         "samtools"
       ],
-      "stage_id": "bam.endogenous_content"
+      "campaign_run_id": "run-2003",
+      "report_repository_commit": "4e24ded282af44fb985dd869ba944684538814aa",
+      "report_sha256": "c812b164e8e4b0190075c54266479f1cab781c791ee18eee87d90cc9a2ebf1ea",
+      "definition_status": "qualification",
+      "execution_status": "stale"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.filter",
       "retained_tools": [
         "bamtools",
         "bedtools",
         "samtools"
       ],
-      "stage_id": "bam.filter"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.gc_bias",
       "retained_tools": [
         "picard"
       ],
-      "stage_id": "bam.gc_bias"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": "run-2001",
-      "definition_status": "qualification",
-      "execution_status": "admitted",
+      "stage_id": "bam.genotyping",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "bam.genotyping"
+      "campaign_run_id": "run-2001",
+      "report_repository_commit": "1e1c136988a2932b77537786fdc759a193149149",
+      "report_sha256": "922ec21789c0ec2ba72b18051034af03f1bc1232f7d3913c1733bfdfc5b51520",
+      "definition_status": "qualification",
+      "execution_status": "stale"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.haplogroups",
       "retained_tools": [
         "yleaf"
       ],
-      "stage_id": "bam.haplogroups"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.insert_size",
       "retained_tools": [
         "picard"
       ],
-      "stage_id": "bam.insert_size"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.kinship",
       "retained_tools": [
         "king"
       ],
-      "stage_id": "bam.kinship"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.length_filter",
       "retained_tools": [
         "picard",
         "samtools"
       ],
-      "stage_id": "bam.length_filter"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
+      "stage_id": "bam.mapping_summary",
+      "retained_tools": [
+        "picard",
+        "samtools"
+      ],
       "campaign_run_id": "run-2004",
+      "report_repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "report_sha256": "e16df1257329c3d6221c35d55b461ba3b287148d023aedcb8afa1c9f6b2e20df",
       "definition_status": "qualification",
-      "execution_status": "admitted",
-      "retained_tools": [
-        "picard",
-        "samtools"
-      ],
-      "stage_id": "bam.mapping_summary"
+      "execution_status": "stale"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.mapq_filter",
       "retained_tools": [
         "bamtools",
         "samtools"
       ],
-      "stage_id": "bam.mapq_filter"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.markdup",
       "retained_tools": [
         "picard",
         "samtools"
       ],
-      "stage_id": "bam.markdup"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.overlap_correction",
       "retained_tools": [
         "bamutil"
       ],
-      "stage_id": "bam.overlap_correction"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.qc_pre",
       "retained_tools": [
         "multiqc",
         "samtools"
       ],
-      "stage_id": "bam.qc_pre"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.recalibration",
       "retained_tools": [
         "gatk"
       ],
-      "stage_id": "bam.recalibration"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.sex",
       "retained_tools": [
         "rxy",
         "yleaf"
       ],
-      "stage_id": "bam.sex"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "bam.validate",
       "retained_tools": [
         "bamtools",
         "bedtools",
         "samtools"
       ],
-      "stage_id": "bam.validate"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.cluster_otus",
       "retained_tools": [
         "vsearch"
       ],
-      "stage_id": "fastq.cluster_otus"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.correct_errors",
       "retained_tools": [
         "bayeshammer",
         "lighter",
         "musket",
         "rcorrector"
       ],
-      "stage_id": "fastq.correct_errors"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.deplete_host",
       "retained_tools": [
         "bowtie2"
       ],
-      "stage_id": "fastq.deplete_host"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.deplete_reference_contaminants",
       "retained_tools": [
         "bowtie2"
       ],
-      "stage_id": "fastq.deplete_reference_contaminants"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.deplete_rrna",
       "retained_tools": [
         "sortmerna"
       ],
-      "stage_id": "fastq.deplete_rrna"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.detect_adapters",
       "retained_tools": [
         "fastqc"
       ],
-      "stage_id": "fastq.detect_adapters"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.detect_duplicates_premerge",
       "retained_tools": [
         "bijux_dna"
       ],
-      "stage_id": "fastq.detect_duplicates_premerge"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
       "retained_tools": [
         "bijux_dna"
       ],
-      "stage_id": "fastq.estimate_library_complexity_prealign"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.extract_umis",
       "retained_tools": [
         "umi_tools"
       ],
-      "stage_id": "fastq.extract_umis"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.filter_low_complexity",
       "retained_tools": [
         "bbduk",
         "fastp",
         "prinseq"
       ],
-      "stage_id": "fastq.filter_low_complexity"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.filter_reads",
       "retained_tools": [
         "bbduk",
         "fastp",
         "prinseq",
         "seqkit"
       ],
-      "stage_id": "fastq.filter_reads"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.index_reference",
       "retained_tools": [
         "bowtie2_build",
         "star"
       ],
-      "stage_id": "fastq.index_reference"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.infer_asvs",
       "retained_tools": [
         "dada2"
       ],
-      "stage_id": "fastq.infer_asvs"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.merge_pairs",
       "retained_tools": [
         "adapterremoval",
         "bbmerge",
@@ -378,111 +361,106 @@
         "seqprep",
         "vsearch"
       ],
-      "stage_id": "fastq.merge_pairs"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.normalize_abundance",
       "retained_tools": [
         "seqkit"
       ],
-      "stage_id": "fastq.normalize_abundance"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.normalize_primers",
       "retained_tools": [
         "cutadapt"
       ],
-      "stage_id": "fastq.normalize_primers"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.profile_overrepresented_sequences",
       "retained_tools": [
         "fastq_scan",
         "fastqc",
         "seqkit"
       ],
-      "stage_id": "fastq.profile_overrepresented_sequences"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": "run-2042",
-      "definition_status": "comparative",
-      "execution_status": "admitted",
+      "stage_id": "fastq.profile_read_lengths",
       "retained_tools": [
         "seqfu",
         "seqkit"
       ],
-      "stage_id": "fastq.profile_read_lengths"
+      "campaign_run_id": "run-2042",
+      "report_repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "report_sha256": "082329641a50be741785401ee359ece05d232c909b31481ddf46b46d580cbaf1",
+      "definition_status": "comparative",
+      "execution_status": "stale"
     },
     {
-      "campaign_run_id": "run-2043",
-      "definition_status": "comparative",
-      "execution_status": "admitted",
+      "stage_id": "fastq.profile_reads",
       "retained_tools": [
         "seqfu",
         "seqkit",
         "seqkit_stats"
       ],
-      "stage_id": "fastq.profile_reads"
+      "campaign_run_id": "run-2043",
+      "report_repository_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "report_sha256": "fb337cb54255df40078c14dc8e105b955a998e044683c842baa1f6bec2c0b7ef",
+      "definition_status": "comparative",
+      "execution_status": "stale"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.remove_chimeras",
       "retained_tools": [
         "vsearch"
       ],
-      "stage_id": "fastq.remove_chimeras"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.remove_duplicates",
       "retained_tools": [
         "clumpify"
       ],
-      "stage_id": "fastq.remove_duplicates"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.report_qc",
       "retained_tools": [
         "multiqc"
       ],
-      "stage_id": "fastq.report_qc"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.screen_taxonomy",
       "retained_tools": [
         "centrifuge",
         "kaiju",
         "kraken2",
         "krakenuniq"
       ],
-      "stage_id": "fastq.screen_taxonomy"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.trim_polyg_tails",
       "retained_tools": [
         "bbduk",
         "fastp"
       ],
-      "stage_id": "fastq.trim_polyg_tails"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.trim_reads",
       "retained_tools": [
         "adapterremoval",
         "alientrimmer",
@@ -499,23 +477,21 @@
         "trim_galore",
         "trimmomatic"
       ],
-      "stage_id": "fastq.trim_reads"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.trim_terminal_damage",
       "retained_tools": [
         "adapterremoval",
         "cutadapt",
         "seqkit"
       ],
-      "stage_id": "fastq.trim_terminal_damage"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "fastq.validate_reads",
       "retained_tools": [
         "fastq_scan",
         "fastqc",
@@ -523,210 +499,183 @@
         "fqtools",
         "seqtk"
       ],
-      "stage_id": "fastq.validate_reads"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.admixture",
       "retained_tools": [
         "plink",
         "plink2"
       ],
-      "stage_id": "vcf.admixture"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.call",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "vcf.call"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.call_diploid",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "vcf.call_diploid"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.call_gl",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "vcf.call_gl"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.call_pseudohaploid",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "vcf.call_pseudohaploid"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.damage_filter",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "vcf.damage_filter"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.demography",
       "retained_tools": [
         "ibdne"
       ],
-      "stage_id": "vcf.demography"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.filter",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "vcf.filter"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.gl_propagation",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "vcf.gl_propagation"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.ibd",
       "retained_tools": [
         "germline",
         "ibdhap",
         "ibdseq"
       ],
-      "stage_id": "vcf.ibd"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.imputation_metrics",
       "retained_tools": [
         "beagle",
         "glimpse",
         "minimac4"
       ],
-      "stage_id": "vcf.imputation_metrics"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.impute",
       "retained_tools": [
         "beagle",
         "glimpse",
         "minimac4"
       ],
-      "stage_id": "vcf.impute"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.pca",
       "retained_tools": [
         "eigensoft",
         "plink2"
       ],
-      "stage_id": "vcf.pca"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.phasing",
       "retained_tools": [
         "beagle",
         "eagle",
         "shapeit",
         "shapeit5"
       ],
-      "stage_id": "vcf.phasing"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.population_structure",
       "retained_tools": [
         "eigensoft",
         "plink",
         "plink2"
       ],
-      "stage_id": "vcf.population_structure"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.postprocess",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "vcf.postprocess"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.prepare_reference_panel",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "vcf.prepare_reference_panel"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.qc",
       "retained_tools": [
         "bcftools",
         "plink",
         "plink2"
       ],
-      "stage_id": "vcf.qc"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.roh",
       "retained_tools": [
         "plink2"
       ],
-      "stage_id": "vcf.roh"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "stage_id": "vcf.stats",
       "retained_tools": [
         "bcftools"
       ],
-      "stage_id": "vcf.stats"
+      "definition_status": "missing",
+      "execution_status": "not_defined"
     }
-  ],
-  "summary": {
-    "admitted_stage_count": 6,
-    "comparative_stage_count": 2,
-    "defined_stage_count": 6,
-    "missing_stage_count": 65,
-    "qualification_stage_count": 4,
-    "retained_stage_count": 71
-  }
+  ]
 }

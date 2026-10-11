@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "ContainerToolContract": {
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "not": {
+            "required": [
+              "pinned_commit"
+            ]
+          },
+          "required": [
+            "source_sha256"
+          ]
+        },
+        {
+          "not": {
+            "required": [
+              "source_sha256"
+            ]
+          },
+          "required": [
+            "pinned_commit"
+          ]
+        }
+      ],
+      "properties": {
+        "architecture": {
+          "type": "string"
+        },
+        "build_evidence_id": {
+          "type": "string"
+        },
+        "catalog_sha256": {
+          "type": "string"
+        },
+        "expected_binary": {
+          "type": "string"
+        },
+        "expected_version_regex": {
+          "type": "string"
+        },
+        "interface_sha256": {
+          "type": "string"
+        },
+        "pinned_commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recipe_path": {
+          "type": "string"
+        },
+        "recipe_sha256": {
+          "type": "string"
+        },
+        "repository_commit": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "bijux.container.tool_contract.v1",
+          "type": "string"
+        },
+        "source_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "support_disposition": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "version_command": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "tool_id",
+        "version",
+        "support_disposition",
+        "catalog_sha256",
+        "recipe_path",
+        "recipe_sha256",
+        "repository_commit",
+        "architecture",
+        "build_evidence_id",
+        "expected_binary",
+        "version_command",
+        "expected_version_regex",
+        "interface_sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "contract": {
+      "$ref": "#/$defs/ContainerToolContract"
+    },
+    "image_sha256": {
+      "type": "string"
+    },
+    "labels": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "bijux.container.tool_image_identity_evidence.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "image_sha256",
+    "contract",
+    "labels"
+  ],
+  "title": "ToolImageIdentityEvidence",
+  "type": "object"
+}

@@ -4,7 +4,6 @@
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
-use std::process::Command;
 
 use anyhow::{Context, Result};
 use bijux_dna_bench_model::contract::{validate_report_admission, validate_stage_report_alignment};
@@ -97,7 +96,10 @@ pub fn load_stage_reports_from_dir(
             if let Some(identity) = catalog_identities.get(repository_commit) {
                 identity.clone()
             } else {
-                let identity = catalog_identity_at_commit(repository_root, repository_commit)?;
+                let identity = bijux_dna_environment::api::catalog_identity_at_commit(
+                    repository_root,
+                    repository_commit,
+                )?;
                 catalog_identities.insert(repository_commit.clone(), identity.clone());
                 identity
             };
@@ -124,20 +126,4 @@ pub fn load_stage_reports_from_dir(
         reports.push(admission);
     }
     Ok(reports)
-}
-
-fn catalog_identity_at_commit(repository_root: &Path, commit: &str) -> Result<String> {
-    let output = Command::new("git")
-        .arg("-C")
-        .arg(repository_root)
-        .args(["show", &format!("{commit}:containers/contracts/catalog.toml")])
-        .output()
-        .with_context(|| format!("read container catalog at benchmark commit {commit}"))?;
-    if !output.status.success() {
-        anyhow::bail!(
-            "cannot read container catalog at benchmark commit {commit}: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        );
-    }
-    Ok(bijux_dna_infra::hash_bytes_sha256(&output.stdout))
 }

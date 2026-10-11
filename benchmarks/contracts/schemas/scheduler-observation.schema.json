@@ -1,0 +1,153 @@
+{
+  "$defs": {
+    "BenchmarkSchedulerAccounting": {
+      "additionalProperties": false,
+      "properties": {
+        "elapsed_seconds": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "exit_code": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "job_id": {
+          "type": "string"
+        },
+        "max_rss_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "node_list": {
+          "type": "string"
+        },
+        "raw_state": {
+          "type": "string"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scheduler": {
+          "type": "string"
+        },
+        "signal": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "state": {
+          "$ref": "#/$defs/BenchmarkSchedulerTerminalState"
+        },
+        "total_cpu_seconds": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scheduler",
+        "job_id",
+        "state",
+        "raw_state",
+        "exit_code",
+        "signal",
+        "elapsed_seconds",
+        "total_cpu_seconds",
+        "node_list"
+      ],
+      "type": "object"
+    },
+    "BenchmarkSchedulerEvidenceSource": {
+      "enum": [
+        "submission",
+        "queue",
+        "accounting"
+      ],
+      "type": "string"
+    },
+    "BenchmarkSchedulerObservedState": {
+      "enum": [
+        "submitted",
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+        "timeout",
+        "preempted",
+        "node_failure",
+        "out_of_memory",
+        "accounting_pending"
+      ],
+      "type": "string"
+    },
+    "BenchmarkSchedulerTerminalState": {
+      "enum": [
+        "completed",
+        "failed",
+        "cancelled",
+        "timeout",
+        "preempted",
+        "node_failure",
+        "out_of_memory"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "accounting": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BenchmarkSchedulerAccounting"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "job_id": {
+      "type": "string"
+    },
+    "observed_at_utc": {
+      "type": "string"
+    },
+    "scheduler": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.scheduler_observation.v1",
+      "type": "string"
+    },
+    "sequence": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "source": {
+      "$ref": "#/$defs/BenchmarkSchedulerEvidenceSource"
+    },
+    "state": {
+      "$ref": "#/$defs/BenchmarkSchedulerObservedState"
+    }
+  },
+  "required": [
+    "schema_version",
+    "sequence",
+    "scheduler",
+    "job_id",
+    "state",
+    "source",
+    "observed_at_utc"
+  ],
+  "title": "BenchmarkSchedulerObservation",
+  "type": "object"
+}

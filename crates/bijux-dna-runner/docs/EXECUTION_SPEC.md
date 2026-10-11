@@ -25,6 +25,15 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 | `timeouts` | Backend timeout failures become recorded failures. | `tests/boundaries/backend/backend_invariants.rs` |
 | `file permissions` | Backend output permissions follow runtime-root policy. | `tests/boundaries/backend/backend_invariants.rs` |
 
+## Slurm Lifecycle
+- Submission invokes `sbatch --parsable` once and returns the exact scheduler job identity without polling.
+- Batch submission requires an explicit maximum and retains successful handles beside per-run submission failures.
+- Observation invokes `squeue` once and consults `sacct` once only after the allocation leaves the queue.
+- Accounting state and exit status come from the allocation row; peak RSS includes matching step rows such as `.batch`.
+- Missing accounting is represented as `accounting_pending`, not guessed as success or failure.
+- Collection is a read-only one-shot observation, and cancellation invokes `scancel` once for the exact job identity.
+- Scheduling cadence belongs to the caller; this crate contains no sleep, wait, or polling loop.
+
 ## Failure Semantics
 | Failure | Detection | Expected remediation |
 | --- | --- | --- |
@@ -33,6 +42,8 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 | Permission error | Backend returns a filesystem permission failure. | Fix declared mount or output-root permissions. |
 | Timeout | Backend exceeds the declared runtime limit. | Increase the limit or reduce input size. |
 | Nonzero exit | Tool exits with a nonzero status. | Inspect captured stdout/stderr and tool arguments. |
+| Slurm accounting delay | A job has left `squeue` but has no allocation row in `sacct`. | Observe again in a later caller-owned cycle. |
+| Malformed scheduler output | Slurm output violates the typed parser contract. | Preserve raw scheduler evidence and correct the scheduler integration. |
 
 ## Change Rules
 - Public field changes, invocation-hash changes, replay semantics changes, and backend invariant changes are breaking unless explicitly approved.

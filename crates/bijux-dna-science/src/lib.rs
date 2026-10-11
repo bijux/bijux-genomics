@@ -5,6 +5,7 @@ pub mod cli;
 pub mod compile;
 pub mod domain;
 pub mod errors;
+pub mod evidence;
 pub mod io;
 pub mod release;
 pub mod render;

@@ -5,12 +5,19 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::diagnostics::BenchError;
 use crate::model::{
-    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkEvidenceTier,
+    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
     BenchmarkMeasurementContract, BenchmarkPortfolio, BenchmarkProfileAssignment,
-    BenchmarkScientificProfile, BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
+    BenchmarkScientificProfile, BenchmarkScientificReadinessReport,
+    BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
+    BenchmarkStageCoverageRow, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
+    BenchmarkStageInterfaceStatus,
 };
 
-use super::{BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1};
+use super::{
+    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
+    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
+};
 
 const REQUIRED_PERFORMANCE_METRICS: &[&str] =
     &["wall_seconds", "cpu_seconds", "peak_rss_kib", "input_bytes", "output_bytes"];
@@ -131,6 +138,317 @@ pub fn validate_defined_campaign_portfolio_alignment(
     portfolio: &BenchmarkPortfolio,
 ) -> Result<(), BenchError> {
     validate_campaign_portfolio_alignment_impl(registry, portfolio, false)
+}
+
+/// Validate a complete scientific-readiness publication.
+///
+/// # Errors
+/// Returns an error when stage identities, readiness states, domain counts, or summary counts
+/// disagree.
+pub fn validate_scientific_readiness(
+    report: &BenchmarkScientificReadinessReport,
+) -> Result<(), BenchError> {
+    if report.schema_version != BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark scientific readiness schema mismatch".to_string(),
+        ));
+    }
+    validate_measurement(&report.measurement)?;
+    if report.stages.is_empty() {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark scientific readiness contains no stages".to_string(),
+        ));
+    }
+
+    validate_scientific_readiness_stages(&report.stages)?;
+    for corpus in &report.corpora {
+        require_text(&corpus.id, "scientific readiness corpus id")?;
+        require_text(&corpus.truth_strategy, "scientific readiness truth strategy")?;
+        validate_text_list(&corpus.roles, "scientific readiness corpus roles", false)?;
+    }
+    validate_scientific_readiness_domains(report)?;
+    validate_scientific_readiness_summary(report)
+}
+
+fn validate_scientific_readiness_stages(
+    stages: &[BenchmarkScientificReadinessStage],
+) -> Result<(), BenchError> {
+    let mut previous_stage = None;
+    for stage in stages {
+        require_text(&stage.stage_id, "scientific readiness stage id")?;
+        require_text(&stage.profile_id, "scientific readiness profile id")?;
+        validate_text_list(&stage.retained_tools, "scientific readiness tools", false)?;
+        if stage.retained_tools.windows(2).any(|pair| pair[0] >= pair[1]) {
+            return Err(BenchError::InvalidPolicy(
+                "scientific readiness tools are not strictly sorted".to_string(),
+            ));
+        }
+        if previous_stage.is_some_and(|previous| previous >= stage.stage_id.as_str()) {
+            return Err(BenchError::InvalidPolicy(
+                "scientific readiness stages are not strictly sorted".to_string(),
+            ));
+        }
+        previous_stage = Some(stage.stage_id.as_str());
+        let expected_domain = stage.stage_id.split_once('.').map(|(domain, _)| domain);
+        if expected_domain != Some(stage.domain.as_str())
+            || !matches!(stage.domain.as_str(), "fastq" | "bam" | "vcf")
+        {
+            return Err(BenchError::InvalidPolicy(
+                "scientific readiness stage domain is invalid".to_string(),
+            ));
+        }
+        validate_coverage_run_id(&stage.reserved_run_id)?;
+        if let Some(run_id) = &stage.campaign_run_id {
+            validate_coverage_run_id(run_id)?;
+        }
+        let is_ready = stage.readiness == BenchmarkScientificReadinessStatus::Ready;
+        let ready_contract = stage.blockers.is_empty()
+            && stage.interface_status == BenchmarkStageInterfaceStatus::Closed
+            && stage.campaign_run_id.as_deref() == Some(stage.reserved_run_id.as_str())
+            && stage.campaign_tier == Some(BenchmarkEvidenceTier::Comparative);
+        if is_ready != ready_contract {
+            return Err(BenchError::InvalidPolicy(
+                "scientific readiness status disagrees with blockers or campaign closure"
+                    .to_string(),
+            ));
+        }
+        if !is_ready && stage.blockers.is_empty() {
+            return Err(BenchError::InvalidPolicy(
+                "blocked scientific readiness stage has no blocker".to_string(),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_scientific_readiness_domains(
+    report: &BenchmarkScientificReadinessReport,
+) -> Result<(), BenchError> {
+    let mut observed_domains = BTreeMap::new();
+    for domain in ["bam", "fastq", "vcf"] {
+        let stages = report.stages.iter().filter(|stage| stage.domain == domain);
+        let stage_count = stages.clone().count();
+        let ready_count = stages
+            .clone()
+            .filter(|stage| stage.readiness == BenchmarkScientificReadinessStatus::Ready)
+            .count();
+        observed_domains.insert(domain, (stage_count, ready_count, stage_count - ready_count));
+    }
+    if report.domains.len() != observed_domains.len()
+        || observed_domains.iter().any(|(domain, observed)| {
+            report.domains.get(*domain).is_none_or(|declared| {
+                *observed != (declared.stage_count, declared.ready_count, declared.blocked_count)
+            })
+        })
+    {
+        return Err(BenchError::InvalidPolicy(
+            "scientific readiness domain summaries disagree with stages".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_scientific_readiness_summary(
+    report: &BenchmarkScientificReadinessReport,
+) -> Result<(), BenchError> {
+    let ready_count = report
+        .stages
+        .iter()
+        .filter(|stage| stage.readiness == BenchmarkScientificReadinessStatus::Ready)
+        .count();
+    let qualification_campaign_count = report
+        .stages
+        .iter()
+        .filter(|stage| stage.campaign_tier == Some(BenchmarkEvidenceTier::Qualification))
+        .count();
+    let comparative_campaign_count = report
+        .stages
+        .iter()
+        .filter(|stage| stage.campaign_tier == Some(BenchmarkEvidenceTier::Comparative))
+        .count();
+    let admitted_comparative_corpus_count = report
+        .corpora
+        .iter()
+        .filter(|corpus| {
+            corpus.status == BenchmarkCorpusStatus::Admitted
+                && corpus.evidence_scope == BenchmarkEvidenceScope::Comparative
+        })
+        .count();
+    let observed_summary = (
+        report.stages.len(),
+        report.stages.len(),
+        ready_count,
+        report.stages.len() - ready_count,
+        report.corpora.len(),
+        admitted_comparative_corpus_count,
+        qualification_campaign_count,
+        comparative_campaign_count,
+    );
+    let summary = &report.summary;
+    let declared_summary = (
+        summary.stage_count,
+        summary.reserved_run_count,
+        summary.ready_count,
+        summary.blocked_count,
+        summary.corpus_count,
+        summary.admitted_comparative_corpus_count,
+        summary.qualification_campaign_count,
+        summary.comparative_campaign_count,
+    );
+    if observed_summary != declared_summary {
+        return Err(BenchError::InvalidPolicy(
+            "scientific readiness summary disagrees with report rows".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+/// Validate a complete benchmark stage-coverage publication.
+///
+/// # Errors
+/// Returns an error when schema, ordering, identities, statuses, or summary counts disagree.
+pub fn validate_stage_coverage(coverage: &BenchmarkStageCoverage) -> Result<(), BenchError> {
+    if coverage.schema_version != BENCHMARK_STAGE_COVERAGE_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark stage coverage schema mismatch".to_string(),
+        ));
+    }
+    if coverage.stages.is_empty() {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark stage coverage contains no retained stages".to_string(),
+        ));
+    }
+
+    let mut previous_stage = None;
+    for row in &coverage.stages {
+        require_text(&row.stage_id, "coverage stage id")?;
+        validate_text_list(&row.retained_tools, "coverage retained tools", false)?;
+        if row.retained_tools.windows(2).any(|pair| pair[0] >= pair[1]) {
+            return Err(BenchError::InvalidPolicy(
+                "benchmark coverage retained tools are not strictly sorted".to_string(),
+            ));
+        }
+        if previous_stage.is_some_and(|previous| previous >= row.stage_id.as_str()) {
+            return Err(BenchError::InvalidPolicy(
+                "benchmark coverage stages are not strictly sorted".to_string(),
+            ));
+        }
+        previous_stage = Some(row.stage_id.as_str());
+        validate_stage_coverage_row(row)?;
+    }
+
+    let summary = &coverage.summary;
+    let defined = coverage
+        .stages
+        .iter()
+        .filter(|row| row.definition_status != BenchmarkStageDefinitionStatus::Missing)
+        .count();
+    let count_definition =
+        |status| coverage.stages.iter().filter(|row| row.definition_status == status).count();
+    let count_execution =
+        |status| coverage.stages.iter().filter(|row| row.execution_status == status).count();
+    let observed = (
+        coverage.stages.len(),
+        defined,
+        count_definition(BenchmarkStageDefinitionStatus::Qualification),
+        count_definition(BenchmarkStageDefinitionStatus::Comparative),
+        count_execution(BenchmarkStageExecutionStatus::Admitted),
+        count_execution(BenchmarkStageExecutionStatus::Stale),
+        count_execution(BenchmarkStageExecutionStatus::Failed),
+        coverage.stages.len() - defined,
+    );
+    let declared = (
+        summary.retained_stage_count,
+        summary.defined_stage_count,
+        summary.qualification_stage_count,
+        summary.comparative_stage_count,
+        summary.admitted_stage_count,
+        summary.stale_stage_count,
+        summary.failed_stage_count,
+        summary.missing_stage_count,
+    );
+    if observed != declared {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark stage coverage summary disagrees with stage rows".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_stage_coverage_row(row: &BenchmarkStageCoverageRow) -> Result<(), BenchError> {
+    let invalid = || {
+        BenchError::InvalidPolicy(
+            "benchmark coverage definition, execution, and run identity disagree".to_string(),
+        )
+    };
+    if row.definition_status == BenchmarkStageDefinitionStatus::Missing {
+        if row.execution_status != BenchmarkStageExecutionStatus::NotDefined
+            || row.campaign_run_id.is_some()
+            || row.report_repository_commit.is_some()
+            || row.report_sha256.is_some()
+        {
+            return Err(invalid());
+        }
+        return Ok(());
+    }
+
+    let run_id = row.campaign_run_id.as_deref().ok_or_else(invalid)?;
+    validate_coverage_run_id(run_id)?;
+    match row.execution_status {
+        BenchmarkStageExecutionStatus::NotAdmitted
+            if row.report_repository_commit.is_none() && row.report_sha256.is_none() => {}
+        BenchmarkStageExecutionStatus::Stale
+        | BenchmarkStageExecutionStatus::Failed
+        | BenchmarkStageExecutionStatus::Admitted => {
+            validate_coverage_commit(row.report_repository_commit.as_deref().ok_or_else(invalid)?)?;
+            validate_coverage_digest(row.report_sha256.as_deref().ok_or_else(invalid)?)?;
+        }
+        BenchmarkStageExecutionStatus::NotDefined | BenchmarkStageExecutionStatus::NotAdmitted => {
+            return Err(invalid())
+        }
+    }
+    Ok(())
+}
+
+fn validate_coverage_commit(value: &str) -> Result<(), BenchError> {
+    if value.len() != 40
+        || !value.bytes().all(|byte| byte.is_ascii_hexdigit())
+        || value.bytes().all(|byte| byte == b'0')
+    {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark coverage report commit identity is malformed".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_coverage_digest(value: &str) -> Result<(), BenchError> {
+    if value.len() != 64
+        || !value.bytes().all(|byte| byte.is_ascii_hexdigit())
+        || value.bytes().all(|byte| byte == b'0')
+    {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark coverage report digest identity is malformed".to_string(),
+        ));
+    }
+    Ok(())
+}
+
+fn validate_coverage_run_id(run_id: &str) -> Result<(), BenchError> {
+    let Some(number) = run_id.strip_prefix("run-") else {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark coverage run identity is malformed".to_string(),
+        ));
+    };
+    if number.len() != 4
+        || !number.bytes().all(|byte| byte.is_ascii_digit())
+        || number.parse::<u16>().map_or(true, |value| !(2000..3000).contains(&value))
+    {
+        return Err(BenchError::InvalidPolicy(
+            "benchmark coverage run identity is outside run-2000..2999".to_string(),
+        ));
+    }
+    Ok(())
 }
 
 fn validate_campaign_portfolio_alignment_impl(

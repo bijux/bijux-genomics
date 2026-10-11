@@ -1,0 +1,206 @@
+{
+  "$defs": {
+    "ContainerImageInventorySummary": {
+      "properties": {
+        "historical_dependency_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "staged_image_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "states": {
+          "additionalProperties": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "tool_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unknown_image_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unreferenced_obsolete_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tool_count",
+        "states",
+        "historical_dependency_count",
+        "unknown_image_count",
+        "staged_image_count",
+        "unreferenced_obsolete_count"
+      ],
+      "type": "object"
+    },
+    "ImageStorageMoveCategory": {
+      "enum": [
+        "obsolete",
+        "interrupted"
+      ],
+      "type": "string"
+    },
+    "ImageStorageRecovery": {
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode",
+        "command"
+      ],
+      "type": "object"
+    },
+    "ImageStorageReportSource": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "type": "string"
+        },
+        "study_relative_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "study_relative_path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "ImageStorageReportSources": {
+      "additionalProperties": false,
+      "properties": {
+        "post_storage_inventory": {
+          "$ref": "#/$defs/ImageStorageReportSource"
+        },
+        "storage_plan": {
+          "$ref": "#/$defs/ImageStorageReportSource"
+        }
+      },
+      "required": [
+        "storage_plan",
+        "post_storage_inventory"
+      ],
+      "type": "object"
+    },
+    "ImageStorageVerdict": {
+      "enum": [
+        "passed",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "QuarantinedImageIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/ImageStorageMoveCategory"
+        },
+        "name": {
+          "type": "string"
+        },
+        "quarantine_path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "category",
+        "name",
+        "sha256",
+        "size_bytes",
+        "quarantine_path"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "checks": {
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "type": "object"
+    },
+    "historical_dependencies_preserved": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "moved_file_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "moved_images": {
+      "items": {
+        "$ref": "#/$defs/QuarantinedImageIdentity"
+      },
+      "type": "array"
+    },
+    "moved_size_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "post_storage_summary": {
+      "$ref": "#/$defs/ContainerImageInventorySummary"
+    },
+    "recovery": {
+      "$ref": "#/$defs/ImageStorageRecovery"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "source_artifacts": {
+      "$ref": "#/$defs/ImageStorageReportSources"
+    },
+    "verdict": {
+      "$ref": "#/$defs/ImageStorageVerdict"
+    }
+  },
+  "required": [
+    "schema_version",
+    "repository_commit",
+    "verdict",
+    "moved_file_count",
+    "moved_size_bytes",
+    "post_storage_summary",
+    "checks",
+    "historical_dependencies_preserved",
+    "recovery",
+    "source_artifacts",
+    "moved_images"
+  ],
+  "title": "ImageStorageReport",
+  "type": "object"
+}

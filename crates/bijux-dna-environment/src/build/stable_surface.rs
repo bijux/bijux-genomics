@@ -4,5 +4,19 @@ pub use super::apptainer::{
     ApptainerBuildFailureClass, ApptainerBuildReport, ApptainerBuildRequest,
 };
 pub use super::builder::EnvironmentBuilder;
+pub use super::campaign::{
+    execute_apptainer_image_campaign, image_campaign_execution_schema, image_campaign_plan_schema,
+    write_image_campaign_execution_schema, write_image_campaign_plan_schema,
+    ApptainerImageCampaignRequest, ImageCampaignExecution, ImageCampaignPlan,
+    ImageCampaignToolOutcome, ImageCampaignToolStatus, IMAGE_CAMPAIGN_EXECUTION_SCHEMA_V1,
+    IMAGE_CAMPAIGN_PLAN_SCHEMA_V1,
+};
 pub use super::entrypoints::{default_docker_tools, extract_version_from_dockerfile};
 pub use super::models::DockerToolSpec;
+pub use super::publication::{
+    container_build_evidence_schema, publish_canonical_apptainer_image,
+    write_container_build_evidence_schema, CanonicalApptainerImageDestination,
+    CanonicalApptainerImagePublication, CanonicalApptainerImagePublicationRequest,
+    CanonicalBuildLogIdentity, CanonicalDefinitionIdentity, CanonicalImageIdentity,
+    CONTAINER_BUILD_EVIDENCE_SCHEMA_V1,
+};

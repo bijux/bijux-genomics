@@ -3,7 +3,7 @@ use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, SystemTime};
 
 use anyhow::{anyhow, Context, Result};
 use schemars::JsonSchema;
@@ -24,6 +24,8 @@ pub enum ApptainerBuildFailureClass {
 pub struct ApptainerBuildAttempt {
     pub attempt: u32,
     pub log_path: PathBuf,
+    pub started_at_unix_ms: u64,
+    pub finished_at_unix_ms: u64,
     pub failure_class: Option<ApptainerBuildFailureClass>,
 }
 
@@ -106,7 +108,13 @@ pub fn build_apptainer_image(request: &ApptainerBuildRequest) -> Result<Apptaine
         );
         let output = run_build_attempt(request, attempt, &log_path)?;
         if output.success {
-            attempts.push(ApptainerBuildAttempt { attempt, log_path, failure_class: None });
+            attempts.push(ApptainerBuildAttempt {
+                attempt,
+                log_path,
+                started_at_unix_ms: output.started_at_unix_ms,
+                finished_at_unix_ms: output.finished_at_unix_ms,
+                failure_class: None,
+            });
             return Ok(ApptainerBuildReport { attempts });
         }
 
@@ -114,6 +122,8 @@ pub fn build_apptainer_image(request: &ApptainerBuildRequest) -> Result<Apptaine
         attempts.push(ApptainerBuildAttempt {
             attempt,
             log_path: log_path.clone(),
+            started_at_unix_ms: output.started_at_unix_ms,
+            finished_at_unix_ms: output.finished_at_unix_ms,
             failure_class: Some(failure_class),
         });
         let may_retry = failure_class == ApptainerBuildFailureClass::TransientTransport
@@ -143,6 +153,7 @@ pub fn classify_apptainer_build_failure(diagnostics: &str) -> ApptainerBuildFail
         "tls handshake timeout",
         "temporary failure in name resolution",
         "network is unreachable",
+        "toomanyrequests",
         "too many requests",
         "service unavailable",
     ];
@@ -198,6 +209,8 @@ pub fn next_apptainer_build_attempt(
 struct BuildAttemptOutput {
     success: bool,
     diagnostics: String,
+    started_at_unix_ms: u64,
+    finished_at_unix_ms: u64,
 }
 
 fn run_build_attempt(
@@ -210,7 +223,9 @@ fn run_build_attempt(
         .write(true)
         .open(log_path)
         .with_context(|| format!("create immutable build log {}", log_path.display()))?;
+    let started_at_unix_ms = unix_time_millis()?;
     writeln!(log, "attempt={attempt}")?;
+    writeln!(log, "started_at_unix_ms={started_at_unix_ms}")?;
     writeln!(log, "executable={}", request.executable.display())?;
     writeln!(log, "image={}", request.image_path.display())?;
     writeln!(log, "definition={}", request.definition_path.display())?;
@@ -226,9 +241,29 @@ fn run_build_attempt(
         .with_context(|| {
             format!("execute Apptainer build for {}", request.definition_path.display())
         })?;
+    let finished_at_unix_ms = unix_time_millis()?;
+    let mut terminal_log = OpenOptions::new()
+        .append(true)
+        .open(log_path)
+        .with_context(|| format!("append terminal build status to {}", log_path.display()))?;
+    writeln!(terminal_log, "finished_at_unix_ms={finished_at_unix_ms}")?;
+    writeln!(terminal_log, "exit_status={status}")?;
     let diagnostics = std::fs::read_to_string(log_path)
         .with_context(|| format!("read Apptainer build log {}", log_path.display()))?;
-    Ok(BuildAttemptOutput { success: status.success(), diagnostics })
+    Ok(BuildAttemptOutput {
+        success: status.success(),
+        diagnostics,
+        started_at_unix_ms,
+        finished_at_unix_ms,
+    })
+}
+
+fn unix_time_millis() -> Result<u64> {
+    let millis = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .context("system clock precedes Unix epoch")?
+        .as_millis();
+    u64::try_from(millis).context("Unix timestamp exceeds u64")
 }
 
 fn validate_request(request: &ApptainerBuildRequest) -> Result<()> {

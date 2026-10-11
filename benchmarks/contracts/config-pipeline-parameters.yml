@@ -2,6 +2,11 @@
   "schema_version": "bijux.benchmark.pipeline_parameters.v1",
   "profile": "generic-fastq",
   "stages": {
+    "bam.mapping_summary": {
+      "parameter_schema_version": "bijux.bam.params.mapping_summary.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::MappingSummary)",
+      "overrides": {}
+    },
     "fastq.profile_reads": {
       "parameter_schema_version": "bijux.fastq.params.stats.v1",
       "defaults_provider": "bijux_dna_domain_fastq::params::defaults::stats_defaults",

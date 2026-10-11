@@ -5,9 +5,11 @@
 
 mod apptainer;
 mod builder;
+mod campaign;
 mod defaults;
 mod entrypoints;
 mod models;
+mod publication;
 mod stable_surface;
 mod version_parser;
 

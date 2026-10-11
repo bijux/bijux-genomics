@@ -22,6 +22,8 @@ TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo te
 
 - `tests/contracts/apptainer_build_and_smoke.rs`: immutable build attempts, transient retry
   classification, contract-regex smoke admission, and command failure behavior.
+- `tests/contracts/tool_contract.rs`: complete catalog loading, embedded image identity,
+  retained-roster closure, label binding, and runtime inspection.
 - `tests/contracts/build_dockerfile.rs`: Dockerfile version ARG parsing.
 - `tests/contracts/run_shell_capture.rs`: merged stdout/stderr behavior.
 - `tests/contracts/resolve_runtime.rs`: runtime parsing, platform loading, catalog hydration, image

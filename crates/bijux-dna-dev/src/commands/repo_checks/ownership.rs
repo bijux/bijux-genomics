@@ -15,13 +15,8 @@ const OUTPUT_JSON: &str = "artifacts/architecture/benchmark-container-ownership-
 const OUTPUT_MARKDOWN: &str = "artifacts/architecture/benchmark-container-ownership-audit.md";
 const OUTPUT_SCHEMA: &str =
     "artifacts/architecture/benchmark-container-ownership-audit.schema.json";
-const LEGACY_AUTHORITIES: [&str; 5] = [
-    "benchmarks/benchmark_evidence.py",
-    "benchmarks/benchmark_portfolio.py",
-    "benchmarks/benchmark_registry.py",
-    "containers/contracts/container_validation.py",
-    "containers/contracts/qualification_report.py",
-];
+const LEGACY_AUTHORITIES: [&str; 2] =
+    ["benchmarks/benchmark_evidence.py", "containers/contracts/container_validation.py"];
 const CRATE_SCOPES: [&str; 11] = [
     "crates/bijux-dna-bench-model/",
     "crates/bijux-dna-bench/",
@@ -202,6 +197,7 @@ fn tracked_source_files(workspace: &Workspace) -> Result<Vec<SourceFile>> {
         .filter(|path| !path.is_empty())
         .filter_map(|bytes| std::str::from_utf8(bytes).ok())
         .filter(|path| is_relevant(path))
+        .filter(|path| workspace.path(path).is_file())
         .map(|path| {
             let content = std::fs::read_to_string(workspace.path(path))
                 .with_context(|| format!("read ownership source {path}"))?;
@@ -259,12 +255,7 @@ fn classify(
     let target_owner = target_owner(&file.path, classification);
     let authority_callers = callers.get(&file.path).cloned().unwrap_or_default();
     let bridges_legacy_control_plane = LEGACY_AUTHORITIES.iter().any(|authority| {
-        file.path == *authority
-            || file.content.contains(authority)
-            || Path::new(authority)
-                .file_stem()
-                .and_then(|value| value.to_str())
-                .is_some_and(|stem| file.content.contains(stem))
+        file.path == *authority || references_legacy_authority(&file.path, &file.content, authority)
     });
     let schema_refs = schema_pattern
         .find_iter(&file.content)
@@ -304,8 +295,9 @@ fn classify(
 
 fn classification_for(path: &str, content: &str) -> (&'static str, &'static str) {
     if path.starts_with("crates/bijux-dna/src/commands/benchmark/readiness/")
-        || path.contains("simulation")
-        || path.contains("readiness")
+        || path.starts_with("benchmarks/readiness/")
+        || path.contains("/simulation/")
+        || path.contains("_simulation.")
     {
         return (
             "obsolete simulation/readiness logic",
@@ -369,13 +361,10 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
         );
     }
     if path.starts_with(".github/workflows/") || path == "Makefile" || path.starts_with("makes/") {
-        if LEGACY_AUTHORITIES.iter().any(|authority| {
-            content.contains(authority)
-                || Path::new(authority)
-                    .file_name()
-                    .and_then(|value| value.to_str())
-                    .is_some_and(|name| content.contains(name))
-        }) {
+        if LEGACY_AUTHORITIES
+            .iter()
+            .any(|authority| references_legacy_authority(path, content, authority))
+        {
             return (
                 "duplicate legacy logic",
                 "automation still invokes a legacy product authority",
@@ -429,23 +418,11 @@ fn legacy_callers(files: &[SourceFile]) -> BTreeMap<String, Vec<String>> {
     LEGACY_AUTHORITIES
         .iter()
         .map(|authority| {
-            let stem = Path::new(authority)
-                .file_stem()
-                .and_then(|value| value.to_str())
-                .unwrap_or(authority);
-            let name = Path::new(authority)
-                .file_name()
-                .and_then(|value| value.to_str())
-                .unwrap_or(authority);
             let mut matches = files
                 .iter()
                 .filter(|file| file.path != *authority)
                 .filter(|file| is_executable_reference(&file.path))
-                .filter(|file| {
-                    file.content.contains(authority)
-                        || file.content.contains(name)
-                        || file.content.contains(stem)
-                })
+                .filter(|file| references_legacy_authority(&file.path, &file.content, authority))
                 .map(|file| file.path.clone())
                 .collect::<Vec<_>>();
             matches.sort();
@@ -453,6 +430,19 @@ fn legacy_callers(files: &[SourceFile]) -> BTreeMap<String, Vec<String>> {
             ((*authority).to_string(), matches)
         })
         .collect()
+}
+
+fn references_legacy_authority(path: &str, content: &str, authority: &str) -> bool {
+    let authority_path = Path::new(authority);
+    let name = authority_path.file_name().and_then(|value| value.to_str()).unwrap_or(authority);
+    if content.contains(authority) || content.contains(name) {
+        return true;
+    }
+    Path::new(path).extension().and_then(|value| value.to_str()) == Some("py")
+        && authority_path
+            .file_stem()
+            .and_then(|value| value.to_str())
+            .is_some_and(|stem| content.contains(stem))
 }
 
 fn is_executable_reference(path: &str) -> bool {
@@ -534,6 +524,7 @@ mod tests {
 
     use super::{
         classify, render_markdown, validate_audit, AuditSummary, OwnershipAudit, SourceFile,
+        LEGACY_AUTHORITIES,
     };
 
     #[test]
@@ -552,18 +543,35 @@ mod tests {
     }
 
     #[test]
-    fn legacy_authority_has_explicit_removal_contract() -> anyhow::Result<()> {
+    fn legacy_authorities_have_explicit_removal_contracts() -> anyhow::Result<()> {
+        let schema_pattern = Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?;
+        for authority in LEGACY_AUTHORITIES {
+            let row = classify(
+                &SourceFile {
+                    path: authority.to_string(),
+                    content: "SCHEMA = 'bijux.benchmark.registry.v1'".to_string(),
+                },
+                &schema_pattern,
+                &BTreeMap::new(),
+            );
+            assert_eq!(row.classification, "duplicate legacy logic", "{authority}");
+            assert!(row.removal_gate.contains("real-STUDY import"), "{authority}");
+            assert_eq!(row.schema_refs, ["bijux.benchmark.registry.v1"], "{authority}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn rust_module_names_do_not_imply_legacy_script_calls() -> anyhow::Result<()> {
         let row = classify(
             &SourceFile {
-                path: "benchmarks/benchmark_registry.py".to_string(),
-                content: "SCHEMA = 'bijux.benchmark.registry.v1'".to_string(),
+                path: "crates/bijux-dna-dev/src/commands/containers/image_storage.rs".to_string(),
+                content: "fn image_storage() {}".to_string(),
             },
             &Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?,
             &BTreeMap::new(),
         );
-        assert_eq!(row.classification, "duplicate legacy logic");
-        assert!(row.removal_gate.contains("real-STUDY import"));
-        assert_eq!(row.schema_refs, ["bijux.benchmark.registry.v1"]);
+        assert!(!row.bridges_legacy_control_plane);
         Ok(())
     }
 

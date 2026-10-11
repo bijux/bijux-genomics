@@ -22,8 +22,28 @@ library can manage when callers invoke the matching API.
   embedded contract and `apptainer inspect --json` to compare its immutable labels.
 - `build_apptainer_image()`: runs `apptainer build --force` with append-only attempt logs and
   retries only failures classified as transient OCI transport failures.
-- `run_apptainer_smoke()`: runs offline `apptainer exec --containall --cleanenv --net --network
-  none` probes and admits version output against the catalog contract regex.
+- `publish_canonical_apptainer_image()`: owns the complete retained-image transaction: requires a
+  clean Git commit, verifies the embedded contract and labels, and no-clobber publishes a
+  digest-named SIF plus build evidence. The active destination uses `<study>/containers/apptainer`;
+  the commit-campaign destination uses `<study>/containers/staging/<commit>` and
+  `<study>/containers/evidence/image-campaigns/<commit>` without changing the active root. It runs
+  `hostname` and `apptainer --version` to bind the builder environment to the evidence.
+- `execute_apptainer_image_campaign()`: owns catalog-wide bounded workers, immutable planning,
+  atomic per-tool progress, fresh resumed-image inspection, append-only invocation records, and
+  all-passed terminal execution publication.
+- `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
+  bijux-runtime --net --network none` probes, persists immutable streams when requested, and
+  admits version output against the catalog contract regex.
+- `execute_runtime_verification()`: resolves canonical inventory images and runs independent
+  version/help smoke workers before publishing manifest-bound portable evidence.
+- `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
+  after strict commit validation and hashes the exact historical catalog bytes.
+- `apptainer_recipe_identity_at_commit()`: runs `git show --no-ext-diff` for one definition and
+  `git rev-parse --verify` for each repository-owned `%files` source at an exact commit.
+- `repository_head_commit()`: runs `git rev-parse --verify HEAD^{commit}` and rejects abbreviated or
+  malformed identities.
+- `clean_repository_head_commit()`: runs `git status --porcelain=v1 --untracked-files=normal`
+  before resolving `HEAD` and rejects uncommitted build inputs.
 
 ## Non-Commands
 
@@ -45,8 +65,12 @@ library can manage when callers invoke the matching API.
 - `src/resolve/shell.rs`: explicit shell capture for caller-provided diagnostics.
 - `src/resolve/smoke.rs`: environment smoke handoff through the developer control plane.
 - `src/evidence/tool_contract/inspection.rs`: embedded Apptainer contract and label inspection.
+- `src/evidence/tool_contract/catalog.rs`: exact-commit catalog materialization for evidence identity.
+- `src/evidence/tool_contract/recipe_identity.rs`: exact-commit definition and `%files` identity.
 - `src/evidence/tool_contract/smoke.rs`: offline contract smoke execution and evidence admission.
 - `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
+- `src/build/publication.rs`: builder host, Apptainer version, pinned base, embedded identity, and
+  canonical image publication.
 
 ## Verification
 

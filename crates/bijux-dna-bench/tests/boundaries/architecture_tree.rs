@@ -20,8 +20,13 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
-        entries(["mod.rs", "writer/"]),
+        entries(["admission/", "mod.rs", "writer/"]),
         "artifacts tree must stay focused on deterministic serialization"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/admission")),
+        entries(["mod.rs", "model.rs", "validation.rs"]),
+        "benchmark admission must separate typed evidence from output validation"
     );
 
     assert_eq!(
@@ -44,6 +49,8 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
+            "bam_corpus_authority.rs",
+            "corpus_authority.rs",
             "mod.rs",
             "repo_root.rs",
             "repository.rs",
@@ -76,13 +83,20 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/workflow")),
         entries([
-            "attempt_lifecycle.rs",
             "attempt_migration.rs",
+            "bam_mapping_summary/",
+            "campaign_lifecycle/",
             "evaluation.rs",
+            "fastq_expectations/",
+            "fastq_profile_read_lengths/",
+            "fastq_profile_reads/",
             "mod.rs",
             "options.rs",
             "report_load.rs",
             "run_suite/",
+            "scientific_readiness.rs",
+            "stage_coverage.rs",
+            "stage_report/",
             "summary/",
             "suite_load.rs",
             "summary_fairness.rs",
@@ -93,9 +107,59 @@ fn bench_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_mapping_summary")),
+        entries(["commands.rs", "inputs.rs", "mod.rs", "parameters.rs", "report/"]),
+        "BAM mapping-summary material must separate commands, inputs, parameter evidence, and reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_mapping_summary/report")),
+        entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
+        "BAM report derivation must separate attempt evidence, science, and rendering"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/campaign_lifecycle")),
+        entries(["authorities.rs", "execution.rs", "mod.rs", "planning.rs", "storage.rs"]),
+        "campaign lifecycle tree must separate source authority, planning, execution, and storage logic"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_expectations")),
+        entries(["mod.rs", "profile_reads.rs", "rendering.rs", "storage.rs"]),
+        "FASTQ expectation workflow must separate derivation, rendering, and immutable storage"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_profile_read_lengths")),
+        entries(["commands.rs", "inputs.rs", "mod.rs", "parameters.rs", "report/"]),
+        "FASTQ campaign material must separate commands, inputs, parameter evidence, and reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_profile_read_lengths/report")),
+        entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
+        "FASTQ report derivation must separate attempt evidence, science, and rendering"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_profile_reads")),
+        entries(["commands.rs", "inputs.rs", "mod.rs", "parameters.rs", "report/"]),
+        "FASTQ profile campaign material must separate execution and reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_profile_reads/report")),
+        entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
+        "FASTQ profile reporting must separate evidence, science, and rendering"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("src/workflow/run_suite")),
         entries(["mod.rs", "persistence.rs"]),
         "suite run tree must separate orchestration from artifact persistence"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/stage_report")),
+        entries(["evidence.rs", "freshness.rs", "metrics.rs", "mod.rs", "publication.rs"]),
+        "stage report authority must separate admission, metrics, and immutable publication"
     );
 
     assert_eq!(
@@ -176,6 +240,11 @@ fn commands_doc_lists_managed_benchmark_operations() {
         "apply-attempt-migration",
         "verify-attempt-migration",
         "rollback-attempt-migration",
+        "plan-stage-campaign-attempts",
+        "verify-campaign-plan-source",
+        "ensure-stage-campaign-attempts",
+        "derive-stage-coverage",
+        "publish-checked-in-stage-coverage",
     ] {
         assert!(
             content.contains(command),

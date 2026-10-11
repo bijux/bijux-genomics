@@ -1,0 +1,239 @@
+{
+  "$defs": {
+    "BenchmarkCachePolicy": {
+      "enum": [
+        "cold",
+        "warm"
+      ],
+      "type": "string"
+    },
+    "BenchmarkComparisonMetricTolerance": {
+      "additionalProperties": false,
+      "properties": {
+        "absolute_tolerance": {
+          "format": "double",
+          "type": "number"
+        },
+        "id": {
+          "type": "string"
+        },
+        "relative_tolerance": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "absolute_tolerance",
+        "relative_tolerance"
+      ],
+      "type": "object"
+    },
+    "BenchmarkEvidenceTier": {
+      "enum": [
+        "qualification",
+        "comparative"
+      ],
+      "type": "string"
+    },
+    "BenchmarkExecutionRuntime": {
+      "enum": [
+        "apptainer"
+      ],
+      "type": "string"
+    },
+    "BenchmarkExecutionScheduler": {
+      "enum": [
+        "slurm"
+      ],
+      "type": "string"
+    },
+    "BenchmarkStageCampaignSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "accuracy_claim": {
+          "type": "string"
+        },
+        "cache_policy": {
+          "$ref": "#/$defs/BenchmarkCachePolicy"
+        },
+        "comparison_metrics": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkComparisonMetricTolerance"
+          },
+          "type": "array"
+        },
+        "comparison_scope": {
+          "type": "string"
+        },
+        "container_only": {
+          "type": "boolean"
+        },
+        "corpus_catalog_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "corpus_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "database_catalog_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_tier": {
+          "$ref": "#/$defs/BenchmarkEvidenceTier"
+        },
+        "input_size_keys": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "interpretation": {
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "measured_repetitions": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "performance_metrics": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "reference_catalog_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "result_artifact": {
+          "type": "string"
+        },
+        "result_root_template": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "runtime": {
+          "$ref": "#/$defs/BenchmarkExecutionRuntime"
+        },
+        "scheduler": {
+          "$ref": "#/$defs/BenchmarkExecutionScheduler"
+        },
+        "scientific_metrics": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "scientific_question": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "threads": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "threads_by_tool": {
+          "additionalProperties": {
+            "format": "uint32",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "tool_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "warmup_repetitions": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "run_id",
+        "slug",
+        "domain",
+        "stage_id",
+        "evidence_tier",
+        "profile_id",
+        "corpus_ids",
+        "scientific_question",
+        "comparison_scope",
+        "tool_ids",
+        "corpus_catalog_ids",
+        "input_size_keys",
+        "result_artifact",
+        "runtime",
+        "scheduler",
+        "container_only",
+        "warmup_repetitions",
+        "measured_repetitions",
+        "cache_policy",
+        "result_root_template",
+        "accuracy_claim",
+        "interpretation",
+        "performance_metrics",
+        "scientific_metrics",
+        "limitations"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "campaigns": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageCampaignSpec"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.stage_campaigns.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "campaigns"
+  ],
+  "title": "BenchmarkStageCampaignRegistry",
+  "type": "object"
+}

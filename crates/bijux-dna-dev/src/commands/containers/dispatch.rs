@@ -181,9 +181,42 @@ pub(super) fn run_native_container_command(
             ensure_no_args("check-version-deprecations", args)?;
             versioning::check_version_deprecations(workspace)
         }
+        NativeContainerCommandKey::GenerateEvidenceQualification => {
+            ensure_no_args("generate-evidence-qualification", args)?;
+            contracts::generate_evidence_qualification(workspace)
+        }
+        NativeContainerCommandKey::GenerateImageInventory => inventory::generate(workspace, args),
+        NativeContainerCommandKey::GenerateImageInventoryReport => {
+            inventory::generate_report(workspace, args)
+        }
+        NativeContainerCommandKey::GenerateImageInventoryPublicationSchema => {
+            inventory::generate_publication_schema(workspace, args)
+        }
+        NativeContainerCommandKey::GenerateImageInventoryScanSchema => {
+            inventory::generate_scan_schema(workspace, args)
+        }
+        NativeContainerCommandKey::ImageStorage => storage::run(workspace, args),
+        NativeContainerCommandKey::QualificationRegistry => {
+            qualification_registry::run(workspace, args)
+        }
+        NativeContainerCommandKey::RuntimeVerification => {
+            runtime_verification::run(workspace, args)
+        }
         NativeContainerCommandKey::CheckEvidenceQualification => {
             ensure_no_args("check-evidence-qualification", args)?;
             contracts::check_evidence_qualification(workspace)
+        }
+        NativeContainerCommandKey::CheckImageInventoryPublicationSchema => {
+            ensure_no_args("check-image-inventory-publication-schema", args)?;
+            inventory::check_publication_schema(workspace)
+        }
+        NativeContainerCommandKey::CheckImageInventoryReport => {
+            ensure_no_args("check-image-inventory-report", args)?;
+            inventory::check_report(workspace)
+        }
+        NativeContainerCommandKey::CheckImageInventoryScanSchema => {
+            ensure_no_args("check-image-inventory-scan-schema", args)?;
+            inventory::check_scan_schema(workspace)
         }
         NativeContainerCommandKey::GenerateQualificationSchema => {
             contracts::generate_qualification_schema(workspace, args)
@@ -191,6 +224,13 @@ pub(super) fn run_native_container_command(
         NativeContainerCommandKey::CheckQualificationSchema => {
             ensure_no_args("check-qualification-schema", args)?;
             contracts::check_qualification_schema(workspace)
+        }
+        NativeContainerCommandKey::GenerateQualificationReportSchema => {
+            contracts::generate_qualification_report_schema(workspace, args)
+        }
+        NativeContainerCommandKey::CheckQualificationReportSchema => {
+            ensure_no_args("check-qualification-report-schema", args)?;
+            contracts::check_qualification_report_schema(workspace)
         }
         NativeContainerCommandKey::DeprecateVersion => {
             versioning::deprecate_version(workspace, args)

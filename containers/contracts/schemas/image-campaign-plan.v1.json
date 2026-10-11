@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "architecture": {
+      "type": "string"
+    },
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "evidence_root": {
+      "type": "string"
+    },
+    "image_root": {
+      "type": "string"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "tools": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "worker_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "repository_commit",
+    "catalog_sha256",
+    "architecture",
+    "image_root",
+    "evidence_root",
+    "worker_count",
+    "tools"
+  ],
+  "title": "ImageCampaignPlan",
+  "type": "object"
+}

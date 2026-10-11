@@ -1,6 +1,7 @@
 mod evaluation;
 mod model;
 mod publication;
+mod report;
 
 pub use evaluation::REQUIRED_EVIDENCE_DIMENSIONS;
 pub use model::{
@@ -12,4 +13,8 @@ pub use publication::{
     evaluate_publication_freshness, ImmutablePublicationIdentity, PublicationArtifactIdentity,
     PublicationAuthority, PublicationFreshnessEvaluation, PublicationFreshnessVerdict,
     PublicationIdentityMismatch,
+};
+pub use report::{
+    QualificationEvidenceSource, QualificationReport, QualificationReportSummary,
+    QUALIFICATION_REPORT_SCHEMA_V2,
 };

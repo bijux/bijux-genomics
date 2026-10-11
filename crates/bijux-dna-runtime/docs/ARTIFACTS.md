@@ -41,6 +41,7 @@ Under `<tool-run>/run_artifacts/`:
 - Canonical JSON writes must go through `write_canonical_json` or a more specific runtime writer.
 - No ad hoc JSON serialization should bypass recording helpers for owned artifacts.
 - `logs/` may receive bounded stdout/stderr tails, but process execution remains outside runtime.
+- Benchmark attempt lifecycle reconstruction owns only `attempt.json` and `transitions/`. It ignores sibling artifacts owned by benchmark planning, execution, collection, and reporting while continuing to validate its owned entries strictly.
 
 ## Links to schema fixtures
 - `tests/fixtures/runtime_schema/default/run_layout_v1.json`

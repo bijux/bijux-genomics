@@ -8,6 +8,7 @@ The crate root exports these modules from `src/lib.rs`:
 - `cli`
 - `compile`
 - `domain`
+- `evidence`
 - `errors`
 - `io`
 - `release`
@@ -29,7 +30,8 @@ The crate root exports these modules from `src/lib.rs`:
 ## Data Surface
 
 `domain` owns typed science identifiers, authored spec structs, compiled row structs,
-`ScienceIndex`, `FastqClosureSummary`, `FastqEvidenceSummary`, and `CompiledScience`.
+`ScienceIndex`, `FastqClosureSummary`, `FastqEvidenceSummary`, and `CompiledScience`. `evidence`
+owns independent FASTQ read-length truth through `derive_fastq_read_length_truth`.
 `render` owns TSV and JSON rendering for the compiled rows. `schema` owns the accepted
 authored spec schema version constants.
 

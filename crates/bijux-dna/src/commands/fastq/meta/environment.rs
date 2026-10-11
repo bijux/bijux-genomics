@@ -43,7 +43,59 @@ pub(crate) fn handle_environment_command(
                 || crate::commands::hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root),
                 Ok,
             )?;
+            if let Some(tool_id) = args.tool.as_deref() {
+                let repository_root = std::env::current_dir()?;
+                let request = if args.campaign {
+                    bijux_dna_api::v1::api::env::CanonicalApptainerImagePublicationRequest::retained_campaign(
+                        repository_root,
+                        hpc_root.clone(),
+                        tool_id.to_string(),
+                    )
+                } else {
+                    bijux_dna_api::v1::api::env::CanonicalApptainerImagePublicationRequest::retained(
+                        repository_root,
+                        hpc_root.clone(),
+                        tool_id.to_string(),
+                    )
+                };
+                let publication =
+                    bijux_dna_api::v1::api::env::publish_canonical_apptainer_image(&request)?;
+                if let Some(output) = &args.output {
+                    bijux_dna_infra::atomic_write_json(output, &publication)?;
+                }
+                if args.json {
+                    render::json::print_pretty(&publication)?;
+                } else {
+                    println!("schema_version={}", publication.schema_version);
+                    println!("tool={}", publication.tool);
+                    println!("image={}", publication.image.path);
+                    println!("image_sha256={}", publication.image.sha256);
+                    println!("evidence={}", publication.evidence_path);
+                }
+                return Ok(true);
+            }
             if args.all_retained {
+                if args.campaign {
+                    let execution = bijux_dna_api::v1::api::env::execute_apptainer_image_campaign(
+                        &bijux_dna_api::v1::api::env::ApptainerImageCampaignRequest {
+                            repository_root: std::env::current_dir()?,
+                            study_root: hpc_root.clone(),
+                            apptainer_executable: std::path::PathBuf::from("apptainer"),
+                            worker_count: args.jobs.unwrap_or(4),
+                        },
+                    )?;
+                    if let Some(output) = &args.output {
+                        bijux_dna_infra::atomic_write_json(output, &execution)?;
+                    }
+                    render::json::print_pretty(&execution)?;
+                    if execution.failed != 0 {
+                        return Err(anyhow::anyhow!(
+                            "image campaign has {} failed tools",
+                            execution.failed
+                        ));
+                    }
+                    return Ok(true);
+                }
                 let report = crate::commands::cli::env::ensure_retained_apptainer_roster_at_root(
                     &hpc_root,
                     args.jobs.unwrap_or(2),
@@ -71,8 +123,15 @@ pub(crate) fn handle_environment_command(
                 }
                 return Ok(true);
             }
+            if args.campaign {
+                return Err(anyhow::anyhow!(
+                    "environment ensure-images --campaign requires --tool or --all-retained"
+                ));
+            }
             let domain = args.domain.as_deref().ok_or_else(|| {
-                anyhow!("environment ensure-images requires --domain unless --all-retained is used")
+                anyhow!(
+                    "environment ensure-images requires --domain unless --tool or --all-retained is used"
+                )
             })?;
             let stages = match (&args.stage, &args.stages) {
                 (Some(stage), None) => stage.clone(),

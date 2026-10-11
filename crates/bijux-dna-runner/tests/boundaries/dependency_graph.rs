@@ -16,6 +16,7 @@ fn dependency_graph_matches_runner_boundary() {
         dependency_keys(&manifest, "dependencies"),
         keys([
             "anyhow",
+            "bijux-dna-bench-model",
             "bijux-dna-core",
             "bijux-dna-environment",
             "bijux-dna-infra",

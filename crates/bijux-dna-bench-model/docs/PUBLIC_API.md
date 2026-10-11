@@ -15,6 +15,11 @@ Model contracts:
 - `BenchmarkDecision`
 - `BenchmarkStageCampaignRegistry`
 - `BenchmarkStageCampaignSpec`
+- `BenchmarkStageCoverage`
+- `BenchmarkStageCoverageSummary`
+- `BenchmarkStageCoverageRow`
+- `BenchmarkStageDefinitionStatus`
+- `BenchmarkStageExecutionStatus`
 - `BenchmarkPortfolio`
 - `BenchmarkStageInterfaceCatalog`
 - `BenchmarkStageInterfaceSpec`
@@ -33,11 +38,31 @@ Model contracts:
 - `DecisionRationale`
 - `BenchmarkLifecycleStatus`
 - `BenchmarkJobReference`
+- `BenchmarkSchedulerTerminalState`
+- `BenchmarkSchedulerAccounting`
+- `BenchmarkSchedulerObservedState`
+- `BenchmarkSchedulerEvidenceSource`
+- `BenchmarkSchedulerObservationDraft`
+- `BenchmarkSchedulerObservation`
+- `BenchmarkEvidenceReference`
 - `BenchmarkRunIdentity`
 - `BenchmarkAttemptIdentity`
 - `BenchmarkAttemptTransition`
 - `BenchmarkAttemptRecordV2`
 - `BenchmarkCycleStatusV2`
+- `BenchmarkCampaignPlan`
+- `BenchmarkExecutionSpec`
+- `BenchmarkExecutionSourceLock`
+- `BenchmarkExecutionImage`
+- `BenchmarkExecutionInput`
+- `BenchmarkExecutionCommands`
+- `BenchmarkExecutionParameterEvidence`
+- `BenchmarkExecutionInterface`
+- `BenchmarkExecutionMeasurement`
+- `BenchmarkExecutionOutputs`
+- `BenchmarkExecutionResources`
+- `BenchmarkExecutionRuntimePolicy`
+- `BenchmarkExecutionAcceptance`
 - `BenchmarkAttemptRecord`
 - `BenchmarkCycleStatus`
 - `BenchmarkGraphNode`
@@ -66,7 +91,11 @@ Policy and diagnostics:
 - `BENCHMARK_ATTEMPT_SCHEMA_V2`
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V1`
 - `BENCHMARK_CYCLE_STATUS_SCHEMA_V2`
+- `BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1`
+- `BENCHMARK_EXECUTION_SPEC_SCHEMA_V1`
+- `BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1`
 - `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
+- `BENCHMARK_STAGE_COVERAGE_SCHEMA_V1`
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
@@ -75,6 +104,14 @@ Policy and diagnostics:
 Statistics:
 
 - `robust_stats`
+
+Schema derivation:
+
+- `benchmark_campaign_plan_schema`
+- `benchmark_execution_spec_schema`
+- `benchmark_scheduler_observation_schema`
+- `validate_scheduler_observation`
+- `validate_execution_spec`
 
 Namespaces:
 
@@ -93,8 +130,9 @@ for operation names and entrypoints.
   breaking-change review under `docs/CHANGE_RULES.md`.
 - New public exports must be added through `src/public_api/stable_surface.rs` so
   schema tests can detect the change.
-- V2 attempt transitions are append-only. A retry receives a new permanent
-  attempt identity and records explicit same-run, same-tool supersession.
+- V2 attempt transitions are append-only and retain checksummed evidence plus
+  terminal scheduler accounting. A retry receives a new permanent attempt
+  identity and records explicit same-run, same-tool supersession.
 - Public validation behavior must be reflected in contract tests and the
   relevant docs.
 - Public ordering of lists, reports, and rationale traces must remain

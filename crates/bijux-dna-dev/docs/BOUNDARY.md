@@ -3,7 +3,7 @@
 Owner: Developer automation
 Scope: Repository control-plane automation, command catalogs, checks, and developer workflows
 Allowed inputs: workspace files, command catalogs, explicit CLI arguments, delegated check results
-Forbidden dependencies: production runtime ownership, domain semantics ownership, hidden workflow execution
+Forbidden dependencies: production runtime ownership, backend execution, domain semantics ownership, hidden workflow execution
 Forbidden effects: undeclared network access, writes outside workspace-governed paths, product pipeline execution
 Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-dev --no-default-features`
 
@@ -20,6 +20,7 @@ Provides versioned control-plane automation for repository checks, domain automa
 
 ## Allowed dependencies
 - Workspace crates required to model and execute developer automation.
+- `bijux-dna-runtime` contract readers used to compose repository evidence without duplicating runtime-owned state semantics.
 - External dependencies limited to CLI, parsing, and filesystem/process orchestration support.
 - No reverse coupling from production runtime crates into this crate.
 

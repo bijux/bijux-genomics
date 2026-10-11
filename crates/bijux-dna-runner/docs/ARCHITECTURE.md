@@ -15,6 +15,8 @@
 - `public_api/` owns the curated consumer-facing runner facade, with `stable_surface.rs` carrying the stable export contract.
 - `runner_driver/` owns the concrete `Runner` implementation used by higher layers, with artifact collection split into a dedicated companion file.
 - `backend/` owns backend kind contracts and backend-facing facade exports.
+- `backend/slurm/` owns bounded non-waiting scheduler submission, one-shot queue
+  observation, terminal accounting collection, cancellation, and fail-closed parsing.
 - `backend/stable_surface.rs` keeps stable backend exports out of the backend root module.
 - `backend/facade.rs` keeps backend re-exports out of the backend root module.
 - `step_runner/` owns step orchestration plus support modules for contracts, runtime policy, dispatch, container argument assembly, backend-specific execution, effects, records, inputs, observer calls, identity, and artifacts.
@@ -28,6 +30,10 @@
 3. `command_runner` executes the declared command and captures output.
 4. `step_runner` normalizes the outcome, records artifacts, and returns a stable result.
 5. Replay reads manifests and artifacts only; it does not spawn backend commands.
+
+Slurm execution is cycle-driven: submission returns a job handle immediately,
+later status calls query `squeue` once, and jobs absent from the queue are queried
+once through `sacct`. Missing accounting remains explicit and is not success.
 
 ## Change rules
 - Keep `lib.rs` and backend root modules declarative; route curated exports through dedicated facade modules.

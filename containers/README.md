@@ -37,45 +37,102 @@ the resulting SIF is rejected before reuse when its digest, embedded contract,
 or labels differ.
 
 Run from a clean checkout at the commit being qualified. `--hpc-root` is the
-exact root that will own the generated `containers`, corpus, and result paths.
-Build the complete retained roster with bounded frontend concurrency:
+exact study root that owns canonical images and evidence. Launch the retained
+roster through one resumable campaign owner:
 
 ```console
 cargo run -p bijux-dna -- env ensure-images \
   --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
   --all-retained \
+  --campaign \
   --jobs 4 \
-  --force-smoke \
-  --repair-mismatch \
-  --output /home/bijan/lu2024-12-24/Dardel/STUDY/evidence/image-roster.json \
   --json
 ```
 
-The command is resumable: an interrupted rerun verifies and reuses every
-identity-correct SIF before building missing tools. It emits one report row for
-all 85 retained catalog entries and exits nonzero if any row fails. For a
-narrow stage-scoped operation, select one stage or a comma-separated set of
-stages from the same domain:
-
-```console
-cargo run -p bijux-dna -- env ensure-images \
-  --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
-  --domain bam \
-  --stage bam.endogenous_content \
-  --force-smoke \
-  --json
-```
-
-Cached images are verified against the current expected contract before use.
-An invalid cached image fails closed; `--repair-mismatch` moves it into the
-governed quarantine root before rebuilding. Do not invoke the retired Python
-image campaign or admission commands to create or admit images. Reports from
-those retired build paths are historical records, not current qualification
-evidence.
+With `--all-retained --campaign`, the command validates the exact catalog roster,
+writes an immutable plan, runs bounded independent workers, persists progress
+after every tool, appends one immutable execution record per invocation, and
+freshly re-verifies any resumed image before skipping it. Canonical
+`execution.json` is published only when the complete retained roster passes.
+It stages and publishes each digest-named SIF under
+`STUDY/containers/staging/<commit>` and creates immutable build evidence under
+`STUDY/containers/evidence/image-campaigns/<commit>`. It verifies the embedded
+contract and labels before publication and never writes the legacy active image
+root. Omitting `--campaign` retains the explicit active-root transaction used by
+reviewed storage migration. An abandoned staging path, digest-prefix collision,
+dirty source tree, changed source commit, or conflicting evidence fails closed
+for reconciliation. Do not invoke retired Python image campaign or cache-oriented
+compatibility commands to create canonical image state. Reports from those paths
+are historical records, not current qualification evidence.
 
 Image construction runs on the approved frontend. Scientific tool execution
 remains a Slurm workload with separate pipeline, input, scheduler, runtime, and
 scientific evidence contracts.
+
+Derive scan evidence and its portable publication from a clean,
+commit-addressed checkout. Both outputs are immutable and the command refuses
+to replace either path:
+
+```console
+study_root="/home/bijan/lu2024-12-24/Dardel/STUDY"
+image_commit="$(git rev-parse HEAD)"
+frozen_repository="$(pwd)"
+attempt_id="${attempt_id:?set immutable attempt id}"
+inventory_root="${study_root}/containers/evidence/inventory/${image_commit}/${attempt_id}"
+mkdir -p "${inventory_root}"
+
+cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- \
+  "${study_root}" \
+  "${inventory_root}/scan.json" \
+  "${inventory_root}/image-inventory.json"
+canonical_inventory="${inventory_root}/image-inventory.json"
+```
+
+## Reconcile canonical image storage
+
+Storage reconciliation is a typed, reversible environment workflow. It accepts
+only inventory rows classified as unreferenced obsolete or interrupted,
+rechecks every regular-file size and digest, and refuses targets outside a
+same-filesystem quarantine beneath the image root. Planning and report
+publication are no-clobber operations. Apply and rollback persist progress
+after every rename and resume only when the discovered file matches the locked
+identity.
+
+Preview the exact move set before applying it:
+
+```console
+quarantine_root="${study_root}/containers/apptainer/.quarantine/${image_commit}/${attempt_id}"
+storage_plan="${inventory_root}/image-storage-plan.json"
+
+cargo run -p bijux-dna-dev -- containers run image-storage -- \
+  plan "${study_root}" "${canonical_inventory}" \
+  "${study_root}/containers/apptainer" "${quarantine_root}" \
+  "${storage_plan}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+```
+
+After review, apply and verify the plan. Generate a new inventory at the same
+source and catalog identity, then derive the portable report from that exact
+post-storage inventory:
+
+```console
+cargo run -p bijux-dna-dev -- containers run image-storage -- \
+  apply "${storage_plan}" "${study_root}/containers/apptainer" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+cargo run -p bijux-dna-dev -- containers run image-storage -- \
+  verify "${storage_plan}" "${study_root}/containers/apptainer"
+
+cargo run -p bijux-dna-dev -- containers run image-storage -- \
+  report "${storage_plan}" "${inventory_root}/after-storage.json" \
+  "${inventory_root}/image-storage.json" \
+  "${inventory_root}/image-storage.md"
+```
+
+The report passes only when every retained tool is current, every non-retained
+tool is explicitly unsupported, and no unknown, staged, or unreferenced
+obsolete image remains. A failed report is evidence of an incomplete roster,
+not permission to weaken the checks. Until the plan is accepted, rollback is
+available with the same image root and a new UTC observation timestamp.
 
 ## Verify version and help contracts
 
@@ -90,57 +147,68 @@ restoring network access:
 
 ```console
 runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/${image_commit}"
-mkdir -p "${runtime_root}"
+publication_root="${runtime_root}/publication"
 
-python3 -B containers/contracts/runtime_verification.py prepare \
-  --inventory "${canonical_inventory}" \
-  --catalog containers/contracts/catalog.toml \
-  --governance containers/contracts/sites/lunarc.yml \
-  --repository "${frozen_repository}" \
-  --output "${runtime_root}/execution.json"
-
-python3 -B containers/contracts/runtime_verification.py execute \
-  --execution "${runtime_root}/execution.json" \
-  --governance containers/contracts/sites/lunarc.yml \
-  --jobs 8 \
-  --timeout-seconds 30
+cargo run -p bijux-dna-dev -- containers run runtime-verification -- execute \
+  /home/bijan/lu2024-12-24/Dardel/STUDY \
+  "${canonical_inventory}" \
+  "$(command -v apptainer)" \
+  /home/bijan/lu2024-12-24/Dardel/STUDY/data \
+  "${runtime_root}" \
+  "${publication_root}/runtime-verification.json" \
+  "${publication_root}/runtime-verification.md" \
+  8 \
+  30
 ```
 
-The execution record retains the exact frozen repository, catalog, inventory,
-image, command, output, and log digests. A passing runtime campaign qualifies
-only the version and help dimensions. Real one-sample execution remains a
-governed Slurm run, and scientific, benchmark, security, and release claims
-remain independent. `--repository` must identify a clean checkout beneath the
-governed commit-addressed worktree root whose HEAD matches the inventory
-commit; later movement of the active checkout cannot invalidate or silently
-change this campaign.
+The environment crate resolves every image through the canonical inventory,
+re-hashes it before execution, runs independent workers without polling or
+serial queueing, and preserves one immutable manifest plus stdout/stderr pair
+per probe. Every invocation re-inspects the embedded contract and image labels;
+an existing identity artifact must equal that fresh observation and cannot
+replace it. Existing matching smoke manifests are reused after interruption;
+identity drift or changed bytes at an immutable path fail closed. The portable
+publication binds each tool to its identity evidence and smoke manifest with
+`study://` paths and exact SHA-256 identities.
 
-Raw execution JSON keeps the absolute paths needed to audit files at LUNARC;
-it is not suitable for a public repository. Publish portable companions before
-reviewing or importing tracked reports:
+A passing runtime campaign qualifies only the version and help dimensions.
+Real one-sample execution remains a governed Slurm run, and scientific,
+benchmark, security, and release claims remain independent. The command must
+run from the clean frozen repository whose HEAD matches the inventory commit;
+later movement of an active checkout cannot silently change the campaign.
+
+## Govern qualification run identities
+
+[`contracts/qualification-runs.toml`](contracts/qualification-runs.toml) is the
+stable 89-tool qualification identity registry. It preserves successful
+checked-in run IDs for retained tools, allocates missing retained identities
+strictly above the historical maximum, and records unsupported tools without a
+runnable ID. Catalog stage and input-role drift, cross-tool historical ID
+reuse, duplicate final runs, and non-passing final evidence fail closed.
+[`contracts/qualification-run-history.toml`](contracts/qualification-run-history.toml)
+preserves checksummed LUNARC identities that failed before an execution attempt
+could receive a Slurm job ID.
+
+Regenerate and review the registry together with its
+[run-ID audit](reports/qualification-run-id-audit.json):
 
 ```console
-publication_root="${runtime_root}/publication"
-mkdir -p "${publication_root}"
+cargo run -p bijux-dna-dev -- containers run qualification-registry -- \
+  generate containers/runs containers/runs/attempt-ledger.json \
+  containers/contracts/qualification-run-history.toml \
+  containers/contracts/qualification-runs.toml \
+  containers/reports/qualification-run-id-audit.json
 
-python3 -B containers/contracts/image_inventory.py publish \
-  --inventory "${canonical_inventory}" \
-  --study-root /home/bijan/lu2024-12-24/Dardel/STUDY \
-  --repository "$(pwd)" \
-  --output "${publication_root}/image-inventory.json"
-
-python3 -B containers/contracts/runtime_verification.py publish \
-  --execution "${runtime_root}/execution.json" \
-  --study-root /home/bijan/lu2024-12-24/Dardel/STUDY \
-  --repository "$(pwd)" \
-  --output "${publication_root}/runtime-verification.json"
+cargo run -p bijux-dna-dev -- containers run qualification-registry -- \
+  check containers/runs containers/runs/attempt-ledger.json \
+  containers/contracts/qualification-run-history.toml \
+  containers/contracts/qualification-runs.toml \
+  containers/reports/qualification-run-id-audit.json
 ```
 
-Publication replaces governed absolute roots with `study://` and
-`repository://` identifiers and records the SHA-256 of the untouched raw JSON.
-It fails when any absolute path lies outside those roots. Qualification accepts
-only these portable publication schemas; execution and replay continue to use
-the raw site records.
+This registry owns run identity only. It does not make historical evidence
+current, generate execution specifications, submit Slurm jobs, or qualify a
+tool; those actions require the separate specification and lifecycle gates.
 
 ## Prepare governed input data
 

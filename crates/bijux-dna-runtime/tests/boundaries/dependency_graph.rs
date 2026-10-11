@@ -19,6 +19,7 @@ fn dependency_graph_matches_runtime_boundary() {
         dependency_keys(&manifest, "dependencies"),
         keys([
             "anyhow",
+            "bijux-dna-bench-model",
             "bijux-dna-core",
             "bijux-dna-infra",
             "chrono",

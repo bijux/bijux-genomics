@@ -94,6 +94,15 @@ fn dev_tree_matches_architecture_contract() {
         "dev commands tree must stay partitioned by enduring automation surface"
     );
 
+    let campaign_cycle_entries =
+        dir_entries(&root.join("src/commands/ops/tooling/benchmark_campaign_cycle"));
+    let expected_campaign_cycle: BTreeSet<_> =
+        ["lifecycle.rs", "scheduler.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        campaign_cycle_entries, expected_campaign_cycle,
+        "benchmark campaign operation must isolate lifecycle and scheduler responsibilities"
+    );
+
     let repo_checks_entries = dir_entries(&root.join("src/commands/repo_checks"));
     let expected_repo_checks: BTreeSet<_> =
         ["artifacts.rs", "governance.rs", "ownership.rs", "workspace_contracts.rs"]
@@ -111,10 +120,15 @@ fn dev_tree_matches_architecture_contract() {
         "content_support.rs",
         "contracts.rs",
         "dispatch.rs",
+        "inventory/",
         "metadata.rs",
         "mod.rs",
+        "qualification/",
+        "qualification_registry.rs",
         "registry_catalog.rs",
         "runtime/",
+        "runtime_verification.rs",
+        "storage.rs",
         "validation/",
         "version_state.rs",
         "versioning.rs",
@@ -125,6 +139,22 @@ fn dev_tree_matches_architecture_contract() {
     assert_eq!(
         containers_entries, expected_containers,
         "container commands must stay explicit about runtime and validation ownership"
+    );
+
+    let qualification_entries = dir_entries(&root.join("src/commands/containers/qualification"));
+    let expected_qualification: BTreeSet<_> =
+        ["derivation.rs", "mod.rs", "render.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        qualification_entries, expected_qualification,
+        "container qualification must separate evidence derivation from presentation"
+    );
+
+    let inventory_entries = dir_entries(&root.join("src/commands/containers/inventory"));
+    let expected_inventory: BTreeSet<_> =
+        ["mod.rs", "render.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        inventory_entries, expected_inventory,
+        "container inventory must separate evidence workflows from presentation"
     );
 
     let container_runtime_entries = dir_entries(&root.join("src/commands/containers/runtime"));

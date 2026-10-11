@@ -27,3 +27,9 @@ Run specifications and raw evidence do not belong here. Specifications are
 published under the governed study result root, large execution evidence stays
 under `STUDY/results/benchmarks/`, and small reviewed reports belong in
 `benchmarks/reports/`.
+
+`schemas/stage-coverage.schema.json` is generated from the
+`bijux-dna-bench-model` coverage type. The crate-owned coverage workflow derives
+retained-stage tool closure from the environment catalog and preserves
+historical report identities as `stale`; only a passing report from the required
+repository commit is counted as admitted.

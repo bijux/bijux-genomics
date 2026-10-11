@@ -1,0 +1,1276 @@
+{
+  "schema_version": "bijux.container.qualification_run_id_audit.v1",
+  "catalog_sha256": "d6b352cec629b12396c93e67968a42b43f576550038cda25d16cc88db2639250",
+  "current_run_root": "repository://containers/runs",
+  "attempt_ledger": "repository://containers/runs/attempt-ledger.json",
+  "supplemental_history": "repository://containers/contracts/qualification-run-history.toml",
+  "observed_historical_run_count": 138,
+  "historical_max_run_number": 1140,
+  "retained_mapping_count": 85,
+  "unsupported_tool_count": 4,
+  "allocated_mapping_count": 17,
+  "historical_identities": [
+    {
+      "run_id": "run-1001",
+      "tool_id": "adapterremoval"
+    },
+    {
+      "run_id": "run-1002",
+      "tool_id": "adapterremoval"
+    },
+    {
+      "run_id": "run-1003",
+      "tool_id": "bwa"
+    },
+    {
+      "run_id": "run-1004",
+      "tool_id": "bwa"
+    },
+    {
+      "run_id": "run-1005",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1006",
+      "tool_id": "bbduk"
+    },
+    {
+      "run_id": "run-1007",
+      "tool_id": "bbmerge"
+    },
+    {
+      "run_id": "run-1008",
+      "tool_id": "clumpify"
+    },
+    {
+      "run_id": "run-1009",
+      "tool_id": "fqtools"
+    },
+    {
+      "run_id": "run-1010",
+      "tool_id": "fastq_scan"
+    },
+    {
+      "run_id": "run-1011",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1012",
+      "tool_id": "seqpurge"
+    },
+    {
+      "run_id": "run-1013",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1014",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1015",
+      "tool_id": "fastuniq"
+    },
+    {
+      "run_id": "run-1016",
+      "tool_id": "leehom"
+    },
+    {
+      "run_id": "run-1017",
+      "tool_id": "pear"
+    },
+    {
+      "run_id": "run-1018",
+      "tool_id": "prinseq"
+    },
+    {
+      "run_id": "run-1019",
+      "tool_id": "fqtools"
+    },
+    {
+      "run_id": "run-1020",
+      "tool_id": "fqtools"
+    },
+    {
+      "run_id": "run-1021",
+      "tool_id": "fqtools"
+    },
+    {
+      "run_id": "run-1022",
+      "tool_id": "fqtools"
+    },
+    {
+      "run_id": "run-1023",
+      "tool_id": "fastuniq"
+    },
+    {
+      "run_id": "run-1024",
+      "tool_id": "pear"
+    },
+    {
+      "run_id": "run-1025",
+      "tool_id": "musket"
+    },
+    {
+      "run_id": "run-1026",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1027",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1028",
+      "tool_id": "qualimap"
+    },
+    {
+      "run_id": "run-1029",
+      "tool_id": "qualimap"
+    },
+    {
+      "run_id": "run-1030",
+      "tool_id": "qualimap"
+    },
+    {
+      "run_id": "run-1031",
+      "tool_id": "seqfu"
+    },
+    {
+      "run_id": "run-1032",
+      "tool_id": "eagle"
+    },
+    {
+      "run_id": "run-1033",
+      "tool_id": "shapeit5"
+    },
+    {
+      "run_id": "run-1034",
+      "tool_id": "eagle"
+    },
+    {
+      "run_id": "run-1035",
+      "tool_id": "bcftools"
+    },
+    {
+      "run_id": "run-1036",
+      "tool_id": "eagle"
+    },
+    {
+      "run_id": "run-1037",
+      "tool_id": "shapeit"
+    },
+    {
+      "run_id": "run-1038",
+      "tool_id": "bcftools"
+    },
+    {
+      "run_id": "run-1039",
+      "tool_id": "ibdseq"
+    },
+    {
+      "run_id": "run-1040",
+      "tool_id": "ibdne"
+    },
+    {
+      "run_id": "run-1041",
+      "tool_id": "ibdne"
+    },
+    {
+      "run_id": "run-1042",
+      "tool_id": "ibdne"
+    },
+    {
+      "run_id": "run-1043",
+      "tool_id": "ngsbriggs"
+    },
+    {
+      "run_id": "run-1044",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1045",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1046",
+      "tool_id": "ngsbriggs"
+    },
+    {
+      "run_id": "run-1047",
+      "tool_id": "mapdamage2"
+    },
+    {
+      "run_id": "run-1048",
+      "tool_id": "mapdamage2"
+    },
+    {
+      "run_id": "run-1049",
+      "tool_id": "mapdamage2"
+    },
+    {
+      "run_id": "run-1050",
+      "tool_id": "mapdamage2"
+    },
+    {
+      "run_id": "run-1051",
+      "tool_id": "bcftools"
+    },
+    {
+      "run_id": "run-1052",
+      "tool_id": "ibdseq"
+    },
+    {
+      "run_id": "run-1053",
+      "tool_id": "ibdne"
+    },
+    {
+      "run_id": "run-1054",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1055",
+      "tool_id": "dustmasker"
+    },
+    {
+      "run_id": "run-1056",
+      "tool_id": "dada2"
+    },
+    {
+      "run_id": "run-1057",
+      "tool_id": "dada2"
+    },
+    {
+      "run_id": "run-1058",
+      "tool_id": "dada2"
+    },
+    {
+      "run_id": "run-1059",
+      "tool_id": "dada2"
+    },
+    {
+      "run_id": "run-1060",
+      "tool_id": "dada2"
+    },
+    {
+      "run_id": "run-1061",
+      "tool_id": "ibdhap"
+    },
+    {
+      "run_id": "run-1062",
+      "tool_id": "beagle"
+    },
+    {
+      "run_id": "run-1063",
+      "tool_id": "plink2"
+    },
+    {
+      "run_id": "run-1064",
+      "tool_id": "plink2"
+    },
+    {
+      "run_id": "run-1065",
+      "tool_id": "germline"
+    },
+    {
+      "run_id": "run-1066",
+      "tool_id": "plink"
+    },
+    {
+      "run_id": "run-1067",
+      "tool_id": "ibdhap"
+    },
+    {
+      "run_id": "run-1068",
+      "tool_id": "germline"
+    },
+    {
+      "run_id": "run-1069",
+      "tool_id": "germline"
+    },
+    {
+      "run_id": "run-1070",
+      "tool_id": "eigensoft"
+    },
+    {
+      "run_id": "run-1071",
+      "tool_id": "seqkit"
+    },
+    {
+      "run_id": "run-1072",
+      "tool_id": "seqkit_stats"
+    },
+    {
+      "run_id": "run-1073",
+      "tool_id": "seqtk"
+    },
+    {
+      "run_id": "run-1074",
+      "tool_id": "bedtools"
+    },
+    {
+      "run_id": "run-1075",
+      "tool_id": "fastp"
+    },
+    {
+      "run_id": "run-1076",
+      "tool_id": "fastqc"
+    },
+    {
+      "run_id": "run-1077",
+      "tool_id": "fastqvalidator"
+    },
+    {
+      "run_id": "run-1078",
+      "tool_id": "flash2"
+    },
+    {
+      "run_id": "run-1079",
+      "tool_id": "skewer"
+    },
+    {
+      "run_id": "run-1080",
+      "tool_id": "fastx_clipper"
+    },
+    {
+      "run_id": "run-1082",
+      "tool_id": "seqprep"
+    },
+    {
+      "run_id": "run-1083",
+      "tool_id": "fastx_clipper"
+    },
+    {
+      "run_id": "run-1084",
+      "tool_id": "vsearch"
+    },
+    {
+      "run_id": "run-1086",
+      "tool_id": "bamtools"
+    },
+    {
+      "run_id": "run-1087",
+      "tool_id": "bamutil"
+    },
+    {
+      "run_id": "run-1088",
+      "tool_id": "mosdepth"
+    },
+    {
+      "run_id": "run-1089",
+      "tool_id": "alientrimmer"
+    },
+    {
+      "run_id": "run-1090",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1091",
+      "tool_id": "alientrimmer"
+    },
+    {
+      "run_id": "run-1092",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1093",
+      "tool_id": "authenticct"
+    },
+    {
+      "run_id": "run-1094",
+      "tool_id": "angsd"
+    },
+    {
+      "run_id": "run-1095",
+      "tool_id": "addeam"
+    },
+    {
+      "run_id": "run-1096",
+      "tool_id": "addeam"
+    },
+    {
+      "run_id": "run-1097",
+      "tool_id": "atropos"
+    },
+    {
+      "run_id": "run-1098",
+      "tool_id": "atropos"
+    },
+    {
+      "run_id": "run-1099",
+      "tool_id": "bayeshammer"
+    },
+    {
+      "run_id": "run-1100",
+      "tool_id": "bowtie2_build"
+    },
+    {
+      "run_id": "run-1101",
+      "tool_id": "bowtie2"
+    },
+    {
+      "run_id": "run-1102",
+      "tool_id": "kraken2"
+    },
+    {
+      "run_id": "run-1103",
+      "tool_id": "bracken"
+    },
+    {
+      "run_id": "run-1104",
+      "tool_id": "bracken"
+    },
+    {
+      "run_id": "run-1105",
+      "tool_id": "centrifuge"
+    },
+    {
+      "run_id": "run-1106",
+      "tool_id": "centrifuge"
+    },
+    {
+      "run_id": "run-1107",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1108",
+      "tool_id": "contammix"
+    },
+    {
+      "run_id": "run-1109",
+      "tool_id": "cutadapt"
+    },
+    {
+      "run_id": "run-1110",
+      "tool_id": "damageprofiler"
+    },
+    {
+      "run_id": "run-1111",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1112",
+      "tool_id": "samtools"
+    },
+    {
+      "run_id": "run-1113",
+      "tool_id": "damageprofiler"
+    },
+    {
+      "run_id": "run-1114",
+      "tool_id": "damageprofiler"
+    },
+    {
+      "run_id": "run-1115",
+      "tool_id": "damageprofiler"
+    },
+    {
+      "run_id": "run-1116",
+      "tool_id": "diamond"
+    },
+    {
+      "run_id": "run-1117",
+      "tool_id": "diamond"
+    },
+    {
+      "run_id": "run-1118",
+      "tool_id": "fastq_scan"
+    },
+    {
+      "run_id": "run-1119",
+      "tool_id": "fastx_clipper"
+    },
+    {
+      "run_id": "run-1120",
+      "tool_id": "flash2"
+    },
+    {
+      "run_id": "run-1121",
+      "tool_id": "fqtools"
+    },
+    {
+      "run_id": "run-1122",
+      "tool_id": "trim_galore"
+    },
+    {
+      "run_id": "run-1123",
+      "tool_id": "trimmomatic"
+    },
+    {
+      "run_id": "run-1124",
+      "tool_id": "trim_galore"
+    },
+    {
+      "run_id": "run-1125",
+      "tool_id": "trimmomatic"
+    },
+    {
+      "run_id": "run-1126",
+      "tool_id": "multiqc"
+    },
+    {
+      "run_id": "run-1127",
+      "tool_id": "spades"
+    },
+    {
+      "run_id": "run-1128",
+      "tool_id": "multiqc"
+    },
+    {
+      "run_id": "run-1129",
+      "tool_id": "multiqc"
+    },
+    {
+      "run_id": "run-1130",
+      "tool_id": "pydamage"
+    },
+    {
+      "run_id": "run-1131",
+      "tool_id": "pydamage"
+    },
+    {
+      "run_id": "run-1132",
+      "tool_id": "pydamage"
+    },
+    {
+      "run_id": "run-1133",
+      "tool_id": "pydamage"
+    },
+    {
+      "run_id": "run-1134",
+      "tool_id": "pydamage"
+    },
+    {
+      "run_id": "run-1135",
+      "tool_id": "spades"
+    },
+    {
+      "run_id": "run-1136",
+      "tool_id": "preseq"
+    },
+    {
+      "run_id": "run-1137",
+      "tool_id": "pmdtools"
+    },
+    {
+      "run_id": "run-1138",
+      "tool_id": "picard"
+    },
+    {
+      "run_id": "run-1139",
+      "tool_id": "lighter"
+    },
+    {
+      "run_id": "run-1140",
+      "tool_id": "bcftools"
+    }
+  ],
+  "rows": [
+    {
+      "tool_id": "adapterremoval",
+      "support_disposition": "retained",
+      "run_id": "run-1002",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.merge_pairs",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "addeam",
+      "support_disposition": "retained",
+      "run_id": "run-1096",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.damage",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "alientrimmer",
+      "support_disposition": "retained",
+      "run_id": "run-1091",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.trim_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "angsd",
+      "support_disposition": "unsupported",
+      "identity_source": "unsupported",
+      "stage_id": "bam.genotyping",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "atropos",
+      "support_disposition": "retained",
+      "run_id": "run-1098",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.trim_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "authenticct",
+      "support_disposition": "retained",
+      "run_id": "run-1093",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.authenticity",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "bamtools",
+      "support_disposition": "retained",
+      "run_id": "run-1086",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.filter",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "bamutil",
+      "support_disposition": "retained",
+      "run_id": "run-1087",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.overlap_correction",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "bayeshammer",
+      "support_disposition": "retained",
+      "run_id": "run-1099",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.correct_errors",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "bbduk",
+      "support_disposition": "retained",
+      "run_id": "run-1006",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.filter_low_complexity",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "bbmerge",
+      "support_disposition": "retained",
+      "run_id": "run-1007",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.merge_pairs",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "bcftools",
+      "support_disposition": "retained",
+      "run_id": "run-1140",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.call",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "beagle",
+      "support_disposition": "retained",
+      "run_id": "run-1062",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.imputation_metrics",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "bedtools",
+      "support_disposition": "retained",
+      "run_id": "run-1074",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.coverage",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "bijux_dna",
+      "support_disposition": "retained",
+      "run_id": "run-1141",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "bowtie2",
+      "support_disposition": "retained",
+      "run_id": "run-1101",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.align",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "bowtie2_build",
+      "support_disposition": "retained",
+      "run_id": "run-1100",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.index_reference",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "bracken",
+      "support_disposition": "retained",
+      "run_id": "run-1104",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "container.runtime",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "bwa",
+      "support_disposition": "retained",
+      "run_id": "run-1004",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.align",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "centrifuge",
+      "support_disposition": "retained",
+      "run_id": "run-1106",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.screen_taxonomy",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "clumpify",
+      "support_disposition": "retained",
+      "run_id": "run-1008",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.remove_duplicates",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "contammix",
+      "support_disposition": "retained",
+      "run_id": "run-1108",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.contamination",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "cutadapt",
+      "support_disposition": "retained",
+      "run_id": "run-1109",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.normalize_primers",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "dada2",
+      "support_disposition": "retained",
+      "run_id": "run-1060",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.infer_asvs",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "damageprofiler",
+      "support_disposition": "retained",
+      "run_id": "run-1115",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.authenticity",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "diamond",
+      "support_disposition": "retained",
+      "run_id": "run-1117",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "container.runtime",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "dustmasker",
+      "support_disposition": "retained",
+      "run_id": "run-1055",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "container.runtime",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "eagle",
+      "support_disposition": "retained",
+      "run_id": "run-1036",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.phasing",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "eigensoft",
+      "support_disposition": "retained",
+      "run_id": "run-1070",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.pca",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "fastp",
+      "support_disposition": "retained",
+      "run_id": "run-1075",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.filter_low_complexity",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "fastq_scan",
+      "support_disposition": "retained",
+      "run_id": "run-1118",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "fastq_screen",
+      "support_disposition": "retained",
+      "run_id": "run-1142",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "container.runtime",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "fastqc",
+      "support_disposition": "retained",
+      "run_id": "run-1076",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.detect_adapters",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "fastqvalidator",
+      "support_disposition": "retained",
+      "run_id": "run-1077",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.validate_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "fastuniq",
+      "support_disposition": "unsupported",
+      "identity_source": "unsupported",
+      "stage_id": "fastq.remove_duplicates",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "fastx_clipper",
+      "support_disposition": "retained",
+      "run_id": "run-1119",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.trim_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "flash2",
+      "support_disposition": "retained",
+      "run_id": "run-1120",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.merge_pairs",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "fqtools",
+      "support_disposition": "retained",
+      "run_id": "run-1121",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.validate_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "gatk",
+      "support_disposition": "retained",
+      "run_id": "run-1143",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "bam.recalibration",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "germline",
+      "support_disposition": "retained",
+      "run_id": "run-1069",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.ibd",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "glimpse",
+      "support_disposition": "retained",
+      "run_id": "run-1144",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "vcf.imputation_metrics",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "ibdhap",
+      "support_disposition": "retained",
+      "run_id": "run-1067",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.ibd",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "ibdne",
+      "support_disposition": "retained",
+      "run_id": "run-1053",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.demography",
+      "input_role": "hap_ibd_segments"
+    },
+    {
+      "tool_id": "ibdseq",
+      "support_disposition": "retained",
+      "run_id": "run-1052",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.ibd",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "impute5",
+      "support_disposition": "unsupported",
+      "identity_source": "unsupported",
+      "stage_id": "vcf.imputation_metrics",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "kaiju",
+      "support_disposition": "retained",
+      "run_id": "run-1145",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "fastq.screen_taxonomy",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "king",
+      "support_disposition": "retained",
+      "run_id": "run-1146",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "bam.kinship",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "kraken2",
+      "support_disposition": "retained",
+      "run_id": "run-1102",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.screen_taxonomy",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "krakenuniq",
+      "support_disposition": "retained",
+      "run_id": "run-1147",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "fastq.screen_taxonomy",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "leehom",
+      "support_disposition": "retained",
+      "run_id": "run-1016",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.merge_pairs",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "lighter",
+      "support_disposition": "retained",
+      "run_id": "run-1139",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.correct_errors",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "mapdamage2",
+      "support_disposition": "retained",
+      "run_id": "run-1050",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.damage",
+      "input_role": "bam_with_reference"
+    },
+    {
+      "tool_id": "metaphlan",
+      "support_disposition": "retained",
+      "run_id": "run-1148",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "container.runtime",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "minimac4",
+      "support_disposition": "retained",
+      "run_id": "run-1149",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "vcf.imputation_metrics",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "mosdepth",
+      "support_disposition": "retained",
+      "run_id": "run-1088",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.coverage",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "multiqc",
+      "support_disposition": "retained",
+      "run_id": "run-1129",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.qc_pre",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "musket",
+      "support_disposition": "retained",
+      "run_id": "run-1025",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.correct_errors",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "ngsbriggs",
+      "support_disposition": "unsupported",
+      "identity_source": "unsupported",
+      "stage_id": "bam.damage",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "pear",
+      "support_disposition": "retained",
+      "run_id": "run-1024",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.merge_pairs",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "picard",
+      "support_disposition": "retained",
+      "run_id": "run-1138",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.duplication_metrics",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "plink",
+      "support_disposition": "retained",
+      "run_id": "run-1066",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.admixture",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "plink2",
+      "support_disposition": "retained",
+      "run_id": "run-1064",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.admixture",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "pmdtools",
+      "support_disposition": "retained",
+      "run_id": "run-1137",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.authenticity",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "preseq",
+      "support_disposition": "retained",
+      "run_id": "run-1136",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.complexity",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "prinseq",
+      "support_disposition": "retained",
+      "run_id": "run-1018",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.filter_low_complexity",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "pydamage",
+      "support_disposition": "retained",
+      "run_id": "run-1134",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.damage",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "qualimap",
+      "support_disposition": "retained",
+      "run_id": "run-1030",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "container.runtime",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "rcorrector",
+      "support_disposition": "retained",
+      "run_id": "run-1150",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "fastq.correct_errors",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "rxy",
+      "support_disposition": "retained",
+      "run_id": "run-1151",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "bam.sex",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "samtools",
+      "support_disposition": "retained",
+      "run_id": "run-1112",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "bam.coverage",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "schmutzi",
+      "support_disposition": "retained",
+      "run_id": "run-1152",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "bam.contamination",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "seqfu",
+      "support_disposition": "retained",
+      "run_id": "run-1031",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.profile_read_lengths",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "seqkit",
+      "support_disposition": "retained",
+      "run_id": "run-1071",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.filter_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "seqkit_stats",
+      "support_disposition": "retained",
+      "run_id": "run-1072",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.profile_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "seqprep",
+      "support_disposition": "retained",
+      "run_id": "run-1082",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.merge_pairs",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "seqpurge",
+      "support_disposition": "retained",
+      "run_id": "run-1012",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "container.runtime",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "seqtk",
+      "support_disposition": "retained",
+      "run_id": "run-1073",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.validate_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "shapeit",
+      "support_disposition": "retained",
+      "run_id": "run-1037",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.phasing",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "shapeit5",
+      "support_disposition": "retained",
+      "run_id": "run-1033",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "vcf.phasing",
+      "input_role": "vcf"
+    },
+    {
+      "tool_id": "skewer",
+      "support_disposition": "retained",
+      "run_id": "run-1079",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.trim_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "sortmerna",
+      "support_disposition": "retained",
+      "run_id": "run-1153",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "fastq.deplete_rrna",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "spades",
+      "support_disposition": "retained",
+      "run_id": "run-1135",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "container.runtime",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "star",
+      "support_disposition": "retained",
+      "run_id": "run-1154",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "fastq.index_reference",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "trim_galore",
+      "support_disposition": "retained",
+      "run_id": "run-1124",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.trim_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "trimmomatic",
+      "support_disposition": "retained",
+      "run_id": "run-1125",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.trim_reads",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "umi_tools",
+      "support_disposition": "retained",
+      "run_id": "run-1155",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "fastq.extract_umis",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "verifybamid2",
+      "support_disposition": "retained",
+      "run_id": "run-1156",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "bam.contamination",
+      "input_role": "bam"
+    },
+    {
+      "tool_id": "vsearch",
+      "support_disposition": "retained",
+      "run_id": "run-1084",
+      "identity_source": "checked_in_final_run",
+      "stage_id": "fastq.cluster_otus",
+      "input_role": "fastq"
+    },
+    {
+      "tool_id": "yleaf",
+      "support_disposition": "retained",
+      "run_id": "run-1157",
+      "identity_source": "allocated_after_historical_max",
+      "stage_id": "bam.haplogroups",
+      "input_role": "bam"
+    }
+  ]
+}

@@ -39,27 +39,16 @@ fn source_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
-        dir_entries(&root.join("src/evidence")),
-        btree_set(&[
-            "load.rs",
-            "mod.rs",
-            "model.rs",
-            "schema.rs",
-            "tool_contract/",
-            "validation.rs",
-        ]),
-        "evidence tree must separate models, admission, validation, and schemas"
-    );
-
-    assert_eq!(
         dir_entries(&root.join("src/evidence/tool_contract")),
         btree_set(&[
             "catalog.rs",
+            "catalog_validation.rs",
             "inspection.rs",
             "labels.rs",
             "mod.rs",
             "model.rs",
             "preparation.rs",
+            "recipe_identity.rs",
             "schema.rs",
             "smoke.rs",
             "validation.rs",
@@ -78,10 +67,12 @@ fn source_tree_matches_architecture_contract() {
         btree_set(&[
             "apptainer.rs",
             "builder.rs",
+            "campaign.rs",
             "defaults.rs",
             "entrypoints.rs",
             "mod.rs",
             "models.rs",
+            "publication.rs",
             "stable_surface.rs",
             "version_parser.rs",
         ]),
@@ -137,6 +128,44 @@ fn source_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/public_api")),
         btree_set(&["mod.rs", "stable_surface.rs"]),
         "public api tree must keep the stable surface explicit"
+    );
+}
+
+#[test]
+fn inventory_source_tree_matches_ownership_contract() {
+    let root = crate_root("bijux-dna-environment");
+    assert_eq!(
+        dir_entries(&root.join("src/evidence")),
+        btree_set(&[
+            "chain.rs",
+            "image_storage/",
+            "inventory/",
+            "load.rs",
+            "mod.rs",
+            "model.rs",
+            "qualification_registry/",
+            "runtime_verification/",
+            "schema.rs",
+            "selection.rs",
+            "tool_contract/",
+            "validation.rs",
+        ]),
+        "evidence tree must separate models, admission, validation, and schemas"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/evidence/qualification_registry")),
+        btree_set(&["mod.rs", "model.rs", "schema.rs", "workflow.rs"]),
+        "qualification registry must separate persisted models, derivation, and schemas"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/evidence/image_storage")),
+        btree_set(&["mod.rs", "model.rs", "report.rs", "schema.rs", "workflow.rs"]),
+        "image storage must separate persisted models, lifecycle, report, and schemas"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/evidence/inventory")),
+        btree_set(&["derivation.rs", "mod.rs", "source.rs"]),
+        "inventory derivation must separate execution-site inputs from admission decisions"
     );
 }
 

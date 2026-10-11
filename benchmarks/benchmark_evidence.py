@@ -12,7 +12,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from benchmark_registry import load_toml, threads_by_tool, validate_registry
+try:
+    import tomllib
+except ModuleNotFoundError:
+    import tomli as tomllib
 
 REPORT_SCHEMA = "bijux.benchmark.stage_report.v1"
 EVIDENCE_SCHEMA = "bijux.container.evidence.v2"
@@ -42,6 +45,41 @@ RESOURCE_UNITS = {
 
 class BenchmarkEvidenceError(RuntimeError):
     """Raised when benchmark evidence is incomplete or internally inconsistent."""
+
+
+def load_campaign(registry_path: Path, run_id: str) -> dict[str, Any]:
+    """Select one declarative campaign after the Rust planning gate validates the registry."""
+    try:
+        registry = tomllib.loads(registry_path.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError) as exc:
+        raise BenchmarkEvidenceError(
+            f"cannot read benchmark registry {registry_path}: {exc}"
+        ) from exc
+    campaigns = registry.get("campaigns")
+    if not isinstance(campaigns, list):
+        raise BenchmarkEvidenceError("benchmark registry campaigns are unavailable")
+    matches = [
+        campaign
+        for campaign in campaigns
+        if isinstance(campaign, dict) and campaign.get("run_id") == run_id
+    ]
+    if len(matches) != 1:
+        raise BenchmarkEvidenceError(f"benchmark registry does not define {run_id}")
+    return matches[0]
+
+
+def campaign_threads(campaign: dict[str, Any]) -> dict[str, int]:
+    """Project the already-validated per-tool thread declaration for worker execution."""
+    tools = campaign.get("tool_ids")
+    if not isinstance(tools, list):
+        raise BenchmarkEvidenceError("benchmark campaign tool_ids are unavailable")
+    per_tool = campaign.get("threads_by_tool")
+    if isinstance(per_tool, dict) and per_tool:
+        return {str(tool): int(per_tool[str(tool)]) for tool in tools}
+    threads = campaign.get("threads")
+    if not isinstance(threads, int) or isinstance(threads, bool):
+        raise BenchmarkEvidenceError("benchmark campaign threads are unavailable")
+    return {str(tool): threads for tool in tools}
 
 
 def sha256_file(path: Path) -> str:
@@ -439,7 +477,7 @@ def tool_report(
         "warmup_repetitions": int(campaign["warmup_repetitions"]),
         "measured_repetitions": measured,
         "cache_policy": campaign["cache_policy"],
-        "threads": threads_by_tool(campaign)[tool],
+        "threads": campaign_threads(campaign)[tool],
     }
     for key, expected in expected_context.items():
         if context.get(key) != expected:
@@ -719,11 +757,7 @@ def create_report(
     run_id: str,
     stage_result_root: Path,
 ) -> dict[str, Any]:
-    campaigns = validate_registry(load_toml(registry_path), load_toml(catalog_path))
-    matches = [campaign for campaign in campaigns if campaign["run_id"] == run_id]
-    if len(matches) != 1:
-        raise BenchmarkEvidenceError(f"benchmark registry does not define {run_id}")
-    campaign = matches[0]
+    campaign = load_campaign(registry_path, run_id)
     declared = set(campaign["tool_ids"])
     observed = {path.name for path in stage_result_root.iterdir() if path.is_dir()}
     if observed != declared:
@@ -756,7 +790,7 @@ def create_report(
             "runtime": campaign["runtime"],
             "scheduler": campaign["scheduler"],
             "container_only": campaign["container_only"],
-            "threads_by_tool": threads_by_tool(campaign),
+            "threads_by_tool": campaign_threads(campaign),
             "cache_policy": campaign["cache_policy"],
             "warmup_repetitions": campaign["warmup_repetitions"],
             "measured_repetitions": campaign["measured_repetitions"],

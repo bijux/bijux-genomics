@@ -1,12 +1,10 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: benchmarks/benchmark_evidence.py -->
-# fastq.profile_read_lengths comparative
+<!-- source: bijux-dna-bench::workflow::fastq_profile_read_lengths::report -->
+# fastq.profile_read_lengths comparative benchmark
 
 **Verdict: passed.** Exact row agreement with an independent FASTQ decoder establishes record coverage and read-length correctness for this cohort. It does not assess read transformation, biological representativeness, or every valid FASTQ encoding.
 
-This is comparative evidence governed by the declared scientific profile.
-
-## Scientific scope
+## Scientific Scope
 
 Do both exact read-length backends recover every independently decoded per-record length across the complete real human short-read diversity cohort, and what resources does each implementation consume?
 
@@ -14,89 +12,78 @@ Comparison scope: thirty FASTQ files from twenty ancient and modern human runs s
 
 Accuracy claim: `exact_per_record_length_concordance_with_independent_fastq_decode`.
 
-## Design
+## Reproducible Design
 
 - Campaign: `run-2042`
-- Evidence tier: `comparative`
-- Scientific profile: `fastq-observational-qc`
+- Repository commit: `520efb95cf753b65fca168f0610b1b4138932031`
+- Container catalog: `d6b352cec629b12396c93e67968a42b43f576550038cda25d16cc88db2639250`
 - Tool closure: `seqfu`, `seqkit`
-- Execution: apptainer under slurm, container-only
-- Threads by tool: `seqfu`=1, `seqkit`=4
-- Cache policy: warm
 - Repetitions: 1 warmup and 3 measured
 - Corpus: `human-short-read-diversity`
-- Corpus portfolio: `human-short-read-diversity`
-- Reference: none
-- Databases: none
-- Repeated result artifact: `read-lengths.json`
+- Result contract: `read-lengths.json`
 
-## Replay and comparison interface
+## Comparison Closure
 
-- Repository commit: `7c604e7c596ba446911de3a167840e97c8acbffc`
-- Immutable input closure: `491ffd8e8df3857616d1d401d1a4ab729a58d5a9e4c18a0951f308d1bfb966ad`
-- Effective parameter closure: `31cd719ef9b42cab2eb2fb36183ccc1cc18bc3d0ca9617e8465d29dd4132dd3d`
-- Accepted inputs: `bijux.fastq.artifact.single_end.v1`, `bijux.fastq.artifact.paired_end.v1`
-- Normalized output: `bijux.benchmark.fastq.profile_read_lengths.bundle.v1`
-- Output schema: `benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json`
-- Tool-independent consumer: `benchmark.fastq.profile_read_lengths.compare`
-- Substitution scope: normalized benchmark comparison only; this run does not claim operational downstream pipeline substitution
+- Immutable inputs: `9da50b9e49370be6d7ffe55160dfe964bf53dd31bcc1cc22d1253ed17fd6c0c9`
+- Effective parameters: `b04b7fdaa89b9657fb007d10a26101351bd33d1601e6915295a13d806183d6ad`
+- Repository source: `520efb95cf753b65fca168f0610b1b4138932031`
 
 ## Performance
 
-| Tool | Wall mean (range), s | CPU mean, s | CPU use, % | Peak RSS mean (range), MiB | Throughput, MiB/s | Filesystem input/output operations | Output mean, bytes |
+| Tool | Slurm job | Wall mean (range), s | CPU mean, s | Peak RSS mean, MiB | Throughput, MiB/s | Reads/s | Output mean, bytes |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `seqfu` | 597.314 (593.998–599.259) | 593.035 | 99.3 | 44.6 (43.6–46.2) | 5.81 | 0.0/0.0 | 1592964957.0 |
-| `seqkit` | 118.635 (118.320–118.966) | 151.397 | 127.6 | 56.4 (56.3–56.7) | 29.25 | 56.0/0.0 | 1592964958.0 |
+| `seqfu` | `3461973` | 582.330 (577.040-587.270) | 576.540 | 45.6 | 5.96 | 129101.9 | 1592964957.0 |
+| `seqkit` | `3461974` | 119.797 (119.320-120.090) | 152.087 | 56.4 | 28.96 | 627535.0 | 1592964958.0 |
 
-## Scientific observations
+## Scientific Observations
 
 ### seqfu
 
 | Metric | Measured repetitions |
 |---|---|
-| `file_count` | 30, 30, 30 |
-| `read_count` | 75175997, 75175997, 75175997 |
-| `minimum_read_length` | 15, 15, 15 |
-| `mean_read_length` | 60.9798697581623, 60.9798697581623, 60.9798697581623 |
-| `median_read_length` | 36.0, 36.0, 36.0 |
-| `maximum_read_length` | 301, 301, 301 |
-| `distinct_read_lengths` | 287, 287, 287 |
-| `histogram_sha256` | 054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5, 054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5, 054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5 |
+| `distinct_read_lengths` | 287.000000000000, 287.000000000000, 287.000000000000 |
+| `file_count` | 30.000000000000, 30.000000000000, 30.000000000000 |
+| `histogram_sha256` | `054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5`, `054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5`, `054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5` |
+| `maximum_read_length` | 301.000000000000, 301.000000000000, 301.000000000000 |
+| `mean_read_length` | 60.979869758162, 60.979869758162, 60.979869758162 |
+| `median_read_length` | 36.000000000000, 36.000000000000, 36.000000000000 |
+| `minimum_read_length` | 15.000000000000, 15.000000000000, 15.000000000000 |
+| `read_count` | 75175997.000000000000, 75175997.000000000000, 75175997.000000000000 |
 
-The `read-lengths.json` result was stable across repetitions by canonical bundle content with repetition-local histogram paths normalized: `3bd8e09540754442bd0ac0cb8f8c79c54e66da519e2cc1c9fbd85d20ca24ad8c`.
+The `read-lengths.json` artifact was identical across measured repetitions by canonical bundle content with repetition-local histogram paths normalized: `c6e4771f8239b8f77a46fd137a34ccf03646ce4b99ce5722a5f82d2ea5e9bc08`.
 
-Evidence: Slurm job `3460317`, repository `7c604e7c596ba446911de3a167840e97c8acbffc`, image `ba6d5e5acd51137d94fee735ae5a5ffcde3f1841d675ef5bc9c131bb673b47c4`.
+Evidence: Slurm job `3461973`, node `cn162`, image `ba6d5e5acd51137d94fee735ae5a5ffcde3f1841d675ef5bc9c131bb673b47c4`, acceptance `e4bcb2f7b89b008f0b5ca9de2bcbeb35d4357bf6b40b3ca7f59564e334f7bee3`.
 
 ### seqkit
 
 | Metric | Measured repetitions |
 |---|---|
-| `file_count` | 30, 30, 30 |
-| `read_count` | 75175997, 75175997, 75175997 |
-| `minimum_read_length` | 15, 15, 15 |
-| `mean_read_length` | 60.9798697581623, 60.9798697581623, 60.9798697581623 |
-| `median_read_length` | 36.0, 36.0, 36.0 |
-| `maximum_read_length` | 301, 301, 301 |
-| `distinct_read_lengths` | 287, 287, 287 |
-| `histogram_sha256` | 054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5, 054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5, 054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5 |
+| `distinct_read_lengths` | 287.000000000000, 287.000000000000, 287.000000000000 |
+| `file_count` | 30.000000000000, 30.000000000000, 30.000000000000 |
+| `histogram_sha256` | `054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5`, `054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5`, `054520be2dcdbeb3f6792060198baf86960c8c6f158d9f80443c956af94a8ec5` |
+| `maximum_read_length` | 301.000000000000, 301.000000000000, 301.000000000000 |
+| `mean_read_length` | 60.979869758162, 60.979869758162, 60.979869758162 |
+| `median_read_length` | 36.000000000000, 36.000000000000, 36.000000000000 |
+| `minimum_read_length` | 15.000000000000, 15.000000000000, 15.000000000000 |
+| `read_count` | 75175997.000000000000, 75175997.000000000000, 75175997.000000000000 |
 
-The `read-lengths.json` result was stable across repetitions by canonical bundle content with repetition-local histogram paths normalized: `57d23e6d37afd82d77792258b7c4403a849385ae8b1cda1fae4abb49e6f6ab91`.
+The `read-lengths.json` artifact was identical across measured repetitions by canonical bundle content with repetition-local histogram paths normalized: `312d1fc4fe44184427fa83057dd7dc362db6db822e618446f93eace3f284f9b7`.
 
-Evidence: Slurm job `3460318`, repository `7c604e7c596ba446911de3a167840e97c8acbffc`, image `4646ad26f8152674cda466d229ba0a5a495b9176ee4f3fc77f4d50cdf7e9d3d5`.
+Evidence: Slurm job `3461974`, node `cn162`, image `4646ad26f8152674cda466d229ba0a5a495b9176ee4f3fc77f4d50cdf7e9d3d5`, acceptance `be1b7289a1d478c04f59da755dc56f83b294e8d947dc9adf13d7f241d6649f32`.
 
-## Cross-tool agreement
+## Cross-tool Agreement
 
 Agreement status: **within tolerance**.
 
 | Metric | Tool means | Observed range | Allowed range | Status |
 |---|---|---:|---:|---|
-| `file_count` | `seqfu`=30, `seqkit`=30 | 0 | 0 | within |
-| `read_count` | `seqfu`=75175997, `seqkit`=75175997 | 0 | 0 | within |
-| `minimum_read_length` | `seqfu`=15, `seqkit`=15 | 0 | 0 | within |
-| `mean_read_length` | `seqfu`=60.9798697582, `seqkit`=60.9798697582 | 0 | 0 | within |
-| `median_read_length` | `seqfu`=36, `seqkit`=36 | 0 | 0 | within |
-| `maximum_read_length` | `seqfu`=301, `seqkit`=301 | 0 | 0 | within |
-| `distinct_read_lengths` | `seqfu`=287, `seqkit`=287 | 0 | 0 | within |
+| `file_count` | `seqfu`=30.000000000000, `seqkit`=30.000000000000 | 0.000000000000 | 0.000000000000 | within |
+| `read_count` | `seqfu`=75175997.000000000000, `seqkit`=75175997.000000000000 | 0.000000000000 | 0.000000000000 | within |
+| `minimum_read_length` | `seqfu`=15.000000000000, `seqkit`=15.000000000000 | 0.000000000000 | 0.000000000000 | within |
+| `mean_read_length` | `seqfu`=60.979869758162, `seqkit`=60.979869758162 | 0.000000000000 | 0.000000000000 | within |
+| `median_read_length` | `seqfu`=36.000000000000, `seqkit`=36.000000000000 | 0.000000000000 | 0.000000000000 | within |
+| `maximum_read_length` | `seqfu`=301.000000000000, `seqkit`=301.000000000000 | 0.000000000000 | 0.000000000000 | within |
+| `distinct_read_lengths` | `seqfu`=287.000000000000, `seqkit`=287.000000000000 | 0.000000000000 | 0.000000000000 | within |
 
 ## Limitations
 

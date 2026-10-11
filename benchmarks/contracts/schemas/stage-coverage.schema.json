@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkStageCoverage",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.stage_coverage.v1"
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageCoverageRow"
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkStageCoverageSummary"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "summary",
+    "stages"
+  ],
+  "$defs": {
+    "BenchmarkStageCoverageRow": {
+      "type": "object",
+      "properties": {
+        "campaign_run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "definition_status": {
+          "$ref": "#/$defs/BenchmarkStageDefinitionStatus"
+        },
+        "execution_status": {
+          "$ref": "#/$defs/BenchmarkStageExecutionStatus"
+        },
+        "report_repository_commit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "report_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "retained_tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "stage_id",
+        "retained_tools",
+        "definition_status",
+        "execution_status"
+      ]
+    },
+    "BenchmarkStageCoverageSummary": {
+      "type": "object",
+      "properties": {
+        "admitted_stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "comparative_stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "defined_stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "failed_stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "missing_stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "qualification_stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "retained_stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "stale_stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "retained_stage_count",
+        "defined_stage_count",
+        "qualification_stage_count",
+        "comparative_stage_count",
+        "admitted_stage_count",
+        "stale_stage_count",
+        "failed_stage_count",
+        "missing_stage_count"
+      ]
+    },
+    "BenchmarkStageDefinitionStatus": {
+      "type": "string",
+      "enum": [
+        "missing",
+        "qualification",
+        "comparative"
+      ]
+    },
+    "BenchmarkStageExecutionStatus": {
+      "type": "string",
+      "enum": [
+        "not_defined",
+        "not_admitted",
+        "stale",
+        "failed",
+        "admitted"
+      ]
+    }
+  }
+}

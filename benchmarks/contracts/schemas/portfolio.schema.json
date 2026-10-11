@@ -1,0 +1,233 @@
+{
+  "$defs": {
+    "BenchmarkCorpusContract": {
+      "additionalProperties": false,
+      "properties": {
+        "catalog_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "data_types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "evidence_scope": {
+          "$ref": "#/$defs/BenchmarkEvidenceScope"
+        },
+        "id": {
+          "type": "string"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "minimum_sample_count": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "real_data": {
+          "type": "boolean"
+        },
+        "roles": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sample_count": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scientific_rationale": {
+          "type": "string"
+        },
+        "source_specs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/BenchmarkCorpusStatus"
+        },
+        "truth_strategy": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "evidence_scope",
+        "real_data",
+        "sample_count",
+        "data_types",
+        "roles",
+        "truth_strategy",
+        "scientific_rationale",
+        "limitations"
+      ],
+      "type": "object"
+    },
+    "BenchmarkCorpusStatus": {
+      "enum": [
+        "missing",
+        "source_defined",
+        "admitted"
+      ],
+      "type": "string"
+    },
+    "BenchmarkEvidenceScope": {
+      "enum": [
+        "qualification",
+        "comparative"
+      ],
+      "type": "string"
+    },
+    "BenchmarkMeasurementContract": {
+      "additionalProperties": false,
+      "properties": {
+        "measured_repetitions": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "required_quality_dimensions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "required_resource_metrics": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "warmup_repetitions": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "warmup_repetitions",
+        "measured_repetitions",
+        "required_resource_metrics",
+        "required_quality_dimensions"
+      ],
+      "type": "object"
+    },
+    "BenchmarkProfileAssignment": {
+      "additionalProperties": false,
+      "properties": {
+        "profile_id": {
+          "type": "string"
+        },
+        "stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "profile_id",
+        "stage_ids"
+      ],
+      "type": "object"
+    },
+    "BenchmarkScientificProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "accuracy_strategy": {
+          "type": "string"
+        },
+        "downstream_probe": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "interchangeability": {
+          "type": "string"
+        },
+        "minimum_real_samples": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "required_corpus_roles": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "required_corpus_roles",
+        "minimum_real_samples",
+        "accuracy_strategy",
+        "interchangeability",
+        "downstream_probe"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assignments": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkProfileAssignment"
+      },
+      "type": "array"
+    },
+    "corpora": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkCorpusContract"
+      },
+      "type": "array"
+    },
+    "measurement": {
+      "$ref": "#/$defs/BenchmarkMeasurementContract"
+    },
+    "profiles": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkScientificProfile"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.portfolio.v1",
+      "type": "string"
+    },
+    "stage_runs": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "measurement",
+    "stage_runs",
+    "corpora",
+    "profiles",
+    "assignments"
+  ],
+  "title": "BenchmarkPortfolio",
+  "type": "object"
+}

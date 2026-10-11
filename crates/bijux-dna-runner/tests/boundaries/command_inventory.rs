@@ -34,6 +34,10 @@ fn command_inventory_documents_runner_backend_commands() {
             "execute_observer_command",
             "run_command",
             "run_command_with_context",
+            "sbatch",
+            "squeue",
+            "sacct",
+            "scancel",
             "replay_run",
         ]),
         "COMMANDS.md must document each command family this crate can manage"
@@ -64,6 +68,10 @@ fn documented_commands(content: &str) -> BTreeSet<String> {
                     | "execute_observer_command"
                     | "run_command"
                     | "run_command_with_context"
+                    | "sbatch"
+                    | "squeue"
+                    | "sacct"
+                    | "scancel"
                     | "replay_run"
             )
         })
