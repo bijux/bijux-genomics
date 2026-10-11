@@ -1,7 +1,7 @@
 use super::bundle::{build_domain_registry_bundle, write_domain_registry_bundle};
 use super::loading::{
     build_images_toml, build_stages_toml, build_tool_registries_toml, collect_domain_data,
-    collect_vcf_image_versions, load_container_catalog,
+    collect_vcf_image_versions, load_container_catalog, ToolRegistryInputs,
 };
 use super::vcf_emit::write_vcf_generated_views;
 use super::{
@@ -62,18 +62,25 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
 
     let tool_registry_path = ci_registry_dir.join("tool_registry.toml");
     let experimental_registry_path = ci_registry_dir.join("tool_registry_experimental.toml");
+    let container_experimental_registry_path =
+        ci_registry_dir.join("tool_registry_container_experimental.toml");
     let required_tools_path = ci_tools_dir.join("required_tools.toml");
-    let registries = build_tool_registries_toml(
-        &tools,
-        &stage_to_tools,
-        &stage_planned,
-        &stage_defaults,
-        &stage_default_rationale,
-        &container_catalog,
-        &source_commit,
-    )?;
+    let vcf_image_versions = collect_vcf_image_versions(&options.domain_dir)?;
+    let vcf_tool_ids = vcf_image_versions.keys().cloned().collect();
+    let registries = build_tool_registries_toml(&ToolRegistryInputs {
+        tools: &tools,
+        stage_to_tools: &stage_to_tools,
+        stage_planned: &stage_planned,
+        stage_defaults: &stage_defaults,
+        stage_default_rationale: &stage_default_rationale,
+        container_catalog: &container_catalog,
+        vcf_tool_ids: &vcf_tool_ids,
+        source_commit: &source_commit,
+    })?;
     let production_registry = normalize_generated_text(&registries.production_registry);
     let experimental_registry = normalize_generated_text(&registries.experimental_registry);
+    let container_experimental_registry =
+        normalize_generated_text(&registries.container_experimental_registry);
     let required_tools = normalize_generated_text(&registries.required_tools);
     ensure_no_placeholders_in_active_config("tool_registry.toml", &production_registry)?;
     ensure_no_placeholders_in_active_config(
@@ -85,11 +92,12 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         .with_context(|| format!("write {}", tool_registry_path.display()))?;
     write_string(&experimental_registry_path, &experimental_registry)
         .with_context(|| format!("write {}", experimental_registry_path.display()))?;
+    write_string(&container_experimental_registry_path, &container_experimental_registry)
+        .with_context(|| format!("write {}", container_experimental_registry_path.display()))?;
     write_string(&required_tools_path, &required_tools)
         .with_context(|| format!("write {}", required_tools_path.display()))?;
 
     let images_path = ci_tools_dir.join("images.toml");
-    let vcf_image_versions = collect_vcf_image_versions(&options.domain_dir)?;
     let images_toml = normalize_generated_text(&build_images_toml(
         &tools,
         &vcf_image_versions,
@@ -118,6 +126,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &options.domain_dir,
         &ci_registry_dir,
         &ci_stages_dir,
+        &ci_tools_dir,
         &container_catalog,
         &source_commit,
     )?;
@@ -126,6 +135,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
 
     println!("generated: {}", tool_registry_path.display());
     println!("generated: {}", experimental_registry_path.display());
+    println!("generated: {}", container_experimental_registry_path.display());
     println!("generated: {}", required_tools_path.display());
     println!("generated: {}", images_path.display());
     println!("generated: {}", stages_path.display());

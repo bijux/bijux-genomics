@@ -3,9 +3,10 @@ mod suite_validation_harness {
 }
 
 use bijux_dna_bench_model::{
-    AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageEdge, BenchmarkStageSpec,
+    AnalysisRequirements, BenchmarkAttemptRecord, BenchmarkCycleStatus, BenchmarkJobReference,
+    BenchmarkLifecycleStatus, BenchmarkParamBinding, BenchmarkStageEdge, BenchmarkStageSpec,
     BenchmarkSuiteSpec, DatasetSpec, DiversityRequirements, ReplicatePolicy,
-    StratificationRequirement,
+    StratificationRequirement, BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
 };
 use bijux_dna_core::id_catalog;
 use suite_validation_harness::{
@@ -434,7 +435,7 @@ fn suite_validation_allows_parallel_artifact_edges_between_same_nodes() {
             BenchmarkStageSpec {
                 stage: fastq_stage("profile_read_lengths"),
                 stage_instance_id: Some(fastq_instance("profile_read_lengths", "lengths")),
-                tools: vec!["seqkit_stats".to_string()],
+                tools: vec!["seqkit".to_string()],
                 params: Vec::new(),
                 param_bindings: Vec::new(),
                 upstream_stage_instance_ids: Vec::new(),
@@ -701,4 +702,48 @@ fn suite_validation_rejects_blank_edge_ports() {
     }];
     let error = suite_error(&suite);
     assert!(error.contains("blank from_output_id"));
+}
+
+#[test]
+fn benchmark_attempt_record_uses_governed_schema_and_status() {
+    let mut attempt = BenchmarkAttemptRecord::v1(
+        "lunarc-fastq".to_string(),
+        "run-2042".to_string(),
+        "attempt-01".to_string(),
+        id_catalog::FASTQ_PROFILE_READ_LENGTHS.to_string(),
+        "seqkit_stats".to_string(),
+        BenchmarkLifecycleStatus::Ready,
+    );
+    attempt.jobs.push(BenchmarkJobReference {
+        scheduler: "slurm".to_string(),
+        job_id: "4123456".to_string(),
+    });
+    attempt
+        .evidence_paths
+        .push("benchmarks/reports/run-2042-fastq-profile-read-lengths.json".to_string());
+
+    assert_eq!(attempt.schema_version, BENCHMARK_ATTEMPT_SCHEMA_V1);
+    assert_eq!(attempt.status, BenchmarkLifecycleStatus::Ready);
+    assert_eq!(attempt.jobs.len(), 1);
+}
+
+#[test]
+fn benchmark_cycle_status_uses_governed_schema() {
+    let attempt = BenchmarkAttemptRecord::v1(
+        "lunarc-fastq".to_string(),
+        "run-2043".to_string(),
+        "attempt-02".to_string(),
+        id_catalog::FASTQ_PROFILE_READ_LENGTHS.to_string(),
+        "seqfu".to_string(),
+        BenchmarkLifecycleStatus::Submitted,
+    );
+    let cycle = BenchmarkCycleStatus::v1(
+        "lunarc-fastq".to_string(),
+        "2026-08-04T00:00:00Z".to_string(),
+        vec![attempt],
+    );
+
+    assert_eq!(cycle.schema_version, BENCHMARK_CYCLE_STATUS_SCHEMA_V1);
+    assert_eq!(cycle.attempts.len(), 1);
+    assert_eq!(cycle.attempts[0].status, BenchmarkLifecycleStatus::Submitted);
 }

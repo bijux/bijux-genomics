@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bijux.github.io/bijux-genomics/schemas/benchmark-fastq-profile-reads-result-v1.json",
+  "title": "Normalized FASTQ read-profile benchmark bundle",
+  "type": "object",
+  "required": ["schema_version", "stage_id", "tool_id", "results"],
+  "properties": {
+    "schema_version": {"const": "bijux.benchmark.fastq.profile_reads.bundle.v1"},
+    "stage_id": {"const": "fastq.profile_reads"},
+    "tool_id": {"enum": ["seqfu", "seqkit", "seqkit_stats"]},
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "sample_id",
+          "input_layout",
+          "file_count",
+          "read_count",
+          "base_count",
+          "minimum_read_length",
+          "maximum_read_length"
+        ],
+        "properties": {
+          "sample_id": {"type": "string", "minLength": 1},
+          "input_layout": {"enum": ["single_end", "paired_end", "merged"]},
+          "file_count": {"type": "integer", "minimum": 1, "maximum": 2},
+          "read_count": {"type": "integer", "minimum": 1},
+          "base_count": {"type": "integer", "minimum": 1},
+          "minimum_read_length": {"type": "integer", "minimum": 1},
+          "maximum_read_length": {"type": "integer", "minimum": 1}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

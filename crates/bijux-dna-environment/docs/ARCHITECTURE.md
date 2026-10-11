@@ -8,7 +8,9 @@ CLI, runner, planner, stage, and domain crates.
 
 - `src/lib.rs`: crate root and stable module exports.
 - `src/public_api/`: facade re-export surface for consumers that need one stable import path.
-- `src/build/`: curated Docker tool defaults and Dockerfile version parsing.
+- `src/evidence/`: typed image-inventory and runtime-verification publication admission, plus
+  catalog-derived embedded tool identity contracts.
+- `src/build/`: Docker metadata plus bounded Apptainer builds with immutable attempt logs.
 - `src/resolve/types/`: serialized models, runtime enum, platform records, and environment errors.
 - `src/resolve/catalog/`: TOML catalog loading, registry digest hydration, and image reference
   synthesis.
@@ -23,11 +25,16 @@ CLI, runner, planner, stage, and domain crates.
 
 ## Data Flow
 
-1. Build metadata supplies known tool defaults or extracts versions from Dockerfiles.
+1. Build services supply Docker metadata or execute an identity-bound Apptainer image attempt.
 2. Platform TOML selects runner, architecture, image prefix, and container directory rules.
 3. Image catalog TOML provides tool versions and optional digests.
 4. Registry pins can hydrate missing digests from the local registry file.
 5. Resolver functions return `ResolvedImage`, `PlatformSpec`, `RuntimeSpec`, or reference records.
+6. Evidence loaders admit immutable image and runtime publications before qualification consumers
+   compose higher-level policy decisions.
+7. Tool-contract preparation hashes canonical catalog, recipe, source, interface, repository, and
+   architecture inputs into a rendered definition; runtime inspection binds that non-circular
+   identity to the externally computed immutable SIF digest.
 
 ## Boundaries
 

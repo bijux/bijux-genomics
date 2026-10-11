@@ -11,6 +11,106 @@ use super::{
     Utc, Workspace,
 };
 
+pub(super) fn hpc_benchmark_attempt_migration(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dna-dev -- hpc run benchmark-attempt-migration -- <plan|apply|verify|rollback> --study-root <path> --plan <path> [--ledger <path>] [--inventory <path>]";
+    if args.first().is_some_and(|arg| matches!(arg.as_str(), "--help" | "-h")) {
+        return Ok(OpsCommandOutcome::success(format!("{usage}\n")));
+    }
+    let action = args.first().map(String::as_str).ok_or_else(|| anyhow!(usage))?;
+    let mut study_root = None;
+    let mut plan_path = None;
+    let mut ledger_path = None;
+    let mut inventory_path = None;
+    let mut index = 1;
+    while index < args.len() {
+        let flag = args[index].as_str();
+        let value =
+            args.get(index + 1).ok_or_else(|| anyhow!("missing value for {flag}\n{usage}"))?;
+        let path = if Path::new(value).is_absolute() {
+            PathBuf::from(value)
+        } else {
+            workspace.path(value)
+        };
+        match flag {
+            "--study-root" => study_root = Some(path),
+            "--plan" => plan_path = Some(path),
+            "--ledger" => ledger_path = Some(path),
+            "--inventory" => inventory_path = Some(path),
+            other => return Err(anyhow!("unknown migration argument: {other}\n{usage}")),
+        }
+        index += 2;
+    }
+    let study_root = study_root.ok_or_else(|| anyhow!("missing --study-root\n{usage}"))?;
+    let plan_path = plan_path.ok_or_else(|| anyhow!("missing --plan\n{usage}"))?;
+    let timestamp = Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true);
+    match action {
+        "plan" => {
+            if ledger_path.is_some() || inventory_path.is_some() {
+                return Err(anyhow!("plan does not accept --ledger or --inventory\n{usage}"));
+            }
+            let plan = bijux_dna_bench::plan_attempt_migration(&study_root, timestamp)?;
+            bijux_dna_bench::write_attempt_migration_plan(&plan_path, &plan)?;
+            Ok(OpsCommandOutcome::success(format!(
+                "benchmark attempt migration plan: {} entries, {} exclusions, {}\n",
+                plan.entries.len(),
+                plan.exclusions.len(),
+                plan_path.display()
+            )))
+        }
+        "apply" => {
+            let ledger = ledger_path.ok_or_else(|| anyhow!("missing --ledger\n{usage}"))?;
+            if inventory_path.is_some() {
+                return Err(anyhow!("apply does not accept --inventory\n{usage}"));
+            }
+            let result = bijux_dna_bench::apply_attempt_migration(
+                &study_root,
+                &plan_path,
+                &ledger,
+                timestamp,
+            )?;
+            Ok(OpsCommandOutcome::success(format!(
+                "benchmark attempt migration applied: {} entries, {}\n",
+                result.entries.len(),
+                ledger.display()
+            )))
+        }
+        "verify" => {
+            let ledger = ledger_path.ok_or_else(|| anyhow!("missing --ledger\n{usage}"))?;
+            let inventory =
+                inventory_path.ok_or_else(|| anyhow!("missing --inventory\n{usage}"))?;
+            let result =
+                bijux_dna_bench::verify_attempt_migration(&study_root, &plan_path, &ledger)?;
+            bijux_dna_infra::atomic_write_json(&inventory, &result)?;
+            Ok(OpsCommandOutcome::success(format!(
+                "benchmark attempt migration verified: {} entries, {}\n",
+                result.entries.len(),
+                inventory.display()
+            )))
+        }
+        "rollback" => {
+            let ledger = ledger_path.ok_or_else(|| anyhow!("missing --ledger\n{usage}"))?;
+            if inventory_path.is_some() {
+                return Err(anyhow!("rollback does not accept --inventory\n{usage}"));
+            }
+            let result = bijux_dna_bench::rollback_attempt_migration(
+                &study_root,
+                &plan_path,
+                &ledger,
+                timestamp,
+            )?;
+            Ok(OpsCommandOutcome::success(format!(
+                "benchmark attempt migration rolled back: {} entries, {}\n",
+                result.entries.len(),
+                ledger.display()
+            )))
+        }
+        other => Err(anyhow!("unknown migration action: {other}\n{usage}")),
+    }
+}
+
 pub(super) fn hpc_validate_frontend_constraints(
     workspace: &Workspace,
     args: &[String],

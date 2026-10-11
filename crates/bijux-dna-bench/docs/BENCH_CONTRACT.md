@@ -19,6 +19,7 @@ gating, and deterministic artifact persistence.
 - `GateDecision` values for policy evaluation.
 - `CompareReport` for summary-to-summary comparisons.
 - Persisted artifacts documented in `docs/BENCH_FORMAT.md`.
+- Reconstructed `BenchmarkAttemptRecordV2` values from immutable event files.
 
 ## Required Invariants
 
@@ -28,6 +29,10 @@ gating, and deterministic artifact persistence.
 - Output ordering must be deterministic.
 - Gate decisions must include rationale and metric evidence.
 - Benchmark operations must not execute tools or product workflows.
+- Permanent attempt identities cannot be reused, and prior transition events
+  cannot be replaced.
+- Retry initialization must identify an existing terminal attempt with the same
+  campaign, run, and tool identity.
 
 ## Failure Modes
 

@@ -727,11 +727,42 @@ pub struct EnsureToolReport {
     pub tool_id: String,
     pub stage_id: String,
     pub sif_path: String,
+    pub build_evidence_id: String,
+    pub repository_commit: String,
     pub registry_digest: String,
     pub sif_sha256: String,
     pub built: bool,
     pub quick_smoked: bool,
     pub status: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EnsureRetainedRosterReport {
+    pub schema_version: &'static str,
+    pub repository_commit: String,
+    pub architecture: String,
+    pub catalog_sha256: String,
+    pub requested_tool_count: usize,
+    pub tools: Vec<EnsureRetainedToolReport>,
+    pub built: usize,
+    pub reused: usize,
+    pub quick_smoked: usize,
+    pub failed: usize,
+}
+
+#[derive(Debug, Serialize)]
+pub struct EnsureRetainedToolReport {
+    pub tool_id: String,
+    pub contract: Option<bijux_dna_api::v1::api::env::ContainerToolContract>,
+    pub sif_path: Option<String>,
+    pub sif_sha256: Option<String>,
+    pub build_log_path: Option<String>,
+    pub build_log_sha256: Option<String>,
+    pub build_log_attempt: Option<u32>,
+    pub built: bool,
+    pub quick_smoked: bool,
+    pub status: String,
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -748,42 +779,6 @@ pub struct SifInventoryEntry {
     pub sha256: String,
     pub smoke_manifest_path: Option<String>,
     pub smoke_status: Option<String>,
-}
-
-#[derive(Debug, Serialize)]
-struct SmokeProbeResult {
-    command: String,
-    applied_command: String,
-    ok: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    output_sha256: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    output_first_line: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    error: Option<String>,
-}
-
-#[derive(Debug, Serialize)]
-struct SmokeManifest {
-    schema_version: &'static str,
-    tool_id: String,
-    stage_id: String,
-    status: String,
-    registry_digest: String,
-    sif_sha256: String,
-    version_cmd: String,
-    help_cmd: String,
-    version: String,
-    version_output_first_line: String,
-    help_ok: bool,
-    quick_smoke: bool,
-    probe_commands: Vec<String>,
-    #[serde(default)]
-    probe_results: Vec<SmokeProbeResult>,
-    java_heap_mb: Option<u64>,
-    upstream: String,
-    image_build_timestamp_unix_s: u64,
-    checked_at_unix_s: u64,
 }
 
 fn parse_tools_registry_rows(raw: &str) -> Result<Vec<RegistryRow>> {

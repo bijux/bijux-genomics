@@ -1,8 +1,9 @@
 //! Environment catalog build helpers.
 //!
-//! Responsibilities: derive tool metadata from dockerfiles and curated defaults.
-//! Invariants: no resolution side effects; outputs must be deterministic for the same inputs.
+//! Responsibilities: derive tool metadata and execute governed Apptainer image builds.
+//! Invariants: build attempts are append-only, bounded, and deterministic in classification.
 
+mod apptainer;
 mod builder;
 mod defaults;
 mod entrypoints;

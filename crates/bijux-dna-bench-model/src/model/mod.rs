@@ -5,7 +5,11 @@
 pub mod corpus;
 pub mod decision;
 pub mod graph;
+pub mod interfaces;
+pub mod lifecycle;
 pub mod observation;
+pub mod planning;
+pub mod report;
 pub mod suite;
 pub mod summary;
 
@@ -17,7 +21,39 @@ pub use corpus::{
 pub use decision::BenchmarkDecision;
 #[allow(unused_imports)]
 pub use graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
+#[allow(unused_imports)]
+pub use interfaces::{
+    BenchmarkParameterValue, BenchmarkPipelineParameterConfig, BenchmarkStageDownstreamProbe,
+    BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
+};
+#[allow(unused_imports)]
+pub use lifecycle::{
+    BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
+    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationEntry,
+    BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
+    BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
+    BenchmarkAttemptMigrationState, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
+    BenchmarkAttemptTransition, BenchmarkCycleStatus, BenchmarkCycleStatusV2,
+    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+};
 pub use observation::BenchmarkObservation;
+#[allow(unused_imports)]
+pub use planning::{
+    BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract,
+    BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
+    BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
+    BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
+};
+#[allow(unused_imports)]
+pub use report::{
+    AdmittedBenchmarkStageReport, BenchmarkComparisonMetric, BenchmarkComparisonStatus,
+    BenchmarkCrossToolComparison, BenchmarkMetricDistribution, BenchmarkReportComparability,
+    BenchmarkReportDeterminism, BenchmarkReportDownstreamProbe, BenchmarkReportImage,
+    BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
+    BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
+    BenchmarkStageReportDesign, BenchmarkToolReport,
+};
 #[allow(unused_imports)]
 pub use suite::{BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec};
 #[allow(unused_imports)]

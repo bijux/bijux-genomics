@@ -12,6 +12,7 @@ pub(crate) mod bench;
 pub(crate) mod env;
 pub(crate) mod fastq;
 pub(crate) mod plan;
+pub(crate) mod qualification;
 pub(crate) mod report;
 pub(crate) mod run;
 pub(crate) mod shared;

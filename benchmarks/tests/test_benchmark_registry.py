@@ -25,7 +25,7 @@ class BenchmarkRegistryTests(unittest.TestCase):
             ROOT / "containers/contracts/catalog.toml"
         )
         self.registry = benchmark_registry.load_toml(
-            ROOT / "benchmarks/campaigns.toml"
+            ROOT / "benchmarks/contracts/stage-campaigns.toml"
         )
 
     def test_campaigns_cover_every_retained_tool_for_the_stage(self) -> None:
@@ -48,6 +48,12 @@ class BenchmarkRegistryTests(unittest.TestCase):
             benchmark_registry.threads_by_tool(campaigns[3]),
             {"picard": 1, "samtools": 1},
         )
+        self.assertEqual(campaigns[4]["stage_id"], "fastq.profile_read_lengths")
+        self.assertEqual(campaigns[4]["evidence_tier"], "comparative")
+        self.assertEqual(campaigns[4]["tool_ids"], ["seqfu", "seqkit"])
+        self.assertEqual(campaigns[5]["stage_id"], "fastq.profile_reads")
+        self.assertEqual(campaigns[5]["evidence_tier"], "comparative")
+        self.assertEqual(campaigns[5]["tool_ids"], ["seqfu", "seqkit", "seqkit_stats"])
 
     def test_per_tool_threads_must_cover_the_tool_closure(self) -> None:
         self.registry["campaigns"][1]["threads_by_tool"].pop("samtools")
@@ -94,11 +100,11 @@ class BenchmarkRegistryTests(unittest.TestCase):
         campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
         report = benchmark_registry.coverage_report(campaigns, self.catalog)
 
-        self.assertEqual(report["summary"]["defined_stage_count"], 4)
+        self.assertEqual(report["summary"]["defined_stage_count"], 6)
         self.assertEqual(report["summary"]["qualification_stage_count"], 4)
-        self.assertEqual(report["summary"]["comparative_stage_count"], 0)
+        self.assertEqual(report["summary"]["comparative_stage_count"], 2)
         self.assertEqual(report["summary"]["admitted_stage_count"], 0)
-        self.assertGreater(report["summary"]["missing_stage_count"], 1)
+        self.assertEqual(report["summary"]["missing_stage_count"], 65)
 
     def test_coverage_admits_matching_complete_tool_evidence(self) -> None:
         campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
@@ -107,7 +113,7 @@ class BenchmarkRegistryTests(unittest.TestCase):
             (root / "run-2001-bam-genotyping.json").write_text(
                 json.dumps(
                     {
-                        "schema_version": "bijux.container.stage_benchmark_report.v1",
+                        "schema_version": "bijux.benchmark.stage_report.v1",
                         "verdict": "passed",
                         "run_id": "run-2001",
                         "stage_id": "bam.genotyping",
@@ -124,6 +130,42 @@ class BenchmarkRegistryTests(unittest.TestCase):
         )
         self.assertEqual(report["summary"]["admitted_stage_count"], 1)
         self.assertEqual(row["execution_status"], "admitted")
+
+    def test_write_report_check_rejects_drift(self) -> None:
+        campaigns = benchmark_registry.validate_registry(self.registry, self.catalog)
+        report = benchmark_registry.coverage_report(campaigns, self.catalog)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            json_path = root / "stage-benchmark-coverage.json"
+            markdown_path = root / "stage-benchmark-coverage.md"
+
+            benchmark_registry.write_report(report, json_path, markdown_path)
+            benchmark_registry.write_report(
+                report, json_path, markdown_path, check=True
+            )
+            json_path.write_text("{}\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                benchmark_registry.RegistryError,
+                "stage benchmark coverage JSON drifted",
+            ):
+                benchmark_registry.write_report(
+                    report, json_path, markdown_path, check=True
+                )
+
+    def test_resolve_evidence_root_defaults_to_report_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            json_path = root / "benchmarks/reports/stage-benchmark-coverage.json"
+            markdown_path = root / "benchmarks/reports/stage-benchmark-coverage.md"
+
+            resolved = benchmark_registry.resolve_evidence_root(
+                None,
+                json_path,
+                markdown_path,
+            )
+
+        self.assertEqual(resolved, json_path.parent)
 
 
 if __name__ == "__main__":

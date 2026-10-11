@@ -9,8 +9,9 @@ const PIPELINE_SCHEMA_PATH: &str = "containers/contracts/config-pipeline.schema.
 const CREDENTIAL_SCHEMA_PATH: &str = "containers/contracts/config-credential.schema.json";
 const GOVERNANCE_SCHEMA_PATH: &str = "containers/contracts/config-governance.schema.json";
 const LUNARC_GOVERNANCE_PATH: &str = "containers/contracts/sites/lunarc.yml";
-const BUILD_ADMISSION_PATH: &str = "containers/contracts/container_build.py";
 const VALIDATION_EXECUTOR_PATH: &str = "containers/contracts/container_validation.py";
+const QUALIFICATION_SCHEMA_PATH: &str =
+    "containers/contracts/schemas/qualification-assessment.v1.json";
 const CATALOG_SCHEMA: &str = "bijux.container.catalog.v1";
 const EVIDENCE_SCHEMA: &str = "bijux.container.evidence.v1";
 
@@ -100,6 +101,86 @@ fn load_catalog(workspace: &Workspace) -> Result<ContainerCatalog> {
     Ok(toml::from_str(&read_utf8(&workspace.path(CATALOG_PATH))?)?)
 }
 
+fn validate_environment_evidence_chain(
+    workspace: &Workspace,
+    catalog: &ContainerCatalog,
+) -> Result<()> {
+    use bijux_dna_environment::evidence::{ContainerSupportDisposition, RuntimeEvidenceStatus};
+
+    let catalog_sha256 = sha256_hex(read_utf8(&workspace.path(CATALOG_PATH))?.as_bytes());
+    let inventory = bijux_dna_environment::evidence::load_image_inventory_publication(
+        &workspace.path("containers/reports/image-inventory.json"),
+    )?;
+    let runtime = bijux_dna_environment::evidence::load_runtime_verification_publication(
+        &workspace.path("containers/reports/runtime-verification.json"),
+    )?;
+    if inventory.catalog_sha256 != catalog_sha256 {
+        anyhow::bail!(
+            "image inventory catalog digest is stale: expected {catalog_sha256}, observed {}",
+            inventory.catalog_sha256
+        );
+    }
+    if runtime.catalog.sha256 != catalog_sha256 {
+        anyhow::bail!(
+            "runtime publication catalog digest is stale: expected {catalog_sha256}, observed {}",
+            runtime.catalog.sha256
+        );
+    }
+    if runtime.inventory.sha256 != inventory.publication.raw_sha256 {
+        anyhow::bail!("runtime publication does not identify the admitted raw inventory");
+    }
+    if runtime.repository_commit != inventory.repository_commit {
+        anyhow::bail!("inventory and runtime publications identify different repository commits");
+    }
+
+    let inventory_tools = inventory
+        .tools
+        .iter()
+        .map(|tool| (tool.tool.as_str(), tool))
+        .collect::<std::collections::BTreeMap<_, _>>();
+    let catalog_ids = catalog.tools.iter().map(|tool| tool.id.as_str()).collect::<BTreeSet<_>>();
+    let inventory_ids = inventory_tools.keys().copied().collect::<BTreeSet<_>>();
+    if catalog_ids != inventory_ids {
+        anyhow::bail!("image inventory tool set differs from the container catalog");
+    }
+
+    let mut retained_ids = BTreeSet::new();
+    for tool in &catalog.tools {
+        let evidence = inventory_tools
+            .get(tool.id.as_str())
+            .ok_or_else(|| anyhow::anyhow!("image inventory omits {}", tool.id))?;
+        let expected_disposition = match tool.support_disposition.as_str() {
+            "retained" => ContainerSupportDisposition::Retained,
+            "unsupported" => ContainerSupportDisposition::Unsupported,
+            "retired" => ContainerSupportDisposition::Retired,
+            "excluded" => ContainerSupportDisposition::Excluded,
+            other => anyhow::bail!("unsupported catalog disposition for {}: {other}", tool.id),
+        };
+        if evidence.version != tool.version || evidence.support_disposition != expected_disposition
+        {
+            anyhow::bail!("image inventory identity differs from catalog for {}", tool.id);
+        }
+        if tool.support_disposition != "retained" {
+            continue;
+        }
+        retained_ids.insert(tool.id.as_str());
+        let runtime_evidence = runtime.tools.get(&tool.id).ok_or_else(|| {
+            anyhow::anyhow!("runtime publication omits retained tool {}", tool.id)
+        })?;
+        if runtime_evidence.version != tool.version
+            || Some(runtime_evidence.image_sha256.as_str())
+                != evidence.selected_image_sha256.as_deref()
+            || runtime_evidence.status != RuntimeEvidenceStatus::Passed
+        {
+            anyhow::bail!("runtime publication identity or verdict differs for {}", tool.id);
+        }
+    }
+    if runtime.tools.keys().map(String::as_str).collect::<BTreeSet<_>>() != retained_ids {
+        anyhow::bail!("runtime publication tool set differs from retained catalog tools");
+    }
+    Ok(())
+}
+
 fn is_zero_digest(value: &str) -> bool {
     !value.is_empty() && value.bytes().all(|byte| byte == b'0')
 }
@@ -162,9 +243,6 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
     }
     if !workspace.path(VALIDATION_EXECUTOR_PATH).is_file() {
         errors.push(format!("missing {VALIDATION_EXECUTOR_PATH}"));
-    }
-    if !workspace.path(BUILD_ADMISSION_PATH).is_file() {
-        errors.push(format!("missing {BUILD_ADMISSION_PATH}"));
     }
     if !workspace.path(LUNARC_GOVERNANCE_PATH).is_file() {
         errors.push(format!("missing {LUNARC_GOVERNANCE_PATH}"));
@@ -459,7 +537,26 @@ pub(super) fn check_contract_lock(workspace: &Workspace) -> Result<ContainerComm
 pub(super) fn check_evidence_qualification(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
-    let args = [
+    let catalog = load_catalog(workspace)?;
+    validate_environment_evidence_chain(workspace, &catalog)?;
+    let registry = bijux_dna_bench::load_stage_campaign_registry(
+        &workspace.path("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
+    let interfaces = bijux_dna_bench::load_stage_interface_catalog_from_repo(
+        &workspace.path("benchmarks/contracts/stage-interfaces.toml"),
+        &workspace.root,
+    )?;
+    let admitted_reports = bijux_dna_bench::load_stage_reports_from_dir(
+        &workspace.path("benchmarks/reports"),
+        &registry,
+        &interfaces,
+    )?;
+    if admitted_reports.is_empty() {
+        return Ok(ContainerCommandOutcome::failure(
+            "container qualification requires at least one Rust-admitted benchmark report\n",
+        ));
+    }
+    let mut args = [
         "python3",
         "-B",
         "containers/contracts/qualification_report.py",
@@ -471,20 +568,68 @@ pub(super) fn check_evidence_qualification(
         "containers/reports/runtime-verification.json",
         "--runs",
         "containers/reports/run-evidence.json",
-        "--json-output",
-        "containers/reports/qualification.json",
-        "--markdown-output",
-        "containers/reports/qualification.md",
-        "--check",
+        "--repository",
     ]
     .into_iter()
     .map(ToOwned::to_owned)
     .collect::<Vec<_>>();
+    args.push(workspace.root.to_string_lossy().into_owned());
+    for admission in admitted_reports {
+        args.push("--benchmark-report".to_string());
+        args.push(
+            workspace
+                .path("benchmarks/reports")
+                .join(admission.report_file_name)
+                .to_string_lossy()
+                .into_owned(),
+        );
+    }
+    args.extend(
+        [
+            "--json-output",
+            "containers/reports/qualification.json",
+            "--markdown-output",
+            "containers/reports/qualification.md",
+            "--check",
+        ]
+        .into_iter()
+        .map(ToOwned::to_owned),
+    );
     let outcome = run_argv(workspace, &args)?;
     if outcome.is_success() {
         return success_line("container evidence qualification: OK");
     }
     Ok(outcome)
+}
+
+pub(super) fn generate_qualification_schema(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-qualification-schema -- [<output-path>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+    let output = out_path_arg(workspace, args, QUALIFICATION_SCHEMA_PATH, usage)?;
+    bijux_dna_api::v1::api::qualification::write_qualification_assessment_schema(&output)?;
+    success_line(format!("generated {}", output.display()))
+}
+
+pub(super) fn check_qualification_schema(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let path = workspace.path(QUALIFICATION_SCHEMA_PATH);
+    if !path.is_file() {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "missing {QUALIFICATION_SCHEMA_PATH}; generate it with the governed container command\n"
+        )));
+    }
+    let checked: serde_json::Value = serde_json::from_str(&read_utf8(&path)?)?;
+    let generated = bijux_dna_api::v1::api::qualification::render_qualification_assessment_schema();
+    if checked != generated {
+        return Ok(ContainerCommandOutcome::failure(format!(
+            "{QUALIFICATION_SCHEMA_PATH} drifted from Rust policy types\n"
+        )));
+    }
+    success_line("qualification assessment schema: OK")
 }
 
 #[cfg(test)]

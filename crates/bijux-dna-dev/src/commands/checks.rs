@@ -103,6 +103,7 @@ pub fn run_native_check(
         NativeCheckKey::NoUserPathLiterals => {
             repo_checks::check_no_user_path_literals(workspace, check)
         }
+        NativeCheckKey::OwnershipAudit => repo_checks::check_ownership_audit(workspace, check),
         NativeCheckKey::OutputRoots => repo_checks::check_output_roots(workspace, check),
         NativeCheckKey::ReadmeLinks => repo_checks::check_readme_links(workspace, check),
         NativeCheckKey::RootLayout => repo_checks::check_root_layout(workspace, check),

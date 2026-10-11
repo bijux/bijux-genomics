@@ -23,6 +23,7 @@ mod examples;
 mod execution_support;
 mod hpc;
 mod lab;
+mod preflight;
 mod smoke;
 mod suite_selection;
 mod tooling;

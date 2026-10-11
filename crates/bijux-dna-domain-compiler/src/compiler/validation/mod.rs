@@ -1,9 +1,10 @@
 use super::{
     anyhow, bail, collect_yaml_files, ensure_status, has_supported_placeholder_forbidden_token,
     is_tool_meaningful_in_domain, is_umbrella_stage, is_unspecified, placeholders_allowed,
-    read_yaml, validate_tool_output_subset, AdapterBank, BTreeMap, BTreeSet, ContaminationDbBank,
-    Context, DomainArtifactVocabulary, DomainIndex, DomainMetricVocabulary, DomainStage,
-    DomainToolLoose, Path, ReferenceBank, Result, ValidateOptions, DEFAULT_COMPILE_SCOPE,
+    read_yaml, validate_tool_output_subset, AdapterBank, BTreeMap, BTreeSet, ContainerToolContract,
+    ContaminationDbBank, Context, DomainArtifactVocabulary, DomainIndex, DomainMetricVocabulary,
+    DomainStage, DomainToolLoose, Path, ReferenceBank, Result, ValidateOptions,
+    DEFAULT_COMPILE_SCOPE,
 };
 
 mod catalog_coverage;
@@ -54,8 +55,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     }
     let workspace_root = options.domain_dir.parent().unwrap_or(&options.domain_dir);
     validate_reference_catalogs(workspace_root)?;
-    let shared_tool_domains = load_shared_tool_domains(workspace_root)?;
-
+    let container_catalog = super::loading::load_container_catalog(&options.domain_dir)?;
     let mut tool_ids = BTreeMap::<String, String>::new();
     let mut stage_ids = BTreeMap::<String, String>::new();
     let mut tool_capabilities = BTreeMap::<String, BTreeSet<String>>::new();
@@ -80,7 +80,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             domain_statuses: &mut tool_statuses_by_domain,
             domain_metrics_schemas: &mut tool_metrics_schemas_by_domain,
         };
-        validate_tool_files(options, dom, &artifact_vocab, &shared_tool_domains, &mut tool_state)?;
+        validate_tool_files(options, dom, &artifact_vocab, &container_catalog, &mut tool_state)?;
     }
 
     validate_canonical_stage_coverage(&stage_ids)?;
@@ -98,31 +98,4 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
 
     println!("domain-validate: OK");
     Ok(())
-}
-
-fn load_shared_tool_domains(workspace_root: &Path) -> Result<BTreeMap<String, BTreeSet<String>>> {
-    let path = workspace_root.join("configs/domain/shared_tools.toml");
-    let text =
-        std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let value: toml::Value =
-        toml::from_str(&text).with_context(|| format!("parse {}", path.display()))?;
-    let mut shared_tool_domains = BTreeMap::new();
-    let Some(shared_tools) = value.get("shared_tools").and_then(toml::Value::as_table) else {
-        return Ok(shared_tool_domains);
-    };
-    for (tool_id, entry) in shared_tools {
-        let domains = entry
-            .get("domains")
-            .and_then(toml::Value::as_array)
-            .map(|values| {
-                values
-                    .iter()
-                    .filter_map(toml::Value::as_str)
-                    .map(ToString::to_string)
-                    .collect::<BTreeSet<_>>()
-            })
-            .unwrap_or_default();
-        shared_tool_domains.insert(tool_id.clone(), domains);
-    }
-    Ok(shared_tool_domains)
 }

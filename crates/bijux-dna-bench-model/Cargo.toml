@@ -7,9 +7,12 @@ license.workspace = true
 rust-version.workspace = true
 [dependencies]
 anyhow = { workspace = true }
+chrono.workspace = true
 fastrand = "2"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+schemars.workspace = true
+sha2.workspace = true
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 bijux-dna-stage-contract = { path = "../bijux-dna-stage-contract" }

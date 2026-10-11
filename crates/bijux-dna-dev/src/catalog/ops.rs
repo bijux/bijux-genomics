@@ -113,6 +113,11 @@ pub fn hpc_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::HpcValidateFrontendConstraints,
         ),
         native(
+            "site-cycle-preflight",
+            "Validate source, site, scheduler, storage, and authority identities before submission.",
+            NativeOpsCommandKey::HpcSiteCyclePreflight,
+        ),
+        native(
             "run-frontend-mini-e2e",
             "Run the governed frontend mini end-to-end flow.",
             NativeOpsCommandKey::HpcRunFrontendMiniE2e,
@@ -126,6 +131,11 @@ pub fn hpc_registry() -> Vec<OpsCommandDefinition> {
             "benchmark-sync-push",
             "Push the governed repository context for the benchmark environment.",
             NativeOpsCommandKey::HpcBenchmarkSyncPush,
+        ),
+        native(
+            "benchmark-attempt-migration",
+            "Plan, apply, verify, or roll back benchmark attempt ownership migration.",
+            NativeOpsCommandKey::HpcBenchmarkAttemptMigration,
         ),
     ]
 }

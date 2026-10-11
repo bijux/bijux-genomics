@@ -12,12 +12,30 @@ The `public_api` module itself is private. Stable exports are owned by
 ## Stable Operations
 
 - `load_suite(path)` loads and validates a benchmark suite TOML file.
+- `load_stage_campaign_registry(path)` loads and validates a benchmark stage-campaign registry TOML file.
+- `load_benchmark_portfolio(path)` loads and validates a benchmark portfolio TOML file.
+- `load_stage_interface_catalog(path)` loads and validates the stage-interface catalog, parameter configuration, and referenced repository contracts.
+- `load_stage_interface_catalog_from_repo(path, repository_root)` performs the same admission against an explicit workspace root for production callers.
+- `load_checked_in_benchmark_contracts()` preserves the campaign/portfolio return contract while validating every checked-in planning input.
+- `load_checked_in_benchmark_planning_contracts()` returns the campaign registry, portfolio, and stage-interface catalog after validating defined identity consistency.
+- `load_stage_report(path)` returns a typed admission envelope binding the exact source bytes and canonical parsed report to separate SHA-256 identities.
+- `load_stage_reports_from_dir(path, registry, interfaces)` admits checksummed reports against supplied authorities; raw report values are never returned to aggregation callers.
+- `load_checked_in_stage_reports()` admits all checked-in reports against campaign and interface authority.
+- `benchmark_attempt_directory(root, identity)` derives the permanent attempt path from validated identity.
+- `initialize_attempt_lifecycle(root, record)` publishes one immutable planned attempt.
+- `append_attempt_lifecycle_transition(root, identity, transition)` publishes one no-clobber lifecycle event.
+- `load_attempt_lifecycle(root, identity)` reconstructs and validates the complete event chain.
 - `summarize(suite, observations, options)` builds a deterministic
   `BenchmarkSummary`.
 - `compare(summary_a, summary_b)` compares completed summaries.
 - `gate(policy, summary)` evaluates summary rows against a `GatePolicy`.
 - `bench_data_dir()` resolves the crate-owned benchmark data directory.
 - `bench_suites_dir()` resolves the crate-owned suite catalog directory.
+- `bench_contracts_dir()` resolves the repository-owned benchmark contract directory.
+- `bench_stage_campaigns_path()` resolves the repository-owned stage-campaign registry path.
+- `bench_portfolio_path()` resolves the repository-owned benchmark portfolio path.
+- `bench_stage_interfaces_path()` resolves the repository-owned stage-interface catalog path.
+- `bench_reports_dir()` resolves the repository-owned benchmark report directory.
 - `bench_local_config_dir()` resolves the repository-owned local benchmark config directory.
 - `bench_fastq_local_stage_matrix_path()` resolves the governed FASTQ local stage matrix path.
 - `bench_bam_local_stage_matrix_path()` resolves the governed BAM local stage matrix path.
@@ -33,6 +51,19 @@ including:
 - `BenchmarkObservation`
 - `BenchmarkSummary`
 - `BenchmarkDecision`
+- `BenchmarkStageCampaignRegistry`
+- `BenchmarkStageCampaignSpec`
+- `BenchmarkPortfolio`
+- `BenchmarkStageInterfaceCatalog`
+- `BenchmarkStageInterfaceSpec`
+- `BenchmarkPipelineParameterConfig`
+- `BenchmarkStageReport`
+- `BenchmarkToolReport`
+- `BenchmarkRunIdentity`
+- `BenchmarkAttemptIdentity`
+- `BenchmarkAttemptRecordV2`
+- `BenchmarkAttemptTransition`
+- `BenchmarkCycleStatusV2`
 - `GatePolicy`
 - `GatePolicyOverrides`
 - `GateDecision`

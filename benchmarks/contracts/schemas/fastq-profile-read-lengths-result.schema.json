@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bijux.github.io/bijux-genomics/schemas/benchmark-fastq-profile-read-lengths-result-v1.json",
+  "title": "Normalized FASTQ exact read-length benchmark bundle",
+  "type": "object",
+  "required": ["schema_version", "stage_id", "tool_id", "results"],
+  "properties": {
+    "schema_version": {"const": "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"},
+    "stage_id": {"const": "fastq.profile_read_lengths"},
+    "tool_id": {"enum": ["seqfu", "seqkit"]},
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": [
+          "sample_id",
+          "input_layout",
+          "file_count",
+          "read_count",
+          "minimum_read_length",
+          "mean_read_length",
+          "median_read_length",
+          "maximum_read_length",
+          "distinct_read_lengths",
+          "histogram_artifact",
+          "histogram_sha256"
+        ],
+        "properties": {
+          "sample_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"},
+          "input_layout": {"enum": ["single_end", "paired_end"]},
+          "file_count": {"type": "integer", "minimum": 1, "maximum": 2},
+          "read_count": {"type": "integer", "minimum": 1},
+          "minimum_read_length": {"type": "integer", "minimum": 1},
+          "mean_read_length": {"type": "number", "exclusiveMinimum": 0},
+          "median_read_length": {"type": "number", "exclusiveMinimum": 0},
+          "maximum_read_length": {"type": "integer", "minimum": 1},
+          "distinct_read_lengths": {"type": "integer", "minimum": 1},
+          "histogram_artifact": {"type": "string", "pattern": "^[A-Za-z0-9._/-]+[.]tsv$"},
+          "histogram_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

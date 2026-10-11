@@ -179,11 +179,27 @@
         "artifact_type": null
       },
       {
+        "artifact_id": "genotyping_bcf",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "genotyping_gl",
+        "artifact_type": null
+      },
+      {
         "artifact_id": "genotyping_report",
         "artifact_type": null
       },
       {
         "artifact_id": "genotyping_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "genotyping_vcf",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "genotyping_vcf_tbi",
         "artifact_type": null
       },
       {
@@ -445,11 +461,13 @@
         "stage_metrics"
       ],
       "bam.genotyping": [
-        "genotyping_report_json",
         "genotyping_report",
-        "population_metrics",
         "summary",
-        "stage_metrics"
+        "stage_metrics",
+        "genotyping_bcf",
+        "genotyping_vcf",
+        "genotyping_vcf_tbi",
+        "genotyping_gl"
       ],
       "bam.haplogroups": [
         "haplogroups_report_json",

@@ -1,12 +1,18 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/benching/architecture.rs"]
 mod mod_contracts_architecture_rs;
+#[path = "contracts/attempt_lifecycle.rs"]
+mod mod_contracts_attempt_lifecycle_rs;
+#[path = "contracts/attempt_migration.rs"]
+mod mod_contracts_attempt_migration_rs;
 #[path = "contracts/benching/bam_local_stage_matrix.rs"]
 mod mod_contracts_bam_local_stage_matrix_rs;
 #[path = "contracts/benching/bench_contract.rs"]
 mod mod_contracts_bench_contract_rs;
 #[path = "contracts/benching/bench_paths.rs"]
 mod mod_contracts_bench_paths_rs;
+#[path = "contracts/benching/benchmark_contracts.rs"]
+mod mod_contracts_benchmark_contracts_rs;
 #[path = "contracts/benching/contract_handshake.rs"]
 mod mod_contracts_contract_handshake_rs;
 #[path = "contracts/docs/docs_fixtures.rs"]

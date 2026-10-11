@@ -49,6 +49,10 @@ ATTEMPT_OUTCOME_KEYS = {
     "image_size_bytes",
     "error",
 }
+RETIRED_BUILD_CAMPAIGN = (
+    "Python image campaign execution is retired; use `bijux-dna env ensure-images`, "
+    "which owns image identity and runtime verification in Rust"
+)
 
 
 def load_campaign(path: Path) -> dict[str, Any]:
@@ -176,6 +180,9 @@ def create_execution(
     output: Path,
     requested_tools: list[str] | None = None,
 ) -> dict[str, Any]:
+    raise ContractError(RETIRED_BUILD_CAMPAIGN)
+
+    # Retained as migration-parity reference for historical campaign records.
     if output.exists() or output.is_symlink():
         raise ContractError(f"refusing to replace campaign execution: {output}")
     campaign = load_campaign(campaign_path)
@@ -209,6 +216,7 @@ def create_execution(
         governance_path,
         checkout_scope="sources",
         checkout_paths=source_roots,
+        source_namespace="image-builds",
     )
     execution = {
         "schema_version": CAMPAIGN_EVIDENCE_SCHEMA,
@@ -264,6 +272,10 @@ def build_one(
     evidence_root: Path,
     attempt: int,
 ) -> dict[str, Any]:
+    raise ContractError(RETIRED_BUILD_CAMPAIGN)
+
+    # Retained as migration-parity reference until the ownership audit removal
+    # gate permits deleting this module.
     definition = repository / "containers" / "apptainer" / f"{tool}.def"
     definition_digest = sha256_file(definition)
     staged = (
@@ -348,6 +360,10 @@ def execute_campaign(
     governance_path: Path,
     jobs: int,
 ) -> dict[str, Any]:
+    raise ContractError(RETIRED_BUILD_CAMPAIGN)
+
+    # Historical record validation and report generation remain available,
+    # but this module must not create new product state.
     if jobs < 1 or jobs > 4:
         raise ContractError("frontend image build concurrency must be between 1 and 4")
     execution = load_json(execution_path)
@@ -438,6 +454,9 @@ def queue_failed_tools(
     execution_path: Path,
     requested_tools: list[str],
 ) -> dict[str, Any]:
+    raise ContractError(RETIRED_BUILD_CAMPAIGN)
+
+    # Retained as migration-parity reference for historical campaign records.
     execution = load_json(execution_path)
     if execution.get("schema_version") != CAMPAIGN_EVIDENCE_SCHEMA:
         raise ContractError("campaign execution schema is not supported")

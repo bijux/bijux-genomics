@@ -13,7 +13,7 @@ import yaml
 
 BENCHMARKS = Path(__file__).parents[1]
 SPEC = importlib.util.spec_from_file_location(
-    "mapping_summary_specs", BENCHMARKS / "mapping_summary_specs.py"
+    "bam_mapping_summary", BENCHMARKS / "runs/bam_mapping_summary.py"
 )
 assert SPEC is not None and SPEC.loader is not None
 specifications = importlib.util.module_from_spec(SPEC)
@@ -26,7 +26,13 @@ class MappingSummarySpecificationTests(unittest.TestCase):
         study = root / "study"
         repository = root / "repository"
         frozen = root / "frozen"
-        for path in (study / "containers", study / "data", study / "results", repository, frozen):
+        for path in (
+            study / "containers",
+            study / "data",
+            study / "results",
+            repository,
+            frozen,
+        ):
             path.mkdir(parents=True)
         governance = root / "governance.yml"
         governance.write_text(
@@ -50,7 +56,7 @@ class MappingSummarySpecificationTests(unittest.TestCase):
         inventory.write_text(
             json.dumps(
                 {
-                    "schema_version": specifications.IMAGE_SCHEMA,
+                    "schema_version": "bijux.container.image_inventory.v1",
                     "tools": [
                         {
                             "tool": tool,
@@ -115,6 +121,79 @@ expected_version_regex = "^samtools 1[.]20"
         )
         return governance, index, inventory, catalog, study
 
+    def test_absolute_inventory_paths_remain_confined_to_the_study(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance, index, inventory, catalog, study = self.fixtures(root)
+            data = json.loads(inventory.read_text())
+            for tool in data["tools"]:
+                tool["selected_image"] = str(
+                    study / "containers" / f"{tool['tool']}.sif"
+                )
+            inventory.write_text(json.dumps(data), encoding="utf-8")
+
+            with patch.object(specifications, "current_commit", return_value="f" * 40):
+                destination = specifications.prepare(
+                    governance,
+                    index,
+                    inventory,
+                    catalog,
+                    root / "specifications",
+                    "2026-08-03T00:00:00+00:00",
+                )
+
+            pipeline = yaml.safe_load(
+                (destination / "run-2004-picard" / "config-pipeline.yml").read_text()
+            )
+            self.assertEqual(
+                pipeline["image"]["path"],
+                str((study / "containers" / "picard.sif").resolve()),
+            )
+
+    def test_publication_inventory_schema_is_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance, index, inventory, catalog, _ = self.fixtures(root)
+            data = json.loads(inventory.read_text())
+            data["schema_version"] = "bijux.container.image_inventory_publication.v1"
+            inventory.write_text(json.dumps(data), encoding="utf-8")
+
+            with patch.object(specifications, "current_commit", return_value="f" * 40):
+                destination = specifications.prepare(
+                    governance,
+                    index,
+                    inventory,
+                    catalog,
+                    root / "specifications",
+                    "2026-08-03T00:00:00+00:00",
+                )
+
+            self.assertTrue((destination / "run-2004-picard").is_dir())
+            self.assertTrue((destination / "run-2004-samtools").is_dir())
+
+    def test_absolute_inventory_path_cannot_escape_the_study(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance, index, inventory, catalog, _ = self.fixtures(root)
+            data = json.loads(inventory.read_text())
+            data["tools"][0]["selected_image"] = str(root / "outside.sif")
+            inventory.write_text(json.dumps(data), encoding="utf-8")
+
+            with (
+                patch.object(specifications, "current_commit", return_value="f" * 40),
+                self.assertRaisesRegex(
+                    specifications.SpecificationError,
+                    "escapes the study root",
+                ),
+            ):
+                specifications.prepare(
+                    governance,
+                    index,
+                    inventory,
+                    catalog,
+                    root / "specifications",
+                )
+
     def test_preparation_emits_complete_tool_contracts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -137,6 +216,19 @@ expected_version_regex = "^samtools 1[.]20"
                 )
                 for tool in specifications.TOOLS
             }
+            parameter_files = {
+                tool: (
+                    (
+                        destination
+                        / f"run-2004-{tool}"
+                        / "config-pipeline-parameters.yml"
+                    ).is_file(),
+                    (
+                        destination / f"run-2004-{tool}" / "effective-parameters.json"
+                    ).is_file(),
+                )
+                for tool in specifications.TOOLS
+            }
 
         self.assertEqual(set(pipelines), set(specifications.TOOLS))
         for tool, pipeline in pipelines.items():
@@ -145,11 +237,16 @@ expected_version_regex = "^samtools 1[.]20"
             self.assertEqual(pipeline["execution"]["threads"], 1)
             self.assertEqual(len(pipeline["outputs"]["required_files"]), 13)
             self.assertEqual(
+                pipeline["parameters"]["defaults_provider"],
+                specifications.DEFAULTS_PROVIDER,
+            )
+            self.assertEqual(parameter_files[tool], (True, True))
+            self.assertEqual(
                 pipeline["outputs"]["result_root"],
                 str(
-                    study
-                    / "results/benchmarks/run-2004-bam-mapping-summary"
-                    / tool
+                    (
+                        study / "results/benchmarks/run-2004-bam-mapping-summary" / tool
+                    ).resolve()
                 ),
             )
 
@@ -182,6 +279,11 @@ expected_version_regex = "^samtools 1[.]20"
                 "help": ["picard", "--help"],
                 "version_regex": "^picard 3[.]3[.]0$",
             },
+            {
+                "schema_version": "bijux.benchmark.parameter_evidence.v1",
+                "parameter_schema_version": specifications.PARAMETER_SCHEMA,
+                "defaults_provider": specifications.DEFAULTS_PROVIDER,
+            },
         )["commands"]["real"][2]
         samtools = specifications.pipeline(
             "samtools",
@@ -194,6 +296,11 @@ expected_version_regex = "^samtools 1[.]20"
                 "version": ["samtools", "--version"],
                 "help": ["samtools", "--help"],
                 "version_regex": "^samtools 1[.]20",
+            },
+            {
+                "schema_version": "bijux.benchmark.parameter_evidence.v1",
+                "parameter_schema_version": specifications.PARAMETER_SCHEMA,
+                "defaults_provider": specifications.DEFAULTS_PROVIDER,
             },
         )["commands"]["real"][2]
 
@@ -214,6 +321,25 @@ expected_version_regex = "^samtools 1[.]20"
                 text=True,
             )
             self.assertEqual(syntax.returncode, 0, syntax.stderr)
+
+    def test_default_specification_root_is_benchmark_owned(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance, index, inventory, catalog, study = self.fixtures(root)
+            with patch.object(specifications, "current_commit", return_value="f" * 40):
+                destination = specifications.prepare(
+                    governance,
+                    index,
+                    inventory,
+                    catalog,
+                    None,
+                    "2026-08-03T00:00:00+00:00",
+                )
+
+        self.assertEqual(
+            destination,
+            (study / "results" / "benchmark-specifications").resolve(),
+        )
 
     def test_ineligible_corpus_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

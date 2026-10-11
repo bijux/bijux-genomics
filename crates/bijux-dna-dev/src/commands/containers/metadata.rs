@@ -330,7 +330,7 @@ pub(super) fn check_container_index(workspace: &Workspace) -> Result<ContainerCo
 }
 
 #[derive(Debug, Clone, Copy)]
-enum GhcrRuntimeKind {
+pub(super) enum GhcrRuntimeKind {
     DockerArm64,
     Apptainer,
 }
@@ -442,6 +442,10 @@ fn ghcr_publish_matrix_value(
     tools_filter: &BTreeSet<String>,
 ) -> Result<serde_json::Value> {
     let repository = workspace_repo_name(workspace)?;
+    let catalog_path = workspace.path("containers/contracts/catalog.toml");
+    let catalog_sha256 = sha256_hex(
+        &fs::read(&catalog_path).with_context(|| format!("read {}", catalog_path.display()))?,
+    );
     let registry = registry_tool_map(workspace)?;
     let versions = tool_versions(workspace)?;
     let support = container_support_summary(workspace)?;
@@ -489,6 +493,7 @@ fn ghcr_publish_matrix_value(
         let smoke_probes = table_array_strings(&registry_row, "smoke_probes");
         let mut item = serde_json::json!({
             "tool_id": tool_id.clone(),
+            "catalog_sha256": catalog_sha256.clone(),
             "runtime": runtime.id(),
             "support_disposition": support_disposition,
             "qualification": qualification,
@@ -584,6 +589,10 @@ fn ghcr_publish_matrix_value(
 
     Ok(serde_json::json!({
         "schema_version": "bijux.container.ghcr_publish_matrix.v3",
+        "catalog": {
+            "path": "containers/contracts/catalog.toml",
+            "sha256": catalog_sha256,
+        },
         "runtime": runtime.id(),
         "package_prefix": package_prefix,
         "packages_view_url": ghcr_packages_view_url(&repository),
@@ -629,6 +638,20 @@ pub(super) fn generate_ghcr_apptainer_publish_matrix(
         ghcr_publish_matrix_value(workspace, GhcrRuntimeKind::Apptainer, &package_prefix, &tools)?;
     write_utf8(&output, &json_string_pretty(&payload)?)?;
     success_line(format!("generated {}", output.display()))
+}
+
+pub(super) fn check_ghcr_publish_matrix(
+    workspace: &Workspace,
+    runtime: GhcrRuntimeKind,
+) -> Result<ContainerCommandOutcome> {
+    let payload = ghcr_publish_matrix_value(
+        workspace,
+        runtime,
+        &ghcr_package_prefix(workspace)?,
+        &BTreeSet::new(),
+    )?;
+    let count = payload.get("items").and_then(serde_json::Value::as_array).map_or(0, Vec::len);
+    success_line(format!("GHCR {} publish matrix: OK ({count} packages)", runtime.id()))
 }
 
 #[derive(Debug, Clone)]

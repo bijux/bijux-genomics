@@ -46,18 +46,28 @@ pub enum EnvCommand {
 pub struct EnsureImagesArgs {
     #[arg(long)]
     pub hpc_root: Option<PathBuf>,
-    #[arg(long)]
-    pub domain: String,
-    #[arg(long, help = "Single stage id like fastq.trim_reads", conflicts_with = "stages")]
+    #[arg(long, conflicts_with = "all_retained")]
+    pub domain: Option<String>,
+    #[arg(
+        long,
+        help = "Single stage id like fastq.trim_reads",
+        conflicts_with_all = ["stages", "all_retained"]
+    )]
     pub stage: Option<String>,
-    #[arg(long, help = "Comma-separated stage ids or short stage names")]
+    #[arg(long, help = "Comma-separated stage ids or short stage names", conflicts_with = "all_retained")]
     pub stages: Option<String>,
+    #[arg(long, default_value_t = false)]
+    pub all_retained: bool,
+    #[arg(long, conflicts_with_all = ["domain", "stage", "stages"])]
+    pub jobs: Option<usize>,
     #[arg(long, default_value_t = false)]
     pub force_smoke: bool,
     #[arg(long, default_value_t = false)]
     pub repair_mismatch: bool,
     #[arg(long, default_value_t = false)]
     pub json: bool,
+    #[arg(long)]
+    pub output: Option<PathBuf>,
 }
 
 #[derive(Debug, Args, Clone)]

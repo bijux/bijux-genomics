@@ -37,11 +37,17 @@ fn compiler_outputs_are_stable_across_repeated_runs() -> anyhow::Result<()> {
         ("ci/registry/domain_registry_release_bundle.json", "domain_registry_release_bundle.json"),
         ("ci/registry/tool_registry.toml", "tool_registry.toml"),
         ("ci/registry/tool_registry_experimental.toml", "tool_registry_experimental.toml"),
+        (
+            "ci/registry/tool_registry_container_experimental.toml",
+            "tool_registry_container_experimental.toml",
+        ),
         ("ci/registry/tool_registry_vcf.toml", "tool_registry_vcf.toml"),
+        ("ci/registry/tool_registry_vcf_downstream.toml", "tool_registry_vcf_downstream.toml"),
         ("ci/stages/stages.toml", "stages.toml"),
         ("ci/stages/stages_vcf.toml", "stages_vcf.toml"),
         ("ci/tools/images.toml", "images.toml"),
         ("ci/tools/required_tools.toml", "required_tools.toml"),
+        ("ci/tools/required_tools_vcf_downstream.toml", "required_tools_vcf_downstream.toml"),
     ];
     for (rel, name) in pairs {
         let a = std::fs::read_to_string(out_a.path().join(rel))?;

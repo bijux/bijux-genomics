@@ -1,0 +1,374 @@
+{
+  "schema_version": "bijux.benchmark.planner_stage_contract.v1",
+  "stage_id": "fastq.profile_read_lengths",
+  "parameter_schema_version": "bijux.fastq.params.read_length_profile.v1",
+  "default_provider": "bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults",
+  "output_contract": "bijux.fastq.profile_read_lengths.report.v2",
+  "observation_authority": "bijux_dna_api::internal::fastq::stages::profile_read_lengths",
+  "result_attribution": "backend_exact_observations_independently_validated",
+  "domain_defaults": {
+    "single_end": {
+      "histogram_bins": 100,
+      "paired_mode": "single_end",
+      "schema_version": "bijux.fastq.params.read_length_profile.v1",
+      "threads": 2
+    },
+    "paired_end": {
+      "histogram_bins": 100,
+      "paired_mode": "paired_end",
+      "schema_version": "bijux.fastq.params.read_length_profile.v1",
+      "threads": 2
+    }
+  },
+  "tools": [
+    {
+      "tool_id": "seqfu",
+      "single_end": {
+        "stage_id": "fastq.profile_read_lengths",
+        "stage_instance_id": "fastq.profile_read_lengths.tool.seqfu",
+        "stage_version": 1,
+        "tool_id": "seqfu",
+        "tool_version": "1.26.0",
+        "image": {
+          "image": "bijuxdna/seqfu:1.26.0",
+          "digest": null
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-c",
+            "seqfu tab '__BIJUX_READS_R1__' | awk -F '\\t' '{print $1 \"\\t\" length($3)}'"
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 1,
+          "tmp_gb": 1,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "report_json",
+              "path": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "length_distribution_tsv",
+              "path": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
+              "role": "summary_tsv",
+              "optional": false
+            },
+            {
+              "name": "length_distribution_json",
+              "path": "__BIJUX_RESULT_ROOT__/length_distribution.json",
+              "role": "metrics_json",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "histogram_bins": 100,
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": null,
+          "output_json": "__BIJUX_RESULT_ROOT__/length_distribution.json",
+          "output_tsv": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
+          "report_json": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
+          "threads": 4,
+          "tool": "seqfu"
+        },
+        "effective_params": {
+          "histogram_bins": 100,
+          "paired_mode": "single_end",
+          "schema_version": "bijux.fastq.params.read_length_profile.v1",
+          "threads": 4
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "pre-trim length distribution metrics",
+          "details": {}
+        }
+      },
+      "paired_end": {
+        "stage_id": "fastq.profile_read_lengths",
+        "stage_instance_id": "fastq.profile_read_lengths.tool.seqfu",
+        "stage_version": 1,
+        "tool_id": "seqfu",
+        "tool_version": "1.26.0",
+        "image": {
+          "image": "bijuxdna/seqfu:1.26.0",
+          "digest": null
+        },
+        "command": {
+          "template": [
+            "sh",
+            "-c",
+            "seqfu tab '__BIJUX_READS_R1__' | awk -F '\\t' '{print $1 \"\\t\" length($3)}'; seqfu tab '__BIJUX_READS_R2__' | awk -F '\\t' '{print $1 \"\\t\" length($3)}'"
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 1,
+          "tmp_gb": 1,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            },
+            {
+              "name": "reads_r2",
+              "path": "__BIJUX_READS_R2__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "report_json",
+              "path": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "length_distribution_tsv",
+              "path": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
+              "role": "summary_tsv",
+              "optional": false
+            },
+            {
+              "name": "length_distribution_json",
+              "path": "__BIJUX_RESULT_ROOT__/length_distribution.json",
+              "role": "metrics_json",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "histogram_bins": 100,
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": "__BIJUX_READS_R2__",
+          "output_json": "__BIJUX_RESULT_ROOT__/length_distribution.json",
+          "output_tsv": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
+          "report_json": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
+          "threads": 4,
+          "tool": "seqfu"
+        },
+        "effective_params": {
+          "histogram_bins": 100,
+          "paired_mode": "paired_end",
+          "schema_version": "bijux.fastq.params.read_length_profile.v1",
+          "threads": 4
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "pre-trim length distribution metrics",
+          "details": {}
+        }
+      }
+    },
+    {
+      "tool_id": "seqkit",
+      "single_end": {
+        "stage_id": "fastq.profile_read_lengths",
+        "stage_instance_id": "fastq.profile_read_lengths.tool.seqkit",
+        "stage_version": 1,
+        "tool_id": "seqkit",
+        "tool_version": "latest-pinned",
+        "image": {
+          "image": "bijuxdna/seqkit",
+          "digest": "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+        },
+        "command": {
+          "template": [
+            "seqkit",
+            "fx2tab",
+            "--name",
+            "--only-id",
+            "--length",
+            "--threads",
+            "4",
+            "__BIJUX_READS_R1__"
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 4,
+          "tmp_gb": 2,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "report_json",
+              "path": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "length_distribution_tsv",
+              "path": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
+              "role": "summary_tsv",
+              "optional": false
+            },
+            {
+              "name": "length_distribution_json",
+              "path": "__BIJUX_RESULT_ROOT__/length_distribution.json",
+              "role": "metrics_json",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "histogram_bins": 100,
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": null,
+          "output_json": "__BIJUX_RESULT_ROOT__/length_distribution.json",
+          "output_tsv": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
+          "report_json": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
+          "threads": 4,
+          "tool": "seqkit"
+        },
+        "effective_params": {
+          "histogram_bins": 100,
+          "paired_mode": "single_end",
+          "schema_version": "bijux.fastq.params.read_length_profile.v1",
+          "threads": 4
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "pre-trim length distribution metrics",
+          "details": {}
+        }
+      },
+      "paired_end": {
+        "stage_id": "fastq.profile_read_lengths",
+        "stage_instance_id": "fastq.profile_read_lengths.tool.seqkit",
+        "stage_version": 1,
+        "tool_id": "seqkit",
+        "tool_version": "latest-pinned",
+        "image": {
+          "image": "bijuxdna/seqkit",
+          "digest": "sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991"
+        },
+        "command": {
+          "template": [
+            "seqkit",
+            "fx2tab",
+            "--name",
+            "--only-id",
+            "--length",
+            "--threads",
+            "4",
+            "__BIJUX_READS_R1__",
+            "__BIJUX_READS_R2__"
+          ]
+        },
+        "resources": {
+          "runtime": "local",
+          "mem_gb": 4,
+          "tmp_gb": 2,
+          "threads": 4
+        },
+        "io": {
+          "inputs": [
+            {
+              "name": "reads_r1",
+              "path": "__BIJUX_READS_R1__",
+              "role": "reads",
+              "optional": false
+            },
+            {
+              "name": "reads_r2",
+              "path": "__BIJUX_READS_R2__",
+              "role": "reads",
+              "optional": false
+            }
+          ],
+          "outputs": [
+            {
+              "name": "report_json",
+              "path": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
+              "role": "report_json",
+              "optional": false
+            },
+            {
+              "name": "length_distribution_tsv",
+              "path": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
+              "role": "summary_tsv",
+              "optional": false
+            },
+            {
+              "name": "length_distribution_json",
+              "path": "__BIJUX_RESULT_ROOT__/length_distribution.json",
+              "role": "metrics_json",
+              "optional": false
+            }
+          ]
+        },
+        "out_dir": "__BIJUX_RESULT_ROOT__",
+        "params": {
+          "histogram_bins": 100,
+          "input_r1": "__BIJUX_READS_R1__",
+          "input_r2": "__BIJUX_READS_R2__",
+          "output_json": "__BIJUX_RESULT_ROOT__/length_distribution.json",
+          "output_tsv": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
+          "report_json": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
+          "threads": 4,
+          "tool": "seqkit"
+        },
+        "effective_params": {
+          "histogram_bins": 100,
+          "paired_mode": "paired_end",
+          "schema_version": "bijux.fastq.params.read_length_profile.v1",
+          "threads": 4
+        },
+        "operating_mode": "enforced",
+        "aux_images": {},
+        "canonical_contract": null,
+        "provenance": null,
+        "reason": {
+          "kind": "default",
+          "summary": "pre-trim length distribution metrics",
+          "details": {}
+        }
+      }
+    }
+  ]
+}

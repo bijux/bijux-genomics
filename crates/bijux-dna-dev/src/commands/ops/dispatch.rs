@@ -1,5 +1,5 @@
 use super::{
-    assets, docs, examples, hpc, lab, smoke, tooling, verification, NativeOpsCommandKey,
+    assets, docs, examples, hpc, lab, preflight, smoke, tooling, verification, NativeOpsCommandKey,
     OpsCommandOutcome, Result, Workspace,
 };
 
@@ -48,11 +48,17 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::HpcValidateFrontendConstraints => {
             hpc::hpc_validate_frontend_constraints(workspace, args)
         }
+        NativeOpsCommandKey::HpcSiteCyclePreflight => {
+            preflight::hpc_site_cycle_preflight(workspace, args)
+        }
         NativeOpsCommandKey::HpcRunFrontendMiniE2e => {
             hpc::hpc_run_frontend_mini_e2e(workspace, args)
         }
         NativeOpsCommandKey::HpcBenchmarkSyncPull => hpc::hpc_benchmark_sync_pull(workspace, args),
         NativeOpsCommandKey::HpcBenchmarkSyncPush => hpc::hpc_benchmark_sync_push(workspace, args),
+        NativeOpsCommandKey::HpcBenchmarkAttemptMigration => {
+            hpc::hpc_benchmark_attempt_migration(workspace, args)
+        }
         NativeOpsCommandKey::LabRunBench => lab::lab_run_bench(workspace, args),
         NativeOpsCommandKey::LabRunPipelines => lab::lab_run_pipelines(workspace, args),
         NativeOpsCommandKey::SmokeRun => smoke::smoke_run(workspace, args),

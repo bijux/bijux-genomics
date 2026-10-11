@@ -12,6 +12,17 @@ fn parse_seqkit_stats_parses_fixture() -> Result<()> {
 }
 
 #[test]
+fn parse_sequence_statistics_accepts_seqfu_columns() -> Result<()> {
+    let stdout = "File\t#Seq\tTotal bp\tAvg\tN50\tN75\tN90\tauN\tMin\tMax\t%GC\nreads.fastq.gz\t33128\t7687151\t232.04\t300\t254\t149\t264.88\t35\t301\t0.58\n";
+    let metrics = parse_seqkit_stats(stdout)?;
+
+    assert_eq!(metrics.reads, 33_128);
+    assert_eq!(metrics.bases, 7_687_151);
+    assert!((metrics.gc_percent - 58.0).abs() < f64::EPSILON * 100.0);
+    Ok(())
+}
+
+#[test]
 fn parse_length_histogram_parses_fixture() -> Result<()> {
     let stdout = "readA\t100\nreadB\t100\nreadC\t50\n";
     let metrics = parse_length_histogram(stdout)?;

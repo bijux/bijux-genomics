@@ -8,3 +8,11 @@ fn hash_is_deterministic() -> anyhow::Result<()> {
     assert_eq!(hash1, hash2);
     Ok(())
 }
+
+#[test]
+fn byte_hash_matches_sha256_known_answer() {
+    assert_eq!(
+        bijux_dna_infra::hash_bytes_sha256(b"bijux\n"),
+        "5043e50c2f6db002cc969ca9c644f30665c118d5a3d45dc68ade05b1f982ec69"
+    );
+}

@@ -34,6 +34,7 @@ tool_ids:
   - authenticct
   - bamtools
   - bamutil
+  - bcftools
   - bedtools
   - bowtie2
   - bwa
@@ -78,10 +79,10 @@ governed_stage_ids:
   - bam.validate
 governed_tool_ids:
   - addeam
-  - angsd
   - authenticct
   - bamtools
   - bamutil
+  - bcftools
   - bedtools
   - bowtie2
   - bwa
@@ -92,7 +93,6 @@ governed_tool_ids:
   - mapdamage2
   - mosdepth
   - multiqc
-  - ngsbriggs
   - picard
   - pmdtools
   - preseq
@@ -141,7 +141,7 @@ stage_tool_compatibility:
   bam.gc_bias:
   - picard
   bam.genotyping:
-  - angsd
+  - bcftools
   bam.haplogroups:
   - yleaf
   bam.insert_size:
@@ -215,7 +215,7 @@ stage_tool_integration:
   bam.gc_bias:
     picard: governed_contract
   bam.genotyping:
-    angsd: governed_contract
+    bcftools: governed_contract
   bam.haplogroups:
     yleaf: governed_contract
   bam.insert_size:
@@ -399,8 +399,7 @@ stage_default_settings:
   bam.haplogroups:
     yleaf: { profile: "adna_sane_default", notes: "planned haplogroup assignment preset" }
   bam.genotyping:
-    gatk: { profile: "adna_sane_default", notes: "planned genotyping preset" }
-    angsd: { profile: "adna_sane_default", notes: "planned low-depth genotyping preset" }
+    bcftools: { profile: "candidate_site_likelihoods", notes: "BCFtools mpileup and multiallelic calling with pinned reference, sites, regions, and ploidy inputs" }
 stage_comparability_mapping:
   bam.align: ["alignment_rate", "mapped_reads"]
   bam.validate: ["bam_validation_pass_rate"]

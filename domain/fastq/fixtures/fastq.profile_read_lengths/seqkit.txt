@@ -1,10 +1,9 @@
-tool=angsd
+tool=seqkit
 tool_version=pinned
-stage=bam.genotyping
-domain=bam
-shipping=external
+stage=fastq.profile_read_lengths
+domain=fastq
 fixture_kind=synthetic_truth
-command=angsd
+command=seqkit
 args=
 expected_outputs=contract_artifacts
 expected_stdout_patterns=contract_ok

@@ -1,0 +1,90 @@
+schema_version = "bijux.benchmark.stage_interfaces.v1"
+
+[[interfaces]]
+stage_id = "fastq.profile_read_lengths"
+accepted_input_contracts = [
+  "bijux.fastq.artifact.single_end.v1",
+  "bijux.fastq.artifact.paired_end.v1",
+]
+output_contract = "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json"
+parameter_schema_version = "bijux.fastq.params.read_length_profile.v1"
+default_provider = "bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+planner_contract = "benchmarks/contracts/planner/fastq-profile-read-lengths.planner-contract.json"
+operator_override_keys = ["threads", "histogram_bins"]
+input_derived_parameters = ["paired_mode"]
+immutable_parameters = ["schema_version"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["seqfu", "seqkit"]
+provenance_sources = [
+  "domain/fastq/stages/profile_read_lengths.yaml",
+  "domain/fastq/execution_support.yaml",
+  "crates/bijux-dna-domain-fastq/src/params/quality/stats.rs",
+  "crates/bijux-dna-domain-fastq/src/params/defaults/profiling.rs",
+  "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/pre/profile_read_lengths.rs",
+  "crates/bijux-dna-api/src/internal/fastq/stages/profile_read_lengths.rs",
+]
+
+[interfaces.adapters]
+seqfu = "bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths"
+seqkit = "bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths"
+
+[interfaces.parameter_projections.seqfu]
+threads = "scheduler allocation; SeqFu tabulate is single-stream"
+histogram_bins = "shared normalizer"
+
+[interfaces.parameter_projections.seqkit]
+threads = "seqkit fx2tab --threads"
+histogram_bins = "shared normalizer"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.fastq.profile_read_lengths.compare"
+input_contract = "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+source = "benchmarks/execution/fastq_read_lengths.awk"
+assertions = [
+  "every retained backend emits record_id<TAB>length without tool-specific downstream parsing",
+  "every backend observation set exactly matches the independently decoded FASTQ truth rows",
+  "every normalized bundle satisfies one result schema and preserves a deterministic histogram artifact",
+]
+
+[[interfaces]]
+stage_id = "fastq.profile_reads"
+accepted_input_contracts = [
+  "bijux.fastq.artifact.single_end.v1",
+  "bijux.fastq.artifact.paired_end.v1",
+  "bijux.fastq.artifact.merged.v1",
+]
+output_contract = "bijux.benchmark.fastq.profile_reads.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/fastq-profile-reads-result.schema.json"
+parameter_schema_version = "bijux.fastq.params.stats.v1"
+default_provider = "bijux_dna_domain_fastq::params::defaults::stats_defaults"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = ["threads"]
+input_derived_parameters = ["paired_mode"]
+immutable_parameters = ["schema_version"]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["seqfu", "seqkit", "seqkit_stats"]
+provenance_sources = [
+  "crates/bijux-dna-domain-fastq/src/stages/contract/catalog.rs",
+  "crates/bijux-dna-domain-fastq/src/params/quality/stats.rs",
+  "crates/bijux-dna-domain-fastq/src/params/defaults/profiling.rs",
+  "crates/bijux-dna-domain-fastq/src/artifacts/profile_reads.rs",
+  "crates/bijux-dna-domain-fastq/src/observer/contracts/core.rs",
+  "crates/bijux-dna-planner-fastq/src/tool_adapters/stages/qc/profile_reads.rs",
+]
+
+[interfaces.adapters]
+seqfu = "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads"
+seqkit = "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads"
+seqkit_stats = "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.fastq.profile_reads.compare"
+input_contract = "bijux.benchmark.fastq.profile_reads.bundle.v1"
+source = "benchmarks/execution/fastq_profile_reads.awk"
+assertions = [
+  "every retained tool output normalizes to the same benchmark bundle schema",
+  "every normalized bundle contributes the same required comparison fields",
+  "the comparison consumer accepts each tool result without tool-specific branching",
+]

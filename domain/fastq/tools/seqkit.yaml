@@ -49,6 +49,12 @@ outputs:
   - name: "report_json"
     data_type: "json"
     cardinality: "One"
+  - name: "length_distribution_tsv"
+    data_type: "tsv"
+    cardinality: "One"
+  - name: "length_distribution_json"
+    data_type: "json"
+    cardinality: "One"
 metrics_parser: "seqkit_v1"
 constraints:
   runtime: "local"
@@ -88,6 +94,7 @@ stage_ids:
   - "fastq.trim_terminal_damage"
   - "fastq.profile_overrepresented_sequences"
   - "fastq.profile_reads"
+  - "fastq.profile_read_lengths"
 stage_contracts:
   fastq.trim_reads:
     required_inputs:
@@ -143,6 +150,21 @@ stage_contracts:
       - "qc_json"
       - "qc_tsv"
     notes: "seqkit read profiling retains the backend stats invocation while publishing the governed qc_json and qc_tsv profile artifacts without mutating reads."
+  fastq.profile_read_lengths:
+    required_inputs:
+      - "reads_r1"
+    optional_inputs:
+      - "reads_r2"
+    execution_contract:
+      expected_outputs:
+        - "report_json"
+        - "length_distribution_tsv"
+        - "length_distribution_json"
+    expected_artifacts:
+      - "report_json"
+      - "length_distribution_tsv"
+      - "length_distribution_json"
+    notes: "SeqKit fx2tab emits one observed length per FASTQ record; the shared observer normalizes those exact observations into the governed histogram and report contracts."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
@@ -156,6 +178,8 @@ expected_artifacts:
   - "report_json"
   - "qc_json"
   - "qc_tsv"
+  - "length_distribution_tsv"
+  - "length_distribution_json"
 metrics_schema_id: "bijux.stage.metrics.v1"
 metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "seqkit --version"

@@ -43,6 +43,9 @@ pub(crate) fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<()> {
     {
         let entry = entry?;
         let path = entry.path();
+        if entry.file_name().to_string_lossy().starts_with('.') {
+            continue;
+        }
         if path.is_dir() {
             collect_files(&path, out)?;
         } else if path.is_file() {
@@ -113,4 +116,26 @@ fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
         let _ = write!(&mut hex, "{byte:02x}");
     }
     hex
+}
+
+#[cfg(test)]
+mod tests {
+    use super::domain_content_hash;
+
+    #[test]
+    fn domain_identity_ignores_hidden_host_metadata() -> anyhow::Result<()> {
+        let root = bijux_dna_infra::temp_dir("bijux-domain-identity-")?;
+        let domain = root.path().join("domain");
+        bijux_dna_infra::ensure_dir(&domain)?;
+        bijux_dna_infra::atomic_write_bytes(&domain.join("tool.yaml"), b"id: samtools\n")?;
+        let expected = domain_content_hash(&domain)?;
+
+        bijux_dna_infra::atomic_write_bytes(&domain.join(".DS_Store"), b"host metadata")?;
+        let hidden = domain.join(".cache");
+        bijux_dna_infra::ensure_dir(&hidden)?;
+        bijux_dna_infra::atomic_write_bytes(&hidden.join("state"), b"local state")?;
+
+        assert_eq!(domain_content_hash(&domain)?, expected);
+        Ok(())
+    }
 }

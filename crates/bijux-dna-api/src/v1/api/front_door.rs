@@ -33,6 +33,11 @@ pub mod plan {
     pub use crate::v1::plan::*;
 }
 
+/// Evidence qualification contracts (v1).
+pub mod qualification {
+    pub use crate::v1::qualification::*;
+}
+
 /// Run orchestration helpers (v1).
 pub mod run {
     pub use crate::v1::run::*;

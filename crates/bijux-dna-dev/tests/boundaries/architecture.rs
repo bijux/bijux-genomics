@@ -96,7 +96,7 @@ fn dev_tree_matches_architecture_contract() {
 
     let repo_checks_entries = dir_entries(&root.join("src/commands/repo_checks"));
     let expected_repo_checks: BTreeSet<_> =
-        ["artifacts.rs", "governance.rs", "workspace_contracts.rs"]
+        ["artifacts.rs", "governance.rs", "ownership.rs", "workspace_contracts.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
@@ -109,6 +109,7 @@ fn dev_tree_matches_architecture_contract() {
     let expected_containers: BTreeSet<_> = [
         "command_support.rs",
         "content_support.rs",
+        "contracts.rs",
         "dispatch.rs",
         "metadata.rs",
         "mod.rs",

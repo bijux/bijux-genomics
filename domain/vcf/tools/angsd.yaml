@@ -10,10 +10,10 @@ authoritative: false
 strict_capable: true
 status: "planned"
 scope: "post_vcf"
-default_version: "0.940"
+default_version: "0.941"
 upstream: "https://github.com/ANGSD/angsd"
-pin_strategy: "container_digest"
-license: "GPL-3.0"
+pin_strategy: "external_tool"
+license: "NOASSERTION"
 citation: "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
 version_cmd: "angsd 2>&1 | head -n 1"
 help_cmd: "angsd -h"

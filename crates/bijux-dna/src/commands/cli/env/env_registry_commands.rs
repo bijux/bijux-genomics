@@ -1,6 +1,8 @@
 mod env_benchmark_roots;
 
-use self::env_benchmark_roots::benchmark_env_roots;
+use rayon::prelude::*;
+
+use self::env_benchmark_roots::{benchmark_env_roots, benchmark_env_roots_at_hpc_root};
 #[cfg(test)]
 use self::env_benchmark_roots::{shared_cache_root, BenchmarkEnvRoots};
 
@@ -19,6 +21,144 @@ fn apptainer_section_body<'a>(raw: &'a str, section: &str) -> Option<&'a str> {
         .filter(|chunk| !chunk.is_empty())
 }
 
+fn current_clean_repository_commit(repository_root: &Path) -> Result<String> {
+    let root = repository_root.display().to_string();
+    let status = run_command(
+        "git",
+        &[
+            "-C".to_string(),
+            root.clone(),
+            "status".to_string(),
+            "--porcelain=v1".to_string(),
+            "--untracked-files=normal".to_string(),
+        ],
+    )?;
+    if status.exit_code != 0 {
+        return Err(anyhow!("cannot inspect repository state: {}", status.stderr.trim()));
+    }
+    if !status.stdout.trim().is_empty() {
+        return Err(anyhow!(
+            "refusing Apptainer build from repository changes; commit the exact catalog, recipe, and build inputs first"
+        ));
+    }
+    let revision =
+        run_command("git", &["-C".to_string(), root, "rev-parse".to_string(), "HEAD".to_string()])?;
+    if revision.exit_code != 0 {
+        return Err(anyhow!("cannot resolve repository commit: {}", revision.stderr.trim()));
+    }
+    let commit = revision.stdout.trim().to_ascii_lowercase();
+    if commit.len() != 40 || !commit.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err(anyhow!("repository revision is not a full Git commit: {commit}"));
+    }
+    Ok(commit)
+}
+
+fn prepare_apptainer_build(
+    repository_root: &Path,
+    repository_commit: &str,
+    tool_id: &str,
+) -> Result<bijux_dna_api::v1::api::env::PreparedToolContractBuild> {
+    bijux_dna_api::v1::api::env::prepare_apptainer_tool_contract(
+        &bijux_dna_api::v1::api::env::ToolContractBuildRequest {
+            repository_root: repository_root.to_path_buf(),
+            tool_id: tool_id.to_string(),
+            repository_commit: repository_commit.to_string(),
+            architecture: "linux/amd64".to_string(),
+            output_root: repository_root.join("artifacts/containers/tool-contract-build-inputs"),
+        },
+    )
+}
+
+fn verify_apptainer_build(
+    sif_path: &Path,
+    prepared: &bijux_dna_api::v1::api::env::PreparedToolContractBuild,
+) -> Result<String> {
+    let image_sha256 = hash_file_sha256_hex(sif_path)?;
+    bijux_dna_api::v1::api::env::verify_apptainer_tool_contract(
+        Path::new("apptainer"),
+        sif_path,
+        &image_sha256,
+        &prepared.contract,
+    )?;
+    Ok(image_sha256)
+}
+
+fn materialize_apptainer_build(
+    sif_path: &Path,
+    prepared: &bijux_dna_api::v1::api::env::PreparedToolContractBuild,
+    repair_mismatch: bool,
+    containers_root: &Path,
+) -> Result<(String, bool)> {
+    if sif_path.is_file() {
+        match verify_apptainer_build(sif_path, prepared) {
+            Ok(image_sha256) => return Ok((image_sha256, false)),
+            Err(error) if !repair_mismatch => {
+                return Err(anyhow!(
+                    "cached Apptainer image has invalid tool identity at {}: {error}; rerun with --repair-mismatch",
+                    sif_path.display()
+                ));
+            }
+            Err(_) => quarantine_file(
+                sif_path,
+                &containers_root.join("quarantine"),
+                "contract_identity_mismatch",
+            )?,
+        }
+    }
+    bijux_dna_api::v1::api::env::build_apptainer_image(
+        &bijux_dna_api::v1::api::env::ApptainerBuildRequest::retained(
+            prepared.rendered_definition_path.clone(),
+            sif_path.to_path_buf(),
+            containers_root,
+            prepared.contract.tool_id.clone(),
+            prepared.contract.build_evidence_id.clone(),
+        ),
+    )?;
+    Ok((verify_apptainer_build(sif_path, prepared)?, true))
+}
+
+#[allow(clippy::too_many_arguments)]
+fn execute_contract_smoke(
+    sif_path: &Path,
+    tool_id: &str,
+    stage_id: &str,
+    build_evidence_id: &str,
+    repository_commit: &str,
+    registry_digest: &str,
+    sif_sha256: &str,
+    version_command: &str,
+    expected_version_regex: &str,
+    help_command: &str,
+    require_help: bool,
+    probe_commands: &[String],
+    java_heap_mb: Option<u64>,
+    upstream: &str,
+    data_root: &Path,
+    results_root: &Path,
+) -> Result<bijux_dna_api::v1::api::env::ApptainerSmokeManifest> {
+    bijux_dna_api::v1::api::env::run_apptainer_smoke(
+        &bijux_dna_api::v1::api::env::ApptainerSmokeRequest {
+            executable: PathBuf::from("apptainer"),
+            image_path: sif_path.to_path_buf(),
+            data_root: data_root.to_path_buf(),
+            results_root: results_root.to_path_buf(),
+            tool_id: tool_id.to_string(),
+            stage_id: stage_id.to_string(),
+            build_evidence_id: build_evidence_id.to_string(),
+            repository_commit: repository_commit.to_string(),
+            registry_digest: registry_digest.to_string(),
+            image_sha256: sif_sha256.to_string(),
+            version_command: version_command.to_string(),
+            expected_version_regex: expected_version_regex.to_string(),
+            help_command: help_command.to_string(),
+            require_help,
+            probe_commands: probe_commands.to_vec(),
+            java_heap_mb,
+            upstream: upstream.to_string(),
+        },
+    )
+}
+
 /// # Errors
 /// Returns an error if registry parsing, Apptainer build/smoke, or manifest writes fail.
 pub fn ensure_apptainer_images(
@@ -28,6 +168,49 @@ pub fn ensure_apptainer_images(
     stages_csv: &str,
     force_smoke: bool,
     repair_mismatch: bool,
+) -> Result<EnsureImagesReport> {
+    ensure_apptainer_images_with_root_policy(
+        registry_path,
+        hpc_root,
+        domain,
+        stages_csv,
+        force_smoke,
+        repair_mismatch,
+        false,
+    )
+}
+
+/// Build or verify selected images under the exact operator-supplied HPC root.
+///
+/// # Errors
+/// Returns an error if registry parsing, Apptainer build/smoke, or manifest writes fail.
+pub fn ensure_apptainer_images_at_root(
+    registry_path: &Path,
+    hpc_root: &Path,
+    domain: &str,
+    stages_csv: &str,
+    force_smoke: bool,
+    repair_mismatch: bool,
+) -> Result<EnsureImagesReport> {
+    ensure_apptainer_images_with_root_policy(
+        registry_path,
+        hpc_root,
+        domain,
+        stages_csv,
+        force_smoke,
+        repair_mismatch,
+        true,
+    )
+}
+
+fn ensure_apptainer_images_with_root_policy(
+    registry_path: &Path,
+    hpc_root: &Path,
+    domain: &str,
+    stages_csv: &str,
+    force_smoke: bool,
+    repair_mismatch: bool,
+    exact_hpc_root: bool,
 ) -> Result<EnsureImagesReport> {
     let cwd = std::env::current_dir().context("resolve current working directory")?;
     let raw = std::fs::read_to_string(registry_path)
@@ -41,8 +224,13 @@ pub fn ensure_apptainer_images(
         .map(|row| (row.id.clone(), row))
         .collect::<std::collections::BTreeMap<_, _>>();
     let stage_ids = normalize_stage_ids(domain, stages_csv);
+    let repository_commit = current_clean_repository_commit(&cwd)?;
 
-    let roots = benchmark_env_roots(&cwd, hpc_root)?;
+    let roots = if exact_hpc_root {
+        benchmark_env_roots_at_hpc_root(hpc_root)
+    } else {
+        benchmark_env_roots(&cwd, hpc_root)?
+    };
     let containers_root = roots.containers_root;
     let data_root = roots.corpus_root;
     let results_root = roots.results_root;
@@ -81,29 +269,37 @@ pub fn ensure_apptainer_images(
             };
             let registry_digest = expected_registry_digest(tool)
                 .ok_or_else(|| anyhow!("tool {tool_id} is missing sha256 pin in registry"))?;
+            let prepared = prepare_apptainer_build(&cwd, &repository_commit, &tool_id)?;
+            if prepared.contract.recipe_path != def_rel {
+                return Err(anyhow!(
+                    "registry and catalog Apptainer definitions disagree for {tool_id}: {} != {def_rel}",
+                    prepared.contract.recipe_path
+                ));
+            }
+            let build_identity = &prepared.contract.build_evidence_id;
             let tool_dir = containers_root.join(&tool_id);
             bijux_dna_api::v1::api::run::ensure_dir(&tool_dir)?;
-            let sif_path = tool_dir.join(format!("{registry_digest}.sif"));
+            let sif_path = tool_dir.join(format!("{build_identity}.sif"));
             let smoke_manifest_path =
-                tool_dir.join(format!("{registry_digest}.smoke_manifest.json"));
+                tool_dir.join(format!("{build_identity}.smoke_manifest.json"));
             let compat_smoke_manifest_path = tool_dir.join("smoke_manifest.json");
-            let mut built_this = false;
             quarantine_unexpected_sifs(
                 &tool_dir,
-                &registry_digest,
+                build_identity,
                 repair_mismatch,
                 &containers_root,
             )?;
-            if sif_path.exists() {
-                reused += 1;
-            } else {
-                let def_path = std::env::current_dir()?.join(def_rel);
-                build_apptainer_image(&def_path, &sif_path)?;
-                built_this = true;
+            let (sif_sha256, built_this) = materialize_apptainer_build(
+                &sif_path,
+                &prepared,
+                repair_mismatch,
+                &containers_root,
+            )?;
+            if built_this {
                 built += 1;
+            } else {
+                reused += 1;
             }
-
-            let sif_sha256 = hash_file_sha256_hex(&sif_path)?;
 
             let do_quick_smoke = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
             let version_cmd = tool
@@ -129,13 +325,16 @@ pub fn ensure_apptainer_images(
             let mut status = "ok".to_string();
             if do_quick_smoke {
                 quick_smoked += 1;
-                let smoke = run_smoke_with_manifest(
+                let smoke = execute_contract_smoke(
                     &sif_path,
                     &tool_id,
                     stage_id,
+                    build_identity,
+                    &repository_commit,
                     &registry_digest,
                     &sif_sha256,
                     &version_cmd,
+                    &prepared.contract.expected_version_regex,
                     &help_cmd,
                     require_help,
                     &probe_commands,
@@ -143,7 +342,7 @@ pub fn ensure_apptainer_images(
                     declared_registry_text(tool.upstream.as_deref(), "not_declared"),
                     &data_root,
                     &results_root,
-                );
+                )?;
                 if smoke.status != "ok" {
                     status = "wrapper_failed_auto_demoted".to_string();
                     failed += 1;
@@ -159,6 +358,8 @@ pub fn ensure_apptainer_images(
                 tool_id: tool_id.clone(),
                 stage_id: stage_id.clone(),
                 sif_path: sif_path.display().to_string(),
+                build_evidence_id: build_identity.clone(),
+                repository_commit: repository_commit.clone(),
                 registry_digest: registry_digest.clone(),
                 sif_sha256,
                 built: built_this,
@@ -171,7 +372,7 @@ pub fn ensure_apptainer_images(
     write_auto_demote_state(&containers_root, &auto_demoted)?;
 
     Ok(EnsureImagesReport {
-        schema_version: "bijux.apptainer.ensure_images.v1",
+        schema_version: "bijux.apptainer.ensure_images.v2",
         domain: domain.to_string(),
         stages: stage_ids,
         tools: reports,
@@ -180,6 +381,212 @@ pub fn ensure_apptainer_images(
         quick_smoked,
         failed,
     })
+}
+
+/// Build or verify the complete retained Apptainer roster from the canonical catalog.
+///
+/// # Errors
+/// Returns an error when repository, catalog, root, or worker-pool contracts are invalid.
+pub fn ensure_retained_apptainer_roster_at_root(
+    hpc_root: &Path,
+    jobs: usize,
+    force_smoke: bool,
+    repair_mismatch: bool,
+) -> Result<EnsureRetainedRosterReport> {
+    if !(1..=4).contains(&jobs) {
+        return Err(anyhow!("retained image roster concurrency must be between 1 and 4"));
+    }
+    let repository_root = std::env::current_dir().context("resolve current working directory")?;
+    let repository_commit = current_clean_repository_commit(&repository_root)?;
+    let architecture = "linux/amd64";
+    let catalog_sha256 =
+        hash_file_sha256_hex(&repository_root.join("containers/contracts/catalog.toml"))?;
+    let tool_ids = bijux_dna_api::v1::api::env::retained_apptainer_tool_ids(
+        &repository_root,
+        architecture,
+    )?;
+    let roots = benchmark_env_roots_at_hpc_root(hpc_root);
+    bijux_dna_api::v1::api::run::ensure_dir(&roots.containers_root)?;
+    bijux_dna_api::v1::api::run::ensure_dir(&roots.corpus_root)?;
+    bijux_dna_api::v1::api::run::ensure_dir(&roots.results_root)?;
+    let _roster_lock = bijux_dna_infra::FileLock::acquire(
+        &roots.containers_root.join("evidence/.retained-roster.lock"),
+        std::time::Duration::from_secs(1),
+    )
+    .context("acquire retained image roster lock")?;
+
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(jobs)
+        .thread_name(|index| format!("bijux-image-build-{index}"))
+        .build()
+        .context("create retained image build worker pool")?;
+    let reports = pool.install(|| {
+        tool_ids
+            .par_iter()
+            .map(|tool_id| {
+                match ensure_retained_apptainer_tool(
+                    &repository_root,
+                    &repository_commit,
+                    tool_id,
+                    &roots.containers_root,
+                    &roots.corpus_root,
+                    &roots.results_root,
+                    force_smoke,
+                    repair_mismatch,
+                ) {
+                    Ok(report) => report,
+                    Err(error) => {
+                        let prepared =
+                            prepare_apptainer_build(&repository_root, &repository_commit, tool_id)
+                                .ok();
+                        let build_log = prepared.as_ref().and_then(|build| {
+                            latest_retained_build_log(
+                                &roots.containers_root,
+                                tool_id,
+                                &build.contract.build_evidence_id,
+                            )
+                        });
+                        let build_log_sha256 = build_log
+                            .as_ref()
+                            .and_then(|(_, path)| hash_file_sha256_hex(path).ok());
+                        EnsureRetainedToolReport {
+                            tool_id: tool_id.clone(),
+                            contract: prepared.map(|build| build.contract),
+                            sif_path: None,
+                            sif_sha256: None,
+                            build_log_path: build_log
+                                .as_ref()
+                                .map(|(_, path)| path.display().to_string()),
+                            build_log_sha256,
+                            build_log_attempt: build_log.map(|(attempt, _)| attempt),
+                            built: false,
+                            quick_smoked: false,
+                            status: "failed".to_string(),
+                            error: Some(format!("{error:#}")),
+                        }
+                    }
+                }
+            })
+            .collect::<Vec<_>>()
+    });
+    let auto_demoted = reports
+        .iter()
+        .filter(|report| report.status != "passed")
+        .map(|report| report.tool_id.clone())
+        .collect::<Vec<_>>();
+    write_auto_demote_state(&roots.containers_root, &auto_demoted)?;
+    let built = reports.iter().filter(|report| report.built).count();
+    let reused = reports
+        .iter()
+        .filter(|report| !report.built && report.sif_path.is_some())
+        .count();
+    let quick_smoked = reports.iter().filter(|report| report.quick_smoked).count();
+    let failed = reports.iter().filter(|report| report.status != "passed").count();
+    Ok(EnsureRetainedRosterReport {
+        schema_version: "bijux.apptainer.retained_roster.v1",
+        repository_commit,
+        architecture: architecture.to_string(),
+        catalog_sha256,
+        requested_tool_count: tool_ids.len(),
+        tools: reports,
+        built,
+        reused,
+        quick_smoked,
+        failed,
+    })
+}
+
+#[allow(clippy::too_many_arguments)]
+fn ensure_retained_apptainer_tool(
+    repository_root: &Path,
+    repository_commit: &str,
+    tool_id: &str,
+    containers_root: &Path,
+    data_root: &Path,
+    results_root: &Path,
+    force_smoke: bool,
+    repair_mismatch: bool,
+) -> Result<EnsureRetainedToolReport> {
+    let prepared = prepare_apptainer_build(repository_root, repository_commit, tool_id)?;
+    let build_identity = prepared.contract.build_evidence_id.clone();
+    let tool_dir = containers_root.join(tool_id);
+    bijux_dna_api::v1::api::run::ensure_dir(&tool_dir)?;
+    let sif_path = tool_dir.join(format!("{build_identity}.sif"));
+    let smoke_manifest_path = tool_dir.join(format!("{build_identity}.smoke_manifest.json"));
+    let compat_smoke_manifest_path = tool_dir.join("smoke_manifest.json");
+    quarantine_unexpected_sifs(&tool_dir, &build_identity, repair_mismatch, containers_root)?;
+    let (sif_sha256, built) = materialize_apptainer_build(
+        &sif_path,
+        &prepared,
+        repair_mismatch,
+        containers_root,
+    )?;
+    let quick_smoked = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
+    let mut status = "passed".to_string();
+    let mut error = None;
+    if quick_smoked {
+        let help_command = format!("{} --help", prepared.contract.expected_binary);
+        let smoke = execute_contract_smoke(
+            &sif_path,
+            tool_id,
+            "catalog.retained",
+            &build_identity,
+            repository_commit,
+            &prepared.contract.catalog_sha256,
+            &sif_sha256,
+            &prepared.contract.version_command,
+            &prepared.contract.expected_version_regex,
+            &help_command,
+            false,
+            &[],
+            None,
+            "catalog-declared",
+            data_root,
+            results_root,
+        )?;
+        if smoke.status != "ok" {
+            status = "failed".to_string();
+            error = Some(format!(
+                "quick smoke failed; inspect {}",
+                smoke_manifest_path.display()
+            ));
+        }
+        bijux_dna_infra::atomic_write_json(&smoke_manifest_path, &smoke)
+            .with_context(|| format!("write {}", smoke_manifest_path.display()))?;
+        bijux_dna_infra::atomic_write_json(&compat_smoke_manifest_path, &smoke)
+            .with_context(|| format!("write {}", compat_smoke_manifest_path.display()))?;
+    }
+    let latest_build_log = latest_retained_build_log(containers_root, tool_id, &build_identity);
+    Ok(EnsureRetainedToolReport {
+        tool_id: tool_id.to_string(),
+        contract: Some(prepared.contract),
+        sif_path: Some(sif_path.display().to_string()),
+        sif_sha256: Some(sif_sha256),
+        build_log_path: latest_build_log
+            .as_ref()
+            .map(|(_, path)| path.display().to_string()),
+        build_log_sha256: latest_build_log
+            .as_ref()
+            .map(|(_, path)| hash_file_sha256_hex(path))
+            .transpose()?,
+        build_log_attempt: latest_build_log.map(|(attempt, _)| attempt),
+        built,
+        quick_smoked,
+        status,
+        error,
+    })
+}
+
+fn latest_retained_build_log(
+    containers_root: &Path,
+    tool_id: &str,
+    build_identity: &str,
+) -> Option<(u32, PathBuf)> {
+    bijux_dna_api::v1::api::env::latest_apptainer_build_attempt(
+        &containers_root.join("evidence/build-logs"),
+        tool_id,
+        build_identity,
+    )
 }
 
 /// # Errors
@@ -206,6 +613,7 @@ pub fn ensure_apptainer_tools(
     if requested.is_empty() {
         return Err(anyhow!("no tool ids provided for apptainer ensure"));
     }
+    let repository_commit = current_clean_repository_commit(&cwd)?;
 
     let roots = benchmark_env_roots(&cwd, hpc_root)?;
     let containers_root = roots.containers_root;
@@ -230,23 +638,26 @@ pub fn ensure_apptainer_tools(
             .ok_or_else(|| anyhow!("tool `{tool_id}` is missing apptainer_def"))?;
         let registry_digest = expected_registry_digest(tool)
             .ok_or_else(|| anyhow!("tool {tool_id} is missing a stable apptainer cache key"))?;
+        let prepared = prepare_apptainer_build(&cwd, &repository_commit, tool_id)?;
+        if prepared.contract.recipe_path != def_rel {
+            return Err(anyhow!(
+                "registry and catalog Apptainer definitions disagree for {tool_id}: {} != {def_rel}",
+                prepared.contract.recipe_path
+            ));
+        }
+        let build_identity = &prepared.contract.build_evidence_id;
         let tool_dir = containers_root.join(tool_id);
         bijux_dna_api::v1::api::run::ensure_dir(&tool_dir)?;
-        let sif_path = tool_dir.join(format!("{registry_digest}.sif"));
-        let smoke_manifest_path = tool_dir.join(format!("{registry_digest}.smoke_manifest.json"));
+        let sif_path = tool_dir.join(format!("{build_identity}.sif"));
+        let smoke_manifest_path = tool_dir.join(format!("{build_identity}.smoke_manifest.json"));
         let compat_smoke_manifest_path = tool_dir.join("smoke_manifest.json");
-        quarantine_unexpected_sifs(
-            &tool_dir,
-            &registry_digest,
+        quarantine_unexpected_sifs(&tool_dir, build_identity, repair_mismatch, &containers_root)?;
+        let (sif_sha256, _built) = materialize_apptainer_build(
+            &sif_path,
+            &prepared,
             repair_mismatch,
             &containers_root,
         )?;
-        if !sif_path.exists() {
-            let def_path = std::env::current_dir()?.join(def_rel);
-            build_apptainer_image(&def_path, &sif_path)?;
-        }
-
-        let sif_sha256 = hash_file_sha256_hex(&sif_path)?;
         let do_quick_smoke = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
         if !do_quick_smoke {
             continue;
@@ -264,15 +675,18 @@ pub fn ensure_apptainer_tools(
             .or(tool.help_cmd.clone())
             .filter(|value| !value.trim().is_empty())
             .unwrap_or_else(|| format!("{tool_id} --help"));
-        let smoke = run_smoke_with_manifest(
+        let smoke = execute_contract_smoke(
             &sif_path,
             tool_id,
             tool.stage_ids
                 .first()
                 .map_or("tool.apptainer", std::string::String::as_str),
+            build_identity,
+            &repository_commit,
             &registry_digest,
             &sif_sha256,
             &version_cmd,
+            &prepared.contract.expected_version_regex,
             &help_cmd,
             tool.smoke_require_help.unwrap_or(true),
             &tool.smoke_probes,
@@ -280,7 +694,7 @@ pub fn ensure_apptainer_tools(
             declared_registry_text(tool.upstream.as_deref(), "not_declared"),
             &data_root,
             &results_root,
-        );
+        )?;
         if smoke.status != "ok" {
             auto_demoted.push(tool_id.to_string());
         }
@@ -398,8 +812,27 @@ pub fn parse_stage_domain(stage: &str) -> Result<String> {
 /// # Errors
 /// Returns an error if the containers inventory cannot be read.
 pub fn sif_inventory(root: &Path) -> Result<SifInventoryReport> {
+    sif_inventory_with_root_policy(root, false)
+}
+
+/// Inventory images under the exact operator-supplied HPC root.
+///
+/// # Errors
+/// Returns an error if the containers inventory cannot be read.
+pub fn sif_inventory_at_root(root: &Path) -> Result<SifInventoryReport> {
+    sif_inventory_with_root_policy(root, true)
+}
+
+fn sif_inventory_with_root_policy(
+    root: &Path,
+    exact_hpc_root: bool,
+) -> Result<SifInventoryReport> {
     let cwd = std::env::current_dir().context("resolve current working directory")?;
-    let containers_dir = benchmark_env_roots(&cwd, root)?.containers_root;
+    let containers_dir = if exact_hpc_root {
+        benchmark_env_roots_at_hpc_root(root).containers_root
+    } else {
+        benchmark_env_roots(&cwd, root)?.containers_root
+    };
     let mut entries = Vec::new();
     let mut stack = vec![containers_dir.clone()];
     while let Some(dir) = stack.pop() {
@@ -502,7 +935,8 @@ pub fn generate_apptainer_qa_matrix_markdown(root: &Path) -> Result<String> {
 #[allow(clippy::expect_used)]
 mod env_registry_command_tests {
     use super::{
-        benchmark_env_roots, requires_governed_oci_metadata, shared_cache_root, BenchmarkEnvRoots,
+        benchmark_env_roots, benchmark_env_roots_at_hpc_root, current_clean_repository_commit,
+        requires_governed_oci_metadata, shared_cache_root, BenchmarkEnvRoots,
     };
     use std::path::{Path, PathBuf};
     use tempfile::TempDir;
@@ -558,6 +992,20 @@ containers_root = "/remote/.cache/bijux-dna-container"
     }
 
     #[test]
+    fn explicit_hpc_root_bypasses_workspace_contract() {
+        let temp = TempDir::new().expect("tempdir");
+        write_workspace_contract(&temp);
+
+        let roots = benchmark_env_roots_at_hpc_root(Path::new("/isolated/image-campaign"));
+
+        assert_eq!(roots.cache_root, PathBuf::from("/isolated/image-campaign/.cache"));
+        assert_eq!(
+            roots.containers_root,
+            PathBuf::from("/isolated/image-campaign/.cache/bijux-dna-container")
+        );
+    }
+
+    #[test]
     fn benchmark_env_roots_fall_back_to_cache_layout_without_contract() {
         let temp = TempDir::new().expect("tempdir");
 
@@ -590,6 +1038,72 @@ containers_root = "/remote/.cache/bijux-dna-container"
             defs_root,
             &defs_root.join("external").join("tool.def")
         ));
+    }
+
+    #[test]
+    fn apptainer_build_identity_requires_a_clean_tracked_repository() {
+        let workspace = std::env::current_dir().expect("current workspace");
+        let root = workspace.join("artifacts/tests/apptainer-build-identity");
+        bijux_dna_infra::ensure_dir(&root).expect("create test artifact root");
+        let repository = bijux_dna_infra::temp_dir_in(&root, "repository-")
+            .expect("create test repository");
+        for args in [
+            vec!["init"],
+            vec!["config", "user.name", "Bijux Test"],
+            vec!["config", "user.email", "test@bijux.invalid"],
+        ] {
+            let output = bijux_dna_api::v1::api::run::run_command(
+                "git",
+                &std::iter::once("-C".to_string())
+                    .chain(std::iter::once(repository.path().display().to_string()))
+                    .chain(args.into_iter().map(str::to_string))
+                    .collect::<Vec<_>>(),
+            )
+            .expect("configure test repository");
+            assert_eq!(output.exit_code, 0, "git setup failed: {}", output.stderr);
+        }
+        let tracked = repository.path().join("catalog.toml");
+        bijux_dna_infra::atomic_write_bytes(&tracked, b"version = 1\n")
+            .expect("write tracked source");
+        bijux_dna_infra::atomic_write_bytes(&repository.path().join(".gitignore"), b"/artifacts/\n")
+            .expect("write artifact exclusion");
+        for args in [
+            vec!["add", "catalog.toml", ".gitignore"],
+            vec!["commit", "-m", "test source"],
+        ] {
+            let output = bijux_dna_api::v1::api::run::run_command(
+                "git",
+                &std::iter::once("-C".to_string())
+                    .chain(std::iter::once(repository.path().display().to_string()))
+                    .chain(args.into_iter().map(str::to_string))
+                    .collect::<Vec<_>>(),
+            )
+            .expect("commit test source");
+            assert_eq!(output.exit_code, 0, "git commit failed: {}", output.stderr);
+        }
+
+        let commit = current_clean_repository_commit(repository.path()).expect("clean commit");
+        assert_eq!(commit.len(), 40);
+        let artifact = repository.path().join("artifacts/build-input.json");
+        bijux_dna_infra::ensure_dir(artifact.parent().expect("artifact parent"))
+            .expect("create artifact directory");
+        bijux_dna_infra::atomic_write_bytes(&artifact, b"{}\n").expect("write ignored artifact");
+        assert_eq!(
+            current_clean_repository_commit(repository.path()).expect("ignored artifacts allowed"),
+            commit
+        );
+
+        let untracked = repository.path().join("untracked");
+        bijux_dna_infra::atomic_write_bytes(&untracked, b"build input\n")
+            .expect("write untracked source");
+        assert!(current_clean_repository_commit(repository.path())
+            .is_err_and(|error| error.to_string().contains("repository changes")));
+        std::fs::remove_file(untracked).expect("remove untracked source");
+
+        bijux_dna_infra::atomic_write_bytes(&tracked, b"version = 2\n")
+            .expect("modify tracked source");
+        assert!(current_clean_repository_commit(repository.path())
+            .is_err_and(|error| error.to_string().contains("repository changes")));
     }
 }
 
@@ -704,13 +1218,13 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
     }
 
     let env_src = std::fs::read_to_string(
-        cwd.join("crates/bijux-dna/src/commands/cli/env/env_runtime_support.rs"),
+        cwd.join("crates/bijux-dna-environment/src/evidence/tool_contract/smoke.rs"),
     )
-    .context("read env_runtime_support.rs for apptainer runtime policy")?;
+    .context("read environment-owned Apptainer smoke policy")?;
     for required in ["--containall", "--cleanenv", "--bind", "--network", "none"] {
         if !env_src.contains(required) {
             offenders.push(format!(
-                "runtime policy missing required apptainer flag marker `{required}` in env_runtime_support.rs"
+                "environment smoke policy is missing required Apptainer flag marker `{required}`"
             ));
         }
     }

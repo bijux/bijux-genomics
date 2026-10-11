@@ -61,6 +61,7 @@ pub enum NativeCheckKey {
     NoTargetPathsInTests,
     AutomationTempDiscipline,
     NoUserPathLiterals,
+    OwnershipAudit,
     OutputRoots,
     ReadmeLinks,
     RootLayout,

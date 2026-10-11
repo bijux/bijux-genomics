@@ -18,6 +18,12 @@ library can manage when callers invoke the matching API.
 - `ReferenceRegistry::prepare_reference()`: when requested, runs `samtools faidx`, `gatk
   CreateSequenceDictionary`, `bwa index`, and `bowtie2-build` to materialize missing reference
   indexes.
+- `verify_apptainer_tool_contract()`: runs `apptainer exec --cleanenv --containall` to read the
+  embedded contract and `apptainer inspect --json` to compare its immutable labels.
+- `build_apptainer_image()`: runs `apptainer build --force` with append-only attempt logs and
+  retries only failures classified as transient OCI transport failures.
+- `run_apptainer_smoke()`: runs offline `apptainer exec --containall --cleanenv --net --network
+  none` probes and admits version output against the catalog contract regex.
 
 ## Non-Commands
 
@@ -38,6 +44,9 @@ library can manage when callers invoke the matching API.
   execution helper.
 - `src/resolve/shell.rs`: explicit shell capture for caller-provided diagnostics.
 - `src/resolve/smoke.rs`: environment smoke handoff through the developer control plane.
+- `src/evidence/tool_contract/inspection.rs`: embedded Apptainer contract and label inspection.
+- `src/evidence/tool_contract/smoke.rs`: offline contract smoke execution and evidence admission.
+- `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
 
 ## Verification
 
