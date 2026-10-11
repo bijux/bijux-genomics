@@ -1192,15 +1192,15 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             catalog_row.get("upstream").and_then(toml::Value::as_str).unwrap_or_default();
         let license = {
             let spdx = table_string(&license_row, "spdx");
-            if !spdx.is_empty() {
-                spdx
-            } else {
+            if spdx.is_empty() {
                 let upstream = table_string(version_row, "upstream_license");
                 if upstream.is_empty() {
                     "unknown".to_string()
                 } else {
                     upstream
                 }
+            } else {
+                spdx
             }
         };
         let mut runtimes = Vec::new();
