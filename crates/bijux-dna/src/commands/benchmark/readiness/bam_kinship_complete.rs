@@ -54,7 +54,7 @@ const EXPECTED_READY_CASE_RELATIONSHIP_LABEL: &str = "first_degree";
 const EXPECTED_PAIRWISE_TABLE_ROW: &str =
     "sample_a\tsample_b\t6\t5\t1\t0.833333\t0.416667\tfirst_degree";
 const CHECKED_SURFACE_COUNT: usize = 19;
-const EXPECTED_TOOL_IDS: [&str; 2] = ["angsd", "king"];
+const EXPECTED_TOOL_IDS: [&str; 1] = ["king"];
 const REQUIRED_OUTPUT_IDS: [&str; 3] = ["kinship_report", "summary", "stage_metrics"];
 const REQUIRED_BAM_PIPELINE_DEPENDENCIES: [&str; 2] = ["bam.genotyping", "bam.overlap_correction"];
 const REQUIRED_BAM_PIPELINE_EXTERNAL_INPUTS: [&str; 3] = [

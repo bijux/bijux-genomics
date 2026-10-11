@@ -84,6 +84,7 @@ fn runner_tree_matches_architecture_contract() {
         "benchmark.rs",
         "client.rs",
         "contracts.rs",
+        "corpus_materialization/",
         "mod.rs",
         "parsing.rs",
         "stable_surface.rs",
@@ -95,6 +96,20 @@ fn runner_tree_matches_architecture_contract() {
     assert_eq!(
         slurm_entries, expected_slurm,
         "runner Slurm backend must separate contracts, parsing, commands, and exports"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/backend/slurm/corpus_materialization")),
+        [
+            "contracts.rs",
+            "lifecycle.rs",
+            "mod.rs",
+            "preparation.rs",
+            "validation.rs",
+        ]
+        .into_iter()
+        .map(str::to_string)
+        .collect(),
+        "corpus materialization scheduling must separate contracts, preparation, lifecycle, and validation"
     );
 
     let docker_entries = dir_entries(&root.join("src/backend/docker"));

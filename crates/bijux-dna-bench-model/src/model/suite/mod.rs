@@ -11,15 +11,17 @@ mod support;
 
 use std::collections::BTreeMap;
 
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
+use crate::contract::SUITE_SCHEMA_V1;
 use crate::model::graph::BenchmarkStageEdge;
 pub use support::{
     AnalysisRequirements, DatasetSpec, DiversityRequirements, ReplicatePolicy,
     StratificationRequirement,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkParamBinding {
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -30,7 +32,7 @@ pub struct BenchmarkParamBinding {
     pub values: BTreeMap<String, serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkStageSpec {
     pub stage: String,
@@ -45,9 +47,10 @@ pub struct BenchmarkStageSpec {
     pub upstream_stage_instance_ids: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkSuiteSpec {
+    #[schemars(schema_with = "benchmark_suite_schema_version")]
     pub schema_version: String,
     pub suite_id: String,
     pub datasets: Vec<DatasetSpec>,
@@ -58,4 +61,13 @@ pub struct BenchmarkSuiteSpec {
     pub diversity: DiversityRequirements,
     pub stratifications: Vec<StratificationRequirement>,
     pub analysis_requirements: AnalysisRequirements,
+}
+
+#[must_use]
+pub fn benchmark_suite_spec_schema() -> Schema {
+    schemars::schema_for!(BenchmarkSuiteSpec)
+}
+
+fn benchmark_suite_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "const": SUITE_SCHEMA_V1})
 }

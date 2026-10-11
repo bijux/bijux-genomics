@@ -8,11 +8,11 @@ fn checked_in_benchmark_contracts_load_from_rust_authority() -> Result<()> {
     assert_eq!(portfolio.schema_version, bijux_dna_bench::BENCHMARK_PORTFOLIO_SCHEMA_V1,);
     assert_eq!(portfolio.stage_runs.len(), 71);
     assert!(
-        registry.campaigns.len() >= 6,
+        registry.campaigns.len() >= 7,
         "the checked-in stage campaign registry must include the audited seed campaign set"
     );
     assert_eq!(interfaces.schema_version, bijux_dna_bench::BENCHMARK_STAGE_INTERFACES_SCHEMA_V1);
-    assert_eq!(interfaces.interfaces.len(), 3);
+    assert_eq!(interfaces.interfaces.len(), 9);
     Ok(())
 }
 
@@ -63,7 +63,7 @@ fn stage_interface_admission_uses_the_declared_repository_root() -> Result<()> {
 #[test]
 fn checked_in_stage_reports_are_admitted_by_rust_contracts() -> Result<()> {
     let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
-    assert_eq!(reports.len(), 6);
+    assert!(reports.iter().any(|admission| admission.report.run_id == "run-2001"));
     assert!(reports.iter().any(|admission| admission.report.run_id == "run-2042"));
     assert!(reports.iter().all(|admission| {
         admission.schema_version == bijux_dna_bench::BENCHMARK_REPORT_ADMISSION_SCHEMA_V1
@@ -83,18 +83,49 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
         .find(|root| root.join(".git").exists())
         .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?
         .to_path_buf();
-    let catalog = bijux_dna_environment::api::load_container_catalog(&repository_root)?;
-    let current_commit = bijux_dna_environment::api::repository_head_commit(&repository_root)?;
+    let catalog = bijux_dna_containers::api::load_container_catalog(&repository_root)?;
+    let current_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)?;
 
     let coverage =
         bijux_dna_bench::derive_stage_coverage(&registry, &catalog, &reports, &current_commit)?;
 
     assert_eq!(coverage.summary.retained_stage_count, 71);
-    assert_eq!(coverage.summary.defined_stage_count, 6);
-    assert_eq!(coverage.summary.admitted_stage_count, 0);
-    assert_eq!(coverage.summary.stale_stage_count, 6);
+    assert_eq!(coverage.summary.defined_stage_count, 9);
     assert_eq!(coverage.summary.failed_stage_count, 0);
-    assert_eq!(coverage.summary.missing_stage_count, 65);
+    assert!(
+        coverage.summary.admitted_stage_count
+            + coverage.summary.stale_stage_count
+            + coverage.summary.failed_stage_count
+            <= coverage.summary.defined_stage_count
+    );
+    assert_eq!(
+        coverage.summary.defined_stage_count + coverage.summary.missing_stage_count,
+        coverage.summary.retained_stage_count
+    );
+    assert!(coverage.stages.iter().any(|row| {
+        row.stage_id == "bam.genotyping"
+            && row.campaign_run_id.as_deref() == Some("run-2001")
+            && row.retained_tools == ["bcftools"]
+            && row.report_repository_commit.as_deref().is_some_and(|commit| commit.len() == 40)
+            && row.report_sha256.as_deref().is_some_and(|digest| digest.len() == 64)
+            && matches!(
+                row.execution_status,
+                bijux_dna_bench::BenchmarkStageExecutionStatus::Admitted
+                    | bijux_dna_bench::BenchmarkStageExecutionStatus::Stale
+            )
+    }));
+    assert!(coverage.stages.iter().any(|row| {
+        row.stage_id == "bam.coverage"
+            && row.campaign_run_id.as_deref() == Some("run-2002")
+            && row.retained_tools == ["bedtools", "mosdepth", "samtools"]
+            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted
+    }));
+    assert!(coverage.stages.iter().any(|row| {
+        row.stage_id == "bam.endogenous_content"
+            && row.campaign_run_id.as_deref() == Some("run-2003")
+            && row.retained_tools == ["samtools"]
+            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted
+    }));
     assert!(coverage.stages.iter().any(|row| {
         row.stage_id == "bam.mapping_summary"
             && row.campaign_run_id.as_deref() == Some("run-2004")
@@ -186,11 +217,11 @@ fn stage_report_admission_rejects_abbreviated_identities() -> Result<()> {
 fn stage_report_admission_requires_data_locks() -> Result<()> {
     let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
     let mut report = reports
-        .iter()
-        .find(|admission| admission.report.comparability.is_none())
-        .ok_or_else(|| anyhow::anyhow!("checked-in reports contain no qualification campaign"))?
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in stage report set is empty"))?
         .report
         .clone();
+    report.comparability = None;
     for tool in &mut report.tools {
         tool.input_locks.clear();
     }

@@ -1,84 +1,26 @@
 use std::fs;
 use std::path::Path;
 
-use anyhow::{anyhow, Context, Result};
-use schemars::JsonSchema;
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
+
+use bijux_dna_bench_model::validate_benchmark_stage_result_manifest;
+pub(crate) use bijux_dna_bench_model::{
+    BenchmarkStageResultCommand as BenchStageResultCommandV1,
+    BenchmarkStageResultManifest as BenchStageResultManifestV1,
+    BenchmarkStageResultOutput as BenchStageResultOutputV1,
+    BenchmarkStageResultResourceMetricSource as BenchStageResultResourceMetricSource,
+    BenchmarkStageResultResourceMetrics as BenchStageResultResourceMetricsV1,
+    BenchmarkStageResultRuntime as BenchStageResultRuntimeV1,
+    BenchmarkStageResultStatus as BenchStageResultStatus,
+    BenchmarkStageResultTool as BenchStageResultToolV1,
+    BENCHMARK_STAGE_RESULT_SCHEMA_V2 as BENCH_STAGE_RESULT_SCHEMA_VERSION,
+};
 
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const BENCH_STAGE_RESULT_SCHEMA_VERSION: &str = "bijux.bench.stage_result.v2";
 const BENCH_STAGE_RESULT_VALIDATION_SCHEMA_VERSION: &str = "bijux.bench.stage_result_validation.v1";
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum BenchStageResultStatus {
-    Succeeded,
-    Failed,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct BenchStageResultToolV1 {
-    pub(crate) id: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct BenchStageResultCommandV1 {
-    pub(crate) rendered: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct BenchStageResultRuntimeV1 {
-    pub(crate) mode: String,
-    pub(crate) status: BenchStageResultStatus,
-    pub(crate) started_at: String,
-    pub(crate) finished_at: String,
-    pub(crate) elapsed_seconds: f64,
-    pub(crate) exit_code: i32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum BenchStageResultResourceMetricSource {
-    Measured,
-    Estimated,
-    NotAvailable,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct BenchStageResultResourceMetricsV1 {
-    pub(crate) source: BenchStageResultResourceMetricSource,
-    pub(crate) memory_mb: Option<f64>,
-    pub(crate) cpu_threads: Option<u32>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct BenchStageResultOutputV1 {
-    pub(crate) artifact_id: String,
-    pub(crate) declared_path: String,
-    pub(crate) realized_path: String,
-    pub(crate) role: String,
-    pub(crate) optional: bool,
-    pub(crate) exists: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct BenchStageResultManifestV1 {
-    pub(crate) schema_version: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool: BenchStageResultToolV1,
-    pub(crate) command: BenchStageResultCommandV1,
-    pub(crate) runtime: BenchStageResultRuntimeV1,
-    pub(crate) resource_metrics: BenchStageResultResourceMetricsV1,
-    pub(crate) outputs: Vec<BenchStageResultOutputV1>,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub(crate) struct BenchStageResultValidationReport {
@@ -130,97 +72,15 @@ pub(crate) fn load_validated_stage_result_manifest_path(
 ) -> Result<BenchStageResultManifestV1> {
     let raw = fs::read_to_string(manifest_path)
         .with_context(|| format!("read {}", manifest_path.display()))?;
-    let manifest: BenchStageResultManifestV1 = serde_json::from_str(&raw)
-        .map_err(|err| anyhow!("parse {}: {err}", manifest_path.display()))?;
+    let manifest: BenchStageResultManifestV1 =
+        serde_json::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))?;
     validate_stage_result_manifest(&manifest)
         .with_context(|| format!("validate {}", manifest_path.display()))?;
     Ok(manifest)
 }
 
 pub(crate) fn validate_stage_result_manifest(manifest: &BenchStageResultManifestV1) -> Result<()> {
-    if manifest.schema_version != BENCH_STAGE_RESULT_SCHEMA_VERSION {
-        return Err(anyhow!("unsupported stage-result schema `{}`", manifest.schema_version));
-    }
-    if manifest.stage_id.trim().is_empty() {
-        return Err(anyhow!("stage-result manifest must declare a non-empty `stage_id`"));
-    }
-    if manifest.tool.id.trim().is_empty() {
-        return Err(anyhow!("stage-result manifest must declare a non-empty `tool.id`"));
-    }
-    if manifest.command.rendered.trim().is_empty() {
-        return Err(anyhow!("stage-result manifest must declare a non-empty `command.rendered`"));
-    }
-    if manifest.runtime.mode.trim().is_empty() {
-        return Err(anyhow!("stage-result manifest must declare a non-empty `runtime.mode`"));
-    }
-    if manifest.runtime.started_at.trim().is_empty() {
-        return Err(anyhow!("stage-result manifest must declare a non-empty `runtime.started_at`"));
-    }
-    if manifest.runtime.finished_at.trim().is_empty() {
-        return Err(anyhow!(
-            "stage-result manifest must declare a non-empty `runtime.finished_at`"
-        ));
-    }
-    if manifest.runtime.elapsed_seconds.is_sign_negative() {
-        return Err(anyhow!(
-            "stage-result manifest must declare a non-negative `runtime.elapsed_seconds`"
-        ));
-    }
-    if manifest.resource_metrics.memory_mb.is_some_and(f64::is_sign_negative) {
-        return Err(anyhow!(
-            "stage-result manifest must declare a non-negative `resource_metrics.memory_mb`"
-        ));
-    }
-    match manifest.resource_metrics.source {
-        BenchStageResultResourceMetricSource::Measured
-        | BenchStageResultResourceMetricSource::Estimated => {
-            if manifest.resource_metrics.memory_mb.is_none()
-                && manifest.resource_metrics.cpu_threads.is_none()
-            {
-                return Err(anyhow!(
-                    "stage-result manifest must declare at least one resource metric when `resource_metrics.source` is `{}`",
-                    match manifest.resource_metrics.source {
-                        BenchStageResultResourceMetricSource::Measured => "measured",
-                        BenchStageResultResourceMetricSource::Estimated => "estimated",
-                        BenchStageResultResourceMetricSource::NotAvailable => unreachable!(),
-                    }
-                ));
-            }
-        }
-        BenchStageResultResourceMetricSource::NotAvailable => {
-            if manifest.resource_metrics.memory_mb.is_some()
-                || manifest.resource_metrics.cpu_threads.is_some()
-            {
-                return Err(anyhow!(
-                    "stage-result manifest must leave `resource_metrics.memory_mb` and `resource_metrics.cpu_threads` empty when `resource_metrics.source` is `not_available`"
-                ));
-            }
-        }
-    }
-    if manifest.outputs.is_empty() {
-        return Err(anyhow!("stage-result manifest must declare at least one output in `outputs`"));
-    }
-    for output in &manifest.outputs {
-        if output.artifact_id.trim().is_empty() {
-            return Err(anyhow!(
-                "stage-result manifest outputs must declare a non-empty `artifact_id`"
-            ));
-        }
-        if output.declared_path.trim().is_empty() {
-            return Err(anyhow!(
-                "stage-result manifest outputs must declare a non-empty `declared_path`"
-            ));
-        }
-        if output.realized_path.trim().is_empty() {
-            return Err(anyhow!(
-                "stage-result manifest outputs must declare a non-empty `realized_path`"
-            ));
-        }
-        if output.role.trim().is_empty() {
-            return Err(anyhow!("stage-result manifest outputs must declare a non-empty `role`"));
-        }
-    }
-    Ok(())
+    validate_benchmark_stage_result_manifest(manifest).map_err(Into::into)
 }
 
 pub(crate) fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {

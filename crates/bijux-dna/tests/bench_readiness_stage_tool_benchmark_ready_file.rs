@@ -54,9 +54,14 @@ fn bench_readiness_stage_tool_benchmark_ready_writes_json_output() {
         Some("bijux.bench.readiness.fastq_bam_stage_tool_benchmark_ready.v1")
     );
     assert_eq!(json_value.get("passes_gate").and_then(serde_json::Value::as_bool), Some(true));
+    let expected_pair_count = json_value
+        .get("expected_pair_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("expected pair count");
+    assert!(expected_pair_count > 0);
     assert_eq!(
         json_value.get("benchmark_ready_pair_count").and_then(serde_json::Value::as_u64),
-        Some(120)
+        Some(expected_pair_count)
     );
     assert_eq!(json_value.get("excluded_pair_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(json_value.get("failing_pair_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -73,7 +78,8 @@ fn bench_readiness_stage_tool_benchmark_ready_writes_json_output() {
         .expect("surface summaries");
     assert!(surfaces.iter().any(|surface| {
         surface.get("surface_id").and_then(serde_json::Value::as_str) == Some("expected_results")
-            && surface.get("covered_count").and_then(serde_json::Value::as_u64) == Some(120)
+            && surface.get("covered_count").and_then(serde_json::Value::as_u64)
+                == Some(expected_pair_count)
             && surface.get("excluded_count").and_then(serde_json::Value::as_u64) == Some(0)
     }));
 }

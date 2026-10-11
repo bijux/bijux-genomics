@@ -4,19 +4,19 @@ stage_ids: ["vcf.ibd"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
-default_version: "planned"
-upstream: "https://www.cs.columbia.edu/~gusev/germline/"
-pin_strategy: "container_digest"
-license: "GPL-3.0"
+default_version: "1.5.3"
+upstream: "https://github.com/gusevlab/germline"
+pin_strategy: "source_sha256"
+license: "Apache-2.0"
 citation: "paper:https://doi.org/10.1101/gr.081398.108"
 version_cmd: "germline --version"
 help_cmd: "germline --help"
 expected_artifacts: ["ibd_segments", "metrics.json"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.ibd.v1"
-comparability_notes: "Planned tool; compare only within pinned profile and reference build."
+comparability_notes: "Compare only within the same phased-marker profile, reference build, and segment thresholds."
 container:
-  image: "containers/apptainer/lunarc/germline.def"
-  digest: "planned"
+  image: "containers/apptainer/germline.def"
+  digest: "sha256:3ff976e694067ce2252b79d3923a5e640a6b2aadc8c99e244db125f41d63a2a8"

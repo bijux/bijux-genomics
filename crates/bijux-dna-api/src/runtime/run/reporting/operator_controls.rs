@@ -2,7 +2,7 @@ use super::operations::{build_health_report, request_control_action};
 use super::Result;
 use crate::request_args::{OperatorHealthResponse, RunControlResponse};
 use anyhow::{anyhow, Context};
-use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_runtime::run_layout::{
     ExecutorDescriptorV1, RunControlActionV1, RunControlStateV1, RunExecutorDescriptorV1, RunLayout,
 };

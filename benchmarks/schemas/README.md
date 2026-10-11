@@ -1,6 +1,8 @@
 # Benchmark Schemas
 
-This directory is reserved for tracked benchmark-owned schema files and schema snapshots.
+This directory owns normalized metric contracts emitted by FASTQ, BAM, and VCF
+stage adapters. Benchmark model and workflow schemas do not belong here; they are
+generated from `bijux-dna-bench-model` into `benchmarks/contracts/schemas/`.
 
 The committed normalized-metrics surfaces live here:
 
@@ -8,11 +10,3 @@ The committed normalized-metrics surfaces live here:
 - `bam-normalized-metrics.v1.json`
 - `vcf-normalized-metrics.v1.json`
 - `vcf-normalized-metrics/*.v1.json`
-
-The committed benchmark planning contract schemas generated from Rust types are:
-
-- `stage-interfaces.v1.json`
-- `pipeline-parameters.v1.json`
-- `stage-report.v1.json`
-- `report-admission.v1.json`
-- `attempt-archive.v1.json`

@@ -46,16 +46,23 @@ fn bench_readiness_orphan_tools_reports_governed_decisions() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/orphan-tools.tsv")
     );
-    assert_eq!(payload.get("orphan_count").and_then(serde_json::Value::as_u64), Some(2));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("orphan_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
 
     let domain_counts = payload
         .get("domain_counts")
         .and_then(serde_json::Value::as_object)
         .expect("domain_counts object");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(2));
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 2);
+    assert_eq!(
+        domain_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
+        rows.len() as u64
+    );
+    assert!(rows.iter().all(|row| {
+        row.get("decision").and_then(serde_json::Value::as_str) == Some("future_tool")
+    }));
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("dustmasker")
@@ -66,4 +73,11 @@ fn bench_readiness_orphan_tools_reports_governed_decisions() {
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqpurge")
             && row.get("decision").and_then(serde_json::Value::as_str) == Some("future_tool")
     }));
+    for (domain, tool_id) in [("bam", "angsd"), ("bam", "ngsbriggs"), ("fastq", "fastuniq")] {
+        assert!(rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some(domain)
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("decision").and_then(serde_json::Value::as_str) == Some("future_tool")
+        }));
+    }
 }

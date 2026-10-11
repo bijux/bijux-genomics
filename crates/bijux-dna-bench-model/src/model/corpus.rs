@@ -1,9 +1,91 @@
 //! Owner: bijux-dna-bench-model
 //! Typed benchmark corpus contracts for deterministic fixture catalogs.
 
-use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
+use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
+
+use crate::contract::{
+    BENCHMARK_DATA_INDEX_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1,
+    FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
+};
+
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkEligibility {
+    Eligible,
+    Incomplete,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum DataIntegrityStatus {
+    Verified,
+    Unverified,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkDataIndexFile {
+    pub path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+    pub role: String,
+    pub legacy_fields: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkTemporalProvenance {
+    pub field: Option<String>,
+    pub timestamp: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkDataIndexRecord {
+    pub id: String,
+    pub catalog_path: String,
+    pub catalog_sha256: String,
+    pub purpose: String,
+    pub source_identities: Vec<String>,
+    pub access_classification: String,
+    pub redistribution_classification: String,
+    pub scientific_name: Option<String>,
+    pub reference_assembly: Option<String>,
+    pub temporal_provenance: BenchmarkTemporalProvenance,
+    pub files: Vec<BenchmarkDataIndexFile>,
+    pub known_limitations: Vec<String>,
+    pub integrity_status: DataIntegrityStatus,
+    pub benchmark_eligibility: BenchmarkEligibility,
+    pub missing_provenance: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkDataIndexSummary {
+    pub record_count: u64,
+    pub file_count: u64,
+    pub size_bytes: u64,
+    pub integrity_verified_count: u64,
+    pub benchmark_eligibility: BTreeMap<BenchmarkEligibility, u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkDataIndex {
+    #[schemars(schema_with = "benchmark_data_index_schema_version")]
+    pub schema_version: String,
+    pub created_at_utc: String,
+    pub data_root: String,
+    pub summary: BenchmarkDataIndexSummary,
+    pub records: Vec<BenchmarkDataIndexRecord>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub enum CorpusDomain {
     Fastq,
@@ -11,21 +93,21 @@ pub enum CorpusDomain {
     Vcf,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub enum CorpusScale {
     CiSmall,
     LocalMedium,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub enum TruthSetStatus {
     Available,
     Unavailable,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct TruthSetHook {
     pub status: TruthSetStatus,
@@ -34,7 +116,7 @@ pub struct TruthSetHook {
     pub note: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BackendComparisonSpec {
     pub comparison_id: String,
@@ -43,7 +125,7 @@ pub struct BackendComparisonSpec {
     pub caveat: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct DriftScenarioSpec {
     pub scenario_id: String,
@@ -53,7 +135,7 @@ pub struct DriftScenarioSpec {
     pub caveat: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct CorpusDatasetSpec {
     pub dataset_id: String,
@@ -65,9 +147,10 @@ pub struct CorpusDatasetSpec {
     pub truth_set: TruthSetHook,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkCorpusManifest {
+    #[schemars(schema_with = "benchmark_corpus_schema_version")]
     pub schema_version: String,
     pub corpus_id: String,
     pub domain: CorpusDomain,
@@ -81,9 +164,10 @@ pub struct BenchmarkCorpusManifest {
     pub drift_scenarios: Vec<DriftScenarioSpec>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkBundleManifest {
+    #[schemars(schema_with = "benchmark_bundle_schema_version")]
     pub schema_version: String,
     pub bundle_id: String,
     pub corpora: Vec<String>,
@@ -93,14 +177,14 @@ pub struct BenchmarkBundleManifest {
     pub scientific_caveats: Vec<String>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum BenchmarkFastqLayout {
     SingleEnd,
     PairedEnd,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct AdmittedFastqCorpusFile {
     pub path: String,
@@ -110,7 +194,7 @@ pub struct AdmittedFastqCorpusFile {
     pub mate: Option<u8>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct AdmittedFastqCorpusSample {
     pub sample_id: String,
@@ -118,7 +202,7 @@ pub struct AdmittedFastqCorpusSample {
     pub files: Vec<AdmittedFastqCorpusFile>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct AdmittedFastqCorpus {
     pub corpus_id: String,
@@ -132,7 +216,7 @@ pub struct AdmittedFastqCorpus {
     pub samples: Vec<AdmittedFastqCorpusSample>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct AdmittedBamCorpusFile {
     pub path: String,
@@ -154,7 +238,7 @@ pub struct AdmittedBamCorpus {
     pub input_bytes: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct FastqReadLengthExpectationSample {
     pub sample_id: String,
@@ -173,7 +257,7 @@ pub struct FastqReadLengthExpectationSample {
     pub exact_rows_sha256: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct FastqReadLengthExpectations {
     pub schema_version: String,
@@ -184,4 +268,69 @@ pub struct FastqReadLengthExpectations {
     pub data_index_sha256: String,
     pub catalog_sha256: String,
     pub samples: Vec<FastqReadLengthExpectationSample>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct FastqProfileReadsExpectationsProvenance {
+    #[serde(deserialize_with = "deserialize_profile_reads_expectations_schema_version")]
+    #[schemars(schema_with = "profile_reads_expectations_schema_version")]
+    pub schema_version: String,
+    pub corpus_id: String,
+    pub sample_count: u64,
+    pub file_count: u64,
+    pub data_index_sha256: String,
+    pub catalog_sha256: String,
+    pub read_length_derivation_sha256: String,
+    pub expected_profile_sha256: String,
+}
+
+#[must_use]
+pub fn benchmark_corpus_manifest_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCorpusManifest)
+}
+
+#[must_use]
+pub fn benchmark_bundle_manifest_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBundleManifest)
+}
+
+#[must_use]
+pub fn benchmark_data_index_schema() -> Schema {
+    schemars::schema_for!(BenchmarkDataIndex)
+}
+
+#[must_use]
+pub fn fastq_profile_reads_expectations_schema() -> Schema {
+    schemars::schema_for!(FastqProfileReadsExpectationsProvenance)
+}
+
+fn benchmark_data_index_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "const": BENCHMARK_DATA_INDEX_SCHEMA_V1})
+}
+
+fn benchmark_corpus_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "const": CORPUS_SCHEMA_V1})
+}
+
+fn benchmark_bundle_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "const": BUNDLE_SCHEMA_V1})
+}
+
+fn profile_reads_expectations_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "string", "const": FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1})
+}
+
+fn deserialize_profile_reads_expectations_schema_version<'de, D>(
+    deserializer: D,
+) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = String::deserialize(deserializer)?;
+    if value == FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1 {
+        Ok(value)
+    } else {
+        Err(D::Error::custom(format!("unsupported FASTQ profile expectation: {value}")))
+    }
 }

@@ -1,0 +1,135 @@
+{
+  "$defs": {
+    "BenchmarkEvidenceBookEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "citation_key": {
+          "type": "string"
+        },
+        "publication_id": {
+          "type": "string"
+        },
+        "publication_receipt": {
+          "$ref": "#/$defs/BenchmarkEvidenceReference"
+        },
+        "run": {
+          "$ref": "#/$defs/BenchmarkRunIdentity"
+        }
+      },
+      "required": [
+        "publication_id",
+        "run",
+        "citation_key",
+        "publication_receipt"
+      ],
+      "type": "object"
+    },
+    "BenchmarkEvidenceBookStatus": {
+      "enum": [
+        "complete",
+        "incomplete"
+      ],
+      "type": "string"
+    },
+    "BenchmarkEvidenceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "uri": {
+          "pattern": "^study://[^/].+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "book_id": {
+      "type": "string"
+    },
+    "catalog_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkEvidenceBookEntry"
+      },
+      "type": "array"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "missing_run_ids": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "repository_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.evidence_book.v1",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/BenchmarkEvidenceBookStatus"
+    }
+  },
+  "required": [
+    "schema_version",
+    "book_id",
+    "generated_at_utc",
+    "repository_commit",
+    "catalog_sha256",
+    "status",
+    "entries",
+    "missing_run_ids",
+    "limitations"
+  ],
+  "title": "BenchmarkEvidenceBook",
+  "type": "object"
+}

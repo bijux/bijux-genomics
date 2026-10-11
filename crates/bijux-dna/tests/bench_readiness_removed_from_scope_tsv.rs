@@ -45,22 +45,5 @@ fn bench_readiness_removed_from_scope_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 2);
-    assert!(rows.iter().any(|row| {
-        row == &"vcf\tvcf.demography\tibdne\tvcf_production_regression\tjson_ibd_segments\tvcf.adapter.demography\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.demography.v1\tplanned\tdeclared_only\tlifecycle_not_active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
-    }));
-    assert!(rows.iter().any(|row| {
-        row == &"vcf\tvcf.ibd\tgermline\tvcf_production_regression\tvcf_cohort\tvcf.adapter.ibd\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.ibd.v1\tplanned\tdeclared_only\tlifecycle_not_active\ttrue\ttrue\ttrue\ttrue\ttrue\ttrue"
-    }));
-    assert!(
-        rows.iter().all(|row| {
-            let columns = row.split('\t').collect::<Vec<_>>();
-            columns.len() == 17
-                && columns[13] == "true"
-                && columns[14] == "true"
-                && columns[15] == "true"
-                && columns[16] == "true"
-        }),
-        "removed bindings must stay absent from every governed active downstream surface"
-    );
+    assert!(rows.is_empty(), "supported default bindings must not remain removed from scope");
 }

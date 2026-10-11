@@ -1,7 +1,7 @@
 //! Environment/runtime helpers for v1.
 
 pub use crate::support::qa::run_image_qa;
-pub use bijux_dna_environment::api::{
+pub use bijux_dna_containers::api::{
     apptainer_build_log_path, available_runners, build_apptainer_image, cache_dir,
     classify_apptainer_build_failure, container_build_evidence_schema, docker_image_exists,
     execute_apptainer_image_campaign, image_campaign_execution_schema, image_campaign_plan_schema,

@@ -51,6 +51,7 @@ fn bench_tree_matches_architecture_contract() {
         entries([
             "bam_corpus_authority.rs",
             "corpus_authority.rs",
+            "data_index_authority.rs",
             "mod.rs",
             "repo_root.rs",
             "repository.rs",
@@ -84,12 +85,21 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow")),
         entries([
             "attempt_migration.rs",
+            "bam_coverage/",
+            "bam_duplication_metrics/",
+            "bam_endogenous_content/",
+            "bam_genotyping/",
             "bam_mapping_summary/",
+            "bam_observation/",
             "campaign_lifecycle/",
+            "campaign_material/",
+            "corpus_materialization/",
             "evaluation.rs",
+            "fastq_detect_adapters/",
             "fastq_expectations/",
             "fastq_profile_read_lengths/",
             "fastq_profile_reads/",
+            "fastq_validate_reads/",
             "mod.rs",
             "options.rs",
             "report_load.rs",
@@ -104,6 +114,34 @@ fn bench_tree_matches_architecture_contract() {
             "summary_statistics.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/corpus_materialization")),
+        entries(["catalog.rs", "fastq.rs", "mod.rs"]),
+        "corpus materialization must separate transfer orchestration, FASTQ validation, and catalog projection"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_duplication_metrics")),
+        entries(["commands.rs", "mod.rs", "report/"]),
+        "BAM duplication-metrics material must separate execution from reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_duplication_metrics/report")),
+        entries(["mod.rs", "science.rs"]),
+        "BAM duplication-metrics reporting must keep stage science separate"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_genotyping")),
+        entries(["commands.rs", "mod.rs", "report/"]),
+        "BAM genotyping material must separate execution from reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_genotyping/report")),
+        entries(["evidence.rs", "mod.rs", "science.rs"]),
+        "BAM genotyping reporting must separate evidence projection from scientific validation"
     );
 
     assert_eq!(
@@ -123,6 +161,16 @@ fn bench_tree_matches_architecture_contract() {
         "campaign lifecycle tree must separate source authority, planning, execution, and storage logic"
     );
 
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_detect_adapters")),
+        entries(["commands.rs", "mod.rs", "parameters.rs", "report/"]),
+        "FASTQ detect-adapters material must separate execution, parameters, and reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_detect_adapters/report")),
+        entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
+        "FASTQ detect-adapters reporting must separate evidence, science, and rendering"
+    );
     assert_eq!(
         dir_entries(&root.join("src/workflow/fastq_expectations")),
         entries(["mod.rs", "profile_reads.rs", "rendering.rs", "storage.rs"]),
@@ -148,6 +196,16 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow/fastq_profile_reads/report")),
         entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
         "FASTQ profile reporting must separate evidence, science, and rendering"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_validate_reads")),
+        entries(["commands.rs", "mod.rs", "parameters.rs", "planner_contract.rs", "report/"]),
+        "FASTQ validation material must separate planner projection, execution, and parameters"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/fastq_validate_reads/report")),
+        entries(["evidence.rs", "mod.rs", "rendering.rs", "science.rs"]),
+        "FASTQ validation reporting must separate evidence, science, and rendering"
     );
 
     assert_eq!(

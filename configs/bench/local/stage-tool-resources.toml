@@ -801,26 +801,6 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 [[rows]]
 domain = "fastq"
 stage_id = "fastq.profile_read_lengths"
-tool_id = "fastp"
-threads = 4
-memory_gb = 8
-walltime_minutes = 10
-scratch_gb = 4
-resource_origin = "tool_constraints_with_stage_walltime_profile"
-
-[[rows]]
-domain = "fastq"
-stage_id = "fastq.profile_read_lengths"
-tool_id = "prinseq"
-threads = 4
-memory_gb = 8
-walltime_minutes = 10
-scratch_gb = 4
-resource_origin = "tool_constraints_with_stage_walltime_profile"
-
-[[rows]]
-domain = "fastq"
-stage_id = "fastq.profile_read_lengths"
 tool_id = "seqfu"
 threads = 1
 memory_gb = 1
@@ -831,9 +811,9 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 [[rows]]
 domain = "fastq"
 stage_id = "fastq.profile_read_lengths"
-tool_id = "seqkit_stats"
+tool_id = "seqkit"
 threads = 2
-memory_gb = 2
+memory_gb = 4
 walltime_minutes = 10
 scratch_gb = 2
 resource_origin = "tool_constraints_with_stage_walltime_profile"
@@ -1230,6 +1210,16 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "vcf"
+stage_id = "vcf.demography"
+tool_id = "ibdne"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
 stage_id = "vcf.filter"
 tool_id = "bcftools"
 threads = 2
@@ -1242,6 +1232,26 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 domain = "vcf"
 stage_id = "vcf.gl_propagation"
 tool_id = "bcftools"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.ibd"
+tool_id = "germline"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.ibd"
+tool_id = "ibdseq"
 threads = 2
 memory_gb = 4
 walltime_minutes = 20

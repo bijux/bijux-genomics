@@ -61,11 +61,15 @@ fn bench_readiness_stage_tool_resources_reports_governed_benchmark_ready_rows() 
         Some(row_count)
     );
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(71));
-    assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
-    assert_eq!(support::object_u64(domain_counts, "vcf"), Some(21));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
     let rows = support::json_array(&payload, "rows");
+    assert_eq!(rows.len() as u64, row_count);
+    assert!(rows.iter().all(|row| {
+        !matches!(
+            row.get("tool_id").and_then(serde_json::Value::as_str),
+            Some("angsd" | "ngsbriggs")
+        )
+    }));
     let bwa_align = rows
         .iter()
         .find(|row| {

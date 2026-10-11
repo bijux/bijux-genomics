@@ -2,6 +2,26 @@
   "schema_version": "bijux.benchmark.pipeline_parameters.v1",
   "profile": "generic-fastq",
   "stages": {
+    "bam.genotyping": {
+      "parameter_schema_version": "bijux.bam.params.genotyping.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Genotyping)",
+      "overrides": {}
+    },
+    "bam.coverage": {
+      "parameter_schema_version": "bijux.bam.params.coverage.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Coverage)",
+      "overrides": {}
+    },
+    "bam.endogenous_content": {
+      "parameter_schema_version": "bijux.bam.params.endogenous_content.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::EndogenousContent)",
+      "overrides": {}
+    },
+    "bam.duplication_metrics": {
+      "parameter_schema_version": "bijux.bam.params.duplication_metrics.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::DuplicationMetrics)",
+      "overrides": {}
+    },
     "bam.mapping_summary": {
       "parameter_schema_version": "bijux.bam.params.mapping_summary.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::MappingSummary)",
@@ -20,6 +40,21 @@
       "overrides": {
         "threads": 4,
         "histogram_bins": 100
+      }
+    },
+    "fastq.detect_adapters": {
+      "parameter_schema_version": "bijux.fastq.params.detect_adapters.v1",
+      "defaults_provider": "bijux_dna_domain_fastq::params::defaults::detect_adapters_defaults",
+      "overrides": {
+        "threads": 4
+      }
+    },
+    "fastq.validate_reads": {
+      "parameter_schema_version": "bijux.fastq.params.validate_reads.v1",
+      "defaults_provider": "bijux_dna_domain_fastq::params::defaults::validate_defaults",
+      "overrides": {
+        "threads": 4,
+        "validation_mode": "strict"
       }
     }
   }

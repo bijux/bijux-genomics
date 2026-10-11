@@ -45,8 +45,15 @@ fn bench_readiness_bam_sex_complete_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/bam/stages/bam.sex.complete.json")
     );
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(3));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    assert_eq!(
+        payload.get("active_row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    assert_eq!(
+        payload.get("complete_row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(payload.get("local_smoke_case_count").and_then(serde_json::Value::as_u64), Some(6));
@@ -64,14 +71,12 @@ fn bench_readiness_bam_sex_complete_reports_governed_rows() {
 
     assert!(payload.get("expected_tool_ids").and_then(serde_json::Value::as_array).is_some_and(
         |tools| {
-            tools.iter().any(|tool| tool.as_str() == Some("angsd"))
-                && tools.iter().any(|tool| tool.as_str() == Some("rxy"))
+            tools.iter().any(|tool| tool.as_str() == Some("rxy"))
                 && tools.iter().any(|tool| tool.as_str() == Some("yleaf"))
+                && tools.iter().all(|tool| tool.as_str() != Some("angsd"))
         }
     ));
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 3);
+    assert_eq!(rows.len(), 2);
     assert!(rows.iter().all(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.sex")
             && row.get("active_scope_ready").and_then(serde_json::Value::as_bool) == Some(true)

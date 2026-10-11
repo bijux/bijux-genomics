@@ -21,8 +21,9 @@ pub use bijux_dna_domain_fastq::{
 };
 
 pub use crate::benchmark_contracts::{
-    profile_read_lengths_benchmark_contract, BenchmarkLayoutDefaultsV1, BenchmarkStageContractV1,
-    BenchmarkToolPlansV1, BENCHMARK_STAGE_CONTRACT_SCHEMA_VERSION,
+    profile_read_lengths_benchmark_contract, validate_reads_benchmark_contract,
+    BenchmarkLayoutDefaultsV1, BenchmarkStageContractV1, BenchmarkToolPlansV1,
+    BENCHMARK_STAGE_CONTRACT_SCHEMA_VERSION,
 };
 pub use crate::compose::{StageArtifactInputBinding, StageArtifactInputPolicy};
 pub(crate) use crate::pipeline_defaults::pipeline_spec_from_stage_catalog;

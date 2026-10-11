@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "consumer_stage_id": {
+      "const": "benchmark.fastq.validate_reads.compare",
+      "type": "string"
+    },
+    "file_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "input_contract": {
+      "const": "bijux.benchmark.fastq.validate_reads.bundle.v1",
+      "type": "string"
+    },
+    "pair_sync_failure_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.fastq.report_qc.validation_probe.v1",
+      "type": "string"
+    },
+    "strict_pass_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "validated_read_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "consumer_stage_id",
+    "input_contract",
+    "sample_count",
+    "file_count",
+    "validated_read_count",
+    "strict_pass_count",
+    "pair_sync_failure_count"
+  ],
+  "title": "BenchmarkFastqValidationProbe",
+  "type": "object"
+}

@@ -1,4 +1,14 @@
-schema_version = "bijux.container.qualification_run_history.v1"
+schema_version = "bijux.container.qualification_run_history.v2"
+
+[[tombstones]]
+run_id = "run-1081"
+disposition = "reserved_never_reuse"
+reason = "unallocated gap in the historical qualification-run sequence"
+
+[[tombstones]]
+run_id = "run-1085"
+disposition = "reserved_never_reuse"
+reason = "unallocated gap in the historical qualification-run sequence"
 
 [[identities]]
 run_id = "run-1126"

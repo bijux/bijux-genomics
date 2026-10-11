@@ -224,7 +224,7 @@ fn policy__contracts__science_authored_specs_policy__science_root_links_adjacent
         "../domain/fastq/execution_support.yaml".to_string(),
         "../configs/index.md".to_string(),
         "../containers/README.md".to_string(),
-        "../crates/bijux-dna-environment/README.md".to_string(),
+        "../crates/bijux-dna-containers/README.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/README.md")
         .into_iter()

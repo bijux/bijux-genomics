@@ -1,7 +1,8 @@
 //! Owner: bijux-dna-bench-model
 //! Robust statistics result contracts.
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct RobustStats {
     pub n: usize,
     pub median: f64,

@@ -1,0 +1,237 @@
+use std::fs;
+
+use anyhow::{Context, Result};
+use bijux_dna_containers::api::{
+    derive_qualification_run_registry, load_container_catalog, load_qualification_run_registry,
+    render_qualification_run_registry, validate_qualification_run_registry,
+    QualificationRegistryDerivationRequest,
+};
+
+#[test]
+fn registry_closes_all_catalog_tools_without_reusing_historical_ids() -> Result<()> {
+    let root = repository_root()?;
+    let request = request(&root);
+    let first = derive_qualification_run_registry(&request)?;
+    let second = derive_qualification_run_registry(&request)?;
+
+    assert_eq!(first.registry, second.registry);
+    assert_eq!(first.audit, second.audit);
+    assert_eq!(first.registry.tools.len(), 89);
+    assert_eq!(first.audit.retained_mapping_count, 85);
+    assert_eq!(first.audit.unsupported_tool_count, 4);
+    assert_eq!(first.audit.allocated_mapping_count, 17);
+    assert_eq!(first.audit.historical_identities.len(), 138);
+    assert_eq!(first.audit.reserved_run_count, 2);
+    assert_eq!(first.audit.reserved_run_ids.len(), 2);
+    assert_eq!(first.audit.reserved_run_ids[0].run_id, "run-1081");
+    assert_eq!(first.audit.reserved_run_ids[1].run_id, "run-1085");
+    assert_eq!(first.audit.historical_max_run_number, 1140);
+    assert_eq!(run_id(&first, "adapterremoval"), Some("run-1002"));
+    assert_eq!(run_id(&first, "bijux_dna"), Some("run-1141"));
+    assert_eq!(run_id(&first, "yleaf"), Some("run-1157"));
+    assert_eq!(run_id(&first, "angsd"), None);
+    assert_eq!(run_id(&first, "fastuniq"), None);
+    assert_eq!(run_id(&first, "impute5"), None);
+    assert_eq!(run_id(&first, "ngsbriggs"), None);
+
+    let rendered = render_qualification_run_registry(&first.registry)?;
+    assert_eq!(rendered, render_qualification_run_registry(&second.registry)?);
+    let directory = tempfile::tempdir()?;
+    let path = directory.path().join("qualification-runs.toml");
+    fs::write(&path, rendered)?;
+    assert_eq!(load_qualification_run_registry(&root, &path)?, first.registry);
+    Ok(())
+}
+
+#[test]
+fn registry_rejects_duplicate_ids_unsupported_execution_and_catalog_drift() -> Result<()> {
+    let root = repository_root()?;
+    let derived = derive_qualification_run_registry(&request(&root))?;
+    let catalog = load_container_catalog(&root)?;
+
+    let mut duplicate = derived.registry.clone();
+    let adapterremoval = run_id(&derived, "adapterremoval").context("adapterremoval run")?;
+    duplicate.tools.iter_mut().find(|row| row.tool_id == "addeam").context("addeam row")?.run_id =
+        Some(adapterremoval.to_string());
+    assert!(validate_qualification_run_registry(&catalog, &duplicate).is_err());
+
+    let mut unsupported = derived.registry.clone();
+    unsupported.tools.iter_mut().find(|row| row.tool_id == "angsd").context("angsd row")?.run_id =
+        Some("run-9999".to_string());
+    assert!(validate_qualification_run_registry(&catalog, &unsupported).is_err());
+
+    let mut stage_drift = derived.registry;
+    stage_drift
+        .tools
+        .iter_mut()
+        .find(|row| row.tool_id == "adapterremoval")
+        .context("adapterremoval row")?
+        .stage_id = "fastq.trim_reads".to_string();
+    assert!(validate_qualification_run_registry(&catalog, &stage_drift).is_err());
+    Ok(())
+}
+
+#[test]
+fn derivation_rejects_cross_tool_history_and_nonpassing_final_runs() -> Result<()> {
+    let root = repository_root()?;
+    let directory = tempfile::tempdir()?;
+    let ledger_path = directory.path().join("attempt-ledger.json");
+    let mut ledger: serde_json::Value =
+        serde_json::from_slice(&fs::read(root.join("containers/runs/attempt-ledger.json"))?)?;
+    ledger["attempts"][0]["run_id"] = serde_json::json!("run-1002");
+    ledger["attempts"][0]["tool"] = serde_json::json!("wrong-tool");
+    fs::write(&ledger_path, serde_json::to_vec(&ledger)?)?;
+    let conflicting = QualificationRegistryDerivationRequest {
+        repository_root: root.clone(),
+        current_runs_root: root.join("containers/runs"),
+        attempt_ledger_path: ledger_path,
+        supplemental_history_path: root.join("containers/contracts/qualification-run-history.toml"),
+        existing_registry_path: None,
+    };
+    assert!(derive_qualification_run_registry(&conflicting).is_err());
+
+    let runs = directory.path().join("runs");
+    let failed = runs.join("run-9999-adapterremoval");
+    fs::create_dir_all(&failed)?;
+    fs::write(
+        failed.join("evidence.json"),
+        br#"{"schema_version":"bijux.container.evidence.v2","run_id":"run-9999","status":"failed"}"#,
+    )?;
+    let nonpassing = QualificationRegistryDerivationRequest {
+        repository_root: root.clone(),
+        current_runs_root: runs,
+        attempt_ledger_path: root.join("containers/runs/attempt-ledger.json"),
+        supplemental_history_path: root.join("containers/contracts/qualification-run-history.toml"),
+        existing_registry_path: None,
+    };
+    assert!(derive_qualification_run_registry(&nonpassing).is_err());
+
+    let untrusted_history = directory.path().join("qualification-run-history.toml");
+    fs::write(
+        &untrusted_history,
+        r#"schema_version = "bijux.container.qualification_run_history.v2"
+[[identities]]
+run_id = "run-1126"
+tool_id = "multiqc"
+terminal_state = "submission_failed"
+[[identities.sources]]
+uri = "file:///untrusted/submission-failure.json"
+sha256 = "0ac7162d4d73f760ca005701a05e96583b1a778a15e9a475d2c9b9340a9f776e"
+"#,
+    )?;
+    let untrusted = QualificationRegistryDerivationRequest {
+        repository_root: root.clone(),
+        current_runs_root: root.join("containers/runs"),
+        attempt_ledger_path: root.join("containers/runs/attempt-ledger.json"),
+        supplemental_history_path: untrusted_history.clone(),
+        existing_registry_path: None,
+    };
+    assert!(derive_qualification_run_registry(&untrusted).is_err());
+
+    fs::write(
+        &untrusted_history,
+        r#"schema_version = "bijux.container.qualification_run_history.v2"
+identities = []
+[[tombstones]]
+run_id = "run-1081"
+disposition = "reusable"
+reason = "invalid disposition"
+"#,
+    )?;
+    let malformed_tombstone = QualificationRegistryDerivationRequest {
+        repository_root: root.clone(),
+        current_runs_root: root.join("containers/runs"),
+        attempt_ledger_path: root.join("containers/runs/attempt-ledger.json"),
+        supplemental_history_path: untrusted_history,
+        existing_registry_path: None,
+    };
+    assert!(derive_qualification_run_registry(&malformed_tombstone).is_err());
+    Ok(())
+}
+
+#[test]
+fn checked_in_reservations_survive_out_of_order_attempts() -> Result<()> {
+    let root = repository_root()?;
+    let test_artifacts = root.join("artifacts/tests/qualification-run-registry");
+    fs::create_dir_all(&test_artifacts)?;
+    let directory = tempfile::tempdir_in(test_artifacts)?;
+    let ledger_path = directory.path().join("attempt-ledger.json");
+    let mut ledger: serde_json::Value =
+        serde_json::from_slice(&fs::read(root.join("containers/runs/attempt-ledger.json"))?)?;
+    ledger["attempts"]
+        .as_array_mut()
+        .context("attempt ledger rows")?
+        .push(serde_json::json!({"run_id": "run-1157", "tool": "yleaf"}));
+    fs::write(&ledger_path, serde_json::to_vec(&ledger)?)?;
+
+    let derived = derive_qualification_run_registry(&QualificationRegistryDerivationRequest {
+        repository_root: root.clone(),
+        current_runs_root: root.join("containers/runs"),
+        attempt_ledger_path: ledger_path,
+        supplemental_history_path: root.join("containers/contracts/qualification-run-history.toml"),
+        existing_registry_path: Some(root.join("containers/contracts/qualification-runs.toml")),
+    })?;
+
+    assert_eq!(derived.audit.historical_max_run_number, 1157);
+    assert_eq!(run_id(&derived, "bijux_dna"), Some("run-1141"));
+    assert_eq!(run_id(&derived, "fastq_screen"), Some("run-1142"));
+    assert_eq!(run_id(&derived, "yleaf"), Some("run-1157"));
+    Ok(())
+}
+
+#[test]
+fn tombstones_cannot_be_reused_by_checked_in_reservations() -> Result<()> {
+    let root = repository_root()?;
+    let directory = tempfile::tempdir()?;
+    let history_path = directory.path().join("qualification-run-history.toml");
+    fs::write(
+        &history_path,
+        r#"schema_version = "bijux.container.qualification_run_history.v2"
+identities = []
+[[tombstones]]
+run_id = "run-1141"
+disposition = "reserved_never_reuse"
+reason = "exercise collision rejection"
+"#,
+    )?;
+    let request = QualificationRegistryDerivationRequest {
+        repository_root: root.clone(),
+        current_runs_root: root.join("containers/runs"),
+        attempt_ledger_path: root.join("containers/runs/attempt-ledger.json"),
+        supplemental_history_path: history_path,
+        existing_registry_path: Some(root.join("containers/contracts/qualification-runs.toml")),
+    };
+
+    assert!(derive_qualification_run_registry(&request).is_err());
+    Ok(())
+}
+
+fn request(root: &std::path::Path) -> QualificationRegistryDerivationRequest {
+    QualificationRegistryDerivationRequest {
+        repository_root: root.to_path_buf(),
+        current_runs_root: root.join("containers/runs"),
+        attempt_ledger_path: root.join("containers/runs/attempt-ledger.json"),
+        supplemental_history_path: root.join("containers/contracts/qualification-run-history.toml"),
+        existing_registry_path: None,
+    }
+}
+
+fn run_id<'a>(
+    derived: &'a bijux_dna_containers::api::DerivedQualificationRunRegistry,
+    tool_id: &str,
+) -> Option<&'a str> {
+    derived
+        .registry
+        .tools
+        .iter()
+        .find(|row| row.tool_id == tool_id)
+        .and_then(|row| row.run_id.as_deref())
+}
+
+fn repository_root() -> Result<std::path::PathBuf> {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(2)
+        .map(std::path::Path::to_path_buf)
+        .context("resolve repository root")
+}

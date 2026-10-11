@@ -61,6 +61,7 @@ fn db_ena_tree_matches_architecture_contract() {
             "runtime.rs",
             "task.rs",
             "transfer.rs",
+            "verified_transfer.rs",
         ]),
         "download tree must remain decomposed by config, planning, runtime, transfer, and report concern"
     );

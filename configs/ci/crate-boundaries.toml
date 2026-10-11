@@ -90,16 +90,16 @@ layer = "engine"
 public_surfaces = ["crates/bijux-dna-engine/src/lib.rs", "crates/bijux-dna-engine/docs/PUBLIC_API.md"]
 
 [[crates]]
-name = "bijux-dna-environment"
+name = "bijux-dna-containers"
 family = "execution"
 layer = "environment"
-public_surfaces = ["crates/bijux-dna-environment/src/lib.rs", "crates/bijux-dna-environment/docs/PUBLIC_API.md"]
+public_surfaces = ["crates/bijux-dna-containers/src/lib.rs", "crates/bijux-dna-containers/docs/PUBLIC_API.md"]
 
 [[crates]]
-name = "bijux-dna-environment-qa"
+name = "bijux-dna-containers-qa"
 family = "qa"
 layer = "qa"
-public_surfaces = ["crates/bijux-dna-environment-qa/src/lib.rs", "crates/bijux-dna-environment-qa/docs/PUBLIC_API.md"]
+public_surfaces = ["crates/bijux-dna-containers-qa/src/lib.rs", "crates/bijux-dna-containers-qa/docs/PUBLIC_API.md"]
 
 [[crates]]
 name = "bijux-dna-infra"

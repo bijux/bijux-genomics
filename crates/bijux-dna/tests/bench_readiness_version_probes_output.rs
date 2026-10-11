@@ -42,11 +42,14 @@ fn bench_readiness_version_probes_writes_governed_json_file() {
         parsed.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.version_probes.v1")
     );
-    assert_eq!(parsed.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(parsed.get("ready_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(parsed.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(2));
-
     let rows = parsed.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    let row_count = rows.len() as u64;
+    let ready_count = support::json_u64(&parsed, "ready_count").expect("ready count");
+    let unavailable_count =
+        support::json_u64(&parsed, "unavailable_count").expect("unavailable count");
+    assert_eq!(parsed.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(ready_count + unavailable_count, row_count);
+    assert_eq!(unavailable_count, 2);
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
             && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")

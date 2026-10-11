@@ -141,7 +141,7 @@ pub(crate) fn collect_bam_local_container_smoke_rows(
     rows.sort_by(|left, right| {
         left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
     });
-    ensure_bam_local_container_smoke_contract(repo_root, &rows)?;
+    ensure_bam_local_container_smoke_contract(repo_root, &retained_rows, &rows)?;
     Ok(rows)
 }
 
@@ -386,8 +386,26 @@ fn string_field(value: &toml::Value, key: &str) -> String {
 
 fn ensure_bam_local_container_smoke_contract(
     repo_root: &Path,
+    retained_rows: &[BamCommandAdapterCoverageRow],
     rows: &[BamLocalContainerSmokeRow],
 ) -> Result<()> {
+    let expected_bindings = retained_rows
+        .iter()
+        .map(|row| (row.stage_id.as_str(), row.tool_id.as_str()))
+        .collect::<BTreeSet<_>>();
+    let observed_bindings = rows
+        .iter()
+        .map(|row| (row.stage_id.as_str(), row.tool_id.as_str()))
+        .collect::<BTreeSet<_>>();
+    if expected_bindings.is_empty()
+        || expected_bindings.len() != retained_rows.len()
+        || observed_bindings.len() != rows.len()
+        || observed_bindings != expected_bindings
+    {
+        return Err(anyhow!(
+            "BAM local-container smoke bindings drifted from retained command coverage"
+        ));
+    }
     let host_contract_row_count = rows
         .iter()
         .filter(|row| {
@@ -399,25 +417,6 @@ fn ensure_bam_local_container_smoke_contract(
                     .is_ok_and(|path| path.is_some())
         })
         .count();
-    if rows.len() != 49 {
-        return Err(anyhow!(
-            "BAM local-container smoke report drifted from the governed retained surface (expected 49 rows, found {})",
-            rows.len()
-        ));
-    }
-    let stage_count = rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>().len();
-    if stage_count != 24 {
-        return Err(anyhow!(
-            "BAM local-container smoke report drifted from the governed retained stage surface (expected 24 stages, found {stage_count})"
-        ));
-    }
-    let tool_count = rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>().len();
-    if tool_count != 25 {
-        return Err(anyhow!(
-            "BAM local-container smoke report drifted from the governed retained tool surface (expected 25 tools, found {tool_count})"
-        ));
-    }
-
     let host_stage_smoke_row_count =
         rows.iter().filter(|row| row.smoke_path_kind == "host_stage_smoke").count();
     if host_stage_smoke_row_count != host_contract_row_count {

@@ -50,7 +50,7 @@ fn bench_readiness_vcf_descent_family_adapter_reports_governed_rows() {
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(4)
     );
     assert_eq!(payload.get("parser_output_row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(
@@ -64,7 +64,7 @@ fn bench_readiness_vcf_descent_family_adapter_reports_governed_rows() {
     for (tool_id, stage_id, benchmark_status) in [
         ("plink2", "vcf.roh", "benchmark_ready"),
         ("germline", "vcf.ibd", "benchmark_ready"),
-        ("ibdseq", "vcf.ibd", "not_benchmark_ready"),
+        ("ibdseq", "vcf.ibd", "benchmark_ready"),
         ("ibdhap", "vcf.ibd", "not_benchmark_ready"),
         ("ibdne", "vcf.demography", "benchmark_ready"),
     ] {
@@ -124,7 +124,7 @@ fn bench_readiness_vcf_descent_family_adapter_reports_governed_rows() {
         .and_then(|step| step.get("argv"))
         .and_then(serde_json::Value::as_array)
         .expect("germline argv");
-    for needle in ["plink2 --vcf", "--make-bed", "germline", "-output"] {
+    for needle in ["plink2 --vcf", "--recode ped", "germline", "-output"] {
         assert!(
             germline_argv
                 .iter()
@@ -152,7 +152,7 @@ fn bench_readiness_vcf_descent_family_adapter_reports_governed_rows() {
         ibdseq_argv
             .iter()
             .filter_map(serde_json::Value::as_str)
-            .any(|part| part.contains("ibdseq --vcf")),
+            .any(|part| part.contains("ibdseq gt=")),
         "ibdseq argv must retain the retained ibdseq invocation"
     );
 
@@ -174,7 +174,7 @@ fn bench_readiness_vcf_descent_family_adapter_reports_governed_rows() {
         ibdhap_argv
             .iter()
             .filter_map(serde_json::Value::as_str)
-            .any(|part| part.contains("ibdhap --vcf")),
+            .any(|part| part.contains("ibdhap analyze-vcf")),
         "ibdhap argv must retain the retained ibdhap invocation"
     );
 
@@ -203,7 +203,7 @@ fn bench_readiness_vcf_descent_family_adapter_reports_governed_rows() {
         demography_argv
             .iter()
             .filter_map(serde_json::Value::as_str)
-            .any(|part| part.contains("ibdne --ibd")),
+            .any(|part| part.contains("ibdne map=")),
         "ibdne argv must retain the retained ibdne invocation"
     );
 }

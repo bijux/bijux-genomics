@@ -43,7 +43,8 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.map(|line| line.split('\t').collect::<Vec<_>>()).collect::<Vec<_>>();
-    assert_eq!(rows.len(), 49, "TSV must retain the governed BAM row count");
+    assert!(!rows.is_empty(), "TSV must retain active BAM rows");
+    assert!(rows.iter().all(|row| row[0] != "angsd" && row[0] != "ngsbriggs"));
     assert!(rows.iter().any(|row| {
         row[0] == "authenticct"
             && row[1] == "bam.authenticity"
@@ -115,7 +116,7 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
             && row[13] == "not_applicable"
     }));
     assert!(rows.iter().any(|row| {
-        row[0] == "angsd"
+        row[0] == "bcftools"
             && row[1] == "bam.genotyping"
             && row[2] == "benchmark_ready"
             && row[3] == "supported"
@@ -149,16 +150,6 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
                 == "human_like_kinship_low_overlap_pair.min_overlap_snps=5;human_like_kinship_low_overlap_pair.observed_max_overlap_snps=4;human_like_kinship_related_pair.min_overlap_snps=6;human_like_kinship_related_pair.observed_max_overlap_snps=6"
             && row[11]
                 == "reference_fasta=corpus_01_bam_reference;reference_panel=human_like_relatedness_panel"
-            && row[12] == "kinship_report,summary,kinship_segments,stage_metrics"
-            && row[13]
-                == "human_like_kinship_low_overlap_pair=stop_without_pairwise_results;human_like_kinship_related_pair=emit_pairwise_results"
-    }));
-    assert!(rows.iter().any(|row| {
-        row[0] == "angsd"
-            && row[1] == "bam.kinship"
-            && row[6] == "corpus-01-kinship"
-            && row[7] == "corpus-01-kinship-mini"
-            && row[8] == "human_like_kinship_low_overlap_pair,human_like_kinship_related_pair"
             && row[12] == "kinship_report,summary,kinship_segments,stage_metrics"
             && row[13]
                 == "human_like_kinship_low_overlap_pair=stop_without_pairwise_results;human_like_kinship_related_pair=emit_pairwise_results"

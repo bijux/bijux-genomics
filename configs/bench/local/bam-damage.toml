@@ -3,10 +3,10 @@
 # purpose = Governed local-smoke inputs for bam.damage.
 # authority = bijux-dna-planner-bam
 # stability = evolving
-# last_updated = 2026-06-01
+# last_updated = 2026-08-05
 
 schema_version = "bijux.bench.bam.local_damage.v1"
-tool_id = "ngsbriggs"
+tool_id = "mapdamage2"
 threads = 2
 output_dir = "runs/bench/local-smoke/bam.damage"
 

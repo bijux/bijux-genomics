@@ -46,10 +46,10 @@ fn bench_readiness_vcf_parser_fixture_coverage_reports_active_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/vcf/vcf-parser-fixture-coverage.tsv")
     );
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(18));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(6));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(21));
-    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(21));
+    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(9));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("covered_row_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("missing_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("parser_fixture_coverage_percent").and_then(serde_json::Value::as_f64),
@@ -57,7 +57,7 @@ fn bench_readiness_vcf_parser_fixture_coverage_reports_active_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 21);
+    assert_eq!(rows.len(), 24);
 
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")

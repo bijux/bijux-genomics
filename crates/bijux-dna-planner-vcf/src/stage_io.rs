@@ -542,29 +542,27 @@ fn descent_stage_command(
             let cohort_prefix = format!("{output_prefix}.cohort");
             let log_path = format!("{output_prefix}.log");
             format!(
-                "plink2 --vcf '{input_vcf}' --double-id --allow-extra-chr --make-bed --out '{cohort_prefix}' >/dev/null 2>&1 && germline -input '{cohort_prefix}' -bits 128 -min_m 3 -err_hom 2 -err_het 1 -output '{output_prefix}' > '{log_path}' 2>&1"
+                "plink2 --vcf '{input_vcf}' --double-id --allow-extra-chr --recode ped --out '{cohort_prefix}' >/dev/null 2>&1 && germline -silent -input '{cohort_prefix}.ped' '{cohort_prefix}.map' -output '{output_prefix}' -bits 50 -min_m 1 -err_hom 2 -err_het 0 > '{log_path}' 2>&1"
             )
         }
         ("ibdseq", VcfDomainStage::Ibd) => {
             let input_vcf = input_path(inputs, "vcf")?.display().to_string();
             let output_prefix = output_prefix_path(outputs, "ibd_segments")?;
             let log_path = format!("{output_prefix}.log");
-            format!(
-                "ibdseq --vcf '{input_vcf}' --out '{output_prefix}.segments.tsv' > '{log_path}' 2>&1"
-            )
+            format!("ibdseq gt='{input_vcf}' out='{output_prefix}' nthreads=8 > '{log_path}' 2>&1")
         }
         ("ibdhap", VcfDomainStage::Ibd) => {
-            let input_vcf = input_path(inputs, "vcf")?.display().to_string();
-            let output_prefix = output_prefix_path(outputs, "ibd_segments")?;
-            let log_path = format!("{output_prefix}.log");
-            format!("ibdhap --vcf '{input_vcf}' --out '{output_prefix}.segments.tsv' > '{log_path}' 2>&1")
+            return Err(anyhow!(
+                "planner refusal: ibdhap requires an explicit sample pair and genomic region; use its governed posterior-state benchmark contract instead of the segment-call stage"
+            ));
         }
         ("ibdne", VcfDomainStage::Demography) => {
             let input_ibd_segments = input_path(inputs, "ibd_segments")?.display().to_string();
+            let genetic_map = input_path(inputs, "genetic_map_tsv")?.display().to_string();
             let output_prefix = output_prefix_path(outputs, "demography_report")?;
             let log_path = format!("{output_prefix}.log");
             format!(
-                "ibdne --ibd '{input_ibd_segments}' --out '{output_prefix}' > '{log_path}' 2>&1"
+                "cat '{input_ibd_segments}' | ibdne map='{genetic_map}' out='{output_prefix}' nthreads=8 nboots=0 seed=15052011 > '{log_path}' 2>&1"
             )
         }
         _ => return Ok(None),

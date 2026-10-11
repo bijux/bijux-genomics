@@ -4,6 +4,6 @@
   "argv": [
     "sh",
     "-lc",
-    "ibdseq --vcf 'cohort.vcf.gz' --out 'ibdseq.segments.tsv' > 'raw.log' 2>&1"
+    "ibdseq gt='cohort.vcf.gz' out='ibdseq' nthreads=8 > 'raw.log' 2>&1"
   ]
 }

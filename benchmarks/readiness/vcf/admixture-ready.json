@@ -21,7 +21,7 @@
     "tool_ok"
   ],
   "tool_status_counts": {
-    "experimental,production": 1
+    "production": 1
   },
   "coverage_status_counts": {
     "complete": 1
@@ -33,7 +33,7 @@
       "result_id": "vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2",
       "stage_id": "vcf.admixture",
       "tool_id": "plink2",
-      "tool_status": "experimental,production",
+      "tool_status": "production",
       "corpus_id": "vcf_production_regression",
       "asset_profile_id": "vcf_cohort",
       "adapter_id": "vcf.adapter.population_structure",

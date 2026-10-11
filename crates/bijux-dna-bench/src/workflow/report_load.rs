@@ -96,7 +96,7 @@ pub fn load_stage_reports_from_dir(
             if let Some(identity) = catalog_identities.get(repository_commit) {
                 identity.clone()
             } else {
-                let identity = bijux_dna_environment::api::catalog_identity_at_commit(
+                let identity = bijux_dna_containers::api::catalog_identity_at_commit(
                     repository_root,
                     repository_commit,
                 )?;

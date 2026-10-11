@@ -11,12 +11,12 @@ fn is_allowed_command_path(path: &Path) -> bool {
     path_str.contains("/crates/bijux-dna-runner/")
         || path_str.contains("/crates/bijux-dna-runner/src/command_runner.rs")
         || path_str.contains("/crates/bijux-dna-stages-vcf/")
-        || path_str.contains("/crates/bijux-dna-environment/src/build/")
-        || path_str.contains("/crates/bijux-dna-environment/src/bin/")
-        || path_str.contains("/crates/bijux-dna-environment/src/evidence/tool_contract/")
-        || path_str.contains("/crates/bijux-dna-environment/src/resolve/")
-        || path_str.contains("/crates/bijux-dna-environment-qa/src/bin/")
-        || path_str.contains("/crates/bijux-dna-environment-qa/src/image_qa/")
+        || path_str.contains("/crates/bijux-dna-containers/src/build/")
+        || path_str.contains("/crates/bijux-dna-containers/src/bin/")
+        || path_str.contains("/crates/bijux-dna-containers/src/evidence/tool_contract/")
+        || path_str.contains("/crates/bijux-dna-containers/src/resolve/")
+        || path_str.contains("/crates/bijux-dna-containers-qa/src/bin/")
+        || path_str.contains("/crates/bijux-dna-containers-qa/src/image_qa/")
         || path_str.contains("/crates/bijux-dna-dev/")
 }
 
@@ -44,8 +44,9 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
         if is_allowed_command_path(path) {
             continue;
         }
-        let content =
+        let source =
             std::fs::read_to_string(path).unwrap_or_else(|err| panic!("read source: {err}"));
+        let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(&source);
         if needles.iter().any(|needle| content.contains(needle)) {
             offenders.push(path.display().to_string());
         }
@@ -53,7 +54,7 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
 
     assert!(
         offenders.is_empty(),
-        "process command spawning must be confined to bijux-dna-runner, bijux-dna-dev, or bijux-dna-environment tooling:\n{}",
+        "process command spawning must be confined to bijux-dna-runner, bijux-dna-dev, or bijux-dna-containers tooling:\n{}",
         offenders.join("\n")
     );
 }

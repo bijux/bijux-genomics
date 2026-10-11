@@ -70,6 +70,7 @@ pub enum NativeContainerCommandKey {
     GenerateImageInventoryReport,
     GenerateImageInventoryPublicationSchema,
     GenerateImageInventoryScanSchema,
+    ImageActivation,
     ImageStorage,
     QualificationRegistry,
     RuntimeVerification,

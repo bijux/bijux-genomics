@@ -1006,7 +1006,7 @@
       },
       {
         "stage_id": "vcf.demography",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "ibd_segments_are_filtered_and_comparable_before_demography",
@@ -1043,7 +1043,7 @@
       },
       {
         "stage_id": "vcf.ibd",
-        "evidence_status": "planned",
+        "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
           "phasing_quality_thresholds_are_fixed_per_run",

@@ -6,37 +6,14 @@ use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, BenchmarkFastqLayout,
+    validate_benchmark_data_index, AdmittedFastqCorpus, AdmittedFastqCorpusFile,
+    AdmittedFastqCorpusSample, BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkEligibility,
+    BenchmarkFastqLayout, DataIntegrityStatus,
 };
 use serde::Deserialize;
 
-const DATA_INDEX_SCHEMA: &str = "bijux.data_index.v1";
 const DATA_CATALOG_SCHEMA: &str = "bijux.data_catalog.v1";
 const MAX_AUTHORITY_BYTES: u64 = 64 * 1024 * 1024;
-
-#[derive(Debug, Deserialize)]
-struct DataIndex {
-    schema_version: String,
-    records: Vec<DataIndexRecord>,
-}
-
-#[derive(Debug, Deserialize)]
-struct DataIndexRecord {
-    id: String,
-    benchmark_eligibility: String,
-    integrity_status: String,
-    catalog_path: String,
-    catalog_sha256: String,
-    files: Vec<DataIndexFile>,
-}
-
-#[derive(Debug, Deserialize)]
-struct DataIndexFile {
-    path: String,
-    role: String,
-    sha256: String,
-    size_bytes: u64,
-}
 
 #[derive(Debug, Deserialize)]
 struct DataCatalog {
@@ -91,20 +68,18 @@ pub fn admit_fastq_benchmark_corpus(
     let data_index_path = governed_regular_file(&study_root, data_index_path, "data index")?;
     let data_index_bytes = read_authority(&data_index_path, "data index")?;
     let data_index_sha256 = bijux_dna_infra::hash_bytes_sha256(&data_index_bytes);
-    let index: DataIndex = serde_json::from_slice(&data_index_bytes)
+    let index: BenchmarkDataIndex = serde_json::from_slice(&data_index_bytes)
         .with_context(|| format!("parse data index {}", data_index_path.display()))?;
-    if index.schema_version != DATA_INDEX_SCHEMA {
-        bail!("data index schema is unsupported: {}", index.schema_version);
-    }
+    validate_benchmark_data_index(&index).context("validate benchmark data index")?;
     let mut records = index.records.into_iter().filter(|record| record.id == corpus_id);
     let record = records.next().with_context(|| format!("data index lacks corpus {corpus_id}"))?;
     if records.next().is_some() {
         bail!("data index corpus identity is not unique: {corpus_id}");
     }
-    if record.benchmark_eligibility != "eligible" {
+    if record.benchmark_eligibility != BenchmarkEligibility::Eligible {
         bail!("corpus is not benchmark-eligible: {corpus_id}");
     }
-    if record.integrity_status != "verified" {
+    if record.integrity_status != DataIntegrityStatus::Verified {
         bail!("corpus lacks verified index integrity: {corpus_id}");
     }
     validate_sha256(&record.catalog_sha256, "catalog")?;
@@ -218,7 +193,9 @@ pub fn admit_fastq_benchmark_corpus(
     })
 }
 
-fn index_files(files: Vec<DataIndexFile>) -> Result<BTreeMap<String, DataIndexFile>> {
+fn index_files(
+    files: Vec<BenchmarkDataIndexFile>,
+) -> Result<BTreeMap<String, BenchmarkDataIndexFile>> {
     let mut indexed = BTreeMap::new();
     for file in files {
         validate_sha256(&file.sha256, "data index file")?;

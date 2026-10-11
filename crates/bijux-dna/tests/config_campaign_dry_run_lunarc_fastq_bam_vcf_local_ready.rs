@@ -43,10 +43,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
     serde_json::from_slice(&output.stdout).expect("parse stdout as json")
 }
 
-#[test]
-fn config_campaign_dry_run_lunarc_fastq_bam_vcf_local_ready_reports_prepared_cross_domain_jobs() {
-    let payload = run_cli_json(&["--json"]);
-
+fn assert_campaign_identity_and_site(payload: &serde_json::Value) {
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.hpc.campaign.v1")
@@ -60,48 +57,34 @@ fn config_campaign_dry_run_lunarc_fastq_bam_vcf_local_ready_reports_prepared_cro
         Some("adna-equus-caballus-fastq-bam-vcf-local-ready")
     );
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("cross"));
-    assert_eq!(
-        payload
-            .get("layout")
-            .and_then(|layout| layout.get("corpora_root"))
-            .and_then(serde_json::Value::as_str),
-        Some("/mnt/shared/bijux/corpora")
-    );
-    assert_eq!(
-        payload
-            .get("layout")
-            .and_then(|layout| layout.get("databases_root"))
-            .and_then(serde_json::Value::as_str),
-        Some("/mnt/shared/bijux/databases")
-    );
-    assert_eq!(
-        payload
-            .get("layout")
-            .and_then(|layout| layout.get("images_root"))
-            .and_then(serde_json::Value::as_str),
-        Some("/mnt/shared/bijux/images")
-    );
-    assert_eq!(
-        payload
-            .get("resolved_slurm")
-            .and_then(|slurm| slurm.get("site_profile"))
-            .and_then(serde_json::Value::as_str),
-        Some("lunarc")
-    );
-    assert_eq!(
-        payload
-            .get("resolved_slurm")
-            .and_then(|slurm| slurm.get("partition"))
-            .and_then(serde_json::Value::as_str),
-        Some("main")
-    );
-    assert_eq!(
-        payload
-            .get("resolved_slurm")
-            .and_then(|slurm| slurm.get("qos"))
-            .and_then(serde_json::Value::as_str),
-        Some("normal")
-    );
+    for (key, expected) in [
+        ("corpora_root", "/mnt/shared/bijux/corpora"),
+        ("databases_root", "/mnt/shared/bijux/databases"),
+        ("images_root", "/mnt/shared/bijux/images"),
+    ] {
+        assert_eq!(
+            payload
+                .get("layout")
+                .and_then(|layout| layout.get(key))
+                .and_then(serde_json::Value::as_str),
+            Some(expected)
+        );
+    }
+    for (key, expected) in [("site_profile", "lunarc"), ("partition", "main"), ("qos", "normal")] {
+        assert_eq!(
+            payload
+                .get("resolved_slurm")
+                .and_then(|slurm| slurm.get(key))
+                .and_then(serde_json::Value::as_str),
+            Some(expected)
+        );
+    }
+}
+
+#[test]
+fn config_campaign_dry_run_lunarc_fastq_bam_vcf_local_ready_reports_prepared_cross_domain_jobs() {
+    let payload = run_cli_json(&["--json"]);
+    assert_campaign_identity_and_site(&payload);
 
     let jobs =
         payload.get("planned_jobs").and_then(serde_json::Value::as_array).expect("planned jobs");

@@ -1703,7 +1703,7 @@ mod tests {
     }
 
     #[test]
-    fn apt_policy_accepts_exact_bootstrap_before_snapshot_activation() {
+    fn apt_policy_accepts_exact_bootstrap_before_snapshot_activation() -> anyhow::Result<()> {
         let dockerfile = r"
 FROM ubuntu:24.04
 RUN apt-get update && \
@@ -1713,13 +1713,14 @@ RUN apt-get update && \
     apt-get install -y curl zlib1g
 ";
 
-        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile)?;
 
         assert!(violations.is_empty(), "{violations:?}");
+        Ok(())
     }
 
     #[test]
-    fn apt_policy_accepts_debian_snapshot_packages() {
+    fn apt_policy_accepts_debian_snapshot_packages() -> anyhow::Result<()> {
         let dockerfile = r"
 FROM debian:bookworm
 RUN sed -i 's#deb.debian.org/debian#https://snapshot.debian.org/archive/debian/20260802T000000Z#' /etc/apt/sources.list && \
@@ -1727,68 +1728,73 @@ RUN sed -i 's#deb.debian.org/debian#https://snapshot.debian.org/archive/debian/2
     apt-get install -y curl zlib1g
 ";
 
-        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile)?;
 
         assert!(violations.is_empty(), "{violations:?}");
+        Ok(())
     }
 
     #[test]
-    fn apt_policy_accepts_canonical_snapshot_helper_per_stage() {
+    fn apt_policy_accepts_canonical_snapshot_helper_per_stage() -> anyhow::Result<()> {
         let dockerfile = r"
 FROM ubuntu:24.04
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y curl zlib1g
 ";
 
-        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile)?;
 
         assert!(violations.is_empty(), "{violations:?}");
+        Ok(())
     }
 
     #[test]
-    fn apt_policy_rejects_uncopied_snapshot_helper() {
+    fn apt_policy_rejects_uncopied_snapshot_helper() -> anyhow::Result<()> {
         let dockerfile = r"
 FROM ubuntu:24.04
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y curl
 ";
 
-        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile)?;
 
         assert_eq!(violations.len(), 2);
         assert!(violations.iter().any(|row| row.contains("before its canonical source")));
         assert!(violations.iter().any(|row| row.contains("'curl'")));
+        Ok(())
     }
 
     #[test]
-    fn apt_policy_rejects_mutable_unversioned_packages() {
+    fn apt_policy_rejects_mutable_unversioned_packages() -> anyhow::Result<()> {
         let dockerfile = r"
 FROM ubuntu:24.04
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl zlib1g
 ";
 
-        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile)?;
 
         assert_eq!(violations.len(), 2);
         assert!(violations.iter().any(|row| row.contains("'curl'")));
         assert!(violations.iter().any(|row| row.contains("'zlib1g'")));
+        Ok(())
     }
 
     #[test]
-    fn apt_policy_rejects_disabled_tls_verification() {
+    fn apt_policy_rejects_disabled_tls_verification() -> anyhow::Result<()> {
         let dockerfile = r"
 FROM ubuntu:24.04
 RUN apt-get -o Acquire::https::Verify-Peer=false update
 ";
 
-        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile)?;
 
         assert_eq!(violations.len(), 1);
         assert!(violations[0].contains("TLS peer verification"));
+        Ok(())
     }
 
     #[test]
-    fn apt_policy_resets_snapshot_authority_between_build_stages() {
+    fn apt_policy_resets_snapshot_authority_between_build_stages() -> anyhow::Result<()> {
         let dockerfile = r"
 FROM ubuntu:24.04 AS builder
 RUN sed -i 's#archive.ubuntu.com#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#' /etc/apt/sources.list && \
@@ -1797,9 +1803,10 @@ FROM ubuntu:24.04
 RUN apt-get update && apt-get install -y zlib1g
 ";
 
-        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile)?;
 
         assert_eq!(violations.len(), 1);
         assert!(violations[0].contains("'zlib1g'"));
+        Ok(())
     }
 }

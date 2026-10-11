@@ -55,7 +55,13 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         payload.get("row_count").and_then(serde_json::Value::as_u64),
         Some(rows.len() as u64)
     );
-    assert_eq!(rows.len(), 49, "BAM readiness map must retain the governed 49-row slice");
+    assert!(!rows.is_empty(), "BAM readiness map must retain active rows");
+    assert!(rows.iter().all(|row| {
+        !matches!(
+            row.get("tool_id").and_then(serde_json::Value::as_str),
+            Some("angsd" | "ngsbriggs")
+        )
+    }));
 
     let has_row = |tool_id: &str,
                    stage_id: &str,
@@ -98,17 +104,6 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
             "fixture:corpus-01-adna-damage-mini",
         ),
         "BAM readiness map must retain the governed damageprofiler damage row"
-    );
-    assert!(
-        has_row(
-            "ngsbriggs",
-            "bam.damage",
-            "supported",
-            "runnable",
-            "parser_fixture_validated",
-            "fixture:corpus-01-adna-damage-mini",
-        ),
-        "BAM readiness map must retain the governed ngsbriggs damage row"
     );
     assert!(
         has_row(
@@ -200,7 +195,7 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         ),
         "BAM readiness map must retain the governed samtools qc_pre evidence row"
     );
-    for tool_id in ["angsd", "rxy", "yleaf"] {
+    for tool_id in ["rxy", "yleaf"] {
         assert!(
             has_row(
                 tool_id,
@@ -213,28 +208,14 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
             "BAM readiness map must retain the governed sex row for {tool_id}"
         );
     }
-    assert!(
-        has_row(
-            "angsd",
-            "bam.genotyping",
-            "supported",
-            "runnable",
-            "parser_fixture_validated",
-            "fixture:corpus-01-genotyping-mini",
-        ),
-        "BAM readiness map must retain the governed angsd genotyping row"
-    );
-    assert!(
-        has_row(
-            "angsd",
-            "bam.kinship",
-            "supported",
-            "runnable",
-            "parser_fixture_validated",
-            "fixture:corpus-01-kinship-mini",
-        ),
-        "BAM readiness map must retain the governed angsd kinship comparison row"
-    );
+    assert!(has_row(
+        "bcftools",
+        "bam.genotyping",
+        "supported",
+        "runnable",
+        "parser_fixture_validated",
+        "fixture:corpus-01-genotyping-mini",
+    ));
     assert!(
         has_row(
             "king",

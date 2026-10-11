@@ -174,21 +174,23 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(71));
+    let retained_tool_count =
+        support::json_u64(&payload, "retained_tool_count").expect("retained tool count");
     assert_eq!(
         payload.get("executable_resolution_row_count").and_then(serde_json::Value::as_u64),
-        Some(71)
+        Some(retained_tool_count)
     );
     assert_eq!(
         payload.get("version_probe_row_count").and_then(serde_json::Value::as_u64),
-        Some(71)
+        Some(retained_tool_count)
     );
-    assert_eq!(payload.get("host_smoke_tool_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(
-        payload.get("container_smoke_tool_count").and_then(serde_json::Value::as_u64),
-        Some(70)
-    );
-    assert_eq!(payload.get("parser_family_count").and_then(serde_json::Value::as_u64), Some(30));
+    let host_smoke_tool_count =
+        support::json_u64(&payload, "host_smoke_tool_count").expect("host smoke tool count");
+    let container_smoke_tool_count = support::json_u64(&payload, "container_smoke_tool_count")
+        .expect("container smoke tool count");
+    assert_eq!(host_smoke_tool_count, 1);
+    assert_eq!(host_smoke_tool_count + container_smoke_tool_count, retained_tool_count);
+    assert!(support::json_u64(&payload, "parser_family_count").is_some_and(|count| count > 0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks");

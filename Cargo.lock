@@ -246,6 +246,7 @@ dependencies = [
  "anyhow",
  "bijux-dna-analyze",
  "bijux-dna-api",
+ "bijux-dna-bench-model",
  "bijux-dna-core",
  "bijux-dna-db-ena",
  "bijux-dna-db-ref",
@@ -321,12 +322,12 @@ dependencies = [
  "anyhow",
  "bijux-dna-analyze",
  "bijux-dna-bench",
+ "bijux-dna-containers",
  "bijux-dna-core",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
  "bijux-dna-domain-vcf",
  "bijux-dna-engine",
- "bijux-dna-environment",
  "bijux-dna-infra",
  "bijux-dna-pipelines",
  "bijux-dna-planner-bam",
@@ -361,16 +362,21 @@ dependencies = [
  "anyhow",
  "bijux-dna-analyze",
  "bijux-dna-bench-model",
+ "bijux-dna-containers",
  "bijux-dna-core",
+ "bijux-dna-db-ena",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
- "bijux-dna-environment",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "bijux-dna-runtime",
  "bijux-dna-science",
  "bijux-dna-testkit",
+ "chrono",
+ "flate2",
  "insta",
+ "md5",
+ "rayon",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -398,6 +404,47 @@ dependencies = [
 ]
 
 [[package]]
+name = "bijux-dna-containers"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-core",
+ "bijux-dna-infra",
+ "bijux-dna-policies",
+ "bijux-dna-testkit",
+ "regex",
+ "schemars",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.20",
+ "toml",
+ "walkdir",
+]
+
+[[package]]
+name = "bijux-dna-containers-qa"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-analyze",
+ "bijux-dna-containers",
+ "bijux-dna-core",
+ "bijux-dna-domain-fastq",
+ "bijux-dna-infra",
+ "bijux-dna-policies",
+ "bijux-dna-runtime",
+ "bijux-dna-testkit",
+ "clap",
+ "rusqlite",
+ "serde_json",
+ "sha2",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "bijux-dna-core"
 version = "0.1.0"
 dependencies = [
@@ -421,10 +468,13 @@ dependencies = [
  "anyhow",
  "bijux-dna-policies",
  "clap",
+ "md5",
  "rayon",
  "reqwest",
  "serde",
  "serde_json",
+ "sha2",
+ "tempfile",
  "thiserror 2.0.20",
 ]
 
@@ -446,10 +496,10 @@ dependencies = [
  "anyhow",
  "bijux-dna-api",
  "bijux-dna-bench",
+ "bijux-dna-containers",
  "bijux-dna-core",
  "bijux-dna-db-ena",
  "bijux-dna-db-ref",
- "bijux-dna-environment",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "bijux-dna-runner",
@@ -557,47 +607,6 @@ dependencies = [
  "thiserror 2.0.20",
  "tracing",
  "walkdir",
-]
-
-[[package]]
-name = "bijux-dna-environment"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bijux-dna-core",
- "bijux-dna-infra",
- "bijux-dna-policies",
- "bijux-dna-testkit",
- "regex",
- "schemars",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "thiserror 2.0.20",
- "toml",
- "walkdir",
-]
-
-[[package]]
-name = "bijux-dna-environment-qa"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bijux-dna-analyze",
- "bijux-dna-core",
- "bijux-dna-domain-fastq",
- "bijux-dna-environment",
- "bijux-dna-infra",
- "bijux-dna-policies",
- "bijux-dna-runtime",
- "bijux-dna-testkit",
- "clap",
- "rusqlite",
- "serde_json",
- "sha2",
- "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -732,11 +741,12 @@ dependencies = [
  "anyhow",
  "assert_cmd",
  "bijux-dna-bench-model",
+ "bijux-dna-containers",
  "bijux-dna-core",
- "bijux-dna-environment",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "bijux-dna-runtime",
+ "bijux-dna-testkit",
  "cargo_metadata",
  "serde",
  "serde_json",
@@ -1947,6 +1957,12 @@ checksum = "d1525a2a28c7f4fa0fc98bb91ae755d1e2d1505079e05539e35bc876b5d65ae9"
 dependencies = [
  "regex-automata",
 ]
+
+[[package]]
+name = "md5"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ebb8d8732c6a6df3d8f032a82911cfc747e00efb95cc46e8d0acd5b5b88570c"
 
 [[package]]
 name = "memchr"

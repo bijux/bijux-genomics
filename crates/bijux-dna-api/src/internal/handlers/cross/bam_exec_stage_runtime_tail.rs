@@ -101,8 +101,8 @@ fn write_duplicate_policy_split(
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
-    catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,
-    platform: &bijux_dna_environment::api::PlatformSpec,
+    catalog: &std::collections::HashMap<String, bijux_dna_containers::api::ToolImageSpec, S>,
+    platform: &bijux_dna_containers::api::PlatformSpec,
     profile: &PipelineProfile,
     stage: bijux_dna_planner_bam::stage_api::BamStage,
     bam_path: &Path,
@@ -236,8 +236,8 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
 #[allow(clippy::too_many_lines)]
 pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     registry_core: &ToolRegistry,
-    catalog: &std::collections::HashMap<String, bijux_dna_environment::api::ToolImageSpec, S>,
-    platform: &bijux_dna_environment::api::PlatformSpec,
+    catalog: &std::collections::HashMap<String, bijux_dna_containers::api::ToolImageSpec, S>,
+    platform: &bijux_dna_containers::api::PlatformSpec,
     profile: &PipelineProfile,
     reference: &ReferenceRecord,
     args: &FastqCrossArgs,

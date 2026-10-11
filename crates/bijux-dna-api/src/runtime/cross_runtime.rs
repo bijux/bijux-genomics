@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_containers::api::RuntimeKind;
 
 use crate::execution_kernel::{invoke_tool, ToolInvocationRequest};
 

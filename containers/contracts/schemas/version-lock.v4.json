@@ -1,0 +1,117 @@
+{
+  "$defs": {
+    "ContainerVersionLockItem": {
+      "additionalProperties": false,
+      "properties": {
+        "entry_sha256": {
+          "type": "string"
+        },
+        "frontend_resolved_sif_sha256": {
+          "type": "string"
+        },
+        "frontend_sif_digest_sha256": {
+          "type": "string"
+        },
+        "frontend_smoke_version_output_sha256": {
+          "type": "string"
+        },
+        "image_size_bytes": {
+          "format": "int64",
+          "type": "integer"
+        },
+        "pinned_commit": {
+          "type": "string"
+        },
+        "resolved_image_digest": {
+          "type": "string"
+        },
+        "resolved_sif_sha256": {
+          "type": "string"
+        },
+        "sif_digest_sha256": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "source_sha256": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "entry_sha256",
+        "frontend_resolved_sif_sha256",
+        "frontend_sif_digest_sha256",
+        "frontend_smoke_version_output_sha256",
+        "image_size_bytes",
+        "pinned_commit",
+        "resolved_image_digest",
+        "resolved_sif_sha256",
+        "sif_digest_sha256",
+        "source",
+        "source_sha256",
+        "tool",
+        "version"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "build_date_utc": {
+      "type": "string"
+    },
+    "build_manifests_source": {
+      "type": "string"
+    },
+    "builder_platform": {
+      "type": "string"
+    },
+    "generator_script": {
+      "type": "string"
+    },
+    "generator_sha256": {
+      "type": "string"
+    },
+    "items": {
+      "items": {
+        "$ref": "#/$defs/ContainerVersionLockItem"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.container.version_lock.v4",
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "source_sha256": {
+      "type": "string"
+    },
+    "version_map_source": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "build_date_utc",
+    "build_manifests_source",
+    "builder_platform",
+    "generator_script",
+    "generator_sha256",
+    "items",
+    "schema_version",
+    "source",
+    "source_sha256",
+    "version_map_source"
+  ],
+  "title": "ContainerVersionLock",
+  "type": "object"
+}

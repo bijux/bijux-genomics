@@ -46,7 +46,7 @@ or mutate runtime state.
 - `bijux-dna-analyze`
 - `bijux-dna-bench`
 - `bijux-dna-engine`
-- `bijux-dna-environment`
+- `bijux-dna-containers`
 - `bijux-dna-pipelines`
 - planner crates
 - runner/runtime crates

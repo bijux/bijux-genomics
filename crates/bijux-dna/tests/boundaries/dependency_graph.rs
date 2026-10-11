@@ -23,6 +23,7 @@ const NORMAL_DEPS: &[&str] = &[
     "flate2",
     "noodles-bam",
     "noodles-sam",
+    "rayon",
     "regex",
     "reqwest",
     "schemars",

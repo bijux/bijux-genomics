@@ -50,11 +50,19 @@ fn bench_readiness_tool_families_report_governs_all_benchmark_tools() {
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("primary_benchmark_function")
     );
-    assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(32));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(73));
     assert_eq!(payload.get("valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
+    assert_eq!(
+        payload.get("tool_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    let family_count = rows
+        .iter()
+        .filter_map(|row| row.get("family_id").and_then(serde_json::Value::as_str))
+        .collect::<std::collections::BTreeSet<_>>()
+        .len() as u64;
+    assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(family_count));
     let multiqc = rows
         .iter()
         .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("multiqc"))

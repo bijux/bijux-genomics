@@ -3,12 +3,21 @@
 #![allow(dead_code)]
 
 mod attempt_migration;
+mod bam_coverage;
+mod bam_duplication_metrics;
+mod bam_endogenous_content;
+mod bam_genotyping;
 mod bam_mapping_summary;
+mod bam_observation;
 mod campaign_lifecycle;
+mod campaign_material;
+mod corpus_materialization;
 mod evaluation;
+mod fastq_detect_adapters;
 mod fastq_expectations;
 mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
+mod fastq_validate_reads;
 mod options;
 mod report_load;
 mod run_suite;
@@ -26,6 +35,26 @@ pub use attempt_migration::{
     verify_attempt_migration, write_attempt_migration_plan, BenchmarkAttemptMigrationVerification,
     BenchmarkAttemptMigrationVerificationEntry,
 };
+pub use bam_coverage::{
+    prepare_bam_coverage_material, prepare_bam_coverage_material_from_corpus,
+    publish_bam_coverage_stage_report, render_bam_coverage_markdown, BamCoverageMaterial,
+    BamCoverageStageReportPublication,
+};
+pub use bam_duplication_metrics::{
+    prepare_bam_duplication_metrics_material, prepare_bam_duplication_metrics_material_from_corpus,
+    publish_bam_duplication_metrics_stage_report, render_bam_duplication_metrics_markdown,
+    BamDuplicationMetricsMaterial, BamDuplicationMetricsStageReportPublication,
+};
+pub use bam_endogenous_content::{
+    prepare_bam_endogenous_content_material, prepare_bam_endogenous_content_material_from_corpus,
+    publish_bam_endogenous_content_stage_report, render_bam_endogenous_content_markdown,
+    BamEndogenousContentMaterial, BamEndogenousContentStageReportPublication,
+};
+pub use bam_genotyping::{
+    prepare_bam_genotyping_material, prepare_bam_genotyping_material_from_corpus,
+    publish_bam_genotyping_stage_report, render_bam_genotyping_markdown, BamGenotypingMaterial,
+    BamGenotypingStageReportPublication,
+};
 pub use bam_mapping_summary::{
     prepare_bam_mapping_summary_material, prepare_bam_mapping_summary_material_from_corpus,
     publish_bam_mapping_summary_stage_report, render_bam_mapping_summary_markdown,
@@ -38,10 +67,23 @@ pub use bijux_dna_runtime::{
 pub use campaign_lifecycle::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
     load_execution_authorities, load_execution_spec, plan_stage_campaign_attempts,
-    plan_stage_campaign_retry_attempts, verify_campaign_plan_source, BenchmarkExecutionAuthorities,
-    BenchmarkExecutionMaterial,
+    plan_stage_campaign_retry_attempts, recover_stage_campaign_retry_lineage,
+    verify_campaign_plan_source, BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
+};
+pub use campaign_material::{
+    admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
+    publish_benchmark_campaign_report, BenchmarkCampaignEvidence, BenchmarkCampaignMaterialRequest,
+    BenchmarkCampaignReportPublication,
+};
+pub use corpus_materialization::{
+    materialize_fastq_corpus, CorpusMaterializationPublication, CorpusMaterializationRequest,
 };
 pub use evaluation::{compare, gate};
+pub use fastq_detect_adapters::{
+    prepare_fastq_detect_adapters_material_from_expectations,
+    publish_fastq_detect_adapters_stage_report, render_fastq_detect_adapters_markdown,
+    FastqDetectAdaptersMaterial, FastqDetectAdaptersStageReportPublication,
+};
 pub use fastq_expectations::{
     ensure_fastq_profile_reads_expectations, ensure_fastq_read_length_expectations,
     FastqProfileReadsExpectationPublication, FastqProfileReadsExpectationSample,
@@ -57,6 +99,11 @@ pub use fastq_profile_reads::{
     prepare_fastq_profile_reads_material, prepare_fastq_profile_reads_material_from_expectations,
     publish_fastq_profile_reads_stage_report, render_fastq_profile_reads_markdown,
     FastqProfileReadsMaterial, FastqProfileReadsStageReportPublication,
+};
+pub use fastq_validate_reads::{
+    prepare_fastq_validate_reads_material_from_expectations,
+    publish_fastq_validate_reads_stage_report, render_fastq_validate_reads_markdown,
+    FastqValidateReadsMaterial, FastqValidateReadsStageReportPublication,
 };
 pub use options::BenchRunOptions;
 pub use report_load::{

@@ -42,7 +42,7 @@ This control surface does not replace FASTQ domain manifests such as
 configuration indexes such as [configs/index.md](../configs/index.md),
 operational container contracts in [containers/README.md](../containers/README.md),
 or the runtime resolution surface in
-[crates/bijux-dna-environment/README.md](../crates/bijux-dna-environment/README.md).
+[crates/bijux-dna-containers/README.md](../crates/bijux-dna-containers/README.md).
 It traces and compiles the claims that explain how those surfaces are used.
 
 ## Generated Index

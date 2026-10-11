@@ -1,6 +1,7 @@
 use bijux_dna_bench_model::{
     validate_fastq_read_length_expectations, BenchmarkFastqLayout,
-    FastqReadLengthExpectationSample, FastqReadLengthExpectations,
+    FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
+    FastqReadLengthExpectations, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
     FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
 };
 
@@ -40,6 +41,41 @@ fn exact_fastq_expectation_contract_rejects_order_and_digest_drift() {
     expectations.derivation_sha256 = "0".repeat(64);
     assert!(validate_fastq_read_length_expectations(&expectations)
         .is_err_and(|error| error.to_string().contains("derivation digest")));
+}
+
+#[test]
+fn profile_expectation_provenance_round_trips_and_matches_schema() -> anyhow::Result<()> {
+    let provenance = FastqProfileReadsExpectationsProvenance {
+        schema_version: FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1.to_string(),
+        corpus_id: "exact-fastq-corpus".to_string(),
+        sample_count: 1,
+        file_count: 1,
+        data_index_sha256: "a".repeat(64),
+        catalog_sha256: "b".repeat(64),
+        read_length_derivation_sha256: "c".repeat(64),
+        expected_profile_sha256: "d".repeat(64),
+    };
+    let value = serde_json::to_value(&provenance)?;
+    assert_eq!(
+        serde_json::from_value::<FastqProfileReadsExpectationsProvenance>(value)?,
+        provenance
+    );
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let path = repository_root
+        .join("benchmarks/contracts/schemas/fastq-profile-reads-expectations.schema.json");
+    let generated =
+        serde_json::to_value(bijux_dna_bench_model::fastq_profile_reads_expectations_schema())?;
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        let mut bytes = serde_json::to_vec_pretty(&generated)?;
+        bytes.push(b'\n');
+        std::fs::write(&path, bytes)?;
+    }
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+    assert_eq!(checked, generated);
+    Ok(())
 }
 
 fn valid_expectations() -> FastqReadLengthExpectations {

@@ -44,7 +44,14 @@ fn bench_readiness_bam_sex_complete_writes_governed_json_file() {
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.bam_sex_complete.v1")
     );
-    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    let rows = report.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    assert_eq!(
+        report.get("complete_row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    assert!(rows
+        .iter()
+        .all(|row| { row.get("tool_id").and_then(serde_json::Value::as_str) != Some("angsd") }));
     assert_eq!(report.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(report.get("toolset_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(

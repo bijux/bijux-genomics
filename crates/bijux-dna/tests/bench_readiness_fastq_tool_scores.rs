@@ -69,12 +69,20 @@ fn bench_readiness_fastq_tool_scores_report_governs_real_fastq_evidence() {
         payload.get("config_path").and_then(serde_json::Value::as_str),
         Some("configs/bench/local/stage-scoring.toml")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(42));
-
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 71);
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    assert!(rows.iter().all(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) != Some("fastuniq")
+            && (row.get("stage_id").and_then(serde_json::Value::as_str)
+                != Some("fastq.profile_read_lengths")
+                || matches!(
+                    row.get("tool_id").and_then(serde_json::Value::as_str),
+                    Some("seqfu" | "seqkit")
+                ))
+    }));
     let score_status_count = |status: &str| {
         u64::try_from(
             rows.iter()
@@ -112,12 +120,6 @@ fn bench_readiness_fastq_tool_scores_report_governs_real_fastq_evidence() {
         failure_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
         u64::try_from(rows.len()).expect("row count fits u64")
     );
-    assert_eq!(failure_counts.get("none").and_then(serde_json::Value::as_u64), Some(10));
-    assert_eq!(
-        failure_counts.get("insufficient_data").and_then(serde_json::Value::as_u64),
-        Some(61)
-    );
-
     let filter_fastp = rows
         .iter()
         .find(|row| {

@@ -518,8 +518,11 @@ fn load_vcf_evidence(repo_root: &Path) -> Result<BTreeMap<(String, String), VcfE
     merge_call_gl_summary(repo_root, &mut rows)?;
     merge_call_pseudohaploid_summary(repo_root, &mut rows)?;
     merge_damage_filter_summary(repo_root, &mut rows)?;
+    merge_demography_summary(repo_root, &mut rows)?;
     merge_filter_summary(repo_root, &mut rows)?;
     merge_gl_propagation_summary(repo_root, &mut rows)?;
+    merge_ibd_summary(repo_root, &mut rows, "germline")?;
+    merge_ibd_summary(repo_root, &mut rows, "ibdseq")?;
     merge_imputation_metrics_summary(repo_root, &mut rows)?;
     merge_impute_summary(repo_root, &mut rows)?;
     merge_pca_summary(repo_root, &mut rows, "runs/bench/local-smoke/vcf.pca/plink2/pca.json")?;
@@ -550,6 +553,87 @@ fn load_vcf_evidence(repo_root: &Path) -> Result<BTreeMap<(String, String), VcfE
     merge_stats_summary(repo_root, &mut rows)?;
 
     Ok(rows)
+}
+
+fn merge_demography_summary(
+    repo_root: &Path,
+    rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
+) -> Result<()> {
+    let path = repo_root.join("runs/bench/local-smoke/vcf.demography/ibdne/demography.json");
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
+    };
+    let estimates = required_array(&root, "ne_estimates")?;
+    let contract_ok = required_i64(&root, "exit_code")? == 0
+        && required_str(&root, "status")? == "complete"
+        && !estimates.is_empty();
+    insert_evidence(
+        rows,
+        required_str(&root, "stage_id")?,
+        required_str(&root, "tool_id")?,
+        VcfEvidenceAggregate {
+            contract_correctness_score: Some(if contract_ok { 1.0 } else { 0.0 }),
+            contract_correctness_basis: Some(
+                "demography smoke preserved governed trajectory and inference outputs".to_string(),
+            ),
+            scientific_metric_summary: Some(summarize_metrics(vec![
+                format!("method={}", required_str(&root, "method")?),
+                format!("inference_status={}", required_str(&root, "inference_status")?),
+                format!("time_bin_count={}", required_array(&root, "time_bins")?.len()),
+                format!("estimate_count={}", estimates.len()),
+            ])),
+            runtime_seconds: optional_f64(&root, "elapsed_seconds"),
+            runtime_source: Some("local_smoke_report".to_string()),
+            source_paths: BTreeSet::new(),
+            ..VcfEvidenceAggregate::default()
+        },
+        &path,
+    );
+    Ok(())
+}
+
+fn merge_ibd_summary(
+    repo_root: &Path,
+    rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
+    tool_id: &str,
+) -> Result<()> {
+    let path = repo_root.join(format!("runs/bench/local-smoke/vcf.ibd/{tool_id}/ibd.json"));
+    let Some(root) = load_optional_json_value(&path)? else {
+        return Ok(());
+    };
+    let pair_count = required_u64(&root, "pair_count")?;
+    let contract_ok = required_i64(&root, "exit_code")? == 0
+        && required_str(&root, "status")? == "complete"
+        && pair_count > 0;
+    insert_evidence(
+        rows,
+        required_str(&root, "stage_id")?,
+        required_str(&root, "tool_id")?,
+        VcfEvidenceAggregate {
+            truth_correctness_score: Some(if contract_ok { 1.0 } else { 0.0 }),
+            truth_correctness_basis: Some(
+                "nonzero_pair_coverage_not_independent_ibd_truth".to_string(),
+            ),
+            contract_correctness_score: Some(if contract_ok { 1.0 } else { 0.0 }),
+            contract_correctness_basis: Some(
+                "IBD smoke preserved governed pair and normalized segment outputs".to_string(),
+            ),
+            population_metric_value: Some(checked_f64_from_u64(pair_count, "pair count")?),
+            population_metric_basis: Some("pair_count".to_string()),
+            scientific_metric_summary: Some(summarize_metrics(vec![
+                format!("pair_count={pair_count}"),
+                format!("pair_row_count={}", required_array(&root, "rows")?.len()),
+                format!("execution_mode={}", required_str(&root, "execution_mode")?),
+                "accuracy_claim=integration_only_not_independent_ibd_truth".to_string(),
+            ])),
+            runtime_seconds: optional_f64(&root, "elapsed_seconds"),
+            runtime_source: Some("local_smoke_report".to_string()),
+            source_paths: BTreeSet::new(),
+            ..VcfEvidenceAggregate::default()
+        },
+        &path,
+    );
+    Ok(())
 }
 
 fn merge_admixture_summary(

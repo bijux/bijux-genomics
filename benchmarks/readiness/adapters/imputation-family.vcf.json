@@ -680,7 +680,7 @@
     },
     {
       "tool_id": "impute5",
-      "tool_status": "planned",
+      "tool_status": "unsupported",
       "stage_id": "vcf.imputation_metrics",
       "stage_status": "supported",
       "benchmark_status": "not_benchmark_ready",
@@ -844,7 +844,7 @@
     },
     {
       "tool_id": "impute5",
-      "tool_status": "planned",
+      "tool_status": "unsupported",
       "stage_id": "vcf.impute",
       "stage_status": "supported",
       "benchmark_status": "not_benchmark_ready",

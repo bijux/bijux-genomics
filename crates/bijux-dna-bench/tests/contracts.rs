@@ -17,6 +17,10 @@ mod mod_contracts_campaign_lifecycle_rs;
 mod mod_contracts_contract_handshake_rs;
 #[path = "contracts/corpus_admission.rs"]
 mod mod_contracts_corpus_admission_rs;
+#[path = "contracts/corpus_materialization.rs"]
+mod mod_contracts_corpus_materialization_rs;
+#[path = "contracts/data_index_derivation.rs"]
+mod mod_contracts_data_index_derivation_rs;
 #[path = "contracts/docs/docs_fixtures.rs"]
 mod mod_contracts_docs_fixtures_rs;
 #[path = "contracts/execution_planning.rs"]

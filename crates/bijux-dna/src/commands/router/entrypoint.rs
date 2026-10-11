@@ -35,6 +35,10 @@ pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
         return Ok(());
     }
 
+    if fastq::handle_stage_command(dna_command)? {
+        return Ok(());
+    }
+
     if fastq::handle_meta_commands(cli, dna_command, &domain_dir, &registry_path)? {
         return Ok(());
     }

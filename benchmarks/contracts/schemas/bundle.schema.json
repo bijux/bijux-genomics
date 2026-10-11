@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "bundle_id": {
+      "type": "string"
+    },
+    "corpora": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "environment_label": {
+      "type": "string"
+    },
+    "metrics": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.bundle.v1",
+      "type": "string"
+    },
+    "scientific_caveats": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "corpora",
+    "environment_label",
+    "metrics"
+  ],
+  "title": "BenchmarkBundleManifest",
+  "type": "object"
+}

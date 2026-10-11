@@ -6,6 +6,7 @@ use crate::cli::BenchConfigCommand;
 use crate::commands::fastq::api_translation::{
     bench_bam_pipeline_args_to_api, bench_bam_stage_args_to_api,
 };
+
 #[allow(unused_imports)]
 use crate::commands::support::prelude::{
     anyhow, atomic_write_bytes, bench_args_cluster_otus, bench_args_correct,
@@ -38,6 +39,17 @@ use crate::commands::support::prelude::{
     write_umi_report, write_validate_report, BenchBamCommand, BenchCommand, BenchFastqCommand, Cli,
     DnaCommand, Objective, Path, PoliciesCommand, Result,
 };
+
+fn corpus_materialization_slurm_paths(
+    args: &cli::BenchCorpusMaterializationSlurmArgs,
+) -> bijux_dna_api::v1::api::bench::SlurmClientPaths {
+    bijux_dna_api::v1::api::bench::SlurmClientPaths {
+        sbatch: args.sbatch.clone(),
+        squeue: args.squeue.clone(),
+        sacct: args.sacct.clone(),
+        scancel: args.scancel.clone(),
+    }
+}
 
 #[allow(clippy::too_many_lines)]
 pub(crate) fn handle_meta_commands(
@@ -81,6 +93,82 @@ pub(crate) fn handle_meta_commands(
                         args,
                     )?;
                 }
+                BenchCommand::DataIndex(args) => {
+                    let index = bijux_dna_api::v1::api::bench::publish_benchmark_data_index(
+                        &bijux_dna_api::v1::api::bench::BenchmarkDataIndexPublicationRequest {
+                            index: bijux_dna_api::v1::api::bench::BenchmarkDataIndexRequest {
+                                catalog_root: args.catalog_root.clone(),
+                                data_root: args.data_root.clone(),
+                                created_at_utc: args.created_at_utc.clone(),
+                            },
+                            index_path: args.output.clone(),
+                            report_path: args.report.clone(),
+                        },
+                    )?;
+                    println!("records={}", index.summary.record_count);
+                    println!("files={}", index.summary.file_count);
+                    println!("index={}", args.output.display());
+                    println!("report={}", args.report.display());
+                }
+                BenchCommand::MaterializeFastqCorpus(args) => {
+                    let publication =
+                        bijux_dna_api::v1::api::bench::materialize_fastq_corpus(
+                            &bijux_dna_api::v1::api::bench::CorpusMaterializationRequest {
+                                plan_path: args.plan.clone(),
+                                data_root: args.data_root.clone(),
+                                maximum_parallelism: args.jobs,
+                                retries: args.retries,
+                                timeout_seconds: args.timeout_seconds,
+                                admitted_at_utc: args.admitted_at_utc.clone(),
+                            },
+                        )?;
+                    crate::commands::cli::render::json::print_pretty(&publication)?;
+                }
+                BenchCommand::CorpusMaterialization { command } => match command {
+                    cli::BenchCorpusMaterializationCommand::Prepare(args) => {
+                        let spec = bijux_dna_api::v1::api::bench::load_corpus_materialization_slurm_spec(
+                            &args.specification,
+                        )?;
+                        let prepared = bijux_dna_api::v1::api::bench::prepare_corpus_materialization_slurm_job(
+                            &spec,
+                            &args.submitted_at_utc,
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&prepared)?;
+                    }
+                    cli::BenchCorpusMaterializationCommand::Submit(args) => {
+                        let spec = bijux_dna_api::v1::api::bench::load_corpus_materialization_slurm_spec(
+                            &args.specification,
+                        )?;
+                        let prepared = bijux_dna_api::v1::api::bench::load_prepared_corpus_materialization_slurm_job(&spec)?;
+                        let handle = bijux_dna_api::v1::api::bench::submit_prepared_corpus_materialization_job(
+                            &corpus_materialization_slurm_paths(&args.slurm),
+                            &prepared,
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&handle)?;
+                    }
+                    cli::BenchCorpusMaterializationCommand::Status(args) => {
+                        let spec = bijux_dna_api::v1::api::bench::load_corpus_materialization_slurm_spec(
+                            &args.specification,
+                        )?;
+                        let observation = bijux_dna_api::v1::api::bench::observe_corpus_materialization_slurm_job(
+                            &corpus_materialization_slurm_paths(&args.slurm),
+                            &spec,
+                            &args.observed_at_utc,
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&observation)?;
+                    }
+                    cli::BenchCorpusMaterializationCommand::Collect(args) => {
+                        let spec = bijux_dna_api::v1::api::bench::load_corpus_materialization_slurm_spec(
+                            &args.specification,
+                        )?;
+                        let collection = bijux_dna_api::v1::api::bench::collect_corpus_materialization_slurm_job(
+                            &corpus_materialization_slurm_paths(&args.slurm),
+                            &spec,
+                            &args.collected_at_utc,
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&collection)?;
+                    }
+                },
                 BenchCommand::Status => {
                     let cwd = std::env::current_dir()?;
                     let status = crate::commands::bench_suite::bench_status(&cwd);

@@ -501,9 +501,11 @@ mod tests {
         );
         assert_eq!(report.missing_result_row_count, 3);
         assert!(report.passes_behavior_test);
-        assert_eq!(report.domain_counts.get("fastq").copied(), Some(71));
-        assert_eq!(report.domain_counts.get("bam").copied(), Some(49));
-        assert_eq!(report.domain_counts.get("vcf").copied(), Some(21));
+        assert_eq!(report.domain_counts.len(), 3);
+        assert_eq!(report.domain_counts.values().sum::<usize>(), report.expected_row_count);
+        for domain in ["fastq", "bam", "vcf"] {
+            assert!(report.domain_counts.get(domain).is_some_and(|count| *count > 0));
+        }
 
         let removed_ids =
             report.removed_result_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();

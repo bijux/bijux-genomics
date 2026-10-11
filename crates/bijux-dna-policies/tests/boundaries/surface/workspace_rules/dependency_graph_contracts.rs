@@ -20,8 +20,8 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-domain-compiler",
         "bijux-dna-domain-fastq",
         "bijux-dna-domain-vcf",
-        "bijux-dna-environment",
-        "bijux-dna-environment-qa",
+        "bijux-dna-containers",
+        "bijux-dna-containers-qa",
         "bijux-dna-infra",
         "bijux-dna-planner-bam",
         "bijux-dna-planner-fastq",
@@ -143,8 +143,8 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
                 || dep == "bijux-dna-engine"
                 || dep == "bijux-dna-runtime"
                 || dep == "bijux-dna-runner"
-                || dep == "bijux-dna-environment"
-                || dep == "bijux-dna-environment-qa"
+                || dep == "bijux-dna-containers"
+                || dep == "bijux-dna-containers-qa"
                 || dep == "bijux-dna-analyze"
                 || dep == "bijux-dna-bench"
                 || dep == "bijux-dna-bench-model"
@@ -165,7 +165,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         }
         bijux_dna_policies::policy_assert!(
             dep == "bijux-dna-core"
-                || dep == "bijux-dna-environment"
+                || dep == "bijux-dna-containers"
                 || dep == "bijux-dna-infra"
                 || dep == "bijux-dna-runtime",
             "bijux-dna-runner must not depend on workspace crate {dep}"
@@ -215,8 +215,8 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-stage-contract",
         "bijux-dna-engine",
         "bijux-dna-runner",
-        "bijux-dna-environment",
-        "bijux-dna-environment-qa",
+        "bijux-dna-containers",
+        "bijux-dna-containers-qa",
         "bijux-dna-analyze",
         "bijux-dna-bench",
         "bijux-dna-bench-model",
@@ -245,11 +245,11 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             "bijux-dna-stages-fastq",
             "bijux-dna-stages-bam",
             "bijux-dna-engine",
-            "bijux-dna-environment",
+            "bijux-dna-containers",
             "bijux-dna",
             "bijux-dna-pipelines",
             "bijux-dna-api",
-            "bijux-dna-environment",
+            "bijux-dna-containers",
             "bijux-dna-analyze",
             "bijux-dna-bench",
         ] {
@@ -268,7 +268,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             "bijux-dna-analyze",
             "bijux-dna-bench",
             "bijux-dna-engine",
-            "bijux-dna-environment",
+            "bijux-dna-containers",
             "bijux-dna-pipelines",
         ] {
             bijux_dna_policies::policy_assert!(
@@ -292,7 +292,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     }
 
     let analyze = deps_for("bijux-dna-analyze");
-    for banned in ["bijux-dna-engine", "bijux-dna-environment"] {
+    for banned in ["bijux-dna-engine", "bijux-dna-containers"] {
         bijux_dna_policies::policy_assert!(
             !analyze.contains(banned),
             "bijux-dna-analyze must not depend on {banned}"
@@ -303,7 +303,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         let runtime = deps_for("bijux-dna-runtime");
         for banned in [
             "bijux-dna-engine",
-            "bijux-dna-environment",
+            "bijux-dna-containers",
             "bijux-dna-stages-fastq",
             "bijux-dna-stages-bam",
             "bijux-dna-planner-fastq",

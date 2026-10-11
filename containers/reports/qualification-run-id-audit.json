@@ -1,10 +1,11 @@
 {
-  "schema_version": "bijux.container.qualification_run_id_audit.v1",
+  "schema_version": "bijux.container.qualification_run_id_audit.v2",
   "catalog_sha256": "d6b352cec629b12396c93e67968a42b43f576550038cda25d16cc88db2639250",
   "current_run_root": "repository://containers/runs",
   "attempt_ledger": "repository://containers/runs/attempt-ledger.json",
   "supplemental_history": "repository://containers/contracts/qualification-run-history.toml",
   "observed_historical_run_count": 138,
+  "reserved_run_count": 2,
   "historical_max_run_number": 1140,
   "retained_mapping_count": 85,
   "unsupported_tool_count": 4,
@@ -561,6 +562,18 @@
     {
       "run_id": "run-1140",
       "tool_id": "bcftools"
+    }
+  ],
+  "reserved_run_ids": [
+    {
+      "run_id": "run-1081",
+      "disposition": "reserved_never_reuse",
+      "reason": "unallocated gap in the historical qualification-run sequence"
+    },
+    {
+      "run_id": "run-1085",
+      "disposition": "reserved_never_reuse",
+      "reason": "unallocated gap in the historical qualification-run sequence"
     }
   ],
   "rows": [

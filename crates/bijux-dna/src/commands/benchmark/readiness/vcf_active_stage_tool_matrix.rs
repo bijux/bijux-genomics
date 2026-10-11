@@ -292,6 +292,9 @@ fn load_retained_vcf_bindings(repo_root: &Path) -> Result<Vec<RetainedVcfBinding
                 .get("status")
                 .and_then(toml::Value::as_str)
                 .ok_or_else(|| anyhow!("tool `{tool_id}` in {relative_path} is missing status"))?;
+            if tool_status == "unsupported" {
+                continue;
+            }
             let stage_ids =
                 entry.get("stage_ids").and_then(toml::Value::as_array).ok_or_else(|| {
                     anyhow!("tool `{tool_id}` in {relative_path} is missing stage_ids")
@@ -390,15 +393,6 @@ fn ensure_vcf_active_stage_tool_matrix_contract(
             ACTIVE_SCOPE_PROOF_PATH,
         ),
         (
-            "vcf.call_gl",
-            "angsd",
-            "planned",
-            "supported",
-            REMOVED_FROM_SCOPE_STATE,
-            BENCHMARK_NOT_READY_SCOPE_DETAIL,
-            BENCHMARK_NOT_READY_SCOPE_PROOF_PATH,
-        ),
-        (
             "vcf.impute",
             "beagle",
             "production",
@@ -419,7 +413,7 @@ fn ensure_vcf_active_stage_tool_matrix_contract(
         (
             "vcf.phasing",
             "eagle",
-            "experimental,planned",
+            "planned",
             "supported",
             REMOVED_FROM_SCOPE_STATE,
             BENCHMARK_NOT_READY_SCOPE_DETAIL,

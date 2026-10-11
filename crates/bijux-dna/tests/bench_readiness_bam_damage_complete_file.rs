@@ -44,7 +44,10 @@ fn bench_readiness_bam_damage_complete_writes_governed_json_file() {
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.bam_damage_complete.v1")
     );
-    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(6));
+    assert_eq!(
+        report.get("complete_row_count").and_then(serde_json::Value::as_u64),
+        report.get("active_row_count").and_then(serde_json::Value::as_u64)
+    );
     assert_eq!(report.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(report.get("toolset_ready").and_then(serde_json::Value::as_bool), Some(true));
 

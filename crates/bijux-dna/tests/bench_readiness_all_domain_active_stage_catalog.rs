@@ -74,21 +74,34 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 69);
 
-    assert!(rows.iter().any(|row| {
-        row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-            && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
-            && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
-            && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(6)
-            && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64) == Some(6)
-            && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(6)
-            && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(6)
-            && row.get("schema_present").and_then(serde_json::Value::as_bool) == Some(true)
-            && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(6)
-            && row.get("benchmark_statuses").and_then(serde_json::Value::as_array)
-                == Some(&vec![serde_json::Value::String("benchmark_ready".to_string())])
-            && row.get("report_section_ids").and_then(serde_json::Value::as_array)
-                == Some(&vec![serde_json::Value::String("ancient_signal".to_string())])
-    }));
+    let damage = rows
+        .iter()
+        .find(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+        })
+        .expect("bam.damage catalog row");
+    let damage_tools = damage
+        .get("active_tool_ids")
+        .and_then(serde_json::Value::as_array)
+        .expect("bam.damage active tools");
+    let damage_tool_count = u64::try_from(damage_tools.len()).expect("damage tool count fits u64");
+    assert!(damage_tool_count > 0);
+    assert!(damage_tools.iter().all(|tool| tool.as_str() != Some("ngsbriggs")));
+    for count_field in [
+        "active_tool_count",
+        "benchmark_ready_tool_count",
+        "parser_row_count",
+        "parser_covered_row_count",
+        "report_row_count",
+    ] {
+        assert_eq!(
+            damage.get(count_field).and_then(serde_json::Value::as_u64),
+            Some(damage_tool_count)
+        );
+    }
+    assert_eq!(damage.get("readiness_kind").and_then(serde_json::Value::as_str), Some("smoke"));
+    assert_eq!(damage.get("schema_present").and_then(serde_json::Value::as_bool), Some(true));
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")

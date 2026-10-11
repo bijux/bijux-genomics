@@ -175,7 +175,7 @@ fn policy__boundaries__workspace__workspace_no_cross_layer_imports() {
                     || content.contains("bijux_dna_api::")
                     || content.contains("bijux_dna_analyze::")
                     || content.contains("bijux_dna_bench::")
-                    || content.contains("bijux_dna_environment::"))
+                    || content.contains("bijux_dna_containers::"))
             {
                 offenders.push(rel.display().to_string());
             }
@@ -184,7 +184,7 @@ fn policy__boundaries__workspace__workspace_no_cross_layer_imports() {
                     || content.contains("bijux_dna_api::")
                     || content.contains("bijux_dna_engine::")
                     || content.contains("bijux_dna_pipelines::")
-                    || content.contains("bijux_dna_environment::"))
+                    || content.contains("bijux_dna_containers::"))
             {
                 offenders.push(rel.display().to_string());
             }

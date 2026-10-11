@@ -1,11 +1,14 @@
 //! Evidence qualification contracts for v1.
 
+mod derivation;
+
 use std::path::Path;
 
 use anyhow::{Context, Result};
 
 pub use bijux_dna_policies::{
-    evaluate_publication_freshness, EvidenceDecision, EvidenceDimension, EvidenceVerdict,
+    evaluate_publication_freshness, render_qualification_report_json,
+    render_qualification_report_markdown, EvidenceDecision, EvidenceDimension, EvidenceVerdict,
     ImmutablePublicationIdentity, PublicationArtifactIdentity, PublicationAuthority,
     PublicationDisposition, PublicationFreshnessEvaluation, PublicationFreshnessVerdict,
     PublicationIdentityMismatch, QualificationAssessment, QualificationClaim,
@@ -13,6 +16,8 @@ pub use bijux_dna_policies::{
     SupportDisposition, QUALIFICATION_ASSESSMENT_SCHEMA_V1, QUALIFICATION_REPORT_SCHEMA_V2,
     REQUIRED_EVIDENCE_DIMENSIONS,
 };
+
+pub use derivation::derive_container_qualification_report;
 
 /// Render the governed qualification-assessment schema.
 ///

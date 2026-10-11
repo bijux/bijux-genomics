@@ -82,38 +82,21 @@ const KINSHIP_REQUIRED_LOCAL_PROOF_FIELDS: [&str; 12] = [
 fn bam_binding_specs() -> Vec<BamBindingSpec> {
     #[cfg(feature = "bam_downstream")]
     {
-        vec![
-            BamBindingSpec {
-                stage_id: "bam.kinship",
-                tool_id: "angsd",
-                fixture_id: "corpus-01-kinship-mini",
-                required_output_ids: &KINSHIP_REQUIRED_OUTPUT_IDS,
-                normalized_metrics_output_id: "kinship_report",
-                schema_extension_id: "bam_kinship_normalized_v1",
-                expected_local_proof_kind: LOCAL_PROOF_KIND_SMOKE,
-                expected_local_proof_tool_id: "king",
-                required_local_proof_fields: &KINSHIP_REQUIRED_LOCAL_PROOF_FIELDS,
-                required_local_proof_output_ids: &KINSHIP_REQUIRED_OUTPUT_IDS,
-                report_section_id: "sample_identity",
-                summary_table_id: "identity_inference",
-                report_anchor_tool_id: "king",
-            },
-            BamBindingSpec {
-                stage_id: "bam.kinship",
-                tool_id: "king",
-                fixture_id: "corpus-01-kinship-mini",
-                required_output_ids: &KINSHIP_REQUIRED_OUTPUT_IDS,
-                normalized_metrics_output_id: "kinship_report",
-                schema_extension_id: "bam_kinship_normalized_v1",
-                expected_local_proof_kind: LOCAL_PROOF_KIND_SMOKE,
-                expected_local_proof_tool_id: "king",
-                required_local_proof_fields: &KINSHIP_REQUIRED_LOCAL_PROOF_FIELDS,
-                required_local_proof_output_ids: &KINSHIP_REQUIRED_OUTPUT_IDS,
-                report_section_id: "sample_identity",
-                summary_table_id: "identity_inference",
-                report_anchor_tool_id: "king",
-            },
-        ]
+        vec![BamBindingSpec {
+            stage_id: "bam.kinship",
+            tool_id: "king",
+            fixture_id: "corpus-01-kinship-mini",
+            required_output_ids: &KINSHIP_REQUIRED_OUTPUT_IDS,
+            normalized_metrics_output_id: "kinship_report",
+            schema_extension_id: "bam_kinship_normalized_v1",
+            expected_local_proof_kind: LOCAL_PROOF_KIND_SMOKE,
+            expected_local_proof_tool_id: "king",
+            required_local_proof_fields: &KINSHIP_REQUIRED_LOCAL_PROOF_FIELDS,
+            required_local_proof_output_ids: &KINSHIP_REQUIRED_OUTPUT_IDS,
+            report_section_id: "sample_identity",
+            summary_table_id: "identity_inference",
+            report_anchor_tool_id: "king",
+        }]
     }
     #[cfg(not(feature = "bam_downstream"))]
     {
@@ -1033,7 +1016,7 @@ mod tests {
                 .expect("render BAM kinship readiness");
 
         #[cfg(feature = "bam_downstream")]
-        let expected_row_count = 2;
+        let expected_row_count = 1;
         #[cfg(not(feature = "bam_downstream"))]
         let expected_row_count = 0;
 
@@ -1049,23 +1032,6 @@ mod tests {
 
         #[cfg(feature = "bam_downstream")]
         {
-            let angsd_row = report
-                .rows
-                .iter()
-                .find(|row| row.stage_id == "bam.kinship" && row.tool_id == "angsd")
-                .expect("bam.kinship angsd row");
-            assert_eq!(angsd_row.expected_normalized_metrics_output_id, "kinship_report");
-            assert_eq!(angsd_row.expected_local_proof_kind, "local_smoke");
-            assert_eq!(angsd_row.local_proof_tool_id, "king");
-            assert!(angsd_row
-                .required_local_proof_fields
-                .iter()
-                .any(|field| field == "kinship_coefficient"));
-            assert!(angsd_row
-                .local_proof_artifact_paths
-                .iter()
-                .any(|path| path.ends_with("kinship.segments.tsv")));
-
             let king_row = report
                 .rows
                 .iter()

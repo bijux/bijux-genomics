@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
@@ -156,9 +157,11 @@ fn profile_lengths_command(
                 shell_quote_path(r1)
             );
             if let Some(r2) = r2 {
-                script.push_str("; seqfu tab ");
-                script.push_str(&shell_quote_path(r2));
-                script.push_str(" | awk -F '\\t' '{print $1 \"\\t\" length($3)}'");
+                let _ = write!(
+                    script,
+                    "; seqfu tab {} | awk -F '\\t' '{{print $1 \"\\t\" length($3)}}'",
+                    shell_quote_path(r2)
+                );
             }
             vec!["sh".to_string(), "-c".to_string(), script]
         }

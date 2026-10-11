@@ -283,12 +283,12 @@ fn ensure_vcf_tool_serving_map_contract(rows: &[VcfToolServingMapRow]) -> Result
         (
             "ibdne",
             "vcf.demography",
-            "planned",
-            "declared_only",
+            "supported",
+            "runnable",
             "parse_normalized",
             "fixture:vcf_production_regression",
             "not_required",
-            "not_benchmark_ready",
+            "benchmark_ready",
         ),
     ];
 
@@ -404,11 +404,11 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_TOOL_SERVING_MAP_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
-        assert_eq!(report.row_count, 23);
+        assert_eq!(report.row_count, 24);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.tool_count, 8);
-        assert_eq!(report.benchmark_ready_row_count, 21);
-        assert_eq!(report.not_benchmark_ready_row_count, 2);
+        assert_eq!(report.tool_count, 9);
+        assert_eq!(report.benchmark_ready_row_count, 24);
+        assert_eq!(report.not_benchmark_ready_row_count, 0);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "plink2"
                 && row.stage_id == "vcf.admixture"

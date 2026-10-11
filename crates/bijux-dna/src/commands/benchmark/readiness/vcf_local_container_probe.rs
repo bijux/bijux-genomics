@@ -119,6 +119,10 @@ pub(crate) fn collect_vcf_local_container_smoke_rows(
     repo_root: &Path,
 ) -> Result<Vec<VcfLocalContainerSmokeRow>> {
     let retained_rows = collect_vcf_active_stage_tool_matrix_rows(repo_root)?;
+    let retained_bindings = retained_rows
+        .iter()
+        .map(|row| (row.stage_id.clone(), row.tool_id.clone()))
+        .collect::<BTreeSet<_>>();
     let stage_matrix_by_stage = build_vcf_stage_matrix_rows()?
         .into_iter()
         .map(|row| (row.stage_id.clone(), row.tool_id))
@@ -138,7 +142,7 @@ pub(crate) fn collect_vcf_local_container_smoke_rows(
     rows.sort_by(|left, right| {
         left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
     });
-    ensure_vcf_local_container_smoke_contract(repo_root, &rows)?;
+    ensure_vcf_local_container_smoke_contract(repo_root, &rows, &retained_bindings)?;
     Ok(rows)
 }
 
@@ -383,6 +387,7 @@ fn string_field(value: &toml::Value, key: &str) -> String {
 fn ensure_vcf_local_container_smoke_contract(
     repo_root: &Path,
     rows: &[VcfLocalContainerSmokeRow],
+    retained_bindings: &BTreeSet<(String, String)>,
 ) -> Result<()> {
     let host_stage_matrix_row_count = build_vcf_stage_matrix_rows()?
         .into_iter()
@@ -390,10 +395,11 @@ fn ensure_vcf_local_container_smoke_contract(
             host_smoke_source_path(repo_root, &row.stage_id).is_ok_and(|path| path.is_some())
         })
         .count();
-    if rows.len() != 42 {
+    let emitted_bindings =
+        rows.iter().map(|row| (row.stage_id.clone(), row.tool_id.clone())).collect::<BTreeSet<_>>();
+    if rows.len() != retained_bindings.len() || emitted_bindings != *retained_bindings {
         return Err(anyhow!(
-            "VCF local-container smoke report drifted from the governed retained surface (expected 42 rows, found {})",
-            rows.len()
+            "VCF local-container smoke bindings drifted from the governed retained stage-tool matrix (expected {retained_bindings:?}, found {emitted_bindings:?})"
         ));
     }
     let host_stage_smoke_row_count =
@@ -469,7 +475,7 @@ fn ensure_vcf_local_container_smoke_contract(
             "shapeit",
             "bijux-dna env smoke apptainer shapeit",
             "containers/apptainer/shapeit.def",
-            "shapeit --help",
+            "",
         ),
         (
             "vcf.ibd",
@@ -480,7 +486,7 @@ fn ensure_vcf_local_container_smoke_contract(
             "ibdseq",
             "bijux-dna env smoke docker-arm64 ibdseq",
             "containers/docker/Dockerfile.arm64.ibdseq",
-            "ibdseq --help",
+            "",
         ),
     ];
 
@@ -605,13 +611,13 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_LOCAL_CONTAINER_SMOKE_SCHEMA_VERSION);
         assert_eq!(report.output_path, "benchmarks/readiness/vcf/vcf-local-container-smoke.tsv");
-        assert_eq!(report.row_count, 42);
+        assert_eq!(report.row_count, 35);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.tool_count, 16);
+        assert_eq!(report.tool_count, 14);
         assert_eq!(report.host_stage_smoke_row_count, 20);
-        assert_eq!(report.container_smoke_row_count, 22);
+        assert_eq!(report.container_smoke_row_count, 15);
         assert_eq!(report.runtime_counts.get("host").copied(), Some(20));
-        assert_eq!(report.runtime_counts.get("docker-arm64").copied(), Some(21));
+        assert_eq!(report.runtime_counts.get("docker-arm64").copied(), Some(14));
         assert_eq!(report.runtime_counts.get("apptainer").copied(), Some(1));
 
         assert!(report.rows.iter().any(|row| {

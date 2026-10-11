@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "duplicate_reads": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "duplication_fraction": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "examined_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.duplication_metrics.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.duplication_metrics",
+      "type": "string"
+    },
+    "tool_id": {
+      "enum": [
+        "picard",
+        "samtools"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_id",
+    "examined_reads",
+    "duplicate_reads",
+    "duplication_fraction"
+  ],
+  "title": "BenchmarkBamDuplicationMetricsResult",
+  "type": "object"
+}

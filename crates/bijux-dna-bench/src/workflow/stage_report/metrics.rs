@@ -51,7 +51,8 @@ pub(in crate::workflow) fn distribution(values: &[f64]) -> Result<BenchmarkMetri
     }
     let minimum = values.iter().copied().fold(f64::INFINITY, f64::min);
     let maximum = values.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-    let mean = values.iter().sum::<f64>() / values.len() as f64;
+    // Floating-point accumulation can place the mean infinitesimally outside the observed range.
+    let mean = (values.iter().sum::<f64>() / values.len() as f64).clamp(minimum, maximum);
     let variance =
         values.iter().map(|value| (value - mean).powi(2)).sum::<f64>() / (values.len() - 1) as f64;
     Ok(BenchmarkMetricDistribution {
@@ -81,6 +82,16 @@ mod tests {
         assert_eq!(observed.maximum, 3.0);
         assert_eq!(observed.mean, 2.0);
         assert_eq!(observed.sample_standard_deviation, 1.0);
+        Ok(())
+    }
+
+    #[test]
+    fn identical_decimal_observations_remain_inside_the_observed_range() -> anyhow::Result<()> {
+        let observed = distribution(&[0.36, 0.36, 0.36])?;
+        assert_eq!(observed.minimum, 0.36);
+        assert_eq!(observed.maximum, 0.36);
+        assert_eq!(observed.mean, 0.36);
+        assert_eq!(observed.sample_standard_deviation, 0.0);
         Ok(())
     }
 }

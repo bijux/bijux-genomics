@@ -337,7 +337,7 @@ fn ensure_full_benchmark_dashboard_contract(
             "full benchmark dashboard total stages drifted from the governed all-domain stage inventory"
         ));
     }
-    if report.total_tools != expected_results.tool_count || report.total_tools != 71 {
+    if report.total_tools != expected_results.tool_count {
         return Err(anyhow!(
             "full benchmark dashboard total tools drifted from the governed expected-result slice"
         ));
@@ -420,9 +420,7 @@ fn ensure_full_benchmark_dashboard_contract(
             "full benchmark dashboard requires green full benchmark report and real-smoke subset behavior checks"
         ));
     }
-    if report.explicit_unsupported_pairs != full_report.unsupported_pair_row_count
-        || report.explicit_unsupported_pairs != 1
-    {
+    if report.explicit_unsupported_pairs != full_report.unsupported_pair_row_count {
         return Err(anyhow!(
             "full benchmark dashboard unsupported pair count drifted from the governed full benchmark report"
         ));

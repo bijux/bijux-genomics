@@ -39,8 +39,8 @@ preflight:
     - squeue
     - uname
   required_contracts:
-    - benchmarks/schemas/pipeline-parameters.v1.json
-    - benchmarks/schemas/stage-interfaces.v1.json
-    - benchmarks/schemas/stage-report.v1.json
+    - benchmarks/contracts/schemas/pipeline-parameters.schema.json
+    - benchmarks/contracts/schemas/stage-interfaces.schema.json
+    - benchmarks/contracts/schemas/stage-report.schema.json
     - containers/contracts/config-governance.schema.json
     - containers/contracts/schemas/qualification-assessment.v1.json

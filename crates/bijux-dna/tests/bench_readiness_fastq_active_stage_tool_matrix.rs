@@ -46,12 +46,26 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv")
     );
-    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("retained_stage_count").and_then(serde_json::Value::as_u64), Some(27));
-    assert_eq!(payload.get("retained_tool_count").and_then(serde_json::Value::as_u64), Some(42));
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(27));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(42));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    let stage_count = rows
+        .iter()
+        .filter_map(|row| row.get("stage_id").and_then(serde_json::Value::as_str))
+        .collect::<std::collections::BTreeSet<_>>()
+        .len() as u64;
+    let tool_count = rows
+        .iter()
+        .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+        .collect::<std::collections::BTreeSet<_>>()
+        .len() as u64;
+    for field in ["retained_row_count", "row_count"] {
+        assert_eq!(payload.get(field).and_then(serde_json::Value::as_u64), Some(rows.len() as u64));
+    }
+    for field in ["retained_stage_count", "stage_count"] {
+        assert_eq!(payload.get(field).and_then(serde_json::Value::as_u64), Some(stage_count));
+    }
+    for field in ["retained_tool_count", "tool_count"] {
+        assert_eq!(payload.get(field).and_then(serde_json::Value::as_u64), Some(tool_count));
+    }
     assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("removed_stage_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("removed_tool_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -121,9 +135,6 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
         Some(5)
     );
 
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 71);
-
     assert!(rows.iter().all(|row| {
         row.get("benchmark_status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
             && row.get("support_status").and_then(serde_json::Value::as_str)
@@ -133,6 +144,15 @@ fn bench_readiness_fastq_active_stage_tool_matrix_reports_only_active_fastq_rows
             && row.get("corpus_status").and_then(serde_json::Value::as_str) != Some("planner_only")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
                 == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+    }));
+    assert!(rows.iter().all(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) != Some("fastuniq")
+            && (row.get("stage_id").and_then(serde_json::Value::as_str)
+                != Some("fastq.profile_read_lengths")
+                || matches!(
+                    row.get("tool_id").and_then(serde_json::Value::as_str),
+                    Some("seqfu" | "seqkit")
+                ))
     }));
 
     assert!(rows.iter().any(|row| {

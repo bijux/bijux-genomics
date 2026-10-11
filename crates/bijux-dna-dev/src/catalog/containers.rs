@@ -312,6 +312,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::GenerateImageInventoryScanSchema,
         ),
         native(
+            "image-activation",
+            "Plan, apply, verify, or roll back canonical image activation.",
+            NativeContainerCommandKey::ImageActivation,
+        ),
+        native(
             "image-storage",
             "Plan, apply, verify, report, or roll back governed image quarantine.",
             NativeContainerCommandKey::ImageStorage,

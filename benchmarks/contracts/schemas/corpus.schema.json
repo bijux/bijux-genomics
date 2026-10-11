@@ -1,0 +1,187 @@
+{
+  "$defs": {
+    "BackendComparisonSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "caveat": {
+          "type": "string"
+        },
+        "comparison_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tools": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "comparison_id",
+        "stage_id",
+        "tools",
+        "caveat"
+      ],
+      "type": "object"
+    },
+    "CorpusDatasetSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "case_tags": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "class_label": {
+          "type": "string"
+        },
+        "dataset_id": {
+          "type": "string"
+        },
+        "fixture": {
+          "type": "string"
+        },
+        "read_layout": {
+          "type": "string"
+        },
+        "truth_set": {
+          "$ref": "#/$defs/TruthSetHook"
+        }
+      },
+      "required": [
+        "dataset_id",
+        "fixture",
+        "read_layout",
+        "class_label",
+        "truth_set"
+      ],
+      "type": "object"
+    },
+    "CorpusDomain": {
+      "enum": [
+        "fastq",
+        "bam",
+        "vcf"
+      ],
+      "type": "string"
+    },
+    "CorpusScale": {
+      "enum": [
+        "ci-small",
+        "local-medium"
+      ],
+      "type": "string"
+    },
+    "DriftScenarioSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_label": {
+          "type": "string"
+        },
+        "candidate_label": {
+          "type": "string"
+        },
+        "caveat": {
+          "type": "string"
+        },
+        "drift_axis": {
+          "type": "string"
+        },
+        "scenario_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "drift_axis",
+        "baseline_label",
+        "candidate_label",
+        "caveat"
+      ],
+      "type": "object"
+    },
+    "TruthSetHook": {
+      "additionalProperties": false,
+      "properties": {
+        "note": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/TruthSetStatus"
+        },
+        "truth_set_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "note"
+      ],
+      "type": "object"
+    },
+    "TruthSetStatus": {
+      "enum": [
+        "available",
+        "unavailable"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "backend_comparisons": {
+      "items": {
+        "$ref": "#/$defs/BackendComparisonSpec"
+      },
+      "type": "array"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "datasets": {
+      "items": {
+        "$ref": "#/$defs/CorpusDatasetSpec"
+      },
+      "type": "array"
+    },
+    "domain": {
+      "$ref": "#/$defs/CorpusDomain"
+    },
+    "drift_scenarios": {
+      "items": {
+        "$ref": "#/$defs/DriftScenarioSpec"
+      },
+      "type": "array"
+    },
+    "scale": {
+      "$ref": "#/$defs/CorpusScale"
+    },
+    "schema_version": {
+      "const": "bijux.bench.corpus.v1",
+      "type": "string"
+    },
+    "scientific_caveats": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "domain",
+    "scale",
+    "datasets"
+  ],
+  "title": "BenchmarkCorpusManifest",
+  "type": "object"
+}

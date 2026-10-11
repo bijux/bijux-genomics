@@ -40,6 +40,12 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 fn bench_readiness_full_benchmark_dashboard_tracks_governed_summary_counts() {
     let payload =
         run_cli_json(&["bench", "readiness", "render-full-benchmark-dashboard", "--json"]);
+    let expected_results = run_cli_json(&[
+        "bench",
+        "readiness",
+        "render-all-domain-expected-benchmark-results",
+        "--json",
+    ]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -61,8 +67,13 @@ fn bench_readiness_full_benchmark_dashboard_tracks_governed_summary_counts() {
         support::json_u64(&payload, "total_expected_jobs").expect("total_expected_jobs");
     let ready_jobs = support::json_u64(&payload, "ready_jobs").expect("ready_jobs");
     let blocked_jobs = support::json_u64(&payload, "blocked_jobs").expect("blocked_jobs");
+    let expected_tool_count =
+        support::json_u64(&expected_results, "tool_count").expect("expected tool count");
     assert_eq!(payload.get("total_stages").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("total_tools").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(
+        payload.get("total_tools").and_then(serde_json::Value::as_u64),
+        Some(expected_tool_count)
+    );
     assert_eq!(total_expected_jobs, ready_jobs + blocked_jobs);
     assert_eq!(blocked_jobs, 3);
     assert_eq!(payload.get("missing_parsers").and_then(serde_json::Value::as_u64), Some(0));
@@ -92,7 +103,7 @@ fn bench_readiness_full_benchmark_dashboard_tracks_governed_summary_counts() {
         })
         .collect::<BTreeMap<_, _>>();
     assert_eq!(counts.get("total_stages").copied(), Some(71));
-    assert_eq!(counts.get("total_tools").copied(), Some(71));
+    assert_eq!(counts.get("total_tools").copied(), Some(expected_tool_count));
     assert_eq!(counts.get("total_expected_jobs").copied(), Some(total_expected_jobs));
     assert_eq!(counts.get("ready_jobs").copied(), Some(ready_jobs));
     assert_eq!(counts.get("blocked_jobs").copied(), Some(blocked_jobs));

@@ -192,18 +192,40 @@ fn expectation_fixture() -> Result<ExpectationFixture> {
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
     let index = json!({
         "schema_version": "bijux.data_index.v1",
+        "created_at_utc": "2026-08-05T00:00:00Z",
+        "data_root": "study://data",
+        "summary": {
+            "record_count": 1,
+            "file_count": 1,
+            "size_bytes": fastq.len(),
+            "integrity_verified_count": 1,
+            "benchmark_eligibility": {"eligible": 1},
+        },
         "records": [{
             "id": CORPUS_ID,
             "benchmark_eligibility": "eligible",
             "integrity_status": "verified",
             "catalog_path": "study://data/catalog/exact-fastq-corpus.json",
             "catalog_sha256": catalog_sha256,
+            "purpose": "exercise exact FASTQ expectation publication",
+            "source_identities": ["source:test-fixture"],
+            "access_classification": "test-only",
+            "redistribution_classification": "test-only",
+            "scientific_name": null,
+            "reference_assembly": null,
+            "temporal_provenance": {
+                "field": "created_at_utc",
+                "timestamp": "2026-08-05T00:00:00Z"
+            },
             "files": [{
                 "path": "study://data/corpora/exact-fastq-corpus/raw/ERR000001/reads.fastq",
                 "role": "raw-fastq",
                 "sha256": fastq_sha256,
                 "size_bytes": fastq.len(),
+                "legacy_fields": ["path", "sha256", "size_bytes"],
             }],
+            "known_limitations": ["synthetic test data"],
+            "missing_provenance": [],
         }],
     });
     write_json(&data_index, &index)?;

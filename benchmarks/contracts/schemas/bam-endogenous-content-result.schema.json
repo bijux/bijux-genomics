@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "mapped_fraction": {
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "type": "number"
+    },
+    "mapped_nonduplicate_primary_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "mapped_primary_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.endogenous_content.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.endogenous_content",
+      "type": "string"
+    },
+    "tool_id": {
+      "const": "samtools",
+      "type": "string"
+    },
+    "total_primary_reads": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_id",
+    "total_primary_reads",
+    "mapped_primary_reads",
+    "mapped_fraction",
+    "mapped_nonduplicate_primary_reads"
+  ],
+  "title": "BenchmarkBamEndogenousContentResult",
+  "type": "object"
+}

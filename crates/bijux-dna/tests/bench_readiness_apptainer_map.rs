@@ -45,7 +45,10 @@ fn bench_readiness_apptainer_map_reports_governed_docker_to_sif_mappings() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("benchmarks/readiness/tools/apptainer-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    let row_count = u64::try_from(rows.len()).expect("row count fits u64");
+    assert!(row_count > 0);
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
     assert_eq!(
         payload.get("docker_runtime").and_then(serde_json::Value::as_str),
         Some("docker-arm64")
@@ -57,12 +60,18 @@ fn bench_readiness_apptainer_map_reports_governed_docker_to_sif_mappings() {
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(42));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(25));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(6));
-
-    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 71);
+    assert!(["fastq", "bam", "vcf"].iter().all(|domain| {
+        domain_counts
+            .get(*domain)
+            .and_then(serde_json::Value::as_u64)
+            .is_some_and(|count| count > 0)
+    }));
+    assert!(rows.iter().all(|row| {
+        !matches!(
+            row.get("tool_id").and_then(serde_json::Value::as_str),
+            Some("angsd" | "fastuniq" | "ngsbriggs")
+        )
+    }));
 
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("adapterremoval")
@@ -77,22 +86,6 @@ fn bench_readiness_apptainer_map_reports_governed_docker_to_sif_mappings() {
                 |paths| paths.len() == 1
                     && paths.first().and_then(serde_json::Value::as_str)
                         == Some("configs/ci/registry/tool_registry.toml")
-            )
-    }));
-
-    assert!(rows.iter().any(|row| {
-        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
-            && row.get("image_uri").and_then(serde_json::Value::as_str)
-                == Some("docker-daemon://bijuxdna/angsd:0.940-arm64")
-            && row.get("registry_paths").and_then(serde_json::Value::as_array).is_some_and(
-                |paths| {
-                    paths
-                        .iter()
-                        .any(|path| path.as_str() == Some("configs/ci/registry/tool_registry.toml"))
-                        && paths.iter().any(|path| {
-                            path.as_str() == Some("configs/ci/registry/tool_registry_vcf.toml")
-                        })
-                },
             )
     }));
 

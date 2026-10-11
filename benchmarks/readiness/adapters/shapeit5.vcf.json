@@ -2,7 +2,7 @@
   "schema_version": "bijux.bench.readiness.vcf_shapeit5_adapter.v1",
   "domain": "vcf",
   "tool_id": "shapeit5",
-  "tool_status": "experimental",
+  "tool_status": "production",
   "output_path": "benchmarks/readiness/adapters/shapeit5.vcf.json",
   "row_count": 1,
   "benchmark_ready_row_count": 1,
@@ -12,7 +12,7 @@
   "rows": [
     {
       "tool_id": "shapeit5",
-      "tool_status": "experimental",
+      "tool_status": "production",
       "stage_id": "vcf.phasing",
       "stage_status": "supported",
       "benchmark_status": "benchmark_ready",

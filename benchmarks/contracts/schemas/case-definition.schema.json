@@ -1,0 +1,144 @@
+{
+  "$defs": {
+    "BenchmarkCaseInputLock": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "asset_id",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkCaseQualificationReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "image_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "receipt_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "uri": {
+          "pattern": "^study://[^/].+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool_id",
+        "uri",
+        "receipt_sha256",
+        "image_sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "corpus_snapshot_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "execution_spec_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "inputs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkCaseInputLock"
+      },
+      "type": "array"
+    },
+    "measured_repetitions": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "parameter_lock_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "qualification": {
+      "$ref": "#/$defs/BenchmarkCaseQualificationReceipt"
+    },
+    "repository_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "type": "string"
+    },
+    "run": {
+      "$ref": "#/$defs/BenchmarkRunIdentity"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.case_definition.v1",
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    },
+    "warmup_repetitions": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "case_id",
+    "campaign_id",
+    "run",
+    "tool_id",
+    "repository_commit",
+    "corpus_snapshot_sha256",
+    "parameter_lock_sha256",
+    "execution_spec_sha256",
+    "inputs",
+    "qualification",
+    "warmup_repetitions",
+    "measured_repetitions"
+  ],
+  "title": "BenchmarkCaseDefinition",
+  "type": "object"
+}

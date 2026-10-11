@@ -4,9 +4,11 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context};
+use chrono::{DateTime, Duration, Utc};
 
 use self::lifecycle::{
-    execution_schema, initialize, plan, plan_retry, scheduler_observation_schema, schema, supersede,
+    execution_schema, initialize, plan, plan_retry, plan_retry_from_tip,
+    scheduler_observation_schema, schema, supersede,
 };
 use self::scheduler::{benchmark_accounting, benchmark_observation, lifecycle_status, slurm_state};
 use super::{OpsCommandOutcome, Result, Workspace};
@@ -14,7 +16,22 @@ use super::{OpsCommandOutcome, Result, Workspace};
 mod lifecycle;
 mod scheduler;
 
-const USAGE: &str = "Usage:\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-bam-mapping-summary --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-read-lengths --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish-fastq-profile-reads --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n";
+const USAGE: &str = concat!(
+    "Usage:\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- schema --output <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- execution-schema --output <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- scheduler-observation-schema --output <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan --run-id <run-id> --campaign-id <campaign-id> --attempt-id <attempt-id> --observed-at-utc <timestamp> --output <path> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry --attempt-id <attempt-id> --benchmark-root <path> --observed-at-utc <timestamp> --output <path> --prior-plan <path> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- plan-retry-from-tip --attempt-id <attempt-id> --benchmark-root <path> --campaign-id <campaign-id> --observed-at-utc <timestamp> --output <path> --repository-root <path> --run-id <run-id> --tip-attempt-id <attempt-id>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- initialize --plan <path> --benchmark-root <path> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- supersede --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --reason <reason> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- prepare --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- submit --account <account> --benchmark-root <path> --data-index <path> --inventory <path> --operator <name> --partition <partition> --plan <path> --prepared-at-utc <timestamp> --repository-root <path> --study-root <path> --submitted-at-utc <timestamp>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- reconcile --benchmark-root <path> --observed-at-utc <timestamp> --plan <path> --repository-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- admit --admitted-at-utc <timestamp> --benchmark-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-campaign-cycle -- publish --benchmark-root <path> --output-root <path> --plan <path> --repository-root <path> --study-root <path>\n",
+);
 const MAX_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
 const BENCHMARK_PREPARATION_OPTIONS: &[&str] = &[
@@ -51,16 +68,10 @@ struct CampaignPreparation<'a> {
     benchmark_root: &'a Path,
     plan: &'a bijux_dna_bench::BenchmarkCampaignPlan,
     authorities: &'a bijux_dna_bench::BenchmarkExecutionAuthorities,
-    evidence: &'a CampaignEvidence,
+    evidence: &'a bijux_dna_bench::BenchmarkCampaignEvidence,
     options: &'a BTreeMap<String, String>,
     scheduler_timestamp: &'a str,
     recover_submitted: bool,
-}
-
-enum CampaignEvidence {
-    Bam(bijux_dna_bench::AdmittedBamCorpus),
-    ReadLengths(bijux_dna_bench::FastqReadLengthExpectationPublication),
-    ProfileReads(bijux_dna_bench::FastqProfileReadsExpectationPublication),
 }
 
 impl CampaignPreparation<'_> {
@@ -95,50 +106,19 @@ impl CampaignPreparation<'_> {
         identity: &bijux_dna_bench::BenchmarkAttemptIdentity,
     ) -> Result<bijux_dna_bench::BenchmarkExecutionSpec> {
         let image = self.authorities.resolve_current_image(self.study_root, &identity.tool_id)?;
-        let execution = match self.evidence {
-            CampaignEvidence::Bam(corpus) => {
-                bijux_dna_bench::prepare_bam_mapping_summary_material_from_corpus(
-                    self.repository_root,
-                    self.benchmark_root,
-                    identity,
-                    self.authorities.source_contract_sha256(),
-                    required(self.options, "--operator")?,
-                    required(self.options, "--prepared-at-utc")?,
-                    required(self.options, "--account")?,
-                    required(self.options, "--partition")?,
-                    corpus,
-                )?
-                .execution
-            }
-            CampaignEvidence::ReadLengths(expectations) => {
-                bijux_dna_bench::prepare_fastq_profile_read_lengths_material_from_expectations(
-                    self.repository_root,
-                    self.benchmark_root,
-                    identity,
-                    self.authorities.source_contract_sha256(),
-                    required(self.options, "--operator")?,
-                    required(self.options, "--prepared-at-utc")?,
-                    required(self.options, "--account")?,
-                    required(self.options, "--partition")?,
-                    expectations,
-                )?
-                .execution
-            }
-            CampaignEvidence::ProfileReads(expectations) => {
-                bijux_dna_bench::prepare_fastq_profile_reads_material_from_expectations(
-                    self.repository_root,
-                    self.benchmark_root,
-                    identity,
-                    self.authorities.source_contract_sha256(),
-                    required(self.options, "--operator")?,
-                    required(self.options, "--prepared-at-utc")?,
-                    required(self.options, "--account")?,
-                    required(self.options, "--partition")?,
-                    expectations,
-                )?
-                .execution
-            }
-        };
+        let execution = bijux_dna_bench::prepare_benchmark_campaign_material(
+            &bijux_dna_bench::BenchmarkCampaignMaterialRequest {
+                repository_root: self.repository_root,
+                benchmark_root: self.benchmark_root,
+                identity,
+                source_contract_sha256: self.authorities.source_contract_sha256(),
+                operator: required(self.options, "--operator")?,
+                prepared_at_utc: required(self.options, "--prepared-at-utc")?,
+                account: required(self.options, "--account")?,
+                partition: required(self.options, "--partition")?,
+            },
+            self.evidence,
+        )?;
         let spec = self.authorities.build_execution_spec(self.plan, identity, &image, execution)?;
         bijux_dna_bench::ensure_execution_spec(self.benchmark_root, &spec)?;
         Ok(spec)
@@ -179,21 +159,21 @@ pub(in super::super) fn tooling_benchmark_campaign_cycle(
         return Ok(OpsCommandOutcome::failure(USAGE));
     };
     let options = parse_options(remaining).context("parse benchmark campaign cycle options")?;
+    validate_operation_timestamps(operation, &options)?;
     match operation.as_str() {
         "schema" => schema(workspace, &options),
         "execution-schema" => execution_schema(workspace, &options),
         "scheduler-observation-schema" => scheduler_observation_schema(workspace, &options),
         "plan" => plan(workspace, &options),
         "plan-retry" => plan_retry(workspace, &options),
+        "plan-retry-from-tip" => plan_retry_from_tip(workspace, &options),
         "initialize" => initialize(workspace, &options),
         "supersede" => supersede(workspace, &options),
         "prepare" => prepare_campaign(workspace, &options),
         "submit" => submit_campaign(workspace, &options),
         "reconcile" => reconcile_campaign(workspace, &options),
         "admit" => admit_campaign(workspace, &options),
-        "publish-bam-mapping-summary" => publish_bam_mapping_summary(workspace, &options),
-        "publish-fastq-read-lengths" => publish_fastq_read_lengths(workspace, &options),
-        "publish-fastq-profile-reads" => publish_fastq_profile_reads(workspace, &options),
+        "publish" => publish_campaign(workspace, &options),
         _ => Ok(OpsCommandOutcome::failure(USAGE)),
     }
 }
@@ -294,37 +274,12 @@ fn prepare_campaign_jobs(
         &plan,
     )?;
     let run_id = campaign_run_id(&plan)?;
-    if !matches!(run_id, "run-2004" | "run-2042" | "run-2043") {
-        bail!("benchmark campaign has no crate-owned executable material: {run_id}");
-    }
-    let evidence = match run_id {
-        "run-2004" => CampaignEvidence::Bam(bijux_dna_bench::admit_bam_benchmark_corpus(
-            &study_root,
-            &data_index,
-            "ena-prjeb22390-err2112767-bam",
-        )?),
-        "run-2042" | "run-2043" => {
-            let read_lengths = bijux_dna_bench::ensure_fastq_read_length_expectations(
-                &repository_root,
-                &study_root,
-                &data_index,
-                "human-short-read-diversity",
-                20,
-                30,
-            )?;
-            if run_id == "run-2042" {
-                CampaignEvidence::ReadLengths(read_lengths)
-            } else {
-                CampaignEvidence::ProfileReads(
-                    bijux_dna_bench::ensure_fastq_profile_reads_expectations(
-                        &study_root,
-                        &read_lengths,
-                    )?,
-                )
-            }
-        }
-        _ => bail!("benchmark campaign has no crate-owned executable material: {run_id}"),
-    };
+    let evidence = bijux_dna_bench::admit_benchmark_campaign_evidence(
+        &repository_root,
+        &study_root,
+        &data_index,
+        run_id,
+    )?;
     let mut attempts = active_plan_attempts(&plan);
     attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
     let preparation = CampaignPreparation {
@@ -507,37 +462,7 @@ fn admit_campaign(
     )))
 }
 
-fn publish_fastq_read_lengths(
-    workspace: &Workspace,
-    options: &BTreeMap<String, String>,
-) -> Result<OpsCommandOutcome> {
-    require_exact_options(
-        options,
-        &["--benchmark-root", "--output-root", "--plan", "--repository-root", "--study-root"],
-    )?;
-    let plan_path = resolve_path(workspace, required(options, "--plan")?);
-    let plan = read_plan(&plan_path)?;
-    let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?);
-    let repository_root = resolve_path(workspace, required(options, "--repository-root")?);
-    let study_root = resolve_path(workspace, required(options, "--study-root")?);
-    let output_root = resolve_path(workspace, required(options, "--output-root")?);
-    let publication = bijux_dna_bench::publish_fastq_profile_read_lengths_stage_report(
-        &repository_root,
-        &study_root,
-        &benchmark_root,
-        &plan,
-        &output_root,
-    )?;
-    Ok(OpsCommandOutcome::success(format!(
-        "published admitted FASTQ read-length stage report\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
-        publication.report_path.display(),
-        publication.report_sha256,
-        publication.markdown_path.display(),
-        publication.markdown_sha256,
-    )))
-}
-
-fn publish_fastq_profile_reads(
+fn publish_campaign(
     workspace: &Workspace,
     options: &BTreeMap<String, String>,
 ) -> Result<OpsCommandOutcome> {
@@ -546,7 +471,7 @@ fn publish_fastq_profile_reads(
         &["--benchmark-root", "--output-root", "--plan", "--repository-root", "--study-root"],
     )?;
     let plan = read_plan(&resolve_path(workspace, required(options, "--plan")?))?;
-    let publication = bijux_dna_bench::publish_fastq_profile_reads_stage_report(
+    let publication = bijux_dna_bench::publish_benchmark_campaign_report(
         &resolve_path(workspace, required(options, "--repository-root")?),
         &resolve_path(workspace, required(options, "--study-root")?),
         &resolve_path(workspace, required(options, "--benchmark-root")?),
@@ -554,37 +479,9 @@ fn publish_fastq_profile_reads(
         &resolve_path(workspace, required(options, "--output-root")?),
     )?;
     Ok(OpsCommandOutcome::success(format!(
-        "published admitted FASTQ profile stage report\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
-        publication.report_path.display(),
-        publication.report_sha256,
-        publication.markdown_path.display(),
-        publication.markdown_sha256,
-    )))
-}
-
-fn publish_bam_mapping_summary(
-    workspace: &Workspace,
-    options: &BTreeMap<String, String>,
-) -> Result<OpsCommandOutcome> {
-    require_exact_options(
-        options,
-        &["--benchmark-root", "--output-root", "--plan", "--repository-root", "--study-root"],
-    )?;
-    let plan_path = resolve_path(workspace, required(options, "--plan")?);
-    let plan = read_plan(&plan_path)?;
-    let benchmark_root = resolve_path(workspace, required(options, "--benchmark-root")?);
-    let repository_root = resolve_path(workspace, required(options, "--repository-root")?);
-    let study_root = resolve_path(workspace, required(options, "--study-root")?);
-    let output_root = resolve_path(workspace, required(options, "--output-root")?);
-    let publication = bijux_dna_bench::publish_bam_mapping_summary_stage_report(
-        &repository_root,
-        &study_root,
-        &benchmark_root,
-        &plan,
-        &output_root,
-    )?;
-    Ok(OpsCommandOutcome::success(format!(
-        "published admitted BAM mapping-summary stage report\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
+        "published admitted benchmark campaign report\nrun\t{}\nstage\t{}\njson\t{}\t{}\nmarkdown\t{}\t{}\n",
+        publication.run_id,
+        publication.stage_id,
         publication.report_path.display(),
         publication.report_sha256,
         publication.markdown_path.display(),
@@ -601,7 +498,7 @@ fn read_plan(path: &Path) -> Result<bijux_dna_bench::BenchmarkCampaignPlan> {
 
 fn source_identity_at(repository_root: &Path) -> Result<(String, String)> {
     let repository_commit =
-        bijux_dna_environment::api::clean_repository_head_commit(repository_root)
+        bijux_dna_containers::api::clean_repository_head_commit(repository_root)
             .context("require a clean source tree for benchmark campaign operation")?;
     let registry_path = repository_root.join("benchmarks/contracts/stage-campaigns.toml");
     let campaign_registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)
@@ -691,6 +588,38 @@ fn required<'a>(options: &'a BTreeMap<String, String>, name: &str) -> Result<&'a
     Ok(value)
 }
 
+fn validate_operation_timestamps(
+    operation: &str,
+    options: &BTreeMap<String, String>,
+) -> Result<()> {
+    let names: &[&str] = match operation {
+        "plan" | "plan-retry" | "plan-retry-from-tip" | "supersede" | "reconcile" => {
+            &["--observed-at-utc"]
+        }
+        "prepare" => &["--prepared-at-utc"],
+        "submit" => &["--prepared-at-utc", "--submitted-at-utc"],
+        "admit" => &["--admitted-at-utc"],
+        _ => return Ok(()),
+    };
+    let now = Utc::now();
+    for name in names {
+        validate_operator_timestamp_at(required(options, name)?, name, now)?;
+    }
+    Ok(())
+}
+
+fn validate_operator_timestamp_at(value: &str, name: &str, now: DateTime<Utc>) -> Result<()> {
+    let parsed = DateTime::parse_from_rfc3339(value)
+        .with_context(|| format!("benchmark campaign cycle timestamp is not RFC 3339: {name}"))?;
+    if parsed.offset().local_minus_utc() != 0 {
+        bail!("benchmark campaign cycle timestamp is not UTC: {name}");
+    }
+    if parsed.with_timezone(&Utc) > now + Duration::minutes(5) {
+        bail!("benchmark campaign cycle timestamp is ahead of host UTC: {name}");
+    }
+    Ok(())
+}
+
 fn resolve_path(workspace: &Workspace, value: &str) -> PathBuf {
     let path = Path::new(value);
     if path.is_absolute() {
@@ -702,10 +631,13 @@ fn resolve_path(workspace: &Workspace, value: &str) -> PathBuf {
 
 #[cfg(test)]
 mod tests {
+    use chrono::{TimeZone, Utc};
+
     use super::{
         parse_options, require_exact_options,
         scheduler::{benchmark_accounting, benchmark_observation},
-        BENCHMARK_PREPARATION_OPTIONS, BENCHMARK_SUBMISSION_OPTIONS,
+        validate_operator_timestamp_at, BENCHMARK_PREPARATION_OPTIONS,
+        BENCHMARK_SUBMISSION_OPTIONS,
     };
 
     #[test]
@@ -719,6 +651,36 @@ mod tests {
             "run-2043".into(),
         ])
         .is_err());
+    }
+
+    #[test]
+    fn operator_timestamp_guard_accepts_replay_and_small_clock_skew() -> anyhow::Result<()> {
+        let now = Utc
+            .with_ymd_and_hms(2026, 8, 5, 18, 0, 0)
+            .single()
+            .ok_or_else(|| anyhow::anyhow!("test timestamp is invalid"))?;
+        validate_operator_timestamp_at("2025-01-01T00:00:00Z", "--observed-at-utc", now)?;
+        validate_operator_timestamp_at("2026-08-05T18:05:00Z", "--observed-at-utc", now)?;
+        Ok(())
+    }
+
+    #[test]
+    fn operator_timestamp_guard_rejects_future_non_utc_and_malformed_values() -> anyhow::Result<()>
+    {
+        let now = Utc
+            .with_ymd_and_hms(2026, 8, 5, 18, 0, 0)
+            .single()
+            .ok_or_else(|| anyhow::anyhow!("test timestamp is invalid"))?;
+        assert!(validate_operator_timestamp_at("2026-08-05T18:05:01Z", "--submitted-at-utc", now)
+            .is_err());
+        assert!(validate_operator_timestamp_at(
+            "2026-08-05T20:00:00+02:00",
+            "--submitted-at-utc",
+            now
+        )
+        .is_err());
+        assert!(validate_operator_timestamp_at("not-a-time", "--submitted-at-utc", now).is_err());
+        Ok(())
     }
 
     #[test]

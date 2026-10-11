@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "3663f2fb07fa6207bec8b88ca27102d178c48a8b",
-  "bundle_checksum_sha256": "0e89a8b587ec7eb816fa0dabaeae1d9804050167e0ed83ec7da3a49772ae9791",
+  "source_commit": "612475f7096a976dc2327b1fb157340e2acbea30",
+  "bundle_checksum_sha256": "09c75ca9ca7c879d698fc6284c42b981f9e0b4cf52e890a31197aba754382831",
   "domains": [
     {
       "domain_id": "bam",
@@ -4444,7 +4444,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "849269d947400025f3a687b959a0bed10b1edf3435a874e6fb53e46a0ba82efe"
+      "checksum_sha256": "a070545d0640575c87166588ac01f26624a791a4594228a7b3810fe2fb289893"
     },
     {
       "domain_id": "fastq",
@@ -13565,7 +13565,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "f5b06ea1d9c922fc70faea86a090e689b5fa4e9f49d2cbf11480a4da08d3c518"
+      "checksum_sha256": "a1ae82c85965798e9eec42081f6fdaad5c1e847d6cf8764779cd8b3a75fb0fbc"
     },
     {
       "domain_id": "vcf",
@@ -13623,8 +13623,10 @@
         "vcf.call_gl",
         "vcf.call_pseudohaploid",
         "vcf.damage_filter",
+        "vcf.demography",
         "vcf.filter",
         "vcf.gl_propagation",
+        "vcf.ibd",
         "vcf.imputation_metrics",
         "vcf.impute",
         "vcf.pca",
@@ -13639,6 +13641,8 @@
       "governed_tool_ids": [
         "bcftools",
         "beagle",
+        "germline",
+        "ibdne",
         "plink2",
         "shapeit5"
       ],
@@ -14096,8 +14100,8 @@
         },
         {
           "stage_id": "vcf.demography",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.demography in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -14106,6 +14110,11 @@
             {
               "name": "ibd_segments",
               "data_type": "tsv",
+              "cardinality": "One"
+            },
+            {
+              "name": "genetic_map_tsv",
+              "data_type": "genetic_map",
               "cardinality": "One"
             }
           ],
@@ -14117,7 +14126,8 @@
             }
           ],
           "required_inputs": [
-            "ibd_segments"
+            "ibd_segments",
+            "genetic_map_tsv"
           ],
           "required_outputs": [
             "demography_report"
@@ -14309,8 +14319,8 @@
         },
         {
           "stage_id": "vcf.ibd",
-          "status": "planned",
-          "evidence_status": "planned",
+          "status": "supported",
+          "evidence_status": "supported",
           "scope": "post_vcf",
           "description": "VCF stage contract for vcf.ibd in the governed domain registry.",
           "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -14319,6 +14329,11 @@
             {
               "name": "filtered_vcf",
               "data_type": "vcf",
+              "cardinality": "One"
+            },
+            {
+              "name": "genetic_map_tsv",
+              "data_type": "genetic_map",
               "cardinality": "One"
             }
           ],
@@ -14330,7 +14345,8 @@
             }
           ],
           "required_inputs": [
-            "filtered_vcf"
+            "filtered_vcf",
+            "genetic_map_tsv"
           ],
           "required_outputs": [
             "ibd_segments"
@@ -14366,7 +14382,6 @@
           "tool_capability_requirements": [],
           "compatible_tools": [
             "germline",
-            "ibdhap",
             "ibdseq"
           ],
           "assumptions": [
@@ -15362,13 +15377,13 @@
         },
         {
           "tool_id": "germline",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
-          "upstream": "https://www.cs.columbia.edu/~gusev/germline/",
-          "pin_strategy": "container_digest",
-          "license": "GPL-3.0",
+          "default_version": "1.5.3",
+          "upstream": "https://github.com/gusevlab/germline",
+          "pin_strategy": "source_sha256",
+          "license": "Apache-2.0",
           "citation": "paper:https://doi.org/10.1101/gr.081398.108",
           "version_cmd": "germline --version",
           "help_cmd": "germline --help",
@@ -15385,10 +15400,10 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.ibd.v1",
-          "comparability_notes": "Planned tool; compare only within pinned profile and reference build.",
+          "comparability_notes": "Compare only within the same phased-marker profile, reference build, and segment thresholds.",
           "container": {
-            "image": "containers/apptainer/lunarc/germline.def",
-            "digest": "planned"
+            "image": "containers/apptainer/germline.def",
+            "digest": "sha256:3ff976e694067ce2252b79d3923a5e640a6b2aadc8c99e244db125f41d63a2a8"
           }
         },
         {
@@ -15424,7 +15439,7 @@
         },
         {
           "tool_id": "ibdhap",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
           "default_version": "3.4",
@@ -15451,18 +15466,18 @@
           "comparability_notes": "Compare posterior state probabilities only under the same marker map, transition model, priors, and sample pair; these outputs are not direct segment calls.",
           "container": {
             "image": "containers/apptainer/ibdhap.def",
-            "digest": "planned"
+            "digest": "sha256:5c34505e46021dbcddcbd0b0614f0fb9f818ef578613bb436c40ad61d934ca8a"
           }
         },
         {
           "tool_id": "ibdne",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
-          "upstream": "https://faculty.washington.edu/browning/ibdne.shtml",
-          "pin_strategy": "container_digest",
-          "license": "GPL-3.0",
+          "default_version": "23Apr20.ae9",
+          "upstream": "https://faculty.washington.edu/browning/ibdne.html",
+          "pin_strategy": "source_sha256",
+          "license": "Apache-2.0",
           "citation": "paper:https://doi.org/10.1016/j.ajhg.2015.07.012",
           "version_cmd": "ibdne --version",
           "help_cmd": "ibdne --help",
@@ -15479,22 +15494,22 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.demography.v1",
-          "comparability_notes": "Planned tool; compare only within pinned profile and reference build.",
+          "comparability_notes": "Compare only within the same segment filters, generation model, recombination map, and cohort ascertainment.",
           "container": {
-            "image": "containers/apptainer/lunarc/ibdne.def",
-            "digest": "planned"
+            "image": "containers/apptainer/ibdne.def",
+            "digest": "sha256:ba400ac39ae8e69794d839b409135ecb66e92159c3456825cf396bcad22b296d"
           }
         },
         {
           "tool_id": "ibdseq",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
-          "default_version": "planned",
-          "upstream": "https://faculty.washington.edu/browning/ibdseq.shtml",
-          "pin_strategy": "container_digest",
-          "license": "GPL-3.0",
-          "citation": "planned",
+          "default_version": "r1206",
+          "upstream": "https://faculty.washington.edu/browning/ibdseq.html",
+          "pin_strategy": "source_sha256",
+          "license": "Apache-2.0",
+          "citation": "upstream:https://faculty.washington.edu/browning/ibdseq.html",
           "version_cmd": "ibdseq --version",
           "help_cmd": "ibdseq --help",
           "stage_ids": [
@@ -15510,10 +15525,10 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.ibd.v1",
-          "comparability_notes": "Planned tool; compare only within pinned profile and reference build.",
+          "comparability_notes": "Compare only within the same marker filters, allele-frequency model, reference build, and LOD thresholds.",
           "container": {
-            "image": "containers/apptainer/lunarc/ibdseq.def",
-            "digest": "planned"
+            "image": "containers/apptainer/ibdseq.def",
+            "digest": "sha256:d8a2ed8f3822582ae74dea3831f65e01b0960d28d5d495019021526e12cda25e"
           }
         },
         {
@@ -16483,6 +16498,14 @@
           "override_policy": "explicit profile override required"
         },
         {
+          "stage_id": "vcf.demography",
+          "tool_id": "ibdne",
+          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+          "rationale": "the governed recent-demography baseline uses the smoke-proven IBDNe execution contract over normalized IBD segment input and a pinned genetic map.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
           "stage_id": "vcf.filter",
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
@@ -16495,6 +16518,14 @@
           "tool_id": "bcftools",
           "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
           "rationale": "preserves GL fields across downstream handoffs in the current governed profile.",
+          "governance_status": "enforced",
+          "override_policy": "explicit profile override required"
+        },
+        {
+          "stage_id": "vcf.ibd",
+          "tool_id": "germline",
+          "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+          "rationale": "the governed segment baseline uses the smoke-proven GERMLINE execution contract while IBDseq remains an admitted comparative backend and IBDHap remains outside segment-call comparisons.",
           "governance_status": "enforced",
           "override_policy": "explicit profile override required"
         },
@@ -16631,6 +16662,11 @@
           "fixture_path": "domain/vcf/fixtures/vcf.damage_filter/bcftools.txt"
         },
         {
+          "stage_id": "vcf.demography",
+          "tool_id": "ibdne",
+          "fixture_path": "domain/vcf/fixtures/vcf.demography/ibdne.txt"
+        },
+        {
           "stage_id": "vcf.filter",
           "tool_id": "bcftools",
           "fixture_path": "domain/vcf/fixtures/vcf.filter/bcftools.txt"
@@ -16639,6 +16675,16 @@
           "stage_id": "vcf.gl_propagation",
           "tool_id": "bcftools",
           "fixture_path": "domain/vcf/fixtures/vcf.gl_propagation/bcftools.txt"
+        },
+        {
+          "stage_id": "vcf.ibd",
+          "tool_id": "germline",
+          "fixture_path": "domain/vcf/fixtures/vcf.ibd/germline.txt"
+        },
+        {
+          "stage_id": "vcf.ibd",
+          "tool_id": "ibdseq",
+          "fixture_path": "domain/vcf/fixtures/vcf.ibd/ibdseq.txt"
         },
         {
           "stage_id": "vcf.imputation_metrics",
@@ -16762,7 +16808,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "ffaf4ba16c02df469049ad59246cee80faffce0252e9afb15124b4cda9ed751f"
+      "checksum_sha256": "69f96eeb52890aee0b6181dc3e73690fa9e09ab2346832add21e904eeacf191b"
     }
   ]
 }

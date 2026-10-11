@@ -8,13 +8,13 @@ benchmark. Comparative readiness is governed separately by the corpus portfolio,
 truth strategy, cohort size, output contract, and downstream substitution probes.
 
 - Retained stages: **71**
-- Defined campaigns: **6**
-- Qualification-only campaigns: **4**
-- Comparative campaigns: **2**
+- Defined campaigns: **9**
+- Qualification-only campaigns: **6**
+- Comparative campaigns: **3**
 - Admitted campaigns: **0**
-- Stale campaigns: **6**
+- Stale campaigns: **4**
 - Failed campaigns: **0**
-- Missing campaigns: **65**
+- Missing campaigns: **62**
 
 | Stage | Retained tools | Campaign | Definition | Execution |
 |---|---|---|---|---|
@@ -23,10 +23,10 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `bam.bias_mitigation` | `mapdamage2` | - | missing | not_defined |
 | `bam.complexity` | `preseq` | - | missing | not_defined |
 | `bam.contamination` | `contammix`, `schmutzi`, `verifybamid2` | - | missing | not_defined |
-| `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `run-2002` | qualification | stale |
+| `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `run-2002` | qualification | not_admitted |
 | `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `pmdtools`, `pydamage` | - | missing | not_defined |
-| `bam.duplication_metrics` | `picard`, `samtools` | - | missing | not_defined |
-| `bam.endogenous_content` | `samtools` | `run-2003` | qualification | stale |
+| `bam.duplication_metrics` | `picard`, `samtools` | `run-2011` | qualification | not_admitted |
+| `bam.endogenous_content` | `samtools` | `run-2003` | qualification | not_admitted |
 | `bam.filter` | `bamtools`, `bedtools`, `samtools` | - | missing | not_defined |
 | `bam.gc_bias` | `picard` | - | missing | not_defined |
 | `bam.genotyping` | `bcftools` | `run-2001` | qualification | stale |
@@ -47,7 +47,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `fastq.deplete_host` | `bowtie2` | - | missing | not_defined |
 | `fastq.deplete_reference_contaminants` | `bowtie2` | - | missing | not_defined |
 | `fastq.deplete_rrna` | `sortmerna` | - | missing | not_defined |
-| `fastq.detect_adapters` | `fastqc` | - | missing | not_defined |
+| `fastq.detect_adapters` | `fastqc` | `run-2030` | qualification | not_admitted |
 | `fastq.detect_duplicates_premerge` | `bijux_dna` | - | missing | not_defined |
 | `fastq.estimate_library_complexity_prealign` | `bijux_dna` | - | missing | not_defined |
 | `fastq.extract_umis` | `umi_tools` | - | missing | not_defined |
@@ -68,7 +68,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `fastq.trim_polyg_tails` | `bbduk`, `fastp` | - | missing | not_defined |
 | `fastq.trim_reads` | `adapterremoval`, `alientrimmer`, `atropos`, `bbduk`, `cutadapt`, `fastp`, `fastx_clipper`, `leehom`, `prinseq`, `seqkit`, `seqprep`, `skewer`, `trim_galore`, `trimmomatic` | - | missing | not_defined |
 | `fastq.trim_terminal_damage` | `adapterremoval`, `cutadapt`, `seqkit` | - | missing | not_defined |
-| `fastq.validate_reads` | `fastq_scan`, `fastqc`, `fastqvalidator`, `fqtools`, `seqtk` | - | missing | not_defined |
+| `fastq.validate_reads` | `fastq_scan`, `fastqc`, `fastqvalidator`, `fqtools`, `seqtk` | `run-2051` | comparative | not_admitted |
 | `vcf.admixture` | `plink`, `plink2` | - | missing | not_defined |
 | `vcf.call` | `bcftools` | - | missing | not_defined |
 | `vcf.call_diploid` | `bcftools` | - | missing | not_defined |

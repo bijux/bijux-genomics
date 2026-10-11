@@ -1,0 +1,300 @@
+{
+  "$defs": {
+    "CorpusAcquisitionLayout": {
+      "enum": [
+        "se",
+        "pe"
+      ],
+      "type": "string"
+    },
+    "CorpusMaterializationDisposition": {
+      "enum": [
+        "downloaded",
+        "verified_existing"
+      ],
+      "type": "string"
+    },
+    "GovernedDataCatalog": {
+      "additionalProperties": false,
+      "properties": {
+        "access_classification": {
+          "type": "string"
+        },
+        "access_terms": {
+          "type": "string"
+        },
+        "admitted_at_utc": {
+          "type": "string"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/GovernedDataCatalogFile"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "string"
+        },
+        "known_limitations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "redistribution_classification": {
+          "type": "string"
+        },
+        "retrieved_at_utc": {
+          "type": "string"
+        },
+        "samples": {
+          "items": {
+            "$ref": "#/$defs/GovernedDataCatalogSample"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "bijux.data_catalog.v1",
+          "type": "string"
+        },
+        "scientific_name": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "source_record": {
+          "type": "string"
+        },
+        "source_record_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "id",
+        "purpose",
+        "source",
+        "source_record",
+        "source_record_sha256",
+        "retrieved_at_utc",
+        "admitted_at_utc",
+        "access_classification",
+        "redistribution_classification",
+        "access_terms",
+        "scientific_name",
+        "samples",
+        "files",
+        "known_limitations"
+      ],
+      "type": "object"
+    },
+    "GovernedDataCatalogFile": {
+      "additionalProperties": false,
+      "properties": {
+        "accession": {
+          "type": "string"
+        },
+        "base_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "era": {
+          "type": "string"
+        },
+        "experiment_accession": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "layout": {
+          "$ref": "#/$defs/CorpusAcquisitionLayout"
+        },
+        "mate": {
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "materialization_status": {
+          "$ref": "#/$defs/CorpusMaterializationDisposition"
+        },
+        "path": {
+          "type": "string"
+        },
+        "read_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sample_accession": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source_md5": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        },
+        "study_accession": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes",
+        "kind",
+        "accession",
+        "study_accession",
+        "sample_accession",
+        "experiment_accession",
+        "era",
+        "layout",
+        "read_count",
+        "base_count",
+        "source_url",
+        "source_md5",
+        "materialization_status"
+      ],
+      "type": "object"
+    },
+    "GovernedDataCatalogSample": {
+      "additionalProperties": false,
+      "properties": {
+        "accession": {
+          "type": "string"
+        },
+        "archive_base_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "archive_read_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "era": {
+          "type": "string"
+        },
+        "experiment_accession": {
+          "type": "string"
+        },
+        "first_public": {
+          "type": "string"
+        },
+        "instrument_model": {
+          "type": "string"
+        },
+        "instrument_platform": {
+          "type": "string"
+        },
+        "last_updated": {
+          "type": "string"
+        },
+        "layout": {
+          "$ref": "#/$defs/CorpusAcquisitionLayout"
+        },
+        "library_selection": {
+          "type": "string"
+        },
+        "library_source": {
+          "type": "string"
+        },
+        "library_strategy": {
+          "type": "string"
+        },
+        "sample_accession": {
+          "type": "string"
+        },
+        "scientific_name": {
+          "type": "string"
+        },
+        "selection_reason": {
+          "type": "string"
+        },
+        "size_band": {
+          "type": "string"
+        },
+        "study_accession": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "accession",
+        "study_accession",
+        "sample_accession",
+        "experiment_accession",
+        "era",
+        "layout",
+        "size_band",
+        "selection_reason",
+        "scientific_name",
+        "library_source",
+        "library_strategy",
+        "library_selection",
+        "instrument_platform",
+        "instrument_model",
+        "archive_base_count",
+        "archive_read_count",
+        "first_public",
+        "last_updated"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "catalog": {
+      "$ref": "#/$defs/GovernedDataCatalog"
+    },
+    "catalog_path": {
+      "type": "string"
+    },
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "downloaded_files": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.corpus_materialization_publication.v1",
+      "type": "string"
+    },
+    "verified_existing_files": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "catalog_path",
+    "catalog_sha256",
+    "downloaded_files",
+    "verified_existing_files",
+    "catalog"
+  ],
+  "title": "CorpusMaterializationPublication",
+  "type": "object"
+}

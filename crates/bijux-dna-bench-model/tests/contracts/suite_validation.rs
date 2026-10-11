@@ -15,6 +15,24 @@ use suite_validation_harness::{
 };
 
 #[test]
+fn checked_suite_schema_matches_model_authority() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let generated = serde_json::to_value(bijux_dna_bench_model::benchmark_suite_spec_schema())?;
+    let path = repository_root.join("benchmarks/contracts/schemas/suite.schema.json");
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        let mut bytes = serde_json::to_vec_pretty(&generated)?;
+        bytes.push(b'\n');
+        std::fs::write(&path, bytes)?;
+    }
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+    assert_eq!(checked, generated, "suite schema drifted from model authority");
+    Ok(())
+}
+
+#[test]
 fn suite_validation_rejects_duplicate_stage_tools() {
     let suite = suite_with_stage(BenchmarkStageSpec {
         stage: id_catalog::FASTQ_TRIM.to_string(),

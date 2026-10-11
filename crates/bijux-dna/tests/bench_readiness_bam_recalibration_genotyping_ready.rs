@@ -122,9 +122,9 @@ fn bench_readiness_bam_recalibration_genotyping_ready_reports_complete_governed_
             .iter()
             .find(|row| {
                 row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
-                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
             })
-            .expect("bam.genotyping angsd row");
+            .expect("bam.genotyping bcftools row");
         assert_eq!(
             genotyping_row
                 .get("expected_normalized_metrics_output_id")
@@ -137,7 +137,7 @@ fn bench_readiness_bam_recalibration_genotyping_ready_reports_complete_governed_
         );
         assert_eq!(
             genotyping_row.get("local_proof_tool_id").and_then(serde_json::Value::as_str),
-            Some("angsd")
+            Some("bcftools")
         );
         assert!(genotyping_row
             .get("required_local_proof_fields")

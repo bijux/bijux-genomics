@@ -34,9 +34,19 @@ an interrupted scheduler effect cannot silently create a duplicate immutable att
 benchmark outputs to remain empty, allowing later one-shot status and collection operations to stay
 inside runner-owned evidence contracts.
 
-Generated benchmark jobs may invoke `git rev-parse`, `git status`, `sha256sum`, `grep`, `awk`, and
-GNU `time` only for source validation, byte-identity checks, acceptance checks, and resource
-evidence. Shell filesystem utilities are limited to the declared attempt result and scratch roots.
+`prepare_corpus_materialization_slurm_job` publishes an immutable specification and script that
+bind the frozen repository commit, executable digest, acquisition-plan digest, data root, resource
+policy, and admission timestamp. It also persists `prepared-job.json`, allowing a separate process
+to recover the exact submission request through `load_prepared_corpus_materialization_slurm_job`.
+`submit_prepared_corpus_materialization_job` persists intent before the scheduler effect. The
+observe operation is one-shot and non-mutating; terminal collection re-hashes the admitted catalog
+closure and publishes immutable pass/fail evidence.
+
+Generated benchmark jobs may invoke `git rev-parse`, `git status`, `sha256sum`, `grep`, and `awk`
+only for source validation, byte-identity checks, and acceptance checks. The Slurm host requires
+GNU `time` at `/usr/bin/time` and wraps the complete offline `apptainer exec` to record resource
+evidence without adding a timing-package dependency to scientific tool images. Shell filesystem
+utilities are limited to the declared attempt result and scratch roots.
 
 ### Non-Executing Operations
 Replay never executes a backend command. `replay_run` reads an execution manifest and verifies artifacts on disk.

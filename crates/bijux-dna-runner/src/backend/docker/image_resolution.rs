@@ -2,7 +2,7 @@ mod apptainer_registry;
 mod docker_policy;
 
 use anyhow::Result;
-use bijux_dna_environment::api::{
+use bijux_dna_containers::api::{
     resolve_image, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
 };
 
@@ -30,7 +30,7 @@ pub fn resolve_image_for_run(
 #[cfg(test)]
 mod tests {
     use super::{apptainer_registry::apptainer_registry_root, resolve_image_for_run};
-    use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+    use bijux_dna_containers::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
     use std::path::{Path, PathBuf};
 
     #[test]

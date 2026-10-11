@@ -7,7 +7,8 @@ pub use processing::{
     correct_defaults, merge_defaults, preprocess_defaults, remove_duplicates_defaults, umi_defaults,
 };
 pub use profiling::{
-    overrepresented_profile_defaults, read_length_profile_defaults, stats_defaults,
+    estimate_library_complexity_prealign_defaults, overrepresented_profile_defaults,
+    read_length_profile_defaults, stats_defaults,
 };
 pub use quality::{
     detect_adapters_defaults, filter_defaults, qc_post_defaults, screen_defaults, trim_defaults,

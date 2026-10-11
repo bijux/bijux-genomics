@@ -2,8 +2,8 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_core::contract::ExecutionStep;
-use bijux_dna_environment::api::RuntimeKind;
 use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 

@@ -8,6 +8,7 @@ use bijux_dna_domain_vcf::VcfDomainStage;
 use serde::Serialize;
 
 use super::vcf_bcftools_adapter::collect_vcf_bcftools_adapter_rows;
+use super::vcf_descent_family_adapter::collect_vcf_descent_family_adapter_rows;
 use super::vcf_eigensoft_adapter::collect_vcf_eigensoft_adapter_rows_for_tool;
 use super::vcf_imputation_family_adapter::collect_vcf_imputation_family_adapter_rows;
 use super::vcf_phasing_family_adapter::collect_vcf_phasing_family_adapter_rows_for_tool;
@@ -147,6 +148,11 @@ pub(crate) fn collect_vcf_expected_benchmark_result_rows(
                 .into_iter()
                 .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
         )
+        .chain(
+            collect_vcf_descent_family_adapter_rows(repo_root)?
+                .into_iter()
+                .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row.into())),
+        )
         .collect::<BTreeMap<_, _>>();
 
     let mut rows = Vec::with_capacity(benchmark_ready_rows.len());
@@ -277,6 +283,14 @@ impl From<super::vcf_eigensoft_adapter::VcfEigensoftAdapterRow> for VcfExpectedO
     }
 }
 
+impl From<super::vcf_descent_family_adapter::VcfDescentFamilyAdapterRow>
+    for VcfExpectedOutputsAdapterRow
+{
+    fn from(value: super::vcf_descent_family_adapter::VcfDescentFamilyAdapterRow) -> Self {
+        Self { stage_output_ids: value.stage_output_ids }
+    }
+}
+
 fn report_section_for_stage(catalog_row: &VcfStageCatalogRow) -> Result<String> {
     if catalog_row.benchmark_category.trim().is_empty() {
         return Err(anyhow!(
@@ -321,9 +335,9 @@ fn ensure_vcf_expected_benchmark_result_contract(
             "VCF expected-result table must keep one row per benchmark-ready stage-tool-corpus-asset binding"
         ));
     }
-    if rows.len() != 21 {
+    if rows.len() != 24 {
         return Err(anyhow!(
-            "VCF expected-result table must retain exactly 21 benchmark-ready rows, found {}",
+            "VCF expected-result table must retain exactly 24 benchmark-ready rows, found {}",
             rows.len()
         ));
     }
@@ -529,16 +543,18 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH);
-        assert_eq!(report.row_count, 21);
-        assert_eq!(report.stage_count, 18);
-        assert_eq!(report.tool_count, 6);
+        assert_eq!(report.row_count, 24);
+        assert_eq!(report.stage_count, 20);
+        assert_eq!(report.tool_count, 9);
         assert_eq!(report.corpus_count, 1);
-        assert_eq!(report.asset_profile_count, 5);
+        assert_eq!(report.asset_profile_count, 6);
         assert_eq!(report.report_section_counts.get("damage_aware_filtering"), Some(&1));
         assert_eq!(report.report_section_counts.get("imputation"), Some(&2));
         assert_eq!(report.report_section_counts.get("likelihood_postprocess"), Some(&1));
         assert_eq!(report.report_section_counts.get("population_structure"), Some(&4));
         assert_eq!(report.report_section_counts.get("runs_of_homozygosity"), Some(&1));
+        assert_eq!(report.report_section_counts.get("identity_by_descent"), Some(&2));
+        assert_eq!(report.report_section_counts.get("demography"), Some(&1));
         assert_eq!(report.report_section_counts.get("phasing"), Some(&1));
         assert_eq!(report.report_section_counts.get("variant_calling"), Some(&4));
         assert_eq!(report.report_section_counts.get("quality_control"), Some(&5));

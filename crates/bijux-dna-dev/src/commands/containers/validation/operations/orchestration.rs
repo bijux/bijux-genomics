@@ -9,11 +9,11 @@ use super::{
     check_registry_vs_defs, check_release_checklist, check_runtime_downloads,
     check_smoke_contract_lock, check_time_locale_determinism, check_tool_container_coverage,
     check_tool_id_contract, check_tool_invocation_normalization, check_tool_name_collision,
-    container_artifact_dir, ensure_no_args, env_or_default, env_or_empty, lock_items_by_tool,
-    metadata, path_from_arg, primary_tools_csv, read_json, read_utf8, registry_tool_rows,
-    resolved_smoke_tools, run_bijux_with_env, run_runtime_smoke_contract, success_line, summary,
-    versioning, write_ensure_images_plan_report, write_utf8, write_vuln_hook_report,
-    ContainerCommandOutcome, Result, Workspace,
+    container_artifact_dir, ensure_no_args, env_or_default, env_or_empty, metadata, path_from_arg,
+    primary_tools_csv, read_json, read_utf8, registry_tool_rows, resolved_smoke_tools,
+    run_bijux_with_env, run_runtime_smoke_contract, success_line, summary, versioning,
+    write_ensure_images_plan_report, write_utf8, write_vuln_hook_report, ContainerCommandOutcome,
+    Result, Workspace,
 };
 
 pub(in super::super::super) fn run_registry_tools(
@@ -286,8 +286,12 @@ pub(in super::super::super) fn run_container_doctor(
             .into_iter()
             .find(|row| row.get("id").and_then(toml::Value::as_str) == Some(tool_id.as_str()))
             .map_or_else(|| toml::Value::Table(Default::default()), toml::Value::Table);
-        let version_lock = lock_items_by_tool(workspace)?
-            .remove(&tool_id)
+        let version_lock = bijux_dna_containers::api::load_container_version_lock(&workspace.root)?
+            .items
+            .into_iter()
+            .find(|item| item.tool == tool_id)
+            .map(serde_json::to_value)
+            .transpose()?
             .unwrap_or_else(|| serde_json::json!({}));
         let smoke_summary_path =
             workspace.path("artifacts/containers/hpc/frontend-smoke/summary.json");

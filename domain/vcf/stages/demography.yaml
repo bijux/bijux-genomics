@@ -1,6 +1,6 @@
 schema_version: "bijux.stage.v1"
 stage_id: "vcf.demography"
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 domain: "vcf"
 description: "VCF stage contract for vcf.demography in the governed domain registry."
@@ -8,11 +8,14 @@ inputs:
   - name: "ibd_segments"
     data_type: "tsv"
     cardinality: "One"
+  - name: "genetic_map_tsv"
+    data_type: "genetic_map"
+    cardinality: "One"
 outputs:
   - name: "demography_report"
     data_type: "json"
     cardinality: "One"
-required_inputs: ["ibd_segments"]
+required_inputs: ["ibd_segments", "genetic_map_tsv"]
 required_outputs: ["demography_report"]
 tool_capability_requirements: []
 metrics:
@@ -24,7 +27,7 @@ metrics:
   - name: "ne_estimates"
   - name: "insufficient_data_probe"
 compatible_tools: ["ibdne"]
-single_tool_justification: "ibdne remains the planned default because the active demography contract mirrors its expected Ne trajectory surface while external runtime packaging is still pending."
+single_tool_justification: "ibdne is the governed default because the demography contract mirrors its effective-population-size trajectory surface."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "ibd_segments_are_filtered_and_comparable_before_demography"

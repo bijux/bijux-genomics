@@ -2,30 +2,30 @@
   "schema_version": "bijux.bench.readiness.full_benchmark_report.v1",
   "markdown_output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md",
   "json_output_path": "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
-  "row_count": 142,
-  "expected_result_row_count": 141,
+  "row_count": 139,
+  "expected_result_row_count": 138,
   "explicit_unsupported_row_count": 1,
-  "present_row_count": 138,
+  "present_row_count": 135,
   "missing_result_row_count": 3,
   "unsupported_pair_row_count": 1,
-  "stage_centric_row_count": 69,
+  "stage_centric_row_count": 71,
   "tool_centric_row_count": 71,
   "corpus_centric_row_count": 11,
   "pipeline_centric_row_count": 10,
-  "runtime_row_count": 142,
-  "memory_row_count": 142,
+  "runtime_row_count": 139,
+  "memory_row_count": 139,
   "comparable_metric_row_count": 91,
-  "failure_row_count": 141,
+  "failure_row_count": 138,
   "failure_class_row_count": 7,
   "passes_behavior_test": true,
   "domain_counts": {
-    "bam": 49,
-    "fastq": 71,
-    "vcf": 22
+    "bam": 46,
+    "fastq": 68,
+    "vcf": 25
   },
   "row_status_counts": {
     "missing_result": 3,
-    "present": 138,
+    "present": 135,
     "unsupported_pair": 1
   },
   "rows": [
@@ -434,7 +434,10 @@
       "corpus_id": "corpus-01-adna-damage-mini",
       "asset_profile_id": "corpus_only",
       "report_section": "ancient_signal",
-      "pipeline_ids": [],
+      "pipeline_ids": [
+        "adna-gl-fastq-bam-vcf",
+        "adna-pseudohaploid-fastq-bam-vcf"
+      ],
       "expected_output_count": 8,
       "expected_metric_count": 4,
       "comparable_metric_count": 3,
@@ -448,34 +451,6 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/mapdamage2/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/mapdamage2/stage-result.json",
       "detail": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:mapdamage2` remains present with a validated fake-run manifest"
-    },
-    {
-      "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
-      "row_status": "present",
-      "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
-      "domain": "bam",
-      "stage_id": "bam.damage",
-      "tool_id": "ngsbriggs",
-      "corpus_id": "corpus-01-adna-damage-mini",
-      "asset_profile_id": "corpus_only",
-      "report_section": "ancient_signal",
-      "pipeline_ids": [
-        "adna-gl-fastq-bam-vcf",
-        "adna-pseudohaploid-fastq-bam-vcf"
-      ],
-      "expected_output_count": 6,
-      "expected_metric_count": 4,
-      "comparable_metric_count": 3,
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "declared_memory_mb": 1024.0,
-      "declared_cpu_threads": 1,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/ngsbriggs/stage-result.json",
-      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/ngsbriggs/stage-result.json",
-      "detail": "expected all-domain benchmark result `bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
@@ -706,19 +681,19 @@
       "detail": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.gc_bias:sample-set:picard` remains present with a validated fake-run manifest"
     },
     {
-      "report_row_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
+      "report_row_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:bcftools",
       "row_status": "present",
-      "result_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
+      "result_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:bcftools",
       "domain": "bam",
       "stage_id": "bam.genotyping",
-      "tool_id": "angsd",
+      "tool_id": "bcftools",
       "corpus_id": "corpus-01-genotyping-mini",
       "asset_profile_id": "reference_fasta+regions+sites_vcf",
       "report_section": "downstream_readiness",
       "pipeline_ids": [
         "bam-genotyping-to-vcf-downstream"
       ],
-      "expected_output_count": 6,
+      "expected_output_count": 7,
       "expected_metric_count": 1,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -728,9 +703,9 @@
       "declared_cpu_threads": 3,
       "real_smoke_memory_mb": null,
       "real_smoke_cpu_threads": null,
-      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-genotyping-mini/bam.genotyping/reference_fasta+regions+sites_vcf/angsd/stage-result.json",
-      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-genotyping-mini/bam.genotyping/reference_fasta+regions+sites_vcf/angsd/stage-result.json",
-      "detail": "expected all-domain benchmark result `bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd` remains present with a validated fake-run manifest"
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-genotyping-mini/bam.genotyping/reference_fasta+regions+sites_vcf/bcftools/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-genotyping-mini/bam.genotyping/reference_fasta+regions+sites_vcf/bcftools/stage-result.json",
+      "detail": "expected all-domain benchmark result `bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:bcftools` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "bam:corpus-01-adna-bam-mini:bam.haplogroups:sample-set:yleaf",
@@ -781,31 +756,6 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.insert_size/corpus_only/picard/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.insert_size/corpus_only/picard/stage-result.json",
       "detail": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard` remains present with a validated fake-run manifest"
-    },
-    {
-      "report_row_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
-      "row_status": "present",
-      "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
-      "domain": "bam",
-      "stage_id": "bam.kinship",
-      "tool_id": "angsd",
-      "corpus_id": "corpus-01-kinship-mini",
-      "asset_profile_id": "reference_fasta+reference_panel",
-      "report_section": "sample_identity",
-      "pipeline_ids": [],
-      "expected_output_count": 6,
-      "expected_metric_count": 5,
-      "comparable_metric_count": 4,
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "declared_memory_mb": 2048.0,
-      "declared_cpu_threads": 3,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-kinship-mini/bam.kinship/reference_fasta+reference_panel/angsd/stage-result.json",
-      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-kinship-mini/bam.kinship/reference_fasta+reference_panel/angsd/stage-result.json",
-      "detail": "expected all-domain benchmark result `bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
@@ -1141,31 +1091,6 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.recalibration/known_sites+reference_fasta/gatk/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-bam-mini/bam.recalibration/known_sites+reference_fasta/gatk/stage-result.json",
       "detail": "expected all-domain benchmark result `bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk` remains present with a validated fake-run manifest"
-    },
-    {
-      "report_row_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
-      "row_status": "present",
-      "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
-      "domain": "bam",
-      "stage_id": "bam.sex",
-      "tool_id": "angsd",
-      "corpus_id": "corpus-01-adna-bam-mini",
-      "asset_profile_id": "reference_fasta",
-      "report_section": "sample_identity",
-      "pipeline_ids": [],
-      "expected_output_count": 6,
-      "expected_metric_count": 7,
-      "comparable_metric_count": 6,
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "declared_memory_mb": 2048.0,
-      "declared_cpu_threads": 3,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/reference_fasta/angsd/stage-result.json",
-      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/bam/corpus-01-adna-bam-mini/bam.sex/reference_fasta/angsd/stage-result.json",
-      "detail": "expected all-domain benchmark result `bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:rxy",
@@ -1662,7 +1587,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "read_cleanup",
       "pipeline_ids": [],
-      "expected_output_count": 10,
+      "expected_output_count": 8,
       "expected_metric_count": 2,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -1743,7 +1668,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "read_cleanup",
       "pipeline_ids": [],
-      "expected_output_count": 10,
+      "expected_output_count": 8,
       "expected_metric_count": 2,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2139,56 +2064,6 @@
       "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_overrepresented_sequences:sample-set:seqkit` remains present with a validated fake-run manifest"
     },
     {
-      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
-      "row_status": "present",
-      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
-      "domain": "fastq",
-      "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "fastp",
-      "corpus_id": "corpus-01-mini",
-      "asset_profile_id": "corpus_only",
-      "report_section": "quality_profiling",
-      "pipeline_ids": [],
-      "expected_output_count": 3,
-      "expected_metric_count": 2,
-      "comparable_metric_count": 0,
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "declared_memory_mb": 8192.0,
-      "declared_cpu_threads": 4,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/fastp/stage-result.json",
-      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/fastp/stage-result.json",
-      "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp` remains present with a validated fake-run manifest"
-    },
-    {
-      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq",
-      "row_status": "present",
-      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq",
-      "domain": "fastq",
-      "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "prinseq",
-      "corpus_id": "corpus-01-mini",
-      "asset_profile_id": "corpus_only",
-      "report_section": "quality_profiling",
-      "pipeline_ids": [],
-      "expected_output_count": 10,
-      "expected_metric_count": 2,
-      "comparable_metric_count": 0,
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "declared_memory_mb": 8192.0,
-      "declared_cpu_threads": 4,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/prinseq/stage-result.json",
-      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/prinseq/stage-result.json",
-      "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq` remains present with a validated fake-run manifest"
-    },
-    {
       "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu",
       "row_status": "present",
       "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu",
@@ -2214,29 +2089,29 @@
       "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu` remains present with a validated fake-run manifest"
     },
     {
-      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats",
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit",
       "row_status": "present",
-      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats",
+      "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit",
       "domain": "fastq",
       "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "seqkit_stats",
+      "tool_id": "seqkit",
       "corpus_id": "corpus-01-mini",
       "asset_profile_id": "corpus_only",
       "report_section": "quality_profiling",
       "pipeline_ids": [],
-      "expected_output_count": 6,
+      "expected_output_count": 3,
       "expected_metric_count": 2,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
-      "declared_memory_mb": 2048.0,
+      "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
       "real_smoke_cpu_threads": null,
-      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/seqkit_stats/stage-result.json",
-      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/seqkit_stats/stage-result.json",
-      "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats` remains present with a validated fake-run manifest"
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/seqkit/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/seqkit/stage-result.json",
+      "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "fastq:corpus-01-mini:fastq.profile_reads:sample-set:seqfu",
@@ -2302,7 +2177,7 @@
         "core-germline-fastq-bam-vcf",
         "diploid-small-fastq-bam-vcf"
       ],
-      "expected_output_count": 6,
+      "expected_output_count": 3,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -2370,31 +2245,6 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/clumpify/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/clumpify/stage-result.json",
       "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify` remains present with a validated fake-run manifest"
-    },
-    {
-      "report_row_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
-      "row_status": "present",
-      "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
-      "domain": "fastq",
-      "stage_id": "fastq.remove_duplicates",
-      "tool_id": "fastuniq",
-      "corpus_id": "corpus-01-mini",
-      "asset_profile_id": "corpus_only",
-      "report_section": "read_cleanup",
-      "pipeline_ids": [],
-      "expected_output_count": 5,
-      "expected_metric_count": 2,
-      "comparable_metric_count": 0,
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "declared_memory_mb": 8192.0,
-      "declared_cpu_threads": 4,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/stage-result.json",
-      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/stage-result.json",
-      "detail": "expected all-domain benchmark result `fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "fastq:corpus-01-mini:fastq.report_qc:sample-set:multiqc",
@@ -2791,7 +2641,7 @@
       "asset_profile_id": "corpus_only",
       "report_section": "read_cleanup",
       "pipeline_ids": [],
-      "expected_output_count": 10,
+      "expected_output_count": 8,
       "expected_metric_count": 3,
       "comparable_metric_count": 0,
       "simulated_elapsed_seconds": 1.25,
@@ -3278,6 +3128,33 @@
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.damage_filter:vcf_single_sample:bcftools` remains present with a validated fake-run manifest"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.demography:json_ibd_segments:ibdne",
+      "row_status": "present",
+      "result_id": "vcf:vcf_production_regression:vcf.demography:json_ibd_segments:ibdne",
+      "domain": "vcf",
+      "stage_id": "vcf.demography",
+      "tool_id": "ibdne",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "json_ibd_segments",
+      "report_section": "demography",
+      "pipeline_ids": [
+        "relatedness-segments-vcf"
+      ],
+      "expected_output_count": 1,
+      "expected_metric_count": 7,
+      "comparable_metric_count": 0,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.demography/json_ibd_segments/ibdne/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.demography/json_ibd_segments/ibdne/stage-result.json",
+      "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.demography:json_ibd_segments:ibdne` remains present with a validated fake-run manifest"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
       "row_status": "present",
       "result_id": "vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
@@ -3357,6 +3234,58 @@
       "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.gl_propagation/vcf_single_sample/bcftools/stage-result.json",
       "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.gl_propagation/vcf_single_sample/bcftools/stage-result.json",
       "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:germline",
+      "row_status": "present",
+      "result_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:germline",
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "tool_id": "germline",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "report_section": "identity_by_descent",
+      "pipeline_ids": [
+        "relatedness-segments-vcf"
+      ],
+      "expected_output_count": 1,
+      "expected_metric_count": 5,
+      "comparable_metric_count": 1,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.ibd/vcf_cohort/germline/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.ibd/vcf_cohort/germline/stage-result.json",
+      "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.ibd:vcf_cohort:germline` remains present with a validated fake-run manifest"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:ibdseq",
+      "row_status": "present",
+      "result_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:ibdseq",
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "tool_id": "ibdseq",
+      "corpus_id": "vcf_production_regression",
+      "asset_profile_id": "vcf_cohort",
+      "report_section": "identity_by_descent",
+      "pipeline_ids": [],
+      "expected_output_count": 1,
+      "expected_metric_count": 5,
+      "comparable_metric_count": 1,
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "evidence_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.ibd/vcf_cohort/ibdseq/stage-result.json",
+      "manifest_path": "runs/bench/readiness-probes/all-domains/missing-result-test/vcf/vcf_production_regression/vcf.ibd/vcf_cohort/ibdseq/stage-result.json",
+      "detail": "expected all-domain benchmark result `vcf:vcf_production_regression:vcf.ibd:vcf_cohort:ibdseq` remains present with a validated fake-run manifest"
     },
     {
       "report_row_id": "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
@@ -3853,15 +3782,14 @@
     {
       "domain": "bam",
       "stage_id": "bam.damage",
-      "row_count": 6,
-      "present_row_count": 6,
+      "row_count": 5,
+      "present_row_count": 5,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "tool_ids": [
         "addeam",
         "damageprofiler",
         "mapdamage2",
-        "ngsbriggs",
         "pmdtools",
         "pydamage"
       ],
@@ -3962,7 +3890,7 @@
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "tool_ids": [
-        "angsd"
+        "bcftools"
       ],
       "corpus_ids": [
         "corpus-01-genotyping-mini"
@@ -4013,12 +3941,11 @@
     {
       "domain": "bam",
       "stage_id": "bam.kinship",
-      "row_count": 2,
-      "present_row_count": 2,
+      "row_count": 1,
+      "present_row_count": 1,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "tool_ids": [
-        "angsd",
         "king"
       ],
       "corpus_ids": [
@@ -4173,12 +4100,11 @@
     {
       "domain": "bam",
       "stage_id": "bam.sex",
-      "row_count": 3,
-      "present_row_count": 3,
+      "row_count": 2,
+      "present_row_count": 2,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "tool_ids": [
-        "angsd",
         "rxy",
         "yleaf"
       ],
@@ -4556,15 +4482,13 @@
     {
       "domain": "fastq",
       "stage_id": "fastq.profile_read_lengths",
-      "row_count": 4,
-      "present_row_count": 4,
+      "row_count": 2,
+      "present_row_count": 2,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "tool_ids": [
-        "fastp",
-        "prinseq",
         "seqfu",
-        "seqkit_stats"
+        "seqkit"
       ],
       "corpus_ids": [
         "corpus-01-mini"
@@ -4620,13 +4544,12 @@
     {
       "domain": "fastq",
       "stage_id": "fastq.remove_duplicates",
-      "row_count": 2,
-      "present_row_count": 2,
+      "row_count": 1,
+      "present_row_count": 1,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "tool_ids": [
-        "clumpify",
-        "fastuniq"
+        "clumpify"
       ],
       "corpus_ids": [
         "corpus-01-mini"
@@ -4910,6 +4833,26 @@
     },
     {
       "domain": "vcf",
+      "stage_id": "vcf.demography",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "tool_ids": [
+        "ibdne"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": [
+        "relatedness-segments-vcf"
+      ],
+      "report_sections": [
+        "demography"
+      ]
+    },
+    {
+      "domain": "vcf",
       "stage_id": "vcf.filter",
       "row_count": 2,
       "present_row_count": 1,
@@ -4951,6 +4894,27 @@
       ],
       "report_sections": [
         "likelihood_postprocess"
+      ]
+    },
+    {
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "row_count": 2,
+      "present_row_count": 2,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "tool_ids": [
+        "germline",
+        "ibdseq"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": [
+        "relatedness-segments-vcf"
+      ],
+      "report_sections": [
+        "identity_by_descent"
       ]
     },
     {
@@ -5222,29 +5186,6 @@
       "pipeline_ids": []
     },
     {
-      "tool_id": "angsd",
-      "row_count": 3,
-      "present_row_count": 3,
-      "missing_result_row_count": 0,
-      "unsupported_pair_row_count": 0,
-      "domains": [
-        "bam"
-      ],
-      "stage_ids": [
-        "bam.genotyping",
-        "bam.kinship",
-        "bam.sex"
-      ],
-      "corpus_ids": [
-        "corpus-01-adna-bam-mini",
-        "corpus-01-genotyping-mini",
-        "corpus-01-kinship-mini"
-      ],
-      "pipeline_ids": [
-        "bam-genotyping-to-vcf-downstream"
-      ]
-    },
-    {
       "tool_id": "atropos",
       "row_count": 1,
       "present_row_count": 1,
@@ -5377,14 +5318,16 @@
     },
     {
       "tool_id": "bcftools",
-      "row_count": 11,
-      "present_row_count": 10,
+      "row_count": 12,
+      "present_row_count": 11,
       "missing_result_row_count": 1,
       "unsupported_pair_row_count": 0,
       "domains": [
+        "bam",
         "vcf"
       ],
       "stage_ids": [
+        "bam.genotyping",
         "vcf.call",
         "vcf.call_diploid",
         "vcf.call_gl",
@@ -5398,6 +5341,7 @@
         "vcf.stats"
       ],
       "corpus_ids": [
+        "corpus-01-genotyping-mini",
         "vcf_production_regression"
       ],
       "pipeline_ids": [
@@ -5659,8 +5603,8 @@
     },
     {
       "tool_id": "fastp",
-      "row_count": 5,
-      "present_row_count": 5,
+      "row_count": 4,
+      "present_row_count": 4,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -5669,7 +5613,6 @@
       "stage_ids": [
         "fastq.filter_low_complexity",
         "fastq.filter_reads",
-        "fastq.profile_read_lengths",
         "fastq.trim_polyg_tails",
         "fastq.trim_reads"
       ],
@@ -5748,23 +5691,6 @@
       ]
     },
     {
-      "tool_id": "fastuniq",
-      "row_count": 1,
-      "present_row_count": 1,
-      "missing_result_row_count": 0,
-      "unsupported_pair_row_count": 0,
-      "domains": [
-        "fastq"
-      ],
-      "stage_ids": [
-        "fastq.remove_duplicates"
-      ],
-      "corpus_ids": [
-        "corpus-01-mini"
-      ],
-      "pipeline_ids": []
-    },
-    {
       "tool_id": "fastx_clipper",
       "row_count": 1,
       "present_row_count": 1,
@@ -5834,6 +5760,61 @@
         "bam-genotyping-to-vcf-downstream",
         "diploid-small-fastq-bam-vcf"
       ]
+    },
+    {
+      "tool_id": "germline",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "vcf"
+      ],
+      "stage_ids": [
+        "vcf.ibd"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": [
+        "relatedness-segments-vcf"
+      ]
+    },
+    {
+      "tool_id": "ibdne",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "vcf"
+      ],
+      "stage_ids": [
+        "vcf.demography"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": [
+        "relatedness-segments-vcf"
+      ]
+    },
+    {
+      "tool_id": "ibdseq",
+      "row_count": 1,
+      "present_row_count": 1,
+      "missing_result_row_count": 0,
+      "unsupported_pair_row_count": 0,
+      "domains": [
+        "vcf"
+      ],
+      "stage_ids": [
+        "vcf.ibd"
+      ],
+      "corpus_ids": [
+        "vcf_production_regression"
+      ],
+      "pipeline_ids": []
     },
     {
       "tool_id": "kaiju",
@@ -5957,7 +5938,10 @@
         "corpus-01-adna-damage-mini",
         "corpus-01-bam-mini"
       ],
-      "pipeline_ids": []
+      "pipeline_ids": [
+        "adna-gl-fastq-bam-vcf",
+        "adna-pseudohaploid-fastq-bam-vcf"
+      ]
     },
     {
       "tool_id": "mosdepth",
@@ -6015,26 +5999,6 @@
         "corpus-01-mini"
       ],
       "pipeline_ids": []
-    },
-    {
-      "tool_id": "ngsbriggs",
-      "row_count": 1,
-      "present_row_count": 1,
-      "missing_result_row_count": 0,
-      "unsupported_pair_row_count": 0,
-      "domains": [
-        "bam"
-      ],
-      "stage_ids": [
-        "bam.damage"
-      ],
-      "corpus_ids": [
-        "corpus-01-adna-damage-mini"
-      ],
-      "pipeline_ids": [
-        "adna-gl-fastq-bam-vcf",
-        "adna-pseudohaploid-fastq-bam-vcf"
-      ]
     },
     {
       "tool_id": "pear",
@@ -6161,8 +6125,8 @@
     },
     {
       "tool_id": "prinseq",
-      "row_count": 4,
-      "present_row_count": 4,
+      "row_count": 3,
+      "present_row_count": 3,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6171,7 +6135,6 @@
       "stage_ids": [
         "fastq.filter_low_complexity",
         "fastq.filter_reads",
-        "fastq.profile_read_lengths",
         "fastq.trim_reads"
       ],
       "corpus_ids": [
@@ -6302,8 +6265,8 @@
     },
     {
       "tool_id": "seqkit",
-      "row_count": 6,
-      "present_row_count": 6,
+      "row_count": 7,
+      "present_row_count": 7,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6313,6 +6276,7 @@
         "fastq.filter_reads",
         "fastq.normalize_abundance",
         "fastq.profile_overrepresented_sequences",
+        "fastq.profile_read_lengths",
         "fastq.profile_reads",
         "fastq.trim_reads",
         "fastq.trim_terminal_damage"
@@ -6327,15 +6291,14 @@
     },
     {
       "tool_id": "seqkit_stats",
-      "row_count": 2,
-      "present_row_count": 2,
+      "row_count": 1,
+      "present_row_count": 1,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
         "fastq"
       ],
       "stage_ids": [
-        "fastq.profile_read_lengths",
         "fastq.profile_reads"
       ],
       "corpus_ids": [
@@ -6549,8 +6512,8 @@
   "corpus_centric": [
     {
       "corpus_id": "corpus-01-adna-bam-mini",
-      "row_count": 7,
-      "present_row_count": 7,
+      "row_count": 6,
+      "present_row_count": 6,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6562,7 +6525,6 @@
         "bam.sex"
       ],
       "tool_ids": [
-        "angsd",
         "contammix",
         "rxy",
         "schmutzi",
@@ -6576,8 +6538,8 @@
     },
     {
       "corpus_id": "corpus-01-adna-damage-mini",
-      "row_count": 9,
-      "present_row_count": 9,
+      "row_count": 8,
+      "present_row_count": 8,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6592,7 +6554,6 @@
         "authenticct",
         "damageprofiler",
         "mapdamage2",
-        "ngsbriggs",
         "pmdtools",
         "pydamage"
       ],
@@ -6661,7 +6622,7 @@
         "bam.genotyping"
       ],
       "tool_ids": [
-        "angsd"
+        "bcftools"
       ],
       "pipeline_ids": [
         "bam-genotyping-to-vcf-downstream"
@@ -6669,8 +6630,8 @@
     },
     {
       "corpus_id": "corpus-01-kinship-mini",
-      "row_count": 2,
-      "present_row_count": 2,
+      "row_count": 1,
+      "present_row_count": 1,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6680,15 +6641,14 @@
         "bam.kinship"
       ],
       "tool_ids": [
-        "angsd",
         "king"
       ],
       "pipeline_ids": []
     },
     {
       "corpus_id": "corpus-01-mini",
-      "row_count": 62,
-      "present_row_count": 62,
+      "row_count": 59,
+      "present_row_count": 59,
       "missing_result_row_count": 0,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6734,7 +6694,6 @@
         "fastq_scan",
         "fastqc",
         "fastqvalidator",
-        "fastuniq",
         "fastx_clipper",
         "flash2",
         "fqtools",
@@ -6850,8 +6809,8 @@
     },
     {
       "corpus_id": "vcf_production_regression",
-      "row_count": 21,
-      "present_row_count": 20,
+      "row_count": 24,
+      "present_row_count": 23,
       "missing_result_row_count": 1,
       "unsupported_pair_row_count": 0,
       "domains": [
@@ -6864,8 +6823,10 @@
         "vcf.call_gl",
         "vcf.call_pseudohaploid",
         "vcf.damage_filter",
+        "vcf.demography",
         "vcf.filter",
         "vcf.gl_propagation",
+        "vcf.ibd",
         "vcf.imputation_metrics",
         "vcf.impute",
         "vcf.pca",
@@ -6881,6 +6842,9 @@
         "bcftools",
         "beagle",
         "eigensoft",
+        "germline",
+        "ibdne",
+        "ibdseq",
         "plink",
         "plink2",
         "shapeit5"
@@ -6899,7 +6863,7 @@
   ],
   "pipeline_centric": {
     "row_count": 10,
-    "unmapped_row_count": 99,
+    "unmapped_row_count": 94,
     "rows": [
       {
         "pipeline_id": "adna-gl-fastq-bam-vcf",
@@ -6937,7 +6901,7 @@
           "cutadapt",
           "fastp",
           "fastqvalidator",
-          "ngsbriggs",
+          "mapdamage2",
           "plink2",
           "preseq",
           "samtools",
@@ -6980,7 +6944,7 @@
           "cutadapt",
           "fastp",
           "fastqvalidator",
-          "ngsbriggs",
+          "mapdamage2",
           "preseq",
           "samtools",
           "verifybamid2"
@@ -7035,7 +6999,6 @@
           "vcf.stats"
         ],
         "tool_ids": [
-          "angsd",
           "bcftools",
           "gatk",
           "plink2",
@@ -7190,18 +7153,22 @@
       },
       {
         "pipeline_id": "relatedness-segments-vcf",
-        "row_count": 2,
-        "present_row_count": 2,
+        "row_count": 4,
+        "present_row_count": 4,
         "missing_result_row_count": 0,
         "unsupported_pair_row_count": 0,
         "domains": [
           "vcf"
         ],
         "stage_ids": [
+          "vcf.demography",
+          "vcf.ibd",
           "vcf.qc",
           "vcf.roh"
         ],
         "tool_ids": [
+          "germline",
+          "ibdne",
           "plink2"
         ]
       }
@@ -7385,17 +7352,6 @@
       "runtime_source": "fake_run_simulated"
     },
     {
-      "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
-      "domain": "bam",
-      "stage_id": "bam.damage",
-      "tool_id": "ngsbriggs",
-      "row_status": "present",
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "runtime_source": "fake_run_simulated"
-    },
-    {
       "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
       "domain": "bam",
       "stage_id": "bam.damage",
@@ -7495,10 +7451,10 @@
       "runtime_source": "fake_run_simulated"
     },
     {
-      "report_row_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
+      "report_row_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:bcftools",
       "domain": "bam",
       "stage_id": "bam.genotyping",
-      "tool_id": "angsd",
+      "tool_id": "bcftools",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -7521,17 +7477,6 @@
       "domain": "bam",
       "stage_id": "bam.insert_size",
       "tool_id": "picard",
-      "row_status": "present",
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "runtime_source": "fake_run_simulated"
-    },
-    {
-      "report_row_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
-      "domain": "bam",
-      "stage_id": "bam.kinship",
-      "tool_id": "angsd",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -7675,17 +7620,6 @@
       "domain": "bam",
       "stage_id": "bam.recalibration",
       "tool_id": "gatk",
-      "row_status": "present",
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "runtime_source": "fake_run_simulated"
-    },
-    {
-      "report_row_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
-      "domain": "bam",
-      "stage_id": "bam.sex",
-      "tool_id": "angsd",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -8111,28 +8045,6 @@
       "runtime_source": "fake_run_simulated"
     },
     {
-      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
-      "domain": "fastq",
-      "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "fastp",
-      "row_status": "present",
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "runtime_source": "fake_run_simulated"
-    },
-    {
-      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq",
-      "domain": "fastq",
-      "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "prinseq",
-      "row_status": "present",
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "runtime_source": "fake_run_simulated"
-    },
-    {
       "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu",
       "domain": "fastq",
       "stage_id": "fastq.profile_read_lengths",
@@ -8144,10 +8056,10 @@
       "runtime_source": "fake_run_simulated"
     },
     {
-      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats",
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit",
       "domain": "fastq",
       "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "seqkit_stats",
+      "tool_id": "seqkit",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -8203,17 +8115,6 @@
       "domain": "fastq",
       "stage_id": "fastq.remove_duplicates",
       "tool_id": "clumpify",
-      "row_status": "present",
-      "simulated_elapsed_seconds": 1.25,
-      "real_smoke_execution_id": null,
-      "real_smoke_elapsed_seconds": null,
-      "runtime_source": "fake_run_simulated"
-    },
-    {
-      "report_row_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
-      "domain": "fastq",
-      "stage_id": "fastq.remove_duplicates",
-      "tool_id": "fastuniq",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
@@ -8595,6 +8496,17 @@
       "runtime_source": "fake_run_simulated"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.demography:json_ibd_segments:ibdne",
+      "domain": "vcf",
+      "stage_id": "vcf.demography",
+      "tool_id": "ibdne",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
       "domain": "vcf",
       "stage_id": "vcf.filter",
@@ -8623,6 +8535,28 @@
       "tool_id": "bcftools",
       "row_status": "present",
       "simulated_elapsed_seconds": 1.5,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:germline",
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "tool_id": "germline",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
+      "real_smoke_execution_id": null,
+      "real_smoke_elapsed_seconds": null,
+      "runtime_source": "fake_run_simulated"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:ibdseq",
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "tool_id": "ibdseq",
+      "row_status": "present",
+      "simulated_elapsed_seconds": 1.25,
       "real_smoke_execution_id": null,
       "real_smoke_elapsed_seconds": null,
       "runtime_source": "fake_run_simulated"
@@ -8965,18 +8899,6 @@
       "memory_source": "declared_stage_tool_resource"
     },
     {
-      "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
-      "domain": "bam",
-      "stage_id": "bam.damage",
-      "tool_id": "ngsbriggs",
-      "row_status": "present",
-      "declared_memory_mb": 1024.0,
-      "declared_cpu_threads": 1,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "memory_source": "declared_stage_tool_resource"
-    },
-    {
       "report_row_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
       "domain": "bam",
       "stage_id": "bam.damage",
@@ -9085,10 +9007,10 @@
       "memory_source": "declared_stage_tool_resource"
     },
     {
-      "report_row_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
+      "report_row_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:bcftools",
       "domain": "bam",
       "stage_id": "bam.genotyping",
-      "tool_id": "angsd",
+      "tool_id": "bcftools",
       "row_status": "present",
       "declared_memory_mb": 2048.0,
       "declared_cpu_threads": 3,
@@ -9113,18 +9035,6 @@
       "domain": "bam",
       "stage_id": "bam.insert_size",
       "tool_id": "picard",
-      "row_status": "present",
-      "declared_memory_mb": 2048.0,
-      "declared_cpu_threads": 3,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "memory_source": "declared_stage_tool_resource"
-    },
-    {
-      "report_row_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
-      "domain": "bam",
-      "stage_id": "bam.kinship",
-      "tool_id": "angsd",
       "row_status": "present",
       "declared_memory_mb": 2048.0,
       "declared_cpu_threads": 3,
@@ -9281,18 +9191,6 @@
       "domain": "bam",
       "stage_id": "bam.recalibration",
       "tool_id": "gatk",
-      "row_status": "present",
-      "declared_memory_mb": 2048.0,
-      "declared_cpu_threads": 3,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "memory_source": "declared_stage_tool_resource"
-    },
-    {
-      "report_row_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
-      "domain": "bam",
-      "stage_id": "bam.sex",
-      "tool_id": "angsd",
       "row_status": "present",
       "declared_memory_mb": 2048.0,
       "declared_cpu_threads": 3,
@@ -9757,30 +9655,6 @@
       "memory_source": "declared_stage_tool_resource"
     },
     {
-      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
-      "domain": "fastq",
-      "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "fastp",
-      "row_status": "present",
-      "declared_memory_mb": 8192.0,
-      "declared_cpu_threads": 4,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "memory_source": "declared_stage_tool_resource"
-    },
-    {
-      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq",
-      "domain": "fastq",
-      "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "prinseq",
-      "row_status": "present",
-      "declared_memory_mb": 8192.0,
-      "declared_cpu_threads": 4,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "memory_source": "declared_stage_tool_resource"
-    },
-    {
       "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu",
       "domain": "fastq",
       "stage_id": "fastq.profile_read_lengths",
@@ -9793,12 +9667,12 @@
       "memory_source": "declared_stage_tool_resource"
     },
     {
-      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats",
+      "report_row_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit",
       "domain": "fastq",
       "stage_id": "fastq.profile_read_lengths",
-      "tool_id": "seqkit_stats",
+      "tool_id": "seqkit",
       "row_status": "present",
-      "declared_memory_mb": 2048.0,
+      "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
       "real_smoke_memory_mb": null,
       "real_smoke_cpu_threads": null,
@@ -9857,18 +9731,6 @@
       "domain": "fastq",
       "stage_id": "fastq.remove_duplicates",
       "tool_id": "clumpify",
-      "row_status": "present",
-      "declared_memory_mb": 8192.0,
-      "declared_cpu_threads": 4,
-      "real_smoke_memory_mb": null,
-      "real_smoke_cpu_threads": null,
-      "memory_source": "declared_stage_tool_resource"
-    },
-    {
-      "report_row_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
-      "domain": "fastq",
-      "stage_id": "fastq.remove_duplicates",
-      "tool_id": "fastuniq",
       "row_status": "present",
       "declared_memory_mb": 8192.0,
       "declared_cpu_threads": 4,
@@ -10285,6 +10147,18 @@
       "memory_source": "declared_stage_tool_resource"
     },
     {
+      "report_row_id": "vcf:vcf_production_regression:vcf.demography:json_ibd_segments:ibdne",
+      "domain": "vcf",
+      "stage_id": "vcf.demography",
+      "tool_id": "ibdne",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
       "report_row_id": "vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
       "domain": "vcf",
       "stage_id": "vcf.filter",
@@ -10313,6 +10187,30 @@
       "domain": "vcf",
       "stage_id": "vcf.gl_propagation",
       "tool_id": "bcftools",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:germline",
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "tool_id": "germline",
+      "row_status": "present",
+      "declared_memory_mb": 4096.0,
+      "declared_cpu_threads": 2,
+      "real_smoke_memory_mb": null,
+      "real_smoke_cpu_threads": null,
+      "memory_source": "declared_stage_tool_resource"
+    },
+    {
+      "report_row_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:ibdseq",
+      "domain": "vcf",
+      "stage_id": "vcf.ibd",
+      "tool_id": "ibdseq",
       "row_status": "present",
       "declared_memory_mb": 4096.0,
       "declared_cpu_threads": 2,
@@ -10478,12 +10376,12 @@
     }
   ],
   "failures": {
-    "simulated_failure_row_count": 141,
+    "simulated_failure_row_count": 138,
     "failure_class_row_count": 7,
     "simulated_failure_domain_counts": {
-      "bam": 49,
-      "fastq": 71,
-      "vcf": 21
+      "bam": 46,
+      "fastq": 68,
+      "vcf": 24
     },
     "rows": [
       {
@@ -10631,15 +10529,6 @@
         "detail": "fake failure recorded exit_code=7"
       },
       {
-        "record_id": "fake-failure:bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
-        "domain": "bam",
-        "stage_id": "bam.damage",
-        "tool_id": "ngsbriggs",
-        "result_id": "bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:ngsbriggs",
-        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-adna-damage-mini/bam.damage/corpus_only/ngsbriggs/failure.json",
-        "detail": "fake failure recorded exit_code=7"
-      },
-      {
         "record_id": "fake-failure:bam:corpus-01-adna-damage-mini:bam.damage:adna_damage_non_udg:pmdtools",
         "domain": "bam",
         "stage_id": "bam.damage",
@@ -10721,12 +10610,12 @@
         "detail": "fake failure recorded exit_code=7"
       },
       {
-        "record_id": "fake-failure:bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
+        "record_id": "fake-failure:bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:bcftools",
         "domain": "bam",
         "stage_id": "bam.genotyping",
-        "tool_id": "angsd",
-        "result_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:angsd",
-        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-genotyping-mini/bam.genotyping/reference_fasta+regions+sites_vcf/angsd/failure.json",
+        "tool_id": "bcftools",
+        "result_id": "bam:corpus-01-genotyping-mini:bam.genotyping:human_like_genotyping_candidate_panel:bcftools",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-genotyping-mini/bam.genotyping/reference_fasta+regions+sites_vcf/bcftools/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -10745,15 +10634,6 @@
         "tool_id": "picard",
         "result_id": "bam:corpus-01-bam-mini:bam.insert_size:sample-set:picard",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-bam-mini/bam.insert_size/corpus_only/picard/failure.json",
-        "detail": "fake failure recorded exit_code=7"
-      },
-      {
-        "record_id": "fake-failure:bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
-        "domain": "bam",
-        "stage_id": "bam.kinship",
-        "tool_id": "angsd",
-        "result_id": "bam:corpus-01-kinship-mini:bam.kinship:sample-set:angsd",
-        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-kinship-mini/bam.kinship/reference_fasta+reference_panel/angsd/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -10871,15 +10751,6 @@
         "tool_id": "gatk",
         "result_id": "bam:corpus-01-bam-mini:bam.recalibration:sample-set:gatk",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-bam-mini/bam.recalibration/known_sites+reference_fasta/gatk/failure.json",
-        "detail": "fake failure recorded exit_code=7"
-      },
-      {
-        "record_id": "fake-failure:bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
-        "domain": "bam",
-        "stage_id": "bam.sex",
-        "tool_id": "angsd",
-        "result_id": "bam:corpus-01-adna-bam-mini:bam.sex:sample-set:angsd",
-        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/bam/corpus-01-adna-bam-mini/bam.sex/reference_fasta/angsd/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -11225,24 +11096,6 @@
         "detail": "fake failure recorded exit_code=7"
       },
       {
-        "record_id": "fake-failure:fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
-        "domain": "fastq",
-        "stage_id": "fastq.profile_read_lengths",
-        "tool_id": "fastp",
-        "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:fastp",
-        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/fastp/failure.json",
-        "detail": "fake failure recorded exit_code=7"
-      },
-      {
-        "record_id": "fake-failure:fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq",
-        "domain": "fastq",
-        "stage_id": "fastq.profile_read_lengths",
-        "tool_id": "prinseq",
-        "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:prinseq",
-        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/prinseq/failure.json",
-        "detail": "fake failure recorded exit_code=7"
-      },
-      {
         "record_id": "fake-failure:fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqfu",
         "domain": "fastq",
         "stage_id": "fastq.profile_read_lengths",
@@ -11252,12 +11105,12 @@
         "detail": "fake failure recorded exit_code=7"
       },
       {
-        "record_id": "fake-failure:fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats",
+        "record_id": "fake-failure:fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit",
         "domain": "fastq",
         "stage_id": "fastq.profile_read_lengths",
-        "tool_id": "seqkit_stats",
-        "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit_stats",
-        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/seqkit_stats/failure.json",
+        "tool_id": "seqkit",
+        "result_id": "fastq:corpus-01-mini:fastq.profile_read_lengths:sample-set:seqkit",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.profile_read_lengths/corpus_only/seqkit/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -11303,15 +11156,6 @@
         "tool_id": "clumpify",
         "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:clumpify",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/clumpify/failure.json",
-        "detail": "fake failure recorded exit_code=7"
-      },
-      {
-        "record_id": "fake-failure:fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
-        "domain": "fastq",
-        "stage_id": "fastq.remove_duplicates",
-        "tool_id": "fastuniq",
-        "result_id": "fastq:corpus-01-mini:fastq.remove_duplicates:sample-set:fastuniq",
-        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/fastq/corpus-01-mini/fastq.remove_duplicates/corpus_only/fastuniq/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -11621,6 +11465,15 @@
         "detail": "fake failure recorded exit_code=7"
       },
       {
+        "record_id": "fake-failure:vcf:vcf_production_regression:vcf.demography:json_ibd_segments:ibdne",
+        "domain": "vcf",
+        "stage_id": "vcf.demography",
+        "tool_id": "ibdne",
+        "result_id": "vcf:vcf_production_regression:vcf.demography:json_ibd_segments:ibdne",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.demography/json_ibd_segments/ibdne/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
         "record_id": "fake-failure:vcf:vcf_production_regression:vcf.filter:vcf_single_sample:bcftools",
         "domain": "vcf",
         "stage_id": "vcf.filter",
@@ -11636,6 +11489,24 @@
         "tool_id": "bcftools",
         "result_id": "vcf:vcf_production_regression:vcf.gl_propagation:vcf_single_sample:bcftools",
         "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.gl_propagation/vcf_single_sample/bcftools/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:vcf:vcf_production_regression:vcf.ibd:vcf_cohort:germline",
+        "domain": "vcf",
+        "stage_id": "vcf.ibd",
+        "tool_id": "germline",
+        "result_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:germline",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.ibd/vcf_cohort/germline/failure.json",
+        "detail": "fake failure recorded exit_code=7"
+      },
+      {
+        "record_id": "fake-failure:vcf:vcf_production_regression:vcf.ibd:vcf_cohort:ibdseq",
+        "domain": "vcf",
+        "stage_id": "vcf.ibd",
+        "tool_id": "ibdseq",
+        "result_id": "vcf:vcf_production_regression:vcf.ibd:vcf_cohort:ibdseq",
+        "evidence_path": "runs/bench/local-fake-runs/all-domains-failures/vcf/vcf_production_regression/vcf.ibd/vcf_cohort/ibdseq/failure.json",
         "detail": "fake failure recorded exit_code=7"
       },
       {
@@ -13583,10 +13454,11 @@
       "required": true,
       "tool_ids": [
         "eigensoft",
+        "plink",
         "plink2"
       ],
       "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.population_structure` across 2 retained tools"
+      "reason": "governed VCF comparable metric published for `vcf.population_structure` across 3 retained tools"
     },
     {
       "domain": "vcf",
@@ -13602,10 +13474,11 @@
       "required": true,
       "tool_ids": [
         "eigensoft",
+        "plink",
         "plink2"
       ],
       "contract_status": "declared",
-      "reason": "governed VCF comparable metric published for `vcf.population_structure` across 2 retained tools"
+      "reason": "governed VCF comparable metric published for `vcf.population_structure` across 3 retained tools"
     },
     {
       "domain": "vcf",

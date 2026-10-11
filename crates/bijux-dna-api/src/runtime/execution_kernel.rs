@@ -3,8 +3,8 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_core::contract::ExecutionStep;
-use bijux_dna_environment::api::RuntimeKind;
 use bijux_dna_runner::step_runner::{execute_step, StageResultV1};
 use bijux_dna_runtime::recording::write_execution_logs_bounded;
 use serde::{Deserialize, Serialize};

@@ -1375,16 +1375,16 @@
             "role": "variant"
           },
           {
-            "name": "reference_panel_vcf",
-            "optional": false,
-            "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
-            "role": "variant"
-          },
-          {
             "name": "genetic_map_tsv",
             "optional": false,
             "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
             "role": "reference"
+          },
+          {
+            "name": "reference_panel_vcf",
+            "optional": false,
+            "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
+            "role": "variant"
           }
         ],
         "outputs": [

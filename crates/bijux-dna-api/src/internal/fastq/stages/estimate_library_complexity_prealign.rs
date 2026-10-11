@@ -102,13 +102,12 @@ fn materialize_local_estimate_library_complexity_prealign_smoke_case(
     let report_json = case_out_dir.join("library_complexity_report.json");
     let r1 = repo_root.join(&case.r1);
     let r2 = case.r2.as_ref().map(|path| repo_root.join(path));
-    let report = bijux_dna_domain_fastq::stages::estimate_library_complexity_prealign(
+    let report = estimate_library_complexity_prealign_report(
         &r1,
         r2.as_deref(),
         Some(case.kmer_size),
+        &report_json,
     )?;
-
-    bijux_dna_infra::atomic_write_json(&report_json, &report)?;
 
     Ok(LocalEstimateLibraryComplexityPrealignSmokeCaseReport {
         sample_id: case.sample_id.clone(),
@@ -126,6 +125,21 @@ fn materialize_local_estimate_library_complexity_prealign_smoke_case(
         complexity_status: complexity_status(&report),
         report_json: path_relative_to_repo(repo_root, &report_json),
     })
+}
+
+pub(crate) fn estimate_library_complexity_prealign_report(
+    r1: &Path,
+    r2: Option<&Path>,
+    kmer_size: Option<u32>,
+    report_json: &Path,
+) -> Result<EstimateLibraryComplexityPrealignReportV1> {
+    let report =
+        bijux_dna_domain_fastq::stages::estimate_library_complexity_prealign(r1, r2, kmer_size)?;
+    if let Some(parent) = report_json.parent() {
+        bijux_dna_infra::ensure_dir(parent)?;
+    }
+    bijux_dna_infra::atomic_write_json(report_json, &report)?;
+    Ok(report)
 }
 
 fn estimated_complexity(report: &EstimateLibraryComplexityPrealignReportV1) -> Option<f64> {

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "complete": {
+      "type": "boolean"
+    },
+    "input_contract": {
+      "enum": [
+        "bijux.benchmark.bam.coverage.bundle.v1",
+        "bijux.benchmark.bam.duplication_metrics.bundle.v1",
+        "bijux.benchmark.bam.endogenous_content.bundle.v1",
+        "bijux.benchmark.bam.genotyping.bundle.v1",
+        "bijux.benchmark.bam.mapping_summary.bundle.v1"
+      ],
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.downstream_probe.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "enum": [
+        "benchmark.bam.coverage.compare",
+        "benchmark.bam.duplication_metrics.compare",
+        "benchmark.bam.endogenous_content.consume",
+        "benchmark.bam.genotyping.consume",
+        "benchmark.bam.mapping_summary.compare"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "input_contract",
+    "complete"
+  ],
+  "title": "BenchmarkDownstreamProbeRecord",
+  "type": "object"
+}

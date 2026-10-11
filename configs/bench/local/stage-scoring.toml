@@ -1,10 +1,3 @@
-# schema_version = 1
-# owner = bijux-dna-bench
-# purpose = Governed scoring policy for local benchmark stage recommendations.
-# authority = bijux-dna-bench
-# stability = evolving
-# last_updated = 2026-06-22
-
 schema_version = "bijux.bench.local_stage_scoring.v1"
 active_stage_catalog_path = "benchmarks/readiness/all-domains/active-stage-catalog.tsv"
 scientific_threshold_config_path = "configs/bench/local/scientific-acceptance-thresholds.toml"
@@ -543,14 +536,13 @@ domain = "bam"
 stage_id = "bam.damage"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 6
-benchmark_ready_tool_count = 6
+active_tool_count = 5
+benchmark_ready_tool_count = 5
 default_tool_id = "mapdamage2"
 benchmark_ready_tool_ids = [
     "addeam",
     "damageprofiler",
     "mapdamage2",
-    "ngsbriggs",
     "pmdtools",
     "pydamage",
 ]
@@ -576,7 +568,7 @@ metric_ids = [
     "terminal_c_to_t_5p",
     "terminal_g_to_a_3p",
 ]
-minimum_present_result_rows = 6
+minimum_present_result_rows = 5
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -1172,16 +1164,13 @@ allowed_row_statuses = ["present"]
 domain = "bam"
 stage_id = "bam.kinship"
 readiness_kind = "smoke"
-decision_mode = "multi_tool_ranking"
-active_tool_count = 2
-benchmark_ready_tool_count = 2
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
 default_tool_id = "king"
-benchmark_ready_tool_ids = [
-    "angsd",
-    "king",
-]
+benchmark_ready_tool_ids = ["king"]
 report_section_ids = ["sample_identity"]
-recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.35
@@ -1203,7 +1192,7 @@ metric_ids = [
     "pairwise_results",
     "status",
 ]
-minimum_present_result_rows = 2
+minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -1837,11 +1826,10 @@ domain = "bam"
 stage_id = "bam.sex"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 3
-benchmark_ready_tool_count = 3
+active_tool_count = 2
+benchmark_ready_tool_count = 2
 default_tool_id = "rxy"
 benchmark_ready_tool_ids = [
-    "angsd",
     "rxy",
     "yleaf",
 ]
@@ -1870,7 +1858,7 @@ metric_ids = [
     "x_coverage",
     "y_coverage",
 ]
-minimum_present_result_rows = 3
+minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -3309,14 +3297,12 @@ domain = "fastq"
 stage_id = "fastq.profile_read_lengths"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 4
-benchmark_ready_tool_count = 4
-default_tool_id = "seqkit_stats"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "seqkit"
 benchmark_ready_tool_ids = [
-    "fastp",
-    "prinseq",
     "seqfu",
-    "seqkit_stats",
+    "seqkit",
 ]
 report_section_ids = ["quality_profiling"]
 recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
@@ -3336,7 +3322,7 @@ source_report_paths = [
 ]
 signal = "output_contract"
 metric_ids = []
-minimum_present_result_rows = 4
+minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -3545,7 +3531,7 @@ benchmark_ready_tool_count = 1
 default_tool_id = "clumpify"
 benchmark_ready_tool_ids = ["clumpify"]
 report_section_ids = ["read_cleanup"]
-recommendation_gate = "accept the benchmark-ready tool only after completion and failure-class gates pass"
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.55
@@ -3562,7 +3548,7 @@ source_report_paths = [
 ]
 signal = "output_contract"
 metric_ids = []
-minimum_present_result_rows = 2
+minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -4559,6 +4545,80 @@ allowed_row_statuses = ["present"]
 
 [[rows]]
 domain = "vcf"
+stage_id = "vcf.demography"
+readiness_kind = "smoke"
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
+default_tool_id = "ibdne"
+benchmark_ready_tool_ids = ["ibdne"]
+report_section_ids = ["demography"]
+recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.55
+scientific_threshold = 0.0
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.1
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "output_contract"
+metric_ids = []
+minimum_present_result_rows = 1
+
+[rows.scientific_threshold]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
 stage_id = "vcf.filter"
 readiness_kind = "smoke"
 decision_mode = "single_tool_acceptance"
@@ -4672,6 +4732,83 @@ metric_ids = [
     "site_count_after",
     "site_count_before",
 ]
+gate = "must_pass_all_required_stage_thresholds"
+
+[rows.runtime]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "elapsed_seconds"
+direction = "lower_is_better"
+missing_behavior = "exclude_from_ranking"
+
+[rows.memory]
+source_report_paths = ["runs/bench/micro/MICRO_BENCHMARK_REPORT.json"]
+metric_id = "observed_memory_mb"
+fallback_metric_id = "declared_memory_mb"
+direction = "lower_is_better"
+missing_behavior = "fallback_to_declared_memory"
+
+[rows.completion]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "runs/bench/micro/MICRO_BENCHMARK_REPORT.json",
+]
+required_row_statuses = ["present"]
+required_execution_statuses = ["succeeded"]
+non_scoring_execution_statuses = [
+    "container_needed",
+    "unavailable",
+]
+required_success_ratio = 1.0
+
+[rows.failure_class]
+source_report_paths = ["benchmarks/readiness/failure-classification-all-domains.json"]
+blocking_class_ids = [
+    "missing_input",
+    "tool_not_found",
+    "command_failed",
+    "missing_output",
+    "parser_failed",
+    "unsupported_pair",
+]
+insufficient_class_ids = ["insufficient_data"]
+allowed_row_statuses = ["present"]
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.ibd"
+readiness_kind = "smoke"
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
+default_tool_id = "germline"
+benchmark_ready_tool_ids = [
+    "germline",
+    "ibdseq",
+]
+report_section_ids = ["identity_by_descent"]
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+
+[rows.weights]
+correctness = 0.35
+scientific_threshold = 0.25
+runtime = 0.15
+memory = 0.1
+completion = 0.1
+failure_class = 0.05
+
+[rows.correctness]
+source_report_paths = [
+    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+    "benchmarks/readiness/all-domains/active-stage-catalog.tsv",
+]
+signal = "scientific_comparable_metrics"
+metric_ids = ["pair_count"]
+minimum_present_result_rows = 2
+
+[rows.scientific_threshold]
+source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
+applicability = "required"
+metric_ids = ["pair_count"]
 gate = "must_pass_all_required_stage_thresholds"
 
 [rows.runtime]

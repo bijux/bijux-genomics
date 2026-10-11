@@ -21,12 +21,15 @@ The `public_api` module itself is private. Stable exports are owned by
 - `load_stage_report(path)` returns a typed admission envelope binding the exact source bytes and canonical parsed report to separate SHA-256 identities.
 - `load_stage_reports_from_dir(path, registry, interfaces)` admits checksummed reports against supplied authorities; raw report values are never returned to aggregation callers.
 - `load_checked_in_stage_reports()` admits all checked-in reports against campaign and interface authority.
+- `materialize_fastq_corpus(request)` re-verifies or transfers checksum-pinned ENA files, validates every gzip FASTQ record, makes the admitted files read-only, and atomically publishes a no-clobber governed catalog.
 - `admit_fastq_benchmark_corpus(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` re-hashes and admits one exact governed FASTQ closure.
 - `admit_bam_benchmark_corpus(study_root, data_index_path, corpus_id)` re-hashes and admits one exact governed coordinate-sorted BAM and BAI closure.
 - `ensure_fastq_read_length_expectations(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` independently derives and immutably publishes exact read-length evidence.
 - `prepare_fastq_profile_read_lengths_material(...)` prepares the complete run-2042 attempt input, command, parameter, output, resource, and acceptance closure.
 - `prepare_bam_mapping_summary_material(...)` prepares the complete run-2004 BAM mapping-summary attempt closure.
 - `plan_stage_campaign_attempts(registry, repository_commit, campaign_registry_sha256, run_id, campaign_id, attempt_id, observed_at_utc)` deterministically derives a source-locked plan with one validated attempt per declared tool.
+- `recover_stage_campaign_retry_lineage(root, registry, run_id, campaign_id, tip_attempt_id)` reconstructs the explicit terminal lineage for every declared tool while rejecting detached execution evidence.
+- `plan_stage_campaign_retry_attempts(registry, repository_commit, campaign_registry_sha256, prior_attempts, attempt_id, observed_at_utc)` derives linked retry origins from one complete terminal lineage.
 - `verify_campaign_plan_source(plan, repository_commit, campaign_registry_sha256)` rejects stale source or campaign declaration identity before execution state is created.
 - `ensure_stage_campaign_attempts(root, plan)` validates source locks, then preflights and crash-safely initializes every immutable planned attempt in a campaign cycle.
 - `benchmark_attempt_directory(root, identity)` derives the permanent attempt path from validated identity.
@@ -58,7 +61,6 @@ including:
 - `BenchmarkSuiteSpec`
 - `BenchmarkObservation`
 - `BenchmarkSummary`
-- `BenchmarkDecision`
 - `BenchmarkStageCampaignRegistry`
 - `BenchmarkStageCampaignSpec`
 - `BenchmarkStageCoverage`
@@ -79,6 +81,10 @@ including:
 - `BenchmarkCycleStatusV2`
 - `BenchmarkCampaignPlan`
 - `BenchmarkExecutionSpec`
+- `CorpusMaterializationRequest`
+- `CorpusMaterializationPublication`
+- `CorpusAcquisitionPlan`
+- `GovernedDataCatalog`
 - `AdmittedBamCorpus`
 - `BamMappingSummaryMaterial`
 - `FastqReadLengthExpectations`
@@ -93,6 +99,12 @@ including:
 - `BenchError`
 - `BenchRunOptions`
 - `benchmark_execution_spec_schema`
+- `benchmark_suite_spec_schema`
+- `benchmark_corpus_manifest_schema`
+- `benchmark_bundle_manifest_schema`
+- `benchmark_observation_schema`
+- `benchmark_summary_schema`
+- `gate_decision_schema`
 - `validate_execution_spec`
 - `build_execution_spec`
 - `BenchmarkExecutionMaterial`

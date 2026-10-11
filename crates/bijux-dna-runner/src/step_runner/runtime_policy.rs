@@ -2,7 +2,7 @@ use std::path::{Component, Path};
 
 use bijux_dna_core::contract::ExecutionStep;
 
-use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_containers::api::RuntimeKind;
 
 pub(super) fn stage_workdir_in_container(out_dir: &Path, _runner: RuntimeKind) -> String {
     if let Ok(workdir) = std::env::var("BIJUX_STAGE_WORKDIR") {

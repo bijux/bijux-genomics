@@ -65,6 +65,6 @@ relationship among:
   `domain/fastq/tools/**`
 - [domain/fastq/docs/DEFAULT_SETTINGS.md](../domain/fastq/docs/DEFAULT_SETTINGS.md)
 - [configs/ci/registry/tool_registry.toml](../configs/ci/registry/tool_registry.toml)
-- [crates/bijux-dna-environment/docs/ENV_REFERENCE.md](../crates/bijux-dna-environment/docs/ENV_REFERENCE.md)
+- [crates/bijux-dna-containers/docs/ENV_REFERENCE.md](../crates/bijux-dna-containers/docs/ENV_REFERENCE.md)
 - [science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv](docs/upstream/fastq/tools/EVIDENCE_MAP.tsv)
 - [science/docs/upstream/papers/TOOL_PAPER_MAP.tsv](docs/upstream/papers/TOOL_PAPER_MAP.tsv)

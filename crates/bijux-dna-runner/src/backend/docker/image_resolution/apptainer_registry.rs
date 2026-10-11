@@ -2,7 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
-use bijux_dna_environment::api::{PlatformSpec, ResolvedImage, ToolImageSpec};
+use bijux_dna_containers::api::{PlatformSpec, ResolvedImage, ToolImageSpec};
 
 pub(super) fn resolve_apptainer_image_for_run(
     spec: &ToolImageSpec,
@@ -88,7 +88,7 @@ pub(crate) fn apptainer_registry_root(container_dir: &Path) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bijux_dna_environment::api::RuntimeKind;
+    use bijux_dna_containers::api::RuntimeKind;
 
     fn apptainer_platform(container_dir: PathBuf) -> PlatformSpec {
         PlatformSpec {

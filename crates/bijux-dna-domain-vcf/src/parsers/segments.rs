@@ -388,10 +388,21 @@ fn validate_command(tool_id: &str, stage_id: &str, command: &serde_json::Value) 
 fn required_command_tokens(tool_id: &str, stage_id: &str) -> Result<&'static [&'static str]> {
     match (tool_id, stage_id) {
         ("plink2", "vcf.roh") => Ok(&["plink2", "--homozyg"]),
-        ("germline", "vcf.ibd") => Ok(&["germline", "-output"]),
-        ("ibdseq", "vcf.ibd") => Ok(&["ibdseq", "--vcf", "--out"]),
-        ("ibdhap", "vcf.ibd") => Ok(&["ibdhap", "--vcf", "--out"]),
-        ("ibdne", "vcf.demography") => Ok(&["ibdne", "--ibd", "--out"]),
+        ("germline", "vcf.ibd") => {
+            Ok(&["plink2", "--recode", "ped", "germline", "-input", ".ped", ".map", "-output"])
+        }
+        ("ibdseq", "vcf.ibd") => Ok(&["ibdseq", "gt=", "out=", "nthreads="]),
+        ("ibdhap", "vcf.ibd") => Ok(&[
+            "ibdhap",
+            "analyze-vcf",
+            "--genetic-map",
+            "--scores",
+            "--identifiers",
+            "--summary",
+        ]),
+        ("ibdne", "vcf.demography") => {
+            Ok(&["ibdne", "map=", "out=", "nthreads=", "nboots=", "seed="])
+        }
         _ => bail!("unsupported segment parser command row `{tool_id}` / `{stage_id}`"),
     }
 }

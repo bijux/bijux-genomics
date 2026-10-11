@@ -63,10 +63,21 @@ fn bench_readiness_all_domain_missing_result_audit_tracks_three_governed_missing
     assert_eq!(missing_result_row_count, 3);
     assert_eq!(payload.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
 
+    let rows = support::json_array(&payload, "rows");
+    assert_eq!(u64::try_from(rows.len()).expect("row count fits u64"), expected_row_count);
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(49));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(21));
+    for domain in ["fastq", "bam", "vcf"] {
+        let expected_count = u64::try_from(
+            rows.iter()
+                .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some(domain))
+                .count(),
+        )
+        .expect("domain count fits u64");
+        assert_eq!(
+            domain_counts.get(domain).and_then(serde_json::Value::as_u64),
+            Some(expected_count)
+        );
+    }
 
     let removed_result_ids = payload
         .get("removed_result_ids")
@@ -85,10 +96,6 @@ fn bench_readiness_all_domain_missing_result_audit_tracks_three_governed_missing
         .into_iter()
         .collect()
     );
-
-    let rows = support::json_array(&payload, "rows");
-    assert_eq!(rows.len() as u64, expected_row_count);
-
     let missing_rows = rows
         .iter()
         .filter(|row| {

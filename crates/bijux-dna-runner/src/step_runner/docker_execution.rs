@@ -44,7 +44,7 @@ pub(super) fn execute_docker_step(
         args.push("-w".to_string());
         args.push(stage_workdir_in_container(
             out_dir,
-            bijux_dna_environment::api::RuntimeKind::Docker,
+            bijux_dna_containers::api::RuntimeKind::Docker,
         ));
     }
     for (key, value) in runtime_env_exports() {

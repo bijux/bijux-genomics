@@ -1,0 +1,284 @@
+{
+  "$defs": {
+    "AnalysisRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "min_replicates_for_bootstrap": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "require_bootstrap": {
+          "type": "boolean"
+        },
+        "require_outlier_detection": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "require_bootstrap",
+        "require_outlier_detection",
+        "min_replicates_for_bootstrap"
+      ],
+      "type": "object"
+    },
+    "BenchmarkParamBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "stage_instance_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tool": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "values": {
+          "additionalProperties": true,
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkStageEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "from_output_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "to": {
+          "type": "string"
+        },
+        "to_input_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStageSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "param_bindings": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkParamBinding"
+          },
+          "type": "array"
+        },
+        "params": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "stage_instance_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tools": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "upstream_stage_instance_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "stage",
+        "tools"
+      ],
+      "type": "object"
+    },
+    "DatasetSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "class_label": {
+          "type": "string"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "origin": {
+          "type": "string"
+        },
+        "read_layout": {
+          "type": "string"
+        },
+        "size": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "hash",
+        "size",
+        "origin",
+        "class_label",
+        "read_layout"
+      ],
+      "type": "object"
+    },
+    "DiversityRequirements": {
+      "additionalProperties": false,
+      "properties": {
+        "min_classes": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "min_dataset_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "min_read_layouts": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "min_dataset_count",
+        "min_classes",
+        "min_read_layouts"
+      ],
+      "type": "object"
+    },
+    "ReplicatePolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "seeds": {
+          "items": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "warmup": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "count",
+        "warmup",
+        "seeds"
+      ],
+      "type": "object"
+    },
+    "StratificationRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "required_values": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "key",
+        "required_values"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "analysis_requirements": {
+      "$ref": "#/$defs/AnalysisRequirements"
+    },
+    "datasets": {
+      "items": {
+        "$ref": "#/$defs/DatasetSpec"
+      },
+      "type": "array"
+    },
+    "diversity": {
+      "$ref": "#/$defs/DiversityRequirements"
+    },
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageEdge"
+      },
+      "type": "array"
+    },
+    "replicate_policy": {
+      "$ref": "#/$defs/ReplicatePolicy"
+    },
+    "schema_version": {
+      "const": "bijux.bench.suite.v1",
+      "type": "string"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageSpec"
+      },
+      "type": "array"
+    },
+    "stratifications": {
+      "items": {
+        "$ref": "#/$defs/StratificationRequirement"
+      },
+      "type": "array"
+    },
+    "suite_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "suite_id",
+    "datasets",
+    "stages",
+    "replicate_policy",
+    "diversity",
+    "stratifications",
+    "analysis_requirements"
+  ],
+  "title": "BenchmarkSuiteSpec",
+  "type": "object"
+}

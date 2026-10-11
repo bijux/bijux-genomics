@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::{anyhow, Result};
 
-use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_runner::step_runner::execute_step as execute_plan;
 use bijux_dna_runner::step_runner::StageResultV1;
 

@@ -442,13 +442,17 @@ mod tests {
     }
 
     #[test]
-    fn wrong_study_root_refuses_submission() {
+    fn wrong_study_root_refuses_submission() -> anyhow::Result<()> {
         let policy = policy();
         let request = request();
         let mut observed = observation(&policy, &request);
-        observed.roots.get_mut("study").expect("study observation").canonical_path =
-            Some(PathBuf::from("/wrong-study"));
+        let study = observed
+            .roots
+            .get_mut("study")
+            .ok_or_else(|| anyhow::anyhow!("study observation is absent"))?;
+        study.canonical_path = Some(PathBuf::from("/wrong-study"));
         assert_refused(&evaluate(&policy, &request, &observed, "c".repeat(64)), "root.study");
+        Ok(())
     }
 
     #[test]

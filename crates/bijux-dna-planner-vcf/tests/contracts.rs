@@ -435,7 +435,6 @@ fn vcf_planner_renders_executable_descent_stage_templates_for_retained_backends(
         (CoverageRegime::Diploid, "vcf.roh", "plink2"),
         (CoverageRegime::Diploid, "vcf.ibd", "germline"),
         (CoverageRegime::Diploid, "vcf.ibd", "ibdseq"),
-        (CoverageRegime::Diploid, "vcf.ibd", "ibdhap"),
         (CoverageRegime::Diploid, "vcf.demography", "ibdne"),
     ];
 
@@ -472,27 +471,40 @@ fn vcf_planner_renders_executable_descent_stage_templates_for_retained_backends(
             ("vcf.ibd", "germline") => {
                 assert!(joined.contains("germline"));
                 assert!(joined.contains("plink2 --vcf"));
-                assert!(joined.contains("-make-bed") || joined.contains("--make-bed"));
+                assert!(joined.contains("--recode ped"));
+                assert!(joined.contains(".ped"));
+                assert!(joined.contains(".map"));
                 assert!(joined.contains("-output"));
             }
             ("vcf.ibd", "ibdseq") => {
                 assert!(joined.contains("ibdseq"));
-                assert!(joined.contains("--vcf"));
-                assert!(joined.contains(".segments.tsv"));
-            }
-            ("vcf.ibd", "ibdhap") => {
-                assert!(joined.contains("ibdhap"));
-                assert!(joined.contains("--vcf"));
-                assert!(joined.contains(".segments.tsv"));
+                assert!(joined.contains("gt="));
+                assert!(joined.contains("out="));
+                assert!(joined.contains("nthreads="));
             }
             ("vcf.demography", "ibdne") => {
                 assert!(joined.contains("ibdne"));
                 assert!(joined.contains("ibd_segments.tsv"));
-                assert!(joined.contains("--out"));
+                assert!(joined.contains("map="));
+                assert!(joined.contains("out="));
+                assert!(joined.contains("nboots=0"));
             }
             other => panic!("unexpected descent backend {other:?}"),
         }
     }
+}
+
+#[test]
+fn vcf_planner_refuses_ibdhap_without_pair_and_region_selection() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec!["vcf.ibd".to_string()]);
+    input.stage_tool_overrides.insert("vcf.ibd".to_string(), "ibdhap".to_string());
+
+    let error = plan_vcf_stage_plans(&input).expect_err("IBDHap requires explicit pair context");
+    assert!(
+        error.to_string().contains("explicit sample pair and genomic region"),
+        "unexpected IBDHap refusal: {error:#}"
+    );
 }
 
 fn assert_snapshot_json(name: &str, kind: &str, value: &serde_json::Value) {

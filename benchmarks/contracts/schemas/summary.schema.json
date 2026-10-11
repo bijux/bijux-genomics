@@ -1,0 +1,266 @@
+{
+  "$defs": {
+    "MetricSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "ci_high": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "ci_low": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "metric_id": {
+          "type": "string"
+        },
+        "n": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "outlier_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "outlier_replicates": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "power_warning": {
+          "type": "boolean"
+        },
+        "practical_threshold": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "stats": {
+          "$ref": "#/$defs/RobustStats"
+        }
+      },
+      "required": [
+        "metric_id",
+        "n",
+        "stats",
+        "outlier_count",
+        "outlier_replicates",
+        "power_warning"
+      ],
+      "type": "object"
+    },
+    "RobustStats": {
+      "additionalProperties": false,
+      "properties": {
+        "iqr": {
+          "format": "double",
+          "type": "number"
+        },
+        "mad": {
+          "format": "double",
+          "type": "number"
+        },
+        "median": {
+          "format": "double",
+          "type": "number"
+        },
+        "n": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "trimmed_mean": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "n",
+        "median",
+        "mad",
+        "iqr",
+        "trimmed_mean"
+      ],
+      "type": "object"
+    },
+    "SummaryRow": {
+      "additionalProperties": false,
+      "properties": {
+        "completeness": {
+          "format": "double",
+          "type": "number"
+        },
+        "dataset_class": {
+          "type": "string"
+        },
+        "dataset_id": {
+          "type": "string"
+        },
+        "failure_rate": {
+          "format": "double",
+          "type": "number"
+        },
+        "lineage_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "low_power": {
+          "type": "boolean"
+        },
+        "memory": {
+          "$ref": "#/$defs/MetricSummary"
+        },
+        "metrics": {
+          "items": {
+            "$ref": "#/$defs/MetricSummary"
+          },
+          "type": "array"
+        },
+        "n_effective": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "params_hash": {
+          "type": "string"
+        },
+        "read_layout": {
+          "type": "string"
+        },
+        "runtime": {
+          "$ref": "#/$defs/MetricSummary"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_instance_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dataset_id",
+        "dataset_class",
+        "read_layout",
+        "stage_id",
+        "tool_id",
+        "params_hash",
+        "runtime",
+        "memory",
+        "metrics",
+        "failure_rate",
+        "completeness",
+        "n_effective",
+        "low_power"
+      ],
+      "type": "object"
+    },
+    "SummaryStratum": {
+      "additionalProperties": false,
+      "properties": {
+        "dataset_class": {
+          "type": "string"
+        },
+        "lineage_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "low_power_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_instance_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "stage_id",
+        "dataset_class",
+        "row_count",
+        "low_power_count"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "invalid_reasons": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/SummaryRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.summary.v1",
+      "type": "string"
+    },
+    "scientifically_invalid": {
+      "type": "boolean"
+    },
+    "strata": {
+      "items": {
+        "$ref": "#/$defs/SummaryStratum"
+      },
+      "type": "array"
+    },
+    "suite_id": {
+      "type": "string"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "suite_id",
+    "rows",
+    "strata",
+    "warnings",
+    "scientifically_invalid",
+    "invalid_reasons"
+  ],
+  "title": "BenchmarkSummary",
+  "type": "object"
+}

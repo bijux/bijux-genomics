@@ -41,7 +41,7 @@ fn engine_rejects_planner_domain_stage_runner_and_environment_dependencies() {
         "bijux-dna-domain-bam",
         "bijux-dna-domain-fastq",
         "bijux-dna-domain-vcf",
-        "bijux-dna-environment",
+        "bijux-dna-containers",
         "bijux-dna-planner-bam",
         "bijux-dna-planner-fastq",
         "bijux-dna-planner-vcf",

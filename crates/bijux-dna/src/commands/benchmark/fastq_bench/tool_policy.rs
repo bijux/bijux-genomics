@@ -49,6 +49,7 @@ pub(super) fn tool_tier_policy_for_fastq(command: &FastqCommand) -> (bool, bool)
         | FastqCommand::Contam(args)
         | FastqCommand::ProfileReads(args)
         | FastqCommand::Align(args) => (args.allow_silver, args.allow_experimental),
+        FastqCommand::EstimateLibraryComplexityPrealign(_) => (false, false),
         _ => (false, false),
     }
 }

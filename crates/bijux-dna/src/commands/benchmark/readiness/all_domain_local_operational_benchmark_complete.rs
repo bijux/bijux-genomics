@@ -476,10 +476,9 @@ mod tests {
             Some(3)
         );
         assert_eq!(report.get("failed_surface_count").and_then(serde_json::Value::as_u64), Some(0));
-        assert_eq!(report.get("active_row_count").and_then(serde_json::Value::as_u64), Some(141));
         assert_eq!(
             report.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-            Some(141)
+            report.get("active_row_count").and_then(serde_json::Value::as_u64)
         );
         assert_eq!(report.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
     }

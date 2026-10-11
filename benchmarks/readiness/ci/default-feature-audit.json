@@ -96,14 +96,14 @@
       "forbidden_default_features": []
     },
     {
-      "crate_name": "bijux-dna-environment",
-      "manifest_path": "crates/bijux-dna-environment/Cargo.toml",
+      "crate_name": "bijux-dna-containers",
+      "manifest_path": "crates/bijux-dna-containers/Cargo.toml",
       "default_features": [],
       "forbidden_default_features": []
     },
     {
-      "crate_name": "bijux-dna-environment-qa",
-      "manifest_path": "crates/bijux-dna-environment-qa/Cargo.toml",
+      "crate_name": "bijux-dna-containers-qa",
+      "manifest_path": "crates/bijux-dna-containers-qa/Cargo.toml",
       "default_features": [],
       "forbidden_default_features": []
     },

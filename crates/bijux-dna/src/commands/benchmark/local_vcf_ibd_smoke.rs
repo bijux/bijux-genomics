@@ -20,6 +20,7 @@ use super::local_stage_result_manifest::{
     BenchStageResultToolV1, BENCH_STAGE_RESULT_SCHEMA_VERSION,
 };
 use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use super::readiness::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -126,6 +127,7 @@ pub(crate) struct LocalVcfIbdSmokeReport {
     pub(crate) exit_code: i32,
     pub(crate) execution_mode: String,
     pub(crate) germline_tool_ok: bool,
+    pub(crate) ibdseq_tool_ok: bool,
     pub(crate) ibdhap_tool_ok: bool,
     pub(crate) pair_count: u64,
     pub(crate) rows: Vec<LocalVcfIbdSmokeRow>,
@@ -156,7 +158,7 @@ pub(super) fn run_local_vcf_ibd_smoke_unlocked(
     repo_root: &Path,
     tool_id: &str,
 ) -> Result<LocalVcfIbdSmokeReport> {
-    let contract = resolve_governed_vcf_ibd_smoke_contract(tool_id)?;
+    let contract = resolve_governed_vcf_ibd_smoke_contract(repo_root, tool_id)?;
     let fixture_manifest_path = repo_root.join(DEFAULT_VCF_MINI_MANIFEST_PATH);
     let fixture_manifest = load_vcf_corpus_fixture_manifest_path(&fixture_manifest_path)?;
     let fixture_dir = fixture_manifest_path.parent().ok_or_else(|| {
@@ -294,6 +296,10 @@ pub(super) fn run_local_vcf_ibd_smoke_unlocked(
         .pointer("/tool_attempts/germline")
         .and_then(serde_json::Value::as_bool)
         .ok_or_else(|| anyhow!("IBD source summary missing `tool_attempts.germline`"))?;
+    let ibdseq_tool_ok = source_ibd_summary
+        .pointer("/tool_attempts/ibdseq")
+        .and_then(serde_json::Value::as_bool)
+        .ok_or_else(|| anyhow!("IBD source summary missing `tool_attempts.ibdseq`"))?;
     let ibdhap_tool_ok = source_ibd_summary
         .pointer("/tool_attempts/ibdhap")
         .and_then(serde_json::Value::as_bool)
@@ -347,6 +353,7 @@ pub(super) fn run_local_vcf_ibd_smoke_unlocked(
         exit_code: 0,
         execution_mode,
         germline_tool_ok,
+        ibdseq_tool_ok,
         ibdhap_tool_ok,
         pair_count,
         rows,
@@ -482,28 +489,44 @@ pub(super) fn benchmark_output_lock(repo_root: &Path) -> Result<bijux_dna_infra:
     .map_err(|err| anyhow!("acquire VCF benchmark output lock: {err}"))
 }
 
-fn resolve_governed_vcf_ibd_smoke_contract(tool_id: &str) -> Result<GovernedVcfIbdSmokeContract> {
+fn resolve_governed_vcf_ibd_smoke_contract(
+    repo_root: &Path,
+    tool_id: &str,
+) -> Result<GovernedVcfIbdSmokeContract> {
     let matrix_row = build_vcf_stage_matrix_rows()?
         .into_iter()
         .find(|row| row.stage_id == GOVERNED_VCF_IBD_STAGE_ID)
         .ok_or_else(|| anyhow!("VCF stage matrix is missing `{GOVERNED_VCF_IBD_STAGE_ID}`"))?;
-    if tool_id != matrix_row.tool_id {
+    let mut active_rows =
+        collect_all_domain_active_stage_tool_matrix_rows(repo_root)?.into_iter().filter(|row| {
+            row.domain == "vcf"
+                && row.stage_id == GOVERNED_VCF_IBD_STAGE_ID
+                && row.tool_id == tool_id
+        });
+    let active_row = active_rows.next().ok_or_else(|| {
+        anyhow!(
+            "VCF IBD smoke requires an active `{GOVERNED_VCF_IBD_STAGE_ID}` binding; requested `{tool_id}`"
+        )
+    })?;
+    if active_rows.next().is_some() {
+        bail!("VCF IBD smoke active binding is not unique for `{tool_id}`");
+    }
+    if active_row.status != "benchmark_ready" {
         bail!(
-            "VCF IBD smoke only retains tool `{}` for `{}`; requested `{tool_id}`",
-            matrix_row.tool_id,
-            matrix_row.stage_id
+            "VCF IBD smoke requires benchmark-ready status for `{tool_id}`, found `{}`",
+            active_row.status
         );
     }
-    if matrix_row.corpus_id != GOVERNED_VCF_IBD_CORPUS_ID {
+    if active_row.corpus_id != GOVERNED_VCF_IBD_CORPUS_ID {
         bail!(
             "VCF IBD smoke requires corpus `{GOVERNED_VCF_IBD_CORPUS_ID}`, found `{}`",
-            matrix_row.corpus_id
+            active_row.corpus_id
         );
     }
-    if matrix_row.asset_profile_id != GOVERNED_VCF_IBD_ASSET_PROFILE_ID {
+    if active_row.asset_profile_id != GOVERNED_VCF_IBD_ASSET_PROFILE_ID {
         bail!(
             "VCF IBD smoke requires asset profile `{GOVERNED_VCF_IBD_ASSET_PROFILE_ID}`, found `{}`",
-            matrix_row.asset_profile_id
+            active_row.asset_profile_id
         );
     }
     if matrix_row.expected_outputs != vec!["ibd_segments".to_string()] {
@@ -515,8 +538,8 @@ fn resolve_governed_vcf_ibd_smoke_contract(tool_id: &str) -> Result<GovernedVcfI
     }
     Ok(GovernedVcfIbdSmokeContract {
         stage_id: matrix_row.stage_id,
-        tool_id: matrix_row.tool_id,
-        corpus_id: matrix_row.corpus_id,
+        tool_id: active_row.tool_id,
+        corpus_id: active_row.corpus_id,
         input_fixture_id: GOVERNED_VCF_IBD_INPUT_FIXTURE_ID.to_string(),
     })
 }
@@ -921,12 +944,20 @@ mod tests {
 
     #[test]
     fn governed_vcf_ibd_smoke_contract_matches_stage_matrix() {
-        let contract =
-            resolve_governed_vcf_ibd_smoke_contract("germline").expect("resolve contract");
+        let repo_root =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
+        let contract = resolve_governed_vcf_ibd_smoke_contract(repo_root, "germline")
+            .expect("resolve contract");
         assert_eq!(contract.stage_id, "vcf.ibd");
         assert_eq!(contract.tool_id, "germline");
         assert_eq!(contract.corpus_id, "vcf_production_regression");
         assert_eq!(contract.input_fixture_id, "vcf_mini_multisample_cohort");
+
+        let ibdseq = resolve_governed_vcf_ibd_smoke_contract(repo_root, "ibdseq")
+            .expect("resolve IBDseq contract");
+        assert_eq!(ibdseq.stage_id, "vcf.ibd");
+        assert_eq!(ibdseq.tool_id, "ibdseq");
+        assert_eq!(ibdseq.corpus_id, "vcf_production_regression");
     }
 
     #[test]

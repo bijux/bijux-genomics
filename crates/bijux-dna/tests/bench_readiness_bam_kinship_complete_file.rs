@@ -47,7 +47,11 @@ fn bench_readiness_bam_kinship_complete_writes_governed_json_file() {
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.bam_kinship_complete.v1")
     );
-    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    let rows = report.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    assert_eq!(
+        report.get("complete_row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
     assert_eq!(report.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(report.get("toolset_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
@@ -60,7 +64,7 @@ fn bench_readiness_bam_kinship_complete_writes_governed_json_file() {
     );
     assert_eq!(
         report.get("expected_tool_ids").and_then(serde_json::Value::as_array),
-        Some(&vec![serde_json::json!("angsd"), serde_json::json!("king")])
+        Some(&vec![serde_json::json!("king")])
     );
     assert_eq!(report.get("local_smoke_case_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(

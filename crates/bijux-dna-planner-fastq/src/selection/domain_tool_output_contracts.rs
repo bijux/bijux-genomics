@@ -251,7 +251,7 @@ mod tests {
     {
         let repo_root = repo_root();
         let stage_id = StageId::from_static("fastq.profile_read_lengths");
-        let tool_id = ToolId::from_static("fastp");
+        let tool_id = ToolId::from_static("seqkit");
 
         let contract =
             load_fastq_domain_tool_stage_output_contract(&repo_root, &stage_id, &tool_id)?;

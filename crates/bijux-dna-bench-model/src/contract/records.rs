@@ -398,6 +398,18 @@ mod tests {
         }
     }
 
+    #[test]
+    fn decision_deserialization_rejects_unknown_fields() -> anyhow::Result<()> {
+        let mut serialized = serde_json::to_value(valid_decision())?;
+        let serde_json::Value::Object(fields) = &mut serialized else {
+            bail!("serialized gate decision must be an object");
+        };
+        fields.insert("unowned_status".to_string(), serde_json::json!("passed"));
+
+        assert!(serde_json::from_value::<GateDecision>(serialized).is_err());
+        Ok(())
+    }
+
     fn valid_corpus() -> BenchmarkCorpusManifest {
         BenchmarkCorpusManifest {
             schema_version: CORPUS_SCHEMA_V1.to_string(),
