@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
@@ -53,15 +53,29 @@ pub fn resolve_adapter_selection(
     legacy_adapter_bank: Option<&str>,
     adapter_bank_file: Option<&Path>,
 ) -> Result<AdapterSelection> {
+    resolve_adapter_selection_at(
+        Path::new(""),
+        adapter_preset,
+        legacy_adapter_bank,
+        adapter_bank_file,
+    )
+}
+
+fn resolve_adapter_selection_at(
+    root: &Path,
+    adapter_preset: Option<&str>,
+    legacy_adapter_bank: Option<&str>,
+    adapter_bank_file: Option<&Path>,
+) -> Result<AdapterSelection> {
     let (preset_name, bank_path) = if let Some(path) = adapter_bank_file {
-        ("custom-file".to_string(), PathBuf::from(path))
+        ("custom-file".to_string(), root.join(path))
     } else {
         (
             parse_adapter_preset_name(adapter_preset, legacy_adapter_bank)?,
-            crate::adapter_bank_path(),
+            root.join(crate::adapter_bank_path()),
         )
     };
-    let presets_path = crate::adapter_presets_path();
+    let presets_path = root.join(crate::adapter_presets_path());
     let bank = crate::load_adapter_bank(&bank_path)?;
     let presets = crate::load_adapter_presets(&presets_path, &bank)?;
     let bank_checksum = bijux_dna_infra::hash_file_sha256(&bank_path)?;
@@ -145,8 +159,30 @@ pub fn adapter_bank_context(
     enable: &[String],
     disable: &[String],
 ) -> Result<Option<serde_json::Value>> {
-    let selection =
-        resolve_adapter_selection(adapter_bank_preset, legacy_adapter_bank, adapter_bank_file)?;
+    adapter_bank_context_at(
+        Path::new(""),
+        adapter_bank_preset,
+        legacy_adapter_bank,
+        adapter_bank_file,
+        enable,
+        disable,
+    )
+}
+
+/// Build adapter provenance using bank paths resolved against an explicit repository root.
+/// An absolute custom bank path remains absolute; a relative custom path uses `root`.
+/// This does not change the process working directory.
+/// # Errors
+/// Rejects unreadable banks, invalid presets and unsupported selection overrides.
+pub fn adapter_bank_context_at(
+    root: &Path,
+    preset: Option<&str>,
+    legacy_bank: Option<&str>,
+    bank_file: Option<&Path>,
+    enable: &[String],
+    disable: &[String],
+) -> Result<Option<serde_json::Value>> {
+    let selection = resolve_adapter_selection_at(root, preset, legacy_bank, bank_file)?;
     let effective = resolve_effective_adapters(&selection, enable, disable)?;
     Ok(Some(adapter_bank_provenance_json(&selection, &effective, enable, disable)))
 }

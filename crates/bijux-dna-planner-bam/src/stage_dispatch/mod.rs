@@ -6,12 +6,18 @@ use crate::api::StagePlanRequest;
 
 pub mod adna;
 pub mod downstream;
+mod planning;
 pub mod post;
 pub mod pre;
+pub use planning::plan_stage_at;
 
 /// # Errors
 /// Returns an error if the stage family planner cannot build a valid stage plan.
-pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlanV1> {
+pub fn plan(
+    repo_root: &std::path::Path,
+    stage: BamStage,
+    request: &StagePlanRequest<'_>,
+) -> Result<StagePlanV1> {
     match stage {
         BamStage::Align
         | BamStage::Validate
@@ -20,7 +26,7 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
         | BamStage::Filter
         | BamStage::MapqFilter
         | BamStage::LengthFilter
-        | BamStage::OverlapCorrection => pre::plan(stage, request),
+        | BamStage::OverlapCorrection => pre::plan(repo_root, stage, request),
         BamStage::Markdup
         | BamStage::DuplicationMetrics
         | BamStage::Complexity

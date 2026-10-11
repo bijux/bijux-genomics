@@ -1,15 +1,15 @@
+mod alignment;
+use alignment::{
+    parse_tiny_alignment, parse_tiny_sam, write_tiny_sam_document, write_tiny_sam_from_document,
+    TinySamDocument, TinySamRecord,
+};
+
 use std::collections::{BTreeSet, HashMap};
-use std::fmt::Write as _;
-use std::fs::File;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_dna_core::prelude::ArtifactId;
-use noodles_bam as bam;
-use noodles_sam::alignment::record::data::field::{Tag, Value};
-use noodles_sam::header::record::value::map::header::{sort_order::COORDINATE, tag::SORT_ORDER};
-use noodles_sam::header::record::value::map::read_group::tag as read_group_tag;
 
 use crate::metrics::{authenticity_score, BamMetricsV1, SexConfidenceClass};
 use crate::params::{BqsrMode, FilterEffectiveParams, ReadGroupSpec, RecalibrationSkipCriteria};
@@ -64,69 +64,6 @@ use crate::types::artifact_reports::{
     BAM_SEX_SUMMARY_SCHEMA_VERSION, BAM_VALIDATION_SUMMARY_SCHEMA_VERSION,
     BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
 };
-
-#[derive(Debug, Clone)]
-struct TinySamRecord {
-    qname: String,
-    flag: u16,
-    rname: String,
-    pos: u64,
-    mapq: u8,
-    cigar: String,
-    template_length: i64,
-    seq: String,
-    read_group_id: Option<String>,
-}
-
-impl TinySamRecord {
-    fn is_mapped(&self) -> bool {
-        self.rname != "*" && (self.flag & 0x4) == 0
-    }
-
-    fn is_duplicate(&self) -> bool {
-        (self.flag & 0x400) != 0
-    }
-}
-
-#[derive(Debug, Clone, Default)]
-struct TinySamDocument {
-    sort_order: Option<String>,
-    references: Vec<String>,
-    reference_lengths: HashMap<String, u64>,
-    read_groups: Vec<String>,
-    read_group_samples: Vec<String>,
-    read_group_sample_map: HashMap<String, String>,
-    records: Vec<TinySamRecord>,
-}
-
-fn parse_tag_value(field: &str, key: &str) -> Option<String> {
-    if !field.starts_with(key) {
-        return None;
-    }
-    let mut iter = field.splitn(3, ':');
-    let first = iter.next()?;
-    let second = iter.next()?;
-    let value = iter.next()?;
-    if first == key && second == "Z" {
-        Some(value.to_string())
-    } else {
-        None
-    }
-}
-
-fn parse_tiny_alignment(path: &Path) -> Result<TinySamDocument> {
-    match path.extension().and_then(std::ffi::OsStr::to_str) {
-        Some("bam") => parse_tiny_bam(path).or_else(|bam_error| {
-            parse_tiny_sam(path).map_err(|sam_error| {
-                anyhow!(
-                    "failed to parse {} as BAM ({bam_error}) or SAM ({sam_error})",
-                    path.display()
-                )
-            })
-        }),
-        _ => parse_tiny_sam(path),
-    }
-}
 
 /// Inspect a tiny BAM/SAM fixture and expose the normalized alignment header footprint.
 ///
@@ -355,202 +292,6 @@ pub fn summarize_tiny_bam_coverage_truth(
     })
 }
 
-fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
-    let mut document = TinySamDocument::default();
-    let payload = std::fs::read_to_string(path)?;
-    for (line_index, raw_line) in payload.lines().enumerate() {
-        let line = raw_line.trim_end();
-        if line.is_empty() {
-            continue;
-        }
-        if line.starts_with('@') {
-            let fields = line.split('\t').collect::<Vec<_>>();
-            match fields.first().copied() {
-                Some("@HD") => {
-                    for field in &fields[1..] {
-                        if let Some(sort_order) = field.strip_prefix("SO:") {
-                            document.sort_order = Some(sort_order.to_string());
-                        }
-                    }
-                }
-                Some("@SQ") => {
-                    let mut reference_name = None::<String>;
-                    let mut reference_length = None::<u64>;
-                    for field in &fields[1..] {
-                        if let Some(name) = field.strip_prefix("SN:") {
-                            reference_name = Some(name.to_string());
-                        } else if let Some(length) = field.strip_prefix("LN:") {
-                            reference_length = length.parse::<u64>().ok();
-                        }
-                    }
-                    if let Some(name) = reference_name {
-                        document.references.push(name.clone());
-                        if let Some(length) = reference_length {
-                            document.reference_lengths.insert(name, length);
-                        }
-                    }
-                }
-                Some("@RG") => {
-                    let mut read_group_id_value = None::<String>;
-                    let mut sample_id_value = None::<String>;
-                    for field in &fields[1..] {
-                        if let Some(read_group_id) = field.strip_prefix("ID:") {
-                            let read_group_id = read_group_id.to_string();
-                            document.read_groups.push(read_group_id.clone());
-                            read_group_id_value = Some(read_group_id);
-                        } else if let Some(sample_id) = field.strip_prefix("SM:") {
-                            let sample_id = sample_id.to_string();
-                            document.read_group_samples.push(sample_id.clone());
-                            sample_id_value = Some(sample_id);
-                        }
-                    }
-                    if let (Some(read_group_id), Some(sample_id)) =
-                        (read_group_id_value, sample_id_value)
-                    {
-                        document.read_group_sample_map.insert(read_group_id, sample_id);
-                    }
-                }
-                _ => {}
-            }
-            continue;
-        }
-        let fields = line.split('\t').collect::<Vec<_>>();
-        if fields.len() < 11 {
-            return Err(anyhow!(
-                "malformed SAM record at line {}: expected at least 11 fields",
-                line_index + 1
-            ));
-        }
-        let flag = fields[1].parse::<u16>().map_err(|error| {
-            anyhow!(
-                "malformed SAM record at line {}: invalid flag {} ({error})",
-                line_index + 1,
-                fields[1]
-            )
-        })?;
-        let pos = fields[3].parse::<u64>().map_err(|error| {
-            anyhow!(
-                "malformed SAM record at line {}: invalid position {} ({error})",
-                line_index + 1,
-                fields[3]
-            )
-        })?;
-        let mapq = fields[4].parse::<u8>().map_err(|error| {
-            anyhow!(
-                "malformed SAM record at line {}: invalid MAPQ {} ({error})",
-                line_index + 1,
-                fields[4]
-            )
-        })?;
-        let mut read_group_id = None;
-        for tag in &fields[11..] {
-            if let Some(value) = parse_tag_value(tag, "RG") {
-                read_group_id = Some(value);
-                break;
-            }
-        }
-        let template_length = fields[8].parse::<i64>().map_err(|error| {
-            anyhow!(
-                "malformed SAM record at line {}: invalid template length {} ({error})",
-                line_index + 1,
-                fields[8]
-            )
-        })?;
-        document.records.push(TinySamRecord {
-            qname: fields[0].to_string(),
-            flag,
-            rname: fields[2].to_string(),
-            pos,
-            mapq,
-            cigar: fields[5].to_string(),
-            template_length,
-            seq: fields[9].to_string(),
-            read_group_id,
-        });
-    }
-    Ok(document)
-}
-
-fn parse_tiny_bam(path: &Path) -> Result<TinySamDocument> {
-    let mut document = TinySamDocument::default();
-    let mut reader = File::open(path).map(bam::io::Reader::new)?;
-    let header = reader.read_header()?;
-
-    document.sort_order = header
-        .header()
-        .and_then(|header_record| header_record.other_fields().get(&SORT_ORDER))
-        .map(|sort_order| String::from_utf8_lossy(sort_order.as_ref()).into_owned())
-        .or_else(|| Some(String::from_utf8_lossy(COORDINATE).into_owned()));
-
-    for (name, reference_sequence) in header.reference_sequences() {
-        let reference_name = String::from_utf8_lossy(name.as_ref()).into_owned();
-        document.references.push(reference_name.clone());
-        document.reference_lengths.insert(reference_name, reference_sequence.length().get() as u64);
-    }
-
-    for (read_group_id, read_group) in header.read_groups() {
-        let read_group_id = String::from_utf8_lossy(read_group_id.as_ref()).into_owned();
-        document.read_groups.push(read_group_id.clone());
-        if let Some(sample_id) = read_group.other_fields().get(&read_group_tag::SAMPLE) {
-            let sample_id = String::from_utf8_lossy(sample_id.as_ref()).into_owned();
-            document.read_group_samples.push(sample_id.clone());
-            document.read_group_sample_map.insert(read_group_id, sample_id);
-        }
-    }
-
-    for result in reader.records() {
-        let record = result?;
-        let rname = match record.reference_sequence_id().transpose()? {
-            Some(reference_sequence_id) => header
-                .reference_sequences()
-                .get_index(reference_sequence_id)
-                .map(|(name, _)| String::from_utf8_lossy(name.as_ref()).into_owned())
-                .ok_or_else(|| {
-                    anyhow!("BAM record reference_sequence_id `{reference_sequence_id}` missing from header")
-                })?,
-            None => "*".to_string(),
-        };
-        let read_group_id = record
-            .data()
-            .get(&Tag::READ_GROUP)
-            .transpose()?
-            .map(|value| match value {
-                Value::String(read_group) => {
-                    Ok(String::from_utf8_lossy(read_group.as_ref()).into_owned())
-                }
-                _ => Err(anyhow!("BAM READ_GROUP tag is not a string")),
-            })
-            .transpose()?;
-
-        document.records.push(TinySamRecord {
-            qname: record
-                .name()
-                .map(|name| String::from_utf8_lossy(name.as_ref()).into_owned())
-                .unwrap_or_default(),
-            flag: u16::from(record.flags()),
-            rname,
-            pos: record
-                .alignment_start()
-                .transpose()?
-                .map(|position| position.get() as u64)
-                .unwrap_or(0),
-            mapq: record.mapping_quality().map(u8::from).unwrap_or(0),
-            cigar: record.cigar().iter().collect::<std::io::Result<Vec<_>>>()?.into_iter().fold(
-                String::new(),
-                |mut cigar, op| {
-                    let _ = write!(cigar, "{}{}", op.len(), render_cigar_kind(op.kind()));
-                    cigar
-                },
-            ),
-            template_length: i64::from(record.template_length()),
-            seq: record.sequence().iter().map(char::from).collect::<String>(),
-            read_group_id,
-        });
-    }
-
-    Ok(document)
-}
-
 fn parse_reference_contigs(reference_fasta: &Path) -> Result<BTreeSet<String>> {
     let payload = std::fs::read_to_string(reference_fasta)?;
     let mut contigs = BTreeSet::new();
@@ -563,22 +304,6 @@ fn parse_reference_contigs(reference_fasta: &Path) -> Result<BTreeSet<String>> {
         }
     }
     Ok(contigs)
-}
-
-fn render_cigar_kind(kind: noodles_sam::alignment::record::cigar::op::Kind) -> char {
-    use noodles_sam::alignment::record::cigar::op::Kind;
-
-    match kind {
-        Kind::Match => 'M',
-        Kind::Insertion => 'I',
-        Kind::Deletion => 'D',
-        Kind::Skip => 'N',
-        Kind::SoftClip => 'S',
-        Kind::HardClip => 'H',
-        Kind::Pad => 'P',
-        Kind::SequenceMatch => '=',
-        Kind::SequenceMismatch => 'X',
-    }
 }
 
 fn flagstat_from_records(records: &[TinySamRecord]) -> BamFlagstatCountsV1 {
@@ -902,76 +627,6 @@ fn alignment_record_with_flags(
     }
 }
 
-fn write_tiny_sam_document(
-    output_bam: &Path,
-    references: &[TinyReferenceContig],
-    read_group: &ReadGroupSpec,
-    records: &[TinySamRecord],
-) -> Result<()> {
-    let mut payload = String::new();
-    payload.push_str("@HD\tVN:1.6\tSO:unsorted\n");
-    for reference in references {
-        payload.push_str(&format!("@SQ\tSN:{}\tLN:{}\n", reference.name, reference.sequence.len()));
-    }
-    payload.push_str(&format!(
-        "@RG\tID:{}\tSM:{}\tPL:{}\tLB:{}",
-        read_group.id, read_group.sample, read_group.platform, read_group.library
-    ));
-    if let Some(unit) = &read_group.platform_unit {
-        payload.push_str(&format!("\tPU:{unit}"));
-    }
-    payload.push('\n');
-    for record in records {
-        payload.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t{}\t{}\t*\tRG:Z:{}\n",
-            record.qname,
-            record.flag,
-            record.rname,
-            record.pos,
-            record.mapq,
-            record.cigar,
-            record.template_length,
-            record.seq,
-            record.read_group_id.as_deref().unwrap_or(&read_group.id)
-        ));
-    }
-    std::fs::write(output_bam, payload)?;
-    Ok(())
-}
-
-fn write_tiny_sam_from_document(
-    output_bam: &Path,
-    document: &TinySamDocument,
-    sort_order: &str,
-) -> Result<()> {
-    let mut payload = String::new();
-    payload.push_str(&format!("@HD\tVN:1.6\tSO:{sort_order}\n"));
-    for reference in &document.references {
-        payload.push_str(&format!("@SQ\tSN:{reference}\tLN:1\n"));
-    }
-    let sample =
-        document.read_group_samples.first().cloned().unwrap_or_else(|| "unknown".to_string());
-    for read_group in &document.read_groups {
-        payload.push_str(&format!("@RG\tID:{read_group}\tSM:{sample}\n"));
-    }
-    for record in &document.records {
-        payload.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t{}\t{}\t*\tRG:Z:{}\n",
-            record.qname,
-            record.flag,
-            record.rname,
-            record.pos,
-            record.mapq,
-            record.cigar,
-            record.template_length,
-            record.seq,
-            record.read_group_id.as_deref().unwrap_or("unknown"),
-        ));
-    }
-    std::fs::write(output_bam, payload)?;
-    Ok(())
-}
-
 fn mapq_regime_from_records(records: &[TinySamRecord]) -> Option<BamMapqRegimeV1> {
     let mapped = records.iter().filter(|record| record.is_mapped()).collect::<Vec<_>>();
     if mapped.is_empty() {
@@ -1052,7 +707,12 @@ fn align_fastq_to_bam_with_backend(
 
     let output_bam = output_root.join("align.bam");
     let output_bai = output_root.join("align.bam.bai");
-    write_tiny_sam_document(&output_bam, &references, read_group, &records)?;
+    write_tiny_sam_document(
+        &output_bam,
+        references.iter().map(|reference| (reference.name.as_str(), reference.sequence.len())),
+        read_group,
+        &records,
+    )?;
     std::fs::write(
         &output_bai,
         format!(
@@ -1528,21 +1188,7 @@ pub fn merge_tiny_bam_with_conflict_refusal(
     };
     for input in input_bams {
         let document = parse_tiny_sam(input)?;
-        for reference in &document.references {
-            if !merged.references.iter().any(|entry| entry == reference) {
-                merged.references.push(reference.clone());
-            }
-        }
-        for read_group in &document.read_groups {
-            if !merged.read_groups.iter().any(|entry| entry == read_group) {
-                merged.read_groups.push(read_group.clone());
-            }
-        }
-        for sample in &document.read_group_samples {
-            if !merged.read_group_samples.iter().any(|entry| entry == sample) {
-                merged.read_group_samples.push(sample.clone());
-            }
-        }
+        alignment::merge_header(&mut merged, &document)?;
         merged.records.extend(document.records);
     }
 

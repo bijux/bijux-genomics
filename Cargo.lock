@@ -245,6 +245,15 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-api",
+ "bijux-dna-bench-artifacts",
+ "bijux-dna-bench-corpus",
+ "bijux-dna-bench-genotypes",
+ "bijux-dna-bench-haplotypes",
+ "bijux-dna-bench-population",
+ "bijux-dna-bench-variants",
+ "bijux-dna-bench-vcf",
+ "bijux-dna-bench-vcf-evidence",
+ "bijux-dna-bench-workflows",
  "bijux-dna-core",
  "bijux-dna-db-ena",
  "bijux-dna-db-ref",
@@ -265,8 +274,6 @@ dependencies = [
  "filetime",
  "flate2",
  "insta",
- "noodles-bam",
- "noodles-sam",
  "predicates",
  "rayon",
  "regex",
@@ -361,6 +368,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-analyze",
+ "bijux-dna-bench-artifacts",
  "bijux-dna-bench-model",
  "bijux-dna-containers",
  "bijux-dna-core",
@@ -378,6 +386,8 @@ dependencies = [
  "flate2",
  "insta",
  "md5",
+ "noodles-bam",
+ "noodles-sam",
  "rayon",
  "regex",
  "serde",
@@ -386,6 +396,75 @@ dependencies = [
  "tempfile",
  "toml",
  "walkdir",
+]
+
+[[package]]
+name = "bijux-dna-bench-artifacts"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-bench-model",
+ "bijux-dna-infra",
+ "serde",
+ "serde_json",
+ "tempfile",
+]
+
+[[package]]
+name = "bijux-dna-bench-corpus"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-db-ref",
+ "bijux-dna-domain-bam",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-infra",
+ "flate2",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
+name = "bijux-dna-bench-genotypes"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-bench-artifacts",
+ "bijux-dna-bench-corpus",
+ "bijux-dna-bench-model",
+ "bijux-dna-bench-vcf-evidence",
+ "bijux-dna-core",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-infra",
+ "bijux-dna-stages-vcf",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
+name = "bijux-dna-bench-haplotypes"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-bench-artifacts",
+ "bijux-dna-bench-corpus",
+ "bijux-dna-bench-model",
+ "bijux-dna-bench-vcf-evidence",
+ "bijux-dna-core",
+ "bijux-dna-db-ref",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-infra",
+ "bijux-dna-stage-contract",
+ "bijux-dna-stages-vcf",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "toml",
 ]
 
 [[package]]
@@ -408,6 +487,94 @@ dependencies = [
 ]
 
 [[package]]
+name = "bijux-dna-bench-population"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-bench-corpus",
+ "bijux-dna-bench-model",
+ "bijux-dna-bench-vcf-evidence",
+ "bijux-dna-core",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-infra",
+ "bijux-dna-stages-vcf",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
+name = "bijux-dna-bench-variants"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-bench-artifacts",
+ "bijux-dna-bench-corpus",
+ "bijux-dna-bench-model",
+ "bijux-dna-bench-vcf-evidence",
+ "bijux-dna-core",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-infra",
+ "bijux-dna-stages-vcf",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
+name = "bijux-dna-bench-vcf"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-bench-artifacts",
+ "bijux-dna-bench-corpus",
+ "bijux-dna-bench-model",
+ "bijux-dna-bench-vcf-evidence",
+ "bijux-dna-core",
+ "bijux-dna-db-ref",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-infra",
+ "bijux-dna-stages-vcf",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
+name = "bijux-dna-bench-vcf-evidence"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "bijux-dna-bench-workflows"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-bench-corpus",
+ "bijux-dna-core",
+ "bijux-dna-db-ref",
+ "bijux-dna-domain-bam",
+ "bijux-dna-domain-fastq",
+ "bijux-dna-domain-vcf",
+ "bijux-dna-infra",
+ "bijux-dna-stages-vcf",
+ "flate2",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
 name = "bijux-dna-containers"
 version = "0.1.0"
 dependencies = [
@@ -415,6 +582,7 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-infra",
  "bijux-dna-policies",
+ "bijux-dna-process",
  "bijux-dna-stage-contract",
  "bijux-dna-testkit",
  "chrono",
@@ -734,10 +902,8 @@ name = "bijux-dna-policies"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna-containers",
  "bijux-dna-core",
  "bijux-dna-pipelines",
- "bijux-dna-runtime",
  "bijux-dna-stage-contract",
  "bijux-dna-testkit",
  "cargo_metadata",
@@ -754,6 +920,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bijux-dna-process"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "rustix",
+ "wait-timeout",
+]
+
+[[package]]
 name = "bijux-dna-runner"
 version = "0.1.0"
 dependencies = [
@@ -764,6 +939,7 @@ dependencies = [
  "bijux-dna-containers-qa",
  "bijux-dna-core",
  "bijux-dna-infra",
+ "bijux-dna-process",
  "bijux-dna-runtime",
  "bijux-dna-testkit",
  "cargo_metadata",
@@ -776,7 +952,6 @@ dependencies = [
  "toml",
  "tracing",
  "uuid",
- "wait-timeout",
  "walkdir",
 ]
 
@@ -792,6 +967,7 @@ dependencies = [
  "bijux-dna-testkit",
  "chrono",
  "opentelemetry",
+ "regex",
  "serde",
  "serde_json",
  "sha2",
@@ -807,6 +983,7 @@ dependencies = [
  "anyhow",
  "bijux-dna-bench-model",
  "bijux-dna-core",
+ "bijux-dna-domain-vcf",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "clap",

@@ -73,3 +73,5 @@ tools, own qualification verdicts, own CLI behavior, or depend on API/engine orc
 - `EXECUTION_SPEC.md` and `DETERMINISM.md` for runner behavior.
 - `BOUNDARY.md`, `DEPENDENCIES.md`, and `EFFECTS.md` for architectural limits.
 - `TESTS.md` for maintenance and verification.
+
+Process transport is owned by `bijux-dna-process`; see `EXECUTION_SPEC.md` for capture limits and platform behavior.

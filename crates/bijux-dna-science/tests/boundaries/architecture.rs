@@ -59,7 +59,7 @@ fn science_source_tree_matches_architecture_contract() {
     assert_eq!(dir_entries(&root.join("src/io")), entries(["compilation/", "mod.rs", "specs.rs"]));
     assert_eq!(
         dir_entries(&root.join("src/schema")),
-        entries(["authored.rs", "mod.rs", "version.rs"]),
+        entries(["authored.rs", "evidence_maps/", "mod.rs", "version.rs"]),
         "science schema constants must stay isolated"
     );
 }

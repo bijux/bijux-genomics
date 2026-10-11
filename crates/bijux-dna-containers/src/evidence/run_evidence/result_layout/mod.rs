@@ -3,6 +3,7 @@ mod admission;
 mod archive;
 mod layout;
 mod observations;
+mod paths;
 mod repository;
 pub use archive::{
     apply_superseded_result_archive, derive_superseded_result_archive_plan,

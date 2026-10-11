@@ -45,3 +45,6 @@ mod contracts {
     include!("contracts/stage_contract_docs_tests.rs");
     include!("contracts/stage_catalog_tests.rs");
 }
+
+#[path = "contracts/damage_filter_tests.rs"]
+mod damage_filter_tests;

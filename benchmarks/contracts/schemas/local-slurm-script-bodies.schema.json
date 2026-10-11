@@ -1,0 +1,82 @@
+{
+  "$defs": {
+    "BenchmarkLocalSlurmScriptBodyEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "findings": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "has_bijux_dna_command": {
+          "type": "boolean"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "script_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "script_path",
+        "has_bijux_dna_command",
+        "findings",
+        "ok"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "findings_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "report_findings": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "report_path": {
+      "type": "string"
+    },
+    "root_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_slurm_script_bodies.v1",
+      "type": "string"
+    },
+    "script_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "scripts": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalSlurmScriptBodyEntry"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "root_path",
+    "report_path",
+    "script_count",
+    "findings_count",
+    "ok",
+    "report_findings",
+    "scripts"
+  ],
+  "title": "BenchmarkLocalSlurmScriptBodyReport",
+  "type": "object"
+}

@@ -42,3 +42,7 @@ The runner consumes the container QA qualification library with default features
 Bundle recipient admission rejects empty, blank, padded or duplicate declarations before backend effects. On decode, ordered fingerprints must match the declared recipient strings; the deterministic mock envelope must also match those declarations. The age sidecar is unsigned: matching fingerprints are declaration consistency, not proof that the ciphertext targets those recipients. Age decryption authenticates its payload through the supplied identity, while the mock transport provides no confidentiality. No new dependency is required for this admission.
 
 Bundle publication reuses the infrastructure `FileLock` and managed temporary directory authorities. `FileLock::try_acquire_existing` opens an existing lease without creating files or requiring write access, preserving read-only replay inputs. No new runner dependency or Cargo feature is introduced.
+
+Unix process supervision consumes the independent `bijux-dna-process` leaf. That owner uses the already locked `rustix` event, filesystem and process interfaces; runner no longer declares a direct rustix dependency.
+
+The shared `bijux-dna-process` leaf owns Unix readiness and process lifecycle. Runner keeps execution bindings and scheduler policy; the non-Unix compatibility reader remains private.

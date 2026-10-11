@@ -46,6 +46,9 @@ fn process_spawning_files_are_documented() {
         .unwrap_or_else(|err| panic!("read docs/COMMANDS.md: {err}"));
     let documented = documented_process_files(&commands_doc);
     let actual = actual_process_files(root);
+    assert!(actual.contains(&PathBuf::from("src/evidence/external_artifact/probe/native.rs")));
+    assert!(!actual.contains(&PathBuf::from("src/evidence/external_artifact/workflow.rs")));
+    assert!(!actual.contains(&PathBuf::from("src/evidence/external_artifact/probe/mod.rs")));
 
     assert_eq!(
         actual, documented,

@@ -44,3 +44,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-runtime --no-def
 - Contract failures mean runtime writer, layout, telemetry, or manifest behavior drifted.
 - Schema failures mean stable artifact shape changed and needs an explicit versioned review.
 - Determinism failures mean fixture canonicalization changed.
+
+Runtime manifest integrity contracts own registry-backed stage artifact names and semantic versions. The policy suite retains generated TOML output-kind checks without loading the runtime registry.

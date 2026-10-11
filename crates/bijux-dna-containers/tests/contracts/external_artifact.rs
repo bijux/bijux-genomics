@@ -191,6 +191,7 @@ fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<
         None,
     )
     .is_err());
+    verify_rebound_artifact_rejection(root, &active, &record_path, &binary, temporary.path())?;
     verify_external_artifact_admission(root, &active, &record_path)?;
 
     std::fs::write(&binary, b"#!/bin/sh\nprintf 'changed\\n'\n")?;
@@ -326,3 +327,248 @@ fn repository_root() -> &'static Path {
         .and_then(Path::parent)
         .unwrap_or_else(|| panic!("container crate must live under repository crates/"))
 }
+
+fn verify_rebound_artifact_rejection(
+    root: &Path,
+    active: &Path,
+    record_path: &Path,
+    binary: &Path,
+    fixture_root: &Path,
+) -> Result<()> {
+    let admitted_bytes = std::fs::read(record_path)?;
+    let mut relative: serde_json::Value = serde_json::from_slice(&admitted_bytes)?;
+    relative["artifact"]["path"] = serde_json::json!("relative-angsd");
+    relative["version_probe"]["command"][0] = serde_json::json!("relative-angsd");
+    std::fs::write(record_path, serde_json::to_vec(&relative)?)?;
+    assert!(load_external_artifact_admission(record_path).is_err());
+    std::fs::write(record_path, &admitted_bytes)?;
+
+    let held_binary = fixture_root.join("held-angsd");
+    std::fs::rename(binary, &held_binary)?;
+    let linked_binary = active.join("same-byte-angsd");
+    std::fs::copy(&held_binary, &linked_binary)?;
+    for target in [&held_binary, &linked_binary] {
+        std::os::unix::fs::symlink(target, binary)?;
+        assert!(verify_external_artifact_admission(root, active, record_path).is_err());
+        assert!(bind_external_artifact_command(
+            root,
+            active,
+            record_path,
+            "bam.sex",
+            &["angsd".into()],
+            None
+        )
+        .is_err());
+        assert_eq!(std::fs::read(record_path)?, admitted_bytes);
+        std::fs::remove_file(binary)?;
+    }
+    std::fs::rename(&held_binary, binary)?;
+    verify_external_artifact_admission(root, active, record_path)?;
+
+    Ok(())
+}
+
+#[test]
+fn excessive_external_probe_output_rejects_before_admission_publication() -> Result<()> {
+    let root = repository_root();
+    let temporary = tempfile::tempdir()?;
+    let binary = temporary.path().join("angsd");
+    let active = temporary.path().join("active");
+    std::fs::create_dir(&active)?;
+    std::fs::write(&binary, b"#!/bin/sh\nwhile :; do printf 01234567890123456789; done\n")?;
+    std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o755))?;
+    let checksum = bijux_dna_infra::hash_file_sha256(&binary)?;
+    let record_path = temporary.path().join("admission.json");
+    let commit = repository_head_commit(root)?;
+    let started = std::time::Instant::now();
+    let result = admit_external_artifact(
+        &ExternalArtifactAdmissionRequest {
+            repository_root: root,
+            distributable_image_root: &active,
+            repository_commit: &commit,
+            tool_id: "angsd",
+            recorded_at_utc: "2026-08-06T12:00:00Z",
+            availability: ExternalArtifactAdmissionStatus::Admitted,
+            artifact: Some(ExternalArtifactInput {
+                kind: ExternalArtifactKind::Binary,
+                path: &binary,
+                expected_sha256: &checksum,
+                lawful_access_basis: "local contract fixture",
+                apptainer_executable: None,
+            }),
+            blocker_reason: None,
+        },
+        &record_path,
+    );
+    assert!(result.is_err_and(|error| error.to_string().contains("bounded evidence limit")));
+    assert!(!record_path.exists());
+    assert!(started.elapsed() < std::time::Duration::from_secs(5));
+    Ok(())
+}
+
+mod version_transport {
+    use super::*;
+    use bijux_dna_containers::api::{
+        admit_external_artifact_with_probe, ExternalArtifactProbeObservation,
+        ExternalArtifactProbeOutcome, ExternalArtifactProbeRequest, ExternalArtifactProbeTransport,
+    };
+    struct Observer {
+        calls: Vec<Vec<String>>,
+        next: Option<Result<ExternalArtifactProbeObservation>>,
+    }
+    impl ExternalArtifactProbeTransport for Observer {
+        fn observe(
+            &mut self,
+            request: &ExternalArtifactProbeRequest<'_>,
+        ) -> Result<ExternalArtifactProbeObservation> {
+            assert_eq!(request.timeout, std::time::Duration::from_secs(30));
+            assert_eq!(request.max_output_bytes, 64 * 1024);
+            self.calls.push(request.command.to_vec());
+            self.next.take().context("unexpected version observation")?
+        }
+    }
+    fn observation(
+        outcome: ExternalArtifactProbeOutcome,
+        stdout: Vec<u8>,
+        stderr: Vec<u8>,
+    ) -> ExternalArtifactProbeObservation {
+        ExternalArtifactProbeObservation { outcome, stdout, stderr }
+    }
+    fn reject_unusable_evidence(
+        request: &ExternalArtifactAdmissionRequest<'_>,
+        temporary: &tempfile::TempDir,
+        observer: &mut Observer,
+    ) {
+        let success = ExternalArtifactProbeOutcome::Exited { code: Some(0) };
+        let invalid = [
+            Ok(observation(
+                ExternalArtifactProbeOutcome::TimedOut,
+                b"angsd 0.941".to_vec(),
+                vec![],
+            )),
+            Ok(observation(
+                ExternalArtifactProbeOutcome::OutputLimitExceeded,
+                b"angsd 0.941".to_vec(),
+                vec![],
+            )),
+            Ok(observation(
+                ExternalArtifactProbeOutcome::Exited { code: Some(7) },
+                b"angsd 0.941".to_vec(),
+                vec![],
+            )),
+            Ok(observation(
+                ExternalArtifactProbeOutcome::Exited { code: None },
+                b"angsd 0.941".to_vec(),
+                vec![],
+            )),
+            Ok(observation(success, vec![255], vec![])),
+            Ok(observation(success, b"unknown version".to_vec(), vec![])),
+            Ok(observation(success, vec![], vec![])),
+            Ok(observation(success, vec![b'a'; 32 * 1024], vec![b'b'; 32 * 1024 + 1])),
+            Err(anyhow::anyhow!("version transport unavailable")),
+        ];
+        for (index, evidence) in invalid.into_iter().enumerate() {
+            observer.next = Some(evidence);
+            let output = temporary.path().join(format!("rejected-{index}.json"));
+            assert!(admit_external_artifact_with_probe(request, &output, observer).is_err());
+            assert!(!output.exists());
+        }
+    }
+
+    #[test]
+    fn preserves_projection_and_rejects_unusable_evidence() -> Result<()> {
+        let success = ExternalArtifactProbeOutcome::Exited { code: Some(0) };
+        let root = repository_root();
+        let temporary = tempfile::tempdir()?;
+        let artifact = temporary.path().join("operator artifact with spaces");
+        std::fs::write(
+            &artifact,
+            b"opaque operator bytes; injected transport must not execute this",
+        )?;
+        let active = temporary.path().join("active");
+        std::fs::create_dir(&active)?;
+        let checksum = bijux_dna_infra::hash_file_sha256(&artifact)?;
+        let commit = repository_head_commit(root)?;
+        let mut request = ExternalArtifactAdmissionRequest {
+            repository_root: root,
+            distributable_image_root: &active,
+            repository_commit: &commit,
+            tool_id: "angsd",
+            recorded_at_utc: "2026-08-06T12:00:00Z",
+            availability: ExternalArtifactAdmissionStatus::Admitted,
+            artifact: Some(ExternalArtifactInput {
+                kind: ExternalArtifactKind::Binary,
+                path: &artifact,
+                expected_sha256: &checksum,
+                lawful_access_basis: "local contract fixture",
+                apptainer_executable: None,
+            }),
+            blocker_reason: None,
+        };
+        let mut observer = Observer { calls: Vec::new(), next: None };
+        reject_unusable_evidence(&request, &temporary, &mut observer);
+        let calls = observer.calls.len();
+        request.artifact.as_mut().context("artifact input")?.expected_sha256 =
+            "0000000000000000000000000000000000000000000000000000000000000000";
+        assert!(admit_external_artifact_with_probe(
+            &request,
+            &temporary.path().join("bad-checksum.json"),
+            &mut observer
+        )
+        .is_err());
+        assert_eq!(observer.calls.len(), calls);
+        request.artifact.as_mut().context("artifact input")?.expected_sha256 = &checksum;
+        for kind in [ExternalArtifactKind::Binary, ExternalArtifactKind::ApptainerSif] {
+            let input = request.artifact.as_mut().context("artifact input")?;
+            input.kind = kind;
+            input.apptainer_executable = Some(Path::new("/operator runtime/apptainer"));
+            observer.next =
+                Some(Ok(observation(success, b"angsd".to_vec(), b"version 0.941\n".to_vec())));
+            let output = temporary.path().join(format!("admitted-{}.json", kind.as_str()));
+            let record = admit_external_artifact_with_probe(&request, &output, &mut observer)?;
+            let path =
+                artifact.canonicalize()?.to_str().context("artifact UTF-8 path")?.to_string();
+            let expected = match kind {
+                ExternalArtifactKind::Binary => vec![path, "--version".to_string()],
+                ExternalArtifactKind::ApptainerSif => vec![
+                    "/operator runtime/apptainer".to_string(),
+                    "exec".to_string(),
+                    path,
+                    "angsd".to_string(),
+                    "--version".to_string(),
+                ],
+            };
+            assert_eq!(observer.calls.last(), Some(&expected));
+            let probe = record.version_probe.as_ref().context("admitted version probe")?;
+            assert_eq!(probe.command, expected);
+            assert_eq!(probe.output, "angsd\nversion 0.941\n");
+            assert_eq!(
+                probe.output_sha256,
+                bijux_dna_infra::hash_bytes_sha256(probe.output.as_bytes())
+            );
+            assert_eq!(
+                serde_json::to_value(load_external_artifact_admission(&output)?)?,
+                serde_json::to_value(record)?
+            );
+        }
+        let calls = observer.calls.len();
+        request.artifact = None;
+        request.blocker_reason = Some("operator artifact is unavailable");
+        for availability in [
+            ExternalArtifactAdmissionStatus::Unavailable,
+            ExternalArtifactAdmissionStatus::BlockedExternalAccess,
+        ] {
+            request.availability = availability;
+            let output = temporary.path().join(format!("availability-{availability:?}.json"));
+            let record = admit_external_artifact_with_probe(&request, &output, &mut observer)?;
+            assert_eq!(record.availability, availability);
+            assert!(record.version_probe.is_none());
+            assert!(record.artifact.is_none());
+        }
+        assert_eq!(observer.calls.len(), calls);
+        Ok(())
+    }
+}
+
+#[path = "external_artifact/observation.rs"]
+mod observation;

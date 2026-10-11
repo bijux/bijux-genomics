@@ -10,3 +10,5 @@ pub const RELEASE_SCHEMA_VERSION: &str = "bijux.science.release.v1";
 pub(crate) mod authored;
 mod version;
 pub use version::SchemaVersion;
+
+pub(crate) mod evidence_maps;

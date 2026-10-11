@@ -101,3 +101,189 @@ fn local_hpc_submission_readiness_rejects_inventory_category_path_and_counter_dr
     counters.passed_goal_count = 98;
     assert!(validate_benchmark_local_hpc_submission_readiness(&counters).is_err());
 }
+
+#[test]
+fn slurm_script_body_owner_preserves_findings_and_rejects_forged_wire_aggregates(
+) -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{
+        build_benchmark_local_slurm_script_body_report, inspect_benchmark_local_slurm_script_body,
+        validate_benchmark_local_slurm_script_body_report, BenchmarkLocalSlurmScriptBodyReport,
+    };
+    let root = "artifacts/runs/bench/slurm-dry-run";
+    let output = format!("{root}/inspection.json");
+    let script = format!("{root}/stage.sbatch");
+    let entry = inspect_benchmark_local_slurm_script_body(
+        script.clone(),
+        "#!/bin/bash\nset -euo pipefail\ncargo run -p bijux-dna -- bench local status\n",
+    );
+    assert!(entry.ok && entry.has_bijux_dna_command);
+    let report = build_benchmark_local_slurm_script_body_report(
+        root.to_string(),
+        output.clone(),
+        vec![entry],
+    )?;
+    assert!(report.ok);
+    let mut wire = serde_json::to_value(&report)?;
+    wire["unexpected"] = serde_json::json!(true);
+    assert!(serde_json::from_value::<BenchmarkLocalSlurmScriptBodyReport>(wire).is_err());
+    let mut corrupt = report.clone();
+    corrupt.script_count += 1;
+    assert!(validate_benchmark_local_slurm_script_body_report(&corrupt).is_err());
+    corrupt = report.clone();
+    corrupt.schema_version = "unsupported".to_string();
+    assert!(validate_benchmark_local_slurm_script_body_report(&corrupt).is_err());
+    corrupt = report.clone();
+    corrupt.scripts.push(corrupt.scripts[0].clone());
+    corrupt.script_count += 1;
+    assert!(validate_benchmark_local_slurm_script_body_report(&corrupt).is_err());
+    corrupt = report;
+    corrupt.scripts[0].script_path = "../outside.sbatch".to_string();
+    assert!(validate_benchmark_local_slurm_script_body_report(&corrupt).is_err());
+    let entry = inspect_benchmark_local_slurm_script_body(
+        script,
+        "# TODO: implement\nrc=0\necho execute placeholder\n",
+    );
+    assert!(!entry.ok && !entry.has_bijux_dna_command);
+    assert_eq!(
+        entry.findings,
+        [
+            "contains a to-do marker",
+            "contains unconditional `rc=0`",
+            "contains `placeholder`",
+            "contains fake `echo execute` job body",
+            "missing `bijux-dna` command"
+        ]
+    );
+    let failed = build_benchmark_local_slurm_script_body_report(
+        root.to_string(),
+        output.clone(),
+        vec![entry],
+    )?;
+    assert!(!failed.ok);
+    let empty =
+        build_benchmark_local_slurm_script_body_report(root.to_string(), output, Vec::new())?;
+    assert!(!empty.ok && empty.findings_count == 1);
+    Ok(())
+}
+
+#[test]
+fn hpc_slurm_readiness_admits_complete_observations_before_reporting_success() -> anyhow::Result<()>
+{
+    use bijux_dna_bench_model::{
+        build_benchmark_local_slurm_script_body_report,
+        evaluate_benchmark_local_hpc_slurm_readiness as evaluate,
+        inspect_benchmark_local_slurm_script_body,
+        BenchmarkLocalHpcSlurmObservation as Observation, BenchmarkLocalSlurmSubmitManifest,
+        BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
+    };
+    let manifest = BenchmarkLocalSlurmSubmitManifest {
+        schema_version: BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1.to_string(),
+        root_path: "artifacts/runs/bench/slurm-dry-run".to_string(),
+        manifest_path: "artifacts/runs/bench/slurm-dry-run/submit-manifest.json".to_string(),
+        run_id: "local-benchmark-dry-run".to_string(),
+        job_count: 51,
+        dependency_count: 0,
+        jobs: Vec::new(),
+    };
+    let forged = evaluate(Observation::SubmitManifest(&manifest));
+    assert_eq!(forged.goal_id, 96);
+    assert!(!forged.ok && forged.detail.starts_with("invalid local Slurm observation:"));
+    let missing = evaluate(Observation::RunPaths { bam: None, submission: None });
+    assert_eq!(missing.goal_id, 98);
+    assert!(!missing.ok && missing.detail == "BAM SLURM script rendering failed earlier");
+    let root = "artifacts/runs/bench/slurm-dry-run";
+    let entry = inspect_benchmark_local_slurm_script_body(
+        format!("{root}/stage.sbatch"),
+        "bijux-dna --help\n",
+    );
+    let mut report = build_benchmark_local_slurm_script_body_report(
+        root.to_string(),
+        format!("{root}/inspection.json"),
+        vec![entry],
+    )?;
+    let admitted = evaluate(Observation::ScriptBodies(&report));
+    assert_eq!(admitted.goal_id, 94);
+    assert!(admitted.ok);
+    report.script_count += 1;
+    assert!(!evaluate(Observation::ScriptBodies(&report)).ok);
+    Ok(())
+}
+
+#[test]
+fn hpc_harness_readiness_rejects_fabricated_counts_and_admits_runtime_rows() -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{
+        evaluate_benchmark_local_hpc_harness_readiness as evaluate,
+        BenchmarkLocalHpcHarnessObservation as Observation, BenchmarkLocalStageFakeFailureManifest,
+        BenchmarkLocalStageManifestCompletionReport, BenchmarkLocalStageOutputCompletionReport,
+        BenchmarkLocalStageReadinessKind, BenchmarkLocalStageRuntimeMetric,
+        BenchmarkLocalStageRuntimeMetricsReport, BenchmarkStageResultStatus,
+        BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1,
+        BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_V1,
+        BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1,
+        BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1,
+    };
+    let failures = BenchmarkLocalStageFakeFailureManifest {
+        schema_version: BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_MANIFEST_SCHEMA_V1.to_string(),
+        failure_root: "artifacts/runs/bench/failures".to_string(),
+        source_stage_command_manifest_path: "artifacts/runs/bench/commands.json".to_string(),
+        stage_count: 51,
+        failures: Vec::new(),
+    };
+    let mut completion = serde_json::json!({
+        "schema_version": BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1,
+        "fake_run_root": "artifacts/runs/bench/fake",
+        "report_output_path": "artifacts/runs/bench/completion.json",
+        "source_stage_command_manifest_path": "artifacts/runs/bench/commands.json",
+        "stage_count":51, "complete_stage_count":51, "incomplete_stage_count":0,
+        "complete":true, "stages":[],
+    });
+    let outputs: BenchmarkLocalStageOutputCompletionReport =
+        serde_json::from_value(completion.clone())?;
+    completion["schema_version"] =
+        serde_json::json!(BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1);
+    let manifests: BenchmarkLocalStageManifestCompletionReport =
+        serde_json::from_value(completion)?;
+    let mut runtime = BenchmarkLocalStageRuntimeMetricsReport {
+        schema_version: BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1.to_string(),
+        fake_run_root: "artifacts/runs/bench/fake".to_string(),
+        report_output_path: "artifacts/runs/bench/runtime.json".to_string(),
+        source_stage_command_manifest_path: "artifacts/runs/bench/commands.json".to_string(),
+        stage_count: 51,
+        stages: Vec::new(),
+    };
+    for (goal, observation) in [
+        (57, Observation::FakeFailures(&failures)),
+        (58, Observation::OutputCompletion(&outputs)),
+        (59, Observation::ManifestCompletion(&manifests)),
+        (61, Observation::RuntimeMetrics(&runtime)),
+    ] {
+        let rejected = evaluate(observation);
+        assert_eq!(rejected.goal_id, goal);
+        assert_eq!(rejected.category, "benchmark_harness");
+        assert!(!rejected.ok);
+        assert!(rejected.detail.starts_with("invalid local harness observation:"));
+    }
+    runtime.stages = (0..51)
+        .map(|index| BenchmarkLocalStageRuntimeMetric {
+            stage_id: format!("fixture.stage-{index}"),
+            readiness_kind: BenchmarkLocalStageReadinessKind::Smoke,
+            tool_id: "fixture-tool".to_string(),
+            manifest_path: format!("artifacts/runs/bench/{index}.json"),
+            runtime_mode: "synthetic".to_string(),
+            started_at: "2026-09-10T12:00:00Z".to_string(),
+            finished_at: "2026-09-10T12:00:01Z".to_string(),
+            elapsed_seconds: 1.0,
+            exit_code: 0,
+            status: BenchmarkStageResultStatus::Succeeded,
+        })
+        .collect();
+    let admitted = evaluate(Observation::RuntimeMetrics(&runtime));
+    assert!(admitted.ok);
+    assert_eq!(admitted.detail, "runtime metrics report covers 51 stages");
+    runtime.stages[0].elapsed_seconds = f64::NAN;
+    assert!(!evaluate(Observation::RuntimeMetrics(&runtime)).ok);
+    runtime.stages[0].elapsed_seconds = 1.0;
+    runtime.stages[1] = runtime.stages[0].clone();
+    assert!(!evaluate(Observation::RuntimeMetrics(&runtime)).ok);
+    Ok(())
+}

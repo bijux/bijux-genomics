@@ -1,0 +1,9 @@
+pub(super) mod correct_errors;
+pub(super) mod extract_umis;
+pub(super) mod filter_low_complexity;
+pub(super) mod filter_reads;
+pub(super) mod merge_pairs;
+pub(super) mod remove_duplicates;
+pub(super) mod trim_polyg_tails;
+pub(super) mod trim_reads;
+pub(super) mod trim_terminal_damage;

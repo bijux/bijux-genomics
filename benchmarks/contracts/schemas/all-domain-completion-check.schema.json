@@ -1,0 +1,279 @@
+{
+  "$defs": {
+    "AllDomainCompletionCheckRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "command_script_path": {
+          "type": "string"
+        },
+        "completion_status": {
+          "$ref": "#/$defs/AllDomainCompletionStatus"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "declared_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "exit_code": {
+          "format": "int32",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "exit_code_zero": {
+          "type": "boolean"
+        },
+        "failure_reasons": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "manifest_exists": {
+          "type": "boolean"
+        },
+        "manifest_output_match": {
+          "type": "boolean"
+        },
+        "manifest_valid": {
+          "type": "boolean"
+        },
+        "metrics_path": {
+          "type": "string"
+        },
+        "missing_declared_output_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "missing_normalized_metric_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "normalized_metrics_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "present_declared_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "present_normalized_metrics_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "ready_required_file_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "required_file_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "required_files": {
+          "items": {
+            "$ref": "#/$defs/AllDomainCompletionRequiredFile"
+          },
+          "type": "array"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "runtime_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_result_path": {
+          "type": "string"
+        },
+        "stderr_path": {
+          "type": "string"
+        },
+        "stdout_path": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "command_script_path",
+        "stdout_path",
+        "stderr_path",
+        "metrics_path",
+        "stage_result_path",
+        "manifest_exists",
+        "manifest_valid",
+        "manifest_output_match",
+        "exit_code_zero",
+        "declared_output_count",
+        "present_declared_output_count",
+        "missing_declared_output_ids",
+        "normalized_metrics_count",
+        "present_normalized_metrics_count",
+        "missing_normalized_metric_ids",
+        "required_file_count",
+        "ready_required_file_count",
+        "required_files",
+        "completion_status",
+        "failure_reasons"
+      ],
+      "type": "object"
+    },
+    "AllDomainCompletionRequiredFile": {
+      "additionalProperties": false,
+      "properties": {
+        "exists": {
+          "type": "boolean"
+        },
+        "file_id": {
+          "type": "string"
+        },
+        "non_empty": {
+          "type": "boolean"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "file_id",
+        "path",
+        "exists",
+        "non_empty"
+      ],
+      "type": "object"
+    },
+    "AllDomainCompletionSeededMutation": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_path": {
+          "type": "string"
+        },
+        "mutation_id": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "mutation_id",
+        "result_id",
+        "evidence_path"
+      ],
+      "type": "object"
+    },
+    "AllDomainCompletionStatus": {
+      "enum": [
+        "complete",
+        "incomplete"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "complete_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "failure_reason_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "fixture_root": {
+      "type": "string"
+    },
+    "incomplete_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passes_behavior_test": {
+      "type": "boolean"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainCompletionCheckRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_completion_check.v1",
+      "type": "string"
+    },
+    "seeded_mutations": {
+      "items": {
+        "$ref": "#/$defs/AllDomainCompletionSeededMutation"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "fixture_root",
+    "row_count",
+    "complete_row_count",
+    "incomplete_row_count",
+    "domain_counts",
+    "failure_reason_counts",
+    "passes_behavior_test",
+    "seeded_mutations",
+    "rows"
+  ],
+  "title": "AllDomainCompletionCheckReport",
+  "type": "object"
+}

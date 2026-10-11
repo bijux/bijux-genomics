@@ -8,3 +8,5 @@ pub use super::write::{
     atomic_write_json, atomic_write_with, copy_file, create_file, ensure_dir, rename,
     same_filesystem, write_bytes, write_string,
 };
+
+pub use super::private::atomic_write_private_bytes;

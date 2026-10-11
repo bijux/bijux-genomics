@@ -4,9 +4,8 @@ use super::super::{
     SupersededResultArchivePlanRequest, SupersededResultMove,
     CONTAINER_SUPERSEDED_RESULT_ARCHIVE_SCHEMA_V1,
 };
-use super::admission::{
-    inventory_digest, portable_path, safe_relative, validate_run_and_tool, validate_sha256,
-};
+use super::admission::{inventory_digest, portable_path, validate_run_and_tool, validate_sha256};
+use super::paths::owned_path;
 use super::repository::{
     absolute_path, child_directories, directory_inventory, load_archive_plan, load_attempt_ledger,
     path_exists, remove_empty_child_directories, tracked_locks, validate_inventory, write_json,
@@ -53,8 +52,10 @@ pub fn derive_superseded_result_archive_plan(
         if !seen.insert(name.clone()) {
             bail!("duplicate attempt identity: {name}");
         }
-        let candidates =
-            [result_root.join(&name), result_root.join(&attempt.tool).join(&attempt.run_id)];
+        let candidates = [
+            owned_path(&result_root, &name, "source")?,
+            owned_path(&result_root, &format!("{}/{}", attempt.tool, attempt.run_id), "source")?,
+        ];
         let sources = candidates.iter().filter(|path| path.is_dir()).collect::<Vec<_>>();
         if sources.len() != 1 {
             bail!("expected one result directory for {name}, found {}", sources.len());
@@ -77,7 +78,7 @@ pub fn derive_superseded_result_archive_plan(
             applied_at_utc: None,
         });
     }
-    let cache = result_root.join("python-cache");
+    let cache = owned_path(&result_root, "python-cache", "cache")?;
     if cache.is_dir() {
         let files = directory_inventory(&cache)?;
         moves.push(SupersededResultMove {
@@ -131,8 +132,8 @@ pub fn apply_superseded_result_archive(
     write_json(plan_path, &plan)?;
     for index in 0..plan.moves.len() {
         let movement = plan.moves[index].clone();
-        let source = request.result_root.join(safe_relative(&movement.source, "source")?);
-        let target = request.archive_root.join(safe_relative(&movement.target, "target")?);
+        let source = owned_path(&request.result_root, &movement.source, "source")?;
+        let target = owned_path(&request.archive_root, &movement.target, "target")?;
         if movement.applied {
             validate_inventory(&target, &movement.files)?;
             continue;
@@ -168,8 +169,8 @@ pub fn verify_superseded_result_archive(
         bail!("archive is not applied: {:?}", plan.state);
     }
     for movement in &plan.moves {
-        let source = request.result_root.join(safe_relative(&movement.source, "source")?);
-        let target = request.archive_root.join(safe_relative(&movement.target, "target")?);
+        let source = owned_path(&request.result_root, &movement.source, "source")?;
+        let target = owned_path(&request.archive_root, &movement.target, "target")?;
         if path_exists(&source)? {
             bail!("superseded result remains active: {}", source.display());
         }
@@ -206,8 +207,8 @@ pub fn rollback_superseded_result_archive(
     }
     for index in (0..plan.moves.len()).rev() {
         let movement = plan.moves[index].clone();
-        let source = request.result_root.join(safe_relative(&movement.source, "source")?);
-        let target = request.archive_root.join(safe_relative(&movement.target, "target")?);
+        let source = owned_path(&request.result_root, &movement.source, "source")?;
+        let target = owned_path(&request.archive_root, &movement.target, "target")?;
         validate_inventory(&target, &movement.files)?;
         if path_exists(&source)? {
             bail!("rollback source already exists: {}", source.display());

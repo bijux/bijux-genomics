@@ -1,10 +1,20 @@
 [workspace]
 resolver = "2"
-members = ["crates/bijux-dna",
+members = [
+  "crates/bijux-dna",
   "crates/bijux-dna-analyze",
   "crates/bijux-dna-api",
   "crates/bijux-dna-bench",
+  "crates/bijux-dna-bench-artifacts",
+  "crates/bijux-dna-bench-corpus",
+  "crates/bijux-dna-bench-genotypes",
+  "crates/bijux-dna-bench-haplotypes",
   "crates/bijux-dna-bench-model",
+  "crates/bijux-dna-bench-population",
+  "crates/bijux-dna-bench-variants",
+  "crates/bijux-dna-bench-vcf",
+  "crates/bijux-dna-bench-vcf-evidence",
+  "crates/bijux-dna-bench-workflows",
   "crates/bijux-dna-containers",
   "crates/bijux-dna-containers-qa",
   "crates/bijux-dna-core",
@@ -22,6 +32,7 @@ members = ["crates/bijux-dna",
   "crates/bijux-dna-planner-fastq",
   "crates/bijux-dna-planner-vcf",
   "crates/bijux-dna-policies",
+  "crates/bijux-dna-process",
   "crates/bijux-dna-runner",
   "crates/bijux-dna-runtime",
   "crates/bijux-dna-science",
@@ -38,6 +49,7 @@ license = "Apache-2.0"
 rust-version = "1.95"
 
 [workspace.dependencies]
+bijux-dna-process = { path = "crates/bijux-dna-process" }
 aho-corasick = "1"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
@@ -66,6 +78,7 @@ toml = "1.1"
 cargo_metadata = "0.18"
 assert_cmd = "2"
 wait-timeout = "0.2.1"
+rustix = { version = "1.1.4", features = ["event", "fs", "process"] }
 predicates = "3"
 filetime = "0.2"
 fs4 = "0.13.1"
@@ -83,6 +96,15 @@ bijux-dna-analyze = { path = "crates/bijux-dna-analyze" }
 bijux-dna = { path = "crates/bijux-dna" }
 bijux-dna-api = { path = "crates/bijux-dna-api" }
 bijux-dna-bench = { path = "crates/bijux-dna-bench" }
+bijux-dna-bench-corpus = { path = "crates/bijux-dna-bench-corpus", default-features = false }
+bijux-dna-bench-genotypes = { path = "crates/bijux-dna-bench-genotypes", version = "0.1.0" }
+bijux-dna-bench-haplotypes = { path = "crates/bijux-dna-bench-haplotypes" }
+bijux-dna-bench-variants = { path = "crates/bijux-dna-bench-variants" }
+bijux-dna-bench-artifacts = { path = "crates/bijux-dna-bench-artifacts" }
+bijux-dna-bench-vcf = { path = "crates/bijux-dna-bench-vcf" }
+bijux-dna-bench-vcf-evidence = { path = "crates/bijux-dna-bench-vcf-evidence" }
+bijux-dna-bench-population = { path = "crates/bijux-dna-bench-population" }
+bijux-dna-bench-workflows = { path = "crates/bijux-dna-bench-workflows", default-features = false }
 bijux-dna-bench-model = { path = "crates/bijux-dna-bench-model", default-features = false }
 bijux-dna-core = { path = "crates/bijux-dna-core" }
 bijux-dna-db-ena = { path = "crates/bijux-dna-db-ena" }

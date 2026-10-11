@@ -9,6 +9,7 @@ rust-version.workspace = true
 test = false
 
 [dependencies]
+bijux-dna-process.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
 schemars.workspace = true

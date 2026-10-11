@@ -6,13 +6,7 @@ use bijux_dna_core::contract::PlanPolicy;
 use bijux_dna_stage_contract::StagePlanV1;
 
 pub mod stage_api {
-    pub use crate::local_readiness::{
-        local_align_output_contract_plans, local_align_plan, local_contamination_plan,
-        local_contamination_smoke_plans,
-    };
-    #[cfg(feature = "bam_downstream")]
-    pub use crate::local_readiness::{local_genotyping_plan, local_haplogroups_plan};
-    pub use crate::local_stage_cases::{
+    pub use crate::benchmark::cases::{
         local_authenticity_output_contract_plans, local_authenticity_smoke_plans,
         local_complexity_smoke_plans, local_coverage_smoke_plans,
         local_damage_output_contract_plans, local_damage_smoke_plans,
@@ -33,18 +27,28 @@ pub mod stage_api {
         LocalValidateAlignmentFixtureEncoding, LocalValidateSmokeCasePlan,
     };
     #[cfg(feature = "bam_downstream")]
-    pub use crate::local_stage_cases::{
+    pub use crate::benchmark::cases::{
         local_bias_mitigation_smoke_plans, local_kinship_output_contract_plans,
         local_kinship_smoke_plans, LocalBiasMitigationSmokeCasePlan, LocalKinshipSmokeCasePlan,
         LocalKinshipSmokeExpectedPair,
     };
+    pub use crate::local_readiness::{
+        local_align_output_contract_plans, local_align_plan, local_contamination_plan,
+        local_contamination_smoke_plans,
+    };
+    #[cfg(feature = "bam_downstream")]
+    pub use crate::local_readiness::{local_genotyping_plan, local_haplogroups_plan};
     pub use crate::report_stage::report_stage_step;
     pub use crate::selection::{
-        allowed_tools_for_stage, default_tool_for_stage, load_bam_domain_tool_contract_metadata,
-        load_bam_domain_tool_execution_spec, load_bam_domain_tool_planning_spec,
-        load_bam_domain_tool_stage_output_contract, BamDomainToolContractMetadata,
-        BamDomainToolStageOutputContract, BamDomainToolSupportLevel,
+        allowed_tools_for_stage, assess_bam_output_declarations, assess_bam_tool_definition,
+        default_tool_for_stage, load_bam_domain_tool_contract_metadata,
+        load_bam_domain_tool_definition, load_bam_domain_tool_execution_spec,
+        load_bam_domain_tool_planning_spec, load_bam_domain_tool_stage_output_contract,
+        BamDomainToolContractMetadata, BamDomainToolDefinition, BamDomainToolStageOutputContract,
+        BamDomainToolSupportLevel, BamOutputDeclarationAssessment, BamToolAdapterStatus,
+        BamToolContractStatus, BamToolDefinitionReadiness,
     };
+    pub use crate::stage_dispatch::plan_stage_at;
     pub use crate::stages::stage_registry;
     pub use crate::{plan_stage, StagePlanRequest};
     pub use bijux_dna_stages_bam::stage_specs::*;

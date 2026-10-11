@@ -1,0 +1,294 @@
+{
+  "$defs": {
+    "BundleAppraiser": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "status",
+        "note"
+      ],
+      "type": "object"
+    },
+    "BundleArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "path"
+      ],
+      "type": "object"
+    },
+    "BundleArtifacts": {
+      "additionalProperties": false,
+      "properties": {
+        "encrypted_targets": {
+          "items": {
+            "$ref": "#/$defs/BundleArtifact"
+          },
+          "type": "array"
+        },
+        "inventory": {
+          "items": {
+            "$ref": "#/$defs/BundleArtifact"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "inventory",
+        "encrypted_targets"
+      ],
+      "type": "object"
+    },
+    "BundleCampaign": {
+      "additionalProperties": false,
+      "properties": {
+        "config_path": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "env_file_path": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "user_policy_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "domain",
+        "config_path",
+        "env_file_path",
+        "user_policy_path"
+      ],
+      "type": "object"
+    },
+    "BundleInventories": {
+      "additionalProperties": false,
+      "properties": {
+        "encryption_backend": {
+          "type": "string"
+        },
+        "recipient_fingerprints": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "encryption_backend",
+        "recipient_fingerprints"
+      ],
+      "type": "object"
+    },
+    "BundleMetrics": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "submission_mode": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "submission_mode"
+      ],
+      "type": "object"
+    },
+    "BundleReport": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "summary"
+      ],
+      "type": "object"
+    },
+    "BundleResources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpus": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "mem_gb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scratch_gb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "walltime": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cpus",
+        "mem_gb",
+        "walltime",
+        "scratch_gb"
+      ],
+      "type": "object"
+    },
+    "BundleResultsJob": {
+      "additionalProperties": false,
+      "properties": {
+        "depends_on": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "job_name": {
+          "type": "string"
+        },
+        "planned_job_id": {
+          "type": "string"
+        },
+        "resource_template": {
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/$defs/BundleResources"
+        },
+        "sample": {
+          "type": "string"
+        },
+        "scheduler_job_id": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "submitted_at": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "planned_job_id",
+        "scheduler_job_id",
+        "submitted_at",
+        "job_name",
+        "stage",
+        "tool",
+        "sample",
+        "resource_template",
+        "resources",
+        "depends_on"
+      ],
+      "type": "object"
+    },
+    "BundleTraces": {
+      "additionalProperties": false,
+      "properties": {
+        "scheduler_job_id": {
+          "type": "string"
+        },
+        "script_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "script_path",
+        "scheduler_job_id"
+      ],
+      "type": "object"
+    },
+    "ResultsBundleVersion": {
+      "enum": [
+        "bijux.hpc.results_bundle.v1"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "appraiser_outputs": {
+      "items": {
+        "$ref": "#/$defs/BundleAppraiser"
+      },
+      "type": "array"
+    },
+    "artifacts": {
+      "$ref": "#/$defs/BundleArtifacts"
+    },
+    "campaign": {
+      "$ref": "#/$defs/BundleCampaign"
+    },
+    "inventories": {
+      "$ref": "#/$defs/BundleInventories"
+    },
+    "job": {
+      "$ref": "#/$defs/BundleResultsJob"
+    },
+    "metrics": {
+      "$ref": "#/$defs/BundleMetrics"
+    },
+    "reports": {
+      "items": {
+        "$ref": "#/$defs/BundleReport"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "$ref": "#/$defs/ResultsBundleVersion"
+    },
+    "traces": {
+      "$ref": "#/$defs/BundleTraces"
+    }
+  },
+  "required": [
+    "schema_version",
+    "campaign",
+    "job",
+    "metrics",
+    "artifacts",
+    "reports",
+    "traces",
+    "inventories",
+    "appraiser_outputs"
+  ],
+  "title": "HpcResultsSubmissionBundle",
+  "type": "object"
+}

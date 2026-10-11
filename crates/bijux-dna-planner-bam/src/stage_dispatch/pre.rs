@@ -10,7 +10,11 @@ use crate::tool_adapters;
 
 /// # Errors
 /// Returns an error if the selected pre-alignment stage cannot be planned.
-pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlanV1> {
+pub fn plan(
+    repo_root: &std::path::Path,
+    stage: BamStage,
+    request: &StagePlanRequest<'_>,
+) -> Result<StagePlanV1> {
     match stage {
         BamStage::Align => {
             let r1 = request.r1.ok_or_else(|| anyhow!("align requires r1"))?;
@@ -20,7 +24,8 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             let BamEffectiveParams::Align(params) = params else {
                 return Err(anyhow!("align params mismatch"));
             };
-            tool_adapters::stages_pre::align::plan(
+            tool_adapters::stages_pre::align::plan_at(
+                repo_root,
                 request.tool,
                 r1,
                 request.r2,

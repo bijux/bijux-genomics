@@ -209,6 +209,7 @@ fn assert_v1_tree(root: &std::path::Path) {
         &root.join("src/v1/run"),
         &[
             "entrypoints.rs",
+            "hpc_submission.rs",
             "mod.rs",
             "operator_failure.rs",
             "request_contracts.rs",

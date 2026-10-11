@@ -1,0 +1,35 @@
+//! Owner: bijux-dna-bench-corpus
+//! Admission of VCF corpus declarations and their local payload observations.
+use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use anyhow::{anyhow, Result};
+use bijux_dna_domain_vcf::execute_vcf_validation;
+use serde::{Deserialize, Serialize};
+
+use crate::paths::{path_relative_to_repo, resolve_manifest_relative_path};
+
+mod admission;
+pub use admission::validate_vcf_corpus_fixture_manifest_path;
+mod manifest;
+pub use manifest::{
+    load_vcf_corpus_fixture_manifest_path, validate_vcf_corpus_fixture_manifest_contract,
+};
+mod model;
+use model::{FastaIndexRow, ReferenceContig, ReferenceDictRow, VcfDocumentSummary, VcfVariantRole};
+pub use model::{
+    SampleMetadataRow, VcfCorpusFixtureManifest, VcfCorpusFixtureValidationReport,
+    VcfVariantSetValidationReport, DEFAULT_VCF_MINI_MANIFEST_PATH,
+    VCF_CORPUS_FIXTURE_SCHEMA_VERSION, VCF_CORPUS_FIXTURE_VALIDATION_SCHEMA_VERSION,
+};
+mod reference;
+use reference::{load_validated_reference_contigs, validate_target_sites_bed};
+mod samples;
+pub use samples::load_sample_metadata;
+use samples::{
+    load_population_metadata, validate_manifest_sample_coverage,
+    validate_sample_metadata_population_links,
+};
+mod variants;
+use variants::validate_variant_set;

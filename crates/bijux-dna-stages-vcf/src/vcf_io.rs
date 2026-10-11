@@ -520,3 +520,11 @@ pub fn vcf_panel_overlap(input_vcfgz: &Path, panel_vcfgz: &Path) -> Result<serde
         "per_chr_overlap": per_chr
     }))
 }
+
+/// Read VCF text using the supported compression decoder and observe sample cardinality.
+///
+/// # Errors
+/// Propagates VCF reading errors or a missing column header.
+pub fn vcf_sample_count(path: &Path) -> Result<u64> {
+    bijux_dna_domain_vcf::artifacts::sample_count_from_vcf_text(&read_vcf_text(path)?)
+}

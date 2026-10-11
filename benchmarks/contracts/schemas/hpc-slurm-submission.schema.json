@@ -1,0 +1,115 @@
+{
+  "$defs": {
+    "SubmittedJob": {
+      "additionalProperties": false,
+      "properties": {
+        "array_task": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "code_path": {
+          "type": "string"
+        },
+        "dependency_scheduler_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "err_path": {
+          "type": "string"
+        },
+        "job_name": {
+          "type": "string"
+        },
+        "log_path": {
+          "type": "string"
+        },
+        "out_path": {
+          "type": "string"
+        },
+        "planned_job_id": {
+          "type": "string"
+        },
+        "results_path": {
+          "type": "string"
+        },
+        "sample": {
+          "type": "string"
+        },
+        "scheduler_job_id": {
+          "type": "string"
+        },
+        "script_path": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_name",
+        "stage",
+        "tool",
+        "sample",
+        "planned_job_id",
+        "scheduler_job_id",
+        "dependency_scheduler_ids",
+        "script_path",
+        "log_path",
+        "out_path",
+        "err_path",
+        "results_path",
+        "code_path"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "jobs": {
+      "items": {
+        "$ref": "#/$defs/SubmittedJob"
+      },
+      "type": "array"
+    },
+    "mode": {
+      "enum": [
+        "mock",
+        "real"
+      ],
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.hpc.slurm.submission.v1",
+      "type": "string"
+    },
+    "submitted_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "mode",
+    "campaign_id",
+    "domain",
+    "submitted_at",
+    "jobs"
+  ],
+  "title": "SlurmSubmissionReport",
+  "type": "object"
+}

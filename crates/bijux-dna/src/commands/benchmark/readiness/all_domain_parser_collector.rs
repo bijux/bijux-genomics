@@ -122,53 +122,12 @@ fn collect_fake_run_rows(
     repo_root: &Path,
     results: &[AllDomainFakeRunResultReport],
 ) -> Result<Vec<AllDomainParserCollectorRow>> {
-    let mut rows = Vec::with_capacity(results.len());
-    for result in results {
-        let metrics_path = repo_root.join(&result.metrics_path);
-        let metrics = read_json_document(&metrics_path)?;
-        let metrics_schema_version = json_string_field(&metrics, "schema_version")?;
-        let stage_result_path = repo_root.join(&result.stage_result_path);
-        let stage_result = load_validated_stage_result_manifest_path(&stage_result_path)
-            .with_context(|| format!("load {}", stage_result_path.display()))?;
-        rows.push(AllDomainParserCollectorRow {
-            record_id: format!("fake-run:{}", result.result_id),
-            source_kind: AllDomainParserCollectorSourceKind::FakeRun,
-            document_kind: "all_domain_fake_run_metrics".to_string(),
-            domain: result.domain.clone(),
-            stage_id: result.stage_id.clone(),
-            tool_id: result.tool_id.clone(),
-            corpus_id: result.corpus_id.clone(),
-            asset_profile_id: result.asset_profile_id.clone(),
-            result_id: Some(result.result_id.clone()),
-            parsed_path: result.metrics_path.clone(),
-            parsed_schema_version: metrics_schema_version,
-            parsed_top_level_key_count: top_level_keys(&metrics).len(),
-            parsed_top_level_keys: top_level_keys(&metrics),
-            manifest_path: Some(result.stage_result_path.clone()),
-            manifest_status: Some(manifest_status_label(&stage_result)),
-            manifest_exit_code: Some(stage_result.runtime.exit_code),
-            declared_output_count: result.declared_output_count,
-            normalized_snapshot: BTreeMap::from([
-                (
-                    "command_step_count".to_string(),
-                    Value::from(json_u64_field(&metrics, "command_step_count")?),
-                ),
-                (
-                    "declared_output_count".to_string(),
-                    Value::from(json_u64_field(&metrics, "declared_output_count")?),
-                ),
-                (
-                    "expected_metric_count".to_string(),
-                    Value::from(json_u64_field(&metrics, "expected_metric_count")?),
-                ),
-                (
-                    "simulated_elapsed_seconds".to_string(),
-                    Value::from(json_f64_field(&metrics, "simulated_elapsed_seconds")?),
-                ),
-            ]),
-        });
-    }
-    Ok(rows)
+    results
+        .iter()
+        .map(|result| {
+            bijux_dna_api::v1::api::bench::load_all_domain_simulation_parser_row(repo_root, result)
+        })
+        .collect()
 }
 
 fn collect_real_smoke_rows(repo_root: &Path) -> Result<Vec<AllDomainParserCollectorRow>> {

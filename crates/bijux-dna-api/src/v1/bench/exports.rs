@@ -446,37 +446,55 @@ pub use crate::internal::public_surface::handlers::fastq::*;
 /// Stability: v1 (stable).
 /// Governed benchmark planning, report and normalized-metric contracts.
 pub use bijux_dna_bench_model::{
+    admit_all_domain_missing_result_audit, all_domain_fake_failure_manifest_schema,
+    all_domain_fake_failure_record_schema, all_domain_missing_result_audit_schema,
     benchmark_local_pipeline_dag_config_schema,
     benchmark_local_pipeline_dag_metadata_config_schema,
     benchmark_local_pipeline_dag_stages_config_schema, build_bam_tool_score_rows,
     build_bam_tool_scores_report, build_benchmark_local_all_domain_slurm_scripts_report,
     build_benchmark_local_hpc_array_resource_envelope,
     build_benchmark_local_hpc_dependency_simulation, build_benchmark_local_hpc_job_graph,
-    build_fastq_tool_score_rows, build_fastq_tool_scores_report, build_vcf_tool_score_rows,
-    build_vcf_tool_scores_report,
+    build_benchmark_local_slurm_script_body_report, build_fastq_tool_score_rows,
+    build_fastq_tool_scores_report, build_vcf_tool_score_rows, build_vcf_tool_scores_report,
+    completion, evaluate_benchmark_local_hpc_harness_readiness,
+    evaluate_benchmark_local_hpc_slurm_readiness, harness,
+    inspect_benchmark_local_slurm_script_body,
     normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor,
-    project_benchmark_local_hpc_tool_scopes,
+    project_all_domain_missing_result_observation, project_benchmark_local_hpc_tool_scopes,
+    project_full_benchmark_observation_rows, validate_all_domain_failure_simulation_manifest,
+    validate_all_domain_failure_simulation_record, validate_all_domain_missing_result_audit,
     validate_benchmark_local_all_domain_slurm_scripts_report,
     validate_benchmark_local_pipeline_dag_config,
-    validate_benchmark_local_pipeline_dag_declarations, validate_stage_scoring_config,
-    BamScoreEvidence, BamScoreExpectedRow, BamScoreMemoryRow, BamScoreRuntimeRow, BamToolScoreRow,
-    BamToolScoreStatus, BamToolScoresReport, BamToolScoringInput,
-    BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
-    BenchmarkLocalHpcToolScope, BenchmarkLocalPipelineDagConfig, BenchmarkLocalPipelineDagDomain,
-    BenchmarkLocalPipelineDagMetadataConfig, BenchmarkLocalPipelineDagNode,
-    BenchmarkLocalPipelineDagStagesConfig, BenchmarkLocalPipelineProjectSourceConfig,
-    FastqScoreEvidence, FastqScoreExpectedRow, FastqScoreMemoryRow, FastqScoreRuntimeRow,
-    FastqToolScoreRow, FastqToolScoreStatus, FastqToolScoresReport, FastqToolScoringInput,
+    validate_benchmark_local_pipeline_dag_declarations,
+    validate_benchmark_local_slurm_script_body_report, validate_stage_scoring_config,
+    AllDomainFakeFailureOutputEntry, AllDomainFakeFailureRecord, AllDomainFakeFailuresManifest,
+    AllDomainMissingResultObservation, AllDomainMissingResultRow, AllDomainMissingResultStatus,
+    AllDomainMissingResultTestReport, BamScoreEvidence, BamScoreExpectedRow, BamScoreMemoryRow,
+    BamScoreRuntimeRow, BamToolScoreRow, BamToolScoreStatus, BamToolScoresReport,
+    BamToolScoringInput, BenchmarkLocalAllDomainSlurmScriptEntry,
+    BenchmarkLocalAllDomainSlurmScriptsReport, BenchmarkLocalHpcHarnessObservation,
+    BenchmarkLocalHpcSlurmObservation, BenchmarkLocalHpcToolScope, BenchmarkLocalPipelineDagConfig,
+    BenchmarkLocalPipelineDagDomain, BenchmarkLocalPipelineDagMetadataConfig,
+    BenchmarkLocalPipelineDagNode, BenchmarkLocalPipelineDagStagesConfig,
+    BenchmarkLocalPipelineProjectSourceConfig, BenchmarkLocalSlurmScriptBodyEntry,
+    BenchmarkLocalSlurmScriptBodyReport, FastqScoreEvidence, FastqScoreExpectedRow,
+    FastqScoreMemoryRow, FastqScoreRuntimeRow, FastqToolScoreRow, FastqToolScoreStatus,
+    FastqToolScoresReport, FastqToolScoringInput, FullBenchmarkSourceObservation,
     StageScoringApplicability, StageScoringCompletion, StageScoringConfig, StageScoringCorrectness,
     StageScoringCorrectnessSignal, StageScoringDecisionMode, StageScoringDirection,
     StageScoringFailureClass, StageScoringFailureClassCatalogEntry, StageScoringFailureEffect,
     StageScoringMemory, StageScoringMissingBehavior, StageScoringRow, StageScoringRuntime,
     StageScoringScientificThreshold, StageScoringWeights, VcfScoreEvidence, VcfScoreExpectedRow,
     VcfScoreMemoryRow, VcfScoreRuntimeRow, VcfToolScoreRow, VcfToolScoreStatus,
-    VcfToolScoresReport, VcfToolScoringInput, BAM_TOOL_SCORES_SCHEMA_VERSION,
+    VcfToolScoresReport, VcfToolScoringInput, ALL_DOMAIN_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_FAILURE_RECORD_SCHEMA_VERSION, ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION,
+    BAM_REMOVED_RESULT_ID, BAM_TOOL_SCORES_SCHEMA_VERSION,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
-    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1, FASTQ_TOOL_SCORES_SCHEMA_VERSION,
-    STAGE_SCORING_SCHEMA_VERSION, VCF_TOOL_SCORES_SCHEMA_VERSION,
+    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_SCRIPT_BODY_SCHEMA_V1,
+    DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT, DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT,
+    DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH, FASTQ_REMOVED_RESULT_ID,
+    FASTQ_TOOL_SCORES_SCHEMA_VERSION, STAGE_SCORING_SCHEMA_VERSION, VCF_REMOVED_RESULT_ID,
+    VCF_TOOL_SCORES_SCHEMA_VERSION,
 };
 
 pub use bijux_dna_bench::{
@@ -491,13 +509,21 @@ pub use bijux_dna_bench::{
 };
 
 pub use bijux_dna_bench::{
-    campaign_dry_run, campaign_preflight, inspect_hpc_replay_payloads,
-    is_supported_encryption_backend, write_campaign_profiles, CampaignCheck, CampaignConfig,
+    assemble_hpc_code_submission, assemble_hpc_results_submission, campaign_dry_run,
+    campaign_preflight, collect_hpc_redaction_needles, encode_redacted_hpc_bundle,
+    hpc_stage_domain, inspect_hpc_replay_payloads, is_supported_encryption_backend,
+    plan_hpc_submission, redact_hpc_text, render_hpc_submission_script, submit_hpc_campaign,
+    validate_hpc_scheduler_receipt, validate_hpc_submission_report,
+    validate_hpc_submission_request, write_campaign_profiles, CampaignCheck, CampaignConfig,
     CampaignContext, CampaignDryRunReport, CampaignJob, CampaignLayout, CampaignMeta,
     CampaignPolicies, CampaignPreflightReport, CampaignSecurity, CampaignSlurm,
-    CorpusSizeScalePolicy, HpcReplayPayloadAdmission, LayoutPolicies, OutputTemplates, PlannedJob,
-    PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
-    ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
+    CorpusSizeScalePolicy, HpcBundleFoundationLocks, HpcBundleSubmission, HpcCodeFreezeObservation,
+    HpcCodeSubmissionBundle, HpcReplayPayloadAdmission, HpcResultsSubmissionBundle, HpcSelectedJob,
+    HpcSubmissionBackend, HpcSubmissionMode, HpcSubmissionPlan, HpcSubmissionSelector,
+    HpcSubmissionSettings, LayoutPolicies, OutputTemplates, PlannedJob, PlannedLayout,
+    PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies, ResourceTemplate,
+    ResourceTemplates, SiteProfile, SlurmPolicies, SlurmSubmissionReport, SubmittedJob,
+    CAMPAIGN_SCHEMA_VERSION, HPC_SLURM_SUBMISSION_SCHEMA_VERSION,
 };
 
 pub use bijux_dna_bench::{
@@ -522,7 +548,9 @@ pub use bijux_dna_bench::{
 pub use bijux_dna_bench::{
     all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
     all_domain_simulation_output_path, all_domain_simulation_output_role,
-    fake_run_all_domain_benchmark_results, render_all_domain_simulation_command_script,
+    fake_run_all_domain_benchmark_results, fake_run_all_domain_failure_results,
+    load_all_domain_simulation_parser_row, render_all_domain_completion_check,
+    render_all_domain_missing_result_audit, render_all_domain_simulation_command_script,
     validate_all_domain_simulation_report, validate_all_domain_simulation_result,
     AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
     AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
@@ -559,13 +587,17 @@ pub use bijux_dna_bench::write_recorded_command_audit;
 
 pub use bijux_dna_bench::{evaluate_operational_binding_coverage, OperationalBindingEvidence};
 
-pub use bijux_dna_bench::publish_rendered_command_artifacts;
+pub use bijux_dna_bench::{
+    inspect_benchmark_local_slurm_dependencies, publish_rendered_command_artifacts,
+    validate_benchmark_local_slurm_script_bodies,
+};
 
 pub use bijux_dna_bench::{
-    qualify_micro_benchmark_run, MicroBenchmarkComponentReport, MicroBenchmarkExecutionStatus,
-    MicroBenchmarkLogRow, MicroBenchmarkNormalizedMetricRow, MicroBenchmarkOutputRow,
-    MicroBenchmarkResultKind, MicroBenchmarkResultRow, MicroBenchmarkRunEvidence,
-    MicroBenchmarkRunManifest, MICRO_BENCHMARK_RUN_COMMAND, MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
+    alignment_fixtures, qualify_micro_benchmark_run, MicroBenchmarkComponentReport,
+    MicroBenchmarkExecutionStatus, MicroBenchmarkLogRow, MicroBenchmarkNormalizedMetricRow,
+    MicroBenchmarkOutputRow, MicroBenchmarkResultKind, MicroBenchmarkResultRow,
+    MicroBenchmarkRunEvidence, MicroBenchmarkRunManifest, MICRO_BENCHMARK_RUN_COMMAND,
+    MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
 };
 
 pub use bijux_dna_bench::{
@@ -634,3 +666,5 @@ pub use bijux_dna_bench::{
     RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY, RESOLUTION_KIND_UNAVAILABLE,
     TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION,
 };
+
+pub use bijux_dna_bench_model::DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH;

@@ -182,6 +182,7 @@ fn runtime_test_tree_matches_architecture_contract() {
             "experimental_registry_alias.rs",
             "inventory_compatibility.rs",
             "manifest_integrity.rs",
+            "manifest_integrity/",
             "reference/",
             "reference.rs",
             "run_layout_contract.rs",
@@ -190,6 +191,12 @@ fn runtime_test_tree_matches_architecture_contract() {
             "telemetry_golden.rs",
         ]),
         "runtime contract tests must stay split by runtime contract surface"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/contracts/manifest_integrity")),
+        entries(["output_declarations.rs"]),
+        "runtime declaration checks belong to manifest integrity"
     );
 
     assert_eq!(

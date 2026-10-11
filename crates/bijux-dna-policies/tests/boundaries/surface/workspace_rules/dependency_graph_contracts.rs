@@ -14,6 +14,15 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-api",
         "bijux-dna-analyze",
         "bijux-dna-bench",
+        "bijux-dna-bench-corpus",
+        "bijux-dna-bench-vcf",
+        "bijux-dna-bench-workflows",
+        "bijux-dna-bench-population",
+        "bijux-dna-bench-genotypes",
+        "bijux-dna-bench-vcf-evidence",
+        "bijux-dna-bench-artifacts",
+        "bijux-dna-bench-haplotypes",
+        "bijux-dna-bench-variants",
         "bijux-dna-bench-model",
         "bijux-dna-core",
         "bijux-dna-db-ena",
@@ -83,9 +92,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             continue;
         }
         bijux_dna_policies::policy_assert!(
-            dep == "bijux-dna-bench-model"
-                || dep == "bijux-dna-core"
-                || dep == "bijux-dna-infra",
+            dep == "bijux-dna-bench-model" || dep == "bijux-dna-core" || dep == "bijux-dna-infra",
             "bijux-dna-runtime must not depend on workspace crate {dep}"
         );
     }
@@ -165,6 +172,11 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         );
     }
 
+    bijux_dna_policies::policy_assert!(
+        deps_for("bijux-dna-process").is_empty(),
+        "process transport must remain independent of workspace domain and service crates"
+    );
+
     let runner = deps_for("bijux-dna-runner");
     for dep in &runner {
         if is_guardrails(dep) {
@@ -176,6 +188,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
                 || dep == "bijux-dna-containers"
                 || dep == "bijux-dna-containers-qa"
                 || dep == "bijux-dna-infra"
+                || dep == "bijux-dna-process"
                 || dep == "bijux-dna-runtime",
             "bijux-dna-runner must not depend on workspace crate {dep}"
         );
@@ -210,6 +223,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             dep == "bijux-dna-core"
                 || dep == "bijux-dna-analyze"
                 || dep == "bijux-dna-bench-model"
+                || dep == "bijux-dna-bench-artifacts"
                 || dep == "bijux-dna-containers"
                 || dep == "bijux-dna-db-ena"
                 || dep == "bijux-dna-db-ref"
@@ -296,12 +310,9 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     }
 
     let pipelines = deps_for("bijux-dna-pipelines");
-    for banned in [
-        "bijux-dna-engine",
-        "bijux-dna",
-        "bijux-dna-stages-fastq",
-        "bijux-dna-stages-bam",
-    ] {
+    for banned in
+        ["bijux-dna-engine", "bijux-dna", "bijux-dna-stages-fastq", "bijux-dna-stages-bam"]
+    {
         bijux_dna_policies::policy_assert!(
             !pipelines.contains(banned),
             "bijux-dna-pipelines must not depend on {banned}"
@@ -415,7 +426,8 @@ fn policy__boundaries__workspace__policy_dependencies_match_product_and_test_bou
         let path = crates.get(product_surface).unwrap_or_else(|| {
             bijux_dna_policies::policy_panic!("missing crate {product_surface}")
         });
-        let normal_deps = parse_dependency_section(&path.join("Cargo.toml"), &known, "dependencies");
+        let normal_deps =
+            parse_dependency_section(&path.join("Cargo.toml"), &known, "dependencies");
         bijux_dna_policies::policy_assert!(
             normal_deps.contains("bijux-dna-policies"),
             "{product_surface} must compose the policy verdict owner"
@@ -438,7 +450,8 @@ fn policy__boundaries__workspace__policy_dependencies_match_product_and_test_bou
         let path = crates
             .get(crate_name)
             .unwrap_or_else(|| bijux_dna_policies::policy_panic!("missing crate {crate_name}"));
-        let normal_deps = parse_dependency_section(&path.join("Cargo.toml"), &known, "dependencies");
+        let normal_deps =
+            parse_dependency_section(&path.join("Cargo.toml"), &known, "dependencies");
 
         for test_only in ["bijux-dna-policies", "bijux-dna-testkit"] {
             bijux_dna_policies::policy_assert!(

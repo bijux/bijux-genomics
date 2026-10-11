@@ -1,3 +1,7 @@
+#[cfg(feature = "bam_downstream")]
+use bijux_dna_bench_variants::readiness::qc::VcfQcReadyRow;
+#[cfg(feature = "bam_downstream")]
+use bijux_dna_bench_variants::readiness::stats::VcfStatsReadyRow;
 use std::path::{Path, PathBuf};
 
 #[cfg(feature = "bam_downstream")]
@@ -15,12 +19,10 @@ use super::real_output_parser_probe::{
     render_bam_genotyping_parser_smoke_row, RealOutputParserSmokeRow,
 };
 #[cfg(feature = "bam_downstream")]
-use super::vcf_qc_ready::{
-    render_vcf_qc_ready, VcfQcReadyReport, VcfQcReadyRow, DEFAULT_VCF_QC_READY_PATH,
-};
+use super::vcf_qc_ready::{render_vcf_qc_ready, VcfQcReadyReport, DEFAULT_VCF_QC_READY_PATH};
 #[cfg(feature = "bam_downstream")]
 use super::vcf_stats_ready::{
-    render_vcf_stats_ready, VcfStatsReadyReport, VcfStatsReadyRow, DEFAULT_VCF_STATS_READY_PATH,
+    render_vcf_stats_ready, VcfStatsReadyReport, DEFAULT_VCF_STATS_READY_PATH,
 };
 #[cfg(feature = "bam_downstream")]
 use crate::commands::benchmark::local_pipeline_dag::{

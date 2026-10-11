@@ -7,6 +7,7 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+bijux-dna-process.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
 serde.workspace = true
@@ -21,7 +22,6 @@ bijux-dna-containers-qa.workspace = true
 bijux-dna-infra.workspace = true
 sha2.workspace = true
 walkdir.workspace = true
-wait-timeout.workspace = true
 
 [dev-dependencies]
 bijux-dna-testkit.workspace = true

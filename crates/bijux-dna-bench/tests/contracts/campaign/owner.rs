@@ -1025,3 +1025,20 @@ fn campaign_redaction_masks_short_unicode_values_without_byte_boundary_panics() 
     assert_eq!(redacted(Some("账号保密项目")), "账号***项目");
     assert_eq!(redacted(Some("éabc😀")), "éa***c😀");
 }
+
+#[test]
+fn redaction_observation_uses_current_campaign_environment_decoding() -> anyhow::Result<()> {
+    let temporary = tempfile::tempdir()?;
+    let path = temporary.path().join("campaign.env");
+    std::fs::write(
+        &path,
+        "export API_TOKEN='quoted-secret'\nCUSTOM=\"explicit-secret\"\nOTHER=ordinary\n",
+    )?;
+    let observed = crate::collect_hpc_redaction_needles(&path, &["CUSTOM".into()])?;
+    assert_eq!(observed, ["explicit-secret", "quoted-secret"]);
+    std::fs::write(&path, "API_TOKEN=replacement-secret\n")?;
+    assert_eq!(crate::collect_hpc_redaction_needles(&path, &[])?, ["replacement-secret"]);
+    std::fs::remove_file(&path)?;
+    assert!(crate::collect_hpc_redaction_needles(&path, &[])?.is_empty());
+    Ok(())
+}

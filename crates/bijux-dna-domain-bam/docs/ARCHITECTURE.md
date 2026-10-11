@@ -7,6 +7,9 @@
 ```text
 src/
 ├── alignment.rs
+├── artifacts.rs
+├── artifacts/
+│   └── alignment/       # shared miniature document, SAM/BAM codecs and header policy
 ├── defaults.rs
 ├── invariants/
 ├── lib.rs
@@ -30,7 +33,9 @@ src/
 
 `types/artifact_reports/` owns persisted identity, alignment, filtering, duplicate, coverage, recalibration, ancient DNA, population, workflow, resource and corpus models. Models depend on explicit sibling types and pure parameters/metrics; they do not import artifact processing or filesystem operations. Public names, schema identities and serialized fields remain stable through crate-root exports.
 
-`artifacts.rs` still contains existing small-fixture parsing, transformations and report evaluation. Those effects are separate from the model modules and require further execution-owner separation; moving models does not create independent Cargo compilation units.
+`artifacts/alignment/` owns the miniature document and format-specific readers/renderers, with shared header identity policy. SAM output publication delegates to infrastructure atomic writing; the codec has no dependency on scientific report evaluation; callers adapt reference names/lengths instead of passing their simulation model.
+
+`artifacts.rs` still contains small-fixture transformations and report evaluation. Those effects are separate from the model modules and require further execution-owner separation; moving models does not create independent Cargo compilation units.
 
 ## Responsibilities
 
@@ -46,5 +51,5 @@ src/
 ## Boundaries
 
 - This crate provides types and deterministic parsing helpers to downstream crates.
-- Model modules do not choose tools, spawn processes, inspect environments, or write generated configs. Existing small-fixture transformation helpers still perform file IO in `artifacts.rs`.
+- Model modules do not choose tools, spawn processes, inspect environments, or write generated configs. Existing small-fixture transformation helpers still perform file IO through `artifacts/alignment/` and other existing helpers in `artifacts.rs`.
 - Runtime execution belongs in runner, runtime, stage, planner, or developer-control-plane crates.

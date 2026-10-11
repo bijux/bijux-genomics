@@ -38,6 +38,8 @@ fn public_api_docs_match_curated_exports() {
             "STAGE_COMPARE_STAGE_TOOLS",
             "STAGE_SELECT_STAGE_TOOL",
             "args",
+            "decode_local_benchmark_stage_parameters",
+            "project_local_benchmark_tool_parameters",
             "plan_fastq_to_fastq__default__v1",
             "plan_fastq_to_bam__default__v1",
             "compose_fastq_stage_bindings",

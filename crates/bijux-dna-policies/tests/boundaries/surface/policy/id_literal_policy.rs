@@ -32,7 +32,15 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.contains("/crates/bijux-dna/") {
         return true;
     }
-    if path_str.contains("/crates/bijux-dna-api/") {
+    if path_str.contains("/crates/bijux-dna-api/")
+        && !path_str.contains("/crates/bijux-dna-api/src/v1/")
+    {
+        return true;
+    }
+    // Compatibility domain modules retain the existing explicit catalog allowance.
+    if path_str.ends_with("/crates/bijux-dna-api/src/v1/bam/domain.rs")
+        || path_str.ends_with("/crates/bijux-dna-api/src/v1/fastq/domain.rs")
+    {
         return true;
     }
     if path_str.contains("/crates/bijux-dna-planner-fastq/") {
@@ -90,7 +98,7 @@ fn is_allowed_path(path: &Path) -> bool {
     false
 }
 
-fn canonical_stage_ids(root: &Path) -> Vec<String> {
+fn canonical_stage_ids(root: &Path, prefixes: &[&str]) -> Vec<String> {
     let mut ids = Vec::new();
     let stage_catalog = root.join("crates/bijux-dna-core/src/id_catalog/stage");
     for entry in WalkDir::new(stage_catalog).into_iter().filter_map(Result::ok) {
@@ -105,11 +113,7 @@ fn canonical_stage_ids(root: &Path) -> Vec<String> {
                 .split('"')
                 .skip(1)
                 .step_by(2)
-                .filter(|literal| {
-                    ["fastq.", "bam.", "cross.", "core."]
-                        .iter()
-                        .any(|prefix| literal.starts_with(prefix))
-                })
+                .filter(|literal| prefixes.iter().any(|prefix| literal.starts_with(prefix)))
                 .map(str::to_owned),
         );
     }
@@ -130,7 +134,8 @@ fn raw_stage_ids(content: &str, canonical_ids: &[String]) -> Vec<String> {
 fn policy__boundaries__id_literal_policy__raw_id_catalog_are_confined_to_registries() {
     let root = repo_root();
     let mut offenders = Vec::new();
-    let canonical_ids = canonical_stage_ids(&root);
+    let canonical_ids = canonical_stage_ids(&root, &["fastq.", "bam.", "cross.", "core."]);
+    let api_ids = canonical_stage_ids(&root, &["fastq.", "bam.", "vcf.", "cross.", "core."]);
     for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
@@ -144,7 +149,12 @@ fn policy__boundaries__id_literal_policy__raw_id_catalog_are_confined_to_registr
         let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
             &std::fs::read_to_string(entry.path()).expect("read source"),
         );
-        for stage_id in raw_stage_ids(&content, &canonical_ids) {
+        let ids = if entry.path().to_string_lossy().contains("/crates/bijux-dna-api/src/v1/") {
+            &api_ids
+        } else {
+            &canonical_ids
+        };
+        for stage_id in raw_stage_ids(&content, ids) {
             offenders.push(format!(
                 "{} contains raw stage id literal {stage_id:?}",
                 entry.path().display()
@@ -163,4 +173,10 @@ fn policy__boundaries__id_literal_policy__file_extensions_are_not_stage_ids() {
     let ids = vec!["fastq.validate_reads".to_owned()];
     assert!(raw_stage_ids("let suffix = \"fastq.gz\";", &ids).is_empty());
     assert_eq!(raw_stage_ids("let stage = \"fastq.validate_reads\";", &ids), ids);
+    assert!(
+        raw_stage_ids("/// Stability: stable v1 adapter over submission ports.", &ids).is_empty()
+    );
+    assert!(!is_allowed_path(Path::new("/repo/crates/bijux-dna-api/src/v1/run/hpc_submission.rs")));
+    assert!(is_allowed_path(Path::new("/repo/crates/bijux-dna-api/src/v1/fastq/domain.rs")));
+    assert!(is_allowed_path(Path::new("/repo/crates/bijux-dna-api/src/v1/bam/domain.rs")));
 }

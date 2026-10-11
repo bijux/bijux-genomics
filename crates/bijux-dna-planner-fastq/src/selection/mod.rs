@@ -13,3 +13,6 @@ pub use domain_tool_specs::{
 };
 pub use facade::*;
 pub use tool_selection::*;
+
+mod output_readiness;
+pub use output_readiness::{assess_fastq_output_declarations, FastqOutputDeclarationAssessment};

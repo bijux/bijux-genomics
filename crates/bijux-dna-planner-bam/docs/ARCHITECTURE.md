@@ -13,6 +13,8 @@
 - `src/execution_graph.rs` projects stage plans into `ExecutionGraph`.
 - `src/params.rs`, `src/tool_policy.rs`, `src/stage_activation.rs`, and `src/report_stage.rs` own focused validation and helper behavior.
 
+`src/benchmark/cases/` owns local-smoke planning in pre, qc, ancient, and downstream stage families. Each stage retains its config, input admission, plan construction and feature gate. Shared disposable-output admission and resource hydration stay within benchmark planning.
+
 ## Data Flow
 1. A caller provides a `StagePlanRequest` or `BamPipelineInputs`.
 2. Pipeline helpers load a BAM profile and ordered BAM stages from `bijux-dna-pipelines`.
@@ -26,40 +28,10 @@
 - `plan_bam_to_bam__adna_capture__v1`
 - `pipeline_id_catalog`
 
-## Planned Stage Groups
-### Pre-Alignment and Filtering
-- `bam.align`
-- `bam.validate`
-- `bam.qc_pre`
-- `bam.mapping_summary`
-- `bam.filter`
-- `bam.mapq_filter`
-- `bam.length_filter`
-- `bam.overlap_correction`
-
-### Post-Alignment QC
-- `bam.markdup`
-- `bam.duplication_metrics`
-- `bam.complexity`
-- `bam.coverage`
-- `bam.insert_size`
-- `bam.gc_bias`
-- `bam.endogenous_content`
-- `bam.recalibration`
-
-### Ancient-DNA Analysis
-- `bam.damage`
-- `bam.authenticity`
-- `bam.contamination`
-- `bam.sex`
-
-### Downstream Analysis
-- `bam.bias_mitigation`
-- `bam.haplogroups`
-- `bam.genotyping`
-- `bam.kinship`
-
-Downstream analysis stages require the `bam_downstream` feature for concrete planning.
+## Stage Families
+BAM adapters cover pre-alignment/filtering, post-alignment QC, ancient-DNA analysis,
+and downstream analysis. Their stage inventory is owned by the BAM domain contracts
+and `src/stage_dispatch/`. Downstream concrete planning requires `bam_downstream`.
 
 ## Tool Selection Rules
 - Prefer configured primary tools from the repository tool registry.
@@ -78,3 +50,15 @@ Downstream analysis stages require the `bam_downstream` feature for concrete pla
 - Public API changes require `docs/PUBLIC_API.md` and boundary tests to change together.
 - Plan JSON, graph topology, command templates, explain payloads, and default tool selection changes require snapshot review.
 - Execution behavior belongs downstream and must not be added here.
+
+Tool-definition acquisition is separate from metadata and stage-spec projection.
+`selection/domain_tool_specs.rs` owns an immutable parsed observation; callers may
+reuse it within an operation and explicitly reload to observe file changes.
+The CLI serving map loads each tool once for the current collection and preserves
+missing, mismatched, declared-only, plannable, and runnable dispositions.
+Owner regression cases live under `tests/contracts/selection/`.
+
+Governed BAM case output paths must use `artifacts/runs/bench/local-smoke` under
+the supplied repository root. Planning rejects parent traversal and sample/tool
+path injection while retaining valid relative, absolute, and space-containing
+paths. Filesystem link and concurrent replacement checks remain with materialization.

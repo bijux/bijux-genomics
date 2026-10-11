@@ -4,7 +4,7 @@ use std::sync::OnceLock;
 use bijux_dna_core::ids::{StageId, ToolId};
 use serde::Deserialize;
 
-use super::contract::domain_index_contract;
+use super::contract::{domain_index_contract, BenchmarkScenarioRecord};
 use super::model::{BenchmarkScenario, StageToolBinding, ToolIntegrationLevel};
 
 #[derive(Debug, Deserialize)]
@@ -159,26 +159,35 @@ pub fn stage_tool_binding(stage_id: &StageId, tool_id: &ToolId) -> Option<StageT
         .cloned()
 }
 
+fn benchmark_scenario(scenario_id: &str, scenario: &BenchmarkScenarioRecord) -> BenchmarkScenario {
+    BenchmarkScenario {
+        scenario_id: scenario_id.to_owned(),
+        stage_id: StageId::new(scenario.stage_id.clone()),
+        description: scenario.description.clone(),
+        fairness_rules: scenario.fairness_rules.clone(),
+        cohort_artifact_id: scenario.cohort_artifact_id.clone(),
+        comparison_artifact_id: scenario.comparison_artifact_id.clone(),
+        normalization_artifact_id: scenario.normalization_artifact_id.clone(),
+    }
+}
+
 #[must_use]
 pub fn benchmark_scenarios() -> Vec<BenchmarkScenario> {
     domain_index_contract()
         .benchmark_scenarios
         .iter()
-        .map(|(scenario_id, scenario)| BenchmarkScenario {
-            scenario_id: scenario_id.clone(),
-            stage_id: StageId::new(scenario.stage_id.clone()),
-            description: scenario.description.clone(),
-            fairness_rules: scenario.fairness_rules.clone(),
-            cohort_artifact_id: scenario.cohort_artifact_id.clone(),
-            comparison_artifact_id: scenario.comparison_artifact_id.clone(),
-            normalization_artifact_id: scenario.normalization_artifact_id.clone(),
-        })
+        .map(|(scenario_id, scenario)| benchmark_scenario(scenario_id, scenario))
         .collect()
 }
 
 #[must_use]
 pub fn benchmark_scenarios_for_stage(stage_id: &StageId) -> Vec<BenchmarkScenario> {
-    benchmark_scenarios().into_iter().filter(|scenario| scenario.stage_id == *stage_id).collect()
+    domain_index_contract()
+        .benchmark_scenarios
+        .iter()
+        .filter(|(_, scenario)| scenario.stage_id == stage_id.as_str())
+        .map(|(scenario_id, scenario)| benchmark_scenario(scenario_id, scenario))
+        .collect()
 }
 
 #[must_use]

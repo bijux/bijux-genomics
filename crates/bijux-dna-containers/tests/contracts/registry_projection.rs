@@ -199,3 +199,6 @@ fn live_registry_projection_preserves_all_product_supported_tools() -> anyhow::R
     assert!(report.unprojected_tool_ids.is_empty());
     Ok(())
 }
+
+#[path = "registry_projection/export_snapshot.rs"]
+mod export_snapshot;

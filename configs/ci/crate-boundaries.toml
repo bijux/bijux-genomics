@@ -138,6 +138,12 @@ layer = "governance"
 public_surfaces = ["crates/bijux-dna-policies/src/lib.rs", "crates/bijux-dna-policies/docs/PUBLIC_API.md"]
 
 [[crates]]
+name = "bijux-dna-process"
+family = "execution"
+layer = "foundation"
+public_surfaces = ["crates/bijux-dna-process/src/lib.rs", "crates/bijux-dna-process/docs/PUBLIC_API.md"]
+
+[[crates]]
 name = "bijux-dna-runner"
 family = "execution"
 layer = "runner"
@@ -184,3 +190,33 @@ name = "bijux-dna-testkit"
 family = "foundation"
 layer = "test-support"
 public_surfaces = ["crates/bijux-dna-testkit/src/lib.rs", "crates/bijux-dna-testkit/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-corpus"
+family = "data"
+layer = "support"
+public_surfaces = ["crates/bijux-dna-bench-corpus/src/lib.rs", "crates/bijux-dna-bench-corpus/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-vcf"
+family = "data"
+layer = "support"
+public_surfaces = ["crates/bijux-dna-bench-vcf/src/lib.rs", "crates/bijux-dna-bench-vcf/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-workflows"
+family = "data"
+layer = "support"
+public_surfaces = ["crates/bijux-dna-bench-workflows/src/lib.rs", "crates/bijux-dna-bench-workflows/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-population"
+family = "data"
+layer = "support"
+public_surfaces = ["crates/bijux-dna-bench-population/src/lib.rs", "crates/bijux-dna-bench-population/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-haplotypes"
+family = "data"
+layer = "support"
+public_surfaces = ["crates/bijux-dna-bench-haplotypes/src/lib.rs", "crates/bijux-dna-bench-haplotypes/docs/PUBLIC_API.md"]

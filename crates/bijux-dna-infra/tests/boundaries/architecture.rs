@@ -59,7 +59,15 @@ fn infra_tree_matches_architecture_contract() {
     );
     assert_dir_entries(
         &root.join("src/io"),
-        ["error.rs", "mod.rs", "read.rs", "remove.rs", "stable_surface.rs", "write.rs"],
+        [
+            "error.rs",
+            "mod.rs",
+            "private.rs",
+            "read.rs",
+            "remove.rs",
+            "stable_surface.rs",
+            "write.rs",
+        ],
         "io support must stay split by operation and error boundary",
     );
     assert_dir_entries(

@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use std::path::Path;
 
 pub const DEFAULT_POLYX_PRESET: &str = "illumina_twocolor";
 
@@ -15,13 +16,17 @@ pub struct PolyxSelection {
 /// # Errors
 /// Returns an error if polyX configs cannot be loaded or the preset is invalid.
 pub fn resolve_polyx_selection(polyx_preset: Option<&str>) -> Result<PolyxSelection> {
+    resolve_polyx_selection_at(Path::new(""), polyx_preset)
+}
+
+fn resolve_polyx_selection_at(root: &Path, polyx_preset: Option<&str>) -> Result<PolyxSelection> {
     let preset_name = match polyx_preset {
         Some(name) if !name.trim().is_empty() => name.trim().to_string(),
         Some(_) => return Err(anyhow!("polyx preset name is empty")),
         None => DEFAULT_POLYX_PRESET.to_string(),
     };
-    let bank_path = crate::polyx_bank_path();
-    let presets_path = crate::polyx_presets_path();
+    let bank_path = root.join(crate::polyx_bank_path());
+    let presets_path = root.join(crate::polyx_presets_path());
     let bank = crate::load_polyx_bank(&bank_path)?;
     let presets = crate::load_polyx_presets(&presets_path, &bank)?;
     let bank_checksum = bijux_dna_infra::hash_file_sha256(&bank_path)?;
@@ -70,7 +75,17 @@ pub fn polyx_bank_provenance_json(
 /// # Errors
 /// Returns an error if polyX configs cannot be loaded or resolved.
 pub fn polyx_bank_context(polyx_preset: Option<&str>) -> Result<Option<serde_json::Value>> {
-    let selection = resolve_polyx_selection(polyx_preset)?;
+    polyx_bank_context_at(Path::new(""), polyx_preset)
+}
+
+/// Build polyX provenance from banks under an explicit repository root without changing CWD.
+/// # Errors
+/// Rejects unreadable banks and invalid presets.
+pub fn polyx_bank_context_at(
+    root: &Path,
+    preset: Option<&str>,
+) -> Result<Option<serde_json::Value>> {
+    let selection = resolve_polyx_selection_at(root, preset)?;
     let effective = resolve_effective_polyx(&selection)?;
     Ok(Some(polyx_bank_provenance_json(&selection, &effective)))
 }

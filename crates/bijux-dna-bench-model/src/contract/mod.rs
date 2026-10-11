@@ -138,8 +138,9 @@ pub use full_benchmark_report::{
     validate_full_benchmark_report, FullBenchmarkReportAdmissionContext,
 };
 pub use full_benchmark_result_collector::{
-    validate_full_benchmark_result_collector, FullBenchmarkResultBinding,
-    FullBenchmarkResultCollectorAdmissionContext,
+    project_full_benchmark_observation_rows, validate_full_benchmark_result_collector,
+    FullBenchmarkResultBinding, FullBenchmarkResultCollectorAdmissionContext,
+    FullBenchmarkSourceObservation,
 };
 pub use interfaces::{
     validate_defined_interface_campaign_alignment, validate_interface_parameter_alignment,
@@ -174,7 +175,11 @@ pub use local_hpc_result_collection_simulation::validate_benchmark_local_hpc_res
 pub use local_hpc_resume_simulation::validate_benchmark_local_hpc_resume_simulation;
 pub use local_hpc_scratch_layout::validate_benchmark_local_hpc_scratch_layout;
 pub use local_hpc_stage_benchmark_array::validate_benchmark_local_hpc_stage_benchmark_array;
-pub use local_hpc_submission_readiness::validate_benchmark_local_hpc_submission_readiness;
+pub use local_hpc_submission_readiness::{
+    evaluate_benchmark_local_hpc_harness_readiness, evaluate_benchmark_local_hpc_slurm_readiness,
+    validate_benchmark_local_hpc_submission_readiness, BenchmarkLocalHpcHarnessObservation,
+    BenchmarkLocalHpcSlurmObservation,
+};
 pub use local_pipeline_dag::{
     validate_benchmark_local_pipeline_dag_config,
     validate_benchmark_local_pipeline_dag_declarations,
@@ -185,6 +190,7 @@ pub use local_pipeline_dag::{
 };
 pub use local_runtime_metrics::validate_benchmark_local_runtime_metrics;
 pub use local_slurm_dependency::{
+    build_benchmark_local_slurm_dependency_report, inspect_benchmark_local_slurm_job_dependencies,
     validate_benchmark_local_slurm_dependency_check, validate_benchmark_local_slurm_dry_run,
     validate_benchmark_local_slurm_shell_syntax,
 };
@@ -390,7 +396,9 @@ pub use local_hpc_array::build_benchmark_local_hpc_array_resource_envelope;
 
 pub use local_slurm_scripts::{
     build_benchmark_local_all_domain_slurm_scripts_report,
+    build_benchmark_local_slurm_script_body_report, inspect_benchmark_local_slurm_script_body,
     validate_benchmark_local_all_domain_slurm_scripts_report,
+    validate_benchmark_local_slurm_script_body_report,
 };
 
 pub use real_smoke_core_subset::admit_real_smoke_core_subset_report;
@@ -407,7 +415,14 @@ pub use suite::{validate_suite_with_catalog, BenchmarkSuiteCatalog};
 pub(crate) mod hpc_campaign;
 
 mod simulation;
-pub use simulation::{admit_all_domain_simulation_inputs, AllDomainSimulationInput};
+pub use simulation::{
+    admit_all_domain_completion_check, admit_all_domain_missing_result_audit,
+    admit_all_domain_missing_result_inputs, admit_all_domain_simulation_inputs,
+    project_all_domain_missing_result_observation, validate_all_domain_completion_check,
+    validate_all_domain_failure_simulation_manifest, validate_all_domain_failure_simulation_record,
+    validate_all_domain_missing_result_audit, AllDomainMissingResultObservation,
+    AllDomainSimulationInput,
+};
 
 pub(crate) mod vcf_scope;
 
@@ -416,3 +431,5 @@ pub(crate) use readiness::validate_rendered_command_observations;
 pub(crate) mod micro_run;
 
 pub(crate) mod micro_report;
+
+pub use simulation::project_all_domain_simulation_parser_row;

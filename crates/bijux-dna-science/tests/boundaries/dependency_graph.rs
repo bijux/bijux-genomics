@@ -11,6 +11,7 @@ fn dependency_graph_matches_science_boundary() {
         "anyhow",
         "bijux-dna-bench-model",
         "bijux-dna-core",
+        "bijux-dna-domain-vcf",
         "bijux-dna-infra",
         "bijux-dna-policies",
         "clap",

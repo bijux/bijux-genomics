@@ -313,4 +313,36 @@ mod tests {
         assert_eq!(output.stdout, [255, 0, 128, 10]);
         Ok(())
     }
+    #[cfg(unix)]
+    #[test]
+    fn command_deadline_covers_inherited_pipes_after_parent_exit() -> anyhow::Result<()> {
+        let start = std::time::Instant::now();
+        let output = run_command_with_context_and_timeout(
+            "sh",
+            &["-c".to_string(), "printf ready; sleep 60 & exit 0".to_string()],
+            None,
+            None,
+            Duration::from_millis(150),
+        )?;
+        assert!(output.timed_out);
+        assert_eq!(output.output.stdout, "ready");
+        assert!(start.elapsed() < Duration::from_secs(3));
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn command_deadline_covers_live_child_after_pipe_closure() -> anyhow::Result<()> {
+        let start = std::time::Instant::now();
+        let output = run_command_with_context_and_timeout(
+            "sh",
+            &["-c".to_string(), "exec 1>&- 2>&-; sleep 60".to_string()],
+            None,
+            None,
+            Duration::from_millis(150),
+        )?;
+        assert!(output.timed_out);
+        assert!(start.elapsed() < Duration::from_secs(3));
+        Ok(())
+    }
 }

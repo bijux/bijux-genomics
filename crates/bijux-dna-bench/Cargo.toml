@@ -9,6 +9,7 @@ rust-version.workspace = true
 container-qualification = ["dep:bijux-dna-policies"]
 
 [dependencies]
+bijux-dna-bench-artifacts.workspace = true
 regex.workspace = true
 bijux-dna-policies = { path = "../bijux-dna-policies", optional = true }
 anyhow = { workspace = true }
@@ -31,6 +32,9 @@ bijux-dna-db-ena = { path = "../bijux-dna-db-ena" }
 bijux-dna-db-ref.workspace = true
 bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 md5.workspace = true
+
+noodles-bam.workspace = true
+noodles-sam.workspace = true
 
 [dev-dependencies]
 bijux-dna-analyze = { path = "../bijux-dna-analyze" }

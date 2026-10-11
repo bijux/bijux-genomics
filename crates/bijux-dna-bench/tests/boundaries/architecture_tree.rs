@@ -7,6 +7,22 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_docs_tree(root);
     assert_eq!(
+        dir_entries(&root.join("src/repo/alignment_fixture")),
+        entries(["mod.rs", "sorting.rs"])
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/repo/simulation")),
+        entries(["mod.rs", "failure.rs", "missing.rs", "completion.rs", "paths.rs", "parser.rs"])
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/simulation")),
+        entries(["mod.rs", "failure.rs", "missing.rs", "completion/"])
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/simulation/completion")),
+        entries(["mod.rs", "mutation.rs", "observation.rs"])
+    );
+    assert_eq!(
         dir_entries(root),
         entries(["Cargo.toml", "README.md", "bench/", "docs/", "src/", "tests/"]),
         "crate root must stay minimal and intentional"
@@ -23,6 +39,7 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/artifacts")),
         entries([
             "hpc_array/",
+            "hpc_campaign.rs",
             "simulation.rs",
             "admission/",
             "bam_score_evidence/",
@@ -89,7 +106,9 @@ fn bench_tree_matches_architecture_contract() {
             "copy_back.rs",
             "environment.rs",
             "monitor.rs",
-            "profiles.rs"
+            "profiles.rs",
+            "redaction.rs",
+            "submission.rs"
         ]),
         "campaign acquisition stays separate from planning"
     );
@@ -104,7 +123,8 @@ fn bench_tree_matches_architecture_contract() {
             "policies.rs",
             "preflight.rs",
             "resources.rs",
-            "templates.rs"
+            "templates.rs",
+            "submission/"
         ]),
         "campaign workflows keep their distinct responsibilities"
     );
@@ -118,6 +138,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
+            "alignment_fixture/",
             "hpc_array.rs",
             "hpc_resources.rs",
             "source_assets.rs",
@@ -132,7 +153,8 @@ fn bench_tree_matches_architecture_contract() {
             "stage_result.rs",
             "command_audit.rs",
             "command_artifacts.rs",
-            "simulation.rs",
+            "command_artifacts/",
+            "simulation/",
             "bam_score_evidence.rs",
             "vcf_score_evidence.rs",
             "vcf_execution_proof.rs",
@@ -197,7 +219,7 @@ fn bench_tree_matches_architecture_contract() {
             "hpc_array/",
             "micro_run.rs",
             "micro_report.rs",
-            "simulation.rs",
+            "simulation/",
             "container_qualification/",
             "alias_resolution.rs",
             "appraisal.rs",
@@ -381,7 +403,9 @@ fn bench_tree_matches_architecture_contract() {
             "dashboard.rs",
             "dashboard_markdown.rs",
             "mod.rs",
-            "tool_execution_modes.rs"
+            "tool_execution_modes.rs",
+            "slurm_dependencies.rs",
+            "slurm_scripts.rs"
         ]),
         "readiness evaluation must retain its explicit workflow owner"
     );

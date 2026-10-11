@@ -161,3 +161,5 @@ The CLI local stage-list commands delegate matrix admission to `load_benchmark_l
 `collect_hpc_asset_staging_manifest(HpcAssetStagingRequest)` observes current inputs and assembles the admitted manifest. `load_hpc_asset_staging_manifest(root, path)` binds decoded evidence to its stored path; `publish_hpc_asset_staging_manifest(root, path, manifest)` admits the declared destination before atomic publication. `compare_hpc_asset_staging_manifest(path, observed, expected)` retains field-specific current-input drift diagnostics.
 
 `collect_hpc_scratch_layout(HpcScratchRequest)` derives current scratch evidence without publication. `publish_hpc_scratch_layout(root, output, manifest)` binds an admitted manifest to its normalized destination; `load_hpc_scratch_layout(root, path)` admits the stored schema and path identity. CLI command producers still publish their command artifacts, while scratch collection consumes their typed rows directly.
+
+`render_all_domain_completion_check(root, output, expected, commands, outputs)` owns the illustrative completion workflow. The CLI acquires source rows, delegates, and presents the admitted report.

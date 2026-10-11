@@ -339,3 +339,33 @@ fn comparison_inputs_remain_inside_governed_stage_outputs() {
         }
     }
 }
+
+#[test]
+fn comparison_queries_preserve_scenario_artifact_identity_and_unknown_refusal() {
+    let scenarios = bijux_dna_domain_fastq::benchmark_scenarios();
+    let mut artifacts = Vec::new();
+    for scenario in &scenarios {
+        artifacts.extend([
+            scenario.cohort_artifact_id.clone(),
+            scenario.comparison_artifact_id.clone(),
+            scenario.normalization_artifact_id.clone(),
+        ]);
+        let count = scenarios.iter().filter(|item| item.stage_id == scenario.stage_id).count();
+        let selected = bijux_dna_domain_fastq::comparison_contract_for_stage(&scenario.stage_id);
+        if count == 1 {
+            let selected =
+                selected.unwrap_or_else(|| panic!("missing comparison for {}", scenario.stage_id));
+            assert_eq!(selected.stage_id, scenario.stage_id);
+            assert_eq!(selected.cohort_artifact_id, scenario.cohort_artifact_id);
+            assert_eq!(selected.comparison_artifact_id, scenario.comparison_artifact_id);
+            assert_eq!(selected.normalization_artifact_id, scenario.normalization_artifact_id);
+        } else {
+            assert!(selected.is_none(), "ambiguous stage must not select a scenario");
+        }
+    }
+    assert_eq!(bijux_dna_domain_fastq::benchmark_comparison_artifact_ids(), artifacts);
+    let unknown = StageId::from_static("unknown.stage");
+    assert!(bijux_dna_domain_fastq::comparison_contract_for_stage(&unknown).is_none());
+    assert!(bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&unknown).is_empty());
+    assert!(bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&unknown).is_empty());
+}

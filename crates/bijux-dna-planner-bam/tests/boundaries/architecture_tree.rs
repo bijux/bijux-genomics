@@ -17,7 +17,8 @@ fn planner_bam_tree_matches_architecture_contract() {
             "execution_graph.rs",
             "lib.rs",
             "local_readiness.rs",
-            "local_stage_cases.rs",
+            "benchmark/",
+            "benchmark.rs",
             "params.rs",
             "profile_catalog.rs",
             "report_stage.rs",
@@ -31,19 +32,70 @@ fn planner_bam_tree_matches_architecture_contract() {
         "planner src tree must keep API, selection, dispatch, stages, and adapters separated"
     );
     assert_eq!(
+        dir_entries(&root.join("src/benchmark")),
+        entries(["cases/"]),
+        "benchmark planning owns governed stage cases"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/benchmark/cases")),
+        entries(["admission.rs", "ancient/", "downstream/", "mod.rs", "pre/", "qc/"]),
+        "stage families own case contracts"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/benchmark/cases/pre")),
+        entries([
+            "mod.rs",
+            "validate.rs",
+            "qc_pre.rs",
+            "mapping_summary.rs",
+            "filter.rs",
+            "mapq_filter.rs",
+            "length_filter.rs",
+            "overlap_correction.rs"
+        ]),
+        "each stage owns its governed config, case inputs and plan construction"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/benchmark/cases/qc")),
+        entries([
+            "mod.rs",
+            "markdup.rs",
+            "duplication_metrics.rs",
+            "complexity.rs",
+            "coverage.rs",
+            "insert_size.rs",
+            "gc_bias.rs",
+            "endogenous_content.rs",
+            "recalibration.rs"
+        ]),
+        "each stage owns its governed config, case inputs and plan construction"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/benchmark/cases/ancient")),
+        entries(["mod.rs", "damage.rs", "authenticity.rs", "sex.rs"]),
+        "each stage owns its governed config, case inputs and plan construction"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/benchmark/cases/downstream")),
+        entries(["mod.rs", "bias_mitigation.rs", "kinship.rs"]),
+        "each stage owns its governed config, case inputs and plan construction"
+    );
+    assert_eq!(
         dir_entries(&root.join("src/selection")),
         entries([
             "domain_tool_output_contracts.rs",
+            "output_readiness.rs",
             "domain_tool_specs.rs",
             "mod.rs",
             "registry.rs",
+            "readiness.rs",
             "tool_selection.rs",
         ]),
         "selection must separate registry loading from tool choice logic"
     );
     assert_eq!(
         dir_entries(&root.join("src/stage_dispatch")),
-        entries(["adna.rs", "downstream.rs", "mod.rs", "post.rs", "pre.rs"]),
+        entries(["adna.rs", "downstream.rs", "mod.rs", "planning.rs", "post.rs", "pre.rs"]),
         "stage dispatch must stay partitioned by BAM planning family"
     );
     assert_eq!(

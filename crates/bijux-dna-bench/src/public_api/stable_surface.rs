@@ -684,14 +684,25 @@ pub use bijux_dna_bench_model::{
 };
 
 pub use crate::repo::hpc_campaign::profiles::write_campaign_profiles;
-pub use crate::workflow::hpc_campaign::{campaign_dry_run, campaign_preflight, CampaignContext};
+pub use crate::workflow::hpc_campaign::{
+    campaign_dry_run, campaign_preflight, collect_hpc_redaction_needles, submit_hpc_campaign,
+    CampaignContext, HpcSubmissionBackend,
+};
 pub use bijux_dna_bench_model::{
-    inspect_hpc_replay_payloads, is_supported_encryption_backend, CampaignCheck, CampaignConfig,
-    CampaignDryRunReport, CampaignJob, CampaignLayout, CampaignMeta, CampaignPolicies,
-    CampaignPreflightReport, CampaignSecurity, CampaignSlurm, CorpusSizeScalePolicy,
-    HpcReplayPayloadAdmission, LayoutPolicies, OutputTemplates, PlannedJob, PlannedLayout,
-    PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies, ResourceTemplate,
-    ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
+    assemble_hpc_code_submission, assemble_hpc_results_submission, encode_redacted_hpc_bundle,
+    hpc_stage_domain, inspect_hpc_replay_payloads, is_supported_encryption_backend,
+    plan_hpc_submission, redact_hpc_text, render_hpc_submission_script,
+    validate_hpc_scheduler_receipt, validate_hpc_submission_report,
+    validate_hpc_submission_request, CampaignCheck, CampaignConfig, CampaignDryRunReport,
+    CampaignJob, CampaignLayout, CampaignMeta, CampaignPolicies, CampaignPreflightReport,
+    CampaignSecurity, CampaignSlurm, CorpusSizeScalePolicy, HpcBundleFoundationLocks,
+    HpcBundleSubmission, HpcCodeFreezeObservation, HpcCodeSubmissionBundle,
+    HpcReplayPayloadAdmission, HpcResultsSubmissionBundle, HpcSelectedJob, HpcSubmissionMode,
+    HpcSubmissionPlan, HpcSubmissionSelector, HpcSubmissionSettings, LayoutPolicies,
+    OutputTemplates, PlannedJob, PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm,
+    ResourcePolicies, ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies,
+    SlurmSubmissionReport, SubmittedJob, CAMPAIGN_SCHEMA_VERSION,
+    HPC_SLURM_SUBMISSION_SCHEMA_VERSION,
 };
 
 pub use crate::workflow::hpc_campaign::monitor_campaign;
@@ -713,7 +724,10 @@ pub use crate::artifacts::schema_publication::{
 };
 
 pub use crate::artifacts::simulation::render_all_domain_simulation_command_script;
-pub use crate::workflow::simulation::fake_run_all_domain_benchmark_results;
+pub use crate::workflow::simulation::{
+    fake_run_all_domain_benchmark_results, fake_run_all_domain_failure_results,
+    render_all_domain_completion_check, render_all_domain_missing_result_audit,
+};
 pub use bijux_dna_bench_model::{
     all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
     all_domain_simulation_output_path, all_domain_simulation_output_role,
@@ -755,7 +769,10 @@ pub use bijux_dna_bench_model::{
     evaluate_operational_binding_coverage, OperationalBindingEvidence,
 };
 
-pub use crate::workflow::publish_rendered_command_artifacts;
+pub use crate::workflow::{
+    inspect_benchmark_local_slurm_dependencies, publish_rendered_command_artifacts,
+    validate_benchmark_local_slurm_script_bodies,
+};
 
 pub use crate::workflow::qualify_micro_benchmark_run;
 pub use bijux_dna_bench_model::{
@@ -849,3 +866,8 @@ pub use bijux_dna_bench_model::{
     ToolExecutionModeAssignment, ToolExecutionModesConfig,
     LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
 };
+
+/// Native alignment-file adapters for small benchmark fixtures.
+pub use crate::repo::alignment_fixture as alignment_fixtures;
+
+pub use crate::repo::simulation::parser::load_all_domain_simulation_parser_row;

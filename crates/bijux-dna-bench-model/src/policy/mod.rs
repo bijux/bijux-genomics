@@ -42,3 +42,7 @@ pub(crate) mod runtime_resolution;
 
 pub(crate) mod tool_execution_modes;
 pub(crate) mod tool_execution_validation;
+
+pub(crate) mod bundle_redaction;
+
+pub(crate) mod hpc_submission;

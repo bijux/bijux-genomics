@@ -1,6 +1,6 @@
 use bijux_dna_core::ids::StageId;
 
-use crate::benchmark_scenarios_for_stage;
+use crate::{benchmark_scenarios_for_stage, BenchmarkScenario};
 
 use super::priorities::comparison_input_artifact_ids_for_manifest_stage;
 
@@ -13,28 +13,29 @@ pub struct StageComparisonContract {
     pub normalization_artifact_id: String,
 }
 
+fn comparison_contract(scenario: BenchmarkScenario) -> StageComparisonContract {
+    StageComparisonContract {
+        comparison_input_artifact_ids: comparison_input_artifact_ids_for_manifest_stage(
+            scenario.stage_id.as_str(),
+        ),
+        stage_id: scenario.stage_id,
+        cohort_artifact_id: scenario.cohort_artifact_id,
+        comparison_artifact_id: scenario.comparison_artifact_id,
+        normalization_artifact_id: scenario.normalization_artifact_id,
+    }
+}
+
 fn stage_comparison_contracts() -> Vec<StageComparisonContract> {
-    crate::benchmark_scenarios()
-        .iter()
-        .map(|scenario| StageComparisonContract {
-            stage_id: scenario.stage_id.clone(),
-            comparison_input_artifact_ids: comparison_input_artifact_ids_for_manifest_stage(
-                scenario.stage_id.as_str(),
-            ),
-            cohort_artifact_id: scenario.cohort_artifact_id.clone(),
-            comparison_artifact_id: scenario.comparison_artifact_id.clone(),
-            normalization_artifact_id: scenario.normalization_artifact_id.clone(),
-        })
-        .collect()
+    crate::benchmark_scenarios().into_iter().map(comparison_contract).collect()
 }
 
 #[must_use]
 pub fn comparison_contract_for_stage(stage_id: &StageId) -> Option<StageComparisonContract> {
-    let stage_scenarios = benchmark_scenarios_for_stage(stage_id);
-    if stage_scenarios.len() > 1 {
+    let mut stage_scenarios = benchmark_scenarios_for_stage(stage_id);
+    if stage_scenarios.len() != 1 {
         return None;
     }
-    stage_comparison_contracts().into_iter().find(|contract| contract.stage_id == *stage_id)
+    stage_scenarios.pop().map(comparison_contract)
 }
 
 #[must_use]
