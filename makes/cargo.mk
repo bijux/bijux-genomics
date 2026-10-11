@@ -29,7 +29,6 @@ GENOMICS_RUST_GATE_BIN ?= makes/bin/run_genomics_rust_gate.sh
 GITHUB_WORKFLOW_GATE_BIN ?= makes/bin/run_github_workflow_gate.sh
 GITHUB_WORKFLOW_REF_VALIDATOR ?= makes/bin/validate_github_workflow_ref.sh
 RUST_GATE_BIN ?= $(GENOMICS_RUST_GATE_BIN)
-RUST_CLIPPY_EXCLUDES ?= bijux-dna-dev
 RUST_AUDIT_PREREQUISITES += audit-policy-rs
 NEXTEST_STATUS_LEVEL ?= all
 NEXTEST_FINAL_STATUS_LEVEL ?= all
