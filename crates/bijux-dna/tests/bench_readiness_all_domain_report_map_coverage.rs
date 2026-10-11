@@ -137,7 +137,7 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows(
     );
     assert_eq!(
         report_section_counts.get("population_structure").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(7)
     );
     assert_eq!(
         report_section_counts.get("runs_of_homozygosity").and_then(serde_json::Value::as_u64),
@@ -153,6 +153,33 @@ fn bench_readiness_all_domain_report_map_coverage_reports_complete_active_rows(
     assert!(rows.iter().all(|row| {
         row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("covered")
     }));
+
+    let population_structure_bindings = rows
+        .iter()
+        .filter(|row| {
+            row.get("report_section_id").and_then(serde_json::Value::as_str)
+                == Some("population_structure")
+        })
+        .map(|row| {
+            format!(
+                "{}:{}",
+                row.get("stage_id").and_then(serde_json::Value::as_str).expect("stage identity"),
+                row.get("tool_id").and_then(serde_json::Value::as_str).expect("tool identity")
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        population_structure_bindings,
+        BTreeSet::from([
+            "vcf.admixture:plink".to_string(),
+            "vcf.admixture:plink2".to_string(),
+            "vcf.pca:eigensoft".to_string(),
+            "vcf.pca:plink2".to_string(),
+            "vcf.population_structure:eigensoft".to_string(),
+            "vcf.population_structure:plink".to_string(),
+            "vcf.population_structure:plink2".to_string(),
+        ])
+    );
 
     assert!(rows.iter().any(|row| {
         row.get("result_id").and_then(serde_json::Value::as_str)

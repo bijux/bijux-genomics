@@ -56,17 +56,14 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
     assert_eq!(resolution_counts.get("host_binary").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
         resolution_counts.get("apptainer_image").and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(12)
     );
     assert_eq!(
         resolution_counts.get("external_artifact").and_then(serde_json::Value::as_u64),
         Some(4)
     );
-    assert_eq!(
-        resolution_counts.get("unavailable_with_reason").and_then(serde_json::Value::as_u64),
-        Some(2)
-    );
-    assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert!(resolution_counts.get("unavailable_with_reason").is_none());
+    assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         resolution_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
         row_count
@@ -125,21 +122,23 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5")
             && row.get("resolution_kind").and_then(serde_json::Value::as_str)
-                == Some("unavailable_with_reason")
-            && row
-                .get("unavailable_reason")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|reason| reason.contains("external container source"))
+                == Some("apptainer_image")
+            && row.get("unavailable_reason").is_none_or(serde_json::Value::is_null)
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink")
             && row.get("resolution_kind").and_then(serde_json::Value::as_str)
-                == Some("unavailable_with_reason")
-            && row
-                .get("unavailable_reason")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|reason| reason.contains("planned container source"))
+                == Some("apptainer_image")
+            && row.get("unavailable_reason").is_none_or(serde_json::Value::is_null)
     }));
+    for tool_id in ["eagle", "glimpse", "ibdhap", "minimac4", "shapeit"] {
+        assert!(rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                    == Some("apptainer_image")
+                && row.get("unavailable_reason").is_none_or(serde_json::Value::is_null)
+        }));
+    }
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
             && row

@@ -99,8 +99,9 @@ library can manage when callers invoke the matching API.
   external admission; it never copies or publishes the restricted artifact.
 - `src/site_policy/repository_freeze.rs`: clean-source verification and commit-addressed Git
   worktree materialization under site-governed roots.
-- `src/site_policy/repository_archive.rs`: bounded Git-bundle creation, isolated restoration proof,
-  receipt-gated checkout retirement, and atomic rollback under the same governed root.
+- `src/site_policy/repository_archive.rs`: bounded Git-bundle creation, empty-bare-repository
+  completeness proof, receipt-gated checkout retirement, and atomic rollback under the same
+  governed root.
 - `src/site_policy/repository_tracking.rs`: prefix-scoped tracked-file discovery for governed
   repository publications.
 - `src/execution_contract/pipeline/admission.rs`: execution-site repository identity and clean-state

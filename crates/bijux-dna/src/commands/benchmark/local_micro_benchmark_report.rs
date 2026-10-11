@@ -33,7 +33,9 @@ use super::readiness::scientific_acceptance_thresholds::{
     scientific_acceptance_pass_rule_label, scientific_acceptance_tolerance_kind_label,
     ScientificAcceptanceThresholdRow, ScientificAcceptanceThresholdsConfig,
 };
-use super::readiness::stage_tool_resources::{StageToolResourceRow, StageToolResourcesConfig};
+use super::readiness::stage_tool_resources::{
+    validate_stage_tool_resources_config, StageToolResourceRow, StageToolResourcesConfig,
+};
 
 pub(crate) const DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH: &str =
     "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.md";
@@ -847,6 +849,7 @@ fn load_stage_tool_resources(
         .with_context(|| format!("read {}", config_path.display()))?;
     let config: StageToolResourcesConfig =
         toml::from_str(&payload).with_context(|| format!("parse {}", config_path.display()))?;
+    validate_stage_tool_resources_config(&config)?;
     Ok(config
         .rows
         .into_iter()
@@ -1171,6 +1174,7 @@ fn sanitize_markdown_cell(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::benchmark::readiness::stage_tool_resources::FASTQ_STAGE_TOOL_RESOURCE_ORIGIN;
     use serde_json::json;
     use tempfile::tempdir;
 
@@ -1202,7 +1206,8 @@ declaration_origin = "test_contract"
         .expect("write thresholds");
         fs::write(
             repo_root.join(STAGE_TOOL_RESOURCES_PATH),
-            r#"
+            format!(
+                r#"
 schema_version = "bijux.bench.local_stage_tool_resources.v1"
 classification_scope = "benchmark_ready_command_resources"
 
@@ -1214,8 +1219,9 @@ threads = 1
 memory_gb = 1
 walltime_minutes = 1
 scratch_gb = 1
-resource_origin = "test_resource"
+resource_origin = "{FASTQ_STAGE_TOOL_RESOURCE_ORIGIN}"
 "#,
+            ),
         )
         .expect("write resources");
 

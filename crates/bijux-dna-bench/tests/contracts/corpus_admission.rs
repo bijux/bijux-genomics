@@ -182,6 +182,28 @@ fn admits_complete_bam_genotyping_authority_closure() -> Result<()> {
 }
 
 #[test]
+fn admits_preserved_catalog_index_roles_for_genotyping_reference() -> Result<()> {
+    let fixture = bam_genotyping_corpus_fixture()?;
+    let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
+    let reference = index["records"]
+        .as_array_mut()
+        .expect("records array")
+        .iter_mut()
+        .find(|record| record["id"] == "equcab3-gcf-002863925.1")
+        .expect("reference record");
+    for file in reference["files"].as_array_mut().expect("reference files") {
+        let role = file["role"].as_str().expect("reference role");
+        file["role"] = Value::String(role.replacen("catalog.", "catalog.preserved_catalog.", 1));
+    }
+    write_json(&fixture.data_index, &index)?;
+
+    let admitted = admit_bam_genotyping_corpus(&fixture.study_root, &fixture.data_index)?;
+    assert!(admitted.reference.path.ends_with("EquCab3.0.fna"));
+    assert!(admitted.reference_index.path.ends_with("EquCab3.0.fna.fai"));
+    Ok(())
+}
+
+#[test]
 fn rejects_genotyping_index_identity_that_disagrees_with_catalog() -> Result<()> {
     let fixture = bam_genotyping_corpus_fixture()?;
     let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;

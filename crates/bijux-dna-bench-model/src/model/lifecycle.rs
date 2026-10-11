@@ -62,6 +62,8 @@ pub struct BenchmarkAttemptArchive {
     #[schemars(schema_with = "benchmark_attempt_archive_schema_version")]
     pub schema_version: String,
     pub run_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub case_id: Option<String>,
     pub attempt_id: String,
     pub tool_id: String,
     pub slurm_job_id: String,
@@ -81,6 +83,8 @@ pub struct BenchmarkAttemptArchive {
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkAttemptMigrationEntry {
     pub run_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub case_id: Option<String>,
     pub attempt_id: String,
     pub tool_id: String,
     pub slurm_job_id: String,
@@ -292,6 +296,8 @@ pub struct BenchmarkRunIdentity {
 pub struct BenchmarkAttemptIdentity {
     pub campaign_id: String,
     pub run: BenchmarkRunIdentity,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub case_id: Option<String>,
     pub attempt_id: String,
     pub tool_id: String,
 }
@@ -344,6 +350,8 @@ pub struct BenchmarkCampaignPlan {
     pub repository_commit: String,
     #[schemars(schema_with = "sha256_identity_schema")]
     pub campaign_registry_sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub case_matrix_sha256: Option<String>,
     pub cycle: BenchmarkCycleStatusV2,
 }
 
@@ -561,6 +569,23 @@ impl BenchmarkCampaignPlan {
             schema_version: BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1.to_string(),
             repository_commit,
             campaign_registry_sha256,
+            case_matrix_sha256: None,
+            cycle,
+        }
+    }
+
+    #[must_use]
+    pub fn for_case_matrix(
+        repository_commit: String,
+        campaign_registry_sha256: String,
+        case_matrix_sha256: String,
+        cycle: BenchmarkCycleStatusV2,
+    ) -> Self {
+        Self {
+            schema_version: BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1.to_string(),
+            repository_commit,
+            campaign_registry_sha256,
+            case_matrix_sha256: Some(case_matrix_sha256),
             cycle,
         }
     }

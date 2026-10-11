@@ -49,6 +49,22 @@ pub fn load_container_qualification_slurm_spec(
     Ok(spec)
 }
 
+/// Load a persisted qualification specification for post-submission lifecycle operations.
+///
+/// The immutable executor identity remains validated, but the executor bytes need not remain at
+/// their original path after the prepared script has passed its pre-execution digest gate.
+///
+/// # Errors
+/// Returns an error when the recorded authority is malformed, changed, or conflicts with its
+/// admitted governance, pipeline, credential, repository, or evidence-root identities.
+pub fn load_recorded_container_qualification_slurm_spec(
+    path: &Path,
+) -> Result<ContainerQualificationSlurmSpec> {
+    let spec = read_json(path)?;
+    validate_recorded_specification(&spec)?;
+    Ok(spec)
+}
+
 pub(super) fn derive_identity(
     hostname: &str,
     governance_path: &Path,
@@ -197,6 +213,7 @@ fn qualification_attempt_roots(
                 run_directory: run_id.to_string(),
                 tool_id: tool_id.to_string(),
                 campaign_id: campaign_id.to_string(),
+                execution_unit_id: None,
                 attempt_id: attempt_id.to_string(),
             };
             let evidence_root =
@@ -224,6 +241,19 @@ fn qualification_attempt_roots(
 }
 
 pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> Result<()> {
+    validate_recorded_specification(spec)?;
+    require_exact_file(
+        &spec.executor_program_path,
+        &spec.executor_program_sha256,
+        "executor program",
+    )?;
+    require_executable(&spec.executor_program_path, "executor program")?;
+    Ok(())
+}
+
+pub(super) fn validate_recorded_specification(
+    spec: &ContainerQualificationSlurmSpec,
+) -> Result<()> {
     validate_schema_authority(spec)?;
     require_sha256(&spec.governance_sha256, "governance SHA-256")?;
     require_sha256(&spec.pipeline_sha256, "pipeline SHA-256")?;
@@ -248,12 +278,7 @@ pub(super) fn validate_specification(spec: &ContainerQualificationSlurmSpec) -> 
         &spec.credential_reference_sha256,
         "credential reference",
     )?;
-    require_exact_file(
-        &spec.executor_program_path,
-        &spec.executor_program_sha256,
-        "executor program",
-    )?;
-    require_executable(&spec.executor_program_path, "executor program")?;
+    require_absolute_normalized_path(&spec.executor_program_path, "executor program")?;
     if spec.executor_program_path.file_name() != Some(OsStr::new("bijux-dna-dev")) {
         bail!("native qualification executor must be the pinned bijux-dna-dev program");
     }
@@ -395,13 +420,7 @@ pub(super) fn canonical_governed_directory(path: &Path, label: &str) -> Result<P
 }
 
 pub(super) fn require_exact_file(path: &Path, sha256: &str, label: &str) -> Result<PathBuf> {
-    if !path.is_absolute()
-        || path
-            .components()
-            .any(|component| matches!(component, Component::ParentDir | Component::CurDir))
-    {
-        bail!("{label} path is not absolute and normalized");
-    }
+    require_absolute_normalized_path(path, label)?;
     let metadata = fs::symlink_metadata(path).with_context(|| format!("inspect {label}"))?;
     if metadata.file_type().is_symlink() || !metadata.is_file() {
         bail!("{label} is not a regular file");
@@ -415,6 +434,17 @@ pub(super) fn require_exact_file(path: &Path, sha256: &str, label: &str) -> Resu
         bail!("{label} digest differs from qualification specification");
     }
     Ok(canonical)
+}
+
+fn require_absolute_normalized_path(path: &Path, label: &str) -> Result<()> {
+    if !path.is_absolute()
+        || path
+            .components()
+            .any(|component| matches!(component, Component::ParentDir | Component::CurDir))
+    {
+        bail!("{label} path is not absolute and normalized");
+    }
+    Ok(())
 }
 
 fn scheduler_name(domain: &str, stage: &str, tool: &str, sample: &str) -> Result<String> {
@@ -438,7 +468,7 @@ fn require_sha256(value: &str, label: &str) -> Result<()> {
     Ok(())
 }
 
-fn require_executable(path: &Path, label: &str) -> Result<()> {
+pub(super) fn require_executable(path: &Path, label: &str) -> Result<()> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt as _;

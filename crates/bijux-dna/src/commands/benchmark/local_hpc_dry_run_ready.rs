@@ -3,7 +3,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_dry_run_readiness, BenchmarkLocalHpcDryRunReadinessBehavior,
+    BenchmarkLocalHpcDryRunReadinessGoalCheck, BenchmarkLocalHpcDryRunReadinessReport,
+    BenchmarkLocalHpcDryRunReadinessSummary, BENCHMARK_LOCAL_HPC_DRY_RUN_READINESS_SCHEMA_V1,
+};
 
 use super::local_hpc_asset_staging_manifest::{
     collect_hpc_asset_staging_manifest, LocalHpcAssetStagingManifest,
@@ -47,64 +51,13 @@ use super::path_resolution::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const LOCAL_HPC_DRY_RUN_READY_SCHEMA_VERSION: &str = "bijux.bench.local_hpc_dry_run_ready.v1";
 pub(crate) const DEFAULT_HPC_DRY_RUN_READY_PATH: &str =
     "artifacts/benchmark-smoke/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcDryRunReadyGoalCheck {
-    pub(crate) goal_id: u32,
-    pub(crate) surface: String,
-    pub(crate) output_path: Option<String>,
-    pub(crate) ok: bool,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcDryRunReadySummary {
-    pub(crate) benchmark_job_count: usize,
-    pub(crate) essential_pipeline_job_count: usize,
-    pub(crate) staged_input_count: usize,
-    pub(crate) execution_resolver_row_count: usize,
-    pub(crate) execution_unclassified_tool_count: usize,
-    pub(crate) stage_benchmark_row_count: usize,
-    pub(crate) pipeline_node_row_count: usize,
-    pub(crate) dependency_case_count: usize,
-    pub(crate) resume_rerun_job_count: usize,
-    pub(crate) result_collection_row_count: usize,
-    pub(crate) candidate_job_count: usize,
-    pub(crate) candidate_representative_group_count: usize,
-    pub(crate) candidate_selected_input_bytes: u64,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcDryRunReadyBehavior {
-    pub(crate) goals_481_to_489_validated: bool,
-    pub(crate) benchmark_jobs_keep_known_assets: bool,
-    pub(crate) benchmark_jobs_keep_scratch_layout: bool,
-    pub(crate) benchmark_jobs_keep_explicit_execution_resolution: bool,
-    pub(crate) pipeline_nodes_keep_dependency_manifests: bool,
-    pub(crate) dependency_failures_block_descendants_only: bool,
-    pub(crate) resume_rules_are_explicit: bool,
-    pub(crate) result_collection_statuses_are_distinct: bool,
-    pub(crate) first_run_candidate_is_small_and_governed: bool,
-    pub(crate) no_manual_steps_or_ambiguity: bool,
-    pub(crate) proven: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcDryRunReadyReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) checked_goal_count: usize,
-    pub(crate) passed_goal_count: usize,
-    pub(crate) failed_goal_count: usize,
-    pub(crate) failing_goal_ids: Vec<u32>,
-    pub(crate) ready_for_first_hpc_run: bool,
-    pub(crate) summary: LocalHpcDryRunReadySummary,
-    pub(crate) behavior: LocalHpcDryRunReadyBehavior,
-    pub(crate) checks: Vec<LocalHpcDryRunReadyGoalCheck>,
-}
+pub(crate) type LocalHpcDryRunReadyGoalCheck = BenchmarkLocalHpcDryRunReadinessGoalCheck;
+pub(crate) type LocalHpcDryRunReadySummary = BenchmarkLocalHpcDryRunReadinessSummary;
+pub(crate) type LocalHpcDryRunReadyBehavior = BenchmarkLocalHpcDryRunReadinessBehavior;
+pub(crate) type LocalHpcDryRunReadyReport = BenchmarkLocalHpcDryRunReadinessReport;
 
 pub(crate) fn run_render_hpc_dry_run_ready(
     args: &parse::BenchLocalRenderHpcDryRunReadyArgs,
@@ -307,8 +260,8 @@ fn build_hpc_dry_run_ready(
         candidate_report.as_ref().ok(),
     );
 
-    Ok(LocalHpcDryRunReadyReport {
-        schema_version: LOCAL_HPC_DRY_RUN_READY_SCHEMA_VERSION,
+    let report = LocalHpcDryRunReadyReport {
+        schema_version: BENCHMARK_LOCAL_HPC_DRY_RUN_READINESS_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, absolute_output_path),
         checked_goal_count: checks.len(),
         passed_goal_count: checks.iter().filter(|check| check.ok).count(),
@@ -318,7 +271,9 @@ fn build_hpc_dry_run_ready(
         summary,
         behavior,
         checks,
-    })
+    };
+    validate_benchmark_local_hpc_dry_run_readiness(&report)?;
+    Ok(report)
 }
 
 fn build_summary(

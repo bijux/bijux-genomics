@@ -11,12 +11,13 @@ use bijux_dna_bench_model::{
 };
 
 use super::{
-    ensure_execution_spec, ensure_stage_campaign_attempts, load_checked_in_benchmark_campaign_plan,
-    load_execution_authorities, load_execution_spec,
+    ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
+    load_case_execution_authorities, load_checked_in_benchmark_campaign_plan,
+    load_execution_authorities, load_execution_spec, load_stage_plan_manifest,
 };
 use crate::workflow::{
-    admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
-    BenchmarkCampaignMaterialRequest,
+    admit_benchmark_campaign_evidence, load_benchmark_case_matrix,
+    prepare_benchmark_campaign_material, BenchmarkCampaignMaterialRequest,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -27,6 +28,7 @@ pub struct BenchmarkCyclePreparationRequest {
     pub inventory: PathBuf,
     pub benchmark_root: PathBuf,
     pub plan: PathBuf,
+    pub case_matrix: Option<PathBuf>,
     pub operator: String,
     pub prepared_at_utc: String,
     pub account: String,
@@ -46,21 +48,44 @@ pub fn prepare_checked_in_benchmark_campaign(
     let study_root = request.study_root.canonicalize()?;
     let data_index = request.data_index.canonicalize()?;
     let inventory = request.inventory.canonicalize()?;
-    let plan = load_checked_in_benchmark_campaign_plan(&repository_root, &request.plan)?;
+    let plan = load_checked_in_benchmark_campaign_plan(
+        &repository_root,
+        &request.plan,
+        request.case_matrix.as_deref(),
+    )?;
     ensure_stage_campaign_attempts(&request.benchmark_root, &plan)?;
     let benchmark_root = request.benchmark_root.canonicalize()?;
-    let authorities =
-        load_execution_authorities(&repository_root, &inventory, &plan.repository_commit, &plan)?;
+    let case_matrix = request.case_matrix.as_deref().map(load_benchmark_case_matrix).transpose()?;
+    let authorities = if let Some(matrix) = &case_matrix {
+        load_case_execution_authorities(
+            &repository_root,
+            &inventory,
+            &plan.repository_commit,
+            &plan,
+            matrix,
+        )?
+    } else {
+        load_execution_authorities(&repository_root, &inventory, &plan.repository_commit, &plan)?
+    };
     let run_id = campaign_run_id(&plan)?;
     let evidence =
         admit_benchmark_campaign_evidence(&repository_root, &study_root, &data_index, run_id)?;
+    if let Some(matrix) = &case_matrix {
+        let admitted_corpus = evidence.primary_corpus_snapshot();
+        if matrix.cases.iter().any(|case| case.corpus != admitted_corpus) {
+            bail!("benchmark case corpus differs from admitted campaign execution evidence");
+        }
+    }
     let mut attempts = plan
         .cycle
         .attempts
         .iter()
         .filter(|attempt| attempt.transitions.len() == 1)
         .collect::<Vec<_>>();
-    attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
+    attempts.sort_by(|left, right| {
+        (left.identity.case_id.as_deref(), left.identity.tool_id.as_str())
+            .cmp(&(right.identity.case_id.as_deref(), right.identity.tool_id.as_str()))
+    });
     let mut units = Vec::with_capacity(attempts.len());
     for attempt in attempts {
         let identity = &attempt.identity;
@@ -82,8 +107,14 @@ pub fn prepare_checked_in_benchmark_campaign(
                     },
                     &evidence,
                 )?;
+                let stage_plan_units = material
+                    .stage_plan_units
+                    .clone()
+                    .context("campaign execution material omits stage-plan units")?;
                 let spec = authorities.build_execution_spec(&plan, identity, &image, material)?;
+                let stage_plans = authorities.build_stage_plans(&spec, &stage_plan_units)?;
                 ensure_execution_spec(&benchmark_root, &spec)?;
+                ensure_stage_plan_manifest(&benchmark_root, &spec, &stage_plans)?;
                 bijux_dna_runtime::record_attempt_ready(
                     &benchmark_root,
                     identity,
@@ -93,6 +124,7 @@ pub fn prepare_checked_in_benchmark_campaign(
             })(),
             Some(BenchmarkLifecycleStatus::Ready) => (|| -> Result<BenchmarkExecutionSpec> {
                 let spec = load_execution_spec(&benchmark_root, identity)?;
+                load_stage_plan_manifest(&benchmark_root, identity)?;
                 let image = authorities.resolve_current_image(&study_root, &identity.tool_id)?;
                 let indexed_input = spec
                     .inputs

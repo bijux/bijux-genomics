@@ -1,9 +1,12 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_stage_benchmark_array, BenchmarkLocalHpcStageBenchmarkArrayReport,
+    BenchmarkLocalHpcStageBenchmarkArrayRow, BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1,
+};
 
 use super::local_all_domain_job_execution::{
     render_shell_command, rendered_benchmark_result_execution_argv,
@@ -22,50 +25,13 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_VERSION: &str =
-    "bijux.bench.local_hpc_stage_benchmark_array.v1";
+    BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_STAGE_BENCHMARK_ARRAY_SCRIPT_PATH: &str =
     "runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch";
 const STAGE_BENCHMARK_ARRAY_JOB_NAME: &str = "bijux-stage-benchmark-array";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcStageBenchmarkArrayRow {
-    pub(crate) array_index: usize,
-    pub(crate) job_id_local: String,
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) execution_mode: String,
-    pub(crate) execution_mode_summary: String,
-    pub(crate) resolution_kind: String,
-    pub(crate) resolution_target: String,
-    pub(crate) unavailable_reason: Option<String>,
-    pub(crate) script_path: String,
-    pub(crate) benchmark_result_argv: Vec<String>,
-    pub(crate) benchmark_result_command: String,
-    pub(crate) scratch_root: String,
-    pub(crate) input_links_root: String,
-    pub(crate) output_root: String,
-    pub(crate) log_root: String,
-    pub(crate) stdout_path: String,
-    pub(crate) stderr_path: String,
-    pub(crate) output_paths: Vec<String>,
-    pub(crate) resources: LocalHpcArrayResources,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcStageBenchmarkArrayReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) script_path: String,
-    pub(crate) manifest_path: String,
-    pub(crate) wrapper_log_root: String,
-    pub(crate) array_spec: String,
-    pub(crate) benchmark_job_count: usize,
-    pub(crate) resource_envelope: LocalHpcArrayResources,
-    pub(crate) rows: Vec<LocalHpcStageBenchmarkArrayRow>,
-}
+pub(crate) type LocalHpcStageBenchmarkArrayRow = BenchmarkLocalHpcStageBenchmarkArrayRow;
+pub(crate) type LocalHpcStageBenchmarkArrayReport = BenchmarkLocalHpcStageBenchmarkArrayReport;
 
 struct BuiltLocalHpcStageBenchmarkArray {
     report: LocalHpcStageBenchmarkArrayReport,
@@ -220,8 +186,6 @@ fn build_hpc_stage_benchmark_array(
             )
         })
         .collect::<Result<Vec<_>>>()?;
-    ensure_stage_benchmark_array_contract(&rows)?;
-
     let script_parent = absolute_script_path.parent().ok_or_else(|| {
         anyhow!("stage benchmark array output `{}` has no parent", absolute_script_path.display())
     })?;
@@ -237,7 +201,7 @@ fn build_hpc_stage_benchmark_array(
     let resource_envelope = compute_resource_envelope(&rows)?;
 
     let report = LocalHpcStageBenchmarkArrayReport {
-        schema_version: LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_VERSION,
+        schema_version: LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_VERSION.to_string(),
         script_path: path_relative_to_repo(repo_root, absolute_script_path),
         manifest_path: path_relative_to_repo(repo_root, &manifest_path),
         wrapper_log_root: path_relative_to_repo(repo_root, &wrapper_log_root),
@@ -246,6 +210,7 @@ fn build_hpc_stage_benchmark_array(
         resource_envelope,
         rows,
     };
+    validate_benchmark_local_hpc_stage_benchmark_array(&report)?;
     let script_body = render_stage_benchmark_array_script(repo_root, &report)?;
     Ok(BuiltLocalHpcStageBenchmarkArray { report, script_body, manifest_path })
 }
@@ -319,61 +284,6 @@ fn build_stage_benchmark_array_row(
             scratch_gb: scratch.resources.scratch_gb,
         },
     })
-}
-
-fn ensure_stage_benchmark_array_contract(rows: &[LocalHpcStageBenchmarkArrayRow]) -> Result<()> {
-    if rows.is_empty() {
-        return Err(anyhow!(
-            "HPC stage benchmark array must cover at least one selected benchmark result"
-        ));
-    }
-    if rows.iter().enumerate().any(|(index, row)| row.array_index != index) {
-        return Err(anyhow!(
-            "HPC stage benchmark array indexes must stay contiguous and zero-based"
-        ));
-    }
-    let unique_job_ids = rows.iter().map(|row| row.job_id_local.as_str()).collect::<BTreeSet<_>>();
-    if unique_job_ids.len() != rows.len() {
-        return Err(anyhow!(
-            "HPC stage benchmark array must keep one unique local job id per array row"
-        ));
-    }
-    let unique_result_ids = rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>();
-    if unique_result_ids.len() != rows.len() {
-        return Err(anyhow!(
-            "HPC stage benchmark array must keep one unique benchmark result id per array row"
-        ));
-    }
-    for row in rows {
-        if row.output_paths.is_empty() {
-            return Err(anyhow!(
-                "HPC stage benchmark array row `{}` must keep at least one declared output",
-                row.result_id
-            ));
-        }
-        if row.stdout_path.is_empty() || row.stderr_path.is_empty() {
-            return Err(anyhow!(
-                "HPC stage benchmark array row `{}` must keep explicit stdout and stderr paths",
-                row.result_id
-            ));
-        }
-        if row.benchmark_result_argv.is_empty() || row.benchmark_result_command.is_empty() {
-            return Err(anyhow!(
-                "HPC stage benchmark array row `{}` must keep an execution command",
-                row.result_id
-            ));
-        }
-        if row.execution_mode.is_empty()
-            || row.execution_mode_summary.is_empty()
-            || row.resolution_kind.is_empty()
-        {
-            return Err(anyhow!(
-                "HPC stage benchmark array row `{}` must keep execution resolution metadata",
-                row.result_id
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn compute_resource_envelope(

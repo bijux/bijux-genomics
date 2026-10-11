@@ -4,18 +4,32 @@ use std::process::Command;
 
 use anyhow::Context;
 use bijux_dna_bench::{
-    build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
+    build_benchmark_stage_plans, build_execution_spec, ensure_execution_spec,
+    ensure_stage_campaign_attempts, ensure_stage_plan_manifest, load_case_execution_authorities,
     load_checked_in_benchmark_planning_contracts, load_execution_authorities, load_execution_spec,
+    load_stage_plan_manifest, plan_benchmark_case_attempts, plan_benchmark_case_matrix,
     plan_stage_campaign_attempts, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
-    BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism,
-    BenchmarkExecutionInput, BenchmarkExecutionInputKind, BenchmarkExecutionMaterial,
-    BenchmarkExecutionParameterEvidence, BenchmarkExecutionSpec,
+    BenchmarkAcceptanceOperator, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV2,
+    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1, BenchmarkExecutionAcceptance,
+    BenchmarkExecutionDeterminism, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
+    BenchmarkExecutionMaterial, BenchmarkExecutionParameterEvidence, BenchmarkExecutionSpec,
+    BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
+    BenchmarkStagePlanUnitMaterial,
 };
 use bijux_dna_containers::api::{
     load_container_catalog, load_image_inventory_publication, ContainerCatalog,
     CurrentApptainerImage,
 };
+use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, ToolConstraints};
+use bijux_dna_core::ids::{ArtifactId, StageId, StepId, ToolId};
+use bijux_dna_core::prelude::ContainerImageRefV1;
 use bijux_dna_domain_fastq::params::stats::READ_LENGTH_PROFILE_SCHEMA_VERSION;
+use bijux_dna_stage_contract::{
+    build_binding_stage_plan, canonical_tool_bindings, BindingInputV1, BindingOutputV1,
+    BindingStagePlanRequest, EffectiveToolParameterSourceV1, EffectiveToolParameterV1,
+    EffectiveToolParametersV1, OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingV1,
+    EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
+};
 
 fn plan() -> anyhow::Result<bijux_dna_bench::BenchmarkCampaignPlan> {
     let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
@@ -90,6 +104,23 @@ fn material() -> BenchmarkExecutionMaterial {
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: Some(vec![BenchmarkStagePlanUnitMaterial {
+            execution_unit_id: "sample-a".to_owned(),
+            inputs: vec![BenchmarkStagePlanInputMaterial {
+                binding_name: "reads_r1".to_owned(),
+                path: PathBuf::from("/input/ERR1.fastq.gz"),
+                role: ArtifactRole::Reads,
+            }],
+            outputs: vec![BenchmarkStagePlanOutputMaterial {
+                binding_name: "length_distribution_tsv".to_owned(),
+                relative_path: "length-distribution.tsv".into(),
+                role: ArtifactRole::SummaryTsv,
+            }],
+            scientific_defaults: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+            input_derived: BTreeMap::new(),
+            operator_overrides: BTreeMap::new(),
+            immutable_parameters: ["threads".to_owned()].into_iter().collect(),
+        }]),
     }
 }
 
@@ -142,6 +173,53 @@ fn source_locked_plan_for(
     )
 }
 
+fn case_matrix(
+    repository_root: &Path,
+    repository_commit: &str,
+    interface_digest: Option<&str>,
+) -> anyhow::Result<BenchmarkCaseMatrixV2> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2042");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "fastq.profile_read_lengths");
+    let campaign = campaigns.campaigns.first().context("run-2042 campaign")?;
+    let data_snapshots = [
+        (&campaign.corpus_catalog_ids, BenchmarkDataSnapshotRoleV1::Corpus),
+        (&campaign.reference_catalog_ids, BenchmarkDataSnapshotRoleV1::Reference),
+        (&campaign.database_catalog_ids, BenchmarkDataSnapshotRoleV1::Database),
+    ]
+    .into_iter()
+    .flat_map(|(ids, role)| {
+        ids.iter().map(move |id| BenchmarkDataSnapshotV1 {
+            catalog_id: id.clone(),
+            role,
+            catalog_sha256: "8".repeat(64),
+            sample_ids: if role == BenchmarkDataSnapshotRoleV1::Corpus {
+                vec!["sample-a".to_string()]
+            } else {
+                Vec::new()
+            },
+        })
+    })
+    .collect::<Vec<_>>();
+    let bindings = canonical_tool_bindings()?;
+    let binding_bytes = serde_json::to_vec(&bindings.bindings().cloned().collect::<Vec<_>>())?;
+    let current_interface_digest = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("benchmarks/contracts/stage-interfaces.toml"),
+    )?;
+    plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit,
+        campaign_registry_sha256: &bijux_dna_infra::hash_file_sha256(
+            &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
+        )?,
+        interface_catalog_sha256: interface_digest.unwrap_or(&current_interface_digest),
+        tool_binding_registry_sha256: &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &data_snapshots,
+    })
+}
+
 #[test]
 fn execution_authorities_bind_exact_source_files_and_reject_stale_inventory() -> anyhow::Result<()>
 {
@@ -182,6 +260,62 @@ fn execution_authorities_bind_exact_source_files_and_reject_stale_inventory() ->
     std::fs::write(&stale_path, serde_json::to_vec_pretty(&inventory)?)?;
     assert!(load_execution_authorities(&repository_root, &stale_path, &repository_commit, &plan,)
         .is_err_and(|error| error.to_string().contains("repository commit differs")));
+    Ok(())
+}
+
+#[test]
+fn case_execution_authorities_bind_the_canonical_matrix_closure() -> anyhow::Result<()> {
+    let repository_root = super::support::repo_root()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-case-execution-authorities");
+    let inventory_path = temporary.path().join("image-inventory.json");
+    let mut inventory = load_image_inventory_publication(
+        &repository_root.join("containers/reports/image-inventory.json"),
+    )?;
+    let repository_commit = "a".repeat(40);
+    inventory.repository_commit.clone_from(&repository_commit);
+    inventory.catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("containers/contracts/catalog.toml"),
+    )?;
+    std::fs::write(&inventory_path, serde_json::to_vec_pretty(&inventory)?)?;
+    let matrix = case_matrix(&repository_root, &repository_commit, None)?;
+    let plan = plan_benchmark_case_attempts(
+        &matrix,
+        "human-short-read-length-comparison",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+
+    let authorities = load_case_execution_authorities(
+        &repository_root,
+        &inventory_path,
+        &repository_commit,
+        &plan,
+        &matrix,
+    )?;
+    assert_eq!(
+        authorities.source_contract_sha256()["case_matrix"],
+        bijux_dna_bench::benchmark_case_matrix_sha256(&matrix)?
+    );
+    assert_eq!(
+        authorities.source_contract_sha256()["tool_binding_registry"],
+        matrix.tool_binding_registry_sha256
+    );
+
+    let stale = case_matrix(&repository_root, &repository_commit, Some(&"9".repeat(64)))?;
+    let stale_plan = plan_benchmark_case_attempts(
+        &stale,
+        "human-short-read-length-comparison",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+    assert!(load_case_execution_authorities(
+        &repository_root,
+        &inventory_path,
+        &repository_commit,
+        &stale_plan,
+        &stale,
+    )
+    .is_err_and(|error| error.to_string().contains("current execution source authorities")));
     Ok(())
 }
 
@@ -281,6 +415,33 @@ fn execution_authorities_recheck_selected_sif_bytes() -> anyhow::Result<()> {
     execution_material.source_contract_sha256 = authorities.source_contract_sha256().clone();
     let spec = authorities.build_execution_spec(&plan, &identity, &image, execution_material)?;
     assert_eq!(spec.image.sha256, image_sha256);
+    assert!(spec.outputs.required_files.contains(
+        &"repetitions/measured-repetition-3--sample-a/length-distribution.tsv".to_owned()
+    ));
+    assert!(spec
+        .outputs
+        .required_files
+        .contains(&"repetitions/measured-repetition-3--sample-a/resource.tsv".to_owned()));
+    let units = [BenchmarkStagePlanUnitMaterial {
+        execution_unit_id: "sample-a".to_owned(),
+        inputs: vec![BenchmarkStagePlanInputMaterial {
+            binding_name: "reads_r1".to_owned(),
+            path: PathBuf::from(&spec.inputs[0].mount_path),
+            role: ArtifactRole::Reads,
+        }],
+        outputs: vec![BenchmarkStagePlanOutputMaterial {
+            binding_name: "length_distribution_tsv".to_owned(),
+            relative_path: "length-distribution.tsv".into(),
+            role: ArtifactRole::SummaryTsv,
+        }],
+        scientific_defaults: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+        input_derived: BTreeMap::new(),
+        operator_overrides: BTreeMap::new(),
+        immutable_parameters: ["threads".to_owned()].into_iter().collect(),
+    }];
+    let plans = authorities.build_stage_plans(&spec, &units)?;
+    assert_eq!(plans.len(), 3);
+    assert!(plans[0].io.outputs[0].path.starts_with("/result/repetitions"));
 
     let mut wrong_material = material();
     wrong_material.repository_path = temporary.path().to_path_buf();
@@ -349,6 +510,208 @@ fn execution_spec_storage_is_restart_safe_and_refuses_conflicts() -> anyhow::Res
     conflicting.operator = "different-operator".to_string();
     assert!(ensure_execution_spec(temporary.path(), &conflicting).is_err());
     Ok(())
+}
+
+#[test]
+fn stage_plan_storage_is_restart_safe_and_checksum_bound() -> anyhow::Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-stage-plan-storage");
+    let campaign = plan()?;
+    ensure_stage_campaign_attempts(temporary.path(), &campaign)?;
+    let (_, _, catalog) = authorities()?;
+    let spec = build_at(&catalog, &image(), temporary.path())?;
+    ensure_execution_spec(temporary.path(), &spec)?;
+    let plans = (1..=spec.measurement.measured_repetitions)
+        .map(|repetition| stage_plan(&spec, repetition))
+        .collect::<anyhow::Result<Vec<_>>>()?;
+
+    let first = ensure_stage_plan_manifest(temporary.path(), &spec, &plans)?;
+    let recovered = ensure_stage_plan_manifest(temporary.path(), &spec, &plans)?;
+    assert_eq!(recovered, first);
+    let (loaded, loaded_plans) = load_stage_plan_manifest(temporary.path(), &spec.identity)?;
+    assert_eq!(loaded, first);
+    assert_eq!(loaded_plans.len(), 3);
+    assert_eq!(
+        loaded_plans[2].stage_instance_id.as_ref().map(StepId::as_str),
+        Some("measured-repetition-3--sample-a")
+    );
+
+    let plan_path =
+        Path::new(&spec.outputs.result_root).join("stage-plans/repetition-2/sample-a.json");
+    std::fs::write(&plan_path, b"{}")?;
+    assert!(load_stage_plan_manifest(temporary.path(), &spec.identity)
+        .is_err_and(|error| error.to_string().contains("bytes differ")));
+    Ok(())
+}
+
+#[test]
+fn stage_plan_builder_closes_every_repetition_and_execution_unit() -> anyhow::Result<()> {
+    let (_, _, catalog) = authorities()?;
+    let spec = build(&catalog, &image())?;
+    let binding = stage_plan_binding(&spec);
+    let tool = catalog
+        .tools
+        .iter()
+        .find(|tool| tool.id == "seqkit")
+        .context("container catalog omits seqkit")?;
+    let unit = BenchmarkStagePlanUnitMaterial {
+        execution_unit_id: "sample-a".to_owned(),
+        inputs: vec![BenchmarkStagePlanInputMaterial {
+            binding_name: "reads_r1".to_owned(),
+            path: PathBuf::from(&spec.inputs[0].mount_path),
+            role: ArtifactRole::Reads,
+        }],
+        outputs: vec![BenchmarkStagePlanOutputMaterial {
+            binding_name: "length_distribution_tsv".to_owned(),
+            relative_path: "length-distribution.tsv".into(),
+            role: ArtifactRole::SummaryTsv,
+        }],
+        scientific_defaults: BTreeMap::from([(
+            "threads".to_owned(),
+            spec.resources.cpus.to_string(),
+        )]),
+        input_derived: BTreeMap::new(),
+        operator_overrides: BTreeMap::new(),
+        immutable_parameters: ["threads".to_owned()].into_iter().collect(),
+    };
+
+    let mut later_unit = unit.clone();
+    later_unit.execution_unit_id = "sample-b".to_owned();
+    let plans = build_benchmark_stage_plans(&spec, &binding, tool, &[later_unit, unit.clone()])?;
+    assert_eq!(plans.len(), 6);
+    assert_eq!(
+        plans[0].stage_instance_id.as_ref().map(StepId::as_str),
+        Some("measured-repetition-1--sample-a")
+    );
+    assert_eq!(
+        plans[1].stage_instance_id.as_ref().map(StepId::as_str),
+        Some("measured-repetition-1--sample-b")
+    );
+    assert_eq!(
+        plans[4].stage_instance_id.as_ref().map(StepId::as_str),
+        Some("measured-repetition-3--sample-a")
+    );
+    assert_eq!(plans[0].command.template[0], "seqkit");
+    assert!(plans[0].io.outputs[0]
+        .path
+        .ends_with("measured-repetition-1--sample-a/length-distribution.tsv"));
+    assert!(plans[0].io.outputs[0].path.starts_with("/result/repetitions"));
+    assert!(plans[0].out_dir.starts_with(&spec.outputs.result_root));
+
+    let mut escaping = unit.clone();
+    escaping.outputs[0].relative_path = "../foreign.tsv".into();
+    let error = build_benchmark_stage_plans(&spec, &binding, tool, &[escaping])
+        .err()
+        .context("escaping stage-plan output was accepted")?;
+    assert!(error.to_string().contains("escapes"));
+
+    let mut resource_drift = binding.clone();
+    resource_drift.resources.threads = 2;
+    let error =
+        build_benchmark_stage_plans(&spec, &resource_drift, tool, std::slice::from_ref(&unit))
+            .err()
+            .context("binding resource drift was accepted")?;
+    assert!(format!("{error:#}").contains("binding threads"));
+
+    let error = build_benchmark_stage_plans(&spec, &binding, tool, &[unit.clone(), unit])
+        .err()
+        .context("duplicate stage-plan unit was accepted")?;
+    assert!(error.to_string().contains("duplicated"));
+    Ok(())
+}
+
+fn stage_plan(
+    spec: &BenchmarkExecutionSpec,
+    repetition: u32,
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    let binding = stage_plan_binding(spec);
+    let effective = EffectiveToolParametersV1 {
+        schema_version: EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1.to_owned(),
+        binding_id: binding.binding_id.clone(),
+        stage_id: binding.stage_id.clone(),
+        tool_id: binding.tool_id.clone(),
+        allocated_cpus: spec.resources.cpus,
+        resources: binding.resources.clone(),
+        parameters: BTreeMap::from([(
+            "threads".to_owned(),
+            EffectiveToolParameterV1 {
+                value: spec.resources.cpus.to_string(),
+                source: EffectiveToolParameterSourceV1::ScientificDefault,
+            },
+        )]),
+    };
+    let instance = format!("measured-repetition-{repetition}--sample-a");
+    let out_dir = Path::new(&spec.outputs.result_root).join("repetitions").join(&instance);
+    build_binding_stage_plan(BindingStagePlanRequest {
+        binding: &binding,
+        effective_parameters: &effective,
+        image: ContainerImageRefV1 {
+            image: spec.image.path.clone(),
+            digest: Some(format!("sha256:{}", spec.image.sha256)),
+        },
+        executable: "seqkit".to_owned(),
+        tool_version: "2.10.1".to_owned(),
+        stage_instance_id: Some(StepId::new(instance)),
+        inputs: vec![ArtifactRef {
+            name: ArtifactId::new("reads_r1"),
+            path: PathBuf::from(&spec.inputs[0].mount_path),
+            role: ArtifactRole::Reads,
+            artifact_contract_id: Some("bijux.fastq.artifact.paired_end.v1".to_owned()),
+            optional: false,
+        }],
+        outputs: vec![ArtifactRef {
+            name: ArtifactId::new("length_distribution_tsv"),
+            path: out_dir.join("length-distribution.tsv"),
+            role: ArtifactRole::SummaryTsv,
+            artifact_contract_id: Some("bijux.auxiliary.artifact.table.v1".to_owned()),
+            optional: false,
+        }],
+        out_dir,
+    })
+}
+
+fn stage_plan_binding(spec: &BenchmarkExecutionSpec) -> ToolBindingV1 {
+    ToolBindingV1 {
+        schema_version: TOOL_BINDING_SCHEMA_V1.to_owned(),
+        binding_id: "fastq.profile_read_lengths__seqkit".to_owned(),
+        stage_id: StageId::new("fastq.profile_read_lengths"),
+        tool_id: ToolId::new("seqkit"),
+        artifact_source: ToolArtifactSourceV1::CatalogImage {
+            catalog_tool_id: ToolId::new("seqkit"),
+        },
+        capabilities: vec!["single_end_reads".to_owned()],
+        inputs: vec![BindingInputV1 {
+            name: "reads_r1".to_owned(),
+            artifact_contract_id: "bijux.fastq.artifact.paired_end.v1".to_owned(),
+            required: true,
+        }],
+        parameters: vec![bijux_dna_stage_contract::BindingParameterV1 {
+            name: "threads".to_owned(),
+            required: true,
+        }],
+        outputs: vec![BindingOutputV1 {
+            name: "length_distribution_tsv".to_owned(),
+            artifact_contract_id: "bijux.auxiliary.artifact.table.v1".to_owned(),
+            discovery: OutputDiscoveryV1::ExactPath,
+        }],
+        normalized_output_contract_id: "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+            .to_owned(),
+        command_template: vec![
+            "${executable}".to_owned(),
+            "${input:reads_r1}".to_owned(),
+            "${output:length_distribution_tsv}".to_owned(),
+            "${parameter:threads}".to_owned(),
+        ],
+        resources: ToolConstraints {
+            runtime: "apptainer".to_owned(),
+            mem_gb: 4,
+            tmp_gb: 4,
+            threads: spec.resources.cpus,
+        },
+        normalizer_id: "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths"
+            .to_owned(),
+        downstream_probe_id: "benchmark.fastq.profile_read_lengths.compare".to_owned(),
+        limitations: Vec::new(),
+    }
 }
 
 #[cfg(unix)]

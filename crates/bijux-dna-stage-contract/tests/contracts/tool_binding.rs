@@ -1,15 +1,16 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::Result;
-use bijux_dna_core::contract::ToolConstraints;
-use bijux_dna_core::ids::{StageId, ToolId};
+use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, ToolConstraints};
+use bijux_dna_core::ids::{ArtifactId, StageId, StepId, ToolId};
+use bijux_dna_core::prelude::ContainerImageRefV1;
 use bijux_dna_stage_contract::{
-    canonical_external_artifact_tool_bindings, canonical_retained_tool_bindings,
-    canonical_tool_bindings, project_tool_parameters, render_tool_command, validate_tool_binding,
-    BindingInputV1, BindingOutputV1, BindingParameterV1, EffectiveToolParameterSourceV1,
-    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext,
-    ToolBindingV1, ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1,
-    TOOL_BINDING_SCHEMA_V1,
+    build_binding_stage_plan, canonical_external_artifact_tool_bindings,
+    canonical_retained_tool_bindings, canonical_tool_bindings, project_tool_parameters,
+    render_tool_command, validate_tool_binding, BindingInputV1, BindingOutputV1,
+    BindingParameterV1, BindingStagePlanRequest, EffectiveToolParameterSourceV1, OutputDiscoveryV1,
+    ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext, ToolBindingV1,
+    ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
 };
 
 const ALIGN_STAGE: &str = "bam.align";
@@ -46,7 +47,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 61);
+    assert_eq!(retained.bindings().len(), 151);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -70,8 +71,375 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 69);
+    assert_eq!(all.bindings().len(), 159);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_registry_owns_complete_supported_bam_closure() -> Result<()> {
+    let registry = canonical_tool_bindings()?;
+    let expected = [
+        ("bam.bias_mitigation", "mapdamage2"),
+        ("bam.complexity", "preseq"),
+        ("bam.contamination", "contammix"),
+        ("bam.contamination", "schmutzi"),
+        ("bam.contamination", "verifybamid2"),
+        ("bam.filter", "bamtools"),
+        ("bam.filter", "bedtools"),
+        ("bam.filter", "samtools"),
+        ("bam.haplogroups", "yleaf"),
+        ("bam.kinship", "king"),
+        ("bam.length_filter", "picard"),
+        ("bam.length_filter", "samtools"),
+        ("bam.mapq_filter", "bamtools"),
+        ("bam.mapq_filter", "samtools"),
+        ("bam.markdup", "picard"),
+        ("bam.markdup", "samtools"),
+        ("bam.overlap_correction", "bamutil"),
+        ("bam.qc_pre", "multiqc"),
+        ("bam.qc_pre", "samtools"),
+        ("bam.recalibration", "gatk"),
+        ("bam.sex", "yleaf"),
+        ("bam.validate", "bamtools"),
+        ("bam.validate", "bedtools"),
+        ("bam.validate", "samtools"),
+    ];
+    assert_eq!(expected.len(), 24);
+    for (stage_id, tool_id) in expected {
+        let binding = registry
+            .binding(&StageId::new(stage_id), &ToolId::new(tool_id))
+            .ok_or_else(|| anyhow::anyhow!("canonical {stage_id}/{tool_id} binding is missing"))?;
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            format!("bijux.benchmark.{stage_id}.bundle.v1")
+        );
+        assert!(binding.normalizer_id.contains(stage_id.trim_start_matches("bam.")));
+    }
+    assert_eq!(
+        registry.bindings().filter(|binding| binding.stage_id.as_str().starts_with("bam.")).count(),
+        49
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_bam_portfolio_bindings_render_native_commands() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let cases = [
+        ("bam.complexity", "preseq", ["lc_extrap", "complexity_curve"]),
+        ("bam.contamination", "verifybamid2", ["--BamFile", "--SVDPrefix"]),
+        ("bam.filter", "samtools", ["view -b -q 20", "flagstat_before"]),
+        ("bam.length_filter", "picard", ["FilterSamReads", "getReadLength() >= 30"]),
+        ("bam.markdup", "samtools", ["markdup", "markdup_bam"]),
+        ("bam.overlap_correction", "bamutil", ["clipOverlap", "--stats"]),
+        ("bam.recalibration", "gatk", ["BaseRecalibrator", "ApplyBQSR"]),
+        ("bam.sex", "yleaf", ["-bam", "--reference_genome"]),
+        ("bam.validate", "bedtools", ["bamtobed", "validation_report"]),
+    ];
+
+    for (stage_id, tool_id, fragments) in cases {
+        let binding = registry
+            .binding(&StageId::new(stage_id), &ToolId::new(tool_id))
+            .ok_or_else(|| anyhow::anyhow!("canonical {stage_id}/{tool_id} binding is missing"))?;
+        let inputs = binding
+            .inputs
+            .iter()
+            .map(|value| (value.name.clone(), format!("/input/{}", value.name)))
+            .collect();
+        let outputs = binding
+            .outputs
+            .iter()
+            .map(|value| (value.name.clone(), format!("/output/{}", value.name)))
+            .collect();
+        let rendered = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: format!("/images/{tool_id}"),
+                inputs,
+                outputs,
+                ..ToolBindingRenderContext::default()
+            },
+        )?
+        .join(" ");
+        assert!(!rendered.contains("${"), "{stage_id}/{tool_id} retains a projection");
+        for fragment in fragments {
+            assert!(rendered.contains(fragment), "{stage_id}/{tool_id} misses {fragment}");
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn canonical_registry_owns_complete_supported_fastq_closure() -> Result<()> {
+    let registry = canonical_tool_bindings()?;
+    let expected = [
+        ("fastq.deplete_host", "bowtie2"),
+        ("fastq.deplete_reference_contaminants", "bowtie2"),
+        ("fastq.deplete_rrna", "sortmerna"),
+        ("fastq.detect_duplicates_premerge", "bijux_dna"),
+        ("fastq.estimate_library_complexity_prealign", "bijux_dna"),
+        ("fastq.filter_reads", "bbduk"),
+        ("fastq.filter_reads", "fastp"),
+        ("fastq.filter_reads", "prinseq"),
+        ("fastq.normalize_abundance", "seqkit"),
+        ("fastq.normalize_primers", "cutadapt"),
+        ("fastq.profile_overrepresented_sequences", "fastq_scan"),
+        ("fastq.profile_overrepresented_sequences", "fastqc"),
+        ("fastq.profile_overrepresented_sequences", "seqkit"),
+        ("fastq.remove_chimeras", "vsearch"),
+        ("fastq.remove_duplicates", "clumpify"),
+        ("fastq.report_qc", "multiqc"),
+        ("fastq.trim_polyg_tails", "bbduk"),
+        ("fastq.trim_polyg_tails", "fastp"),
+        ("fastq.trim_reads", "adapterremoval"),
+        ("fastq.trim_reads", "bbduk"),
+        ("fastq.trim_reads", "cutadapt"),
+        ("fastq.trim_reads", "fastp"),
+        ("fastq.trim_reads", "leehom"),
+        ("fastq.trim_reads", "prinseq"),
+        ("fastq.trim_reads", "seqkit"),
+        ("fastq.trim_reads", "seqprep"),
+        ("fastq.trim_terminal_damage", "adapterremoval"),
+        ("fastq.trim_terminal_damage", "cutadapt"),
+        ("fastq.trim_terminal_damage", "seqkit"),
+        ("fastq.validate_reads", "fastq_scan"),
+        ("fastq.validate_reads", "fastqc"),
+    ];
+    assert_eq!(expected.len(), 31);
+    for (stage_id, tool_id) in expected {
+        let binding = registry
+            .binding(&StageId::new(stage_id), &ToolId::new(tool_id))
+            .ok_or_else(|| anyhow::anyhow!("canonical {stage_id}/{tool_id} binding is missing"))?;
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            format!("bijux.benchmark.{stage_id}.bundle.v1")
+        );
+        assert!(binding.normalizer_id.contains(stage_id.trim_start_matches("fastq.")));
+    }
+    assert_eq!(
+        registry
+            .bindings()
+            .filter(|binding| binding.stage_id.as_str().starts_with("fastq."))
+            .count(),
+        71
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_fastq_portfolio_bindings_render_native_commands() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let cases = [
+        (
+            "fastq.deplete_host",
+            "bowtie2",
+            BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/reads.fastq.gz".to_owned()),
+                ("reference_index".to_owned(), "/input/host-index".to_owned()),
+            ]),
+            BTreeMap::from([
+                ("host_depleted_reads_r1".to_owned(), "/result/depleted.fastq.gz".to_owned()),
+                ("removed_host_reads_r1".to_owned(), "/result/host.fastq.gz".to_owned()),
+                ("host_mapping_metrics".to_owned(), "/result/host.metrics".to_owned()),
+            ]),
+            ["--un-gz", "--al-gz", "--met-file"],
+        ),
+        (
+            "fastq.remove_chimeras",
+            "vsearch",
+            BTreeMap::from([(
+                "representative_sequences".to_owned(),
+                "/input/representatives.fasta".to_owned(),
+            )]),
+            BTreeMap::from([
+                ("nonchimeric_sequences".to_owned(), "/result/nonchimeras.fasta".to_owned()),
+                ("chimeric_sequences".to_owned(), "/result/chimeras.fasta".to_owned()),
+                ("chimera_report".to_owned(), "/result/chimeras.tsv".to_owned()),
+            ]),
+            ["--uchime_denovo", "--nonchimeras", "--uchimeout"],
+        ),
+        (
+            "fastq.trim_terminal_damage",
+            "cutadapt",
+            BTreeMap::from([("reads_r1".to_owned(), "/input/reads.fastq.gz".to_owned())]),
+            BTreeMap::from([(
+                "damage_trimmed_reads_r1".to_owned(),
+                "/result/trimmed.fastq.gz".to_owned(),
+            )]),
+            ["--cores", "--cut", "--output"],
+        ),
+        (
+            "fastq.report_qc",
+            "multiqc",
+            BTreeMap::from([("qc_inputs".to_owned(), "/input/qc".to_owned())]),
+            BTreeMap::from([("multiqc_data".to_owned(), "/result/multiqc".to_owned())]),
+            ["--outdir", "--filename", "multiqc_report.html"],
+        ),
+    ];
+
+    for (stage_id, tool_id, inputs, outputs, fragments) in cases {
+        let binding = registry
+            .binding(&StageId::new(stage_id), &ToolId::new(tool_id))
+            .ok_or_else(|| anyhow::anyhow!("canonical {stage_id}/{tool_id} binding is missing"))?;
+        let rendered = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool_id.to_owned(),
+                inputs,
+                outputs,
+                ..ToolBindingRenderContext::default()
+            },
+        )?
+        .join(" ");
+        for fragment in fragments {
+            assert!(rendered.contains(fragment), "{stage_id}/{tool_id} misses {fragment}");
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn canonical_registry_owns_every_supported_vcf_pair() -> Result<()> {
+    let registry = canonical_tool_bindings()?;
+    for binding in
+        registry.bindings().filter(|binding| binding.stage_id.as_str().starts_with("vcf."))
+    {
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            format!("bijux.benchmark.{}.bundle.v1", binding.stage_id)
+        );
+        assert!(
+            binding.normalizer_id.starts_with("parse_")
+                && binding.normalizer_id.ends_with("metrics"),
+            "{}/{} names a non-canonical VCF normalizer: {}",
+            binding.stage_id,
+            binding.tool_id,
+            binding.normalizer_id
+        );
+    }
+    let observed = registry
+        .bindings()
+        .filter(|binding| binding.stage_id.as_str().starts_with("vcf."))
+        .map(|binding| (binding.stage_id.to_string(), binding.tool_id.to_string()))
+        .collect::<BTreeSet<_>>();
+    let expected = [
+        ("vcf.admixture", "plink"),
+        ("vcf.admixture", "plink2"),
+        ("vcf.call", "bcftools"),
+        ("vcf.call_diploid", "bcftools"),
+        ("vcf.call_gl", "angsd"),
+        ("vcf.call_gl", "bcftools"),
+        ("vcf.call_pseudohaploid", "angsd"),
+        ("vcf.call_pseudohaploid", "bcftools"),
+        ("vcf.damage_filter", "bcftools"),
+        ("vcf.demography", "ibdne"),
+        ("vcf.filter", "bcftools"),
+        ("vcf.gl_propagation", "bcftools"),
+        ("vcf.ibd", "germline"),
+        ("vcf.ibd", "ibdhap"),
+        ("vcf.ibd", "ibdseq"),
+        ("vcf.imputation_metrics", "beagle"),
+        ("vcf.imputation_metrics", "glimpse"),
+        ("vcf.imputation_metrics", "impute5"),
+        ("vcf.imputation_metrics", "minimac4"),
+        ("vcf.impute", "beagle"),
+        ("vcf.impute", "glimpse"),
+        ("vcf.impute", "impute5"),
+        ("vcf.impute", "minimac4"),
+        ("vcf.pca", "eigensoft"),
+        ("vcf.pca", "plink2"),
+        ("vcf.phasing", "beagle"),
+        ("vcf.phasing", "eagle"),
+        ("vcf.phasing", "shapeit"),
+        ("vcf.phasing", "shapeit5"),
+        ("vcf.population_structure", "eigensoft"),
+        ("vcf.population_structure", "plink"),
+        ("vcf.population_structure", "plink2"),
+        ("vcf.postprocess", "bcftools"),
+        ("vcf.prepare_reference_panel", "bcftools"),
+        ("vcf.qc", "bcftools"),
+        ("vcf.qc", "plink"),
+        ("vcf.qc", "plink2"),
+        ("vcf.roh", "plink2"),
+        ("vcf.stats", "bcftools"),
+    ]
+    .into_iter()
+    .map(|(stage_id, tool_id)| (stage_id.to_string(), tool_id.to_string()))
+    .collect::<BTreeSet<_>>();
+
+    assert_eq!(observed, expected);
+    Ok(())
+}
+
+#[test]
+fn canonical_vcf_bindings_render_native_command_profiles() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let cases = [
+        (
+            "vcf.call",
+            "bcftools",
+            BTreeMap::from([
+                ("bam".to_owned(), "/input/sample.bam".to_owned()),
+                ("reference".to_owned(), "/input/reference.fa".to_owned()),
+            ]),
+            BTreeMap::from([("called_vcf".to_owned(), "/result/called.vcf.gz".to_owned())]),
+            ["mpileup", " call ", "index -f"],
+        ),
+        (
+            "vcf.phasing",
+            "shapeit",
+            BTreeMap::from([
+                ("cohort_vcf".to_owned(), "/input/cohort.vcf.gz".to_owned()),
+                ("reference_panel_vcf".to_owned(), "/input/panel.vcf.gz".to_owned()),
+                ("genetic_map".to_owned(), "/input/map.txt".to_owned()),
+            ]),
+            BTreeMap::from([("phased_vcf".to_owned(), "/result/phased.vcf.gz".to_owned())]),
+            ["--input", "--reference", "--output"],
+        ),
+        (
+            "vcf.ibd",
+            "ibdhap",
+            BTreeMap::from([
+                ("cohort_vcf".to_owned(), "/input/cohort.vcf.gz".to_owned()),
+                ("genetic_map".to_owned(), "/input/map.txt".to_owned()),
+            ]),
+            BTreeMap::from([("ibd_segments".to_owned(), "/result/segments.tsv".to_owned())]),
+            ["--vcf", "--genetic-map", "--out"],
+        ),
+        (
+            "vcf.pca",
+            "eigensoft",
+            BTreeMap::from([
+                ("cohort_vcf".to_owned(), "/input/cohort.vcf.gz".to_owned()),
+                ("sample_metadata".to_owned(), "/input/populations.txt".to_owned()),
+            ]),
+            BTreeMap::from([("pca_report".to_owned(), "/result/pca.evec".to_owned())]),
+            ["convertf", "smartpca", "poplistname"],
+        ),
+    ];
+
+    for (stage_id, tool_id, inputs, outputs, fragments) in cases {
+        let binding = registry
+            .binding(&StageId::new(stage_id), &ToolId::new(tool_id))
+            .ok_or_else(|| anyhow::anyhow!("canonical {stage_id}/{tool_id} binding is missing"))?;
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: tool_id.to_owned(),
+                inputs,
+                outputs,
+                ..ToolBindingRenderContext::default()
+            },
+        )?
+        .join(" ");
+        for fragment in fragments {
+            assert!(
+                command.contains(fragment),
+                "{stage_id}/{tool_id} command is missing native fragment {fragment}: {command}"
+            );
+        }
+    }
     Ok(())
 }
 
@@ -281,7 +649,22 @@ fn canonical_trim_read_bindings_preserve_representative_native_shapes() -> Resul
             .iter()
             .map(|binding| binding.tool_id.to_string())
             .collect::<Vec<_>>(),
-        ["alientrimmer", "atropos", "fastx_clipper", "skewer", "trim_galore", "trimmomatic"]
+        [
+            "adapterremoval",
+            "alientrimmer",
+            "atropos",
+            "bbduk",
+            "cutadapt",
+            "fastp",
+            "fastx_clipper",
+            "leehom",
+            "prinseq",
+            "seqkit",
+            "seqprep",
+            "skewer",
+            "trim_galore",
+            "trimmomatic",
+        ]
     );
     Ok(())
 }
@@ -1037,8 +1420,13 @@ fn low_complexity_expected_commands() -> BTreeMap<&'static str, Vec<&'static str
 fn canonical_seqkit_filter_binding_projects_one_shot_qualification_io() -> Result<()> {
     let registry = canonical_retained_tool_bindings()?;
     let bindings = registry.bindings_for_stage(&StageId::new(FILTER_READS_STAGE));
-    assert_eq!(bindings.len(), 1);
-    let binding = bindings[0];
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["bbduk", "fastp", "prinseq", "seqkit"]
+    );
+    let binding = registry
+        .binding(&StageId::new(FILTER_READS_STAGE), &ToolId::new("seqkit"))
+        .ok_or_else(|| anyhow::anyhow!("canonical seqkit filter binding is missing"))?;
 
     assert_eq!(binding.tool_id.as_str(), "seqkit");
     assert_eq!(binding.inputs[0].name, "reads_r1");
@@ -1145,11 +1533,12 @@ fn canonical_fastq_profile_bindings_preserve_native_observations_for_shared_norm
         );
         assert_eq!(
             binding.normalizer_id,
-            "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths"
+            "bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths"
         );
         assert_eq!(binding.downstream_probe_id, "benchmark.fastq.profile_read_lengths.compare");
         assert_eq!(binding.outputs[0].name, "length_distribution_tsv");
-        assert_eq!(binding.resources.threads, 2);
+        let expected_threads = if binding.tool_id.as_str() == "seqfu" { 1 } else { 4 };
+        assert_eq!(binding.resources.threads, expected_threads);
 
         let length_command = render_tool_command(
             binding,
@@ -1197,12 +1586,12 @@ fn canonical_fastq_profile_bindings_preserve_native_observations_for_shared_norm
         );
         assert_eq!(
             binding.normalizer_id,
-            "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads"
+            "bijux_dna_planner_fastq::tool_adapters::fastq::profile_reads"
         );
         assert_eq!(binding.downstream_probe_id, "benchmark.fastq.profile_reads.compare");
         assert_eq!(binding.outputs.len(), 1);
         assert_eq!(binding.outputs[0].name, "qc_tsv");
-        assert_eq!(binding.resources.threads, 2);
+        assert_eq!(binding.resources.threads, 4);
 
         let command = render_tool_command(
             binding,
@@ -1213,14 +1602,14 @@ fn canonical_fastq_profile_bindings_preserve_native_observations_for_shared_norm
                     "/input/sample.fastq.gz".to_owned(),
                 )]),
                 input_sets: BTreeMap::new(),
-                parameters: BTreeMap::from([("threads".to_owned(), "2".to_owned())]),
+                parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
                 outputs: BTreeMap::from([("qc_tsv".to_owned(), "/result/profile.tsv".to_owned())]),
             },
         )?;
         assert_eq!(command[0..2], ["/bin/sh", "-c"]);
         assert!(command[2].contains("'/input/sample.fastq.gz'"));
         assert!(command[2].contains("'/result/profile.tsv'"));
-        assert!(command[2].contains("'2'"));
+        assert!(command[2].contains("'4'"));
     }
     Ok(())
 }
@@ -1232,9 +1621,11 @@ fn canonical_validate_reads_bindings_close_governed_single_stream_qualification(
 
     assert_eq!(
         bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
-        ["fastqvalidator", "fqtools", "seqtk"]
+        ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"]
     );
-    for binding in bindings {
+    for binding in bindings.iter().copied().filter(|binding| {
+        matches!(binding.tool_id.as_str(), "fastqvalidator" | "fqtools" | "seqtk")
+    }) {
         assert_eq!(binding.resources.runtime, "apptainer");
         assert_eq!(binding.resources.threads, 4);
         assert_eq!(binding.inputs.len(), 1);
@@ -1249,7 +1640,7 @@ fn canonical_validate_reads_bindings_close_governed_single_stream_qualification(
         );
         assert_eq!(
             binding.normalizer_id,
-            "bijux_dna_planner_fastq::tool_adapters::stages::pre::validate_reads"
+            "bijux_dna_planner_fastq::tool_adapters::fastq::validate_reads"
         );
         assert_eq!(binding.downstream_probe_id, "benchmark.fastq.validate_reads.compare");
 
@@ -1343,6 +1734,10 @@ fn canonical_external_bindings_preserve_external_runtime_identity() -> Result<()
     let registry = canonical_external_artifact_tool_bindings()?;
     assert_eq!(registry.bindings().len(), 8);
     assert!(registry.bindings().all(|binding| binding.resources.runtime == "external_artifact"));
+    assert!(registry.bindings().all(|binding| {
+        binding.normalized_output_contract_id
+            == format!("bijux.benchmark.{}.bundle.v1", binding.stage_id)
+    }));
     Ok(())
 }
 
@@ -1467,7 +1862,7 @@ fn canonical_rxy_binding_requires_explicit_interpretation_context() -> Result<()
     assert_eq!(binding.resources.threads, 1);
     assert_eq!(binding.normalized_output_contract_id, "bijux.benchmark.bam.sex.bundle.v1");
     assert_eq!(binding.normalizer_id, "parse_sex_json");
-    assert_eq!(binding.downstream_probe_id, "bijux.stage_probe.bam.sex.v1");
+    assert_eq!(binding.downstream_probe_id, "benchmark.bam.sex.compare");
     assert_eq!(
         binding.parameters.iter().map(|parameter| parameter.name.as_str()).collect::<Vec<_>>(),
         ["classification_profile", "minimum_sex_reads"]
@@ -1692,7 +2087,7 @@ fn canonical_genotyping_binding_closes_run_2001_native_execution() -> Result<()>
 }
 
 #[test]
-fn canonical_bam_align_bindings_render_direct_native_commands() -> Result<()> {
+fn canonical_bam_align_bindings_render_native_commands() -> Result<()> {
     let registry = canonical_retained_tool_bindings()?;
     let bowtie2 = registry
         .binding(&StageId::new(ALIGN_STAGE), &ToolId::new("bowtie2"))
@@ -1709,7 +2104,7 @@ fn canonical_bam_align_bindings_render_direct_native_commands() -> Result<()> {
                 inputs: BTreeMap::from([
                     ("reads_r1".to_owned(), "sample_R1.fastq.gz".to_owned()),
                     ("reads_r2".to_owned(), "sample_R2.fastq.gz".to_owned()),
-                    ("reference_index".to_owned(), "indexes/grch38".to_owned()),
+                    ("reference".to_owned(), "grch38.fa".to_owned()),
                 ]),
                 input_sets: BTreeMap::new(),
                 parameters: BTreeMap::from([
@@ -1722,8 +2117,10 @@ fn canonical_bam_align_bindings_render_direct_native_commands() -> Result<()> {
         )?,
         [
             "/images/bowtie2.sif",
-            "-x",
-            "indexes/grch38",
+            "--bijux-align-reference",
+            "grch38.fa",
+            "--bijux-index-threads",
+            "8",
             "-1",
             "sample_R1.fastq.gz",
             "-2",
@@ -2110,6 +2507,211 @@ fn parameter_projection_rejects_immutable_overrides_and_thread_drift() -> Result
         .ok_or_else(|| anyhow::anyhow!("CPU drift was accepted"))?;
     assert!(error.to_string().contains("binding threads"));
     Ok(())
+}
+
+#[test]
+fn binding_stage_plan_freezes_exact_contracts_parameters_and_command() -> Result<()> {
+    let binding = binding("fastq.trim_reads", catalog_source());
+    let defaults = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
+    let empty = BTreeMap::new();
+    let immutable = BTreeSet::new();
+    let effective = project_tool_parameters(&ToolParameterProjectionRequest {
+        binding: &binding,
+        scientific_defaults: &defaults,
+        input_derived: &empty,
+        operator_overrides: &empty,
+        immutable_parameters: &immutable,
+        allocated_cpus: 8,
+    })?;
+    let plan = build_binding_stage_plan(BindingStagePlanRequest {
+        binding: &binding,
+        effective_parameters: &effective,
+        image: ContainerImageRefV1 {
+            image: "/images/fastp.sif".to_owned(),
+            digest: Some("sha256:admitted".to_owned()),
+        },
+        executable: "/usr/local/bin/fastp".to_owned(),
+        tool_version: "0.24.1".to_owned(),
+        stage_instance_id: Some(StepId::new("measured-repetition-1")),
+        inputs: vec![artifact(
+            "reads",
+            "/evidence/input.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::Reads,
+        )],
+        outputs: vec![artifact(
+            "trimmed",
+            "/evidence/repetition-1/trimmed.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::TrimmedReads,
+        )],
+        out_dir: "/evidence/repetition-1".into(),
+    })?;
+
+    assert_eq!(plan.stage_id.as_str(), "fastq.trim_reads");
+    assert_eq!(plan.tool_id.as_str(), "fastp");
+    assert_eq!(plan.stage_instance_id.as_ref().map(StepId::as_str), Some("measured-repetition-1"));
+    assert_eq!(
+        plan.command.template,
+        [
+            "/usr/local/bin/fastp",
+            "--in=/evidence/input.fastq.gz",
+            "--out",
+            "/evidence/repetition-1/trimmed.fastq.gz",
+            "--thread",
+            "8",
+        ]
+    );
+    assert_eq!(plan.params["threads"], "8");
+    assert_eq!(plan.effective_params["binding_id"], "fastq.trim_reads__fastp");
+    assert_eq!(plan.reason.details["normalizer_id"], "fastq.trim_reads.v1");
+    Ok(())
+}
+
+#[test]
+fn binding_stage_plan_rejects_artifact_and_parameter_authority_drift() -> Result<()> {
+    let binding = binding("fastq.trim_reads", catalog_source());
+    let defaults = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
+    let empty = BTreeMap::new();
+    let immutable = BTreeSet::new();
+    let effective = project_tool_parameters(&ToolParameterProjectionRequest {
+        binding: &binding,
+        scientific_defaults: &defaults,
+        input_derived: &empty,
+        operator_overrides: &empty,
+        immutable_parameters: &immutable,
+        allocated_cpus: 8,
+    })?;
+    let request = BindingStagePlanRequest {
+        binding: &binding,
+        effective_parameters: &effective,
+        image: ContainerImageRefV1 {
+            image: "/images/fastp.sif".to_owned(),
+            digest: Some("sha256:admitted".to_owned()),
+        },
+        executable: "/usr/local/bin/fastp".to_owned(),
+        tool_version: "0.24.1".to_owned(),
+        stage_instance_id: None,
+        inputs: vec![artifact(
+            "reads",
+            "/evidence/input.fastq.gz",
+            "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+            ArtifactRole::Reads,
+        )],
+        outputs: vec![artifact(
+            "trimmed",
+            "/evidence/trimmed.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::TrimmedReads,
+        )],
+        out_dir: "/evidence".into(),
+    };
+    let error = build_binding_stage_plan(request)
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("input artifact contract drift was accepted"))?;
+    assert!(error.to_string().contains("input `reads` differs"));
+
+    let mut foreign_effective = effective;
+    foreign_effective.binding_id = "fastq.trim_reads__foreign".to_owned();
+    let error = build_binding_stage_plan(BindingStagePlanRequest {
+        binding: &binding,
+        effective_parameters: &foreign_effective,
+        image: ContainerImageRefV1 { image: "/images/fastp.sif".to_owned(), digest: None },
+        executable: "/usr/local/bin/fastp".to_owned(),
+        tool_version: "0.24.1".to_owned(),
+        stage_instance_id: None,
+        inputs: vec![artifact(
+            "reads",
+            "/evidence/input.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::Reads,
+        )],
+        outputs: vec![artifact(
+            "trimmed",
+            "/evidence/trimmed.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::TrimmedReads,
+        )],
+        out_dir: "/evidence".into(),
+    })
+    .err()
+    .ok_or_else(|| anyhow::anyhow!("foreign parameter authority was accepted"))?;
+    assert!(error.to_string().contains("parameter authority differs"));
+    Ok(())
+}
+
+#[test]
+fn binding_stage_plan_canonicalizes_multi_path_input_projection() -> Result<()> {
+    let mut binding = binding("fastq.trim_reads", catalog_source());
+    binding.command_template = vec![
+        "${executable}".to_owned(),
+        "${inputs:reads}".to_owned(),
+        "${output:trimmed}".to_owned(),
+        "${parameter:threads}".to_owned(),
+    ];
+    let defaults = BTreeMap::from([("threads".to_owned(), "8".to_owned())]);
+    let empty = BTreeMap::new();
+    let immutable = BTreeSet::new();
+    let effective = project_tool_parameters(&ToolParameterProjectionRequest {
+        binding: &binding,
+        scientific_defaults: &defaults,
+        input_derived: &empty,
+        operator_overrides: &empty,
+        immutable_parameters: &immutable,
+        allocated_cpus: 8,
+    })?;
+    let plan = build_binding_stage_plan(BindingStagePlanRequest {
+        binding: &binding,
+        effective_parameters: &effective,
+        image: ContainerImageRefV1 { image: "/images/fastp.sif".to_owned(), digest: None },
+        executable: "/usr/local/bin/fastp".to_owned(),
+        tool_version: "0.24.1".to_owned(),
+        stage_instance_id: None,
+        inputs: vec![
+            artifact(
+                "reads",
+                "/evidence/sample-r2.fastq.gz",
+                "bijux.fastq.artifact.reads.v1",
+                ArtifactRole::Reads,
+            ),
+            artifact(
+                "reads",
+                "/evidence/sample-r1.fastq.gz",
+                "bijux.fastq.artifact.reads.v1",
+                ArtifactRole::Reads,
+            ),
+        ],
+        outputs: vec![artifact(
+            "trimmed",
+            "/evidence/trimmed.fastq.gz",
+            "bijux.fastq.artifact.reads.v1",
+            ArtifactRole::TrimmedReads,
+        )],
+        out_dir: "/evidence".into(),
+    })?;
+
+    assert_eq!(
+        plan.command.template,
+        [
+            "/usr/local/bin/fastp",
+            "/evidence/sample-r1.fastq.gz",
+            "/evidence/sample-r2.fastq.gz",
+            "/evidence/trimmed.fastq.gz",
+            "8",
+        ]
+    );
+    assert_eq!(plan.io.inputs[0].path.to_string_lossy(), "/evidence/sample-r1.fastq.gz");
+    Ok(())
+}
+
+fn artifact(name: &str, path: &str, contract: &str, role: ArtifactRole) -> ArtifactRef {
+    ArtifactRef {
+        name: ArtifactId::new(name),
+        path: path.into(),
+        role,
+        artifact_contract_id: Some(contract.to_owned()),
+        optional: false,
+    }
 }
 
 fn catalog_source() -> ToolArtifactSourceV1 {

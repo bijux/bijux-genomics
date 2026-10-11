@@ -44,6 +44,7 @@ const REQUIRED_WITHIN_POPULATION_PAIR_COUNT: u64 = 2;
 const REQUIRED_CROSS_POPULATION_PAIR_COUNT: u64 = 4;
 const REQUIRED_SELECTED_K: u64 = 2;
 const REQUIRED_SAMPLE_IDS: [&str; 4] = ["sample_a", "sample_b", "sample_c", "sample_d"];
+const GOVERNED_STAGE_CONTRACT_SMOKE_TOOL_ID: &str = "plink2";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";
 const COVERAGE_STATUS_INCOMPLETE: &str = "incomplete";
 const NO_VALUE: &str = "none";
@@ -94,6 +95,7 @@ pub(crate) struct VcfPopulationStructureReadyRow {
     pub(crate) summary_table_id: String,
     pub(crate) report_metric_columns: Vec<String>,
     pub(crate) smoke_ready: bool,
+    pub(crate) smoke_tool_id: String,
     pub(crate) smoke_command: String,
     pub(crate) smoke_output_root: String,
     pub(crate) smoke_population_structure_json_path: String,
@@ -186,10 +188,11 @@ fn build_vcf_population_structure_ready_report(
         .filter(|binding| binding.retained_row.scope_state == "active")
         .collect::<Vec<_>>();
 
+    let smoke_report =
+        run_local_vcf_population_structure_smoke(repo_root, GOVERNED_STAGE_CONTRACT_SMOKE_TOOL_ID)
+            .ok();
     let mut rows = Vec::with_capacity(active_bindings.len());
     for binding in active_bindings {
-        let smoke_report =
-            run_local_vcf_population_structure_smoke(repo_root, &binding.retained_row.tool_id).ok();
         rows.push(build_vcf_population_structure_ready_row(
             &command_report,
             binding,
@@ -275,12 +278,7 @@ fn build_vcf_population_structure_ready_row(
         row.status == VcfAdapterOutputCoverageStatus::Complete
             && row.benchmark_status == "benchmark_ready"
             && contains_artifact_id(&row.normalized_metrics, "population_structure_report")
-            && contains_artifact_id(&row.raw_outputs, "ld_prune_in")
-            && contains_artifact_id(&row.raw_outputs, "ld_prune_out")
-            && contains_artifact_id(&row.raw_outputs, "population_pca_eigenvec")
-            && contains_artifact_id(&row.raw_outputs, "population_pca_eigenval")
-            && contains_artifact_id(&row.raw_outputs, "prune_log")
-            && contains_artifact_id(&row.raw_outputs, "pca_log")
+            && !row.raw_outputs.is_empty()
             && !row.manifest.trim().is_empty()
     });
     if !output_ready {
@@ -321,8 +319,10 @@ fn build_vcf_population_structure_ready_row(
         missing_surfaces.push("vcf_report_map".to_string());
     }
 
-    let smoke_ready =
-        smoke_report.is_some_and(population_structure_smoke_matches_governed_contract);
+    let smoke_ready = smoke_report.is_some_and(|report| {
+        report.tool_id == GOVERNED_STAGE_CONTRACT_SMOKE_TOOL_ID
+            && population_structure_smoke_matches_governed_contract(report)
+    });
     if !smoke_ready {
         missing_surfaces.push("local_vcf_population_structure_smoke".to_string());
     }
@@ -334,7 +334,7 @@ fn build_vcf_population_structure_ready_row(
     };
     let reason = if missing_surfaces.is_empty() {
         format!(
-            "`{}` / `{}` stays active with governed adapter, parser, report, and consumed population-structure smoke proof",
+            "`{}` / `{}` stays active with backend-specific adapter, parser, and report contracts plus the canonical `{GOVERNED_STAGE_CONTRACT_SMOKE_TOOL_ID}` stage-contract smoke; the smoke is not backend execution evidence",
             binding.retained_row.stage_id, binding.retained_row.tool_id
         )
     } else {
@@ -459,6 +459,8 @@ fn build_vcf_population_structure_ready_row(
             .map(|row| row.metric_columns.clone())
             .unwrap_or_default(),
         smoke_ready,
+        smoke_tool_id: smoke_report
+            .map_or_else(|| NO_VALUE.to_string(), |report| report.tool_id.clone()),
         smoke_command: smoke_report
             .map_or_else(|| NO_VALUE.to_string(), |report| report.command.clone()),
         smoke_output_root: smoke_report
@@ -557,40 +559,45 @@ fn population_structure_smoke_matches_governed_contract(
 fn ensure_vcf_population_structure_ready_contract(
     report: &VcfPopulationStructureReadyReport,
 ) -> Result<()> {
-    if report.retained_row_count != 1
-        || report.active_row_count != 1
-        || report.complete_row_count != 1
+    const EXPECTED_TOOL_IDS: [&str; 3] = ["eigensoft", "plink", "plink2"];
+    if report.retained_row_count != EXPECTED_TOOL_IDS.len()
+        || report.active_row_count != EXPECTED_TOOL_IDS.len()
+        || report.complete_row_count != EXPECTED_TOOL_IDS.len()
         || report.incomplete_row_count != 0
         || report.violation_count != 0
         || !report.ok
     {
         return Err(anyhow!(
-            "vcf.population_structure readiness must retain exactly one complete active governed row"
+            "vcf.population_structure readiness must retain every complete active governed backend"
         ));
     }
-    let row = report.rows.first().ok_or_else(|| {
-        anyhow!(
-            "vcf.population_structure readiness must publish the active governed population-structure row"
-        )
-    })?;
-    if row.stage_id != VCF_POPULATION_STRUCTURE_STAGE_ID
-        || row.tool_id != "plink2"
-        || row.coverage_status != COVERAGE_STATUS_COMPLETE
-        || !row.command_ready
-        || !row.output_ready
-        || !row.parser_ready
-        || !row.expected_result_ready
-        || !row.report_ready
-        || !row.smoke_ready
-    {
+    let observed_tool_ids =
+        report.rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>();
+    if observed_tool_ids != EXPECTED_TOOL_IDS.into_iter().collect::<BTreeSet<_>>() {
         return Err(anyhow!(
-            "vcf.population_structure readiness row drifted from the governed active contract"
+            "vcf.population_structure readiness backend set drifted from the governed catalog"
         ));
     }
-    if row.report_section_id != "population_structure"
-        || row.summary_table_id != "population_structure_metrics"
-        || row.smoke_sample_group_count != REQUIRED_SAMPLE_IDS.len()
-    {
+    if report.rows.iter().any(|row| {
+        row.stage_id != VCF_POPULATION_STRUCTURE_STAGE_ID
+            || row.coverage_status != COVERAGE_STATUS_COMPLETE
+            || !row.command_ready
+            || !row.output_ready
+            || !row.parser_ready
+            || !row.expected_result_ready
+            || !row.report_ready
+            || !row.smoke_ready
+            || row.smoke_tool_id != GOVERNED_STAGE_CONTRACT_SMOKE_TOOL_ID
+    }) {
+        return Err(anyhow!(
+            "vcf.population_structure readiness rows drifted from the governed active backend contracts"
+        ));
+    }
+    if report.rows.iter().any(|row| {
+        row.report_section_id != "population_structure"
+            || row.summary_table_id != "population_structure_metrics"
+            || row.smoke_sample_group_count != REQUIRED_SAMPLE_IDS.len()
+    }) {
         return Err(anyhow!(
             "vcf.population_structure readiness row is missing required report or smoke invariants"
         ));

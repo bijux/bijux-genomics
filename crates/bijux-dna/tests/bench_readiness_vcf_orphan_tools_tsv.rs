@@ -38,21 +38,5 @@ fn bench_readiness_vcf_orphan_tools_writes_governed_tsv_columns() {
     let mut lines = tsv.lines();
     assert_eq!(lines.next(), Some("tool_id\tregistered_binary\tserved_stage_count\tdecision"));
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 5, "TSV must retain the governed VCF orphan row count");
-    for row in [
-        "eagle\teagle\t0\tfuture_not_benchmark_ready",
-        "glimpse\tglimpse\t0\tfuture_not_benchmark_ready",
-        "ibdhap\tibdhap\t0\tfuture_not_benchmark_ready",
-        "minimac4\tminimac4\t0\tfuture_not_benchmark_ready",
-        "shapeit\tshapeit\t0\tfuture_not_benchmark_ready",
-    ] {
-        assert!(
-            rows.iter().any(|candidate| candidate == &row),
-            "TSV must retain governed VCF orphan row: {row}"
-        );
-    }
-    assert!(
-        rows.iter().all(|row| !row.starts_with("angsd\t") && !row.starts_with("impute5\t")),
-        "licensed active tools must not be classified as orphans"
-    );
+    assert!(rows.is_empty(), "every governed VCF tool must serve a supported stage");
 }

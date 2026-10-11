@@ -1,0 +1,166 @@
+{
+  "$defs": {
+    "ScientificAcceptanceDirection": {
+      "enum": [
+        "exact_match_preferred",
+        "higher_is_better",
+        "lower_is_better",
+        "minimum",
+        "maximum",
+        "range",
+        "structured_match"
+      ],
+      "type": "string"
+    },
+    "ScientificAcceptanceInsufficiencyBehavior": {
+      "enum": [
+        "refuse_stage_comparison",
+        "drop_metric_from_stage",
+        "warn_and_exclude_stage"
+      ],
+      "type": "string"
+    },
+    "ScientificAcceptancePassRule": {
+      "enum": [
+        "match_reference",
+        "meet_or_exceed_reference",
+        "not_exceed_reference",
+        "remain_within_reference_range",
+        "match_reference_structure"
+      ],
+      "type": "string"
+    },
+    "ScientificAcceptanceThresholdRow": {
+      "additionalProperties": false,
+      "properties": {
+        "declaration_origin": {
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/ScientificAcceptanceDirection"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "insufficiency_behavior": {
+          "$ref": "#/$defs/ScientificAcceptanceInsufficiencyBehavior"
+        },
+        "metric_id": {
+          "type": "string"
+        },
+        "metric_name": {
+          "type": "string"
+        },
+        "pass_rule": {
+          "$ref": "#/$defs/ScientificAcceptancePassRule"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tolerance_kind": {
+          "$ref": "#/$defs/ScientificAcceptanceToleranceKind"
+        },
+        "tolerance_value": {
+          "format": "double",
+          "type": "number"
+        },
+        "unit": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "metric_id",
+        "metric_name",
+        "direction",
+        "tolerance_kind",
+        "tolerance_value",
+        "pass_rule",
+        "insufficiency_behavior",
+        "required",
+        "declaration_origin"
+      ],
+      "type": "object"
+    },
+    "ScientificAcceptanceToleranceKind": {
+      "enum": [
+        "relative_fraction",
+        "absolute_delta",
+        "exact_match",
+        "normalized_set_overlap",
+        "normalized_record_overlap"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "comparable_metric_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "config_path": {
+      "type": "string"
+    },
+    "direction_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "insufficiency_behavior_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/ScientificAcceptanceThresholdRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.scientific_acceptance_thresholds.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "config_path",
+    "comparable_metric_count",
+    "row_count",
+    "domain_counts",
+    "direction_counts",
+    "insufficiency_behavior_counts",
+    "rows"
+  ],
+  "title": "ScientificAcceptanceThresholdsReport",
+  "type": "object"
+}

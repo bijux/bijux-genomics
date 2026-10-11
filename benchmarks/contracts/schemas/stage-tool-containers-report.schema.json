@@ -1,0 +1,136 @@
+{
+  "$defs": {
+    "StageToolContainerRow": {
+      "additionalProperties": false,
+      "properties": {
+        "command_entrypoint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "container_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "declaration_origin": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "execution_mode": {
+          "type": "string"
+        },
+        "host_binary_mode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "install_kind": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "tool_id",
+        "execution_mode",
+        "install_kind",
+        "declaration_origin"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_ready_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "classification_scope": {
+      "type": "string"
+    },
+    "command_entrypoint_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "config_path": {
+      "type": "string"
+    },
+    "container_declared_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "execution_mode_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "external_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "host_binary_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/StageToolContainerRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.stage_tool_containers.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "config_path",
+    "classification_scope",
+    "row_count",
+    "benchmark_ready_row_count",
+    "external_row_count",
+    "container_declared_row_count",
+    "command_entrypoint_row_count",
+    "host_binary_row_count",
+    "domain_counts",
+    "execution_mode_counts",
+    "rows"
+  ],
+  "title": "StageToolContainersReport",
+  "type": "object"
+}

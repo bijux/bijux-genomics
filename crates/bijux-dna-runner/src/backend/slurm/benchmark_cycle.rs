@@ -1,5 +1,6 @@
 //! One-shot scheduler collection for benchmark campaign attempts.
 
+use std::cmp::Ordering;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
@@ -93,7 +94,7 @@ pub fn submit_benchmark_campaign_frontier(
     }
     let benchmark_root = benchmark_root.canonicalize()?;
     let mut attempts = plan.cycle.attempts.iter().collect::<Vec<_>>();
-    attempts.sort_by(|left, right| left.identity.tool_id.cmp(&right.identity.tool_id));
+    attempts.sort_by(|left, right| compare_attempt_identity(&left.identity, &right.identity));
     let mut effects_attempted = 0usize;
     let mut units = Vec::with_capacity(attempts.len());
     for attempt in attempts {
@@ -186,6 +187,14 @@ pub fn submit_benchmark_campaign_frontier(
         maximum_submissions,
         units,
     })
+}
+
+fn compare_attempt_identity(
+    left: &BenchmarkAttemptIdentity,
+    right: &BenchmarkAttemptIdentity,
+) -> Ordering {
+    (left.case_id.as_deref(), left.tool_id.as_str())
+        .cmp(&(right.case_id.as_deref(), right.tool_id.as_str()))
 }
 
 fn submission_unit(

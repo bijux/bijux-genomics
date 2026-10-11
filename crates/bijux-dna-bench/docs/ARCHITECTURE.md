@@ -26,11 +26,14 @@ belong under `docs/`.
   suite persistence, runtime attempt-lifecycle composition, fairness checks,
   scope grouping, and summary statistics.
 - `src/workflow/campaign_engine/` separates generic case planning, immutable
-  evidence persistence, aggregation, and report projection.
+  evidence persistence, dependency-injected stage-plugin resolution,
+  normalization, aggregation, and report projection.
 - `src/workflow/run_suite/` separates suite orchestration from artifact
   persistence.
-- Stage-specific workflow modules own their scientific inputs, command contracts,
-  normalized outputs, and parameter evidence.
+- The stage-contract crate owns bindings and downstream probes. Domain stage
+  crates implement normalization behind `StagePlugin`; the benchmark workflow
+  owns their generic lifecycle and receives implementations through that shared
+  contract.
 - `src/workflow/summary/` separates grouping, row metrics, and stratum assembly.
 - `src/repo/` owns repository-root discovery, workspace path policy, domain-specific
   FASTQ and BAM corpus admission, repository contracts, run metadata, run artifact loaders,
@@ -65,8 +68,9 @@ Allowed normal dependencies are lower-level model, core, environment, infra,
 runtime, and science contracts required to admit data, derive independent truth,
 load finished artifacts, validate container catalog identity, and write
 deterministic benchmark outputs. The BAM domain contract may provide read-only BAM header identity;
-stage and planner crates remain downstream. `bijux-dna-bench` must not depend on API, planner,
-runner, or domain execution crates for production behavior.
+stage and planner crates remain downstream. Concrete stage plugins are injected
+by an application composition root. `bijux-dna-bench` must not depend on API,
+planner, runner, or domain execution crates for production behavior.
 
 ## Guardrails
 

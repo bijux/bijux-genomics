@@ -27,12 +27,15 @@ pub use contracts::{
 };
 pub use cycle::{
     admit_container_qualification_cycle, advance_container_qualification_cycle,
-    collect_container_qualification_cycle, plan_container_qualification_cycle,
-    status_container_qualification_cycle, ContainerQualificationCycleAction,
+    collect_container_qualification_cycle, load_container_qualification_cycle_preparation,
+    plan_container_qualification_cycle, status_container_qualification_cycle,
+    ContainerQualificationCycleAction, ContainerQualificationCyclePreparation,
     ContainerQualificationCycleRequest, ContainerQualificationCycleState,
     ContainerQualificationCycleStatus, ContainerQualificationCycleSummary,
-    ContainerQualificationCycleUnit, CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1,
-    CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2,
+    ContainerQualificationCycleUnit, ContainerQualificationSourceMaterialization,
+    CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V1,
+    CONTAINER_QUALIFICATION_CYCLE_PREPARATION_SCHEMA_V2,
+    CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1, CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2,
 };
 pub use execution::execute_container_qualification;
 pub use lifecycle::{
@@ -45,4 +48,6 @@ pub use lifecycle::{
 pub use preparation::{
     prepare_container_qualification_slurm_job, prepare_historical_container_qualification_replay,
 };
-pub use validation::load_container_qualification_slurm_spec;
+pub use validation::{
+    load_container_qualification_slurm_spec, load_recorded_container_qualification_slurm_spec,
+};

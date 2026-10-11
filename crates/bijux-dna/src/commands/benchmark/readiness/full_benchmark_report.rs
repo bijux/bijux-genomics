@@ -4,24 +4,33 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    build_full_benchmark_comparable_metric_rows, build_full_benchmark_corpus_rows,
+    build_full_benchmark_failures_section, build_full_benchmark_memory_rows,
+    build_full_benchmark_missing_result_rows, build_full_benchmark_pipeline_rows,
+    build_full_benchmark_runtime_rows, build_full_benchmark_stage_rows,
+    build_full_benchmark_tool_rows, build_full_benchmark_unsupported_pair_rows,
+    render_full_benchmark_report_markdown, validate_full_benchmark_report,
+    FullBenchmarkReportAdmissionContext, FULL_BENCHMARK_REPORT_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    FullBenchmarkReport, FullBenchmarkReportRow, FullBenchmarkReportRowStatus,
+};
 use serde_json::Value;
 
 use super::all_domain_expected_benchmark_results::{
-    render_all_domain_expected_benchmark_results, AllDomainExpectedBenchmarkResultsReport,
+    render_all_domain_expected_benchmark_results,
     DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
 };
 use super::all_domain_failure_classification::{
-    render_all_domain_failure_classification, AllDomainFailureClassificationReport,
-    AllDomainFailureClassificationRow, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
+    render_all_domain_failure_classification, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
 };
 use super::bam_comparable_metrics::{
-    render_bam_comparable_metrics, BamComparableMetricsReport, DEFAULT_BAM_COMPARABLE_METRICS_PATH,
+    render_bam_comparable_metrics, DEFAULT_BAM_COMPARABLE_METRICS_PATH,
 };
 use super::essential_pipeline_rendered_commands::collect_essential_pipeline_rendered_command_rows;
 use super::fastq_comparable_metrics::{
-    render_fastq_comparable_metrics, FastqComparableMetricsReport,
-    DEFAULT_FASTQ_COMPARABLE_METRICS_PATH,
+    render_fastq_comparable_metrics, DEFAULT_FASTQ_COMPARABLE_METRICS_PATH,
 };
 use super::full_benchmark_result_collector::{
     render_full_benchmark_result_collector, FullBenchmarkResultCollectorReport,
@@ -29,14 +38,12 @@ use super::full_benchmark_result_collector::{
     DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH,
 };
 use super::scientific_acceptance_thresholds::{
-    render_scientific_acceptance_thresholds_from_reports, scientific_acceptance_direction_label,
-    scientific_acceptance_insufficiency_behavior_label, scientific_acceptance_pass_rule_label,
-    scientific_acceptance_tolerance_kind_label, ScientificAcceptanceThresholdRow,
+    render_scientific_acceptance_thresholds_from_reports,
     DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH,
 };
 use super::stage_tool_resources::{render_stage_tool_resources, DEFAULT_STAGE_TOOL_RESOURCES_PATH};
 use super::vcf_comparable_metrics::{
-    render_vcf_comparable_metrics, VcfComparableMetricsReport, DEFAULT_VCF_COMPARABLE_METRICS_PATH,
+    render_vcf_comparable_metrics, DEFAULT_VCF_COMPARABLE_METRICS_PATH,
 };
 use crate::commands::benchmark::local_stage_result_manifest::load_validated_stage_result_manifest_path;
 use crate::commands::cli::parse;
@@ -46,231 +53,11 @@ pub(crate) const DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.md";
 pub(crate) const DEFAULT_FULL_BENCHMARK_REPORT_JSON_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
-const FULL_BENCHMARK_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.full_benchmark_report.v1";
-
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BindingKey {
     domain: String,
     stage_id: String,
     tool_id: String,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum FullBenchmarkReportRowStatus {
-    Present,
-    MissingResult,
-    UnsupportedPair,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) struct FullBenchmarkReportRow {
-    pub(crate) report_row_id: String,
-    pub(crate) row_status: FullBenchmarkReportRowStatus,
-    pub(crate) result_id: Option<String>,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) report_section: String,
-    pub(crate) pipeline_ids: Vec<String>,
-    pub(crate) expected_output_count: usize,
-    pub(crate) expected_metric_count: usize,
-    pub(crate) comparable_metric_count: usize,
-    pub(crate) simulated_elapsed_seconds: Option<f64>,
-    pub(crate) real_smoke_execution_id: Option<String>,
-    pub(crate) real_smoke_elapsed_seconds: Option<f64>,
-    pub(crate) declared_memory_mb: Option<f64>,
-    pub(crate) declared_cpu_threads: Option<u32>,
-    pub(crate) real_smoke_memory_mb: Option<f64>,
-    pub(crate) real_smoke_cpu_threads: Option<u32>,
-    pub(crate) evidence_path: String,
-    pub(crate) manifest_path: Option<String>,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct FullBenchmarkStageSectionRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) row_count: usize,
-    pub(crate) present_row_count: usize,
-    pub(crate) missing_result_row_count: usize,
-    pub(crate) unsupported_pair_row_count: usize,
-    pub(crate) tool_ids: Vec<String>,
-    pub(crate) corpus_ids: Vec<String>,
-    pub(crate) pipeline_ids: Vec<String>,
-    pub(crate) report_sections: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct FullBenchmarkToolSectionRow {
-    pub(crate) tool_id: String,
-    pub(crate) row_count: usize,
-    pub(crate) present_row_count: usize,
-    pub(crate) missing_result_row_count: usize,
-    pub(crate) unsupported_pair_row_count: usize,
-    pub(crate) domains: Vec<String>,
-    pub(crate) stage_ids: Vec<String>,
-    pub(crate) corpus_ids: Vec<String>,
-    pub(crate) pipeline_ids: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct FullBenchmarkCorpusSectionRow {
-    pub(crate) corpus_id: String,
-    pub(crate) row_count: usize,
-    pub(crate) present_row_count: usize,
-    pub(crate) missing_result_row_count: usize,
-    pub(crate) unsupported_pair_row_count: usize,
-    pub(crate) domains: Vec<String>,
-    pub(crate) stage_ids: Vec<String>,
-    pub(crate) tool_ids: Vec<String>,
-    pub(crate) pipeline_ids: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct FullBenchmarkPipelineSectionRow {
-    pub(crate) pipeline_id: String,
-    pub(crate) row_count: usize,
-    pub(crate) present_row_count: usize,
-    pub(crate) missing_result_row_count: usize,
-    pub(crate) unsupported_pair_row_count: usize,
-    pub(crate) domains: Vec<String>,
-    pub(crate) stage_ids: Vec<String>,
-    pub(crate) tool_ids: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct FullBenchmarkPipelineSection {
-    pub(crate) row_count: usize,
-    pub(crate) unmapped_row_count: usize,
-    pub(crate) rows: Vec<FullBenchmarkPipelineSectionRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) struct FullBenchmarkRuntimeRow {
-    pub(crate) report_row_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) row_status: FullBenchmarkReportRowStatus,
-    pub(crate) simulated_elapsed_seconds: Option<f64>,
-    pub(crate) real_smoke_execution_id: Option<String>,
-    pub(crate) real_smoke_elapsed_seconds: Option<f64>,
-    pub(crate) runtime_source: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) struct FullBenchmarkMemoryRow {
-    pub(crate) report_row_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) row_status: FullBenchmarkReportRowStatus,
-    pub(crate) declared_memory_mb: Option<f64>,
-    pub(crate) declared_cpu_threads: Option<u32>,
-    pub(crate) real_smoke_memory_mb: Option<f64>,
-    pub(crate) real_smoke_cpu_threads: Option<u32>,
-    pub(crate) memory_source: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct FullBenchmarkFailureRow {
-    pub(crate) record_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) evidence_path: String,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct FullBenchmarkFailuresSection {
-    pub(crate) simulated_failure_row_count: usize,
-    pub(crate) failure_class_row_count: usize,
-    pub(crate) simulated_failure_domain_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<FullBenchmarkFailureRow>,
-    pub(crate) classification_rows: Vec<AllDomainFailureClassificationRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct FullBenchmarkMissingResultRow {
-    pub(crate) result_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) report_section: String,
-    pub(crate) audit_manifest_path: Option<String>,
-    pub(crate) evidence_path: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) struct FullBenchmarkComparableMetricRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) metric_id: String,
-    pub(crate) metric_name: String,
-    pub(crate) unit: Option<String>,
-    pub(crate) direction: String,
-    pub(crate) tolerance_kind: String,
-    pub(crate) tolerance_value: f64,
-    pub(crate) pass_rule: String,
-    pub(crate) insufficiency_behavior: String,
-    pub(crate) required: bool,
-    pub(crate) tool_ids: Vec<String>,
-    pub(crate) contract_status: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct FullBenchmarkUnsupportedPairRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) evidence_path: String,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct FullBenchmarkReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) markdown_output_path: String,
-    pub(crate) json_output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) expected_result_row_count: usize,
-    pub(crate) explicit_unsupported_row_count: usize,
-    pub(crate) present_row_count: usize,
-    pub(crate) missing_result_row_count: usize,
-    pub(crate) unsupported_pair_row_count: usize,
-    pub(crate) stage_centric_row_count: usize,
-    pub(crate) tool_centric_row_count: usize,
-    pub(crate) corpus_centric_row_count: usize,
-    pub(crate) pipeline_centric_row_count: usize,
-    pub(crate) runtime_row_count: usize,
-    pub(crate) memory_row_count: usize,
-    pub(crate) comparable_metric_row_count: usize,
-    pub(crate) failure_row_count: usize,
-    pub(crate) failure_class_row_count: usize,
-    pub(crate) passes_behavior_test: bool,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) row_status_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<FullBenchmarkReportRow>,
-    pub(crate) stage_centric: Vec<FullBenchmarkStageSectionRow>,
-    pub(crate) tool_centric: Vec<FullBenchmarkToolSectionRow>,
-    pub(crate) corpus_centric: Vec<FullBenchmarkCorpusSectionRow>,
-    pub(crate) pipeline_centric: FullBenchmarkPipelineSection,
-    pub(crate) runtime: Vec<FullBenchmarkRuntimeRow>,
-    pub(crate) memory: Vec<FullBenchmarkMemoryRow>,
-    pub(crate) failures: FullBenchmarkFailuresSection,
-    pub(crate) missing_results: Vec<FullBenchmarkMissingResultRow>,
-    pub(crate) comparable_metrics: Vec<FullBenchmarkComparableMetricRow>,
-    pub(crate) unsupported_pairs: Vec<FullBenchmarkUnsupportedPairRow>,
 }
 
 #[derive(Debug, Clone)]
@@ -373,7 +160,7 @@ pub(crate) fn render_full_benchmark_report(
         .map(|row| (binding_key(&row.domain, &row.stage_id, &row.tool_id), row.clone()))
         .collect::<BTreeMap<_, _>>();
     let pipeline_ids_by_binding = collect_pipeline_ids_by_binding(repo_root)?;
-    let comparable_metrics = collect_full_benchmark_comparable_metrics(
+    let comparable_metrics = build_full_benchmark_comparable_metric_rows(
         &fastq_comparable_report,
         &bam_comparable_report,
         &vcf_comparable_report,
@@ -498,15 +285,16 @@ pub(crate) fn render_full_benchmark_report(
             .then_with(|| left.report_row_id.cmp(&right.report_row_id))
     });
 
-    let stage_centric = build_stage_centric_rows(&rows);
-    let tool_centric = build_tool_centric_rows(&rows);
-    let corpus_centric = build_corpus_centric_rows(&rows);
-    let pipeline_centric = build_pipeline_centric_rows(&rows);
-    let runtime = build_runtime_rows(&rows);
-    let memory = build_memory_rows(&rows);
-    let failures = build_failures_section(&collector_report, &failure_classification_report)?;
-    let missing_results = build_missing_result_rows(&rows);
-    let unsupported_pairs = build_unsupported_pair_rows(&rows);
+    let stage_centric = build_full_benchmark_stage_rows(&rows);
+    let tool_centric = build_full_benchmark_tool_rows(&rows);
+    let corpus_centric = build_full_benchmark_corpus_rows(&rows);
+    let pipeline_centric = build_full_benchmark_pipeline_rows(&rows);
+    let runtime = build_full_benchmark_runtime_rows(&rows);
+    let memory = build_full_benchmark_memory_rows(&rows);
+    let failures =
+        build_full_benchmark_failures_section(&collector_report, &failure_classification_report)?;
+    let missing_results = build_full_benchmark_missing_result_rows(&rows)?;
+    let unsupported_pairs = build_full_benchmark_unsupported_pair_rows(&rows);
 
     let mut domain_counts = BTreeMap::<String, usize>::new();
     let mut row_status_counts = BTreeMap::<String, usize>::new();
@@ -517,8 +305,8 @@ pub(crate) fn render_full_benchmark_report(
             .or_default() += 1;
     }
 
-    let report = FullBenchmarkReport {
-        schema_version: FULL_BENCHMARK_REPORT_SCHEMA_VERSION,
+    let mut report = FullBenchmarkReport {
+        schema_version: FULL_BENCHMARK_REPORT_SCHEMA_V1.to_string(),
         markdown_output_path: path_relative_to_repo(repo_root, &markdown_output_path),
         json_output_path: path_relative_to_repo(repo_root, &json_output_path),
         row_count: rows.len(),
@@ -560,12 +348,14 @@ pub(crate) fn render_full_benchmark_report(
         comparable_metrics,
         unsupported_pairs,
     };
-    let report = ensure_full_benchmark_report_contract(
-        report,
-        &expected_report,
-        &collector_report,
-        &failure_classification_report,
-    )?;
+    let admission_context = FullBenchmarkReportAdmissionContext {
+        expected_result_ids: expected_report.rows.iter().map(|row| row.result_id.clone()).collect(),
+        collector_missing_result_count: collector_report.missing_result_status_count,
+        collector_failure_count: collector_report.fake_failure_row_count,
+        collector_unsupported_pair_count: collector_report.unsupported_pair_row_count,
+        triggered_failure_class_count: failure_classification_report.triggered_row_count,
+    };
+    validate_full_benchmark_report(&mut report, &admission_context)?;
 
     if let Some(parent) = markdown_output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -650,788 +440,6 @@ fn collect_real_smoke_runtime_by_binding(
     Ok(rows)
 }
 
-fn build_stage_centric_rows(rows: &[FullBenchmarkReportRow]) -> Vec<FullBenchmarkStageSectionRow> {
-    let mut grouped = BTreeMap::<(String, String), Vec<&FullBenchmarkReportRow>>::new();
-    for row in rows {
-        grouped.entry((row.domain.clone(), row.stage_id.clone())).or_default().push(row);
-    }
-
-    grouped
-        .into_iter()
-        .map(|((domain, stage_id), grouped_rows)| FullBenchmarkStageSectionRow {
-            domain,
-            stage_id,
-            row_count: grouped_rows.len(),
-            present_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::Present)
-                .count(),
-            missing_result_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-                .count(),
-            unsupported_pair_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-                .count(),
-            tool_ids: grouped_rows
-                .iter()
-                .map(|row| row.tool_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            corpus_ids: grouped_rows
-                .iter()
-                .map(|row| row.corpus_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            pipeline_ids: grouped_rows
-                .iter()
-                .flat_map(|row| row.pipeline_ids.iter().cloned())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            report_sections: grouped_rows
-                .iter()
-                .map(|row| row.report_section.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-        })
-        .collect()
-}
-
-fn build_tool_centric_rows(rows: &[FullBenchmarkReportRow]) -> Vec<FullBenchmarkToolSectionRow> {
-    let mut grouped = BTreeMap::<String, Vec<&FullBenchmarkReportRow>>::new();
-    for row in rows {
-        grouped.entry(row.tool_id.clone()).or_default().push(row);
-    }
-
-    grouped
-        .into_iter()
-        .map(|(tool_id, grouped_rows)| FullBenchmarkToolSectionRow {
-            tool_id,
-            row_count: grouped_rows.len(),
-            present_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::Present)
-                .count(),
-            missing_result_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-                .count(),
-            unsupported_pair_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-                .count(),
-            domains: grouped_rows
-                .iter()
-                .map(|row| row.domain.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            stage_ids: grouped_rows
-                .iter()
-                .map(|row| row.stage_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            corpus_ids: grouped_rows
-                .iter()
-                .map(|row| row.corpus_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            pipeline_ids: grouped_rows
-                .iter()
-                .flat_map(|row| row.pipeline_ids.iter().cloned())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-        })
-        .collect()
-}
-
-fn build_corpus_centric_rows(
-    rows: &[FullBenchmarkReportRow],
-) -> Vec<FullBenchmarkCorpusSectionRow> {
-    let mut grouped = BTreeMap::<String, Vec<&FullBenchmarkReportRow>>::new();
-    for row in rows {
-        grouped.entry(row.corpus_id.clone()).or_default().push(row);
-    }
-
-    grouped
-        .into_iter()
-        .map(|(corpus_id, grouped_rows)| FullBenchmarkCorpusSectionRow {
-            corpus_id,
-            row_count: grouped_rows.len(),
-            present_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::Present)
-                .count(),
-            missing_result_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-                .count(),
-            unsupported_pair_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-                .count(),
-            domains: grouped_rows
-                .iter()
-                .map(|row| row.domain.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            stage_ids: grouped_rows
-                .iter()
-                .map(|row| row.stage_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            tool_ids: grouped_rows
-                .iter()
-                .map(|row| row.tool_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            pipeline_ids: grouped_rows
-                .iter()
-                .flat_map(|row| row.pipeline_ids.iter().cloned())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-        })
-        .collect()
-}
-
-fn build_pipeline_centric_rows(rows: &[FullBenchmarkReportRow]) -> FullBenchmarkPipelineSection {
-    let mut grouped = BTreeMap::<String, Vec<&FullBenchmarkReportRow>>::new();
-    let mut unmapped_row_count = 0usize;
-    for row in rows {
-        if row.pipeline_ids.is_empty() {
-            unmapped_row_count += 1;
-            continue;
-        }
-        for pipeline_id in &row.pipeline_ids {
-            grouped.entry(pipeline_id.clone()).or_default().push(row);
-        }
-    }
-
-    let rows = grouped
-        .into_iter()
-        .map(|(pipeline_id, grouped_rows)| FullBenchmarkPipelineSectionRow {
-            pipeline_id,
-            row_count: grouped_rows.len(),
-            present_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::Present)
-                .count(),
-            missing_result_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-                .count(),
-            unsupported_pair_row_count: grouped_rows
-                .iter()
-                .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-                .count(),
-            domains: grouped_rows
-                .iter()
-                .map(|row| row.domain.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            stage_ids: grouped_rows
-                .iter()
-                .map(|row| row.stage_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-            tool_ids: grouped_rows
-                .iter()
-                .map(|row| row.tool_id.clone())
-                .collect::<BTreeSet<_>>()
-                .into_iter()
-                .collect(),
-        })
-        .collect::<Vec<_>>();
-
-    FullBenchmarkPipelineSection { row_count: rows.len(), unmapped_row_count, rows }
-}
-
-fn build_runtime_rows(rows: &[FullBenchmarkReportRow]) -> Vec<FullBenchmarkRuntimeRow> {
-    rows.iter()
-        .map(|row| FullBenchmarkRuntimeRow {
-            report_row_id: row.report_row_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            row_status: row.row_status,
-            simulated_elapsed_seconds: row.simulated_elapsed_seconds,
-            real_smoke_execution_id: row.real_smoke_execution_id.clone(),
-            real_smoke_elapsed_seconds: row.real_smoke_elapsed_seconds,
-            runtime_source: runtime_source_label(row).to_string(),
-        })
-        .collect()
-}
-
-fn build_memory_rows(rows: &[FullBenchmarkReportRow]) -> Vec<FullBenchmarkMemoryRow> {
-    rows.iter()
-        .map(|row| FullBenchmarkMemoryRow {
-            report_row_id: row.report_row_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            row_status: row.row_status,
-            declared_memory_mb: row.declared_memory_mb,
-            declared_cpu_threads: row.declared_cpu_threads,
-            real_smoke_memory_mb: row.real_smoke_memory_mb,
-            real_smoke_cpu_threads: row.real_smoke_cpu_threads,
-            memory_source: memory_source_label(row).to_string(),
-        })
-        .collect()
-}
-
-fn build_failures_section(
-    collector_report: &FullBenchmarkResultCollectorReport,
-    failure_classification_report: &AllDomainFailureClassificationReport,
-) -> Result<FullBenchmarkFailuresSection> {
-    let mut simulated_failure_domain_counts = BTreeMap::<String, usize>::new();
-    let mut rows = Vec::new();
-    for row in collector_report
-        .rows
-        .iter()
-        .filter(|row| row.surface_kind == FullBenchmarkResultSurfaceKind::FakeFailure)
-    {
-        *simulated_failure_domain_counts.entry(row.domain.clone()).or_default() += 1;
-        rows.push(FullBenchmarkFailureRow {
-            record_id: row.record_id.clone(),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            result_id: row.result_id.clone(),
-            evidence_path: row.evidence_path.clone(),
-            detail: row.detail.clone(),
-        });
-    }
-    if rows.len() != collector_report.fake_failure_row_count {
-        return Err(anyhow!(
-            "full benchmark report failure section drifted from governed fake-failure coverage"
-        ));
-    }
-
-    Ok(FullBenchmarkFailuresSection {
-        simulated_failure_row_count: rows.len(),
-        failure_class_row_count: failure_classification_report.rows.len(),
-        simulated_failure_domain_counts,
-        rows,
-        classification_rows: failure_classification_report.rows.clone(),
-    })
-}
-
-fn build_missing_result_rows(
-    rows: &[FullBenchmarkReportRow],
-) -> Vec<FullBenchmarkMissingResultRow> {
-    rows.iter()
-        .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-        .map(|row| FullBenchmarkMissingResultRow {
-            result_id: row.result_id.clone().expect("missing-result row result_id"),
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            corpus_id: row.corpus_id.clone(),
-            asset_profile_id: row.asset_profile_id.clone(),
-            report_section: row.report_section.clone(),
-            audit_manifest_path: row.manifest_path.clone(),
-            evidence_path: row.evidence_path.clone(),
-            reason: row.detail.clone(),
-        })
-        .collect()
-}
-
-fn build_unsupported_pair_rows(
-    rows: &[FullBenchmarkReportRow],
-) -> Vec<FullBenchmarkUnsupportedPairRow> {
-    rows.iter()
-        .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-        .map(|row| FullBenchmarkUnsupportedPairRow {
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            evidence_path: row.evidence_path.clone(),
-            detail: row.detail.clone(),
-        })
-        .collect()
-}
-
-fn collect_full_benchmark_comparable_metrics(
-    fastq_report: &FastqComparableMetricsReport,
-    bam_report: &BamComparableMetricsReport,
-    vcf_report: &VcfComparableMetricsReport,
-    acceptance_rows: &[ScientificAcceptanceThresholdRow],
-) -> Result<Vec<FullBenchmarkComparableMetricRow>> {
-    let acceptance_by_metric = acceptance_rows_by_metric(acceptance_rows)?;
-    let mut rows = Vec::new();
-
-    for row in &fastq_report.rows {
-        for metric in &row.shared_metric_fields {
-            let acceptance = acceptance_row(&acceptance_by_metric, "fastq", &row.stage_id, metric)?;
-            rows.push(FullBenchmarkComparableMetricRow {
-                domain: "fastq".to_string(),
-                stage_id: row.stage_id.clone(),
-                metric_id: metric.clone(),
-                metric_name: metric.clone(),
-                unit: acceptance.unit.clone(),
-                direction: scientific_acceptance_direction_label(acceptance.direction).to_string(),
-                tolerance_kind: scientific_acceptance_tolerance_kind_label(
-                    acceptance.tolerance_kind,
-                )
-                .to_string(),
-                tolerance_value: acceptance.tolerance_value,
-                pass_rule: scientific_acceptance_pass_rule_label(acceptance.pass_rule).to_string(),
-                insufficiency_behavior: scientific_acceptance_insufficiency_behavior_label(
-                    acceptance.insufficiency_behavior,
-                )
-                .to_string(),
-                required: acceptance.required,
-                tool_ids: row.tool_ids.clone(),
-                contract_status: fastq_contract_status_label(row.comparison_contract_status)
-                    .to_string(),
-                reason: row.reason.clone(),
-            });
-        }
-    }
-
-    for row in &bam_report.rows {
-        for metric in &row.shared_metric_fields {
-            let acceptance = acceptance_row(&acceptance_by_metric, "bam", &row.stage_id, metric)?;
-            rows.push(FullBenchmarkComparableMetricRow {
-                domain: "bam".to_string(),
-                stage_id: row.stage_id.clone(),
-                metric_id: metric.clone(),
-                metric_name: metric.clone(),
-                unit: acceptance.unit.clone(),
-                direction: scientific_acceptance_direction_label(acceptance.direction).to_string(),
-                tolerance_kind: scientific_acceptance_tolerance_kind_label(
-                    acceptance.tolerance_kind,
-                )
-                .to_string(),
-                tolerance_value: acceptance.tolerance_value,
-                pass_rule: scientific_acceptance_pass_rule_label(acceptance.pass_rule).to_string(),
-                insufficiency_behavior: scientific_acceptance_insufficiency_behavior_label(
-                    acceptance.insufficiency_behavior,
-                )
-                .to_string(),
-                required: acceptance.required,
-                tool_ids: row.tool_ids.clone(),
-                contract_status: bam_contract_status_label(row.comparison_contract_status)
-                    .to_string(),
-                reason: row.reason.clone(),
-            });
-        }
-    }
-
-    for row in &vcf_report.rows {
-        let acceptance =
-            acceptance_row(&acceptance_by_metric, "vcf", &row.stage_id, &row.metric_id)?;
-        rows.push(FullBenchmarkComparableMetricRow {
-            domain: "vcf".to_string(),
-            stage_id: row.stage_id.clone(),
-            metric_id: row.metric_id.clone(),
-            metric_name: row.metric_name.clone(),
-            unit: acceptance.unit.clone(),
-            direction: scientific_acceptance_direction_label(acceptance.direction).to_string(),
-            tolerance_kind: scientific_acceptance_tolerance_kind_label(acceptance.tolerance_kind)
-                .to_string(),
-            tolerance_value: acceptance.tolerance_value,
-            pass_rule: scientific_acceptance_pass_rule_label(acceptance.pass_rule).to_string(),
-            insufficiency_behavior: scientific_acceptance_insufficiency_behavior_label(
-                acceptance.insufficiency_behavior,
-            )
-            .to_string(),
-            required: acceptance.required,
-            tool_ids: row.tools_covered.clone(),
-            contract_status: "declared".to_string(),
-            reason: format!(
-                "governed VCF comparable metric published for `{}` across {} retained tools",
-                row.stage_id,
-                row.tools_covered.len()
-            ),
-        });
-    }
-
-    rows.sort_by(|left, right| {
-        left.domain
-            .cmp(&right.domain)
-            .then_with(|| left.stage_id.cmp(&right.stage_id))
-            .then_with(|| left.metric_id.cmp(&right.metric_id))
-    });
-    Ok(rows)
-}
-
-fn acceptance_rows_by_metric(
-    rows: &[ScientificAcceptanceThresholdRow],
-) -> Result<BTreeMap<(String, String, String), ScientificAcceptanceThresholdRow>> {
-    let mut by_metric = BTreeMap::new();
-    for row in rows {
-        let key = (row.domain.clone(), row.stage_id.clone(), row.metric_id.clone());
-        if by_metric.insert(key.clone(), row.clone()).is_some() {
-            return Err(anyhow!(
-                "full benchmark report found duplicate scientific acceptance threshold row for `{}:{}/{}`",
-                key.0,
-                key.1,
-                key.2
-            ));
-        }
-    }
-    Ok(by_metric)
-}
-
-fn acceptance_row<'a>(
-    by_metric: &'a BTreeMap<(String, String, String), ScientificAcceptanceThresholdRow>,
-    domain: &str,
-    stage_id: &str,
-    metric_id: &str,
-) -> Result<&'a ScientificAcceptanceThresholdRow> {
-    by_metric
-        .get(&(domain.to_string(), stage_id.to_string(), metric_id.to_string()))
-        .ok_or_else(|| {
-            anyhow!(
-                "full benchmark report is missing scientific acceptance semantics for `{domain}` / `{stage_id}` / `{metric_id}`"
-            )
-        })
-}
-
-fn ensure_full_benchmark_report_contract(
-    mut report: FullBenchmarkReport,
-    expected_report: &AllDomainExpectedBenchmarkResultsReport,
-    collector_report: &FullBenchmarkResultCollectorReport,
-    failure_classification_report: &AllDomainFailureClassificationReport,
-) -> Result<FullBenchmarkReport> {
-    if report.row_count != expected_report.row_count + report.explicit_unsupported_row_count {
-        return Err(anyhow!(
-            "full benchmark report row count must equal expected-result rows plus explicit unsupported rows"
-        ));
-    }
-    if report.explicit_unsupported_row_count != collector_report.unsupported_pair_row_count {
-        return Err(anyhow!(
-            "full benchmark report unsupported-pair rows drifted from the governed collector"
-        ));
-    }
-    if report.missing_result_row_count != collector_report.missing_result_status_count {
-        return Err(anyhow!(
-            "full benchmark report missing-result rows drifted from the governed collector"
-        ));
-    }
-    if report.failure_row_count != collector_report.fake_failure_row_count {
-        return Err(anyhow!(
-            "full benchmark report failure rows drifted from the governed collector"
-        ));
-    }
-    if report.failure_class_row_count != failure_classification_report.triggered_row_count {
-        return Err(anyhow!(
-            "full benchmark report failure-class rows drifted from the governed failure classification surface"
-        ));
-    }
-    if report.runtime_row_count != report.row_count || report.memory_row_count != report.row_count {
-        return Err(anyhow!(
-            "full benchmark report runtime and memory sections must keep one row per report row"
-        ));
-    }
-    let unique_report_row_ids =
-        report.rows.iter().map(|row| row.report_row_id.as_str()).collect::<BTreeSet<_>>();
-    if unique_report_row_ids.len() != report.rows.len() {
-        return Err(anyhow!("full benchmark report must keep a unique report_row_id per row"));
-    }
-    let expected_result_ids =
-        expected_report.rows.iter().map(|row| row.result_id.as_str()).collect::<BTreeSet<_>>();
-    let report_result_ids =
-        report.rows.iter().filter_map(|row| row.result_id.as_deref()).collect::<BTreeSet<_>>();
-    if expected_result_ids != report_result_ids {
-        return Err(anyhow!(
-            "full benchmark report must keep exactly one canonical report row per expected result_id"
-        ));
-    }
-    for row in &report.rows {
-        if row.domain.trim().is_empty()
-            || row.stage_id.trim().is_empty()
-            || row.tool_id.trim().is_empty()
-            || row.corpus_id.trim().is_empty()
-            || row.asset_profile_id.trim().is_empty()
-            || row.report_section.trim().is_empty()
-            || row.evidence_path.trim().is_empty()
-        {
-            return Err(anyhow!(
-                "full benchmark report rows must keep non-empty domain, stage, tool, corpus, asset-profile, section, and evidence fields"
-            ));
-        }
-    }
-    if report.missing_results.len() != report.missing_result_row_count {
-        return Err(anyhow!(
-            "full benchmark report missing-results section drifted from the canonical row slice"
-        ));
-    }
-    if report.unsupported_pairs.len() != report.explicit_unsupported_row_count {
-        return Err(anyhow!(
-            "full benchmark report unsupported-pairs section drifted from the canonical row slice"
-        ));
-    }
-    if report
-        .rows
-        .iter()
-        .filter(|row| row.row_status == FullBenchmarkReportRowStatus::MissingResult)
-        .count()
-        == 0
-    {
-        return Err(anyhow!("full benchmark report must keep missing-result rows visible"));
-    }
-    if report
-        .rows
-        .iter()
-        .filter(|row| row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair)
-        .count()
-        == 0
-    {
-        return Err(anyhow!("full benchmark report must keep unsupported-pair rows visible"));
-    }
-    report.passes_behavior_test = true;
-    Ok(report)
-}
-
-fn render_full_benchmark_report_markdown(report: &FullBenchmarkReport) -> String {
-    let mut rendered = String::from("# FASTQ + BAM + VCF Benchmark Report\n\n");
-    rendered.push_str(&format!(
-        "- Report rows: {}\n- Expected-result rows: {}\n- Explicit unsupported rows: {}\n- Present rows: {}\n- Missing-result rows: {}\n- Unsupported-pair rows: {}\n- Failure rows: {}\n- Comparable metric rows: {}\n\n",
-        report.row_count,
-        report.expected_result_row_count,
-        report.explicit_unsupported_row_count,
-        report.present_row_count,
-        report.missing_result_row_count,
-        report.unsupported_pair_row_count,
-        report.failure_row_count,
-        report.comparable_metric_row_count
-    ));
-
-    rendered.push_str("## Stage-Centric\n\n");
-    rendered.push_str(
-        "| Domain | Stage | Rows | Present | Missing | Unsupported | Tools | Pipelines |\n",
-    );
-    rendered.push_str("| --- | --- | ---: | ---: | ---: | ---: | --- | --- |\n");
-    for row in &report.stage_centric {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            row.row_count,
-            row.present_row_count,
-            row.missing_result_row_count,
-            row.unsupported_pair_row_count,
-            sanitize_markdown_cell(&row.tool_ids.join(", ")),
-            sanitize_markdown_cell(&row.pipeline_ids.join(", "))
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Tool-Centric\n\n");
-    rendered.push_str("| Tool | Rows | Present | Missing | Unsupported | Domains | Stages |\n");
-    rendered.push_str("| --- | ---: | ---: | ---: | ---: | --- | --- |\n");
-    for row in &report.tool_centric {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.tool_id),
-            row.row_count,
-            row.present_row_count,
-            row.missing_result_row_count,
-            row.unsupported_pair_row_count,
-            sanitize_markdown_cell(&row.domains.join(", ")),
-            sanitize_markdown_cell(&row.stage_ids.join(", "))
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Corpus-Centric\n\n");
-    rendered.push_str("| Corpus | Rows | Present | Missing | Unsupported | Domains | Stages |\n");
-    rendered.push_str("| --- | ---: | ---: | ---: | ---: | --- | --- |\n");
-    for row in &report.corpus_centric {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.corpus_id),
-            row.row_count,
-            row.present_row_count,
-            row.missing_result_row_count,
-            row.unsupported_pair_row_count,
-            sanitize_markdown_cell(&row.domains.join(", ")),
-            sanitize_markdown_cell(&row.stage_ids.join(", "))
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Pipeline-Centric\n\n");
-    rendered.push_str(&format!(
-        "- Pipeline rows: {}\n- Unmapped report rows: {}\n\n",
-        report.pipeline_centric.row_count, report.pipeline_centric.unmapped_row_count
-    ));
-    rendered.push_str("| Pipeline | Rows | Present | Missing | Unsupported | Domains | Stages |\n");
-    rendered.push_str("| --- | ---: | ---: | ---: | ---: | --- | --- |\n");
-    for row in &report.pipeline_centric.rows {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.pipeline_id),
-            row.row_count,
-            row.present_row_count,
-            row.missing_result_row_count,
-            row.unsupported_pair_row_count,
-            sanitize_markdown_cell(&row.domains.join(", ")),
-            sanitize_markdown_cell(&row.stage_ids.join(", "))
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Runtime\n\n");
-    rendered.push_str("| Report Row | Domain | Stage | Tool | Status | Simulated Elapsed Seconds | Real-Smoke Elapsed Seconds | Source |\n");
-    rendered.push_str("| --- | --- | --- | --- | --- | ---: | ---: | --- |\n");
-    for row in &report.runtime {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.report_row_id),
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            report_row_status_label(row.row_status),
-            format_optional_f64(row.simulated_elapsed_seconds),
-            format_optional_f64(row.real_smoke_elapsed_seconds),
-            sanitize_markdown_cell(&row.runtime_source)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Memory\n\n");
-    rendered.push_str("| Report Row | Domain | Stage | Tool | Status | Declared Memory MB | Declared CPU Threads | Real-Smoke Memory MB | Real-Smoke CPU Threads | Source |\n");
-    rendered.push_str("| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- |\n");
-    for row in &report.memory {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.report_row_id),
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            report_row_status_label(row.row_status),
-            format_optional_f64(row.declared_memory_mb),
-            format_optional_u32(row.declared_cpu_threads),
-            format_optional_f64(row.real_smoke_memory_mb),
-            format_optional_u32(row.real_smoke_cpu_threads),
-            sanitize_markdown_cell(&row.memory_source)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Failures\n\n");
-    rendered.push_str(&format!(
-        "- Simulated failure rows: {}\n- Failure classification rows: {}\n\n",
-        report.failures.simulated_failure_row_count, report.failures.failure_class_row_count
-    ));
-    rendered
-        .push_str("| Failure Class | Domain | Stage | Tool | Source Surface | Status | Detail |\n");
-    rendered.push_str("| --- | --- | --- | --- | --- | --- | --- |\n");
-    for row in &report.failures.classification_rows {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.class_id),
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            sanitize_markdown_cell(&row.source_surface),
-            sanitize_markdown_cell(&row.observed_status),
-            sanitize_markdown_cell(&row.detail)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Missing Results\n\n");
-    rendered.push_str(
-        "| Result ID | Domain | Stage | Tool | Corpus | Section | Manifest Path | Reason |\n",
-    );
-    rendered.push_str("| --- | --- | --- | --- | --- | --- | --- | --- |\n");
-    for row in &report.missing_results {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.result_id),
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            sanitize_markdown_cell(&row.corpus_id),
-            sanitize_markdown_cell(&row.report_section),
-            sanitize_markdown_cell(row.audit_manifest_path.as_deref().unwrap_or("")),
-            sanitize_markdown_cell(&row.reason)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Comparable Metrics\n\n");
-    rendered.push_str("| Domain | Stage | Metric ID | Metric Name | Unit | Direction | Tolerance Kind | Tolerance | Pass Rule | Insufficiency Behavior | Required | Tools | Contract Status |\n");
-    rendered.push_str(
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n",
-    );
-    for row in &report.comparable_metrics {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.metric_id),
-            sanitize_markdown_cell(&row.metric_name),
-            sanitize_markdown_cell(row.unit.as_deref().unwrap_or("")),
-            sanitize_markdown_cell(&row.direction),
-            sanitize_markdown_cell(&row.tolerance_kind),
-            format_threshold_value(row.tolerance_value),
-            sanitize_markdown_cell(&row.pass_rule),
-            sanitize_markdown_cell(&row.insufficiency_behavior),
-            row.required,
-            sanitize_markdown_cell(&row.tool_ids.join(", ")),
-            sanitize_markdown_cell(&row.contract_status)
-        ));
-    }
-    rendered.push('\n');
-
-    rendered.push_str("## Unsupported Pairs\n\n");
-    rendered.push_str("| Domain | Stage | Tool | Evidence Path | Detail |\n");
-    rendered.push_str("| --- | --- | --- | --- | --- |\n");
-    for row in &report.unsupported_pairs {
-        rendered.push_str(&format!(
-            "| {} | {} | {} | {} | {} |\n",
-            sanitize_markdown_cell(&row.domain),
-            sanitize_markdown_cell(&row.stage_id),
-            sanitize_markdown_cell(&row.tool_id),
-            sanitize_markdown_cell(&row.evidence_path),
-            sanitize_markdown_cell(&row.detail)
-        ));
-    }
-
-    rendered
-}
-
-fn runtime_source_label(row: &FullBenchmarkReportRow) -> &'static str {
-    if row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair {
-        "not_applicable"
-    } else if row.real_smoke_execution_id.is_some() || row.real_smoke_elapsed_seconds.is_some() {
-        "fake_run_and_real_smoke"
-    } else {
-        "fake_run_simulated"
-    }
-}
-
-fn memory_source_label(row: &FullBenchmarkReportRow) -> &'static str {
-    if row.row_status == FullBenchmarkReportRowStatus::UnsupportedPair {
-        "not_applicable"
-    } else if row.real_smoke_memory_mb.is_some() || row.real_smoke_cpu_threads.is_some() {
-        "real_smoke_manifest"
-    } else if row.declared_memory_mb.is_some() || row.declared_cpu_threads.is_some() {
-        "declared_stage_tool_resource"
-    } else {
-        "not_available"
-    }
-}
-
 fn full_benchmark_result_status_label(status: FullBenchmarkResultStatus) -> &'static str {
     match status {
         FullBenchmarkResultStatus::Expected => "expected",
@@ -1449,30 +457,6 @@ fn report_row_status_label(status: FullBenchmarkReportRowStatus) -> &'static str
         FullBenchmarkReportRowStatus::Present => "present",
         FullBenchmarkReportRowStatus::MissingResult => "missing_result",
         FullBenchmarkReportRowStatus::UnsupportedPair => "unsupported_pair",
-    }
-}
-
-fn fastq_contract_status_label(
-    status: super::fastq_comparable_metrics::FastqComparableMetricContractStatus,
-) -> &'static str {
-    match status {
-        super::fastq_comparable_metrics::FastqComparableMetricContractStatus::Declared => {
-            "declared"
-        }
-        super::fastq_comparable_metrics::FastqComparableMetricContractStatus::MissingSharedMetrics => {
-            "missing_shared_metrics"
-        }
-    }
-}
-
-fn bam_contract_status_label(
-    status: super::bam_comparable_metrics::BamComparableMetricContractStatus,
-) -> &'static str {
-    match status {
-        super::bam_comparable_metrics::BamComparableMetricContractStatus::Declared => "declared",
-        super::bam_comparable_metrics::BamComparableMetricContractStatus::MissingSharedMetrics => {
-            "missing_shared_metrics"
-        }
     }
 }
 
@@ -1517,23 +501,6 @@ fn json_f64_field(payload: &Value, key: &str) -> Result<f64> {
         .ok_or_else(|| anyhow!("JSON document is missing `{key}`"))
 }
 
-fn sanitize_markdown_cell(value: &str) -> String {
-    value.replace('|', "\\|").replace('\n', " ")
-}
-
-fn format_optional_f64(value: Option<f64>) -> String {
-    value.map(|value| format!("{value:.3}")).unwrap_or_default()
-}
-
-fn format_optional_u32(value: Option<u32>) -> String {
-    value.map(|value| value.to_string()).unwrap_or_default()
-}
-
-fn format_threshold_value(value: f64) -> String {
-    let rendered = format!("{value:.6}");
-    rendered.trim_end_matches('0').trim_end_matches('.').to_string()
-}
-
 struct CurrentDirGuard {
     original_dir: PathBuf,
 }
@@ -1554,7 +521,10 @@ impl Drop for CurrentDirGuard {
 
 #[cfg(test)]
 mod tests {
-    use super::{render_full_benchmark_report, DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH};
+    use super::{
+        render_full_benchmark_report, validate_full_benchmark_report,
+        FullBenchmarkReportAdmissionContext, DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH,
+    };
     use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
     use std::path::PathBuf;
 
@@ -1566,7 +536,7 @@ mod tests {
     fn full_benchmark_report_keeps_consistent_sections() {
         let _cwd_lock = acquire_cwd_lock();
         let repo_root = repo_root();
-        let tempdir = tempfile::tempdir().expect("tempdir");
+        let tempdir = tempfile::tempdir_in(repo_root.join("artifacts")).expect("tempdir");
         let report = render_full_benchmark_report(
             &repo_root,
             tempdir.path().join(DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH),
@@ -1594,13 +564,28 @@ mod tests {
         assert!(report.comparable_metrics.iter().all(|row| !row.pass_rule.is_empty()));
         assert!(report.comparable_metrics.iter().all(|row| !row.insufficiency_behavior.is_empty()));
         assert!(report.passes_behavior_test);
+
+        let context = FullBenchmarkReportAdmissionContext {
+            expected_result_ids: report
+                .rows
+                .iter()
+                .filter_map(|row| row.result_id.clone())
+                .collect(),
+            collector_missing_result_count: report.missing_result_row_count,
+            collector_failure_count: report.failure_row_count,
+            collector_unsupported_pair_count: report.explicit_unsupported_row_count,
+            triggered_failure_class_count: report.failure_class_row_count,
+        };
+        let mut unsafe_report = report.clone();
+        unsafe_report.rows[0].evidence_path = "../outside.json".to_string();
+        assert!(validate_full_benchmark_report(&mut unsafe_report, &context).is_err());
     }
 
     #[test]
     fn full_benchmark_report_writes_required_sections() {
         let _cwd_lock = acquire_cwd_lock();
         let repo_root = repo_root();
-        let tempdir = tempfile::tempdir().expect("tempdir");
+        let tempdir = tempfile::tempdir_in(repo_root.join("artifacts")).expect("tempdir");
         let output_path = tempdir.path().join(DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH);
         let report =
             render_full_benchmark_report(&repo_root, output_path.clone()).expect("render report");

@@ -37,6 +37,10 @@ Non-breaking changes may use a minor bump when callers can safely ignore them:
 - **External artifact binding**: the same tool-binding interface with
   operator-supplied artifact admission metadata instead of a distributable
   catalog image.
+- **Downstream probe**: one tool-independent semantic consumer for a stage's
+  normalized contract. It checks producer identity, named scientific metrics,
+  exact artifact contracts, scientific invariants, and the stage verdict while
+  preserving failures as evaluation outcomes for the benchmark evidence owner.
 
 ## No execution detail
 This crate defines planning contracts only; execution belongs in core/runtime.

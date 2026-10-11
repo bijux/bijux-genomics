@@ -15,6 +15,7 @@ use super::contracts::{
 };
 use super::validation::{
     canonical_directory, ensure_json_identity, read_json, validate_specification,
+    validate_submission_authorities,
 };
 use crate::backend::slurm::{
     collect_slurm_job, observe_slurm_job, submit_slurm_job, SlurmArraySpec, SlurmClientPaths,
@@ -65,6 +66,14 @@ pub fn submit_prepared_image_campaign_job(
 ) -> Result<SlurmJobHandle> {
     let scheduler_root = scheduler_root(&prepared.request.script_path)?;
     recheck_prepared(prepared, &scheduler_root)?;
+    let specification: ImageCampaignSlurmSpec = read_json(
+        &scheduler_root
+            .parent()
+            .context("image campaign scheduler root lacks attempt root")?
+            .join("image-campaign-spec.json"),
+    )?;
+    validate_specification(&specification)?;
+    validate_submission_authorities(&specification)?;
     let persisted: PreparedImageCampaignSlurmJob =
         read_json(&scheduler_root.join("prepared-job.json"))?;
     if persisted != *prepared {
@@ -109,6 +118,11 @@ pub fn load_prepared_image_campaign_slurm_job(
     spec: &ImageCampaignSlurmSpec,
 ) -> Result<PreparedImageCampaignSlurmJob> {
     validate_specification(spec)?;
+    let persisted_spec: ImageCampaignSlurmSpec =
+        read_json(&spec.attempt_root.join("image-campaign-spec.json"))?;
+    if persisted_spec != *spec {
+        bail!("image campaign specification conflicts with immutable attempt evidence");
+    }
     let scheduler_root =
         canonical_directory(&spec.attempt_root.join("scheduler"), "image campaign scheduler root")?;
     let prepared: PreparedImageCampaignSlurmJob =
@@ -191,8 +205,9 @@ pub fn collect_image_campaign_slurm_job(
     let mut passed_tools = None;
     let mut failed_tools = None;
     if observation.state == SlurmJobState::Completed && accounting.exit_code == 0 {
+        let repository = receipt_repository(spec)?;
         match bijux_dna_containers::api::verify_apptainer_image_campaign_receipt(
-            &spec.repository_path,
+            &repository,
             &spec.study_root,
             &spec.apptainer_path,
             &spec.attempt_root,
@@ -242,6 +257,19 @@ pub fn collect_image_campaign_slurm_job(
     };
     ensure_json_identity(&collection_path, &evidence)?;
     Ok(ImageCampaignCollection { observation, evidence: Some(evidence) })
+}
+
+fn receipt_repository(spec: &ImageCampaignSlurmSpec) -> Result<PathBuf> {
+    if bijux_dna_containers::api::clean_repository_head_commit(&spec.repository_path)
+        .is_ok_and(|commit| commit == spec.repository_commit)
+    {
+        return Ok(spec.repository_path.clone());
+    }
+    let snapshot =
+        spec.study_root.join("data/evidence/source-checkouts").join(&spec.repository_commit);
+    bijux_dna_containers::api::verify_frozen_repository(&snapshot, &spec.repository_commit)
+        .context("verify source-advanced image campaign snapshot")?;
+    Ok(snapshot)
 }
 
 #[allow(clippy::too_many_arguments)]

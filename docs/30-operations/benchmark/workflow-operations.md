@@ -11,7 +11,10 @@ Read this together with `docs/30-operations/benchmark/workspace-model.md`, `docs
 
 Repo sync belongs on the private frontend home. Benchmark artifacts belong on the shared cache contract. Keep those responsibilities separate in code, automation, and operator docs.
 
-`bijux-dna` is the benchmark execution surface. New benchmark orchestration and corpus dossier generation should land under the Rust CLI, especially `bijux-dna bench corpus-fastq` and `bijux-dna bench corpus-fastq-report`, rather than in new helper layers under `makes/bin/`.
+`bijux-dna` is the benchmark operator surface. New benchmark orchestration and corpus dossier
+generation belong in `bijux-dna-bench`, are composed by `bijux-dna-api`, and remain invocable through
+commands such as `bijux-dna bench corpus-fastq` and `bijux-dna bench corpus-fastq-report` rather
+than new helper layers under `makes/bin/`.
 
 ## Encrypted Slurm Bundle Workflow
 
@@ -82,7 +85,11 @@ When driving the sync surface directly through `cargo run -p bijux-dna-dev -- hp
 4. Keep benchmark runners and dossier generators unchanged unless the new cluster requires a genuinely different execution contract.
 5. Re-run the benchmark contract tests before publishing refreshed dossiers.
 
-The benchmark control plane should consume `configs/bench/benchmark.toml` through `bijux-dna` rather than embedding cluster-specific paths in code. A cluster migration is complete only when the config changes are sufficient and the benchmark suite still passes without path edits in Make wrappers, docs, or Rust benchmark orchestration code.
+The benchmark control plane should consume `configs/bench/benchmark.toml` in `bijux-dna-bench`,
+expose that behavior through `bijux-dna-api`, and let `bijux-dna` invoke it without embedding
+cluster-specific paths in the CLI. A cluster migration is complete only when the config changes
+are sufficient and the benchmark suite still passes without path edits in Make wrappers, docs, or
+Rust benchmark orchestration code.
 
 ## Sync Profile Contract
 

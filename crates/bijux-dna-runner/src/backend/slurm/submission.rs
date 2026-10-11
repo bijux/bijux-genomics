@@ -30,6 +30,7 @@ struct BenchmarkSubmissionIntent {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     array: Option<SlurmArraySpec>,
     execution_spec_sha256: String,
+    stage_plan_manifest_sha256: String,
     script_sha256: String,
     script_path: PathBuf,
     working_directory: PathBuf,
@@ -149,6 +150,10 @@ pub fn load_benchmark_slurm_job_handle(spec: &BenchmarkExecutionSpec) -> Result<
             &canonical_result_root.join("execution-spec.json"),
         )
         .context("hash persisted benchmark execution specification")?,
+        stage_plan_manifest_sha256: bijux_dna_infra::hash_file_sha256(
+            &canonical_result_root.join("stage-plan-manifest.json"),
+        )
+        .context("hash persisted benchmark stage-plan manifest")?,
         script_sha256: bijux_dna_infra::hash_file_sha256(&scheduler_root.join("job.sbatch"))
             .context("hash persisted benchmark Slurm script")?,
     };
@@ -185,8 +190,16 @@ fn recheck_material(prepared: &PreparedBenchmarkSlurmJob, scheduler_root: &Path)
         .join("execution-spec.json");
     let execution_spec_sha256 = bijux_dna_infra::hash_file_sha256(&execution_spec_path)
         .context("rehash prepared benchmark execution specification")?;
+    let stage_plan_manifest_sha256 = bijux_dna_infra::hash_file_sha256(
+        &execution_spec_path
+            .parent()
+            .context("benchmark execution specification has no parent")?
+            .join("stage-plan-manifest.json"),
+    )
+    .context("rehash prepared benchmark stage-plan manifest")?;
     if script_sha256 != prepared.script_sha256
         || execution_spec_sha256 != prepared.execution_spec_sha256
+        || stage_plan_manifest_sha256 != prepared.stage_plan_manifest_sha256
     {
         bail!("prepared benchmark scheduler material changed before submission");
     }
@@ -201,6 +214,7 @@ fn submission_intent(prepared: &PreparedBenchmarkSlurmJob) -> BenchmarkSubmissio
         dependency_condition: prepared.request.dependency_condition,
         array: prepared.request.array.clone(),
         execution_spec_sha256: prepared.execution_spec_sha256.clone(),
+        stage_plan_manifest_sha256: prepared.stage_plan_manifest_sha256.clone(),
         script_sha256: prepared.script_sha256.clone(),
         script_path: prepared.request.script_path.clone(),
         working_directory: prepared.request.working_directory.clone(),

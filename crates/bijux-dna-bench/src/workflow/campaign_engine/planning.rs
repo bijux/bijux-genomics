@@ -10,7 +10,9 @@ use bijux_dna_bench_model::contract::{
 };
 use bijux_dna_bench_model::{BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog};
 use bijux_dna_core::ids::{StageId, ToolId};
-use bijux_dna_stage_contract::{ToolBinding, ToolBindingRegistry};
+use bijux_dna_stage_contract::{
+    downstream_probes_for_bindings, DownstreamProbe, ToolBinding, ToolBindingRegistry,
+};
 
 use super::{
     BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
@@ -54,6 +56,22 @@ pub fn plan_benchmark_case_matrix(
         .context("validate generic stage interfaces")?;
     validate_defined_interface_campaign_alignment(request.interfaces, request.campaigns)
         .context("align generic campaign and interface authorities")?;
+    let probes = downstream_probes_for_bindings(request.bindings)
+        .context("validate generic downstream probe closure")?;
+    for interface in &request.interfaces.interfaces {
+        let probe =
+            probes.probe_for_stage(&StageId::new(&interface.stage_id)).with_context(|| {
+                format!("stage interface lacks a downstream probe: {}", interface.stage_id)
+            })?;
+        if probe.probe_id() != interface.downstream_probe.consumer_stage_id
+            || probe.input_contract_id() != interface.output_contract
+        {
+            bail!(
+                "stage interface differs from its canonical downstream probe: {}",
+                interface.stage_id
+            );
+        }
+    }
 
     let snapshots = data_snapshot_index(request.data_snapshots)?;
     let required_data = required_data_roles(request.campaigns)?;

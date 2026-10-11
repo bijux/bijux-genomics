@@ -216,60 +216,14 @@ fn load_vcf_registry_tool_records(repo_root: &Path) -> Result<Vec<VcfRegistryToo
 
 fn ensure_vcf_orphan_tool_contract(
     rows: &[VcfOrphanToolRow],
-    required_tool_ids: &BTreeSet<String>,
+    _required_tool_ids: &BTreeSet<String>,
 ) -> Result<()> {
-    let expected_rows = [
-        ("eagle", "eagle", 0usize, "future_not_benchmark_ready"),
-        ("glimpse", "glimpse", 0usize, "future_not_benchmark_ready"),
-        ("ibdhap", "ibdhap", 0usize, "future_not_benchmark_ready"),
-        ("minimac4", "minimac4", 0usize, "future_not_benchmark_ready"),
-        ("shapeit", "shapeit", 0usize, "future_not_benchmark_ready"),
-    ];
-
-    if rows.len() != expected_rows.len() {
+    if !rows.is_empty() {
         return Err(anyhow!(
-            "VCF orphan tool report drifted from the governed orphan slice (expected {}, found {})",
-            expected_rows.len(),
-            rows.len()
+            "every governed VCF tool must serve at least one supported stage; orphan tools: {:?}",
+            rows.iter().map(|row| row.tool_id.as_str()).collect::<Vec<_>>()
         ));
     }
-
-    for (tool_id, registered_binary, served_stage_count, decision) in expected_rows {
-        let row = rows
-            .iter()
-            .find(|row| row.tool_id == tool_id)
-            .ok_or_else(|| anyhow!("VCF orphan tool report is missing `{tool_id}`"))?;
-        if row.registered_binary != registered_binary
-            || row.served_stage_count != served_stage_count
-            || row.decision != decision
-        {
-            return Err(anyhow!(
-                "VCF orphan tool `{tool_id}` drifted from its governed orphan decision contract"
-            ));
-        }
-        if !required_tool_ids.contains(tool_id) {
-            return Err(anyhow!(
-                "VCF orphan tool `{tool_id}` must remain visible only while it is still required by the governed VCF tool scope"
-            ));
-        }
-    }
-
-    for row in rows {
-        if row.served_stage_count != 0 {
-            return Err(anyhow!(
-                "VCF orphan tool `{}` must have served_stage_count 0",
-                row.tool_id
-            ));
-        }
-        if row.decision != "future_not_benchmark_ready" && row.decision != "remove_from_scope" {
-            return Err(anyhow!(
-                "VCF orphan tool `{}` declared unsupported decision `{}`",
-                row.tool_id,
-                row.decision
-            ));
-        }
-    }
-
     Ok(())
 }
 
@@ -325,16 +279,8 @@ mod tests {
         assert_eq!(report.domain, "vcf");
         assert_eq!(report.required_tool_count, 16);
         assert_eq!(report.registered_tool_count, 16);
-        assert_eq!(report.served_tool_count + report.orphan_count, report.required_tool_count);
-        assert!(report.rows.iter().all(|row| row.served_stage_count == 0));
-        assert!(report.rows.iter().all(|row| row.decision == "future_not_benchmark_ready"));
-        assert!(report.rows.iter().all(|row| row.tool_id != "angsd"));
-        assert!(report.rows.iter().all(|row| row.tool_id != "impute5"));
-        assert!(report.rows.iter().all(|row| row.tool_id != "plink"));
-        assert!(report.rows.iter().any(|row| {
-            row.tool_id == "shapeit"
-                && row.registered_binary == "shapeit"
-                && row.decision == "future_not_benchmark_ready"
-        }));
+        assert_eq!(report.served_tool_count, report.required_tool_count);
+        assert_eq!(report.orphan_count, 0);
+        assert!(report.rows.is_empty());
     }
 }

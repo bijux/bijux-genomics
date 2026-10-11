@@ -315,6 +315,7 @@ fn classify_candidate(
     }
     entries.push(BenchmarkAttemptMigrationEntry {
         run_id: pipeline.run.id,
+        case_id: None,
         attempt_id: format!("slurm-{}", archive.slurm_job_id),
         tool_id: pipeline.run.tool,
         slurm_job_id: archive.slurm_job_id,

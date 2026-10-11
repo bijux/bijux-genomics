@@ -14,10 +14,13 @@ use bijux_dna_bench_model::{
     BenchmarkEffectiveParameterValue as EffectiveValue, BenchmarkExecutionAcceptance,
     BenchmarkExecutionDeterminism, BenchmarkLifecycleStatus,
 };
+use bijux_dna_core::contract::ArtifactRole;
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
-use super::bam_observation::{ensure_parameter_evidence, execution_inputs, BamParameterPolicy};
-use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
+use super::bam_observation::{
+    ensure_parameter_evidence, execution_inputs, single_bam_stage_plan_unit, BamParameterPolicy,
+};
+use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial, BenchmarkStagePlanOutputMaterial};
 
 pub(crate) use report::publish_bam_endogenous_content_stage_report_with_presentation_authority;
 pub use report::{
@@ -149,8 +152,28 @@ pub fn prepare_bam_endogenous_content_material_from_corpus(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: Some(vec![single_bam_stage_plan_unit(
+            SAMPLE_ID,
+            "/input/ERR2112767.sorted.bam",
+            vec![
+                output("total_primary_reads", "total-primary-reads.tsv"),
+                output("mapped_primary_reads", "mapped-primary-reads.tsv"),
+                output(
+                    "mapped_nonduplicate_primary_reads",
+                    "mapped-nonduplicate-primary-reads.tsv",
+                ),
+            ],
+        )]),
     };
     Ok(BamEndogenousContentMaterial { execution, admitted_corpus: corpus.clone() })
+}
+
+fn output(binding_name: &str, relative_path: &str) -> BenchmarkStagePlanOutputMaterial {
+    BenchmarkStagePlanOutputMaterial {
+        binding_name: binding_name.to_owned(),
+        relative_path: relative_path.into(),
+        role: ArtifactRole::SummaryTsv,
+    }
 }
 
 fn acceptance() -> BenchmarkExecutionAcceptance {
@@ -226,6 +249,19 @@ mod tests {
         assert_eq!(material.execution.parameters.effective_path, "effective-parameters.json");
         assert_eq!(material.execution.required_files.len(), 18);
         assert_eq!(material.execution.acceptance.metrics.len(), 4);
+        assert_eq!(material.execution.stage_plan_units.as_ref().map(Vec::len), Some(1));
+        let unit = &material.execution.stage_plan_units.as_ref().expect("stage-plan units")[0];
+        let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+        let binding = bindings
+            .binding(
+                &bijux_dna_core::ids::StageId::new(super::STAGE_ID),
+                &bijux_dna_core::ids::ToolId::new("samtools"),
+            )
+            .expect("canonical endogenous-content binding");
+        assert_eq!(
+            unit.outputs.iter().map(|output| output.binding_name.as_str()).collect::<Vec<_>>(),
+            binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>()
+        );
         Ok(())
     }
 

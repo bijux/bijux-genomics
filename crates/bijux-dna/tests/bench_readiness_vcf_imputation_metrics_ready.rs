@@ -42,8 +42,8 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_unadmitted_impute5_evide
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/vcf/imputation-metrics-ready.json")
     );
-    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(4));
     let complete_count = payload
         .get("complete_row_count")
         .and_then(serde_json::Value::as_u64)
@@ -52,7 +52,7 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_unadmitted_impute5_evide
         .get("incomplete_row_count")
         .and_then(serde_json::Value::as_u64)
         .expect("incomplete row count");
-    assert_eq!(complete_count + incomplete_count, 2);
+    assert_eq!(complete_count + incomplete_count, 4);
     assert!(incomplete_count >= 1);
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
@@ -67,7 +67,15 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_unadmitted_impute5_evide
     assert!(required_metrics.iter().any(|value| value.as_str() == Some("variant_count")));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 2);
+    assert_eq!(rows.len(), 4);
+    let tool_ids = rows
+        .iter()
+        .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        tool_ids,
+        std::collections::BTreeSet::from(["beagle", "glimpse", "impute5", "minimac4"])
+    );
     let row = rows
         .iter()
         .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle"))

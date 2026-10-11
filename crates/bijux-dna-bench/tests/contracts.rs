@@ -17,6 +17,8 @@ mod mod_contracts_benchmark_contracts_rs;
 mod mod_contracts_campaign_engine_rs;
 #[path = "contracts/campaign_lifecycle.rs"]
 mod mod_contracts_campaign_lifecycle_rs;
+#[path = "contracts/campaign_plugins.rs"]
+mod mod_contracts_campaign_plugins_rs;
 #[path = "contracts/container_report_portfolio.rs"]
 mod mod_contracts_container_report_portfolio_rs;
 #[path = "contracts/benching/contract_handshake.rs"]
@@ -37,6 +39,8 @@ mod mod_contracts_execution_planning_rs;
 mod mod_contracts_fastq_expectations_rs;
 #[path = "contracts/benching/fastq_local_stage_matrix.rs"]
 mod mod_contracts_fastq_local_stage_matrix_rs;
+#[path = "contracts/benching/full_benchmark_report.rs"]
+mod mod_contracts_full_benchmark_report_rs;
 #[path = "contracts/benching/gate.rs"]
 mod mod_contracts_gate_rs;
 #[path = "contracts/generic_report_publication.rs"]

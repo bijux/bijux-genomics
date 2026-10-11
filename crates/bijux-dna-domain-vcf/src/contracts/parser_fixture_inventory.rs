@@ -103,6 +103,12 @@ const VCF_PARSER_FIXTURE_INVENTORY: &[VcfParserFixtureInventoryRow] = &[
         fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/plink/vcf.admixture",
     },
     VcfParserFixtureInventoryRow {
+        tool_id: "plink",
+        stage: VcfDomainStage::PopulationStructure,
+        parser_id: "parse_plink_population_structure_metrics",
+        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/plink/vcf.population_structure",
+    },
+    VcfParserFixtureInventoryRow {
         tool_id: "plink2",
         stage: VcfDomainStage::Qc,
         parser_id: "parse_plink2_qc_metrics",
@@ -137,6 +143,12 @@ const VCF_PARSER_FIXTURE_INVENTORY: &[VcfParserFixtureInventoryRow] = &[
         stage: VcfDomainStage::PopulationStructure,
         parser_id: "parse_eigensoft_population_structure_metrics",
         fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/eigensoft/population_structure",
+    },
+    VcfParserFixtureInventoryRow {
+        tool_id: "shapeit",
+        stage: VcfDomainStage::Phasing,
+        parser_id: "parse_shapeit_phasing_metrics",
+        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/phasing/shapeit",
     },
     VcfParserFixtureInventoryRow {
         tool_id: "shapeit5",

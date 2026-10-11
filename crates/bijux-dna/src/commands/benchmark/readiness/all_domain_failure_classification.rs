@@ -4,8 +4,14 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_all_domain_failure_classification, ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1,
+    REQUIRED_ALL_DOMAIN_FAILURE_CLASSES,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainFailureClassificationReport, AllDomainFailureClassificationRow,
+};
 use bijux_dna_api::v1::api::run::run_command_with_context;
-use serde::Serialize;
 
 use super::all_domain_expected_benchmark_results::{
     collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
@@ -34,56 +40,14 @@ pub(crate) const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH: &str =
     "artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json";
 const DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_FIXTURE_ROOT: &str =
     "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/failure-classification";
-const ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_failure_classification.v1";
 const INSUFFICIENT_DATA_FIXTURE_PATH: &str =
     "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/insufficient_data/expected.normalized.json";
 
-pub(crate) const REQUIRED_FAILURE_CLASSES: [&str; 8] = [
-    "missing_input",
-    "blocked_external_access",
-    "tool_not_found",
-    "command_failed",
-    "missing_output",
-    "parser_failed",
-    "insufficient_data",
-    "unsupported_pair",
-];
+pub(crate) const REQUIRED_FAILURE_CLASSES: [&str; 8] = REQUIRED_ALL_DOMAIN_FAILURE_CLASSES;
 
 const UNSUPPORTED_PAIR_DOMAIN: &str = "vcf";
 const UNSUPPORTED_PAIR_STAGE_ID: &str = "vcf.filter";
 const UNSUPPORTED_PAIR_TOOL_ID: &str = "samtools";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainFailureClassificationRow {
-    pub(crate) class_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) source_surface: String,
-    pub(crate) evidence_path: String,
-    pub(crate) observed_status: String,
-    pub(crate) observed_error: String,
-    pub(crate) detail: String,
-    pub(crate) triggered: bool,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainFailureClassificationReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) fixture_root: String,
-    pub(crate) row_count: usize,
-    pub(crate) triggered_row_count: usize,
-    pub(crate) required_class_count: usize,
-    pub(crate) triggered_class_count: usize,
-    pub(crate) missing_class_count: usize,
-    pub(crate) class_counts: BTreeMap<String, usize>,
-    pub(crate) missing_class_ids: Vec<String>,
-    pub(crate) passes_behavior_test: bool,
-    pub(crate) rows: Vec<AllDomainFailureClassificationRow>,
-}
 
 pub(crate) fn run_render_all_domain_failure_classification(
     args: &parse::BenchReadinessRenderAllDomainFailureClassificationArgs,
@@ -147,8 +111,8 @@ pub(crate) fn render_all_domain_failure_classification(
         .filter(|class_id| !triggered_class_ids.contains(class_id))
         .map(str::to_string)
         .collect::<Vec<_>>();
-    let report = AllDomainFailureClassificationReport {
-        schema_version: ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION,
+    let mut report = AllDomainFailureClassificationReport {
+        schema_version: ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &absolute_output_path),
         fixture_root: path_relative_to_repo(repo_root, &fixture_root),
         row_count: rows.len(),
@@ -161,7 +125,7 @@ pub(crate) fn render_all_domain_failure_classification(
         passes_behavior_test: false,
         rows,
     };
-    let report = ensure_all_domain_failure_classification_contract(report)?;
+    validate_all_domain_failure_classification(&mut report)?;
     bijux_dna_infra::atomic_write_json(&absolute_output_path, &report)?;
     Ok(report)
 }
@@ -529,54 +493,6 @@ fn classify_unsupported_pair(
     })
 }
 
-fn ensure_all_domain_failure_classification_contract(
-    mut report: AllDomainFailureClassificationReport,
-) -> Result<AllDomainFailureClassificationReport> {
-    if report.row_count != REQUIRED_FAILURE_CLASSES.len()
-        || report.rows.len() != REQUIRED_FAILURE_CLASSES.len()
-    {
-        return Err(anyhow!(
-            "all-domain failure classification must keep exactly one row per required failure class"
-        ));
-    }
-    let seen_classes = report.rows.iter().map(|row| row.class_id.as_str()).collect::<BTreeSet<_>>();
-    let required_classes = REQUIRED_FAILURE_CLASSES.into_iter().collect::<BTreeSet<_>>();
-    if seen_classes != required_classes {
-        return Err(anyhow!(
-            "all-domain failure classification rows do not match the governed class set"
-        ));
-    }
-    if report.rows.iter().any(|row| {
-        row.class_id.trim().is_empty()
-            || row.domain.trim().is_empty()
-            || row.stage_id.trim().is_empty()
-            || row.tool_id.trim().is_empty()
-            || row.source_surface.trim().is_empty()
-            || row.evidence_path.trim().is_empty()
-            || row.observed_status.trim().is_empty()
-            || row.detail.trim().is_empty()
-    }) {
-        return Err(anyhow!(
-            "all-domain failure classification rows cannot contain blank required fields"
-        ));
-    }
-    if report.class_counts.values().sum::<usize>() != report.row_count {
-        return Err(anyhow!(
-            "all-domain failure classification class counts must sum to the row count"
-        ));
-    }
-    report.passes_behavior_test = report.triggered_row_count == REQUIRED_FAILURE_CLASSES.len()
-        && report.triggered_class_count == REQUIRED_FAILURE_CLASSES.len()
-        && report.missing_class_count == 0
-        && report.rows.iter().all(|row| row.triggered);
-    if !report.passes_behavior_test {
-        return Err(anyhow!(
-            "all-domain failure classification must trigger every required class exactly once"
-        ));
-    }
-    Ok(report)
-}
-
 fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
     if path.is_absolute() {
         path.to_path_buf()
@@ -591,7 +507,7 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        render_all_domain_failure_classification, ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION,
+        render_all_domain_failure_classification, ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1,
         DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
     };
 
@@ -608,7 +524,7 @@ mod tests {
         )
         .expect("render all-domain failure classification");
 
-        assert_eq!(report.schema_version, ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH);
         assert_eq!(
             report.fixture_root,

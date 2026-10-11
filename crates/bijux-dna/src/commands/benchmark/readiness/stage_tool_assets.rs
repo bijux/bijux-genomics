@@ -3,8 +3,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    validate_stage_tool_assets_config, StageToolAssetRow, StageToolAssetsConfig,
+    StageToolAssetsReport, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
+};
+use bijux_dna_api::v1::api::bench::{
+    validate_stage_tool_assets_report, STAGE_TOOL_ASSETS_DECLARATION_ORIGIN,
+    STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_ASSETS_SCOPE,
+};
 use bijux_dna_stage_contract::StagePlanV1;
-use serde::{Deserialize, Serialize};
 
 use super::bam_command_adapter_coverage::{
     collect_bam_command_adapter_coverage_rows, BamBenchmarkStatus,
@@ -25,12 +32,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_ASSETS_PATH: &str =
     "configs/bench/local/stage-tool-assets.toml";
-pub(crate) const LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION: &str =
-    "bijux.bench.local_stage_tool_assets.v1";
-const STAGE_TOOL_ASSETS_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.stage_tool_assets.v1";
-const STAGE_TOOL_ASSETS_SCOPE: &str = "governed_benchmark_command_assets";
-const STAGE_TOOL_ASSETS_DECLARATION_ORIGIN: &str =
-    "canonical_local_stage_plan_inputs_and_governed_stage_params";
 
 #[derive(Debug, Clone)]
 struct BamKinshipAssetContract {
@@ -51,40 +52,6 @@ struct BamHaplogroupAssetContract {
     reference_fasta: PathBuf,
     reference_panel: String,
     reference_panel_path: PathBuf,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageToolAssetsConfig {
-    pub(crate) schema_version: String,
-    pub(crate) classification_scope: String,
-    pub(crate) rows: Vec<StageToolAssetRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageToolAssetRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) asset_role: String,
-    pub(crate) asset_id: String,
-    pub(crate) asset_path: String,
-    pub(crate) declaration_origin: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct StageToolAssetsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) config_path: String,
-    pub(crate) classification_scope: &'static str,
-    pub(crate) row_count: usize,
-    pub(crate) declared_stage_tool_row_count: usize,
-    pub(crate) asset_id_row_count: usize,
-    pub(crate) unique_asset_id_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) asset_role_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<StageToolAssetRow>,
 }
 
 pub(crate) fn run_render_stage_tool_assets(
@@ -111,10 +78,11 @@ pub(crate) fn render_stage_tool_assets(
     let rows = collect_stage_tool_asset_rows(repo_root)?;
 
     let config = StageToolAssetsConfig {
-        schema_version: LOCAL_STAGE_TOOL_ASSETS_SCHEMA_VERSION.to_string(),
+        schema_version: LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1.to_string(),
         classification_scope: STAGE_TOOL_ASSETS_SCOPE.to_string(),
         rows: rows.clone(),
     };
+    validate_stage_tool_assets_config(&config)?;
     let rendered = render_stage_tool_assets_toml(&config)?;
 
     if let Some(parent) = output_path.parent() {
@@ -133,10 +101,10 @@ pub(crate) fn render_stage_tool_assets(
         unique_asset_ids.insert(row.asset_id.clone());
     }
 
-    Ok(StageToolAssetsReport {
-        schema_version: STAGE_TOOL_ASSETS_REPORT_SCHEMA_VERSION,
+    let report = StageToolAssetsReport {
+        schema_version: STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1.to_string(),
         config_path: path_relative_to_repo(repo_root, &output_path),
-        classification_scope: STAGE_TOOL_ASSETS_SCOPE,
+        classification_scope: STAGE_TOOL_ASSETS_SCOPE.to_string(),
         row_count: rows.len(),
         declared_stage_tool_row_count: declared_stage_tool_rows.len(),
         asset_id_row_count: rows.iter().filter(|row| !row.asset_id.trim().is_empty()).count(),
@@ -144,7 +112,9 @@ pub(crate) fn render_stage_tool_assets(
         domain_counts,
         asset_role_counts,
         rows,
-    })
+    };
+    validate_stage_tool_assets_report(&report)?;
+    Ok(report)
 }
 
 pub(crate) fn collect_stage_tool_asset_rows(repo_root: &Path) -> Result<Vec<StageToolAssetRow>> {
@@ -1086,7 +1056,10 @@ fn normalize_report_path(repo_root: &Path, path: &str) -> Result<PathBuf> {
 }
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).display().to_string()
+    if let Ok(relative) = path.strip_prefix(repo_root) {
+        return relative.to_string_lossy().replace('\\', "/");
+    }
+    path.file_name().unwrap_or(path.as_os_str()).to_string_lossy().into_owned()
 }
 
 #[cfg(test)]

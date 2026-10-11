@@ -118,3 +118,36 @@ fn bam_invariants_have_specs_and_fixtures() -> Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn bam_invariants_only_apply_metrics_owned_by_the_evaluated_stage() {
+    let metrics = BamMetricsV1::empty();
+    let thresholds = BamInvariantThresholds::default();
+
+    let pre_qc = evaluate_bam_invariants("bam.qc_pre", &metrics, &thresholds);
+    assert!(pre_qc.results.is_empty());
+    assert_eq!(pre_qc.verdict.verdict, InvariantStatusV1::Pass);
+
+    let coverage = evaluate_bam_invariants("bam.coverage", &metrics, &thresholds);
+    assert_eq!(
+        coverage.results.iter().map(|result| result.id.as_str()).collect::<Vec<_>>(),
+        vec!["coverage_mean"]
+    );
+    assert_eq!(coverage.verdict.verdict, InvariantStatusV1::Fail);
+
+    let sex = evaluate_bam_invariants("bam.sex", &metrics, &thresholds);
+    assert_eq!(sex.results[0].id, "insufficient_data");
+    assert_eq!(sex.results[0].status, InvariantStatusV1::Fail);
+    assert_eq!(sex.verdict.verdict, InvariantStatusV1::Fail);
+}
+
+#[test]
+fn bam_stage_verdict_is_the_maximum_emitted_invariant_status() {
+    let mut metrics = base_metrics();
+    metrics.complexity.observed_reads = 10;
+    let evaluation =
+        evaluate_bam_invariants("bam.complexity", &metrics, &BamInvariantThresholds::default());
+
+    assert!(evaluation.results.iter().any(|result| result.status == InvariantStatusV1::Warn));
+    assert_eq!(evaluation.verdict.verdict, InvariantStatusV1::Warn);
+}

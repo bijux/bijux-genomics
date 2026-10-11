@@ -15,7 +15,7 @@ This document describes the Lunarc benchmark workspace contract as configured th
 
 ## Invariants
 
-1. `bijux-dna` owns benchmark orchestration and corpus dossier generation; Make should stay a thin wrapper over Rust commands.
+1. `bijux-dna-bench` owns benchmark orchestration and corpus dossier generation; `bijux-dna-api` composes those services, while `bijux-dna` and Make remain thin operator surfaces.
 2. Repo sync and benchmark artifact sync are separate responsibilities. Code belongs under `workspace.remote.repo_root`; shared artifacts belong under the configured workspace roots.
 3. Corpus benchmarks should resolve their inputs through
    [configs/bench/benchmark.toml](../../configs/bench/benchmark.toml), not through hardcoded

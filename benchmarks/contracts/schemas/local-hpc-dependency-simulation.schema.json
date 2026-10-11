@@ -1,0 +1,248 @@
+{
+  "$defs": {
+    "BenchmarkLocalHpcDependencySimulationCase": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_jobs_continue": {
+          "type": "boolean"
+        },
+        "blocked_descendant_job_id": {
+          "type": "string"
+        },
+        "blocked_job_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "blocked_only_descendants": {
+          "type": "boolean"
+        },
+        "case_id": {
+          "type": "string"
+        },
+        "continued_benchmark_job_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "continued_sibling_job_id": {
+          "type": "string"
+        },
+        "continued_unrelated_job_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "descendant_job_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "failed_job_id": {
+          "type": "string"
+        },
+        "jobs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalHpcDependencySimulationJob"
+          },
+          "type": "array"
+        },
+        "proven": {
+          "type": "boolean"
+        },
+        "simulated_makespan_seconds": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unrelated_branches_continue": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "case_id",
+        "failed_job_id",
+        "blocked_descendant_job_id",
+        "continued_sibling_job_id",
+        "descendant_job_ids",
+        "blocked_job_ids",
+        "continued_unrelated_job_ids",
+        "continued_benchmark_job_ids",
+        "simulated_makespan_seconds",
+        "blocked_only_descendants",
+        "unrelated_branches_continue",
+        "benchmark_jobs_continue",
+        "proven",
+        "jobs"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcDependencySimulationJob": {
+      "additionalProperties": false,
+      "properties": {
+        "blocking_dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "dependency_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dependent_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dependents": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "descendant_of_failed_job": {
+          "type": "boolean"
+        },
+        "duration_seconds": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "finish_second": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "job_id_local": {
+          "type": "string"
+        },
+        "job_kind": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pipeline_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "result_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "start_second": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "status": {
+          "type": "string"
+        },
+        "unrelated_to_failed_job": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "job_id_local",
+        "job_kind",
+        "stage_id",
+        "dependency_count",
+        "dependencies",
+        "dependent_count",
+        "dependents",
+        "blocking_dependencies",
+        "status",
+        "descendant_of_failed_job",
+        "unrelated_to_failed_job",
+        "start_second",
+        "finish_second",
+        "duration_seconds"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "all_cases_proven": {
+      "type": "boolean"
+    },
+    "benchmark_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "case_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "cases": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalHpcDependencySimulationCase"
+      },
+      "type": "array"
+    },
+    "dependency_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "essential_pipeline_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "manifest_path": {
+      "type": "string"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_hpc_dependency_simulation.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "manifest_path",
+    "output_path",
+    "job_count",
+    "benchmark_job_count",
+    "essential_pipeline_job_count",
+    "dependency_count",
+    "case_count",
+    "all_cases_proven",
+    "cases"
+  ],
+  "title": "BenchmarkLocalHpcDependencySimulationReport",
+  "type": "object"
+}

@@ -32,6 +32,7 @@ mod fastq_expectations;
 mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
 mod fastq_validate_reads;
+mod full_benchmark_report;
 mod hardening_campaign;
 mod options;
 mod parameter_authority;
@@ -135,21 +136,26 @@ pub use campaign_engine::{
     BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV2,
     BenchmarkCaseMeasurementPlanV1, BenchmarkCaseRepetitionObservationV1,
     BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1, BenchmarkDataSnapshotRoleV1,
-    BenchmarkDataSnapshotV1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    BenchmarkDataSnapshotV1, BenchmarkStageNormalization, BenchmarkStagePluginRegistry,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
     BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
 };
 pub use campaign_lifecycle::{
-    admit_checked_in_benchmark_campaign, build_execution_spec, ensure_execution_spec,
-    ensure_stage_campaign_attempts, load_checked_in_benchmark_campaign_plan,
-    load_execution_authorities, load_execution_spec, plan_checked_in_benchmark_campaign,
-    plan_stage_campaign_attempts, plan_stage_campaign_retry_attempts,
-    prepare_checked_in_benchmark_campaign, recover_stage_campaign_retry_lineage,
-    status_checked_in_benchmark_campaign, verify_campaign_plan_source, BenchmarkCycleAdmission,
+    admit_checked_in_benchmark_campaign, build_benchmark_stage_plans, build_execution_spec,
+    ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
+    load_case_execution_authorities, load_checked_in_benchmark_campaign_plan,
+    load_execution_authorities, load_execution_spec, load_stage_plan_manifest,
+    plan_benchmark_case_attempts, plan_benchmark_case_retry_attempts,
+    plan_checked_in_benchmark_campaign, plan_stage_campaign_attempts,
+    plan_stage_campaign_retry_attempts, prepare_checked_in_benchmark_campaign,
+    recover_stage_campaign_retry_lineage, status_checked_in_benchmark_campaign,
+    verify_campaign_plan_source, verify_case_campaign_plan_source, BenchmarkCycleAdmission,
     BenchmarkCycleAdmissionRequest, BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit,
     BenchmarkCyclePlanRequest, BenchmarkCyclePreparation, BenchmarkCyclePreparationRequest,
     BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit, BenchmarkCycleStatusRequest,
-    BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial,
+    BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial,
+    BenchmarkStagePlanOutputMaterial, BenchmarkStagePlanUnitMaterial,
 };
 pub use campaign_material::{
     admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
@@ -209,6 +215,14 @@ pub use fastq_validate_reads::{
     publish_fastq_validate_reads_stage_report, render_fastq_validate_reads_markdown,
     FastqValidateReadsMaterial, FastqValidateReadsStageReportPublication,
 };
+pub use full_benchmark_report::{
+    build_full_benchmark_comparable_metric_rows, build_full_benchmark_corpus_rows,
+    build_full_benchmark_failures_section, build_full_benchmark_memory_rows,
+    build_full_benchmark_missing_result_rows, build_full_benchmark_pipeline_rows,
+    build_full_benchmark_runtime_rows, build_full_benchmark_stage_rows,
+    build_full_benchmark_tool_rows, build_full_benchmark_unsupported_pair_rows,
+    render_full_benchmark_report_markdown,
+};
 pub use hardening_campaign::{
     derive_hardening_benchmark_campaign, load_hardening_benchmark_campaign_report,
     publish_hardening_benchmark_campaign_report,
@@ -253,8 +267,9 @@ pub use stage_result::{
     load_benchmark_stage_result_manifest, validate_benchmark_stage_result_path,
 };
 pub use stage_tool_closure::{
-    derive_benchmark_stage_tool_closure, publish_checked_in_benchmark_stage_tool_closure,
-    render_benchmark_stage_tool_closure_markdown, BenchmarkStageToolClosureWriteMode,
+    derive_benchmark_stage_tool_closure, derive_supported_domain_stage_tool_pairs,
+    publish_checked_in_benchmark_stage_tool_closure, render_benchmark_stage_tool_closure_markdown,
+    BenchmarkStageToolClosureWriteMode,
 };
 pub use stage_universe::{
     derive_stage_universe, publish_checked_in_stage_universe, render_stage_universe_markdown,

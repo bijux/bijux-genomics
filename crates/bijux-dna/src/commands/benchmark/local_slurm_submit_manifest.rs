@@ -3,7 +3,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_slurm_submit_manifest, BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalSlurmSubmitJob as BenchLocalSlurmSubmitJob,
+    BenchmarkLocalSlurmSubmitLogs as BenchLocalSlurmSubmitLogs,
+    BenchmarkLocalSlurmSubmitManifest as BenchLocalSlurmSubmitManifest,
+    BenchmarkLocalSlurmSubmitResources as BenchLocalSlurmSubmitResources,
+};
 
 use crate::commands::benchmark::local_corpus_fixture::{amplicon, bam, damage, edna, fastq};
 use crate::commands::benchmark::local_corpus_stage_compatibility::{
@@ -14,7 +22,7 @@ use crate::commands::benchmark::local_slurm_dry_run::{
 };
 use crate::commands::benchmark::local_stage_commands::{
     collect_local_stage_command_entries, collect_local_stage_plan_bundles,
-    BenchLocalStageArtifactEntry, BenchLocalStageCommandEntry,
+    BenchLocalStageCommandEntry,
 };
 use crate::commands::benchmark::local_stage_inventory::BenchLocalDomain;
 use crate::commands::benchmark::path_resolution::{
@@ -23,54 +31,7 @@ use crate::commands::benchmark::path_resolution::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_VERSION: &str =
-    "bijux.bench.local_slurm_submit_manifest.v1";
 const LOCAL_SLURM_DRY_RUN_RUN_ID: &str = "local-benchmark-dry-run";
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalSlurmSubmitManifest {
-    pub(crate) schema_version: &'static str,
-    pub(crate) root_path: String,
-    pub(crate) manifest_path: String,
-    pub(crate) run_id: String,
-    pub(crate) job_count: usize,
-    pub(crate) dependency_count: usize,
-    pub(crate) jobs: Vec<BenchLocalSlurmSubmitJob>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalSlurmSubmitJob {
-    pub(crate) job_name: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: Option<String>,
-    pub(crate) pipeline_id: Option<String>,
-    pub(crate) corpus_id: Option<String>,
-    pub(crate) sample_id: Option<String>,
-    pub(crate) sample_ids: Vec<String>,
-    pub(crate) tool_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) resources: BenchLocalSlurmSubmitResources,
-    pub(crate) script_path: String,
-    pub(crate) logs: BenchLocalSlurmSubmitLogs,
-    pub(crate) result_root: String,
-    pub(crate) outputs: Vec<BenchLocalStageArtifactEntry>,
-    pub(crate) dependencies: Vec<String>,
-    pub(crate) compatibility_kind: String,
-    pub(crate) compatibility_note: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalSlurmSubmitResources {
-    pub(crate) cpus_per_task: u32,
-    pub(crate) memory_mb: u32,
-    pub(crate) time_limit: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalSlurmSubmitLogs {
-    pub(crate) stdout_path: String,
-    pub(crate) stderr_path: String,
-}
 
 #[derive(Debug, Clone)]
 struct BenchLocalSlurmSubmitInputs {
@@ -222,7 +183,7 @@ pub(crate) fn render_slurm_submit_manifest(
 
     let dependency_count = rendered_jobs.iter().map(|job| job.dependencies.len()).sum();
     let manifest = BenchLocalSlurmSubmitManifest {
-        schema_version: LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_SLURM_SUBMIT_MANIFEST_SCHEMA_V1.to_string(),
         root_path: path_relative_to_repo(repo_root, &absolute_root),
         manifest_path: path_relative_to_repo(repo_root, &absolute_output),
         run_id: LOCAL_SLURM_DRY_RUN_RUN_ID.to_string(),
@@ -230,6 +191,7 @@ pub(crate) fn render_slurm_submit_manifest(
         dependency_count,
         jobs: rendered_jobs,
     };
+    validate_benchmark_local_slurm_submit_manifest(&manifest)?;
 
     if let Some(parent) = absolute_output.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -283,7 +245,7 @@ fn build_submit_job(
         sample_id,
         sample_ids,
         tool_id: job.command.tool_id.clone(),
-        readiness_kind: job.command.readiness_kind.as_str().to_string(),
+        readiness_kind: job.command.readiness_kind,
         resources: BenchLocalSlurmSubmitResources {
             cpus_per_task: job.script.cpus_per_task,
             memory_mb: job.script.memory_mb,

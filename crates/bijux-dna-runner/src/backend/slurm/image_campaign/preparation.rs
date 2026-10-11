@@ -11,7 +11,10 @@ use anyhow::{bail, Context, Result};
 use super::contracts::{
     ImageCampaignSlurmSpec, PreparedImageCampaignSlurmJob, IMAGE_CAMPAIGN_PREPARED_JOB_SCHEMA_V1,
 };
-use super::validation::{canonical_directory, ensure_json_identity, validate_specification};
+use super::validation::{
+    canonical_directory, ensure_json_identity, validate_specification,
+    validate_submission_authorities,
+};
 use crate::backend::slurm::{SlurmDependencyCondition, SlurmSubmitRequest};
 
 /// Validate campaign authorities and publish restart-safe scheduler material without submitting.
@@ -24,6 +27,7 @@ pub fn prepare_image_campaign_slurm_job(
     submitted_at_utc: &str,
 ) -> Result<PreparedImageCampaignSlurmJob> {
     validate_specification(spec)?;
+    validate_submission_authorities(spec)?;
     require_utc_timestamp(submitted_at_utc)?;
     let attempt_root = ensure_attempt_root(spec)?;
     let specification_path = attempt_root.join("image-campaign-spec.json");
@@ -126,7 +130,7 @@ fn render_script(spec: &ImageCampaignSlurmSpec, specification_sha256: &str) -> S
     .join("\n")
 }
 
-fn ensure_attempt_root(spec: &ImageCampaignSlurmSpec) -> Result<PathBuf> {
+pub(super) fn ensure_attempt_root(spec: &ImageCampaignSlurmSpec) -> Result<PathBuf> {
     let mut current = spec.study_root.clone();
     for component in [
         "containers",

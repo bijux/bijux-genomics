@@ -119,25 +119,25 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     );
     assert_eq!(
         command_source_counts.get("vcf_descent_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(5)
     );
     assert_eq!(
         command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(7)
     );
     assert_eq!(
         command_source_counts
             .get("vcf_imputation_family_adapter")
             .and_then(serde_json::Value::as_u64),
-        Some(4)
+        Some(8)
     );
     assert_eq!(
         command_source_counts.get("vcf_phasing_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(4)
     );
     assert_eq!(
         command_source_counts.get("vcf_eigensoft_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(2)
     );
 
     let coverage_status_counts = support::json_object(&payload, "coverage_status_counts")?;

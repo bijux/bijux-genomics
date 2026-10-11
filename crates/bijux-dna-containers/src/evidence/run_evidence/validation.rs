@@ -190,7 +190,12 @@ pub(super) fn validate_run_attempt_ledger_value(
     Ok(())
 }
 
-pub(super) fn load_run_evidence_lock(path: &Path) -> Result<RunEvidenceLock> {
+/// Load and validate one selected run-evidence lock and every tracked file it binds.
+///
+/// # Errors
+/// Returns an error when the directory identity, lock schema, source identities, or tracked bytes
+/// are invalid.
+pub fn load_run_evidence_lock(path: &Path) -> Result<RunEvidenceLock> {
     let (run_id, tool) = run_directory_identity(path)?;
     let lock_path = path.join("evidence.lock.json");
     let raw = fs::read_to_string(&lock_path)

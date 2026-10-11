@@ -1,8 +1,8 @@
 //! Owner: bijux-dna-bench
 //! Deterministic construction of executable specifications from admitted authorities.
 
-use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
@@ -20,7 +20,14 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionSpec, BenchmarkLifecycleStatus, BenchmarkStageCampaignRegistry,
     BenchmarkStageInterfaceCatalog, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
 };
-use bijux_dna_containers::api::{ContainerCatalog, CurrentApptainerImage};
+use bijux_dna_containers::api::{ContainerCatalog, ContainerCatalogTool, CurrentApptainerImage};
+use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
+use bijux_dna_core::ids::{ArtifactId, StepId};
+use bijux_dna_core::prelude::ContainerImageRefV1;
+use bijux_dna_stage_contract::{
+    build_binding_stage_plan, project_tool_parameters, BindingStagePlanRequest, StagePlanV1,
+    ToolBinding, ToolBindingV1, ToolParameterProjectionRequest,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BenchmarkExecutionMaterial {
@@ -43,6 +50,209 @@ pub struct BenchmarkExecutionMaterial {
     pub random_seed: Option<i64>,
     pub determinism: BenchmarkExecutionDeterminism,
     pub acceptance: BenchmarkExecutionAcceptance,
+    pub stage_plan_units: Option<Vec<BenchmarkStagePlanUnitMaterial>>,
+}
+
+/// One binding-owned input path for an independently executable benchmark unit.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkStagePlanInputMaterial {
+    pub binding_name: String,
+    pub path: PathBuf,
+    pub role: ArtifactRole,
+}
+
+/// One binding-owned output projected beneath a repetition execution-unit directory.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkStagePlanOutputMaterial {
+    pub binding_name: String,
+    pub relative_path: PathBuf,
+    pub role: ArtifactRole,
+}
+
+/// Scientific, input-derived, and operator authority for one benchmark execution unit.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkStagePlanUnitMaterial {
+    pub execution_unit_id: String,
+    pub inputs: Vec<BenchmarkStagePlanInputMaterial>,
+    pub outputs: Vec<BenchmarkStagePlanOutputMaterial>,
+    pub scientific_defaults: BTreeMap<String, String>,
+    pub input_derived: BTreeMap<String, String>,
+    pub operator_overrides: BTreeMap<String, String>,
+    pub immutable_parameters: BTreeSet<String>,
+}
+
+/// Build the complete measured-repetition by execution-unit stage-plan matrix.
+///
+/// The lifecycle supplies only material paths and parameter provenance. Stage/tool identity,
+/// artifact contracts, command rendering, resources, executable, version, and image identity come
+/// from the already admitted execution specification, canonical binding, and container catalog.
+///
+/// # Errors
+/// Returns an error when an execution unit, path, binding, catalog tool, parameter projection, or
+/// resource allocation differs from immutable execution authority.
+pub fn build_benchmark_stage_plans(
+    spec: &BenchmarkExecutionSpec,
+    binding: &ToolBindingV1,
+    catalog_tool: &ContainerCatalogTool,
+    units: &[BenchmarkStagePlanUnitMaterial],
+) -> Result<Vec<StagePlanV1>> {
+    validate_execution_spec(spec).context("validate benchmark stage-plan execution authority")?;
+    if binding.stage_id().as_str() != spec.identity.run.stage_id
+        || binding.tool_id().as_str() != spec.identity.tool_id
+        || catalog_tool.id != spec.identity.tool_id
+        || catalog_tool.expected_bin.trim().is_empty()
+        || catalog_tool.version.trim().is_empty()
+        || !supports_offline_stage(catalog_tool, &spec.identity.run.stage_id)
+    {
+        bail!("benchmark stage-plan binding or catalog identity differs from execution authority");
+    }
+    if units.is_empty() {
+        bail!("benchmark stage-plan material has no execution units");
+    }
+
+    let mut units = units.iter().collect::<Vec<_>>();
+    units.sort_by(|left, right| left.execution_unit_id.cmp(&right.execution_unit_id));
+    let mut unit_ids = BTreeSet::new();
+    for unit in &units {
+        validate_execution_unit_id(&unit.execution_unit_id)?;
+        if !unit_ids.insert(unit.execution_unit_id.as_str()) {
+            bail!("benchmark stage-plan execution unit is duplicated");
+        }
+        for output in &unit.outputs {
+            validate_relative_output_path(&output.relative_path)?;
+        }
+    }
+
+    let attempt_directory = Path::new(&spec.outputs.result_root);
+    let container_result_root = Path::new(&spec.outputs.mount_path);
+    let image = ContainerImageRefV1 {
+        image: spec.image.path.clone(),
+        digest: Some(format!("sha256:{}", spec.image.sha256)),
+    };
+    let mut plans =
+        Vec::with_capacity(usize::try_from(spec.measurement.measured_repetitions)? * units.len());
+    for repetition in 1..=spec.measurement.measured_repetitions {
+        for unit in &units {
+            let instance = format!("measured-repetition-{repetition}--{}", unit.execution_unit_id);
+            let out_dir = attempt_directory.join("repetitions").join(&instance);
+            let container_out_dir = container_result_root.join("repetitions").join(&instance);
+            let effective = project_tool_parameters(&ToolParameterProjectionRequest {
+                binding,
+                scientific_defaults: &unit.scientific_defaults,
+                input_derived: &unit.input_derived,
+                operator_overrides: &unit.operator_overrides,
+                immutable_parameters: &unit.immutable_parameters,
+                allocated_cpus: spec.resources.cpus,
+            })
+            .context("project benchmark stage-plan parameters")?;
+            let inputs = material_inputs(binding, &unit.inputs)?;
+            let outputs = material_outputs(binding, &unit.outputs, &container_out_dir)?;
+            plans.push(build_binding_stage_plan(BindingStagePlanRequest {
+                binding,
+                effective_parameters: &effective,
+                image: image.clone(),
+                executable: catalog_tool.expected_bin.clone(),
+                tool_version: catalog_tool.version.clone(),
+                stage_instance_id: Some(StepId::new(instance)),
+                inputs,
+                outputs,
+                out_dir,
+            })?);
+        }
+    }
+    Ok(plans)
+}
+
+fn material_inputs(
+    binding: &impl ToolBinding,
+    materials: &[BenchmarkStagePlanInputMaterial],
+) -> Result<Vec<ArtifactRef>> {
+    materials
+        .iter()
+        .map(|material| {
+            if !material.path.is_absolute()
+                || material
+                    .path
+                    .components()
+                    .any(|component| matches!(component, Component::CurDir | Component::ParentDir))
+                || !material.role.is_typed()
+            {
+                bail!("benchmark stage-plan input path or role is invalid");
+            }
+            let authority = binding
+                .inputs()
+                .iter()
+                .find(|input| input.name == material.binding_name)
+                .with_context(|| {
+                    format!(
+                        "benchmark stage-plan input `{}` is not declared by the binding",
+                        material.binding_name
+                    )
+                })?;
+            Ok(ArtifactRef {
+                name: ArtifactId::new(&material.binding_name),
+                path: material.path.clone(),
+                role: material.role,
+                artifact_contract_id: Some(authority.artifact_contract_id.clone()),
+                optional: false,
+            })
+        })
+        .collect()
+}
+
+fn material_outputs(
+    binding: &impl ToolBinding,
+    materials: &[BenchmarkStagePlanOutputMaterial],
+    out_dir: &Path,
+) -> Result<Vec<ArtifactRef>> {
+    materials
+        .iter()
+        .map(|material| {
+            if !material.role.is_typed() {
+                bail!("benchmark stage-plan output role is invalid");
+            }
+            let authority = binding
+                .outputs()
+                .iter()
+                .find(|output| output.name == material.binding_name)
+                .with_context(|| {
+                    format!(
+                        "benchmark stage-plan output `{}` is not declared by the binding",
+                        material.binding_name
+                    )
+                })?;
+            Ok(ArtifactRef {
+                name: ArtifactId::new(&material.binding_name),
+                path: out_dir.join(&material.relative_path),
+                role: material.role,
+                artifact_contract_id: Some(authority.artifact_contract_id.clone()),
+                optional: false,
+            })
+        })
+        .collect()
+}
+
+fn validate_execution_unit_id(value: &str) -> Result<()> {
+    if matches!(value, "" | "." | "..")
+        || !value.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'_' | b'-' | b'.')
+        })
+    {
+        bail!("benchmark stage-plan execution unit identity is not canonical");
+    }
+    Ok(())
+}
+
+fn validate_relative_output_path(path: &Path) -> Result<()> {
+    if path.as_os_str().is_empty()
+        || path.is_absolute()
+        || path.components().any(|component| {
+            matches!(component, Component::CurDir | Component::ParentDir | Component::RootDir)
+        })
+    {
+        bail!("benchmark stage-plan output path escapes its execution-unit directory");
+    }
+    Ok(())
 }
 
 /// Build one source- and attempt-locked executable specification.
@@ -57,7 +267,7 @@ pub fn build_execution_spec(
     plan: &BenchmarkCampaignPlan,
     identity: &BenchmarkAttemptIdentity,
     image: &CurrentApptainerImage,
-    material: BenchmarkExecutionMaterial,
+    mut material: BenchmarkExecutionMaterial,
 ) -> Result<BenchmarkExecutionSpec> {
     validate_stage_campaign_registry(registry).context("validate stage campaign registry")?;
     validate_stage_interface_catalog(interfaces).context("validate stage interface catalog")?;
@@ -138,6 +348,18 @@ pub fn build_execution_spec(
         bijux_dna_bench_model::BenchmarkCachePolicy::Cold => BenchmarkExecutionCachePolicy::Cold,
         bijux_dna_bench_model::BenchmarkCachePolicy::Warm => BenchmarkExecutionCachePolicy::Warm,
     };
+    let stage_plan_units = material
+        .stage_plan_units
+        .as_ref()
+        .context("campaign execution material omits stage-plan units")?;
+    material
+        .required_files
+        .extend(stage_plan_required_files(stage_plan_units, campaign.measured_repetitions)?);
+    if material.required_files.iter().collect::<BTreeSet<_>>().len()
+        != material.required_files.len()
+    {
+        bail!("benchmark required outputs collide with stage-plan output authority");
+    }
     let mut acceptance = material.acceptance;
     acceptance.version_regex.clone_from(&tool.expected_version_regex);
     let spec = BenchmarkExecutionSpec {
@@ -212,6 +434,33 @@ pub fn build_execution_spec(
     };
     validate_execution_spec(&spec).context("validate constructed benchmark execution spec")?;
     Ok(spec)
+}
+
+fn stage_plan_required_files(
+    units: &[BenchmarkStagePlanUnitMaterial],
+    measured_repetitions: u32,
+) -> Result<Vec<String>> {
+    let mut units = units.iter().collect::<Vec<_>>();
+    units.sort_by(|left, right| left.execution_unit_id.cmp(&right.execution_unit_id));
+    let mut required = Vec::new();
+    for repetition in 1..=measured_repetitions {
+        for unit in &units {
+            validate_execution_unit_id(&unit.execution_unit_id)?;
+            let root =
+                format!("repetitions/measured-repetition-{repetition}--{}", unit.execution_unit_id);
+            for output in &unit.outputs {
+                validate_relative_output_path(&output.relative_path)?;
+                required.push(
+                    Path::new(&root)
+                        .join(&output.relative_path)
+                        .to_string_lossy()
+                        .replace('\\', "/"),
+                );
+            }
+            required.push(format!("{root}/resource.tsv"));
+        }
+    }
+    Ok(required)
 }
 
 fn required_source_lock<'a>(locks: &'a BTreeMap<String, String>, name: &str) -> Result<&'a str> {

@@ -630,12 +630,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.authenticity",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -653,11 +650,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "dup_fraction": 0.0
             },
             "reasons": [
-              "coverage_mean",
               "complexity_vs_duplicates"
             ],
             "stage_id": "bam.complexity",
-            "verdict": "fail"
+            "verdict": "warn"
           }
         },
         {
@@ -675,9 +671,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "dup_fraction": 0.0
             },
             "reasons": [
-              "insufficient_data",
-              "coverage_mean",
-              "complexity_vs_duplicates"
+              "insufficient_data"
             ],
             "stage_id": "bam.contamination",
             "verdict": "fail"
@@ -698,8 +692,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "dup_fraction": 0.0
             },
             "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
+              "coverage_mean"
             ],
             "stage_id": "bam.coverage",
             "verdict": "fail"
@@ -719,12 +712,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.damage",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -741,12 +731,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.duplication_metrics",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -763,12 +750,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.endogenous_content",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -785,12 +769,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.filter",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -807,12 +788,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.length_filter",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -829,12 +807,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.mapping_summary",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -851,12 +826,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.mapq_filter",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -873,12 +845,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.overlap_correction",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -895,12 +864,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.qc_pre",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -918,9 +884,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "dup_fraction": 0.0
             },
             "reasons": [
-              "insufficient_data",
-              "coverage_mean",
-              "complexity_vs_duplicates"
+              "insufficient_data"
             ],
             "stage_id": "bam.sex",
             "verdict": "fail"
@@ -940,12 +904,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.validate",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         }
       ]
@@ -1326,12 +1287,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.authenticity",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -1356,11 +1314,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "dup_fraction": 0.0
             },
             "reasons": [
-              "coverage_mean",
               "complexity_vs_duplicates"
             ],
             "stage_id": "bam.complexity",
-            "verdict": "fail"
+            "verdict": "warn"
           }
         },
         {
@@ -1385,9 +1342,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "dup_fraction": 0.0
             },
             "reasons": [
-              "insufficient_data",
-              "coverage_mean",
-              "complexity_vs_duplicates"
+              "insufficient_data"
             ],
             "stage_id": "bam.contamination",
             "verdict": "fail"
@@ -1415,8 +1370,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "dup_fraction": 0.0
             },
             "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
+              "coverage_mean"
             ],
             "stage_id": "bam.coverage",
             "verdict": "fail"
@@ -1443,12 +1397,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.damage",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -1472,12 +1423,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.duplication_metrics",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -1501,12 +1449,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.endogenous_content",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -1530,12 +1475,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.filter",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -1559,12 +1501,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.length_filter",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -1588,12 +1527,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.mapping_summary",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -1617,12 +1553,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.mapq_filter",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -1646,12 +1579,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.overlap_correction",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -1675,12 +1605,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.qc_pre",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         },
         {
@@ -1705,9 +1632,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "dup_fraction": 0.0
             },
             "reasons": [
-              "insufficient_data",
-              "coverage_mean",
-              "complexity_vs_duplicates"
+              "insufficient_data"
             ],
             "stage_id": "bam.sex",
             "verdict": "fail"
@@ -1734,12 +1659,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "coverage_mean": 0.0,
               "dup_fraction": 0.0
             },
-            "reasons": [
-              "coverage_mean",
-              "complexity_vs_duplicates"
-            ],
+            "reasons": [],
             "stage_id": "bam.validate",
-            "verdict": "fail"
+            "verdict": "pass"
           }
         }
       ]
@@ -3244,7 +3166,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "definitions": []
     },
     "run_provenance": {
-      "domain_snapshot_hash": "6dc53aaa7a8cd48beec0d641dc5e070078ae1d73",
+      "domain_snapshot_hash": "111280b27029e7c30195c2d8594fb36e4e5f5108",
       "graph_hash": "unknown",
       "input_hashes": [],
       "manifest_signature_sha256": "unknown",

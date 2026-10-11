@@ -46,23 +46,24 @@ fn bench_readiness_vcf_population_structure_ready_writes_governed_json_file() {
         report.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.vcf_population_structure_ready.v1")
     );
-    assert_eq!(report.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(report.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(report.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
     let rows = report.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 1);
+    assert_eq!(rows.len(), 3);
 
     let observed_tools = rows
         .iter()
         .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
         .collect::<BTreeSet<_>>();
-    assert_eq!(observed_tools, BTreeSet::from(["plink2"]));
+    assert_eq!(observed_tools, BTreeSet::from(["eigensoft", "plink", "plink2"]));
 
     assert!(rows.iter().all(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.population_structure")
             && row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("complete")
             && row.get("smoke_sample_group_count").and_then(serde_json::Value::as_u64) == Some(4)
+            && row.get("smoke_tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
             && row.get("smoke_output_root").and_then(serde_json::Value::as_str).is_some_and(
                 |value| value == "runs/bench/local-smoke/vcf.population_structure/plink2",
             )

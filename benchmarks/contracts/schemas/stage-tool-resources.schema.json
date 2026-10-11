@@ -1,0 +1,76 @@
+{
+  "$defs": {
+    "StageToolResourceRow": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "memory_gb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "resource_origin": {
+          "type": "string"
+        },
+        "scratch_gb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "threads": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "walltime_minutes": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "tool_id",
+        "threads",
+        "memory_gb",
+        "walltime_minutes",
+        "scratch_gb",
+        "resource_origin"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "classification_scope": {
+      "type": "string"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/StageToolResourceRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_stage_tool_resources.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "classification_scope",
+    "rows"
+  ],
+  "title": "StageToolResourcesConfig",
+  "type": "object"
+}

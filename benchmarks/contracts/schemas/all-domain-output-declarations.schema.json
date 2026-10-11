@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "AllDomainOutputDeclarationRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "index_outputs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "logs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "manifest": {
+          "type": "string"
+        },
+        "normalized_metrics": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "raw_outputs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/AllDomainOutputDeclarationStatus"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "raw_outputs",
+        "normalized_metrics",
+        "logs",
+        "manifest",
+        "index_outputs",
+        "status"
+      ],
+      "type": "object"
+    },
+    "AllDomainOutputDeclarationStatus": {
+      "enum": [
+        "complete",
+        "incomplete",
+        "missing_adapter"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "complete_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "incomplete_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "result_id_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainOutputDeclarationRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_output_declarations.v1",
+      "type": "string"
+    },
+    "status_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "row_count",
+    "result_id_count",
+    "complete_row_count",
+    "incomplete_row_count",
+    "domain_counts",
+    "status_counts",
+    "rows"
+  ],
+  "title": "AllDomainOutputDeclarationsReport",
+  "type": "object"
+}

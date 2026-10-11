@@ -70,9 +70,14 @@ One lifecycle handles every admitted stage/tool pair:
 1. Domain and catalog authorities identify the stage, supported tools, artifact contracts, and
    declared product-support dimensions.
 2. `bijux-dna-stage-contract` validates the `StageContract`, `ArtifactContract`, `ToolBinding`,
-   parameter projection, result normalizer, and downstream probe before execution is allocated.
+   parameter projection, result normalizer, and downstream probe before execution is allocated. It
+   constructs the immutable `StagePlanV1` from those admitted authorities; lifecycle owners do not
+   reconstruct tool commands or artifact mappings independently.
 3. `bijux-dna-bench` derives every dependency-ready case and execution unit without waiting for
-   unrelated tools, stages, images, or campaigns.
+   unrelated tools, stages, images, or campaigns. Preparation projects each unit's admitted paths
+   and parameter provenance through the canonical binding to build the full measured-repetition
+   plan matrix; catalog executable/version identity and the binding's thread allocation must match
+   the immutable execution specification before the attempt can become ready.
 4. `bijux-dna-runner` submits the declared execution once and returns its durable backend identity.
 5. `bijux-dna-runtime` appends the attempt transition and retry or supersession lineage.
 6. A later cycle observes scheduler state once, collects terminal/accounting-ready attempts once,
@@ -107,6 +112,9 @@ attempt blocks only its own execution unit.
 
 - A run ID is a permanent semantic protocol identity.
 - An attempt is one immutable execution of a run case.
+- Every measured execution unit has a pre-execution `StagePlanV1`; the attempt stores the complete
+  repetition-by-unit plan matrix and a checksum-bound manifest beside its immutable execution
+  specification.
 - Retry and supersession create new attempts and explicit lineage; they never rewrite history.
 - A publication selects admitted attempts without changing their evidence.
 - A citation is the stable paper-facing record for a run protocol and its selected publication.

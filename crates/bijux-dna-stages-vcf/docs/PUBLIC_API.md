@@ -9,6 +9,7 @@ The crate root exports the VCF stage execution modules from `src/lib.rs`.
 - `metrics`
 - `path_contract`
 - `pipeline`
+- `plugin`
 - `stage_specs`
 - `vcf_io`
 - `wrappers`
@@ -16,6 +17,7 @@ The crate root exports the VCF stage execution modules from `src/lib.rs`.
 ## Stable Root Exports
 
 - `implemented_stages` for the supported execution surface managed by this crate
+- `VcfStagePlugin` for tool-independent participation in the generic stage lifecycle
 
 ## Compatibility Rules
 

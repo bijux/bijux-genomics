@@ -22,6 +22,18 @@ pub struct ImageCampaignSlurmResources {
     pub walltime: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImageCampaignSlurmPlanRequest {
+    pub repository_path: PathBuf,
+    pub executable_path: PathBuf,
+    pub study_root: PathBuf,
+    pub apptainer_path: PathBuf,
+    pub attempt_id: String,
+    pub selected_tools: Vec<String>,
+    pub worker_count: usize,
+    pub resources: ImageCampaignSlurmResources,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct ImageCampaignSlurmSpec {

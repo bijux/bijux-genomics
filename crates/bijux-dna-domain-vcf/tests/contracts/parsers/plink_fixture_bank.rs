@@ -41,13 +41,23 @@ const VCF_PLINK_FIXTURE_CASES: &[VcfPlinkFixtureCase] = &[
             "expected.normalized.json",
         ],
     },
+    VcfPlinkFixtureCase {
+        stage: VcfDomainStage::PopulationStructure,
+        parser_id: "parse_plink_population_structure_metrics",
+        required_files: &[
+            "raw.mds",
+            "raw.sample_metadata.tsv",
+            "raw.log",
+            "expected.normalized.json",
+        ],
+    },
 ];
 
 #[test]
 fn vcf_plink_fixture_bank_covers_governed_stage_set() {
     let governed_stage_ids =
         VCF_PLINK_FIXTURE_CASES.iter().map(|case| case.stage.as_str()).collect::<Vec<_>>();
-    assert_eq!(governed_stage_ids, vec!["vcf.qc", "vcf.admixture"]);
+    assert_eq!(governed_stage_ids, vec!["vcf.qc", "vcf.admixture", "vcf.population_structure"]);
     for case in VCF_PLINK_FIXTURE_CASES {
         let dir = fixture_dir(case);
         assert!(dir.exists(), "missing fixture directory: {}", dir.display());

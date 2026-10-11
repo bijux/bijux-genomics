@@ -1,0 +1,78 @@
+{
+  "$defs": {
+    "StageToolContainerRow": {
+      "additionalProperties": false,
+      "properties": {
+        "command_entrypoint": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "container_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "declaration_origin": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "execution_mode": {
+          "type": "string"
+        },
+        "host_binary_mode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "install_kind": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "tool_id",
+        "execution_mode",
+        "install_kind",
+        "declaration_origin"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "classification_scope": {
+      "type": "string"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/StageToolContainerRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_stage_tool_containers.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "classification_scope",
+    "rows"
+  ],
+  "title": "StageToolContainersConfig",
+  "type": "object"
+}

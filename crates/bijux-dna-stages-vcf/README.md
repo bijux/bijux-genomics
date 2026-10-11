@@ -3,7 +3,8 @@
 `bijux-dna-stages-vcf` owns the VCF stage execution surface used by the
 genomics workspace. It provides typed stage runners, VCF IO helpers, preflight
 invariants, metrics parsers, wrapper checks, and the dispatch entrypoint for
-VCF stage plans.
+VCF stage plans. `VcfStagePlugin` adapts that domain surface to the shared
+tool-independent stage lifecycle.
 
 This crate is intentionally effectful. Unlike FASTQ and BAM stage-spec crates,
 the current VCF crate owns product stage execution helpers and writes stage
@@ -29,6 +30,8 @@ runtime scheduling, or environment provisioning.
 - `metrics`: deterministic parser helpers for VCF metrics payloads.
 - `vcf_io`: VCF validation, normalization, indexing, region, and overlap helpers.
 - `stage_specs`: VCF stage registry metadata.
+- `plugin`: shared invocation and normalized-output adaptation for every VCF
+  domain stage.
 
 ## Release Example
 

@@ -1,0 +1,5 @@
+FID IID SOL C1 C2
+cohort_alpha sample_a 1 0.010000 0.020000
+cohort_alpha sample_b 1 0.020000 0.030000
+cohort_beta sample_c 2 0.030000 0.040000
+cohort_beta sample_d 2 0.040000 0.050000

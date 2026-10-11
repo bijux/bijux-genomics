@@ -44,6 +44,7 @@ pub fn ensure_container_attempt_layout(
         run_directory: identity.run_directory.clone(),
         tool_id: identity.tool_id.clone(),
         campaign_id: identity.campaign_id.clone(),
+        execution_unit_id: None,
         attempt_id: identity.attempt_id.clone(),
     };
     bijux_dna_infra::ensure_attempt_layout(

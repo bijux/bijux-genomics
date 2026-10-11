@@ -281,12 +281,14 @@ pub(crate) fn render_all_domain_local_harness_complete(
                     != Some(expected_fastq_bam_command_count)
                 || report.command_source_counts.get("vcf_bcftools_adapter").copied() != Some(11)
                 || report.command_source_counts.get("vcf_angsd_adapter").copied() != Some(2)
-                || report.command_source_counts.get("vcf_eigensoft_adapter").copied() != Some(1)
+                || report.command_source_counts.get("vcf_eigensoft_adapter").copied() != Some(2)
                 || report.command_source_counts.get("vcf_imputation_family_adapter").copied()
-                    != Some(4)
+                    != Some(8)
                 || report.command_source_counts.get("vcf_phasing_family_adapter").copied()
-                    != Some(1)
-                || report.command_source_counts.get("vcf_plink_family_adapter").copied() != Some(5)
+                    != Some(4)
+                || report.command_source_counts.get("vcf_plink_family_adapter").copied() != Some(7)
+                || report.command_source_counts.get("vcf_descent_family_adapter").copied()
+                    != Some(5)
             {
                 bail!("all-domain rendered commands drifted from the governed binding slice");
             }

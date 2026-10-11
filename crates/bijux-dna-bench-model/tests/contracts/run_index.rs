@@ -83,19 +83,23 @@ fn checked_run_index_schema_matches_model_authority() -> anyhow::Result<()> {
         .parent()
         .and_then(std::path::Path::parent)
         .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?;
-    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(
-        repository_root.join("benchmarks/contracts/schemas/run-index.schema.json"),
-    )?)?;
-    assert_eq!(checked, serde_json::to_value(benchmark_run_index_schema())?);
-    for (path, schema) in [
+    let schemas = [
+        ("run-index.schema.json", benchmark_run_index_schema()),
         ("protocol-citation.schema.json", benchmark_protocol_citation_schema()),
         ("run-case-index.schema.json", benchmark_run_case_index_schema()),
         ("run-publication-pointer.schema.json", benchmark_run_publication_pointer_schema()),
-    ] {
-        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(
-            repository_root.join("benchmarks/contracts/schemas").join(path),
-        )?)?;
-        assert_eq!(checked, serde_json::to_value(schema)?);
+    ];
+    let schema_root = repository_root.join("benchmarks/contracts/schemas");
+    for (name, schema) in schemas {
+        let generated = serde_json::to_value(schema)?;
+        let path = schema_root.join(name);
+        if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+            let mut bytes = serde_json::to_vec_pretty(&generated)?;
+            bytes.push(b'\n');
+            std::fs::write(&path, bytes)?;
+        }
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+        assert_eq!(checked, generated, "run index schema drifted: {name}");
     }
     Ok(())
 }

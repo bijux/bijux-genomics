@@ -1,19 +1,21 @@
-use bijux_dna_domain_bam::metrics::BamMetricsV1;
+use bijux_dna_domain_bam::metrics::{BamInvariantEvaluation, BamMetricsV1};
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 
 use crate::metrics::bam_metrics_from_dir;
 
-pub(super) fn collect_output_metrics(plan: &StagePlanV1, outputs: &[ArtifactRef]) -> BamMetricsV1 {
+pub(super) fn collect_output_metrics(
+    plan: &StagePlanV1,
+    outputs: &[ArtifactRef],
+) -> (BamMetricsV1, BamInvariantEvaluation) {
     let out_dir = metrics_source_dir(plan, outputs);
-    let mut metrics = bam_metrics_from_dir(&out_dir);
+    let metrics = bam_metrics_from_dir(&out_dir);
     let thresholds = bijux_dna_domain_bam::metrics::BamInvariantThresholds::default();
     let evaluation = bijux_dna_domain_bam::metrics::evaluate_bam_invariants(
         &plan.stage_id.0,
         &metrics,
         &thresholds,
     );
-    metrics.stage_verdict = Some(evaluation.verdict.into());
-    metrics
+    (metrics, evaluation)
 }
 
 fn metrics_source_dir(plan: &StagePlanV1, outputs: &[ArtifactRef]) -> std::path::PathBuf {

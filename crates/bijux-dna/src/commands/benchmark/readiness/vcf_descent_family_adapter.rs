@@ -449,7 +449,7 @@ fn build_stage_contract(
         ("ibdhap", VcfDomainStage::Ibd) => {
             let input_vcf_path = GOVERNED_IBDHAP_VCF_PATH.to_string();
             let genetic_map_path = GOVERNED_IBDHAP_MAP_PATH.to_string();
-            let normalized_output_path = report_json_path("ibd_state_probabilities");
+            let normalized_output_path = report_tsv_path("ibd_segments");
             let log_output_path = raw_path("ibd_state_probabilities", "log");
             let scores_path = report_tsv_path("ibd_state_probabilities");
             let identifiers_path = report_tsv_path("ibd_haplotype_identifiers");
@@ -462,7 +462,7 @@ fn build_stage_contract(
                     artifact("genetic_map", "reference", &genetic_map_path),
                 ],
                 "domain/vcf/fixtures/vcf.ibd/ibdhap.txt".to_string(),
-                "ibd_state_probabilities".to_string(),
+                "ibd_segments".to_string(),
                 normalized_output_path.clone(),
                 log_output_path.clone(),
                 vec![
@@ -470,12 +470,12 @@ fn build_stage_contract(
                     "ibdhap_haplotype_identifiers_tsv".to_string(),
                     "logs_txt".to_string(),
                 ],
-                vec!["ibd_state_probabilities".to_string()],
+                vec!["ibd_segments".to_string()],
                 vec![
                     artifact("ibdhap_state_probabilities_tsv", "report_tsv", &scores_path),
                     artifact("ibdhap_haplotype_identifiers_tsv", "report_tsv", &identifiers_path),
                     artifact("logs_txt", "log", &log_output_path),
-                    artifact("ibd_state_probabilities", "report_json", &normalized_output_path),
+                    artifact("ibd_segments", "report_tsv", &normalized_output_path),
                 ],
                 vec![step(
                     "ibd",
@@ -484,14 +484,14 @@ fn build_stage_contract(
                         "sh".to_string(),
                         "-lc".to_string(),
                         format!(
-                            "ibdhap analyze-vcf --vcf '{input_vcf_path}' --genetic-map '{genetic_map_path}' --sample sample_a --sample sample_b --region chr1:2-10 --max-markers 500 --work-dir '{work_dir}' --scores '{scores_path}' --identifiers '{identifiers_path}' --summary '{normalized_output_path}' > '{log_output_path}' 2>&1"
+                            "ibdhap --vcf '{input_vcf_path}' --out '{normalized_output_path}' --genetic-map '{genetic_map_path}' --sample sample_a --sample sample_b --region chr1:2-10 --max-markers 500 --work-dir '{work_dir}' --scores '{scores_path}' --identifiers '{identifiers_path}' > '{log_output_path}' 2>&1"
                         ),
                     ],
                     &[
                         "ibdhap_state_probabilities_tsv",
                         "ibdhap_haplotype_identifiers_tsv",
                         "logs_txt",
-                        "ibd_state_probabilities",
+                        "ibd_segments",
                     ],
                 )],
             ))
@@ -599,12 +599,12 @@ fn validate_command_steps(
         }
         ("ibdseq", "vcf.ibd") => &["ibdseq", "gt=", "out=", "nthreads="],
         ("ibdhap", "vcf.ibd") => &[
-            "ibdhap analyze-vcf",
+            "ibdhap --vcf",
+            "--out",
             "--genetic-map",
             "--sample sample_a --sample sample_b",
             "--scores",
             "--identifiers",
-            "--summary",
         ],
         ("ibdne", "vcf.demography") => &["ibdne", "map=", "out=", "nthreads=", "nboots=", "seed="],
         _ => &[tool_id],
@@ -751,7 +751,7 @@ mod tests {
 
         assert_eq!(report.row_count, 5);
         assert_eq!(report.tool_count, 5);
-        assert_eq!(report.benchmark_ready_row_count, 4);
+        assert_eq!(report.benchmark_ready_row_count, 5);
         assert_eq!(report.parser_output_row_count, 5);
         assert_eq!(report.missing_input_test_passed_row_count, 5);
 
@@ -771,8 +771,8 @@ mod tests {
             .iter()
             .find(|row| row.tool_id == "ibdhap" && row.stage_id == "vcf.ibd")
             .expect("ibdhap IBD row");
-        assert_eq!(ibdhap.benchmark_status, "not_benchmark_ready");
-        assert_eq!(ibdhap.normalized_output_artifact_id, "ibd_state_probabilities");
+        assert_eq!(ibdhap.benchmark_status, "benchmark_ready");
+        assert_eq!(ibdhap.normalized_output_artifact_id, "ibd_segments");
 
         let demography = report
             .rows

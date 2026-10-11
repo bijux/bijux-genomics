@@ -98,6 +98,35 @@ The generator fails before writing when catalog, recipe, image, runtime, run, or
 cannot be admitted by its owning Rust crate. It never refreshes stale evidence or converts a failed
 campaign into a passing claim.
 
+## Qualification source materialization
+
+Qualification source files are derived rather than handwritten lifecycle state. A declarative
+selection names a permanent tool, admitted data-catalog record, exact `study://data/` path, binding
+input, mount path, parameters, and negative invocation. The QA owner validates the benchmark data
+index, rehashes every selected file, proves full indexed closure for selected directories, derives
+input and output artifact contracts from the canonical tool binding, and binds current catalog,
+run-registry, image-inventory, and repository identities into the generated source.
+
+```console
+bijux-dna-dev containers run qualification-specification -- materialize \
+  selection.json containers/contracts/qualification-runs.toml image-inventory.json \
+  data-index.json "$STUDY" "$SOURCE_COMMIT" "$SUBMITTED_AT_UTC" \
+  "$SLURM_ACCOUNT" "$SLURM_PARTITION" 00:30:00 source.json
+```
+
+The materializer rejects unindexed bytes, partial directory catalogs, format mismatches, missing
+binding inputs or parameters, and unsupported stage/tool pairs before scheduler submission. Output
+paths come from the stage contract. Prefix-producing tools receive a non-self-matching output
+manifest so required-output admission cannot pass merely because its own marker exists. The
+selection schema and generated source schema are maintained with:
+
+```console
+bijux-dna-dev containers run qualification-specification -- generate-selection-schema
+bijux-dna-dev containers run qualification-specification -- check-selection-schema
+bijux-dna-dev containers run qualification-specification -- generate-schema
+bijux-dna-dev containers run qualification-specification -- check-schema
+```
+
 The report contract is generated from the policy type and checked independently:
 
 ```console

@@ -1,0 +1,261 @@
+{
+  "$defs": {
+    "BenchmarkLocalHpcArrayResources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpus_per_task": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "memory_mb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scratch_gb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "time_limit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "cpus_per_task",
+        "memory_mb",
+        "time_limit",
+        "scratch_gb"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcPipelineNodeArrayDependency": {
+      "additionalProperties": false,
+      "properties": {
+        "array_index": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "expected_outputs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalHpcPipelineNodeArrayExpectedOutput"
+          },
+          "type": "array"
+        },
+        "job_id_local": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "upstream_result_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "node_id",
+        "job_id_local",
+        "array_index",
+        "upstream_result_ids",
+        "expected_outputs"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcPipelineNodeArrayExpectedOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "output_id": {
+          "type": "string"
+        },
+        "output_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "output_id",
+        "output_path"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcPipelineNodeArrayRow": {
+      "additionalProperties": false,
+      "properties": {
+        "array_index": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "dependencies": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalHpcPipelineNodeArrayDependency"
+          },
+          "type": "array"
+        },
+        "dependency_job_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "expected_outputs": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkLocalHpcPipelineNodeArrayExpectedOutput"
+          },
+          "type": "array"
+        },
+        "input_links_root": {
+          "type": "string"
+        },
+        "job_id_local": {
+          "type": "string"
+        },
+        "log_root": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "output_root": {
+          "type": "string"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "pipeline_node_argv": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "pipeline_node_command": {
+          "type": "string"
+        },
+        "resources": {
+          "$ref": "#/$defs/BenchmarkLocalHpcArrayResources"
+        },
+        "scratch_root": {
+          "type": "string"
+        },
+        "script_path": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stderr_path": {
+          "type": "string"
+        },
+        "stdout_path": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "upstream_result_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "array_index",
+        "job_id_local",
+        "pipeline_id",
+        "node_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "dependency_job_ids",
+        "upstream_result_ids",
+        "dependencies",
+        "expected_outputs",
+        "script_path",
+        "pipeline_node_argv",
+        "pipeline_node_command",
+        "scratch_root",
+        "input_links_root",
+        "output_root",
+        "log_root",
+        "stdout_path",
+        "stderr_path",
+        "resources"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "array_spec": {
+      "type": "string"
+    },
+    "dependency_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "manifest_path": {
+      "type": "string"
+    },
+    "pipeline_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "pipeline_job_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "resource_envelope": {
+      "$ref": "#/$defs/BenchmarkLocalHpcArrayResources"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalHpcPipelineNodeArrayRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_hpc_pipeline_node_array.v1",
+      "type": "string"
+    },
+    "script_path": {
+      "type": "string"
+    },
+    "wrapper_log_root": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "script_path",
+    "manifest_path",
+    "wrapper_log_root",
+    "array_spec",
+    "pipeline_count",
+    "pipeline_job_count",
+    "dependency_count",
+    "resource_envelope",
+    "rows"
+  ],
+  "title": "BenchmarkLocalHpcPipelineNodeArrayReport",
+  "type": "object"
+}

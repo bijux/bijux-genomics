@@ -309,6 +309,7 @@ fn legacy_identity(
             domain: domain.to_string(),
             stage_id: record.stage_id.clone(),
         },
+        case_id: None,
         attempt_id: record.attempt_id.clone(),
         tool_id: record.tool_id.clone(),
     })

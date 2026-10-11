@@ -1,0 +1,237 @@
+{
+  "$defs": {
+    "BenchmarkLocalHpcDryRunReadinessBehavior": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_jobs_keep_explicit_execution_resolution": {
+          "type": "boolean"
+        },
+        "benchmark_jobs_keep_known_assets": {
+          "type": "boolean"
+        },
+        "benchmark_jobs_keep_scratch_layout": {
+          "type": "boolean"
+        },
+        "dependency_failures_block_descendants_only": {
+          "type": "boolean"
+        },
+        "first_run_candidate_is_small_and_governed": {
+          "type": "boolean"
+        },
+        "goals_481_to_489_validated": {
+          "type": "boolean"
+        },
+        "no_manual_steps_or_ambiguity": {
+          "type": "boolean"
+        },
+        "pipeline_nodes_keep_dependency_manifests": {
+          "type": "boolean"
+        },
+        "proven": {
+          "type": "boolean"
+        },
+        "result_collection_statuses_are_distinct": {
+          "type": "boolean"
+        },
+        "resume_rules_are_explicit": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "goals_481_to_489_validated",
+        "benchmark_jobs_keep_known_assets",
+        "benchmark_jobs_keep_scratch_layout",
+        "benchmark_jobs_keep_explicit_execution_resolution",
+        "pipeline_nodes_keep_dependency_manifests",
+        "dependency_failures_block_descendants_only",
+        "resume_rules_are_explicit",
+        "result_collection_statuses_are_distinct",
+        "first_run_candidate_is_small_and_governed",
+        "no_manual_steps_or_ambiguity",
+        "proven"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcDryRunReadinessGoalCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "goal_id": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "output_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "surface": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "goal_id",
+        "surface",
+        "ok",
+        "detail"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalHpcDryRunReadinessSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_job_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "candidate_job_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "candidate_representative_group_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "candidate_selected_input_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dependency_case_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "essential_pipeline_job_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "execution_resolver_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "execution_unclassified_tool_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "pipeline_node_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "result_collection_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "resume_rerun_job_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_benchmark_row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "staged_input_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "benchmark_job_count",
+        "essential_pipeline_job_count",
+        "staged_input_count",
+        "execution_resolver_row_count",
+        "execution_unclassified_tool_count",
+        "stage_benchmark_row_count",
+        "pipeline_node_row_count",
+        "dependency_case_count",
+        "resume_rerun_job_count",
+        "result_collection_row_count",
+        "candidate_job_count",
+        "candidate_representative_group_count",
+        "candidate_selected_input_bytes"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "behavior": {
+      "$ref": "#/$defs/BenchmarkLocalHpcDryRunReadinessBehavior"
+    },
+    "checked_goal_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalHpcDryRunReadinessGoalCheck"
+      },
+      "type": "array"
+    },
+    "failed_goal_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failing_goal_ids": {
+      "items": {
+        "format": "uint32",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "array"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passed_goal_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ready_for_first_hpc_run": {
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_hpc_dry_run_ready.v1",
+      "type": "string"
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkLocalHpcDryRunReadinessSummary"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "checked_goal_count",
+    "passed_goal_count",
+    "failed_goal_count",
+    "failing_goal_ids",
+    "ready_for_first_hpc_run",
+    "summary",
+    "behavior",
+    "checks"
+  ],
+  "title": "BenchmarkLocalHpcDryRunReadinessReport",
+  "type": "object"
+}

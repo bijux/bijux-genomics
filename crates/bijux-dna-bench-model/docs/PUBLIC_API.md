@@ -123,6 +123,8 @@ Model contracts:
 - `BenchmarkCycleAdmissionUnit`
 - `BenchmarkCycleAdmission`
 - `BenchmarkExecutionSpec`
+- `BenchmarkStagePlanManifest`
+- `BenchmarkStagePlanReference`
 - `BenchmarkExecutionSourceLock`
 - `BenchmarkExecutionImage`
 - `BenchmarkExecutionInput`
@@ -214,6 +216,7 @@ Policy and diagnostics:
 - `BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1`
 - `BENCHMARK_CAMPAIGN_REPORT_PUBLICATION_SCHEMA_V1`
 - `BENCHMARK_EXECUTION_SPEC_SCHEMA_V1`
+- `BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1`
 - `BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1`
 - `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
 - `BENCHMARK_STAGE_COVERAGE_SCHEMA_V1`
@@ -283,6 +286,7 @@ Schema derivation:
 - `benchmark_summary_schema`
 - `gate_decision_schema`
 - `benchmark_execution_spec_schema`
+- `benchmark_stage_plan_manifest_schema`
 - `benchmark_scheduler_observation_schema`
 - `benchmark_local_hpc_job_graph_schema`
 - `benchmark_local_corpus_skip_report_schema`

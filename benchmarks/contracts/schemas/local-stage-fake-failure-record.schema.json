@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "BenchmarkLocalStageFakeFailureOutputEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "type": "string"
+        },
+        "declared_path": {
+          "type": "string"
+        },
+        "expected_fake_run_path": {
+          "type": "string"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "declared_path",
+        "expected_fake_run_path",
+        "role",
+        "optional"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "command": {
+      "type": "string"
+    },
+    "exit_code": {
+      "format": "int32",
+      "type": "integer"
+    },
+    "failed_output_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failed_outputs": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalStageFakeFailureOutputEntry"
+      },
+      "type": "array"
+    },
+    "failure_record_path": {
+      "type": "string"
+    },
+    "readiness_kind": {
+      "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_stage_fake_failure_record.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "stderr_path": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "readiness_kind",
+    "tool_id",
+    "command",
+    "exit_code",
+    "stderr_path",
+    "failure_record_path",
+    "failed_output_count",
+    "failed_outputs"
+  ],
+  "title": "BenchmarkLocalStageFakeFailureRecord",
+  "type": "object"
+}

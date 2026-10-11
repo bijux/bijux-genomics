@@ -56,6 +56,7 @@ fn attempt_identity(attempt_id: &str) -> BenchmarkAttemptIdentity {
     BenchmarkAttemptIdentity {
         campaign_id: "all-domains-20260806".to_string(),
         run: run_identity(),
+        case_id: None,
         attempt_id: attempt_id.to_string(),
         tool_id: "seqkit".to_string(),
     }

@@ -4,19 +4,19 @@ stage_ids: ["vcf.phasing"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
-default_version: "planned"
-upstream: "https://alkesgroup.broadinstitute.org/Eagle/"
-pin_strategy: "external_tool"
-license: "GPL-3.0"
+default_version: "2.4.1"
+upstream: "https://github.com/poruloh/Eagle"
+pin_strategy: "source_sha256"
+license: "GPL-3.0-or-later"
 citation: "paper:https://www.nature.com/articles/ng.3679"
 version_cmd: "eagle --version"
 help_cmd: "eagle --help"
 expected_artifacts: ["phased_vcf"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.phasing.v1"
-comparability_notes: "External planned tool for phasing; containerization pending."
+comparability_notes: "Comparable only when cohort, reference panel, genetic map, and pinned Eagle profile stay identical."
 container:
-  image: "external"
-  digest: "external"
+  image: "containers/apptainer/eagle.def"
+  digest: "sha256:6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255"

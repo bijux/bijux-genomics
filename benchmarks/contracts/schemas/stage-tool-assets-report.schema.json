@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "StageToolAssetRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "type": "string"
+        },
+        "asset_path": {
+          "type": "string"
+        },
+        "asset_role": {
+          "type": "string"
+        },
+        "declaration_origin": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "tool_id",
+        "asset_role",
+        "asset_id",
+        "asset_path",
+        "declaration_origin"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "asset_id_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "asset_role_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "classification_scope": {
+      "type": "string"
+    },
+    "config_path": {
+      "type": "string"
+    },
+    "declared_stage_tool_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/StageToolAssetRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.stage_tool_assets.v1",
+      "type": "string"
+    },
+    "unique_asset_id_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "config_path",
+    "classification_scope",
+    "row_count",
+    "declared_stage_tool_row_count",
+    "asset_id_row_count",
+    "unique_asset_id_count",
+    "domain_counts",
+    "asset_role_counts",
+    "rows"
+  ],
+  "title": "StageToolAssetsReport",
+  "type": "object"
+}

@@ -8,6 +8,7 @@ const NORMAL_DEPS: &[&str] = &[
     "bijux-dna-domain-vcf",
     "bijux-dna-infra",
     "bijux-dna-runner",
+    "bijux-dna-stage-contract",
     "noodles-bgzf",
     "noodles-core",
     "noodles-csi",

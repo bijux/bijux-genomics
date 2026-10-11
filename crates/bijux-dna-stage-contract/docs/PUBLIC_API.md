@@ -5,6 +5,8 @@ CLI parsing, process execution, or environment control APIs.
 
 ## Public Modules
 
+- `downstream_probe` for tool-independent semantic consumer declarations and
+  evaluation outcomes.
 - `execution_plan` for deterministic execution-plan models, edges, hashes, and
   validation.
 - `executor_registry` for code-backed executor labels and readiness metadata.
@@ -25,6 +27,7 @@ CLI parsing, process execution, or environment control APIs.
 - `ArtifactRef` and `StageIO` from `bijux-dna-core` for caller ergonomics.
 - Canonical artifact contract types, schemas, catalog, and compatibility functions.
 - Tool-binding models, the deterministic registry, renderer, and validator.
+- Downstream-probe models, the canonical stage registry, and semantic evaluator.
 
 ## Public Types
 
@@ -53,6 +56,15 @@ CLI parsing, process execution, or environment control APIs.
 - `StageExecutorEntry`
 - `ReadinessBadge`
 - `StageDomain`
+- `DownstreamProbe`
+- `DownstreamProbeV1`
+- `DownstreamProbeAssertionV1`
+- `DownstreamProbeCheck`
+- `DownstreamProbeRegistry`
+- `DownstreamProbeEvaluation`
+- `canonical_downstream_probes`
+- `downstream_probes_for_bindings`
+- `evaluate_downstream_probe`
 - `ToolBinding`
 - `ToolBindingV1`
 - `ToolBindingRegistry`

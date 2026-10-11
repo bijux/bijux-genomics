@@ -15,10 +15,14 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionDeterminism, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
     BenchmarkLifecycleStatus,
 };
+use bijux_dna_core::contract::ArtifactRole;
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
 use super::bam_observation::{ensure_parameter_evidence, BamParameterPolicy};
-use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
+use super::{
+    load_attempt_lifecycle, BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial,
+    BenchmarkStagePlanOutputMaterial, BenchmarkStagePlanUnitMaterial,
+};
 use crate::AdmittedBamGenotypingCorpus;
 
 pub(crate) use self::report::publish_bam_genotyping_stage_report_with_presentation_authority;
@@ -144,8 +148,46 @@ pub fn prepare_bam_genotyping_material_from_corpus(
         random_seed: None,
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
+        stage_plan_units: Some(vec![stage_plan_unit()]),
     };
     Ok(BamGenotypingMaterial { execution, admitted_corpus: corpus.clone() })
+}
+
+fn stage_plan_unit() -> BenchmarkStagePlanUnitMaterial {
+    BenchmarkStagePlanUnitMaterial {
+        execution_unit_id: SAMPLE_ID.to_ascii_lowercase(),
+        inputs: vec![
+            stage_input("bam", "/input/ERR2112767.sorted.bam", ArtifactRole::Bam),
+            stage_input("reference", "/input/EquCab3.0.fna", ArtifactRole::Reference),
+            stage_input("candidate_regions", "/input/known-sites.bed", ArtifactRole::Evidence),
+            stage_input(
+                "candidate_alleles",
+                "/input/known-sites.alleles.tsv",
+                ArtifactRole::Evidence,
+            ),
+        ],
+        outputs: vec![BenchmarkStagePlanOutputMaterial {
+            binding_name: "called_vcf".to_owned(),
+            relative_path: "called.vcf.gz".into(),
+            role: ArtifactRole::Variant,
+        }],
+        scientific_defaults: BTreeMap::new(),
+        input_derived: BTreeMap::new(),
+        operator_overrides: BTreeMap::new(),
+        immutable_parameters: std::collections::BTreeSet::new(),
+    }
+}
+
+fn stage_input(
+    binding_name: &str,
+    path: &str,
+    role: ArtifactRole,
+) -> BenchmarkStagePlanInputMaterial {
+    BenchmarkStagePlanInputMaterial {
+        binding_name: binding_name.to_owned(),
+        path: PathBuf::from(path),
+        role,
+    }
 }
 
 fn execution_inputs(corpus: &AdmittedBamGenotypingCorpus) -> Vec<BenchmarkExecutionInput> {
@@ -286,7 +328,9 @@ mod tests {
 
     use bijux_dna_bench_model::{AdmittedBamCorpus, AdmittedBamCorpusFile};
 
-    use super::{prepare_bam_genotyping_material_from_corpus, AdmittedBamGenotypingCorpus};
+    use super::{
+        prepare_bam_genotyping_material_from_corpus, stage_plan_unit, AdmittedBamGenotypingCorpus,
+    };
 
     #[test]
     fn material_closes_the_run_2001_attempt() -> anyhow::Result<()> {
@@ -322,6 +366,23 @@ mod tests {
         }));
         assert_eq!(material.execution.required_files.len(), 27);
         assert!(material.execution.measured_command[2].contains("bcftools call"));
+        assert_eq!(material.execution.stage_plan_units.as_ref().map(Vec::len), Some(1));
+        let unit = stage_plan_unit();
+        let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+        let binding = bindings
+            .binding(
+                &bijux_dna_core::ids::StageId::new(super::STAGE_ID),
+                &bijux_dna_core::ids::ToolId::new("bcftools"),
+            )
+            .expect("canonical BAM genotyping binding");
+        assert_eq!(
+            unit.inputs.iter().map(|input| input.binding_name.as_str()).collect::<Vec<_>>(),
+            binding.inputs.iter().map(|input| input.name.as_str()).collect::<Vec<_>>()
+        );
+        assert_eq!(
+            unit.outputs.iter().map(|output| output.binding_name.as_str()).collect::<Vec<_>>(),
+            binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>()
+        );
         Ok(())
     }
 

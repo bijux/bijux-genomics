@@ -4,19 +4,19 @@ stage_ids: ["vcf.imputation_metrics", "vcf.impute"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
-default_version: "planned"
-upstream: "https://odelaneau.github.io/GLIMPSE/"
-pin_strategy: "external_tool"
+default_version: "1.1.1"
+upstream: "https://github.com/odelaneau/GLIMPSE"
+pin_strategy: "source_sha256"
 license: "MIT"
-citation: "planned"
+citation: "upstream:https://github.com/odelaneau/GLIMPSE"
 version_cmd: "glimpse --version"
 help_cmd: "glimpse --help"
 expected_artifacts: ["imputed_vcf"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.imputation_metrics.v1"
-comparability_notes: "External planned tool for low-coverage/aDNA-oriented imputation workflows."
+comparability_notes: "Compare low-coverage imputation only under the same panel build, chunk map, genotype-likelihood model, and pinned GLIMPSE profile."
 container:
-  image: "external"
-  digest: "external"
+  image: "containers/apptainer/glimpse.def"
+  digest: "sha256:d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c"

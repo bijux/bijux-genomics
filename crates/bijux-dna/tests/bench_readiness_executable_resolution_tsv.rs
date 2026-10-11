@@ -48,7 +48,7 @@ fn bench_readiness_executable_resolution_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 76);
+    assert_eq!(rows.len(), 81);
     assert!(rows.iter().any(|row| {
         row == &"bijux_dna\tfastq\tfastq.detect_duplicates_premerge,fastq.estimate_library_complexity_prealign\tworkspace_binary\thost_binary\tbijux-dna\tbijux-dna\tdomain/fastq/tools/bijux_dna.yaml"
     }));
@@ -56,7 +56,7 @@ fn bench_readiness_executable_resolution_writes_governed_tsv_file() {
         row == &"samtools\tbam\tbam.coverage,bam.duplication_metrics,bam.endogenous_content,bam.filter,bam.length_filter,bam.mapping_summary,bam.mapq_filter,bam.markdup,bam.qc_pre,bam.validate\tcontainer\tdocker_image\tbijuxdna/samtools:1.21\tsamtools\tdomain/bam/tools/samtools.yaml"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"beagle\tvcf\tvcf.imputation_metrics,vcf.impute\tcontainer\tapptainer_image\tcontainers/apptainer/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f\tbeagle\tdomain/vcf/tools/beagle.yaml"
+        row == &"beagle\tvcf\tvcf.imputation_metrics,vcf.impute,vcf.phasing\tcontainer\tapptainer_image\tcontainers/apptainer/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f\tbeagle\tdomain/vcf/tools/beagle.yaml"
     }));
     assert!(rows.iter().any(|row| {
         row.starts_with("angsd\t")
@@ -76,9 +76,15 @@ fn bench_readiness_executable_resolution_writes_governed_tsv_file() {
         row == &"ngsbriggs\tbam\tbam.damage\texternal_artifact\texternal_artifact\texternal-artifact://ngsbriggs\tngsbriggs\tdomain/bam/tools/ngsbriggs.yaml"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"shapeit5\tvcf\tvcf.phasing\tcontainer\tunavailable_with_reason\t\tshapeit5\tdomain/vcf/tools/shapeit5.yaml\truntime probe declares an external container source without a governed local image"
+        row == &"shapeit5\tvcf\tvcf.phasing\tcontainer\tapptainer_image\tcontainers/apptainer/shapeit5.def@sha256:dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8\tshapeit5\tdomain/vcf/tools/shapeit5.yaml"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"plink\tvcf\tvcf.qc\tcontainer\tunavailable_with_reason\t\tplink\tdomain/vcf/tools/plink.yaml\truntime probe declares a planned container source without a governed local image"
+        row == &"plink\tvcf\tvcf.admixture,vcf.population_structure,vcf.qc\tcontainer\tapptainer_image\tcontainers/apptainer/plink.def@sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3\tplink\tdomain/vcf/tools/plink.yaml"
     }));
+    for tool_id in ["eagle", "glimpse", "ibdhap", "minimac4", "shapeit"] {
+        assert!(rows.iter().any(|row| {
+            row.starts_with(&format!("{tool_id}\tvcf\t"))
+                && row.contains("\tcontainer\tapptainer_image\tcontainers/apptainer/")
+        }));
+    }
 }

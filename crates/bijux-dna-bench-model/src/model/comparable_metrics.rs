@@ -16,6 +16,16 @@ pub enum ComparableMetricContractStatus {
     MissingSharedMetrics,
 }
 
+impl ComparableMetricContractStatus {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Declared => "declared",
+            Self::MissingSharedMetrics => "missing_shared_metrics",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ComparableMetricDirection {

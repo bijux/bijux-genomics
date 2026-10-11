@@ -194,6 +194,8 @@ mod tests {
             "plan",
             "--run-id",
             "run-2002",
+            "--case-matrix",
+            "artifacts/benchmark-cycle/run-2002-cases.json",
             "--campaign-id",
             "campaign-run-2002",
             "--attempt-id",
@@ -209,7 +211,13 @@ mod tests {
         let BenchCommand::Cycle { command } = root.command else {
             panic!("expected benchmark cycle command");
         };
-        assert!(matches!(command, BenchCycleCommand::Plan(_)));
+        let BenchCycleCommand::Plan(args) = command else {
+            panic!("expected benchmark cycle plan command");
+        };
+        assert_eq!(
+            args.case_matrix.as_deref(),
+            Some(std::path::Path::new("artifacts/benchmark-cycle/run-2002-cases.json"))
+        );
         Ok(())
     }
 

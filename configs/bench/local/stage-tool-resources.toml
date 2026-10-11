@@ -1211,6 +1211,16 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.admixture"
+tool_id = "plink"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.admixture"
 tool_id = "plink2"
 threads = 2
 memory_gb = 4
@@ -1331,6 +1341,16 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.ibd"
+tool_id = "ibdhap"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.ibd"
 tool_id = "ibdseq"
 threads = 2
 memory_gb = 4
@@ -1351,7 +1371,27 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.imputation_metrics"
+tool_id = "glimpse"
+threads = 8
+memory_gb = 16
+walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
 tool_id = "impute5"
+threads = 8
+memory_gb = 16
+walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.imputation_metrics"
+tool_id = "minimac4"
 threads = 8
 memory_gb = 16
 walltime_minutes = 60
@@ -1371,7 +1411,27 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.impute"
+tool_id = "glimpse"
+threads = 8
+memory_gb = 16
+walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
 tool_id = "impute5"
+threads = 8
+memory_gb = 16
+walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.impute"
+tool_id = "minimac4"
 threads = 8
 memory_gb = 16
 walltime_minutes = 60
@@ -1401,10 +1461,60 @@ resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 [[rows]]
 domain = "vcf"
 stage_id = "vcf.phasing"
+tool_id = "beagle"
+threads = 8
+memory_gb = 4
+walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.phasing"
+tool_id = "eagle"
+threads = 8
+memory_gb = 4
+walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.phasing"
+tool_id = "shapeit"
+threads = 8
+memory_gb = 4
+walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.phasing"
 tool_id = "shapeit5"
 threads = 8
 memory_gb = 4
 walltime_minutes = 60
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.population_structure"
+tool_id = "eigensoft"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
+scratch_gb = 8
+resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
+
+[[rows]]
+domain = "vcf"
+stage_id = "vcf.population_structure"
+tool_id = "plink"
+threads = 2
+memory_gb = 4
+walltime_minutes = 20
 scratch_gb = 8
 resource_origin = "planner_stage_constraints_with_stage_walltime_profile"
 

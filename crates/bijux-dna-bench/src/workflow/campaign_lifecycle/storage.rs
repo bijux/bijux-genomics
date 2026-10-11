@@ -9,13 +9,18 @@ use std::path::{Path, PathBuf};
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::validate_stage_campaign_registry;
 use bijux_dna_bench_model::{
-    validate_campaign_plan, validate_execution_spec, BenchmarkAttemptIdentity,
-    BenchmarkAttemptRecordV2, BenchmarkCampaignPlan, BenchmarkExecutionSpec,
-    BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkStageCampaignRegistry,
+    validate_campaign_plan, validate_execution_spec, validate_stage_plan_manifest,
+    BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2, BenchmarkCampaignPlan,
+    BenchmarkExecutionSpec, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+    BenchmarkStageCampaignRegistry, BenchmarkStagePlanManifest, BenchmarkStagePlanReference,
+    BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1,
 };
 use bijux_dna_runtime::{
     benchmark_attempt_directory, ensure_attempt_lifecycle, load_attempt_lifecycle,
 };
+use bijux_dna_stage_contract::StagePlanV1;
+
+const MAX_STAGE_PLAN_BYTES: usize = 16 * 1024 * 1024;
 
 /// Recover the complete executed retry lineage ending at an explicit attempt tip for each tool.
 ///
@@ -51,6 +56,7 @@ pub fn recover_stage_campaign_retry_lineage(
         let tip = BenchmarkAttemptIdentity {
             campaign_id: campaign_id.to_string(),
             run: run.clone(),
+            case_id: None,
             attempt_id: tip_attempt_id.to_string(),
             tool_id,
         };
@@ -351,6 +357,212 @@ pub fn ensure_execution_spec(
         }
     }
     Ok(path)
+}
+
+/// Persist immutable measured-repetition execution-unit plans and their checksum-bound manifest.
+///
+/// Existing byte-identical evidence is accepted for crash recovery. Any identity, count, path, or
+/// byte conflict fails closed.
+///
+/// # Errors
+/// Returns an error when execution authority is absent or any plan differs from the attempt,
+/// measured repetition policy, canonical path layout, or previously persisted evidence.
+pub fn ensure_stage_plan_manifest(
+    benchmark_root: &Path,
+    spec: &BenchmarkExecutionSpec,
+    plans: &[StagePlanV1],
+) -> Result<BenchmarkStagePlanManifest> {
+    validate_execution_spec(spec).context("validate stage-plan execution specification")?;
+    let directory = benchmark_attempt_directory(benchmark_root, &spec.identity)?;
+    let execution_spec_path = directory.join("execution-spec.json");
+    let persisted_spec = load_execution_spec(benchmark_root, &spec.identity)?;
+    if persisted_spec != *spec {
+        bail!("stage-plan execution specification differs from persisted authority");
+    }
+    let repetition_count = usize::try_from(spec.measurement.measured_repetitions)?;
+    if plans.len() < repetition_count || !plans.len().is_multiple_of(repetition_count) {
+        bail!("stage-plan count does not close the measured repetition policy");
+    }
+    let stage_plan_root = directory.join("stage-plans");
+    ensure_owned_directory(&stage_plan_root, "benchmark stage-plan root")?;
+    let mut references = Vec::with_capacity(plans.len());
+    let mut ordered_plans = plans.iter().collect::<Vec<_>>();
+    ordered_plans.sort_by(|left, right| {
+        left.stage_instance_id
+            .as_ref()
+            .map(ToString::to_string)
+            .cmp(&right.stage_instance_id.as_ref().map(ToString::to_string))
+    });
+    for plan in ordered_plans {
+        let (repetition, execution_unit_id, instance) = stage_plan_identity(plan)?;
+        validate_stage_plan_identity(spec, plan, &instance, &directory)?;
+        let relative_path = format!("stage-plans/repetition-{repetition}/{execution_unit_id}.json");
+        let path = directory.join(&relative_path);
+        let bytes = serde_json::to_vec_pretty(plan).context("serialize benchmark stage plan")?;
+        ensure_immutable_bytes(&path, &bytes, "benchmark stage plan")?;
+        references.push(BenchmarkStagePlanReference {
+            repetition,
+            execution_unit_id,
+            stage_instance_id: instance,
+            path: relative_path,
+            sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
+        });
+    }
+    let manifest = BenchmarkStagePlanManifest {
+        schema_version: BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1.to_owned(),
+        identity: spec.identity.clone(),
+        execution_spec_sha256: bijux_dna_infra::hash_file_sha256(&execution_spec_path)?,
+        plans: references,
+    };
+    validate_stage_plan_manifest(&manifest)?;
+    ensure_immutable_json(
+        &directory.join("stage-plan-manifest.json"),
+        &manifest,
+        "benchmark stage-plan manifest",
+    )?;
+    Ok(manifest)
+}
+
+/// Load and validate every immutable measured-repetition stage plan for an attempt.
+///
+/// # Errors
+/// Returns an error when the manifest, execution specification, any plan bytes, or plan identity
+/// differs from persisted authority.
+pub fn load_stage_plan_manifest(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+) -> Result<(BenchmarkStagePlanManifest, Vec<StagePlanV1>)> {
+    let directory = benchmark_attempt_directory(benchmark_root, identity)?;
+    let spec = load_execution_spec(benchmark_root, identity)?;
+    let manifest_path = directory.join("stage-plan-manifest.json");
+    let manifest: BenchmarkStagePlanManifest = read_bounded_json(&manifest_path)?;
+    validate_stage_plan_manifest(&manifest)?;
+    if manifest.identity != *identity
+        || manifest.execution_spec_sha256
+            != bijux_dna_infra::hash_file_sha256(&directory.join("execution-spec.json"))?
+        || manifest.plans.last().map(|reference| reference.repetition)
+            != Some(spec.measurement.measured_repetitions)
+    {
+        bail!("benchmark stage-plan manifest differs from execution authority");
+    }
+    let mut plans = Vec::with_capacity(manifest.plans.len());
+    for reference in &manifest.plans {
+        let path = directory.join(&reference.path);
+        let metadata = fs::symlink_metadata(&path)
+            .with_context(|| format!("inspect benchmark stage plan {}", path.display()))?;
+        if metadata.file_type().is_symlink() || !metadata.is_file() {
+            bail!("benchmark stage plan is not a regular file: {}", path.display());
+        }
+        let bytes = bijux_dna_infra::read_to_end_bounded(&path, MAX_STAGE_PLAN_BYTES)?;
+        if bijux_dna_infra::hash_bytes_sha256(&bytes) != reference.sha256 {
+            bail!("benchmark stage-plan bytes differ from manifest authority");
+        }
+        let plan: StagePlanV1 = serde_json::from_slice(&bytes)
+            .with_context(|| format!("parse benchmark stage plan {}", path.display()))?;
+        validate_stage_plan_identity(&spec, &plan, &reference.stage_instance_id, &directory)?;
+        plans.push(plan);
+    }
+    Ok((manifest, plans))
+}
+
+fn validate_stage_plan_identity(
+    spec: &BenchmarkExecutionSpec,
+    plan: &StagePlanV1,
+    stage_instance_id: &str,
+    attempt_directory: &Path,
+) -> Result<()> {
+    let expected_image_digest = format!("sha256:{}", spec.image.sha256);
+    if plan.stage_id.as_str() != spec.identity.run.stage_id
+        || plan.tool_id.as_str() != spec.identity.tool_id
+        || plan.stage_instance_id.as_ref().map(ToString::to_string).as_deref()
+            != Some(stage_instance_id)
+        || plan.stage_version.0 != 1
+        || plan.tool_version.trim().is_empty()
+        || plan.image.image != spec.image.path
+        || plan.image.digest.as_deref() != Some(expected_image_digest.as_str())
+        || plan.command.template.is_empty()
+        || plan.command.template.iter().any(String::is_empty)
+        || plan.resources.threads != spec.resources.cpus
+        || plan.io.inputs.is_empty()
+        || plan.io.outputs.is_empty()
+        || plan.out_dir != attempt_directory.join("repetitions").join(stage_instance_id)
+    {
+        bail!("benchmark stage plan differs from immutable attempt identity");
+    }
+    Ok(())
+}
+
+fn stage_plan_identity(plan: &StagePlanV1) -> Result<(u32, String, String)> {
+    let instance = plan
+        .stage_instance_id
+        .as_ref()
+        .map(ToString::to_string)
+        .context("benchmark stage plan omits execution-unit identity")?;
+    let suffix = instance
+        .strip_prefix("measured-repetition-")
+        .context("benchmark stage plan has a noncanonical instance identity")?;
+    let (repetition, execution_unit_id) = suffix
+        .split_once("--")
+        .context("benchmark stage plan omits repetition or execution-unit identity")?;
+    let repetition = repetition.parse::<u32>().context("parse stage-plan repetition identity")?;
+    if repetition == 0 || execution_unit_id.is_empty() {
+        bail!("benchmark stage plan has an invalid repetition or execution-unit identity");
+    }
+    Ok((repetition, execution_unit_id.to_owned(), instance))
+}
+
+fn read_bounded_json<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T> {
+    let metadata = fs::symlink_metadata(path)
+        .with_context(|| format!("inspect immutable JSON {}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        bail!("immutable JSON is not a regular file: {}", path.display());
+    }
+    let bytes = bijux_dna_infra::read_to_end_bounded(path, MAX_STAGE_PLAN_BYTES)?;
+    serde_json::from_slice(&bytes)
+        .with_context(|| format!("parse immutable JSON {}", path.display()))
+}
+
+fn ensure_immutable_json<T: serde::Serialize>(path: &Path, value: &T, label: &str) -> Result<()> {
+    let bytes = serde_json::to_vec_pretty(value)?;
+    ensure_immutable_bytes(path, &bytes, label)
+}
+
+fn ensure_immutable_bytes(path: &Path, bytes: &[u8], label: &str) -> Result<()> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() || !metadata.is_file() || fs::read(path)? != bytes
+            {
+                bail!("{label} conflicts with immutable evidence: {}", path.display());
+            }
+            Ok(())
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => {
+            bijux_dna_infra::atomic_create_bytes(path, bytes)?;
+            Ok(())
+        }
+        Err(error) => Err(error).with_context(|| format!("inspect {label} {}", path.display())),
+    }
+}
+
+fn ensure_owned_directory(path: &Path, label: &str) -> Result<()> {
+    match fs::symlink_metadata(path) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() || !metadata.is_dir() {
+                bail!("{label} is not an owned directory: {}", path.display());
+            }
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => {
+            bijux_dna_infra::ensure_dir(path)?;
+        }
+        Err(error) => {
+            return Err(error).with_context(|| format!("inspect {label} {}", path.display()))
+        }
+    }
+    let metadata = fs::symlink_metadata(path)?;
+    if metadata.file_type().is_symlink() || !metadata.is_dir() {
+        bail!("{label} is not an owned directory: {}", path.display());
+    }
+    Ok(())
 }
 
 fn attempt_sort_key(attempt: &BenchmarkAttemptRecordV2) -> (&str, &str, &str, &str, &str) {

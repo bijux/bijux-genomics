@@ -120,8 +120,29 @@ fn attempt_identity() -> bijux_dna_infra::AttemptLayoutIdentity {
         run_directory: "run-2042-fastq-profile-read-lengths".to_string(),
         tool_id: "seqkit".to_string(),
         campaign_id: "all-domains-20260804".to_string(),
+        execution_unit_id: None,
         attempt_id: "attempt-001".to_string(),
     }
+}
+
+#[test]
+fn attempt_layout_execution_units_are_isolated_without_changing_legacy_paths() -> anyhow::Result<()>
+{
+    let root = bijux_dna_testkit::tempdir_for("infra-attempt-execution-unit");
+    let legacy = attempt_identity();
+    let mut first = legacy.clone();
+    first.execution_unit_id = Some("case-a".to_string());
+    let mut second = legacy;
+    second.execution_unit_id = Some("case-b".to_string());
+
+    let first_paths = bijux_dna_infra::attempt_layout_paths(root.path(), &first)?;
+    let second_paths = bijux_dna_infra::attempt_layout_paths(root.path(), &second)?;
+
+    assert_ne!(first_paths.attempt_dir, second_paths.attempt_dir);
+    assert!(first_paths.attempt_dir.ends_with(
+        "run-2042-fastq-profile-read-lengths/seqkit/attempts/all-domains-20260804/case-a/attempt-001"
+    ));
+    Ok(())
 }
 
 #[test]

@@ -2,7 +2,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_slurm_dry_run, BENCHMARK_LOCAL_SLURM_DRY_RUN_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalSlurmDryRunReport as BenchLocalSlurmDryRunReport,
+    BenchmarkLocalSlurmScriptEntry as BenchLocalSlurmScriptEntry,
+};
 
 use crate::commands::benchmark::local_slurm_run_paths::{
     collect_local_slurm_run_paths, BenchLocalSlurmRunPaths,
@@ -17,33 +23,7 @@ use crate::commands::benchmark::path_resolution::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const LOCAL_SLURM_DRY_RUN_SCHEMA_VERSION: &str = "bijux.bench.local_slurm_dry_run.v1";
 const DEFAULT_SLURM_TIME_LIMIT: &str = "04:00:00";
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalSlurmDryRunReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) domain: &'static str,
-    pub(crate) output_root: String,
-    pub(crate) script_count: usize,
-    pub(crate) scripts: Vec<BenchLocalSlurmScriptEntry>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalSlurmScriptEntry {
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) cpus_per_task: u32,
-    pub(crate) memory_mb: u32,
-    pub(crate) time_limit: String,
-    pub(crate) script_path: String,
-    pub(crate) stdout_path: String,
-    pub(crate) stderr_path: String,
-    pub(crate) result_root: String,
-    pub(crate) stage_result_manifest_path: String,
-    pub(crate) command: String,
-}
 
 pub(crate) fn run_render_slurm_scripts(
     args: &parse::BenchLocalRenderSlurmScriptsArgs,
@@ -98,13 +78,15 @@ pub(crate) fn render_local_slurm_scripts(
         })
         .collect::<Result<Vec<_>>>()?;
 
-    Ok(BenchLocalSlurmDryRunReport {
-        schema_version: LOCAL_SLURM_DRY_RUN_SCHEMA_VERSION,
-        domain: domain.as_str(),
+    let report = BenchLocalSlurmDryRunReport {
+        schema_version: BENCHMARK_LOCAL_SLURM_DRY_RUN_SCHEMA_V1.to_string(),
+        domain: domain.as_str().to_string(),
         output_root: path_relative_to_repo(repo_root, &absolute_output_root),
         script_count: scripts.len(),
         scripts,
-    })
+    };
+    validate_benchmark_local_slurm_dry_run(&report)?;
+    Ok(report)
 }
 
 #[cfg(feature = "bam_downstream")]
@@ -139,7 +121,7 @@ fn write_slurm_script(
     Ok(BenchLocalSlurmScriptEntry {
         stage_id: entry.stage_id,
         tool_id: entry.tool_id,
-        readiness_kind: entry.readiness_kind.as_str().to_string(),
+        readiness_kind: entry.readiness_kind,
         cpus_per_task: entry.threads,
         memory_mb: entry.memory_mb,
         time_limit: DEFAULT_SLURM_TIME_LIMIT.to_string(),

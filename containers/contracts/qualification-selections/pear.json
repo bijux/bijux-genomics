@@ -1,0 +1,28 @@
+{
+  "schema_version": "bijux.container.qualification_source_selection.v1",
+  "tool_id": "pear",
+  "campaign": "canonical-fastq-merge-qualification",
+  "corpus": "ena-prjeb10854-err1021817-read-prefix-100000",
+  "corpus_role": "fastq",
+  "sample": "ERR1021817",
+  "inputs": [
+    {
+      "binding_input": "reads_r1",
+      "id": "err1021817_read_prefix_100000_r1",
+      "kind": "data",
+      "catalog_id": "ena-prjeb10854-err1021817-read-prefix-100000",
+      "study_uri": "study://data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "mount_path": "/input/ERR1021817_1.fastq.gz"
+    },
+    {
+      "binding_input": "reads_r2",
+      "id": "err1021817_read_prefix_100000_r2",
+      "kind": "data",
+      "catalog_id": "ena-prjeb10854-err1021817-read-prefix-100000",
+      "study_uri": "study://data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "mount_path": "/input/ERR1021817_2.fastq.gz"
+    }
+  ],
+  "parameters": {"merge_overlap":"11","min_len":"25","threads":"4"},
+  "negative_arguments": ["-f","/input/missing.fastq.gz","-r","/input/ERR1021817_2.fastq.gz"]
+}

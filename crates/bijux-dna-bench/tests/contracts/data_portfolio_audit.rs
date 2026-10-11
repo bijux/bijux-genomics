@@ -36,7 +36,7 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
     assert_eq!(audit.summary.source_defined_corpus_count, 7);
     assert_eq!(audit.summary.missing_corpus_count, 0);
     assert_eq!(audit.summary.publishable_data_ready_count, 1);
-    assert_eq!(audit.summary.bound_catalog_count, 3);
+    assert_eq!(audit.summary.bound_catalog_count, 4);
     assert_eq!(audit.summary.missing_catalog_binding_count, 19);
     assert_eq!(audit.summary.unbound_catalog_count, 1);
     assert_eq!(audit.summary.suspected_nonproduction_asset_count, 1);
@@ -45,7 +45,12 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
         .corpora
         .iter()
         .find(|corpus| corpus.corpus_id == "human-short-read-diversity")
-        .is_some_and(|corpus| corpus.publishable_data_ready));
+        .is_some_and(|corpus| {
+            corpus.publishable_data_ready
+                && corpus.catalog_bindings.iter().any(|binding| {
+                    binding.catalog_id == "grch38-reference" && binding.integrity_verified
+                })
+        }));
     assert!(audit
         .corpora
         .iter()
@@ -112,6 +117,13 @@ impl DataAuditFixture {
             "human-short-read-diversity",
             "real public FASTQ cohort",
             Some(20),
+        )?;
+        write_catalog(
+            &data_root,
+            &catalog_root,
+            "grch38-reference",
+            "immutable public human reference assembly",
+            None,
         )?;
         write_catalog(
             &data_root,

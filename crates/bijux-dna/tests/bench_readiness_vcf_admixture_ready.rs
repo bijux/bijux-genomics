@@ -34,7 +34,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_vcf_admixture_ready_reports_complete_active_retained_caller() {
+fn bench_readiness_vcf_admixture_ready_reports_every_complete_active_backend() {
     let payload = run_cli_json(&["bench", "readiness", "render-vcf-admixture-ready", "--json"]);
 
     assert_eq!(
@@ -45,9 +45,9 @@ fn bench_readiness_vcf_admixture_ready_reports_complete_active_retained_caller()
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/vcf/admixture-ready.json")
     );
-    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -72,9 +72,22 @@ fn bench_readiness_vcf_admixture_ready_reports_complete_active_retained_caller()
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 1);
+    assert_eq!(rows.len(), 2);
+    let observed_tools = rows
+        .iter()
+        .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(observed_tools, std::collections::BTreeSet::from(["plink", "plink2"]));
+    assert!(rows.iter().all(|row| {
+        row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("complete")
+            && row.get("smoke_ready").and_then(serde_json::Value::as_bool) == Some(true)
+            && row.get("smoke_tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+    }));
 
-    let row = &rows[0];
+    let row = rows
+        .iter()
+        .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2"))
+        .expect("plink2 readiness row");
     assert_eq!(
         row.get("result_id").and_then(serde_json::Value::as_str),
         Some("vcf:vcf_production_regression:vcf.admixture:vcf_cohort:plink2")

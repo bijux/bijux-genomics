@@ -14,6 +14,8 @@ None.
 These are library functions, not shell commands:
 
 - `create_run_layout`
+- `reserve_attempt_sequence`
+- `supersede_attempt_sequence`
 - `write_run_state`
 - `write_runtime_policy`
 - `write_executor_descriptor`

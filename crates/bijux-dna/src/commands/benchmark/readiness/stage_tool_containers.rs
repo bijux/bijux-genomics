@@ -3,14 +3,16 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::{Deserialize, Serialize};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    validate_stage_tool_containers_config, StageToolContainerRow, StageToolContainersConfig,
+    StageToolContainersReport, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
+};
+use bijux_dna_api::v1::api::bench::{
+    validate_stage_tool_containers_report, STAGE_TOOL_CONTAINERS_DECLARATION_ORIGIN,
+    STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_SCOPE,
+};
 
-use super::bam_command_adapter_coverage::{
-    collect_bam_command_adapter_coverage_rows, BamBenchmarkStatus,
-};
-use super::fastq_command_adapter_coverage::{
-    collect_fastq_command_adapter_coverage_rows, FastqBenchmarkStatus,
-};
+use super::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
 use super::tool_execution_modes::{
     load_runtime_probe, validate_tool_execution_modes_path, DEFAULT_TOOL_EXECUTION_MODES_PATH,
 };
@@ -19,54 +21,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_CONTAINERS_PATH: &str =
     "configs/bench/local/stage-tool-containers.toml";
-pub(crate) const LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION: &str =
-    "bijux.bench.local_stage_tool_containers.v1";
-const STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.stage_tool_containers.v1";
-const STAGE_TOOL_CONTAINERS_SCOPE: &str = "benchmark_ready_runtime_declarations";
-const STAGE_TOOL_CONTAINERS_DECLARATION_ORIGIN: &str =
-    "runtime_probe_with_primary_operator_runtime";
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageToolContainersConfig {
-    pub(crate) schema_version: String,
-    pub(crate) classification_scope: String,
-    pub(crate) rows: Vec<StageToolContainerRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageToolContainerRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) execution_mode: String,
-    pub(crate) install_kind: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) container_id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) command_entrypoint: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub(crate) host_binary_mode: Option<String>,
-    pub(crate) declaration_origin: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct StageToolContainersReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) config_path: String,
-    pub(crate) classification_scope: &'static str,
-    pub(crate) row_count: usize,
-    pub(crate) benchmark_ready_row_count: usize,
-    pub(crate) external_row_count: usize,
-    pub(crate) container_declared_row_count: usize,
-    pub(crate) command_entrypoint_row_count: usize,
-    pub(crate) host_binary_row_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) execution_mode_counts: BTreeMap<String, usize>,
-    pub(crate) rows: Vec<StageToolContainerRow>,
-}
 
 pub(crate) fn run_render_stage_tool_containers(
     args: &parse::BenchReadinessRenderStageToolContainersArgs,
@@ -92,16 +46,12 @@ pub(crate) fn render_stage_tool_containers(
     let rows = collect_stage_tool_container_rows(repo_root)?;
 
     let config = StageToolContainersConfig {
-        schema_version: LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION.to_string(),
+        schema_version: LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1.to_string(),
         classification_scope: STAGE_TOOL_CONTAINERS_SCOPE.to_string(),
         rows: rows.clone(),
     };
+    validate_stage_tool_containers_config(&config)?;
     let rendered = render_stage_tool_containers_toml(&config)?;
-
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    bijux_dna_infra::atomic_write_bytes(&output_path, rendered.as_bytes())?;
 
     let mut domain_counts = BTreeMap::<String, usize>::new();
     let mut execution_mode_counts = BTreeMap::<String, usize>::new();
@@ -126,10 +76,10 @@ pub(crate) fn render_stage_tool_containers(
         }
     }
 
-    Ok(StageToolContainersReport {
-        schema_version: STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_VERSION,
+    let report = StageToolContainersReport {
+        schema_version: STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1.to_string(),
         config_path: path_relative_to_repo(repo_root, &output_path),
-        classification_scope: STAGE_TOOL_CONTAINERS_SCOPE,
+        classification_scope: STAGE_TOOL_CONTAINERS_SCOPE.to_string(),
         row_count: rows.len(),
         benchmark_ready_row_count: rows.len(),
         external_row_count,
@@ -139,12 +89,17 @@ pub(crate) fn render_stage_tool_containers(
         domain_counts,
         execution_mode_counts,
         rows,
-    })
+    };
+    validate_stage_tool_containers_report(&report)?;
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    bijux_dna_infra::atomic_write_bytes(&output_path, rendered.as_bytes())?;
+    Ok(report)
 }
 
 fn collect_stage_tool_container_rows(repo_root: &Path) -> Result<Vec<StageToolContainerRow>> {
-    let (_, _, fastq_rows) = collect_fastq_command_adapter_coverage_rows(repo_root)?;
-    let (_, _, bam_rows) = collect_bam_command_adapter_coverage_rows(repo_root)?;
+    let active_rows = collect_all_domain_active_stage_tool_matrix_rows(repo_root)?;
     let execution_mode_report = validate_tool_execution_modes_path(
         repo_root,
         &repo_root.join(DEFAULT_TOOL_EXECUTION_MODES_PATH),
@@ -156,26 +111,10 @@ fn collect_stage_tool_container_rows(repo_root: &Path) -> Result<Vec<StageToolCo
         .collect::<BTreeMap<_, _>>();
 
     let mut rows = Vec::new();
-    for row in fastq_rows
-        .into_iter()
-        .filter(|row| row.benchmark_status == FastqBenchmarkStatus::BenchmarkReady)
-    {
+    for row in active_rows {
         rows.push(render_stage_tool_container_row(
             repo_root,
-            "fastq",
-            &row.stage_id,
-            &row.tool_id,
-            &execution_modes,
-        )?);
-    }
-
-    for row in bam_rows
-        .into_iter()
-        .filter(|row| row.benchmark_status == BamBenchmarkStatus::BenchmarkReady)
-    {
-        rows.push(render_stage_tool_container_row(
-            repo_root,
-            "bam",
+            &row.domain,
             &row.stage_id,
             &row.tool_id,
             &execution_modes,
@@ -273,10 +212,10 @@ fn render_stage_tool_containers_toml(config: &StageToolContainersConfig) -> Resu
     Ok(format!(
         "# schema_version = 1\n\
          # owner = bijux-dna-bench\n\
-         # purpose = Governed runtime declarations for benchmark-ready FASTQ and BAM stage-tool commands.\n\
+         # purpose = Governed runtime declarations for benchmark-ready FASTQ, BAM, and VCF stage-tool commands.\n\
          # authority = bijux-dna-bench\n\
          # stability = evolving\n\
-         # last_updated = 2026-06-25\n\n{body}"
+         # last_updated = 2026-08-13\n\n{body}"
     ))
 }
 
@@ -313,11 +252,12 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_containers.v1");
         assert_eq!(report.config_path, "configs/bench/local/stage-tool-containers.toml");
         assert_eq!(report.classification_scope, "benchmark_ready_runtime_declarations");
-        assert!(report.row_count > 0);
+        assert_eq!(report.row_count, 159);
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.external_row_count, report.container_declared_row_count);
         assert_eq!(report.command_entrypoint_row_count, report.row_count);
         assert_eq!(report.domain_counts.values().sum::<usize>(), report.row_count);
+        assert_eq!(report.domain_counts.get("vcf"), Some(&39));
         assert!(report.rows.iter().all(|row| {
             row.container_id.is_some()
                 || row.command_entrypoint.is_some()
@@ -381,10 +321,20 @@ mod tests {
                 && row.container_id.as_deref()
                     == Some("quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6")
         }));
-        for external_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+        for (stage_id, external_tool_id) in [
+            ("bam.damage", "ngsbriggs"),
+            ("bam.kinship", "angsd"),
+            ("bam.sex", "angsd"),
+            ("fastq.remove_duplicates", "fastuniq"),
+            ("vcf.call_gl", "angsd"),
+            ("vcf.call_pseudohaploid", "angsd"),
+            ("vcf.imputation_metrics", "impute5"),
+            ("vcf.impute", "impute5"),
+        ] {
             let expected_container = format!("external-artifact://{external_tool_id}");
             assert!(report.rows.iter().any(|row| {
-                row.tool_id == external_tool_id
+                row.stage_id == stage_id
+                    && row.tool_id == external_tool_id
                     && row.execution_mode == "external"
                     && row.container_id.as_deref() == Some(expected_container.as_str())
             }));
@@ -497,10 +447,25 @@ mod tests {
 
     #[cfg(feature = "bam_downstream")]
     #[test]
+    fn render_stage_tool_containers_rejects_external_output_before_write() {
+        use super::render_stage_tool_containers;
+
+        let root = repo_root();
+        let external_root = tempfile::tempdir().expect("external output root");
+        let output_path = external_root.path().join("stage-tool-containers.toml");
+        let error = render_stage_tool_containers(&root, output_path.clone())
+            .expect_err("external output path must be rejected");
+
+        assert!(error.to_string().contains("report identity or path is invalid"));
+        assert!(!output_path.exists());
+    }
+
+    #[cfg(feature = "bam_downstream")]
+    #[test]
     fn render_stage_tool_containers_writes_governed_toml_contract() {
         use super::{
             render_stage_tool_containers, StageToolContainersConfig,
-            DEFAULT_STAGE_TOOL_CONTAINERS_PATH, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION,
+            DEFAULT_STAGE_TOOL_CONTAINERS_PATH, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
             STAGE_TOOL_CONTAINERS_SCOPE,
         };
 
@@ -514,7 +479,7 @@ mod tests {
         let config: StageToolContainersConfig =
             toml::from_str(&raw).expect("parse rendered stage-tool container config");
 
-        assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_VERSION);
+        assert_eq!(config.schema_version, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1);
         assert_eq!(config.classification_scope, STAGE_TOOL_CONTAINERS_SCOPE);
         assert!(!config.rows.is_empty());
         assert!(config.rows.iter().all(|row| {
@@ -530,10 +495,20 @@ mod tests {
                 && row.container_id.as_deref()
                     == Some("quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6")
         }));
-        for external_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+        for (stage_id, external_tool_id) in [
+            ("bam.damage", "ngsbriggs"),
+            ("bam.kinship", "angsd"),
+            ("bam.sex", "angsd"),
+            ("fastq.remove_duplicates", "fastuniq"),
+            ("vcf.call_gl", "angsd"),
+            ("vcf.call_pseudohaploid", "angsd"),
+            ("vcf.imputation_metrics", "impute5"),
+            ("vcf.impute", "impute5"),
+        ] {
             let expected_container = format!("external-artifact://{external_tool_id}");
             assert!(config.rows.iter().any(|row| {
-                row.tool_id == external_tool_id
+                row.stage_id == stage_id
+                    && row.tool_id == external_tool_id
                     && row.execution_mode == "external"
                     && row.container_id.as_deref() == Some(expected_container.as_str())
             }));

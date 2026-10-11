@@ -60,41 +60,10 @@ fn bench_readiness_vcf_orphan_tools_reports_governed_decisions() {
         payload.get("registered_tool_count").and_then(serde_json::Value::as_u64),
         Some(required_tool_count)
     );
-    assert_eq!(served_tool_count + orphan_count, required_tool_count);
+    assert_eq!(served_tool_count, required_tool_count);
+    assert_eq!(orphan_count, 0);
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len() as u64, orphan_count);
-    assert!(rows.iter().all(|row| {
-        row.get("served_stage_count").and_then(serde_json::Value::as_u64) == Some(0)
-            && row.get("decision").and_then(serde_json::Value::as_str)
-                == Some("future_not_benchmark_ready")
-    }));
-
-    let has_row =
-        |tool_id: &str, registered_binary: &str, served_stage_count: u64, decision: &str| {
-            rows.iter().any(|row| {
-                row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
-                    && row.get("registered_binary").and_then(serde_json::Value::as_str)
-                        == Some(registered_binary)
-                    && row.get("served_stage_count").and_then(serde_json::Value::as_u64)
-                        == Some(served_stage_count)
-                    && row.get("decision").and_then(serde_json::Value::as_str) == Some(decision)
-            })
-        };
-
-    for (tool_id, registered_binary) in [
-        ("eagle", "eagle"),
-        ("glimpse", "glimpse"),
-        ("ibdhap", "ibdhap"),
-        ("minimac4", "minimac4"),
-        ("shapeit", "shapeit"),
-    ] {
-        assert!(
-            has_row(tool_id, registered_binary, 0, "future_not_benchmark_ready"),
-            "VCF orphan tool report must retain the governed orphan row for {tool_id}"
-        );
-    }
-    assert!(rows.iter().all(|row| {
-        !matches!(row.get("tool_id").and_then(serde_json::Value::as_str), Some("angsd" | "impute5"))
-    }));
+    assert!(rows.is_empty());
 }

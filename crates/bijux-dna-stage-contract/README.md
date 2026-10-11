@@ -51,6 +51,8 @@ Start with `docs/INDEX.md`, then use:
 - `StageExecutorEntry`, `ReadinessBadge`, and `StageDomain`.
 - `ToolBinding`, `ToolBindingV1`, `ToolBindingRegistry`, and canonical retained
   and licensing-restricted external-artifact binding catalogs.
+- `DownstreamProbe`, `DownstreamProbeV1`, `DownstreamProbeRegistry`, and
+  semantic evaluation outcomes shared by every tool implementation of one stage.
 
 ## Key contracts it owns/consumes
 
@@ -58,6 +60,8 @@ Start with `docs/INDEX.md`, then use:
   shapes.
 - Owns the pure tool-binding interface, registry, renderer, and conformance
   validation for catalog and externally supplied artifacts.
+- Owns tool-independent downstream probe declarations and semantic evaluation
+  over normalized identities, metrics, artifacts, invariants, and verdicts.
 - Consumes core IDs, artifact references, `StageIO`, `ToolConstraints`,
   `CommandSpecV1`, `ContainerImageRefV1`, and metrics envelopes.
 - Keeps public fixture snapshots under `tests/fixtures/`.

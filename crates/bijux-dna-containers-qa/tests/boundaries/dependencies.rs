@@ -11,12 +11,14 @@ fn dependency_graph_matches_environment_qa_boundary() {
     let expected_dependencies: BTreeSet<_> = [
         "anyhow",
         "bijux-dna-analyze",
+        "bijux-dna-bench-model",
         "bijux-dna-core",
         "bijux-dna-domain-fastq",
         "bijux-dna-containers",
         "bijux-dna-infra",
         "bijux-dna-runtime",
         "bijux-dna-stage-contract",
+        "chrono",
         "clap",
         "regex",
         "rusqlite",
@@ -28,6 +30,7 @@ fn dependency_graph_matches_environment_qa_boundary() {
         "tracing",
         "uuid",
         "wait-timeout",
+        "walkdir",
     ]
     .into_iter()
     .map(str::to_string)
@@ -47,7 +50,6 @@ fn dependency_graph_matches_environment_qa_boundary() {
         "bijux-dna",
         "bijux-dna-api",
         "bijux-dna-bench",
-        "bijux-dna-bench-model",
         "bijux-dna-db-ena",
         "bijux-dna-db-ref",
         "bijux-dna-dev",

@@ -698,7 +698,7 @@ mod tests {
             acc
         });
         ScientificAcceptanceThresholdsReport {
-            schema_version: "synthetic.scientific_acceptance_thresholds.v1",
+            schema_version: "synthetic.scientific_acceptance_thresholds.v1".to_string(),
             config_path: "scientific-acceptance-thresholds.toml".to_string(),
             comparable_metric_count: rows.len(),
             row_count: rows.len(),

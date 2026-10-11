@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 6dc53aaa7a8cd48beec0d641dc5e070078ae1d73
+# source_commit: 111280b27029e7c30195c2d8594fb36e4e5f5108
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -102,7 +102,7 @@ version = "3.2"
 default_version = "3.2"
 upstream = "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer"
 version_rule = "pinned"
-license = "GPL-3.0"
+license = "AGPL-3.0-only"
 citation = "paper:https://pubmed.ncbi.nlm.nih.gov/23912058/"
 pinned_commit = "sha256:5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730"
 pin_strategy = "source_sha256"

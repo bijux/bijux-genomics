@@ -1,0 +1,95 @@
+{
+  "$defs": {
+    "BenchmarkLocalHpcSubmissionReadinessGoalCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "goal_id": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "output_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "surface": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "goal_id",
+        "category",
+        "surface",
+        "ok",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "checked_goal_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalHpcSubmissionReadinessGoalCheck"
+      },
+      "type": "array"
+    },
+    "failed_goal_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failing_goal_ids": {
+      "items": {
+        "format": "uint32",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "array"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passed_goal_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_hpc_submission_ready.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "checked_goal_count",
+    "passed_goal_count",
+    "failed_goal_count",
+    "failing_goal_ids",
+    "ok",
+    "checks"
+  ],
+  "title": "BenchmarkLocalHpcSubmissionReadinessReport",
+  "type": "object"
+}

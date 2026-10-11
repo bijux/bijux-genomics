@@ -42,24 +42,5 @@ fn bench_readiness_vcf_undercovered_stages_writes_governed_tsv_columns() {
         Some("stage_id\tvalid_tool_classes\tregistered_tools\tmissing_tools\tdecision")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 6, "TSV must retain the governed VCF undercovered row count");
-    for row in [
-        "vcf.admixture\tcohort_analysis\tplink2\tplink\tfuture_not_benchmark_ready",
-        "vcf.ibd\trelatedness\tgermline,ibdseq\tibdhap\tlimit_to_specialized_tool",
-        "vcf.imputation_metrics\timputation,phasing\tbeagle,impute5\tglimpse,minimac4\tfuture_not_benchmark_ready",
-        "vcf.impute\timputation,phasing\tbeagle,impute5\tglimpse,minimac4\tfuture_not_benchmark_ready",
-        "vcf.phasing\tphasing\tshapeit5\tbeagle,eagle,shapeit\tlimit_to_specialized_tool",
-        "vcf.population_structure\tcohort_analysis,population_structure\tplink2\teigensoft,plink\tlimit_to_specialized_tool",
-    ] {
-        assert!(
-            rows.iter().any(|candidate| candidate == &row),
-            "TSV must retain governed VCF undercovered row: {row}"
-        );
-    }
-    assert!(
-        rows.iter()
-            .all(|row| !row.starts_with("vcf.call_gl\t")
-                && !row.starts_with("vcf.call_pseudohaploid\t")),
-        "licensed ANGSD bindings must close the two calling undercoverage rows"
-    );
+    assert!(rows.is_empty(), "every supported VCF pair must close stage undercoverage");
 }
