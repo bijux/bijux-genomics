@@ -48,6 +48,37 @@ fn admits_exact_verified_bam_and_index_closure() -> Result<()> {
 }
 
 #[test]
+fn admits_bam_from_source_addressed_catalog_snapshot() -> Result<()> {
+    let fixture = bam_corpus_fixture()?;
+    let catalog_path = fixture.study_root.join("data/catalog/horse-bam.json");
+    let source_bytes = fs::read(&catalog_path)?;
+    let preserved_catalog: Value = serde_json::from_slice(&source_bytes)?;
+    write_json(
+        &catalog_path,
+        &json!({
+            "schema_version": "bijux.data_catalog.v2",
+            "id": "horse-bam",
+            "source_catalog_path": "study://data/catalog/horse-bam.json",
+            "source_catalog_sha256": bijux_dna_infra::hash_bytes_sha256(&source_bytes),
+            "source_catalog_size_bytes": source_bytes.len(),
+            "source_catalog_schema_version": "bijux.data_catalog.v1",
+            "preserved_at_utc": "2026-08-09T00:00:00Z",
+            "preserved_catalog": preserved_catalog,
+        }),
+    )?;
+    let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
+    index["records"][0]["catalog_sha256"] =
+        Value::String(bijux_dna_infra::hash_file_sha256(&catalog_path)?);
+    write_json(&fixture.data_index, &index)?;
+
+    let admitted =
+        admit_bam_benchmark_corpus(&fixture.study_root, &fixture.data_index, "horse-bam")?;
+    assert_eq!(admitted.sample_id, "ERR2112767");
+    assert_eq!(admitted.input_bytes, 14);
+    Ok(())
+}
+
+#[test]
 fn rejects_bam_bytes_that_drift_after_index_publication() -> Result<()> {
     let fixture = bam_corpus_fixture()?;
     fs::write(&fixture.bam, b"tampered BAM bytes")?;
@@ -268,6 +299,9 @@ fn bam_corpus_fixture() -> Result<BamCorpusFixture> {
     let catalog = json!({
         "schema_version": "bijux.data_catalog.v1",
         "id": "horse-bam",
+        "purpose": "exercise BAM corpus admission",
+        "access_classification": "test-only",
+        "redistribution_classification": "test-only",
         "run_accession": "ERR2112767",
         "files": [
             {
@@ -283,6 +317,7 @@ fn bam_corpus_fixture() -> Result<BamCorpusFixture> {
                 "size_bytes": 5,
             },
         ],
+        "known_limitations": ["synthetic test data"],
     });
     write_json(&catalog_path, &catalog)?;
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;

@@ -1,9 +1,9 @@
 {
   "schema_version": "bijux.benchmark.publication_registry.v1",
   "summary": {
-    "current_product_count": 4,
+    "current_product_count": 5,
     "active_stage_report_count": 0,
-    "historical_stage_report_count": 7,
+    "historical_stage_report_count": 10,
     "quarantined_surface_count": 0,
     "quarantined_file_count": 0
   },
@@ -11,9 +11,16 @@
     {
       "product_id": "permanent-run-registry",
       "json_path": "benchmarks/contracts/run-registry.json",
-      "json_sha256": "21d96d7a34bd00966008201852dd35ca950781d50452651b0fe7ba582788596b",
+      "json_sha256": "dc1dc727b97147de1802b9bb5e616dfd4610117ab0d73504cdbbe3f21ab02630",
       "markdown_path": "benchmarks/reports/run-registry.md",
-      "markdown_sha256": "aeb0ded9335c6db145a86c068d6e1075af4d32b81c1e50e6473b0fd945966aea"
+      "markdown_sha256": "92747b17caf35dca18812f29eb3f70951e9a9e145991108851b22836ef9d700a"
+    },
+    {
+      "product_id": "paper-run-index",
+      "json_path": "benchmarks/runs/RUN_INDEX.json",
+      "json_sha256": "33c7300604fe789ae246e05b29cd2f01dfcbed05db4b9eb7eea1fadf702287c6",
+      "markdown_path": "benchmarks/runs/RUN_INDEX.md",
+      "markdown_sha256": "2e67175e321329027c0a2584b9918481b85b1386668b9592a679846a2c245d86"
     },
     {
       "product_id": "stage-universe",
@@ -25,16 +32,16 @@
     {
       "product_id": "stage-benchmark-coverage",
       "json_path": "benchmarks/reports/stage-benchmark-coverage.json",
-      "json_sha256": "e265f8f76ca4b86373d0915de35de4fca873cd2036a1bf2b53cbb6f322cb5abf",
+      "json_sha256": "bcee2885fafc2059f10f0ec8bb17830e7384054babf5a33949f3c930bbaf5796",
       "markdown_path": "benchmarks/reports/stage-benchmark-coverage.md",
-      "markdown_sha256": "7a43960eadeac654f1cc3dacf56aaf3e18db6c12815f0d6edf626f8900dd4d6b"
+      "markdown_sha256": "e6ebf41f5b334e15e54fd8f7a06af3314b511715be9b1cbef0ab74f74c4e8bc9"
     },
     {
       "product_id": "scientific-benchmark-readiness",
       "json_path": "benchmarks/reports/scientific-benchmark-readiness.json",
-      "json_sha256": "742739a216b0d16ec1834f5f76464e957e08ed59fd0d7ee33e2af0448041c3bf",
+      "json_sha256": "c821c0bba3e73a6aea75c8f6717dea184483beb5dbd00e9213e42694fcff9a79",
       "markdown_path": "benchmarks/reports/scientific-benchmark-readiness.md",
-      "markdown_sha256": "20ba45f18578160c8bec7878c4fc1b0baf256b16da33de56fc3b4ac478b567a1"
+      "markdown_sha256": "d7b99dc7fc6c04f05cd1d3471d671ef8c83952a0c839bf8dea067d224e0db3bb"
     }
   ],
   "stage_reports": [
@@ -61,12 +68,32 @@
     {
       "run_id": "run-2003",
       "stage_id": "bam.endogenous_content",
+      "source_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2003-bam-endogenous-content.json",
+      "json_sha256": "43366e348c66a4a3cd7e2cba47c09b88d5fdd60cf6c64b942861be9072a63e4d",
+      "markdown_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2003-bam-endogenous-content.md",
+      "markdown_sha256": "e305c848e67fc7dc922c050fcdea8c60ab9d288aa973557d836e34abd8efdc55"
+    },
+    {
+      "run_id": "run-2003",
+      "stage_id": "bam.endogenous_content",
       "source_commit": "4e24ded282af44fb985dd869ba944684538814aa",
       "disposition": "historical",
       "json_path": "benchmarks/reports/historical/4e24ded282af44fb985dd869ba944684538814aa/run-2003-bam-endogenous-content.json",
       "json_sha256": "c31588518bb15cc859df34399546dc8781369f9bc727bb3ea48d3d1431b8b5e2",
       "markdown_path": "benchmarks/reports/historical/4e24ded282af44fb985dd869ba944684538814aa/run-2003-bam-endogenous-content.md",
       "markdown_sha256": "b439148fae6d00b3ba2dcc712318a14e3f4f0098cb1ac6c963079b13547dd128"
+    },
+    {
+      "run_id": "run-2004",
+      "stage_id": "bam.mapping_summary",
+      "source_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2004-bam-mapping-summary.json",
+      "json_sha256": "f5f9561a0e36c3a1c1d89b3c61e26b5d9843cd5468e2fee96f70c0101361c79b",
+      "markdown_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2004-bam-mapping-summary.md",
+      "markdown_sha256": "65e5a3e85e80edcec9dd2830e5c45fc87457f69ccae09dad74cb66e68d627ca4"
     },
     {
       "run_id": "run-2004",
@@ -87,6 +114,16 @@
       "json_sha256": "17338e4920e6f8c51b1b681337774787521353fad7a284ff967c2c1c13c8ce16",
       "markdown_path": "benchmarks/reports/historical/e1c74a4d910ae0fcf0855a0b776830188ea2eed4/run-2004-bam-mapping-summary.md",
       "markdown_sha256": "65dbbbc2c4e7a36a6376f164c607b9ec721983edaae0a9d7a967ecd097e2a648"
+    },
+    {
+      "run_id": "run-2011",
+      "stage_id": "bam.duplication_metrics",
+      "source_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2011-bam-duplication-metrics.json",
+      "json_sha256": "33c8374d1ab8acde9320ba00bd094370a4e67a113ad0c45e0c7320c4fdecfdf7",
+      "markdown_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2011-bam-duplication-metrics.md",
+      "markdown_sha256": "44f0b229fc39734e22cf5ccb1f750f189ad81d0f9f875dc1c5bcabd3e975a31f"
     },
     {
       "run_id": "run-2042",

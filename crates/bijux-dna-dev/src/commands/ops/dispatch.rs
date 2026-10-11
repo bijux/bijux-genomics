@@ -147,6 +147,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingBenchmarkRunRegistry => {
             tooling::tooling_benchmark_run_registry(workspace, args)
         }
+        NativeOpsCommandKey::ToolingBenchmarkRunIndex => {
+            tooling::tooling_benchmark_run_index(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkScientificReadiness => {
             tooling::tooling_benchmark_scientific_readiness(workspace, args)
         }

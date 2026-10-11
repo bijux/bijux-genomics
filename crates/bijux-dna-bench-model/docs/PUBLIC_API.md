@@ -53,6 +53,9 @@ Model contracts:
 - `BenchmarkRunIdentity`
 - `BenchmarkAttemptIdentity`
 - `BenchmarkRunDefinition`
+- `BenchmarkRunIndex`
+- `BenchmarkRunIndexEntry`
+- `BenchmarkRunIndexPublication`
 - `BenchmarkPublicationReceipt`
 - `BenchmarkCitationRecord`
 - `BenchmarkAttemptTransition`

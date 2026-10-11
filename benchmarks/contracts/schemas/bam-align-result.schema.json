@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "alignment_rate": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "exact_placement_reads": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "expected_mapped_reads": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "mapped_reads": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "placement_precision": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "placement_recall": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.align.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.align",
+      "type": "string"
+    },
+    "tool_id": {
+      "enum": [
+        "bowtie2",
+        "bwa"
+      ],
+      "type": "string"
+    },
+    "total_reads": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_id",
+    "total_reads",
+    "mapped_reads",
+    "alignment_rate",
+    "expected_mapped_reads",
+    "exact_placement_reads",
+    "placement_precision",
+    "placement_recall"
+  ],
+  "title": "BenchmarkBamAlignResult",
+  "type": "object"
+}

@@ -9,6 +9,7 @@ mod bam_endogenous_content;
 mod bam_genotyping;
 mod bam_mapping_summary;
 mod bam_observation;
+mod campaign_cases;
 mod campaign_engine;
 mod campaign_lifecycle;
 mod campaign_material;
@@ -22,8 +23,10 @@ mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
 mod fastq_validate_reads;
 mod options;
+mod parameter_authority;
 mod publication_registry;
 mod report_load;
+mod run_index;
 mod run_registry;
 mod run_suite;
 mod scientific_readiness;
@@ -71,14 +74,27 @@ pub use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
     load_attempt_lifecycle,
 };
+pub use campaign_cases::{
+    admit_benchmark_cases, aggregate_benchmark_cases, plan_benchmark_cases,
+    BenchmarkCaseAdmissionRequest, BenchmarkCaseAggregationRequest, BenchmarkCasePlanningRequest,
+};
 pub use campaign_engine::{
-    aggregate_benchmark_case_observations, plan_benchmark_case_matrix,
-    validate_benchmark_case_matrix, BenchmarkAdmittedCaseObservationV1, BenchmarkCaseAggregationV1,
-    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV1,
+    aggregate_benchmark_admitted_case_observation_set, aggregate_benchmark_case_observations,
+    benchmark_case_matrix_sha256, build_benchmark_admitted_case_observation_set,
+    build_benchmark_stage_report_from_case_aggregations,
+    ensure_benchmark_admitted_case_observation_set, ensure_benchmark_case_aggregation_set,
+    ensure_benchmark_case_matrix, load_benchmark_admitted_case_observation_set,
+    load_benchmark_case_aggregation_set, load_benchmark_case_matrix, plan_benchmark_case_matrix,
+    validate_benchmark_admitted_case_observation_set, validate_benchmark_case_aggregation_set,
+    validate_benchmark_case_aggregations, validate_benchmark_case_matrix,
+    BenchmarkAdmittedCaseObservationSetV1, BenchmarkAdmittedCaseObservationV2,
+    BenchmarkCaseAggregationSetV1, BenchmarkCaseAggregationV2, BenchmarkCaseDefinitionV1,
+    BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV2,
     BenchmarkCaseMeasurementPlanV1, BenchmarkCaseRepetitionObservationV1,
-    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V1,
-    BENCHMARK_CASE_MATRIX_SCHEMA_V1,
+    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1, BenchmarkDataSnapshotRoleV1,
+    BenchmarkDataSnapshotV1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
+    BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
 };
 pub use campaign_lifecycle::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
@@ -138,6 +154,10 @@ pub use publication_registry::{
 };
 pub use report_load::{
     load_checked_in_stage_reports, load_stage_report, load_stage_reports_from_dir,
+};
+pub use run_index::{
+    derive_benchmark_run_index, publish_checked_in_benchmark_run_index,
+    render_benchmark_run_index_markdown, BenchmarkRunIndexWriteMode,
 };
 pub use run_registry::{
     derive_benchmark_run_registry, publish_checked_in_benchmark_run_registry,

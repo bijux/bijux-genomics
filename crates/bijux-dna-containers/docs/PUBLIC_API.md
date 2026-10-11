@@ -14,10 +14,13 @@
 
 - `build`: Docker metadata helpers plus Apptainer build requests, reports, append-only attempt paths,
   failure classification, bounded build execution, and canonical study image/evidence publication.
-- `evidence`: typed container image-inventory, selected-run, and runtime-verification publications;
+- `evidence`: typed container image-inventory, selected-run, runtime-verification, and raw
+  security-probe publications with generated schemas, exact current-authority admission, and
+  stable-authority baseline admission with complete artifact verification;
   owner-separated immutable attempt layouts with shared manifests and required evidence directories;
   strict embedded tool contracts; the complete canonical `ContainerCatalog` and
-  `ContainerCatalogTool` model;
+  `ContainerCatalogTool` model; permanent qualification run definitions and namespace,
+  lifecycle, supersession, acceptance, and citation records;
   `validate_container_catalog` roster and recipe closure; model-owned `ContainerCatalogLock`
   derivation and admission; catalog-derived Apptainer build
   preparation; `load_container_evidence_chain` cross-publication admission; offline contract smoke
@@ -39,8 +42,8 @@
   freezing under governed roots.
 - `public_api::api`: facade re-export for consumers that prefer one stable import path.
 
-Catalog-wide runtime probe orchestration is intentionally owned by `bijux-dna-containers-qa` and
-is not exported by this production crate.
+Catalog-wide runtime and security probe orchestration is intentionally owned by
+`bijux-dna-containers-qa` and is not exported by this production crate.
 
 ## Stability Rules
 

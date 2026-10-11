@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2010",
+  "run": {
+    "run_id": "run-2010",
+    "domain": "bam",
+    "stage_id": "bam.damage"
+  },
+  "protocol_title": "BAM damage benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "eca6943f570905aacc7c06f79df23e7e9fcd1d6406eb99ab057f850c56048d57",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

@@ -159,6 +159,23 @@ pub fn load_container_qualification_slurm_job_handle(
     load_matching_handle(&scheduler_root.join("job-handle.json"), &prepared.request)
 }
 
+/// Load and validate retained terminal scheduler evidence without mutating result publication.
+///
+/// # Errors
+/// Returns an error when retained terminal evidence or its immutable identity chain conflicts.
+pub fn load_container_qualification_scheduler_evidence(
+    spec: &ContainerQualificationSlurmSpec,
+) -> Result<Option<ContainerQualificationSchedulerEvidence>> {
+    let terminal_path = spec.evidence_root.join("scheduler-evidence.json");
+    if !regular_file_exists(&terminal_path, "qualification terminal evidence")? {
+        return Ok(None);
+    }
+    let handle = load_container_qualification_slurm_job_handle(spec)?;
+    let evidence: ContainerQualificationSchedulerEvidence = read_json(&terminal_path)?;
+    validate_retained_evidence(spec, &handle, &evidence)?;
+    Ok(Some(evidence))
+}
+
 /// Observe one qualification job once without polling or mutating scheduler evidence.
 ///
 /// # Errors
@@ -246,7 +263,7 @@ pub fn collect_container_qualification_slurm_job(
         pipeline_sha256: spec.pipeline_sha256.clone(),
         credential_reference_sha256: spec.credential_reference_sha256.clone(),
         executor_program_sha256: spec.executor_program_sha256.clone(),
-        executor_script_sha256: spec.executor_script_sha256.clone(),
+        executor_script_sha256: None,
         accounting: accounting.clone(),
         stdout_sha256,
         stderr_sha256,
@@ -341,7 +358,7 @@ pub(super) fn validate_retained_evidence(
         || evidence.pipeline_sha256 != spec.pipeline_sha256
         || evidence.credential_reference_sha256 != spec.credential_reference_sha256
         || evidence.executor_program_sha256 != spec.executor_program_sha256
-        || evidence.executor_script_sha256 != spec.executor_script_sha256
+        || evidence.executor_script_sha256.is_some()
         || evidence.accounting.job_id != handle.job_id
         || !evidence.accounting.state.is_terminal()
     {

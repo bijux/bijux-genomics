@@ -21,7 +21,7 @@ use bijux_dna_bench_model::{
 };
 use bijux_dna_containers::api::ContainerCatalog;
 
-use super::stage_coverage::retained_stage_tools;
+use super::stage_coverage::runnable_stage_tools;
 use super::{
     load_benchmark_portfolio, load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
     load_stage_reports_from_dir, BenchmarkCoverageWriteMode,
@@ -34,7 +34,7 @@ const READINESS_SCHEMA: &str = "benchmarks/contracts/schemas/scientific-readines
 /// Derive scientific readiness without treating qualification or stale evidence as comparative.
 ///
 /// # Errors
-/// Returns an error when typed contracts are invalid or their retained-stage closure disagrees.
+/// Returns an error when typed contracts are invalid or their runnable-stage closure disagrees.
 pub fn derive_scientific_readiness(
     portfolio: &BenchmarkPortfolio,
     registry: &BenchmarkStageCampaignRegistry,
@@ -76,11 +76,11 @@ fn derive_scientific_readiness_with_current_sources(
         bail!("scientific readiness requires a full repository commit identity");
     }
 
-    let retained = retained_stage_tools(catalog)?;
+    let runnable = runnable_stage_tools(catalog)?;
     let reserved = portfolio.stage_runs.keys().cloned().collect::<BTreeSet<_>>();
-    let retained_ids = retained.keys().cloned().collect::<BTreeSet<_>>();
-    if retained_ids != reserved {
-        bail!("scientific readiness portfolio does not close over retained stages");
+    let runnable_ids = runnable.keys().cloned().collect::<BTreeSet<_>>();
+    if runnable_ids != reserved {
+        bail!("scientific readiness portfolio does not close over runnable stages");
     }
     let profiles = portfolio
         .profiles
@@ -120,11 +120,11 @@ fn derive_scientific_readiness_with_current_sources(
         }
     }
 
-    let mut stages = Vec::with_capacity(retained.len());
-    for (stage_id, tools) in retained {
+    let mut stages = Vec::with_capacity(runnable.len());
+    for (stage_id, tools) in runnable {
         let profile_id = assignments
             .get(stage_id.as_str())
-            .context("retained stage has no scientific profile assignment")?;
+            .context("runnable stage has no scientific profile assignment")?;
         let profile = profiles
             .get(profile_id)
             .context("scientific profile assignment references an unknown profile")?;
@@ -179,7 +179,7 @@ fn derive_scientific_readiness_with_current_sources(
         let reserved_run_id = portfolio
             .stage_runs
             .get(&stage_id)
-            .context("retained stage has no reserved run identity")?
+            .context("runnable stage has no reserved run identity")?
             .clone();
         let campaign = campaigns.get(stage_id.as_str()).copied();
         let (campaign_run_id, campaign_tier) = if let Some(campaign) = campaign {
@@ -205,7 +205,7 @@ fn derive_scientific_readiness_with_current_sources(
         let domain = stage_id
             .split_once('.')
             .map(|(domain, _)| domain.to_string())
-            .context("retained benchmark stage has no domain")?;
+            .context("runnable benchmark stage has no domain")?;
         stages.push(BenchmarkScientificReadinessStage {
             stage_id,
             domain,
@@ -367,7 +367,8 @@ pub fn render_scientific_readiness_markdown(report: &BenchmarkScientificReadines
         String::new(),
         "A stage is ready only when real comparative corpora, cohort scale, a closed".to_string(),
         "interface, a comparative campaign, passing admitted execution evidence, and".to_string(),
-        "the current repository identity all close over the retained tool set.".to_string(),
+        "the current repository identity all close over packaged and governed external-artifact tools."
+            .to_string(),
         String::new(),
         format!("- Retained FASTQ/BAM/VCF stages: **{}**", summary.stage_count),
         format!("- Scientifically ready stages: **{}**", summary.ready_count),

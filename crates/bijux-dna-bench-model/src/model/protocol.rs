@@ -42,10 +42,18 @@ pub struct BenchmarkRunDefinition {
     pub title: String,
     pub purpose: String,
     pub owner: String,
+    pub profile_id: String,
+    pub tool_exclusion_policy: String,
     pub state: BenchmarkRunState,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub state_reason: Option<String>,
     pub tool_ids: Vec<String>,
+    pub accepted_input_contracts: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub output_contract: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub normalized_result_contract: Option<String>,
+    pub measurement_policy_id: String,
     pub contracts: Vec<BenchmarkContractLock>,
     pub corpus_roles: Vec<BenchmarkCorpusRole>,
     pub acceptance_policy_id: String,

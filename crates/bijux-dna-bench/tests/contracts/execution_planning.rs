@@ -15,6 +15,7 @@ use bijux_dna_containers::api::{
     load_container_catalog, load_image_inventory_publication, ContainerCatalog,
     CurrentApptainerImage,
 };
+use bijux_dna_domain_fastq::params::stats::READ_LENGTH_PROFILE_SCHEMA_VERSION;
 
 fn plan() -> anyhow::Result<bijux_dna_bench::BenchmarkCampaignPlan> {
     let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
@@ -73,7 +74,7 @@ fn material() -> BenchmarkExecutionMaterial {
         measured_command: shell("printf measured"),
         negative_command: shell("seqkit missing.fastq"),
         parameters: BenchmarkExecutionParameterEvidence {
-            parameter_schema_version: "bijux.fastq.params.read_length_profile.v1".to_string(),
+            parameter_schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
             defaults_provider: "bijux_dna_domain_fastq::read_length_profile_defaults".to_string(),
             overrides_path: "config-pipeline-parameters.yml".to_string(),
             overrides_sha256: "2".repeat(64),
@@ -441,6 +442,69 @@ fn normalize_duplication(source: &str, input: &Path) -> anyhow::Result<String> {
         .output()?;
     anyhow::ensure!(output.status.success(), "duplication AWK failed");
     Ok(String::from_utf8(output.stdout)?)
+}
+
+#[test]
+fn alignment_normalizer_scores_primary_records_against_independent_truth() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bam-align-normalizer")?;
+    let truth = temporary.path().join("alignment-truth.tsv");
+    let sam = temporary.path().join("align.sam");
+    std::fs::write(
+        &truth,
+        b"read_id\tread_end\treference_name\tposition\nread-a\t1\tchr1\t10\nread-a\t2\tchr1\t40\nread-b\t1\tchr1\t70\nread-b\t2\t*\t0\n",
+    )?;
+    std::fs::write(
+        &sam,
+        b"@HD\tVN:1.6\tSO:unsorted\n@SQ\tSN:chr1\tLN:1000\nread-a\t99\tchr1\t10\t60\t20M\t=\t40\t50\tAAAAAAAAAAAAAAAAAAAA\t*\nread-a\t147\tchr1\t40\t60\t20M\t=\t10\t-50\tAAAAAAAAAAAAAAAAAAAA\t*\nread-b\t65\tchr1\t71\t60\t20M\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAA\t*\nread-b\t133\t*\t0\t0\t*\t*\t0\t0\tAAAAAAAAAAAAAAAAAAAA\t*\n",
+    )?;
+    let script = super::support::repo_root()?.join("benchmarks/execution/bam_align.awk");
+    let output = Command::new("awk")
+        .args(["-v", "mode=summary", "-v"])
+        .arg(format!("truth_path={}", truth.display()))
+        .arg("-f")
+        .arg(script)
+        .arg(sam)
+        .output()?;
+    anyhow::ensure!(output.status.success(), "alignment AWK failed");
+    assert_eq!(
+        String::from_utf8(output.stdout)?,
+        "metric\tvalue\ntotal_reads\t4\nmapped_reads\t3\nalignment_rate\t0.750000000000\nexpected_mapped_reads\t3\nexact_placement_reads\t2\nplacement_precision\t0.666666666667\nplacement_recall\t0.666666666667\n"
+    );
+    Ok(())
+}
+
+#[test]
+fn insert_size_normalizer_extracts_picard_fr_distribution() -> anyhow::Result<()> {
+    let repository_root = super::support::repo_root()?;
+    let fixture = repository_root.join(
+        "benchmarks/tests/fixtures/bench/parsers/bam/bam.insert_size/picard/raw.insert-size.metrics.txt",
+    );
+    let script = repository_root.join("benchmarks/execution/bam_insert_size.awk");
+    let output =
+        Command::new("awk").args(["-v", "mode=summary", "-f"]).arg(script).arg(fixture).output()?;
+    anyhow::ensure!(output.status.success(), "insert-size AWK failed");
+    assert_eq!(
+        String::from_utf8(output.stdout)?,
+        "metric\tvalue\nmedian_insert_size\t62.000000000000\nmean_insert_size\t64.200000000000\nstandard_deviation\t12.400000000000\nmedian_absolute_deviation\t8.000000000000\nminimum_insert_size\t30\nmaximum_insert_size\t180\nread_pairs\t1000\npair_orientation_fr_fraction\t1.000000000000\n"
+    );
+    Ok(())
+}
+
+#[test]
+fn gc_bias_normalizer_extracts_picard_all_reads_summary() -> anyhow::Result<()> {
+    let repository_root = super::support::repo_root()?;
+    let fixture = repository_root.join(
+        "benchmarks/tests/fixtures/bench/parsers/bam/bam.gc_bias/picard/raw.gc-bias.metrics.txt",
+    );
+    let script = repository_root.join("benchmarks/execution/bam_gc_bias.awk");
+    let output =
+        Command::new("awk").args(["-v", "mode=summary", "-f"]).arg(script).arg(fixture).output()?;
+    anyhow::ensure!(output.status.success(), "GC-bias AWK failed");
+    assert_eq!(
+        String::from_utf8(output.stdout)?,
+        "metric\tvalue\ngc_bias_score\t0.054000000000\nat_dropout\t3.200000000000\ngc_dropout\t5.400000000000\ntotal_clusters\t200000\naligned_reads\t180000\nwindows\t1200\nread_starts\t180000\n"
+    );
+    Ok(())
 }
 
 #[test]

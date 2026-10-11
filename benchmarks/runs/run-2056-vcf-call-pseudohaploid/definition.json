@@ -1,0 +1,40 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2056",
+    "domain": "vcf",
+    "stage_id": "vcf.call_pseudohaploid"
+  },
+  "protocol_version": "1.0.0",
+  "title": "VCF call pseudohaploid benchmark protocol",
+  "purpose": "Compare the runnable vcf.call_pseudohaploid tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "vcf-calling",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "angsd",
+    "bcftools"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "ancient_damage_truth",
+      "corpus_ids": [
+        "ancient-dna-bam-diversity"
+      ]
+    },
+    {
+      "role": "variant_truth",
+      "corpus_ids": [
+        "variant-truth-panel"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "vcf-calling-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2056",
+  "supersedes_run_ids": []
+}

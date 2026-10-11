@@ -2,6 +2,7 @@ use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
 use super::super::EvidenceSourceIdentity;
+use crate::evidence::tool_contract::{ContainerArtifactDelivery, ContainerProductSupport};
 
 pub const EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1: &str =
     "bijux.container.external_artifact_admission.v1";
@@ -39,6 +40,7 @@ impl ExternalArtifactKind {
 pub enum ExternalArtifactAdmissionStatus {
     Admitted,
     BlockedExternalAccess,
+    Unavailable,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -63,15 +65,16 @@ pub struct ExternalArtifactVersionProbe {
 pub struct ExternalArtifactAdmission {
     #[schemars(schema_with = "external_artifact_admission_schema_version")]
     pub schema_version: String,
-    pub status: ExternalArtifactAdmissionStatus,
+    pub availability: ExternalArtifactAdmissionStatus,
     pub recorded_at_utc: String,
     pub repository_commit: String,
     pub catalog: EvidenceSourceIdentity,
     pub distributable_image_root: String,
     pub tool_id: String,
     pub version: String,
-    pub support_disposition: String,
-    pub support_reason: String,
+    pub product_support: ContainerProductSupport,
+    pub artifact_delivery: ContainerArtifactDelivery,
+    pub delivery_reason: String,
     pub stage_ids: Vec<String>,
     pub expected_binary: String,
     pub version_command: String,

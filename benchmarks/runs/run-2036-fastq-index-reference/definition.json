@@ -1,0 +1,34 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2036",
+    "domain": "fastq",
+    "stage_id": "fastq.index_reference"
+  },
+  "protocol_version": "1.0.0",
+  "title": "FASTQ index reference benchmark protocol",
+  "purpose": "Compare the runnable fastq.index_reference tools using index_reproducibility_and_downstream_alignment_equivalence; downstream substitution: align the same real sample panel with every built index and validate canonical BAM outputs.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "reference-index-build",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "bowtie2_build",
+    "star"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "alignment_truth",
+      "corpus_ids": [
+        "alignment-truth-panel"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "reference-index-build-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2036",
+  "supersedes_run_ids": []
+}

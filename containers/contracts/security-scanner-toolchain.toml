@@ -1,0 +1,29 @@
+schema_version = "bijux.container.security_scanner_toolchain.v1"
+acquisition_script_sha256 = "eb3fb8b380a6bd4a5f7bca18f83243ec2912cc3dc622c6c2604fd5352f5032e9"
+
+[[tools]]
+id = "syft"
+version = "1.50.0"
+archive = "syft_1.50.0_linux_amd64.tar.gz"
+archive_sha256 = "bf7b29ff57f06da30918266a0e1c2885a8f99784798d1bdb1628886aa015d788"
+checksums = "syft_1.50.0_checksums.txt"
+checksums_sha256 = "bb8824a06c27c625fc103db5d7e9d7131ba2cc6e7c7a79318ee71686ede3c3f0"
+release = "https://github.com/anchore/syft/releases/tag/v1.50.0"
+
+[[tools]]
+id = "grype"
+version = "0.116.1"
+archive = "grype_0.116.1_linux_amd64.tar.gz"
+archive_sha256 = "0122df7b655981abe547ad3d2190d65551dac6a2bfc80b4dc2a989b5d0587458"
+checksums = "grype_0.116.1_checksums.txt"
+checksums_sha256 = "38ffeb0fbdf1955e46ebfb3cb7369b78888168954a77df02985c0c06505f85e9"
+release = "https://github.com/anchore/grype/releases/tag/v0.116.1"
+
+[[tools]]
+id = "gitleaks"
+version = "8.29.1"
+archive = "gitleaks_8.29.1_linux_x64.tar.gz"
+archive_sha256 = "e4eb209d04e20339d77122a3bdf9cd41351255cfb27ebcb75e85325e04f88924"
+checksums = "gitleaks_8.29.1_checksums.txt"
+checksums_sha256 = "be22c4977bc70cc83e1f318984516904050da05fc77755762ab4f511b7a237ee"
+release = "https://github.com/gitleaks/gitleaks/releases/tag/v8.29.1"

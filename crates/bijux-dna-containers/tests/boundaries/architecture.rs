@@ -166,7 +166,14 @@ fn execution_policy_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/site_policy")),
-        btree_set(&["mod.rs", "model.rs", "repository_freeze.rs", "schema.rs", "validation.rs"]),
+        btree_set(&[
+            "mod.rs",
+            "model.rs",
+            "repository_freeze.rs",
+            "repository_tracking.rs",
+            "schema.rs",
+            "validation.rs",
+        ]),
         "site policy must separate declarations, schemas, validation, and repository effects"
     );
 }
@@ -189,6 +196,9 @@ fn inventory_source_tree_matches_ownership_contract() {
             "run_evidence/",
             "runtime_verification/",
             "schema.rs",
+            "security_database/",
+            "security_probe/",
+            "security_toolchain/",
             "selection.rs",
             "tool_contract/",
             "validation.rs",
@@ -199,6 +209,21 @@ fn inventory_source_tree_matches_ownership_contract() {
         dir_entries(&root.join("src/evidence/runtime_verification")),
         btree_set(&["mod.rs", "report.rs"]),
         "runtime verification production ownership is limited to publication rendering"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/evidence/security_database")),
+        btree_set(&["mod.rs", "model.rs", "validation.rs"]),
+        "security database evidence must separate persisted models from admission"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/evidence/security_probe")),
+        btree_set(&["admission.rs", "mod.rs", "model.rs", "schema.rs"]),
+        "security probes must separate persisted models, admission, and generated schemas"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/evidence/security_toolchain")),
+        btree_set(&["mod.rs", "model.rs", "validation.rs"]),
+        "security toolchain evidence must separate persisted models from admission"
     );
     assert_eq!(
         dir_entries(&root.join("src/evidence/image_activation")),

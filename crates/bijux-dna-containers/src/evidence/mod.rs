@@ -12,6 +12,9 @@ mod qualification_registry;
 mod run_evidence;
 mod runtime_verification;
 mod schema;
+mod security_database;
+mod security_probe;
+mod security_toolchain;
 mod selection;
 pub mod tool_contract;
 mod validation;
@@ -49,7 +52,8 @@ pub use image_storage::{
 pub use inventory::{
     derive_image_inventory_evidence, derive_image_inventory_publication,
     render_image_inventory_markdown, DerivedImageInventory, ImageInventoryDerivationRequest,
-    ImageInventoryScan, ImageInventoryScannedImage, ImageInventorySourceFile,
+    ImageInventoryEvidenceRootIdentity, ImageInventoryEvidenceRoots, ImageInventoryScan,
+    ImageInventoryScannedImage, ImageInventorySourceFile,
 };
 pub use load::{
     load_image_inventory_publication, load_image_inventory_scan,
@@ -68,14 +72,20 @@ pub use model::{
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
 pub use qualification_registry::{
-    derive_qualification_run_registry, load_qualification_run_registry,
-    qualification_run_id_audit_schema, qualification_run_registry_schema,
-    render_qualification_run_registry, validate_qualification_run_registry,
-    write_qualification_run_id_audit_schema, write_qualification_run_registry_schema,
+    container_run_index_schema, derive_container_run_index, derive_qualification_run_registry,
+    load_qualification_run_registry, qualification_run_id_audit_schema,
+    qualification_run_registry_schema, render_container_run_index_json,
+    render_container_run_index_markdown, render_qualification_run_registry,
+    validate_container_run_index, validate_qualification_run_registry,
+    write_container_run_index_schema, write_qualification_run_id_audit_schema,
+    write_qualification_run_registry_schema, ContainerRunIndex, ContainerRunIndexSource,
     DerivedQualificationRunRegistry, QualificationHistoricalRunIdentity,
-    QualificationRegistryDerivationRequest, QualificationRunIdAudit, QualificationRunIdAuditRow,
-    QualificationRunIdTombstone, QualificationRunRegistry, QualificationRunRegistryEntry,
-    QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2, QUALIFICATION_RUN_REGISTRY_SCHEMA_V1,
+    QualificationRegistryDerivationRequest, QualificationRunCitationRecord,
+    QualificationRunDefinition, QualificationRunIdAudit, QualificationRunIdAuditRow,
+    QualificationRunIdTombstone, QualificationRunNamespacePolicy, QualificationRunRegistry,
+    QualificationRunRegistryEntry, QualificationRunRegistrySummary, QualificationRunState,
+    CONTAINER_RUN_INDEX_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2,
+    QUALIFICATION_RUN_REGISTRY_SCHEMA_V2,
 };
 pub use run_evidence::{
     apply_final_run_evidence_plan, apply_result_layout, apply_superseded_result_archive,
@@ -105,7 +115,28 @@ pub use schema::{
     runtime_verification_publication_schema, write_image_inventory_publication_schema,
     write_image_inventory_scan_schema, write_runtime_verification_publication_schema,
 };
+pub use security_database::{
+    load_grype_database_contract, verify_grype_database, AdmittedGrypeDatabase,
+    GrypeDatabaseCompletion, GrypeDatabaseContract, GrypeDatabaseStatus,
+    GRYPE_DATABASE_COMPLETION_SCHEMA_V1, GRYPE_DATABASE_CONTRACT_SCHEMA_V1,
+};
+pub use security_probe::{
+    admit_security_probe_baseline, admit_security_probe_publication,
+    security_probe_publication_schema, write_security_probe_publication_schema,
+    AdmittedSecurityProbePublication, AdmittedSecurityProbeReports, SecurityFilesystemKind,
+    SecurityFilesystemObservation, SecurityProbeArtifact, SecurityProbeAuthority,
+    SecurityProbeBaselineAuthority, SecurityProbePublication, SecurityProbeStatus,
+    SecurityRuntimeProbe, SecurityRuntimeReport, SecurityStructuralReport, ToolSecurityProbe,
+    SECURITY_PROBE_PUBLICATION_SCHEMA_V1,
+};
+pub use security_toolchain::{
+    load_security_scanner_toolchain_contract, verify_security_scanner_toolchain,
+    SecurityScannerBinary, SecurityScannerTool, SecurityScannerToolchainCompletion,
+    SecurityScannerToolchainContract, SECURITY_SCANNER_TOOLCHAIN_COMPLETION_SCHEMA_V1,
+    SECURITY_SCANNER_TOOLCHAIN_CONTRACT_SCHEMA_V1,
+};
 pub use selection::{resolve_catalog_locked_apptainer_image, CurrentApptainerImage};
+pub(crate) use tool_contract::repository_commit_is_ancestor;
 pub use tool_contract::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
     container_catalog_lock_schema, container_catalog_schema, container_version_lock_schema,
@@ -117,9 +148,9 @@ pub use tool_contract::{
     validate_container_catalog, validate_container_catalog_lock, validate_container_version_lock,
     validate_container_version_lock_model, write_container_catalog_lock_schema,
     write_container_catalog_schema, write_container_version_lock_schema,
-    write_container_version_map_schema, ApptainerRecipeIdentity, ContainerCatalog,
-    ContainerCatalogLock, ContainerCatalogLockTool, ContainerCatalogTool,
-    ContainerCatalogValidation, ContainerRegistryProjectionReport,
+    write_container_version_map_schema, ApptainerRecipeIdentity, ContainerArtifactDelivery,
+    ContainerCatalog, ContainerCatalogLock, ContainerCatalogLockTool, ContainerCatalogTool,
+    ContainerCatalogValidation, ContainerProductSupport, ContainerRegistryProjectionReport,
     ContainerRegistryProjectionSource, ContainerVersionLock, ContainerVersionLockItem,
     ContainerVersionMap, ContainerVersionMapItem, CONTAINER_CATALOG_LOCK_PATH,
     CONTAINER_CATALOG_LOCK_SCHEMA_V1, CONTAINER_CATALOG_PATH, CONTAINER_CATALOG_SCHEMA_V1,

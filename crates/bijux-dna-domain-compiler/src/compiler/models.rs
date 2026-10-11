@@ -102,9 +102,11 @@ pub(super) struct ContainerCatalog {
 pub(super) struct ContainerToolContract {
     pub(super) id: String,
     pub(super) version: String,
-    pub(super) support_disposition: String,
+    pub(super) product_support: String,
+    pub(super) artifact_delivery: String,
+    pub(super) redistribution_permitted: bool,
     #[serde(default)]
-    pub(super) support_reason: String,
+    pub(super) delivery_reason: String,
     #[serde(default)]
     pub(super) external_artifact_supported: bool,
     pub(super) upstream: String,
@@ -131,7 +133,11 @@ pub(super) struct ContainerToolContract {
 
 impl ContainerToolContract {
     pub(super) fn is_benchmark_integrated(&self) -> bool {
-        self.support_disposition == "retained" || self.external_artifact_supported
+        self.product_support == "supported"
+    }
+
+    pub(super) fn is_redistributable_image(&self) -> bool {
+        self.artifact_delivery == "redistributable_image"
     }
 
     pub(super) fn source_identity(&self) -> String {

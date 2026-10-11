@@ -10,8 +10,8 @@ use serde_json::Value;
 
 use crate::evidence::tool_contract::{
     apptainer_recipe_identity_at_commit, clean_repository_head_commit,
-    prepare_apptainer_tool_contract, verify_apptainer_tool_contract, PreparedToolContractBuild,
-    ToolContractBuildRequest, ToolImageIdentityEvidence,
+    prepare_apptainer_tool_contract_for_publication, verify_apptainer_tool_contract,
+    PreparedToolContractBuild, ToolContractBuildRequest, ToolImageIdentityEvidence,
 };
 use crate::evidence::{BuildContextIdentity, EvidenceSourceIdentity};
 
@@ -36,6 +36,7 @@ pub struct CanonicalApptainerImagePublicationRequest {
     pub retry_delay: Duration,
     pub lock_timeout: Duration,
     pub destination: CanonicalApptainerImageDestination,
+    pub campaign_scope: Option<String>,
 }
 
 impl CanonicalApptainerImagePublicationRequest {
@@ -51,6 +52,7 @@ impl CanonicalApptainerImagePublicationRequest {
             retry_delay: Duration::from_secs(2),
             lock_timeout: Duration::from_secs(30),
             destination: CanonicalApptainerImageDestination::Active,
+            campaign_scope: None,
         }
     }
 
@@ -164,15 +166,18 @@ pub fn publish_canonical_apptainer_image(
 ) -> Result<CanonicalApptainerImagePublication> {
     validate_request(request)?;
     let repository_commit = clean_repository_head_commit(&request.repository_root)?;
-    let roots =
-        canonical_container_roots(&request.study_root, &repository_commit, request.destination)?;
-    let build_input_root =
-        request.repository_root.join("artifacts/containers/tool-contract-build-inputs");
+    let roots = canonical_container_roots(
+        &request.study_root,
+        &repository_commit,
+        request.destination,
+        request.campaign_scope.as_deref(),
+    )?;
+    let build_input_root = roots.evidence.join("build-inputs");
     let lock_path = roots.evidence.join(".build-locks").join(format!("{}.lock", request.tool_id));
     let _lock = bijux_dna_infra::FileLock::acquire(&lock_path, request.lock_timeout)
         .with_context(|| format!("acquire canonical image lock for {}", request.tool_id))?;
 
-    let prepared = prepare_apptainer_tool_contract(&ToolContractBuildRequest {
+    let prepared = prepare_apptainer_tool_contract_for_publication(&ToolContractBuildRequest {
         repository_root: request.repository_root.clone(),
         tool_id: request.tool_id.clone(),
         repository_commit: repository_commit.clone(),
@@ -360,16 +365,26 @@ fn canonical_container_roots(
     study_root: &Path,
     repository_commit: &str,
     destination: CanonicalApptainerImageDestination,
+    campaign_scope: Option<&str>,
 ) -> Result<CanonicalContainerRoots> {
     let containers = study_root.join("containers");
     let (image, evidence) = match destination {
-        CanonicalApptainerImageDestination::Active => {
+        CanonicalApptainerImageDestination::Active if campaign_scope.is_none() => {
             (containers.join("apptainer"), containers.join("evidence"))
         }
-        CanonicalApptainerImageDestination::CommitCampaign => (
-            containers.join("staging").join(repository_commit),
-            containers.join("evidence/image-campaigns").join(repository_commit),
-        ),
+        CanonicalApptainerImageDestination::Active => {
+            bail!("active image publication cannot declare a campaign scope")
+        }
+        CanonicalApptainerImageDestination::CommitCampaign => {
+            let image = containers.join("staging").join(repository_commit);
+            let evidence = containers.join("evidence/image-campaigns").join(repository_commit);
+            if let Some(scope) = campaign_scope {
+                validate_campaign_scope(scope)?;
+                (image.join(scope), evidence.join(scope))
+            } else {
+                (image, evidence)
+            }
+        }
     };
     let staging = image.join(".building");
     let build_logs = evidence.join("build-logs");
@@ -378,6 +393,18 @@ fn canonical_container_roots(
             .with_context(|| format!("create canonical container root {}", root.display()))?;
     }
     Ok(CanonicalContainerRoots { image, evidence, staging, build_logs })
+}
+
+fn validate_campaign_scope(scope: &str) -> Result<()> {
+    let Some(digest) = scope.strip_prefix("selected-") else {
+        bail!("image campaign scope must use selected-<sha256>");
+    };
+    if digest.len() != 64
+        || !digest.bytes().all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    {
+        bail!("image campaign scope has an invalid SHA-256 identity");
+    }
+    Ok(())
 }
 
 fn validate_request(request: &CanonicalApptainerImagePublicationRequest) -> Result<()> {
@@ -475,4 +502,17 @@ fn portable_study_path(path: &Path, study_root: &Path) -> Result<String> {
         .strip_prefix(study_root)
         .with_context(|| format!("evidence path is outside study root: {}", path.display()))?;
     Ok(format!("study://{}", relative.to_string_lossy().replace('\\', "/")))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn campaign_scope_requires_canonical_lowercase_sha256() {
+        assert!(validate_campaign_scope(&format!("selected-{}", "a".repeat(64))).is_ok());
+        assert!(validate_campaign_scope(&format!("selected-{}", "A".repeat(64))).is_err());
+        assert!(validate_campaign_scope("selected-short").is_err());
+        assert!(validate_campaign_scope(&"a".repeat(64)).is_err());
+    }
 }

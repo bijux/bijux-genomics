@@ -7,6 +7,7 @@ use bijux_dna_containers::evidence::{
     apptainer_recipe_identity_at_commit, derive_image_inventory_evidence,
     derive_image_inventory_publication, repository_head_commit, ContainerImageState,
     DetachedImageDisposition, ImageCandidateDisposition, ImageInventoryDerivationRequest,
+    ImageInventoryEvidenceRoots,
 };
 use serde_json::json;
 use tempfile::TempDir;
@@ -44,8 +45,10 @@ impl Fixture {
         let request = ImageInventoryDerivationRequest {
             repository_root: repository.clone(),
             study_root: study.clone(),
-            image_root: study.join("containers/apptainer"),
-            build_evidence_root: study.join("containers/evidence"),
+            evidence_roots: vec![ImageInventoryEvidenceRoots {
+                image_root: study.join("containers/apptainer"),
+                build_evidence_root: study.join("containers/evidence"),
+            }],
             run_evidence_root: repository.join("containers/runs"),
         };
         let fixture = Self { _temporary: temporary, repository, study, request };
@@ -54,9 +57,24 @@ impl Fixture {
     }
 
     fn add_admitted_image(&self, bytes: &[u8]) -> Result<String> {
+        self.add_admitted_image_to(
+            bytes,
+            &self.study.join("containers/apptainer"),
+            &self.study.join("containers/evidence"),
+        )
+    }
+
+    fn add_admitted_image_to(
+        &self,
+        bytes: &[u8],
+        image_root: &Path,
+        build_evidence_root: &Path,
+    ) -> Result<String> {
         let digest = bijux_dna_infra::hash_bytes_sha256(bytes);
         let filename = format!("example-1.0.0-linux-amd64-{digest:.12}.sif");
-        let image = self.study.join("containers/apptainer").join(&filename);
+        fs::create_dir_all(image_root)?;
+        fs::create_dir_all(build_evidence_root)?;
+        let image = image_root.join(&filename);
         fs::write(&image, bytes)?;
         let commit = repository_head_commit(&self.repository)?;
         let recipe = apptainer_recipe_identity_at_commit(
@@ -82,7 +100,7 @@ impl Fixture {
             },
         });
         fs::write(
-            self.study.join("containers/evidence").join(format!("{digest}.build.json")),
+            build_evidence_root.join(format!("{digest}.build.json")),
             serde_json::to_vec_pretty(&evidence)?,
         )?;
         Ok(digest)
@@ -122,6 +140,105 @@ impl Fixture {
 }
 
 #[test]
+fn composes_current_single_tool_campaign_with_prior_campaign_evidence() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let prior_digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
+    fs::write(
+        fixture.repository.join("containers/apptainer/example.def"),
+        "Bootstrap: docker\nFrom: scratch\n\n%files\n  containers/tools/example/example /usr/local/bin/example\n\n%post\n  true\n",
+    )?;
+    git(&fixture.repository, &["add", "containers/apptainer/example.def"])?;
+    git(&fixture.repository, &["commit", "-qm", "change example recipe"])?;
+    let current_images = fixture.study.join("containers/staging/current");
+    let current_evidence = fixture.study.join("containers/evidence/image-campaigns/current");
+    let current_digest = fixture.add_admitted_image_to(
+        b"current single-tool campaign image",
+        &current_images,
+        &current_evidence,
+    )?;
+    let mut request = fixture.request.clone();
+    request.evidence_roots.push(ImageInventoryEvidenceRoots {
+        image_root: current_images,
+        build_evidence_root: current_evidence,
+    });
+
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(current_digest.as_str()));
+    assert!(tool.candidates.iter().any(|candidate| {
+        candidate.sha256 == prior_digest
+            && candidate.disposition == ImageCandidateDisposition::UnreferencedObsolete
+    }));
+    assert_eq!(evidence.publication.summary.unreferenced_obsolete_count, 1);
+    assert_eq!(evidence.scan.images.len(), 2);
+    assert_eq!(evidence.scan.build_evidence.len(), 2);
+    assert_eq!(evidence.scan.evidence_roots.len(), 2);
+    assert_eq!(evidence.scan.evidence_roots[1].image_root, "study://containers/staging/current");
+    assert_eq!(
+        evidence.scan.evidence_roots[1].build_evidence_root,
+        "study://containers/evidence/image-campaigns/current"
+    );
+    Ok(())
+}
+
+#[test]
+fn composes_multiple_campaigns_for_one_activated_image_root() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let prior_evidence = fixture.study.join("containers/evidence/prior");
+    fs::create_dir_all(&prior_evidence)?;
+    let evidence_path = fs::read_dir(fixture.study.join("containers/evidence"))?
+        .find_map(|entry| {
+            entry.ok().and_then(|entry| {
+                entry.file_type().ok().filter(std::fs::FileType::is_file).map(|_| entry.path())
+            })
+        })
+        .context("fixture omits prior build evidence")?;
+    fs::rename(
+        &evidence_path,
+        prior_evidence.join(evidence_path.file_name().context("evidence has no filename")?),
+    )?;
+    fs::write(
+        fixture.repository.join("containers/apptainer/example.def"),
+        "Bootstrap: docker\nFrom: scratch\n\n%files\n  containers/tools/example/example /usr/local/bin/example\n\n%post\n  true\n",
+    )?;
+    git(&fixture.repository, &["add", "containers/apptainer/example.def"])?;
+    git(&fixture.repository, &["commit", "-qm", "change example recipe"])?;
+    let current_evidence = fixture.study.join("containers/evidence/current");
+    let current_digest = fixture.add_admitted_image_to(
+        b"current activated campaign image",
+        &fixture.study.join("containers/apptainer"),
+        &current_evidence,
+    )?;
+    let request = ImageInventoryDerivationRequest {
+        repository_root: fixture.repository.clone(),
+        study_root: fixture.study.clone(),
+        evidence_roots: vec![
+            ImageInventoryEvidenceRoots {
+                image_root: fixture.study.join("containers/apptainer"),
+                build_evidence_root: prior_evidence,
+            },
+            ImageInventoryEvidenceRoots {
+                image_root: fixture.study.join("containers/apptainer"),
+                build_evidence_root: current_evidence,
+            },
+        ],
+        run_evidence_root: fixture.repository.join("containers/runs"),
+    };
+
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(current_digest.as_str()));
+    assert_eq!(tool.candidates.len(), 2);
+    assert_eq!(evidence.scan.images.len(), 2);
+    assert_eq!(evidence.scan.build_evidence.len(), 2);
+    assert_eq!(evidence.scan.evidence_roots.len(), 2);
+    Ok(())
+}
+
+#[test]
 fn derives_one_current_canonical_image_from_exact_evidence() -> Result<()> {
     let fixture = Fixture::current()?;
     let evidence = derive_image_inventory_evidence(&fixture.request)?;
@@ -134,8 +251,10 @@ fn derives_one_current_canonical_image_from_exact_evidence() -> Result<()> {
     assert!(tool.candidates[0].path.starts_with("study://containers/apptainer/"));
     assert_eq!(
         publication.publication.raw_schema_version,
-        "bijux.container.image_inventory_scan.v1"
+        "bijux.container.image_inventory_scan.v2"
     );
+    assert_eq!(evidence.scan.evidence_roots.len(), 1);
+    assert_eq!(evidence.scan.evidence_roots[0].image_root, "study://containers/apptainer");
     assert_eq!(
         publication.publication.raw_sha256,
         bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec_pretty(&evidence.scan)?)
@@ -144,6 +263,149 @@ fn derives_one_current_canonical_image_from_exact_evidence() -> Result<()> {
         &evidence.scan,
         &publication,
     )?;
+    Ok(())
+}
+
+#[test]
+fn derives_single_roster_after_governed_activation_retires_the_build_source() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let active_root = fixture.study.join("containers/current-images");
+    fs::create_dir_all(&active_root)?;
+    let source = fs::read_dir(fixture.study.join("containers/apptainer"))?
+        .next()
+        .context("fixture omits the built image")??
+        .path();
+    let active = active_root.join(source.file_name().context("built image has no filename")?);
+    fs::rename(&source, &active)?;
+    fs::remove_dir(fixture.study.join("containers/apptainer"))?;
+    let request = ImageInventoryDerivationRequest {
+        repository_root: fixture.repository.clone(),
+        study_root: fixture.study.clone(),
+        evidence_roots: vec![ImageInventoryEvidenceRoots {
+            image_root: active_root,
+            build_evidence_root: fixture.study.join("containers/evidence"),
+        }],
+        run_evidence_root: fixture.repository.join("containers/runs"),
+    };
+
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert!(tool.candidates[0].path.starts_with("study://containers/current-images/"));
+    assert_eq!(evidence.scan.images.len(), 1);
+    assert_eq!(evidence.scan.build_evidence.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn derives_activated_roster_from_nested_campaign_evidence() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let source = fs::read_dir(fixture.study.join("containers/apptainer"))?
+        .next()
+        .context("fixture omits the built image")??
+        .path();
+    let active_root = fixture.study.join("containers/current-images");
+    fs::create_dir_all(&active_root)?;
+    fs::hard_link(
+        &source,
+        active_root.join(source.file_name().context("built image has no filename")?),
+    )?;
+    let campaign_evidence = fixture.study.join("containers/evidence/selected-example");
+    fs::create_dir_all(&campaign_evidence)?;
+    let evidence_path = fs::read_dir(fixture.study.join("containers/evidence"))?
+        .find_map(|entry| {
+            entry.ok().and_then(|entry| {
+                entry.file_type().ok().filter(std::fs::FileType::is_file).map(|_| entry.path())
+            })
+        })
+        .context("fixture omits build evidence")?;
+    fs::rename(
+        &evidence_path,
+        campaign_evidence.join(evidence_path.file_name().context("evidence has no filename")?),
+    )?;
+    let request = ImageInventoryDerivationRequest {
+        repository_root: fixture.repository.clone(),
+        study_root: fixture.study.clone(),
+        evidence_roots: vec![ImageInventoryEvidenceRoots {
+            image_root: active_root,
+            build_evidence_root: fixture.study.join("containers/evidence"),
+        }],
+        run_evidence_root: fixture.repository.join("containers/runs"),
+    };
+
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert!(tool.candidates[0].path.starts_with("study://containers/current-images/"));
+    assert_eq!(evidence.scan.images.len(), 1);
+    assert_eq!(evidence.scan.build_evidence.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn composite_roster_admits_a_retired_build_source_with_unique_digest() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let active_root = fixture.study.join("containers/current-images");
+    let additional_images = fixture.study.join("containers/staging/additional");
+    let additional_evidence = fixture.study.join("containers/evidence/additional");
+    fs::create_dir_all(&active_root)?;
+    fs::create_dir_all(&additional_images)?;
+    fs::create_dir_all(&additional_evidence)?;
+    let source = fs::read_dir(fixture.study.join("containers/apptainer"))?
+        .next()
+        .context("fixture omits the built image")??
+        .path();
+    let active = active_root.join(source.file_name().context("built image has no filename")?);
+    fs::rename(&source, &active)?;
+    fs::remove_dir(fixture.study.join("containers/apptainer"))?;
+    let request = ImageInventoryDerivationRequest {
+        repository_root: fixture.repository.clone(),
+        study_root: fixture.study.clone(),
+        evidence_roots: vec![
+            ImageInventoryEvidenceRoots {
+                image_root: active_root,
+                build_evidence_root: fixture.study.join("containers/evidence"),
+            },
+            ImageInventoryEvidenceRoots {
+                image_root: additional_images,
+                build_evidence_root: additional_evidence,
+            },
+        ],
+        run_evidence_root: fixture.repository.join("containers/runs"),
+    };
+
+    let evidence = derive_image_inventory_evidence(&request)?;
+    let tool = evidence.publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(evidence.scan.evidence_roots.len(), 2);
+    Ok(())
+}
+
+#[test]
+fn retired_build_source_must_remain_under_the_governed_study_root() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let evidence_path = fs::read_dir(fixture.study.join("containers/evidence"))?
+        .next()
+        .context("fixture omits build evidence")??
+        .path();
+    let mut evidence: serde_json::Value = serde_json::from_slice(&fs::read(&evidence_path)?)?;
+    evidence["image"]["path"] = json!(fixture
+        .repository
+        .parent()
+        .context("fixture repository has no parent")?
+        .join("retired/image.sif"));
+    fs::write(&evidence_path, serde_json::to_vec_pretty(&evidence)?)?;
+    fs::remove_file(
+        fs::read_dir(fixture.study.join("containers/apptainer"))?
+            .next()
+            .context("fixture omits the built image")??
+            .path(),
+    )?;
+
+    let error = derive_image_inventory_evidence(&fixture.request)
+        .err()
+        .context("retired external build source was admitted")?;
+    assert!(format!("{error:#}").contains("retired build-evidence image path is outside"));
     Ok(())
 }
 
@@ -160,6 +422,33 @@ fn run_reference_closure_is_scoped_to_scanned_images() -> Result<()> {
         &evidence.scan,
         &evidence.publication,
     )?;
+    Ok(())
+}
+
+#[test]
+fn historical_v1_scan_without_root_identities_remains_valid() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let mut scan = derive_image_inventory_evidence(&fixture.request)?.scan;
+    scan.schema_version = "bijux.container.image_inventory_scan.v1".to_string();
+    scan.evidence_roots.clear();
+
+    bijux_dna_containers::evidence::validate_image_inventory_scan(&scan)?;
+    Ok(())
+}
+
+#[test]
+fn current_scan_requires_replayable_root_identities() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let mut scan = derive_image_inventory_evidence(&fixture.request)?.scan;
+    scan.evidence_roots.clear();
+
+    let error = bijux_dna_containers::evidence::validate_image_inventory_scan(&scan)
+        .err()
+        .map(|error| error.to_string());
+
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("requires ordered evidence-root identities")));
     Ok(())
 }
 
@@ -403,6 +692,26 @@ fn selects_unique_unreferenced_rebuild_beside_current_run_dependency() -> Result
                 candidate.disposition,
                 bijux_dna_containers::evidence::ImageCandidateDisposition::HistoricalRunDependency
             )
+    }));
+    Ok(())
+}
+
+#[test]
+fn selects_unique_descendant_build_beside_unreferenced_current_image() -> Result<()> {
+    let fixture = Fixture::current()?;
+    let prior_digest = bijux_dna_infra::hash_bytes_sha256(b"current immutable image");
+    fs::write(fixture.repository.join("README.md"), "new source authority\n")?;
+    git(&fixture.repository, &["add", "README.md"])?;
+    git(&fixture.repository, &["commit", "-qm", "advance source authority"])?;
+    let descendant_digest = fixture.add_admitted_image(b"descendant current rebuild")?;
+
+    let publication = derive_image_inventory_publication(&fixture.request)?;
+    let tool = publication.tools.first().context("publication omits example")?;
+    assert_eq!(tool.state, ContainerImageState::Current);
+    assert_eq!(tool.selected_image_sha256.as_deref(), Some(descendant_digest.as_str()));
+    assert!(tool.candidates.iter().any(|candidate| {
+        candidate.sha256 == prior_digest
+            && candidate.disposition == ImageCandidateDisposition::UnreferencedObsolete
     }));
     Ok(())
 }

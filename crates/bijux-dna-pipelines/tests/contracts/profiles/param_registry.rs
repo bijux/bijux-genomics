@@ -56,7 +56,10 @@ fn expected_registry(stage_id: &str) -> (String, String) {
     }
     if stage_id.starts_with("bam.") {
         if BamStage::try_from(stage_id).is_ok() {
-            return (stage_id.to_string(), "bijux.bam.params.v1".to_string());
+            let suffix = stage_id
+                .strip_prefix("bam.")
+                .unwrap_or_else(|| panic!("invalid BAM stage ID {stage_id}"));
+            return (stage_id.to_string(), format!("bijux.bam.params.{suffix}.v1"));
         }
         return ("paramless".to_string(), "none".to_string());
     }

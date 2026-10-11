@@ -1,0 +1,19 @@
+<!-- GENERATED FILE - DO NOT EDIT -->
+<!-- source: bijux-dna-bench::workflow::run_index -->
+# VCF demography benchmark protocol
+
+- Run: `run-2058`
+- Stage: `vcf.demography`
+- Protocol version: `1.0.0`
+- State: `reserved`
+- Citation key: `bijux-benchmark-run-2058`
+
+Compare the runnable vcf.demography tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.
+
+## Planned tool closure
+
+- `ibdne`
+
+## Evidence status
+
+This file defines a permanent protocol; it is not execution evidence. See `current-publication.json` for the admitted publication selection and `case-index.json` for immutable case pointers.

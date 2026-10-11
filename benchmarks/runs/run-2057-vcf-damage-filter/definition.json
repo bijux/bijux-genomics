@@ -1,0 +1,39 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2057",
+    "domain": "vcf",
+    "stage_id": "vcf.damage_filter"
+  },
+  "protocol_version": "1.0.0",
+  "title": "VCF damage filter benchmark protocol",
+  "purpose": "Compare the runnable vcf.damage_filter tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "vcf-transformation",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "bcftools"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "masked_genotype_truth",
+      "corpus_ids": [
+        "variant-truth-panel"
+      ]
+    },
+    {
+      "role": "variant_truth",
+      "corpus_ids": [
+        "variant-truth-panel"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "vcf-transformation-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2057",
+  "supersedes_run_ids": []
+}

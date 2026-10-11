@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2024",
+  "run": {
+    "run_id": "run-2024",
+    "domain": "bam",
+    "stage_id": "bam.validate"
+  },
+  "protocol_title": "BAM validate benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "ed9227d4b83a50fd5aaad7cd9b31703c5438ae92537d8c94f1ace39f27856307",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

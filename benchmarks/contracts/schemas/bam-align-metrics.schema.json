@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "alignment_rate": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "exact_placement_reads": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "expected_mapped_reads": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fastq_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "mapped_reads": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "placement_precision": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "placement_recall": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "reference_index_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "reference_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.align.metrics.v1",
+      "type": "string"
+    },
+    "total_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "truth_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "total_reads",
+    "mapped_reads",
+    "alignment_rate",
+    "expected_mapped_reads",
+    "exact_placement_reads",
+    "placement_precision",
+    "placement_recall",
+    "fastq_input_bytes",
+    "reference_input_bytes",
+    "reference_index_input_bytes",
+    "truth_input_bytes",
+    "input_bytes",
+    "output_bytes"
+  ],
+  "title": "BenchmarkBamAlignMetrics",
+  "type": "object"
+}

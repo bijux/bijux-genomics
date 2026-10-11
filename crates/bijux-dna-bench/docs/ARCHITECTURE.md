@@ -2,8 +2,8 @@
 
 `bijux-dna-bench` is a benchmark contract crate. It reads governed benchmark
 observations and suite specifications, then produces deterministic summaries,
-gate decisions, comparisons, and benchmark artifacts. It does not plan or execute
-product workflows.
+gate decisions, comparisons, and benchmark artifacts. It plans generic benchmark
+campaigns from governed registries but does not execute product workflows.
 
 ## Root Layout
 
@@ -25,6 +25,11 @@ belong under `docs/`.
 - `src/workflow/` owns suite loading, summarization, comparison, gate evaluation,
   suite persistence, runtime attempt-lifecycle composition, fairness checks,
   scope grouping, and summary statistics.
+- `src/workflow/campaign_engine/` separates registry-driven case planning,
+  immutable evidence persistence, aggregation, and stage-report projection without
+  stage or tool dispatch.
+- `src/workflow/campaign_cases.rs` owns the source-locked case planning, admitted
+  observation, and aggregation workflows composed by operator commands.
 - `src/workflow/run_suite/` separates suite orchestration from artifact
   persistence.
 - `src/workflow/fastq_expectations/` separates scientific expectation rendering

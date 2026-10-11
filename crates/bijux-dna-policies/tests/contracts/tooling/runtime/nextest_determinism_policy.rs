@@ -123,6 +123,12 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         "github-all must prepare one shared test build and preserve the workflow's fast test lane"
     );
     bijux_dna_policies::policy_assert!(
+        github_gate_runner.contains("wait -n -p completed_pid")
+            && !github_gate_runner.contains("sleep ")
+            && !github_gate_runner.contains(".exit.status"),
+        "github-all must supervise parallel gates from child completion events without polling status files"
+    );
+    bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_SLOW_NAME_EXPR ?= test(/::slow__/)"),
         "make test lanes must use the shared slow__ namespace"
     );

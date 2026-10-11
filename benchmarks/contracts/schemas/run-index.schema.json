@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkRunIndex",
+  "type": "object",
+  "properties": {
+    "runs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkRunIndexEntry"
+      }
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.run_index.v1"
+    },
+    "source_registry": {
+      "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkRunIndexSummary"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_registry",
+    "summary",
+    "runs"
+  ],
+  "$defs": {
+    "BenchmarkAttemptIdentity": {
+      "type": "object",
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "run": {
+          "$ref": "#/$defs/BenchmarkRunIdentity"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "campaign_id",
+        "run",
+        "attempt_id",
+        "tool_id"
+      ]
+    },
+    "BenchmarkRunIdentity": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ]
+    },
+    "BenchmarkRunIndexEntry": {
+      "type": "object",
+      "properties": {
+        "acceptance_policy_id": {
+          "type": "string"
+        },
+        "citation_key": {
+          "type": "string"
+        },
+        "corpus_roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "owner": {
+          "type": "string"
+        },
+        "protocol_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "protocol_state": {
+          "$ref": "#/$defs/BenchmarkRunRegistryState"
+        },
+        "protocol_title": {
+          "type": "string"
+        },
+        "registry_uri": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "selected_publication": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkRunIndexPublication"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "slug": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "citation_key",
+        "protocol_title",
+        "slug",
+        "stage_id",
+        "owner",
+        "protocol_state",
+        "protocol_sha256",
+        "registry_uri",
+        "tool_ids",
+        "corpus_roles",
+        "acceptance_policy_id",
+        "limitations"
+      ]
+    },
+    "BenchmarkRunIndexFileReference": {
+      "type": "object",
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "uri": {
+          "type": "string",
+          "pattern": "^(repo|study)://[^/].+$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "uri",
+        "sha256",
+        "size_bytes"
+      ]
+    },
+    "BenchmarkRunIndexPublication": {
+      "type": "object",
+      "properties": {
+        "access_statement": {
+          "type": "string"
+        },
+        "citation_record": {
+          "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+        },
+        "evidence_book": {
+          "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publication_id": {
+          "type": "string"
+        },
+        "publication_receipt": {
+          "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+        },
+        "replay_receipt": {
+          "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+        },
+        "report": {
+          "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+        },
+        "repository_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "selected_attempts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BenchmarkAttemptIdentity"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "publication_id",
+        "selected_attempts",
+        "repository_commit",
+        "report",
+        "evidence_book",
+        "publication_receipt",
+        "citation_record",
+        "replay_receipt",
+        "limitations",
+        "access_statement"
+      ]
+    },
+    "BenchmarkRunIndexSummary": {
+      "type": "object",
+      "properties": {
+        "active_protocol_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "citable_publication_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "registered_run_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "reserved_protocol_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "retired_protocol_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "unpublished_run_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "registered_run_count",
+        "active_protocol_count",
+        "reserved_protocol_count",
+        "retired_protocol_count",
+        "citable_publication_count",
+        "unpublished_run_count"
+      ]
+    },
+    "BenchmarkRunRegistryState": {
+      "type": "string",
+      "enum": [
+        "active",
+        "reserved",
+        "retired"
+      ]
+    }
+  }
+}

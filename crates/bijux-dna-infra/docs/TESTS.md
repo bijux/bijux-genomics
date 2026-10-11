@@ -11,7 +11,8 @@ Tests should explain the contract they enforce.
 
 ## Contracts
 - `tests/contracts/io.rs` — IO guarantees for atomic writes, bounded reads, temp dirs, and removal semantics.
-- `tests/contracts/run_layout.rs` — run-layout path, lock, and publish contracts.
+- `tests/contracts/run_layout.rs` — run-layout path, lock, publish, attempt archive, interruption
+  recovery, digest verification, and rollback contracts.
 
 ## Commands
 

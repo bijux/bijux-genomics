@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2002",
+  "run": {
+    "run_id": "run-2002",
+    "domain": "bam",
+    "stage_id": "bam.coverage"
+  },
+  "protocol_title": "BAM coverage benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "20491b48583657368803973d3773ad4cdb15201db356d75170538b480e7f390b",
+  "status": "protocol_only",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

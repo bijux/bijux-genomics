@@ -6,8 +6,9 @@ use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_benchmark_data_index, AdmittedBamCorpus, AdmittedBamCorpusFile, BenchmarkDataIndex,
-    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkEligibility, DataIntegrityStatus,
+    validate_benchmark_data_index, validate_governed_data_catalog_document, AdmittedBamCorpus,
+    AdmittedBamCorpusFile, BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkDataIndexRecord,
+    BenchmarkEligibility, DataIntegrityStatus, GovernedDataCatalogDocument,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use serde::Deserialize;
@@ -110,8 +111,7 @@ pub fn admit_bam_benchmark_corpus(
     if catalog_sha256 != record.catalog_sha256 {
         bail!("BAM corpus catalog digest differs from the data index");
     }
-    let catalog: DataCatalog = serde_json::from_slice(&catalog_bytes)
-        .with_context(|| format!("parse BAM corpus catalog {}", catalog_path.display()))?;
+    let catalog = parse_bam_catalog(&catalog_bytes, &catalog_path)?;
     if !matches!(
         catalog.schema_version.as_str(),
         GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
@@ -157,6 +157,49 @@ pub fn admit_bam_benchmark_corpus(
         bam_index,
         input_bytes,
     })
+}
+
+fn parse_bam_catalog(bytes: &[u8], path: &Path) -> Result<DataCatalog> {
+    let value: serde_json::Value = serde_json::from_slice(bytes)
+        .with_context(|| format!("parse BAM corpus catalog {}", path.display()))?;
+    match value.get("schema_version").and_then(serde_json::Value::as_str) {
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V1) => serde_json::from_value(value)
+            .with_context(|| format!("parse legacy BAM corpus catalog {}", path.display())),
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V2) => {
+            let document: GovernedDataCatalogDocument = serde_json::from_value(value)
+                .with_context(|| format!("parse governed BAM corpus catalog {}", path.display()))?;
+            validate_governed_data_catalog_document(&document)
+                .context("validate governed BAM corpus catalog")?;
+            match document {
+                GovernedDataCatalogDocument::Preserved(catalog) => {
+                    serde_json::from_value(catalog.preserved_catalog).with_context(|| {
+                        format!("parse preserved BAM corpus catalog {}", path.display())
+                    })
+                }
+                GovernedDataCatalogDocument::Materialized(catalog) => {
+                    let [sample] = catalog.samples.as_slice() else {
+                        bail!("materialized BAM corpus catalog must contain exactly one sample")
+                    };
+                    Ok(DataCatalog {
+                        schema_version: catalog.schema_version,
+                        id: catalog.id,
+                        run_accession: sample.accession.clone(),
+                        files: catalog
+                            .files
+                            .into_iter()
+                            .map(|file| CatalogFile {
+                                path: file.path,
+                                kind: file.kind,
+                                sha256: file.sha256,
+                                size_bytes: file.size_bytes,
+                            })
+                            .collect(),
+                    })
+                }
+            }
+        }
+        _ => bail!("BAM corpus catalog schema is unsupported"),
+    }
 }
 
 /// Admit the complete reference and candidate-site closure used by BAM genotyping.

@@ -28,8 +28,8 @@ domain semantics.
 - `src/paths/` owns deterministic path construction only.
 - `src/retry/` owns retry policy, clock abstraction, backoff math, and retry
   execution.
-- `src/run_directories/` owns run-layout contracts plus lock/publish
-  operations.
+- `src/run_directories/` owns run-layout contracts, lock/publish operations, and owner-scoped
+  attempt archive/verify/rollback transactions.
 - `src/temp.rs` owns temporary-directory entrypoints.
 
 ## Test Layout

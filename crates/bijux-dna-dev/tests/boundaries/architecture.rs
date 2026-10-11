@@ -96,11 +96,13 @@ fn dev_tree_matches_architecture_contract() {
 
     let campaign_cycle_entries =
         dir_entries(&root.join("src/commands/ops/tooling/benchmark_campaign_cycle"));
-    let expected_campaign_cycle: BTreeSet<_> =
-        ["lifecycle.rs", "scheduler.rs"].into_iter().map(str::to_string).collect();
+    let expected_campaign_cycle: BTreeSet<_> = ["generic_cases.rs", "lifecycle.rs", "scheduler.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
     assert_eq!(
         campaign_cycle_entries, expected_campaign_cycle,
-        "benchmark campaign operation must isolate lifecycle and scheduler responsibilities"
+        "benchmark campaign operation must isolate generic case, lifecycle, and scheduler composition"
     );
 
     let repo_checks_entries = dir_entries(&root.join("src/commands/repo_checks"));
@@ -122,17 +124,23 @@ fn dev_tree_matches_architecture_contract() {
         "dispatch.rs",
         "execution_contract.rs",
         "external_artifact.rs",
+        "grype_database.rs",
         "image_activation.rs",
+        "image_campaign.rs",
         "inventory.rs",
         "metadata.rs",
         "mod.rs",
+        "qualification_cycle.rs",
         "qualification_registry.rs",
         "qualification_slurm.rs",
+        "qualification_specification.rs",
         "registry_catalog.rs",
         "run_evidence.rs",
         "site_policy.rs",
         "runtime/",
         "runtime_verification.rs",
+        "security_evidence.rs",
+        "security_toolchain.rs",
         "storage.rs",
         "validation/",
         "version_state.rs",

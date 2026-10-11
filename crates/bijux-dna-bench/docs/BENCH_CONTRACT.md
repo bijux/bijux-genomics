@@ -27,6 +27,7 @@ gating, and deterministic artifact persistence.
 - Versioned stage-coverage JSON, Markdown, and generated JSON Schema publications.
 - Immutable exact FASTQ summaries, histograms, row identities, and expectation manifests.
 - Complete stage-specific execution material consumed by the immutable execution-spec builder.
+- Source-locked generic case matrices, admitted observation sets, and deterministic case aggregations.
 - No-clobber governed data catalogs published only after complete source and FASTQ validation.
 
 ## Required Invariants

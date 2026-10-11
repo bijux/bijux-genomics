@@ -13,8 +13,9 @@ use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{ToolBinding, ToolBindingRegistry};
 
 use super::{
-    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1,
-    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1, BENCHMARK_CASE_MATRIX_SCHEMA_V1,
+    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
+    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1, BenchmarkDataSnapshotRoleV1,
+    BenchmarkDataSnapshotV1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
 };
 
 pub struct BenchmarkCaseMatrixRequest<'a> {
@@ -25,7 +26,7 @@ pub struct BenchmarkCaseMatrixRequest<'a> {
     pub campaigns: &'a BenchmarkStageCampaignRegistry,
     pub interfaces: &'a BenchmarkStageInterfaceCatalog,
     pub bindings: &'a ToolBindingRegistry,
-    pub corpus_snapshots: &'a [BenchmarkCorpusSnapshotV1],
+    pub data_snapshots: &'a [BenchmarkDataSnapshotV1],
 }
 
 /// Join declared campaign, interface, binding, corpus, measurement, and science authorities.
@@ -38,7 +39,7 @@ pub struct BenchmarkCaseMatrixRequest<'a> {
 /// resource fairness are incomplete or contradictory.
 pub fn plan_benchmark_case_matrix(
     request: &BenchmarkCaseMatrixRequest<'_>,
-) -> Result<BenchmarkCaseMatrixV1> {
+) -> Result<BenchmarkCaseMatrixV2> {
     require_identity(request.repository_commit, 40, "repository commit")?;
     for (value, label) in [
         (request.campaign_registry_sha256, "campaign registry digest"),
@@ -54,7 +55,15 @@ pub fn plan_benchmark_case_matrix(
     validate_defined_interface_campaign_alignment(request.interfaces, request.campaigns)
         .context("align generic campaign and interface authorities")?;
 
-    let snapshots = snapshot_index(request.corpus_snapshots)?;
+    let snapshots = data_snapshot_index(request.data_snapshots)?;
+    let required_data = required_data_roles(request.campaigns)?;
+    if snapshots.len() != required_data.len()
+        || required_data
+            .iter()
+            .any(|(id, role)| snapshots.get(id).is_none_or(|snapshot| snapshot.role != *role))
+    {
+        bail!("benchmark data snapshots do not exactly close campaign data authorities");
+    }
     let mut campaigns = request.campaigns.campaigns.iter().collect::<Vec<_>>();
     campaigns.sort_by(|left, right| left.run_id.cmp(&right.run_id));
     let mut cases = Vec::new();
@@ -97,7 +106,11 @@ pub fn plan_benchmark_case_matrix(
                     domain: campaign.domain.clone(),
                     stage_id: campaign.stage_id.clone(),
                     tool_id: tool.clone(),
-                    corpus: (*corpus).clone(),
+                    corpus: BenchmarkCorpusSnapshotV1 {
+                        corpus_id: corpus.catalog_id.clone(),
+                        snapshot_sha256: corpus.catalog_sha256.clone(),
+                        sample_ids: corpus.sample_ids.clone(),
+                    },
                     campaign: campaign.clone(),
                     binding: binding.clone(),
                     interface: interface.clone(),
@@ -126,12 +139,17 @@ pub fn plan_benchmark_case_matrix(
     if cases.is_empty() {
         bail!("benchmark case matrix is empty");
     }
-    Ok(BenchmarkCaseMatrixV1 {
-        schema_version: BENCHMARK_CASE_MATRIX_SCHEMA_V1.to_owned(),
+    let mut data_snapshots = request.data_snapshots.to_vec();
+    data_snapshots.sort_by(|left, right| {
+        (&left.role, &left.catalog_id).cmp(&(&right.role, &right.catalog_id))
+    });
+    Ok(BenchmarkCaseMatrixV2 {
+        schema_version: BENCHMARK_CASE_MATRIX_SCHEMA_V2.to_owned(),
         repository_commit: request.repository_commit.to_owned(),
         campaign_registry_sha256: request.campaign_registry_sha256.to_owned(),
         interface_catalog_sha256: request.interface_catalog_sha256.to_owned(),
         tool_binding_registry_sha256: request.tool_binding_registry_sha256.to_owned(),
+        data_snapshots,
         cases,
     })
 }
@@ -141,19 +159,17 @@ pub fn plan_benchmark_case_matrix(
 /// # Errors
 /// Returns an error when persisted cases are incomplete, conflicting, malformed, or not in the
 /// canonical planner order.
-pub fn validate_benchmark_case_matrix(matrix: &BenchmarkCaseMatrixV1) -> Result<()> {
-    if matrix.schema_version != BENCHMARK_CASE_MATRIX_SCHEMA_V1 {
+pub fn validate_benchmark_case_matrix(matrix: &BenchmarkCaseMatrixV2) -> Result<()> {
+    if matrix.schema_version != BENCHMARK_CASE_MATRIX_SCHEMA_V2 {
         bail!("benchmark case matrix schema is unsupported");
     }
     let mut campaigns = BTreeMap::new();
     let mut interfaces = BTreeMap::new();
     let mut bindings = BTreeMap::new();
-    let mut snapshots = BTreeMap::new();
     for case in &matrix.cases {
         insert_identical(&mut campaigns, &case.run_id, &case.campaign, "campaign")?;
         insert_identical(&mut interfaces, &case.stage_id, &case.interface, "interface")?;
         insert_identical(&mut bindings, &case.binding.binding_id, &case.binding, "binding")?;
-        insert_identical(&mut snapshots, &case.corpus.corpus_id, &case.corpus, "corpus")?;
     }
     let campaigns = BenchmarkStageCampaignRegistry {
         schema_version: bijux_dna_bench_model::BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1.to_string(),
@@ -167,7 +183,6 @@ pub fn validate_benchmark_case_matrix(matrix: &BenchmarkCaseMatrixV1) -> Result<
     for binding in bindings.into_values() {
         registry.insert(binding.clone())?;
     }
-    let snapshots = snapshots.into_values().cloned().collect::<Vec<_>>();
     let replay = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
         repository_commit: &matrix.repository_commit,
         campaign_registry_sha256: &matrix.campaign_registry_sha256,
@@ -176,7 +191,7 @@ pub fn validate_benchmark_case_matrix(matrix: &BenchmarkCaseMatrixV1) -> Result<
         campaigns: &campaigns,
         interfaces: &interfaces,
         bindings: &registry,
-        corpus_snapshots: &snapshots,
+        data_snapshots: &matrix.data_snapshots,
     })?;
     if replay != *matrix {
         bail!("benchmark case matrix differs from canonical planner replay");
@@ -196,14 +211,14 @@ fn insert_identical<'a, T: PartialEq>(
     Ok(())
 }
 
-fn snapshot_index(
-    snapshots: &[BenchmarkCorpusSnapshotV1],
-) -> Result<BTreeMap<&str, &BenchmarkCorpusSnapshotV1>> {
+fn data_snapshot_index(
+    snapshots: &[BenchmarkDataSnapshotV1],
+) -> Result<BTreeMap<&str, &BenchmarkDataSnapshotV1>> {
     let mut indexed = BTreeMap::new();
     for snapshot in snapshots {
-        require_component(&snapshot.corpus_id, "corpus id")?;
-        require_identity(&snapshot.snapshot_sha256, 64, "corpus snapshot digest")?;
-        if snapshot.sample_ids.is_empty() {
+        require_component(&snapshot.catalog_id, "data catalog id")?;
+        require_identity(&snapshot.catalog_sha256, 64, "data catalog snapshot digest")?;
+        if snapshot.role == BenchmarkDataSnapshotRoleV1::Corpus && snapshot.sample_ids.is_empty() {
             bail!("corpus snapshot samples are invalid");
         }
         for sample_id in &snapshot.sample_ids {
@@ -212,11 +227,31 @@ fn snapshot_index(
         if snapshot.sample_ids.iter().collect::<BTreeSet<_>>().len() != snapshot.sample_ids.len() {
             bail!("corpus snapshot samples are invalid");
         }
-        if indexed.insert(snapshot.corpus_id.as_str(), snapshot).is_some() {
-            bail!("duplicate corpus snapshot id");
+        if indexed.insert(snapshot.catalog_id.as_str(), snapshot).is_some() {
+            bail!("duplicate data snapshot id");
         }
     }
     Ok(indexed)
+}
+
+fn required_data_roles(
+    campaigns: &BenchmarkStageCampaignRegistry,
+) -> Result<BTreeMap<&str, BenchmarkDataSnapshotRoleV1>> {
+    let mut required = BTreeMap::new();
+    for campaign in &campaigns.campaigns {
+        for (ids, role) in [
+            (&campaign.corpus_catalog_ids, BenchmarkDataSnapshotRoleV1::Corpus),
+            (&campaign.reference_catalog_ids, BenchmarkDataSnapshotRoleV1::Reference),
+            (&campaign.database_catalog_ids, BenchmarkDataSnapshotRoleV1::Database),
+        ] {
+            for id in ids {
+                if required.insert(id.as_str(), role).is_some_and(|existing| existing != role) {
+                    bail!("benchmark data catalog has conflicting semantic roles: {id}");
+                }
+            }
+        }
+    }
+    Ok(required)
 }
 
 fn validate_binding_interface_join(
@@ -241,11 +276,7 @@ fn validate_binding_interface_join(
     {
         bail!("binding {} accepts no declared stage input", binding.binding_id());
     }
-    if !binding
-        .outputs()
-        .iter()
-        .any(|output| output.artifact_contract_id == interface.output_contract)
-    {
+    if binding.normalized_output_contract_id() != interface.output_contract {
         bail!("binding {} emits no declared stage output", binding.binding_id());
     }
     Ok(())

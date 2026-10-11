@@ -1,10 +1,11 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 
 use anyhow::{bail, Context, Result};
+use chrono::DateTime;
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -22,6 +23,7 @@ use super::{
 
 pub const IMAGE_CAMPAIGN_PLAN_SCHEMA_V1: &str = "bijux.container.image_campaign_plan.v1";
 pub const IMAGE_CAMPAIGN_EXECUTION_SCHEMA_V1: &str = "bijux.container.image_campaign_execution.v1";
+pub const IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1: &str = "bijux.image_campaign_job_completion.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ApptainerImageCampaignRequest {
@@ -29,6 +31,8 @@ pub struct ApptainerImageCampaignRequest {
     pub study_root: PathBuf,
     pub apptainer_executable: PathBuf,
     pub worker_count: usize,
+    /// Optional retained-tool closure for an identity-addressed targeted campaign.
+    pub selected_tools: Option<BTreeSet<String>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -69,6 +73,27 @@ pub struct ImageCampaignExecution {
     pub tools: BTreeMap<String, ImageCampaignToolOutcome>,
     pub passed: usize,
     pub failed: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ImageCampaignJobCompletion {
+    pub schema_version: String,
+    pub attempt_id: String,
+    pub repository_commit: String,
+    pub slurm_job_id: String,
+    pub completed_at: String,
+    pub campaign_execution: String,
+    pub campaign_execution_sha256: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImageCampaignAttemptRequest {
+    pub campaign: ApptainerImageCampaignRequest,
+    pub attempt_root: PathBuf,
+    pub attempt_id: String,
+    pub slurm_job_id: String,
+    pub completed_at: String,
 }
 
 #[must_use]
@@ -118,17 +143,23 @@ pub fn execute_apptainer_image_campaign(
     if !validated.is_valid() {
         bail!("image campaign catalog validation failed: {}", validated.errors.join("; "));
     }
-    let tools =
+    let retained_tools =
         retained_apptainer_tool_ids(&request.repository_root, &catalog.apptainer_architecture)?;
-    if tools.len() != validated.retained_count {
+    if retained_tools.len() != validated.retained_count {
         bail!("image campaign retained roster differs from validated catalog");
     }
+    let tools = select_campaign_tools(&retained_tools, request.selected_tools.as_ref())?;
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
         &request.repository_root.join("containers/contracts/catalog.toml"),
     )?;
-    let evidence_root =
-        request.study_root.join("containers/evidence/image-campaigns").join(&commit);
-    let image_root = request.study_root.join("containers/staging").join(&commit);
+    let scope = campaign_scope(&tools, retained_tools.len());
+    let evidence_root = campaign_root(
+        &request.study_root.join("containers/evidence/image-campaigns"),
+        &commit,
+        scope.as_deref(),
+    );
+    let image_root =
+        campaign_root(&request.study_root.join("containers/staging"), &commit, scope.as_deref());
     bijux_dna_infra::ensure_dir(&evidence_root)?;
     let _lock = bijux_dna_infra::FileLock::acquire(
         &evidence_root.join("campaign.lock"),
@@ -159,15 +190,13 @@ pub fn execute_apptainer_image_campaign(
         &catalog_sha256,
         &outcomes,
     )?;
-    execute_campaign_tools(
-        request,
-        &tools,
-        &outcomes,
-        &progress_path,
-        &commit,
-        &catalog_sha256,
-        &catalog.apptainer_architecture,
-    )?;
+    let identity = CampaignExecutionIdentity {
+        repository_commit: &commit,
+        catalog_sha256: &catalog_sha256,
+        architecture: &catalog.apptainer_architecture,
+        scope: scope.as_deref(),
+    };
+    execute_campaign_tools(request, &tools, &outcomes, &progress_path, &identity)?;
     let tools = outcomes
         .into_inner()
         .map_err(|_| anyhow::anyhow!("image campaign progress lock poisoned"))?;
@@ -177,14 +206,208 @@ pub fn execute_apptainer_image_campaign(
     Ok(execution)
 }
 
+/// Execute one image campaign attempt and atomically publish its scheduler completion receipt.
+///
+/// # Errors
+/// Returns an error when attempt identity is invalid, campaign execution fails, or immutable
+/// attempt publications conflict.
+pub fn execute_apptainer_image_campaign_attempt(
+    request: &ImageCampaignAttemptRequest,
+) -> Result<ImageCampaignJobCompletion> {
+    validate_attempt_identity(request)?;
+    let metadata = fs::symlink_metadata(&request.attempt_root)
+        .context("inspect image campaign attempt root")?;
+    if metadata.file_type().is_symlink() || !metadata.is_dir() {
+        bail!("image campaign attempt root is not a regular directory");
+    }
+    let execution = execute_apptainer_image_campaign(&request.campaign)?;
+    let execution_name = "campaign-execution.json";
+    let execution_path = request.attempt_root.join(execution_name);
+    ensure_immutable_json(&execution_path, &execution)?;
+    let completion = ImageCampaignJobCompletion {
+        schema_version: IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1.to_string(),
+        attempt_id: request.attempt_id.clone(),
+        repository_commit: execution.repository_commit,
+        slurm_job_id: request.slurm_job_id.clone(),
+        completed_at: request.completed_at.clone(),
+        campaign_execution: execution_name.to_string(),
+        campaign_execution_sha256: bijux_dna_infra::hash_file_sha256(&execution_path)?,
+    };
+    ensure_immutable_json(&request.attempt_root.join("completion.json"), &completion)?;
+    Ok(completion)
+}
+
+fn validate_attempt_identity(request: &ImageCampaignAttemptRequest) -> Result<()> {
+    if request.attempt_id.is_empty()
+        || request.attempt_id.contains('/')
+        || request.attempt_id.contains('\\')
+        || request.attempt_id == "."
+        || request.attempt_id == ".."
+    {
+        bail!("image campaign attempt identity is invalid");
+    }
+    if request.slurm_job_id.is_empty()
+        || !request.slurm_job_id.bytes().all(|byte| byte.is_ascii_digit())
+    {
+        bail!("image campaign Slurm job identity is invalid");
+    }
+    DateTime::parse_from_rfc3339(&request.completed_at)
+        .context("image campaign completion timestamp is invalid")?;
+    Ok(())
+}
+
+/// Admit a terminal Slurm campaign receipt and every publication it references.
+///
+/// # Errors
+/// Returns an error for receipt, source, catalog, roster, publication, image, or runtime drift.
+pub fn verify_apptainer_image_campaign_receipt(
+    repository_root: &Path,
+    study_root: &Path,
+    apptainer_executable: &Path,
+    attempt_root: &Path,
+) -> Result<ImageCampaignExecution> {
+    let completion_path = attempt_root.join("completion.json");
+    let completion: ImageCampaignJobCompletion = serde_json::from_slice(
+        &fs::read(&completion_path)
+            .with_context(|| format!("read {}", completion_path.display()))?,
+    )
+    .with_context(|| format!("parse {}", completion_path.display()))?;
+    if completion.schema_version != IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1
+        || completion.attempt_id.trim().is_empty()
+        || completion.slurm_job_id.is_empty()
+        || !completion.slurm_job_id.bytes().all(|byte| byte.is_ascii_digit())
+        || DateTime::parse_from_rfc3339(&completion.completed_at).is_err()
+        || completion.campaign_execution != "campaign-execution.json"
+        || !valid_sha256(&completion.campaign_execution_sha256)
+    {
+        bail!("image campaign completion identity is invalid");
+    }
+    let execution_path = attempt_root.join(&completion.campaign_execution);
+    if bijux_dna_infra::hash_file_sha256(&execution_path)? != completion.campaign_execution_sha256 {
+        bail!("image campaign execution digest differs from completion");
+    }
+
+    let source_commit = clean_repository_head_commit(repository_root)?;
+    if completion.repository_commit != source_commit {
+        bail!("image campaign completion differs from frozen source commit");
+    }
+    let catalog = load_container_catalog(repository_root)?;
+    let validated = validate_container_catalog(repository_root)?;
+    if !validated.is_valid() {
+        bail!("image campaign catalog validation failed: {}", validated.errors.join("; "));
+    }
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("containers/contracts/catalog.toml"),
+    )?;
+    let tools = load_progress(
+        &execution_path,
+        &source_commit,
+        &catalog_sha256,
+        &catalog.apptainer_architecture,
+    )?;
+    let retained_tools =
+        retained_apptainer_tool_ids(repository_root, &catalog.apptainer_architecture)?;
+    let selected_tools = selected_receipt_tools(&retained_tools, tools.keys())?;
+    if tools.values().any(|outcome| {
+        outcome.status != ImageCampaignToolStatus::Passed
+            || outcome.publication.is_none()
+            || outcome.error.is_some()
+    }) {
+        bail!("image campaign receipt does not close the selected tool roster");
+    }
+    let execution = execution_from_tools(
+        source_commit.clone(),
+        catalog_sha256.clone(),
+        catalog.apptainer_architecture.clone(),
+        tools.clone(),
+    );
+    let scope = campaign_scope(&selected_tools, retained_tools.len());
+    let canonical_path = campaign_root(
+        &study_root.join("containers/evidence/image-campaigns"),
+        &source_commit,
+        scope.as_deref(),
+    )
+    .join("execution.json");
+    let canonical: ImageCampaignExecution = serde_json::from_slice(
+        &fs::read(&canonical_path).with_context(|| format!("read {}", canonical_path.display()))?,
+    )?;
+    if canonical != execution {
+        bail!("image campaign receipt differs from canonical execution publication");
+    }
+    verify_resumed_outcomes(
+        &ApptainerImageCampaignRequest {
+            repository_root: repository_root.to_path_buf(),
+            study_root: study_root.to_path_buf(),
+            apptainer_executable: apptainer_executable.to_path_buf(),
+            worker_count: 1,
+            selected_tools: Some(selected_tools.into_iter().collect()),
+        },
+        &catalog.apptainer_architecture,
+        &source_commit,
+        &catalog_sha256,
+        &Mutex::new(tools),
+    )?;
+    Ok(execution)
+}
+
+fn selected_receipt_tools<'a>(
+    retained_tools: &[String],
+    execution_tools: impl Iterator<Item = &'a String>,
+) -> Result<Vec<String>> {
+    let execution_tools = execution_tools.cloned().collect::<BTreeSet<_>>();
+    let selected_tools = select_campaign_tools(retained_tools, Some(&execution_tools))?;
+    if selected_tools.len() != execution_tools.len() {
+        bail!("image campaign receipt tool roster is invalid");
+    }
+    Ok(selected_tools)
+}
+
+fn select_campaign_tools(
+    retained_tools: &[String],
+    selected_tools: Option<&BTreeSet<String>>,
+) -> Result<Vec<String>> {
+    let Some(selected_tools) = selected_tools else {
+        return Ok(retained_tools.to_vec());
+    };
+    if selected_tools.is_empty() {
+        bail!("selected image campaign contains no tools");
+    }
+    let retained = retained_tools.iter().cloned().collect::<BTreeSet<_>>();
+    let unknown = selected_tools.difference(&retained).cloned().collect::<Vec<_>>();
+    if !unknown.is_empty() {
+        bail!("selected image campaign contains unknown retained tools: {}", unknown.join(","));
+    }
+    Ok(retained_tools.iter().filter(|tool| selected_tools.contains(*tool)).cloned().collect())
+}
+
+fn campaign_scope(tools: &[String], retained_count: usize) -> Option<String> {
+    (tools.len() != retained_count).then(|| {
+        format!("selected-{}", bijux_dna_infra::hash_bytes_sha256(tools.join("\n").as_bytes()))
+    })
+}
+
+fn campaign_root(base: &Path, commit: &str, scope: Option<&str>) -> PathBuf {
+    let root = base.join(commit);
+    scope.map_or(root.clone(), |scope| root.join(scope))
+}
+
+fn valid_sha256(value: &str) -> bool {
+    value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+struct CampaignExecutionIdentity<'a> {
+    repository_commit: &'a str,
+    catalog_sha256: &'a str,
+    architecture: &'a str,
+    scope: Option<&'a str>,
+}
+
 fn execute_campaign_tools(
     request: &ApptainerImageCampaignRequest,
     tools: &[String],
     outcomes: &Mutex<BTreeMap<String, ImageCampaignToolOutcome>>,
     progress_path: &Path,
-    commit: &str,
-    catalog_sha256: &str,
-    architecture: &str,
+    identity: &CampaignExecutionIdentity<'_>,
 ) -> Result<()> {
     let passed = outcomes
         .lock()
@@ -207,6 +430,7 @@ fn execute_campaign_tools(
                             tool.clone(),
                         );
                     build_request.apptainer_executable.clone_from(&request.apptainer_executable);
+                    build_request.campaign_scope = identity.scope.map(str::to_string);
                     let outcome = match publish_canonical_apptainer_image(&build_request) {
                         Ok(publication) => ImageCampaignToolOutcome {
                             status: ImageCampaignToolStatus::Passed,
@@ -223,7 +447,13 @@ fn execute_campaign_tools(
                         .lock()
                         .map_err(|_| anyhow::anyhow!("image campaign progress lock poisoned"))?;
                     items.insert(tool.clone(), outcome);
-                    write_progress(progress_path, commit, catalog_sha256, architecture, &items)?;
+                    write_progress(
+                        progress_path,
+                        identity.repository_commit,
+                        identity.catalog_sha256,
+                        identity.architecture,
+                        &items,
+                    )?;
                 }
                 Ok(())
             }));
@@ -242,6 +472,21 @@ fn verify_resumed_outcomes(
     catalog_sha256: &str,
     outcomes: &Mutex<BTreeMap<String, ImageCampaignToolOutcome>>,
 ) -> Result<()> {
+    let catalog = load_container_catalog(&request.repository_root)?;
+    let retained_tools =
+        retained_apptainer_tool_ids(&request.repository_root, &catalog.apptainer_architecture)?;
+    let selected_tools = select_campaign_tools(&retained_tools, request.selected_tools.as_ref())?;
+    let scope = campaign_scope(&selected_tools, retained_tools.len());
+    let expected_image_root = campaign_root(
+        &request.study_root.join("containers/staging"),
+        repository_commit,
+        scope.as_deref(),
+    );
+    let expected_evidence_root = campaign_root(
+        &request.study_root.join("containers/evidence/image-campaigns"),
+        repository_commit,
+        scope.as_deref(),
+    );
     let items =
         outcomes.lock().map_err(|_| anyhow::anyhow!("image campaign progress lock poisoned"))?;
     for (tool, outcome) in
@@ -272,6 +517,7 @@ fn verify_resumed_outcomes(
             bail!("resumed build publication contract differs for {tool}");
         }
         let image_path = resolve_study_path(&request.study_root, &publication.image.path)?;
+        require_campaign_path(&image_path, &expected_image_root, "image", tool)?;
         if fs::metadata(&image_path)?.len() != publication.image.size_bytes {
             bail!("resumed image size differs for {tool}");
         }
@@ -282,6 +528,7 @@ fn verify_resumed_outcomes(
             &contract,
         )?;
         let identity_path = resolve_study_path(&request.study_root, &publication.identity.path)?;
+        require_campaign_path(&identity_path, &expected_evidence_root, "identity", tool)?;
         if bijux_dna_infra::hash_file_sha256(&identity_path)? != publication.identity.sha256 {
             bail!("resumed identity digest differs for {tool}");
         }
@@ -292,15 +539,24 @@ fn verify_resumed_outcomes(
             bail!("resumed image inspection differs for {tool}");
         }
         let evidence_path = resolve_study_path(&request.study_root, &publication.evidence_path)?;
+        require_campaign_path(&evidence_path, &expected_evidence_root, "evidence", tool)?;
         let persisted_publication: CanonicalApptainerImagePublication =
             serde_json::from_slice(&fs::read(evidence_path)?)?;
         if persisted_publication != *publication {
             bail!("resumed build evidence differs for {tool}");
         }
         let build_log_path = resolve_study_path(&request.study_root, &publication.build_log.path)?;
+        require_campaign_path(&build_log_path, &expected_evidence_root, "build log", tool)?;
         if bijux_dna_infra::hash_file_sha256(&build_log_path)? != publication.build_log.sha256 {
             bail!("resumed build log digest differs for {tool}");
         }
+    }
+    Ok(())
+}
+
+fn require_campaign_path(path: &Path, root: &Path, label: &str, tool: &str) -> Result<()> {
+    if path == root || !path.starts_with(root) {
+        bail!("resumed {label} path is outside the campaign scope for {tool}");
     }
     Ok(())
 }
@@ -436,4 +692,99 @@ fn resolve_study_path(study_root: &Path, value: &str) -> Result<PathBuf> {
         bail!("campaign path contains a non-normal component");
     }
     Ok(study_root.join(relative))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn selected_campaign_preserves_catalog_order_and_uses_scoped_root() -> Result<()> {
+        let retained = vec!["alpha".to_string(), "beta".to_string(), "gamma".to_string()];
+        let selected = BTreeSet::from(["beta".to_string(), "gamma".to_string()]);
+
+        let tools = select_campaign_tools(&retained, Some(&selected))?;
+        assert_eq!(tools, ["beta", "gamma"]);
+        let scope = campaign_scope(&tools, retained.len()).context("selected scope")?;
+        assert!(scope.starts_with("selected-"));
+        assert_eq!(
+            campaign_root(Path::new("/study/campaigns"), "commit", Some(&scope)),
+            Path::new("/study/campaigns").join("commit").join(scope)
+        );
+        assert!(require_campaign_path(
+            Path::new("/study/campaigns/commit/selected-a/image.sif"),
+            Path::new("/study/campaigns/commit/selected-a"),
+            "image",
+            "beta",
+        )
+        .is_ok());
+        assert!(require_campaign_path(
+            Path::new("/study/campaigns/commit/image.sif"),
+            Path::new("/study/campaigns/commit/selected-a"),
+            "image",
+            "beta",
+        )
+        .is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn selected_campaign_rejects_empty_and_unknown_tool_sets() {
+        let retained = vec!["alpha".to_string(), "beta".to_string()];
+        assert!(select_campaign_tools(&retained, Some(&BTreeSet::new())).is_err());
+        assert!(select_campaign_tools(&retained, Some(&BTreeSet::from(["unknown".to_string()])),)
+            .is_err());
+    }
+
+    #[test]
+    fn selected_receipt_accepts_exact_retained_subsets_only() -> Result<()> {
+        let retained = vec!["alpha".to_string(), "beta".to_string(), "gamma".to_string()];
+        let selected = BTreeSet::from(["alpha".to_string(), "gamma".to_string()]);
+        assert_eq!(selected_receipt_tools(&retained, selected.iter())?, ["alpha", "gamma"]);
+        assert!(selected_receipt_tools(&retained, BTreeSet::<String>::new().iter()).is_err());
+        let unknown = BTreeSet::from(["unknown".to_string()]);
+        assert!(selected_receipt_tools(&retained, unknown.iter()).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn complete_campaign_preserves_historical_commit_root() -> Result<()> {
+        let retained = vec!["alpha".to_string(), "beta".to_string()];
+        let tools = select_campaign_tools(&retained, None)?;
+        assert_eq!(campaign_scope(&tools, retained.len()), None);
+        assert_eq!(
+            campaign_root(Path::new("/study/campaigns"), "commit", None),
+            Path::new("/study/campaigns/commit")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn campaign_attempt_requires_stable_scheduler_identity() {
+        let campaign = ApptainerImageCampaignRequest {
+            repository_root: PathBuf::from("repository"),
+            study_root: PathBuf::from("study"),
+            apptainer_executable: PathBuf::from("apptainer"),
+            worker_count: 1,
+            selected_tools: None,
+        };
+        let valid = ImageCampaignAttemptRequest {
+            campaign: campaign.clone(),
+            attempt_root: PathBuf::from("attempt"),
+            attempt_id: "attempt-001".to_string(),
+            slurm_job_id: "3473000".to_string(),
+            completed_at: "2026-08-09T07:10:00Z".to_string(),
+        };
+        assert!(validate_attempt_identity(&valid).is_ok());
+
+        let mut invalid = valid.clone();
+        invalid.attempt_id = "../attempt".to_string();
+        assert!(validate_attempt_identity(&invalid).is_err());
+        invalid = valid.clone();
+        invalid.slurm_job_id = "job-3473000".to_string();
+        assert!(validate_attempt_identity(&invalid).is_err());
+        invalid = valid;
+        invalid.completed_at = "not-a-timestamp".to_string();
+        assert!(validate_attempt_identity(&invalid).is_err());
+    }
 }

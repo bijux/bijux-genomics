@@ -3,8 +3,9 @@
 ## What this crate does
 `bijux-dna-containers-qa` is the effectful QA edge for environment and image readiness. It builds
 and probes Docker images, runs Docker/Apptainer QA workflows, writes QA evidence, and validates QA
-artifacts before production layers trust image inputs. It also owns pipeline-derived qualification
-probe plans and classified output/metric verdicts consumed by the runner.
+artifacts before production layers trust image inputs. It also owns binding-derived qualification
+specification compilation, pipeline-derived probe plans, and classified output/metric verdicts
+consumed by the runner.
 
 ## What it must not do (boundaries)
 It must not own planner selection, biological pipeline process execution, production runner
@@ -37,7 +38,7 @@ The image QA surface is organized by responsibility. Start with `src/image_qa/mo
 - `qa_docker_images/`: Docker image plan/probe/report command implementation.
 - `runtime_verification/`: catalog-wide Apptainer version/help probe execution.
 - `qualification/`: typed probe plans, declared-output validation, metric evaluation, and failure
-  classification.
+  classification, plus checksum-bound generic specification compilation and catalog coverage.
 
 ## Key contracts it owns/consumes
 Owned contracts are documented in `docs/CONTRACTS.md`.

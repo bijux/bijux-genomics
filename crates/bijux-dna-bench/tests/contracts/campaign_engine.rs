@@ -2,29 +2,40 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use anyhow::Result;
 use bijux_dna_bench::{
-    aggregate_benchmark_case_observations, load_checked_in_benchmark_planning_contracts,
-    plan_benchmark_case_matrix, validate_benchmark_case_matrix, BenchmarkAdmittedCaseObservationV1,
-    BenchmarkCaseMatrixRequest, BenchmarkCaseRepetitionObservationV1, BenchmarkCorpusSnapshotV1,
-    BenchmarkScientificValue, BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
+    aggregate_benchmark_admitted_case_observation_set, aggregate_benchmark_case_observations,
+    build_benchmark_admitted_case_observation_set,
+    build_benchmark_stage_report_from_case_aggregations,
+    ensure_benchmark_admitted_case_observation_set, ensure_benchmark_case_aggregation_set,
+    ensure_benchmark_case_matrix, load_benchmark_admitted_case_observation_set,
+    load_benchmark_case_aggregation_set, load_benchmark_case_matrix,
+    load_checked_in_benchmark_planning_contracts, plan_benchmark_case_matrix,
+    validate_benchmark_admitted_case_observation_set, validate_benchmark_case_aggregation_set,
+    validate_benchmark_case_aggregations, validate_benchmark_case_matrix,
+    BenchmarkAdmittedCaseObservationV2, BenchmarkCaseExecutionEvidenceV1,
+    BenchmarkCaseMatrixRequest, BenchmarkCaseRepetitionObservationV1, BenchmarkDataSnapshotRoleV1,
+    BenchmarkDataSnapshotV1, BenchmarkReportImage, BenchmarkReportInputLock,
+    BenchmarkReportSlurmJob, BenchmarkScientificValue, BenchmarkStageCampaignRegistry,
+    BenchmarkStageInterfaceCatalog, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
 };
 use bijux_dna_core::{
     contract::ToolConstraints,
     ids::{StageId, ToolId},
 };
 use bijux_dna_stage_contract::{
-    BindingInputV1, BindingOutputV1, BindingParameterV1, OutputDiscoveryV1, ToolArtifactSourceV1,
-    ToolBindingRegistry, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
+    canonical_tool_bindings, BindingInputV1, BindingOutputV1, BindingParameterV1,
+    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingV1,
+    TOOL_BINDING_SCHEMA_V1,
 };
 
-const EXISTING_CAMPAIGN_COUNT: usize = 9;
-const EXISTING_CASE_COUNT: usize = 20;
+const EXISTING_CAMPAIGN_COUNT: usize = 12;
+const EXISTING_CASE_COUNT: usize = 24;
+const COVERAGE_STAGE: &str = "bam.coverage";
 
 struct PlanningFixture {
     campaigns: BenchmarkStageCampaignRegistry,
     interfaces: BenchmarkStageInterfaceCatalog,
     bindings: ToolBindingRegistry,
-    snapshots: Vec<BenchmarkCorpusSnapshotV1>,
+    snapshots: Vec<BenchmarkDataSnapshotV1>,
 }
 
 #[test]
@@ -51,6 +62,278 @@ fn checked_in_campaigns_plan_through_one_order_independent_engine() -> Result<()
         serde_json::to_vec(&matrix)? == reordered_bytes,
         "case matrix bytes changed with semantically unordered authority input"
     );
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2001_plans_through_the_canonical_binding_registry() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2001");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.genotyping");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2001 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(matrix.cases.len(), 1);
+    assert_eq!(matrix.cases[0].run_id, "run-2001");
+    assert_eq!(matrix.cases[0].tool_id, "bcftools");
+    assert_eq!(matrix.data_snapshots.len(), 4);
+    assert_eq!(
+        matrix.data_snapshots.iter().map(|snapshot| snapshot.role).collect::<BTreeSet<_>>(),
+        BTreeSet::from([
+            BenchmarkDataSnapshotRoleV1::Corpus,
+            BenchmarkDataSnapshotRoleV1::Reference,
+            BenchmarkDataSnapshotRoleV1::Database,
+        ])
+    );
+    assert_eq!(
+        matrix.cases[0].binding.normalized_output_contract_id,
+        matrix.cases[0].interface.output_contract
+    );
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2002_plans_all_coverage_tools_through_canonical_bindings() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2002");
+    interfaces.interfaces.retain(|interface| interface.stage_id == COVERAGE_STAGE);
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2002 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(
+        matrix.cases.iter().map(|case| case.tool_id.as_str()).collect::<Vec<_>>(),
+        ["bedtools", "mosdepth", "samtools"]
+    );
+    assert!(matrix.cases.iter().all(|case| {
+        case.binding.normalized_output_contract_id == case.interface.output_contract
+            && case.binding.resources.threads == case.measurement.allocated_cpus
+    }));
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2005_plans_both_aligners_through_canonical_bindings() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2005");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.align");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2005 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(
+        matrix.cases.iter().map(|case| case.tool_id.as_str()).collect::<Vec<_>>(),
+        ["bowtie2", "bwa"]
+    );
+    assert!(matrix.cases.iter().all(|case| {
+        case.binding.normalized_output_contract_id == case.interface.output_contract
+            && case.binding.resources.threads == case.measurement.allocated_cpus
+    }));
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2003_plans_endogenous_content_through_canonical_binding() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2003");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.endogenous_content");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2003 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(matrix.cases.len(), 1);
+    assert_eq!(matrix.cases[0].tool_id, "samtools");
+    assert_eq!(matrix.cases[0].binding.resources.threads, 4);
+    assert_eq!(matrix.data_snapshots.len(), 2);
+    assert_eq!(
+        matrix.cases[0].binding.normalized_output_contract_id,
+        matrix.cases[0].interface.output_contract
+    );
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2004_plans_mapping_summary_tools_through_canonical_bindings() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2004");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.mapping_summary");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2004 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(
+        matrix.cases.iter().map(|case| case.tool_id.as_str()).collect::<Vec<_>>(),
+        ["picard", "samtools"]
+    );
+    assert!(matrix.cases.iter().all(|case| {
+        case.binding.resources.threads == 1
+            && case.binding.normalized_output_contract_id == case.interface.output_contract
+    }));
+    assert_eq!(matrix.data_snapshots.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2011_plans_duplication_metrics_through_canonical_bindings() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2011");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.duplication_metrics");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2011 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(
+        matrix.cases.iter().map(|case| case.tool_id.as_str()).collect::<Vec<_>>(),
+        ["picard", "samtools"]
+    );
+    assert_eq!(matrix.cases[0].binding.resources.threads, 1);
+    assert_eq!(matrix.cases[1].binding.resources.threads, 4);
+    assert_eq!(matrix.data_snapshots.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2015_plans_insert_size_through_canonical_binding() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2015");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.insert_size");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2015 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(matrix.cases.len(), 1);
+    assert_eq!(matrix.cases[0].tool_id, "picard");
+    assert_eq!(matrix.cases[0].binding.resources.threads, 1);
+    assert_eq!(
+        matrix.cases[0].binding.normalized_output_contract_id,
+        "bijux.benchmark.bam.insert_size.bundle.v1"
+    );
+    assert_eq!(matrix.data_snapshots.len(), 1);
+    Ok(())
+}
+
+#[test]
+fn checked_in_run_2013_plans_gc_bias_through_canonical_binding() -> Result<()> {
+    let (mut campaigns, _, mut interfaces) = load_checked_in_benchmark_planning_contracts()?;
+    campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2013");
+    interfaces.interfaces.retain(|interface| interface.stage_id == "bam.gc_bias");
+    let campaign = campaigns
+        .campaigns
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("checked-in run-2013 campaign is absent"))?;
+    let snapshots = campaign_snapshots(campaign);
+    let bindings = canonical_tool_bindings()?;
+    let matrix = plan_benchmark_case_matrix(&BenchmarkCaseMatrixRequest {
+        repository_commit: &"1".repeat(40),
+        campaign_registry_sha256: &"2".repeat(64),
+        interface_catalog_sha256: &"3".repeat(64),
+        tool_binding_registry_sha256: &"4".repeat(64),
+        campaigns: &campaigns,
+        interfaces: &interfaces,
+        bindings: &bindings,
+        data_snapshots: &snapshots,
+    })?;
+
+    assert_eq!(matrix.cases.len(), 1);
+    assert_eq!(matrix.cases[0].tool_id, "picard");
+    assert_eq!(matrix.cases[0].binding.resources.threads, 1);
+    assert_eq!(
+        matrix.cases[0].binding.normalized_output_contract_id,
+        "bijux.benchmark.bam.gc_bias.bundle.v1"
+    );
+    assert_eq!(matrix.data_snapshots.len(), 1);
     Ok(())
 }
 
@@ -149,6 +432,73 @@ fn campaign_binding_cpu_drift_is_refused() -> Result<()> {
 }
 
 #[test]
+fn campaign_data_authority_must_be_exact_and_role_correct() -> Result<()> {
+    let mut missing = planning_fixture()?;
+    missing.snapshots.pop();
+    assert!(plan(&missing).is_err_and(|error| {
+        error.to_string().contains("do not exactly close campaign data authorities")
+    }));
+
+    let mut wrong_role = planning_fixture()?;
+    let snapshot = wrong_role.snapshots.first_mut().expect("data snapshot");
+    snapshot.role = match snapshot.role {
+        BenchmarkDataSnapshotRoleV1::Corpus => BenchmarkDataSnapshotRoleV1::Reference,
+        _ => BenchmarkDataSnapshotRoleV1::Corpus,
+    };
+    assert!(plan(&wrong_role).is_err_and(|error| {
+        error.to_string().contains("do not exactly close campaign data authorities")
+    }));
+
+    let mut extra = planning_fixture()?;
+    extra.snapshots.push(BenchmarkDataSnapshotV1 {
+        catalog_id: "unreferenced-production-data".to_string(),
+        role: BenchmarkDataSnapshotRoleV1::Database,
+        catalog_sha256: "f".repeat(64),
+        sample_ids: Vec::new(),
+    });
+    assert!(plan(&extra).is_err_and(|error| {
+        error.to_string().contains("do not exactly close campaign data authorities")
+    }));
+    Ok(())
+}
+
+#[test]
+fn campaign_binding_normalized_output_drift_is_refused() -> Result<()> {
+    let mut fixture = planning_fixture()?;
+    let first = fixture.bindings.bindings().next().expect("checked-in binding").clone();
+    let mut replacement = ToolBindingRegistry::default();
+    for registered in fixture.bindings.bindings() {
+        if registered.binding_id == first.binding_id {
+            let mut drifted = registered.clone();
+            drifted.normalized_output_contract_id =
+                format!("bijux.benchmark.{}.bundle.v1", registered.stage_id);
+            drifted.normalized_output_contract_id.push_str(".drift");
+            replacement.insert(drifted).expect_err("invalid normalized contract must fail");
+        } else {
+            replacement.insert(registered.clone())?;
+        }
+    }
+
+    let interface = fixture
+        .interfaces
+        .interfaces
+        .iter()
+        .find(|interface| interface.stage_id == first.stage_id.as_str())
+        .expect("checked-in interface");
+    let mut drifted = first;
+    drifted.normalized_output_contract_id = "bijux.fastq.artifact.reads.v1".to_string();
+    if interface.output_contract == drifted.normalized_output_contract_id {
+        drifted.normalized_output_contract_id = "bijux.auxiliary.artifact.json.v1".to_string();
+    }
+    replacement.insert(drifted)?;
+    fixture.bindings = replacement;
+
+    let error = plan(&fixture).expect_err("normalized stage output drift must fail planning");
+    assert!(error.to_string().contains("emits no declared stage output"));
+    Ok(())
+}
+
+#[test]
 fn admitted_observations_aggregate_all_cases_without_dispatch() -> Result<()> {
     let fixture = planning_fixture()?;
     let matrix = plan(&fixture)?;
@@ -178,6 +528,69 @@ fn admitted_observations_aggregate_all_cases_without_dispatch() -> Result<()> {
 }
 
 #[test]
+fn persisted_case_evidence_sets_are_canonical_source_bound_and_no_clobber() -> Result<()> {
+    let fixture = planning_fixture()?;
+    let matrix = plan(&fixture)?;
+    let observations = admitted_observations(&matrix);
+    let expected = build_benchmark_admitted_case_observation_set(&matrix, observations.clone())?;
+    let mut reversed = observations;
+    reversed.reverse();
+    let observation_set = build_benchmark_admitted_case_observation_set(&matrix, reversed)?;
+    assert_eq!(observation_set, expected);
+    validate_benchmark_admitted_case_observation_set(&matrix, &observation_set)?;
+
+    let aggregation_set =
+        aggregate_benchmark_admitted_case_observation_set(&matrix, &observation_set)?;
+    validate_benchmark_case_aggregation_set(&matrix, &observation_set, &aggregation_set)?;
+
+    let root = tempfile::tempdir()?;
+    let matrix_path = root.path().join("case-matrix.json");
+    let observations_path = root.path().join("admitted-observations.json");
+    let aggregations_path = root.path().join("aggregations.json");
+    ensure_benchmark_case_matrix(&matrix_path, &matrix)?;
+    ensure_benchmark_admitted_case_observation_set(&observations_path, &matrix, &observation_set)?;
+    ensure_benchmark_case_aggregation_set(
+        &aggregations_path,
+        &matrix,
+        &observation_set,
+        &aggregation_set,
+    )?;
+    assert_eq!(load_benchmark_case_matrix(&matrix_path)?, matrix);
+    assert_eq!(
+        load_benchmark_admitted_case_observation_set(&observations_path, &matrix)?,
+        observation_set
+    );
+    assert_eq!(
+        load_benchmark_case_aggregation_set(&aggregations_path, &matrix, &observation_set)?,
+        aggregation_set
+    );
+
+    ensure_benchmark_case_matrix(&matrix_path, &matrix)?;
+    std::fs::write(&matrix_path, b"{}")?;
+    assert!(ensure_benchmark_case_matrix(&matrix_path, &matrix).is_err());
+    assert_eq!(std::fs::read(&matrix_path)?, b"{}");
+    Ok(())
+}
+
+#[test]
+fn persisted_case_evidence_sets_reject_upstream_digest_drift() -> Result<()> {
+    let fixture = planning_fixture()?;
+    let matrix = plan(&fixture)?;
+    let mut observations =
+        build_benchmark_admitted_case_observation_set(&matrix, admitted_observations(&matrix))?;
+    observations.case_matrix_sha256 = "f".repeat(64);
+    assert!(validate_benchmark_admitted_case_observation_set(&matrix, &observations).is_err());
+
+    let observations =
+        build_benchmark_admitted_case_observation_set(&matrix, admitted_observations(&matrix))?;
+    let mut aggregations =
+        aggregate_benchmark_admitted_case_observation_set(&matrix, &observations)?;
+    aggregations.observation_set_sha256 = "e".repeat(64);
+    assert!(validate_benchmark_case_aggregation_set(&matrix, &observations, &aggregations).is_err());
+    Ok(())
+}
+
+#[test]
 fn aggregation_refuses_incomplete_or_nondeterministic_evidence() -> Result<()> {
     let fixture = planning_fixture()?;
     let matrix = plan(&fixture)?;
@@ -202,6 +615,78 @@ fn aggregation_refuses_incomplete_or_nondeterministic_evidence() -> Result<()> {
         .expect_err("metric closure drift must fail")
         .to_string()
         .contains("metric closure"));
+
+    let mut observations = admitted_observations(&matrix);
+    observations[0].execution.image.sha256 = "invalid".to_string();
+    assert!(aggregate_benchmark_case_observations(&matrix, &observations)
+        .expect_err("invalid image provenance must fail")
+        .to_string()
+        .contains("image digest"));
+
+    let mut observations = admitted_observations(&matrix);
+    observations[0].execution.input_bytes.clear();
+    assert!(aggregate_benchmark_case_observations(&matrix, &observations)
+        .expect_err("incomplete input-byte closure must fail")
+        .to_string()
+        .contains("input-byte closure"));
+
+    let mut observations = admitted_observations(&matrix);
+    observations[0].execution.slurm.allocated_cpus = "999".to_string();
+    assert!(aggregate_benchmark_case_observations(&matrix, &observations)
+        .expect_err("scheduler CPU drift must fail")
+        .to_string()
+        .contains("CPU evidence"));
+    Ok(())
+}
+
+#[test]
+fn generic_aggregations_build_a_citable_stage_report_without_dispatch() -> Result<()> {
+    let fixture = planning_fixture()?;
+    let mut matrix = plan(&fixture)?;
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .expect("benchmark crate is inside the repository");
+    matrix.repository_commit = bijux_dna_containers::api::repository_head_commit(repository_root)?;
+    let observations = admitted_observations(&matrix);
+    let aggregations = aggregate_benchmark_case_observations(&matrix, &observations)?;
+    validate_benchmark_case_aggregations(&matrix, &aggregations)?;
+    let run_aggregations = aggregations
+        .iter()
+        .filter(|aggregation| aggregation.run_id == "run-2002")
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let report = build_benchmark_stage_report_from_case_aggregations(
+        repository_root,
+        &matrix,
+        &run_aggregations,
+        "run-2002",
+    )?;
+    assert_eq!(report.run_id, "run-2002");
+    assert_eq!(report.stage_id, "bam.coverage");
+    assert_eq!(report.tools.len(), 3);
+    assert!(report.tools.iter().all(|tool| {
+        tool.image.size_bytes == 1024
+            && tool.slurm.job_id == "123456"
+            && tool.source_evidence_sha256 == "e".repeat(64)
+            && tool.input_locks.len() == 1
+            && tool.determinism.identical_across_repetitions
+    }));
+    Ok(())
+}
+
+#[test]
+fn generic_report_refuses_persisted_aggregation_drift() -> Result<()> {
+    let fixture = planning_fixture()?;
+    let matrix = plan(&fixture)?;
+    let observations = admitted_observations(&matrix);
+    let mut aggregations = aggregate_benchmark_case_observations(&matrix, &observations)?;
+    aggregations[0].execution.image.sha256 = "f".repeat(64);
+    aggregations[0].execution.input_bytes.clear();
+    let error = validate_benchmark_case_aggregations(&matrix, &aggregations)
+        .expect_err("persisted execution drift must fail validation");
+    assert!(error.to_string().contains("input-byte closure"));
     Ok(())
 }
 
@@ -224,18 +709,31 @@ fn planning_fixture() -> Result<PlanningFixture> {
             bindings.insert(binding(interface, tool, threads))?;
         }
     }
-    let corpus_ids = campaigns
+    let data_ids = campaigns
         .campaigns
         .iter()
-        .flat_map(|campaign| campaign.corpus_catalog_ids.iter().cloned())
+        .flat_map(|campaign| {
+            [
+                (&campaign.corpus_catalog_ids, BenchmarkDataSnapshotRoleV1::Corpus),
+                (&campaign.reference_catalog_ids, BenchmarkDataSnapshotRoleV1::Reference),
+                (&campaign.database_catalog_ids, BenchmarkDataSnapshotRoleV1::Database),
+            ]
+            .into_iter()
+            .flat_map(|(ids, role)| ids.iter().cloned().map(move |id| (id, role)))
+        })
         .collect::<BTreeSet<_>>();
-    let snapshots = corpus_ids
+    let snapshots = data_ids
         .into_iter()
         .enumerate()
-        .map(|(index, corpus_id)| BenchmarkCorpusSnapshotV1 {
-            corpus_id,
-            snapshot_sha256: format!("{index:064x}"),
-            sample_ids: vec![format!("sample-{index}")],
+        .map(|(index, (catalog_id, role))| BenchmarkDataSnapshotV1 {
+            catalog_id,
+            role,
+            catalog_sha256: format!("{index:064x}"),
+            sample_ids: if role == BenchmarkDataSnapshotRoleV1::Corpus {
+                vec![format!("sample-{index}")]
+            } else {
+                Vec::new()
+            },
         })
         .collect();
     Ok(PlanningFixture { campaigns, interfaces, bindings, snapshots })
@@ -263,9 +761,10 @@ fn binding(
         parameters: vec![BindingParameterV1 { name: "threads".to_string(), required: true }],
         outputs: vec![BindingOutputV1 {
             name: "result".to_string(),
-            artifact_contract_id: interface.output_contract.clone(),
+            artifact_contract_id: interface.accepted_input_contracts[0].clone(),
             discovery: OutputDiscoveryV1::ExactPath,
         }],
+        normalized_output_contract_id: interface.output_contract.clone(),
         command_template: vec![
             "${executable}".to_string(),
             "${input:source}".to_string(),
@@ -285,18 +784,44 @@ fn binding(
 }
 
 fn admitted_observations(
-    matrix: &bijux_dna_bench::BenchmarkCaseMatrixV1,
-) -> Vec<BenchmarkAdmittedCaseObservationV1> {
+    matrix: &bijux_dna_bench::BenchmarkCaseMatrixV2,
+) -> Vec<BenchmarkAdmittedCaseObservationV2> {
     matrix
         .cases
         .iter()
-        .map(|case| BenchmarkAdmittedCaseObservationV1 {
-            schema_version: BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1.to_string(),
+        .map(|case| BenchmarkAdmittedCaseObservationV2 {
+            schema_version: BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2.to_string(),
             case_id: case.case_id.clone(),
             repository_commit: matrix.repository_commit.clone(),
             admission_sha256: "5".repeat(64),
             input_lock_sha256: "6".repeat(64),
             parameter_lock_sha256: "7".repeat(64),
+            execution: BenchmarkCaseExecutionEvidenceV1 {
+                image: BenchmarkReportImage {
+                    name: format!("{}.sif", case.tool_id),
+                    sha256: "d".repeat(64),
+                    size_bytes: 1024,
+                },
+                slurm: BenchmarkReportSlurmJob {
+                    job_id: "123456".to_string(),
+                    host: "compute-01".to_string(),
+                    elapsed: "00:00:01".to_string(),
+                    allocated_cpus: case.measurement.allocated_cpus.to_string(),
+                },
+                source_evidence_sha256: "e".repeat(64),
+                input_locks: vec![BenchmarkReportInputLock {
+                    id: case.corpus.corpus_id.clone(),
+                    kind: "corpus_snapshot".to_string(),
+                    mount_path: "/inputs/corpus".to_string(),
+                    sha256: case.corpus.snapshot_sha256.clone(),
+                }],
+                input_bytes: case
+                    .campaign
+                    .input_size_keys
+                    .iter()
+                    .map(|key| (key.clone(), 1024))
+                    .collect(),
+            },
             repetitions: (1..=case.measurement.measured_repetitions)
                 .map(|repetition| BenchmarkCaseRepetitionObservationV1 {
                     repetition,
@@ -325,7 +850,7 @@ fn admitted_observations(
         .collect()
 }
 
-fn plan(fixture: &PlanningFixture) -> Result<bijux_dna_bench::BenchmarkCaseMatrixV1> {
+fn plan(fixture: &PlanningFixture) -> Result<bijux_dna_bench::BenchmarkCaseMatrixV2> {
     let repository_commit = "1".repeat(40);
     let campaign_digest = "2".repeat(64);
     let interface_digest = "3".repeat(64);
@@ -338,6 +863,30 @@ fn plan(fixture: &PlanningFixture) -> Result<bijux_dna_bench::BenchmarkCaseMatri
         campaigns: &fixture.campaigns,
         interfaces: &fixture.interfaces,
         bindings: &fixture.bindings,
-        corpus_snapshots: &fixture.snapshots,
+        data_snapshots: &fixture.snapshots,
     })
+}
+
+fn campaign_snapshots(
+    campaign: &bijux_dna_bench::BenchmarkStageCampaignSpec,
+) -> Vec<BenchmarkDataSnapshotV1> {
+    [
+        (&campaign.corpus_catalog_ids, BenchmarkDataSnapshotRoleV1::Corpus),
+        (&campaign.reference_catalog_ids, BenchmarkDataSnapshotRoleV1::Reference),
+        (&campaign.database_catalog_ids, BenchmarkDataSnapshotRoleV1::Database),
+    ]
+    .into_iter()
+    .flat_map(|(ids, role)| {
+        ids.iter().map(move |id| BenchmarkDataSnapshotV1 {
+            catalog_id: id.clone(),
+            role,
+            catalog_sha256: "a".repeat(64),
+            sample_ids: if role == BenchmarkDataSnapshotRoleV1::Corpus {
+                vec!["contract-sample".to_string()]
+            } else {
+                Vec::new()
+            },
+        })
+    })
+    .collect()
 }

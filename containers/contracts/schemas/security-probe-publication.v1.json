@@ -1,0 +1,189 @@
+{
+  "$defs": {
+    "SecurityProbeArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "SecurityProbeStatus": {
+      "enum": [
+        "collected",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "ToolSecurityProbe": {
+      "additionalProperties": false,
+      "properties": {
+        "build_evidence_id": {
+          "type": "string"
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "image_sha256": {
+          "type": "string"
+        },
+        "raw_manifest": {
+          "$ref": "#/$defs/SecurityProbeArtifact"
+        },
+        "runtime_report": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecurityProbeArtifact"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "sbom": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecurityProbeArtifact"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "secret_report": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecurityProbeArtifact"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "signature_stderr": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecurityProbeArtifact"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "signature_stdout": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecurityProbeArtifact"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "signature_verified": {
+          "type": "boolean"
+        },
+        "status": {
+          "$ref": "#/$defs/SecurityProbeStatus"
+        },
+        "structural_report": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecurityProbeArtifact"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tool_contract_sha256": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "vulnerability_report": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SecurityProbeArtifact"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "tool_id",
+        "version",
+        "image_sha256",
+        "tool_contract_sha256",
+        "build_evidence_id",
+        "status",
+        "signature_verified",
+        "raw_manifest"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "database_completion_sha256": {
+      "type": "string"
+    },
+    "inventory_sha256": {
+      "type": "string"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "reused_publication_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "scanner_completion_sha256": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.container.security_probe_publication.v1",
+      "type": "string"
+    },
+    "tools": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ToolSecurityProbe"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "repository_commit",
+    "catalog_sha256",
+    "inventory_sha256",
+    "scanner_completion_sha256",
+    "database_completion_sha256",
+    "tools"
+  ],
+  "title": "SecurityProbePublication",
+  "type": "object"
+}

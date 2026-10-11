@@ -1,3 +1,4 @@
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -163,6 +164,14 @@ fn repository_freeze_materializes_scoped_self_contained_snapshots() -> Result<()
         assert!(path.join(".git").is_dir());
         assert!(!path.join(".git/objects/info/alternates").exists());
         assert!(git(path, &["remote"])?.is_empty());
+        assert!(walkdir::WalkDir::new(path)
+            .follow_links(false)
+            .into_iter()
+            .filter_map(std::result::Result::ok)
+            .filter(|entry| !entry.file_type().is_symlink())
+            .all(|entry| entry
+                .metadata()
+                .is_ok_and(|metadata| { metadata.permissions().mode() & 0o222 == 0 })));
     }
     let registered_worktrees = git(&governance.paths.active_repository, &["worktree", "list"])?;
     assert_eq!(registered_worktrees.lines().count(), 1);

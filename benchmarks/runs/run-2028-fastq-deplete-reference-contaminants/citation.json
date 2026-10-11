@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2028",
+  "run": {
+    "run_id": "run-2028",
+    "domain": "fastq",
+    "stage_id": "fastq.deplete_reference_contaminants"
+  },
+  "protocol_title": "FASTQ deplete reference contaminants benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "6e78c7d2a99b793e16c25edc55dbd32afb85f087b3def08ca11ee2d77b897015",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

@@ -16,6 +16,8 @@ invokes them. It must stay offline by default and must not gain process or netwo
 - Temporary directories through `temp_dir` and `temp_dir_in`; tests should set `TEST_TMP_DIR` so
   `temp_dir` stays under repository `artifacts/`.
 - Caller-provided log files when `init_logging` is used with the `tracing` feature.
+- Owner-provided attempt roots when explicitly archiving, verifying, or rolling back one governed
+  attempt through a same-filesystem atomic transaction.
 
 ## Allowed Processes
 

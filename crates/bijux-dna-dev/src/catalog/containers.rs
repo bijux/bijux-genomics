@@ -322,9 +322,29 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ExternalArtifact,
         ),
         native(
+            "grype-database",
+            "Admit immutable Grype vulnerability database evidence.",
+            NativeContainerCommandKey::GrypeDatabase,
+        ),
+        native(
+            "security-evidence",
+            "Compose admitted exact-image observations into policy-owned security evidence.",
+            NativeContainerCommandKey::SecurityEvidence,
+        ),
+        native(
+            "security-toolchain",
+            "Admit an immutable security scanner toolchain acquisition.",
+            NativeContainerCommandKey::SecurityToolchain,
+        ),
+        native(
             "image-activation",
             "Plan, apply, verify, or roll back canonical image activation.",
             NativeContainerCommandKey::ImageActivation,
+        ),
+        native(
+            "image-campaign",
+            "Admit terminal retained-image campaign receipts and referenced publications.",
+            NativeContainerCommandKey::ImageCampaign,
         ),
         native(
             "image-storage",
@@ -340,6 +360,16 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             "qualification-registry",
             "Derive and audit stable qualification-run identities from catalog and history.",
             NativeContainerCommandKey::QualificationRegistry,
+        ),
+        native(
+            "qualification-specification",
+            "Compile checksum-bound qualification specifications and report incremental coverage.",
+            NativeContainerCommandKey::QualificationSpecification,
+        ),
+        native(
+            "qualification-cycle",
+            "Plan and advance non-waiting governed qualification cycles.",
+            NativeContainerCommandKey::QualificationCycle,
         ),
         native(
             "qualification-slurm",

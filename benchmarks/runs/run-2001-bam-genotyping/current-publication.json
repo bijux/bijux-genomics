@@ -1,0 +1,12 @@
+{
+  "schema_version": "bijux.benchmark.run_publication_pointer.v1",
+  "run": {
+    "run_id": "run-2001",
+    "domain": "bam",
+    "stage_id": "bam.genotyping"
+  },
+  "protocol_sha256": "04a15ee8d9e52e043518df99b0f42f0825d361b1a894e6cd985756471442192d",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

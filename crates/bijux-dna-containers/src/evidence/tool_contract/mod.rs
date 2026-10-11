@@ -17,7 +17,8 @@ mod version_lock;
 
 pub use catalog::{
     catalog_identity_at_commit, load_container_catalog, retained_apptainer_tool_ids,
-    ContainerCatalog, ContainerCatalogTool, CONTAINER_CATALOG_SCHEMA_V1,
+    ContainerArtifactDelivery, ContainerCatalog, ContainerCatalogTool, ContainerProductSupport,
+    CONTAINER_CATALOG_SCHEMA_V1,
 };
 pub use catalog_lock::{
     derive_container_catalog_lock, load_container_catalog_lock, render_container_catalog_lock,
@@ -30,10 +31,12 @@ pub use inspection::verify_apptainer_tool_contract;
 pub use labels::{tool_contract_labels, validate_tool_contract_labels, ToolContractLabels};
 pub use model::{
     ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest,
-    ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
-    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1,
+    ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V2,
+    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
 };
+pub(crate) use preparation::prepare_apptainer_tool_contract_for_publication;
 pub use preparation::{derive_apptainer_tool_contract, prepare_apptainer_tool_contract};
+pub(crate) use recipe_identity::repository_commit_is_ancestor;
 pub use recipe_identity::{
     apptainer_recipe_identity_at_commit, clean_repository_head_commit,
     container_build_evidence_matches_recipe, repository_changed_paths_since,
@@ -54,7 +57,9 @@ pub use smoke::{
     run_apptainer_smoke, ApptainerSmokeManifest, ApptainerSmokeProbeResult, ApptainerSmokeRequest,
     APPTAINER_SMOKE_MANIFEST_SCHEMA_V5, APPTAINER_SMOKE_MANIFEST_SCHEMA_V6,
 };
-pub use validation::{validate_tool_contract, validate_tool_image_identity_evidence};
+pub use validation::{
+    tool_contract_is_compatible, validate_tool_contract, validate_tool_image_identity_evidence,
+};
 pub use version_catalog::{
     derive_container_version_map, render_container_version_index, render_container_version_map,
     ContainerVersionMap, ContainerVersionMapItem, CONTAINER_VERSION_CATALOG_PATH,

@@ -497,7 +497,7 @@ mod tests {
                 negative: vec!["false".to_string()],
             },
             parameters: BenchmarkExecutionParameterEvidence {
-                parameter_schema_version: "bijux.fastq.params.read_length_profile.v1".to_string(),
+                parameter_schema_version: "test.parameter.schema.v1".to_string(),
                 defaults_provider: "bijux_dna_domain_fastq::read_length_profile_defaults"
                     .to_string(),
                 overrides_path: "config-pipeline-parameters.yml".to_string(),

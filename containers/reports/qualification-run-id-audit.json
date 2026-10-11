@@ -9,7 +9,7 @@
   "historical_max_run_number": 1140,
   "retained_mapping_count": 85,
   "unsupported_tool_count": 4,
-  "allocated_mapping_count": 17,
+  "allocated_mapping_count": 18,
   "historical_identities": [
     {
       "run_id": "run-1001",
@@ -604,7 +604,8 @@
     {
       "tool_id": "angsd",
       "support_disposition": "unsupported",
-      "identity_source": "unsupported",
+      "run_id": "run-1094",
+      "identity_source": "checked_in_final_run",
       "stage_id": "bam.kinship",
       "input_role": "bam"
     },
@@ -851,7 +852,8 @@
     {
       "tool_id": "fastuniq",
       "support_disposition": "unsupported",
-      "identity_source": "unsupported",
+      "run_id": "run-1023",
+      "identity_source": "checked_in_final_run",
       "stage_id": "fastq.remove_duplicates",
       "input_role": "fastq"
     },
@@ -930,7 +932,8 @@
     {
       "tool_id": "impute5",
       "support_disposition": "unsupported",
-      "identity_source": "unsupported",
+      "run_id": "run-1158",
+      "identity_source": "allocated_after_historical_max",
       "stage_id": "vcf.imputation_metrics",
       "input_role": "vcf"
     },
@@ -1033,7 +1036,8 @@
     {
       "tool_id": "ngsbriggs",
       "support_disposition": "unsupported",
-      "identity_source": "unsupported",
+      "run_id": "run-1046",
+      "identity_source": "checked_in_final_run",
       "stage_id": "bam.damage",
       "input_role": "bam"
     },

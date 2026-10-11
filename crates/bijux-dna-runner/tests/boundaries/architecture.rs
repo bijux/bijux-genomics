@@ -85,6 +85,7 @@ fn runner_tree_matches_architecture_contract() {
         "client.rs",
         "contracts.rs",
         "corpus_materialization/",
+        "image_campaign/",
         "mod.rs",
         "parsing.rs",
         "qualification/",
@@ -102,6 +103,7 @@ fn runner_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/backend/slurm/corpus_materialization")),
         [
             "contracts.rs",
+            "correction.rs",
             "lifecycle.rs",
             "mod.rs",
             "preparation.rs",
@@ -117,6 +119,7 @@ fn runner_tree_matches_architecture_contract() {
         [
             "archival.rs",
             "contracts.rs",
+            "cycle.rs",
             "execution.rs",
             "lifecycle.rs",
             "mod.rs",

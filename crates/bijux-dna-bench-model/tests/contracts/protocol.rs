@@ -25,9 +25,18 @@ fn run_definition() -> BenchmarkRunDefinition {
         title: "FASTQ read-length profiling".to_string(),
         purpose: "Compare retained read-length profiling tools on governed real data.".to_string(),
         owner: "bijux-dna-bench".to_string(),
+        profile_id: "fastq-quality-control".to_string(),
+        tool_exclusion_policy: "Include every retained stage implementation.".to_string(),
         state: BenchmarkRunState::Active,
         state_reason: None,
         tool_ids: vec!["seqfu".to_string(), "seqkit".to_string()],
+        accepted_input_contracts: vec!["bijux.fastq.artifact.single_end.v1".to_string()],
+        output_contract: Some("bijux.benchmark.fastq.read_lengths.bundle.v1".to_string()),
+        normalized_result_contract: Some(
+            "benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json"
+                .to_string(),
+        ),
+        measurement_policy_id: "benchmark-measurement-v1".to_string(),
         contracts: vec![BenchmarkContractLock {
             contract_id: "stage-interface".to_string(),
             repository_path: "benchmarks/contracts/stage-interfaces.toml".to_string(),

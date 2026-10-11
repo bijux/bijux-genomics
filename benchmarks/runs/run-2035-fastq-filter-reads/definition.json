@@ -1,0 +1,42 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2035",
+    "domain": "fastq",
+    "stage_id": "fastq.filter_reads"
+  },
+  "protocol_version": "1.0.0",
+  "title": "FASTQ filter reads benchmark protocol",
+  "purpose": "Compare the runnable fastq.filter_reads tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "fastq-read-transformation",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "bbduk",
+    "fastp",
+    "prinseq",
+    "seqkit"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "read_processing_truth",
+      "corpus_ids": [
+        "read-processing-challenge"
+      ]
+    },
+    {
+      "role": "short_read_diversity",
+      "corpus_ids": [
+        "human-short-read-diversity"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2035",
+  "supersedes_run_ids": []
+}

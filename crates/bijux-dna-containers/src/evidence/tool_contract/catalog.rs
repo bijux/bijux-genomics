@@ -9,6 +9,23 @@ use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
 pub const CONTAINER_CATALOG_SCHEMA_V1: &str = "bijux.container.catalog.v1";
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ContainerProductSupport {
+    Supported,
+    Retired,
+    Excluded,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ContainerArtifactDelivery {
+    RedistributableImage,
+    ExternalArtifact,
+    PrivateSiteBuild,
+    SiteModule,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ContainerCatalog {
@@ -36,9 +53,11 @@ pub struct ContainerCatalogTool {
     pub display_name: String,
     pub purpose: String,
     pub version: String,
-    pub support_disposition: String,
+    pub product_support: ContainerProductSupport,
+    pub artifact_delivery: ContainerArtifactDelivery,
+    pub redistribution_permitted: bool,
     #[serde(default)]
-    pub support_reason: String,
+    pub delivery_reason: String,
     #[serde(default, skip_serializing_if = "is_false")]
     pub external_artifact_supported: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -66,6 +85,38 @@ pub struct ContainerCatalogTool {
     pub runtime_network: bool,
     pub real_test_stage: String,
     pub real_test_input_kind: String,
+}
+
+impl ContainerCatalogTool {
+    #[must_use]
+    pub fn is_product_supported(&self) -> bool {
+        self.product_support == ContainerProductSupport::Supported
+    }
+
+    #[must_use]
+    pub fn is_redistributable_image(&self) -> bool {
+        self.artifact_delivery == ContainerArtifactDelivery::RedistributableImage
+    }
+
+    #[must_use]
+    pub fn permits_external_artifact(&self) -> bool {
+        matches!(
+            self.artifact_delivery,
+            ContainerArtifactDelivery::ExternalArtifact
+                | ContainerArtifactDelivery::PrivateSiteBuild
+                | ContainerArtifactDelivery::SiteModule
+        )
+    }
+
+    /// Compatibility projection for persisted v1 evidence while its schemas are currentized.
+    #[must_use]
+    pub fn legacy_support_disposition(&self) -> &'static str {
+        if self.is_redistributable_image() {
+            "retained"
+        } else {
+            "unsupported"
+        }
+    }
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref)]
@@ -109,7 +160,7 @@ pub fn retained_apptainer_tool_ids(
     let tools = catalog
         .tools
         .into_iter()
-        .filter(|tool| tool.support_disposition == "retained" && tool.apptainer_supported)
+        .filter(|tool| tool.is_redistributable_image() && tool.apptainer_supported)
         .map(|tool| tool.id)
         .collect::<Vec<_>>();
     if tools.is_empty() {
@@ -161,7 +212,7 @@ pub(super) fn load_retained_tool(
         .into_iter()
         .find(|tool| tool.id == tool_id)
         .ok_or_else(|| anyhow::anyhow!("container catalog omits tool {tool_id}"))?;
-    if tool.support_disposition != "retained" || !tool.apptainer_supported {
+    if !tool.is_redistributable_image() || !tool.apptainer_supported {
         bail!("tool {tool_id} is not retained for Apptainer packaging");
     }
     if tool.apptainer_definition.trim().is_empty() {

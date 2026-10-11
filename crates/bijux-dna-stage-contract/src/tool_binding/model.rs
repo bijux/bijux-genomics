@@ -54,6 +54,7 @@ pub struct BindingOutputV1 {
 pub struct ToolBindingRenderContext {
     pub executable: String,
     pub inputs: BTreeMap<String, String>,
+    pub input_sets: BTreeMap<String, Vec<String>>,
     pub parameters: BTreeMap<String, String>,
     pub outputs: BTreeMap<String, String>,
 }
@@ -69,6 +70,7 @@ pub trait ToolBinding {
     fn inputs(&self) -> &[BindingInputV1];
     fn parameters(&self) -> &[BindingParameterV1];
     fn outputs(&self) -> &[BindingOutputV1];
+    fn normalized_output_contract_id(&self) -> &str;
     fn command_template(&self) -> &[String];
     fn resources(&self) -> &ToolConstraints;
     fn normalizer_id(&self) -> &str;
@@ -88,6 +90,8 @@ pub struct ToolBindingV1 {
     pub inputs: Vec<BindingInputV1>,
     pub parameters: Vec<BindingParameterV1>,
     pub outputs: Vec<BindingOutputV1>,
+    /// Canonical stage result emitted by `normalizer_id` after raw output preservation.
+    pub normalized_output_contract_id: String,
     pub command_template: Vec<String>,
     pub resources: ToolConstraints,
     pub normalizer_id: String,
@@ -131,6 +135,10 @@ impl ToolBinding for ToolBindingV1 {
 
     fn outputs(&self) -> &[BindingOutputV1] {
         &self.outputs
+    }
+
+    fn normalized_output_contract_id(&self) -> &str {
+        &self.normalized_output_contract_id
     }
 
     fn command_template(&self) -> &[String] {

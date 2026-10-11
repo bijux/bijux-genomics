@@ -18,6 +18,8 @@ QA crate and only under explicit command surfaces."
 - Per-run QA output directories under `artifacts/image-qa/runs/<stage>/`.
 - Catalog runtime identity, manifest, log, result, and publication evidence under an explicit
   operator-provided study evidence root.
+- Exact-image SBOM, vulnerability, secret, signature, structural, runtime, stream, manifest, and
+  raw publication evidence under an explicit operator-provided study evidence root.
 - Docker image builds when `build_docker_images` is explicitly invoked.
 
 ## Allowed Processes

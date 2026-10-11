@@ -13,6 +13,9 @@ use bijux_dna_bench_model::{
     BenchmarkParameterValue, BenchmarkRunIdentity, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
 };
+use bijux_dna_domain_fastq::params::{
+    stats::READ_LENGTH_PROFILE_SCHEMA_VERSION, validate::VALIDATE_SCHEMA_VERSION,
+};
 
 fn specification() -> BenchmarkExecutionSpec {
     BenchmarkExecutionSpec {
@@ -60,7 +63,7 @@ fn specification() -> BenchmarkExecutionSpec {
             negative: vec!["seqkit".to_string(), "missing.fastq".to_string()],
         },
         parameters: BenchmarkExecutionParameterEvidence {
-            parameter_schema_version: "bijux.fastq.params.read_length_profile.v1".to_string(),
+            parameter_schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
             defaults_provider: "bijux_dna_domain_fastq::read_length_profile_defaults".to_string(),
             overrides_path: "config-pipeline-parameters.yml".to_string(),
             overrides_sha256: "a".repeat(64),
@@ -204,7 +207,7 @@ fn effective_parameters_round_trip_and_reject_schema_drift() -> anyhow::Result<(
     let parameters = BenchmarkEffectiveParameters {
         schema_version: BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1.to_string(),
         stage_id: "fastq.validate_reads".to_string(),
-        parameter_schema_version: "bijux.fastq.params.validate_reads.v1".to_string(),
+        parameter_schema_version: VALIDATE_SCHEMA_VERSION.to_string(),
         defaults_provider: "bijux_dna_domain_fastq::params::defaults::validate_defaults"
             .to_string(),
         overrides: BTreeMap::from([("threads".to_string(), BenchmarkParameterValue::Integer(4))]),

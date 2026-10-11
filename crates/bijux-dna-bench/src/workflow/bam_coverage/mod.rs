@@ -92,14 +92,9 @@ pub fn prepare_bam_coverage_material_from_corpus(
         &corpus.sample_id,
         BamParameterPolicy {
             stage_id: STAGE_ID,
-            schema_version: "bijux.bam.params.coverage.v1",
             defaults_provider: "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Coverage)",
         },
         BTreeMap::from([
-            (
-                "schema_version".to_string(),
-                EffectiveValue::Text("bijux.bam.params.coverage.v1".to_string()),
-            ),
             ("regions".to_string(), EffectiveValue::Null),
             (
                 "depth_thresholds".to_string(),

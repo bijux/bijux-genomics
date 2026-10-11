@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2005",
+  "run": {
+    "run_id": "run-2005",
+    "domain": "bam",
+    "stage_id": "bam.align"
+  },
+  "protocol_title": "BAM align benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "1bbabe4f141f0a717ef1333909f0552e7bdd803d8dc725adc6a6cc8ee4e82221",
+  "status": "protocol_only",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

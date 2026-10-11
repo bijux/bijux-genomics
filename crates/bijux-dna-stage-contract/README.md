@@ -49,8 +49,8 @@ Start with `docs/INDEX.md`, then use:
 - `StageInvocationV1`, `StagePluginOutputV1`, `StageReportPartV1`, and
   `StageEventHintV1`.
 - `StageExecutorEntry`, `ReadinessBadge`, and `StageDomain`.
-- `ToolBinding`, `ToolBindingV1`, `ToolBindingRegistry`, and the canonical
-  licensing-restricted external-artifact binding catalog.
+- `ToolBinding`, `ToolBindingV1`, `ToolBindingRegistry`, and canonical retained
+  and licensing-restricted external-artifact binding catalogs.
 
 ## Key contracts it owns/consumes
 

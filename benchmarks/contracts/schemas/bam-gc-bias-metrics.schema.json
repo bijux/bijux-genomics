@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "aligned_reads": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "at_dropout": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "bam_index_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "bam_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "gc_bias_score": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "gc_dropout": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "read_starts": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "reference_input_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.gc_bias.metrics.v1",
+      "type": "string"
+    },
+    "total_clusters": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "windows": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "gc_bias_score",
+    "at_dropout",
+    "gc_dropout",
+    "total_clusters",
+    "aligned_reads",
+    "windows",
+    "read_starts",
+    "bam_input_bytes",
+    "bam_index_input_bytes",
+    "reference_input_bytes",
+    "input_bytes",
+    "output_bytes"
+  ],
+  "title": "BenchmarkBamGcBiasMetrics",
+  "type": "object"
+}

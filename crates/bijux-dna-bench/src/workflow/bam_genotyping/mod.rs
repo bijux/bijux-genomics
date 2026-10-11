@@ -109,15 +109,10 @@ pub fn prepare_bam_genotyping_material_from_corpus(
         SAMPLE_ID,
         BamParameterPolicy {
             stage_id: STAGE_ID,
-            schema_version: "bijux.bam.params.genotyping.v1",
             defaults_provider:
                 "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Genotyping)",
         },
         BTreeMap::from([
-            (
-                "schema_version".to_string(),
-                EffectiveValue::Text("bijux.bam.params.genotyping.v1".to_string()),
-            ),
             ("caller".to_string(), EffectiveValue::Text("bcftools".to_string())),
             ("min_posterior".to_string(), EffectiveValue::Number(0.8)),
             ("min_call_rate".to_string(), EffectiveValue::Number(0.7)),

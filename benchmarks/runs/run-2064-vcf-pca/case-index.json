@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.benchmark.run_case_index.v1",
+  "run": {
+    "run_id": "run-2064",
+    "domain": "vcf",
+    "stage_id": "vcf.pca"
+  },
+  "protocol_sha256": "0a615ff830e0b9f0774f781f738ce098859ef82d398861dfc057bea9cffc741c",
+  "cases": [],
+  "limitations": [
+    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+  ]
+}

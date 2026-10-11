@@ -13,11 +13,14 @@ stable qualification facade.
 - `bijux-dna-containers`: platform, image, Docker tool, and smoke helper contracts.
 - `bijux-dna-infra`: directory creation, atomic writes, fixture IO, and config helpers.
 - `bijux-dna-runtime`: runtime manifest loading for QA stage/tool discovery.
+- `bijux-dna-stage-contract`: canonical stage/tool bindings and pure command projection.
+- `schemars`: generated qualification specification source schema.
 - `clap`: binary argument parsing.
 - `regex`: version-contract evaluation for qualification probe observations.
 - `rusqlite`: QA SQLite record store.
 - `serde`: generic immutable QA evidence serialization.
 - `serde_json`: QA summary and artifact fixture JSON.
+- `serde_yaml`: declarative qualification source loading.
 - `sha2`: input and output digest calculation.
 - `tracing`: warnings for image resolution and seqkit parsing drift.
 - `uuid`: per-run container/output names.

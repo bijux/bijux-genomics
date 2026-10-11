@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2001",
+  "run": {
+    "run_id": "run-2001",
+    "domain": "bam",
+    "stage_id": "bam.genotyping"
+  },
+  "protocol_title": "BAM genotyping benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "04a15ee8d9e52e043518df99b0f42f0825d361b1a894e6cd985756471442192d",
+  "status": "protocol_only",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

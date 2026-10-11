@@ -194,6 +194,41 @@
       ],
       "type": "object"
     },
+    "BenchmarkDataSnapshotRoleV1": {
+      "enum": [
+        "corpus",
+        "reference",
+        "database"
+      ],
+      "type": "string"
+    },
+    "BenchmarkDataSnapshotV1": {
+      "additionalProperties": false,
+      "properties": {
+        "catalog_id": {
+          "type": "string"
+        },
+        "catalog_sha256": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/BenchmarkDataSnapshotRoleV1"
+        },
+        "sample_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "catalog_id",
+        "role",
+        "catalog_sha256",
+        "sample_ids"
+      ],
+      "type": "object"
+    },
     "BenchmarkEvidenceTier": {
       "enum": [
         "qualification",
@@ -793,6 +828,10 @@
           },
           "type": "array"
         },
+        "normalized_output_contract_id": {
+          "description": "Canonical stage result emitted by `normalizer_id` after raw output preservation.",
+          "type": "string"
+        },
         "normalizer_id": {
           "type": "string"
         },
@@ -831,6 +870,7 @@
         "inputs",
         "parameters",
         "outputs",
+        "normalized_output_contract_id",
         "command_template",
         "resources",
         "normalizer_id",
@@ -883,6 +923,12 @@
       },
       "type": "array"
     },
+    "data_snapshots": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkDataSnapshotV1"
+      },
+      "type": "array"
+    },
     "interface_catalog_sha256": {
       "type": "string"
     },
@@ -890,7 +936,7 @@
       "type": "string"
     },
     "schema_version": {
-      "const": "bijux.benchmark.case_matrix.v1",
+      "const": "bijux.benchmark.case_matrix.v2",
       "type": "string"
     },
     "tool_binding_registry_sha256": {
@@ -903,8 +949,9 @@
     "campaign_registry_sha256",
     "interface_catalog_sha256",
     "tool_binding_registry_sha256",
+    "data_snapshots",
     "cases"
   ],
-  "title": "BenchmarkCaseMatrixV1",
+  "title": "BenchmarkCaseMatrixV2",
   "type": "object"
 }

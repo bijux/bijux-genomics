@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.benchmark.run_case_index.v1",
+  "run": {
+    "run_id": "run-2021",
+    "domain": "bam",
+    "stage_id": "bam.qc_pre"
+  },
+  "protocol_sha256": "9887bca59201688645dfb5cd9af93810f803880df6690dc611b1c6c913b1162a",
+  "cases": [],
+  "limitations": [
+    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+  ]
+}

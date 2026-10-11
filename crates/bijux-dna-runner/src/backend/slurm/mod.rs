@@ -5,6 +5,7 @@ mod benchmark;
 mod client;
 mod contracts;
 mod corpus_materialization;
+mod image_campaign;
 mod parsing;
 mod qualification;
 mod stable_surface;

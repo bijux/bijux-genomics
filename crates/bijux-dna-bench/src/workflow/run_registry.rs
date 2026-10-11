@@ -18,7 +18,7 @@ use bijux_dna_bench_model::{
 };
 use bijux_dna_containers::api::{load_container_catalog, ContainerCatalog};
 
-use super::stage_coverage::retained_stage_tools;
+use super::stage_coverage::runnable_stage_tools;
 use super::{
     load_benchmark_portfolio, load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
 };
@@ -35,7 +35,7 @@ pub enum BenchmarkRunRegistryWriteMode {
     Check,
 }
 
-/// Derive all permanent stage protocols from the portfolio and retained catalog closure.
+/// Derive all permanent stage protocols from the portfolio and runnable catalog closure.
 ///
 /// # Errors
 /// Returns an error when source contracts drift, a stage lacks a profile, or lifecycle closure is
@@ -53,9 +53,9 @@ pub fn derive_benchmark_run_registry(
         .context("align campaigns with permanent reservations")?;
     validate_stage_interface_catalog(interfaces).context("validate benchmark interfaces")?;
 
-    let retained = retained_stage_tools(catalog)?;
-    if retained.keys().collect::<Vec<_>>() != portfolio.stage_runs.keys().collect::<Vec<_>>() {
-        bail!("benchmark run registry does not close over retained stages");
+    let runnable = runnable_stage_tools(catalog)?;
+    if runnable.keys().collect::<Vec<_>>() != portfolio.stage_runs.keys().collect::<Vec<_>>() {
+        bail!("benchmark run registry does not close over runnable stages");
     }
     let profiles = portfolio
         .profiles
@@ -104,9 +104,9 @@ pub fn derive_benchmark_run_registry(
                 bail!("benchmark stage campaign/interface tool closure drifted: {stage_id}");
             }
         }
-        let tools = retained
+        let tools = runnable
             .get(stage_id)
-            .context("benchmark stage has no retained tools")?
+            .context("benchmark stage has no runnable tools")?
             .iter()
             .cloned()
             .collect::<Vec<_>>();
@@ -126,12 +126,12 @@ pub fn derive_benchmark_run_registry(
             slug: stage_id.replace(['.', '_'], "-"),
             owner: "bijux-dna-bench".to_string(),
             purpose: format!(
-                "Compare the retained {stage_id} tools using {}; downstream substitution: {}.",
+                "Compare the runnable {stage_id} tools using {}; downstream substitution: {}.",
                 profile.accuracy_strategy, profile.downstream_probe
             ),
             profile_id: (*profile_id).to_string(),
             tool_ids: tools,
-            tool_exclusion_policy: "Exclude every tool not retained and bound to this stage by the canonical container catalog.".to_string(),
+            tool_exclusion_policy: "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.".to_string(),
             required_corpus_roles: profile.required_corpus_roles.clone(),
             accepted_input_contracts: interface
                 .map(|value| value.accepted_input_contracts.clone())

@@ -35,7 +35,8 @@ pub use stage_plugin::{
     StageReportPartV1,
 };
 pub use tool_binding::{
-    canonical_external_artifact_tool_bindings, project_tool_parameters, render_tool_command,
+    canonical_external_artifact_tool_bindings, canonical_retained_tool_bindings,
+    canonical_tool_bindings, project_tool_parameters, render_tool_command,
     validate_effective_tool_parameters, validate_tool_binding, BindingInputV1, BindingOutputV1,
     BindingParameterV1, EffectiveToolParameterSourceV1, EffectiveToolParameterV1,
     EffectiveToolParametersV1, OutputDiscoveryV1, ToolArtifactSourceV1, ToolBinding,

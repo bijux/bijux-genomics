@@ -10,6 +10,7 @@ test = false
 
 [dependencies]
 anyhow.workspace = true
+chrono.workspace = true
 schemars.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -18,6 +19,7 @@ thiserror.workspace = true
 regex.workspace = true
 sha2.workspace = true
 toml.workspace = true
+walkdir.workspace = true
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
 
 [dev-dependencies]
@@ -26,7 +28,6 @@ bijux-dna-policies.workspace = true
 bijux-dna-stage-contract.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 tempfile.workspace = true
-walkdir.workspace = true
 
 [lints]
 workspace = true

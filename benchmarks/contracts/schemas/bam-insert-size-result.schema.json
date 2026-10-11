@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "maximum_insert_size": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "mean_insert_size": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "median_absolute_deviation": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "median_insert_size": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "minimum_insert_size": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "pair_orientation_fr_fraction": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "read_pairs": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.insert_size.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.insert_size",
+      "type": "string"
+    },
+    "standard_deviation": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "tool_id": {
+      "const": "picard",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_id",
+    "median_insert_size",
+    "mean_insert_size",
+    "standard_deviation",
+    "median_absolute_deviation",
+    "minimum_insert_size",
+    "maximum_insert_size",
+    "read_pairs",
+    "pair_orientation_fr_fraction"
+  ],
+  "title": "BenchmarkBamInsertSizeResult",
+  "type": "object"
+}

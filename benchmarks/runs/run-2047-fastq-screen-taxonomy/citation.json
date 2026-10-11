@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2047",
+  "run": {
+    "run_id": "run-2047",
+    "domain": "fastq",
+    "stage_id": "fastq.screen_taxonomy"
+  },
+  "protocol_title": "FASTQ screen taxonomy benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "0e976f6b69fbef89b0f2244a94a805ced2b4068daee9accb5387b3a151151d15",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

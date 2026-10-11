@@ -1,0 +1,41 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2066",
+    "domain": "vcf",
+    "stage_id": "vcf.population_structure"
+  },
+  "protocol_version": "1.0.0",
+  "title": "VCF population structure benchmark protocol",
+  "purpose": "Compare the runnable vcf.population_structure tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "vcf-population-inference",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "eigensoft",
+    "plink",
+    "plink2"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "ancient_population_diversity",
+      "corpus_ids": [
+        "ancient-population-panel"
+      ]
+    },
+    {
+      "role": "population_inference_truth",
+      "corpus_ids": [
+        "ancient-population-panel"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2066",
+  "supersedes_run_ids": []
+}

@@ -7,7 +7,21 @@ use super::model::{ContainerImageInventoryPublication, RuntimeVerificationPublic
 
 #[must_use]
 pub fn image_inventory_scan_schema() -> Value {
-    serde_json::to_value(schema_for!(ImageInventoryScan)).unwrap_or_else(|_| serde_json::json!({}))
+    let mut schema = serde_json::to_value(schema_for!(ImageInventoryScan))
+        .unwrap_or_else(|_| serde_json::json!({}));
+    if let Some(required) = schema.pointer_mut("/required").and_then(Value::as_array_mut) {
+        let evidence_roots = Value::String("evidence_roots".to_string());
+        if !required.contains(&evidence_roots) {
+            required.push(evidence_roots);
+        }
+    }
+    if let Some(evidence_roots) =
+        schema.pointer_mut("/properties/evidence_roots").and_then(Value::as_object_mut)
+    {
+        evidence_roots.remove("default");
+        evidence_roots.insert("minItems".to_string(), Value::from(1));
+    }
+    schema
 }
 
 #[must_use]

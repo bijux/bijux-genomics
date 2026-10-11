@@ -1,0 +1,19 @@
+<!-- GENERATED FILE - DO NOT EDIT -->
+<!-- source: bijux-dna-bench::workflow::run_index -->
+# FASTQ infer asvs benchmark protocol
+
+- Run: `run-2037`
+- Stage: `fastq.infer_asvs`
+- Protocol version: `1.0.0`
+- State: `reserved`
+- Citation key: `bijux-benchmark-run-2037`
+
+Compare the runnable fastq.infer_asvs tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.
+
+## Planned tool closure
+
+- `dada2`
+
+## Evidence status
+
+This file defines a permanent protocol; it is not execution evidence. See `current-publication.json` for the admitted publication selection and `case-index.json` for immutable case pointers.

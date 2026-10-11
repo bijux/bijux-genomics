@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2036",
+  "run": {
+    "run_id": "run-2036",
+    "domain": "fastq",
+    "stage_id": "fastq.index_reference"
+  },
+  "protocol_title": "FASTQ index reference benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "dd4012dae167fa33c9bb9ff137de36949acf4fd5dd09fa6bf739ee054380539a",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

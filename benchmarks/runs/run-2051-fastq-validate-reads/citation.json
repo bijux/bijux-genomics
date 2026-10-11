@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2051",
+  "run": {
+    "run_id": "run-2051",
+    "domain": "fastq",
+    "stage_id": "fastq.validate_reads"
+  },
+  "protocol_title": "FASTQ validate reads benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "8c7ebd7825e6299a8c30f3c595c88f1ce87c919ebf47904f839ebe8aa3382023",
+  "status": "protocol_only",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

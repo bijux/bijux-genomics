@@ -10,5 +10,8 @@ pub mod qa_docker_images;
 
 pub mod qualification;
 
+#[path = "security_verification/mod.rs"]
+pub mod security_verification;
+
 #[path = "image_qa/runtime_verification/mod.rs"]
 pub mod runtime_verification;

@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2011",
+  "run": {
+    "run_id": "run-2011",
+    "domain": "bam",
+    "stage_id": "bam.duplication_metrics"
+  },
+  "protocol_title": "BAM duplication metrics benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "c922130bb6edc53689fc24be471bfa661da232a7f5be9976c919e4a822f56a48",
+  "status": "protocol_only",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}
