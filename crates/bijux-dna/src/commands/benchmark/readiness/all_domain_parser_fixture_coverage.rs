@@ -1,9 +1,12 @@
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    AllDomainParserFixtureCoverageReport, AllDomainParserFixtureCoverageRow,
+    ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
@@ -25,8 +28,6 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/parser-fixture-coverage.tsv";
-const ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.all_domain_parser_fixture_coverage.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";
 const COVERAGE_STATUS_MISSING_ACTIVE_BINDING: &str = "missing_active_binding";
 const FIXTURE_REFERENCE_KIND_ASSET_SCOPE: &str = "asset_scope";
@@ -54,45 +55,6 @@ struct ParserProofRow {
     proof_source: String,
     coverage_status: String,
     reason: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct AllDomainParserFixtureCoverageRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) adapter_id: String,
-    pub(crate) parser_id: String,
-    pub(crate) schema_id: String,
-    pub(crate) parser_fixture_parser_id: String,
-    pub(crate) parser_fixture_schema_id: String,
-    pub(crate) parser_fixture_reference_kind: String,
-    pub(crate) parser_fixture_reference: String,
-    pub(crate) proof_source: String,
-    pub(crate) coverage_status: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct AllDomainParserFixtureCoverageReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) row_count: usize,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) parser_proof_binding_count: usize,
-    pub(crate) covered_row_count: usize,
-    pub(crate) missing_row_count: usize,
-    pub(crate) coverage_percent: f64,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) proof_source_counts: BTreeMap<String, usize>,
-    pub(crate) coverage_status_counts: BTreeMap<String, usize>,
-    pub(crate) violation_count: usize,
-    pub(crate) ok: bool,
-    pub(crate) rows: Vec<AllDomainParserFixtureCoverageRow>,
-    pub(crate) violations: Vec<AllDomainParserFixtureCoverageRow>,
 }
 
 pub(crate) fn run_render_all_domain_parser_fixture_coverage(
@@ -184,7 +146,7 @@ fn build_all_domain_parser_fixture_coverage_report(
         .collect::<Vec<_>>();
 
     let report = AllDomainParserFixtureCoverageReport {
-        schema_version: ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION,
+        schema_version: ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, output_path),
         row_count: rows.len(),
         stage_count,

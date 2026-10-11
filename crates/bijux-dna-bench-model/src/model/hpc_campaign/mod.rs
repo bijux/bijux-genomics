@@ -1,0 +1,16 @@
+//! Configured HPC campaigns and their local planning reports.
+mod bundle;
+mod configuration;
+mod reports;
+pub use configuration::*;
+pub use reports::*;
+
+pub use bundle::{sidecar_path_for, BundleSidecar, BUNDLE_SIDECAR_SCHEMA_VERSION};
+
+mod monitor;
+pub use monitor::{
+    SlurmMonitorEntry, SlurmMonitorReport, SlurmMonitorSnapshot, CAMPAIGN_MONITOR_SCHEMA_VERSION,
+};
+
+mod copy_back;
+pub use copy_back::{CopyBackEntry, CopyBackManifestReport, COPY_BACK_MANIFEST_SCHEMA_VERSION};

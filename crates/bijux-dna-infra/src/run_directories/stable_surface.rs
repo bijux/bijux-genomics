@@ -14,4 +14,7 @@ pub use super::operations::{
     attempt_layout_paths, attempt_layout_schema, ensure_attempt_layout, publish_run, try_lock_run,
     validate_attempt_owner_roots,
 };
-pub use crate::paths::{normalize_run_base_dir, pipeline_run_dir, run_layout_paths, run_stage_dir};
+pub use crate::paths::{
+    normalize_run_base_dir, pipeline_run_dir, run_artifacts_dir_for_out, run_layout_paths,
+    run_stage_dir,
+};

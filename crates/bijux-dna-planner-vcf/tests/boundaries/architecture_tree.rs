@@ -36,7 +36,7 @@ fn planner_vcf_tree_matches_architecture_contract() {
     );
     assert_eq!(
         child_entries(&root.join("tests")),
-        entries(["boundaries/", "boundaries.rs", "contracts.rs", "guardrails.rs", "snapshots/"]),
+        entries(["boundaries/", "boundaries.rs", "contracts.rs", "snapshots/"]),
         "test layout should keep boundary, contract, guardrail, and snapshot coverage visible"
     );
 }

@@ -18,6 +18,3 @@ bijux-dna-db-ref = { path = "../bijux-dna-db-ref" }
 
 [lints]
 workspace = true
-
-[dev-dependencies]
-bijux-dna-policies.workspace = true

@@ -18,15 +18,21 @@ fn bench_tree_matches_architecture_contract() {
         "src tree must match the documented benchmark layout"
     );
 
+    assert_eq!(dir_entries(&root.join("src/repo/micro_report")),entries(["mod.rs","acquisition.rs","declarations.rs","insufficiency.rs","resources.rs","publication.rs"]),"micro report acquisition separates declaration, legacy evidence and publication responsibilities");
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
         entries([
+            "hpc_array/",
+            "simulation.rs",
             "admission/",
             "bam_score_evidence/",
             "vcf_score_evidence/",
+            "vcf_execution_proof.rs",
             "fastq_score_evidence/",
             "mod.rs",
-            "source_assets.rs",
+            "schema_publication.rs",
+            "command_artifacts.rs",
+            "micro_report.rs",
             "writer/"
         ]),
         "artifacts tree must separate source inspection, output admission, and serialization"
@@ -76,6 +82,34 @@ fn bench_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
+        dir_entries(&root.join("src/repo/hpc_campaign")),
+        entries([
+            "mod.rs",
+            "configuration.rs",
+            "copy_back.rs",
+            "environment.rs",
+            "monitor.rs",
+            "profiles.rs"
+        ]),
+        "campaign acquisition stays separate from planning"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/hpc_campaign")),
+        entries([
+            "copy_back.rs",
+            "mod.rs",
+            "configuration.rs",
+            "monitor.rs",
+            "planning.rs",
+            "policies.rs",
+            "preflight.rs",
+            "resources.rs",
+            "templates.rs"
+        ]),
+        "campaign workflows keep their distinct responsibilities"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("src/public_api")),
         entries(["mod.rs", "stable_surface.rs"]),
         "public api tree must stay curated"
@@ -84,9 +118,27 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
+            "hpc_array.rs",
+            "hpc_resources.rs",
+            "source_assets.rs",
+            "runtime_probe.rs",
+            "tool_execution_modes.rs",
+            "hpc_asset_staging.rs",
+            "hpc_scratch.rs",
+            "hpc_inputs/",
+            "hardening_campaign.rs",
+            "micro_run.rs",
+            "micro_report/",
+            "stage_result.rs",
+            "command_audit.rs",
+            "command_artifacts.rs",
+            "simulation.rs",
             "bam_score_evidence.rs",
             "vcf_score_evidence.rs",
+            "vcf_execution_proof.rs",
             "case_data_authority.rs",
+            "hpc_campaign/",
+            "container_qualification.rs",
             "catalog_registry_authority.rs",
             "catalog_snapshot_authority.rs",
             "corpus/",
@@ -142,6 +194,11 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/workflow")),
         entries([
+            "hpc_array/",
+            "micro_run.rs",
+            "micro_report.rs",
+            "simulation.rs",
+            "container_qualification/",
             "alias_resolution.rs",
             "appraisal.rs",
             "attempt_migration.rs",
@@ -178,7 +235,8 @@ fn bench_tree_matches_architecture_contract() {
             "fastq_profile_reads/",
             "fastq_validate_reads/",
             "full_benchmark_report.rs",
-            "hardening_campaign.rs",
+            "hpc_asset_staging.rs",
+            "hpc_scratch.rs",
             "local_corpus_skip.rs",
             "mod.rs",
             "options.rs",
@@ -198,6 +256,7 @@ fn bench_tree_matches_architecture_contract() {
             "run_suite/",
             "runtime_selection.rs",
             "scientific_readiness.rs",
+            "hpc_campaign/",
             "source_authority.rs",
             "stage_coverage.rs",
             "stage_families.rs",
@@ -316,7 +375,14 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/readiness")),
-        entries(["dashboard.rs", "dashboard_markdown.rs", "mod.rs"]),
+        entries([
+            "command_audit.rs",
+            "command_artifacts.rs",
+            "dashboard.rs",
+            "dashboard_markdown.rs",
+            "mod.rs",
+            "tool_execution_modes.rs"
+        ]),
         "readiness evaluation must retain its explicit workflow owner"
     );
 
@@ -403,7 +469,6 @@ fn bench_tree_matches_architecture_contract() {
             "determinism/",
             "determinism.rs",
             "fixtures/",
-            "guardrails.rs",
             "semantics/",
             "semantics.rs",
             "snapshots/",
@@ -424,12 +489,11 @@ fn manifest_dependency_graph_matches_boundary_contract() {
         .unwrap_or_else(|err| panic!("parse {}: {err}", manifest.display()));
 
     let dependencies = dependency_names(&parsed, "dependencies");
-    let dev_dependencies = dependency_names(&parsed, "dev-dependencies");
-    let duplicates = dependencies.intersection(&dev_dependencies).cloned().collect::<Vec<_>>();
+    let duplicates = redundant_dependency_edges(&parsed);
 
     assert!(
         duplicates.is_empty(),
-        "normal and dev dependencies must not duplicate edges: {duplicates:?}",
+        "always enabled normal and dev dependencies must not duplicate edges: {duplicates:?}",
     );
     for forbidden in [
         "bijux-dna-api",
@@ -577,4 +641,43 @@ fn markdown_files_outside_docs(root: &Path) -> Vec<String> {
         })
         .map(|entry| entry.path().display().to_string())
         .collect()
+}
+
+fn redundant_dependency_edges(manifest: &toml::Value) -> Vec<String> {
+    let normal = dependency_names(manifest, "dependencies");
+    let development = dependency_names(manifest, "dev-dependencies");
+    normal
+        .intersection(&development)
+        .filter(|name| {
+            manifest
+                .get("dependencies")
+                .and_then(|table| table.get(name.as_str()))
+                .and_then(|dependency| dependency.get("optional"))
+                .and_then(toml::Value::as_bool)
+                != Some(true)
+        })
+        .cloned()
+        .collect()
+}
+
+#[test]
+fn optional_production_capabilities_can_retain_independent_test_dependencies() -> anyhow::Result<()>
+{
+    let mut manifest: toml::Value = toml::from_str(
+        r#"
+[dependencies]
+owner = { version = "1", optional = true }
+[dev-dependencies]
+owner = "1"
+"#,
+    )?;
+    assert!(redundant_dependency_edges(&manifest).is_empty());
+    manifest["dependencies"]["owner"]["optional"] = toml::Value::Boolean(false);
+    assert_eq!(redundant_dependency_edges(&manifest), vec!["owner"]);
+    manifest["dependencies"]["owner"]
+        .as_table_mut()
+        .ok_or_else(|| anyhow::anyhow!("dependency table absent"))?
+        .remove("optional");
+    assert_eq!(redundant_dependency_edges(&manifest), vec!["owner"]);
+    Ok(())
 }

@@ -7,13 +7,11 @@ mod governance;
 mod metrics;
 
 pub(super) use self::metrics::*;
+pub(super) use bijux_dna_bench_model::normalized_result::fastq_envelope::validate_fastq_normalized_metrics;
 #[cfg(test)]
 pub(super) use bijux_dna_bench_model::normalized_result::fastq_envelope::{
     fastq_normalized_metrics_contract_for_stage, fastq_normalized_metrics_stage_contracts,
-    required_metrics_keys,
-};
-pub(super) use bijux_dna_bench_model::normalized_result::fastq_envelope::{
-    render_fastq_normalized_metrics_schema, validate_fastq_normalized_metrics,
+    render_fastq_normalized_metrics_schema, required_metrics_keys,
 };
 
 pub(super) fn stage_network_policy(stage_id: &str) -> NetworkPolicy {

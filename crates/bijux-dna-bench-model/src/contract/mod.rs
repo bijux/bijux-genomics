@@ -30,6 +30,7 @@ mod execution;
 mod expected_benchmark_results;
 mod full_benchmark_report;
 mod full_benchmark_result_collector;
+mod hpc_replay_payload;
 mod interfaces;
 mod lifecycle;
 mod local_benchmark_summary;
@@ -84,6 +85,7 @@ mod real_smoke_core_subset;
 mod records;
 mod remediation_queue;
 mod replay;
+pub use hpc_replay_payload::{inspect_hpc_replay_payloads, HpcReplayPayloadAdmission};
 mod report;
 mod run_index;
 mod schema_versions;
@@ -401,3 +403,16 @@ pub use readiness::{
 #[cfg(feature = "canonical-fastq-catalog")]
 pub use suite::CanonicalFastqSuiteCatalog;
 pub use suite::{validate_suite_with_catalog, BenchmarkSuiteCatalog};
+
+pub(crate) mod hpc_campaign;
+
+mod simulation;
+pub use simulation::{admit_all_domain_simulation_inputs, AllDomainSimulationInput};
+
+pub(crate) mod vcf_scope;
+
+pub(crate) use readiness::validate_rendered_command_observations;
+
+pub(crate) mod micro_run;
+
+pub(crate) mod micro_report;

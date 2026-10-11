@@ -8,34 +8,37 @@ pub use vcf_smoke_contracts::*;
 
 pub use bijux_dna_bench::{
     all_domain_output_declarations_schema, benchmark_local_pipeline_config_path,
-    discover_normalized_fastq_samples, evaluate_full_benchmark_dashboard,
+    build_output_contract_tests_report, discover_normalized_fastq_samples,
+    evaluate_full_benchmark_dashboard, evaluate_output_contract_row,
     expected_fastq_publication_cohort_counts, load_bam_tool_score_evidence,
     load_benchmark_local_pipeline_dag_config, load_benchmark_local_stage_inventory,
     load_benchmark_pipeline_inventory_index, load_benchmark_pipeline_vcf_stage_matrix_index,
-    load_fastq_corpus_source_for_id, load_fastq_tool_score_evidence, load_vcf_tool_score_evidence,
-    match_normalized_fastq_corpus_metadata, materialize_benchmark_reference_fasta,
-    normalized_fastq_expected_sample_total, render_benchmark_all_domain_stage_inventory,
-    render_full_benchmark_dashboard_markdown, select_normalized_fastq_paired_samples,
-    stage_tool_assets_config_schema, stage_tool_assets_report_schema,
-    stage_tool_containers_config_schema, stage_tool_containers_report_schema,
-    stage_tool_resources_config_schema, stage_tool_resources_report_schema,
-    validate_all_domain_expected_result_rows, validate_all_domain_output_declaration_rows,
-    validate_all_domain_output_declarations_report, validate_all_domain_rendered_command_rows,
-    validate_all_domain_stage_tool_table_rows, validate_benchmark_pipeline_execution_context,
-    validate_benchmark_pipeline_profiles, validate_benchmark_pipeline_reference_context,
-    validate_stage_tool_assets_config, validate_stage_tool_assets_report,
-    validate_stage_tool_containers_config, validate_stage_tool_containers_report,
-    validate_stage_tool_resources_config, validate_stage_tool_resources_report,
-    AllDomainOutputDeclarationRow, AllDomainOutputDeclarationStatus,
-    AllDomainOutputDeclarationsReport, AllDomainStageToolTableAdmissionContext,
-    BenchmarkLocalStageInventoryDomain, FullBenchmarkDashboardEvidence,
-    FullBenchmarkDashboardPaths, NormalizedFastqSample, PipelineProfileEvidence,
-    ReadinessStageToolBinding, StageToolAssetRow, StageToolAssetsConfig, StageToolAssetsReport,
-    StageToolContainerRow, StageToolContainersConfig, StageToolContainersReport,
-    StageToolResourceRow, StageToolResourcesConfig, StageToolResourcesReport,
-    ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1, BAM_STAGE_TOOL_RESOURCE_ORIGIN,
-    FASTQ_STAGE_TOOL_RESOURCE_ORIGIN, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
-    LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
+    load_fastq_corpus_source_for_id, load_fastq_tool_score_evidence, load_vcf_execution_blocker,
+    load_vcf_tool_score_evidence, match_normalized_fastq_corpus_metadata,
+    materialize_benchmark_reference_fasta, normalized_fastq_expected_sample_total,
+    render_benchmark_all_domain_stage_inventory, render_full_benchmark_dashboard_markdown,
+    select_normalized_fastq_paired_samples, stage_tool_assets_config_schema,
+    stage_tool_assets_report_schema, stage_tool_containers_config_schema,
+    stage_tool_containers_report_schema, stage_tool_resources_config_schema,
+    stage_tool_resources_report_schema, validate_all_domain_expected_result_rows,
+    validate_all_domain_output_declaration_rows, validate_all_domain_output_declarations_report,
+    validate_all_domain_rendered_command_rows, validate_all_domain_stage_tool_table_rows,
+    validate_benchmark_pipeline_execution_context, validate_benchmark_pipeline_profiles,
+    validate_benchmark_pipeline_reference_context, validate_stage_tool_assets_config,
+    validate_stage_tool_assets_report, validate_stage_tool_containers_config,
+    validate_stage_tool_containers_report, validate_stage_tool_resources_config,
+    validate_stage_tool_resources_report, AllDomainOutputDeclarationRow,
+    AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport,
+    AllDomainStageToolTableAdmissionContext, BenchmarkLocalStageInventoryDomain,
+    FullBenchmarkDashboardEvidence, FullBenchmarkDashboardPaths, NormalizedFastqSample,
+    OutputContractProof, OutputContractRuntimePaths, OutputContractTestRow,
+    OutputContractTestsReport, PipelineProfileEvidence, ReadinessStageToolBinding,
+    StageToolAssetRow, StageToolAssetsConfig, StageToolAssetsReport, StageToolContainerRow,
+    StageToolContainersConfig, StageToolContainersReport, StageToolResourceRow,
+    StageToolResourcesConfig, StageToolResourcesReport, ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1,
+    BAM_STAGE_TOOL_RESOURCE_ORIGIN, FASTQ_STAGE_TOOL_RESOURCE_ORIGIN,
+    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION,
     STAGE_TOOL_ASSETS_DECLARATION_ORIGIN, STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1,
     STAGE_TOOL_ASSETS_SCOPE, STAGE_TOOL_CONTAINERS_DECLARATION_ORIGIN,
     STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_SCOPE,
@@ -65,10 +68,6 @@ pub use bijux_dna_bench::{
     VcfStageMatrixRow, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1, LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1,
     VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1,
 };
-
-use std::path::Path;
-
-use anyhow::{Context, Result};
 
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
@@ -399,12 +398,7 @@ pub use bijux_dna_bench::{
     STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1,
     TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1, VCF_STAGE_FAMILIES,
 };
-use bijux_dna_bench::{
-    admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,
-    benchmark_attempt_schema, benchmark_cycle_status_schema,
-    benchmark_pipeline_parameter_config_schema, benchmark_stage_interface_catalog_schema,
-    benchmark_stage_report_schema,
-};
+
 pub use bijux_dna_bench::{
     build_vcf_stage_catalog_rows, build_vcf_stage_matrix_rows, render_vcf_stage_catalog,
     render_vcf_stage_matrix, validate_vcf_stage_matrix, DEFAULT_VCF_STAGE_CATALOG_PATH,
@@ -449,157 +443,6 @@ pub use bijux_dna_planner_fastq::stage_api::*;
 pub type BenchOutcome<M> = crate::internal::public_surface::handlers::fastq::BenchOutcome<M>;
 pub use crate::internal::public_surface::handlers::fastq::*;
 
-fn render_owned_schema(schema: schemars::Schema) -> serde_json::Value {
-    match serde_json::to_value(schema) {
-        Ok(value) => value,
-        Err(error) => panic!("serialize JSON schema: {error}"),
-    }
-}
-
-/// Render the governed benchmark attempt schema.
-#[must_use]
-pub fn render_benchmark_attempt_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_attempt_schema())
-}
-
-/// Write the governed benchmark attempt schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_attempt_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_attempt_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark attempt-archive schema.
-#[must_use]
-pub fn render_benchmark_attempt_archive_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_attempt_archive_schema())
-}
-
-/// Write the governed benchmark attempt-archive schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_attempt_archive_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_attempt_archive_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark cycle status schema.
-#[must_use]
-pub fn render_benchmark_cycle_status_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_cycle_status_schema())
-}
-
-/// Write the governed benchmark cycle status schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_cycle_status_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_cycle_status_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark stage-interface catalog schema.
-#[must_use]
-pub fn render_benchmark_stage_interfaces_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_stage_interface_catalog_schema())
-}
-
-/// Write the governed benchmark stage-interface catalog schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_stage_interfaces_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_stage_interfaces_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark pipeline-parameter schema.
-#[must_use]
-pub fn render_benchmark_pipeline_parameters_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_pipeline_parameter_config_schema())
-}
-
-/// Write the governed benchmark pipeline-parameter schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_pipeline_parameters_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_pipeline_parameters_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark stage-report schema.
-#[must_use]
-pub fn render_benchmark_stage_report_schema() -> serde_json::Value {
-    render_owned_schema(benchmark_stage_report_schema())
-}
-
-/// Write the governed benchmark stage-report schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_stage_report_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_stage_report_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed benchmark report-admission schema.
-#[must_use]
-pub fn render_benchmark_report_admission_schema() -> serde_json::Value {
-    render_owned_schema(admitted_benchmark_stage_report_schema())
-}
-
-/// Write the governed benchmark report-admission schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_benchmark_report_admission_schema(path: &Path) -> Result<()> {
-    let schema = render_benchmark_report_admission_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed FASTQ normalized metrics schema.
-#[must_use]
-pub fn render_fastq_normalized_metrics_schema() -> serde_json::Value {
-    crate::internal::fastq::stages::preprocess::render_governed_fastq_normalized_metrics_schema()
-}
-
-/// Write the governed FASTQ normalized metrics schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_fastq_normalized_metrics_schema(path: &Path) -> Result<()> {
-    let schema = render_fastq_normalized_metrics_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Render the governed BAM normalized metrics schema.
-#[must_use]
-pub fn render_bam_normalized_metrics_schema() -> serde_json::Value {
-    bijux_dna_bench_model::normalized_result::bam_envelope::render_bam_normalized_metrics_schema()
-}
-
-/// Write the governed BAM normalized metrics schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_bam_normalized_metrics_schema(path: &Path) -> Result<()> {
-    let schema = render_bam_normalized_metrics_schema();
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
 /// Stability: v1 (stable).
 /// Governed benchmark planning, report and normalized-metric contracts.
 pub use bijux_dna_bench_model::{
@@ -636,71 +479,158 @@ pub use bijux_dna_bench_model::{
     STAGE_SCORING_SCHEMA_VERSION, VCF_TOOL_SCORES_SCHEMA_VERSION,
 };
 
-/// Render the governed VCF normalized metrics schema.
-///
-/// # Errors
-/// Returns an error if the governed schema cannot be rendered.
-pub fn render_vcf_normalized_metrics_schema() -> Result<serde_json::Value> {
-    bijux_dna_bench_model::normalized_result::vcf_envelope::render_vcf_normalized_metrics_schema()
-}
-
-/// Render the governed stage-specific VCF normalized metrics schema.
-///
-/// # Errors
-/// Returns an error if the stage-specific schema cannot be rendered.
-pub fn render_vcf_normalized_metrics_stage_schema(stage_id: &str) -> Result<serde_json::Value> {
-    bijux_dna_bench_model::normalized_result::vcf_envelope::render_vcf_normalized_metrics_stage_schema(stage_id)
-}
-
-/// Validate a normalized VCF metrics payload against the governed stage schema contract.
-///
-/// # Errors
-/// Returns an error if the payload does not satisfy the governed schema contract.
-pub fn validate_vcf_normalized_metrics(
-    metrics: &serde_json::Value,
-) -> Result<VcfNormalizedMetricsStageSchemaDescriptor> {
-    bijux_dna_bench_model::normalized_result::vcf_envelope::validate_vcf_normalized_metrics(metrics)
-}
-
-/// Describe the governed stage-specific VCF normalized metrics schema set.
-///
-/// # Errors
-/// Returns an error if the governed stage schema descriptors cannot be enumerated.
-pub fn vcf_normalized_metrics_stage_schema_descriptors(
-) -> Result<Vec<VcfNormalizedMetricsStageSchemaDescriptor>> {
-    bijux_dna_bench_model::normalized_result::vcf_envelope::vcf_normalized_metrics_stage_descriptors(
-    )
-}
-
-/// Write the governed VCF normalized metrics schema to disk.
-///
-/// # Errors
-/// Returns an error if the schema cannot be written to `path`.
-pub fn write_vcf_normalized_metrics_schema(path: &Path) -> Result<()> {
-    let schema = render_vcf_normalized_metrics_schema()?;
-    bijux_dna_infra::atomic_write_json(path, &schema)
-        .with_context(|| format!("write {}", path.display()))
-}
-
-/// Write the governed stage-specific VCF normalized metrics schema set to disk.
-///
-/// # Errors
-/// Returns an error if the directory cannot be prepared or any schema cannot be written.
-pub fn write_vcf_normalized_metrics_stage_schemas(
-    stage_dir: &Path,
-) -> Result<Vec<VcfNormalizedMetricsStageSchemaDescriptor>> {
-    std::fs::create_dir_all(stage_dir)
-        .with_context(|| format!("create {}", stage_dir.display()))?;
-    let descriptors = vcf_normalized_metrics_stage_schema_descriptors()?;
-    for descriptor in &descriptors {
-        let schema = render_vcf_normalized_metrics_stage_schema(&descriptor.stage_id)?;
-        let path = stage_dir.join(&descriptor.file_name);
-        bijux_dna_infra::atomic_write_json(&path, &schema)
-            .with_context(|| format!("write {}", path.display()))?;
-    }
-    Ok(descriptors)
-}
-
 pub use bijux_dna_bench::{
     inspect_benchmark_source_asset, BenchmarkSourceAsset, BenchmarkSourceKind,
+};
+
+pub use bijux_dna_bench::{
+    build_operational_benchmark_ready_report, validate_operational_benchmark_ready_report,
+    OperationalBenchmarkReadyBlocker, OperationalBenchmarkReadyCheck,
+    OperationalBenchmarkReadyReport, OperationalBenchmarkResultCounts,
+    OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION,
+};
+
+pub use bijux_dna_bench::{
+    campaign_dry_run, campaign_preflight, inspect_hpc_replay_payloads,
+    is_supported_encryption_backend, write_campaign_profiles, CampaignCheck, CampaignConfig,
+    CampaignContext, CampaignDryRunReport, CampaignJob, CampaignLayout, CampaignMeta,
+    CampaignPolicies, CampaignPreflightReport, CampaignSecurity, CampaignSlurm,
+    CorpusSizeScalePolicy, HpcReplayPayloadAdmission, LayoutPolicies, OutputTemplates, PlannedJob,
+    PlannedLayout, PlannedOutputs, PlannedSecurity, ResolvedSlurm, ResourcePolicies,
+    ResourceTemplate, ResourceTemplates, SiteProfile, SlurmPolicies, CAMPAIGN_SCHEMA_VERSION,
+};
+
+pub use bijux_dna_bench::{
+    monitor_campaign, SlurmMonitorEntry, SlurmMonitorReport, SlurmMonitorSnapshot,
+};
+
+pub use bijux_dna_bench::{
+    render_bam_normalized_metrics_schema, render_benchmark_attempt_archive_schema,
+    render_benchmark_attempt_schema, render_benchmark_cycle_status_schema,
+    render_benchmark_pipeline_parameters_schema, render_benchmark_report_admission_schema,
+    render_benchmark_stage_interfaces_schema, render_benchmark_stage_report_schema,
+    render_fastq_normalized_metrics_schema, render_vcf_normalized_metrics_schema,
+    render_vcf_normalized_metrics_stage_schema, validate_vcf_normalized_metrics,
+    vcf_normalized_metrics_stage_schema_descriptors, write_bam_normalized_metrics_schema,
+    write_benchmark_attempt_archive_schema, write_benchmark_attempt_schema,
+    write_benchmark_cycle_status_schema, write_benchmark_pipeline_parameters_schema,
+    write_benchmark_report_admission_schema, write_benchmark_stage_interfaces_schema,
+    write_benchmark_stage_report_schema, write_fastq_normalized_metrics_schema,
+    write_vcf_normalized_metrics_schema, write_vcf_normalized_metrics_stage_schemas,
+};
+
+pub use bijux_dna_bench::{
+    all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
+    all_domain_simulation_output_path, all_domain_simulation_output_role,
+    fake_run_all_domain_benchmark_results, render_all_domain_simulation_command_script,
+    validate_all_domain_simulation_report, validate_all_domain_simulation_result,
+    AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
+    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+};
+
+pub use bijux_dna_bench::{
+    quote_slurm_argument, slurm_script_path, write_campaign_copy_back_manifest, CopyBackEntry,
+    CopyBackManifestReport,
+};
+
+pub use bijux_dna_bench::{
+    AllDomainExpectedResultCoverageReport, AllDomainExpectedResultCoverageRow,
+    AllDomainLocalJobCoverageReport, AllDomainLocalJobCoverageRow,
+    AllDomainNoPlaceholderCommandCheckReport, AllDomainNoPlaceholderCommandRow,
+    AllDomainNoPlaceholderCommandStepAudit, AllDomainOutputContractCoverageReport,
+    AllDomainOutputContractCoverageRow, AllDomainParserFixtureCoverageReport,
+    AllDomainParserFixtureCoverageRow, AllDomainReportMapCoverageReport,
+    AllDomainReportMapCoverageRow, RemovedFromScopeReport, RemovedFromScopeRow,
+    ALL_DOMAIN_EXPECTED_RESULT_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION,
+    ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION,
+    ALL_DOMAIN_REPORT_MAP_COVERAGE_SCHEMA_VERSION, REMOVED_FROM_SCOPE_SCHEMA_VERSION,
+};
+
+pub use bijux_dna_bench::{
+    validate_vcf_scope_imputation_identity, validate_vcf_scope_postprocess_closure,
+    VcfScopeCoverageEvidence,
+};
+
+pub use bijux_dna_bench::write_recorded_command_audit;
+
+pub use bijux_dna_bench::{evaluate_operational_binding_coverage, OperationalBindingEvidence};
+
+pub use bijux_dna_bench::publish_rendered_command_artifacts;
+
+pub use bijux_dna_bench::{
+    qualify_micro_benchmark_run, MicroBenchmarkComponentReport, MicroBenchmarkExecutionStatus,
+    MicroBenchmarkLogRow, MicroBenchmarkNormalizedMetricRow, MicroBenchmarkOutputRow,
+    MicroBenchmarkResultKind, MicroBenchmarkResultRow, MicroBenchmarkRunEvidence,
+    MicroBenchmarkRunManifest, MICRO_BENCHMARK_RUN_COMMAND, MICRO_BENCHMARK_RUN_SCHEMA_VERSION,
+};
+
+pub use bijux_dna_bench::{
+    evaluate_operational_reporting, OperationalReportingEvidence, OperationalReportingPaths,
+};
+
+pub use bijux_dna_bench::{
+    render_micro_benchmark_report_markdown, validate_micro_benchmark_report,
+    MicroBenchmarkCompleteRow, MicroBenchmarkFailedRow, MicroBenchmarkInsufficientDataRow,
+    MicroBenchmarkMemorySourceRow, MicroBenchmarkMissingRow, MicroBenchmarkReport,
+    MicroBenchmarkRuntimeRow, MicroBenchmarkScienceThresholdRow, MicroBenchmarkUnavailableRow,
+    MICRO_BENCHMARK_REPORT_SCHEMA_VERSION,
+};
+
+pub use bijux_dna_bench::{
+    generate_micro_benchmark_report, MicroBenchmarkExpectedRow, MicroBenchmarkReportRequest,
+    MicroBenchmarkReportSources, DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH,
+    DEFAULT_MICRO_BENCHMARK_REPORT_MARKDOWN_PATH,
+};
+
+pub use bijux_dna_bench::{
+    collect_hpc_stage_array, publish_hpc_stage_array, validate_hpc_stage_array,
+    HpcStageArrayDestination, HpcStageArrayRequest,
+};
+pub use bijux_dna_bench_model::{
+    render_shell_command, rendered_benchmark_result_execution_argv,
+    rendered_essential_pipeline_node_execution_argv,
+};
+
+pub use bijux_dna_bench::quote_hpc_shell_value;
+
+pub use bijux_dna_bench::{
+    collect_hpc_pipeline_array, publish_hpc_pipeline_array, validate_hpc_pipeline_array,
+    HpcPipelineArrayDestination, HpcPipelineArrayRequest,
+};
+
+pub use bijux_dna_bench::{
+    load_hpc_job_resources, resolve_hpc_job_resources, HPC_JOB_RESOURCE_CONFIG_PATH,
+};
+
+pub use bijux_dna_bench::{
+    collect_hpc_job_source_inputs, materialize_stage_id, HpcDiscoveredSourceInput,
+    HpcStageInputHint,
+};
+
+pub use bijux_dna_bench::{
+    collect_hpc_asset_staging_manifest, compare_hpc_asset_staging_manifest,
+    load_hpc_asset_staging_manifest, publish_hpc_asset_staging_manifest, HpcAssetStagingRequest,
+};
+
+pub use bijux_dna_bench::{
+    assemble_hpc_scratch_layout, collect_hpc_scratch_layout, compare_hpc_scratch_layout,
+    load_hpc_scratch_layout, project_hpc_scratch_job, publish_hpc_scratch_layout,
+    HpcScratchCommands, HpcScratchJobRequest, HpcScratchPipelineCommands, HpcScratchRequest,
+};
+
+pub use bijux_dna_bench::{
+    classify_runtime_resolution, evaluate_tool_execution_modes, load_runtime_probe,
+    load_runtime_probe_with_source, load_tool_execution_mode_assignments,
+    load_tool_execution_modes_config, select_hpc_runtime_resolution, BenchmarkRuntimeProbe,
+    HpcApptainerTarget, HpcResolution, LoadedRuntimeProbe, RuntimeResolutionInput,
+    RuntimeResolutionSignature, ToolExecutionModeAssignment, ToolExecutionModeRow,
+    ToolExecutionModesConfig, ToolExecutionModesValidationReport,
+    DEFAULT_TOOL_EXECUTION_MODES_PATH, LOCAL_TOOL_EXECUTION_MODES_SCHEMA_VERSION,
+    RESOLUTION_KIND_APPTAINER_IMAGE, RESOLUTION_KIND_DOCKER_IMAGE,
+    RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY, RESOLUTION_KIND_UNAVAILABLE,
+    TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION,
 };

@@ -115,35 +115,66 @@ fn policy__boundaries__path_policies__src_does_not_contain_test_paths() {
     );
 }
 
+fn run_artifact_literal_offenders(targets: &[PathBuf]) -> anyhow::Result<Vec<PathBuf>> {
+    let mut offenders = Vec::new();
+    for target in targets {
+        anyhow::ensure!(
+            target.is_dir(),
+            "run artifact policy source root is missing: {}",
+            target.display()
+        );
+        let mut inspected = 0usize;
+        for entry in WalkDir::new(target) {
+            let entry = entry?;
+            if !entry.file_type().is_file()
+                || entry.path().extension().and_then(|s| s.to_str()) != Some("rs")
+            {
+                continue;
+            }
+            inspected += 1;
+            let source = std::fs::read_to_string(entry.path())?;
+            let source = bijux_dna_testkit::workspace_support::strip_rust_test_modules(&source);
+            if source.contains("\"run_artifacts\"") {
+                offenders.push(entry.path().to_path_buf());
+            }
+        }
+        anyhow::ensure!(
+            inspected > 0,
+            "run artifact policy source root contains no Rust files: {}",
+            target.display()
+        );
+    }
+    Ok(offenders)
+}
+
 #[test]
 fn policy__boundaries__path_policies__run_artifacts_paths_use_runtime_helpers() {
     let root = workspace_root();
-    let mut offenders = Vec::new();
-    let targets = [
-        root.join("../../../../bijux-dna-api/src"),
-        root.join("../../../../bijux-dna/src"),
-        root.join("../../../../bijux-dna-stages-fastq/src"),
-        root.join("../../../../bijux-dna-stages-bam/src"),
-    ];
-    for target in targets {
-        for entry in WalkDir::new(target).into_iter().filter_map(Result::ok) {
-            if !entry.file_type().is_file() {
-                continue;
-            }
-            if entry.path().extension().and_then(|s| s.to_str()) != Some("rs") {
-                continue;
-            }
-            let content = std::fs::read_to_string(entry.path()).expect("read source");
-            if content.contains("\"run_artifacts\"") {
-                offenders.push(entry.path().display().to_string());
-            }
-        }
-    }
+    let targets = ["bijux-dna-api", "bijux-dna", "bijux-dna-stages-fastq", "bijux-dna-stages-bam"]
+        .map(|name| root.join("crates").join(name).join("src"));
+    let offenders =
+        run_artifact_literal_offenders(&targets).expect("inspect actual run artifact consumers");
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "run_artifacts paths must use bijux_dna_runtime helpers, not string joins:\n{}",
-        offenders.join("\n")
+        "run artifact consumers must use the shared path owner: {:?}",
+        offenders
     );
+}
+
+#[test]
+fn policy__boundaries__path_policies__run_artifact_scan_rejects_missing_empty_and_offending_sources(
+) -> anyhow::Result<()> {
+    let temp = bijux_dna_testkit::temp::tempdir_for("run-artifact-path-policy");
+    let root = temp.path().join("src");
+    assert!(run_artifact_literal_offenders(std::slice::from_ref(&root)).is_err());
+    std::fs::create_dir(&root)?;
+    assert!(run_artifact_literal_offenders(std::slice::from_ref(&root)).is_err());
+    let source = root.join("consumer.rs");
+    std::fs::write(&source, "fn consumer() { out.join(\"run_artifacts\"); }\n")?;
+    assert_eq!(run_artifact_literal_offenders(std::slice::from_ref(&root))?, vec![source.clone()]);
+    std::fs::write(&source, "fn consumer() { shared_path(out); }\n")?;
+    assert!(run_artifact_literal_offenders(std::slice::from_ref(&root))?.is_empty());
+    Ok(())
 }
 
 #[test]

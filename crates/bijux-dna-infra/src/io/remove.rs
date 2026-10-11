@@ -46,3 +46,11 @@ pub fn remove_file_if_exists(path: &Path) -> Result<(), IoError> {
         Err(err) => Err(IoError::from_io(err)),
     }
 }
+
+/// Remove only an empty directory, preserving unexpected contents.
+///
+/// # Errors
+/// Returns an IO error if the directory is nonempty, missing or cannot be removed.
+pub fn remove_empty_dir(path: &Path) -> Result<(), IoError> {
+    std::fs::remove_dir(path).map_err(IoError::from_io)
+}

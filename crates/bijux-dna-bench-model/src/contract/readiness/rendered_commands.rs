@@ -24,28 +24,7 @@ pub fn validate_all_domain_rendered_command_rows(
         ) });
     }
 
-    let mut seen_result_ids = BTreeSet::<&str>::new();
-    let mut seen_bindings = BTreeSet::<BindingKey>::new();
-    for row in rows {
-        validate_required_columns(row)?;
-        if !seen_result_ids.insert(row.result_id.as_str()) {
-            return Err(BenchError::InvalidObservation {
-                reason: format!(
-                    "all-domain rendered commands contain duplicate result_id `{}`",
-                    row.result_id
-                ),
-            });
-        }
-        if !seen_bindings.insert(binding_key(&row.domain, &row.stage_id, &row.tool_id)) {
-            return Err(BenchError::InvalidObservation {
-                reason: format!(
-                    "all-domain rendered commands contain duplicate `{}` / `{}` / `{}` bindings",
-                    row.domain, row.stage_id, row.tool_id
-                ),
-            });
-        }
-        validate_rendered_command_row(row)?;
-    }
+    validate_rendered_command_observations(rows)?;
 
     let missing = expected_by_binding
         .iter()
@@ -92,6 +71,44 @@ pub fn validate_all_domain_rendered_command_rows(
         id_catalog::TOOL_BCFTOOLS,
         "vcf_bcftools_adapter",
     )?;
+
+    Ok(())
+}
+
+/// Admit intrinsic command identities and executable steps, independently of slice coverage.
+///
+/// # Errors
+/// Rejects missing, duplicate, empty or placeholder command observations.
+pub fn validate_rendered_command_observations(
+    rows: &[AllDomainRenderedCommandRow],
+) -> Result<(), BenchError> {
+    if rows.is_empty() {
+        return Err(BenchError::InvalidObservation {
+            reason: "rendered commands require a nonempty observation set".to_string(),
+        });
+    }
+    let mut seen_result_ids = BTreeSet::<&str>::new();
+    let mut seen_bindings = BTreeSet::<BindingKey>::new();
+    for row in rows {
+        validate_required_columns(row)?;
+        if !seen_result_ids.insert(row.result_id.as_str()) {
+            return Err(BenchError::InvalidObservation {
+                reason: format!(
+                    "all-domain rendered commands contain duplicate result_id `{}`",
+                    row.result_id
+                ),
+            });
+        }
+        if !seen_bindings.insert(binding_key(&row.domain, &row.stage_id, &row.tool_id)) {
+            return Err(BenchError::InvalidObservation {
+                reason: format!(
+                    "all-domain rendered commands contain duplicate `{}` / `{}` / `{}` bindings",
+                    row.domain, row.stage_id, row.tool_id
+                ),
+            });
+        }
+        validate_rendered_command_row(row)?;
+    }
 
     Ok(())
 }

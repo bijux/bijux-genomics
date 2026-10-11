@@ -1,55 +1,14 @@
-use std::collections::{BTreeMap, BTreeSet};
-use std::path::Path;
-
-use anyhow::{anyhow, Context, Result};
-use regex::Regex;
-
-pub(crate) use bijux_dna_api::v1::api::bench::{
-    inspect_benchmark_source_asset as resolve_local_hpc_source_asset,
-    BenchmarkSourceAsset as LocalHpcResolvedSourceAsset,
-};
-
 use super::local_stage_commands::local_stage_plans;
 use super::readiness::benchmark_command_rows::DEFAULT_STAGE_TOOL_COMMAND_ROOT;
-
-const OUTPUT_FLAG_ARGS: [&str; 12] = [
-    "-o",
-    "-O",
-    "--out",
-    "--output",
-    "--output-dir",
-    "--output-root",
-    "--output-prefix",
-    "--prefix",
-    "--stdout",
-    "--stderr",
-    "--report",
-    "--summary",
-];
-const OUTPUT_ASSIGNMENT_KEYS: [&str; 7] =
-    ["out", "output", "output_dir", "output_root", "output_prefix", "report", "summary"];
-const SOURCE_ROOTS: [&str; 4] = ["artifacts/", "assets/", "benchmarks/", "runs/"];
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct LocalHpcStageInputHint {
-    pub(crate) artifact_id: String,
-    pub(crate) artifact_role: String,
-    pub(crate) source_path: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct LocalHpcDiscoveredSourceInput {
-    pub(crate) artifact_id: Option<String>,
-    pub(crate) artifact_role: Option<String>,
-    pub(crate) source_asset: LocalHpcResolvedSourceAsset,
-}
-
-#[derive(Debug, Default)]
-struct StepPathUsage {
-    consumed: BTreeSet<String>,
-    produced: BTreeSet<String>,
-}
-
+use anyhow::Result;
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    materialize_stage_id, HpcDiscoveredSourceInput as LocalHpcDiscoveredSourceInput,
+    HpcStageInputHint as LocalHpcStageInputHint,
+};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    path::Path,
+};
 pub(crate) fn collect_local_hpc_stage_input_hints(
     repo_root: &Path,
     stage_ids: &BTreeSet<String>,
@@ -179,6 +138,13 @@ fn bam_downstream_stage_input_hints(stage_id: &str) -> Vec<LocalHpcStageInputHin
         .collect()
 }
 
+pub(crate) fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
+    path.strip_prefix(repo_root).map_or_else(
+        |_| path.to_string_lossy().replace('\\', "/"),
+        |relative| relative.to_string_lossy().replace('\\', "/"),
+    )
+}
+
 pub(crate) fn collect_local_hpc_job_source_inputs<'a, I>(
     repo_root: &Path,
     consumer_label: &str,
@@ -189,269 +155,12 @@ pub(crate) fn collect_local_hpc_job_source_inputs<'a, I>(
 where
     I: IntoIterator<Item = &'a [String]>,
 {
-    let mut discovered_by_source = BTreeMap::<String, LocalHpcDiscoveredSourceInput>::new();
-    let mut produced_paths = BTreeSet::<String>::new();
-
-    for argv in command_steps {
-        if let Some(materialized_stage_id) = materialize_stage_id(argv) {
-            let hints = stage_input_hints.get(&materialized_stage_id).ok_or_else(|| {
-                anyhow!(
-                    "missing local stage input hints for materialized stage `{materialized_stage_id}`"
-                )
-            })?;
-            for hint in hints {
-                let resolved =
-                    resolve_local_hpc_source_asset(repo_root, &hint.source_path)?.ok_or_else(|| {
-                        anyhow!(
-                            "materialized stage `{materialized_stage_id}` depends on unresolved source `{}`",
-                            hint.source_path
-                        )
-                    })?;
-                merge_discovered_source_input(
-                    &mut discovered_by_source,
-                    resolved,
-                    Some(hint.artifact_id.clone()),
-                    Some(hint.artifact_role.clone()),
-                );
-            }
-            continue;
-        }
-
-        let usage = collect_step_path_usage(argv)?;
-        for source_path in usage.consumed.difference(&usage.produced) {
-            if produced_paths.contains(source_path.as_str()) {
-                continue;
-            }
-            if let Some(resolved) = resolve_local_hpc_source_asset(repo_root, source_path)? {
-                merge_discovered_source_input(&mut discovered_by_source, resolved, None, None);
-            }
-        }
-        produced_paths.extend(usage.produced);
-    }
-
-    if discovered_by_source.is_empty() {
-        if let Some(hints) = stage_input_hints.get(stage_id) {
-            for hint in hints {
-                let resolved = resolve_local_hpc_source_asset(repo_root, &hint.source_path)?
-                    .ok_or_else(|| {
-                        anyhow!(
-                            "stage `{stage_id}` depends on unresolved source `{}`",
-                            hint.source_path
-                        )
-                    })?;
-                merge_discovered_source_input(
-                    &mut discovered_by_source,
-                    resolved,
-                    Some(hint.artifact_id.clone()),
-                    Some(hint.artifact_role.clone()),
-                );
-            }
-        }
-    }
-
-    if discovered_by_source.is_empty() {
-        return Err(anyhow!(
-            "local HPC input discovery found no source inputs for `{consumer_label}`"
-        ));
-    }
-
-    Ok(discovered_by_source.into_values().collect())
-}
-
-pub(crate) fn materialize_stage_id(argv: &[String]) -> Option<String> {
-    if !argv.iter().any(|arg| arg == "materialize-stage") {
-        return None;
-    }
-    argv.windows(2).find(|window| window[0] == "--stage-id").map(|window| window[1].clone())
-}
-
-pub(crate) fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).map_or_else(
-        |_| path.to_string_lossy().replace('\\', "/"),
-        |relative| relative.to_string_lossy().replace('\\', "/"),
+    bijux_dna_api::v1::api::bench::collect_hpc_job_source_inputs(
+        repo_root,
+        consumer_label,
+        stage_id,
+        command_steps,
+        stage_input_hints,
+        DEFAULT_STAGE_TOOL_COMMAND_ROOT,
     )
-}
-
-fn merge_discovered_source_input(
-    discovered_by_source: &mut BTreeMap<String, LocalHpcDiscoveredSourceInput>,
-    resolved: LocalHpcResolvedSourceAsset,
-    artifact_id: Option<String>,
-    artifact_role: Option<String>,
-) {
-    discovered_by_source
-        .entry(resolved.source_path.clone())
-        .and_modify(|entry| {
-            if entry.artifact_id.is_none() {
-                entry.artifact_id.clone_from(&artifact_id);
-            }
-            if entry.artifact_role.is_none() {
-                entry.artifact_role.clone_from(&artifact_role);
-            }
-        })
-        .or_insert(LocalHpcDiscoveredSourceInput {
-            artifact_id,
-            artifact_role,
-            source_asset: resolved,
-        });
-}
-
-fn shell_step_body(argv: &[String]) -> Option<&str> {
-    let [shell, flag, body, ..] = argv else {
-        return None;
-    };
-    let shell_name = Path::new(shell).file_name()?.to_str()?;
-    if !matches!(shell_name, "sh" | "bash" | "zsh") {
-        return None;
-    }
-    if !flag.starts_with('-') || !flag.contains('c') {
-        return None;
-    }
-
-    Some(body)
-}
-
-fn collect_step_path_usage(argv: &[String]) -> Result<StepPathUsage> {
-    if let Some(body) = shell_step_body(argv) {
-        return collect_shell_step_path_usage(body);
-    }
-    Ok(collect_tokenized_step_path_usage(argv))
-}
-
-fn collect_tokenized_step_path_usage(argv: &[String]) -> StepPathUsage {
-    let mut usage = StepPathUsage::default();
-    let mut previous_flag: Option<&str> = None;
-
-    for arg in argv {
-        if let Some((assignment_key, path)) = assignment_repo_path(arg) {
-            if is_generated_benchmark_output_path(path)
-                || is_output_flag(assignment_key)
-                || is_output_assignment_key(assignment_key)
-            {
-                usage.produced.insert(path.to_string());
-            } else {
-                usage.consumed.insert(path.to_string());
-            }
-        } else if let Some(path) = candidate_repo_path(arg) {
-            if is_generated_benchmark_output_path(path) || previous_flag.is_some_and(is_output_flag)
-            {
-                usage.produced.insert(path.to_string());
-            } else {
-                usage.consumed.insert(path.to_string());
-            }
-        }
-
-        previous_flag = if arg.starts_with('-') { Some(arg.as_str()) } else { None };
-    }
-
-    usage
-}
-
-fn collect_shell_step_path_usage(shell_command: &str) -> Result<StepPathUsage> {
-    let matcher = Regex::new(
-        r#"'((?:artifacts|assets|benchmarks|runs)/[^']+)'|"((?:artifacts|assets|benchmarks|runs)/[^"]+)"|((?:artifacts|assets|benchmarks|runs)/[A-Za-z0-9_./@+-]+)"#,
-    )
-    .context("compile local HPC input-discovery path matcher")?;
-    let mut usage = StepPathUsage::default();
-
-    for captures in matcher.captures_iter(shell_command) {
-        let full_match = captures.get(0).expect("shell path capture must include full match");
-        let source_path = captures
-            .get(1)
-            .or_else(|| captures.get(2))
-            .or_else(|| captures.get(3))
-            .expect("shell path capture must include a repo-relative path")
-            .as_str()
-            .trim_end_matches('.');
-        if !is_repo_source_path(source_path) {
-            continue;
-        }
-        if is_generated_benchmark_output_path(source_path)
-            || is_output_context(shell_command, full_match.start())
-        {
-            usage.produced.insert(source_path.to_string());
-        } else {
-            usage.consumed.insert(source_path.to_string());
-        }
-    }
-
-    Ok(usage)
-}
-
-fn is_output_context(body: &str, start: usize) -> bool {
-    let prefix = body.get(..start).unwrap_or(body).trim_end();
-    if prefix.ends_with('>') || prefix.ends_with("1>") || prefix.ends_with("2>") {
-        return true;
-    }
-
-    last_shell_token(prefix).is_some_and(|token| {
-        is_output_flag(token) || token.strip_suffix('=').is_some_and(is_output_assignment_key)
-    })
-}
-
-fn last_shell_token(prefix: &str) -> Option<&str> {
-    prefix.rsplit(|ch: char| ch.is_whitespace()).find(|segment| !segment.is_empty())
-}
-
-fn is_output_flag(flag: &str) -> bool {
-    OUTPUT_FLAG_ARGS.contains(&flag)
-}
-
-fn is_output_assignment_key(key: &str) -> bool {
-    OUTPUT_ASSIGNMENT_KEYS.contains(&key)
-}
-
-fn candidate_repo_path(value: &str) -> Option<&str> {
-    if is_repo_source_path(value) {
-        Some(value)
-    } else {
-        None
-    }
-}
-
-fn assignment_repo_path(value: &str) -> Option<(&str, &str)> {
-    let (key, path) = value.split_once('=')?;
-    candidate_repo_path(path).map(|path| (key, path))
-}
-
-fn is_repo_source_path(value: &str) -> bool {
-    SOURCE_ROOTS.iter().any(|root| value.starts_with(root))
-}
-
-fn is_generated_benchmark_output_path(value: &str) -> bool {
-    value == DEFAULT_STAGE_TOOL_COMMAND_ROOT
-        || value
-            .strip_prefix(DEFAULT_STAGE_TOOL_COMMAND_ROOT)
-            .is_some_and(|suffix| suffix.starts_with('/'))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::collect_shell_step_path_usage;
-
-    #[test]
-    fn shell_discovery_distinguishes_materialized_inputs_from_outputs() {
-        let usage = collect_shell_step_path_usage(
-            "cat 'artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/ibd_segments.tsv' | ibdne map='artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/genetic.map' out='artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/demography_report' > 'artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/demography_report.log' 2>&1",
-        )
-        .expect("discover IBDNe shell paths");
-
-        assert_eq!(
-            usage.consumed,
-            [
-                "artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/genetic.map".to_string(),
-                "artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/ibd_segments.tsv".to_string(),
-            ]
-            .into_iter()
-            .collect()
-        );
-        assert_eq!(
-            usage.produced,
-            [
-                "artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/demography_report".to_string(),
-                "artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/demography_report.log".to_string(),
-            ]
-            .into_iter()
-            .collect()
-        );
-    }
 }

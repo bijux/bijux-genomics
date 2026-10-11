@@ -589,7 +589,7 @@ fn prune_trim_terminal_damage_payload(
     metrics_path: &Path,
     report: &bijux_dna_domain_fastq::TerminalDamageReportV1,
 ) -> Result<()> {
-    let run_artifacts_dir = out_dir.join("run_artifacts");
+    let run_artifacts_dir = bijux_dna_runtime::recording::run_artifacts_dir_for_out(out_dir);
     let mut keep = HashSet::new();
     keep.insert(report_path.to_path_buf());
     keep.insert(metrics_path.to_path_buf());
@@ -987,7 +987,7 @@ mod tests {
     fn prune_trim_terminal_damage_payload_keeps_reports_and_run_artifacts() {
         let temp = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let out_dir = temp.path().join("cutadapt");
-        let run_artifacts = out_dir.join("run_artifacts");
+        let run_artifacts = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
         fs::create_dir_all(&run_artifacts).expect("mkdir");
 
         let report_path = out_dir.join("trim_terminal_damage_report.json");

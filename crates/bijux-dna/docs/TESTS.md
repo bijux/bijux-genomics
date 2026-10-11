@@ -41,7 +41,6 @@ tests/
   and verification-command contract.
 - `tests/contracts.rs`: command behavior, bank, dry-run, and HPC layout contracts.
 - `tests/contracts/dry_run.rs`: dry-run command families and VCF toy execution coverage.
-- `tests/guardrails.rs`: shared policy guardrail smoke for this crate.
 - `tests/schemas.rs`: public API surface snapshots.
 - `tests/snapshots.rs`: CLI help output snapshots and docs-to-help checks.
 - `src/process_exit.rs` unit tests: operator error and exit-code behavior.
@@ -81,3 +80,23 @@ and population smoke targets. Test function names remain stable beneath module
 namespaces so function-based routing and slow rosters retain their meaning.
 
 Executable fixture assertions live in `tests/contracts/fixtures/`; `tests/fixtures/` holds input data only. Grouped entrypoints keep their binary and case identities.
+
+Local simulation command contracts link through `bench_local_simulation`. The `contracts/local_simulation` tree separates stage, all-domain and pipeline cases; JSON, file, declared-output and failure assertions retain their original feature conditions. A single shared support module serializes process-global environment/cwd mutations for ordinary Cargo test execution. Nextest still isolates each test process and uses the existing repository mutation locks.
+
+Active-scope completion runs one sandboxed workflow. Its JSON command case compares the persisted report with stdout and covers all nineteen checks, active matrix proof paths, and exact VCF closure detail. A separate workflow solely for file existence and duplicated report counters is unnecessary. This suite does not separately exercise the plain-text path presentation mode.
+
+All-domain catalog and admission contracts link through `bench_readiness_all_domain_catalog` and `bench_readiness_all_domain_admission`. Their modules in `contracts/benchmark/all_domain_readiness/` retain all sixteen JSON, TSV and file cases. Catalog owns stage/tool inventory, expected results and job coverage; admission owns scope blockers and forbidden readiness states. Each binary shares the process-state guard. Nextest still schedules individual cases under the repository mutation group; function-based slow filters retain their names.
+
+Retained-tool readiness uses one complete workflow per BAM/VCF domain. BAM compares stdout and persisted JSON within one sandbox lifetime; VCF inspects its persisted failure report and preserves licensed-evidence blockers. Both retain their exact governed goal ranges and container/external-artifact counts. A separate BAM plain-text path invocation and the duplicate VCF failure invocation are retired.
+
+The HPC stage benchmark array suite renders one private script/manifest pair. That same publication covers exact result commands and output paths, container resolution, SLURM dispatch, rendered and validated path presentation, and independent script/manifest drift rejection. Each mutation restores its original bytes before the next check. Duplicate render setup and a second integration binary are unnecessary.
+
+The HPC pipeline node array suite renders one private script/manifest pair. That same publication covers exact result commands and output paths, dependency lineage, SLURM dispatch, rendered and validated path presentation, and independent script/manifest drift rejection. Each mutation restores its original bytes before the next check. Duplicate render setup and a second integration binary are unnecessary.
+
+The HPC asset-staging suite shares one private publication across governed input/provenance assertions, validated-path presentation and stale-count rejection. The fixture retains its directory guard for cleanup and restores the manifest after drift. Both validator calls remain; duplicate rendering and its integration binary are retired.
+
+Operational readiness passes its current stage table, expected results, rendered commands, output declarations and parser report into harness validation. Existing goal and cross-report checks still run. A failed upstream report becomes a failed dependency instead of being regenerated; standalone harness commands acquire their own reports. The native dependency case checks borrowing, absence of hidden retries and standalone acquisition.
+
+The scratch-layout publication suite retains one private manifest for schema/root/source-link assertions, validated-path presentation, and stale input-link count rejection. All original assertions and both validator invocations remain; duplicate render setup and its second integration executable are retired. The directory guard spans the whole case and drift is restored before completion.
+
+Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.

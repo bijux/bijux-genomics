@@ -1,203 +1,28 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use anyhow::{anyhow, Context, Result};
-use serde::Deserialize;
-use toml::Value as TomlValue;
+use anyhow::Result;
 
+use crate::decision::fastq_closure::{
+    build_fastq_closure_gate_rows, build_fastq_default_binding_risk_rows,
+    build_fastq_missing_closure_prerequisite_rows, build_fastq_truth_delta_rows,
+};
+use crate::domain::compilation::{
+    CompilationEvidence, FastqToolContractEntry, PaperMapEntry, ToolEvidenceMapEntry,
+    ToolRegistryEntry,
+};
 use crate::domain::{
-    ArchiveStatus, BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
+    ArchiveStatus, BindingResolutionRow, BindingSpec, ClaimEvidenceRow, CompiledScience,
     DecisionReasoningRow, FastqClosureGateRow, FastqClosureSummary, FastqDefaultBindingRiskRow,
     FastqEnvironmentRow, FastqEvidenceSummary, FastqMissingClosurePrerequisiteRow,
     FastqTruthDeltaRow, LoadedSpecs, ScienceIndex, SourceAccess, SourceArchiveGapRow,
-    SourceArchiveSummary, SourceId, SourceInventoryRow, SourceKind, SourceSpec,
+    SourceArchiveSummary, SourceInventoryRow, SourceKind,
 };
 use crate::errors::validation_error;
-use crate::io::{list_yaml_files, read_utf8};
-use crate::schema::{
-    ASSUMPTION_SCHEMA_VERSION, BINDING_SCHEMA_VERSION, CLAIM_SCHEMA_VERSION,
-    DECISION_SCHEMA_VERSION, EVIDENCE_SCHEMA_VERSION, REASONING_SCHEMA_VERSION,
-    RELEASE_SCHEMA_VERSION, SOURCE_SCHEMA_VERSION,
-};
-
-#[derive(Deserialize)]
-struct ExecutionSupportDoc {
-    stages: Vec<ExecutionSupportStage>,
-}
-
-#[derive(Deserialize)]
-struct ExecutionSupportStage {
-    stage_id: String,
-    execution_status: String,
-    runtime_support: String,
-    normalization_support: String,
-    benchmark_support: String,
-    default_tool: Option<String>,
-    admitted_tools: Vec<String>,
-}
-
-#[derive(Deserialize)]
-struct StageContractDoc {
-    stage_id: Option<String>,
-    #[serde(default)]
-    planned_out_of_scope: Vec<String>,
-}
-
-#[derive(Clone, Debug, Default)]
-struct ToolRegistryEntry {
-    status: String,
-    version: String,
-    default_version: String,
-    version_rule: String,
-    upstream: String,
-    citation: String,
-    license: String,
-    pinned_commit: String,
-    pin_strategy: String,
-    runtimes: Vec<String>,
-    container_ref: String,
-    dockerfile: String,
-    apptainer_def: String,
-}
-
-#[derive(Clone, Debug, Default, Deserialize)]
-struct FastqToolContractEntry {
-    #[serde(default)]
-    tool_id: String,
-    #[serde(default)]
-    status: String,
-    #[serde(default)]
-    default_version: String,
-    #[serde(default)]
-    versioning_strategy: String,
-    #[serde(default)]
-    pin_strategy: String,
-    #[serde(default)]
-    upstream: String,
-    #[serde(default)]
-    citation: String,
-    #[serde(default)]
-    license: String,
-}
-
-#[derive(Clone, Debug)]
-struct ToolEvidenceMapEntry {
-    source_id: String,
-    tool_id: String,
-    archive_path: String,
-    archive_status: String,
-    paper_root: String,
-    acquisition_mode: String,
-    primary_locator: String,
-}
-
-#[derive(Clone, Debug)]
-struct PaperMapEntry {
-    paper_id: String,
-    tool_id: String,
-    paper_root: String,
-    archive_status: String,
-    paper_status: String,
-    open_access_status: String,
-    primary_locator: String,
-    supporting_locators: String,
-    notes: String,
-}
-
-#[derive(Clone, Debug)]
-struct QaCoverageBlockerEntry {
-    stage_id: String,
-    blocker: String,
-}
-
-/// Load and validate authored science specs from a workspace.
-///
-/// # Errors
-///
-/// Returns an error when spec files cannot be listed, read, parsed, or validated.
-pub fn load_specs(root: &Path) -> Result<LoadedSpecs> {
-    let mut loaded = LoadedSpecs::default();
-    let mut errors = Vec::new();
-
-    load_dir::<crate::domain::SourceSpec, _, _>(
-        root,
-        "science/specs/evidence/sources",
-        &mut loaded.sources,
-        SOURCE_SCHEMA_VERSION,
-        |row| row.source_id.as_str().to_string(),
-        validate_source,
-        &mut errors,
-    )?;
-    load_dir::<crate::domain::EvidenceSpec, _, _>(
-        root,
-        "science/specs/evidence/evidences",
-        &mut loaded.evidences,
-        EVIDENCE_SCHEMA_VERSION,
-        |row| row.evidence_id.as_str().to_string(),
-        |_| Ok(()),
-        &mut errors,
-    )?;
-    load_dir::<crate::domain::ClaimSpec, _, _>(
-        root,
-        "science/specs/evidence/claims",
-        &mut loaded.claims,
-        CLAIM_SCHEMA_VERSION,
-        |row| row.claim_id.as_str().to_string(),
-        validate_claim,
-        &mut errors,
-    )?;
-    load_dir::<crate::domain::AssumptionSpec, _, _>(
-        root,
-        "science/specs/evidence/assumptions",
-        &mut loaded.assumptions,
-        ASSUMPTION_SCHEMA_VERSION,
-        |row| row.assumption_id.as_str().to_string(),
-        |_| Ok(()),
-        &mut errors,
-    )?;
-    load_dir::<crate::domain::ReasoningSpec, _, _>(
-        root,
-        "science/specs/evidence/reasoning",
-        &mut loaded.reasonings,
-        REASONING_SCHEMA_VERSION,
-        |row| row.reasoning_id.as_str().to_string(),
-        |_| Ok(()),
-        &mut errors,
-    )?;
-    load_dir::<crate::domain::DecisionSpec, _, _>(
-        root,
-        "science/specs/evidence/decisions",
-        &mut loaded.decisions,
-        DECISION_SCHEMA_VERSION,
-        |row| row.decision_id.as_str().to_string(),
-        |_| Ok(()),
-        &mut errors,
-    )?;
-    load_dir::<crate::domain::BindingSpec, _, _>(
-        root,
-        "science/specs/evidence/bindings",
-        &mut loaded.bindings,
-        BINDING_SCHEMA_VERSION,
-        |row| row.binding_id.as_str().to_string(),
-        |_| Ok(()),
-        &mut errors,
-    )?;
-    load_dir::<crate::domain::ReleaseManifestSpec, _, _>(
-        root,
-        "science/specs/releases/manifests",
-        &mut loaded.releases,
-        RELEASE_SCHEMA_VERSION,
-        |row| row.release_id.as_str().to_string(),
-        |_| Ok(()),
-        &mut errors,
-    )?;
-
-    errors.extend(validate_cross_references(&loaded));
-    if !errors.is_empty() {
-        return Err(validation_error(&errors));
-    }
-    Ok(loaded)
-}
+use crate::io::compilation::load_compilation_evidence;
+pub use crate::io::load_specs;
+use crate::schema::authored::validate_cross_references;
+pub use crate::schema::SchemaVersion;
 
 /// Compile authored science specs and derived evidence rows for a workspace.
 ///
@@ -216,6 +41,14 @@ pub fn compile_workspace(root: &Path) -> Result<CompiledScience> {
 /// Returns an error when loaded specs contain unresolved references or required FASTQ evidence
 /// sources cannot be resolved.
 pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScience> {
+    let evidence = load_compilation_evidence(root, loaded)?;
+    compile_evidence(loaded, &evidence)
+}
+
+fn compile_evidence(
+    loaded: &LoadedSpecs,
+    evidence: &CompilationEvidence,
+) -> Result<CompiledScience> {
     let source_inventory = build_source_inventory(loaded);
     let source_archive_gaps = build_source_archive_gaps(&source_inventory);
     let source_archive_summary =
@@ -223,24 +56,24 @@ pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScien
     let claim_evidence_map = build_claim_evidence_map(loaded);
     let decision_reasoning_map = build_decision_reasoning_map(loaded);
     let binding_resolution = build_binding_resolution(loaded);
-    let fastq_environment_rows = build_fastq_environment_rows(root, loaded)?;
+    let fastq_environment_rows = build_fastq_environment_rows(loaded, evidence);
     let fastq_container_reference_rows =
-        build_fastq_container_reference_rows(root, loaded, &fastq_environment_rows)?;
-    let tool_evidence_map = load_fastq_tool_evidence_map(root, loaded)?;
-    let paper_map = load_fastq_paper_map(root, loaded)?;
-    let qa_coverage_blockers = load_fastq_qa_coverage_blockers(root, loaded)?;
+        build_fastq_container_reference_rows(evidence, &fastq_environment_rows);
+    let tool_evidence_map = &evidence.tool_evidence_map;
+    let paper_map = &evidence.paper_map;
+    let qa_coverage_blockers = &evidence.qa_coverage_blockers;
     let fastq_download_backlog_rows = build_fastq_download_backlog_rows(
         &fastq_container_reference_rows,
-        &tool_evidence_map,
-        &paper_map,
+        tool_evidence_map,
+        paper_map,
     );
     let fastq_paper_archive_rows =
-        build_fastq_paper_archive_rows(&fastq_environment_rows, &paper_map);
+        build_fastq_paper_archive_rows(&fastq_environment_rows, paper_map);
     let fastq_closure_gate_rows = build_fastq_closure_gate_rows(
         &fastq_environment_rows,
         &fastq_download_backlog_rows,
         &fastq_paper_archive_rows,
-        &qa_coverage_blockers,
+        qa_coverage_blockers,
     );
     let fastq_truth_delta_rows = build_fastq_truth_delta_rows(&fastq_closure_gate_rows);
     let fastq_missing_closure_prerequisite_rows =
@@ -470,265 +303,6 @@ fn build_source_archive_gaps(rows: &[SourceInventoryRow]) -> Vec<SourceArchiveGa
     gaps
 }
 
-fn load_dir<T, FKey, FValidate>(
-    root: &Path,
-    rel: &str,
-    out: &mut BTreeMap<String, T>,
-    expected_schema: &str,
-    key_fn: FKey,
-    validate_fn: FValidate,
-    errors: &mut Vec<String>,
-) -> Result<()>
-where
-    T: serde::de::DeserializeOwned + SchemaVersion,
-    FKey: Fn(&T) -> String,
-    FValidate: Fn(&T) -> Result<()>,
-{
-    for path in list_yaml_files(&root.join(rel))? {
-        let document = read_utf8(&path)?;
-        let spec: T = bijux_dna_infra::formats::yaml::parse_yaml(&document)
-            .map_err(|err| anyhow!("parse {}: {err}", path.display()))?;
-        if spec.schema_version() != expected_schema {
-            errors.push(format!(
-                "{} uses schema {} but {} is required",
-                path.display(),
-                spec.schema_version(),
-                expected_schema
-            ));
-            continue;
-        }
-        if let Err(err) = validate_fn(&spec) {
-            errors.push(format!("{}: {err}", path.display()));
-            continue;
-        }
-        let key = key_fn(&spec);
-        if out.insert(key.clone(), spec).is_some() {
-            errors.push(format!("{rel} contains duplicate id {key}"));
-        }
-    }
-    Ok(())
-}
-
-fn validate_source(row: &SourceSpec) -> Result<()> {
-    if row.title.trim().is_empty() {
-        return Err(anyhow!("source title must not be empty"));
-    }
-    if row.locator.trim().is_empty() {
-        return Err(anyhow!("source locator must not be empty"));
-    }
-    if row.authority.trim().is_empty() {
-        return Err(anyhow!("source authority must not be empty"));
-    }
-    match row.access {
-        SourceAccess::RepoPath => {
-            if row.locator.contains("://") {
-                return Err(anyhow!("repo_path sources must use repository-relative locators"));
-            }
-            if row.archive_path.is_some() {
-                return Err(anyhow!("repo_path sources must not declare archive_path"));
-            }
-            if row.archive_status.is_some() {
-                return Err(anyhow!("repo_path sources must not declare archive_status"));
-            }
-            if matches!(
-                row.kind,
-                SourceKind::ExternalDocument | SourceKind::ExternalRepository | SourceKind::Paper
-            ) {
-                return Err(anyhow!(
-                    "repo_path sources must use repo-local kinds, not external source kinds"
-                ));
-            }
-        }
-        SourceAccess::ManualDownload | SourceAccess::ManualClone => {
-            if !row.locator.contains("://") {
-                return Err(anyhow!(
-                    "manual acquisition sources must use an external locator such as https://..."
-                ));
-            }
-            let archive_path =
-                row.archive_path.as_deref().filter(|value| !value.trim().is_empty()).ok_or_else(
-                    || anyhow!("manual acquisition sources must declare archive_path"),
-                )?;
-            if !archive_path.starts_with("science/docs/") {
-                return Err(anyhow!(
-                    "archive_path must live under science/docs/ for manual acquisition sources"
-                ));
-            }
-            if row.archive_status.is_none() {
-                return Err(anyhow!("manual acquisition sources must declare archive_status"));
-            }
-            if matches!(row.access, SourceAccess::ManualClone)
-                && !matches!(row.kind, SourceKind::ExternalRepository)
-            {
-                return Err(anyhow!("manual_clone sources must use kind external_repository"));
-            }
-            if matches!(
-                row.kind,
-                SourceKind::RepoFile | SourceKind::RepoDirectory | SourceKind::Document
-            ) {
-                return Err(anyhow!(
-                    "manual acquisition sources must use external_document, external_repository, or paper kinds"
-                ));
-            }
-        }
-    }
-    Ok(())
-}
-
-fn validate_claim(row: &ClaimSpec) -> Result<()> {
-    if row.supports.is_empty() {
-        return Err(anyhow!("claim must reference at least one evidence record"));
-    }
-    for field in [
-        ("statement", row.statement.as_str()),
-        ("scope", row.scope.as_str()),
-        ("subject", row.subject.as_str()),
-        ("predicate", row.predicate.as_str()),
-        ("object", row.object.as_str()),
-        ("owner", row.owner.as_str()),
-        ("review_due", row.review_due.as_str()),
-    ] {
-        if field.1.trim().is_empty() {
-            return Err(anyhow!("claim {} must not be empty", field.0));
-        }
-    }
-    Ok(())
-}
-
-fn validate_cross_references(loaded: &LoadedSpecs) -> Vec<String> {
-    let mut errors = Vec::new();
-    validate_evidence_references(loaded, &mut errors);
-    validate_claim_references(loaded, &mut errors);
-    validate_reasoning_references(loaded, &mut errors);
-    validate_decision_references(loaded, &mut errors);
-    validate_binding_references(loaded, &mut errors);
-    validate_release_references(loaded, &mut errors);
-    errors.sort();
-    errors.dedup();
-    errors
-}
-
-fn validate_evidence_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
-    for evidence in loaded.evidences.values() {
-        for source_id in &evidence.source_ids {
-            if !loaded.sources.contains_key(source_id.as_str()) {
-                errors.push(format!(
-                    "{} references missing source {}",
-                    evidence.evidence_id, source_id
-                ));
-            }
-        }
-    }
-}
-
-fn validate_claim_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
-    for claim in loaded.claims.values() {
-        for evidence_id in &claim.supports {
-            if !loaded.evidences.contains_key(evidence_id.as_str()) {
-                errors.push(format!(
-                    "{} references missing evidence {}",
-                    claim.claim_id, evidence_id
-                ));
-            }
-        }
-    }
-}
-
-fn validate_reasoning_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
-    for reasoning in loaded.reasonings.values() {
-        if reasoning.claim_ids.is_empty() {
-            errors.push(format!("{} must reference at least one claim", reasoning.reasoning_id));
-        }
-        for claim_id in &reasoning.claim_ids {
-            if !loaded.claims.contains_key(claim_id.as_str()) {
-                errors.push(format!(
-                    "{} references missing claim {}",
-                    reasoning.reasoning_id, claim_id
-                ));
-            }
-        }
-        for evidence_id in &reasoning.evidence_ids {
-            if !loaded.evidences.contains_key(evidence_id.as_str()) {
-                errors.push(format!(
-                    "{} references missing evidence {}",
-                    reasoning.reasoning_id, evidence_id
-                ));
-            }
-        }
-        for assumption_id in &reasoning.assumption_ids {
-            if !loaded.assumptions.contains_key(assumption_id.as_str()) {
-                errors.push(format!(
-                    "{} references missing assumption {}",
-                    reasoning.reasoning_id, assumption_id
-                ));
-            }
-        }
-    }
-}
-
-fn validate_decision_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
-    for decision in loaded.decisions.values() {
-        if !loaded.reasonings.contains_key(decision.reasoning.as_str()) {
-            errors.push(format!(
-                "{} references missing reasoning {}",
-                decision.decision_id, decision.reasoning
-            ));
-        }
-        for claim_id in &decision.derived_from {
-            if !loaded.claims.contains_key(claim_id.as_str()) {
-                errors.push(format!(
-                    "{} references missing claim {}",
-                    decision.decision_id, claim_id
-                ));
-            }
-        }
-    }
-}
-
-fn validate_binding_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
-    for binding in loaded.bindings.values() {
-        if !loaded.decisions.contains_key(binding.decision_id.as_str()) {
-            errors.push(format!(
-                "{} references missing decision {}",
-                binding.binding_id, binding.decision_id
-            ));
-        }
-        for claim_id in &binding.claim_ids {
-            if !loaded.claims.contains_key(claim_id.as_str()) {
-                errors
-                    .push(format!("{} references missing claim {}", binding.binding_id, claim_id));
-            }
-        }
-        for source_id in &binding.source_ids {
-            if !loaded.sources.contains_key(source_id.as_str()) {
-                errors.push(format!(
-                    "{} references missing source {}",
-                    binding.binding_id, source_id
-                ));
-            }
-        }
-    }
-}
-
-fn validate_release_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
-    for release in loaded.releases.values() {
-        for binding_id in &release.binding_ids {
-            if !loaded.bindings.contains_key(binding_id.as_str()) {
-                errors.push(format!(
-                    "{} references missing binding {}",
-                    release.release_id, binding_id
-                ));
-            }
-        }
-        for claim_id in &release.claim_ids {
-            if !loaded.claims.contains_key(claim_id.as_str()) {
-                errors
-                    .push(format!("{} references missing claim {}", release.release_id, claim_id));
-            }
-        }
-    }
-}
-
 fn build_claim_evidence_map(loaded: &LoadedSpecs) -> Vec<ClaimEvidenceRow> {
     let mut rows = loaded
         .claims
@@ -777,30 +351,11 @@ fn build_binding_resolution(loaded: &LoadedSpecs) -> Vec<BindingResolutionRow> {
 }
 
 fn build_fastq_container_reference_rows(
-    root: &Path,
-    loaded: &LoadedSpecs,
+    evidence: &CompilationEvidence,
     fastq_environment_rows: &[FastqEnvironmentRow],
-) -> Result<Vec<crate::domain::FastqContainerReferenceRow>> {
-    let registry_source = loaded
-        .bindings
-        .values()
-        .filter(|binding| binding.target_type == "fastq_stage_tool_environment_matrix")
-        .find_map(|binding| {
-            binding
-                .source_ids
-                .iter()
-                .find(|source_id| source_id.as_str() == "source.fastq.tool-registry")
-        })
-        .ok_or_else(|| {
-            anyhow!("missing source.fastq.tool-registry binding for fastq container matrix")
-        })?;
-    let registry_path = loaded
-        .sources
-        .get(registry_source.as_str())
-        .ok_or_else(|| anyhow!("missing source record {registry_source}"))?;
-    let registry = load_tool_registry(&validate_source_path(root, registry_path)?)?;
-    let tool_contracts = load_fastq_tool_contracts(&root.join("domain/fastq/tools"))?;
-
+) -> Vec<crate::domain::FastqContainerReferenceRow> {
+    let registry = &evidence.registry;
+    let tool_contracts = &evidence.tool_contracts;
     let mut stage_map = BTreeMap::<String, BTreeSet<String>>::new();
     for row in fastq_environment_rows {
         stage_map.entry(row.tool_id.clone()).or_default().insert(row.stage_id.clone());
@@ -846,7 +401,7 @@ fn build_fastq_container_reference_rows(
         })
         .collect::<Vec<_>>();
     rows.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
-    Ok(rows)
+    rows
 }
 
 fn build_fastq_download_backlog_rows(
@@ -1029,225 +584,6 @@ fn build_fastq_paper_archive_rows(
     rows
 }
 
-fn build_fastq_closure_gate_rows(
-    environment_rows: &[FastqEnvironmentRow],
-    download_rows: &[crate::domain::FastqDownloadBacklogRow],
-    paper_rows: &[crate::domain::FastqPaperArchiveRow],
-    qa_coverage_blockers: &[QaCoverageBlockerEntry],
-) -> Vec<FastqClosureGateRow> {
-    let download_by_tool =
-        download_rows.iter().map(|row| (row.tool_id.as_str(), row)).collect::<BTreeMap<_, _>>();
-    let paper_by_tool = paper_rows.iter().fold(
-        BTreeMap::<&str, Vec<&crate::domain::FastqPaperArchiveRow>>::new(),
-        |mut acc, row| {
-            acc.entry(row.tool_id.as_str()).or_default().push(row);
-            acc
-        },
-    );
-    let qa_blockers_by_stage = qa_coverage_blockers.iter().fold(
-        BTreeMap::<&str, BTreeSet<&str>>::new(),
-        |mut acc, blocker| {
-            acc.entry(blocker.stage_id.as_str()).or_default().insert(blocker.blocker.as_str());
-            acc
-        },
-    );
-
-    let mut rows = environment_rows
-        .iter()
-        .map(|row| {
-            let blockers =
-                closure_blockers(row, &download_by_tool, &paper_by_tool, &qa_blockers_by_stage);
-            let warnings = closure_warnings(row);
-            let effective_closure_status = if blockers.is_empty() {
-                "world_class_closed"
-            } else if row.execution_status == "closed" {
-                "declared_closed_with_gaps"
-            } else {
-                "not_closed"
-            }
-            .to_string();
-            FastqClosureGateRow {
-                stage_id: row.stage_id.clone(),
-                tool_id: row.tool_id.clone(),
-                is_default: row.is_default,
-                requested_execution_status: row.execution_status.clone(),
-                effective_closure_status,
-                world_class_closed: blockers.is_empty(),
-                blocking_reasons: blockers.join(";"),
-                warning_reasons: warnings.join(";"),
-            }
-        })
-        .collect::<Vec<_>>();
-    rows.sort_by(|left, right| {
-        (&left.stage_id, !left.is_default, &left.tool_id).cmp(&(
-            &right.stage_id,
-            !right.is_default,
-            &right.tool_id,
-        ))
-    });
-    rows
-}
-
-fn closure_blockers(
-    row: &FastqEnvironmentRow,
-    download_by_tool: &BTreeMap<&str, &crate::domain::FastqDownloadBacklogRow>,
-    paper_by_tool: &BTreeMap<&str, Vec<&crate::domain::FastqPaperArchiveRow>>,
-    qa_blockers_by_stage: &BTreeMap<&str, BTreeSet<&str>>,
-) -> Vec<String> {
-    let mut blockers = Vec::<String>::new();
-    add_environment_blockers(row, &mut blockers);
-    add_download_blockers(download_by_tool.get(row.tool_id.as_str()).copied(), &mut blockers);
-    add_paper_blockers(row, paper_by_tool, &mut blockers);
-    if row.benchmark_support == "none" {
-        blockers.push("missing_benchmark_support".to_string());
-    }
-    if let Some(stage_qa_blockers) = qa_blockers_by_stage.get(row.stage_id.as_str()) {
-        blockers.extend(stage_qa_blockers.iter().map(|blocker| (*blocker).to_string()));
-    }
-    blockers
-}
-
-fn add_environment_blockers(row: &FastqEnvironmentRow, blockers: &mut Vec<String>) {
-    if row.execution_status != "closed" {
-        blockers.push("stage_not_marked_closed".to_string());
-    }
-    if row.registry_status != "production" {
-        blockers.push("registry_not_production".to_string());
-    }
-    if row.container_ref.trim().is_empty() {
-        blockers.push("missing_container_ref".to_string());
-    }
-    if row.container_ref.contains("sha256:pending") {
-        blockers.push("pending_container_digest".to_string());
-    }
-    if row
-        .container_ref
-        .contains("@sha256:0000000000000000000000000000000000000000000000000000000000000000")
-    {
-        blockers.push("placeholder_container_digest".to_string());
-    }
-    if row.runtimes.trim().is_empty() {
-        blockers.push("missing_runtime_surface".to_string());
-    }
-}
-
-fn add_download_blockers(
-    download: Option<&crate::domain::FastqDownloadBacklogRow>,
-    blockers: &mut Vec<String>,
-) {
-    match download {
-        Some(download) => {
-            if download.backlog_status != "ready" {
-                blockers.push(format!("source_backlog_{}", download.backlog_status));
-            }
-            if download.archive_status == "missing" {
-                blockers.push("missing_upstream_archive".to_string());
-            }
-            if matches!(download.paper_status.as_str(), "missing_paper_root" | "missing_paper_map")
-            {
-                blockers.push(download.paper_status.clone());
-            }
-        }
-        None => blockers.push("missing_download_backlog_row".to_string()),
-    }
-}
-
-fn add_paper_blockers(
-    row: &FastqEnvironmentRow,
-    paper_by_tool: &BTreeMap<&str, Vec<&crate::domain::FastqPaperArchiveRow>>,
-    blockers: &mut Vec<String>,
-) {
-    let has_present_paper = paper_by_tool
-        .get(row.tool_id.as_str())
-        .is_some_and(|rows| rows.iter().any(|paper| paper.archive_status == "present"));
-    if !has_present_paper {
-        blockers.push("missing_paper_archive".to_string());
-    }
-}
-
-fn closure_warnings(row: &FastqEnvironmentRow) -> Vec<String> {
-    let mut warnings = Vec::new();
-    if row.tool_status == "disallowed" {
-        warnings.push("planned_binding_not_admitted".to_string());
-    }
-    if !row.is_default {
-        warnings.push("non_default_binding".to_string());
-    }
-    warnings
-}
-
-fn build_fastq_truth_delta_rows(rows: &[FastqClosureGateRow]) -> Vec<FastqTruthDeltaRow> {
-    let mut deltas = Vec::new();
-    for row in rows {
-        if row.requested_execution_status == "closed" && !row.world_class_closed {
-            deltas.push(FastqTruthDeltaRow {
-                entity_type: "fastq_stage_tool_binding".to_string(),
-                entity_id: format!("{}:{}", row.stage_id, row.tool_id),
-                layer: "closure_gate".to_string(),
-                expected_status: "world_class_closed".to_string(),
-                observed_status: row.effective_closure_status.clone(),
-                reason: row.blocking_reasons.clone(),
-            });
-        }
-    }
-    deltas
-}
-
-fn build_fastq_missing_closure_prerequisite_rows(
-    rows: &[FastqClosureGateRow],
-) -> Vec<FastqMissingClosurePrerequisiteRow> {
-    let mut missing = Vec::new();
-    for row in rows {
-        for reason in row.blocking_reasons.split(';').filter(|reason| !reason.trim().is_empty()) {
-            missing.push(FastqMissingClosurePrerequisiteRow {
-                stage_id: row.stage_id.clone(),
-                tool_id: row.tool_id.clone(),
-                prerequisite: reason.to_string(),
-                severity: if row.is_default { "blocking" } else { "advisory" }.to_string(),
-                detail: format!(
-                    "{} cannot be treated as world-class closed for {} until {} is resolved",
-                    row.tool_id, row.stage_id, reason
-                ),
-            });
-        }
-    }
-    missing.sort_by(|left, right| {
-        (&left.stage_id, &left.tool_id, &left.prerequisite).cmp(&(
-            &right.stage_id,
-            &right.tool_id,
-            &right.prerequisite,
-        ))
-    });
-    missing
-}
-
-fn build_fastq_default_binding_risk_rows(
-    rows: &[FastqClosureGateRow],
-) -> Vec<FastqDefaultBindingRiskRow> {
-    rows.iter()
-        .filter(|row| row.is_default)
-        .map(|row| FastqDefaultBindingRiskRow {
-            stage_id: row.stage_id.clone(),
-            default_tool_id: row.tool_id.clone(),
-            requested_execution_status: row.requested_execution_status.clone(),
-            effective_closure_status: row.effective_closure_status.clone(),
-            risk_class: if row.world_class_closed {
-                "world_class_closed".to_string()
-            } else if row.blocking_reasons.contains("pending_container_digest") {
-                "immutable_container_blocked".to_string()
-            } else if row.blocking_reasons.contains("missing_upstream_archive")
-                || row.blocking_reasons.contains("missing_paper_archive")
-            {
-                "archive_evidence_blocked".to_string()
-            } else {
-                "closure_prerequisite_blocked".to_string()
-            },
-            blocking_reasons: row.blocking_reasons.clone(),
-            warning_reasons: row.warning_reasons.clone(),
-        })
-        .collect()
-}
-
 fn merged_tool_metadata(
     mut registry: ToolRegistryEntry,
     contract: Option<&FastqToolContractEntry>,
@@ -1284,16 +620,16 @@ fn merged_tool_metadata(
 }
 
 fn build_fastq_environment_rows(
-    root: &Path,
     loaded: &LoadedSpecs,
-) -> Result<Vec<FastqEnvironmentRow>> {
+    evidence: &CompilationEvidence,
+) -> Vec<FastqEnvironmentRow> {
     let mut rows = Vec::new();
     for binding in loaded
         .bindings
         .values()
         .filter(|binding| binding.target_type == "fastq_stage_tool_environment_matrix")
     {
-        rows.extend(build_fastq_binding_rows(root, loaded, binding)?);
+        rows.extend(build_fastq_binding_rows(loaded, binding, evidence));
     }
     rows.sort_by(|left, right| {
         (&left.stage_id, !left.is_default, &left.tool_id).cmp(&(
@@ -1302,35 +638,22 @@ fn build_fastq_environment_rows(
             &right.tool_id,
         ))
     });
-    Ok(rows)
+    rows
 }
 
 fn build_fastq_binding_rows(
-    root: &Path,
     loaded: &LoadedSpecs,
     binding: &BindingSpec,
-) -> Result<Vec<FastqEnvironmentRow>> {
-    let execution_support = resolve_binding_source(
-        root,
-        loaded,
-        &binding.source_ids,
-        "source.fastq.execution-support",
-    )?;
-    let stage_contracts =
-        resolve_binding_source(root, loaded, &binding.source_ids, "source.fastq.stage-contracts")?;
-    let tool_registry =
-        resolve_binding_source(root, loaded, &binding.source_ids, "source.fastq.tool-registry")?;
-
-    let execution_support_doc: ExecutionSupportDoc =
-        bijux_dna_infra::formats::yaml::parse_yaml(&read_utf8(&execution_support)?)
-            .map_err(|err| anyhow!("parse {}: {err}", execution_support.display()))?;
-    let planned_tools = load_planned_out_of_scope(&stage_contracts)?;
-    let registry = load_tool_registry(&tool_registry)?;
+    evidence: &CompilationEvidence,
+) -> Vec<FastqEnvironmentRow> {
+    let execution_support_doc = &evidence.execution_support;
+    let planned_tools = &evidence.planned_tools;
+    let registry = &evidence.registry;
     let evidence_count = binding_claim_evidence_count(loaded, binding);
     let claim_ids = binding.claim_ids.iter().map(ToString::to_string).collect::<Vec<_>>().join(",");
 
     let mut rows = Vec::new();
-    for stage in execution_support_doc.stages {
+    for stage in &execution_support_doc.stages {
         let mut tool_ids = BTreeSet::new();
         for tool_id in &stage.admitted_tools {
             tool_ids.insert(tool_id.clone());
@@ -1372,231 +695,7 @@ fn build_fastq_binding_rows(
             });
         }
     }
-    Ok(rows)
-}
-
-fn resolve_binding_source(
-    root: &Path,
-    loaded: &LoadedSpecs,
-    binding_sources: &[SourceId],
-    required_id: &str,
-) -> Result<PathBuf> {
-    let source = binding_sources
-        .iter()
-        .find(|source_id| source_id.as_str() == required_id)
-        .and_then(|source_id| loaded.sources.get(source_id.as_str()))
-        .ok_or_else(|| anyhow!("binding is missing required source {required_id}"))?;
-    validate_source_path(root, source)
-}
-
-fn validate_source_path(root: &Path, source: &SourceSpec) -> Result<PathBuf> {
-    let path = root.join(&source.locator);
-    match source.kind {
-        SourceKind::RepoFile | SourceKind::Document => {
-            if !path.is_file() {
-                return Err(anyhow!("required source path is not a file: {}", path.display()));
-            }
-        }
-        SourceKind::RepoDirectory => {
-            if !path.is_dir() {
-                return Err(anyhow!("required source path is not a directory: {}", path.display()));
-            }
-        }
-        SourceKind::ExternalDocument | SourceKind::ExternalRepository | SourceKind::Paper => {
-            return Err(anyhow!(
-                "external source {} cannot be resolved as a repository path",
-                source.source_id
-            ));
-        }
-    }
-    Ok(path)
-}
-
-fn load_planned_out_of_scope(stage_dir: &Path) -> Result<BTreeMap<String, BTreeSet<String>>> {
-    let mut map = BTreeMap::<String, BTreeSet<String>>::new();
-    for path in list_yaml_files(stage_dir)? {
-        let raw = read_utf8(&path)?;
-        let stage: StageContractDoc = bijux_dna_infra::formats::yaml::parse_yaml(&raw)
-            .map_err(|err| anyhow!("parse {}: {err}", path.display()))?;
-        let Some(stage_id) = stage.stage_id else {
-            continue;
-        };
-        if !stage.planned_out_of_scope.is_empty() {
-            map.insert(stage_id, stage.planned_out_of_scope.into_iter().collect());
-        }
-    }
-    Ok(map)
-}
-
-fn load_tool_registry(path: &Path) -> Result<BTreeMap<String, ToolRegistryEntry>> {
-    let raw = read_utf8(path)?;
-    let root: TomlValue =
-        toml::from_str(&raw).with_context(|| format!("parse TOML {}", path.display()))?;
-    let mut out = BTreeMap::new();
-    for row in root.get("tools").and_then(TomlValue::as_array).cloned().unwrap_or_default() {
-        let Some(table) = row.as_table() else {
-            continue;
-        };
-        let Some(tool_id) = table
-            .get("tool_id")
-            .or_else(|| table.get("id"))
-            .and_then(TomlValue::as_str)
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-        else {
-            continue;
-        };
-        let runtimes = table
-            .get("runtimes")
-            .and_then(TomlValue::as_array)
-            .into_iter()
-            .flatten()
-            .filter_map(TomlValue::as_str)
-            .map(str::to_string)
-            .collect::<Vec<_>>();
-        out.insert(
-            tool_id.to_string(),
-            ToolRegistryEntry {
-                status: table
-                    .get("status")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                version: table
-                    .get("version")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                default_version: table
-                    .get("default_version")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                version_rule: table
-                    .get("version_rule")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                upstream: table
-                    .get("upstream")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                citation: table
-                    .get("citation")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                license: table
-                    .get("license")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                pinned_commit: table
-                    .get("pinned_commit")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                pin_strategy: table
-                    .get("pin_strategy")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                runtimes,
-                container_ref: table
-                    .get("container_ref")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                dockerfile: table
-                    .get("dockerfile")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                apptainer_def: table
-                    .get("apptainer_def")
-                    .and_then(TomlValue::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-            },
-        );
-    }
-    Ok(out)
-}
-
-fn load_fastq_tool_contracts(path: &Path) -> Result<BTreeMap<String, FastqToolContractEntry>> {
-    let mut out = BTreeMap::new();
-    for tool_path in list_yaml_files(path)? {
-        let raw = read_utf8(&tool_path)?;
-        let entry: FastqToolContractEntry = bijux_dna_infra::formats::yaml::parse_yaml(&raw)
-            .map_err(|err| anyhow!("parse {}: {err}", tool_path.display()))?;
-        if !entry.tool_id.trim().is_empty() {
-            out.insert(entry.tool_id.clone(), entry);
-        }
-    }
-    Ok(out)
-}
-
-fn load_fastq_tool_evidence_map(
-    root: &Path,
-    loaded: &LoadedSpecs,
-) -> Result<Vec<ToolEvidenceMapEntry>> {
-    let Some(source) = loaded.sources.get("source.fastq.tool-evidence-map") else {
-        return Ok(Vec::new());
-    };
-    let path = validate_source_path(root, source)?;
-    let rows = parse_tsv_rows(&read_utf8(&path)?);
-    let mut out = Vec::new();
-    for row in rows {
-        let source_id = row_value(&row, "source_id");
-        out.push(ToolEvidenceMapEntry {
-            archive_status: validated_archive_status(
-                &row_value(&row, "archive_status"),
-                &format!("FASTQ tool evidence row {source_id}"),
-            )?,
-            source_id,
-            tool_id: row_value(&row, "tool_id"),
-            archive_path: row_value(&row, "archive_path"),
-            paper_root: row_value(&row, "paper_root"),
-            acquisition_mode: row_value(&row, "acquisition_mode"),
-            primary_locator: row_value(&row, "primary_locator"),
-        });
-    }
-    Ok(out)
-}
-
-fn load_fastq_paper_map(root: &Path, loaded: &LoadedSpecs) -> Result<Vec<PaperMapEntry>> {
-    let Some(source) = loaded.sources.get("source.fastq.paper-map") else {
-        return Ok(Vec::new());
-    };
-    let path = validate_source_path(root, source)?;
-    let rows = parse_tsv_rows(&read_utf8(&path)?);
-    let mut out = Vec::new();
-    for row in rows {
-        let paper_id = row_value(&row, "paper_id");
-        out.push(PaperMapEntry {
-            archive_status: validated_archive_status(
-                &row_value(&row, "archive_status"),
-                &format!("FASTQ paper map row {paper_id}"),
-            )?,
-            paper_id,
-            tool_id: row_value(&row, "tool_id"),
-            paper_root: row_value(&row, "paper_root"),
-            paper_status: row_value(&row, "paper_status"),
-            open_access_status: row_value(&row, "open_access_status"),
-            primary_locator: row_value(&row, "primary_locator"),
-            supporting_locators: row_value(&row, "supporting_locators"),
-            notes: row_value(&row, "notes"),
-        });
-    }
-    Ok(out)
-}
-
-fn validated_archive_status(value: &str, context: &str) -> Result<String> {
-    match value {
-        "missing" | "present" => Ok(value.to_string()),
-        _ => Err(anyhow!("{context} must declare archive_status as missing or present")),
-    }
+    rows
 }
 
 fn archive_status_label(status: &ArchiveStatus) -> String {
@@ -1605,49 +704,6 @@ fn archive_status_label(status: &ArchiveStatus) -> String {
         ArchiveStatus::Present => "present",
     }
     .to_string()
-}
-
-fn load_fastq_qa_coverage_blockers(
-    root: &Path,
-    loaded: &LoadedSpecs,
-) -> Result<Vec<QaCoverageBlockerEntry>> {
-    let Some(source) = loaded.sources.get("source.fastq.qa-coverage-blockers") else {
-        return Ok(Vec::new());
-    };
-    let path = validate_source_path(root, source)?;
-    let rows = parse_tsv_rows(&read_utf8(&path)?);
-    let mut out = Vec::new();
-    for row in rows {
-        if row_value(&row, "status") == "tracked" {
-            out.push(QaCoverageBlockerEntry {
-                stage_id: row_value(&row, "stage_id"),
-                blocker: row_value(&row, "blocker"),
-            });
-        }
-    }
-    Ok(out)
-}
-
-fn parse_tsv_rows(text: &str) -> Vec<BTreeMap<String, String>> {
-    let mut lines = text.lines().filter(|line| !line.trim().is_empty());
-    let Some(header_line) = lines.next() else {
-        return Vec::new();
-    };
-    let headers = header_line.split('\t').map(str::to_string).collect::<Vec<_>>();
-    let mut rows = Vec::new();
-    for line in lines {
-        let values = line.split('\t').map(str::to_string).collect::<Vec<_>>();
-        let mut parsed_row = BTreeMap::new();
-        for (index, header) in headers.iter().enumerate() {
-            parsed_row.insert(header.clone(), values.get(index).cloned().unwrap_or_default());
-        }
-        rows.push(parsed_row);
-    }
-    rows
-}
-
-fn row_value(row: &BTreeMap<String, String>, key: &str) -> String {
-    row.get(key).cloned().unwrap_or_default()
 }
 
 fn binding_claim_evidence_count(loaded: &LoadedSpecs, binding: &BindingSpec) -> usize {
@@ -1662,54 +718,6 @@ fn binding_claim_evidence_count(loaded: &LoadedSpecs, binding: &BindingSpec) -> 
     evidence_ids.len()
 }
 
-pub trait SchemaVersion {
-    fn schema_version(&self) -> &str;
-}
-
-impl SchemaVersion for crate::domain::SourceSpec {
-    fn schema_version(&self) -> &str {
-        &self.schema_version
-    }
-}
-
-impl SchemaVersion for crate::domain::EvidenceSpec {
-    fn schema_version(&self) -> &str {
-        &self.schema_version
-    }
-}
-
-impl SchemaVersion for crate::domain::ClaimSpec {
-    fn schema_version(&self) -> &str {
-        &self.schema_version
-    }
-}
-
-impl SchemaVersion for crate::domain::AssumptionSpec {
-    fn schema_version(&self) -> &str {
-        &self.schema_version
-    }
-}
-
-impl SchemaVersion for crate::domain::ReasoningSpec {
-    fn schema_version(&self) -> &str {
-        &self.schema_version
-    }
-}
-
-impl SchemaVersion for crate::domain::DecisionSpec {
-    fn schema_version(&self) -> &str {
-        &self.schema_version
-    }
-}
-
-impl SchemaVersion for crate::domain::BindingSpec {
-    fn schema_version(&self) -> &str {
-        &self.schema_version
-    }
-}
-
-impl SchemaVersion for crate::domain::ReleaseManifestSpec {
-    fn schema_version(&self) -> &str {
-        &self.schema_version
-    }
-}
+#[cfg(test)]
+#[path = "../tests/unit/compilation.rs"]
+mod tests;

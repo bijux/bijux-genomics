@@ -173,3 +173,32 @@ fn local_hpc_scratch_layout_rejects_invalid_input_admission() {
         "artifacts/runs/bench/hpc-dry-run/staged/../escaped".to_string();
     assert!(validate_benchmark_local_hpc_scratch_layout(&traversing_staged_path).is_err());
 }
+
+#[test]
+fn scratch_assembly_preserves_lineage_and_compares_current_input_identity() -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{assemble_hpc_scratch_layout, compare_hpc_scratch_layout};
+    let expected = layout();
+    let actual = assemble_hpc_scratch_layout(
+        expected.output_path.clone(),
+        expected.staging_root.clone(),
+        expected.scratch_root.clone(),
+        expected.jobs.clone(),
+    )?;
+    assert_eq!(actual, expected);
+    let path = std::path::Path::new(&actual.output_path);
+    compare_hpc_scratch_layout(path, &actual, &expected)?;
+    let mut substituted = actual.clone();
+    substituted.jobs[0].input_links[0].checksum_sha256 = "b".repeat(64);
+    validate_benchmark_local_hpc_scratch_layout(&substituted)?;
+    assert!(compare_hpc_scratch_layout(path, &substituted, &expected).is_err());
+    let mut duplicate = expected.jobs.clone();
+    duplicate.push(duplicate[0].clone());
+    assert!(assemble_hpc_scratch_layout(
+        expected.output_path,
+        expected.staging_root,
+        expected.scratch_root,
+        duplicate
+    )
+    .is_err());
+    Ok(())
+}

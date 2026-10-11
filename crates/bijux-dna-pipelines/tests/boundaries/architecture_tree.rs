@@ -86,7 +86,6 @@ fn pipelines_tree_matches_architecture_contract() {
             "boundaries.rs",
             "contracts/",
             "contracts.rs",
-            "guardrails.rs",
             "invariant_fast.rs",
             "snapshots/",
         ]),

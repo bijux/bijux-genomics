@@ -36,16 +36,8 @@ fn dependency_graph_matches_runner_boundary() {
 
     assert_eq!(
         dependency_keys(&manifest, "dev-dependencies"),
-        keys([
-            "assert_cmd",
-            "bijux-dna-policies",
-            "bijux-dna-testkit",
-            "cargo_metadata",
-            "regex",
-            "tempfile",
-            "toml",
-        ]),
-        "dev dependencies must stay limited to policy, metadata, command, and isolated filesystem tests"
+        keys(["assert_cmd", "bijux-dna-testkit", "cargo_metadata", "regex", "tempfile", "toml",]),
+        "dev dependencies must stay limited to metadata, command, and isolated filesystem tests"
     );
 
     let runtime_dependencies = dependency_keys(&manifest, "dependencies");

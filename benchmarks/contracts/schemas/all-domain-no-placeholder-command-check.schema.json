@@ -1,0 +1,256 @@
+{
+  "$defs": {
+    "AllDomainNoPlaceholderCommandRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "command_source": {
+          "type": "string"
+        },
+        "command_step_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "finding_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "finding_types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "has_real_invocation": {
+          "type": "boolean"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "script_command_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "step_audits": {
+          "items": {
+            "$ref": "#/$defs/AllDomainNoPlaceholderCommandStepAudit"
+          },
+          "type": "array"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "command_source",
+        "command_step_count",
+        "script_command_count",
+        "has_real_invocation",
+        "finding_count",
+        "finding_types",
+        "ok",
+        "step_audits"
+      ],
+      "type": "object"
+    },
+    "AllDomainNoPlaceholderCommandStepAudit": {
+      "additionalProperties": false,
+      "properties": {
+        "command_heads": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "executable": {
+          "type": "string"
+        },
+        "finding_types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "has_real_invocation": {
+          "type": "boolean"
+        },
+        "is_shell_wrapper": {
+          "type": "boolean"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "step_id": {
+          "type": "string"
+        },
+        "step_kind": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "step_id",
+        "step_kind",
+        "executable",
+        "is_shell_wrapper",
+        "command_heads",
+        "has_real_invocation",
+        "finding_types",
+        "ok"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "argv_output_path": {
+      "type": "string"
+    },
+    "command_source_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "command_step_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "direct_step_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "finding_type_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "invalid_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "result_id_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainNoPlaceholderCommandRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_no_placeholder_command_check.v1",
+      "type": "string"
+    },
+    "script_output_path": {
+      "type": "string"
+    },
+    "shell_wrapped_step_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "valid_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "violation_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "violations": {
+      "items": {
+        "$ref": "#/$defs/AllDomainNoPlaceholderCommandRow"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "script_output_path",
+    "argv_output_path",
+    "row_count",
+    "result_id_count",
+    "stage_count",
+    "tool_count",
+    "command_step_count",
+    "shell_wrapped_step_count",
+    "direct_step_count",
+    "valid_row_count",
+    "invalid_row_count",
+    "domain_counts",
+    "command_source_counts",
+    "finding_type_counts",
+    "violation_count",
+    "ok",
+    "rows",
+    "violations"
+  ],
+  "title": "AllDomainNoPlaceholderCommandCheckReport",
+  "type": "object"
+}

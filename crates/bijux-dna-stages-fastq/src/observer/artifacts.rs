@@ -12,9 +12,7 @@ use crate::stage_specs::{
 };
 use crate::StagePlanJson;
 
-fn run_artifacts_dir(run_dir: &Path) -> PathBuf {
-    run_dir.join("run_artifacts")
-}
+use bijux_dna_infra::run_artifacts_dir_for_out as run_artifacts_dir;
 
 #[derive(Debug, Clone)]
 pub struct AdapterTrimmingObservation {

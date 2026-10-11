@@ -24,7 +24,6 @@
 ## How to Test
 
 - Unit tests in `src/*`.
-- Guardrails in `tests/guardrails.rs`.
 - Layout and documentation guards in `tests/boundaries.rs`.
 
 ## Documents

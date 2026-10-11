@@ -213,3 +213,49 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_documented_boundary
         unexpected
     );
 }
+
+#[test]
+fn policy__boundaries__workspace_dependency_snapshot_matches_committed_contract() {
+    let root = workspace_root();
+    let expected_path = root.join(
+        "crates/bijux-dna-policies/tests/fixtures/cargo_metadata_snapshot/workspace-deps.txt",
+    );
+    let expected = std::fs::read_to_string(&expected_path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", expected_path.display()));
+
+    let metadata = MetadataCommand::new()
+        .manifest_path(root.join("Cargo.toml"))
+        .no_deps()
+        .exec()
+        .unwrap_or_else(|err| panic!("cargo metadata: {err}"));
+    let workspace_names =
+        metadata.packages.iter().map(|package| package.name.clone()).collect::<BTreeSet<_>>();
+
+    let mut lines = metadata
+        .packages
+        .into_iter()
+        .map(|package| {
+            let deps = package
+                .dependencies
+                .into_iter()
+                .filter(|dependency| workspace_names.contains(&dependency.name))
+                .map(|dependency| dependency.name)
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .collect::<Vec<_>>()
+                .join(" ");
+            if deps.is_empty() {
+                package.name
+            } else {
+                format!("{}\t{}", package.name, deps)
+            }
+        })
+        .collect::<Vec<_>>();
+    lines.sort();
+    let actual = format!("{}\n", lines.join("\n"));
+
+    bijux_dna_policies::policy_assert!(
+        actual == expected,
+        "workspace dependency snapshot is stale; rows must contain sorted normal, build and development workspace edges, with no separator for empty sets.\nactual:\n{actual}"
+    );
+}

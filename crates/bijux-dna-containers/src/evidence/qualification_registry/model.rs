@@ -172,3 +172,19 @@ pub struct QualificationRunIdAuditRow {
     pub stage_id: String,
     pub input_role: String,
 }
+
+/// Repository locations consumed by qualification registry derivation.
+#[derive(Debug, Clone)]
+pub struct QualificationRegistryDerivationRequest {
+    pub repository_root: std::path::PathBuf,
+    pub current_runs_root: std::path::PathBuf,
+    pub attempt_ledger_path: std::path::PathBuf,
+    pub supplemental_history_path: std::path::PathBuf,
+    pub existing_registry_path: Option<std::path::PathBuf>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DerivedQualificationRunRegistry {
+    pub registry: QualificationRunRegistry,
+    pub audit: QualificationRunIdAudit,
+}

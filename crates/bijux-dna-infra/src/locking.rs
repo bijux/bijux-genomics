@@ -25,6 +25,23 @@ impl FileLock {
             .truncate(false)
             .open(path)
             .map_err(IoError::from_io)?;
+        Self::try_lock(file)
+    }
+
+    /// Acquire an existing lease without creating a file or requiring write access.
+    ///
+    /// # Errors
+    /// Returns lock contention or an IO error. An absent lease returns `None`.
+    pub fn try_acquire_existing(path: &Path) -> Result<Option<Self>, IoError> {
+        let file = match File::open(path) {
+            Ok(file) => file,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(error) => return Err(IoError::from_io(error)),
+        };
+        Self::try_lock(file).map(Some)
+    }
+
+    fn try_lock(file: File) -> Result<Self, IoError> {
         match file.try_lock_exclusive() {
             Ok(true) => Ok(Self { file }),
             Ok(false) => Err(IoError::new(IoErrorKind::LockContended, "file lock is already held")),

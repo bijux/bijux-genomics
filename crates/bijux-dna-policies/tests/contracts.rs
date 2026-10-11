@@ -62,8 +62,6 @@ mod mod_contracts_tooling_binding_decision_record_policy_rs;
 mod mod_contracts_tooling_boundary_docs_policy_rs;
 #[path = "contracts/tooling/governance_examples/canonical_examples_policy.rs"]
 mod mod_contracts_tooling_canonical_examples_policy_rs;
-#[path = "contracts/tooling/governance_core/cargo_metadata_snapshot_policy.rs"]
-mod mod_contracts_tooling_cargo_metadata_snapshot_policy_rs;
 #[path = "contracts/tooling/governance_config/ci_no_stage_tool_defs_policy.rs"]
 mod mod_contracts_tooling_ci_no_stage_tool_defs_policy_rs;
 #[path = "contracts/tooling/governance_config/ci_tools_policy.rs"]
@@ -242,8 +240,6 @@ mod mod_contracts_tooling_vcf_image_smoke_policy_rs;
 mod mod_contracts_tooling_vcf_support_gate_policy_rs;
 #[path = "contracts/tooling/governance_core/workflow_truth_boundary_policy.rs"]
 mod mod_contracts_tooling_workflow_truth_boundary_policy_rs;
-#[path = "contracts/workspace.rs"]
-mod mod_contracts_workspace_rs;
 
 #[path = "contracts/tooling/cli/workspace_binary_policy.rs"]
 mod workspace_binary_policy;

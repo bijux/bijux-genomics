@@ -905,6 +905,12 @@ fn generate_schema_registry_doc(_workspace: &Workspace, out: &Path) -> Result<()
     Ok(())
 }
 
+#[cfg(not(feature = "api-docs"))]
+fn generate_api_versioning_doc(_workspace: &Workspace, _out: &Path) -> Result<()> {
+    anyhow::bail!("API documentation generation requires the bijux-dna-dev `api-docs` feature")
+}
+
+#[cfg(feature = "api-docs")]
 fn generate_api_versioning_doc(_workspace: &Workspace, out: &Path) -> Result<()> {
     let inventory = bijux_dna_api::v1::api::route_version_inventory();
     let mut lines = vec![

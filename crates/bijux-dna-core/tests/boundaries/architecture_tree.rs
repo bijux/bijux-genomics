@@ -244,7 +244,6 @@ fn assert_test_layout(root: &Path) {
             "contracts/",
             "contracts.rs",
             "fixtures/",
-            "guardrails.rs",
             "schemas/",
             "schemas.rs",
             "semantics/",
@@ -263,7 +262,6 @@ fn assert_test_layout(root: &Path) {
             "dependency_graph.rs",
             "docs_layout.rs",
             "execution_graph_purity.rs",
-            "guardrails.rs",
             "layering.rs",
         ]),
         "boundary tests must stay partitioned by architecture concern"

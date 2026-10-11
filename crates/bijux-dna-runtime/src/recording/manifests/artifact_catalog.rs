@@ -92,7 +92,7 @@ fn validate_relative_artifact_path(label: &str, value: &str) -> Result<()> {
 
 #[must_use]
 pub fn run_artifacts_dir_for_out(out_dir: &Path) -> PathBuf {
-    out_dir.join("run_artifacts")
+    bijux_dna_infra::run_artifacts_dir_for_out(out_dir)
 }
 
 #[allow(dead_code)]
@@ -110,5 +110,5 @@ pub fn tool_run_artifacts_dir(
 pub(super) fn run_artifacts_dir(run_dirs: &RunDirs) -> Result<PathBuf> {
     let run_dir =
         run_dirs.manifest_path.parent().ok_or_else(|| anyhow!("run dir missing for manifest"))?;
-    Ok(run_dir.join("run_artifacts"))
+    Ok(bijux_dna_infra::run_artifacts_dir_for_out(run_dir))
 }

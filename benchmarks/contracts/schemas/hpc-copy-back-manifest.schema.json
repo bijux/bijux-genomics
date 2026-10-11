@@ -1,0 +1,96 @@
+{
+  "$defs": {
+    "CopyBackEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "code_path": {
+          "type": "string"
+        },
+        "code_sidecar_path": {
+          "type": "string"
+        },
+        "err_path": {
+          "type": "string"
+        },
+        "log_path": {
+          "type": "string"
+        },
+        "out_path": {
+          "type": "string"
+        },
+        "results_path": {
+          "type": "string"
+        },
+        "results_sidecar_path": {
+          "type": "string"
+        },
+        "sample": {
+          "type": "string"
+        },
+        "scratch_dir": {
+          "type": "string"
+        },
+        "script_path": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "tool",
+        "sample",
+        "scratch_dir",
+        "log_path",
+        "out_path",
+        "err_path",
+        "results_path",
+        "results_sidecar_path",
+        "code_path",
+        "code_sidecar_path",
+        "script_path"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/CopyBackEntry"
+      },
+      "type": "array"
+    },
+    "manifest_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.hpc.copy_back_manifest.v1",
+      "type": "string"
+    },
+    "suggested_copy_command": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "manifest_path",
+    "campaign_id",
+    "domain",
+    "suggested_copy_command",
+    "entries"
+  ],
+  "title": "CopyBackManifestReport",
+  "type": "object"
+}

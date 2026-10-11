@@ -40,8 +40,6 @@ mod mod_boundaries_fixtures_policy_rs;
 mod mod_boundaries_foundation_docs_rs;
 #[path = "boundaries/foundation_lints.rs"]
 mod mod_boundaries_foundation_lints_rs;
-#[path = "boundaries/guardrails.rs"]
-mod mod_boundaries_guardrails_rs;
 #[path = "boundaries/hashmap_policy.rs"]
 mod mod_boundaries_hashmap_policy_rs;
 #[path = "boundaries/ignored_tests_policy.rs"]

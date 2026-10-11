@@ -1,0 +1,120 @@
+{
+  "$defs": {
+    "MicroBenchmarkComponentReport": {
+      "additionalProperties": false,
+      "properties": {
+        "component_id": {
+          "type": "string"
+        },
+        "report_path": {
+          "type": "string"
+        },
+        "row_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "component_id",
+        "report_path",
+        "row_count"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "command": {
+      "type": "string"
+    },
+    "component_reports": {
+      "items": {
+        "$ref": "#/$defs/MicroBenchmarkComponentReport"
+      },
+      "type": "array"
+    },
+    "created_at_unix": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "log_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "log_rows_path": {
+      "type": "string"
+    },
+    "manifest_path": {
+      "type": "string"
+    },
+    "normalized_metric_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "normalized_metrics_path": {
+      "type": "string"
+    },
+    "output_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_rows_path": {
+      "type": "string"
+    },
+    "passes_behavior_test": {
+      "type": "boolean"
+    },
+    "repo_revision": {
+      "type": "string"
+    },
+    "result_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "result_rows_path": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "run_root": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_micro_benchmark_run.v1",
+      "type": "string"
+    },
+    "worktree_dirty": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "manifest_path",
+    "run_root",
+    "run_id",
+    "repo_revision",
+    "worktree_dirty",
+    "created_at_unix",
+    "command",
+    "component_reports",
+    "result_rows_path",
+    "output_rows_path",
+    "log_rows_path",
+    "normalized_metrics_path",
+    "result_row_count",
+    "output_row_count",
+    "log_row_count",
+    "normalized_metric_row_count",
+    "passes_behavior_test"
+  ],
+  "title": "MicroBenchmarkRunManifest",
+  "type": "object"
+}

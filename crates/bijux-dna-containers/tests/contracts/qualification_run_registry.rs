@@ -2,12 +2,12 @@ use std::fs;
 
 use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
-    derive_qualification_run_registry, load_container_catalog, load_qualification_run_registry,
-    render_container_run_index_json, render_container_run_index_markdown,
-    render_qualification_run_registry, validate_container_run_index,
-    validate_qualification_run_registry, ContainerArtifactDelivery, ContainerProductSupport,
-    ContainerRunIndex, ContainerRunIndexSource, QualificationRegistryDerivationRequest,
-    QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1,
+    derive_container_run_index, derive_qualification_run_registry, load_container_catalog,
+    load_qualification_run_registry, render_container_run_index_json,
+    render_container_run_index_markdown, render_qualification_run_registry,
+    validate_container_run_index, validate_qualification_run_registry, ContainerArtifactDelivery,
+    ContainerProductSupport, ContainerRunIndex, ContainerRunIndexSource,
+    QualificationRegistryDerivationRequest, QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1,
 };
 
 #[test]
@@ -80,8 +80,9 @@ fn registry_closes_all_catalog_tools_without_reusing_historical_ids() -> Result<
     assert_eq!(rendered, render_qualification_run_registry(&second.registry)?);
     let directory = tempfile::tempdir()?;
     let path = directory.path().join("qualification-runs.toml");
-    fs::write(&path, rendered)?;
+    fs::write(&path, &rendered)?;
     assert_eq!(load_qualification_run_registry(&root, &path)?, first.registry);
+    assert_registry_wire_replay(&root, &path, &rendered, &first.registry)?;
     Ok(())
 }
 
@@ -172,6 +173,12 @@ fn paper_facing_index_preserves_complete_namespace_and_missing_evidence() -> Res
         runs: derived.registry.runs.clone(),
     };
 
+    let canonical = root.join("containers/contracts/qualification-runs.toml");
+    let captured = derive_container_run_index(&root, &canonical)?;
+    let bytes = fs::read(&canonical)?;
+    assert_eq!(captured.source_registry.sha256, bijux_dna_infra::hash_bytes_sha256(&bytes));
+    assert_eq!(captured.source_registry.size_bytes, u64::try_from(bytes.len())?);
+    assert_eq!(captured.runs, load_qualification_run_registry(&root, &canonical)?.runs);
     validate_container_run_index(&index)?;
     assert!(render_container_run_index_json(&index)?.contains("\"run_id\": \"run-1158\""));
     assert!(render_container_run_index_markdown(&index).contains("| `run-1158` |"));
@@ -387,4 +394,36 @@ fn repository_root() -> Result<std::path::PathBuf> {
         .nth(2)
         .map(std::path::Path::to_path_buf)
         .context("resolve repository root")
+}
+
+fn assert_registry_wire_replay(
+    root: &std::path::Path,
+    path: &std::path::Path,
+    wire: &str,
+    expected: &bijux_dna_containers::api::QualificationRunRegistry,
+) -> Result<()> {
+    let mut legacy: toml::Value = toml::from_str(wire)?;
+    legacy["schema_version"] =
+        toml::Value::String("bijux.container.qualification_run_registry.v2".into());
+    for row in legacy.get_mut("tools").and_then(toml::Value::as_array_mut).context("tool rows")? {
+        let row = row.as_table_mut().context("tool table")?;
+        let delivery = row.remove("artifact_delivery").context("delivery")?;
+        let disposition =
+            if delivery.as_str() == Some("external_artifact") { "unsupported" } else { "retained" };
+        row.remove("product_support");
+        row.remove("redistribution_permitted");
+        row.insert("support_disposition".into(), toml::Value::String(disposition.into()));
+    }
+    fs::write(path, toml::to_string(&legacy)?)?;
+    assert_eq!(load_qualification_run_registry(root, path)?, *expected);
+    fs::write(
+        path,
+        wire.replacen("bijux.container.qualification_run_registry.v3", "unsupported.v9", 1),
+    )?;
+    assert!(load_qualification_run_registry(root, path).is_err());
+    fs::write(path, format!("unknown_field = true\n{wire}"))?;
+    assert!(load_qualification_run_registry(root, path).is_err());
+    fs::write(path, wire)?;
+    assert_eq!(load_qualification_run_registry(root, path)?, *expected);
+    Ok(())
 }

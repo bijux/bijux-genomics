@@ -1,3 +1,9 @@
+use bijux_dna_api::v1::api::bench::inspect_hpc_replay_payloads;
+pub use bijux_dna_api::v1::api::bench::SlurmMonitorReport;
+use bijux_dna_api::v1::api::bench::{
+    quote_slurm_argument as shell_quote, slurm_script_path as script_path_for,
+};
+pub use bijux_dna_api::v1::api::bench::{CopyBackEntry, CopyBackManifestReport};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -20,7 +26,6 @@ use crate::commands::hpc::{
 };
 
 const SLURM_SUBMISSION_SCHEMA_VERSION: &str = "bijux.hpc.slurm.submission.v1";
-const COPY_BACK_MANIFEST_SCHEMA_VERSION: &str = "bijux.hpc.copy_back_manifest.v1";
 const BUNDLE_DECRYPT_SCHEMA_VERSION: &str = "bijux.hpc.bundle.decrypt.v1";
 
 #[derive(Debug, Clone, Serialize)]
@@ -49,72 +54,6 @@ pub struct SubmittedJob {
     pub err_path: String,
     pub results_path: String,
     pub code_path: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct CopyBackManifestReport {
-    pub schema_version: &'static str,
-    pub manifest_path: String,
-    pub campaign_id: String,
-    pub domain: String,
-    pub suggested_copy_command: String,
-    pub entries: Vec<CopyBackEntry>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct SlurmMonitorReport {
-    pub schema_version: &'static str,
-    pub campaign_id: String,
-    pub domain: String,
-    pub snapshot: SlurmMonitorSnapshot,
-    pub jobs: Vec<SlurmMonitorEntry>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct SlurmMonitorSnapshot {
-    pub total_jobs: usize,
-    pub jobs_with_log: usize,
-    pub jobs_with_out: usize,
-    pub jobs_with_err: usize,
-    pub jobs_with_results_bundle: usize,
-    pub jobs_with_code_bundle: usize,
-    pub jobs_with_appraiser_done: usize,
-}
-
-#[derive(Debug, Clone, Serialize)]
-#[allow(clippy::struct_excessive_bools)]
-pub struct SlurmMonitorEntry {
-    pub planned_job_id: String,
-    pub scheduler_job_id: String,
-    pub stage: String,
-    pub tool: String,
-    pub sample: String,
-    pub log_exists: bool,
-    pub out_exists: bool,
-    pub err_exists: bool,
-    pub results_exists: bool,
-    pub results_sidecar_exists: bool,
-    pub results_bundle_encrypted: bool,
-    pub code_exists: bool,
-    pub code_sidecar_exists: bool,
-    pub code_bundle_encrypted: bool,
-    pub appraiser_done: bool,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct CopyBackEntry {
-    pub stage: String,
-    pub tool: String,
-    pub sample: String,
-    pub scratch_dir: String,
-    pub log_path: String,
-    pub out_path: String,
-    pub err_path: String,
-    pub results_path: String,
-    pub results_sidecar_path: String,
-    pub code_path: String,
-    pub code_sidecar_path: String,
-    pub script_path: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -273,24 +212,6 @@ fn infer_dependencies(jobs: &[SelectedJob]) -> Vec<Vec<String>> {
         result.push(deps);
     }
     result
-}
-
-fn shell_quote(value: &str) -> String {
-    if value.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | '/')) {
-        value.to_string()
-    } else {
-        format!("'{}'", value.replace('\'', "'\\''"))
-    }
-}
-
-fn script_path_for(log_path: &Path) -> PathBuf {
-    let mut script = log_path.to_path_buf();
-    let new_name = match script.file_name().and_then(|s| s.to_str()) {
-        Some(name) => format!("{name}.sbatch.sh"),
-        None => "job.sbatch.sh".to_string(),
-    };
-    script.set_file_name(new_name);
-    script
 }
 
 fn prepared_root_lock_path(root: &str) -> String {
@@ -889,186 +810,26 @@ pub fn cancel_jobs(
     )
 }
 
-fn is_encrypted_bundle_marker(path: &Path) -> bool {
-    let Ok(bytes) = std::fs::read(path) else {
-        return false;
-    };
-    let preview_len = bytes.len().min(512);
-    let preview = String::from_utf8_lossy(&bytes[..preview_len]);
-    preview.contains("\"schema_version\": \"bijux.hpc.bundle.")
-}
-
-#[derive(Debug, Deserialize)]
-struct SubmissionManifestJobRow {
-    planned_job_id: Option<String>,
-    scheduler_job_id: Option<String>,
-    log_path: Option<String>,
-    out_path: Option<String>,
-    err_path: Option<String>,
-    results_path: Option<String>,
-    code_path: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct SubmissionManifestFile {
-    jobs: Vec<SubmissionManifestJobRow>,
-}
-
-fn submission_jobs_from_manifest(
-    path: &Path,
-) -> Result<BTreeMap<String, SubmissionManifestJobRow>> {
-    let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let manifest: SubmissionManifestFile =
-        serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
-    Ok(manifest
-        .jobs
-        .into_iter()
-        .filter_map(|row| row.planned_job_id.clone().map(|planned_id| (planned_id, row)))
-        .collect())
-}
-
 pub fn monitor_campaign(args: &SlurmMonitorArgs) -> Result<SlurmMonitorReport> {
-    let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
-    let submitted_jobs = if let Some(path) = &args.submission_manifest {
-        submission_jobs_from_manifest(path)?
-    } else {
-        BTreeMap::new()
-    };
-    let mut entries = Vec::new();
-    for job in &report.planned_jobs {
-        let submitted_job = submitted_jobs.get(&job.job_id);
-        let log_path =
-            submitted_job.and_then(|row| row.log_path.as_deref()).unwrap_or(&job.outputs.log);
-        let out_path =
-            submitted_job.and_then(|row| row.out_path.as_deref()).unwrap_or(&job.outputs.out);
-        let err_path =
-            submitted_job.and_then(|row| row.err_path.as_deref()).unwrap_or(&job.outputs.err);
-        let results_path = submitted_job
-            .and_then(|row| row.results_path.as_deref())
-            .unwrap_or(&job.outputs.results);
-        let code_path =
-            submitted_job.and_then(|row| row.code_path.as_deref()).unwrap_or(&job.outputs.code);
-        let log_exists = Path::new(log_path).is_file();
-        let out_exists = Path::new(out_path).is_file();
-        let err_exists = Path::new(err_path).is_file();
-        let results_exists = Path::new(results_path).is_file();
-        let code_exists = Path::new(code_path).is_file();
-        let results_sidecar_exists = sidecar_path_for(Path::new(results_path)).is_file();
-        let code_sidecar_exists = sidecar_path_for(Path::new(code_path)).is_file();
-        let results_bundle_encrypted =
-            results_exists && is_encrypted_bundle_marker(Path::new(results_path));
-        let code_bundle_encrypted = code_exists && is_encrypted_bundle_marker(Path::new(code_path));
-        let appraiser_done = PathBuf::from(format!("{results_path}.appraiser.done")).is_file();
-        entries.push(SlurmMonitorEntry {
-            planned_job_id: job.job_id.clone(),
-            scheduler_job_id: submitted_job
-                .and_then(|row| row.scheduler_job_id.clone())
-                .unwrap_or_else(|| "<unknown>".to_string()),
-            stage: job.stage.clone(),
-            tool: job.tool.clone(),
-            sample: job.sample.clone(),
-            log_exists,
-            out_exists,
-            err_exists,
-            results_exists,
-            results_sidecar_exists,
-            results_bundle_encrypted,
-            code_exists,
-            code_sidecar_exists,
-            code_bundle_encrypted,
-            appraiser_done,
-        });
-    }
-    let snapshot = SlurmMonitorSnapshot {
-        total_jobs: entries.len(),
-        jobs_with_log: entries.iter().filter(|row| row.log_exists).count(),
-        jobs_with_out: entries.iter().filter(|row| row.out_exists).count(),
-        jobs_with_err: entries.iter().filter(|row| row.err_exists).count(),
-        jobs_with_results_bundle: entries
-            .iter()
-            .filter(|row| {
-                row.results_exists && row.results_sidecar_exists && row.results_bundle_encrypted
-            })
-            .count(),
-        jobs_with_code_bundle: entries
-            .iter()
-            .filter(|row| row.code_exists && row.code_sidecar_exists && row.code_bundle_encrypted)
-            .count(),
-        jobs_with_appraiser_done: entries.iter().filter(|row| row.appraiser_done).count(),
-    };
-    Ok(SlurmMonitorReport {
-        schema_version: SLURM_SUBMISSION_SCHEMA_VERSION,
-        campaign_id: report.campaign_id,
-        domain: report.domain,
-        snapshot,
-        jobs: entries,
-    })
+    bijux_dna_api::v1::api::bench::monitor_campaign(
+        &crate::commands::hpc::campaign::campaign_context()?,
+        &args.config,
+        args.env_file.as_deref(),
+        args.user_policies.as_deref(),
+        args.submission_manifest.as_deref(),
+    )
 }
 
 pub fn write_copy_back_manifest(
     args: &SlurmCopyBackManifestArgs,
 ) -> Result<CopyBackManifestReport> {
-    let report =
-        campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_policies.as_deref())?;
-    let manifest_path = args.out.clone().unwrap_or_else(|| {
-        Path::new(&report.config_path).parent().map_or_else(
-            || PathBuf::from("artifacts/slurm_copy_back_manifest.json"),
-            |parent| parent.join("copy-back-manifest.json"),
-        )
-    });
-
-    let entries = report
-        .planned_jobs
-        .iter()
-        .map(|job| CopyBackEntry {
-            stage: job.stage.clone(),
-            tool: job.tool.clone(),
-            sample: job.sample.clone(),
-            scratch_dir: job.outputs.scratch_dir.clone(),
-            log_path: job.outputs.log.clone(),
-            out_path: job.outputs.out.clone(),
-            err_path: job.outputs.err.clone(),
-            results_path: job.outputs.results.clone(),
-            results_sidecar_path: sidecar_path_for(Path::new(&job.outputs.results))
-                .display()
-                .to_string(),
-            code_path: job.outputs.code.clone(),
-            code_sidecar_path: sidecar_path_for(Path::new(&job.outputs.code)).display().to_string(),
-            script_path: script_path_for(Path::new(&job.outputs.log)).display().to_string(),
-        })
-        .collect::<Vec<_>>();
-
-    let suggested_copy_command = if let Some(first) = entries.first() {
-        format!(
-            "rsync -av {} {} {} {} {} {} {} <destination_dir>/",
-            shell_quote(&first.log_path),
-            shell_quote(&first.out_path),
-            shell_quote(&first.err_path),
-            shell_quote(&first.results_path),
-            shell_quote(&first.results_sidecar_path),
-            shell_quote(&first.code_path),
-            shell_quote(&first.code_sidecar_path)
-        )
-    } else {
-        "rsync -av <source> <destination_dir>/".to_string()
-    };
-
-    let manifest = CopyBackManifestReport {
-        schema_version: COPY_BACK_MANIFEST_SCHEMA_VERSION,
-        manifest_path: manifest_path.display().to_string(),
-        campaign_id: report.campaign_id,
-        domain: report.domain,
-        suggested_copy_command,
-        entries,
-    };
-
-    let payload = serde_json::to_vec_pretty(&manifest).context("serialize copy-back manifest")?;
-    ensure_parent(&manifest_path)?;
-    bijux_dna_api::v1::api::run::atomic_write_bytes(&manifest_path, &payload)
-        .with_context(|| format!("write {}", manifest_path.display()))?;
-
-    Ok(manifest)
+    bijux_dna_api::v1::api::bench::write_campaign_copy_back_manifest(
+        &crate::commands::hpc::campaign::campaign_context()?,
+        &args.config,
+        args.env_file.as_deref(),
+        args.user_policies.as_deref(),
+        args.out.as_deref(),
+    )
 }
 
 fn ensure_private_directory(path: &Path) -> Result<()> {
@@ -1188,75 +949,6 @@ fn redact_text(mut text: String, needles: &[String]) -> String {
         text = text.replace(needle, "<redacted>");
     }
     text
-}
-
-fn required_result_paths(_payload: &serde_json::Value) -> Vec<&'static str> {
-    vec![
-        "metrics",
-        "artifacts.inventory",
-        "reports",
-        "appraiser_outputs",
-        "job.stage",
-        "job.tool",
-        "job.sample",
-    ]
-}
-
-fn required_code_paths(payload: &serde_json::Value) -> Vec<&'static str> {
-    let _ = payload;
-    vec![
-        "code_freeze.repository_state",
-        "code_freeze.config_references",
-        "code_freeze.slurm_script",
-        "locks.corpus_lock",
-        "locks.database_lock",
-        "locks.image_lock",
-        "plan.outputs",
-    ]
-}
-
-fn has_json_path(root: &serde_json::Value, path: &str) -> bool {
-    let mut node = root;
-    for part in path.split('.') {
-        let Some(next) = node.get(part) else {
-            return false;
-        };
-        node = next;
-    }
-    true
-}
-
-fn validate_results_payload(payload: &serde_json::Value) -> Vec<String> {
-    required_result_paths(payload)
-        .into_iter()
-        .filter(|path| !has_json_path(payload, path))
-        .map(|path| format!("missing results field `{path}`"))
-        .collect()
-}
-
-fn validate_code_payload(payload: &serde_json::Value) -> Vec<String> {
-    required_code_paths(payload)
-        .into_iter()
-        .filter(|path| !has_json_path(payload, path))
-        .map(|path| format!("missing code field `{path}`"))
-        .collect()
-}
-
-fn appraiser_output_policy_issues(results_payload: &serde_json::Value) -> Vec<String> {
-    let mut issues = Vec::new();
-    if !has_json_path(results_payload, "appraiser_outputs") {
-        issues.push("results payload lacks `appraiser_outputs`".to_string());
-    }
-    if let Some(entries) = results_payload.get("artifacts").and_then(|v| v.get("inventory")) {
-        if entries.as_array().is_some_and(|rows| {
-            rows.iter().any(|row| {
-                row.get("kind") == Some(&serde_json::Value::String("appraiser_output".to_string()))
-            })
-        }) {
-            issues.push("appraiser output must not be listed as plaintext artifact".to_string());
-        }
-    }
-    issues
 }
 
 fn normalized_sidecar_for_bundle(
@@ -1398,32 +1090,33 @@ pub fn import_encrypted_replay(args: &SlurmReplayImportArgs) -> Result<SlurmRepl
         identity_files: &args.identity_file,
     })?;
 
-    let results_out =
-        bundle_output_path(&args.results_bundle, &args.out_dir, ".replay.results.json");
-    let code_out = bundle_output_path(&args.code_bundle, &args.out_dir, ".replay.code.json");
-    bijux_dna_api::v1::api::run::atomic_write_bytes(&results_out, &results_plaintext)?;
-    bijux_dna_api::v1::api::run::atomic_write_bytes(&code_out, &code_plaintext)?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        for path in [&results_out, &code_out] {
-            let mut perms = std::fs::metadata(path)
-                .with_context(|| format!("stat {}", path.display()))?
-                .permissions();
-            perms.set_mode(0o600);
-            std::fs::set_permissions(path, perms)
-                .with_context(|| format!("chmod {}", path.display()))?;
+    let admission = inspect_hpc_replay_payloads(
+        &results_meta,
+        &results_plaintext,
+        &code_meta,
+        &code_plaintext,
+    )?;
+    let replay_feasible = admission.admitted();
+    let checks = admission.into_issues();
+    if replay_feasible {
+        let results_out =
+            bundle_output_path(&args.results_bundle, &args.out_dir, ".replay.results.json");
+        let code_out = bundle_output_path(&args.code_bundle, &args.out_dir, ".replay.code.json");
+        bijux_dna_api::v1::api::run::atomic_write_bytes(&results_out, &results_plaintext)?;
+        bijux_dna_api::v1::api::run::atomic_write_bytes(&code_out, &code_plaintext)?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            for path in [&results_out, &code_out] {
+                let mut perms = std::fs::metadata(path)
+                    .with_context(|| format!("stat {}", path.display()))?
+                    .permissions();
+                perms.set_mode(0o600);
+                std::fs::set_permissions(path, perms)
+                    .with_context(|| format!("chmod {}", path.display()))?;
+            }
         }
     }
-
-    let results_json: serde_json::Value =
-        serde_json::from_slice(&results_plaintext).context("parse results replay payload")?;
-    let code_json: serde_json::Value =
-        serde_json::from_slice(&code_plaintext).context("parse code replay payload")?;
-    let mut checks = Vec::new();
-    checks.extend(validate_results_payload(&results_json));
-    checks.extend(validate_code_payload(&code_json));
-    let replay_feasible = checks.is_empty();
 
     let report = SlurmReplayImportReport {
         schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
@@ -1678,27 +1371,26 @@ pub fn verify_results_policy(
         args.results_sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.results_bundle));
     let code_sidecar =
         args.code_sidecar.clone().unwrap_or_else(|| sidecar_path_for(&args.code_bundle));
-    let (_, results_plaintext) = decrypt_bundle(&BundleDecryptRequest {
+    let (results_meta, results_plaintext) = decrypt_bundle(&BundleDecryptRequest {
         bundle_path: &args.results_bundle,
         sidecar_path: Some(&results_sidecar),
         identity_files: &args.identity_file,
     })?;
-    let (_, code_plaintext) = decrypt_bundle(&BundleDecryptRequest {
+    let (code_meta, code_plaintext) = decrypt_bundle(&BundleDecryptRequest {
         bundle_path: &args.code_bundle,
         sidecar_path: Some(&code_sidecar),
         identity_files: &args.identity_file,
     })?;
-    let results_json: serde_json::Value =
-        serde_json::from_slice(&results_plaintext).context("parse results bundle json")?;
-    let code_json: serde_json::Value =
-        serde_json::from_slice(&code_plaintext).context("parse code bundle json")?;
-
-    let mut issues = validate_results_payload(&results_json);
-    issues.extend(validate_code_payload(&code_json));
-    issues.extend(appraiser_output_policy_issues(&results_json));
-    let results_complete = validate_results_payload(&results_json).is_empty();
-    let code_complete = validate_code_payload(&code_json).is_empty();
-    let appraiser_policy_ok = appraiser_output_policy_issues(&results_json).is_empty();
+    let admission = inspect_hpc_replay_payloads(
+        &results_meta,
+        &results_plaintext,
+        &code_meta,
+        &code_plaintext,
+    )?;
+    let results_complete = admission.results_complete();
+    let code_complete = admission.code_complete();
+    let appraiser_policy_ok = admission.appraiser_policy_ok();
+    let issues = admission.into_issues();
 
     Ok(SlurmResultsPolicyReport {
         schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
@@ -2612,6 +2304,61 @@ sample = "sample-retry"
         assert!(imported.replay_feasible);
         assert!(imported.completeness_checks.is_empty());
         assert!(root.path().join("replay/import-replay-report.json").is_file());
+        let (meta, plaintext) = super::decrypt_bundle(&BundleDecryptRequest {
+            bundle_path: std::path::Path::new(&first.results_path),
+            sidecar_path: None,
+            identity_files: &[],
+        })
+        .expect("original results");
+        let mut foreign: serde_json::Value = serde_json::from_slice(&plaintext).expect("payload");
+        foreign["campaign"]["id"] = serde_json::json!("foreign-campaign");
+        for (name, bytes, malformed) in [
+            ("malformed", b"{".to_vec(), true),
+            ("foreign", serde_json::to_vec(&foreign).expect("foreign payload"), false),
+        ] {
+            let bundle = root.path().join(format!("{name}.results"));
+            super::write_encrypted_bundle(&BundleWriteRequest {
+                output_path: &bundle,
+                bundle_kind: &meta.bundle_kind,
+                campaign_id: &meta.campaign_id,
+                domain: &meta.domain,
+                stage: &meta.stage,
+                tool: &meta.tool,
+                sample: &meta.sample,
+                planned_job_id: &meta.planned_job_id,
+                scheduler_job_id: &meta.scheduler_job_id,
+                submitted_at: &meta.submitted_at,
+                backend: &meta.backend,
+                recipients: &meta.recipients,
+                plaintext: &bytes,
+            })
+            .expect("transport-valid invalid payload");
+            let output = root.path().join(format!("reject-{name}"));
+            let imported = import_encrypted_replay(&SlurmReplayImportArgs {
+                results_bundle: bundle.clone(),
+                results_sidecar: None,
+                code_bundle: std::path::PathBuf::from(&first.code_path),
+                code_sidecar: None,
+                out_dir: output.clone(),
+                identity_file: Vec::new(),
+                allow_unsafe_destination: false,
+                json: false,
+            });
+            if malformed {
+                assert!(imported.is_err());
+            } else {
+                let rejected = imported.expect("diagnostic report");
+                assert!(!rejected.replay_feasible);
+                assert!(!rejected.completeness_checks.is_empty());
+            }
+            assert!(!super::bundle_output_path(&bundle, &output, ".replay.results.json").exists());
+            assert!(!super::bundle_output_path(
+                std::path::Path::new(&first.code_path),
+                &output,
+                ".replay.code.json"
+            )
+            .exists());
+        }
     }
 
     #[test]

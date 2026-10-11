@@ -2,6 +2,7 @@
 
 mod catalog;
 mod catalog_lock;
+mod catalog_observation;
 mod catalog_validation;
 mod inspection;
 mod labels;
@@ -68,3 +69,7 @@ pub use version_lock::{
     CONTAINER_VERSION_LOCK_GENERATOR_PATH, CONTAINER_VERSION_LOCK_PATH,
     CONTAINER_VERSION_LOCK_SCHEMA_V4,
 };
+
+pub(crate) use catalog::retained_apptainer_tools_from_catalog;
+pub(crate) use catalog_observation::observe_container_catalog;
+pub(crate) use catalog_validation::validate_observed_container_catalog;

@@ -1,0 +1,154 @@
+{
+  "$defs": {
+    "SlurmMonitorEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "appraiser_done": {
+          "type": "boolean"
+        },
+        "code_bundle_encrypted": {
+          "type": "boolean"
+        },
+        "code_exists": {
+          "type": "boolean"
+        },
+        "code_sidecar_exists": {
+          "type": "boolean"
+        },
+        "err_exists": {
+          "type": "boolean"
+        },
+        "log_exists": {
+          "type": "boolean"
+        },
+        "out_exists": {
+          "type": "boolean"
+        },
+        "planned_job_id": {
+          "type": "string"
+        },
+        "results_bundle_encrypted": {
+          "type": "boolean"
+        },
+        "results_exists": {
+          "type": "boolean"
+        },
+        "results_sidecar_exists": {
+          "type": "boolean"
+        },
+        "sample": {
+          "type": "string"
+        },
+        "scheduler_job_id": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "planned_job_id",
+        "scheduler_job_id",
+        "stage",
+        "tool",
+        "sample",
+        "log_exists",
+        "out_exists",
+        "err_exists",
+        "results_exists",
+        "results_sidecar_exists",
+        "results_bundle_encrypted",
+        "code_exists",
+        "code_sidecar_exists",
+        "code_bundle_encrypted",
+        "appraiser_done"
+      ],
+      "type": "object"
+    },
+    "SlurmMonitorSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "jobs_with_appraiser_done": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "jobs_with_code_bundle": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "jobs_with_err": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "jobs_with_log": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "jobs_with_out": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "jobs_with_results_bundle": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "total_jobs": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total_jobs",
+        "jobs_with_log",
+        "jobs_with_out",
+        "jobs_with_err",
+        "jobs_with_results_bundle",
+        "jobs_with_code_bundle",
+        "jobs_with_appraiser_done"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "jobs": {
+      "items": {
+        "$ref": "#/$defs/SlurmMonitorEntry"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.hpc.slurm.submission.v1",
+      "type": "string"
+    },
+    "snapshot": {
+      "$ref": "#/$defs/SlurmMonitorSnapshot"
+    }
+  },
+  "required": [
+    "schema_version",
+    "campaign_id",
+    "domain",
+    "snapshot",
+    "jobs"
+  ],
+  "title": "SlurmMonitorReport",
+  "type": "object"
+}

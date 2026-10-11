@@ -40,3 +40,10 @@ pub fn run_layout_paths(base_dir: &Path, run_id: &str) -> RunLayoutPaths {
 pub fn run_stage_dir(base_dir: &Path, run_id: &str, stage: &str, tool: &str) -> PathBuf {
     run_layout_paths(base_dir, run_id).run_dir.join(path_segment(stage)).join(path_segment(tool))
 }
+
+/// Locate persisted stage artifacts beneath an already resolved output directory.
+/// This projection performs no IO and preserves relative and absolute output roots.
+#[must_use]
+pub fn run_artifacts_dir_for_out(out_dir: &Path) -> PathBuf {
+    out_dir.join("run_artifacts")
+}

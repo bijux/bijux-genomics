@@ -66,5 +66,4 @@ state, but response fields must keep stable meaning and shape.
 `tests/boundaries/architecture.rs` protects the root layout, docs allowance,
 source namespace layout, and test documentation location.
 
-`tests/boundaries/guardrails.rs` and `tests/guardrails.rs` run shared policy
 checks for the crate.

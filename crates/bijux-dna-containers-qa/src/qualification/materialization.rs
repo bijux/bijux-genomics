@@ -4,6 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
+use super::specification::admission::validate_selection;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_benchmark_data_index, BenchmarkDataIndex, BenchmarkDataIndexFile,
@@ -19,59 +20,14 @@ use bijux_dna_stage_contract::{
     OutputDiscoveryV1, ToolBinding,
 };
 use chrono::{DateTime, FixedOffset};
-use schemars::{schema_for, JsonSchema, Schema};
-use serde::{Deserialize, Serialize};
 use walkdir::WalkDir;
 
-use super::compilation::{
-    QualificationSpecificationInputKindV1, QualificationSpecificationInputV1,
+use super::specification::{
+    QualificationSourceInputSelectionV1, QualificationSourceMaterializationRequest,
+    QualificationSourceSelectionV1, QualificationSpecificationInputV1,
     QualificationSpecificationOutputV1, QualificationSpecificationSiteResourcesV1,
     QualificationSpecificationSourceV1, QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1,
 };
-
-pub const QUALIFICATION_SOURCE_SELECTION_SCHEMA_V1: &str =
-    "bijux.container.qualification_source_selection.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct QualificationSourceMaterializationRequest {
-    pub repository_root: PathBuf,
-    pub registry_path: PathBuf,
-    pub inventory_path: PathBuf,
-    pub data_index_path: PathBuf,
-    pub governed_study_root: PathBuf,
-    pub repository_commit: String,
-    pub operator: String,
-    pub submitted_at_utc: String,
-    pub account: String,
-    pub partition: String,
-    pub walltime: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct QualificationSourceInputSelectionV1 {
-    pub binding_input: String,
-    pub id: String,
-    pub kind: QualificationSpecificationInputKindV1,
-    pub catalog_id: String,
-    pub study_uri: String,
-    pub mount_path: PathBuf,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(deny_unknown_fields)]
-pub struct QualificationSourceSelectionV1 {
-    pub schema_version: String,
-    pub tool_id: String,
-    pub campaign: String,
-    pub corpus: String,
-    pub corpus_role: String,
-    pub sample: String,
-    pub inputs: Vec<QualificationSourceInputSelectionV1>,
-    #[serde(default)]
-    pub parameters: BTreeMap<String, String>,
-    pub negative_arguments: Vec<String>,
-}
 
 struct MaterializationAuthorities {
     catalog: ContainerCatalog,
@@ -80,44 +36,6 @@ struct MaterializationAuthorities {
     catalog_sha256: String,
     registry_sha256: String,
     inventory_sha256: String,
-}
-
-/// Return the generated schema for declarative qualification data selections.
-#[must_use]
-pub fn qualification_source_selection_schema() -> Schema {
-    schema_for!(QualificationSourceSelectionV1)
-}
-
-/// Write the generated qualification data-selection schema.
-///
-/// # Errors
-/// Returns an error when the schema cannot be serialized or written.
-pub fn write_qualification_source_selection_schema(path: &Path) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(path, &qualification_source_selection_schema())
-        .context("write qualification source selection schema")
-}
-
-/// Load one declarative qualification data selection from JSON or YAML.
-///
-/// # Errors
-/// Returns an error when the source is not a bounded regular file or cannot be decoded.
-pub fn load_qualification_source_selection(path: &Path) -> Result<QualificationSourceSelectionV1> {
-    let metadata = fs::symlink_metadata(path)
-        .with_context(|| format!("inspect qualification source selection {}", path.display()))?;
-    if metadata.file_type().is_symlink() || !metadata.is_file() {
-        bail!("qualification source selection is not a regular file: {}", path.display());
-    }
-    let bytes = bijux_dna_infra::read_to_end_bounded(path, 16 * 1024 * 1024)
-        .with_context(|| format!("read qualification source selection {}", path.display()))?;
-    match path.extension().and_then(|value| value.to_str()) {
-        Some("json") => {
-            serde_json::from_slice(&bytes).context("parse qualification source selection JSON")
-        }
-        Some("yaml" | "yml") => {
-            serde_yaml::from_slice(&bytes).context("parse qualification source selection YAML")
-        }
-        _ => bail!("qualification source selection must use a JSON or YAML extension"),
-    }
 }
 
 /// Materialize a current qualification source from one admitted data selection.
@@ -311,43 +229,6 @@ fn validate_request(request: &QualificationSourceMaterializationRequest) -> Resu
         bail!("qualification materialization commit differs from repository HEAD");
     }
     Ok(())
-}
-
-fn validate_selection(selection: &QualificationSourceSelectionV1) -> Result<()> {
-    if selection.schema_version != QUALIFICATION_SOURCE_SELECTION_SCHEMA_V1 {
-        bail!("unsupported qualification source selection schema");
-    }
-    for (value, label) in [
-        (&selection.tool_id, "tool"),
-        (&selection.campaign, "campaign"),
-        (&selection.corpus, "corpus"),
-        (&selection.corpus_role, "corpus role"),
-        (&selection.sample, "sample"),
-    ] {
-        if value.trim().is_empty() || value != value.trim() {
-            bail!("qualification source selection {label} is empty or malformed");
-        }
-    }
-    if selection.inputs.is_empty() {
-        bail!("qualification source selection has no governed inputs");
-    }
-    for input in &selection.inputs {
-        if !is_lower_snake_identifier(&input.id) {
-            bail!("qualification source selection input ID must use lowercase snake case");
-        }
-    }
-    if selection.negative_arguments.is_empty()
-        || selection.negative_arguments.iter().any(String::is_empty)
-    {
-        bail!("qualification source selection requires a nonempty negative invocation");
-    }
-    Ok(())
-}
-
-fn is_lower_snake_identifier(value: &str) -> bool {
-    let mut bytes = value.bytes();
-    bytes.next().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
-        && bytes.all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
 }
 
 fn load_data_index(path: &Path) -> Result<BenchmarkDataIndex> {
@@ -609,6 +490,8 @@ fn hash_file(path: &Path) -> Result<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::qualification::QualificationSpecificationInputKindV1;
+    use crate::qualification::QUALIFICATION_SOURCE_SELECTION_SCHEMA_V1;
 
     use crate::qualification::{
         compile_container_qualification_specification, QualificationSpecificationCompilationRequest,

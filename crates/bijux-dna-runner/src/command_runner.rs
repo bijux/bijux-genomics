@@ -50,25 +50,7 @@ pub fn run_command_with_context_and_timeout(
     let resolved = execution_binding::resolve_command(command, args, envs)?;
 
     let start = Instant::now();
-    let mut child = Command::new(&resolved.program);
-    child.args(&resolved.args);
-    if let Some(current_dir) = current_dir {
-        child.current_dir(current_dir);
-    }
-    if let Some(envs) = envs {
-        child.envs(envs);
-    }
-    child.stdin(std::process::Stdio::null());
-    child.stdout(std::process::Stdio::piped());
-    child.stderr(std::process::Stdio::piped());
-    crate::process_supervision::isolate_process_group(&mut child);
-
-    let mut process = child.spawn().with_context(|| format!("run command {}", resolved.program))?;
-    let supervised = crate::process_supervision::wait_for_output(
-        &mut process,
-        timeout,
-        &format!("command {}", resolved.program),
-    )?;
+    let supervised = execute_supervised(&resolved, current_dir, envs, timeout)?;
     let mut stderr = supervised.stderr;
     if supervised.timed_out {
         if !stderr.is_empty() {
@@ -138,6 +120,44 @@ pub fn run_command_with_context_and_stdin(
     }
     let output = child.output().with_context(|| format!("run command {}", resolved.program))?;
     Ok(command_output(&resolved.program, &resolved.args, start, &output))
+}
+
+/// Capture process bytes before any presentation decoding. Execution bindings and
+/// process-group timeout semantics match the text command API.
+pub(crate) fn run_command_bytes_with_timeout(
+    command: &str,
+    args: &[String],
+    timeout: Duration,
+) -> Result<crate::process_supervision::SupervisedOutput> {
+    let resolved = execution_binding::resolve_command(command, args, None)?;
+    execute_supervised(&resolved, None, None, timeout)
+}
+
+fn execute_supervised(
+    resolved: &execution_binding::ResolvedCommand,
+    current_dir: Option<&Path>,
+    envs: Option<&BTreeMap<String, String>>,
+    timeout: Duration,
+) -> Result<crate::process_supervision::SupervisedOutput> {
+    let mut child = Command::new(&resolved.program);
+    child.args(&resolved.args);
+    if let Some(current_dir) = current_dir {
+        child.current_dir(current_dir);
+    }
+    if let Some(envs) = envs {
+        child.envs(envs);
+    }
+    child.stdin(std::process::Stdio::null());
+    child.stdout(std::process::Stdio::piped());
+    child.stderr(std::process::Stdio::piped());
+    crate::process_supervision::isolate_process_group(&mut child);
+
+    let mut process = child.spawn().with_context(|| format!("run command {}", resolved.program))?;
+    crate::process_supervision::wait_for_output(
+        &mut process,
+        timeout,
+        &format!("command {}", resolved.program),
+    )
 }
 
 fn command_output(
@@ -278,6 +298,19 @@ mod tests {
         assert!(output.timed_out);
         assert_eq!(output.output.stdout, "ready");
         assert!(output.output.stderr.contains("local command exceeded timeout"));
+        Ok(())
+    }
+    #[cfg(unix)]
+    #[test]
+    fn command_bytes_preserve_non_utf8_payloads_and_nuls() -> anyhow::Result<()> {
+        let output = super::run_command_bytes_with_timeout(
+            "sh",
+            &["-c".to_string(), r"printf '\377\000\200\n'".to_string()],
+            Duration::from_secs(5),
+        )?;
+        assert!(output.status.success());
+        assert!(!output.timed_out);
+        assert_eq!(output.stdout, [255, 0, 128, 10]);
         Ok(())
     }
 }

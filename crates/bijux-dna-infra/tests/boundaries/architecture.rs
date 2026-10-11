@@ -100,7 +100,6 @@ fn infra_tree_matches_architecture_contract() {
             "contracts.rs",
             "determinism/",
             "determinism.rs",
-            "guardrails.rs",
             "schemas/",
             "schemas.rs",
             "snapshots/",
@@ -109,7 +108,7 @@ fn infra_tree_matches_architecture_contract() {
     );
     assert_dir_entries(
         &root.join("tests/boundaries"),
-        ["architecture.rs", "guardrails/", "guardrails.rs"],
+        ["architecture.rs", "guardrails/"],
         "boundary tests must stay focused on architecture and guardrails",
     );
     assert_dir_entries(

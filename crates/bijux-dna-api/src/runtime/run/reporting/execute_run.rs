@@ -898,7 +898,8 @@ fn collect_tool_invocations(
         .steps()
         .iter()
         .map(|step| {
-            let path = step.out_dir.join("run_artifacts").join("tool_invocation.json");
+            let path = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&step.out_dir)
+                .join("tool_invocation.json");
             if path.exists() {
                 if let Ok(raw) = std::fs::read_to_string(&path) {
                     if let Ok(parsed) = serde_json::from_str::<ToolInvocationV1>(&raw) {

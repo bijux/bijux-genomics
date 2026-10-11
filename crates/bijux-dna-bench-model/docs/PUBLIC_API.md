@@ -477,3 +477,13 @@ readiness, reference resolution and scientific profile validation are additional
 obligations; schema admission does not certify executable or scientifically compatible inputs.
 
 `BenchmarkLocalStageMatrixConfig` owns the existing FASTQ/BAM local matrix input shape, with generated `benchmark_local_stage_matrix_config_schema()` and the two exact v1 schema identities. VCF retains `LocalVcfStageMatrixConfig`. Structural deserialization rejects unknown fields and readiness values; repository admission additionally checks the requested domain, exact version, non-empty inventory and unique stage identities. Serialization preserves matrix declaration order.
+
+`derive_hardening_benchmark_campaign(matrix, appraisal, queue, requested_goals)` admits source identities and derives the existing hardening report entirely from typed inputs. Catalog scenarios describe benchmark readiness; this operation does not execute or certify a benchmark.
+
+`BenchmarkSourceKind` and `BenchmarkSourceAsset` describe pre-staging content identities independently of filesystem acquisition. The benchmark repository owner observes current files, directories and index-prefix members. Existing variant spellings and fields remain unchanged; these in-memory observations are not a new persisted wire schema.
+
+Runtime declaration classification uses `RuntimeResolutionInput` and returns `RuntimeResolutionSignature`. HPC selection consumes a borrowed `HpcApptainerTarget` and returns `HpcResolution`. Existing resolution vocabulary and unavailable diagnostics are preserved; these in-memory contracts introduce no persisted schema or runtime execution capability.
+
+`BenchmarkRuntimeProbe` is the typed runtime-readiness projection of a domain tool declaration. Its entrypoint, container identity, version/help command and required-field accessors preserve existing interpretation. It intentionally does not validate unrelated full domain fields; repository acquisition separately binds the declared tool identity to the request.
+
+Execution-mode declarations own closed TOML-compatible shapes and header/assignment admission. Unknown schemas, unsupported required fields and ambiguous tool assignments fail before executable resolution. This policy does not establish actual tool availability.

@@ -1,31 +1,15 @@
 //! Owner: bijux-dna-bench
 //! Repository-backed loading and validation of benchmark stage execution results.
 
-use std::fs;
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use bijux_dna_bench_model::{
-    validate_benchmark_stage_result_manifest, validate_benchmark_stage_result_validation_report,
-    BenchmarkStageResultManifest, BenchmarkStageResultValidationReport,
+    validate_benchmark_stage_result_validation_report, BenchmarkStageResultValidationReport,
     BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1,
 };
 
-/// Load and structurally validate one stage execution result manifest.
-///
-/// # Errors
-/// Returns an error when the manifest cannot be read, parsed, or validated.
-pub fn load_benchmark_stage_result_manifest(
-    manifest_path: &Path,
-) -> Result<BenchmarkStageResultManifest> {
-    let raw = fs::read_to_string(manifest_path)
-        .with_context(|| format!("read {}", manifest_path.display()))?;
-    let manifest: BenchmarkStageResultManifest =
-        serde_json::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))?;
-    validate_benchmark_stage_result_manifest(&manifest)
-        .with_context(|| format!("validate {}", manifest_path.display()))?;
-    Ok(manifest)
-}
+pub use crate::repo::stage_result::load_benchmark_stage_result_manifest;
 
 /// Validate one stage execution result and project its stable operator report.
 ///

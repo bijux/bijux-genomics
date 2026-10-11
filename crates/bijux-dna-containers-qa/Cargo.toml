@@ -12,19 +12,19 @@ serde.workspace = true
 serde_yaml.workspace = true
 schemars.workspace = true
 sha2.workspace = true
-tracing.workspace = true
-uuid.workspace = true
-clap.workspace = true
-rusqlite = "0.40.1"
+tracing = { workspace = true, optional = true }
+uuid = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+rusqlite = { version = "0.40.1", optional = true }
 regex.workspace = true
-wait-timeout.workspace = true
+wait-timeout = { workspace = true, optional = true }
 bijux-dna-containers = { path = "../bijux-dna-containers" }
 bijux-dna-bench-model = { path = "../bijux-dna-bench-model", default-features = false }
-bijux-dna-analyze = { path = "../bijux-dna-analyze", features = ["sqlite"] }
+bijux-dna-analyze = { path = "../bijux-dna-analyze", features = ["sqlite"], optional = true }
 bijux-dna-core = { path = "../bijux-dna-core" }
-bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
+bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq", optional = true }
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
-bijux-dna-runtime = { path = "../bijux-dna-runtime" }
+bijux-dna-runtime = { path = "../bijux-dna-runtime", optional = true }
 bijux-dna-stage-contract = { path = "../bijux-dna-stage-contract" }
 chrono.workspace = true
 walkdir.workspace = true
@@ -37,5 +37,40 @@ bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 workspace = true
 
 [features]
-default = []
+default = ["verification-tools"]
+verification-tools = [
+  "dep:bijux-dna-analyze",
+  "dep:bijux-dna-domain-fastq",
+  "dep:bijux-dna-runtime",
+  "dep:clap",
+  "dep:rusqlite",
+  "dep:tracing",
+  "dep:uuid",
+  "dep:wait-timeout",
+]
 sqlite = []
+
+[[bin]]
+name = "image_qa"
+path = "src/bin/image_qa.rs"
+required-features = ["verification-tools"]
+
+[[bin]]
+name = "runtime_verification"
+path = "src/bin/runtime_verification.rs"
+required-features = ["verification-tools"]
+
+[[bin]]
+name = "security_verification"
+path = "src/bin/security_verification.rs"
+required-features = ["verification-tools"]
+
+[[bin]]
+name = "build_docker_images"
+path = "src/bin/build_docker_images.rs"
+required-features = ["verification-tools"]
+
+[[bin]]
+name = "qa_docker_images"
+path = "src/bin/qa_docker_images.rs"
+required-features = ["verification-tools"]

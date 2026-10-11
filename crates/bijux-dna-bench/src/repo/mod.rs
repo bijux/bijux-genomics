@@ -75,3 +75,41 @@ pub use bam_score_evidence::load_bam_tool_score_evidence;
 
 mod vcf_score_evidence;
 pub use vcf_score_evidence::load_vcf_tool_score_evidence;
+
+mod vcf_execution_proof;
+pub use vcf_execution_proof::load_vcf_execution_blocker;
+
+#[cfg(feature = "container-qualification")]
+pub(crate) mod container_qualification;
+
+pub(crate) mod hpc_campaign;
+
+pub(crate) mod simulation;
+
+pub(crate) mod command_audit;
+
+pub(crate) mod command_artifacts;
+
+pub(crate) mod micro_run;
+
+pub(crate) mod micro_report;
+
+pub(crate) mod stage_result;
+
+pub(crate) mod hpc_array;
+
+pub(crate) mod hpc_resources;
+
+pub(crate) mod hardening_campaign;
+
+pub(crate) mod hpc_inputs;
+
+pub(crate) mod hpc_asset_staging;
+
+pub(crate) mod source_assets;
+
+pub(crate) mod hpc_scratch;
+
+pub(crate) mod runtime_probe;
+
+pub(crate) mod tool_execution_modes;

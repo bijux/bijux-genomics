@@ -146,7 +146,7 @@ pub(crate) fn render_all_domain_local_operational_benchmark_complete(
                 None,
             ),
             Err(render_error) => {
-                match load_active_scope_snapshot(repo_root, &active_scope_output_path) {
+                match load_historical_active_scope_snapshot(repo_root, &active_scope_output_path) {
                     Ok(snapshot) => (snapshot, Some(render_error.to_string())),
                     Err(load_error) => (
                         ActiveScopeSnapshot::default(),
@@ -208,7 +208,7 @@ pub(crate) fn render_all_domain_local_operational_benchmark_complete(
                 None,
             ),
             Err(render_error) => {
-                match load_operational_snapshot(repo_root, &operational_output_path) {
+                match load_historical_operational_snapshot(repo_root, &operational_output_path) {
                     Ok(snapshot) => (snapshot, Some(render_error.to_string())),
                     Err(load_error) => (
                         OperationalSnapshot::default(),
@@ -317,7 +317,10 @@ struct ActiveScopeSnapshot {
     failed_surface_count: usize,
 }
 
-fn load_operational_snapshot(repo_root: &Path, output_path: &Path) -> Result<OperationalSnapshot> {
+fn load_historical_operational_snapshot(
+    repo_root: &Path,
+    output_path: &Path,
+) -> Result<OperationalSnapshot> {
     let value = load_json_value(repo_root, output_path)?;
     let blockers = value
         .get("blockers")
@@ -327,17 +330,22 @@ fn load_operational_snapshot(repo_root: &Path, output_path: &Path) -> Result<Ope
         .map(json_blocker)
         .collect::<Result<Vec<_>>>()?;
     Ok(OperationalSnapshot {
-        ok: value.get("ok").and_then(serde_json::Value::as_bool).unwrap_or(false),
+        // Preserve historical details, but a failed current render cannot inherit success.
+        ok: false,
         benchmark_ready_row_count: json_usize(&value, "benchmark_ready_row_count")?,
         blocker_count: json_usize(&value, "blocker_count")?,
         blockers,
     })
 }
 
-fn load_active_scope_snapshot(repo_root: &Path, output_path: &Path) -> Result<ActiveScopeSnapshot> {
+fn load_historical_active_scope_snapshot(
+    repo_root: &Path,
+    output_path: &Path,
+) -> Result<ActiveScopeSnapshot> {
     let value = load_json_value(repo_root, output_path)?;
     Ok(ActiveScopeSnapshot {
-        ok: value.get("ok").and_then(serde_json::Value::as_bool).unwrap_or(false),
+        // Preserve historical details, but a failed current render cannot inherit success.
+        ok: false,
         output_path: value
             .get("output_path")
             .and_then(serde_json::Value::as_str)
@@ -470,3 +478,7 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
 }
+
+#[cfg(test)]
+#[path = "../../../../tests/contracts/readiness/operational_completion_observation.rs"]
+mod observation_tests;

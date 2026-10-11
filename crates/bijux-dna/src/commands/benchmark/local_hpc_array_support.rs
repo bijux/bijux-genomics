@@ -14,13 +14,3 @@ pub(crate) fn manifest_path_for_script(surface: &str, script_path: &Path) -> Res
     })?;
     Ok(parent.join(format!("{stem}-manifest.json")))
 }
-
-pub(crate) fn shell_quote(value: &str) -> String {
-    if value.chars().all(|ch| {
-        ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | '/' | ':' | '+' | '%')
-    }) {
-        value.to_string()
-    } else {
-        format!("'{}'", value.replace('\'', "'\\''"))
-    }
-}

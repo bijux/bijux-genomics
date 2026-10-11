@@ -89,14 +89,7 @@ fn db_ref_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("tests")),
-        entries([
-            "boundaries/",
-            "boundaries.rs",
-            "contracts/",
-            "contracts.rs",
-            "fixtures/",
-            "guardrails.rs"
-        ]),
+        entries(["boundaries/", "boundaries.rs", "contracts/", "contracts.rs", "fixtures/",]),
         "integration tests must only track active test files and intent directories"
     );
 

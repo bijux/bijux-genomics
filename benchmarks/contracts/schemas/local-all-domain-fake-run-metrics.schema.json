@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "asset_profile_id": {
+      "type": "string"
+    },
+    "command_step_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "declared_output_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "expected_metric_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "expected_metrics": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "materialized_byte_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "result_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_all_domain_fake_run_metrics.v1",
+      "type": "string"
+    },
+    "simulated_elapsed_seconds": {
+      "format": "double",
+      "type": "number"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "result_id",
+    "domain",
+    "stage_id",
+    "tool_id",
+    "corpus_id",
+    "asset_profile_id",
+    "command_step_count",
+    "declared_output_count",
+    "expected_metric_count",
+    "expected_metrics",
+    "materialized_byte_count",
+    "simulated_elapsed_seconds"
+  ],
+  "title": "AllDomainFakeRunMetrics",
+  "type": "object"
+}

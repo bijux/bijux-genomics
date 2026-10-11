@@ -1,0 +1,225 @@
+{
+  "$defs": {
+    "AllDomainLocalJobCoverageRow": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "argv_output_path": {
+          "type": "string"
+        },
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "benchmark_status": {
+          "type": "string"
+        },
+        "command_source": {
+          "type": "string"
+        },
+        "command_step_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "command_step_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "coverage_status": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "parser_id": {
+          "type": "string"
+        },
+        "primary_executables": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "readiness_kind": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "schema_id": {
+          "type": "string"
+        },
+        "script_command_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "script_output_path": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "adapter_id",
+        "parser_id",
+        "schema_id",
+        "readiness_kind",
+        "benchmark_status",
+        "command_source",
+        "command_step_count",
+        "script_command_count",
+        "command_step_ids",
+        "primary_executables",
+        "script_output_path",
+        "argv_output_path",
+        "coverage_status",
+        "reason"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "argv_output_path": {
+      "type": "string"
+    },
+    "command_source_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "coverage_percent": {
+      "format": "double",
+      "type": "number"
+    },
+    "coverage_status_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "covered_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "local_job_binding_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "result_id_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainLocalJobCoverageRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_local_job_coverage.v1",
+      "type": "string"
+    },
+    "script_output_path": {
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "violation_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "violations": {
+      "items": {
+        "$ref": "#/$defs/AllDomainLocalJobCoverageRow"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "script_output_path",
+    "argv_output_path",
+    "row_count",
+    "result_id_count",
+    "stage_count",
+    "tool_count",
+    "local_job_binding_count",
+    "covered_row_count",
+    "missing_row_count",
+    "coverage_percent",
+    "domain_counts",
+    "command_source_counts",
+    "coverage_status_counts",
+    "violation_count",
+    "ok",
+    "rows",
+    "violations"
+  ],
+  "title": "AllDomainLocalJobCoverageReport",
+  "type": "object"
+}

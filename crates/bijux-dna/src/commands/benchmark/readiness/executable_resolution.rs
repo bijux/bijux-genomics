@@ -1,3 +1,7 @@
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    RuntimeResolutionSignature, RESOLUTION_KIND_APPTAINER_IMAGE, RESOLUTION_KIND_DOCKER_IMAGE,
+    RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY, RESOLUTION_KIND_UNAVAILABLE,
+};
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -15,12 +19,6 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_EXECUTABLE_RESOLUTION_PATH: &str =
     "artifacts/benchmark-smoke/readiness/tools/executable-resolution.tsv";
 const EXECUTABLE_RESOLUTION_SCHEMA_VERSION: &str = "bijux.bench.readiness.executable_resolution.v1";
-pub(crate) const RESOLUTION_KIND_HOST_BINARY: &str = "host_binary";
-pub(crate) const RESOLUTION_KIND_DOCKER_IMAGE: &str = "docker_image";
-pub(crate) const RESOLUTION_KIND_APPTAINER_IMAGE: &str = "apptainer_image";
-pub(crate) const RESOLUTION_KIND_EXTERNAL_ARTIFACT: &str = "external_artifact";
-pub(crate) const RESOLUTION_KIND_UNAVAILABLE: &str = "unavailable_with_reason";
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct ExecutableResolutionRow {
     pub(crate) tool_id: String,
@@ -42,15 +40,6 @@ pub(crate) struct ExecutableResolutionReport {
     pub(crate) resolution_counts: BTreeMap<String, usize>,
     pub(crate) unavailable_count: usize,
     pub(crate) rows: Vec<ExecutableResolutionRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct RuntimeResolutionSignature {
-    pub(crate) install_kind: String,
-    pub(crate) resolution_kind: String,
-    pub(crate) resolution_target: String,
-    pub(crate) command_entrypoint: Option<String>,
-    pub(crate) unavailable_reason: Option<String>,
 }
 
 pub(crate) fn run_render_executable_resolution(
@@ -171,133 +160,14 @@ pub(crate) fn resolve_runtime_probe_signature(
     tool_id: &str,
     probe: &super::tool_execution_modes::RuntimeProbe,
 ) -> RuntimeResolutionSignature {
-    let install_kind = probe.install_kind().to_string();
-    let command_entrypoint = probe.command_entrypoint();
-    let container_id = probe.container_id();
-
-    if let Some(container_id) =
-        container_id.as_deref().filter(|container_id| is_external_artifact_reference(container_id))
-    {
-        return RuntimeResolutionSignature {
-            install_kind: RESOLUTION_KIND_EXTERNAL_ARTIFACT.to_string(),
-            resolution_kind: RESOLUTION_KIND_EXTERNAL_ARTIFACT.to_string(),
-            resolution_target: container_id.to_string(),
-            command_entrypoint,
-            unavailable_reason: None,
-        };
-    }
-
-    match install_kind.clone().as_str() {
-        "workspace_binary" | "host_binary" => RuntimeResolutionSignature {
-            install_kind,
-            resolution_kind: RESOLUTION_KIND_HOST_BINARY.to_string(),
-            resolution_target: command_entrypoint.clone().unwrap_or_else(|| tool_id.to_string()),
-            command_entrypoint,
-            unavailable_reason: None,
+    bijux_dna_api::v1::api::bench::classify_runtime_resolution(
+        bijux_dna_api::v1::api::bench::RuntimeResolutionInput {
+            tool_id,
+            install_kind: probe.install_kind(),
+            command_entrypoint: probe.command_entrypoint(),
+            container_id: probe.container_id(),
         },
-        "container" => match container_id {
-            Some(container_id) if is_external_reference(&container_id) => RuntimeResolutionSignature {
-                install_kind,
-                resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
-                resolution_target: String::new(),
-                command_entrypoint,
-                unavailable_reason: Some(
-                    "runtime probe declares an external container source without a governed local image"
-                        .to_string(),
-                ),
-            },
-            Some(container_id) if is_planned_reference(&container_id) => RuntimeResolutionSignature {
-                install_kind,
-                resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
-                resolution_target: String::new(),
-                command_entrypoint,
-                unavailable_reason: Some(
-                    "runtime probe declares a planned container source without a governed local image"
-                        .to_string(),
-                ),
-            },
-            Some(container_id) if is_apptainer_reference(&container_id) => RuntimeResolutionSignature {
-                install_kind,
-                resolution_kind: RESOLUTION_KIND_APPTAINER_IMAGE.to_string(),
-                resolution_target: container_id,
-                command_entrypoint,
-                unavailable_reason: None,
-            },
-            Some(container_id) if is_docker_reference(&container_id) => RuntimeResolutionSignature {
-                install_kind,
-                resolution_kind: RESOLUTION_KIND_DOCKER_IMAGE.to_string(),
-                resolution_target: container_id,
-                command_entrypoint,
-                unavailable_reason: None,
-            },
-            Some(container_id) => RuntimeResolutionSignature {
-                install_kind,
-                resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
-                resolution_target: String::new(),
-                command_entrypoint,
-                unavailable_reason: Some(format!(
-                    "runtime probe declares unsupported container reference `{container_id}`"
-                )),
-            },
-            None => RuntimeResolutionSignature {
-                install_kind,
-                resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
-                resolution_target: String::new(),
-                command_entrypoint,
-                unavailable_reason: Some(
-                    "runtime probe declares container install_kind without a governed image reference"
-                        .to_string(),
-                ),
-            },
-        },
-        unsupported => RuntimeResolutionSignature {
-            install_kind,
-            resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
-            resolution_target: String::new(),
-            command_entrypoint,
-            unavailable_reason: Some(format!(
-                "runtime probe declares unsupported install_kind `{unsupported}`"
-            )),
-        },
-    }
-}
-
-fn is_apptainer_reference(container_id: &str) -> bool {
-    container_id.contains("/apptainer/")
-        || container_id.ends_with(".def")
-        || container_id.ends_with(".sif")
-        || container_id.contains("/apptainer-")
-}
-
-fn is_external_reference(container_id: &str) -> bool {
-    container_id == "external"
-        || container_id.starts_with("external@")
-        || container_id.ends_with("@external")
-}
-
-fn is_external_artifact_reference(container_id: &str) -> bool {
-    container_id
-        .strip_prefix("external-artifact://")
-        .is_some_and(|tool_id| !tool_id.trim().is_empty())
-}
-
-fn is_planned_reference(container_id: &str) -> bool {
-    let trimmed = container_id.trim();
-    trimmed == "planned"
-        || trimmed == "pending"
-        || trimmed.ends_with("@planned")
-        || trimmed.ends_with("@pending")
-}
-
-fn is_docker_reference(container_id: &str) -> bool {
-    container_id.contains("/docker/")
-        || container_id.starts_with("docker.io/")
-        || container_id.starts_with("ghcr.io/")
-        || container_id.starts_with("quay.io/")
-        || container_id.starts_with("bijuxdna/")
-        || (!container_id.contains('/')
-            && !container_id.ends_with(".def")
-            && !container_id.ends_with(".sif"))
+    )
 }
 
 fn ensure_executable_resolution_contract(

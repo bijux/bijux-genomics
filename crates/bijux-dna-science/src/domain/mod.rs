@@ -503,3 +503,5 @@ pub struct CompiledScience {
     pub fastq_default_binding_risk_rows: Vec<FastqDefaultBindingRiskRow>,
     pub index: ScienceIndex,
 }
+
+pub(crate) mod compilation;

@@ -121,6 +121,22 @@ pub(crate) fn render_all_domain_local_harness_complete(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<AllDomainLocalHarnessCompleteReport> {
+    render_harness_with_dependencies(repo_root, output_path, None)
+}
+
+pub(crate) struct HarnessReportDependencies<'a> {
+    pub(crate) stage_tools: Option<&'a AllDomainStageToolTableReport>,
+    pub(crate) expected_results: Option<&'a AllDomainExpectedBenchmarkResultsReport>,
+    pub(crate) commands: Option<&'a AllDomainRenderedCommandsReport>,
+    pub(crate) outputs: Option<&'a AllDomainOutputDeclarationsReport>,
+    pub(crate) parser: Option<&'a AllDomainParserCollectorReport>,
+}
+
+pub(crate) fn render_harness_with_dependencies(
+    repo_root: &Path,
+    output_path: PathBuf,
+    dependencies: Option<HarnessReportDependencies<'_>>,
+) -> Result<AllDomainLocalHarnessCompleteReport> {
     let _cwd_guard = CurrentDirGuard::change_to(repo_root);
     let absolute_output_path = repo_relative_path(repo_root, &output_path);
     if let Some(parent) = absolute_output_path.parent() {
@@ -184,9 +200,17 @@ pub(crate) fn render_all_domain_local_harness_complete(
         "all-domain stage tool table",
         Some(DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH.to_string()),
         || {
-            let report = render_all_domain_stage_tool_table(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH),
+            let report = acquire_dependency(
+                dependencies.as_ref().map_or(ReportDependency::Generate, |inputs| {
+                    ReportDependency::current(inputs.stage_tools)
+                }),
+                "stage tool table",
+                || {
+                    render_all_domain_stage_tool_table(
+                        repo_root,
+                        PathBuf::from(DEFAULT_ALL_DOMAIN_STAGE_TOOL_TABLE_PATH),
+                    )
+                },
             )?;
             if report.row_count != report.domain_counts.values().sum::<usize>()
                 || report.benchmark_ready_row_count != report.benchmark_ready_unique_binding_count
@@ -218,9 +242,17 @@ pub(crate) fn render_all_domain_local_harness_complete(
         "all-domain expected benchmark results",
         Some(DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH.to_string()),
         || {
-            let report = render_all_domain_expected_benchmark_results(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH),
+            let report = acquire_dependency(
+                dependencies.as_ref().map_or(ReportDependency::Generate, |inputs| {
+                    ReportDependency::current(inputs.expected_results)
+                }),
+                "expected results",
+                || {
+                    render_all_domain_expected_benchmark_results(
+                        repo_root,
+                        PathBuf::from(DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH),
+                    )
+                },
             )?;
             let stage_tool_report = stage_tool_report
                 .as_ref()
@@ -261,9 +293,17 @@ pub(crate) fn render_all_domain_local_harness_complete(
         "all-domain rendered commands",
         Some(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH.to_string()),
         || {
-            let report = render_all_domain_commands(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH),
+            let report = acquire_dependency(
+                dependencies.as_ref().map_or(ReportDependency::Generate, |inputs| {
+                    ReportDependency::current(inputs.commands)
+                }),
+                "rendered commands",
+                || {
+                    render_all_domain_commands(
+                        repo_root,
+                        PathBuf::from(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH),
+                    )
+                },
             )?;
             let expected_results_report = expected_results_report
                 .as_ref()
@@ -306,9 +346,17 @@ pub(crate) fn render_all_domain_local_harness_complete(
         "all-domain output declarations",
         Some(DEFAULT_ALL_DOMAIN_OUTPUT_DECLARATIONS_PATH.to_string()),
         || {
-            let report = render_all_domain_output_declarations(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_OUTPUT_DECLARATIONS_PATH),
+            let report = acquire_dependency(
+                dependencies.as_ref().map_or(ReportDependency::Generate, |inputs| {
+                    ReportDependency::current(inputs.outputs)
+                }),
+                "output declarations",
+                || {
+                    render_all_domain_output_declarations(
+                        repo_root,
+                        PathBuf::from(DEFAULT_ALL_DOMAIN_OUTPUT_DECLARATIONS_PATH),
+                    )
+                },
             )?;
             let expected_results_report = expected_results_report
                 .as_ref()
@@ -424,9 +472,17 @@ pub(crate) fn render_all_domain_local_harness_complete(
         "all-domain parser collector",
         Some(DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH.to_string()),
         || {
-            let report = render_all_domain_parser_collector(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH),
+            let report = acquire_dependency(
+                dependencies.as_ref().map_or(ReportDependency::Generate, |inputs| {
+                    ReportDependency::current(inputs.parser)
+                }),
+                "parser collector",
+                || {
+                    render_all_domain_parser_collector(
+                        repo_root,
+                        PathBuf::from(DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH),
+                    )
+                },
             )?;
             let domain_counts_match_rows = ["fastq", "bam", "vcf"].iter().all(|domain| {
                 let expected_count = expected_results_report
@@ -741,6 +797,31 @@ fn stage_tool_binding_key(
     }
 }
 
+enum ReportDependency<'a, T> {
+    Generate,
+    Ready(&'a T),
+    Failed,
+}
+impl<'a, T> ReportDependency<'a, T> {
+    fn current(report: Option<&'a T>) -> Self {
+        report.map_or(Self::Failed, Self::Ready)
+    }
+}
+
+fn acquire_dependency<'a, T: Clone>(
+    prior: ReportDependency<'a, T>,
+    label: &str,
+    generate: impl FnOnce() -> Result<T>,
+) -> Result<std::borrow::Cow<'a, T>> {
+    match prior {
+        ReportDependency::Generate => generate().map(std::borrow::Cow::Owned),
+        ReportDependency::Ready(report) => Ok(std::borrow::Cow::Borrowed(report)),
+        ReportDependency::Failed => {
+            bail!("current {label} dependency failed before harness collection")
+        }
+    }
+}
+
 fn record_goal_check<F>(
     checks: &mut Vec<AllDomainLocalHarnessCompleteGoalCheck>,
     goal_id: u32,
@@ -792,5 +873,33 @@ impl CurrentDirGuard {
 impl Drop for CurrentDirGuard {
     fn drop(&mut self) {
         env::set_current_dir(&self.previous).expect("restore current dir");
+    }
+}
+
+#[cfg(test)]
+mod dependency_tests {
+    use super::{acquire_dependency, ReportDependency};
+    #[test]
+    fn current_reports_are_borrowed_and_failed_dependencies_never_regenerated() -> anyhow::Result<()>
+    {
+        let calls = std::cell::Cell::new(0);
+        let generated = || {
+            calls.set(calls.get() + 1);
+            Ok::<_, anyhow::Error>("generated".to_string())
+        };
+        let prior = "observed".to_string();
+        let borrowed = acquire_dependency(ReportDependency::Ready(&prior), "report", generated)?;
+        assert!(std::ptr::eq(borrowed.as_ref(), &raw const prior));
+        assert_eq!(calls.get(), 0);
+        assert!(
+            acquire_dependency::<String>(ReportDependency::Failed, "report", generated).is_err()
+        );
+        assert_eq!(calls.get(), 0);
+        assert_eq!(
+            acquire_dependency(ReportDependency::Generate, "report", generated)?.as_ref(),
+            "generated"
+        );
+        assert_eq!(calls.get(), 1);
+        Ok(())
     }
 }

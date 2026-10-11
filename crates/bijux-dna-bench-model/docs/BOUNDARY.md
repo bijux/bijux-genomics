@@ -69,7 +69,7 @@ Run from the repository root:
 
 ```sh
 CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-bench-model --no-default-features
-CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test boundaries --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test boundaries --no-default-features
 ```
 
 Stage-scoring policy types and `validate_stage_scoring_config` belong to this pure owner. Admission checks the persisted version, scientific and operational row contracts, finite non-negative weights, and finite completion requirements. The repository caller supplies and validates active-stage inventory and source-path authority; the model performs no discovery or file IO.

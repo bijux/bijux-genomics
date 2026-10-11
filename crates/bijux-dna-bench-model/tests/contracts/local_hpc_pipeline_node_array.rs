@@ -145,3 +145,76 @@ fn local_hpc_pipeline_node_array_rejects_overflowing_resource_durations() {
     envelope.resource_envelope.time_limit = "18446744073709551615:00:00".to_string();
     assert!(validate_benchmark_local_hpc_pipeline_node_array(&envelope).is_err());
 }
+
+#[test]
+fn pipeline_array_join_rejects_ambiguous_sources_and_identity_drift() -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{
+        build_hpc_pipeline_array_report, BenchmarkLocalAllDomainSlurmSubmitJob,
+        BenchmarkLocalHpcScratchLayoutJob, BenchmarkLocalPipelineDagValidationReport,
+        HpcPipelineArrayInputs, BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
+    };
+    use serde_json::json;
+    use std::collections::BTreeMap;
+    let job: BenchmarkLocalAllDomainSlurmSubmitJob = serde_json::from_value(json!({
+    "job_id_local":"pipeline:vcf-essential:call","result_id":null,"pipeline_id":"vcf-essential","node_id":"call",
+    "domain":"vcf","stage_id":"vcf.calling","tool_id":"bcftools","corpus_id":"run","asset_profile_id":"profile",
+    "script_path":"artifacts/runs/bench/job.sbatch","stdout":"out","stderr":"err","outputs":["artifacts/runs/bench/result.vcf"],"dependencies":[],
+    "resources":{"cpus_per_task":1,"memory_mb":1024,"time_limit":"00:10:00"}
+    }))?;
+    let scratch: BenchmarkLocalHpcScratchLayoutJob = serde_json::from_value(json!({
+    "job_id_local":job.job_id_local,"result_id":null,"job_kind":"essential_pipeline_node","pipeline_id":job.pipeline_id,"node_id":job.node_id,
+    "domain":"vcf","stage_id":"vcf.calling","tool_id":"bcftools","corpus_id":"run","asset_profile_id":"profile",
+    "scratch_root":"scratch","input_links_root":"inputs","output_root":"outputs","log_root":"logs","stdout_path":"out","stderr_path":"err",
+    "resources":{"cpus_per_task":1,"memory_mb":1024,"time_limit":"00:10:00","scratch_gb":1},
+    "cleanup_policy":{"policy_id":"preserve","remove_scratch_after_successful_sync":false,"retain_scratch_on_failure":true,"preserve_output_root":true,"preserve_log_root":true,"preserve_staged_inputs":true},"input_links":[]
+    }))?;
+    let pipeline: BenchmarkLocalPipelineDagValidationReport = serde_json::from_value(json!({
+    "schema_version":BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,"config_path":"pipeline.toml","output_path":"dag.json","pipeline_id":"vcf-essential","domain":"vcf","default_corpus_id":"run","summary":"one calling node",
+    "reference_context":null,"execution_context":null,"project_source_count":0,"project_sources":[],"ancient_dna_policy":null,"reference_assets":null,"variant_assets":null,
+    "node_count":1,"edge_count":0,"acyclic":true,"valid":true,"topological_order":["call"],"validation_profiles":[],
+    "nodes":[{"node_id":"call","stage_id":"vcf.calling","readiness_kind":"dry_run","dependency_count":0,"external_input_count":1,"upstream_input_count":0,"output_count":1,"depends_on":[],"external_inputs":["input-bam"],"upstream_inputs":[],"outputs":["variants"]}]
+    }))?;
+    let jobs = [job];
+    let scratch = [scratch];
+    let pipelines = BTreeMap::from([("vcf-essential".to_string(), pipeline)]);
+    let build = |jobs: &[BenchmarkLocalAllDomainSlurmSubmitJob],
+                 scratch: &[BenchmarkLocalHpcScratchLayoutJob],
+                 pipelines: &BTreeMap<String, BenchmarkLocalPipelineDagValidationReport>,
+                 order: &[&str]| {
+        build_hpc_pipeline_array_report(HpcPipelineArrayInputs {
+            jobs,
+            scratch,
+            pipelines,
+            pipeline_order: order,
+            script_path: "artifacts/runs/bench/array.sbatch".into(),
+            manifest_path: "artifacts/runs/bench/array-manifest.json".into(),
+            wrapper_log_root: "artifacts/runs/bench/logs/array".into(),
+        })
+    };
+    let order = ["vcf-essential"];
+    let accepted = build(&jobs, &scratch, &pipelines, &order)?;
+    assert_eq!(accepted.rows[0].expected_outputs[0].output_id, "variants");
+    assert_eq!(accepted.rows[0].expected_outputs[0].output_path, jobs[0].outputs[0]);
+    assert!(build(&[], &scratch, &pipelines, &order).is_err());
+    assert!(build(&jobs, &[], &pipelines, &order).is_err());
+    assert!(build(&[jobs[0].clone(), jobs[0].clone()], &scratch, &pipelines, &order).is_err());
+    assert!(build(&jobs, &[scratch[0].clone(), scratch[0].clone()], &pipelines, &order).is_err());
+    assert!(build(&jobs, &scratch, &pipelines, &[]).is_err());
+    assert!(build(&jobs, &scratch, &pipelines, &["vcf-essential", "vcf-essential"]).is_err());
+    let mut drift = scratch.clone();
+    drift[0].tool_id = "other".into();
+    assert!(build(&jobs, &drift, &pipelines, &order).is_err());
+    let mut drift = pipelines.clone();
+    drift
+        .get_mut("vcf-essential")
+        .ok_or_else(|| anyhow::anyhow!("missing fixture pipeline"))?
+        .valid = false;
+    assert!(build(&jobs, &scratch, &drift, &order).is_err());
+    let mut drift = pipelines.clone();
+    drift
+        .get_mut("vcf-essential")
+        .ok_or_else(|| anyhow::anyhow!("missing fixture pipeline"))?
+        .pipeline_id = "other".into();
+    assert!(build(&jobs, &scratch, &drift, &order).is_err());
+    Ok(())
+}

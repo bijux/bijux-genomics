@@ -5,12 +5,17 @@ edition = "2021"
 
 license.workspace = true
 rust-version.workspace = true
+[features]
+container-qualification = ["dep:bijux-dna-policies"]
+
 [dependencies]
+regex.workspace = true
+bijux-dna-policies = { path = "../bijux-dna-policies", optional = true }
 anyhow = { workspace = true }
 serde_json = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 bijux-dna-core = { path = "../bijux-dna-core" }
-bijux-dna-infra = { path = "../bijux-dna-infra" }
+bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
 bijux-dna-containers = { path = "../bijux-dna-containers" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-stage-contract.workspace = true

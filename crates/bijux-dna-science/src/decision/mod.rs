@@ -8,3 +8,5 @@ pub use qualification::{
     evaluate_scientific_acceptance, ScientificAcceptanceObservation, ScientificAssessmentStatus,
     ScientificExecutionStatus, SCIENTIFIC_ACCEPTANCE_RULE_V1,
 };
+
+pub(crate) mod fastq_closure;

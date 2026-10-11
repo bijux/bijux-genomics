@@ -13,7 +13,6 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-vcf --no-
 ```sh
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-vcf --test boundaries --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-vcf --test contracts --no-default-features
-CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-vcf --test guardrails --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-stages-vcf --no-default-features
 ```
 
@@ -24,7 +23,6 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-stages-vcf --no
 - `tests/contracts.rs` includes the focused `tests/contracts/` files for pipeline,
   stage, plugin, IO, invariant, imputation, panel, phasing, population, and
   real-tool behavior.
-- `tests/guardrails.rs` loads the repository policy guardrail for this crate.
 
 ## External Tool Tests
 

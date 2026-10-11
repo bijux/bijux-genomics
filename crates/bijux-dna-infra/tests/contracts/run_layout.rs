@@ -514,3 +514,29 @@ fn governed_attempt_archive_rejects_symlinks_before_moving_source() -> anyhow::R
     assert!(!bijux_dna_infra::attempt_archive_paths(&owner_root, &identity)?.archive_dir.exists());
     Ok(())
 }
+
+#[test]
+fn existing_file_lease_preserves_missing_and_read_only_inputs() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("existing-lease-")?;
+    let missing = dir.path().join("missing/lease");
+    assert!(bijux_dna_infra::FileLock::try_acquire_existing(&missing)?.is_none());
+    assert!(!dir.path().join("missing").exists());
+    let path = dir.path().join("lease");
+    let writer = bijux_dna_infra::FileLock::try_acquire(&path)?;
+    let error = bijux_dna_infra::FileLock::try_acquire_existing(&path)
+        .err()
+        .context("expected contention")?;
+    assert_eq!(error.kind, bijux_dna_infra::IoErrorKind::LockContended);
+    drop(writer);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o400))?;
+    }
+    let reader =
+        bijux_dna_infra::FileLock::try_acquire_existing(&path)?.context("existing lease")?;
+    assert!(bijux_dna_infra::FileLock::try_acquire_existing(&path).is_err());
+    drop(reader);
+    assert!(bijux_dna_infra::FileLock::try_acquire_existing(&path)?.is_some());
+    Ok(())
+}

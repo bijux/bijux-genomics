@@ -572,3 +572,20 @@ fn malformed_scheduler_evidence_fails_closed() -> anyhow::Result<()> {
     assert!(collect_slurm_job(&paths, &handle, "2026-08-04T20:20:00Z").is_err());
     Ok(())
 }
+
+#[cfg(unix)]
+#[test]
+fn slurm_shell_arguments_round_trip_literal_bytes() -> anyhow::Result<()> {
+    for value in
+        ["", "plain/path", "space and 'quote'", "$(touch forbidden)", "a;b", "line\nbreak", "é"]
+    {
+        let script = format!(
+            "set -- {}; test \"$#\" -eq 1 && printf '%s' \"$1\"",
+            bijux_dna_bench_model::quote_slurm_argument(value)
+        );
+        let output = std::process::Command::new("/bin/sh").args(["-c", &script]).output()?;
+        assert!(output.status.success());
+        assert_eq!(output.stdout, value.as_bytes());
+    }
+    Ok(())
+}

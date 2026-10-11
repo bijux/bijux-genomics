@@ -854,7 +854,7 @@ fn prune_merge_tool_payload(
     metrics_path: &Path,
     report: &MergePairsReportV1,
 ) -> Result<()> {
-    let run_artifacts_dir = out_dir.join("run_artifacts");
+    let run_artifacts_dir = bijux_dna_runtime::recording::run_artifacts_dir_for_out(out_dir);
     let mut keep = HashSet::new();
     keep.insert(report_path.to_path_buf());
     keep.insert(metrics_path.to_path_buf());
@@ -955,7 +955,7 @@ mod tests {
     fn prune_merge_tool_payload_keeps_reports_and_run_artifacts() {
         let temp = tempdir().expect("tempdir");
         let out_dir = temp.path().join("pear");
-        let run_artifacts = out_dir.join("run_artifacts");
+        let run_artifacts = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
         fs::create_dir_all(&run_artifacts).expect("mkdir");
 
         let merged_reads = out_dir.join("pear.assembled.fastq");
