@@ -178,7 +178,7 @@ pub(in super::super) fn check_tool_container_coverage(
                 id
             }
         };
-        if !support.get(&tool_id).is_some_and(|(disposition, _)| disposition == "retained") {
+        if support.get(&tool_id).is_none_or(|(disposition, _)| disposition != "retained") {
             continue;
         }
         let runtimes = table_array_strings(&row, "runtimes").into_iter().collect::<BTreeSet<_>>();
@@ -1691,14 +1691,14 @@ mod tests {
 
     #[test]
     fn apt_policy_accepts_exact_bootstrap_before_snapshot_activation() {
-        let dockerfile = r#"
+        let dockerfile = r"
 FROM ubuntu:24.04
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates=20240203 && \
     sed -i 's#archive.ubuntu.com#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#' /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y curl zlib1g
-"#;
+";
 
         let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
 
@@ -1707,12 +1707,12 @@ RUN apt-get update && \
 
     #[test]
     fn apt_policy_accepts_debian_snapshot_packages() {
-        let dockerfile = r#"
+        let dockerfile = r"
 FROM debian:bookworm
 RUN sed -i 's#deb.debian.org/debian#https://snapshot.debian.org/archive/debian/20260802T000000Z#' /etc/apt/sources.list && \
     apt-get update && \
     apt-get install -y curl zlib1g
-"#;
+";
 
         let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
 
@@ -1721,11 +1721,11 @@ RUN sed -i 's#deb.debian.org/debian#https://snapshot.debian.org/archive/debian/2
 
     #[test]
     fn apt_policy_accepts_canonical_snapshot_helper_per_stage() {
-        let dockerfile = r#"
+        let dockerfile = r"
 FROM ubuntu:24.04
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y curl zlib1g
-"#;
+";
 
         let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
 
@@ -1734,10 +1734,10 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y curl zlib
 
     #[test]
     fn apt_policy_rejects_uncopied_snapshot_helper() {
-        let dockerfile = r#"
+        let dockerfile = r"
 FROM ubuntu:24.04
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y curl
-"#;
+";
 
         let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
 
@@ -1748,11 +1748,11 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y curl
 
     #[test]
     fn apt_policy_rejects_mutable_unversioned_packages() {
-        let dockerfile = r#"
+        let dockerfile = r"
 FROM ubuntu:24.04
 RUN apt-get update && \
     apt-get install -y --no-install-recommends curl zlib1g
-"#;
+";
 
         let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
 
@@ -1763,10 +1763,10 @@ RUN apt-get update && \
 
     #[test]
     fn apt_policy_rejects_disabled_tls_verification() {
-        let dockerfile = r#"
+        let dockerfile = r"
 FROM ubuntu:24.04
 RUN apt-get -o Acquire::https::Verify-Peer=false update
-"#;
+";
 
         let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
 
@@ -1776,13 +1776,13 @@ RUN apt-get -o Acquire::https::Verify-Peer=false update
 
     #[test]
     fn apt_policy_resets_snapshot_authority_between_build_stages() {
-        let dockerfile = r#"
+        let dockerfile = r"
 FROM ubuntu:24.04 AS builder
 RUN sed -i 's#archive.ubuntu.com#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#' /etc/apt/sources.list && \
     apt-get update && apt-get install -y build-essential
 FROM ubuntu:24.04
 RUN apt-get update && apt-get install -y zlib1g
-"#;
+";
 
         let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
 
