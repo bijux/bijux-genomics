@@ -7,7 +7,7 @@ The canonical runtime contract lives in `RUNTIME_CONTRACT.md`. This file maps th
 - `environment.rs` owns environment fingerprint contracts.
 - `run/` owns profile loading, run-id generation, run-base path resolution, and stable run exports.
 - `run_layout/` owns run-layout contracts, layout creation, run-layout writers, run-journal persistence, and stable run-layout exports.
-- `recording/` owns runtime file emitters for manifests, metrics, envelopes, provenance, telemetry, canonical JSON, checksums, logs, and stable recording exports.
+- `recording/` owns runtime file emitters for manifests, metrics, envelopes, provenance, telemetry, canonical JSON, checksums, logs, append-only benchmark attempt transitions, and stable recording exports.
 - `recording/manifests/` owns tool-run directories, runtime support files, artifact catalogs, manifest identity, profile/lock manifests, reproducibility reports, run-manifest assembly, and stable manifest writer exports.
 - `manifests/` owns governed registry loading, source resolution, generated registry conversion, domain registry conversion, stage classification helpers, and stable manifest registry exports.
 - `observability/` owns schema-only report contracts and telemetry validation contracts.
@@ -28,8 +28,9 @@ The canonical runtime contract lives in `RUNTIME_CONTRACT.md`. This file maps th
 
 - `tests/boundaries/` protects architecture, docs layout, dependency graph,
   effects, guardrails, and public API documentation.
-- `tests/contracts/` protects canonical writing, manifest integrity, run layout,
-  stage-runner contracts, telemetry, and reference examples.
+- `tests/contracts/` protects canonical writing, benchmark attempt persistence,
+  manifest integrity, run layout, stage-runner contracts, telemetry, and
+  reference examples.
 - `tests/contracts/reference/` keeps documentation examples separate from
   runtime example execution.
 - `tests/determinism/` owns fixture stability.

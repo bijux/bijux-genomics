@@ -26,6 +26,25 @@
 - `execute_observer_command`
 - `execute_step`
 - `StageResultV1`
+- `submit_slurm_job`
+- `submit_slurm_batch`
+- `prepare_benchmark_slurm_job`
+- `submit_prepared_benchmark_job`
+- `load_benchmark_slurm_job_handle`
+- `observe_slurm_job`
+- `collect_slurm_job`
+- `cancel_slurm_job`
+- `SlurmClientPaths`
+- `SlurmSubmitRequest`
+- `SlurmJobHandle`
+- `SlurmBatchSubmission`
+- `SlurmSubmissionFailure`
+- `SlurmJobObservation`
+- `SlurmAccounting`
+- `SlurmJobState`
+- `SlurmEvidenceSource`
+- `SLURM_JOB_HANDLE_SCHEMA_V1`
+- `PreparedBenchmarkSlurmJob`
 
 ## Stability Rules
 - Prefer `bijux_dna_runner::api::*` for consumer-facing use.

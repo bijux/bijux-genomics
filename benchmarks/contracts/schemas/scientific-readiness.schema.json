@@ -1,0 +1,305 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkScientificReadinessReport",
+  "type": "object",
+  "properties": {
+    "corpora": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkScientificReadinessCorpus"
+      }
+    },
+    "domains": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/BenchmarkScientificReadinessDomain"
+      }
+    },
+    "measurement": {
+      "$ref": "#/$defs/BenchmarkMeasurementContract"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.scientific_readiness.v1"
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkScientificReadinessStage"
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkScientificReadinessSummary"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "summary",
+    "domains",
+    "measurement",
+    "corpora",
+    "stages"
+  ],
+  "$defs": {
+    "BenchmarkCorpusStatus": {
+      "type": "string",
+      "enum": [
+        "missing",
+        "source_defined",
+        "admitted"
+      ]
+    },
+    "BenchmarkEvidenceScope": {
+      "type": "string",
+      "enum": [
+        "qualification",
+        "comparative"
+      ]
+    },
+    "BenchmarkEvidenceTier": {
+      "type": "string",
+      "enum": [
+        "qualification",
+        "comparative"
+      ]
+    },
+    "BenchmarkMeasurementContract": {
+      "type": "object",
+      "properties": {
+        "measured_repetitions": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "required_quality_dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_resource_metrics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "warmup_repetitions": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "warmup_repetitions",
+        "measured_repetitions",
+        "required_resource_metrics",
+        "required_quality_dimensions"
+      ]
+    },
+    "BenchmarkScientificReadinessCorpus": {
+      "type": "object",
+      "properties": {
+        "evidence_scope": {
+          "$ref": "#/$defs/BenchmarkEvidenceScope"
+        },
+        "id": {
+          "type": "string"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sample_count": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "status": {
+          "$ref": "#/$defs/BenchmarkCorpusStatus"
+        },
+        "truth_strategy": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "evidence_scope",
+        "sample_count",
+        "truth_strategy",
+        "roles"
+      ]
+    },
+    "BenchmarkScientificReadinessDomain": {
+      "type": "object",
+      "properties": {
+        "blocked_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "ready_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "stage_count",
+        "ready_count",
+        "blocked_count"
+      ]
+    },
+    "BenchmarkScientificReadinessStage": {
+      "type": "object",
+      "properties": {
+        "available_comparative_samples": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "campaign_run_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "campaign_tier": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkEvidenceTier"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "domain": {
+          "type": "string"
+        },
+        "interface_status": {
+          "$ref": "#/$defs/BenchmarkStageInterfaceStatus"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "readiness": {
+          "$ref": "#/$defs/BenchmarkScientificReadinessStatus"
+        },
+        "reserved_run_id": {
+          "type": "string"
+        },
+        "retained_tools": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "stage_id",
+        "domain",
+        "profile_id",
+        "retained_tools",
+        "available_comparative_samples",
+        "reserved_run_id",
+        "interface_status",
+        "readiness",
+        "blockers"
+      ]
+    },
+    "BenchmarkScientificReadinessStatus": {
+      "type": "string",
+      "enum": [
+        "ready",
+        "blocked"
+      ]
+    },
+    "BenchmarkScientificReadinessSummary": {
+      "type": "object",
+      "properties": {
+        "admitted_comparative_corpus_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "blocked_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "comparative_campaign_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "corpus_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "qualification_campaign_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "ready_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "reserved_run_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "stage_count",
+        "reserved_run_count",
+        "ready_count",
+        "blocked_count",
+        "corpus_count",
+        "admitted_comparative_corpus_count",
+        "qualification_campaign_count",
+        "comparative_campaign_count"
+      ]
+    },
+    "BenchmarkStageInterfaceStatus": {
+      "type": "string",
+      "enum": [
+        "closed",
+        "missing"
+      ]
+    }
+  }
+}

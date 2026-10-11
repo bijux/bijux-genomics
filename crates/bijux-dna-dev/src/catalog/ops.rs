@@ -341,6 +341,21 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingArchitectureReport,
         ),
         native(
+            "benchmark-campaign-cycle",
+            "Plan, initialize, or prepare immutable benchmark campaign attempts through crate-owned workflows.",
+            NativeOpsCommandKey::ToolingBenchmarkCampaignCycle,
+        ),
+        native(
+            "benchmark-scientific-readiness",
+            "Generate or check scientific benchmark readiness from typed admitted evidence.",
+            NativeOpsCommandKey::ToolingBenchmarkScientificReadiness,
+        ),
+        native(
+            "benchmark-stage-coverage",
+            "Generate or check benchmark stage coverage through the crate-owned workflow.",
+            NativeOpsCommandKey::ToolingBenchmarkStageCoverage,
+        ),
+        native(
             "benchmark-smoke-level1",
             "Measure smoke-only duration and artifact sizes for the canonical Level 1 examples.",
             NativeOpsCommandKey::ToolingBenchmarkSmokeLevel1,

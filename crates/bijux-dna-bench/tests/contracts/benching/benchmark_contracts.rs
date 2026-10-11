@@ -12,7 +12,7 @@ fn checked_in_benchmark_contracts_load_from_rust_authority() -> Result<()> {
         "the checked-in stage campaign registry must include the audited seed campaign set"
     );
     assert_eq!(interfaces.schema_version, bijux_dna_bench::BENCHMARK_STAGE_INTERFACES_SCHEMA_V1);
-    assert_eq!(interfaces.interfaces.len(), 2);
+    assert_eq!(interfaces.interfaces.len(), 3);
     Ok(())
 }
 
@@ -71,6 +71,56 @@ fn checked_in_stage_reports_are_admitted_by_rust_contracts() -> Result<()> {
             && admission.report_sha256.len() == 64
             && admission.report.schema_version == bijux_dna_bench::BENCHMARK_STAGE_REPORT_SCHEMA_V1
     }));
+    Ok(())
+}
+
+#[test]
+fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Result<()> {
+    let (registry, _, _) = bijux_dna_bench::load_checked_in_benchmark_planning_contracts()?;
+    let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
+    let repository_root = bijux_dna_bench::bench_reports_dir()
+        .ancestors()
+        .find(|root| root.join(".git").exists())
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?
+        .to_path_buf();
+    let catalog = bijux_dna_environment::api::load_container_catalog(&repository_root)?;
+    let current_commit = bijux_dna_environment::api::repository_head_commit(&repository_root)?;
+
+    let coverage =
+        bijux_dna_bench::derive_stage_coverage(&registry, &catalog, &reports, &current_commit)?;
+
+    assert_eq!(coverage.summary.retained_stage_count, 71);
+    assert_eq!(coverage.summary.defined_stage_count, 6);
+    assert_eq!(coverage.summary.admitted_stage_count, 0);
+    assert_eq!(coverage.summary.stale_stage_count, 6);
+    assert_eq!(coverage.summary.failed_stage_count, 0);
+    assert_eq!(coverage.summary.missing_stage_count, 65);
+    assert!(coverage.stages.iter().any(|row| {
+        row.stage_id == "bam.mapping_summary"
+            && row.campaign_run_id.as_deref() == Some("run-2004")
+            && row.retained_tools == ["picard", "samtools"]
+            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::Stale
+    }));
+    assert!(coverage.stages.iter().any(|row| {
+        row.stage_id == "fastq.profile_read_lengths"
+            && row.campaign_run_id.as_deref() == Some("run-2042")
+            && row.retained_tools == ["seqfu", "seqkit"]
+            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::Stale
+    }));
+    Ok(())
+}
+
+#[test]
+fn checked_in_stage_coverage_publications_have_no_drift() -> Result<()> {
+    let reports_dir = bijux_dna_bench::bench_reports_dir();
+    let repository_root = reports_dir
+        .ancestors()
+        .find(|root| root.join(".git").exists())
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?;
+    bijux_dna_bench::publish_checked_in_stage_coverage(
+        repository_root,
+        bijux_dna_bench::BenchmarkCoverageWriteMode::Check,
+    )?;
     Ok(())
 }
 

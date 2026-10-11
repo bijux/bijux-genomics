@@ -12,7 +12,7 @@ fn policy__boundaries__public_api_docs__public_api_docs_match_curated_exports() 
 
     assert_eq!(
         markdown_list_after_heading(&docs, "## Public Modules"),
-        entries(["policy_diagnostics", "public_api"]),
+        entries(["policy_diagnostics", "public_api", "qualification", "security_evidence"]),
         "PUBLIC_API.md must document the public modules exported from src/lib.rs"
     );
     assert_eq!(
@@ -20,6 +20,8 @@ fn policy__boundaries__public_api_docs__public_api_docs_match_curated_exports() 
         entries([
             "check",
             "GuardrailConfig",
+            "qualification contracts",
+            "security evidence contracts",
             "policy_assert!",
             "policy_assert_eq!",
             "policy_assert_ne!",

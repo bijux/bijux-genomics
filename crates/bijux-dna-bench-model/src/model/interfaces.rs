@@ -63,7 +63,9 @@ pub enum BenchmarkParameterValue {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkStageParameterConfig {
+    #[schemars(length(min = 1))]
     pub parameter_schema_version: String,
+    #[schemars(length(min = 1))]
     pub defaults_provider: String,
     pub overrides: BTreeMap<String, BenchmarkParameterValue>,
 }
@@ -73,8 +75,20 @@ pub struct BenchmarkStageParameterConfig {
 pub struct BenchmarkPipelineParameterConfig {
     #[schemars(schema_with = "benchmark_pipeline_parameters_schema_version")]
     pub schema_version: String,
+    #[schemars(length(min = 1))]
     pub profile: String,
+    #[schemars(schema_with = "nonempty_stage_parameter_map_schema")]
     pub stages: BTreeMap<String, BenchmarkStageParameterConfig>,
+}
+
+#[must_use]
+pub fn benchmark_stage_interface_catalog_schema() -> Schema {
+    schemars::schema_for!(BenchmarkStageInterfaceCatalog)
+}
+
+#[must_use]
+pub fn benchmark_pipeline_parameter_config_schema() -> Schema {
+    schemars::schema_for!(BenchmarkPipelineParameterConfig)
 }
 
 fn benchmark_stage_interfaces_schema_version(_: &mut SchemaGenerator) -> Schema {
@@ -89,4 +103,10 @@ fn benchmark_pipeline_parameters_schema_version(_: &mut SchemaGenerator) -> Sche
         "type": "string",
         "const": BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
     })
+}
+
+fn nonempty_stage_parameter_map_schema(generator: &mut SchemaGenerator) -> Schema {
+    let mut schema = generator.subschema_for::<BTreeMap<String, BenchmarkStageParameterConfig>>();
+    schema.insert("minProperties".to_string(), serde_json::Value::from(1));
+    schema
 }

@@ -1,9 +1,13 @@
 use bijux_dna_bench_model::{
     append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
-    validate_attempt_record_v2, validate_cycle_status_v2, BenchmarkArchiveFileRecord,
-    BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive, BenchmarkAttemptDisposition,
-    BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2, BenchmarkAttemptTransition,
-    BenchmarkCycleStatusV2, BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+    validate_attempt_record_v2, validate_cycle_status_v2, validate_scheduler_observation,
+    BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
+    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2,
+    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatusV2,
+    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
+    BenchmarkSchedulerObservation, BenchmarkSchedulerObservationDraft,
+    BenchmarkSchedulerObservedState, BenchmarkSchedulerTerminalState,
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
 };
 
@@ -40,7 +44,8 @@ fn transition(
         observed_at_utc: format!("2026-08-04T08:{minute:02}:00Z"),
         reason: None,
         jobs: Vec::new(),
-        evidence_paths: Vec::new(),
+        accounting: Vec::new(),
+        evidence: Vec::new(),
     }
 }
 
@@ -72,10 +77,25 @@ fn passed_attempt(attempt_id: &str, tool_id: &str) -> BenchmarkAttemptRecordV2 {
             3,
         ),
         BenchmarkAttemptTransition {
-            evidence_paths: vec![
-                "study://results/benchmarks/run-2042-fastq-profile-read-lengths/seqkit/evidence.json"
+            accounting: vec![BenchmarkSchedulerAccounting {
+                scheduler: "slurm".to_string(),
+                job_id: "3461001".to_string(),
+                state: BenchmarkSchedulerTerminalState::Completed,
+                raw_state: "COMPLETED".to_string(),
+                exit_code: 0,
+                signal: 0,
+                elapsed_seconds: 125,
+                total_cpu_seconds: 90,
+                max_rss_bytes: Some(2 * 1024 * 1024),
+                node_list: "n001".to_string(),
+                reason: None,
+            }],
+            evidence: vec![BenchmarkEvidenceReference {
+                uri: "study://results/benchmarks/run-2042-fastq-profile-read-lengths/seqkit/evidence.json"
                     .to_string(),
-            ],
+                sha256: "d".repeat(64),
+                size_bytes: 42,
+            }],
             ..transition(
                 5,
                 BenchmarkLifecycleStatus::Running,
@@ -169,6 +189,58 @@ fn run_directory_name_is_derived_from_validated_identity() {
 }
 
 #[test]
+fn checked_lifecycle_schemas_match_model_authority() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let schemas = [
+        (
+            "attempt-v1.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_attempt_schema())?,
+        ),
+        (
+            "attempt-v2.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_attempt_v2_schema())?,
+        ),
+        (
+            "attempt-archive.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_attempt_archive_schema())?,
+        ),
+        (
+            "attempt-migration-plan.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_attempt_migration_plan_schema())?,
+        ),
+        (
+            "attempt-migration-ledger.schema.json",
+            serde_json::to_value(
+                bijux_dna_bench_model::benchmark_attempt_migration_ledger_schema(),
+            )?,
+        ),
+        (
+            "cycle-status-v1.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_cycle_status_schema())?,
+        ),
+        (
+            "cycle-status-v2.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_cycle_status_v2_schema())?,
+        ),
+    ];
+    let schema_root = repository_root.join("benchmarks/contracts/schemas");
+    for (name, generated) in schemas {
+        let path = schema_root.join(name);
+        if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+            let mut bytes = serde_json::to_vec_pretty(&generated)?;
+            bytes.push(b'\n');
+            std::fs::write(&path, bytes)?;
+        }
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+        assert_eq!(checked, generated, "lifecycle schema drifted: {name}");
+    }
+    Ok(())
+}
+
+#[test]
 fn attempt_lifecycle_accepts_a_complete_append_only_chain() {
     let record = passed_attempt("attempt-001", "seqkit");
     assert_eq!(record.current_status(), Some(BenchmarkLifecycleStatus::Passed));
@@ -209,12 +281,54 @@ fn passed_attempt_requires_slurm_and_portable_evidence() {
     assert!(validate_attempt_record_v2(&invalid_job).is_err());
 
     let mut no_evidence = valid.clone();
-    no_evidence.transitions[4].evidence_paths.clear();
+    no_evidence.transitions[4].evidence.clear();
     assert!(validate_attempt_record_v2(&no_evidence).is_err());
 
+    let mut no_accounting = valid.clone();
+    no_accounting.transitions[4].accounting.clear();
+    assert!(validate_attempt_record_v2(&no_accounting).is_err());
+
     let mut unsafe_evidence = valid.clone();
-    unsafe_evidence.transitions[4].evidence_paths[0] = "study://results/../secret".to_string();
+    unsafe_evidence.transitions[4].evidence[0].uri = "study://results/../secret".to_string();
     assert!(validate_attempt_record_v2(&unsafe_evidence).is_err());
+
+    let mut unchecksummed = valid.clone();
+    unchecksummed.transitions[4].evidence[0].sha256 = "unknown".to_string();
+    assert!(validate_attempt_record_v2(&unchecksummed).is_err());
+
+    let mut contradictory = valid.clone();
+    contradictory.transitions[4].accounting[0].state = BenchmarkSchedulerTerminalState::Timeout;
+    assert!(validate_attempt_record_v2(&contradictory).is_err());
+}
+
+#[test]
+fn failed_scheduler_attempt_retains_exact_terminal_accounting() {
+    let mut failed = passed_attempt("attempt-001", "seqkit");
+    failed.transitions.truncate(5);
+    let terminal = &mut failed.transitions[4];
+    terminal.to_status = BenchmarkLifecycleStatus::Failed;
+    terminal.reason = Some("scheduler wall-time limit was exceeded".to_string());
+    terminal.accounting[0].state = BenchmarkSchedulerTerminalState::Timeout;
+    terminal.accounting[0].raw_state = "TIMEOUT".to_string();
+    terminal.accounting[0].exit_code = 1;
+    terminal.accounting[0].reason = Some("scheduler wall-time limit was exceeded".to_string());
+
+    assert!(validate_attempt_record_v2(&failed).is_ok());
+
+    let duplicate = failed.transitions[4].accounting[0].clone();
+    failed.transitions[4].accounting.push(duplicate);
+    assert!(validate_attempt_record_v2(&failed).is_err());
+}
+
+#[test]
+fn completed_accounting_can_follow_submission_when_running_was_not_observed() {
+    let mut completed = passed_attempt("attempt-001", "seqkit");
+    completed.transitions.remove(3);
+    completed.transitions[3].sequence = 4;
+    completed.transitions[3].from_status = Some(BenchmarkLifecycleStatus::Submitted);
+    completed.transitions[4].sequence = 5;
+
+    assert!(validate_attempt_record_v2(&completed).is_ok());
 }
 
 #[test]
@@ -260,4 +374,132 @@ fn cycle_preserves_multiple_attempts_with_same_run_and_tool_lineage() {
         vec![prior, cross_tool],
     );
     assert!(validate_cycle_status_v2(&invalid_lineage).is_err());
+}
+
+#[test]
+fn cycle_scopes_attempt_ids_by_run_and_tool_identity() {
+    let seqkit = attempt("attempt-001", "seqkit");
+    let seqfu = attempt("attempt-001", "seqfu");
+    let cycle = BenchmarkCycleStatusV2::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T09:00:00Z".to_string(),
+        vec![seqkit.clone(), seqfu],
+    );
+    assert!(validate_cycle_status_v2(&cycle).is_ok());
+
+    let duplicate = BenchmarkCycleStatusV2::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T09:00:00Z".to_string(),
+        vec![seqkit.clone(), seqkit],
+    );
+    assert!(validate_cycle_status_v2(&duplicate).is_err());
+}
+
+#[test]
+fn cycle_resolves_supersession_within_the_same_run_and_tool() {
+    let seqkit_prior = passed_attempt("attempt-001", "seqkit");
+    let seqfu_prior = passed_attempt("attempt-001", "seqfu");
+    let mut seqfu_retry = attempt("attempt-002", "seqfu");
+    seqfu_retry.supersedes_attempt_id = Some("attempt-001".to_string());
+    let cycle = BenchmarkCycleStatusV2::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T09:00:00Z".to_string(),
+        vec![seqkit_prior, seqfu_prior, seqfu_retry],
+    );
+
+    assert!(validate_cycle_status_v2(&cycle).is_ok());
+}
+
+#[test]
+fn campaign_plan_requires_full_source_and_registry_identities() -> anyhow::Result<()> {
+    let cycle = BenchmarkCycleStatusV2::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T09:00:00Z".to_string(),
+        vec![attempt("attempt-001", "seqkit")],
+    );
+    let plan = BenchmarkCampaignPlan::new("a".repeat(40), "b".repeat(64), cycle);
+    assert!(bijux_dna_bench_model::validate_campaign_plan(&plan).is_ok());
+
+    let mut abbreviated = plan.clone();
+    abbreviated.repository_commit = "a123456".to_string();
+    assert!(bijux_dna_bench_model::validate_campaign_plan(&abbreviated).is_err());
+
+    let mut uppercase = plan.clone();
+    uppercase.campaign_registry_sha256 = "B".repeat(64);
+    assert!(bijux_dna_bench_model::validate_campaign_plan(&uppercase).is_err());
+
+    let mut zero = plan;
+    zero.repository_commit = "0".repeat(40);
+    assert!(bijux_dna_bench_model::validate_campaign_plan(&zero).is_err());
+
+    let schema = serde_json::to_value(bijux_dna_bench_model::benchmark_campaign_plan_schema())?;
+    assert_eq!(
+        schema
+            .pointer("/$defs/BenchmarkCampaignPlan/properties/schema_version/const")
+            .or_else(|| schema.pointer("/properties/schema_version/const"))
+            .and_then(serde_json::Value::as_str),
+        Some(bijux_dna_bench_model::BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1)
+    );
+    Ok(())
+}
+
+fn scheduler_accounting() -> BenchmarkSchedulerAccounting {
+    BenchmarkSchedulerAccounting {
+        scheduler: "slurm".to_string(),
+        job_id: "3461001".to_string(),
+        state: BenchmarkSchedulerTerminalState::Completed,
+        raw_state: "COMPLETED".to_string(),
+        exit_code: 0,
+        signal: 0,
+        elapsed_seconds: 125,
+        total_cpu_seconds: 90,
+        max_rss_bytes: Some(2 * 1024 * 1024),
+        node_list: "n001".to_string(),
+        reason: None,
+    }
+}
+
+fn scheduler_observation(
+    state: BenchmarkSchedulerObservedState,
+    source: BenchmarkSchedulerEvidenceSource,
+    accounting: Option<BenchmarkSchedulerAccounting>,
+) -> BenchmarkSchedulerObservation {
+    BenchmarkSchedulerObservation::v1(
+        1,
+        BenchmarkSchedulerObservationDraft {
+            scheduler: "slurm".to_string(),
+            job_id: "3461001".to_string(),
+            state,
+            source,
+            observed_at_utc: "2026-08-04T08:03:00Z".to_string(),
+            accounting,
+        },
+    )
+}
+
+#[test]
+fn scheduler_observation_requires_exact_source_state_and_accounting_closure() {
+    let running = scheduler_observation(
+        BenchmarkSchedulerObservedState::Running,
+        BenchmarkSchedulerEvidenceSource::Queue,
+        None,
+    );
+    assert!(validate_scheduler_observation(&running).is_ok());
+
+    let completed = scheduler_observation(
+        BenchmarkSchedulerObservedState::Completed,
+        BenchmarkSchedulerEvidenceSource::Accounting,
+        Some(scheduler_accounting()),
+    );
+    assert!(validate_scheduler_observation(&completed).is_ok());
+
+    let mut source_drift = running;
+    source_drift.observation.source = BenchmarkSchedulerEvidenceSource::Accounting;
+    assert!(validate_scheduler_observation(&source_drift).is_err());
+
+    let mut job_drift = completed;
+    if let Some(accounting) = job_drift.observation.accounting.as_mut() {
+        accounting.job_id = "3461002".to_string();
+    }
+    assert!(validate_scheduler_observation(&job_drift).is_err());
 }

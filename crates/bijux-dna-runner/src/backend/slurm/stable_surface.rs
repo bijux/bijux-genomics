@@ -1,0 +1,13 @@
+//! Owner: bijux-dna-runner
+//! Stable Slurm backend exports.
+
+pub use super::benchmark::{prepare_benchmark_slurm_job, PreparedBenchmarkSlurmJob};
+pub use super::client::{
+    cancel_slurm_job, collect_slurm_job, observe_slurm_job, submit_slurm_batch, submit_slurm_job,
+};
+pub use super::contracts::{
+    SlurmAccounting, SlurmBatchSubmission, SlurmClientPaths, SlurmEvidenceSource, SlurmJobHandle,
+    SlurmJobObservation, SlurmJobState, SlurmSubmissionFailure, SlurmSubmitRequest,
+    SLURM_JOB_HANDLE_SCHEMA_V1,
+};
+pub use super::submission::{load_benchmark_slurm_job_handle, submit_prepared_benchmark_job};

@@ -5,6 +5,8 @@
 ## Allowed Effects
 - Create directories under declared run/layout roots.
 - Write canonical JSON runtime artifacts.
+- Atomically create immutable benchmark attempt identities and sequence-addressed transitions under
+  caller-declared benchmark roots.
 - Append runtime-owned JSONL event files.
 - Write bounded execution log captures provided by runner callers.
 - Acquire file locks for runtime journal and telemetry writes.
@@ -18,8 +20,8 @@
 - No Docker or Apptainer invocation.
 - No network access.
 - No CLI parsing.
-- No planner, stage implementation, analyzer, or benchmark effects.
-- No writes outside declared run-layout or tool-run roots.
+- No planner, stage implementation, analyzer, or benchmark planning/reporting effects.
+- No writes outside declared run-layout, tool-run, or benchmark attempt roots.
 
 ## Determinism Rules
 - Canonical JSON writers are required for stable runtime contracts.

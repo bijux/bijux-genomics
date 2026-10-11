@@ -211,6 +211,16 @@ pub struct AdmittedBenchmarkStageReport {
     pub report: BenchmarkStageReport,
 }
 
+#[must_use]
+pub fn benchmark_stage_report_schema() -> Schema {
+    schemars::schema_for!(BenchmarkStageReport)
+}
+
+#[must_use]
+pub fn admitted_benchmark_stage_report_schema() -> Schema {
+    schemars::schema_for!(AdmittedBenchmarkStageReport)
+}
+
 fn benchmark_stage_report_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",

@@ -7,13 +7,17 @@ use chrono::{DateTime, FixedOffset};
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkAttemptArchive, BenchmarkAttemptDisposition, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkCycleStatusV2, BenchmarkJobReference,
-    BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatusV2,
+    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
+    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
+    BenchmarkSchedulerObservation, BenchmarkSchedulerObservedState,
+    BenchmarkSchedulerTerminalState,
 };
 
 use super::{
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2,
-    BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
+    BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
+    BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
 };
 
 /// Derive the permanent `run-<id>-<domain>-<stage>` benchmark directory name.
@@ -82,6 +86,7 @@ pub fn validate_attempt_record_v2(record: &BenchmarkAttemptRecordV2) -> Result<(
     let mut previous_status = None;
     let mut previous_time = None;
     let mut jobs = BTreeSet::new();
+    let mut accounting_jobs = BTreeSet::new();
     let mut evidence = BTreeSet::new();
     for (index, transition) in record.transitions.iter().enumerate() {
         let expected_sequence = u32::try_from(index + 1)
@@ -108,10 +113,20 @@ pub fn validate_attempt_record_v2(record: &BenchmarkAttemptRecordV2) -> Result<(
                 return Err(invalid("benchmark attempt duplicates a scheduler job"));
             }
         }
-        for path in &transition.evidence_paths {
-            validate_evidence_path(path)?;
-            if !evidence.insert(path.as_str()) {
-                return Err(invalid("benchmark attempt duplicates an evidence path"));
+        for accounting in &transition.accounting {
+            validate_scheduler_accounting(accounting, transition.to_status)?;
+            if !jobs.contains(&(accounting.scheduler.as_str(), accounting.job_id.as_str())) {
+                return Err(invalid("benchmark accounting has no declared scheduler job"));
+            }
+            if !accounting_jobs.insert((accounting.scheduler.as_str(), accounting.job_id.as_str()))
+            {
+                return Err(invalid("benchmark attempt duplicates scheduler accounting"));
+            }
+        }
+        for reference in &transition.evidence {
+            validate_evidence_reference(reference)?;
+            if !evidence.insert(reference.uri.as_str()) {
+                return Err(invalid("benchmark attempt duplicates an evidence URI"));
             }
         }
         previous_status = Some(transition.to_status);
@@ -121,8 +136,24 @@ pub fn validate_attempt_record_v2(record: &BenchmarkAttemptRecordV2) -> Result<(
     if requires_scheduler_job(status) && jobs.is_empty() {
         return Err(invalid("benchmark lifecycle status requires a Slurm job identity"));
     }
-    if status == BenchmarkLifecycleStatus::Passed && evidence.is_empty() {
-        return Err(invalid("passed benchmark attempt has no evidence path"));
+    let has_completed_accounting = record
+        .transitions
+        .iter()
+        .flat_map(|event| &event.accounting)
+        .any(|accounting| accounting.state == BenchmarkSchedulerTerminalState::Completed);
+    if status == BenchmarkLifecycleStatus::Collecting && !has_completed_accounting {
+        return Err(invalid("collecting benchmark attempt requires completed accounting"));
+    }
+    if status == BenchmarkLifecycleStatus::Failed && !jobs.is_empty() && accounting_jobs.is_empty()
+    {
+        return Err(invalid("failed submitted benchmark attempt requires terminal accounting"));
+    }
+    if status == BenchmarkLifecycleStatus::Passed
+        && (evidence.is_empty() || !has_completed_accounting)
+    {
+        return Err(invalid(
+            "passed benchmark attempt requires completed accounting and checksummed evidence",
+        ));
     }
     Ok(())
 }
@@ -142,14 +173,20 @@ pub fn validate_cycle_status_v2(cycle: &BenchmarkCycleStatusV2) -> Result<(), Be
         return Err(invalid("benchmark cycle contains no attempts"));
     }
 
-    let mut attempt_ids = BTreeSet::new();
+    let mut attempt_identities = BTreeSet::new();
     let mut active = BTreeSet::new();
     for attempt in &cycle.attempts {
         validate_attempt_record_v2(attempt)?;
         if attempt.identity.campaign_id != cycle.campaign_id {
             return Err(invalid("benchmark attempt campaign differs from cycle campaign"));
         }
-        if !attempt_ids.insert(attempt.identity.attempt_id.as_str()) {
+        if !attempt_identities.insert((
+            attempt.identity.run.run_id.as_str(),
+            attempt.identity.run.domain.as_str(),
+            attempt.identity.run.stage_id.as_str(),
+            attempt.identity.tool_id.as_str(),
+            attempt.identity.attempt_id.as_str(),
+        )) {
             return Err(invalid("benchmark cycle duplicates an attempt identity"));
         }
         let last = attempt
@@ -176,18 +213,42 @@ pub fn validate_cycle_status_v2(cycle: &BenchmarkCycleStatusV2) -> Result<(), Be
         let superseded = cycle
             .attempts
             .iter()
-            .find(|candidate| candidate.identity.attempt_id == superseded_id)
+            .find(|candidate| {
+                candidate.identity.attempt_id == superseded_id
+                    && candidate.identity.run == attempt.identity.run
+                    && candidate.identity.tool_id == attempt.identity.tool_id
+            })
             .ok_or_else(|| invalid("benchmark attempt supersedes an unknown attempt"))?;
-        if superseded.identity.run != attempt.identity.run
-            || superseded.identity.tool_id != attempt.identity.tool_id
-        {
-            return Err(invalid("benchmark attempt supersession crosses run or tool identity"));
-        }
         if !superseded.current_status().is_some_and(is_terminal) {
             return Err(invalid("benchmark attempt supersedes a nonterminal attempt"));
         }
     }
     Ok(())
+}
+
+/// Validate a source-locked campaign plan and its complete planned cycle.
+///
+/// # Errors
+/// Returns an error when schema, source commit, registry digest, or cycle evidence is invalid.
+pub fn validate_campaign_plan(plan: &BenchmarkCampaignPlan) -> Result<(), BenchError> {
+    if plan.schema_version != BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1 {
+        return Err(invalid("benchmark campaign plan schema mismatch"));
+    }
+    if plan.repository_commit.len() != 40
+        || !plan.repository_commit.bytes().all(|byte| byte.is_ascii_hexdigit())
+        || plan.repository_commit.bytes().any(|byte| byte.is_ascii_uppercase())
+        || plan.repository_commit.bytes().all(|byte| byte == b'0')
+    {
+        return Err(invalid("benchmark campaign plan commit identity is malformed"));
+    }
+    if plan.campaign_registry_sha256.len() != 64
+        || !plan.campaign_registry_sha256.bytes().all(|byte| byte.is_ascii_hexdigit())
+        || plan.campaign_registry_sha256.bytes().any(|byte| byte.is_ascii_uppercase())
+        || plan.campaign_registry_sha256.bytes().all(|byte| byte == b'0')
+    {
+        return Err(invalid("benchmark campaign registry digest is malformed"));
+    }
+    validate_cycle_status_v2(&plan.cycle)
 }
 
 /// Validate one transition independent of its surrounding chain.
@@ -218,10 +279,68 @@ pub fn validate_attempt_transition(
     for job in &transition.jobs {
         validate_job(job)?;
     }
-    for path in &transition.evidence_paths {
-        validate_evidence_path(path)?;
+    for accounting in &transition.accounting {
+        validate_scheduler_accounting(accounting, transition.to_status)?;
+    }
+    for reference in &transition.evidence {
+        validate_evidence_reference(reference)?;
     }
     Ok(())
+}
+
+/// Validate one immutable scheduler observation independent of its attempt path.
+///
+/// # Errors
+/// Returns an error when identity, sequence, timestamp, source, state, or accounting disagree.
+pub fn validate_scheduler_observation(
+    record: &BenchmarkSchedulerObservation,
+) -> Result<(), BenchError> {
+    if record.schema_version != BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1 {
+        return Err(invalid("benchmark scheduler observation schema mismatch"));
+    }
+    if record.sequence == 0 {
+        return Err(invalid("benchmark scheduler observation sequence starts at one"));
+    }
+    let observation = &record.observation;
+    validate_job(&BenchmarkJobReference {
+        scheduler: observation.scheduler.clone(),
+        job_id: observation.job_id.clone(),
+    })?;
+    parse_timestamp(&observation.observed_at_utc, "scheduler observed_at_utc")?;
+    match (observation.source, observation.state, &observation.accounting) {
+        (
+            BenchmarkSchedulerEvidenceSource::Submission,
+            BenchmarkSchedulerObservedState::Submitted,
+            None,
+        )
+        | (
+            BenchmarkSchedulerEvidenceSource::Queue,
+            BenchmarkSchedulerObservedState::Submitted
+            | BenchmarkSchedulerObservedState::Pending
+            | BenchmarkSchedulerObservedState::Running,
+            None,
+        )
+        | (
+            BenchmarkSchedulerEvidenceSource::Accounting,
+            BenchmarkSchedulerObservedState::AccountingPending,
+            None,
+        ) => Ok(()),
+        (BenchmarkSchedulerEvidenceSource::Accounting, state, Some(accounting))
+            if state.is_terminal() =>
+        {
+            validate_scheduler_accounting_shape(accounting)?;
+            if accounting.scheduler != observation.scheduler
+                || accounting.job_id != observation.job_id
+                || observed_terminal_state(accounting.state) != state
+            {
+                return Err(invalid(
+                    "benchmark scheduler observation accounting identity or state drifted",
+                ));
+            }
+            Ok(())
+        }
+        _ => Err(invalid("benchmark scheduler observation source, state, and accounting disagree")),
+    }
 }
 
 fn validate_run_identity(identity: &BenchmarkRunIdentity) -> Result<(), BenchError> {
@@ -323,6 +442,7 @@ fn allowed_transition(from: BenchmarkLifecycleStatus, to: BenchmarkLifecycleStat
         ) | (
             BenchmarkLifecycleStatus::Submitted,
             BenchmarkLifecycleStatus::Running
+                | BenchmarkLifecycleStatus::Collecting
                 | BenchmarkLifecycleStatus::Failed
                 | BenchmarkLifecycleStatus::BlockedExternal
                 | BenchmarkLifecycleStatus::Superseded
@@ -353,8 +473,78 @@ fn validate_job(job: &BenchmarkJobReference) -> Result<(), BenchError> {
     Ok(())
 }
 
-fn validate_evidence_path(path: &str) -> Result<(), BenchError> {
-    let Some(relative) = path.strip_prefix("study://") else {
+fn validate_scheduler_accounting(
+    accounting: &BenchmarkSchedulerAccounting,
+    transition_status: BenchmarkLifecycleStatus,
+) -> Result<(), BenchError> {
+    validate_scheduler_accounting_shape(accounting)?;
+    match accounting.state {
+        BenchmarkSchedulerTerminalState::Completed
+            if matches!(
+                transition_status,
+                BenchmarkLifecycleStatus::Collecting | BenchmarkLifecycleStatus::Passed
+            ) && accounting.exit_code == 0
+                && accounting.signal == 0 => {}
+        BenchmarkSchedulerTerminalState::Failed
+        | BenchmarkSchedulerTerminalState::Cancelled
+        | BenchmarkSchedulerTerminalState::Timeout
+        | BenchmarkSchedulerTerminalState::Preempted
+        | BenchmarkSchedulerTerminalState::NodeFailure
+        | BenchmarkSchedulerTerminalState::OutOfMemory
+            if transition_status == BenchmarkLifecycleStatus::Failed => {}
+        _ => return Err(invalid("benchmark scheduler accounting contradicts lifecycle status")),
+    }
+    Ok(())
+}
+
+fn validate_scheduler_accounting_shape(
+    accounting: &BenchmarkSchedulerAccounting,
+) -> Result<(), BenchError> {
+    validate_job(&BenchmarkJobReference {
+        scheduler: accounting.scheduler.clone(),
+        job_id: accounting.job_id.clone(),
+    })?;
+    if accounting.raw_state.trim().is_empty()
+        || accounting.raw_state != accounting.raw_state.trim()
+        || accounting.node_list.trim().is_empty()
+        || accounting.node_list != accounting.node_list.trim()
+        || accounting.exit_code < 0
+        || accounting.signal < 0
+        || accounting
+            .reason
+            .as_deref()
+            .is_some_and(|reason| reason.trim().is_empty() || reason != reason.trim())
+    {
+        return Err(invalid("benchmark scheduler accounting is malformed"));
+    }
+    if accounting.state == BenchmarkSchedulerTerminalState::Completed
+        && (accounting.exit_code != 0 || accounting.signal != 0)
+    {
+        return Err(invalid("completed benchmark scheduler accounting has a nonzero exit"));
+    }
+    Ok(())
+}
+
+fn observed_terminal_state(
+    state: BenchmarkSchedulerTerminalState,
+) -> BenchmarkSchedulerObservedState {
+    match state {
+        BenchmarkSchedulerTerminalState::Completed => BenchmarkSchedulerObservedState::Completed,
+        BenchmarkSchedulerTerminalState::Failed => BenchmarkSchedulerObservedState::Failed,
+        BenchmarkSchedulerTerminalState::Cancelled => BenchmarkSchedulerObservedState::Cancelled,
+        BenchmarkSchedulerTerminalState::Timeout => BenchmarkSchedulerObservedState::Timeout,
+        BenchmarkSchedulerTerminalState::Preempted => BenchmarkSchedulerObservedState::Preempted,
+        BenchmarkSchedulerTerminalState::NodeFailure => {
+            BenchmarkSchedulerObservedState::NodeFailure
+        }
+        BenchmarkSchedulerTerminalState::OutOfMemory => {
+            BenchmarkSchedulerObservedState::OutOfMemory
+        }
+    }
+}
+
+fn validate_evidence_reference(reference: &BenchmarkEvidenceReference) -> Result<(), BenchError> {
+    let Some(relative) = reference.uri.strip_prefix("study://") else {
         return Err(invalid("benchmark evidence path must use the study URI scheme"));
     };
     if relative.is_empty()
@@ -365,6 +555,7 @@ fn validate_evidence_path(path: &str) -> Result<(), BenchError> {
     {
         return Err(invalid("benchmark evidence study URI is not normalized"));
     }
+    validate_digest(&reference.sha256)?;
     Ok(())
 }
 
@@ -454,8 +645,9 @@ fn require_text(value: &str, field: &str) -> Result<(), BenchError> {
 fn validate_digest(value: &str) -> Result<(), BenchError> {
     if value.len() != 64
         || !value.bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        || value.bytes().all(|byte| byte == b'0')
     {
-        return Err(invalid("benchmark attempt archive SHA-256 identity is malformed"));
+        return Err(invalid("benchmark SHA-256 identity is malformed"));
     }
     Ok(())
 }

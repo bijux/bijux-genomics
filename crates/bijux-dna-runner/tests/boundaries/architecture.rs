@@ -73,11 +73,29 @@ fn runner_tree_matches_architecture_contract() {
 
     let backend_entries = dir_entries(&root.join("src/backend"));
     let expected_backend: BTreeSet<_> =
-        ["docker/", "facade.rs", "kinds.rs", "mod.rs", "stable_surface.rs"]
+        ["docker/", "facade.rs", "kinds.rs", "mod.rs", "slurm/", "stable_surface.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
     assert_eq!(backend_entries, expected_backend, "runner backend tree must stay focused");
+
+    let slurm_entries = dir_entries(&root.join("src/backend/slurm"));
+    let expected_slurm: BTreeSet<_> = [
+        "benchmark.rs",
+        "client.rs",
+        "contracts.rs",
+        "mod.rs",
+        "parsing.rs",
+        "stable_surface.rs",
+        "submission.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        slurm_entries, expected_slurm,
+        "runner Slurm backend must separate contracts, parsing, commands, and exports"
+    );
 
     let docker_entries = dir_entries(&root.join("src/backend/docker"));
     let expected_docker: BTreeSet<_> = [

@@ -364,9 +364,11 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
+ "bijux-dna-environment",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "bijux-dna-runtime",
+ "bijux-dna-science",
  "bijux-dna-testkit",
  "insta",
  "serde",
@@ -450,6 +452,8 @@ dependencies = [
  "bijux-dna-environment",
  "bijux-dna-infra",
  "bijux-dna-policies",
+ "bijux-dna-runner",
+ "bijux-dna-runtime",
  "chrono",
  "clap",
  "regex",
@@ -727,6 +731,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "assert_cmd",
+ "bijux-dna-bench-model",
  "bijux-dna-core",
  "bijux-dna-environment",
  "bijux-dna-infra",
@@ -748,6 +753,7 @@ name = "bijux-dna-runtime"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-bench-model",
  "bijux-dna-core",
  "bijux-dna-infra",
  "bijux-dna-policies",
@@ -770,9 +776,11 @@ dependencies = [
  "bijux-dna-infra",
  "bijux-dna-policies",
  "clap",
+ "flate2",
  "nix",
  "serde",
  "serde_json",
+ "sha2",
  "toml",
  "walkdir",
 ]

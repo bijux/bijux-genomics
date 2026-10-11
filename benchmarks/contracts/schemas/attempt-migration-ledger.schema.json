@@ -1,0 +1,61 @@
+{
+  "$defs": {
+    "BenchmarkAttemptMigrationLedgerEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/BenchmarkAttemptMigrationState"
+        },
+        "target": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "state"
+      ],
+      "type": "object"
+    },
+    "BenchmarkAttemptMigrationState": {
+      "enum": [
+        "planned",
+        "applied",
+        "rolled_back"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkAttemptMigrationLedgerEntry"
+      },
+      "type": "array"
+    },
+    "plan_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.attempt_migration_ledger.v1",
+      "type": "string"
+    },
+    "updated_at_utc": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "plan_sha256",
+    "updated_at_utc",
+    "entries"
+  ],
+  "title": "BenchmarkAttemptMigrationLedger",
+  "type": "object"
+}

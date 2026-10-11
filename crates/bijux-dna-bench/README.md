@@ -18,6 +18,7 @@ This crate owns:
 - Reading runtime/analyze artifacts that are already materialized.
 - Writing deterministic benchmark artifacts under declared output roots.
 - Persisting and reconstructing append-only permanent attempt lifecycle evidence.
+- Admitting checksummed benchmark corpora and publishing immutable scientific expectations.
 - Resolving crate-owned benchmark data and suite directories.
 
 This crate does not plan workflows, execute tools, choose runner backends, or own
@@ -46,8 +47,9 @@ The SSOT for callable operations is `docs/COMMANDS.md`.
 - `src/lib.rs` stays thin and re-exports `public_api`.
 - `src/public_api/` owns the curated stable surface.
 - `src/workflow/` owns suite loading, summarization, comparison, gate decisions,
-  suite artifact persistence, and attempt lifecycle persistence.
-- `src/repo/` owns workspace path policy and read-only run artifact loading.
+  suite artifact persistence, attempt lifecycle persistence, scientific expectation publication,
+  and stage-specific executable benchmark material.
+- `src/repo/` owns workspace path policy, governed corpus admission, and read-only run artifact loading.
 - `src/artifacts/` owns deterministic artifact serialization.
 - `crates/bijux-dna-bench/bench/suites/` contains the checked-in benchmark suite catalog.
 - `crates/bijux-dna-bench/bench/corpora/` contains checked-in benchmark corpus manifests.

@@ -15,9 +15,34 @@ This crate may construct and execute only these backend command families from ty
 - declared local commands through `LocalRunner`
 - declared observer commands through `execute_observer_command`
 - declared low-level commands through `run_command` and `run_command_with_context`
+- non-waiting Slurm submission through `sbatch`
+- one-shot Slurm queue observation through `squeue`
+- terminal scheduler accounting through `sacct`
+- explicit cancellation through `scancel`
+
+`prepare_benchmark_slurm_job` consumes a validated immutable benchmark execution specification,
+rechecks its persisted specification, image, and input identities, then publishes a restart-safe
+Slurm script. It does not submit the script. The generated job runs Apptainer without network
+access, mounts source and inputs read-only, records measured resource rows, and publishes completion
+evidence only after required-output closure succeeds.
+
+`submit_prepared_benchmark_job` persists an immutable submission intent before invoking `sbatch`.
+It returns an existing matching handle without resubmission and refuses an intent with no handle so
+an interrupted scheduler effect cannot silently create a duplicate immutable attempt.
+
+`load_benchmark_slurm_job_handle` verifies and loads retained submission evidence without requiring
+benchmark outputs to remain empty, allowing later one-shot status and collection operations to stay
+inside runner-owned evidence contracts.
+
+Generated benchmark jobs may invoke `git rev-parse`, `git status`, `sha256sum`, `grep`, `awk`, and
+GNU `time` only for source validation, byte-identity checks, acceptance checks, and resource
+evidence. Shell filesystem utilities are limited to the declared attempt result and scratch roots.
 
 ### Non-Executing Operations
 Replay never executes a backend command. `replay_run` reads an execution manifest and verifies artifacts on disk.
+
+Slurm operations never loop or wait for job completion. Callers persist the returned
+job identity and invoke observation or collection in a later cycle.
 
 ## Ownership Rules
 - CLI parsing stays in CLI/API crates.

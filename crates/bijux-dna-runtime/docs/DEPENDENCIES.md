@@ -10,6 +10,8 @@
 - `uuid` for generated run IDs.
 - `chrono` for explicitly recorded runtime timestamps.
 - `opentelemetry` as an optional `otel` feature dependency for telemetry spans.
+- `bijux-dna-bench-model` for pure benchmark attempt identity, transition, accounting, and evidence
+  contracts used by runtime-owned append-only persistence.
 - `bijux-dna-core` for shared contracts, IDs, metrics, canonical JSON, and validation errors.
 - `bijux-dna-infra` for governed filesystem writes, locks, temp dirs, hash helpers, YAML parsing, and repository path helpers.
 
@@ -20,7 +22,8 @@
 
 ## Forbidden Runtime Dependencies
 - CLI/API adapter crates such as `bijux-dna` and `bijux-dna-api`.
-- Analyzer and benchmark crates such as `bijux-dna-analyze` and `bijux-dna-bench`.
+- Analyzer and benchmark orchestration crates such as `bijux-dna-analyze` and `bijux-dna-bench`.
+  The lower-level `bijux-dna-bench-model` contract dependency is explicitly allowed.
 - Engine and planner crates such as `bijux-dna-engine`, `bijux-dna-pipelines`, `bijux-dna-planner-bam`, `bijux-dna-planner-fastq`, and `bijux-dna-planner-vcf`.
 - Domain BAM/FASTQ/VCF semantics crates and stage implementation crates.
 - Runner backend crates such as `bijux-dna-runner`.

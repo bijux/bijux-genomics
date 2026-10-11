@@ -16,9 +16,20 @@ pub const BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1: &str =
     "bijux.benchmark.attempt_migration_ledger.v1";
 pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V1: &str = "bijux.benchmark.cycle_status.v1";
 pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V2: &str = "bijux.benchmark.cycle_status.v2";
+pub const BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1: &str = "bijux.benchmark.campaign_plan.v1";
+pub const BENCHMARK_EXECUTION_SPEC_SCHEMA_V1: &str = "bijux.benchmark.execution_spec.v1";
+pub const BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1: &str =
+    "bijux.benchmark.scheduler_observation.v1";
 pub const BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1: &str = "bijux.benchmark.stage_campaigns.v1";
+pub const BENCHMARK_STAGE_COVERAGE_SCHEMA_V1: &str = "bijux.benchmark.stage_coverage.v1";
+pub const BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1: &str =
+    "bijux.benchmark.scientific_readiness.v1";
 pub const BENCHMARK_PORTFOLIO_SCHEMA_V1: &str = "bijux.benchmark.portfolio.v1";
 pub const BENCHMARK_STAGE_INTERFACES_SCHEMA_V1: &str = "bijux.benchmark.stage_interfaces.v1";
 pub const BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1: &str = "bijux.benchmark.pipeline_parameters.v1";
 pub const BENCHMARK_STAGE_REPORT_SCHEMA_V1: &str = "bijux.benchmark.stage_report.v1";
 pub const BENCHMARK_REPORT_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.report_admission.v1";
+pub const FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1: &str =
+    "bijux.benchmark.fastq.profile_read_lengths.expectations.v1";
+pub const FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2: &str =
+    "bijux.benchmark.fastq.profile_read_lengths.expectations.v2";

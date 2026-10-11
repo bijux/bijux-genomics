@@ -23,10 +23,26 @@ These operations are exported through the crate root and `public_api`.
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
+| `admit-fastq-benchmark-corpus` | `admit_fastq_benchmark_corpus(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` | Verify exact data-index/catalog closure and re-hash every governed FASTQ file. |
+| `admit-bam-benchmark-corpus` | `admit_bam_benchmark_corpus(study_root, data_index_path, corpus_id)` | Verify data-index/catalog agreement and re-hash one governed coordinate-sorted BAM and BAI. |
+| `ensure-fastq-read-length-expectations` | `ensure_fastq_read_length_expectations(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` | Independently derive and immutably publish exact FASTQ read-length expectations. |
+| `prepare-fastq-profile-read-lengths-material` | `prepare_fastq_profile_read_lengths_material(...)` | Prepare complete source-locked executable material for one planned run-2042 tool attempt. |
+| `prepare-bam-mapping-summary-material` | `prepare_bam_mapping_summary_material(...)` | Prepare complete source-locked executable material for one planned run-2004 tool attempt. |
+| `derive-stage-coverage` | `derive_stage_coverage(registry, catalog, reports, required_commit)` | Derive typed retained-stage definition and admitted-evidence coverage with exact catalog tool closure and current-source freshness. |
+| `publish-checked-in-stage-coverage` | `publish_checked_in_stage_coverage(repository_root, mode)` | Deterministically write or check the checked-in JSON, Markdown, and generated schema publications. |
+| `plan-stage-campaign-attempts` | `plan_stage_campaign_attempts(registry, repository_commit, campaign_registry_sha256, run_id, campaign_id, attempt_id, observed_at_utc)` | Deterministically derive a source-locked plan with one validated lifecycle record per declared campaign tool. |
+| `verify-campaign-plan-source` | `verify_campaign_plan_source(plan, repository_commit, campaign_registry_sha256)` | Reject a campaign plan unless its source commit and declaration digest match the executing checkout exactly. |
+| `benchmark-execution-spec-schema` | `benchmark_execution_spec_schema()` | Derive the governed JSON Schema for immutable executable benchmark specifications. |
+| `validate-benchmark-execution-spec` | `validate_execution_spec(spec)` | Reject incomplete source locks, mutable result roots, in-place retries, undeclared acceptance outputs, and inconsistent runtime policy. |
+| `build-benchmark-execution-spec` | `build_execution_spec(registry, interfaces, catalog, plan, identity, image, material)` | Derive one executable attempt from aligned campaign, interface, catalog, source, image, and domain-material authorities. |
+| `load-benchmark-execution-authorities` | `load_execution_authorities(repository_root, inventory_path, repository_commit, plan)` | Load and hash exact campaign, interface, catalog, and image-inventory authorities, rejecting source or closure drift. |
+| `ensure-benchmark-execution-spec` | `ensure_execution_spec(benchmark_root, spec)` | Crash-safely persist one immutable executable specification beside its wholly planned attempt lifecycle. |
+| `load-benchmark-execution-spec` | `load_execution_spec(benchmark_root, identity)` | Load and validate a persisted executable specification against its immutable attempt identity. |
+| `ensure-stage-campaign-attempts` | `ensure_stage_campaign_attempts(root, plan)` | Validate source locks, then preflight and crash-safely initialize every immutable planned attempt in a campaign cycle. |
 | `benchmark-attempt-directory` | `benchmark_attempt_directory(root, identity)` | Derive the permanent `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>` storage path from validated identity. |
-| `initialize-attempt-lifecycle` | `initialize_attempt_lifecycle(root, record)` | Atomically publish an immutable planned attempt record without reusing an existing identity. |
-| `append-attempt-lifecycle-transition` | `append_attempt_lifecycle_transition(root, identity, transition)` | Validate and atomically publish one no-clobber sequence-addressed transition event. |
-| `load-attempt-lifecycle` | `load_attempt_lifecycle(root, identity)` | Reconstruct and validate an attempt exclusively from immutable lifecycle evidence. |
+| `initialize-attempt-lifecycle` | `initialize_attempt_lifecycle(root, record)` | Delegate atomic publication of an immutable planned attempt record to `bijux-dna-runtime`. |
+| `append-attempt-lifecycle-transition` | `append_attempt_lifecycle_transition(root, identity, transition)` | Delegate validation and no-clobber publication of one sequence-addressed transition to `bijux-dna-runtime`. |
+| `load-attempt-lifecycle` | `load_attempt_lifecycle(root, identity)` | Delegate reconstruction and validation of immutable lifecycle evidence to `bijux-dna-runtime`. |
 | `plan-attempt-migration` | `plan_attempt_migration(study_root, created_at_utc)` | Classify historical attempts by retained `run.kind` and produce a byte inventory bound plan. |
 | `apply-attempt-migration` | `apply_attempt_migration(study_root, plan_path, ledger_path, updated_at_utc)` | Move planned attempts by same-filesystem rename while maintaining an interruption-safe ledger. |
 | `verify-attempt-migration` | `verify_attempt_migration(study_root, plan_path, ledger_path)` | Recompute every current source or target file size and SHA-256 against the exact plan. |
@@ -57,9 +73,11 @@ Managed benchmark artifacts are:
 - `after-inventory.json`
 - `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/attempt.json`
 - `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/transitions/<sequence>.json`
+- `data/evidence/benchmark-expectations/<catalog-sha256>/fastq-profile-read-lengths/manifest.json`
 
-`bijux-dna-bench` writes and reads benchmark artifacts only under declared
-benchmark output roots.
+`bijux-dna-bench` writes suite, summary, decision, and migration artifacts only
+under declared benchmark output roots. Attempt lifecycle files are persisted and
+loaded by `bijux-dna-runtime` through the compatibility exports above.
 
 ## Local Verification Commands
 

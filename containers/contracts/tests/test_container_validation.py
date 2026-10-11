@@ -7,7 +7,6 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from typing import Any
 from unittest import mock
 
 EXECUTOR = Path(__file__).parents[1] / "container_validation.py"
@@ -17,13 +16,6 @@ assert SPEC is not None and SPEC.loader is not None
 container_validation = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = container_validation
 SPEC.loader.exec_module(container_validation)
-
-BUILD_EXECUTOR = Path(__file__).parents[1] / "container_build.py"
-BUILD_SPEC = importlib.util.spec_from_file_location("container_build", BUILD_EXECUTOR)
-assert BUILD_SPEC is not None and BUILD_SPEC.loader is not None
-container_build = importlib.util.module_from_spec(BUILD_SPEC)
-BUILD_SPEC.loader.exec_module(container_build)
-
 
 class GovernanceContractTests(unittest.TestCase):
     def governance(self, root: Path) -> dict[str, object]:
@@ -1570,103 +1562,6 @@ assertions = ["the report consumer accepts the normalized result"]
         self.assertEqual(command[0], "apptainer")
         self.assertIn("wall_seconds\t2.000000000\tseconds", resource_text)
         self.assertIn("peak_rss_kib\t4096\tkibibytes", resource_text)
-
-
-class BuildAdmissionTests(unittest.TestCase):
-    def inspection(
-        self,
-        tool: str = "adapterremoval",
-        version: str = "2.3.4",
-    ) -> dict[str, Any]:
-        return {
-            "data": {
-                "attributes": {
-                    "labels": {
-                        "org.opencontainers.image.tool": tool,
-                        "io.bijux.tool.version": version,
-                        "org.opencontainers.image.created": "governed-by-build-evidence",
-                        "org.opencontainers.image.revision": "a" * 40,
-                        "org.opencontainers.image.source": (
-                            "https://github.com/MikkelSchubert/adapterremoval"
-                        ),
-                        "org.opencontainers.image.version": "24.04",
-                    }
-                }
-            }
-        }
-
-    def test_python_image_admission_fails_closed(self) -> None:
-        with self.assertRaisesRegex(
-            container_build.ContractError,
-            "Python image admission is retired",
-        ):
-            container_build.finalize_image(
-                Path("missing.yml"),
-                "samtools",
-                "1.20",
-                "a" * 40,
-                Path("samtools.def"),
-                Path("samtools.sif"),
-                Path("samtools.log"),
-            )
-
-    def test_image_identity_uses_tool_version_instead_of_base_version(self) -> None:
-        container_build.validate_inspection_identity(
-            self.inspection(),
-            "adapterremoval",
-            "2.3.4",
-        )
-
-    def test_image_identity_rejects_missing_tool_version(self) -> None:
-        inspection = self.inspection()
-        labels = inspection["data"]["attributes"]["labels"]
-        del labels["io.bijux.tool.version"]
-        with self.assertRaisesRegex(
-            container_build.ContractError,
-            "io.bijux.tool.version",
-        ):
-            container_build.validate_inspection_identity(
-                inspection,
-                "adapterremoval",
-                "2.3.4",
-            )
-
-    def test_immutable_name_carries_runtime_and_content_identity(self) -> None:
-        name = container_build.immutable_image_name(
-            "adapterremoval",
-            "2.3.4",
-            "linux/amd64",
-            "a" * 64,
-        )
-        self.assertEqual(
-            name,
-            "adapterremoval-2.3.4-linux-amd64-aaaaaaaaaaaa.sif",
-        )
-
-    def test_definition_file_sources_are_repository_relative(self) -> None:
-        definition = b"""Bootstrap: docker
-%files
-    containers/tools/tool/wrapper /usr/local/bin/tool
-    containers/tools/tool/data /opt/tool/data
-
-%post
-    true
-"""
-        self.assertEqual(
-            container_build.definition_file_sources(definition),
-            [
-                Path("containers/tools/tool/wrapper"),
-                Path("containers/tools/tool/data"),
-            ],
-        )
-
-    def test_definition_file_sources_reject_parent_traversal(self) -> None:
-        with self.assertRaisesRegex(
-            container_build.ContractError, "repository-relative"
-        ):
-            container_build.definition_file_sources(
-                b"%files\n    ../secret /opt/secret\n"
-            )
 
 
 if __name__ == "__main__":

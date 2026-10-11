@@ -1,7 +1,11 @@
 use anyhow::{bail, Result};
 use regex::Regex;
 
-use super::model::{ContainerToolContract, CONTAINER_TOOL_CONTRACT_SCHEMA_V1};
+use super::labels::validate_tool_contract_labels;
+use super::model::{
+    ContainerToolContract, ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
+    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1,
+};
 
 /// Validate every immutable field in an embedded tool contract.
 ///
@@ -48,6 +52,29 @@ pub fn validate_tool_contract(contract: &ContainerToolContract) -> Result<()> {
     Regex::new(&contract.expected_version_regex)
         .map_err(|error| anyhow::anyhow!("tool contract version regex is invalid: {error}"))?;
     Ok(())
+}
+
+/// Validate persisted runtime image identity against the requested immutable image and contract.
+///
+/// # Errors
+/// Returns an error for stale schemas, image identity, embedded contracts, or labels.
+pub fn validate_tool_image_identity_evidence(
+    evidence: &ToolImageIdentityEvidence,
+    expected_image_sha256: &str,
+    expected_contract: &ContainerToolContract,
+) -> Result<()> {
+    if evidence.schema_version != TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1 {
+        bail!("unsupported tool-image identity evidence schema");
+    }
+    validate_sha256(&evidence.image_sha256, "image")?;
+    if evidence.image_sha256 != expected_image_sha256 {
+        bail!("tool-image identity evidence differs from the requested image");
+    }
+    validate_tool_contract(&evidence.contract)?;
+    if &evidence.contract != expected_contract {
+        bail!("tool-image identity evidence differs from the requested contract");
+    }
+    validate_tool_contract_labels(&evidence.contract, &evidence.labels)
 }
 
 pub(super) fn validate_sha256(value: &str, label: &str) -> Result<()> {

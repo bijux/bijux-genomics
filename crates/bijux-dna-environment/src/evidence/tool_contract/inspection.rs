@@ -10,14 +10,11 @@ use serde_json::Value;
 use sha2::{Digest, Sha256};
 
 use super::labels::{validate_tool_contract_labels, ToolContractLabels};
-use super::model::{ContainerToolContract, CONTAINER_TOOL_CONTRACT_PATH};
+use super::model::{
+    ContainerToolContract, ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_PATH,
+    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1,
+};
 use super::validation::{validate_sha256, validate_tool_contract};
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct VerifiedToolImageIdentity {
-    pub contract: ContainerToolContract,
-    pub image_sha256: String,
-}
 
 /// Read and verify the contract inside one immutable Apptainer image.
 ///
@@ -29,7 +26,7 @@ pub fn verify_apptainer_tool_contract(
     image: &Path,
     expected_image_sha256: &str,
     expected_contract: &ContainerToolContract,
-) -> Result<VerifiedToolImageIdentity> {
+) -> Result<ToolImageIdentityEvidence> {
     validate_sha256(expected_image_sha256, "image")?;
     validate_tool_contract(expected_contract)?;
     let image_sha256 = sha256_file(image)?;
@@ -74,7 +71,12 @@ pub fn verify_apptainer_tool_contract(
         .with_context(|| format!("parse Apptainer inspection for {}", image.display()))?;
     let labels = collect_contract_labels(&inspection);
     validate_tool_contract_labels(&observed, &labels)?;
-    Ok(VerifiedToolImageIdentity { contract: observed, image_sha256 })
+    Ok(ToolImageIdentityEvidence {
+        schema_version: TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V1.to_string(),
+        image_sha256,
+        contract: observed,
+        labels,
+    })
 }
 
 fn collect_contract_labels(value: &Value) -> ToolContractLabels {

@@ -4,9 +4,8 @@ Owner: `bijux-dna-bench`
 
 This crate owns benchmark suite loading, summarization, comparison, gate
 evaluation, deterministic benchmark artifact writing, and read-only loading of
-finished runtime/analyze artifacts.
-It also owns append-only persistence and reconstruction of permanent benchmark
-attempt lifecycle evidence below caller-declared benchmark roots.
+finished runtime/analyze artifacts. It composes runtime-owned append-only attempt
+persistence without defining a parallel state machine.
 
 ## Allowed Inputs
 
@@ -16,6 +15,7 @@ attempt lifecycle evidence below caller-declared benchmark roots.
   fixtures or prior benchmark artifacts.
 - Run manifests, metric payloads, and run metadata that have already been
   materialized by lower-level crates.
+- Governed STUDY data-index and corpus-catalog authorities plus their exact declared files.
 
 ## Allowed Effects
 
@@ -24,7 +24,9 @@ attempt lifecycle evidence below caller-declared benchmark roots.
   roots.
 - Resolve repository-local benchmark data and suite directories.
 - Canonicalize JSON before writing stable artifact files.
-- Atomically create immutable attempt identity and transition event files.
+- Publish no-clobber scientific expectation artifacts under their catalog digest identity.
+- Prepare source-locked stage-specific inputs, commands, parameter evidence, acceptance rules,
+  and required-file closures without executing them.
 
 ## Forbidden Effects
 
@@ -44,7 +46,9 @@ Allowed normal dependency families:
   statistics.
 - `bijux-dna-core` for canonical JSON and run artifact contracts.
 - `bijux-dna-infra` for repository path and directory helpers.
+- `bijux-dna-environment` for exact-commit container catalog evidence identity.
 - `bijux-dna-runtime` for atomic artifact writes and runtime report contracts.
+- `bijux-dna-science` for independent scientific truth derivation from admitted observations.
 
 Analyze, policy, domain, and testkit crates belong in dev-dependencies unless
 production source imports their contracts.

@@ -22,6 +22,8 @@ fn policy__boundaries__architecture_tree__policies_tree_matches_architecture_con
             "lib.rs",
             "policy_diagnostics/",
             "public_api/",
+            "qualification/",
+            "security_evidence/",
             "source_scan/",
         ]),
         "src tree must match the documented policy engine layout"
@@ -79,6 +81,33 @@ fn policy__boundaries__architecture_tree__policies_tree_matches_architecture_con
         dir_entries(&root.join("src/public_api")),
         entries(["OWNER.toml", "mod.rs", "stable_surface.rs"]),
         "public api tree must stay curated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/qualification")),
+        entries([
+            "OWNER.toml",
+            "evaluation.rs",
+            "mod.rs",
+            "model.rs",
+            "publication.rs",
+            "report.rs"
+        ]),
+        "qualification must separate evidence decisions, publication freshness, and reports"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/security_evidence")),
+        entries([
+            "OWNER.toml",
+            "gitleaks.rs",
+            "grype.rs",
+            "mod.rs",
+            "model.rs",
+            "schema.rs",
+            "validation.rs"
+        ]),
+        "security evidence must separate scanner parsing, models, schemas, and validation"
     );
 
     assert_eq!(

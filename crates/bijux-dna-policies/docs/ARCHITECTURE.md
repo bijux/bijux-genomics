@@ -1,9 +1,9 @@
 # Architecture
 
-`bijux-dna-policies` is organized around reusable policy support in `src/` and
-executable policy rules in `tests/`. It is a governance crate: production crates
-may use its public policy runner only when they are intentionally performing a
-workspace audit, and most crates should depend on it only from tests.
+`bijux-dna-policies` owns pure, deterministic policy decisions and reusable repository guardrails.
+It does not own execution effects or domain workflows. Production consumers may use its typed
+qualification, publication-freshness, and security-evidence decisions without importing repository
+audit orchestration.
 
 ## Root Layout
 
@@ -16,6 +16,9 @@ workspace audit, and most crates should depend on it only from tests.
 
 ## Source Tree
 - `src/public_api/` exposes the curated guardrail caller surface.
+- `src/qualification/` owns evidence dimensions, claims, publication freshness, and portable
+  qualification reports.
+- `src/security_evidence/` owns typed scanner evidence and deterministic security decisions.
 - `src/guardrails/` owns baseline configuration, crate presets, source inventory setup, and runner wiring.
 - `src/checks/` partitions reusable rule families by directory layout, module files, public surface, failure policy, and stage ID literals.
 - `src/source_scan/` performs deterministic Rust source discovery.
@@ -32,9 +35,11 @@ workspace audit, and most crates should depend on it only from tests.
 - `tests/support/` contains shared filesystem helpers only.
 
 ## Data Flow
-1. Callers use `check` and `GuardrailConfig` through the public surface.
-2. Guardrails collect Rust sources through `source_scan`.
-3. `checks` evaluates deterministic source and layout rules.
+1. Qualification callers provide admitted evidence decisions; policy models validate complete
+   dimensions and derive claims and report summaries.
+2. Security callers provide typed scanner publications; policy validation derives admissibility.
+3. Repository-audit callers use `check` and `GuardrailConfig`; guardrails collect Rust sources and
+   evaluate deterministic source and layout rules.
 4. Assertion macros and `policy_diagnostics` render failures with consistent repair guidance.
 
 ## Naming
@@ -42,10 +47,9 @@ Policy test names use `policy__<suite>__<file>__<rule>` when they enforce worksp
 
 ## Dependency Direction
 
-Policy code may inspect crate manifests, source trees, docs, generated reports,
-and governed fixture data. It must not become a production runtime dependency
-for normal workflow execution, stage planning, runner backends, or CLI behavior
-unless the caller is explicitly running a policy audit.
+Production crates may depend on pure qualification, freshness, and security decisions. Repository
+guardrails may inspect crate manifests, source trees, docs, reports, and governed fixtures. Policy
+code must not own workflow execution, stage planning, runner backends, or CLI routing.
 
 ## Change Rules
 

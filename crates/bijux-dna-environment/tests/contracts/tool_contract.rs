@@ -5,10 +5,26 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_environment::evidence::tool_contract::{
+    apptainer_recipe_identity_at_commit, catalog_identity_at_commit,
+    container_build_evidence_matches_recipe, load_container_catalog,
     prepare_apptainer_tool_contract, retained_apptainer_tool_ids, tool_contract_labels,
-    validate_tool_contract, validate_tool_contract_labels, verify_apptainer_tool_contract,
+    validate_container_catalog, validate_tool_contract, validate_tool_contract_labels,
+    validate_tool_image_identity_evidence, verify_apptainer_tool_contract,
     ToolContractBuildRequest,
 };
+
+#[test]
+fn historical_catalog_identity_rejects_untrusted_commit_names() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("environment crate must be below the repository root"));
+
+    for commit in ["HEAD", "../../catalog", &"0".repeat(40), &"g".repeat(40)] {
+        assert!(catalog_identity_at_commit(root, commit)
+            .is_err_and(|error| error.to_string().contains("invalid repository commit identity")));
+    }
+}
 use sha2::{Digest, Sha256};
 
 fn repository_root() -> Result<PathBuf> {
@@ -92,6 +108,64 @@ fn retained_roster_rejects_non_catalog_architecture() -> Result<()> {
 }
 
 #[test]
+fn canonical_catalog_loader_preserves_the_complete_contract_and_rejects_unknown_fields(
+) -> Result<()> {
+    let root = repository_root()?;
+    let catalog = load_container_catalog(&root)?;
+    assert_eq!(catalog.tools.len(), 89);
+    assert_eq!(
+        catalog.tools.iter().filter(|tool| tool.support_disposition == "retained").count(),
+        85
+    );
+    let samtools = catalog
+        .tools
+        .iter()
+        .find(|tool| tool.id == "samtools")
+        .context("catalog omits samtools")?;
+    assert_eq!(samtools.version, "1.20");
+    assert_eq!(samtools.domains, ["bam"]);
+    assert_eq!(samtools.apptainer_definition, "containers/apptainer/samtools.def");
+    assert!(!samtools.version_command.is_empty());
+    assert!(!samtools.help_command.is_empty());
+    assert!(!samtools.expected_version_regex.is_empty());
+
+    let malformed_root = bijux_dna_testkit::tempdir_for("container-catalog-unknown-field");
+    let contract_root = malformed_root.path().join("containers/contracts");
+    fs::create_dir_all(&contract_root)?;
+    let mut source = fs::read_to_string(root.join("containers/contracts/catalog.toml"))?;
+    source.push_str("\nunowned_contract_field = true\n");
+    fs::write(contract_root.join("catalog.toml"), source)?;
+    assert!(load_container_catalog(malformed_root.path()).is_err());
+    Ok(())
+}
+
+#[test]
+fn catalog_validation_owns_exact_roster_and_recipe_closure() -> Result<()> {
+    let root = repository_root()?;
+    let validation = validate_container_catalog(&root)?;
+    assert!(validation.is_valid(), "{:?}", validation.errors);
+    assert_eq!(validation.tool_count, 89);
+    assert_eq!(validation.retained_count, 85);
+    assert_eq!(validation.unsupported_count, 4);
+
+    let malformed_root = bijux_dna_testkit::tempdir_for("container-catalog-roster-drift");
+    let contract_root = malformed_root.path().join("containers/contracts");
+    fs::create_dir_all(contract_root.join("sites"))?;
+    fs::create_dir_all(malformed_root.path().join("containers/apptainer"))?;
+    fs::create_dir_all(malformed_root.path().join("containers/docker"))?;
+    let source = fs::read_to_string(root.join("containers/contracts/catalog.toml"))?.replacen(
+        "support_disposition = \"retained\"",
+        "support_disposition = \"unsupported\"",
+        1,
+    );
+    fs::write(contract_root.join("catalog.toml"), source)?;
+    let invalid = validate_container_catalog(malformed_root.path())?;
+    assert!(!invalid.is_valid());
+    assert!(invalid.errors.iter().any(|error| error.contains("catalog roster must contain")));
+    Ok(())
+}
+
+#[test]
 fn contract_admission_rejects_identity_and_label_tampering() -> Result<()> {
     let (_output, prepared) = prepare("samtools")?;
     let mut malformed = serde_json::to_value(&prepared.contract)?;
@@ -132,6 +206,35 @@ fn contract_admission_rejects_identity_and_label_tampering() -> Result<()> {
     Ok(())
 }
 
+#[test]
+fn committed_recipe_identity_owns_definition_and_files_context() -> Result<()> {
+    let root = repository_root()?;
+    let head = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&root)
+        .args(["rev-parse", "HEAD"])
+        .output()?;
+    let commit = String::from_utf8(head.stdout)?.trim().to_string();
+    let identity =
+        apptainer_recipe_identity_at_commit(&root, &commit, "containers/apptainer/ibdhap.def")?;
+    assert_eq!(identity.repository_commit, commit);
+    assert_eq!(identity.definition_sha256.len(), 64);
+    assert_eq!(identity.build_context.len(), 2);
+    assert_eq!(identity.build_context[1].path, "containers/tools/ibdhap/ibdhap");
+
+    let evidence = bijux_dna_environment::evidence::ContainerBuildEvidence {
+        status: bijux_dna_environment::evidence::BuildEvidenceStatus::Passed,
+        definition_sha256: identity.definition_sha256.clone(),
+        repository_commit: identity.repository_commit.clone(),
+        build_context: Some(identity.build_context.clone()),
+    };
+    assert!(container_build_evidence_matches_recipe(&evidence, &identity));
+    let mut stale = evidence;
+    stale.build_context.as_mut().context("build context fixture")?[0].git_object = "f".repeat(40);
+    assert!(!container_build_evidence_matches_recipe(&stale, &identity));
+    Ok(())
+}
+
 #[cfg(unix)]
 #[test]
 fn runtime_verification_binds_contract_labels_and_image_digest() -> Result<()> {
@@ -160,6 +263,16 @@ fn runtime_verification_binds_contract_labels_and_image_digest() -> Result<()> {
         verify_apptainer_tool_contract(&fake_apptainer, &image, &image_sha256, &prepared.contract)?;
     assert_eq!(verified.contract, prepared.contract);
     assert_eq!(verified.image_sha256, image_sha256);
+    validate_tool_image_identity_evidence(&verified, &image_sha256, &prepared.contract)?;
+
+    let mut stale_labels = verified.clone();
+    stale_labels.labels.insert("io.bijux.tool-contract.version".to_string(), "stale".to_string());
+    assert!(validate_tool_image_identity_evidence(
+        &stale_labels,
+        &image_sha256,
+        &prepared.contract,
+    )
+    .is_err_and(|error| error.to_string().contains("mismatches embedded contract")));
 
     assert!(verify_apptainer_tool_contract(
         &fake_apptainer,

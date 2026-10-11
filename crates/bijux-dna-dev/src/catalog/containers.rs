@@ -287,9 +287,64 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckVersionDeprecations,
         ),
         native(
+            "generate-evidence-qualification",
+            "Generate typed container qualification reports from admitted evidence.",
+            NativeContainerCommandKey::GenerateEvidenceQualification,
+        ),
+        native(
+            "generate-image-inventory",
+            "Derive an immutable image inventory from governed study evidence.",
+            NativeContainerCommandKey::GenerateImageInventory,
+        ),
+        native(
+            "generate-image-inventory-report",
+            "Render a validated image-inventory publication as Markdown.",
+            NativeContainerCommandKey::GenerateImageInventoryReport,
+        ),
+        native(
+            "generate-image-inventory-publication-schema",
+            "Generate the complete image-inventory publication schema from Rust types.",
+            NativeContainerCommandKey::GenerateImageInventoryPublicationSchema,
+        ),
+        native(
+            "generate-image-inventory-scan-schema",
+            "Generate the complete image-inventory scan schema from Rust types.",
+            NativeContainerCommandKey::GenerateImageInventoryScanSchema,
+        ),
+        native(
+            "image-storage",
+            "Plan, apply, verify, report, or roll back governed image quarantine.",
+            NativeContainerCommandKey::ImageStorage,
+        ),
+        native(
+            "qualification-registry",
+            "Derive and audit stable qualification-run identities from catalog and history.",
+            NativeContainerCommandKey::QualificationRegistry,
+        ),
+        native(
+            "runtime-verification",
+            "Execute and publish runtime evidence for canonical Apptainer images.",
+            NativeContainerCommandKey::RuntimeVerification,
+        ),
+        native(
             "check-evidence-qualification",
             "Validate that container qualification is reproducibly derived from current evidence.",
             NativeContainerCommandKey::CheckEvidenceQualification,
+        ),
+        native(
+            "check-image-inventory-publication-schema",
+            "Validate the checked image-inventory publication schema against Rust types.",
+            NativeContainerCommandKey::CheckImageInventoryPublicationSchema,
+        ),
+        native(
+            "check-image-inventory-report",
+            "Validate the image-inventory report against its typed publication.",
+            NativeContainerCommandKey::CheckImageInventoryReport,
+        ),
+        native(
+            "check-image-inventory-scan-schema",
+            "Validate the checked image-inventory scan schema against Rust types.",
+            NativeContainerCommandKey::CheckImageInventoryScanSchema,
         ),
         native(
             "generate-qualification-schema",
@@ -300,6 +355,16 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             "check-qualification-schema",
             "Validate the checked qualification-assessment schema against Rust policy types.",
             NativeContainerCommandKey::CheckQualificationSchema,
+        ),
+        native(
+            "generate-qualification-report-schema",
+            "Generate the qualification-report schema from Rust policy types.",
+            NativeContainerCommandKey::GenerateQualificationReportSchema,
+        ),
+        native(
+            "check-qualification-report-schema",
+            "Validate the checked qualification-report schema against Rust policy types.",
+            NativeContainerCommandKey::CheckQualificationReportSchema,
         ),
         native(
             "deprecate-version",

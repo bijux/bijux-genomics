@@ -2,15 +2,20 @@ use std::collections::BTreeMap;
 
 use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_portfolio_campaign_alignment,
-    validate_stage_campaign_registry, BENCHMARK_PORTFOLIO_SCHEMA_V1,
-    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    validate_scientific_readiness, validate_stage_campaign_registry, validate_stage_coverage,
+    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
 };
 use bijux_dna_bench_model::{
     BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract,
     BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
     BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
     BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
-    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
+    BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
+    BenchmarkScientificReadinessReport, BenchmarkScientificReadinessStage,
+    BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
+    BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
+    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus,
 };
 
 fn stage_campaign_registry() -> BenchmarkStageCampaignRegistry {
@@ -148,6 +153,44 @@ fn benchmark_stage_campaign_registry_rejects_slug_drift() {
 }
 
 #[test]
+fn checked_planning_schemas_match_model_authority() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let schemas = [
+        (
+            "stage-campaigns.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_stage_campaign_registry_schema())?,
+        ),
+        (
+            "portfolio.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_portfolio_schema())?,
+        ),
+    ];
+    let schema_root = repository_root.join("benchmarks/contracts/schemas");
+    for (name, generated) in schemas {
+        let path = schema_root.join(name);
+        write_generated_schema(&path, &generated)?;
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+        assert_eq!(checked, generated, "planning schema drifted: {name}");
+    }
+    Ok(())
+}
+
+fn write_generated_schema(
+    path: &std::path::Path,
+    generated: &serde_json::Value,
+) -> anyhow::Result<()> {
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        let mut bytes = serde_json::to_vec_pretty(generated)?;
+        bytes.push(b'\n');
+        std::fs::write(path, bytes)?;
+    }
+    Ok(())
+}
+
+#[test]
 fn benchmark_planning_alignment_rejects_run_id_drift() {
     let registry = stage_campaign_registry();
     let mut portfolio = benchmark_portfolio();
@@ -157,4 +200,144 @@ fn benchmark_planning_alignment_rejects_run_id_drift() {
         .err()
         .map(|error| error.to_string());
     assert!(error.as_deref().is_some_and(|message| message.contains("benchmark run id drift")));
+}
+
+fn scientific_readiness() -> BenchmarkScientificReadinessReport {
+    let portfolio = benchmark_portfolio();
+    BenchmarkScientificReadinessReport::v1(
+        BenchmarkScientificReadinessSummary {
+            stage_count: 1,
+            reserved_run_count: 1,
+            ready_count: 1,
+            blocked_count: 0,
+            corpus_count: 1,
+            admitted_comparative_corpus_count: 1,
+            qualification_campaign_count: 0,
+            comparative_campaign_count: 1,
+        },
+        BTreeMap::from([
+            (
+                "bam".to_string(),
+                BenchmarkScientificReadinessDomain {
+                    stage_count: 0,
+                    ready_count: 0,
+                    blocked_count: 0,
+                },
+            ),
+            (
+                "fastq".to_string(),
+                BenchmarkScientificReadinessDomain {
+                    stage_count: 1,
+                    ready_count: 1,
+                    blocked_count: 0,
+                },
+            ),
+            (
+                "vcf".to_string(),
+                BenchmarkScientificReadinessDomain {
+                    stage_count: 0,
+                    ready_count: 0,
+                    blocked_count: 0,
+                },
+            ),
+        ]),
+        portfolio.measurement,
+        vec![BenchmarkScientificReadinessCorpus {
+            id: "human-short-read-diversity".to_string(),
+            status: BenchmarkCorpusStatus::Admitted,
+            evidence_scope: BenchmarkEvidenceScope::Comparative,
+            sample_count: 20,
+            truth_strategy: "observational_only".to_string(),
+            roles: vec!["short_read_diversity".to_string()],
+        }],
+        vec![BenchmarkScientificReadinessStage {
+            stage_id: "fastq.profile_read_lengths".to_string(),
+            domain: "fastq".to_string(),
+            profile_id: "fastq-observational-qc".to_string(),
+            retained_tools: vec!["seqfu".to_string(), "seqkit".to_string()],
+            available_comparative_samples: 20,
+            campaign_run_id: Some("run-2042".to_string()),
+            reserved_run_id: "run-2042".to_string(),
+            campaign_tier: Some(BenchmarkEvidenceTier::Comparative),
+            interface_status: BenchmarkStageInterfaceStatus::Closed,
+            readiness: BenchmarkScientificReadinessStatus::Ready,
+            blockers: Vec::new(),
+        }],
+    )
+}
+
+#[test]
+fn scientific_readiness_requires_exact_status_and_summary_closure() -> anyhow::Result<()> {
+    let report = scientific_readiness();
+    validate_scientific_readiness(&report)?;
+
+    let mut status_drift = report.clone();
+    status_drift.stages[0].blockers.push("missing evidence".to_string());
+    assert!(validate_scientific_readiness(&status_drift).is_err());
+
+    let mut summary_drift = report;
+    summary_drift.summary.ready_count = 0;
+    assert!(validate_scientific_readiness(&summary_drift).is_err());
+    Ok(())
+}
+
+fn stage_coverage() -> BenchmarkStageCoverage {
+    BenchmarkStageCoverage::v1(
+        BenchmarkStageCoverageSummary {
+            retained_stage_count: 2,
+            defined_stage_count: 1,
+            qualification_stage_count: 0,
+            comparative_stage_count: 1,
+            admitted_stage_count: 1,
+            stale_stage_count: 0,
+            failed_stage_count: 0,
+            missing_stage_count: 1,
+        },
+        vec![
+            BenchmarkStageCoverageRow {
+                stage_id: "fastq.profile_read_lengths".to_string(),
+                retained_tools: vec!["seqfu".to_string(), "seqkit".to_string()],
+                campaign_run_id: Some("run-2042".to_string()),
+                report_repository_commit: Some("a".repeat(40)),
+                report_sha256: Some("b".repeat(64)),
+                definition_status: BenchmarkStageDefinitionStatus::Comparative,
+                execution_status: BenchmarkStageExecutionStatus::Admitted,
+            },
+            BenchmarkStageCoverageRow {
+                stage_id: "vcf.stats".to_string(),
+                retained_tools: vec!["bcftools".to_string()],
+                campaign_run_id: None,
+                report_repository_commit: None,
+                report_sha256: None,
+                definition_status: BenchmarkStageDefinitionStatus::Missing,
+                execution_status: BenchmarkStageExecutionStatus::NotDefined,
+            },
+        ],
+    )
+}
+
+#[test]
+fn benchmark_stage_coverage_accepts_exact_sorted_closure() -> anyhow::Result<()> {
+    validate_stage_coverage(&stage_coverage())?;
+    Ok(())
+}
+
+#[test]
+fn benchmark_stage_coverage_rejects_summary_drift() {
+    let mut coverage = stage_coverage();
+    coverage.summary.admitted_stage_count = 0;
+
+    let error = validate_stage_coverage(&coverage).err().map(|error| error.to_string());
+    assert!(error.as_deref().is_some_and(|message| message.contains("summary disagrees")));
+}
+
+#[test]
+fn benchmark_stage_coverage_rejects_incoherent_missing_state() {
+    let mut coverage = stage_coverage();
+    coverage.stages[1].execution_status = BenchmarkStageExecutionStatus::NotAdmitted;
+
+    let error = validate_stage_coverage(&coverage).err().map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("definition, execution, and run identity")));
 }

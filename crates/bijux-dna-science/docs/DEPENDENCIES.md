@@ -13,8 +13,10 @@ guardrails without pulling in runtime execution or planning responsibilities.
 | `anyhow` | Error context for command and compiler flows. |
 | `bijux-dna-infra` with `yaml` | Shared deterministic file IO and governed YAML parsing. |
 | `clap` | CLI parser for the `bijux-dna-science` binary. |
+| `flate2` | Streaming multi-member gzip decoding for independent FASTQ truth. |
 | `serde` | Authored spec and compiled model serialization. |
 | `serde_json` | Science index and release JSON rendering. |
+| `sha2` | Streaming exact per-record digest derivation without retaining all reads. |
 | `toml` | Governed TOML evidence-table parsing. |
 | `walkdir` | Deterministic recursive YAML discovery. |
 

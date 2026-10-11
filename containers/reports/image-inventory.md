@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: containers/contracts/image_inventory.py render-report -->
+<!-- source: bijux-dna-dev containers generate-image-inventory-report -->
 # LUNARC Apptainer image inventory
 
 This is an integrity and provenance inventory, not a release certificate.
@@ -110,9 +110,9 @@ qualification remain independent requirements.
 | `vsearch` | `2.29.3` | retained | **current** | 1 |
 | `yleaf` | `4.1.4` | retained | **current** | 0 |
 
-`missing` means no admitted SIF exists for the catalog version. `stale_recipe`
-means an admitted historical image exists but does not represent the active
-recipe. `unsupported` is an explicit catalog decision, not a failed build.
+`missing` means no admitted SIF exists for the catalog version. `historical`
+means an admitted image exists but does not represent the active recipe.
+`unsupported` is an explicit catalog decision, not a failed build.
 A historical run dependency is preserved because a final governed run records
 its immutable path and digest; it is not current support or release evidence.
 

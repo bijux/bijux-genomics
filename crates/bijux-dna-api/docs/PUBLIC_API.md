@@ -23,7 +23,7 @@ enter through `bijux_dna_api::v1::api`.
   `RenderReportResult`, `ExplainResponse`, `ExplainToolSelection`,
   `PlanExplainV1`, and `VcfRunRequest`.
 - Curated helper namespaces: `bench`, `plan`, `run`, `report`, `bam`, `fastq`,
-  `env`, and `shared`.
+  `env`, `qualification`, and `shared`.
 
 ## Export Policy
 

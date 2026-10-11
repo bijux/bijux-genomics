@@ -6,8 +6,12 @@
 - Spawn `docker run` and `apptainer exec` through typed execution specs.
 - Spawn declared observer commands through `execute_observer_command`.
 - Spawn declared low-level commands through `run_command` and `run_command_with_context`.
+- Spawn `sbatch`, `squeue`, `sacct`, and `scancel` only through typed Slurm contracts.
 - Read declared inputs and execution manifests.
 - Write runner-owned records, stdout/stderr captures, and artifacts under declared run/output roots.
+- Materialize source-locked benchmark batch scripts under their declared immutable attempt roots.
+- Persist benchmark submission intent before `sbatch` and scheduler handles immediately after a
+  successful submission effect.
 - Create temporary paths through `bijux-dna-infra` helpers.
 
 ## Effect Codes
@@ -22,6 +26,8 @@ Runner errors use these source-level effect codes:
 - No CLI parsing or command discovery.
 - No planner, engine, analyzer, or report effects.
 - No writes outside declared runtime roots.
+- Generated benchmark jobs mount repository and input authorities read-only and write only to the
+  declared result and scratch mounts.
 - No network access by default.
 - No privileged containers or host-root mounts.
 - No secret logging.

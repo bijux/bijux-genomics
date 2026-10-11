@@ -1,0 +1,325 @@
+use std::collections::BTreeMap;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+use anyhow::{bail, Context, Result};
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
+use serde::{Deserialize, Serialize};
+
+use crate::evidence::{BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence};
+
+pub const RAW_INVENTORY_SCHEMA_V1: &str = "bijux.container.image_inventory_scan.v1";
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ImageInventoryDerivationRequest {
+    pub repository_root: PathBuf,
+    pub study_root: PathBuf,
+    pub image_root: PathBuf,
+    pub build_evidence_root: PathBuf,
+    pub run_evidence_root: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ImageInventoryScan {
+    #[schemars(schema_with = "image_inventory_scan_schema_version")]
+    pub schema_version: String,
+    pub repository_commit: String,
+    pub catalog_sha256: String,
+    pub images: Vec<ImageInventoryScannedImage>,
+    pub staged_images: Vec<ImageInventoryScannedImage>,
+    pub build_evidence: Vec<ImageInventorySourceFile>,
+    pub run_references: BTreeMap<String, Vec<String>>,
+}
+
+fn image_inventory_scan_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": RAW_INVENTORY_SCHEMA_V1,
+    })
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ImageInventoryScannedImage {
+    pub path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ImageInventorySourceFile {
+    pub path: String,
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct BuildEvidenceDocument {
+    schema_version: String,
+    tool: String,
+    version: String,
+    status: BuildEvidenceStatus,
+    repository_commit: String,
+    #[serde(default)]
+    definition: Option<BuildDefinitionIdentity>,
+    #[serde(default)]
+    definition_sha256: Option<String>,
+    #[serde(default)]
+    build_context: Option<Vec<BuildContextIdentity>>,
+    #[serde(default)]
+    image: Option<BuildImageIdentity>,
+    #[serde(default)]
+    image_path: Option<String>,
+    #[serde(default)]
+    image_sha256: Option<String>,
+    #[serde(default)]
+    image_size_bytes: Option<u64>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct BuildDefinitionIdentity {
+    #[serde(default)]
+    path: Option<String>,
+    sha256: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct BuildImageIdentity {
+    #[serde(default)]
+    path: Option<String>,
+    sha256: String,
+    size_bytes: u64,
+}
+
+struct NormalizedBuildIdentity {
+    definition: BuildDefinitionIdentity,
+    image: BuildImageIdentity,
+}
+
+impl BuildEvidenceDocument {
+    fn normalize_identity(&mut self) -> Result<NormalizedBuildIdentity> {
+        match (
+            self.definition.take(),
+            self.image.take(),
+            self.definition_sha256.take(),
+            self.image_path.take(),
+            self.image_sha256.take(),
+            self.image_size_bytes.take(),
+        ) {
+            (Some(definition), Some(image), None, None, None, None) => {
+                Ok(NormalizedBuildIdentity { definition, image })
+            }
+            (None, None, Some(definition_sha256), image_path, Some(image_sha256), Some(size)) => {
+                Ok(NormalizedBuildIdentity {
+                    definition: BuildDefinitionIdentity { path: None, sha256: definition_sha256 },
+                    image: BuildImageIdentity {
+                        path: image_path,
+                        sha256: image_sha256,
+                        size_bytes: size,
+                    },
+                })
+            }
+            _ => bail!(
+                "build evidence must contain exactly one complete nested or flattened identity"
+            ),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub(super) struct IndexedBuildEvidence {
+    pub tool: String,
+    pub version: String,
+    pub definition_path: Option<String>,
+    pub image_name: Option<String>,
+    pub image_size_bytes: u64,
+    pub evidence: ContainerBuildEvidence,
+}
+
+pub(super) struct LoadedBuildEvidence {
+    pub by_digest: BTreeMap<String, Vec<IndexedBuildEvidence>>,
+    pub identities: Vec<ImageInventorySourceFile>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RunEvidenceLock {
+    schema_version: String,
+    image: RunImageIdentity,
+}
+
+#[derive(Debug, Deserialize)]
+struct RunImageIdentity {
+    sha256: String,
+}
+
+pub(super) fn scan_images(
+    request: &ImageInventoryDerivationRequest,
+) -> Result<Vec<(PathBuf, ImageInventoryScannedImage)>> {
+    let mut images = Vec::new();
+    for path in regular_files_with_suffix(&request.image_root, ".sif")? {
+        let metadata = fs::metadata(&path)
+            .with_context(|| format!("inspect container image {}", path.display()))?;
+        let sha256 = bijux_dna_infra::hash_file_sha256(&path)
+            .with_context(|| format!("hash container image {}", path.display()))?;
+        images.push((
+            path.clone(),
+            ImageInventoryScannedImage {
+                path: portable_evidence_path(&path, request)?,
+                sha256,
+                size_bytes: metadata.len(),
+            },
+        ));
+    }
+    Ok(images)
+}
+
+pub(super) fn scan_staged_images(
+    request: &ImageInventoryDerivationRequest,
+) -> Result<Vec<ImageInventoryScannedImage>> {
+    let root = request.image_root.join(".building");
+    if !root.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut images = Vec::new();
+    for path in regular_files_with_suffix(&root, ".sif")? {
+        let metadata = fs::metadata(&path)
+            .with_context(|| format!("inspect staged image {}", path.display()))?;
+        images.push(ImageInventoryScannedImage {
+            path: portable_evidence_path(&path, request)?,
+            sha256: bijux_dna_infra::hash_file_sha256(&path)
+                .with_context(|| format!("hash staged image {}", path.display()))?,
+            size_bytes: metadata.len(),
+        });
+    }
+    Ok(images)
+}
+
+pub(super) fn load_build_evidence(
+    request: &ImageInventoryDerivationRequest,
+) -> Result<LoadedBuildEvidence> {
+    let mut by_digest = BTreeMap::<String, Vec<IndexedBuildEvidence>>::new();
+    let mut identities = Vec::new();
+    for path in regular_files_with_suffix(&request.build_evidence_root, ".build.json")? {
+        let bytes = fs::read(&path)
+            .with_context(|| format!("read container build evidence {}", path.display()))?;
+        let mut document: BuildEvidenceDocument = serde_json::from_slice(&bytes)
+            .with_context(|| format!("parse container build evidence {}", path.display()))?;
+        if document.schema_version != "bijux.container.build_evidence.v1" {
+            bail!("unsupported container build evidence schema in {}", path.display());
+        }
+        let identity = document
+            .normalize_identity()
+            .with_context(|| format!("normalize container build evidence {}", path.display()))?;
+        validate_sha256(&identity.definition.sha256, "build-evidence definition")?;
+        validate_sha256(&identity.image.sha256, "build-evidence image")?;
+        let image_name = identity
+            .image
+            .path
+            .as_deref()
+            .map(Path::new)
+            .map(|path| {
+                path.file_name()
+                    .and_then(|name| name.to_str())
+                    .context("build-evidence image path has no UTF-8 filename")
+                    .map(str::to_string)
+            })
+            .transpose()?;
+        let indexed = IndexedBuildEvidence {
+            tool: document.tool,
+            version: document.version,
+            definition_path: identity.definition.path,
+            image_name,
+            image_size_bytes: identity.image.size_bytes,
+            evidence: ContainerBuildEvidence {
+                status: document.status,
+                definition_sha256: identity.definition.sha256,
+                repository_commit: document.repository_commit,
+                build_context: document.build_context,
+            },
+        };
+        by_digest.entry(identity.image.sha256).or_default().push(indexed);
+        identities.push(ImageInventorySourceFile {
+            path: portable_evidence_path(&path, request)?,
+            sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
+        });
+    }
+    Ok(LoadedBuildEvidence { by_digest, identities })
+}
+
+pub(super) fn load_run_references(
+    request: &ImageInventoryDerivationRequest,
+) -> Result<BTreeMap<String, Vec<String>>> {
+    let mut references = BTreeMap::<String, Vec<String>>::new();
+    for entry in fs::read_dir(&request.run_evidence_root).with_context(|| {
+        format!("read container run evidence root {}", request.run_evidence_root.display())
+    })? {
+        let entry = entry.context("read container run evidence entry")?;
+        let name = entry.file_name();
+        let name = name.to_string_lossy();
+        if !entry.file_type().context("inspect container run evidence entry")?.is_dir()
+            || !name.starts_with("run-")
+        {
+            continue;
+        }
+        let lock_path = entry.path().join("evidence.lock.json");
+        if !lock_path.is_file() {
+            continue;
+        }
+        let bytes = fs::read(&lock_path)
+            .with_context(|| format!("read container run evidence {}", lock_path.display()))?;
+        let lock: RunEvidenceLock = serde_json::from_slice(&bytes)
+            .with_context(|| format!("parse container run evidence {}", lock_path.display()))?;
+        if lock.schema_version != "bijux.container.run_evidence_lock.v1" {
+            bail!("unsupported container run evidence schema in {}", lock_path.display());
+        }
+        validate_sha256(&lock.image.sha256, "run image")?;
+        references
+            .entry(lock.image.sha256)
+            .or_default()
+            .push(portable_evidence_path(&lock_path, request)?);
+    }
+    for paths in references.values_mut() {
+        paths.sort();
+        paths.dedup();
+    }
+    Ok(references)
+}
+
+pub(super) fn portable_evidence_path(
+    path: &Path,
+    request: &ImageInventoryDerivationRequest,
+) -> Result<String> {
+    for (scheme, root) in
+        [("study", request.study_root.as_path()), ("repository", request.repository_root.as_path())]
+    {
+        if let Ok(relative) = path.strip_prefix(root) {
+            return Ok(format!("{scheme}://{}", relative.to_string_lossy()));
+        }
+    }
+    bail!("evidence path {} is outside governed study and repository roots", path.display())
+}
+
+fn regular_files_with_suffix(root: &Path, suffix: &str) -> Result<Vec<PathBuf>> {
+    let mut paths = Vec::new();
+    for entry in
+        fs::read_dir(root).with_context(|| format!("read evidence root {}", root.display()))?
+    {
+        let entry =
+            entry.with_context(|| format!("read evidence entry under {}", root.display()))?;
+        if entry.file_type().context("inspect evidence entry")?.is_file()
+            && entry.file_name().to_string_lossy().ends_with(suffix)
+        {
+            paths.push(entry.path());
+        }
+    }
+    paths.sort();
+    Ok(paths)
+}
+
+fn validate_sha256(value: &str, label: &str) -> Result<()> {
+    if value.len() != 64 || !value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        bail!("{label} identity is not a SHA-256 digest: {value}");
+    }
+    Ok(())
+}

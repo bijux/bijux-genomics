@@ -142,6 +142,36 @@ fn stage_interface_contracts_reject_parameter_ownership_overlap() {
 }
 
 #[test]
+fn checked_interface_schemas_match_model_authority() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("benchmark model crate is outside the workspace"))?;
+    let schemas = [
+        (
+            repository_root.join("benchmarks/contracts/schemas/stage-interfaces.schema.json"),
+            serde_json::to_value(bijux_dna_bench_model::benchmark_stage_interface_catalog_schema())?,
+        ),
+        (
+            repository_root.join("benchmarks/contracts/config-pipeline-parameters.schema.json"),
+            serde_json::to_value(
+                bijux_dna_bench_model::benchmark_pipeline_parameter_config_schema(),
+            )?,
+        ),
+    ];
+    for (path, generated) in schemas {
+        if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+            let mut bytes = serde_json::to_vec_pretty(&generated)?;
+            bytes.push(b'\n');
+            std::fs::write(&path, bytes)?;
+        }
+        let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(&path)?)?;
+        assert_eq!(checked, generated, "interface schema drifted: {}", path.display());
+    }
+    Ok(())
+}
+
+#[test]
 fn stage_interface_contracts_reject_campaign_tool_drift() {
     let catalog = interface_catalog();
     let mut registry = campaign_registry();

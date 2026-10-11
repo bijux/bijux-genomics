@@ -1,7 +1,7 @@
 # bijux-dna-runner
 
 ## What this crate does
-`bijux-dna-runner` is the controlled execution boundary for already-planned DNA workflow steps. It turns typed execution specs into Docker or Apptainer process calls, captures stdout, stderr, exit status, and runner artifacts, and can replay existing execution records without running tools again.
+`bijux-dna-runner` is the controlled execution boundary for already-planned DNA workflow steps. It turns typed execution specs into Docker or Apptainer process calls, provides one-shot non-waiting Slurm lifecycle operations, captures stdout, stderr, exit status, and runner artifacts, and can replay existing execution records without running tools again.
 
 ## What it must not do (boundaries)
 This crate must not plan stages, select tools, parse domain data, own CLI UX, produce analyzer reports, or reach into engine/planner internals. It receives resolved execution intent and performs only the declared runner effect.
@@ -10,7 +10,11 @@ This crate must not plan stages, select tools, parse domain data, own CLI UX, pr
 Upstream callers use the `bijux-dna-runtime::Runner` contract and runner facade exports. Downstream effects are process execution, artifact collection, and execution-record replay under declared runtime roots.
 
 ## Public API / entrypoints
-Use `bijux_dna_runner::api::*` for stable consumer-facing entrypoints. The crate root also exports `ApptainerRunner`, `DockerRunner`, and `LocalRunner` for the concrete runtime adapters. See `docs/PUBLIC_API.md` for the full facade contract and `docs/COMMANDS.md` for the command inventory this crate may manage.
+Use `bijux_dna_runner::api::*` for stable consumer-facing entrypoints. The crate root also exports `ApptainerRunner`, `DockerRunner`, and `LocalRunner` for the concrete runtime adapters. Slurm callers submit, observe, collect, or cancel once per call and own their scheduling cadence. See `docs/PUBLIC_API.md` for the full facade contract and `docs/COMMANDS.md` for the command inventory this crate may manage.
+
+Benchmark callers first use `prepare_benchmark_slurm_job` to turn a persisted execution
+specification into exact scheduler material, then use `submit_prepared_benchmark_job` for
+intent-first, non-waiting, duplicate-safe scheduler submission.
 
 ## Key contracts it owns/consumes
 The runner owns backend execution specs, command invocation identity, stdout/stderr capture, exit mapping, runner artifacts, replay verification, and the dependency/effect boundary around those responsibilities.

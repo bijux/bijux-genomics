@@ -92,3 +92,96 @@ pub struct BenchmarkBundleManifest {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub scientific_caveats: Vec<String>,
 }
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkFastqLayout {
+    SingleEnd,
+    PairedEnd,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedFastqCorpusFile {
+    pub path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mate: Option<u8>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedFastqCorpusSample {
+    pub sample_id: String,
+    pub input_layout: BenchmarkFastqLayout,
+    pub files: Vec<AdmittedFastqCorpusFile>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedFastqCorpus {
+    pub corpus_id: String,
+    pub data_index_path: String,
+    pub data_index_sha256: String,
+    pub catalog_path: String,
+    pub catalog_sha256: String,
+    pub sample_count: u64,
+    pub file_count: u64,
+    pub input_bytes: u64,
+    pub samples: Vec<AdmittedFastqCorpusSample>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedBamCorpusFile {
+    pub path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct AdmittedBamCorpus {
+    pub corpus_id: String,
+    pub sample_id: String,
+    pub data_index_path: String,
+    pub data_index_sha256: String,
+    pub catalog_path: String,
+    pub catalog_sha256: String,
+    pub bam: AdmittedBamCorpusFile,
+    pub bam_index: AdmittedBamCorpusFile,
+    pub input_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct FastqReadLengthExpectationSample {
+    pub sample_id: String,
+    pub input_layout: BenchmarkFastqLayout,
+    pub file_count: u64,
+    pub read_count: u64,
+    pub minimum_read_length: u64,
+    pub mean_read_length: f64,
+    pub median_read_length: f64,
+    pub maximum_read_length: u64,
+    pub distinct_read_lengths: u64,
+    pub summary_path: String,
+    pub summary_sha256: String,
+    pub histogram_path: String,
+    pub histogram_sha256: String,
+    pub exact_rows_sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct FastqReadLengthExpectations {
+    pub schema_version: String,
+    pub corpus_id: String,
+    pub derivation_sha256: String,
+    pub sample_count: u64,
+    pub file_count: u64,
+    pub data_index_sha256: String,
+    pub catalog_sha256: String,
+    pub samples: Vec<FastqReadLengthExpectationSample>,
+}

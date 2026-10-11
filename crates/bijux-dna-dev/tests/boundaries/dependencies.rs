@@ -17,6 +17,8 @@ fn dependency_graph_matches_dev_boundary() {
         "bijux-dna-db-ref",
         "bijux-dna-environment",
         "bijux-dna-infra",
+        "bijux-dna-runtime",
+        "bijux-dna-runner",
         "chrono",
         "clap",
         "regex",
@@ -44,10 +46,10 @@ fn dependency_graph_matches_dev_boundary() {
         "reqwest must use the workspace dependency declaration"
     );
 
-    for forbidden in ["bijux-dna-engine", "bijux-dna-planner", "bijux-dna-runtime"] {
+    for forbidden in ["bijux-dna-engine", "bijux-dna-planner"] {
         assert!(
             !dependencies.contains(forbidden),
-            "production runtime dependency `{forbidden}` must not enter bijux-dna-dev"
+            "production execution dependency `{forbidden}` must not enter bijux-dna-dev"
         );
     }
 }

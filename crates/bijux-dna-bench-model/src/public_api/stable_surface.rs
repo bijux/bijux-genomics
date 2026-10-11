@@ -6,39 +6,71 @@ pub use crate::contract;
 pub use crate::contract::{
     append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
     validate_attempt_identity, validate_attempt_record_v2, validate_attempt_transition,
-    validate_cycle_status_v2, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    validate_campaign_plan, validate_cycle_status_v2, validate_execution_spec,
+    validate_fastq_read_length_expectations, validate_scheduler_observation,
+    validate_scientific_readiness, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
-    BENCHMARK_CYCLE_STATUS_SCHEMA_V2, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
+    BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
+    BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
-    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
-    BENCHMARK_STAGE_REPORT_SCHEMA_V1,
+    BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
+    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
+    BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
 };
 pub use crate::diagnostics::BenchError;
 pub use crate::model::decision::DecisionRationale;
+pub use crate::model::execution::{
+    benchmark_execution_spec_schema, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
+    BenchmarkAcceptanceOperator, BenchmarkExecutionAcceptance, BenchmarkExecutionCachePolicy,
+    BenchmarkExecutionCommands, BenchmarkExecutionDeterminism, BenchmarkExecutionDownstreamProbe,
+    BenchmarkExecutionImage, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
+    BenchmarkExecutionInterface, BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs,
+    BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
+    BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
+    BenchmarkExecutionSpec,
+};
 pub use crate::model::graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 pub use crate::model::interfaces::{
+    benchmark_pipeline_parameter_config_schema, benchmark_stage_interface_catalog_schema,
     BenchmarkParameterValue, BenchmarkPipelineParameterConfig, BenchmarkStageDownstreamProbe,
     BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
 };
 pub use crate::model::lifecycle::{
+    benchmark_attempt_archive_schema, benchmark_attempt_migration_ledger_schema,
+    benchmark_attempt_migration_plan_schema, benchmark_attempt_schema, benchmark_attempt_v2_schema,
+    benchmark_campaign_plan_schema, benchmark_cycle_status_schema,
+    benchmark_cycle_status_v2_schema, benchmark_scheduler_observation_schema,
     BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
     BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationEntry,
     BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
     BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
     BenchmarkAttemptMigrationState, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkCycleStatus, BenchmarkCycleStatusV2,
-    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatus,
+    BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkJobReference,
+    BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkSchedulerAccounting,
+    BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
+    BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
+    BenchmarkSchedulerTerminalState,
 };
 pub use crate::model::observation::MetricsEnvelope;
 pub use crate::model::planning::{
+    benchmark_portfolio_schema, benchmark_scientific_readiness_schema,
+    benchmark_stage_campaign_registry_schema, benchmark_stage_coverage_schema,
     BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract,
     BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
     BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
     BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
-    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
+    BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
+    BenchmarkScientificReadinessReport, BenchmarkScientificReadinessStage,
+    BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
+    BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
+    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus,
 };
 pub use crate::model::report::{
+    admitted_benchmark_stage_report_schema, benchmark_stage_report_schema,
     AdmittedBenchmarkStageReport, BenchmarkComparisonMetric, BenchmarkComparisonStatus,
     BenchmarkCrossToolComparison, BenchmarkMetricDistribution, BenchmarkReportComparability,
     BenchmarkReportDeterminism, BenchmarkReportDownstreamProbe, BenchmarkReportImage,
@@ -52,8 +84,11 @@ pub use crate::model::suite::{
 };
 pub use crate::model::summary::{MetricSummary, SummaryRow, SummaryStratum};
 pub use crate::model::{
-    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, CorpusDatasetSpec,
-    CorpusDomain, CorpusScale, DriftScenarioSpec, TruthSetHook, TruthSetStatus,
+    AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile,
+    AdmittedFastqCorpusSample, BackendComparisonSpec, BenchmarkBundleManifest,
+    BenchmarkCorpusManifest, BenchmarkFastqLayout, CorpusDatasetSpec, CorpusDomain, CorpusScale,
+    DriftScenarioSpec, FastqReadLengthExpectationSample, FastqReadLengthExpectations, TruthSetHook,
+    TruthSetStatus,
 };
 pub use crate::model::{
     BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,

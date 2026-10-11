@@ -5,6 +5,16 @@
         "image_sha256": {
           "type": "string"
         },
+        "manifest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceSourceIdentity"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "status": {
           "$ref": "#/$defs/RuntimeEvidenceStatus"
         },

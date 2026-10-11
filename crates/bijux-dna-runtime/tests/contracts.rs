@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/benchmark_attempt_lifecycle.rs"]
+mod mod_contracts_benchmark_attempt_lifecycle_rs;
 #[path = "contracts/canonical_writer.rs"]
 mod mod_contracts_canonical_writer_rs;
 #[path = "contracts/docs_layout.rs"]

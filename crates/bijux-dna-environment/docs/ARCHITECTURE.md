@@ -8,9 +8,11 @@ CLI, runner, planner, stage, and domain crates.
 
 - `src/lib.rs`: crate root and stable module exports.
 - `src/public_api/`: facade re-export surface for consumers that need one stable import path.
-- `src/evidence/`: typed image-inventory and runtime-verification publication admission, plus
-  catalog-derived embedded tool identity contracts.
-- `src/build/`: Docker metadata plus bounded Apptainer builds with immutable attempt logs.
+- `src/evidence/`: typed image-inventory and runtime-verification execution/publication,
+  cross-publication evidence-chain validation, complete catalog and recipe-closure validation,
+  catalog-derived embedded tool identity contracts, and parallel immutable smoke evidence.
+- `src/build/`: Docker metadata, bounded Apptainer attempts, and canonical no-clobber image and
+  build-evidence publication under governed study roots.
 - `src/resolve/types/`: serialized models, runtime enum, platform records, and environment errors.
 - `src/resolve/catalog/`: TOML catalog loading, registry digest hydration, and image reference
   synthesis.
@@ -25,16 +27,20 @@ CLI, runner, planner, stage, and domain crates.
 
 ## Data Flow
 
-1. Build services supply Docker metadata or execute an identity-bound Apptainer image attempt.
+1. Build services supply Docker metadata or publish an identity-bound Apptainer image from clean,
+   committed inputs through staging, contract inspection, digest naming, and immutable evidence.
 2. Platform TOML selects runner, architecture, image prefix, and container directory rules.
 3. Image catalog TOML provides tool versions and optional digests.
 4. Registry pins can hydrate missing digests from the local registry file.
 5. Resolver functions return `ResolvedImage`, `PlatformSpec`, `RuntimeSpec`, or reference records.
-6. Evidence loaders admit immutable image and runtime publications before qualification consumers
-   compose higher-level policy decisions.
+6. The evidence-chain loader admits immutable catalog, image, and runtime publications and verifies
+   their repository, inventory, selected-image, and retained-tool identities before qualification
+   consumers compose higher-level policy decisions.
 7. Tool-contract preparation hashes canonical catalog, recipe, source, interface, repository, and
    architecture inputs into a rendered definition; runtime inspection binds that non-circular
    identity to the externally computed immutable SIF digest.
+8. Runtime verification resolves only canonical inventory selections, executes bounded offline
+   probes in parallel, and binds immutable logs and manifests into the portable publication.
 
 ## Boundaries
 
@@ -43,8 +49,8 @@ CLI, runner, planner, stage, and domain crates.
   `ReferenceBuildRequest`.
 - The crate must not own biological stage execution, planner semantics, user CLI routing, report
   rendering, or runner backends.
-- Runtime QA orchestration belongs in `bijux-dna-environment-qa`; this crate exposes compatibility
-  helpers that the QA crate may call.
+- Cross-runtime and scientific QA orchestration belongs in `bijux-dna-environment-qa`; canonical
+  image identity and version/help admission remain environment evidence responsibilities.
 
 ## Change Rules
 

@@ -1,7 +1,8 @@
 use std::fmt::Write as _;
+use std::io::Read;
 use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::time::SystemTime;
+use std::process::{Command, Stdio};
+use std::time::{Duration, Instant, SystemTime};
 
 use anyhow::{anyhow, Context, Result};
 use regex::Regex;
@@ -10,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 pub const APPTAINER_SMOKE_MANIFEST_SCHEMA_V5: &str = "bijux.apptainer.smoke_manifest.v5";
+pub const APPTAINER_SMOKE_MANIFEST_SCHEMA_V6: &str = "bijux.apptainer.smoke_manifest.v6";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ApptainerSmokeRequest {
@@ -30,6 +32,8 @@ pub struct ApptainerSmokeRequest {
     pub probe_commands: Vec<String>,
     pub java_heap_mb: Option<u64>,
     pub upstream: String,
+    pub evidence_root: Option<PathBuf>,
+    pub timeout: Duration,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -38,6 +42,16 @@ pub struct ApptainerSmokeProbeResult {
     pub command: String,
     pub applied_command: String,
     pub ok: bool,
+    pub exit_code: Option<i32>,
+    pub timed_out: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stdout_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stdout_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stderr_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stderr_sha256: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub output_sha256: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -87,24 +101,39 @@ pub fn run_apptainer_smoke(request: &ApptainerSmokeRequest) -> Result<ApptainerS
     let mut version_output = String::new();
     for (index, command) in commands.iter().enumerate() {
         let applied_command = apply_heap_policy(&request.tool_id, command, request.java_heap_mb);
-        match run_apptainer_probe(request, &applied_command) {
-            Ok(output) => {
+        match run_apptainer_probe(request, &applied_command, index) {
+            Ok(probe) => {
+                let mut output = String::from_utf8_lossy(&probe.stdout).into_owned();
+                output.push_str(&String::from_utf8_lossy(&probe.stderr));
+                let error = probe_error(&probe, &output);
                 if index == 0 {
                     version_output.clone_from(&output);
                 }
                 probe_results.push(ApptainerSmokeProbeResult {
                     command: command.clone(),
                     applied_command,
-                    ok: true,
+                    ok: probe.exit_code == Some(0) && !probe.timed_out,
+                    exit_code: probe.exit_code,
+                    timed_out: probe.timed_out,
+                    stdout_path: probe.stdout_path,
+                    stdout_sha256: Some(sha256_hex(&probe.stdout)),
+                    stderr_path: probe.stderr_path,
+                    stderr_sha256: Some(sha256_hex(&probe.stderr)),
                     output_sha256: Some(sha256_hex(output.as_bytes())),
                     output_first_line: first_line(&output),
-                    error: None,
+                    error,
                 });
             }
             Err(error) => probe_results.push(ApptainerSmokeProbeResult {
                 command: command.clone(),
                 applied_command,
                 ok: false,
+                exit_code: None,
+                timed_out: false,
+                stdout_path: None,
+                stdout_sha256: None,
+                stderr_path: None,
+                stderr_sha256: None,
                 output_sha256: None,
                 output_first_line: None,
                 error: Some(format!("{error:#}")),
@@ -127,7 +156,7 @@ pub fn run_apptainer_smoke(request: &ApptainerSmokeRequest) -> Result<ApptainerS
         .and_then(|timestamp| timestamp.duration_since(SystemTime::UNIX_EPOCH).ok())
         .map_or(0, |duration| duration.as_secs());
     Ok(ApptainerSmokeManifest {
-        schema_version: APPTAINER_SMOKE_MANIFEST_SCHEMA_V5.to_string(),
+        schema_version: APPTAINER_SMOKE_MANIFEST_SCHEMA_V6.to_string(),
         tool_id: request.tool_id.clone(),
         stage_id: request.stage_id.clone(),
         status: if all_probes_passed && help_ok && version_matches_contract {
@@ -169,30 +198,106 @@ fn effective_probe_commands(request: &ApptainerSmokeRequest) -> Vec<String> {
     commands
 }
 
-fn run_apptainer_probe(request: &ApptainerSmokeRequest, command: &str) -> Result<String> {
+struct ProbeExecution {
+    stdout: Vec<u8>,
+    stderr: Vec<u8>,
+    exit_code: Option<i32>,
+    timed_out: bool,
+    stdout_path: Option<String>,
+    stderr_path: Option<String>,
+}
+
+fn run_apptainer_probe(
+    request: &ApptainerSmokeRequest,
+    command: &str,
+    probe_index: usize,
+) -> Result<ProbeExecution> {
     let mut process = Command::new(&request.executable);
-    process.args(["exec", "--containall", "--cleanenv", "--net", "--network", "none"]);
+    process.args([
+        "exec",
+        "--containall",
+        "--cleanenv",
+        "--hostname",
+        "bijux-runtime",
+        "--net",
+        "--network",
+        "none",
+    ]);
     process.args(["--bind", &format!("{}:/bijux/input:ro", request.data_root.display())]);
     process.args(["--bind", &format!("{}:/bijux/output:rw", request.results_root.display())]);
     let banks_root = request.data_root.join("banks");
     if banks_root.exists() {
         process.args(["--bind", &format!("{}:/bijux/db:ro", banks_root.display())]);
     }
-    let output = process
+    let mut child = process
         .arg(&request.image_path)
         .args(["sh", "-lc", command])
-        .output()
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
         .with_context(|| format!("execute Apptainer probe for {}", request.tool_id))?;
-    let mut combined = String::from_utf8_lossy(&output.stdout).into_owned();
-    combined.push_str(&String::from_utf8_lossy(&output.stderr));
-    if !output.status.success() {
-        return Err(anyhow!(
-            "Apptainer probe `{command}` failed with {}: {}",
-            output.status,
-            combined.trim()
-        ));
+    let stdout = child.stdout.take().context("capture Apptainer probe stdout")?;
+    let stderr = child.stderr.take().context("capture Apptainer probe stderr")?;
+    let stdout_reader = std::thread::spawn(move || read_stream(stdout));
+    let stderr_reader = std::thread::spawn(move || read_stream(stderr));
+    let deadline = Instant::now() + request.timeout;
+    let (exit_code, timed_out) = loop {
+        if let Some(status) = child.try_wait().context("observe Apptainer probe")? {
+            break (status.code(), false);
+        }
+        if Instant::now() >= deadline {
+            child.kill().context("terminate timed-out Apptainer probe")?;
+            let status = child.wait().context("reap timed-out Apptainer probe")?;
+            break (status.code(), true);
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    };
+    let stdout =
+        stdout_reader.join().map_err(|_| anyhow!("Apptainer stdout reader panicked"))??;
+    let stderr =
+        stderr_reader.join().map_err(|_| anyhow!("Apptainer stderr reader panicked"))??;
+    let (stdout_path, stderr_path) = if let Some(root) = &request.evidence_root {
+        bijux_dna_infra::ensure_dir(root)?;
+        let stem = format!("{}-{probe_index:02}", request.tool_id);
+        let stdout_path = root.join(format!("{stem}.stdout.log"));
+        let stderr_path = root.join(format!("{stem}.stderr.log"));
+        ensure_immutable_bytes(&stdout_path, &stdout)?;
+        ensure_immutable_bytes(&stderr_path, &stderr)?;
+        (Some(stdout_path.display().to_string()), Some(stderr_path.display().to_string()))
+    } else {
+        (None, None)
+    };
+    Ok(ProbeExecution { stdout, stderr, exit_code, timed_out, stdout_path, stderr_path })
+}
+
+fn read_stream(mut stream: impl Read) -> Result<Vec<u8>> {
+    let mut bytes = Vec::new();
+    stream.read_to_end(&mut bytes).context("read Apptainer probe output")?;
+    Ok(bytes)
+}
+
+fn ensure_immutable_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
+    if path.try_exists()? {
+        let existing = std::fs::read(path)
+            .with_context(|| format!("read existing smoke evidence {}", path.display()))?;
+        if existing != bytes {
+            return Err(anyhow!("smoke evidence differs at immutable path {}", path.display()));
+        }
+        return Ok(());
     }
-    Ok(combined)
+    bijux_dna_infra::atomic_create_bytes(path, bytes)
+        .with_context(|| format!("create smoke evidence {}", path.display()))?;
+    Ok(())
+}
+
+fn probe_error(probe: &ProbeExecution, output: &str) -> Option<String> {
+    if probe.timed_out {
+        Some("Apptainer probe timed out".to_string())
+    } else if probe.exit_code != Some(0) {
+        Some(format!("Apptainer probe exited {:?}: {}", probe.exit_code, output.trim()))
+    } else {
+        None
+    }
 }
 
 fn validate_request(request: &ApptainerSmokeRequest) -> Result<()> {
@@ -218,6 +323,9 @@ fn validate_request(request: &ApptainerSmokeRequest) -> Result<()> {
         .any(|command| command.trim().is_empty() || command != command.trim())
     {
         return Err(anyhow!("Apptainer smoke probe command is empty or malformed"));
+    }
+    if request.timeout.is_zero() {
+        return Err(anyhow!("Apptainer smoke timeout must be positive"));
     }
     for (value, length, field) in [
         (&request.build_evidence_id, 64, "build_evidence_id"),

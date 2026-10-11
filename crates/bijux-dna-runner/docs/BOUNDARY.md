@@ -15,6 +15,8 @@ Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux
 - Spawn declared backend commands and capture stdout, stderr, and exit status.
 - Write runner-owned execution artifacts under declared run/output roots.
 - Replay existing execution manifests without executing tools.
+- Submit bounded Slurm batches without waiting, observe queue state once, collect
+  terminal accounting, and request cancellation from typed scheduler identities.
 
 ## Forbidden Runtime Responsibilities
 - Planning stages or selecting tools.
