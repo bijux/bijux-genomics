@@ -83,8 +83,84 @@
       "properties": {
         "version": {"$ref": "#/$defs/argv"},
         "help": {"$ref": "#/$defs/argv"},
+        "warmup": {"$ref": "#/$defs/argv"},
         "real": {"$ref": "#/$defs/argv"},
         "negative": {"$ref": "#/$defs/argv"}
+      },
+      "additionalProperties": false
+    },
+    "measurement": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "warmup_repetitions",
+        "measured_repetitions",
+        "resource_file_template",
+        "runtime_scope"
+      ],
+      "properties": {
+        "schema_version": {"const": "bijux.benchmark.repeated_measurement.v1"},
+        "warmup_repetitions": {"const": 1},
+        "measured_repetitions": {"type": "integer", "minimum": 1, "maximum": 10},
+        "resource_file_template": {"const": "repetitions/repetition-{repetition}.resource.tsv"},
+        "runtime_scope": {"const": "containerized_stage_end_to_end"}
+      },
+      "additionalProperties": false
+    },
+    "parameters": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "parameter_schema_version",
+        "defaults_provider",
+        "overrides_file",
+        "overrides_sha256",
+        "effective_file",
+        "effective_sha256"
+      ],
+      "properties": {
+        "schema_version": {"const": "bijux.benchmark.parameter_evidence.v1"},
+        "parameter_schema_version": {"type": "string", "minLength": 1},
+        "defaults_provider": {"type": "string", "minLength": 1},
+        "overrides_file": {"const": "config-pipeline-parameters.yml"},
+        "overrides_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "effective_file": {"const": "effective-parameters.json"},
+        "effective_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "interface": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "accepted_input_contracts",
+        "output_contract",
+        "normalized_result_contract",
+        "adapter",
+        "downstream_probe"
+      ],
+      "properties": {
+        "schema_version": {"const": "bijux.benchmark.stage_interface_evidence.v1"},
+        "accepted_input_contracts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "output_contract": {"type": "string", "minLength": 1},
+        "normalized_result_contract": {"$ref": "#/$defs/relative_path"},
+        "adapter": {"type": "string", "minLength": 1},
+        "downstream_probe": {
+          "type": "object",
+          "required": ["stage_id", "input_contract", "source", "artifact"],
+          "properties": {
+            "stage_id": {"type": "string", "minLength": 1},
+            "input_contract": {"type": "string", "minLength": 1},
+            "source": {"type": "string", "minLength": 1},
+            "artifact": {"$ref": "#/$defs/relative_path"}
+          },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },

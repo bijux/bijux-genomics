@@ -41,12 +41,6 @@ outputs:
   - name: "filter_report_json"
     data_type: "json"
     cardinality: "One"
-  - name: "length_distribution_tsv"
-    data_type: "tsv"
-    cardinality: "One"
-  - name: "length_distribution_json"
-    data_type: "json"
-    cardinality: "One"
 metrics_parser: "prinseq_v1"
 constraints:
   runtime: "local"
@@ -67,8 +61,6 @@ execution_contract:
     - "filtered_fastq_r2"
     - "report_json"
     - "filter_report_json"
-    - "length_distribution_tsv"
-    - "length_distribution_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: false
 upstream: "https://github.com/Adrian-Cantu/PRINSEQ-plus-plus"
@@ -79,7 +71,6 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3051327/"
 stage_ids:
-  - "fastq.profile_read_lengths"
   - "fastq.trim_reads"
   - "fastq.filter_reads"
   - "fastq.filter_low_complexity"
@@ -108,14 +99,6 @@ stage_contracts:
       - "filtered_fastq_r2"
       - "filter_report_json"
     notes: "PRINSEQ low-complexity filtering emits paired filtered reads and the canonical governed low-complexity report."
-  fastq.profile_read_lengths:
-    required_inputs:
-      - "reads_r1"
-    expected_artifacts:
-      - "report_json"
-      - "length_distribution_tsv"
-      - "length_distribution_json"
-    notes: "PRINSEQ length profiling emits deterministic length-distribution summaries and the governed summary report."
 expected_artifacts:
   - "trimmed_reads_r1"
   - "trimmed_reads_r2"
@@ -125,8 +108,6 @@ expected_artifacts:
   - "filtered_fastq_r1"
   - "filtered_fastq_r2"
   - "filter_report_json"
-  - "length_distribution_tsv"
-  - "length_distribution_json"
 metrics_schema_id: "bijux.tool.metrics.v1"
 metrics_schema: "bijux.tool.metrics.v1"
 version_cmd: "prinseq++ --version"

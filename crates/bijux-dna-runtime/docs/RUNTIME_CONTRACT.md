@@ -84,3 +84,10 @@ See `tests/contracts/reference/reference_example.rs` for a minimal end-to-end ex
 - Schema changes must update fixture snapshots in the same change.
 - Runtime writer changes must preserve canonical JSON where required.
 - Telemetry taxonomy changes must update telemetry contract and golden tests.
+## Run Evidence Admission
+
+`RunEvidenceIndex` owns `bijux.container.run_evidence_index.v2` as persisted execution
+provenance. Admission requires one owner per run ID, immutable evidence-lock and repository
+identities, scheduler identity, source evidence, stage, tool, corpus, sample, and explicit
+execution and scientific statuses. Loading is read-only so historical STUDY evidence is never
+rewritten during import.

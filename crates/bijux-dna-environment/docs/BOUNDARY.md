@@ -8,6 +8,8 @@ Owner: environment facts and bounded host-environment inspection.
 - Tool image catalog loading, validation, digest hydration, and deterministic image names.
 - Cache root and SIF path derivation from declared environment variables.
 - Dockerfile version extraction for curated tool images.
+- Apptainer image build attempts, retry classification, and immutable build logs.
+- Offline Apptainer tool-contract smoke execution and evidence verdicts.
 - Explicit reference registration and optional index preparation commands.
 - Local runner probes and smoke-command wrappers listed in `COMMANDS.md`.
 

@@ -77,6 +77,9 @@ pub(super) fn run_native_container_command(
             ensure_no_args("check-tool-name-map-generated", args)?;
             metadata::check_tool_name_map_generated(workspace)
         }
+        NativeContainerCommandKey::CheckRegistryDrift => {
+            registry_catalog::check_registry_drift(workspace, args)
+        }
         NativeContainerCommandKey::GenerateContainerIndex => {
             metadata::generate_container_index(workspace, args)
         }
@@ -89,6 +92,14 @@ pub(super) fn run_native_container_command(
         }
         NativeContainerCommandKey::GenerateGhcrApptainerPublishMatrix => {
             metadata::generate_ghcr_apptainer_publish_matrix(workspace, args)
+        }
+        NativeContainerCommandKey::CheckGhcrPublishMatrix => {
+            ensure_no_args("check-ghcr-publish-matrix", args)?;
+            metadata::check_ghcr_publish_matrix(workspace, metadata::GhcrRuntimeKind::DockerArm64)
+        }
+        NativeContainerCommandKey::CheckGhcrApptainerPublishMatrix => {
+            ensure_no_args("check-ghcr-apptainer-publish-matrix", args)?;
+            metadata::check_ghcr_publish_matrix(workspace, metadata::GhcrRuntimeKind::Apptainer)
         }
         NativeContainerCommandKey::GenerateLicenseMetadata => {
             metadata::generate_license_metadata(workspace, args)
@@ -173,6 +184,13 @@ pub(super) fn run_native_container_command(
         NativeContainerCommandKey::CheckEvidenceQualification => {
             ensure_no_args("check-evidence-qualification", args)?;
             contracts::check_evidence_qualification(workspace)
+        }
+        NativeContainerCommandKey::GenerateQualificationSchema => {
+            contracts::generate_qualification_schema(workspace, args)
+        }
+        NativeContainerCommandKey::CheckQualificationSchema => {
+            ensure_no_args("check-qualification-schema", args)?;
+            contracts::check_qualification_schema(workspace)
         }
         NativeContainerCommandKey::DeprecateVersion => {
             versioning::deprecate_version(workspace, args)

@@ -2,12 +2,12 @@ schema_version: "bijux.tool.v2"
 tool_id: "ngsbriggs"
 upstream: "https://github.com/RAHenriksen/ngsBriggs"
 versioning_strategy: "pinned"
-pin_strategy: "pinned"
-default_version: "0.1.3"
-install_kind: "container"
+pin_strategy: "external_tool"
+default_version: "0.01"
+install_kind: "external"
 container:
-  image: "bijuxdna/ngsbriggs:0.1.3"
-license: "GPL-3.0"
+  image: "external"
+license: "NOASSERTION"
 citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC11646307/"
 outputs:
   - name: "damage_report"
@@ -42,7 +42,7 @@ execution_contract:
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 stage_ids: ["bam.damage"]
-status: "supported"
+status: "planned"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
   bam.damage:
@@ -74,4 +74,4 @@ io_contract:
     - bam
     - reference
 
-notes: "Domain SSOT tool contract entry."
+notes: "Operator-provided scientific integration only; the catalog forbids container redistribution because upstream publishes no license grant."

@@ -10,8 +10,9 @@
 ## Stable Root Exports
 
 - Hashing: `hash_file_sha256`.
-- Filesystem IO: `ensure_dir`, `create_file`, `atomic_write_bytes`, `atomic_write_json`,
-  `atomic_write_with`, `atomic_write_bytes_with_retry`, `write_bytes`, `write_string`,
+- Filesystem IO: `ensure_dir`, `create_file`, `atomic_create_bytes`, `atomic_create_json`,
+  `atomic_create_with`, `atomic_write_bytes`, `atomic_write_json`, `atomic_write_with`,
+  `atomic_write_bytes_with_retry`, `write_bytes`, `write_string`,
   `append_line`, `copy_file`, `rename`, `read_to_end_bounded`, `remove_file`,
   `remove_file_if_exists`, `remove_dir_all`, `remove_path_if_exists`, `IoError`, `IoErrorKind`,
   and `classify_io_error`.

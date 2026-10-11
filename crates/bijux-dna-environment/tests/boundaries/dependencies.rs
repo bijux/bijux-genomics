@@ -8,16 +8,25 @@ fn dependency_graph_matches_environment_boundary() {
         .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
 
     let dependencies = section_keys(&manifest, "[dependencies]");
-    let expected_dependencies: BTreeSet<_> =
-        ["anyhow", "bijux-dna-infra", "regex", "serde", "sha2", "thiserror"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_dependencies: BTreeSet<_> = [
+        "anyhow",
+        "bijux-dna-infra",
+        "regex",
+        "schemars",
+        "serde",
+        "serde_json",
+        "sha2",
+        "thiserror",
+        "toml",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(dependencies, expected_dependencies, "unexpected direct dependency shape");
 
     let dev_dependencies = section_keys(&manifest, "[dev-dependencies]");
     let expected_dev_dependencies: BTreeSet<_> =
-        ["bijux-dna-core", "bijux-dna-policies", "bijux-dna-testkit", "walkdir"]
+        ["bijux-dna-core", "bijux-dna-policies", "bijux-dna-testkit", "tempfile", "walkdir"]
             .into_iter()
             .map(str::to_string)
             .collect();

@@ -149,7 +149,7 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "default stage assumptions captured"
+          "The BAM and index share one coordinate-sorted alignment identity, and the reference, sites, regions, and ploidy policy are pinned together."
         ],
         "invariants": [
           "stable_artifact_contract",
@@ -737,7 +737,8 @@
         "evidence_status": "supported",
         "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
         "assumptions": [
-          "report_json is the governed read-length report contract and the canonical comparison surface for this stage.",
+          "Each backend emits one record identity and exact length per admitted FASTQ record before the governed report is constructed.",
+          "Backend observations must match an independent decoding of the admitted FASTQ inputs before metrics are accepted.",
           "length histogram generation must be deterministic for identical reads.",
           "single-end input omits reads_r2; paired-end input contributes both mates to the histogram."
         ],

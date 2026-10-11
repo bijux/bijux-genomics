@@ -5,10 +5,12 @@
 ## Public Modules
 - `policy_diagnostics`
 - `public_api`
+- `qualification`
 
 ## Root Exports
 - `check`
 - `GuardrailConfig`
+- Evidence qualification types and `QUALIFICATION_ASSESSMENT_SCHEMA_V1`
 - `policy_assert!`
 - `policy_assert_eq!`
 - `policy_assert_ne!`

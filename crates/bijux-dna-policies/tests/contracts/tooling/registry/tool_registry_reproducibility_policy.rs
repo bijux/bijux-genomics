@@ -101,11 +101,18 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registry_
             if expected_bin.is_empty() {
                 offenders.push(format!("{rel}: tool={id}: expected_bin is required"));
             }
-            if !version_cmd.contains("--version") {
-                offenders.push(format!("{rel}: tool={id}: version_cmd must run --version"));
+            if !version_cmd.contains("--version") && version_cmd.trim() != expected_bin {
+                offenders.push(format!(
+                    "{rel}: tool={id}: version_cmd must run --version or the documented bare executable"
+                ));
             }
-            if !(help_cmd.contains("--help") || help_cmd.contains(" -h")) {
-                offenders.push(format!("{rel}: tool={id}: help_cmd must run --help/-h"));
+            if !(help_cmd.contains("--help")
+                || help_cmd.contains(" -h")
+                || help_cmd.trim() == expected_bin)
+            {
+                offenders.push(format!(
+                    "{rel}: tool={id}: help_cmd must run --help/-h or the documented bare executable"
+                ));
             }
             if !version_cmd.contains(expected_bin) {
                 offenders.push(format!("{rel}: tool={id}: version_cmd must invoke expected_bin"));
@@ -342,6 +349,7 @@ fn policy__contracts__tool_registry_reproducibility_policy__tool_digest_contract
     let inputs = [
         "configs/ci/registry/tool_registry.toml",
         "configs/ci/registry/tool_registry_experimental.toml",
+        "configs/ci/registry/tool_registry_container_experimental.toml",
         "configs/ci/registry/tool_registry_vcf.toml",
         "configs/ci/registry/tool_registry_vcf_downstream.toml",
         "configs/ci/registry/domains.toml",

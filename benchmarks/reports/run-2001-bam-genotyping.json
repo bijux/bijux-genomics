@@ -1,6 +1,7 @@
 {
   "accuracy_claim": "candidate_site_recovery_not_genotype_truth",
   "benchmark_profile_id": "bam-biological-inference",
+  "catalog_sha256": "39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8",
   "comparison_scope": "candidate-site genotyping on one governed 10 Mb EquCab3 interval",
   "cross_tool_comparison": {
     "metrics": [],
@@ -47,7 +48,7 @@
     "Warm-cache repetitions measure stable tool execution after one unmeasured warmup; they do not estimate cold filesystem startup cost."
   ],
   "run_id": "run-2001",
-  "schema_version": "bijux.container.stage_benchmark_report.v1",
+  "schema_version": "bijux.benchmark.stage_report.v1",
   "scientific_question": "How reliably and efficiently does each retained BAM genotyping tool recover independently catalogued EquCab3 candidate sites from a real low-coverage ancient horse alignment?",
   "stage_id": "bam.genotyping",
   "tools": [

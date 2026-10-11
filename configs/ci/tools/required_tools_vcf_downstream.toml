@@ -1,25 +1,13 @@
+# GENERATED - DO NOT EDIT - source: domain/vcf/**
+# source_commit: 3663f2fb07fa6207bec8b88ca27102d178c48a8b
+# domain_schema_version: bijux.domain.v1
+# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
-# owner = bijux-dna-infra
-# purpose = Contract config for configs/ci/tools/required_tools_vcf_downstream.toml
-# authority = bijux-dna-infra
+# owner = bijux-dna-domain-compiler
+# purpose = Contract config generated from domain/vcf/**
+# authority = bijux-dna-domain-compiler
 # stability = stable
-# last_updated = 2026-02-13
+# last_updated = 2026-02-14
 
 schema_version = "bijux.required_tools.v1"
-required_tools = [
-  "angsd",
-  "beagle",
-  "eagle",
-  "eigensoft",
-  "germline",
-  "glimpse",
-  "ibdhap",
-  "ibdseq",
-  "ibdne",
-  "impute5",
-  "minimac4",
-  "plink",
-  "plink2",
-  "shapeit",
-  "shapeit5",
-]
+required_tools = ["angsd", "beagle", "eagle", "eigensoft", "germline", "glimpse", "ibdhap", "ibdne", "ibdseq", "impute5", "minimac4", "plink", "plink2", "shapeit", "shapeit5"]

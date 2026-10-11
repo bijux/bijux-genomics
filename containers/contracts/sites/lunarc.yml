@@ -7,6 +7,7 @@ paths:
   containers_root: /home/bijan/lu2024-12-24/Dardel/STUDY/containers
   data_root: /home/bijan/lu2024-12-24/Dardel/STUDY/data
   results_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results
+  finalization_root: /home/bijan/lu2024-12-24/Dardel/STUDY/evidence/finalization
   active_repository: /home/bijan/bijux/bijux-genomics
   frozen_repositories: /home/bijan/bijux/bijux-genomics-runs
 runtime:
@@ -16,3 +17,30 @@ slurm:
   scratch_environment: SNIC_TMP
   partitions:
     - lu48
+  quota_command:
+    - projinfo
+    - lu2026-2-20
+preflight:
+  minimum_available_bytes: 107374182400
+  minimum_available_inodes: 100000
+  maximum_clock_skew_seconds: 30
+  required_commands:
+    - apptainer
+    - date
+    - df
+    - git
+    - hostname
+    - projinfo
+    - sacct
+    - sacctmgr
+    - sbatch
+    - scontrol
+    - sinfo
+    - squeue
+    - uname
+  required_contracts:
+    - benchmarks/schemas/pipeline-parameters.v1.json
+    - benchmarks/schemas/stage-interfaces.v1.json
+    - benchmarks/schemas/stage-report.v1.json
+    - containers/contracts/config-governance.schema.json
+    - containers/contracts/schemas/qualification-assessment.v1.json

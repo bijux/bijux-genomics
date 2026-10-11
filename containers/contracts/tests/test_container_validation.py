@@ -316,7 +316,7 @@ class GovernanceContractTests(unittest.TestCase):
                 container_validation.git_output(complete, "status", "--porcelain"),
                 "",
             )
-            self.assertEqual(sources.parent.name, "image-builds")
+            self.assertEqual(sources.parent.name, "source-freezes")
             self.assertTrue(sources.name.startswith(f"{commit}-"))
             self.assertEqual(
                 (sources / "other" / "unselected.txt").read_text(),
@@ -525,6 +525,135 @@ class CurrentPipelineContractTests(unittest.TestCase):
         )
         return governance_path, pipeline_path, credential_path
 
+    def attach_parameter_evidence(
+        self,
+        paths: tuple[Path, Path, Path],
+        *,
+        stage_id: str = "fastq.validate",
+    ) -> tuple[Path, Path]:
+        _, pipeline_path, _ = paths
+        parameter_schema = f"bijux.test.params.{stage_id}.v1"
+        defaults_provider = "bijux_test::stage_defaults"
+        overrides_path = pipeline_path.parent / "config-pipeline-parameters.yml"
+        effective_path = pipeline_path.parent / "effective-parameters.json"
+        overrides = {
+            "schema_version": "bijux.benchmark.pipeline_parameters.v1",
+            "profile": "test-profile",
+            "stages": {
+                stage_id: {
+                    "parameter_schema_version": parameter_schema,
+                    "defaults_provider": defaults_provider,
+                    "overrides": {"threads": 2},
+                }
+            },
+        }
+        effective = {
+            "schema_version": "bijux.benchmark.effective_parameters.v1",
+            "stage_id": stage_id,
+            "parameter_schema_version": parameter_schema,
+            "defaults_provider": defaults_provider,
+            "overrides": {"threads": 2},
+            "resolved_by_sample": {
+                "sample": {
+                    "schema_version": parameter_schema,
+                    "threads": 2,
+                }
+            },
+        }
+        overrides_path.write_text(
+            container_validation.yaml.safe_dump(overrides, sort_keys=False),
+            encoding="utf-8",
+        )
+        effective_path.write_text(
+            json.dumps(effective, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
+        pipeline = container_validation.load_yaml(pipeline_path)
+        pipeline["parameters"] = {
+            "schema_version": "bijux.benchmark.parameter_evidence.v1",
+            "parameter_schema_version": parameter_schema,
+            "defaults_provider": defaults_provider,
+            "overrides_file": overrides_path.name,
+            "overrides_sha256": container_validation.sha256_file(overrides_path),
+            "effective_file": effective_path.name,
+            "effective_sha256": container_validation.sha256_file(effective_path),
+        }
+        pipeline_path.write_text(
+            container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+            encoding="utf-8",
+        )
+        return overrides_path, effective_path
+
+    def attach_stage_interface(
+        self,
+        paths: tuple[Path, Path, Path],
+    ) -> None:
+        _, pipeline_path, _ = paths
+        pipeline = container_validation.load_yaml(pipeline_path)
+        repository = Path(pipeline["repository"]["path"])
+        contracts = repository / "benchmarks/contracts"
+        schemas = contracts / "schemas"
+        schemas.mkdir(parents=True)
+        (schemas / "fastq-validate-result.schema.json").write_text(
+            "{}\n", encoding="utf-8"
+        )
+        (contracts / "stage-interfaces.toml").write_text(
+            """schema_version = "bijux.benchmark.stage_interfaces.v1"
+
+[[interfaces]]
+stage_id = "fastq.validate"
+accepted_input_contracts = ["bijux.fastq.artifact.single_end.v1"]
+output_contract = "bijux.fastq.validate.report.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/fastq-validate-result.schema.json"
+
+[interfaces.adapters]
+tool = "bijux_test::fastq::validate"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "fastq.report_qc"
+input_contract = "bijux.fastq.validate.report.v1"
+source = "bijux_test::fastq::qc_bundle"
+assertions = ["the report consumer accepts the normalized result"]
+""",
+            encoding="utf-8",
+        )
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(repository),
+                "add",
+                "benchmarks/contracts/stage-interfaces.toml",
+                "benchmarks/contracts/schemas/fastq-validate-result.schema.json",
+            ],
+            check=True,
+        )
+        subprocess.run(
+            ["git", "-C", str(repository), "commit", "--quiet", "-m", "fixture"],
+            check=True,
+        )
+        pipeline["repository"]["commit"] = container_validation.git_output(
+            repository, "rev-parse", "HEAD"
+        )
+        pipeline["interface"] = {
+            "schema_version": "bijux.benchmark.stage_interface_evidence.v1",
+            "accepted_input_contracts": ["bijux.fastq.artifact.single_end.v1"],
+            "output_contract": "bijux.fastq.validate.report.v1",
+            "normalized_result_contract": (
+                "benchmarks/contracts/schemas/fastq-validate-result.schema.json"
+            ),
+            "adapter": "bijux_test::fastq::validate",
+            "downstream_probe": {
+                "stage_id": "fastq.report_qc",
+                "input_contract": "bijux.fastq.validate.report.v1",
+                "source": "bijux_test::fastq::qc_bundle",
+                "artifact": "repetitions/repetition-1.report-qc.json",
+            },
+        }
+        pipeline_path.write_text(
+            container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+            encoding="utf-8",
+        )
+
     def test_current_contract_freezes_science_and_execution_parameters(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             paths = self.make_contracts(Path(directory))
@@ -544,6 +673,71 @@ class CurrentPipelineContractTests(unittest.TestCase):
             container_validation.tool_output_root(contract),
             contract["result_root"] / "outputs",
         )
+
+    def test_parameter_evidence_freezes_overrides_and_effective_values(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            overrides_path, effective_path = self.attach_parameter_evidence(paths)
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                contract = container_validation.validate_contracts(*paths)
+
+        self.assertEqual(
+            contract["parameters"]["files"], [overrides_path, effective_path]
+        )
+        self.assertEqual(contract["parameters"]["evidence"]["resolved_sample_count"], 1)
+
+    def test_parameter_evidence_rejects_changed_effective_values(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            _, effective_path = self.attach_parameter_evidence(paths)
+            effective = json.loads(effective_path.read_text(encoding="utf-8"))
+            effective["resolved_by_sample"]["sample"]["threads"] = 8
+            effective_path.write_text(json.dumps(effective), encoding="utf-8")
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError, "digest mismatch"
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
+
+    def test_stage_interface_is_resolved_from_frozen_source(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            self.attach_stage_interface(paths)
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                contract = container_validation.validate_contracts(*paths)
+
+        self.assertEqual(
+            contract["interface"]["adapter"], "bijux_test::fastq::validate"
+        )
+
+    def test_catalogued_stage_rejects_an_untyped_pipeline(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            self.attach_stage_interface(paths)
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline.pop("interface")
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "requires governed interface evidence",
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
 
     def test_current_contract_rejects_host_paths_as_container_mounts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -582,6 +776,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 container_validation.yaml.safe_dump(pipeline, sort_keys=False),
                 encoding="utf-8",
             )
+            self.attach_parameter_evidence(paths, stage_id="bam.genotyping")
             with mock.patch.object(
                 container_validation.socket,
                 "gethostname",
@@ -592,9 +787,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertEqual(contract["evidence_kind"], "benchmark")
         self.assertEqual(
             contract["result_root"],
-            (
-                root / "study/results/benchmarks/run-2000-bam-genotyping/tool"
-            ).resolve(),
+            (root / "study/results/benchmarks/run-2000-bam-genotyping/tool").resolve(),
         )
 
     def test_benchmark_contract_rejects_qualification_result_paths(self) -> None:
@@ -606,6 +799,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 container_validation.yaml.safe_dump(pipeline, sort_keys=False),
                 encoding="utf-8",
             )
+            self.attach_parameter_evidence(paths)
             with (
                 mock.patch.object(
                     container_validation.socket,
@@ -615,6 +809,102 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 self.assertRaisesRegex(
                     container_validation.ContractError,
                     "benchmark outputs.result_root must equal",
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
+
+    def test_benchmark_contract_requires_replayable_parameter_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["run"]["kind"] = "benchmark"
+            pipeline["outputs"]["result_root"] = str(
+                root / "study/results/benchmarks/run-2000-fastq-validate/tool"
+            )
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "must archive override and effective parameter evidence",
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
+
+    def test_repeated_measurement_governs_warmup_and_measured_commands(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["run"]["kind"] = "benchmark"
+            pipeline["outputs"]["result_root"] = str(
+                root / "study/results/benchmarks/run-2000-fastq-validate/tool"
+            )
+            pipeline["commands"]["warmup"] = ["tool", "warmup"]
+            pipeline["commands"]["real"] = [
+                "tool",
+                "run",
+                "--output",
+                "/result/repetition-{repetition}.json",
+            ]
+            pipeline["measurement"] = {
+                "schema_version": "bijux.benchmark.repeated_measurement.v1",
+                "warmup_repetitions": 1,
+                "measured_repetitions": 3,
+                "resource_file_template": (
+                    "repetitions/repetition-{repetition}.resource.tsv"
+                ),
+                "runtime_scope": "containerized_stage_end_to_end",
+            }
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            self.attach_parameter_evidence(paths)
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                contract = container_validation.validate_contracts(*paths)
+
+        self.assertEqual(contract["measurement"]["measured_repetitions"], 3)
+
+    def test_repeated_measurement_requires_a_repetition_output_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["run"]["kind"] = "benchmark"
+            pipeline["outputs"]["result_root"] = str(
+                root / "study/results/benchmarks/run-2000-fastq-validate/tool"
+            )
+            pipeline["commands"]["warmup"] = ["tool", "warmup"]
+            pipeline["measurement"] = {
+                "schema_version": "bijux.benchmark.repeated_measurement.v1",
+                "warmup_repetitions": 1,
+                "measured_repetitions": 3,
+                "resource_file_template": (
+                    "repetitions/repetition-{repetition}.resource.tsv"
+                ),
+                "runtime_scope": "containerized_stage_end_to_end",
+            }
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            self.attach_parameter_evidence(paths)
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "must identify its repetition",
                 ),
             ):
                 container_validation.validate_contracts(*paths)
@@ -668,8 +958,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
             study = root / "study"
 
             container_validation.require_current_manifest_path(
-                study
-                / "containers/evidence/specifications/run-2000-tool",
+                study / "containers/evidence/specifications/run-2000-tool",
                 active,
                 study / "containers",
             )
@@ -684,6 +973,19 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 study / "containers/runs/run-2000-tool",
                 active,
                 study / "containers",
+            )
+
+    def test_current_manifest_accepts_benchmark_owned_specifications(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            active = root / "repository"
+            study = root / "study"
+
+            container_validation.require_current_manifest_path(
+                study / "results/benchmark-specifications/run-2004-picard",
+                active,
+                study / "containers",
+                study / "results",
             )
 
     def test_current_manifest_rejects_operator_scratch_paths(self) -> None:
@@ -790,14 +1092,13 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 )
                 self.assertTrue(script.is_file())
 
-    def test_completed_dependency_uses_evidence_without_stale_scheduler_wait(self) -> None:
+    def test_completed_dependency_uses_evidence_without_stale_scheduler_wait(
+        self,
+    ) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             paths = self.make_contracts(root)
-            upstream = (
-                root
-                / "study/results/container-validation/run-1999-source"
-            )
+            upstream = root / "study/results/container-validation/run-1999-source"
             upstream.mkdir(parents=True)
             output = upstream / "source.fastq.gz"
             output.write_bytes(b"governed upstream output")
@@ -938,9 +1239,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
             root = Path(directory)
             study = root / "study"
             containers_root = study / "containers"
-            submission = (
-                containers_root / "evidence/submissions/run-2000-tool"
-            )
+            submission = containers_root / "evidence/submissions/run-2000-tool"
             result = study / "results/container-validation/run-2000-tool"
             manifest = containers_root / "evidence/specifications/run-2000-tool"
             submission.mkdir(parents=True)
@@ -970,6 +1269,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 "pipeline": {"run": {"tool": "tool"}},
                 "result_root": result,
                 "governance": {
+                    "study_root": study,
                     "containers_root": containers_root,
                     "results_root": root / "study/results",
                 },
@@ -1007,9 +1307,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             containers_root = root / "study/containers"
-            submission = (
-                containers_root / "evidence/submissions/run-2000-tool"
-            )
+            submission = containers_root / "evidence/submissions/run-2000-tool"
             result = root / "study/results/container-validation/run-2000-tool"
             manifest = containers_root / "evidence/specifications/run-2000-tool"
             submission.mkdir(parents=True)
@@ -1037,7 +1335,10 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 "run_id": "run-2000",
                 "pipeline": {"run": {"tool": "tool"}},
                 "result_root": result,
-                "governance": {"containers_root": containers_root},
+                "governance": {
+                    "study_root": root / "study",
+                    "containers_root": containers_root,
+                },
             }
             with (
                 mock.patch.object(
@@ -1088,16 +1389,15 @@ class CurrentPipelineContractTests(unittest.TestCase):
             contract = {
                 "pipeline_schema": container_validation.PIPELINE_SCHEMA_V2,
                 "run_id": "run-2001",
-                "pipeline": {"run": {"tool": "tool"}},
+                "pipeline": {"run": {"tool": "tool", "kind": "benchmark"}},
                 "result_root": result,
                 "governance": {
+                    "study_root": study,
                     "containers_root": containers_root,
                     "results_root": study / "results",
                 },
             }
-            reason = (
-                "resource measurements used literal separators instead of TSV rows"
-            )
+            reason = "resource measurements used literal separators instead of TSV rows"
             with mock.patch.object(
                 container_validation,
                 "validate_contracts",
@@ -1114,13 +1414,86 @@ class CurrentPipelineContractTests(unittest.TestCase):
             self.assertFalse(result.exists())
             self.assertTrue((archived / "submission/submit.sh").is_file())
             self.assertTrue((archived / "result/evidence.json").is_file())
+            self.assertEqual(
+                archived.resolve(),
+                (
+                    study
+                    / "results/benchmark-attempts/superseded/run-2001-tool-slurm-3459727"
+                ).resolve(),
+            )
 
         self.assertEqual(
             archive["schema_version"],
-            "bijux.container.superseded_run_archive.v1",
+            "bijux.benchmark.attempt_archive.v1",
         )
+        self.assertEqual(archive["attempt_id"], "slurm-3459727")
+        self.assertEqual(archive["tool_id"], "tool")
         self.assertEqual(archive["disposition"], "superseded")
         self.assertEqual(archive["reason"], reason)
+
+    def test_failed_benchmark_attempt_uses_benchmark_owned_archive(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            study = root / "study"
+            containers_root = study / "containers"
+            submission = containers_root / "evidence/submissions/run-2043-seqfu"
+            result = study / "results/benchmarks/run-2043-fastq-profile-reads/seqfu"
+            manifest = study / "results/benchmark-specifications/run-2043-seqfu"
+            submission.mkdir(parents=True)
+            result.mkdir(parents=True)
+            manifest.mkdir(parents=True)
+            (submission / "slurm-job-id.txt").write_text("3459974\n")
+            (submission / "submit.sh").write_text("#!/bin/bash\nexit 1\n")
+            container_validation.write_json(
+                result / "evidence.json",
+                {
+                    "schema_version": container_validation.EVIDENCE_SCHEMA_V2,
+                    "run_id": "run-2043",
+                    "status": "failed",
+                },
+            )
+            container_validation.write_json(
+                result / "slurm-accounting.json",
+                {
+                    "schema_version": "bijux.slurm.accounting.v1",
+                    "run_id": "run-2043",
+                    "slurm_job_id": "3459974",
+                },
+            )
+            contract = {
+                "pipeline_schema": container_validation.PIPELINE_SCHEMA_V2,
+                "run_id": "run-2043",
+                "pipeline": {"run": {"tool": "seqfu", "kind": "benchmark"}},
+                "result_root": result,
+                "governance": {
+                    "study_root": study,
+                    "containers_root": containers_root,
+                    "results_root": study / "results",
+                },
+            }
+            with mock.patch.object(
+                container_validation,
+                "validate_contracts",
+                return_value=contract,
+            ):
+                archived = container_validation.archive_failed_run(manifest)
+
+            archive = json.loads((archived / "archive.json").read_text())
+
+            self.assertEqual(
+                archived,
+                study
+                / "results/benchmark-attempts/failed/run-2043-seqfu-slurm-3459974",
+            )
+            self.assertFalse((containers_root / "evidence/failed").exists())
+            self.assertFalse((containers_root / "evidence/failures").exists())
+            self.assertEqual(
+                archive["schema_version"],
+                "bijux.benchmark.attempt_archive.v1",
+            )
+            self.assertEqual(archive["disposition"], "failed")
+            self.assertEqual(archive["attempt_id"], "slurm-3459974")
+            self.assertNotIn("reason", archive)
 
     def test_apptainer_execution_uses_a_resolvable_isolated_hostname(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -1149,6 +1522,55 @@ class CurrentPipelineContractTests(unittest.TestCase):
             container_validation.ISOLATED_RUNTIME_HOSTNAME,
         )
 
+    def test_measured_execution_uses_wait4_resource_accounting(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            stdout = root / "stdout.log"
+            stderr = root / "stderr.log"
+            resource = root / "resource.tsv"
+            process = mock.Mock(pid=42, returncode=None)
+            usage = mock.Mock(
+                ru_utime=1.25,
+                ru_stime=0.5,
+                ru_maxrss=4096,
+                ru_inblock=12,
+                ru_oublock=3,
+            )
+            with (
+                mock.patch.object(container_validation.sys, "platform", "linux"),
+                mock.patch.object(
+                    container_validation.subprocess,
+                    "Popen",
+                    return_value=process,
+                ) as execute,
+                mock.patch.object(
+                    container_validation.os,
+                    "wait4",
+                    return_value=(42, 0, usage),
+                ),
+                mock.patch.object(
+                    container_validation.time,
+                    "monotonic",
+                    side_effect=(10.0, 12.0),
+                ),
+            ):
+                status = container_validation.run_apptainer_measured(
+                    root / "tool.sif",
+                    ["tool", "run"],
+                    [],
+                    root,
+                    stdout,
+                    stderr,
+                    resource,
+                )
+            resource_text = resource.read_text(encoding="utf-8")
+
+        command = execute.call_args.args[0]
+        self.assertEqual(status, 0)
+        self.assertEqual(command[0], "apptainer")
+        self.assertIn("wall_seconds\t2.000000000\tseconds", resource_text)
+        self.assertIn("peak_rss_kib\t4096\tkibibytes", resource_text)
+
 
 class BuildAdmissionTests(unittest.TestCase):
     def inspection(
@@ -1172,6 +1594,21 @@ class BuildAdmissionTests(unittest.TestCase):
                 }
             }
         }
+
+    def test_python_image_admission_fails_closed(self) -> None:
+        with self.assertRaisesRegex(
+            container_build.ContractError,
+            "Python image admission is retired",
+        ):
+            container_build.finalize_image(
+                Path("missing.yml"),
+                "samtools",
+                "1.20",
+                "a" * 40,
+                Path("samtools.def"),
+                Path("samtools.sif"),
+                Path("samtools.log"),
+            )
 
     def test_image_identity_uses_tool_version_instead_of_base_version(self) -> None:
         container_build.validate_inspection_identity(

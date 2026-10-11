@@ -63,6 +63,7 @@ fn runtime_source_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/recording")),
         entries([
+            "attempts.rs",
             "envelope.rs",
             "io.rs",
             "manifests/",
@@ -165,6 +166,7 @@ fn runtime_test_tree_matches_architecture_contract() {
             "manifest_integrity.rs",
             "reference/",
             "reference.rs",
+            "run_evidence.rs",
             "run_layout_contract.rs",
             "stage_runner_contract.rs",
             "telemetry_contract.rs",

@@ -1,7 +1,8 @@
 use super::{
     anyhow, bail, ensure_status, has_supported_placeholder_forbidden_token,
     is_tool_meaningful_in_domain, placeholders_allowed, read_yaml, validate_tool_output_subset,
-    BTreeMap, BTreeSet, Context, DomainToolLoose, Result, ValidateOptions, DEFAULT_COMPILE_SCOPE,
+    BTreeMap, BTreeSet, ContainerToolContract, Context, DomainToolLoose, Result, ValidateOptions,
+    DEFAULT_COMPILE_SCOPE,
 };
 use std::path::Path;
 
@@ -15,11 +16,31 @@ pub(super) struct ToolValidationState<'a> {
     pub(super) domain_metrics_schemas: &'a mut BTreeMap<String, BTreeMap<String, String>>,
 }
 
+fn validate_supported_packaging(
+    path: &Path,
+    tool_id: &str,
+    support_disposition: &str,
+    runtimes: &[String],
+) -> Result<()> {
+    if support_disposition != "retained" {
+        bail!(
+            "{} supported tool {} conflicts with catalog disposition {}",
+            path.display(),
+            tool_id,
+            support_disposition
+        );
+    }
+    if runtimes.is_empty() {
+        bail!("{} supported tool {} has no catalog-authorized runtime", path.display(), tool_id);
+    }
+    Ok(())
+}
+
 pub(super) fn validate_tool_files(
     options: &ValidateOptions,
     dom: &str,
     artifact_vocab: &BTreeMap<String, BTreeSet<String>>,
-    shared_tool_domains: &BTreeMap<String, BTreeSet<String>>,
+    container_catalog: &BTreeMap<String, ContainerToolContract>,
     state: &mut ToolValidationState<'_>,
 ) -> Result<()> {
     let tool_glob = options.domain_dir.join(dom).join("tools");
@@ -56,6 +77,21 @@ pub(super) fn validate_tool_files(
                 dom
             );
         }
+        let container_contract = container_catalog.get(&tool.tool_id).ok_or_else(|| {
+            anyhow!(
+                "{} tool {} is absent from containers/contracts/catalog.toml",
+                path.display(),
+                tool.tool_id
+            )
+        })?;
+        if !container_contract.domains.iter().any(|domain| domain == dom) {
+            bail!(
+                "{} tool {} is not authorized for domain {} by containers/contracts/catalog.toml",
+                path.display(),
+                tool.tool_id,
+                dom
+            );
+        }
         let has_declared_stage_claims = tool.declared_stage_ids().next().is_some();
         if dom != "vcf"
             && (!has_declared_stage_claims
@@ -82,6 +118,14 @@ pub(super) fn validate_tool_files(
                 .entry(dom.to_string())
                 .or_default()
                 .insert(tool.tool_id.clone(), tool.capabilities.iter().cloned().collect());
+        }
+        if tool.status == "supported" {
+            validate_supported_packaging(
+                &path,
+                &tool.tool_id,
+                &container_contract.support_disposition,
+                &container_contract.runtimes(),
+            )?;
         }
         if dom != "vcf" && tool.status == "supported" {
             if tool.stage_ids.is_empty() {
@@ -127,44 +171,17 @@ pub(super) fn validate_tool_files(
                 }
             }
             validate_tool_output_subset(&tool_raw, &stage_specs, &path)?;
-            let dockerfile = options
-                .domain_dir
-                .parent()
-                .unwrap_or(&options.domain_dir)
-                .join("containers")
-                .join("docker")
-                .join("arm64")
-                .join(format!("Dockerfile.{}", tool.tool_id));
-            let apptainer = options
-                .domain_dir
-                .parent()
-                .unwrap_or(&options.domain_dir)
-                .join("containers")
-                .join("apptainer")
-                .join(format!("{}.def", tool.tool_id));
-            if !dockerfile.exists() && !apptainer.exists() {
-                bail!(
-                    "{} supported tool {} missing container mapping ({} / {})",
-                    path.display(),
-                    tool.tool_id,
-                    dockerfile.display(),
-                    apptainer.display()
-                );
-            }
         }
         if let Some(previous) = state.ids.get(&tool.tool_id) {
-            let allowed_domains = shared_tool_domains.get(&tool.tool_id).ok_or_else(|| {
-                anyhow!("duplicate tool_id {} in {} and {}", tool.tool_id, previous, path.display())
-            })?;
             let previous_domain =
                 tool_path_domain(&options.domain_dir, previous).unwrap_or_default();
-            if !allowed_domains.contains(dom) || !allowed_domains.contains(&previous_domain) {
+            if !container_contract.domains.iter().any(|domain| domain == &previous_domain) {
                 bail!(
-                    "duplicate tool_id {} in {} and {} outside shared domains {:?}",
+                    "duplicate tool_id {} in {} and {} outside catalog domains {:?}",
                     tool.tool_id,
                     previous,
                     path.display(),
-                    allowed_domains
+                    container_contract.domains
                 );
             }
         } else {
@@ -195,4 +212,39 @@ fn tool_path_domain(domain_dir: &Path, path: &str) -> Option<String> {
         .as_os_str()
         .to_str()
         .map(ToString::to_string)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn supported_domain_tool_cannot_promote_unsupported_catalog_tool() {
+        let result = validate_supported_packaging(
+            Path::new("domain/bam/tools/angsd.yaml"),
+            "angsd",
+            "unsupported",
+            &[],
+        );
+        let Err(error) = result else {
+            panic!("unsupported catalog tool must fail");
+        };
+
+        assert!(error.to_string().contains("conflicts with catalog disposition unsupported"));
+    }
+
+    #[test]
+    fn supported_domain_tool_requires_catalog_runtime() {
+        let result = validate_supported_packaging(
+            Path::new("domain/bam/tools/tool.yaml"),
+            "tool",
+            "retained",
+            &[],
+        );
+        let Err(error) = result else {
+            panic!("runtime-less supported tool must fail");
+        };
+
+        assert!(error.to_string().contains("has no catalog-authorized runtime"));
+    }
 }

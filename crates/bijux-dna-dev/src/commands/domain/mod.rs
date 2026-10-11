@@ -168,6 +168,7 @@ fn tool_registry_files(workspace: &Workspace) -> Vec<PathBuf> {
     vec![
         workspace.path("configs/ci/registry/tool_registry.toml"),
         workspace.path("configs/ci/registry/tool_registry_experimental.toml"),
+        workspace.path("configs/ci/registry/tool_registry_container_experimental.toml"),
         workspace.path("configs/ci/registry/tool_registry_vcf.toml"),
         workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"),
     ]

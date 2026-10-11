@@ -35,6 +35,10 @@ from recipe_identity import (
 TOOL_PATTERN = re.compile(r"[a-z0-9_]+")
 VERSION_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
 COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}")
+RETIRED_BUILD_ADMISSION = (
+    "Python image admission is retired; use `bijux-dna env ensure-images`, "
+    "which builds and verifies the embedded tool contract through bijux-dna-environment"
+)
 
 
 def git_blob(repository: Path, commit: str, relative_path: Path) -> bytes:
@@ -128,6 +132,10 @@ def finalize_image(
     image_root_override: Path | None = None,
     evidence_root_override: Path | None = None,
 ) -> Path:
+    raise ContractError(RETIRED_BUILD_ADMISSION)
+
+    # Retained as migration-parity reference until the ownership audit removal
+    # gate permits deleting this module.
     governance = load_governance(governance_path)
     if TOOL_PATTERN.fullmatch(tool) is None:
         raise ContractError("tool must use canonical lowercase snake case")

@@ -24,9 +24,17 @@ ENA_ENDPOINT = "https://www.ebi.ac.uk/ena/portal/api/filereport"
 ENA_FIELDS = (
     "run_accession",
     "study_accession",
+    "sample_accession",
+    "experiment_accession",
     "scientific_name",
     "library_layout",
+    "library_source",
+    "library_strategy",
+    "library_selection",
     "instrument_platform",
+    "instrument_model",
+    "base_count",
+    "read_count",
     "fastq_ftp",
     "fastq_md5",
     "fastq_bytes",
@@ -68,6 +76,9 @@ def load_spec(path: Path) -> dict[str, Any]:
         raise AcquisitionError("corpus specification repeats a sample accession")
     if value.get("target_total") != len(samples):
         raise AcquisitionError("corpus specification target_total disagrees with samples")
+    portfolio_id = value.get("portfolio_id")
+    if not isinstance(portfolio_id, str) or not portfolio_id:
+        raise AcquisitionError("corpus specification lacks its scientific portfolio identity")
     return value
 
 
@@ -165,15 +176,45 @@ def resolve_specification(
             raise AcquisitionError(f"ENA library layout disagrees for {accession}")
         if record.get("scientific_name") != spec["species"]:
             raise AcquisitionError(f"ENA species identity disagrees for {accession}")
+        required_context = (
+            "sample_accession",
+            "experiment_accession",
+            "library_source",
+            "library_strategy",
+            "library_selection",
+            "instrument_platform",
+            "instrument_model",
+        )
+        if any(
+            not isinstance(record.get(field), str) or not record[field]
+            for field in required_context
+        ):
+            raise AcquisitionError(f"ENA scientific context is incomplete for {accession}")
+        try:
+            archive_base_count = int(record["base_count"])
+            archive_read_count = int(record["read_count"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise AcquisitionError(f"ENA archive counts are invalid for {accession}") from exc
+        if archive_base_count < 1 or archive_read_count < 1:
+            raise AcquisitionError(f"ENA archive counts are invalid for {accession}")
         resolved.append(
             {
                 "accession": accession,
                 "study_accession": sample["study_accession"],
+                "sample_accession": record["sample_accession"],
+                "experiment_accession": record["experiment_accession"],
                 "era": sample["era"],
                 "layout": layout,
                 "size_band": sample["size_band"],
+                "selection_reason": sample["reason"],
                 "scientific_name": record.get("scientific_name"),
+                "library_source": record["library_source"],
+                "library_strategy": record["library_strategy"],
+                "library_selection": record["library_selection"],
                 "instrument_platform": record.get("instrument_platform"),
+                "instrument_model": record["instrument_model"],
+                "archive_base_count": archive_base_count,
+                "archive_read_count": archive_read_count,
                 "first_public": record.get("first_public"),
                 "last_updated": record.get("last_updated"),
                 "source_report_url": ena_url(accession),
@@ -183,6 +224,7 @@ def resolve_specification(
     return {
         "schema_version": PLAN_SCHEMA,
         "corpus_id": spec["corpus_id"],
+        "portfolio_id": spec["portfolio_id"],
         "species": spec["species"],
         "retrieved_at_utc": timestamp.isoformat(),
         "source_authority": "European Nucleotide Archive",

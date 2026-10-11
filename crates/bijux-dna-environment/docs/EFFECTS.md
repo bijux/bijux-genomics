@@ -8,6 +8,9 @@ ask for host-environment inspection or reference preparation.
 - `configs/runtime/platforms.toml`
 - `configs/ci/tools/images.toml`
 - `configs/ci/registry/tool_registry.toml`
+- `containers/contracts/catalog.toml`
+- Catalog-declared canonical Apptainer definitions
+- Contract-bearing SIF files passed to `verify_apptainer_tool_contract`
 - Dockerfiles passed to `extract_version_from_dockerfile`
 - Reference FASTA files passed to `ReferenceRegistry::prepare_reference`
 - Environment variables: `BIJUX_CACHE_ROOT`, `XDG_CACHE_HOME`, `HOME`, `BIJUX_HPC_ROOT`, and
@@ -18,6 +21,9 @@ ask for host-environment inspection or reference preparation.
 - Reference cache directories under the resolved reference cache root.
 - Copied FASTA files and requested reference index outputs.
 - Test fixtures and temporary files under artifact-aware test roots.
+- Generated embedded contracts and rendered definitions under a caller-provided repository
+  `artifacts/` root.
+- Apptainer SIF targets and append-only build attempt logs under caller-provided container roots.
 
 ## Allowed Processes
 
@@ -38,3 +44,5 @@ that inventory and its boundary test.
 - The same Dockerfile and tool selector produce the same parsed version.
 - The same FASTA content produces the same reference digest.
 - Host probes are intentionally not deterministic and must not be used as schema truth.
+- Build retry classification and smoke admission are deterministic for the same diagnostics,
+  contract regex, and probe outputs.

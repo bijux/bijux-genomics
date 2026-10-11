@@ -102,6 +102,7 @@ pub fn check_registry() -> Vec<CheckDefinition> {
         native("check-no-target-paths-in-tests", NativeCheckKey::NoTargetPathsInTests),
         native("check-automation-temp-discipline", NativeCheckKey::AutomationTempDiscipline),
         native("check-no-user-path-literals", NativeCheckKey::NoUserPathLiterals),
+        native("check-ownership-audit", NativeCheckKey::OwnershipAudit),
         native("check-output-roots", NativeCheckKey::OutputRoots),
         policy("check-panel-license-policy", "vcf_support_gate_policy"),
         policy("check-panel-locks", "vcf_support_gate_policy"),

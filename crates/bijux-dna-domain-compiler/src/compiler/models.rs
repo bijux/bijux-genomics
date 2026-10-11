@@ -108,6 +108,10 @@ pub(super) struct ContainerToolContract {
     pub(super) upstream: String,
     pub(super) license: String,
     #[serde(default)]
+    pub(super) domains: Vec<String>,
+    #[serde(default)]
+    pub(super) stage_ids: Vec<String>,
+    #[serde(default)]
     pub(super) source_sha256: String,
     #[serde(default)]
     pub(super) pinned_commit: String,

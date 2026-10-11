@@ -150,7 +150,7 @@ pub fn run_example(cwd: &Path, id: &str, hpc_mode: bool) -> Result<()> {
     ensure_workspace_corpus_binding(cwd, &suite.corpus, &corpus_root)?;
 
     let stage_domain = spec.stage_1.split('.').next().unwrap_or("fastq").to_string();
-    let _ensure_report = crate::commands::cli::env::ensure_apptainer_images(
+    let _ensure_report = crate::commands::cli::env::ensure_apptainer_images_at_root(
         &bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml"),
         &hpc_root,
         &stage_domain,

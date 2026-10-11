@@ -7,6 +7,7 @@
 
 schema_version = "bijux.corpus_spec.v1"
 corpus_id = "corpus-01"
+portfolio_id = "human-short-read-diversity"
 species = "Homo sapiens"
 species_id = "homo_sapiens"
 preferred_root = "${BIJUX_CORPUS_01_ROOT}"

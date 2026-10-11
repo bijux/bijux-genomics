@@ -12,9 +12,10 @@ command surface for generated CI config views.
 | `domain_registry_query` | `src/bin/domain_registry_query.rs` | Query domains, stages, tools, defaults, metrics, artifacts, deprecations, evidence, or fixtures from a typed registry bundle. | `--bundle <path>`, `--domain-dir <path>`, `--kind <domains|stages|tools|metrics|artifacts|defaults|deprecations|evidence|fixtures>`, `--domain <id>`, `--stage-id <id>`, `--tool-id <id>` |
 | `domain_validate` | `src/bin/domain_validate.rs` | Validate authored domain YAML, reference catalogs, stage/tool indexes, and cross-domain coverage. | `--domain-dir <path>` |
 
-The default compile scope is `pre_hpc_pre_vcf`. That scope emits FASTQ/BAM runtime config
-views and keeps VCF config views separated into explicit generated VCF files. The bundle command
-can also write the governed JSON release surfaces under `configs/ci/registry/`.
+The default compile scope is `pre_hpc_pre_vcf`. That scope emits FASTQ/BAM runtime config views,
+catalog-only packaging views, and explicit VCF and VCF-downstream projections. Packaging fields in
+all registry views come from `containers/contracts/catalog.toml`. The bundle command can also write
+the governed JSON release surfaces under `configs/ci/registry/`.
 
 ## Boundary
 

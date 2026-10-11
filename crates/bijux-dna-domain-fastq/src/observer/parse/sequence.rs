@@ -21,31 +21,39 @@ pub fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
             .flat_map(char::to_lowercase)
             .collect::<String>()
     };
-    let col = |name: &str| -> Result<&str> {
+    let col = |names: &[&str]| -> Result<&str> {
         let idx = header_fields
             .iter()
-            .position(|field| canonical(field) == canonical(name))
-            .ok_or_else(|| anyhow!("seqkit column missing: {name}"))?;
-        data_fields.get(idx).copied().ok_or_else(|| anyhow!("seqkit data missing for {name}"))
+            .position(|field| names.iter().any(|name| canonical(field) == canonical(name)))
+            .ok_or_else(|| anyhow!("sequence-statistics column missing: {}", names.join("/")))?;
+        data_fields
+            .get(idx)
+            .copied()
+            .ok_or_else(|| anyhow!("sequence-statistics data missing for {}", names.join("/")))
     };
-    let reads: u64 = col("num_seqs")?.parse().context("parse reads")?;
-    let bases: u64 = col("sum_len")?.parse().context("parse bases")?;
+    let reads: u64 = col(&["num_seqs", "#Seq"])?.parse().context("parse reads")?;
+    let bases: u64 = col(&["sum_len", "Total bp"])?.parse().context("parse bases")?;
     let mean_q = if header_fields.iter().any(|field| canonical(field) == canonical("avg_qual")) {
-        col("avg_qual")?.parse().context("parse mean_q")?
+        col(&["avg_qual"])?.parse().context("parse mean_q")?
     } else if header_fields.iter().any(|field| canonical(field) == canonical("mean_qual")) {
-        col("mean_qual")?.parse().context("parse mean_q")?
+        col(&["mean_qual"])?.parse().context("parse mean_q")?
     } else {
         warn!("seqkit avg_qual/mean_qual missing; defaulting mean_q to 0.0");
         0.0
     };
     let gc_percent = if let Some((idx, _)) =
-        header_fields.iter().enumerate().find(|(_, field)| field.to_lowercase().starts_with("gc"))
+        header_fields.iter().enumerate().find(|(_, field)| canonical(field).starts_with("gc"))
     {
-        data_fields
+        let value: f64 = data_fields
             .get(idx)
-            .ok_or_else(|| anyhow!("seqkit data missing for gc"))?
+            .ok_or_else(|| anyhow!("sequence-statistics data missing for gc"))?
             .parse()
-            .context("parse gc_percent")?
+            .context("parse gc_percent")?;
+        if value <= 1.0 {
+            value * 100.0
+        } else {
+            value
+        }
     } else {
         warn!("seqkit gc column missing; defaulting gc_percent to 0.0");
         0.0

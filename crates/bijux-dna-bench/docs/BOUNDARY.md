@@ -5,6 +5,8 @@ Owner: `bijux-dna-bench`
 This crate owns benchmark suite loading, summarization, comparison, gate
 evaluation, deterministic benchmark artifact writing, and read-only loading of
 finished runtime/analyze artifacts.
+It also owns append-only persistence and reconstruction of permanent benchmark
+attempt lifecycle evidence below caller-declared benchmark roots.
 
 ## Allowed Inputs
 
@@ -22,6 +24,7 @@ finished runtime/analyze artifacts.
   roots.
 - Resolve repository-local benchmark data and suite directories.
 - Canonicalize JSON before writing stable artifact files.
+- Atomically create immutable attempt identity and transition event files.
 
 ## Forbidden Effects
 

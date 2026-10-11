@@ -14,6 +14,23 @@ These operations are exported through the crate root and `public_api`.
 | `load-corpus-catalog` | `load_corpus_catalog()` | Load and validate all checked-in benchmark corpus manifests. |
 | `load-bundle-manifest` | `load_bundle_manifest(path)` | Load and validate one benchmark bundle TOML manifest. |
 | `load-bundle-catalog` | `load_bundle_catalog()` | Load and validate all checked-in benchmark bundle manifests. |
+| `load-stage-campaign-registry` | `load_stage_campaign_registry(path)` | Load and validate one benchmark stage-campaign registry TOML file. |
+| `load-benchmark-portfolio` | `load_benchmark_portfolio(path)` | Load and validate one benchmark portfolio TOML file. |
+| `load-stage-interface-catalog` | `load_stage_interface_catalog(path)` | Load and validate one stage-interface TOML catalog and its repository-owned parameter and source contracts. |
+| `load-stage-interface-catalog-from-repo` | `load_stage_interface_catalog_from_repo(path, repository_root)` | Load and validate one stage-interface catalog against an explicit repository root. |
+| `load-checked-in-benchmark-contracts` | `load_checked_in_benchmark_contracts()` | Load the checked-in stage-campaign registry and benchmark portfolio while validating all checked-in planning inputs. |
+| `load-checked-in-benchmark-planning-contracts` | `load_checked_in_benchmark_planning_contracts()` | Load the checked-in stage-campaign registry, benchmark portfolio, and stage-interface catalog and validate their defined identities. |
+| `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
+| `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
+| `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
+| `benchmark-attempt-directory` | `benchmark_attempt_directory(root, identity)` | Derive the permanent `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>` storage path from validated identity. |
+| `initialize-attempt-lifecycle` | `initialize_attempt_lifecycle(root, record)` | Atomically publish an immutable planned attempt record without reusing an existing identity. |
+| `append-attempt-lifecycle-transition` | `append_attempt_lifecycle_transition(root, identity, transition)` | Validate and atomically publish one no-clobber sequence-addressed transition event. |
+| `load-attempt-lifecycle` | `load_attempt_lifecycle(root, identity)` | Reconstruct and validate an attempt exclusively from immutable lifecycle evidence. |
+| `plan-attempt-migration` | `plan_attempt_migration(study_root, created_at_utc)` | Classify historical attempts by retained `run.kind` and produce a byte inventory bound plan. |
+| `apply-attempt-migration` | `apply_attempt_migration(study_root, plan_path, ledger_path, updated_at_utc)` | Move planned attempts by same-filesystem rename while maintaining an interruption-safe ledger. |
+| `verify-attempt-migration` | `verify_attempt_migration(study_root, plan_path, ledger_path)` | Recompute every current source or target file size and SHA-256 against the exact plan. |
+| `rollback-attempt-migration` | `rollback_attempt_migration(study_root, plan_path, ledger_path, updated_at_utc)` | Verify and restore every applied attempt to its exact historical source path. |
 | `summarize` | `summarize(suite, observations, options)` | Build deterministic benchmark summaries from observations. |
 | `compare` | `compare(summary_a, summary_b)` | Compare two completed benchmark summaries. |
 | `gate` | `gate(policy, summary)` | Evaluate benchmark rows against a gate policy. |
@@ -21,6 +38,11 @@ These operations are exported through the crate root and `public_api`.
 | `bench-suites-dir` | `bench_suites_dir()` | Resolve the crate-owned checked-in suite catalog directory. |
 | `bench-corpora-dir` | `bench_corpora_dir()` | Resolve the crate-owned checked-in corpus catalog directory. |
 | `bench-bundles-dir` | `bench_bundles_dir()` | Resolve the crate-owned checked-in bundle catalog directory. |
+| `bench-contracts-dir` | `bench_contracts_dir()` | Resolve the repository-owned benchmark contract directory. |
+| `bench-stage-campaigns-path` | `bench_stage_campaigns_path()` | Resolve the repository-owned stage-campaign registry path. |
+| `bench-portfolio-path` | `bench_portfolio_path()` | Resolve the repository-owned benchmark portfolio path. |
+| `bench-stage-interfaces-path` | `bench_stage_interfaces_path()` | Resolve the repository-owned stage-interface catalog path. |
+| `bench-reports-dir` | `bench_reports_dir()` | Resolve the repository-owned benchmark report directory. |
 
 ## Suite Artifacts
 
@@ -30,6 +52,11 @@ Managed benchmark artifacts are:
 - `summary.json`
 - `decision.json`
 - `decisions.json`
+- `migration-plan.json`
+- `migration-ledger.json`
+- `after-inventory.json`
+- `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/attempt.json`
+- `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/transitions/<sequence>.json`
 
 `bijux-dna-bench` writes and reads benchmark artifacts only under declared
 benchmark output roots.

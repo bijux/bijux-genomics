@@ -76,9 +76,12 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/workflow")),
         entries([
+            "attempt_lifecycle.rs",
+            "attempt_migration.rs",
             "evaluation.rs",
             "mod.rs",
             "options.rs",
+            "report_load.rs",
             "run_suite/",
             "summary/",
             "suite_load.rs",
@@ -162,9 +165,18 @@ fn commands_doc_lists_managed_benchmark_operations() {
     let content = std::fs::read_to_string(&commands_doc)
         .unwrap_or_else(|err| panic!("read {}: {err}", commands_doc.display()));
 
-    for command in
-        ["load-suite", "summarize", "compare", "gate", "bench-data-dir", "bench-suites-dir"]
-    {
+    for command in [
+        "load-suite",
+        "summarize",
+        "compare",
+        "gate",
+        "bench-data-dir",
+        "bench-suites-dir",
+        "plan-attempt-migration",
+        "apply-attempt-migration",
+        "verify-attempt-migration",
+        "rollback-attempt-migration",
+    ] {
         assert!(
             content.contains(command),
             "docs/COMMANDS.md must list `{command}` as a managed benchmark operation",

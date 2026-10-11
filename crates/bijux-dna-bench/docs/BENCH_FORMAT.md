@@ -6,10 +6,22 @@ The stable persisted artifact set is:
 - `summary.json`
 - `decision.json`
 - `decisions.json`
+- `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/attempt.json`
+- `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>/transitions/<sequence>.json`
 
 Artifact writers canonicalize JSON before writing stable files. Field names and
 ordering are part of the review surface because fixtures and snapshots compare
 serialized output.
+
+## Attempt Lifecycle
+
+`attempt.json` is an immutable `BenchmarkAttemptRecordV2` containing exactly the
+initial planned transition. Each later transition is a separate
+`BenchmarkAttemptTransition` file named by its zero-padded sequence. Files are
+published atomically without replacement; loading reconstructs and validates
+the full chain rather than trusting a mutable status projection.
+The `.lifecycle-locks/` tree is mutable process coordination only; it is not
+benchmark evidence and cannot satisfy lifecycle or publication gates.
 
 ## observations.jsonl
 

@@ -20,7 +20,7 @@ See `docs/PUBLIC_API.md`.
 
 Main modules:
 
-- `build`: Docker tool defaults and Dockerfile version extraction.
+- `build`: Docker metadata plus bounded, append-only Apptainer build execution.
 - `resolve`: platform loading, catalog loading, image resolution, cache helpers, command probes,
   shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: compatibility checks between selected runner and platform.

@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.container.stage_benchmark_coverage.v1",
+  "schema_version": "bijux.benchmark.stage_coverage.v1",
   "stages": [
     {
       "campaign_run_id": null,
@@ -163,7 +163,7 @@
     {
       "campaign_run_id": "run-2004",
       "definition_status": "qualification",
-      "execution_status": "not_admitted",
+      "execution_status": "admitted",
       "retained_tools": [
         "picard",
         "samtools"
@@ -410,21 +410,19 @@
       "stage_id": "fastq.profile_overrepresented_sequences"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "campaign_run_id": "run-2042",
+      "definition_status": "comparative",
+      "execution_status": "admitted",
       "retained_tools": [
-        "fastp",
-        "prinseq",
         "seqfu",
-        "seqkit_stats"
+        "seqkit"
       ],
       "stage_id": "fastq.profile_read_lengths"
     },
     {
-      "campaign_run_id": null,
-      "definition_status": "missing",
-      "execution_status": "not_defined",
+      "campaign_run_id": "run-2043",
+      "definition_status": "comparative",
+      "execution_status": "admitted",
       "retained_tools": [
         "seqfu",
         "seqkit",
@@ -724,10 +722,10 @@
     }
   ],
   "summary": {
-    "admitted_stage_count": 3,
-    "comparative_stage_count": 0,
-    "defined_stage_count": 4,
-    "missing_stage_count": 67,
+    "admitted_stage_count": 6,
+    "comparative_stage_count": 2,
+    "defined_stage_count": 6,
+    "missing_stage_count": 65,
     "qualification_stage_count": 4,
     "retained_stage_count": 71
   }

@@ -8,11 +8,11 @@ benchmark. Comparative readiness is governed separately by the corpus portfolio,
 truth strategy, cohort size, output contract, and downstream substitution probes.
 
 - Retained stages: **71**
-- Defined campaigns: **4**
+- Defined campaigns: **6**
 - Qualification-only campaigns: **4**
-- Comparative campaigns: **0**
-- Admitted campaigns: **3**
-- Missing campaigns: **67**
+- Comparative campaigns: **2**
+- Admitted campaigns: **6**
+- Missing campaigns: **65**
 
 | Stage | Retained tools | Campaign | Definition | Execution |
 |---|---|---|---|---|
@@ -32,7 +32,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `bam.insert_size` | `picard` | — | missing | not_defined |
 | `bam.kinship` | `king` | — | missing | not_defined |
 | `bam.length_filter` | `picard`, `samtools` | — | missing | not_defined |
-| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | qualification | not_admitted |
+| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | qualification | admitted |
 | `bam.mapq_filter` | `bamtools`, `samtools` | — | missing | not_defined |
 | `bam.markdup` | `picard`, `samtools` | — | missing | not_defined |
 | `bam.overlap_correction` | `bamutil` | — | missing | not_defined |
@@ -57,8 +57,8 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `fastq.normalize_abundance` | `seqkit` | — | missing | not_defined |
 | `fastq.normalize_primers` | `cutadapt` | — | missing | not_defined |
 | `fastq.profile_overrepresented_sequences` | `fastq_scan`, `fastqc`, `seqkit` | — | missing | not_defined |
-| `fastq.profile_read_lengths` | `fastp`, `prinseq`, `seqfu`, `seqkit_stats` | — | missing | not_defined |
-| `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | — | missing | not_defined |
+| `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `run-2042` | comparative | admitted |
+| `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `run-2043` | comparative | admitted |
 | `fastq.remove_chimeras` | `vsearch` | — | missing | not_defined |
 | `fastq.remove_duplicates` | `clumpify` | — | missing | not_defined |
 | `fastq.report_qc` | `multiqc` | — | missing | not_defined |

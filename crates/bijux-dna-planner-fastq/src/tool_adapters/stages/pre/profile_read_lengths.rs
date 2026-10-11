@@ -5,9 +5,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::{
-    params::{stats::READ_LENGTH_PROFILE_SCHEMA_VERSION, PairedMode},
-    stages::ids::STAGE_PROFILE_READ_LENGTHS,
-    FastqReadLengthProfileParams,
+    params::defaults::read_length_profile_defaults, stages::ids::STAGE_PROFILE_READ_LENGTHS,
 };
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -42,14 +40,14 @@ pub fn plan_with_options(
     let dist_tsv = out_dir.join("length_distribution.tsv");
     let dist_json = out_dir.join("length_distribution.json");
     let report_json = out_dir.join("profile_read_lengths_report.json");
-    let threads = threads_override.unwrap_or(tool.resources.threads).max(1);
+    let defaults = read_length_profile_defaults(r2.is_some());
+    let threads = threads_override.unwrap_or(defaults.threads).max(1);
     let command_template = profile_lengths_command(tool, r1, r2, threads)?;
-    let histogram_bins = histogram_bins_override.unwrap_or(100).max(1);
-    let effective_params = FastqReadLengthProfileParams {
-        schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+    let histogram_bins = histogram_bins_override.unwrap_or(defaults.histogram_bins).max(1);
+    let effective_params = bijux_dna_domain_fastq::FastqReadLengthProfileParams {
         threads,
         histogram_bins,
+        ..defaults
     };
     let mut resources = tool.resources.clone();
     resources.threads = threads;
@@ -128,9 +126,19 @@ fn profile_lengths_command(
 ) -> Result<Vec<String>> {
     let tool_id = tool.tool_id.as_str();
     let command = match tool_id {
-        "seqkit_stats" => {
+        "seqkit" => {
             let rendered = crate::tool_adapters::template_render::render_command_template(
-                &tool.command.template,
+                &[
+                    "seqkit".to_string(),
+                    "fx2tab".to_string(),
+                    "--name".to_string(),
+                    "--only-id".to_string(),
+                    "--length".to_string(),
+                    "--threads".to_string(),
+                    "{{threads}}".to_string(),
+                    "{{reads_r1}}".to_string(),
+                    "{{reads_r2}}".to_string(),
+                ],
                 &[
                     ("threads", Some(threads.to_string())),
                     ("reads_r1", Some(r1.display().to_string())),
@@ -143,22 +151,17 @@ fn profile_lengths_command(
             rendered.into_iter().filter(|token| !token.is_empty()).collect::<Vec<_>>()
         }
         "seqfu" => {
-            let mut command = vec![
-                "seqfu".to_string(),
-                "stats".to_string(),
-                "-a".to_string(),
-                "-T".to_string(),
-                "-j".to_string(),
-                threads.to_string(),
-                r1.display().to_string(),
-            ];
+            let mut script = format!(
+                "seqfu tab {} | awk -F '\\t' '{{print $1 \"\\t\" length($3)}}'",
+                shell_quote_path(r1)
+            );
             if let Some(r2) = r2 {
-                command.push(r2.display().to_string());
+                script.push_str("; seqfu tab ");
+                script.push_str(&shell_quote_path(r2));
+                script.push_str(" | awk -F '\\t' '{print $1 \"\\t\" length($3)}'");
             }
-            command
+            vec!["sh".to_string(), "-c".to_string(), script]
         }
-        "fastp" => fastp_profile_lengths_command(r1, r2, threads),
-        "prinseq" => prinseq_profile_lengths_command(r1, r2, threads),
         _ => {
             return Err(anyhow!(
                 "unsupported read-length profiling tool for stage planning: {tool_id}"
@@ -171,61 +174,8 @@ fn profile_lengths_command(
     Ok(command)
 }
 
-fn fastp_profile_lengths_command(r1: &Path, r2: Option<&Path>, threads: u32) -> Vec<String> {
-    let mut command = vec![
-        "fastp".to_string(),
-        "--in1".to_string(),
-        r1.display().to_string(),
-        "--out1".to_string(),
-        "/dev/null".to_string(),
-        "--thread".to_string(),
-        threads.to_string(),
-        "--json".to_string(),
-        "/dev/null".to_string(),
-        "--disable_adapter_trimming".to_string(),
-        "--disable_quality_filtering".to_string(),
-        "--disable_length_filtering".to_string(),
-        "--disable_trim_poly_g".to_string(),
-        "--dont_eval_duplication".to_string(),
-    ];
-    if let Some(r2) = r2 {
-        command.extend([
-            "--in2".to_string(),
-            r2.display().to_string(),
-            "--out2".to_string(),
-            "/dev/null".to_string(),
-        ]);
-    }
-    command
-}
-
-fn prinseq_profile_lengths_command(r1: &Path, r2: Option<&Path>, threads: u32) -> Vec<String> {
-    let mut command = vec![
-        "prinseq++".to_string(),
-        "-threads".to_string(),
-        threads.to_string(),
-        "-fastq".to_string(),
-        r1.display().to_string(),
-        "-out_good".to_string(),
-        "/dev/null".to_string(),
-        "-out_bad".to_string(),
-        "/dev/null".to_string(),
-    ];
-    if let Some(r2) = r2 {
-        command.extend([
-            "-fastq2".to_string(),
-            r2.display().to_string(),
-            "-out_good2".to_string(),
-            "/dev/null".to_string(),
-            "-out_bad2".to_string(),
-            "/dev/null".to_string(),
-            "-out_single".to_string(),
-            "/dev/null".to_string(),
-            "-out_single2".to_string(),
-            "/dev/null".to_string(),
-        ]);
-    }
-    command
+fn shell_quote_path(path: &Path) -> String {
+    format!("'{}'", path.display().to_string().replace('\'', "'\\''"))
 }
 
 #[cfg(test)]
@@ -240,20 +190,10 @@ mod tests {
 
     fn seqkit_tool() -> ToolExecutionSpecV1 {
         ToolExecutionSpecV1 {
-            tool_id: ToolId::from_static("seqkit_stats"),
+            tool_id: ToolId::from_static("seqkit"),
             tool_version: ToolVersion::from("2.8.0"),
             image: ContainerImageRefV1 { image: "bijuxdna/seqkit".to_string(), digest: None },
-            command: CommandSpecV1 {
-                template: vec![
-                    "seqkit_stats".to_string(),
-                    "-a".to_string(),
-                    "-T".to_string(),
-                    "-j".to_string(),
-                    "{{threads}}".to_string(),
-                    "{{reads_r1}}".to_string(),
-                    "{{reads_r2}}".to_string(),
-                ],
-            },
+            command: CommandSpecV1 { template: vec!["seqkit".to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -293,12 +233,22 @@ mod tests {
         assert_eq!(plan.resources.threads, 6);
         assert_eq!(
             plan.command.template,
-            vec!["seqkit_stats", "-a", "-T", "-j", "6", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
+            vec![
+                "seqkit",
+                "fx2tab",
+                "--name",
+                "--only-id",
+                "--length",
+                "--threads",
+                "6",
+                "reads_R1.fastq.gz",
+                "reads_R2.fastq.gz",
+            ]
         );
     }
 
     #[test]
-    fn profile_read_lengths_plan_renders_seqfu_stats_command() {
+    fn profile_read_lengths_plan_renders_seqfu_exact_length_command() {
         let plan = plan_with_options(
             &stats_tool("seqfu"),
             Path::new("reads_R1.fastq.gz"),
@@ -312,13 +262,17 @@ mod tests {
         assert_eq!(plan.resources.threads, 5);
         assert_eq!(
             plan.command.template,
-            vec!["seqfu", "stats", "-a", "-T", "-j", "5", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
+            vec![
+                "sh",
+                "-c",
+                "seqfu tab 'reads_R1.fastq.gz' | awk -F '\\t' '{print $1 \"\\t\" length($3)}'; seqfu tab 'reads_R2.fastq.gz' | awk -F '\\t' '{print $1 \"\\t\" length($3)}'",
+            ]
         );
     }
 
     #[test]
-    fn profile_read_lengths_plan_renders_fastp_report_only_command() {
-        let plan = plan_with_options(
+    fn profile_read_lengths_plan_rejects_summary_only_backends() {
+        let error = plan_with_options(
             &stats_tool("fastp"),
             Path::new("reads_R1.fastq.gz"),
             Some(Path::new("reads_R2.fastq.gz")),
@@ -326,70 +280,30 @@ mod tests {
             Some(4),
             Some(64),
         )
-        .expect("plan");
+        .expect_err("summary-only backend must be rejected");
 
-        assert_eq!(plan.resources.threads, 4);
-        assert_eq!(
-            plan.command.template,
-            vec![
-                "fastp",
-                "--in1",
-                "reads_R1.fastq.gz",
-                "--out1",
-                "/dev/null",
-                "--thread",
-                "4",
-                "--json",
-                "/dev/null",
-                "--disable_adapter_trimming",
-                "--disable_quality_filtering",
-                "--disable_length_filtering",
-                "--disable_trim_poly_g",
-                "--dont_eval_duplication",
-                "--in2",
-                "reads_R2.fastq.gz",
-                "--out2",
-                "/dev/null",
-            ]
-        );
+        assert!(error.to_string().contains("unsupported read-length profiling tool"));
     }
 
     #[test]
-    fn profile_read_lengths_plan_renders_prinseq_null_output_command() {
+    fn profile_read_lengths_plan_uses_domain_defaults_for_every_backend() {
         let plan = plan_with_options(
-            &stats_tool("prinseq"),
+            &seqkit_tool(),
             Path::new("reads_R1.fastq.gz"),
-            Some(Path::new("reads_R2.fastq.gz")),
+            None,
             Path::new("out"),
-            Some(3),
-            Some(64),
+            None,
+            None,
         )
         .expect("plan");
 
-        assert_eq!(plan.resources.threads, 3);
+        assert_eq!(plan.resources.threads, 2);
+        assert_eq!(plan.effective_params["threads"], 2);
+        assert_eq!(plan.effective_params["histogram_bins"], 100);
+        assert_eq!(plan.effective_params["paired_mode"], "single_end");
         assert_eq!(
-            plan.command.template,
-            vec![
-                "prinseq++",
-                "-threads",
-                "3",
-                "-fastq",
-                "reads_R1.fastq.gz",
-                "-out_good",
-                "/dev/null",
-                "-out_bad",
-                "/dev/null",
-                "-fastq2",
-                "reads_R2.fastq.gz",
-                "-out_good2",
-                "/dev/null",
-                "-out_bad2",
-                "/dev/null",
-                "-out_single",
-                "/dev/null",
-                "-out_single2",
-                "/dev/null",
-            ]
+            plan.effective_params["schema_version"],
+            "bijux.fastq.params.read_length_profile.v1"
         );
     }
 }

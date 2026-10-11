@@ -19,8 +19,20 @@ pub(super) use container_catalog::load_container_catalog;
 pub(super) struct ToolRegistryOutputs {
     pub(super) production_registry: String,
     pub(super) experimental_registry: String,
+    pub(super) container_experimental_registry: String,
     pub(super) required_tools: String,
     pub(super) production_tool_ids: BTreeSet<String>,
+}
+
+pub(super) struct ToolRegistryInputs<'a> {
+    pub(super) tools: &'a ToolMap,
+    pub(super) stage_to_tools: &'a StageToolMap,
+    pub(super) stage_planned: &'a StagePlannedMap,
+    pub(super) stage_defaults: &'a StageDefaultMap,
+    pub(super) stage_default_rationale: &'a StageDefaultRationaleMap,
+    pub(super) container_catalog: &'a BTreeMap<String, ContainerToolContract>,
+    pub(super) vcf_tool_ids: &'a BTreeSet<String>,
+    pub(super) source_commit: &'a str,
 }
 
 pub(super) fn collect_domain_data(
@@ -39,26 +51,13 @@ pub(super) fn collect_domain_data(
 }
 
 pub(super) fn build_tool_registries_toml(
-    tools: &ToolMap,
-    stage_to_tools: &StageToolMap,
-    stage_planned: &StagePlannedMap,
-    stage_defaults: &StageDefaultMap,
-    stage_default_rationale: &StageDefaultRationaleMap,
-    container_catalog: &BTreeMap<String, ContainerToolContract>,
-    source_commit: &str,
+    inputs: &ToolRegistryInputs<'_>,
 ) -> Result<ToolRegistryOutputs> {
-    let outputs = tool_registries::build_tool_registries_toml(
-        tools,
-        stage_to_tools,
-        stage_planned,
-        stage_defaults,
-        stage_default_rationale,
-        container_catalog,
-        source_commit,
-    )?;
+    let outputs = tool_registries::build_tool_registries_toml(inputs)?;
     Ok(ToolRegistryOutputs {
         production_registry: outputs.production_registry,
         experimental_registry: outputs.experimental_registry,
+        container_experimental_registry: outputs.container_experimental_registry,
         required_tools: outputs.required_tools,
         production_tool_ids: outputs.production_tool_ids,
     })

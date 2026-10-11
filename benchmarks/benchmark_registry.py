@@ -14,7 +14,7 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
-SCHEMA_VERSION = "bijux.container.stage_benchmarks.v1"
+SCHEMA_VERSION = "bijux.benchmark.stage_campaigns.v1"
 RUN_PATTERN = re.compile(r"^run-(2[0-9]{3}|[3-9][0-9]{3,})$")
 REQUIRED_PERFORMANCE_METRICS = {
     "wall_seconds",
@@ -25,8 +25,8 @@ REQUIRED_PERFORMANCE_METRICS = {
 }
 COMPARATIVE_PERFORMANCE_METRICS = REQUIRED_PERFORMANCE_METRICS | {
     "cpu_utilization_percent",
-    "filesystem_read_bytes",
-    "filesystem_write_bytes",
+    "filesystem_input_operations",
+    "filesystem_output_operations",
     "throughput_input_bytes_per_second",
 }
 
@@ -208,8 +208,9 @@ def validate_registry(
             raise RegistryError(
                 f"benchmark performance metrics are incomplete for {stage_id}"
             )
-        if evidence_tier == "comparative" and not COMPARATIVE_PERFORMANCE_METRICS.issubset(
-            performance_metrics
+        if (
+            evidence_tier == "comparative"
+            and not COMPARATIVE_PERFORMANCE_METRICS.issubset(performance_metrics)
         ):
             raise RegistryError(
                 f"comparative performance metrics are incomplete for {stage_id}"
@@ -269,7 +270,7 @@ def coverage_report(
                     if (
                         not isinstance(evidence, dict)
                         or evidence.get("schema_version")
-                        != "bijux.container.stage_benchmark_report.v1"
+                        != "bijux.benchmark.stage_report.v1"
                         or evidence.get("verdict") != "passed"
                         or evidence.get("run_id") != campaign["run_id"]
                         or evidence.get("stage_id") != stage_id
@@ -294,12 +295,10 @@ def coverage_report(
             }
         )
     admitted = sum(row["execution_status"] == "admitted" for row in rows)
-    qualification = sum(
-        row["definition_status"] == "qualification" for row in rows
-    )
+    qualification = sum(row["definition_status"] == "qualification" for row in rows)
     comparative = sum(row["definition_status"] == "comparative" for row in rows)
     return {
-        "schema_version": "bijux.container.stage_benchmark_coverage.v1",
+        "schema_version": "bijux.benchmark.stage_coverage.v1",
         "summary": {
             "retained_stage_count": len(rows),
             "defined_stage_count": len(defined),
@@ -312,9 +311,10 @@ def coverage_report(
     }
 
 
-def write_report(report: dict[str, Any], json_path: Path, markdown_path: Path) -> None:
-    json_path.parent.mkdir(parents=True, exist_ok=True)
-    json_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+def write_report(
+    report: dict[str, Any], json_path: Path, markdown_path: Path, check: bool = False
+) -> None:
+    expected_json = json.dumps(report, indent=2, sort_keys=True) + "\n"
     summary = report["summary"]
     lines = [
         "<!-- GENERATED FILE - DO NOT EDIT -->",
@@ -343,7 +343,40 @@ def write_report(report: dict[str, Any], json_path: Path, markdown_path: Path) -
             f"| `{row['stage_id']}` | {tools} | {run_id} | "
             f"{row['definition_status']} | {row['execution_status']} |"
         )
-    markdown_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    expected_markdown = "\n".join(lines) + "\n"
+    if check:
+        if (
+            not json_path.is_file()
+            or json_path.read_text(encoding="utf-8") != expected_json
+        ):
+            raise RegistryError(f"stage benchmark coverage JSON drifted: {json_path}")
+        if (
+            not markdown_path.is_file()
+            or markdown_path.read_text(encoding="utf-8") != expected_markdown
+        ):
+            raise RegistryError(
+                f"stage benchmark coverage Markdown drifted: {markdown_path}"
+            )
+        return
+    json_path.parent.mkdir(parents=True, exist_ok=True)
+    json_path.write_text(expected_json, encoding="utf-8")
+    markdown_path.write_text(expected_markdown, encoding="utf-8")
+
+
+def resolve_evidence_root(
+    evidence_root: Path | None,
+    json_output: Path | None,
+    markdown_output: Path | None,
+) -> Path | None:
+    if evidence_root is not None:
+        return evidence_root
+    if json_output is None or markdown_output is None:
+        return None
+    return (
+        json_output.parent
+        if json_output.parent == markdown_output.parent
+        else None
+    )
 
 
 def parser() -> argparse.ArgumentParser:
@@ -353,6 +386,7 @@ def parser() -> argparse.ArgumentParser:
     root.add_argument("--json-output", type=Path)
     root.add_argument("--markdown-output", type=Path)
     root.add_argument("--evidence-root", type=Path)
+    root.add_argument("--check", action="store_true")
     return root
 
 
@@ -362,13 +396,25 @@ def main() -> int:
         registry = load_toml(args.registry)
         catalog = load_toml(args.catalog)
         campaigns = validate_registry(registry, catalog)
-        report = coverage_report(campaigns, catalog, args.evidence_root)
         if bool(args.json_output) != bool(args.markdown_output):
             raise RegistryError(
                 "JSON and Markdown report paths must be supplied together"
             )
+        if args.check and not (args.json_output and args.markdown_output):
+            raise RegistryError("--check requires JSON and Markdown report paths")
+        evidence_root = resolve_evidence_root(
+            args.evidence_root,
+            args.json_output,
+            args.markdown_output,
+        )
+        report = coverage_report(campaigns, catalog, evidence_root)
         if args.json_output and args.markdown_output:
-            write_report(report, args.json_output, args.markdown_output)
+            write_report(
+                report,
+                args.json_output,
+                args.markdown_output,
+                check=args.check,
+            )
         print(
             f"stage benchmark campaigns: {len(campaigns)} defined, "
             f"{report['summary']['missing_stage_count']} missing"

@@ -9,7 +9,7 @@
         "single_and_paired_reads"
       ],
       "sample_count": 20,
-      "status": "source_defined",
+      "status": "admitted",
       "truth_strategy": "observational_only"
     },
     {
@@ -105,8 +105,8 @@
       "stage_count": 24
     },
     "fastq": {
-      "blocked_count": 27,
-      "ready_count": 0,
+      "blocked_count": 25,
+      "ready_count": 2,
       "stage_count": 27
     },
     "vcf": {
@@ -128,8 +128,8 @@
       "cpu_seconds",
       "cpu_utilization_percent",
       "peak_rss_kib",
-      "filesystem_read_bytes",
-      "filesystem_write_bytes",
+      "filesystem_input_operations",
+      "filesystem_output_operations",
       "input_bytes",
       "output_bytes",
       "throughput_input_bytes_per_second"
@@ -141,6 +141,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -148,6 +149,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-alignment",
       "readiness": "blocked",
       "reserved_run_id": "run-2005",
@@ -160,6 +162,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -168,6 +171,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-ancient-authentication",
       "readiness": "blocked",
       "reserved_run_id": "run-2006",
@@ -181,6 +185,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -189,6 +194,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2007",
@@ -200,6 +206,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -207,6 +214,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2008",
@@ -218,6 +226,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
@@ -227,6 +236,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-biological-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2009",
@@ -240,6 +250,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
@@ -247,6 +258,7 @@
       "campaign_run_id": "run-2002",
       "campaign_tier": "qualification",
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2002",
@@ -260,6 +272,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -268,6 +281,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-ancient-authentication",
       "readiness": "blocked",
       "reserved_run_id": "run-2010",
@@ -283,6 +297,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -290,6 +305,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2011",
@@ -302,6 +318,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
@@ -309,6 +326,7 @@
       "campaign_run_id": "run-2003",
       "campaign_tier": "qualification",
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2003",
@@ -320,6 +338,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -328,6 +347,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2012",
@@ -341,6 +361,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -348,6 +369,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2013",
@@ -359,6 +381,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
@@ -368,6 +391,7 @@
       "campaign_run_id": "run-2001",
       "campaign_tier": "qualification",
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-biological-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2001",
@@ -379,6 +403,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
@@ -388,6 +413,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-biological-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2014",
@@ -399,6 +425,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -406,6 +433,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2015",
@@ -417,6 +445,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
@@ -426,6 +455,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-biological-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2016",
@@ -437,6 +467,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -445,6 +476,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2017",
@@ -457,6 +489,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "active campaign is qualification-only"
@@ -464,6 +497,7 @@
       "campaign_run_id": "run-2004",
       "campaign_tier": "qualification",
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2004",
@@ -476,6 +510,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -484,6 +519,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2018",
@@ -496,6 +532,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -504,6 +541,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2019",
@@ -516,6 +554,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -524,6 +563,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2020",
@@ -535,6 +575,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -542,6 +583,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2021",
@@ -554,6 +596,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -562,6 +605,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2022",
@@ -573,6 +617,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
@@ -582,6 +627,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-biological-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2023",
@@ -594,6 +640,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role bam_diversity is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -601,6 +648,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "bam",
+      "interface_status": "missing",
       "profile_id": "bam-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2024",
@@ -614,6 +662,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -621,6 +670,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-amplicon",
       "readiness": "blocked",
       "reserved_run_id": "run-2025",
@@ -630,16 +680,16 @@
       "stage_id": "fastq.cluster_otus"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2026",
@@ -652,16 +702,16 @@
       "stage_id": "fastq.correct_errors"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-depletion",
       "readiness": "blocked",
       "reserved_run_id": "run-2027",
@@ -671,16 +721,16 @@
       "stage_id": "fastq.deplete_host"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-depletion",
       "readiness": "blocked",
       "reserved_run_id": "run-2028",
@@ -690,16 +740,16 @@
       "stage_id": "fastq.deplete_reference_contaminants"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-depletion",
       "readiness": "blocked",
       "reserved_run_id": "run-2029",
@@ -709,15 +759,15 @@
       "stage_id": "fastq.deplete_rrna"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
+        "no closed stage interface is defined",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2030",
@@ -727,15 +777,15 @@
       "stage_id": "fastq.detect_adapters"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
+        "no closed stage interface is defined",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2031",
@@ -745,15 +795,15 @@
       "stage_id": "fastq.detect_duplicates_premerge"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
+        "no closed stage interface is defined",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2032",
@@ -763,16 +813,16 @@
       "stage_id": "fastq.estimate_library_complexity_prealign"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2033",
@@ -782,16 +832,16 @@
       "stage_id": "fastq.extract_umis"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2034",
@@ -803,16 +853,16 @@
       "stage_id": "fastq.filter_low_complexity"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2035",
@@ -827,6 +877,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role alignment_truth is not comparative-ready (alignment-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -834,6 +885,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "reference-index-build",
       "readiness": "blocked",
       "reserved_run_id": "run-2036",
@@ -846,6 +898,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -853,6 +906,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-amplicon",
       "readiness": "blocked",
       "reserved_run_id": "run-2037",
@@ -862,16 +916,16 @@
       "stage_id": "fastq.infer_asvs"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2038",
@@ -889,6 +943,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -896,6 +951,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-amplicon",
       "readiness": "blocked",
       "reserved_run_id": "run-2039",
@@ -905,16 +961,16 @@
       "stage_id": "fastq.normalize_abundance"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2040",
@@ -924,15 +980,15 @@
       "stage_id": "fastq.normalize_primers"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
+        "no closed stage interface is defined",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2041",
@@ -944,38 +1000,30 @@
       "stage_id": "fastq.profile_overrepresented_sequences"
     },
     {
-      "available_comparative_samples": 0,
-      "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
-        "no execution campaign is defined"
-      ],
-      "campaign_run_id": null,
-      "campaign_tier": null,
+      "available_comparative_samples": 20,
+      "blockers": [],
+      "campaign_run_id": "run-2042",
+      "campaign_tier": "comparative",
       "domain": "fastq",
+      "interface_status": "closed",
       "profile_id": "fastq-observational-qc",
-      "readiness": "blocked",
+      "readiness": "ready",
       "reserved_run_id": "run-2042",
       "retained_tools": [
-        "fastp",
-        "prinseq",
         "seqfu",
-        "seqkit_stats"
+        "seqkit"
       ],
       "stage_id": "fastq.profile_read_lengths"
     },
     {
-      "available_comparative_samples": 0,
-      "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
-        "no execution campaign is defined"
-      ],
-      "campaign_run_id": null,
-      "campaign_tier": null,
+      "available_comparative_samples": 20,
+      "blockers": [],
+      "campaign_run_id": "run-2043",
+      "campaign_tier": "comparative",
       "domain": "fastq",
+      "interface_status": "closed",
       "profile_id": "fastq-observational-qc",
-      "readiness": "blocked",
+      "readiness": "ready",
       "reserved_run_id": "run-2043",
       "retained_tools": [
         "seqfu",
@@ -987,6 +1035,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role amplicon_truth is not comparative-ready (amplicon-community-challenge=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -994,6 +1043,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-amplicon",
       "readiness": "blocked",
       "reserved_run_id": "run-2044",
@@ -1003,16 +1053,16 @@
       "stage_id": "fastq.remove_chimeras"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2045",
@@ -1022,15 +1072,15 @@
       "stage_id": "fastq.remove_duplicates"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
+        "no closed stage interface is defined",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2046",
@@ -1042,6 +1092,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role environmental_taxonomy_truth is not comparative-ready (environmental-taxonomy-challenge=missing/comparative)",
         "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
@@ -1049,6 +1100,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-taxonomy",
       "readiness": "blocked",
       "reserved_run_id": "run-2047",
@@ -1061,16 +1113,16 @@
       "stage_id": "fastq.screen_taxonomy"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2048",
@@ -1081,16 +1133,16 @@
       "stage_id": "fastq.trim_polyg_tails"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2049",
@@ -1113,16 +1165,16 @@
       "stage_id": "fastq.trim_reads"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
+        "no closed stage interface is defined",
         "corpus role read_processing_truth is not comparative-ready (read-processing-challenge=missing/comparative)",
-        "available comparative sample count 0 is below 10",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-read-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2050",
@@ -1134,15 +1186,15 @@
       "stage_id": "fastq.trim_terminal_damage"
     },
     {
-      "available_comparative_samples": 0,
+      "available_comparative_samples": 20,
       "blockers": [
-        "corpus role short_read_diversity is not comparative-ready (human-short-read-diversity=source_defined/comparative)",
-        "available comparative sample count 0 is below 10",
+        "no closed stage interface is defined",
         "no execution campaign is defined"
       ],
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "fastq",
+      "interface_status": "missing",
       "profile_id": "fastq-observational-qc",
       "readiness": "blocked",
       "reserved_run_id": "run-2051",
@@ -1158,6 +1210,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
         "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1166,6 +1219,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2052",
@@ -1178,6 +1232,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1186,6 +1241,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-calling",
       "readiness": "blocked",
       "reserved_run_id": "run-2053",
@@ -1197,6 +1253,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1205,6 +1262,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-calling",
       "readiness": "blocked",
       "reserved_run_id": "run-2054",
@@ -1216,6 +1274,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1224,6 +1283,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-calling",
       "readiness": "blocked",
       "reserved_run_id": "run-2055",
@@ -1235,6 +1295,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role ancient_damage_truth is not comparative-ready (ancient-dna-bam-diversity=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1243,6 +1304,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-calling",
       "readiness": "blocked",
       "reserved_run_id": "run-2056",
@@ -1254,6 +1316,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1262,6 +1325,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2057",
@@ -1273,6 +1337,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
         "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1281,6 +1346,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2058",
@@ -1292,6 +1358,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1300,6 +1367,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2059",
@@ -1311,6 +1379,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1319,6 +1388,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2060",
@@ -1330,6 +1400,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
         "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1338,6 +1409,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2061",
@@ -1351,6 +1423,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1359,6 +1432,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-phasing-imputation",
       "readiness": "blocked",
       "reserved_run_id": "run-2062",
@@ -1372,6 +1446,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1380,6 +1455,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-phasing-imputation",
       "readiness": "blocked",
       "reserved_run_id": "run-2063",
@@ -1393,6 +1469,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
         "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1401,6 +1478,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2064",
@@ -1413,6 +1491,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1421,6 +1500,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-phasing-imputation",
       "readiness": "blocked",
       "reserved_run_id": "run-2065",
@@ -1435,6 +1515,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
         "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1443,6 +1524,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2066",
@@ -1456,6 +1538,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1464,6 +1547,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2067",
@@ -1475,6 +1559,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1483,6 +1568,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2068",
@@ -1494,6 +1580,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1502,6 +1589,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2069",
@@ -1515,6 +1603,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role population_inference_truth is not comparative-ready (ancient-population-panel=missing/comparative)",
         "corpus role ancient_population_diversity is not comparative-ready (ancient-population-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1523,6 +1612,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-population-inference",
       "readiness": "blocked",
       "reserved_run_id": "run-2070",
@@ -1534,6 +1624,7 @@
     {
       "available_comparative_samples": 0,
       "blockers": [
+        "no closed stage interface is defined",
         "corpus role variant_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "corpus role masked_genotype_truth is not comparative-ready (variant-truth-panel=missing/comparative)",
         "available comparative sample count 0 is below 10",
@@ -1542,6 +1633,7 @@
       "campaign_run_id": null,
       "campaign_tier": null,
       "domain": "vcf",
+      "interface_status": "missing",
       "profile_id": "vcf-transformation",
       "readiness": "blocked",
       "reserved_run_id": "run-2071",
@@ -1552,12 +1644,12 @@
     }
   ],
   "summary": {
-    "admitted_comparative_corpus_count": 0,
-    "blocked_count": 71,
-    "comparative_campaign_count": 0,
+    "admitted_comparative_corpus_count": 1,
+    "blocked_count": 69,
+    "comparative_campaign_count": 2,
     "corpus_count": 9,
     "qualification_campaign_count": 4,
-    "ready_count": 0,
+    "ready_count": 2,
     "reserved_run_count": 71,
     "stage_count": 71
   }

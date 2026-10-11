@@ -104,7 +104,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let observation = observe_read_lengths_tool(args, &tool_plan.plan)?;
+        let observation = observe_read_lengths_tool(args, &tool_plan.plan, &execution)?;
         let metric_set = build_read_lengths_metric_set(&observation)?;
         let histogram = project_read_lengths_histogram(&observation);
         validate_read_lengths_histogram(&histogram, metric_set.metrics.read_count)?;
@@ -584,11 +584,55 @@ fn validate_read_lengths_artifact_paths(
 fn observe_read_lengths_tool(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
     plan: &StagePlanV1,
+    execution: &ReadLengthsToolExecution,
 ) -> Result<ReadLengthsObservation> {
-    let lengths = observe_read_lengths(args)?;
+    let lengths = parse_backend_read_lengths(&execution.result.stdout)?;
     validate_read_lengths_observation(&lengths)?;
+    validate_backend_read_lengths(args, &lengths)?;
     let artifacts = prepare_read_lengths_artifacts(args, plan, &lengths)?;
     Ok(ReadLengthsObservation { lengths, artifacts })
+}
+
+fn parse_backend_read_lengths(stdout: &str) -> Result<Vec<usize>> {
+    stdout
+        .lines()
+        .enumerate()
+        .map(|(index, line)| {
+            let (record_id, length) = line.split_once('\t').ok_or_else(|| {
+                anyhow!(
+                    "profile_read_lengths backend row {} does not match record_id<TAB>length",
+                    index + 1
+                )
+            })?;
+            if record_id.trim().is_empty() {
+                return Err(anyhow!(
+                    "profile_read_lengths backend row {} has an empty record identity",
+                    index + 1
+                ));
+            }
+            length.trim().parse::<usize>().with_context(|| {
+                format!("profile_read_lengths backend row {} has an invalid length", index + 1)
+            })
+        })
+        .collect()
+}
+
+fn validate_backend_read_lengths(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
+    backend_lengths: &[usize],
+) -> Result<()> {
+    let mut expected = observe_read_lengths(args)?;
+    let mut observed = backend_lengths.to_vec();
+    expected.sort_unstable();
+    observed.sort_unstable();
+    if observed != expected {
+        return Err(anyhow!(
+            "profile_read_lengths backend observations differ from the independently decoded FASTQ lengths: expected {} records, observed {}",
+            expected.len(),
+            observed.len()
+        ));
+    }
+    Ok(())
 }
 
 fn validate_read_lengths_observation(lengths: &[usize]) -> Result<()> {
@@ -687,8 +731,10 @@ fn render_read_lengths_report(
         runtime_s: execution_metrics.map(|metrics| metrics.runtime_s),
         memory_mb: execution_metrics.map(|metrics| metrics.memory_mb),
         exit_code: execution_metrics.map(|metrics| metrics.exit_code),
-        raw_backend_report: Some(artifacts.length_tsv.display().to_string()),
-        raw_backend_report_format: Some("seqkit_fx2tab_tsv".to_string()),
+        // The governed histogram is normalized from the backend's exact per-record observations
+        // after independent comparison with the admitted FASTQ records.
+        raw_backend_report: None,
+        raw_backend_report_format: None,
     }
 }
 
@@ -976,4 +1022,29 @@ fn usize_to_f64(value: usize) -> f64 {
 
 fn usize_to_u64(value: usize) -> u64 {
     value.try_into().unwrap_or(u64::MAX)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_backend_read_lengths;
+    use anyhow::Result;
+
+    #[test]
+    fn backend_length_rows_are_tool_independent() -> Result<()> {
+        let seqfu = parse_backend_read_lengths("read-1\t90\nread-2\t97\n")?;
+        let seqkit = parse_backend_read_lengths(
+            "read-1 instrument-comment/1\t90\nread-2 instrument-comment/1\t97\n",
+        )?;
+
+        assert_eq!(seqfu, vec![90, 97]);
+        assert_eq!(seqfu, seqkit);
+        Ok(())
+    }
+
+    #[test]
+    fn backend_length_rows_reject_summary_dialects() {
+        let result = parse_backend_read_lengths("file\tnum_seqs\tmin_len\tmax_len\n");
+
+        assert!(result.is_err());
+    }
 }

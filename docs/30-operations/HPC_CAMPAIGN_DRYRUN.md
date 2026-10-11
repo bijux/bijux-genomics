@@ -246,7 +246,7 @@ Run campaign preflight:
 bijux-dna config campaign-preflight \
   --config benchmarks/configs/hpc/campaign/lunarc-small.toml \
   --env-file configs/hpc/.env \
-  --user-overrides benchmarks/configs/hpc/campaign/user.policy.toml
+  --user-policies benchmarks/configs/hpc/campaign/user.policy.toml
 ```
 
 Run campaign dry-run:
@@ -255,7 +255,7 @@ Run campaign dry-run:
 bijux-dna config campaign-dry-run \
   --config benchmarks/configs/hpc/campaign/lunarc-small.toml \
   --env-file configs/hpc/.env \
-  --user-overrides benchmarks/configs/hpc/campaign/user.policy.toml
+  --user-policies benchmarks/configs/hpc/campaign/user.policy.toml
 ```
 
 Print JSON reports:
