@@ -1,9 +1,8 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
 
 use super::local_all_domain_job_execution::{
     render_shell_command, rendered_benchmark_result_execution_argv,
@@ -36,44 +35,11 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT: &str =
     "artifacts/runs/bench/slurm-dry-run/all-domains";
-const LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_VERSION: &str =
-    "bijux.bench.local_all_domain_slurm_scripts.v1";
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalAllDomainSlurmScriptEntry {
-    pub(crate) job_id_local: String,
-    pub(crate) job_kind: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) pipeline_id: Option<String>,
-    pub(crate) node_id: Option<String>,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) dependency_count: usize,
-    pub(crate) cpus_per_task: u32,
-    pub(crate) memory_mb: u32,
-    pub(crate) time_limit: String,
-    pub(crate) script_path: String,
-    pub(crate) stdout_path: String,
-    pub(crate) stderr_path: String,
-    pub(crate) command_step_count: usize,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalAllDomainSlurmScriptsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_root: String,
-    pub(crate) script_count: usize,
-    pub(crate) benchmark_job_count: usize,
-    pub(crate) essential_pipeline_job_count: usize,
-    pub(crate) pipeline_count: usize,
-    pub(crate) domain_counts: BTreeMap<String, usize>,
-    pub(crate) benchmark_domain_counts: BTreeMap<String, usize>,
-    pub(crate) essential_pipeline_domain_counts: BTreeMap<String, usize>,
-    pub(crate) scripts: Vec<BenchLocalAllDomainSlurmScriptEntry>,
-}
+use bijux_dna_api::v1::api::bench::build_benchmark_local_all_domain_slurm_scripts_report;
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalAllDomainSlurmScriptEntry as BenchLocalAllDomainSlurmScriptEntry,
+    BenchmarkLocalAllDomainSlurmScriptsReport as BenchLocalAllDomainSlurmScriptsReport,
+};
 
 type SlurmResourceHint = LocalHpcJobResourceHint;
 
@@ -141,7 +107,6 @@ pub(crate) fn render_all_domain_slurm_scripts(
     let fixture_sample_scopes = load_fixture_sample_scope_map(repo_root)?;
 
     let mut scripts = Vec::new();
-    let mut benchmark_domain_counts = BTreeMap::<String, usize>::new();
     for expected in benchmark_expected_by_result.values() {
         let command = benchmark_command_by_result.get(&expected.result_id).ok_or_else(|| {
             anyhow!(
@@ -164,14 +129,9 @@ pub(crate) fn render_all_domain_slurm_scripts(
             repo_root,
             &artifacts,
         ));
-        *benchmark_domain_counts.entry(expected.domain.clone()).or_default() += 1;
     }
 
-    let mut essential_pipeline_domain_counts = BTreeMap::<String, usize>::new();
-    let mut pipeline_count = 0usize;
-    let mut essential_pipeline_job_count = 0usize;
     for pipeline_id in ESSENTIAL_PIPELINE_IDS {
-        pipeline_count += 1;
         let config_path = benchmark_local_pipeline_config_path(repo_root, pipeline_id);
         let report_path = repo_root
             .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
@@ -234,31 +194,13 @@ pub(crate) fn render_all_domain_slurm_scripts(
                 &artifacts,
             );
             write_all_domain_slurm_script(repo_root, &artifacts, &entry, body)?;
-            *essential_pipeline_domain_counts.entry(command.domain.clone()).or_default() += 1;
-            essential_pipeline_job_count += 1;
             scripts.push(entry);
         }
     }
 
-    let mut domain_counts = BTreeMap::<String, usize>::new();
-    for entry in &scripts {
-        *domain_counts.entry(entry.domain.clone()).or_default() += 1;
-    }
-
-    let report = BenchLocalAllDomainSlurmScriptsReport {
-        schema_version: LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_VERSION,
-        output_root: path_relative_to_repo(repo_root, &absolute_output_root),
-        script_count: scripts.len(),
-        benchmark_job_count: benchmark_expected_by_result.len(),
-        essential_pipeline_job_count,
-        pipeline_count,
-        domain_counts,
-        benchmark_domain_counts,
-        essential_pipeline_domain_counts,
+    let report = build_benchmark_local_all_domain_slurm_scripts_report(
+        path_relative_to_repo(repo_root, &absolute_output_root),
         scripts,
-    };
-    ensure_all_domain_slurm_script_contract(
-        &report,
         benchmark_command_by_result.len(),
         expected_essential_pipeline_node_count(repo_root)?,
     )?;
@@ -595,57 +537,6 @@ fn write_all_domain_slurm_script(
         .with_context(|| format!("create {}", artifacts.result_root.display()))?;
     fs::write(&artifacts.script_path, body)
         .with_context(|| format!("write {}", artifacts.script_path.display()))?;
-    Ok(())
-}
-
-fn ensure_all_domain_slurm_script_contract(
-    report: &BenchLocalAllDomainSlurmScriptsReport,
-    expected_benchmark_job_count: usize,
-    expected_essential_pipeline_job_count: usize,
-) -> Result<()> {
-    if report.benchmark_job_count != expected_benchmark_job_count {
-        return Err(anyhow!(
-            "all-domain slurm script generation must cover every expected benchmark result job (expected {}, found {})",
-            expected_benchmark_job_count,
-            report.benchmark_job_count
-        ));
-    }
-    if report.essential_pipeline_job_count != expected_essential_pipeline_job_count {
-        return Err(anyhow!(
-            "all-domain slurm script generation must cover every essential pipeline node (expected {}, found {})",
-            expected_essential_pipeline_job_count,
-            report.essential_pipeline_job_count
-        ));
-    }
-    if report.script_count != report.benchmark_job_count + report.essential_pipeline_job_count {
-        return Err(anyhow!(
-            "all-domain slurm script generation must keep script_count equal to benchmark jobs plus essential pipeline jobs"
-        ));
-    }
-    if report.benchmark_domain_counts.get("vcf").copied().unwrap_or_default() == 0 {
-        return Err(anyhow!(
-            "all-domain slurm script generation must include benchmark-ready VCF jobs"
-        ));
-    }
-    if report.essential_pipeline_job_count == 0 || report.pipeline_count == 0 {
-        return Err(anyhow!(
-            "all-domain slurm script generation must include essential pipeline jobs"
-        ));
-    }
-    let unique_paths =
-        report.scripts.iter().map(|entry| entry.script_path.as_str()).collect::<BTreeSet<_>>();
-    if unique_paths.len() != report.scripts.len() {
-        return Err(anyhow!(
-            "all-domain slurm script generation must keep one unique script path per job"
-        ));
-    }
-    let unique_job_ids =
-        report.scripts.iter().map(|entry| entry.job_id_local.as_str()).collect::<BTreeSet<_>>();
-    if unique_job_ids.len() != report.scripts.len() {
-        return Err(anyhow!(
-            "all-domain slurm script generation must keep one unique local job id per script"
-        ));
-    }
     Ok(())
 }
 

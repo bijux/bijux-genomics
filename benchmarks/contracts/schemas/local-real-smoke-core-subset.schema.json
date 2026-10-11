@@ -1,0 +1,152 @@
+{
+  "$defs": {
+    "RealSmokeCoreSubsetExecutionKind": {
+      "enum": [
+        "stage",
+        "pipeline_bridge"
+      ],
+      "type": "string"
+    },
+    "RealSmokeCoreSubsetRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "bridge_source_domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bridge_target_domain": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_path": {
+          "type": "string"
+        },
+        "execution_id": {
+          "type": "string"
+        },
+        "execution_kind": {
+          "$ref": "#/$defs/RealSmokeCoreSubsetExecutionKind"
+        },
+        "manifest_exit_code": {
+          "format": "int32",
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "manifest_status": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "normalized_metric_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "normalized_metrics": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "parsed_schema_version": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_result_manifest_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "execution_id",
+        "execution_kind",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "evidence_path",
+        "parsed_schema_version",
+        "normalized_metric_count",
+        "normalized_metrics"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "execution_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passes_behavior_test": {
+      "type": "boolean"
+    },
+    "pipeline_bridge_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/RealSmokeCoreSubsetRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_real_smoke_core_subset.v1",
+      "type": "string"
+    },
+    "stage_execution_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "execution_count",
+    "stage_execution_count",
+    "pipeline_bridge_count",
+    "domain_counts",
+    "passes_behavior_test",
+    "rows"
+  ],
+  "title": "RealSmokeCoreSubsetReport",
+  "type": "object"
+}

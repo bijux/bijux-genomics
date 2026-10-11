@@ -21,7 +21,8 @@ pub fn validate_stage_tool_benchmark_ready_report(
         return invalid("unsupported stage/tool benchmark-readiness schema");
     }
     require_text(&report.output_path, "output_path")?;
-    if report.expected_pair_count != report.benchmark_ready_pair_count + report.excluded_pair_count
+    if report.benchmark_ready_pair_count.checked_add(report.excluded_pair_count)
+        != Some(report.expected_pair_count)
     {
         return invalid("stage/tool expected-pair aggregate does not close");
     }

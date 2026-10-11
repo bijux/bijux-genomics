@@ -3,6 +3,34 @@ use serde::{Deserialize, Serialize};
 
 use crate::params::{merge::MergeEngine, merge::UnmergedReadPolicy, PairedMode};
 
+/// Schema identity for the local smoke observation envelope.
+pub const LOCAL_MERGE_PAIRS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.merge_pairs.local_smoke.report.v1";
+
+/// Local smoke observation; planned tool identity and actual report producer remain distinct.
+/// This envelope alone does not prove execution of the planned backend.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LocalMergePairsSmokeReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub sample_id: String,
+    pub planned_tool_id: String,
+    pub report_tool_id: String,
+    pub merge_overlap: u32,
+    pub min_length: u32,
+    pub input_pair_count: u64,
+    pub merged_count: u64,
+    pub unmerged_r1_count: u64,
+    pub unmerged_r2_count: u64,
+    pub discarded_count: u64,
+    pub merged_fastq_gz: String,
+    pub unmerged_r1_fastq_gz: Option<String>,
+    pub unmerged_r2_fastq_gz: Option<String>,
+    pub case_report_json: String,
+    pub raw_backend_report: Option<String>,
+}
+
 pub const MERGE_PAIRS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.merge_pairs.report.v2";
 
 #[allow(clippy::struct_field_names)]
@@ -143,5 +171,46 @@ mod tests {
                 discarded_pair_count: 1,
             }
         );
+    }
+}
+
+#[cfg(test)]
+mod local_smoke_contract_tests {
+    use super::*;
+    use anyhow::Result;
+
+    #[test]
+    fn local_smoke_observation_preserves_wire_shape_and_producer_identity() -> Result<()> {
+        let original: serde_json::Value = serde_json::from_str(
+            r#"{
+    "schema_version": "bijux.fastq.merge_pairs.local_smoke.report.v1",
+    "stage_id": "fastq.merge_pairs",
+    "sample_id": "authored_contract_value",
+    "planned_tool_id": "planned_backend",
+    "report_tool_id": "local_emitter",
+    "merge_overlap": 1,
+    "min_length": 1,
+    "input_pair_count": 1,
+    "merged_count": 1,
+    "unmerged_r1_count": 1,
+    "unmerged_r2_count": 1,
+    "discarded_count": 1,
+    "merged_fastq_gz": "authored_contract_value",
+    "unmerged_r1_fastq_gz": null,
+    "unmerged_r2_fastq_gz": null,
+    "case_report_json": "authored_contract_value",
+    "raw_backend_report": null
+}"#,
+        )?;
+        let report: LocalMergePairsSmokeReportV1 = serde_json::from_value(original.clone())?;
+        assert_eq!(report.schema_version, LOCAL_MERGE_PAIRS_SMOKE_REPORT_SCHEMA_VERSION);
+        assert_ne!(report.planned_tool_id, report.report_tool_id);
+        assert_eq!(serde_json::to_value(&report)?, original);
+        let mut unsupported = original;
+        unsupported["unrecognized"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<LocalMergePairsSmokeReportV1>(unsupported).is_err());
+        let schema = serde_json::to_value(schemars::schema_for!(LocalMergePairsSmokeReportV1))?;
+        assert_eq!(schema["additionalProperties"], serde_json::json!(false));
+        Ok(())
     }
 }

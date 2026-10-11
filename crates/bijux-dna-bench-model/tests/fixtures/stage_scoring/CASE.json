@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.fixture_case.v1",
+  "format": "markdown_legacy",
+  "content": "# Scientific scoring policy\n\nOne authored BAM alignment scoring row and the complete failure-class catalog from configs/bench/local/stage-scoring.toml. Tests preserve serialization and reject non-finite weights, malformed nested fields and incompatible ranking decisions. Paths are metadata; these fixtures launch no tools and make no scientific performance claims.\n"
+}

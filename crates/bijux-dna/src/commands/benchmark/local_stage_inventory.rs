@@ -3,8 +3,10 @@ pub(crate) use bijux_dna_api::v1::api::bench::{
     render_benchmark_all_domain_stage_inventory as render_all_domain_stage_inventory,
     BenchmarkLocalStageInventoryDomain as BenchLocalDomain,
     BenchmarkLocalStageReadinessKind as LocalStageReadinessKind,
-    DEFAULT_BENCHMARK_ALL_DOMAIN_STAGE_LIST_PATH as DEFAULT_ALL_DOMAIN_STAGE_LIST_PATH,
 };
+
+pub(crate) const DEFAULT_ALL_DOMAIN_STAGE_LIST_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/all-domain-stage-list.json";
 
 #[cfg(test)]
 mod tests {

@@ -1,0 +1,126 @@
+{
+  "$defs": {
+    "FullBenchmarkDashboardMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "metric_id": {
+          "type": "string"
+        },
+        "source_field": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "metric_id",
+        "count",
+        "source_path",
+        "source_field",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "blocked_jobs": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "explicit_unsupported_pairs": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failed_real_smokes": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "json_output_path": {
+      "type": "string"
+    },
+    "markdown_output_path": {
+      "type": "string"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/FullBenchmarkDashboardMetric"
+      },
+      "type": "array"
+    },
+    "missing_adapters": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_assets": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_parsers": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "passes_behavior_test": {
+      "type": "boolean"
+    },
+    "ready_jobs": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.full_benchmark_dashboard.v1",
+      "type": "string"
+    },
+    "total_expected_jobs": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "total_stages": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "total_tools": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "markdown_output_path",
+    "json_output_path",
+    "total_stages",
+    "total_tools",
+    "total_expected_jobs",
+    "ready_jobs",
+    "blocked_jobs",
+    "missing_parsers",
+    "missing_adapters",
+    "missing_assets",
+    "failed_real_smokes",
+    "explicit_unsupported_pairs",
+    "passes_behavior_test",
+    "metrics"
+  ],
+  "title": "FullBenchmarkDashboardReport",
+  "type": "object"
+}

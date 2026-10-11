@@ -1,0 +1,16 @@
+mod admixture_smoke;
+mod admixture_smoke_file;
+mod ibd_smoke;
+mod ibd_smoke_file;
+mod imputation_metrics_smoke;
+mod imputation_metrics_smoke_file;
+mod impute_smoke;
+mod impute_smoke_file;
+mod pca_smoke;
+mod pca_smoke_file;
+mod phasing_smoke;
+mod phasing_smoke_file;
+mod prepare_reference_panel_smoke;
+mod prepare_reference_panel_smoke_file;
+mod roh_smoke;
+mod roh_smoke_file;

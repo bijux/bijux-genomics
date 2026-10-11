@@ -28,7 +28,7 @@ fn db_ref_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/materialization")),
-        entries(["mod.rs", "panel_files.rs"]),
+        entries(["fasta_index.rs", "mod.rs", "panel_files.rs"]),
         "materialization tree must separate pure placement policy from execution"
     );
 
@@ -85,6 +85,28 @@ fn db_ref_tree_matches_architecture_contract() {
         "public api tree must stay curated"
     );
 
+    assert_document_layout(root);
+
+    assert_eq!(
+        dir_entries(&root.join("tests")),
+        entries([
+            "boundaries/",
+            "boundaries.rs",
+            "contracts/",
+            "contracts.rs",
+            "fixtures/",
+            "guardrails.rs"
+        ]),
+        "integration tests must only track active test files and intent directories"
+    );
+
+    assert!(
+        markdown_files_outside_docs(root).is_empty(),
+        "crate markdown outside docs/ must be limited to root README.md"
+    );
+}
+
+fn assert_document_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("docs")),
         entries([
@@ -100,17 +122,6 @@ fn db_ref_tree_matches_architecture_contract() {
             "TESTS.md",
         ]),
         "crate docs must stay under docs/ and within the 10-document allowance"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("tests")),
-        entries(["boundaries/", "boundaries.rs", "contracts/", "contracts.rs", "guardrails.rs"]),
-        "integration tests must only track active test files and intent directories"
-    );
-
-    assert!(
-        markdown_files_outside_docs(root).is_empty(),
-        "crate markdown outside docs/ must be limited to root README.md"
     );
 }
 

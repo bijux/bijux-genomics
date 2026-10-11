@@ -88,8 +88,12 @@ fn policy__boundaries__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
             if rs_files.len() == 1
                 && rs_files[0].file_name().and_then(|n| n.to_str()) == Some("mod.rs")
             {
-                let lines = support::read_to_string(&rs_files[0]).lines().count();
-                if lines < MIN_MOD_LINES {
+                let source = support::read_to_string(&rs_files[0]);
+                let delegates = declares_existing_modules(&source, |name| {
+                    dir.join(format!("{name}.rs")).is_file()
+                        || dir.join(name).join("mod.rs").is_file()
+                });
+                if source.lines().count() < MIN_MOD_LINES && !delegates {
                     offenders.push(dir.display().to_string());
                 }
             }
@@ -132,4 +136,46 @@ fn policy__boundaries__no_empty_dirs_policy__support_dirs_are_documented() {
 Offenders:\n{}",
         offenders.join("\n")
     );
+}
+
+fn declares_existing_modules(source: &str, exists: impl Fn(&str) -> bool) -> bool {
+    let lines = source
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty() && !line.starts_with("//"))
+        .collect::<Vec<_>>();
+    !lines.is_empty()
+        && lines.iter().all(|line| {
+            let declaration = line
+                .strip_prefix("pub(crate) ")
+                .or_else(|| line.strip_prefix("pub "))
+                .unwrap_or(line);
+            let Some(name) =
+                declaration.strip_prefix("mod ").and_then(|rest| rest.strip_suffix(';'))
+            else {
+                return false;
+            };
+            !name.is_empty()
+                && name
+                    .chars()
+                    .all(|character| character.is_ascii_alphanumeric() || character == '_')
+                && exists(name)
+        })
+}
+
+#[test]
+fn policy__boundaries__no_empty_dirs_policy__compact_namespaces_require_real_modules() {
+    let exists = |name: &str| ["evidence", "execution", "metrics"].contains(&name);
+    assert!(declares_existing_modules("mod evidence;\nmod execution;\nmod metrics;", exists));
+    assert!(declares_existing_modules("pub(crate) mod evidence;\npub mod execution;", exists));
+    for source in [
+        "",
+        "// reserved namespace",
+        "mod missing;",
+        "mod evidence;\nmod missing;",
+        "mod evidence {}",
+        "mod ../evidence;",
+    ] {
+        assert!(!declares_existing_modules(source, exists), "{source}");
+    }
 }

@@ -1,11 +1,13 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
-    validate_benchmark_local_hpc_execution_resolver, BenchmarkLocalHpcExecutionResolverReport,
-    BenchmarkLocalHpcExecutionResolverRow, BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1,
+    project_benchmark_local_hpc_tool_scopes, validate_benchmark_local_hpc_execution_resolver,
+    BenchmarkLocalAllDomainSlurmSubmitJob, BenchmarkLocalHpcExecutionResolverReport,
+    BenchmarkLocalHpcExecutionResolverRow, BenchmarkLocalHpcToolScope as SelectedToolScope,
+    BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1,
 };
 
 use super::local_hpc_input_discovery::path_relative_to_repo;
@@ -34,28 +36,6 @@ const UNCLASSIFIED_EXECUTION_MODE_SUMMARY: &str =
 
 pub(crate) type LocalHpcExecutionResolverRow = BenchmarkLocalHpcExecutionResolverRow;
 pub(crate) type LocalHpcExecutionResolverReport = BenchmarkLocalHpcExecutionResolverReport;
-
-#[derive(Debug, Clone, Default)]
-struct SelectedToolScopeAccumulator {
-    domains: BTreeSet<String>,
-    selected_stage_ids: BTreeSet<String>,
-    selected_job_ids: BTreeSet<String>,
-    selected_result_ids: BTreeSet<String>,
-    selected_pipeline_ids: BTreeSet<String>,
-    selected_node_ids: BTreeSet<String>,
-}
-
-#[derive(Debug, Clone)]
-struct SelectedToolScope {
-    tool_id: String,
-    lookup_tool_id: String,
-    domains: Vec<String>,
-    selected_stage_ids: Vec<String>,
-    selected_job_ids: Vec<String>,
-    selected_result_ids: Vec<String>,
-    selected_pipeline_ids: Vec<String>,
-    selected_node_ids: Vec<String>,
-}
 
 #[derive(Debug, Clone)]
 struct ResolvedRuntimeProbeObservation {
@@ -154,7 +134,30 @@ fn build_hpc_execution_resolver(
         absolute_output,
         "HPC execution resolver output",
     )?;
-    let selected_tools = collect_selected_tool_scope(repo_root)?;
+    let selected_jobs = load_local_hpc_selected_jobs(repo_root)?;
+    build_hpc_execution_resolver_for_jobs(repo_root, absolute_output, &selected_jobs)
+}
+
+pub(crate) fn collect_hpc_execution_resolver_report_for_jobs(
+    repo_root: &Path,
+    selected_jobs: &[BenchmarkLocalAllDomainSlurmSubmitJob],
+) -> Result<LocalHpcExecutionResolverReport> {
+    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
+    let output_path = benchmark_paths.benchmark_hpc_dry_run_root().join("execution-resolver.tsv");
+    build_hpc_execution_resolver_for_jobs(repo_root, &output_path, selected_jobs)
+}
+
+fn build_hpc_execution_resolver_for_jobs(
+    repo_root: &Path,
+    absolute_output: &Path,
+    selected_jobs: &[BenchmarkLocalAllDomainSlurmSubmitJob],
+) -> Result<LocalHpcExecutionResolverReport> {
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        absolute_output,
+        "HPC execution resolver output",
+    )?;
+    let selected_tools = project_benchmark_local_hpc_tool_scopes(selected_jobs);
     let execution_modes =
         load_tool_execution_mode_assignments(&repo_root.join(DEFAULT_TOOL_EXECUTION_MODES_PATH))?;
     let apptainer_by_tool = collect_apptainer_map_rows(repo_root)?
@@ -187,41 +190,6 @@ fn build_hpc_execution_resolver(
     };
     validate_benchmark_local_hpc_execution_resolver(&report)?;
     Ok(report)
-}
-
-fn collect_selected_tool_scope(repo_root: &Path) -> Result<Vec<SelectedToolScope>> {
-    let mut scope_by_tool = BTreeMap::<String, SelectedToolScopeAccumulator>::new();
-    for job in load_local_hpc_selected_jobs(repo_root)? {
-        let scope = scope_by_tool.entry(job.tool_id.clone()).or_default();
-        scope.domains.insert(job.domain);
-        scope.selected_stage_ids.insert(job.stage_id);
-        scope.selected_job_ids.insert(job.job_id_local);
-        if let Some(result_id) = job.result_id {
-            scope.selected_result_ids.insert(result_id);
-        }
-        if let Some(pipeline_id) = job.pipeline_id {
-            scope.selected_pipeline_ids.insert(pipeline_id);
-        }
-        if let Some(node_id) = job.node_id {
-            scope.selected_node_ids.insert(node_id);
-        }
-    }
-
-    let mut scopes = scope_by_tool
-        .into_iter()
-        .map(|(tool_id, scope)| SelectedToolScope {
-            lookup_tool_id: canonical_lookup_tool_id(&tool_id),
-            tool_id,
-            domains: scope.domains.into_iter().collect(),
-            selected_stage_ids: scope.selected_stage_ids.into_iter().collect(),
-            selected_job_ids: scope.selected_job_ids.into_iter().collect(),
-            selected_result_ids: scope.selected_result_ids.into_iter().collect(),
-            selected_pipeline_ids: scope.selected_pipeline_ids.into_iter().collect(),
-            selected_node_ids: scope.selected_node_ids.into_iter().collect(),
-        })
-        .collect::<Vec<_>>();
-    scopes.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
-    Ok(scopes)
 }
 
 fn build_execution_resolver_row(
@@ -398,13 +366,6 @@ fn resolve_hpc_resolution(
         resolution_target: String::new(),
         registry_paths: Vec::new(),
         unavailable_reason: signature.unavailable_reason.clone(),
-    }
-}
-
-fn canonical_lookup_tool_id(tool_id: &str) -> String {
-    match tool_id {
-        "bijux-dna" => "bijux_dna".to_string(),
-        _ => tool_id.to_string(),
     }
 }
 

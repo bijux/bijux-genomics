@@ -2,6 +2,10 @@
 //! Suite validation rule families.
 
 mod analysis;
+mod catalog;
+pub use catalog::BenchmarkSuiteCatalog;
+#[cfg(feature = "canonical-fastq-catalog")]
+pub use catalog::CanonicalFastqSuiteCatalog;
 mod diversity;
 mod edge_ports;
 mod governance;
@@ -17,4 +21,6 @@ pub(crate) use governance::{
 };
 pub(crate) use graph::{declared_graph_nodes, validate_suite_dag};
 pub(crate) use param_bindings::validate_stage_param_bindings;
+#[cfg(feature = "canonical-fastq-catalog")]
 pub use validation::validate_suite;
+pub use validation::validate_suite_with_catalog;

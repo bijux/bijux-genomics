@@ -1,3 +1,7 @@
+use bijux_dna_domain_fastq::{
+    LocalFilterLowComplexitySmokeReportV1 as LocalFilterLowComplexitySmokeReport,
+    LOCAL_FILTER_LOW_COMPLEXITY_SMOKE_REPORT_SCHEMA_VERSION,
+};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
@@ -44,27 +48,6 @@ use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_FILTER_LOW_COMPLEXITY,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
-use serde::Serialize;
-
-const LOCAL_FILTER_LOW_COMPLEXITY_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.filter_low_complexity.local_smoke.report.v1";
-
-#[derive(Debug, Clone, Serialize)]
-struct LocalFilterLowComplexitySmokeReport {
-    schema_version: String,
-    stage_id: String,
-    sample_id: String,
-    planned_tool_id: String,
-    report_tool_id: String,
-    entropy_threshold: f64,
-    polyx_threshold: Option<u32>,
-    input_reads: u64,
-    reads_removed_low_complexity: u64,
-    output_reads: u64,
-    filtered_fastq_gz: String,
-    case_report_json: String,
-    raw_backend_report: String,
-}
 
 #[derive(Debug, Clone, serde::Deserialize)]
 struct PlannedFilterLowComplexityEffectiveParams {

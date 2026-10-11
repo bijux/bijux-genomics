@@ -71,3 +71,23 @@ Run from the repository root:
 CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-bench-model --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test boundaries --no-default-features
 ```
+
+Stage-scoring policy types and `validate_stage_scoring_config` belong to this pure owner. Admission checks the persisted version, scientific and operational row contracts, finite non-negative weights, and finite completion requirements. The repository caller supplies and validates active-stage inventory and source-path authority; the model performs no discovery or file IO.
+
+FASTQ tool scoring accepts `FastqToolScoringInput` and returns typed rows through `build_fastq_tool_score_rows`. Evidence selection, component normalization, weighted decisions and report counts are pure model policy. Repository loading and raw-evidence interpretation remain with the caller; partial metric views intentionally project larger report documents. Output wire fields and scoring formulas are preserved. This owner boundary does not establish scientific interchangeability between tools.
+
+Runtime, memory and execution-failure observations in FASTQ scoring match the exact stage/tool binding. A default tool does not inherit observations from another registered or unregistered tool. Missing observations remain absent and reduce metric coverage; any scientific substitution requires an explicit, independently admitted adapter contract.
+
+The full benchmark dashboard envelope and metric rows are owned here. Their closed input shapes and schema identity are independent of CLI acquisition, filesystem persistence, and Markdown presentation. Row cross-checks remain with the report evaluator.
+
+Local smoke subset observation envelopes, rows, and execution-kind serialization belong to this model owner. Failed execution observations remain representable; decoding alone does not establish success, count closure, or backend provenance. Acquisition, admission policy, and persistence remain separate responsibilities.
+
+Readiness stage/tool asset coverage and rendered command envelopes, rows, and argument-vector steps are model-owned wire contracts. Planned commands preserve token boundaries and pipeline handoff flags; serialization does not prove that those commands executed.
+
+`contract/readiness` admits stage/tool coverage against an explicit domain catalog context. `ReadinessStageToolBinding` supplies ordered binding identity; the caller owns acquisition and reuses the same catalog observations for projection and validation. Persisted table rows keep their wire fields, and blocked bindings remain visible.
+
+Rendered command admission also belongs to `contract/readiness`: it compares typed expected result bindings with planned command observations, requires executable steps and preserves governed adapter sources. Domain acquisition, argument projection, shell presentation and persistence remain caller responsibilities. Admission does not certify actual execution or scientific compatibility.
+
+Suite governance consumes `BenchmarkSuiteCatalog` observations for stage declarations, execution support, tool admission, edge ports and structured parameter names. `validate_suite_with_catalog` accepts an explicit provider; `validate_suite` preserves its existing signature through `CanonicalFastqSuiteCatalog`. The adapter reads canonical domain authority without duplicating it. Admission policy stays in the model and runner execution remains outside this boundary.
+
+The canonical FASTQ suite adapter is feature-owned by `canonical-fastq-catalog`, enabled by default for public compatibility. Builds without it expose `BenchmarkSuiteCatalog` and `validate_suite_with_catalog`; they do not include the default catalog entrypoint. Workspace record consumers opt out, while benchmark workflows retain the canonical feature. Canonical suite fixtures run with that feature; explicit-provider contracts run independently.

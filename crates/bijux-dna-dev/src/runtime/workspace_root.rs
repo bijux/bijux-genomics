@@ -98,11 +98,15 @@ mod tests {
         std::fs::create_dir_all(checkout.join("crates/bijux-dna-dev"))?;
         std::fs::write(checkout.join("Cargo.toml"), "[workspace]\n")?;
         std::fs::write(checkout.join("crates/bijux-dna-dev/Cargo.toml"), "[package]\n")?;
-        let external = sandbox.path().join("scheduler-working-directory");
-        std::fs::create_dir(&external)?;
+        // Temp roots may themselves be nested under a real checkout's artifacts.
+        let external = sandbox
+            .path()
+            .ancestors()
+            .last()
+            .ok_or_else(|| anyhow::anyhow!("sandbox path has no filesystem root"))?;
         let executable = checkout.join("artifacts/target/debug/bijux-dna-dev");
 
-        let resolved = resolve_workspace_root_from_sources(None, &external, Some(&executable))?;
+        let resolved = resolve_workspace_root_from_sources(None, external, Some(&executable))?;
 
         assert_eq!(resolved, checkout);
         Ok(())

@@ -1,6 +1,32 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+/// Schema identity for the local smoke observation envelope.
+pub const LOCAL_NORMALIZE_ABUNDANCE_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.normalize_abundance.local_smoke.report.v1";
+
+/// Local smoke observation; planned tool identity and actual report producer remain distinct.
+/// This envelope alone does not prove execution of the planned backend.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LocalNormalizeAbundanceSmokeReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub sample_id: String,
+    pub planned_tool_id: String,
+    pub report_tool_id: String,
+    pub method: String,
+    pub normalization_method: String,
+    pub table_rows: u64,
+    pub sample_count: u64,
+    pub feature_count: u64,
+    pub zero_fraction: f64,
+    pub normalized_abundance_tsv: String,
+    pub sample_totals: Vec<(String, f64)>,
+    pub numeric_output_valid: bool,
+    pub case_report_json: String,
+}
+
 pub const NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION: &str =
     "bijux.fastq.normalize_abundance.report.v2";
 
@@ -77,5 +103,53 @@ mod tests {
         assert_eq!(decoded.method, "relative_abundance");
         assert_eq!(decoded.feature_count, 4);
         assert_eq!(decoded.per_sample_sums[0].0, "sample_a");
+    }
+}
+
+#[cfg(test)]
+mod local_smoke_contract_tests {
+    use super::*;
+    use anyhow::Result;
+
+    #[test]
+    fn local_smoke_observation_preserves_wire_shape_and_producer_identity() -> Result<()> {
+        let original: serde_json::Value = serde_json::from_str(
+            r#"{
+    "schema_version": "bijux.fastq.normalize_abundance.local_smoke.report.v1",
+    "stage_id": "fastq.normalize_abundance",
+    "sample_id": "authored_contract_value",
+    "planned_tool_id": "planned_backend",
+    "report_tool_id": "local_emitter",
+    "method": "authored_contract_value",
+    "normalization_method": "authored_contract_value",
+    "table_rows": 1,
+    "sample_count": 1,
+    "feature_count": 1,
+    "zero_fraction": 0.5,
+    "normalized_abundance_tsv": "authored_contract_value",
+    "sample_totals": [
+        [
+            "sample",
+            1.0
+        ]
+    ],
+    "numeric_output_valid": true,
+    "case_report_json": "authored_contract_value"
+}"#,
+        )?;
+        let report: LocalNormalizeAbundanceSmokeReportV1 =
+            serde_json::from_value(original.clone())?;
+        assert_eq!(report.schema_version, LOCAL_NORMALIZE_ABUNDANCE_SMOKE_REPORT_SCHEMA_VERSION);
+        assert_ne!(report.planned_tool_id, report.report_tool_id);
+        assert_eq!(serde_json::to_value(&report)?, original);
+        let mut unsupported = original;
+        unsupported["unrecognized"] = serde_json::json!(true);
+        assert!(
+            serde_json::from_value::<LocalNormalizeAbundanceSmokeReportV1>(unsupported).is_err()
+        );
+        let schema =
+            serde_json::to_value(schemars::schema_for!(LocalNormalizeAbundanceSmokeReportV1))?;
+        assert_eq!(schema["additionalProperties"], serde_json::json!(false));
+        Ok(())
     }
 }

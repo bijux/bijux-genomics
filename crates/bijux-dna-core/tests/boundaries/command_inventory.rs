@@ -2,6 +2,9 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 const CORE_OPERATIONS: &[&str] = &[
+    "checked-f64-from-u64",
+    "checked-f64-from-usize",
+    "rounded-f64-to-u64",
     "canonical-json-bytes",
     "canonicalize-json",
     "canonicalize-parameters-json",

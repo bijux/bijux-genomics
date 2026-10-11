@@ -28,3 +28,5 @@ in this crate.
 
 Use `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-fastq --no-default-features --test boundaries`
 to verify the command-free boundary.
+
+`validate_reference_index_backend(stage_id, depletion_tool_id, index_tool_id)` performs pure reference-index compatibility admission against the authored domain matrix. It preserves compatible backend identity and rejects unknown or incompatible consumers/backends before adapters construct execution plans.

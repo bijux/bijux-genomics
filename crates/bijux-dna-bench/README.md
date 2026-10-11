@@ -88,3 +88,7 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test con
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test determinism --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test semantics --no-default-features
 ```
+
+BAM score evidence acquisition belongs to `repo/bam_score_evidence`; format interpretation is grouped by scientific responsibility in `artifacts/bam_score_evidence`. The scoring policy consumes the resulting typed observations without repository access.
+
+VCF scoring report acquisition belongs to `repo::vcf_score_evidence`. Its artifact adapters interpret genotype, quality, imputation, population, and relatedness observations without filesystem access; the model owner applies score policy.

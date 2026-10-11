@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.fixture_case.v1",
+  "format": "libtest-json-plus",
+  "content": "Pinned cargo-nextest 0.9.100 event captures for binary-qualified case identity, pass/fail and ignored-case admission. capture.json records source, binary and fixture digests. Synthetic ignored/failure events prove parser behavior only; they do not prove current product coverage."
+}

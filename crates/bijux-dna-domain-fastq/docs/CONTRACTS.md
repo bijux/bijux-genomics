@@ -38,3 +38,5 @@ Contract updates should run the full crate tests plus the focused contract suite
 ```bash
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-fastq --no-default-features --test contracts
 ```
+
+Reference-index compatibility is admitted by `validate_reference_index_backend` from the authored integration matrix. Host and reference-contaminant depletion planners call it directly, so standalone and composed planning reject unsupported index backends consistently. Matching an index artifact role or recording a backend name does not establish compatibility.

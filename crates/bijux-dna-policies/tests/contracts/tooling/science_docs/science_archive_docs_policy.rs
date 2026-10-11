@@ -197,8 +197,6 @@ fn policy__contracts__science_archive_docs_policy__paper_download_backlog_links_
 {
     let expected = BTreeSet::from([
         "README.md".to_string(),
-        "<paper-id>/original/".to_string(),
-        "<paper-id>/notes/".to_string(),
         "TOOL_PAPER_MAP.tsv".to_string(),
         "../../generated/current/evidence/README.md".to_string(),
         "../../generated/current/evidence/fastq_paper_archive_matrix.tsv".to_string(),

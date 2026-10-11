@@ -40,6 +40,7 @@ fn source_tree_matches_architecture_contract() {
             "execution_contract/",
             "lib.rs",
             "public_api/",
+            "registry.rs",
             "resolve/",
             "runtime_spec/",
             "site_policy/",

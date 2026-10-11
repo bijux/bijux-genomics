@@ -1,3 +1,7 @@
+use bijux_dna_domain_fastq::{
+    LocalInferAsvsSmokeReportV1 as LocalInferAsvsSmokeReport,
+    LOCAL_INFER_ASVS_SMOKE_REPORT_SCHEMA_VERSION,
+};
 use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
@@ -37,26 +41,6 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.infer_asvs";
-const LOCAL_INFER_ASVS_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.infer_asvs.local_smoke.report.v1";
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct LocalInferAsvsSmokeReport {
-    schema_version: String,
-    stage_id: String,
-    sample_id: String,
-    planned_tool_id: String,
-    report_tool_id: String,
-    asv_count: u64,
-    sample_count: u64,
-    representative_sequence_count: u64,
-    asv_table_tsv: String,
-    representatives_fasta: String,
-    case_report_json: String,
-    taxonomy_ready_fasta: String,
-    taxonomy_ready_fastq: String,
-    raw_backend_report: String,
-}
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct InferAsvsTableMetrics {

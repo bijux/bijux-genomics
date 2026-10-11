@@ -1,3 +1,7 @@
+use bijux_dna_domain_fastq::{
+    LocalMergePairsSmokeReportV1 as LocalMergePairsSmokeReport,
+    LOCAL_MERGE_PAIRS_SMOKE_REPORT_SCHEMA_VERSION,
+};
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -44,31 +48,6 @@ use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
 use crate::internal::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_MERGE_PAIRS,
 };
-use serde::Serialize;
-
-const LOCAL_MERGE_PAIRS_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.merge_pairs.local_smoke.report.v1";
-
-#[derive(Debug, Clone, Serialize)]
-struct LocalMergePairsSmokeReport {
-    schema_version: String,
-    stage_id: String,
-    sample_id: String,
-    planned_tool_id: String,
-    report_tool_id: String,
-    merge_overlap: u32,
-    min_length: u32,
-    input_pair_count: u64,
-    merged_count: u64,
-    unmerged_r1_count: u64,
-    unmerged_r2_count: u64,
-    discarded_count: u64,
-    merged_fastq_gz: String,
-    unmerged_r1_fastq_gz: Option<String>,
-    unmerged_r2_fastq_gz: Option<String>,
-    case_report_json: String,
-    raw_backend_report: Option<String>,
-}
 
 fn parse_unmerged_read_policy(raw: Option<&str>) -> Result<UnmergedReadPolicy> {
     match raw.unwrap_or("emit_unmerged_pairs") {

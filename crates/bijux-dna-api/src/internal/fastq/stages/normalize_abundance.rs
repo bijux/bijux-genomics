@@ -1,3 +1,7 @@
+use bijux_dna_domain_fastq::{
+    LocalNormalizeAbundanceSmokeReportV1 as LocalNormalizeAbundanceSmokeReport,
+    LOCAL_NORMALIZE_ABUNDANCE_SMOKE_REPORT_SCHEMA_VERSION,
+};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
@@ -32,27 +36,6 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.normalize_abundance";
-const LOCAL_NORMALIZE_ABUNDANCE_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.normalize_abundance.local_smoke.report.v1";
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct LocalNormalizeAbundanceSmokeReport {
-    schema_version: String,
-    stage_id: String,
-    sample_id: String,
-    planned_tool_id: String,
-    report_tool_id: String,
-    method: String,
-    normalization_method: String,
-    table_rows: u64,
-    sample_count: u64,
-    feature_count: u64,
-    zero_fraction: f64,
-    normalized_abundance_tsv: String,
-    sample_totals: Vec<(String, f64)>,
-    numeric_output_valid: bool,
-    case_report_json: String,
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct NormalizedAbundanceTableMetrics {

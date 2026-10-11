@@ -30,6 +30,11 @@ execution, runner integration, API orchestration, or report persistence.
 
 `docs/COMMANDS.md` is the SSOT for callable pure-model operations:
 
+- `validate-all-domain-expected-result-rows`
+- `validate-all-domain-rendered-command-rows`
+- `validate-all-domain-stage-tool-table-rows`
+- `admit-real-smoke-core-subset`
+- `validate-suite-with-catalog`
 - `validate-suite`
 - `validate-observation`
 - `validate-summary`
@@ -84,3 +89,13 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --te
 Set `BIJUX_UPDATE_GENERATED_SCHEMAS=1` only when intentionally regenerating
 checked-in schemas from the Rust model registry; the ordinary schema test is a
 read-only drift gate.
+
+## Catalog linkage
+
+The default `canonical-fastq-catalog` feature preserves `contract::validate_suite` and the canonical FASTQ adapter. Pure record consumers can disable default features and use `contract::validate_suite_with_catalog` with an explicit provider. This removes the model-to-FASTQ compilation dependency for those builds. Full workspace feature unification may still enable the canonical adapter; a minimal consumer build is a separate measured configuration.
+
+BAM scoring records, per-binding evidence selection, weighted ranking and report counts are owned by the model scoring policy. Callers supply typed observations; repository acquisition and TSV presentation remain adapter responsibilities.
+
+BAM scoring admits correctness fractions in `[0, 1]` and finite nonnegative runtime/memory before ranking. Scientific metric columns require finite values while retaining their declared units and signed values; their format-specific range and provenance admission belongs to the artifact contract.
+
+VCF scoring uses typed evidence inputs and pure selection, ranking, and report policy. Repository acquisition and CLI rendering remain at their respective boundaries.

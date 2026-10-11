@@ -1,19 +1,11 @@
 use super::{
     bail, is_unspecified, read_yaml, AdapterBank, BTreeMap, BTreeSet, ContaminationDbBank,
-    DomainArtifactVocabulary, DomainMetricVocabulary, Path, ReferenceBank, Result,
+    DomainMetricVocabulary, Path, ReferenceBank, Result,
 };
 
 pub(super) struct DomainVocabularies {
     pub(super) artifact_vocab: BTreeMap<String, BTreeSet<String>>,
     pub(super) metric_vocab: BTreeMap<String, BTreeSet<String>>,
-}
-
-fn artifact_ids(doc: DomainArtifactVocabulary) -> Vec<String> {
-    if doc.artifact_ids.is_empty() {
-        doc.artifacts.into_iter().map(|entry| entry.id).collect()
-    } else {
-        doc.artifact_ids
-    }
 }
 
 fn metric_ids(doc: DomainMetricVocabulary) -> Vec<String> {
@@ -148,16 +140,9 @@ pub(super) fn validate_domain_vocabularies(domain_dir: &Path) -> Result<DomainVo
     for dom in ["fastq", "bam", "vcf"] {
         let artifacts_path = domain_dir.join(dom).join("artifacts.yaml");
         let metrics_path = domain_dir.join(dom).join("metrics.yaml");
-        let artifacts: DomainArtifactVocabulary = read_yaml(&artifacts_path)?;
+        let (_, artifacts) =
+            super::super::loading::artifact_vocabulary::load_artifacts(domain_dir, dom)?;
         let metrics: DomainMetricVocabulary = read_yaml(&metrics_path)?;
-        if artifacts.domain != dom {
-            bail!(
-                "{} domain mismatch: expected {}, got {}",
-                artifacts_path.display(),
-                dom,
-                artifacts.domain
-            );
-        }
         if metrics.domain != dom {
             bail!(
                 "{} domain mismatch: expected {}, got {}",
@@ -166,7 +151,8 @@ pub(super) fn validate_domain_vocabularies(domain_dir: &Path) -> Result<DomainVo
                 metrics.domain
             );
         }
-        let artifact_ids = artifact_ids(artifacts);
+        let artifact_ids =
+            artifacts.into_iter().map(|artifact| artifact.artifact_id).collect::<Vec<_>>();
         let metric_ids = metric_ids(metrics);
         if artifact_ids.is_empty() {
             bail!("{} missing artifact_ids", artifacts_path.display());
@@ -183,4 +169,54 @@ pub(super) fn validate_domain_vocabularies(domain_dir: &Path) -> Result<DomainVo
     }
 
     Ok(DomainVocabularies { artifact_vocab, metric_vocab })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_domain_vocabularies;
+    use anyhow::Context as _;
+
+    #[test]
+    fn vocabulary_validation_uses_the_same_lossless_artifact_admission_as_snapshots(
+    ) -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        for domain in ["fastq", "bam", "vcf"] {
+            let directory = root.path().join(domain);
+            std::fs::create_dir(&directory)?;
+            std::fs::write(
+                directory.join("artifacts.yaml"),
+                format!("schema_version: bijux.domain.artifacts.v1\ndomain: {domain}\nartifact_ids: [reads]\n"),
+            )?;
+            std::fs::write(
+                directory.join("metrics.yaml"),
+                format!("domain: {domain}\nmetric_ids: [metric]\n"),
+            )?;
+        }
+        validate_domain_vocabularies(root.path())?;
+        let path = root.path().join("fastq/artifacts.yaml");
+        for (body, diagnostic) in [
+            (
+                "artifact_ids: [reads]\nartifacts: [{id: report, type: json}]\n",
+                "mixes artifact_ids and artifacts",
+            ),
+            (
+                "artifacts: [{id: reads, type: fastq}, {id: reads, type: json}]\n",
+                "repeats artifact ID reads",
+            ),
+            ("artifact_ids: [' reads ']\n", "blank or padded artifact ID"),
+        ] {
+            std::fs::write(
+                &path,
+                format!("schema_version: bijux.domain.artifacts.v1\ndomain: fastq\n{body}"),
+            )?;
+            let error = validate_domain_vocabularies(root.path())
+                .err()
+                .context("invalid vocabulary must fail")?;
+            assert!(error.to_string().contains(diagnostic), "{error:#}");
+        }
+        std::fs::write(&path, "schema_version: bijux.artifacts.v1\ndomain: fastq\nartifacts: [{id: reads, type: fastq}]\n")?;
+        let vocabulary = validate_domain_vocabularies(root.path())?;
+        assert!(vocabulary.artifact_vocab["fastq"].contains("reads"));
+        Ok(())
+    }
 }

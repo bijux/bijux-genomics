@@ -272,3 +272,29 @@ fn specific_fastq_contract_satisfies_role_level_reads_contract() {
     assert!(ensure_artifact_compatibility(producer, consumer).is_ok());
     assert!(ensure_artifact_compatibility(consumer, producer).is_err());
 }
+
+#[test]
+fn tool_resources_reject_unknown_fields_in_standalone_and_execution_inputs() -> anyhow::Result<()> {
+    use serde_json::json;
+    let resources = ToolConstraints::default();
+    let encoded = serde_json::to_value(&resources)?;
+    assert_eq!(encoded, json!({"runtime":"local","mem_gb":1,"tmp_gb":1,"threads":1}));
+    assert_eq!(serde_json::from_value::<ToolConstraints>(encoded.clone())?, resources);
+    for name in ["thread", "memory_gb", "scratch_gb", "undeclared"] {
+        let mut input = encoded.clone();
+        input[name] = json!(16);
+        assert!(
+            serde_json::from_value::<ToolConstraints>(input.clone()).is_err(),
+            "accepted {name}"
+        );
+        let mut step = serde_json::to_value(mk_step("step", "fastq.trim"))?;
+        step["resources"] = input;
+        assert!(
+            serde_json::from_value::<ExecutionStep>(step).is_err(),
+            "execution accepted {name}"
+        );
+    }
+    let schema = schemars::schema_for!(ToolConstraints).to_value();
+    assert_eq!(schema["additionalProperties"], json!(false));
+    Ok(())
+}

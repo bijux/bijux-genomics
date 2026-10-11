@@ -20,9 +20,43 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
-        entries(["admission/", "mod.rs", "source_assets.rs", "writer/"]),
+        entries([
+            "admission/",
+            "bam_score_evidence/",
+            "vcf_score_evidence/",
+            "fastq_score_evidence/",
+            "mod.rs",
+            "source_assets.rs",
+            "writer/"
+        ]),
         "artifacts tree must separate source inspection, output admission, and serialization"
     );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/vcf_score_evidence")),
+        entries(["fields.rs","genotypes.rs","imputation.rs","merge.rs","mod.rs","population.rs","quality.rs","relatedness.rs"]),
+        "VCF observation interpretation must separate scientific responsibilities and field admission"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/bam_score_evidence")),
+        entries([
+            "alignment.rs",
+            "correction.rs",
+            "damage.rs",
+            "duplicates_coverage.rs",
+            "fields.rs",
+            "identity.rs",
+            "library.rs",
+            "merge.rs",
+            "mod.rs"
+        ]),
+        "BAM score interpretation must separate scientific responsibilities and field admission"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/fastq_score_evidence")),
+        entries(["adapters.rs", "fields.rs", "mod.rs", "summaries.rs"]),
+        "FASTQ report evidence must separate format projections from aggregate normalization"
+    );
+
     assert_eq!(
         dir_entries(&root.join("src/artifacts/admission")),
         entries(["mod.rs", "model.rs", "validation.rs"]),
@@ -50,15 +84,19 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
+            "bam_score_evidence.rs",
+            "vcf_score_evidence.rs",
             "case_data_authority.rs",
             "catalog_registry_authority.rs",
             "catalog_snapshot_authority.rs",
             "corpus/",
             "data_index_authority.rs",
+            "fastq_score_evidence.rs",
             "mod.rs",
             "pipeline_config.rs",
             "pipeline_execution.rs",
             "pipeline_inventory.rs",
+            "reference_fasta.rs",
             "pipeline_reference.rs",
             "repo_root.rs",
             "repository.rs",
@@ -79,7 +117,7 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/repo/corpus/normalized_fastq")),
-        entries(["manifest.rs", "mod.rs", "tests.rs"]),
+        entries(["manifest.rs", "mod.rs"]),
         "normalized corpus admission must separate manifest IO from sample metadata"
     );
 
@@ -151,6 +189,7 @@ fn bench_tree_matches_architecture_contract() {
             "publication_receipt.rs",
             "publication_registry.rs",
             "publication_selection.rs",
+            "readiness/",
             "reference_materialization.rs",
             "replay.rs",
             "report_load.rs",
@@ -192,7 +231,6 @@ fn bench_tree_matches_architecture_contract() {
             "mod.rs",
             "population.rs",
             "taxonomy.rs",
-            "tests.rs",
         ]),
         "pipeline profiles must separate scientific rules from evidence acquisition"
     );
@@ -274,6 +312,12 @@ fn bench_tree_matches_architecture_contract() {
             "storage.rs",
         ]),
         "campaign lifecycle tree must separate source authority, operator composition, preparation, planning, execution, and storage logic"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/readiness")),
+        entries(["dashboard.rs", "dashboard_markdown.rs", "mod.rs"]),
+        "readiness evaluation must retain its explicit workflow owner"
     );
 
     assert_eq!(

@@ -135,3 +135,13 @@ fn local_hpc_pipeline_node_array_rejects_lineage_count_and_envelope_drift() {
     upstream_closure.rows[1].upstream_result_ids.clear();
     assert!(validate_benchmark_local_hpc_pipeline_node_array(&upstream_closure).is_err());
 }
+
+#[test]
+fn local_hpc_pipeline_node_array_rejects_overflowing_resource_durations() {
+    let mut row = report();
+    row.rows[0].resources.time_limit = "18446744073709551615:00:00".to_string();
+    assert!(validate_benchmark_local_hpc_pipeline_node_array(&row).is_err());
+    let mut envelope = report();
+    envelope.resource_envelope.time_limit = "18446744073709551615:00:00".to_string();
+    assert!(validate_benchmark_local_hpc_pipeline_node_array(&envelope).is_err());
+}

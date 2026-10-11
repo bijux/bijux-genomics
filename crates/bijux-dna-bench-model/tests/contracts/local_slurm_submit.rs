@@ -217,3 +217,47 @@ fn all_domain_slurm_submit_manifest_schema_matches_model_authority() -> anyhow::
     assert_eq!(checked, generated, "all-domain Slurm submit-manifest schema drifted");
     Ok(())
 }
+
+#[test]
+fn all_domain_slurm_submission_rejects_cycles_with_other_runnable_jobs() {
+    let mut value = all_domain_manifest();
+    let mut other = all_domain_job(
+        "pipeline:variant-qc-vcf:vcf.qc",
+        Some("variant-qc-vcf"),
+        Some("vcf.qc"),
+        None,
+    );
+    other.dependencies.push(value.jobs[1].job_id_local.clone());
+    value.jobs[1].dependencies.push(other.job_id_local.clone());
+    value.jobs.push(other);
+    value.job_count = 3;
+    value.essential_pipeline_job_count = 2;
+    value.dependency_count = 2;
+    assert!(validate_benchmark_local_all_domain_slurm_submit_manifest(&value).is_err());
+    value.jobs[1].dependencies.clear();
+    value.dependency_count = 1;
+    value.jobs.reverse();
+    assert!(validate_benchmark_local_all_domain_slurm_submit_manifest(&value).is_ok());
+}
+
+#[test]
+fn local_slurm_submission_rejects_cycles_and_accepts_unordered_dependencies() {
+    let mut value = manifest();
+    let mut other = value.jobs[0].clone();
+    other.job_name = "fastq-filter_reads".into();
+    other.stage_id = Some("fastq.filter_reads".into());
+    other.script_path = "artifacts/runs/bench/slurm-dry-run/filter.sbatch".into();
+    other.result_root = "artifacts/runs/bench/slurm-dry-run/filter".into();
+    other.logs.stdout_path = format!("{}/stdout.log", other.result_root);
+    other.logs.stderr_path = format!("{}/stderr.log", other.result_root);
+    other.dependencies.push(value.jobs[0].job_name.clone());
+    value.jobs[0].dependencies.push(other.job_name.clone());
+    value.jobs.push(other);
+    value.job_count = 2;
+    value.dependency_count = 2;
+    assert!(validate_benchmark_local_slurm_submit_manifest(&value).is_err());
+    value.jobs[0].dependencies.clear();
+    value.dependency_count = 1;
+    value.jobs.reverse();
+    assert!(validate_benchmark_local_slurm_submit_manifest(&value).is_ok());
+}

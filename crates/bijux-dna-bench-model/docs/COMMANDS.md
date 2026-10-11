@@ -10,8 +10,13 @@ not own CLI commands or process execution.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
+| `validate-all-domain-expected-result-rows` | `validate_all_domain_expected_result_rows` | Admit expected result projection against acquired source counts and governed baseline outputs, metrics and report sections. |
+| `validate-all-domain-rendered-command-rows` | `validate_all_domain_rendered_command_rows` | Admit complete, unique governed result bindings with executable command steps and required adapter sources. |
+| `validate-all-domain-stage-tool-table-rows` | `validate_all_domain_stage_tool_table_rows` | Admit unique stage/tool coverage and required columns against acquired domain-ready bindings and VCF row counts. |
+| `admit-real-smoke-core-subset` | `admit_real_smoke_core_subset_report` | Admit required smoke stage/bridge coverage, metric presence and attached manifest outcomes. |
 | `validate-local-pipeline-config` | `validate_benchmark_local_pipeline_dag_config` | Admit local pipeline configuration version and required identity/node envelope. |
 | `local-pipeline-config-schemas` | `benchmark_local_pipeline_dag_config_schema`, `benchmark_local_pipeline_dag_metadata_config_schema`, `benchmark_local_pipeline_dag_stages_config_schema` | Generate strict combined and split configuration input schemas. |
+| `validate-suite-with-catalog` | `validate_suite_with_catalog` | Validate suite structure and governed bindings using an explicit catalog provider. |
 | `validate-suite` | `contract::validate_suite` | Validate `BenchmarkSuiteSpec` shape, graph, stage ids, tool ids, and parameter bindings. |
 | `validate-stage-campaign-registry` | `contract::validate_stage_campaign_registry` | Validate `BenchmarkStageCampaignRegistry` shape and campaign-level invariants. |
 | `validate-stage-coverage` | `contract::validate_stage_coverage` | Validate version, ordering, identities, state consistency, and exact summary closure for a stage-coverage publication. |
@@ -81,3 +86,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --te
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test schemas --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test semantics --no-default-features
 ```
+
+Suite catalog admission rejects missing input, output or parameter contracts when a declared stage uses that boundary. Empty declared identifier sets reject supplied values; unused contracts are not required. Executor and planner stages outside the supplied catalog retain their existing admission path.

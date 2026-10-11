@@ -79,3 +79,11 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test cont
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test schemas --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test semantics --no-default-features
 ```
+
+### Numeric Conversions
+
+| Operation | Rust entrypoint | Purpose |
+| --- | --- | --- |
+| `checked-f64-from-u64` | `prelude::numeric::checked_f64_from_u64` | Convert unsigned counts to floating point; large integers may round. |
+| `checked-f64-from-usize` | `prelude::numeric::checked_f64_from_usize` | Convert platform-sized counts through the unsigned representation. |
+| `rounded-f64-to-u64` | `prelude::numeric::rounded_f64_to_u64` | Round finite non-negative observations and reject integer overflow. |

@@ -18,6 +18,7 @@ src/
     compile.rs                 # generation orchestration and output writes
     coverage.rs                # validation coverage reporting
     loading/                   # source loading and TOML rendering builders
+      artifact_vocabulary.rs   # shared artifact identity/type admission
       image_registries.rs      # image/source registry readers
       index_catalogs.rs        # reference index catalog materialization
       index_defaults.rs        # generated reference-index defaults
@@ -73,3 +74,5 @@ src/
 - Test modules use behavior names such as `boundaries`, `determinism_generated_outputs`,
   `domain_registry_bundle`, `domain_registry_cli`, and `planned_tool_registry_boundaries`.
 - Generated output paths must stay documented in [CONTRACTS.md](CONTRACTS.md) and covered by tests.
+
+Artifact validation and typed registry snapshots use the same vocabulary loader. Both reject mixed declaration forms, repeated identities, and padded or blank IDs; legacy untyped identities and explicit type metadata retain their public snapshot representation.

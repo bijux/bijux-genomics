@@ -1,3 +1,4 @@
+pub(super) mod artifact_vocabulary;
 mod container_catalog;
 mod image_registries;
 mod index_catalogs;

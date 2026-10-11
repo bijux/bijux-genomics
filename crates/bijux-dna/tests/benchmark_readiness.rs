@@ -2,5 +2,5 @@
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-#[path = "benchmark/readiness/mod.rs"]
+#[path = "contracts/benchmark/readiness/mod.rs"]
 mod readiness;

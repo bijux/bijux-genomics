@@ -39,17 +39,7 @@ pub fn validate_full_benchmark_result_collector(
     }
     require_path(&report.output_path, "output_path")?;
 
-    let expected_total_row_count = report.benchmark_expected_row_count
-        + report.pipeline_fake_run_row_count
-        + report.fake_run_row_count
-        + report.fake_failure_row_count
-        + report.missing_result_audit_row_count
-        + report.real_smoke_row_count
-        + report.insufficient_data_row_count
-        + report.unsupported_pair_row_count;
-    if report.row_count != report.rows.len() || report.row_count != expected_total_row_count {
-        return invalid("full benchmark result collector source aggregates do not close");
-    }
+    validate_source_row_count(report)?;
 
     validate_rows(report)?;
     validate_aggregates(report)?;
@@ -70,17 +60,18 @@ pub fn validate_full_benchmark_result_collector(
         );
     }
 
-    let expected_succeeded_count = report.pipeline_fake_run_row_count
-        + report.fake_run_row_count
-        + report.real_smoke_row_count;
-    let expected_present_count = report
-        .benchmark_expected_row_count
-        .saturating_sub(context.expected_missing_result_row_count);
+    let expected_succeeded_count = report
+        .pipeline_fake_run_row_count
+        .checked_add(report.fake_run_row_count)
+        .and_then(|count| count.checked_add(report.real_smoke_row_count));
+    let expected_present_count =
+        report.benchmark_expected_row_count.checked_sub(context.expected_missing_result_row_count);
     if status_count(report, FullBenchmarkResultStatus::Expected)
         != report.benchmark_expected_row_count
-        || status_count(report, FullBenchmarkResultStatus::Succeeded) != expected_succeeded_count
+        || Some(status_count(report, FullBenchmarkResultStatus::Succeeded))
+            != expected_succeeded_count
         || status_count(report, FullBenchmarkResultStatus::Failed) != report.fake_failure_row_count
-        || status_count(report, FullBenchmarkResultStatus::Present) != expected_present_count
+        || Some(status_count(report, FullBenchmarkResultStatus::Present)) != expected_present_count
         || report.missing_result_status_count != context.expected_missing_result_row_count
         || report.insufficient_data_status_count != context.expected_insufficient_data_row_count
         || report.unsupported_pair_status_count != context.expected_unsupported_bindings.len()
@@ -141,6 +132,27 @@ pub fn validate_full_benchmark_result_collector(
     }
 
     report.passes_behavior_test = true;
+    Ok(())
+}
+
+fn validate_source_row_count(
+    report: &FullBenchmarkResultCollectorReport,
+) -> Result<(), BenchError> {
+    let expected_total_row_count = [
+        report.benchmark_expected_row_count,
+        report.pipeline_fake_run_row_count,
+        report.fake_run_row_count,
+        report.fake_failure_row_count,
+        report.missing_result_audit_row_count,
+        report.real_smoke_row_count,
+        report.insufficient_data_row_count,
+        report.unsupported_pair_row_count,
+    ]
+    .into_iter()
+    .try_fold(0usize, usize::checked_add);
+    if report.row_count != report.rows.len() || Some(report.row_count) != expected_total_row_count {
+        return invalid("full benchmark result collector source aggregates do not close");
+    }
     Ok(())
 }
 

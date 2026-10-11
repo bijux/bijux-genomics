@@ -3,6 +3,32 @@ use serde::{Deserialize, Serialize};
 
 use crate::params::PairedMode;
 
+/// Schema identity for the local smoke observation envelope.
+pub const LOCAL_REMOVE_CHIMERAS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.remove_chimeras.local_smoke.report.v1";
+
+/// Local smoke observation; planned tool identity and actual report producer remain distinct.
+/// This envelope alone does not prove execution of the planned backend.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LocalRemoveChimerasSmokeReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub sample_id: String,
+    pub planned_tool_id: String,
+    pub report_tool_id: String,
+    pub checked_sequence_count: u64,
+    pub chimera_count: u64,
+    pub non_chimera_count: u64,
+    pub filtered_representative_sequences: String,
+    pub non_chimeric_fasta: String,
+    pub chimeras_tsv: String,
+    pub case_report_json: String,
+    pub chimera_metrics_json: String,
+    pub chimeras_fasta: String,
+    pub raw_backend_report: String,
+}
+
 pub const REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.remove_chimeras.report.v2";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -83,5 +109,44 @@ mod tests {
         assert_eq!(decoded.threads, 2);
         assert_eq!(decoded.chimera_fraction, Some(0.08));
         assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("vsearch_uchime_tsv"));
+    }
+}
+
+#[cfg(test)]
+mod local_smoke_contract_tests {
+    use super::*;
+    use anyhow::Result;
+
+    #[test]
+    fn local_smoke_observation_preserves_wire_shape_and_producer_identity() -> Result<()> {
+        let original: serde_json::Value = serde_json::from_str(
+            r#"{
+    "schema_version": "bijux.fastq.remove_chimeras.local_smoke.report.v1",
+    "stage_id": "fastq.remove_chimeras",
+    "sample_id": "authored_contract_value",
+    "planned_tool_id": "planned_backend",
+    "report_tool_id": "local_emitter",
+    "checked_sequence_count": 1,
+    "chimera_count": 1,
+    "non_chimera_count": 1,
+    "filtered_representative_sequences": "authored_contract_value",
+    "non_chimeric_fasta": "authored_contract_value",
+    "chimeras_tsv": "authored_contract_value",
+    "case_report_json": "authored_contract_value",
+    "chimera_metrics_json": "authored_contract_value",
+    "chimeras_fasta": "authored_contract_value",
+    "raw_backend_report": "authored_contract_value"
+}"#,
+        )?;
+        let report: LocalRemoveChimerasSmokeReportV1 = serde_json::from_value(original.clone())?;
+        assert_eq!(report.schema_version, LOCAL_REMOVE_CHIMERAS_SMOKE_REPORT_SCHEMA_VERSION);
+        assert_ne!(report.planned_tool_id, report.report_tool_id);
+        assert_eq!(serde_json::to_value(&report)?, original);
+        let mut unsupported = original;
+        unsupported["unrecognized"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<LocalRemoveChimerasSmokeReportV1>(unsupported).is_err());
+        let schema = serde_json::to_value(schemars::schema_for!(LocalRemoveChimerasSmokeReportV1))?;
+        assert_eq!(schema["additionalProperties"], serde_json::json!(false));
+        Ok(())
     }
 }

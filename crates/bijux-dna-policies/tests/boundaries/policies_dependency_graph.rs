@@ -33,7 +33,7 @@ fn policy__boundaries__policies_dependency_graph__dependency_graph_matches_polic
     assert_eq!(
         dependency_keys(&manifest, "dev-dependencies"),
         keys([
-            "bijux-dna",
+            "bijux-dna-containers",
             "bijux-dna-core",
             "bijux-dna-pipelines",
             "bijux-dna-runtime",

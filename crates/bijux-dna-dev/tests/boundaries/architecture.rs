@@ -174,11 +174,17 @@ fn dev_tree_matches_architecture_contract() {
     );
 
     let runtime_entries = dir_entries(&root.join("src/runtime"));
-    let expected_runtime: BTreeSet<_> =
-        ["mod.rs", "process.rs", "source_snapshot/", "workspace.rs", "workspace_root.rs"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_runtime: BTreeSet<_> = [
+        "compilation_cache.rs",
+        "mod.rs",
+        "process.rs",
+        "source_snapshot.rs",
+        "workspace.rs",
+        "workspace_root.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         runtime_entries, expected_runtime,
         "dev runtime tree must stay focused on workspace and process boundaries"

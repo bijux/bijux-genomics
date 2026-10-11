@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::File;
-use std::io::{BufRead, BufReader, Read, Write};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -8,12 +8,12 @@ use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_domain_vcf::contracts::SpeciesContext;
 use bijux_dna_domain_vcf::VcfStatsMetricsV1;
 use noodles_bgzf as bgzf;
-use noodles_core::Position;
-use noodles_csi::{self as csi, binning_index::index::reference_sequence::bin::Chunk};
-use noodles_tabix as tabix;
 use serde::Serialize;
 
 use crate::metrics::parse_vcf_stats;
+
+mod indexing;
+pub use indexing::vcf_index_bgzip_tabix;
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct VcfFieldRequirement {
@@ -229,111 +229,6 @@ pub fn vcf_normalize_headers(input: &Path, output: &Path) -> Result<()> {
     out.extend(records);
     bijux_dna_infra::atomic_write_bytes(output, format!("{}\n", out.join("\n")).as_bytes())?;
     Ok(())
-}
-
-/// # Errors
-/// Returns an error if bgzip/tabix indexing fails.
-pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<PathBuf> {
-    let parent = output_vcfgz.parent().ok_or_else(|| {
-        anyhow!("vcf_index_bgzip_tabix: output has no parent: {}", output_vcfgz.display())
-    })?;
-    std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    let nonce = format!(
-        "{}-{}",
-        std::process::id(),
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .context("read system clock for bgzip temp path")?
-            .as_nanos()
-    );
-    let output_tbi = PathBuf::from(format!("{}.tbi", output_vcfgz.display()));
-    let tmp_vcfgz = PathBuf::from(format!("{}.{}.tmp", output_vcfgz.display(), nonce));
-    let tmp_tbi = PathBuf::from(format!("{}.tbi", tmp_vcfgz.display()));
-
-    let result = write_bgzf_vcf_and_tabix(input_vcf, &tmp_vcfgz, &tmp_tbi);
-    if let Err(err) = result {
-        let _ = std::fs::remove_file(&tmp_vcfgz);
-        let _ = std::fs::remove_file(&tmp_tbi);
-        return Err(err);
-    }
-
-    std::fs::rename(&tmp_vcfgz, output_vcfgz)?;
-    std::fs::rename(&tmp_tbi, &output_tbi)?;
-    Ok(output_tbi)
-}
-
-fn write_bgzf_vcf_and_tabix(
-    input_vcf: &Path,
-    output_vcfgz: &Path,
-    output_tbi: &Path,
-) -> Result<()> {
-    let input = File::open(input_vcf).with_context(|| format!("open {}", input_vcf.display()))?;
-    let mut indexer = tabix::index::Indexer::default();
-    indexer.set_header(csi::binning_index::index::header::Builder::vcf().build());
-
-    bijux_dna_infra::atomic_write_with(output_vcfgz, |output| {
-        let mut writer = bgzf::io::Writer::new(output);
-        let mut chunk_start = writer.virtual_position();
-
-        for line in BufReader::new(input).lines() {
-            let line = line?;
-            writeln!(writer, "{line}")?;
-            let chunk_end = writer.virtual_position();
-
-            if !line.starts_with('#') && !line.is_empty() {
-                let (reference_sequence_name, start, end) = vcf_record_interval(&line)
-                    .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?;
-                indexer
-                    .add_record(
-                        reference_sequence_name,
-                        start,
-                        end,
-                        Chunk::new(chunk_start, chunk_end),
-                    )
-                    .map_err(|err| std::io::Error::new(std::io::ErrorKind::InvalidData, err))?;
-            }
-
-            chunk_start = chunk_end;
-        }
-
-        writer.finish()?;
-        Ok(())
-    })
-    .with_context(|| format!("write indexed BGZF payload {}", output_vcfgz.display()))?;
-
-    let index = indexer.build();
-    bijux_dna_infra::atomic_write_with(output_tbi, |output| {
-        tabix::io::Writer::new(output).write_index(&index)
-    })
-    .with_context(|| format!("write {}", output_tbi.display()))?;
-    Ok(())
-}
-
-fn vcf_record_interval(line: &str) -> Result<(&str, Position, Position)> {
-    let mut fields = line.split('\t');
-    let reference_sequence_name =
-        fields.next().filter(|value| !value.is_empty()).context("VCF record missing CHROM")?;
-    let start = fields
-        .next()
-        .context("VCF record missing POS")?
-        .parse::<usize>()
-        .context("VCF record has invalid POS")
-        .and_then(|value| Position::try_from(value).context("VCF record POS must be positive"))?;
-    let _id = fields.next().context("VCF record missing ID")?;
-    let reference = fields.next().context("VCF record missing REF")?;
-    let _alternate = fields.next().context("VCF record missing ALT")?;
-    let _quality = fields.next().context("VCF record missing QUAL")?;
-    let _filter = fields.next().context("VCF record missing FILTER")?;
-    let info = fields.next().context("VCF record missing INFO")?;
-    let end = info
-        .split(';')
-        .find_map(|field| field.strip_prefix("END="))
-        .map(str::parse::<usize>)
-        .transpose()
-        .context("VCF record has invalid INFO/END")?
-        .unwrap_or_else(|| usize::from(start) + reference.len().saturating_sub(1));
-    let end = Position::try_from(end).context("VCF record end must be positive")?;
-    Ok((reference_sequence_name, start, end))
 }
 
 /// # Errors

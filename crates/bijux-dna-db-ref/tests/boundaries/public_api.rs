@@ -32,6 +32,7 @@ fn public_api_doc_mentions_curated_surface() {
         "enforce_declared_build_and_contigs",
         "validate_imputation_tool_compatibility",
         "plan_panel_file_materialization",
+        "build_reference_fasta_index",
         "RuntimeRefService",
         "ref_service",
     ] {

@@ -1,3 +1,4 @@
+pub(crate) mod compilation_cache;
 pub mod process;
 pub(crate) mod source_snapshot;
 pub mod workspace;

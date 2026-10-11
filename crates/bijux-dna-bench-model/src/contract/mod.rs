@@ -4,6 +4,9 @@
 //! Must not perform IO.
 #![allow(dead_code)]
 
+mod stage_scoring;
+pub use stage_scoring::validate_stage_scoring_config;
+
 mod active_scope;
 mod all_domain_failure_classification;
 mod all_domain_parser_collector;
@@ -34,20 +37,24 @@ mod local_corpus_run;
 mod local_corpus_skip;
 mod local_corpus_stage_compatibility;
 mod local_essential_pipeline_fake_run;
+mod local_hpc_array;
 mod local_hpc_asset_staging;
 mod local_hpc_candidate_run;
 mod local_hpc_dependency_simulation;
 mod local_hpc_dry_run_readiness;
 mod local_hpc_execution_resolver;
+mod local_hpc_job_graph;
 mod local_hpc_pipeline_node_array;
 mod local_hpc_result_collection_simulation;
 mod local_hpc_resume_simulation;
 mod local_hpc_scratch_layout;
 mod local_hpc_stage_benchmark_array;
 mod local_hpc_submission_readiness;
+mod local_hpc_tool_scope;
 mod local_pipeline_dag;
 mod local_runtime_metrics;
 mod local_slurm_dependency;
+mod local_slurm_scripts;
 mod local_slurm_submit;
 mod local_stage_commands;
 mod local_stage_completion;
@@ -71,7 +78,9 @@ mod publication_outcome;
 mod publication_registry;
 mod publication_status;
 mod published_results_status;
+mod readiness;
 mod readiness_views;
+mod real_smoke_core_subset;
 mod records;
 mod remediation_queue;
 mod replay;
@@ -152,7 +161,10 @@ pub use local_essential_pipeline_fake_run::{
 };
 pub use local_hpc_asset_staging::validate_benchmark_local_hpc_asset_staging_manifest;
 pub use local_hpc_candidate_run::validate_benchmark_local_hpc_candidate_run_manifest;
-pub use local_hpc_dependency_simulation::validate_benchmark_local_hpc_dependency_simulation;
+pub use local_hpc_dependency_simulation::{
+    build_benchmark_local_hpc_dependency_simulation,
+    validate_benchmark_local_hpc_dependency_simulation,
+};
 pub use local_hpc_dry_run_readiness::validate_benchmark_local_hpc_dry_run_readiness;
 pub use local_hpc_execution_resolver::validate_benchmark_local_hpc_execution_resolver;
 pub use local_hpc_pipeline_node_array::validate_benchmark_local_hpc_pipeline_node_array;
@@ -363,4 +375,29 @@ pub use stage_tool_containers::{
 pub use stage_tool_resources::{
     validate_stage_tool_resources_config, validate_stage_tool_resources_report,
 };
+#[cfg(feature = "canonical-fastq-catalog")]
 pub use suite::validate_suite;
+
+pub use local_hpc_job_graph::build_benchmark_local_hpc_job_graph;
+
+pub use local_hpc_tool_scope::{
+    project_benchmark_local_hpc_tool_scopes, BenchmarkLocalHpcToolScope,
+};
+
+pub use local_hpc_array::build_benchmark_local_hpc_array_resource_envelope;
+
+pub use local_slurm_scripts::{
+    build_benchmark_local_all_domain_slurm_scripts_report,
+    validate_benchmark_local_all_domain_slurm_scripts_report,
+};
+
+pub use real_smoke_core_subset::admit_real_smoke_core_subset_report;
+
+pub use readiness::{
+    validate_all_domain_expected_result_rows, validate_all_domain_rendered_command_rows,
+    validate_all_domain_stage_tool_table_rows, AllDomainStageToolTableAdmissionContext,
+};
+
+#[cfg(feature = "canonical-fastq-catalog")]
+pub use suite::CanonicalFastqSuiteCatalog;
+pub use suite::{validate_suite_with_catalog, BenchmarkSuiteCatalog};

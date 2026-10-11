@@ -30,8 +30,8 @@ pub fn validate_full_benchmark_report(
     require_path(&report.markdown_output_path, "markdown_output_path")?;
     require_path(&report.json_output_path, "json_output_path")?;
     if report.row_count != report.rows.len()
-        || report.row_count
-            != report.expected_result_row_count + report.explicit_unsupported_row_count
+        || report.expected_result_row_count.checked_add(report.explicit_unsupported_row_count)
+            != Some(report.row_count)
         || report.expected_result_row_count != context.expected_result_ids.len()
         || report.explicit_unsupported_row_count != context.collector_unsupported_pair_count
         || report.missing_result_row_count != context.collector_missing_result_count

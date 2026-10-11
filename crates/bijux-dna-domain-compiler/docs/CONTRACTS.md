@@ -67,3 +67,5 @@ generated output vocabulary.
 A domain tool may claim `supported` only when the catalog disposition is `retained` and the catalog
 authorizes at least one runtime recipe. Domain metadata cannot promote an unsupported packaging
 contract.
+
+Artifact vocabulary admission requires a supported schema (`bijux.domain.artifacts.v1` or `bijux.artifacts.v1`), the matching domain, and exactly one nonempty declaration: legacy `artifact_ids` or typed `artifacts`. Typed entries require `id` and `type`; unknown fields, null declarations, duplicate IDs, and blank or padded IDs/types reject. Legacy IDs retain an absent type in registry snapshots. Admission verifies declaration shape, not scientific compatibility or completeness of the artifact type authority.

@@ -14,6 +14,9 @@ fn is_allowed_writer_path(path: &Path) -> bool {
     path_str.contains("/crates/bijux-dna-runtime/")
         || path_str.contains("/crates/bijux-dna-engine/")
         || path_str.contains("/crates/bijux-dna-infra/")
+        // Developer process logs and immutable source materialization are runtime effects.
+        || path_str.ends_with("/crates/bijux-dna-dev/src/runtime/process.rs")
+        || path_str.ends_with("/crates/bijux-dna-dev/src/runtime/source_snapshot.rs")
         || path_str.contains("/crates/bijux-dna-runner/src/backend/slurm/qualification/")
         || path_str.contains("/crates/bijux-dna-runner/src/step_runner/external_artifact.rs")
         || path_str.contains("/crates/bijux-dna-containers/src/build/")
@@ -209,4 +212,24 @@ fn policy__boundaries__path_policies__crates_do_not_reference_removed_fastq_test
         "crates must not reference tests/data/fastq paths:\n{}",
         offenders.join("\n")
     );
+}
+
+#[test]
+fn policy__boundaries__path_policies__developer_effects_have_exact_runtime_owners() {
+    for relative in ["runtime/process.rs", "runtime/source_snapshot.rs"] {
+        assert!(is_allowed_writer_path(&PathBuf::from(format!(
+            "/workspace/crates/bijux-dna-dev/src/{relative}"
+        ))));
+    }
+    for relative in [
+        "runtime/workspace.rs",
+        "runtime/other.rs",
+        "runtime/process.rs.disabled",
+        "application/ci/executables.rs",
+        "commands/ops/tooling/ci.rs",
+    ] {
+        assert!(!is_allowed_writer_path(&PathBuf::from(format!(
+            "/workspace/crates/bijux-dna-dev/src/{relative}"
+        ))));
+    }
 }

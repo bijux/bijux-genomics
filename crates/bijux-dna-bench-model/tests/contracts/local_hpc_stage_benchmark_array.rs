@@ -112,3 +112,13 @@ fn local_hpc_stage_benchmark_array_rejects_order_resolution_and_envelope_drift()
     envelope.resource_envelope.memory_mb = 1024;
     assert!(validate_benchmark_local_hpc_stage_benchmark_array(&envelope).is_err());
 }
+
+#[test]
+fn local_hpc_stage_benchmark_array_rejects_overflowing_resource_durations() {
+    let mut row = report();
+    row.rows[0].resources.time_limit = "18446744073709551615:00:00".to_string();
+    assert!(validate_benchmark_local_hpc_stage_benchmark_array(&row).is_err());
+    let mut envelope = report();
+    envelope.resource_envelope.time_limit = "18446744073709551615:00:00".to_string();
+    assert!(validate_benchmark_local_hpc_stage_benchmark_array(&envelope).is_err());
+}

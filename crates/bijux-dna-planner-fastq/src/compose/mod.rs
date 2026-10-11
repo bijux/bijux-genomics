@@ -333,11 +333,6 @@ where
                     .ok_or_else(|| {
                         anyhow!("host depletion requires a prior reference index stage")
                     })?;
-                ensure_reference_index_backend(
-                    STAGE_DEPLETE_HOST.as_str(),
-                    tool.tool_id.as_str(),
-                    &reference_index.tool_id,
-                )?;
                 let params = deplete_host_params(binding);
                 let plan =
                     crate::tool_adapters::fastq::deplete_host::plan_host_depletion_with_index_backend(
@@ -365,11 +360,6 @@ where
                         "reference contaminant depletion requires a prior reference index stage"
                     )
                     })?;
-                ensure_reference_index_backend(
-                    STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(),
-                    tool.tool_id.as_str(),
-                    &reference_index.tool_id,
-                )?;
                 let params = deplete_reference_contaminants_params(binding);
                 let plan = crate::tool_adapters::fastq::deplete_reference_contaminants::plan_contaminant_screen_with_index_backend(
                     tool,
@@ -734,38 +724,6 @@ where
         latest_lineage_node_id = Some(stage_node_id);
     }
     Ok(plans)
-}
-
-fn ensure_reference_index_backend(
-    stage_id: &str,
-    depletion_tool_id: &str,
-    index_tool_id: &str,
-) -> Result<()> {
-    let depletion_tool_id = bijux_dna_core::ids::ToolId::new(depletion_tool_id.to_string());
-    let index_tool_id = bijux_dna_core::ids::ToolId::new(index_tool_id.to_string());
-    let compatible_backends =
-        bijux_dna_domain_fastq::reference_index_backends_for_tool(&depletion_tool_id);
-    if compatible_backends.is_empty() {
-        return Err(anyhow!(
-            "unsupported reference-aware depletion backend for {stage_id}: {}",
-            depletion_tool_id.as_str()
-        ));
-    }
-    if bijux_dna_domain_fastq::is_reference_index_backend_compatible(
-        &depletion_tool_id,
-        &index_tool_id,
-    ) {
-        return Ok(());
-    }
-    Err(anyhow!(
-        "{stage_id} requires one of [{}] as reference index backend, but upstream fastq.index_reference used {}",
-        compatible_backends
-            .iter()
-            .map(|tool_id| tool_id.as_str().to_string())
-            .collect::<Vec<_>>()
-            .join(", "),
-        index_tool_id.as_str()
-    ))
 }
 
 pub(crate) fn ensure_normalize_abundance_tool(tool_id: &str) -> Result<()> {

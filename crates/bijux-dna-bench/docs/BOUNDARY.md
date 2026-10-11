@@ -68,3 +68,9 @@ ordering, stable numeric decisions, and stable serialized JSON shape.
 Legacy benchmark artifacts may remain as fixtures for historical comparison, but
 new behavior must use the current suite catalog and v1 benchmark model
 contracts. Do not add new legacy schema shapes.
+
+The benchmark model owns local all-domain SLURM script inventory types, aggregate construction and coverage admission. Script writers provide typed entries; model validation is pure and checks the serialized inventory against independently expected job counts. Path admission, script bytes and filesystem effects remain adapter responsibilities.
+
+`load_fastq_tool_score_evidence` keeps observed-report IO in `repo` and format adapters in `artifacts/fastq_score_evidence`; raw JSON remains confined to those owners. The loader returns typed model evidence for pure scoring. Missing optional reports contribute no observations, malformed reports and overflowing case totals reject, and authored fixture-reference names never substitute for observed tool outcomes.
+
+`workflow/readiness` evaluates a borrowed `FullBenchmarkDashboardEvidence` view. Coverage counts and cross-report consistency belong to this pure service; the CLI acquires reports and adapts paths and output. Markdown rendering consumes the evaluated report without IO. Readiness coverage alone does not establish backend execution or scientific validity.

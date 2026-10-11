@@ -31,6 +31,7 @@ read-only library entrypoints.
 | `validate-imputation-tool-compatibility` | `validate_imputation_tool_compatibility` | Validate panel/map compatibility for an imputation tool. |
 | `plan-panel-file-materialization` | `plan_panel_file_materialization` | Validate a panel file delivery contract and choose its immutable raw or derived cache area. |
 | `ref-service` | `ref_service` | Access the default runtime-backed `RefService`. |
+| `build-reference-fasta-index` | `build_reference_fasta_index` | Admit uncompressed FASTA record and line layout, then derive deterministic five-column FAI bytes. |
 
 ## Local Verification Commands
 

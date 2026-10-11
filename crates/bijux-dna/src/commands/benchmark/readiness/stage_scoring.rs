@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -7,7 +7,7 @@ use bijux_dna_core::ids::StageId;
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::default_execution_tool_for_stage;
 use bijux_dna_planner_bam::stage_api::default_tool_for_stage as default_bam_tool_for_stage;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::all_domain_active_stage_catalog::{
     collect_all_domain_active_stage_catalog_rows, AllDomainActiveStageCatalogRow,
@@ -28,7 +28,6 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_SCORING_PATH: &str = "configs/bench/local/stage-scoring.toml";
-const STAGE_SCORING_SCHEMA_VERSION: &str = "bijux.bench.local_stage_scoring.v1";
 const STAGE_SCORING_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.stage_scoring.v1";
 const STAGE_SCORING_CONFIG_HEADER: &str = "# schema_version = 1\n\
 # owner = bijux-dna-bench\n\
@@ -47,156 +46,14 @@ const STAGE_SCORING_ACTIVE_STAGE_SOURCE: &str =
 const STAGE_SCORING_THRESHOLD_SOURCE: &str =
     "configs/bench/local/scientific-acceptance-thresholds.toml";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum StageScoringDecisionMode {
-    MultiToolRanking,
-    SingleToolAcceptance,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum StageScoringCorrectnessSignal {
-    ScientificComparableMetrics,
-    OutputContract,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum StageScoringApplicability {
-    Required,
-    NotApplicable,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum StageScoringDirection {
-    LowerIsBetter,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum StageScoringMissingBehavior {
-    ExcludeFromRanking,
-    FallbackToDeclaredMemory,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum StageScoringFailureEffect {
-    BlockRecommendation,
-    MarkInsufficientEvidence,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageScoringWeights {
-    pub(crate) correctness: f64,
-    pub(crate) scientific_threshold: f64,
-    pub(crate) runtime: f64,
-    pub(crate) memory: f64,
-    pub(crate) completion: f64,
-    pub(crate) failure_class: f64,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageScoringCorrectness {
-    pub(crate) source_report_paths: Vec<String>,
-    pub(crate) signal: StageScoringCorrectnessSignal,
-    pub(crate) metric_ids: Vec<String>,
-    pub(crate) minimum_present_result_rows: usize,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageScoringScientificThreshold {
-    pub(crate) source_report_paths: Vec<String>,
-    pub(crate) applicability: StageScoringApplicability,
-    pub(crate) metric_ids: Vec<String>,
-    pub(crate) gate: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageScoringRuntime {
-    pub(crate) source_report_paths: Vec<String>,
-    pub(crate) metric_id: String,
-    pub(crate) direction: StageScoringDirection,
-    pub(crate) missing_behavior: StageScoringMissingBehavior,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageScoringMemory {
-    pub(crate) source_report_paths: Vec<String>,
-    pub(crate) metric_id: String,
-    pub(crate) fallback_metric_id: String,
-    pub(crate) direction: StageScoringDirection,
-    pub(crate) missing_behavior: StageScoringMissingBehavior,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageScoringCompletion {
-    pub(crate) source_report_paths: Vec<String>,
-    pub(crate) required_row_statuses: Vec<String>,
-    pub(crate) required_execution_statuses: Vec<String>,
-    pub(crate) non_scoring_execution_statuses: Vec<String>,
-    pub(crate) required_success_ratio: f64,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageScoringFailureClass {
-    pub(crate) source_report_paths: Vec<String>,
-    pub(crate) blocking_class_ids: Vec<String>,
-    pub(crate) insufficient_class_ids: Vec<String>,
-    pub(crate) allowed_row_statuses: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageScoringFailureClassCatalogEntry {
-    pub(crate) class_id: String,
-    pub(crate) effect: StageScoringFailureEffect,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageScoringRow {
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: String,
-    pub(crate) decision_mode: StageScoringDecisionMode,
-    pub(crate) active_tool_count: usize,
-    pub(crate) benchmark_ready_tool_count: usize,
-    pub(crate) default_tool_id: String,
-    pub(crate) benchmark_ready_tool_ids: Vec<String>,
-    pub(crate) report_section_ids: Vec<String>,
-    pub(crate) recommendation_gate: String,
-    pub(crate) weights: StageScoringWeights,
-    pub(crate) correctness: StageScoringCorrectness,
-    pub(crate) scientific_threshold: StageScoringScientificThreshold,
-    pub(crate) runtime: StageScoringRuntime,
-    pub(crate) memory: StageScoringMemory,
-    pub(crate) completion: StageScoringCompletion,
-    pub(crate) failure_class: StageScoringFailureClass,
-}
-
-#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub(crate) struct StageScoringConfig {
-    pub(crate) schema_version: String,
-    pub(crate) active_stage_catalog_path: String,
-    pub(crate) scientific_threshold_config_path: String,
-    pub(crate) full_benchmark_report_path: String,
-    pub(crate) micro_benchmark_report_path: String,
-    pub(crate) failure_class_report_path: String,
-    pub(crate) failure_classes: Vec<StageScoringFailureClassCatalogEntry>,
-    pub(crate) rows: Vec<StageScoringRow>,
-}
+use bijux_dna_api::v1::api::bench::{validate_stage_scoring_config, STAGE_SCORING_SCHEMA_VERSION};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    StageScoringApplicability, StageScoringCompletion, StageScoringConfig, StageScoringCorrectness,
+    StageScoringCorrectnessSignal, StageScoringDecisionMode, StageScoringDirection,
+    StageScoringFailureClass, StageScoringFailureClassCatalogEntry, StageScoringFailureEffect,
+    StageScoringMemory, StageScoringMissingBehavior, StageScoringRow, StageScoringRuntime,
+    StageScoringScientificThreshold, StageScoringWeights,
+};
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct StageScoringReport {
@@ -634,219 +491,7 @@ fn ensure_stage_scoring_config_contract(
         );
     }
 
-    let failure_class_ids =
-        config.failure_classes.iter().map(|row| row.class_id.as_str()).collect::<BTreeSet<_>>();
-    for class_id in REQUIRED_FAILURE_CLASSES {
-        if !failure_class_ids.contains(class_id) {
-            bail!("stage scoring config is missing failure class `{class_id}`");
-        }
-    }
-
-    let mut seen_stage_ids = BTreeSet::<(&str, &str)>::new();
-    for row in &config.rows {
-        if !seen_stage_ids.insert((row.domain.as_str(), row.stage_id.as_str())) {
-            bail!(
-                "stage scoring config contains duplicate row `{}` / `{}`",
-                row.domain,
-                row.stage_id
-            );
-        }
-        if !row.benchmark_ready_tool_ids.iter().any(|tool_id| tool_id == &row.default_tool_id) {
-            bail!(
-                "stage scoring row `{}` / `{}` keeps default tool `{}` outside benchmark-ready tool ids",
-                row.domain,
-                row.stage_id,
-                row.default_tool_id
-            );
-        }
-        if row.report_section_ids.is_empty() {
-            bail!(
-                "stage scoring row `{}` / `{}` is missing report_section_ids",
-                row.domain,
-                row.stage_id
-            );
-        }
-        ensure_weight_contract(row)?;
-        ensure_scientific_threshold_contract(row)?;
-        ensure_runtime_memory_completion_contract(row)?;
-        ensure_failure_class_contract(row, &failure_class_ids)?;
-        ensure_decision_mode_contract(row)?;
-    }
-    Ok(())
-}
-
-fn ensure_weight_contract(row: &StageScoringRow) -> Result<()> {
-    let sum = row.weights.correctness
-        + row.weights.scientific_threshold
-        + row.weights.runtime
-        + row.weights.memory
-        + row.weights.completion
-        + row.weights.failure_class;
-    if (sum - 1.0).abs() > 1e-9 {
-        bail!(
-            "stage scoring row `{}` / `{}` has weights summing to {sum} instead of 1.0",
-            row.domain,
-            row.stage_id
-        );
-    }
-    Ok(())
-}
-
-fn ensure_scientific_threshold_contract(row: &StageScoringRow) -> Result<()> {
-    match row.scientific_threshold.applicability {
-        StageScoringApplicability::Required => {
-            if row.scientific_threshold.metric_ids.is_empty() {
-                bail!(
-                    "stage scoring row `{}` / `{}` requires scientific thresholds but has no metric_ids",
-                    row.domain,
-                    row.stage_id
-                );
-            }
-            if row.weights.scientific_threshold <= 0.0 {
-                bail!(
-                    "stage scoring row `{}` / `{}` requires scientific thresholds but gives them zero weight",
-                    row.domain,
-                    row.stage_id
-                );
-            }
-        }
-        StageScoringApplicability::NotApplicable => {
-            if !row.scientific_threshold.metric_ids.is_empty() {
-                bail!(
-                    "stage scoring row `{}` / `{}` marks scientific thresholds not_applicable but still declares metric_ids",
-                    row.domain,
-                    row.stage_id
-                );
-            }
-            if row.weights.scientific_threshold != 0.0 {
-                bail!(
-                    "stage scoring row `{}` / `{}` marks scientific thresholds not_applicable but still assigns non-zero weight",
-                    row.domain,
-                    row.stage_id
-                );
-            }
-        }
-    }
-    Ok(())
-}
-
-fn ensure_runtime_memory_completion_contract(row: &StageScoringRow) -> Result<()> {
-    if row.runtime.metric_id != "elapsed_seconds" {
-        bail!(
-            "stage scoring row `{}` / `{}` must use runtime metric `elapsed_seconds`, found `{}`",
-            row.domain,
-            row.stage_id,
-            row.runtime.metric_id
-        );
-    }
-    if row.memory.metric_id != "observed_memory_mb" {
-        bail!(
-            "stage scoring row `{}` / `{}` must use memory metric `observed_memory_mb`, found `{}`",
-            row.domain,
-            row.stage_id,
-            row.memory.metric_id
-        );
-    }
-    if row.memory.fallback_metric_id != "declared_memory_mb" {
-        bail!(
-            "stage scoring row `{}` / `{}` must fall back to `declared_memory_mb`, found `{}`",
-            row.domain,
-            row.stage_id,
-            row.memory.fallback_metric_id
-        );
-    }
-    if row.completion.required_row_statuses != ["present".to_string()] {
-        bail!(
-            "stage scoring row `{}` / `{}` must require full-benchmark row_status `present`",
-            row.domain,
-            row.stage_id
-        );
-    }
-    if row.completion.required_execution_statuses != ["succeeded".to_string()] {
-        bail!(
-            "stage scoring row `{}` / `{}` must require micro execution_status `succeeded`",
-            row.domain,
-            row.stage_id
-        );
-    }
-    if (row.completion.required_success_ratio - 1.0).abs() > 1e-9 {
-        bail!(
-            "stage scoring row `{}` / `{}` must require success ratio 1.0, found {}",
-            row.domain,
-            row.stage_id,
-            row.completion.required_success_ratio
-        );
-    }
-    Ok(())
-}
-
-fn ensure_failure_class_contract(
-    row: &StageScoringRow,
-    failure_class_ids: &BTreeSet<&str>,
-) -> Result<()> {
-    if row.failure_class.blocking_class_ids.is_empty() {
-        bail!(
-            "stage scoring row `{}` / `{}` is missing blocking failure classes",
-            row.domain,
-            row.stage_id
-        );
-    }
-    for class_id in row
-        .failure_class
-        .blocking_class_ids
-        .iter()
-        .chain(row.failure_class.insufficient_class_ids.iter())
-    {
-        if !failure_class_ids.contains(class_id.as_str()) {
-            bail!(
-                "stage scoring row `{}` / `{}` references unknown failure class `{}`",
-                row.domain,
-                row.stage_id,
-                class_id
-            );
-        }
-    }
-    Ok(())
-}
-
-fn ensure_decision_mode_contract(row: &StageScoringRow) -> Result<()> {
-    match row.decision_mode {
-        StageScoringDecisionMode::MultiToolRanking => {
-            if row.benchmark_ready_tool_count < 2 {
-                bail!(
-                    "stage scoring row `{}` / `{}` claims multi_tool_ranking with only {} benchmark-ready tools",
-                    row.domain,
-                    row.stage_id,
-                    row.benchmark_ready_tool_count
-                );
-            }
-            let expected_signal =
-                if row.scientific_threshold.applicability == StageScoringApplicability::Required {
-                    StageScoringCorrectnessSignal::ScientificComparableMetrics
-                } else {
-                    StageScoringCorrectnessSignal::OutputContract
-                };
-            if row.correctness.signal != expected_signal {
-                bail!(
-                    "stage scoring row `{}` / `{}` must use correctness signal `{:?}` for its multi-tool ranking contract",
-                    row.domain,
-                    row.stage_id,
-                    expected_signal
-                );
-            }
-        }
-        StageScoringDecisionMode::SingleToolAcceptance => {
-            if row.benchmark_ready_tool_count != 1 {
-                bail!(
-                    "stage scoring row `{}` / `{}` claims single_tool_acceptance with {} benchmark-ready tools",
-                    row.domain,
-                    row.stage_id,
-                    row.benchmark_ready_tool_count
-                );
-            }
-        }
-    }
-    Ok(())
+    validate_stage_scoring_config(config)
 }
 
 fn first_stage_scoring_drift(parsed: &StageScoringConfig, expected: &StageScoringConfig) -> String {

@@ -1,0 +1,160 @@
+{
+  "$defs": {
+    "AllDomainRenderedCommandRow": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "benchmark_status": {
+          "type": "string"
+        },
+        "command_source": {
+          "type": "string"
+        },
+        "command_steps": {
+          "items": {
+            "$ref": "#/$defs/AllDomainRenderedCommandStep"
+          },
+          "type": "array"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "readiness_kind": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "script_commands": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "readiness_kind",
+        "benchmark_status",
+        "command_source",
+        "command_steps",
+        "script_commands"
+      ],
+      "type": "object"
+    },
+    "AllDomainRenderedCommandStep": {
+      "additionalProperties": false,
+      "properties": {
+        "argv": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "command": {
+          "type": "string"
+        },
+        "consumes_previous_stdout": {
+          "type": "boolean"
+        },
+        "step_id": {
+          "type": "string"
+        },
+        "step_kind": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "step_id",
+        "step_kind",
+        "consumes_previous_stdout",
+        "argv",
+        "command"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "argv_output_path": {
+      "type": "string"
+    },
+    "benchmark_status_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "command_source_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "result_id_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/AllDomainRenderedCommandRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.all_domain_rendered_commands.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "argv_output_path",
+    "row_count",
+    "result_id_count",
+    "domain_counts",
+    "benchmark_status_counts",
+    "command_source_counts",
+    "rows"
+  ],
+  "title": "AllDomainRenderedCommandsReport",
+  "type": "object"
+}

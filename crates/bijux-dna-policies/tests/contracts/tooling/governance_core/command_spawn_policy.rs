@@ -7,22 +7,33 @@ fn workspace_root() -> PathBuf {
     bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
-fn allowed_test_command_arg(arg: &str) -> bool {
+fn allowed_test_command_arg(relative_path: &Path, arg: &str) -> bool {
     let normalized = arg.trim();
     normalized.contains("env!(\"CARGO_BIN_EXE_")
         || normalized == "\"cargo\""
         || normalized == "\"bash\""
         || normalized == "\"git\""
         || normalized == "\"awk\""
+        || owned_harness_command(relative_path, normalized)
 }
 
-fn content_spawns_forbidden_test_command(content: &str) -> bool {
+fn owned_harness_command(relative_path: &Path, arg: &str) -> bool {
+    // These owners exercise checked-in cross-language entrypoints using local synthetic inputs.
+    // Grant the harness command at its exact source path, never to the entire crate.
+    match relative_path.to_str() {
+        Some("crates/bijux-dna-science/tests/contracts/archive_sync.rs") => arg == "\"python3\"",
+        Some("crates/bijux-dna-dev/tests/bootstrap.rs") => arg == "\"sh\"" || arg == "&binary",
+        _ => false,
+    }
+}
+
+fn content_spawns_forbidden_test_command(relative_path: &Path, content: &str) -> bool {
     content.lines().any(|line| {
         if !line.contains("Command::new(") {
             return false;
         }
         let arg = line.split("Command::new(").nth(1).and_then(|rest| rest.split(')').next());
-        arg.is_none_or(|arg| !allowed_test_command_arg(arg))
+        arg.is_none_or(|arg| !allowed_test_command_arg(relative_path, arg))
     })
 }
 
@@ -121,7 +132,8 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");
-        if content_spawns_forbidden_test_command(&content)
+        let relative_path = path.strip_prefix(&root).expect("source belongs to workspace");
+        if content_spawns_forbidden_test_command(relative_path, &content)
             || forbidden_runtime_needles.iter().any(|needle| content.contains(needle))
         {
             offenders.push(path.display().to_string());
@@ -133,6 +145,28 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
         "crate tests must not spawn arbitrary external commands; only governed workspace harness commands are allowed:\n{}",
         offenders.join("\n")
     );
+}
+
+#[test]
+fn policy__contracts__command_spawn_policy__harness_commands_stay_with_their_exact_owners() {
+    for (owner, command) in [
+        ("crates/bijux-dna-science/tests/contracts/archive_sync.rs", "\"python3\""),
+        ("crates/bijux-dna-dev/tests/bootstrap.rs", "\"sh\""),
+        ("crates/bijux-dna-dev/tests/bootstrap.rs", "&binary"),
+    ] {
+        let invocation = format!("Command::new({command}).output()?");
+        assert!(!content_spawns_forbidden_test_command(Path::new(owner), &invocation));
+        let adjacent = Path::new(owner).with_file_name("unrelated.rs");
+        assert!(content_spawns_forbidden_test_command(&adjacent, &invocation));
+        assert!(content_spawns_forbidden_test_command(
+            Path::new(owner),
+            "Command::new(\"curl\").output()?"
+        ));
+        assert!(content_spawns_forbidden_test_command(
+            &Path::new("foreign-checkout").join(owner),
+            &invocation
+        ));
+    }
 }
 
 #[test]

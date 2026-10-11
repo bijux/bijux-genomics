@@ -1,0 +1,154 @@
+{
+  "schema_version": "bijux.bench.local_stage_scoring.v1",
+  "active_stage_catalog_path": "artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv",
+  "scientific_threshold_config_path": "configs/bench/local/scientific-acceptance-thresholds.toml",
+  "full_benchmark_report_path": "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+  "micro_benchmark_report_path": "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json",
+  "failure_class_report_path": "artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json",
+  "failure_classes": [
+    {
+      "class_id": "missing_input",
+      "effect": "block_recommendation",
+      "detail": "required benchmark inputs are absent, so the tool cannot be compared honestly"
+    },
+    {
+      "class_id": "blocked_external_access",
+      "effect": "block_recommendation",
+      "detail": "the supported tool requires a checksum-admitted operator artifact before recommendation"
+    },
+    {
+      "class_id": "tool_not_found",
+      "effect": "block_recommendation",
+      "detail": "the executable is unresolved, so the tool must be excluded from recommendation"
+    },
+    {
+      "class_id": "command_failed",
+      "effect": "block_recommendation",
+      "detail": "the tool invocation failed before governed outputs were materialized"
+    },
+    {
+      "class_id": "missing_output",
+      "effect": "block_recommendation",
+      "detail": "the stage did not produce all governed outputs, so completeness is broken"
+    },
+    {
+      "class_id": "parser_failed",
+      "effect": "block_recommendation",
+      "detail": "raw tool output could not be normalized into the governed report contract"
+    },
+    {
+      "class_id": "insufficient_data",
+      "effect": "mark_insufficient_evidence",
+      "detail": "the stage completed but the benchmark evidence is not strong enough to rank tools"
+    },
+    {
+      "class_id": "unsupported_pair",
+      "effect": "block_recommendation",
+      "detail": "the stage/tool binding is outside the governed benchmark surface"
+    }
+  ],
+  "rows": [
+    {
+      "domain": "bam",
+      "stage_id": "bam.align",
+      "readiness_kind": "dry_or_smoke",
+      "decision_mode": "multi_tool_ranking",
+      "active_tool_count": 2,
+      "benchmark_ready_tool_count": 2,
+      "default_tool_id": "bwa",
+      "benchmark_ready_tool_ids": [
+        "bowtie2",
+        "bwa"
+      ],
+      "report_section_ids": [
+        "alignment_intake"
+      ],
+      "recommendation_gate": "rank benchmark-ready tools only after completion and failure-class gates pass",
+      "weights": {
+        "correctness": 0.35,
+        "scientific_threshold": 0.25,
+        "runtime": 0.15,
+        "memory": 0.1,
+        "completion": 0.1,
+        "failure_class": 0.05
+      },
+      "correctness": {
+        "source_report_paths": [
+          "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+          "artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv"
+        ],
+        "signal": "scientific_comparable_metrics",
+        "metric_ids": [
+          "alignment_rate",
+          "mapped_reads"
+        ],
+        "minimum_present_result_rows": 2
+      },
+      "scientific_threshold": {
+        "source_report_paths": [
+          "configs/bench/local/scientific-acceptance-thresholds.toml"
+        ],
+        "applicability": "required",
+        "metric_ids": [
+          "alignment_rate",
+          "mapped_reads"
+        ],
+        "gate": "must_pass_all_required_stage_thresholds"
+      },
+      "runtime": {
+        "source_report_paths": [
+          "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"
+        ],
+        "metric_id": "elapsed_seconds",
+        "direction": "lower_is_better",
+        "missing_behavior": "exclude_from_ranking"
+      },
+      "memory": {
+        "source_report_paths": [
+          "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"
+        ],
+        "metric_id": "observed_memory_mb",
+        "fallback_metric_id": "declared_memory_mb",
+        "direction": "lower_is_better",
+        "missing_behavior": "fallback_to_declared_memory"
+      },
+      "completion": {
+        "source_report_paths": [
+          "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
+          "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"
+        ],
+        "required_row_statuses": [
+          "present"
+        ],
+        "required_execution_statuses": [
+          "succeeded"
+        ],
+        "non_scoring_execution_statuses": [
+          "container_needed",
+          "unavailable"
+        ],
+        "required_success_ratio": 1.0
+      },
+      "failure_class": {
+        "source_report_paths": [
+          "artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json"
+        ],
+        "blocking_class_ids": [
+          "missing_input",
+          "blocked_external_access",
+          "tool_not_found",
+          "command_failed",
+          "missing_output",
+          "parser_failed",
+          "unsupported_pair"
+        ],
+        "insufficient_class_ids": [
+          "insufficient_data"
+        ],
+        "allowed_row_statuses": [
+          "present"
+        ]
+      }
+    }
+  ]
+}
