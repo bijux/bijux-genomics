@@ -5,24 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{BenchmarkStageResultStatus, BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum BenchmarkLocalStageReadinessKind {
-    DryRun,
-    Smoke,
-    DryOrSmoke,
-}
-
-impl BenchmarkLocalStageReadinessKind {
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::DryRun => "dry_run",
-            Self::Smoke => "smoke",
-            Self::DryOrSmoke => "dry_or_smoke",
-        }
-    }
-}
+pub use bijux_dna_bench_stage::BenchmarkLocalStageReadinessKind;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]

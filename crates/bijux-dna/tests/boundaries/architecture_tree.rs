@@ -133,8 +133,10 @@ fn dna_tree_matches_architecture_contract() {
         "local_fastq_micro_smoke_subset.rs",
         "local_hpc_array_support.rs",
         "local_hpc_asset_staging_manifest.rs",
+        "local_hpc_candidate_run_manifest/",
         "local_hpc_candidate_run_manifest.rs",
         "local_hpc_dependency_simulation.rs",
+        "local_hpc_dry_run_ready/",
         "local_hpc_dry_run_ready.rs",
         "local_hpc_execution_resolver.rs",
         "local_hpc_input_discovery.rs",
@@ -149,6 +151,7 @@ fn dna_tree_matches_architecture_contract() {
         "local_hpc_simulation_tree.rs",
         "local_hpc_stage_benchmark_array.rs",
         "local_hpc_submission_ready.rs",
+        "local_hpc_submission_ready/",
         "local_micro_benchmark_report.rs",
         "local_micro_benchmark_run.rs",
         "local_pipeline_dag.rs",
@@ -159,7 +162,7 @@ fn dna_tree_matches_architecture_contract() {
         "local_slurm_script_bodies.rs",
         "local_slurm_shell_syntax.rs",
         "local_slurm_submit_manifest.rs",
-        "local_stage_commands.rs",
+        "local_stage_commands/",
         "local_stage_fake_runs.rs",
         "local_stage_inventory.rs",
         "local_stage_manifest_completion.rs",
@@ -210,7 +213,6 @@ fn dna_tree_matches_architecture_contract() {
         "schema_paths.rs",
         "schema_validation.rs",
         "scratch_repository.rs",
-        "stage_catalog.rs",
         "suite/",
         "taxonomy_database.rs",
         "repo_locking.rs",
@@ -240,22 +242,12 @@ fn dna_tree_matches_architecture_contract() {
 
     let benchmark_corpus_fastq_entries =
         dir_entries(&root.join("src/commands/benchmark/corpus_fastq"));
-    let expected_benchmark_corpus_fastq: BTreeSet<_> = [
-        "artifact_bundle.rs",
-        "mod.rs",
-        "models.rs",
-        "report_qc_support.rs",
-        "runtime_support.rs",
-        "sortmerna_support.rs",
-        "stage_preparation.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        benchmark_corpus_fastq_entries, expected_benchmark_corpus_fastq,
-        "corpus fastq benchmark tree must separate run models, runtime support, stage preparation, and governed support"
-    );
+    let expected_benchmark_corpus_fastq: BTreeSet<_> =
+        ["adapters.rs", "contracts.rs", "defaults.rs", "mod.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(benchmark_corpus_fastq_entries, expected_benchmark_corpus_fastq, "corpus command composition owns request adaptation, canonical workspace paths and native execution adapters");
 
     let cli_entries = dir_entries(&root.join("src/commands/cli"));
     let expected_cli: BTreeSet<_> = [

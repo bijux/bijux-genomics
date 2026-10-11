@@ -73,3 +73,5 @@ pub use version_lock::{
 pub(crate) use catalog::retained_apptainer_tools_from_catalog;
 pub(crate) use catalog_observation::observe_container_catalog;
 pub(crate) use catalog_validation::validate_observed_container_catalog;
+
+pub mod delivery;

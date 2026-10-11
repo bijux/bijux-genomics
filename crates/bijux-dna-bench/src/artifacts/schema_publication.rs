@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Schema publication is owned by the independently compilable artifact crate.
 pub use bijux_dna_bench_artifacts::schemas::publication::{
     render_bam_normalized_metrics_schema, render_benchmark_attempt_archive_schema,

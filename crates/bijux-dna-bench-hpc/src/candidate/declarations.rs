@@ -1,0 +1,29 @@
+//! Candidate resource ceilings and exclusion identities retain their canonical model authority.
+use bijux_dna_bench_model::{
+    BENCHMARK_LOCAL_HPC_CANDIDATE_CPUS_PER_TASK_MAX, BENCHMARK_LOCAL_HPC_CANDIDATE_MEMORY_MB_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_PROFILE_ID, BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_SCRATCH_GB_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_STAGED_INPUT_BYTES_MAX,
+    BENCHMARK_LOCAL_HPC_CANDIDATE_WALLTIME_MINUTES_MAX,
+};
+pub(super) const LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_VERSION: &str =
+    BENCHMARK_LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_V1;
+pub(super) const SMALL_CANDIDATE_PROFILE_ID: &str = BENCHMARK_LOCAL_HPC_CANDIDATE_PROFILE_ID;
+pub(super) const SMALL_INPUT_FOOTPRINT_MAX_BYTES: u64 =
+    BENCHMARK_LOCAL_HPC_CANDIDATE_STAGED_INPUT_BYTES_MAX;
+pub(super) const SMALL_CPUS_PER_TASK_MAX: u32 = BENCHMARK_LOCAL_HPC_CANDIDATE_CPUS_PER_TASK_MAX;
+pub(super) const SMALL_MEMORY_MB_MAX: u32 = BENCHMARK_LOCAL_HPC_CANDIDATE_MEMORY_MB_MAX;
+pub(super) const SMALL_WALLTIME_MINUTES_MAX: u32 =
+    BENCHMARK_LOCAL_HPC_CANDIDATE_WALLTIME_MINUTES_MAX;
+pub(super) const SMALL_SCRATCH_GB_MAX: u32 = BENCHMARK_LOCAL_HPC_CANDIDATE_SCRATCH_GB_MAX;
+pub(super) const EXCLUSION_NON_BENCHMARK_RESULT: &str = "non_benchmark_result";
+pub(super) const EXCLUSION_HAS_DEPENDENCIES: &str = "has_dependencies";
+pub(super) const EXCLUSION_MISSING_EXPECTED_OUTPUTS: &str = "missing_expected_outputs";
+pub(super) const EXCLUSION_MISSING_KNOWN_ASSETS: &str = "missing_known_assets";
+pub(super) const EXCLUSION_MISSING_RESOURCE_HINT: &str = "missing_resource_hint";
+pub(super) const EXCLUSION_UNKNOWN_EXECUTION_MODE: &str = "unknown_execution_mode";
+pub(super) const EXCLUSION_UNAVAILABLE_EXECUTION_RESOLUTION: &str =
+    "unavailable_execution_resolution";
+pub(super) const EXCLUSION_RESOURCE_ENVELOPE_EXCEEDED: &str = "resource_envelope_exceeded";
+pub(super) const EXCLUSION_INPUT_FOOTPRINT_EXCEEDED: &str = "input_footprint_exceeded";
+pub(super) const EXCLUSION_SUPERSEDED_REPRESENTATIVE: &str = "superseded_by_smaller_representative";

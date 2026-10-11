@@ -222,7 +222,15 @@ fn thin_cli_uses_model_owned_local_vcf_imputation_metrics_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_vcf_imputation_metrics_smoke_report"));
+    assert!(contents.contains(
+        "bijux_dna_bench_haplotypes::imputation_metrics::run_local_vcf_imputation_metrics_smoke"
+    ));
+    let owner = ["crates/bijux-dna-bench-haplotypes/src/imputation_metrics/workflow.rs"]
+        .into_iter()
+        .map(|path| fs::read_to_string(repo_root.join(path)).expect("read validator owner"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(owner.contains("validate_benchmark_local_vcf_imputation_metrics_smoke_report"));
     assert!(!contents.contains("struct QualityFieldAvailability"));
     assert!(!contents.contains("struct LocalVcfImputationMetricsSmokeReport"));
     assert!(!contents.contains("bijux.bench.local_vcf_imputation_metrics_smoke.v1"));
@@ -236,7 +244,13 @@ fn thin_cli_uses_model_owned_local_vcf_ibd_smoke_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_vcf_ibd_smoke_report"));
+    assert!(contents.contains("bijux_dna_bench_population::ibd::run_local_vcf_ibd_smoke"));
+    let owner = ["crates/bijux-dna-bench-population/src/ibd/workflow.rs"]
+        .into_iter()
+        .map(|path| fs::read_to_string(repo_root.join(path)).expect("read validator owner"))
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(owner.contains("validate_benchmark_local_vcf_ibd_smoke_report"));
     assert!(!contents.contains("struct LocalVcfIbdSmokeRow"));
     assert!(!contents.contains("struct LocalVcfIbdInsufficientOverlapProbe"));
     assert!(!contents.contains("struct LocalVcfIbdSmokeReport"));
@@ -251,8 +265,17 @@ fn thin_cli_uses_model_owned_local_vcf_call_smoke_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_vcf_call_smoke_metrics"));
-    assert!(contents.contains("validate_benchmark_local_vcf_call_smoke_report"));
+    assert!(contents.contains("bijux_dna_bench_genotypes::call::run_local_vcf_call_smoke"));
+    let owner = [
+        "crates/bijux-dna-bench-genotypes/src/call/observations/stage.rs",
+        "crates/bijux-dna-bench-genotypes/src/call/publication/report.rs",
+    ]
+    .into_iter()
+    .map(|path| fs::read_to_string(repo_root.join(path)).expect("read validator owner"))
+    .collect::<Vec<_>>()
+    .join("\n");
+    assert!(owner.contains("validate_benchmark_local_vcf_call_smoke_metrics"));
+    assert!(owner.contains("validate_benchmark_local_vcf_call_smoke_report"));
     assert!(!contents.contains("struct LocalVcfCallSmokeMetrics"));
     assert!(!contents.contains("struct LocalVcfCallSmokeReport"));
     assert!(!contents.contains("bijux.bench.local_vcf_call_smoke.metrics.v1"));
@@ -267,8 +290,17 @@ fn thin_cli_uses_model_owned_local_vcf_call_gl_smoke_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_vcf_call_gl_smoke_metrics"));
-    assert!(contents.contains("validate_benchmark_local_vcf_call_gl_smoke_report"));
+    assert!(contents.contains("bijux_dna_bench_genotypes::call_gl::run_local_vcf_call_gl_smoke"));
+    let owner = [
+        "crates/bijux-dna-bench-genotypes/src/call_gl/observations/stage.rs",
+        "crates/bijux-dna-bench-genotypes/src/call_gl/publication/report.rs",
+    ]
+    .into_iter()
+    .map(|path| fs::read_to_string(repo_root.join(path)).expect("read validator owner"))
+    .collect::<Vec<_>>()
+    .join("\n");
+    assert!(owner.contains("validate_benchmark_local_vcf_call_gl_smoke_metrics"));
+    assert!(owner.contains("validate_benchmark_local_vcf_call_gl_smoke_report"));
     assert!(!contents.contains("struct LocalVcfCallGlSmokeMetrics"));
     assert!(!contents.contains("struct LocalVcfCallGlSmokeReport"));
     assert!(!contents.contains("bijux.bench.local_vcf_call_gl_smoke.metrics.v1"));
@@ -588,7 +620,11 @@ fn thin_cli_uses_model_owned_local_hpc_candidate_run_contract() {
         .join("crates/bijux-dna/src/commands/benchmark/local_hpc_candidate_run_manifest.rs");
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
-    assert!(contents.contains("validate_benchmark_local_hpc_candidate_run_manifest"));
+    assert!(contents.contains("bijux_dna_bench_hpc::candidate::collect_hpc_candidate_run_manifest"));
+    let owner =
+        fs::read_to_string(repo_root.join("crates/bijux-dna-bench-hpc/src/candidate/service.rs"))
+            .expect("read candidate selection owner");
+    assert!(owner.contains("validate_benchmark_local_hpc_candidate_run_manifest"));
     for forbidden in [
         "struct LocalHpcCandidateResourceCeiling {",
         "struct LocalHpcCandidateBehavior {",
@@ -620,7 +656,7 @@ fn thin_cli_uses_model_owned_local_hpc_execution_resolver_contract() {
 }
 
 #[test]
-fn thin_cli_uses_model_owned_local_stage_inventory_contracts() {
+fn thin_cli_uses_owner_admitted_local_stage_inventory_contracts() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source =
         repo_root.join("crates/bijux-dna/src/commands/benchmark/local_stage_inventory.rs");
@@ -630,11 +666,12 @@ fn thin_cli_uses_model_owned_local_stage_inventory_contracts() {
     assert!(contents.contains("load_benchmark_local_stage_inventory"));
     assert!(contents.contains("render_benchmark_all_domain_stage_inventory"));
     for (owner, validator) in [
-        ("repo/stage_inventory/mod.rs", "validate_benchmark_local_stage_inventory"),
-        ("workflow/stage_inventory.rs", "validate_benchmark_local_all_domain_stage_inventory"),
+        ("repository/mod.rs", "validate_benchmark_local_stage_inventory"),
+        ("repository/publication.rs", "validate_benchmark_local_all_domain_stage_inventory"),
     ] {
-        let source = fs::read_to_string(repo_root.join("crates/bijux-dna-bench/src").join(owner))
-            .expect("read stage inventory owner");
+        let source =
+            fs::read_to_string(repo_root.join("crates/bijux-dna-bench-stage/src").join(owner))
+                .expect("read stage inventory owner");
         assert!(source.contains(validator), "{owner} must admit its model contract");
     }
     assert!(!contents.contains("struct BenchLocalStageInventory"));
@@ -770,7 +807,7 @@ fn thin_cli_uses_model_owned_fastq_corpus_source_contract() {
 
     assert!(corpus_metadata.contains("load_fastq_corpus_source_for_id"));
     let owner = fs::read_to_string(
-        repo_root.join("crates/bijux-dna-bench/src/repo/corpus/normalized_fastq/mod.rs"),
+        repo_root.join("crates/bijux-dna-bench-corpus/src/normalized/loading.rs"),
     )
     .expect("read corpus admission owner");
     assert!(owner.contains("load_fastq_corpus_source_spec(path)"));
@@ -828,7 +865,17 @@ fn thin_cli_uses_model_owned_comparable_metric_contracts() {
         ),
     ] {
         let source = fs::read_to_string(cli_root.join(file_name)).expect("read readiness command");
-        assert!(source.contains(validator));
+        if file_name == "vcf_comparable_metrics.rs" {
+            assert!(source
+                .contains("bijux_dna_bench_vcf::evidence::metrics::render_vcf_comparable_metrics"));
+            let owner = fs::read_to_string(
+                repo_root.join("crates/bijux-dna-bench-vcf/src/evidence/metrics/service.rs"),
+            )
+            .expect("read VCF metric owner");
+            assert!(owner.contains(validator));
+        } else {
+            assert!(source.contains(validator));
+        }
         for forbidden_type in forbidden_types {
             assert!(!source.contains(forbidden_type));
         }
@@ -1069,7 +1116,11 @@ fn thin_cli_uses_model_owned_local_hpc_dry_run_readiness_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_hpc_dry_run_readiness"));
+    assert!(contents.contains("bijux_dna_bench_hpc::dry_run::validate_hpc_dry_run_ready_path"));
+    let owner =
+        fs::read_to_string(repo_root.join("crates/bijux-dna-bench-hpc/src/dry_run/publication.rs"))
+            .expect("read dry-run publication owner");
+    assert!(owner.contains("validate_benchmark_local_hpc_dry_run_readiness"));
     assert!(!contents.contains("struct LocalHpcDryRunReadyGoalCheck {"));
     assert!(!contents.contains("struct LocalHpcDryRunReadySummary {"));
     assert!(!contents.contains("struct LocalHpcDryRunReadyBehavior {"));
@@ -1085,7 +1136,11 @@ fn thin_cli_uses_model_owned_local_hpc_submission_readiness_contract() {
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
 
-    assert!(contents.contains("validate_benchmark_local_hpc_submission_readiness"));
+    assert!(contents.contains("bijux_dna_bench_hpc::readiness::validate_hpc_submission_ready"));
+    let owner =
+        fs::read_to_string(repo_root.join("crates/bijux-dna-bench-hpc/src/readiness/service.rs"))
+            .expect("read HPC readiness owner");
+    assert!(owner.contains("validate_benchmark_local_hpc_submission_readiness"));
     assert!(!contents.contains("struct BenchLocalHpcSubmissionReadyGoalCheck {"));
     assert!(!contents.contains("struct BenchLocalHpcSubmissionReadyReport {"));
     assert!(!contents.contains("\"bijux.bench.local_hpc_submission_ready.v1\""));

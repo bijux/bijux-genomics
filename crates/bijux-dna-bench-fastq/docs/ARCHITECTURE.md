@@ -1,0 +1,15 @@
+# FASTQ benchmark evidence architecture
+
+`probes::inputs` admits expected stage identity and selects declared read/reference inputs. `streams` validates FASTQ record framing and counts observations; `publication` streams atomic file copies and gzip encoding. Stage-specific producers project the governed synthetic report records. Host read publication and pure report projection are separate operations. `reports` dispatches canonical FASTQ domain parsers over one raw observation.
+
+The application supplies governed plans and explicit roots. This crate neither acquires planner cases nor executes tools. The dependency direction is benchmark evidence → FASTQ domain/stage contracts/infrastructure; no reverse application dependency is permitted. Input admission precedes fixture effects, which are atomic per file, without a multi-file transaction or concurrent-input freshness guarantee.
+
+Readiness services group models, input evaluation, contracts, TSV serialization and publication by capability. Serving and cross-domain scope acquisition remain application composition; no application or benchmark-model dependency enters this owner. Each publication entrypoint evaluates its supplied inputs itself, so a caller cannot bypass admission by supplying a precomputed report. Fixture parsing uses the canonical domain inventory and validates schema, stage and canonical tool identity. Evidence declarations do not certify backend execution.
+
+Output contracts, report mapping and command publication own their complete projections under readiness. Three explicit evidence ports preserve canonical planner assessments, ordered inventory/support declarations, and independently structured argv/shell representations. The CLI only acquires and adapts those observations. Core stage identifiers are a direct dependency already present through the FASTQ domain; no application or umbrella dependency is added.
+
+Stage proof services separate canonical acquisition, full binding admission, row assessment, schema/smoke interpretation and report publication. Declaration, schema and validation ports retain owner models and minimal nonserialized observations without frontend dependencies. Eight existing wire models and failure semantics remain stable.
+
+## Governed QC fixtures
+
+`proofs/qc_fixture/` owns template admission, contributor projection, lineage and publication. Application composition supplies configuration and output roots. The service reads and validates inputs before effects, refuses conflicting copies and preserves unrelated files. Existing governed reports remain replaceable, including read-only prior payloads. These fixtures do not claim external MultiQC execution.

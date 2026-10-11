@@ -49,3 +49,32 @@ pub(crate) fn render_vcf_pca_ready(
         &output_path,
     )
 }
+
+pub(crate) fn render_vcf_pca_ready_with_evidence(
+    repo_root: &Path,
+    output_path: PathBuf,
+    _commands: &bijux_dna_bench_vcf_evidence::model::command_reports::VcfRenderedCommandsReport,
+    snapshot: &bijux_dna_bench_vcf_evidence::snapshot::VcfEvidenceSnapshot,
+) -> Result<VcfPcaReadyReport> {
+    let adapter_inputs = super::vcf_adapter_inputs::load(repo_root)?;
+    let observations = bijux_dna_bench_vcf::adapters::observations::VcfAdapterObservations::new(
+        &adapter_inputs,
+        repo_root,
+    );
+    let prepared = bijux_dna_bench_vcf::evidence::pca::prepare_pca_adapter_evidence(&observations)?;
+    let command_report =
+        bijux_dna_bench_vcf::evidence::pca::publish_pca_commands(repo_root, &prepared)?;
+    let inputs = crate::commands::benchmark::population_inputs::supported(repo_root)?;
+    let command_paths = bijux_dna_bench_population::readiness::ReadinessCommandPaths {
+        output_path: command_report.output_path,
+        argv_output_path: command_report.argv_output_path,
+    };
+    bijux_dna_bench_population::readiness::pca::render_vcf_pca_ready(
+        &inputs,
+        snapshot,
+        prepared.rows(),
+        &command_paths,
+        repo_root,
+        &output_path,
+    )
+}

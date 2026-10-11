@@ -6,6 +6,8 @@ use std::collections::BTreeSet;
 fn admit_dependencies(manifest: &toml::Value) -> Result<()> {
     let allowed = BTreeSet::from([
         "anyhow",
+        "schemars",
+        "chrono",
         "serde",
         "serde_json",
         "toml",
@@ -14,18 +16,48 @@ fn admit_dependencies(manifest: &toml::Value) -> Result<()> {
         "bijux-dna-domain-vcf",
         "bijux-dna-db-ref",
         "bijux-dna-infra",
+        "bijux-dna-core",
     ]);
     let dependencies = manifest["dependencies"]
         .as_table()
         .ok_or_else(|| anyhow::anyhow!("missing dependencies"))?;
     for (name, declaration) in dependencies {
         ensure!(allowed.contains(name.as_str()), "corpus admission cannot depend on {name}");
-        if name.starts_with("bijux-dna-") {
+        if name.starts_with("bijux-dna-") || name == "schemars" || name == "chrono" {
             ensure!(
                 declaration.get("optional").and_then(toml::Value::as_bool) == Some(true),
                 "specialized dependency {name} must remain optional"
             );
         }
+    }
+    if dependencies.contains_key("schemars") {
+        let source = manifest["features"]["source-contract"]
+            .as_array()
+            .ok_or_else(|| anyhow::anyhow!("missing source-contract feature"))?;
+        ensure!(
+            source == &[toml::Value::String("dep:schemars".into())],
+            "source contracts must only enable schema support"
+        );
+        if let Some(normalized) = manifest["features"].get("normalized") {
+            ensure!(
+                normalized.as_array()
+                    == Some(&vec![
+                        toml::Value::String("source-contract".into()),
+                        toml::Value::String("dep:bijux-dna-infra".into())
+                    ]),
+                "normalized admission must only enable source contracts and infrastructure"
+            );
+        }
+    }
+    if dependencies.contains_key("chrono") {
+        ensure!(
+            manifest["features"]["run-contract"].as_array()
+                == Some(&vec![
+                    toml::Value::String("dep:schemars".into()),
+                    toml::Value::String("dep:chrono".into())
+                ]),
+            "run contracts must only enable schema and timestamp support"
+        );
     }
     let default = manifest["features"]["default"]
         .as_array()
@@ -77,6 +109,60 @@ default = []
     let mut changed = baseline;
     changed["features"]["default"] =
         toml::Value::Array(vec![toml::Value::String("alignment".into())]);
+    assert!(admit_dependencies(&changed).is_err());
+    Ok(())
+}
+
+#[test]
+fn source_features_reject_implicit_schema_and_native_engine_activation() -> Result<()> {
+    let baseline: toml::Value = toml::from_str(
+        r#"
+[dependencies]
+schemars = { version = "1", optional = true }
+bijux-dna-infra = { version = "1", optional = true }
+[features]
+default = []
+source-contract = ["dep:schemars"]
+normalized = ["source-contract", "dep:bijux-dna-infra"]
+"#,
+    )?;
+    admit_dependencies(&baseline)?;
+    let mut changed = baseline.clone();
+    changed["dependencies"]["schemars"]["optional"] = toml::Value::Boolean(false);
+    assert!(admit_dependencies(&changed).is_err());
+    for feature in ["source-contract", "normalized"] {
+        let mut changed = baseline.clone();
+        changed["features"][feature]
+            .as_array_mut()
+            .ok_or_else(|| anyhow::anyhow!("feature array"))?
+            .push(toml::Value::String("alignment".into()));
+        assert!(admit_dependencies(&changed).is_err(), "{feature}");
+    }
+    Ok(())
+}
+
+#[test]
+fn run_contract_rejects_implicit_time_and_native_engine_dependencies() -> Result<()> {
+    let baseline: toml::Value = toml::from_str(
+        r#"
+[dependencies]
+chrono = { version = "1", optional = true }
+schemars = { version = "1", optional = true }
+[features]
+default = []
+source-contract = ["dep:schemars"]
+run-contract = ["dep:schemars", "dep:chrono"]
+"#,
+    )?;
+    admit_dependencies(&baseline)?;
+    let mut changed = baseline.clone();
+    changed["dependencies"]["chrono"]["optional"] = toml::Value::Boolean(false);
+    assert!(admit_dependencies(&changed).is_err());
+    let mut changed = baseline;
+    changed["features"]["run-contract"]
+        .as_array_mut()
+        .ok_or_else(|| anyhow::anyhow!("feature array"))?
+        .push(toml::Value::String("alignment".into()));
     assert!(admit_dependencies(&changed).is_err());
     Ok(())
 }

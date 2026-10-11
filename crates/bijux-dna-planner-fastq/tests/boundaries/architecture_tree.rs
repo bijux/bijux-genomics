@@ -140,6 +140,7 @@ fn planner_fastq_tree_matches_architecture_contract() {
             "profile_overrepresented_sequences.rs",
             "profile_read_lengths.rs",
             "validate_reads.rs",
+            "validate_reads/",
         ]),
         "pre adapters must stay focused on validation, profiling, adapter detection, indexing, and preprocess planning"
     );

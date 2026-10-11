@@ -12,32 +12,32 @@ mod stage_result;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/publication.rs"]
+#[path = "tests/publication.rs"]
 mod publication_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/phasing.rs"]
+#[path = "tests/phasing.rs"]
 mod phasing_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/imputation.rs"]
+#[path = "tests/imputation.rs"]
 mod imputation_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/imputation_metrics.rs"]
+#[path = "tests/imputation_metrics.rs"]
 mod imputation_metrics_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/reference_panel.rs"]
+#[path = "tests/reference_panel.rs"]
 mod reference_panel_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/panel_contracts.rs"]
+#[path = "tests/panel_contracts.rs"]
 mod panel_contracts_contracts;
 
 #[cfg(test)]
@@ -47,11 +47,11 @@ mod test_support;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/inputs.rs"]
+#[path = "tests/inputs.rs"]
 mod input_contracts;
 
 pub mod readiness;
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/readiness.rs"]
+#[path = "tests/readiness.rs"]
 mod readiness_contracts;

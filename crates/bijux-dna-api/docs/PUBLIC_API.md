@@ -100,3 +100,5 @@ They may change when the v1 public contract remains stable.
 The benchmark API re-exports normalized FASTQ corpus discovery and publication metadata services from `bijux-dna-bench`, including `NormalizedFastqSample`. This metadata contract is separate from governed data-index content admission.
 
 The `v1::api::bench` facade exposes `BenchmarkLocalStageInventoryDomain`, `load_benchmark_local_stage_inventory` and `render_benchmark_all_domain_stage_inventory`. It delegates explicit-root matrix admission and validated aggregate publication to the benchmark owner; persisted inventory schema identities remain unchanged.
+
+`v1::api::env::delivery` exposes container-owned supported-tool selection and external-artifact declaration admission. The API forwards the canonical delivery view and contract records without adding another parser or projection authority.

@@ -11,5 +11,5 @@ pub use workflow::run_local_vcf_gl_propagation_smoke;
 
 pub(crate) mod execution;
 #[cfg(test)]
-#[path = "../../tests/contracts/gl_propagation.rs"]
+#[path = "tests.rs"]
 mod tests;

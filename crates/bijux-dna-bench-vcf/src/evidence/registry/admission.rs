@@ -8,6 +8,7 @@ pub(super) struct RegistryToolRecord {
     pub stage_ids: BTreeSet<String>,
     pub production_stage_ids: BTreeSet<String>,
     pub statuses: BTreeSet<String>,
+    pub smoke: super::smoke::VcfRegistrySmokeRecord,
 }
 /// Immutable registry observation shared by coverage audits.
 pub struct VcfRegistrySnapshot {
@@ -41,12 +42,18 @@ pub(super) fn admit_documents(documents: Vec<RegistryDocument>) -> Result<VcfReg
                 stage_ids: BTreeSet::new(),
                 production_stage_ids: BTreeSet::new(),
                 statuses: BTreeSet::new(),
+                smoke: super::smoke::VcfRegistrySmokeRecord {
+                    tool_id: tool.id.clone(),
+                    registered_binary: tool.expected_bin.clone(),
+                    ..super::smoke::VcfRegistrySmokeRecord::default()
+                },
             });
             ensure!(
                 record.registered_binary == tool.expected_bin,
                 "VCF registry has conflicting binary declarations for `{}`",
                 tool.id
             );
+            super::smoke::merge_smoke(&mut record.smoke, &tool.smoke)?;
             if tool.status == "production" {
                 record.production_stage_ids.extend(stage_ids.iter().cloned());
             }

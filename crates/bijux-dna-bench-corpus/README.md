@@ -29,3 +29,26 @@ ownership and the scientific limits of the retained contracts.
 `tests/contracts.rs` collects the six input families into one integration target;
 `tests/boundaries.rs` checks dependency direction and optional native features.
 See [test execution](docs/TESTS.md) for commands and coverage.
+
+## BAM corpus assignment
+
+With `alignment` enabled, `bam::assignment` owns fixture routing and
+scientific sample, reference, artifact and threshold admission for governed BAM
+benchmark inputs. Three typed observation ports adapt inventory, command coverage
+and compatibility without adding a frontend or benchmark orchestration dependency.
+
+## Governed sources and normalized reads
+
+The `source-contract` feature owns corpus classification, source policies,
+evaluation design, FASTQ source schemas and semantic admission. It requires no
+benchmark orchestration or genomics engine. The `normalized` feature adds bounded
+source loading, ordered read discovery, accession/cohort closure and manifest
+content verification. These features do not enable alignment, variant or panel
+capabilities.
+
+Source records live in `src/source`; filesystem and normalized-content admission
+live in `src/normalized`. Campaign execution and archive downloads remain separate
+owners. Manifest admission verifies canonical relative paths, rejects symlinks and
+hashes content in bounded buffers. It does not replace FASTQ record validation.
+
+The optional `run-contract` feature owns persisted FASTQ corpus run records, their generated schema and semantic validation. It formats an explicit publication instant as RFC 3339 UTC; callers provide the clock. Neither source contracts nor run records enable native domain engines.

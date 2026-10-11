@@ -30,3 +30,18 @@ compatible. Only byte-identical existing markers are reusable.
 The `panel-metadata` surface also exposes `governed_vcf_panel_species_context`,
 the exact local panel fixture species, build and contig-alias context. Haplotype
 and postprocessing benchmark consumers share this authority.
+
+## BAM corpus assignment
+
+`bam::assignment` exports `BamCorpusAssignmentRow`,
+`BamCorpusAssignmentReport`, `AssignmentContext`,
+`render_bam_corpus_assignment` and `collect_bam_corpus_assignment_rows`.
+The alignment feature enables this surface. InventoryEvidence, CoverageEvidence and
+CompatibilityEvidence provide consumed nonserialized observations; the corpus owner
+loads its own canonical fixture reports and governed configuration shapes.
+
+The v3 report schema, TSV columns, output defaults, row ordering, stage fixture routing,
+sample/reference comparisons and kinship relationships remain unchanged.
+Duplicate compatibility stages and non-finite threshold comparisons reject explicitly.
+Source failure preserves the existing report; successful publication replaces it
+atomically. Assignment evidence does not certify fresh native tool execution.

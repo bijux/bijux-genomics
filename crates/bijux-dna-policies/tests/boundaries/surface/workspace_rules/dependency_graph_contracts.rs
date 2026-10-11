@@ -14,15 +14,23 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-api",
         "bijux-dna-analyze",
         "bijux-dna-bench",
+        "bijux-dna-bench-campaign",
+        "bijux-dna-bench-parser-proofs",
+        "bijux-dna-bench-stage",
         "bijux-dna-bench-corpus",
         "bijux-dna-bench-vcf",
         "bijux-dna-bench-workflows",
         "bijux-dna-bench-population",
         "bijux-dna-bench-genotypes",
+        "bijux-dna-bench-bindings",
+        "bijux-dna-bench-bam-proofs",
+        "bijux-dna-bench-bam-evidence",
         "bijux-dna-bench-vcf-evidence",
         "bijux-dna-bench-artifacts",
         "bijux-dna-bench-haplotypes",
         "bijux-dna-bench-variants",
+        "bijux-dna-bench-fastq",
+        "bijux-dna-bench-hpc",
         "bijux-dna-bench-model",
         "bijux-dna-core",
         "bijux-dna-db-ena",
@@ -214,6 +222,26 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         );
     }
 
+    bijux_dna_policies::policy_assert!(
+        deps_for("bijux-dna-bench-campaign") == BTreeSet::from(["bijux-dna-bench-corpus".to_string()]),
+        "corpus campaigns must depend only on canonical corpus ownership, without CLI/API/native engine back edges"
+    );
+
+    bijux_dna_policies::policy_assert!(
+        deps_for("bijux-dna-bench-parser-proofs") == BTreeSet::from(["bijux-dna-bench-bam-proofs".to_string(), "bijux-dna-bench-fastq".to_string(), "bijux-dna-infra".to_string()]),
+        "parser proof owner depends only on optional native parser owners and filesystem primitives"
+    );
+
+    bijux_dna_policies::policy_assert!(
+        deps_for("bijux-dna-bench-stage")
+            == BTreeSet::from([
+                "bijux-dna-core".to_string(),
+                "bijux-dna-infra".to_string(),
+                "bijux-dna-stage-contract".to_string()
+            ]),
+        "stage owner depends only on optional shared plan contracts and IO primitives"
+    );
+
     let bench = deps_for("bijux-dna-bench");
     for dep in &bench {
         if is_guardrails(dep) {
@@ -223,6 +251,8 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             dep == "bijux-dna-core"
                 || dep == "bijux-dna-analyze"
                 || dep == "bijux-dna-bench-model"
+                || dep == "bijux-dna-bench-stage"
+                || dep == "bijux-dna-bench-corpus"
                 || dep == "bijux-dna-bench-artifacts"
                 || dep == "bijux-dna-containers"
                 || dep == "bijux-dna-db-ena"

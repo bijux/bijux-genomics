@@ -7,14 +7,12 @@ use chrono::{DateTime, FixedOffset};
 
 use crate::diagnostics::BenchError;
 use crate::model::{
-    BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan,
-    CorpusEvaluationDesign, CorpusSourcePolicy, FastqCorpusSourceSpec, GovernedDataCatalog,
-    GovernedDataCatalogDocument, GovernedDataCatalogFile, GovernedPreservedDataCatalog,
+    CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusEvaluationDesign,
+    CorpusSourcePolicy, FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogDocument,
+    GovernedDataCatalogFile, GovernedPreservedDataCatalog,
 };
 
-use super::{
-    CORPUS_ACQUISITION_SCHEMA_V2, FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
-};
+use super::{CORPUS_ACQUISITION_SCHEMA_V2, GOVERNED_DATA_CATALOG_SCHEMA_V2};
 
 /// Validate a production FASTQ source declaration before archive resolution or acquisition.
 ///
@@ -22,127 +20,20 @@ use super::{
 /// Returns an error when identity, production class, access, truth, projection, or sample closure
 /// is incomplete or internally inconsistent.
 pub fn validate_fastq_corpus_source_spec(spec: &FastqCorpusSourceSpec) -> Result<(), BenchError> {
-    if spec.schema_version != FASTQ_CORPUS_SOURCE_SCHEMA_V1 {
-        return Err(invalid("FASTQ corpus source schema mismatch"));
-    }
-    validate_identifier(&spec.corpus_id, "corpus")?;
-    validate_identifier(&spec.portfolio_id, "portfolio")?;
-    if !matches!(
-        spec.policy.class,
-        BenchmarkCorpusClass::ProductionReal | BenchmarkCorpusClass::QualificationReal
-    ) {
-        return Err(invalid("FASTQ corpus source class is not publishable real data"));
-    }
-    for (value, label) in [
-        (&spec.species, "species"),
-        (&spec.description, "description"),
-        (&spec.source_authority, "source authority"),
-        (&spec.policy.access_classification, "access classification"),
-        (&spec.policy.redistribution_classification, "redistribution classification"),
-        (&spec.policy.attribution, "attribution"),
-        (&spec.policy.projection_basis, "projection basis"),
-        (&spec.policy.truth_strategy, "truth strategy"),
-    ] {
-        validate_nonempty(value, label)?;
-    }
-    for (value, label) in [
-        (spec.species_id.as_deref(), "species identifier"),
-        (spec.preferred_root.as_deref(), "preferred root"),
-    ] {
-        if let Some(value) = value {
-            validate_nonempty(value, label)?;
-        }
-    }
-    validate_https(&spec.policy.access_terms_url, "access terms")?;
-    if spec.policy.projected_storage_bytes == 0 || spec.policy.projected_cpu_hours == 0 {
-        return Err(invalid("FASTQ corpus storage and compute projections must be positive"));
-    }
-    validate_nonempty_list(&spec.policy.truth_roles, "truth role")?;
-    validate_nonempty_list(&spec.policy.known_limitations, "known limitation")?;
-    validate_corpus_evaluation_design(&spec.evaluation)?;
-    if spec.samples.is_empty() || spec.samples.len() != spec.target_total {
-        return Err(invalid("FASTQ corpus target total disagrees with samples"));
-    }
-    let cohort_targets = [
-        spec.target_ancient_se,
-        spec.target_ancient_pe,
-        spec.target_modern_se,
-        spec.target_modern_pe,
-    ];
-    if cohort_targets.iter().any(Option::is_some)
-        && (cohort_targets.iter().any(Option::is_none)
-            || cohort_targets.into_iter().flatten().sum::<usize>() != spec.target_total)
-    {
-        return Err(invalid("FASTQ corpus cohort targets do not close over target total"));
-    }
-    let mut accessions = BTreeSet::new();
-    for sample in &spec.samples {
-        if !accessions.insert(sample.accession.as_str()) {
-            return Err(invalid("FASTQ corpus source repeats a run accession"));
-        }
-        for (value, label) in [
-            (&sample.accession, "run accession"),
-            (&sample.study_accession, "study accession"),
-            (&sample.era, "era"),
-            (&sample.size_band, "size band"),
-            (&sample.reason, "selection reason"),
-        ] {
-            validate_nonempty(value, label)?;
-        }
-        if !matches!(sample.era.as_str(), "ancient" | "modern") {
-            return Err(invalid("FASTQ corpus sample era is unsupported"));
-        }
-    }
-    Ok(())
+    bijux_dna_bench_corpus::source::validate_fastq_corpus_source_spec(spec)
+        .map_err(|error| BenchError::InvalidPolicy(error.into_reason()))
 }
 
 pub(super) fn validate_source_policy(policy: &CorpusSourcePolicy) -> Result<(), BenchError> {
-    if !matches!(
-        policy.class,
-        BenchmarkCorpusClass::ProductionReal | BenchmarkCorpusClass::QualificationReal
-    ) {
-        return Err(invalid("corpus source policy class is not publishable real data"));
-    }
-    for (value, label) in [
-        (&policy.access_classification, "access classification"),
-        (&policy.redistribution_classification, "redistribution classification"),
-        (&policy.attribution, "attribution"),
-        (&policy.projection_basis, "projection basis"),
-        (&policy.truth_strategy, "truth strategy"),
-    ] {
-        validate_nonempty(value, label)?;
-    }
-    validate_https(&policy.access_terms_url, "access terms")?;
-    if policy.projected_storage_bytes == 0 || policy.projected_cpu_hours == 0 {
-        return Err(invalid("corpus source storage and compute projections must be positive"));
-    }
-    validate_nonempty_list(&policy.truth_roles, "truth role")?;
-    validate_nonempty_list(&policy.known_limitations, "known limitation")?;
-    Ok(())
+    bijux_dna_bench_corpus::source::validate_source_policy(policy)
+        .map_err(|error| BenchError::InvalidPolicy(error.into_reason()))
 }
 
 pub(super) fn validate_corpus_evaluation_design(
     design: &CorpusEvaluationDesign,
 ) -> Result<(), BenchError> {
-    for (value, label) in [
-        (&design.sample_context, "sample context"),
-        (&design.assay_context, "assay context"),
-        (&design.held_out_split, "held-out split"),
-        (&design.lineage, "lineage"),
-    ] {
-        validate_nonempty(value, label)?;
-    }
-    validate_ordered_nonempty_values(&design.strata, "stratum")?;
-    validate_ordered_nonempty_values(&design.controls, "control")?;
-    validate_ordered_nonempty_values(&design.allowed_uses, "allowed use")
-}
-
-fn validate_ordered_nonempty_values(values: &[String], label: &str) -> Result<(), BenchError> {
-    validate_nonempty_list(values, label)?;
-    if values.windows(2).any(|pair| pair[0] >= pair[1]) {
-        return Err(invalid("corpus evaluation values are not strictly ordered"));
-    }
-    Ok(())
+    bijux_dna_bench_corpus::source::validate_corpus_evaluation_design(design)
+        .map_err(|error| BenchError::InvalidPolicy(error.into_reason()))
 }
 
 /// Validate acquisition identity, source checksums, sample context, and aggregate closure.

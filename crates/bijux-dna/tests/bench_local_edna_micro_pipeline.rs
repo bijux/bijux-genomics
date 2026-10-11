@@ -1,23 +1,18 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::collections::BTreeSet;
-use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
 #[test]
 fn bench_local_edna_micro_pipeline_reports_taxonomy_handoffs() {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _repo_lock =
-        support::RepoProcessLock::acquire("micro-benchmark-mutators").expect("repo lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+    let sandbox =
+        support::RepoSandbox::new("bench-local-edna-micro-pipeline-").expect("isolated repository");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    let output = sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -36,6 +31,12 @@ fn bench_local_edna_micro_pipeline_reports_taxonomy_handoffs() {
 
     let payload: serde_json::Value =
         serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    let report_path = payload["output_path"].as_str().expect("reported output path");
+    let written: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(sandbox.path().join(report_path)).expect("read private workspace report"),
+    )
+    .expect("parse private workspace report");
+    assert_eq!(written, payload, "stdout must match the report in this test's private workspace");
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.local_edna_micro_pipeline.v1")

@@ -76,3 +76,5 @@ and SHA-256 after version observation and before publishing. The same file
 identity owner serves later verification and command binding. These observations
 detect retained drift; they do not lock external files or prove which inode a
 transport executed when an operator changes and restores a file during a probe.
+
+`evidence::tool_contract::delivery` admits supported and external-artifact delivery over the complete canonical catalog schema. A reusable `ContainerDeliveryCatalog` rejects duplicate or malformed tool identities and projects supported tool IDs, verified declaration requirements and exact stage/tool bindings. This is declaration admission; it does not claim an external artifact has been supplied or executed.

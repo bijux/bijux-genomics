@@ -40,6 +40,7 @@ pub(crate) mod bam_corpus_assignment;
 pub(crate) mod bam_damage_authenticity_ready;
 pub(crate) mod bam_damage_complete;
 pub(crate) mod bam_endogenous_content_complete;
+mod bam_evidence;
 pub(crate) mod bam_genotyping_complete;
 pub(crate) mod bam_haplogroups_complete;
 pub(crate) mod bam_insert_size_gc_bias_ready;
@@ -50,6 +51,7 @@ pub(crate) mod bam_normalized_metrics_schema;
 pub(crate) mod bam_overlap_correction_complete;
 pub(crate) mod bam_overlap_endogenous_ready;
 pub(crate) mod bam_parser_fixture_coverage;
+mod bam_readiness;
 pub(crate) mod bam_recalibration_complete;
 pub(crate) mod bam_recalibration_genotyping_ready;
 pub(crate) mod bam_rendered_commands;
@@ -60,6 +62,7 @@ pub(crate) mod bam_stage_decision_table;
 pub(crate) mod bam_tool_scores;
 pub(crate) mod benchmark_command_rows;
 pub(crate) mod benchmark_readiness_dashboard;
+mod binding_evidence;
 pub(crate) mod catalog;
 pub(crate) mod container_tool_probe;
 pub(crate) mod corpus_asset_coverage_gate;
@@ -174,3 +177,13 @@ pub(crate) mod vcf_undercovered_stages;
 pub(crate) mod version_probes;
 
 mod vcf_adapter_inputs;
+
+mod bam_stage_proofs;
+
+#[cfg(feature = "bam_downstream")]
+mod bam_downstream_proofs;
+mod bam_retained_proofs;
+
+mod fastq_declaration_evidence;
+
+mod fastq_proof_evidence;
