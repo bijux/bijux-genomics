@@ -448,28 +448,6 @@ fn submission_intent(prepared: &PreparedCorpusMaterializationSlurmJob) -> Submis
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use serde_json::json;
-
-    use super::publish_json_or_load_winner;
-
-    #[test]
-    fn concurrent_publication_reloads_the_immutable_winner() -> anyhow::Result<()> {
-        let root = tempfile::tempdir()?;
-        let path = root.path().join("materialization-evidence.json");
-        let winner = json!({"collected_at_utc": "2026-08-16T13:39:38Z"});
-        let concurrent_candidate = json!({"collected_at_utc": "2026-08-16T13:40:45Z"});
-        bijux_dna_infra::atomic_write_json(&path, &winner)?;
-
-        let retained = publish_json_or_load_winner(&path, &concurrent_candidate)?;
-
-        assert_eq!(retained, winner);
-        assert_eq!(serde_json::from_slice::<serde_json::Value>(&std::fs::read(path)?)?, winner);
-        Ok(())
-    }
-}
-
 fn create_intent(path: &Path, intent: &SubmissionIntent) -> Result<bool> {
     match fs::symlink_metadata(path) {
         Ok(metadata) => {
@@ -531,4 +509,26 @@ fn terminal_failure(accounting: &crate::backend::slurm::SlurmAccounting) -> Stri
         "Slurm terminal state {:?} with exit code {} and signal {}",
         accounting.state, accounting.exit_code, accounting.signal
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::publish_json_or_load_winner;
+
+    #[test]
+    fn concurrent_publication_reloads_the_immutable_winner() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let path = root.path().join("materialization-evidence.json");
+        let winner = json!({"collected_at_utc": "2026-08-16T13:39:38Z"});
+        let concurrent_candidate = json!({"collected_at_utc": "2026-08-16T13:40:45Z"});
+        bijux_dna_infra::atomic_write_json(&path, &winner)?;
+
+        let retained = publish_json_or_load_winner(&path, &concurrent_candidate)?;
+
+        assert_eq!(retained, winner);
+        assert_eq!(serde_json::from_slice::<serde_json::Value>(&std::fs::read(path)?)?, winner);
+        Ok(())
+    }
 }
