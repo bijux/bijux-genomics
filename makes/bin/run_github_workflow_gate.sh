@@ -14,9 +14,9 @@ require_tool() {
 }
 
 require_tool git
-require_tool sed
+require_tool python3
+require_tool ruby
 require_tool cargo
-require_tool cargo-nextest
 require_tool sccache
 
 repo_root="$(git rev-parse --show-toplevel)"
@@ -49,7 +49,7 @@ publish_sccache_metrics() {
   local label="$1"
   local output="${metrics_dir}/sccache-${label}.json"
   local pending="${output}.pending"
-  sccache --show-stats --stats-format=json >"${pending}"
+  sccache --show-stats --stats-format=json >"${pending}" || return $?
   mv "${pending}" "${output}"
 }
 
@@ -69,35 +69,17 @@ if [[ ! -f "${workflow_file}" ]]; then
   exit 1
 fi
 
+gate_listing="$(python3 "${repo_root}/makes/bin/github_workflow_gates.py" "${workflow_file}")"
+mapfile -t admitted_gates <<<"${gate_listing}"
+preparation_mode="${admitted_gates[0]}"
 gate_names=()
 gate_targets=()
-while IFS= read -r workflow_target; do
-  gate_target="${workflow_target}"
-  already_registered=0
-  for registered_target in "${gate_targets[@]:-}"; do
-    if [[ "${registered_target}" == "${gate_target}" ]]; then
-      already_registered=1
-      break
-    fi
-  done
-  if [[ "${already_registered}" -eq 1 ]]; then
-    continue
-  fi
+for gate_target in "${admitted_gates[@]:1}"; do
   gate_name="${gate_target#_}"
   gate_name="${gate_name//_/-}"
   gate_names+=("${gate_name}")
   gate_targets+=("${gate_target}")
-done < <(
-  sed -n -E \
-    -e 's/^[[:space:]]*run: "make ([A-Za-z0-9_-]+)"[[:space:]]*$/\1/p' \
-    -e 's/^[[:space:]]*make ([A-Za-z0-9_-]+)[[:space:]]*$/\1/p' \
-    "${workflow_file}"
-)
-
-if [[ "${#gate_targets[@]}" -eq 0 ]]; then
-  echo "GitHub CI workflow declares no Make gates: ${workflow_file}" >&2
-  exit 1
-fi
+done
 
 mkdir -p "${artifact_dir}" "${metrics_dir}" "${artifact_dir}/targets"
 publish_sccache_metrics before
@@ -109,24 +91,27 @@ printf 'gate\ttarget\texit_code\tlog\n' >"${summary_file}"
 
 workspace_compile_log="${artifact_dir}/workspace-compile.log"
 shared_dev_bin="${cargo_target_dir}/debug/bijux-dna-dev"
-printf 'preparing shared workspace binaries\nlog: %s\n' "${workspace_compile_log}"
-if (
-  "${make_bin}" --no-print-directory _dev-dna-bin
-  cargo nextest list \
-    --workspace \
-    --all-features \
-    --locked \
-    --config-file "${nextest_config_file}" \
-    --profile "${nextest_profile}" \
-    --target-dir "${cargo_target_dir}" \
-    >/dev/null
-) >"${workspace_compile_log}" 2>&1; then
-  printf 'prepared shared workspace binaries\n'
-else
-  compile_status=$?
-  printf 'workspace binary preparation failed (exit %s)\n' "${compile_status}" >&2
-  tail -n 80 "${workspace_compile_log}" >&2
-  exit "${compile_status}"
+if [[ "${preparation_mode}" == "test-preparation" ]]; then
+  require_tool cargo-nextest
+  printf 'preparing shared workspace binaries\nlog: %s\n' "${workspace_compile_log}"
+  if (
+    "${make_bin}" --no-print-directory _dev-dna-bin || exit $?
+    cargo nextest list \
+      --workspace \
+      --all-features \
+      --locked \
+      --config-file "${nextest_config_file}" \
+      --profile "${nextest_profile}" \
+      --target-dir "${cargo_target_dir}" \
+      >/dev/null
+  ) >"${workspace_compile_log}" 2>&1; then
+    printf 'prepared shared workspace binaries\n'
+  else
+    compile_status=$?
+    printf 'workspace binary preparation failed (exit %s)\n' "${compile_status}" >&2
+    tail -n 80 "${workspace_compile_log}" >&2
+    exit "${compile_status}"
+  fi
 fi
 
 pids=()
@@ -151,10 +136,16 @@ for index in "${!gate_names[@]}"; do
     "${gate_target}" \
     "${gate_log}"
   (
-    CARGO_TARGET_DIR="${gate_target_dir}" \
-      RS_TARGET_DIR="${gate_target_dir}" \
-      DEV_DNA_BIN="${shared_dev_bin}" \
-      "${make_bin}" --no-print-directory "${gate_target}" >"${gate_log}" 2>&1
+    if [[ "${preparation_mode}" == "test-preparation" ]]; then
+      CARGO_TARGET_DIR="${gate_target_dir}" \
+        RS_TARGET_DIR="${gate_target_dir}" \
+        DEV_DNA_BIN="${shared_dev_bin}" \
+        "${make_bin}" --no-print-directory "${gate_target}" >"${gate_log}" 2>&1
+    else
+      CARGO_TARGET_DIR="${gate_target_dir}" \
+        RS_TARGET_DIR="${gate_target_dir}" \
+        "${make_bin}" --no-print-directory "${gate_target}" >"${gate_log}" 2>&1
+    fi
   ) &
   gate_pid="$!"
   pids+=("${gate_pid}")
