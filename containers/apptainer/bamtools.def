@@ -2,41 +2,66 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: bamtools
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Version policy: exact upstream tag archive with a governed SHA-256 digest
+# Upstream source: https://github.com/pezmaster31/bamtools/tree/v2.5.2
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    VERSION unknown
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.source https://github.com/pezmaster31/bamtools
+    org.opencontainers.image.revision 9f2fa61d5c10588a426dec12422255d6d0c87d84
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
     org.opencontainers.image.version 2.5.2
     org.opencontainers.image.tool bamtools
-    org.opencontainers.image.title bamtools
+    org.opencontainers.image.title BamTools
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+
+%files
+    containers/tools/bamtools/bamtools /usr/local/bin/bamtools
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends bamtools ca-certificates && rm -rf /var/lib/apt/lists/*
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends libstdc++6 zlib1g
+    apt-get install -y --no-install-recommends cmake curl g++ make zlib1g-dev
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/bamtools.tar.gz https://codeload.github.com/pezmaster31/bamtools/tar.gz/refs/tags/v2.5.2
+    echo '4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc8  /opt/bamtools.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/bamtools.tar.gz --directory /opt
+    cmake -S /opt/bamtools-2.5.2 -B /opt/bamtools-build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
+    cmake --build /opt/bamtools-build --parallel 2
+    install -d -m 0755 /opt/bamtools/bin
+    install -m 0755 /opt/bamtools-build/src/bamtools /opt/bamtools/bin/bamtools-native
+    chmod 0755 /usr/local/bin/bamtools
+    bamtools --version | grep -Fx 'bamtools 2.5.2'
+    bamtools --help >/dev/null 2>&1
+    rm -rf /opt/bamtools.tar.gz /opt/bamtools-2.5.2 /opt/bamtools-build
+    apt-get purge -y --auto-remove cmake curl g++ make zlib1g-dev
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
 %runscript
-    exec /usr/bin/bamtools "$@"
+    exec /usr/local/bin/bamtools "$@"
+
+%test
+    bamtools --version | grep -Fx 'bamtools 2.5.2'
+    bamtools --help >/dev/null 2>&1
+    test -x /opt/bamtools/bin/bamtools-native
 
 %help
-    Apptainer image for bamtools.
+    BamTools 2.5.2 built from the exact checksummed upstream tag archive.

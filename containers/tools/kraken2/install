@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+archive="$work_dir/kraken2.tar.gz"
+
+curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+  --output "$archive" \
+  'https://github.com/DerrickWood/kraken2/archive/8f82a7ded7816c7ceed5086598b2979f80c970d8.tar.gz'
+printf '%s  %s\n' \
+  '8204c3d8450d3869372d1d87a2298d80b3d7dd4942b1e7477cde55ef55d69d42' \
+  "$archive" | sha256sum --check --strict
+mkdir -p "$work_dir/source" /opt/kraken2
+tar --extract --gzip --file "$archive" --directory "$work_dir/source" \
+  --strip-components=1
+(
+  cd "$work_dir/source"
+  ./install_kraken2.sh /opt/kraken2
+)
+
+/usr/local/bin/kraken2 --version | grep -Fx 'Kraken 2.1.3'
+/usr/local/bin/kraken2 --help >/dev/null

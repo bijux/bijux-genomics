@@ -15,7 +15,7 @@ This science surface covers:
 
 ## Contracts
 - `vcf.ibd` emits `ibd_segments` with schema `bijux.vcf.ibd.v1`.
-- Admitted tools are `germline`, `ibdseq`, and `ibdhap`; the planned default stays `germline` in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- Segment-calling backends are `germline` and `ibdseq`. MORGAN IBDHap is an IBD-state probability backend: it emits posterior probabilities over four-gamete states and must not be represented as a direct segment caller.
 - Required metrics include `pair_count`, `rows`, `status`, `insufficient_reason`, and `insufficient_overlap_probe`.
 - Every normalized pair row must keep `sample_a`, `sample_b`, `segment_count`, `total_length`, `overlap_marker_count`, and `status`.
 - When `vcf.demography` is scheduled, its input contract must consume a filtered and version-pinned `vcf.ibd` output rather than re-deriving IBD implicitly.
@@ -24,3 +24,4 @@ This science surface covers:
 - Segment calls are affected by `vcf.phasing` quality, genotype error, and marker density.
 - Different tools and minimum-length settings can shift segment counts and lengths materially.
 - Cross-tool parity is only meaningful when all backends emit the same normalized pair-row schema and the same phasing/panel assumptions are held fixed.
+- IBDHap comparisons require the same genetic map, marker subset, 2011 state-transition model, population-kinship prior, kinship-change rate, transition null fraction, and genotyping-error rate. Its probability surface needs an explicit downstream calling rule before it can be compared with segment tables.

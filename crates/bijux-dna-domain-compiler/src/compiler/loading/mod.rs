@@ -1,3 +1,4 @@
+mod container_catalog;
 mod image_registries;
 mod index_catalogs;
 mod index_defaults;
@@ -8,9 +9,12 @@ mod tool_loading;
 mod tool_registries;
 
 use super::{
-    BTreeMap, BTreeSet, Path, Result, StageDefaultMap, StageDefaultRationaleMap,
-    StageOutputKindsMap, StagePlannedMap, StageStatusMap, StageToolMap, ToolMap,
+    BTreeMap, BTreeSet, ContainerToolContract, Path, Result, StageDefaultMap,
+    StageDefaultRationaleMap, StageOutputKindsMap, StagePlannedMap, StageStatusMap, StageToolMap,
+    ToolMap,
 };
+
+pub(super) use container_catalog::load_container_catalog;
 
 pub(super) struct ToolRegistryOutputs {
     pub(super) production_registry: String,
@@ -40,36 +44,39 @@ pub(super) fn build_tool_registries_toml(
     stage_planned: &StagePlannedMap,
     stage_defaults: &StageDefaultMap,
     stage_default_rationale: &StageDefaultRationaleMap,
-    domain_dir: &Path,
+    container_catalog: &BTreeMap<String, ContainerToolContract>,
     source_commit: &str,
-) -> ToolRegistryOutputs {
+) -> Result<ToolRegistryOutputs> {
     let outputs = tool_registries::build_tool_registries_toml(
         tools,
         stage_to_tools,
         stage_planned,
         stage_defaults,
         stage_default_rationale,
-        domain_dir,
+        container_catalog,
         source_commit,
-    );
-    ToolRegistryOutputs {
+    )?;
+    Ok(ToolRegistryOutputs {
         production_registry: outputs.production_registry,
         experimental_registry: outputs.experimental_registry,
         required_tools: outputs.required_tools,
         production_tool_ids: outputs.production_tool_ids,
-    }
+    })
 }
 
-pub(super) fn collect_vcf_image_versions(domain_dir: &Path) -> Result<BTreeMap<String, String>> {
+pub(super) fn collect_vcf_image_versions(
+    domain_dir: &Path,
+) -> Result<BTreeMap<String, (String, bool)>> {
     image_registries::collect_vcf_image_versions(domain_dir)
 }
 
 pub(super) fn build_images_toml(
     tools: &ToolMap,
-    vcf_image_versions: &BTreeMap<String, String>,
+    vcf_image_versions: &BTreeMap<String, (String, bool)>,
+    container_catalog: &BTreeMap<String, ContainerToolContract>,
     source_commit: &str,
 ) -> String {
-    image_registries::build_images_toml(tools, vcf_image_versions, source_commit)
+    image_registries::build_images_toml(tools, vcf_image_versions, container_catalog, source_commit)
 }
 
 pub(super) fn build_stages_toml(

@@ -5,21 +5,20 @@
 # BIJUX_TEMPLATE: v1
 
 # Tool ID: alientrimmer
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: immutable release archive
+# Upstream source: https://gitlab.pasteur.fr/GIPhy/AlienTrimmer
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
 
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    VERSION 3.2
     org.opencontainers.image.source https://gitlab.pasteur.fr/GIPhy/AlienTrimmer
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    org.opencontainers.image.revision 3.2
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 3.2
     org.opencontainers.image.tool alientrimmer
@@ -37,17 +36,19 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export ALIENTRIMMER_VERSION=3.2
     export ALIENTRIMMER_SHA256=5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730
 
-    apt-get update -qq && apt-get install -y --no-install-recommends \
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends \
         bash \
-        ca-certificates \
         curl \
-        openjdk-17-jdk-headless && \
-        rm -rf /var/lib/apt/lists/*
+        openjdk-17-jdk-headless
 
-    curl -L "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer/-/archive/${ALIENTRIMMER_VERSION}/AlienTrimmer-${ALIENTRIMMER_VERSION}.tar.gz" \
+    curl --fail --location --silent --show-error "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer/-/archive/${ALIENTRIMMER_VERSION}/AlienTrimmer-${ALIENTRIMMER_VERSION}.tar.gz" \
         -o /tmp/alientrimmer.tar.gz
-    echo "${ALIENTRIMMER_SHA256}  /tmp/alientrimmer.tar.gz" | sha256sum -c -
-    tar -xzf /tmp/alientrimmer.tar.gz -C /opt
+    echo "${ALIENTRIMMER_SHA256}  /tmp/alientrimmer.tar.gz" | sha256sum --check --strict
+    tar --extract --gzip --file /tmp/alientrimmer.tar.gz --directory /opt
     cd "/opt/AlienTrimmer-${ALIENTRIMMER_VERSION}/src"
     javac AlienTrimmer.java
     printf 'Main-Class: AlienTrimmer\n' > MANIFEST.MF
@@ -95,6 +96,12 @@ case "${1:-}" in
     ;;
   --help|-h)
     exec "${java_bin}" "${java_args[@]}" -jar "${jar_path}"
+    ;;
+  --a1|--a2|--p64)
+    ;;
+  --*)
+    printf 'unsupported AlienTrimmer option: %s\n' "$1" >&2
+    exit 2
     ;;
 esac
 
@@ -250,9 +257,15 @@ SH
     chmod +x /usr/local/bin/alientrimmer
     ln -sf /usr/local/bin/alientrimmer /usr/local/bin/AlienTrimmer
     rm -f /tmp/alientrimmer.tar.gz
+    rm -rf /var/lib/apt/lists/*
 
 %runscript
     exec /usr/local/bin/alientrimmer "$@"
 
 %help
     Apptainer image for AlienTrimmer 3.2 with a governed compatibility wrapper.
+
+%test
+    alientrimmer --version | grep -Fx '3.2'
+    alientrimmer --help >/dev/null
+    if alientrimmer --governed-invalid-option >/dev/null 2>&1; then exit 1; fi

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+archive="$work_dir/bracken.tar.gz"
+
+curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+  --output "$archive" \
+  'https://github.com/jenniferlu717/Bracken/archive/c5bfec1929fe30feef21afbde67b16bda44de448.tar.gz'
+printf '%s  %s\n' \
+  '78a24901d40f8e9e826b3de6b7c1feee580e9fcca063e55310710bd1a2d89709' \
+  "$archive" | sha256sum --check --strict
+mkdir -p /opt/bracken
+tar --extract --gzip --file "$archive" --directory /opt/bracken --strip-components=1
+make -C /opt/bracken/src
+chmod 0755 /opt/bracken/bracken /opt/bracken/bracken-build \
+  /opt/bracken/src/est_abundance.py /opt/bracken/src/generate_kmer_distribution.py \
+  /opt/bracken/src/kmer2read_distr /usr/local/bin/bracken
+
+/usr/local/bin/bracken --version | grep -Fx 'Bracken 2.9'
+/usr/local/bin/bracken --help >/dev/null

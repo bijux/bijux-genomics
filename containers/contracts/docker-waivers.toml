@@ -8,3 +8,8 @@
 # owner = "bijux-genomics"
 # expires_on = "2026-12-31"
 
+[[waiver]]
+tool_id = "mosdepth"
+reason = "Upstream 0.3.11 publishes an amd64 executable only; arm64 remains unsupported until the Nim and native dependency graph has an immutable cross-architecture lock."
+owner = "bijux-genomics"
+expires_on = "2027-08-02"

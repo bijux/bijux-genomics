@@ -1,0 +1,6 @@
+diff --git a/src/Makefile b/src/Makefile
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -20 +20 @@
+-	cd ../lib/htslib/ && git submodule update --init --recursive && make libhts.a && cd ../..
++	cd ../lib/htslib/ && make libhts.a && cd ../..

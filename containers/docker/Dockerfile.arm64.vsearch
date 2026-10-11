@@ -1,68 +1,51 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
+# Container definition license: GPL-3.0-only.
 # Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+ENV DEBIAN_FRONTEND=noninteractive
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends autoconf automake curl g++ libbz2-dev liblzma-dev libtool make pkg-config zlib1g-dev && \
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/vsearch.tar.gz https://codeload.github.com/torognes/vsearch/tar.gz/bbd17a05faaf7401176e36b7947874c1e5152cee && \
+    echo '6a1039a99422340cbfb3c723f0caa414e91e7d36b963075e59f033ac59580c0e  /opt/vsearch.tar.gz' | sha256sum -c - && \
+    tar --extract --gzip --file /opt/vsearch.tar.gz --directory /opt && \
+    cd /opt/vsearch-bbd17a05faaf7401176e36b7947874c1e5152cee && \
+    ./autogen.sh && \
+    ./configure --quiet CFLAGS=-O3 CXXFLAGS=-O3 && \
+    make -j2 && \
+    install -d -m 0755 /opt/vsearch/bin && \
+    install -m 0755 ./bin/vsearch /opt/vsearch/bin/vsearch-native
+
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=2.29.3
+LABEL org.opencontainers.image.source="https://github.com/torognes/vsearch" \
+      org.opencontainers.image.revision="bbd17a05faaf7401176e36b7947874c1e5152cee" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.licenses="BSD-2-Clause" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="vsearch"
-LABEL org.opencontainers.image.title="vsearch"
+LABEL org.opencontainers.image.title="VSEARCH"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
+    apt-get -o Acquire::Check-Valid-Until=false install -y --no-install-recommends libbz2-1.0 liblzma5 libstdc++6 zlib1g && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
+COPY --from=builder /opt/vsearch /opt/vsearch
+COPY containers/tools/vsearch/vsearch /usr/local/bin/vsearch
+RUN chmod 0755 /usr/local/bin/vsearch /opt/vsearch/bin/vsearch-native && \
+    vsearch --version | grep -Fx 'vsearch 2.29.3' && \
+    vsearch --help >/dev/null
 
-ARG VERSION_VSEARCH=2.28.1
-ENV VERSION_VSEARCH=${VERSION_VSEARCH}
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        wget \
-        ca-certificates \
-        build-essential \
-        git \
-        autoconf \
-        automake \
-        libtool \
-        pkg-config \
-        zlib1g-dev \
-        libbz2-dev \
-        liblzma-dev && \
-    # ── fetch source at the requested tag ────────────────────────────
-    git clone --depth 1 --branch v${VERSION_VSEARCH} https://github.com/torognes/vsearch.git /tmp/vsearch-src && cd /tmp/vsearch-src && git checkout d98284e5015d5afce61427c4b6420653c7700650 && cd - && \
-    cd /tmp/vsearch-src && \
-    ./autogen.sh && \
-    ./configure --quiet CFLAGS="-O3" && \
-    make -j"$(nproc)" && \
-    # ── install binary ───────────────────────────────────────────────
-    cp bin/vsearch /usr/local/bin/vsearch-bin && \
-    strip /usr/local/bin/vsearch-bin && \
-    # ── cleanup ──────────────────────────────────────────────────────
-    cd / && rm -rf /tmp/vsearch-src && \
-    apt-get purge -y git wget ca-certificates build-essential autoconf automake libtool pkg-config && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
-
-# Create a wrapper script for unified VSEARCH execution
-RUN echo '#!/bin/sh' > /usr/local/bin/vsearch && \
-    echo 'if [ "$1" = "--version" ]; then' >> /usr/local/bin/vsearch && \
-    echo '    /usr/local/bin/vsearch-bin --version | head -n 1' >> /usr/local/bin/vsearch && \
-    echo '    exit 0' >> /usr/local/bin/vsearch && \
-    echo 'elif [ "$1" = "--help" ]; then' >> /usr/local/bin/vsearch && \
-    echo '    /usr/local/bin/vsearch-bin --help' >> /usr/local/bin/vsearch && \
-    echo '    exit 0' >> /usr/local/bin/vsearch && \
-    echo 'else' >> /usr/local/bin/vsearch && \
-    echo '    /usr/local/bin/vsearch-bin "$@"' >> /usr/local/bin/vsearch && \
-    echo 'fi' >> /usr/local/bin/vsearch && \
-    chmod +x /usr/local/bin/vsearch
-
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["vsearch"]
 CMD ["--help"]

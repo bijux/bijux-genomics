@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version|-v|version)
+        echo 'Bracken 2.9'
+        ;;
+    --help|-h|help|"")
+        exec /opt/bracken/bracken -h
+        ;;
+    --governed-invalid-option)
+        echo 'bracken: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/bracken/bracken "$@"
+        ;;
+esac

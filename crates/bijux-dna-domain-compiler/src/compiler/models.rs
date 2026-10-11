@@ -42,8 +42,6 @@ pub(super) struct DomainTool {
     pub(super) metrics_schema: String,
     #[serde(default)]
     pub(super) comparability_notes: String,
-    #[serde(default)]
-    pub(super) container: Option<DomainToolContainer>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -80,8 +78,6 @@ pub(super) struct DomainToolLoose {
     pub(super) metrics_schema_id: String,
     #[serde(default)]
     pub(super) comparability_notes: String,
-    #[serde(default)]
-    pub(super) container: Option<DomainToolContainer>,
 }
 
 impl DomainTool {
@@ -96,12 +92,75 @@ impl DomainToolLoose {
     }
 }
 
-#[derive(Debug, Deserialize, Default, Clone)]
-pub(super) struct DomainToolContainer {
+#[derive(Debug, Clone, Deserialize)]
+pub(super) struct ContainerCatalog {
+    pub(super) schema_version: String,
+    pub(super) tools: Vec<ContainerToolContract>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub(super) struct ContainerToolContract {
+    pub(super) id: String,
+    pub(super) version: String,
+    pub(super) support_disposition: String,
     #[serde(default)]
-    pub(super) image: String,
+    pub(super) support_reason: String,
+    pub(super) upstream: String,
+    pub(super) license: String,
     #[serde(default)]
-    pub(super) digest: String,
+    pub(super) source_sha256: String,
+    #[serde(default)]
+    pub(super) pinned_commit: String,
+    pub(super) expected_bin: String,
+    pub(super) version_command: String,
+    pub(super) help_command: String,
+    pub(super) expected_version_regex: String,
+    #[serde(default)]
+    pub(super) apptainer_definition: String,
+    pub(super) apptainer_supported: bool,
+    #[serde(default)]
+    pub(super) dockerfile: String,
+    pub(super) docker_arm64_supported: bool,
+}
+
+impl ContainerToolContract {
+    pub(super) fn source_identity(&self) -> String {
+        if !self.source_sha256.is_empty() {
+            return format!("sha256:{}", self.source_sha256);
+        }
+        if !self.pinned_commit.is_empty() {
+            return format!("git:{}", self.pinned_commit);
+        }
+        "unresolved".to_string()
+    }
+
+    pub(super) fn source_pin_strategy(&self) -> &'static str {
+        if !self.source_sha256.is_empty() {
+            return "source_sha256";
+        }
+        if !self.pinned_commit.is_empty() {
+            return "source_commit";
+        }
+        "unresolved"
+    }
+
+    pub(super) fn container_ref(&self) -> String {
+        if self.runtimes().is_empty() {
+            return "external@licensed-installation".to_string();
+        }
+        format!("bijuxdna/{}:{}", self.id, self.version)
+    }
+
+    pub(super) fn runtimes(&self) -> Vec<String> {
+        let mut runtimes = Vec::new();
+        if self.docker_arm64_supported {
+            runtimes.push("docker".to_string());
+        }
+        if self.apptainer_supported {
+            runtimes.push("apptainer".to_string());
+        }
+        runtimes
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
@@ -336,8 +395,6 @@ pub(super) struct ToolRow {
     pub(super) version_rule: String,
     pub(super) license: String,
     pub(super) citation: String,
-    pub(super) container_image: String,
-    pub(super) container_digest: String,
     pub(super) expected_version_regex: String,
     pub(super) healthcheck_cmd: String,
 }

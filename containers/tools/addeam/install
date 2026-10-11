@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+
+download_archive() {
+  local url="$1"
+  local expected_sha256="$2"
+  local destination="$3"
+  local archive="$work_dir/source.tar.gz"
+
+  curl --fail --location --silent --show-error --output "$archive" "$url"
+  printf '%s  %s\n' "$expected_sha256" "$archive" | sha256sum --check --strict
+  mkdir -p "$destination"
+  tar --extract --gzip --file "$archive" --directory "$destination" --strip-components=1
+  rm -f "$archive"
+}
+
+download_archive \
+  'https://github.com/LouisPwr/AdDeam/archive/8122b9a99d560ef8ea8abdd5b1aacccd00ea0cdd.tar.gz' \
+  'baf975b48cf42cf7f4c49428182f6faaf4996707984b353b7cccaa80daf7da40' \
+  /opt/addeam
+download_archive \
+  'https://github.com/grenaud/bam2prof/archive/5848f40f67e7bcd8ad93d986dc1c20d135e0cf2c.tar.gz' \
+  '4b9bd01d1c73fd4a1ad2dd76a86cd457a5dd03b9f89a794e94dd61b313d70a3e' \
+  /opt/addeam/submodules
+download_archive \
+  'https://github.com/grenaud/libgab/archive/304eeb83444201b4b5557e954ee6c7ffa367adc0.tar.gz' \
+  '2cadc9dedccbd19f274585b830ecc3ecde635a001e7ddd7f88ba9fe8e3a537e3' \
+  /opt/addeam/submodules/lib/libgab
+download_archive \
+  'https://github.com/samtools/htslib/archive/cdb3245903091dffd123d1b5fff2efaa995bb1ea.tar.gz' \
+  '2301e356603fe1135f30e2e18e10357e5f63ec5f82403cc0058ff3523462a8b6' \
+  /opt/addeam/submodules/lib/htslib
+download_archive \
+  'https://github.com/samtools/htscodecs/archive/51794289ac47455209c333182b6768f99a613948.tar.gz' \
+  '056492fc4fb0299d60fd0cd4ba4359a661b0c54162da7f9142b4072c10760681' \
+  /opt/addeam/submodules/lib/htslib/htscodecs
+download_archive \
+  'https://github.com/samtools/samtools/archive/365d7d4e3b1b880b008e724f98307a32c5b88b7c.tar.gz' \
+  'c22f20b5bb409c7db9e629300a89884266a03d0b2a60ef613101b477f32abc23' \
+  /opt/addeam/submodules/lib/samtools
+
+printf '%s\n' \
+  '#define HTSCODECS_VERSION_TEXT "1.1.1-gb6615cdf542a83badc805d2195bc514220f19ce6"' \
+  > /opt/addeam/submodules/lib/htslib/htscodecs/htscodecs/version.h
+
+patch --directory /opt/addeam --strip 1 --input /opt/addeam-build/profile-execution.patch
+patch --directory /opt/addeam/submodules --strip 1 --input /opt/addeam-build/bam2prof-offline-build.patch
+# bam2prof's native graph asks for HTSlib directly and through Samtools.  Its
+# Makefiles do not serialize those two paths, so a parallel build can have two
+# archivers mutate libhts.a at once.  Keep this upstream boundary serial while
+# retaining the immutable source graph.
+make --directory /opt/addeam/submodules/src --jobs 1
+install -m 0755 /opt/addeam/submodules/src/bam2prof /usr/local/bin/bam2prof
+install -m 0755 /opt/addeam/submodules/src/diffprof /usr/local/bin/diffprof
+
+python3 -m venv /opt/addeam-venv
+/opt/addeam-venv/bin/pip install --no-cache-dir --require-hashes --requirement /opt/addeam-build/requirements.lock
+
+chmod 0755 /usr/local/bin/addeam
+/usr/local/bin/addeam --version | grep -Fx 'AdDeam 1.0.0'
+/usr/local/bin/addeam profile --help >/dev/null

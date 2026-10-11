@@ -1,0 +1,14 @@
+diff --git a/addeam-bam2prof.py b/addeam-bam2prof.py
+--- a/addeam-bam2prof.py
++++ b/addeam-bam2prof.py
+@@ -88,3 +87,0 @@
+-    result = subprocess.run(command, capture_output=True, text=True)
+-
+-    # result = subprocess.run(command, capture_output=True, text=True)
+@@ -92 +89 @@
+-    result = subprocess.run( command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
++    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+@@ -94,0 +92 @@
++    result.check_returncode()
+@@ -220,0 +219 @@
++                raise

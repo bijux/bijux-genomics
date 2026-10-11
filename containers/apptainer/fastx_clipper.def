@@ -2,87 +2,79 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: fastx_clipper
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Version policy: exact upstream release and libgtextutils archives with governed SHA-256 digests
+# Upstream source: https://github.com/agordon/fastx_toolkit/tree/0.0.14
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archives
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    VERSION unknown
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.source https://github.com/agordon/fastx_toolkit
+    org.opencontainers.image.revision 105a189a102d66d246bd618f07af2b861916272c
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses AGPL-3.0-or-later
     org.opencontainers.image.version 0.0.14
     org.opencontainers.image.tool fastx_clipper
-    org.opencontainers.image.title fastx_clipper
+    org.opencontainers.image.title FASTX Clipper
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LD_LIBRARY_PATH=/usr/local/lib
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+
+%files
+    containers/tools/fastx_clipper/fastx_clipper /opt/fastx-clipper-wrapper
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends \
-        autoconf automake build-essential bzip2 ca-certificates libtool \
-        pkg-config wget zlib1g-dev && \
-        rm -rf /var/lib/apt/lists/*
-    wget -O /tmp/libgtextutils-0.7.tar.gz https://github.com/agordon/libgtextutils/releases/download/0.7/libgtextutils-0.7.tar.gz
-    echo "792e0ea3c96ffe3ad65617a104b7dc50684932bc96d2adab501c952fd65c3e4a  /tmp/libgtextutils-0.7.tar.gz" | sha256sum -c -
-    tar -xzf /tmp/libgtextutils-0.7.tar.gz -C /tmp
-    cd /tmp/libgtextutils-0.7
-    perl -0pi -e 's/return input_stream ;/return static_cast<bool>(input_stream) ;/' /tmp/libgtextutils-0.7/src/gtextutils/text_line_reader.cpp
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends libstdc++6 zlib1g
+    apt-get install -y --no-install-recommends autoconf automake bzip2 curl g++ libtool make perl pkg-config zlib1g-dev
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/libgtextutils.tar.gz https://github.com/agordon/libgtextutils/releases/download/0.7/libgtextutils-0.7.tar.gz
+    echo '792e0ea3c96ffe3ad65617a104b7dc50684932bc96d2adab501c952fd65c3e4a  /opt/libgtextutils.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/libgtextutils.tar.gz --directory /opt
+    perl -0pi -e 's/return input_stream ;/return static_cast<bool>(input_stream) ;/' /opt/libgtextutils-0.7/src/gtextutils/text_line_reader.cpp
+    cd /opt/libgtextutils-0.7
     ./configure --prefix=/usr/local
-    make -j"$(nproc)"
+    make -j2
     make install
     ldconfig
-    wget -O /tmp/fastx_toolkit-0.0.14.tar.bz2 https://github.com/agordon/fastx_toolkit/releases/download/0.0.14/fastx_toolkit-0.0.14.tar.bz2
-    echo "9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806  /tmp/fastx_toolkit-0.0.14.tar.bz2" | sha256sum -c -
-    tar -xjf /tmp/fastx_toolkit-0.0.14.tar.bz2 -C /tmp
-    cd /tmp/fastx_toolkit-0.0.14
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/fastx-toolkit.tar.bz2 https://github.com/agordon/fastx_toolkit/releases/download/0.0.14/fastx_toolkit-0.0.14.tar.bz2
+    echo '9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806  /opt/fastx-toolkit.tar.bz2' | sha256sum --check --strict
+    tar --extract --bzip2 --file /opt/fastx-toolkit.tar.bz2 --directory /opt
+    cd /opt/fastx_toolkit-0.0.14
     ./configure --prefix=/usr/local PKG_CONFIG_PATH=/usr/local/lib/pkgconfig CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib
-    find /tmp/fastx_toolkit-0.0.14 -name Makefile -exec perl -0pi -e 's/ -Werror//g' {} +
-    make -j"$(nproc)"
+    find /opt/fastx_toolkit-0.0.14 -name Makefile -exec perl -0pi -e 's/ -Werror//g' {} +
+    make -j2
     make install
-    mv /usr/local/bin/fastx_clipper /usr/local/bin/fastx_clipper.bin
-    cat > /usr/local/bin/fastx_clipper <<'SH'
-#!/bin/sh
-set -eu
-run_help() {
-  set +e
-  /usr/local/bin/fastx_clipper.bin -h
-  status=$?
-  set -e
-  if [ "$status" -eq 1 ]; then
-    exit 0
-  fi
-  exit "$status"
-}
-case "${1:-}" in
-  --version)
-    echo "0.0.14"
-    exit 0
-    ;;
-  --help|-h|"")
-    run_help
-    ;;
-esac
-exec /usr/local/bin/fastx_clipper.bin "$@"
-SH
-    chmod +x /usr/local/bin/fastx_clipper
+    install -d -m 0755 /opt/fastx-clipper/bin
+    mv /usr/local/bin/fastx_clipper /opt/fastx-clipper/bin/fastx-clipper-native
+    install -m 0755 /opt/fastx-clipper-wrapper /usr/local/bin/fastx_clipper
+    fastx_clipper --version | grep -Fx 'fastx_clipper 0.0.14'
+    fastx_clipper --help >/dev/null
+    rm -rf /opt/libgtextutils.tar.gz /opt/fastx-toolkit.tar.bz2 /opt/fastx-clipper-wrapper /opt/libgtextutils-0.7 /opt/fastx_toolkit-0.0.14
+    apt-get purge -y --auto-remove autoconf automake bzip2 curl g++ libtool make perl pkg-config zlib1g-dev
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
 %runscript
     exec /usr/local/bin/fastx_clipper "$@"
 
+%test
+    fastx_clipper --version | grep -Fx 'fastx_clipper 0.0.14'
+    fastx_clipper --help >/dev/null
+    test -x /opt/fastx-clipper/bin/fastx-clipper-native
+
 %help
-    Apptainer image for fastx_clipper.
+    FASTX Clipper 0.0.14 built from exact checksummed upstream sources.

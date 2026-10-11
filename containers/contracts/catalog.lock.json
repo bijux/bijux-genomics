@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "a69bbc5c71c19bad4a670651d939aad62b29b09550d85178101c3a50d3ab9a32",
+  "source_sha256": "d5a613e88d9263dbae7f21b27a7a4ab64b5ca04af7bd4fbcc5271eb7b946574b",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -53,12 +53,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/LouisPwr/AdDeam",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-only",
+      "source_sha256": "baf975b48cf42cf7f4c49428182f6faaf4996707984b353b7cccaa80daf7da40",
       "pinned_commit": "8122b9a99d560ef8ea8abdd5b1aacccd00ea0cdd",
       "apptainer_definition": "containers/apptainer/addeam.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.addeam",
-      "contract_sha256": "23dee7d76a53c9bd8dc10c55c5f4ac7985148b90f547e61dc9985dbf5e5181fd"
+      "contract_sha256": "81ace7c0e5a0d0178661597f84c9eae087055f62f2a6c94ef4be060958483c61"
     },
     {
       "id": "alientrimmer",
@@ -78,17 +78,17 @@
     {
       "id": "angsd",
       "display_name": "ANGSD",
-      "version": "0.940",
+      "version": "0.941",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/ANGSD/angsd",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "NOASSERTION",
+      "source_sha256": "e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7",
       "pinned_commit": "b3099ed756e7aff87d2d1dd4fd30cdf36998380b",
       "apptainer_definition": "containers/apptainer/angsd.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.angsd",
-      "contract_sha256": "7a9d0220ef8eb6c7745c01ae317aad37554abfce44928747e4707608eccaba9c"
+      "contract_sha256": "5155403bd3fb0d2ff9a3a74f921b7f3c3393d0989c07946207a5544ae3b987ab"
     },
     {
       "id": "atropos",
@@ -98,12 +98,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/jdidion/atropos",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT AND CC0-1.0",
+      "source_sha256": "7f23fc141336f508d4198cd491cf223082811d83a0607999c22dc80ca4ed4874",
       "pinned_commit": "916a0bfbc18149bbefb83ccff9fe2a0807415807",
       "apptainer_definition": "containers/apptainer/atropos.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.atropos",
-      "contract_sha256": "904137c44650a86aac650bd8ee9c29f42f4d9312bb585b3eb6875f976f531515"
+      "contract_sha256": "99ef79d9f9e56978530a77c6fa2887e72a25b95aa0a947af44ba33cf9a689928"
     },
     {
       "id": "authenticct",
@@ -113,12 +113,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/StephanePeyregne/AuthentiCT",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-only",
+      "source_sha256": "179b79fa0e23ed18c2cc9338055a691575addc513a6e3765d912bb728c249834",
       "pinned_commit": "13ba26ef82f5a3febd74401f65fb8c1776aa16b2",
       "apptainer_definition": "containers/apptainer/authenticct.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.authenticct",
-      "contract_sha256": "00e78e128036cfeeb046bb58583624229d6e917e82e755ffd627b6dfa1783687"
+      "contract_sha256": "9e86d052f2b93c7ec43cf8922127b1d6e79cdb91ca12c1310b4bba29241326d8"
     },
     {
       "id": "bamtools",
@@ -128,12 +128,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/pezmaster31/bamtools",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc8",
       "pinned_commit": "9f2fa61d5c10588a426dec12422255d6d0c87d84",
       "apptainer_definition": "containers/apptainer/bamtools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bamtools",
-      "contract_sha256": "37cca2f9abdb1d98f4860988fce465bf6544d2fc467255b363b2d0feb75e82b4"
+      "contract_sha256": "842cf87bb5a33d7cda4b884c270288c667423db19eca3ec7ea9e6ffcbea7b886"
     },
     {
       "id": "bamutil",
@@ -143,27 +143,27 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/statgen/bamUtil",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "24ac4bdb81eded6e33f60dba85ec3d32ebdb06d42f75df775c2632bbfbd8cce9",
       "pinned_commit": "3ad3980a3a3a3fc35eca3636b7206676c8303ce6",
       "apptainer_definition": "containers/apptainer/bamutil.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bamutil",
-      "contract_sha256": "e90d89fd7274f2007bcf89c59f8ef1039a64848a22f9d3d0c0fa32fd7544790a"
+      "contract_sha256": "d4afda8c268afccfe11f1c9c10d43affb3e0e8d7a96e02d35e771a79de21caf1"
     },
     {
       "id": "bayeshammer",
       "display_name": "BayesHammer",
-      "version": "3.15.5",
+      "version": "4.2.0",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/ablab/spades",
-      "license": "GPL-3.0",
-      "source_sha256": "",
-      "pinned_commit": "896694ce5c7a9050a6ffa9fccc950a4cd9f04363",
+      "license": "GPL-2.0-only",
+      "source_sha256": "b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985",
+      "pinned_commit": "7fee3c1050a732faef8a0d93d70861015a96f44e",
       "apptainer_definition": "containers/apptainer/bayeshammer.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bayeshammer",
-      "contract_sha256": "02ea28a6cf8961622495100cde3dce1d0ecb58aa7259521d6e3a82e66bd1aa3a"
+      "contract_sha256": "0ce8112686916cb511e1cf4eebdd88dba1e8be452c81ea8abf98b1617939dc55"
     },
     {
       "id": "bbduk",
@@ -219,11 +219,11 @@
       "qualification": "unverified",
       "upstream": "https://faculty.washington.edu/browning/beagle/beagle.html",
       "license": "GPL-3.0",
-      "source_sha256": "220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f",
+      "source_sha256": "938f0b1ab12385e0686790cef52d7b9491c96c0c1837af5c0d62c9a6576a8956",
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/beagle.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.beagle",
-      "contract_sha256": "27fc8d9941eec359b569eff59a662faebd79040bcbc9605f83b90c91cf0687a4"
+      "contract_sha256": "c02608a2c32b2bc686e053e3255da5ff29fe87c27b14c4a9c9108a5ac08327b4"
     },
     {
       "id": "bedtools",
@@ -233,12 +233,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/arq5x/bedtools2",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "79a1ba318d309f4e74bfa74258b73ef578dccb1045e270998d7fe9da9f43a50e",
       "pinned_commit": "705ccfdf2c9a77d71560c8adcece0663c2f5e18e",
       "apptainer_definition": "containers/apptainer/bedtools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bedtools",
-      "contract_sha256": "0c49292b858626cef0bb0d4d1093f057e21b932764d6b969a0780ef479b52741"
+      "contract_sha256": "c492d9acc78b9e79d93561d5a5a331587733307a18a6ce0bcacb518be948008a"
     },
     {
       "id": "bijux_dna",
@@ -264,11 +264,11 @@
       "qualification": "unverified",
       "upstream": "https://github.com/BenLangmead/bowtie2",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "380687233050c1321ead9cea2155cb9555370434755db5e4baa0131cb3177850",
       "pinned_commit": "4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba",
       "apptainer_definition": "containers/apptainer/bowtie2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bowtie2",
-      "contract_sha256": "7ae1f9778d977281563ebc578b6832ddec3111dec05e6be83045b4eb220d933e"
+      "contract_sha256": "f4703d9384778180c689c35ac4fb17d75e6a7319688d67e92afc462ec27be76f"
     },
     {
       "id": "bowtie2_build",
@@ -279,11 +279,11 @@
       "qualification": "unverified",
       "upstream": "https://github.com/BenLangmead/bowtie2",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "380687233050c1321ead9cea2155cb9555370434755db5e4baa0131cb3177850",
       "pinned_commit": "4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba",
       "apptainer_definition": "containers/apptainer/bowtie2_build.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bowtie2_build",
-      "contract_sha256": "40fa393dab5db7d6deb4d66659ede70a0d557e0d5722372c169e9db4853a1f41"
+      "contract_sha256": "181459fd0b1afcd75276f3db31f71ca8d5cf0c8beddabcdb47ebff30c25a77dd"
     },
     {
       "id": "bracken",
@@ -293,12 +293,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/jenniferlu717/Bracken",
-      "license": "NOASSERTION",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "78a24901d40f8e9e826b3de6b7c1feee580e9fcca063e55310710bd1a2d89709",
       "pinned_commit": "c5bfec1929fe30feef21afbde67b16bda44de448",
       "apptainer_definition": "containers/apptainer/bracken.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bracken",
-      "contract_sha256": "296e75668c9a9ad3eb3b02a802e1303f7d004041c6bd508b7d9b554145ca6466"
+      "contract_sha256": "a87a9fb1fd88b25e2759517e610db600e2e72dae53d3ab49a578df506391654c"
     },
     {
       "id": "bwa",
@@ -459,11 +459,11 @@
       "qualification": "unverified",
       "upstream": "https://github.com/DReichLab/EIG",
       "license": "GPL-2.0",
-      "source_sha256": "fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9",
-      "pinned_commit": "",
+      "source_sha256": "83207df20d658142c8d3d93db8d2d668b06812a90cc474454d18b62b973ca4c2",
+      "pinned_commit": "09ed563fdec05648a66c206ba1fc37a198395cd7",
       "apptainer_definition": "containers/apptainer/eigensoft.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.eigensoft",
-      "contract_sha256": "fdc647f203de8a3f37d019a841e3f524870873564460b9f99419ab5c5aaad5de"
+      "contract_sha256": "f70847961274ef08f52ac6dc30666926f8140fadacb313a546a56410d7996840"
     },
     {
       "id": "fastp",
@@ -472,13 +472,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz",
-      "license": "GPL-3.0",
+      "upstream": "https://github.com/OpenGene/fastp",
+      "license": "MIT",
       "source_sha256": "4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5",
-      "pinned_commit": "",
+      "pinned_commit": "1ffcaed6892832c09c4b4094c201cd4eff8fa622",
       "apptainer_definition": "containers/apptainer/fastp.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastp",
-      "contract_sha256": "711993a651bca0591b2dc004ffabde2eb06773bdf9af8e1be76abd1d8a3d6ae0"
+      "contract_sha256": "b6a3bacdd65ea8deb4cb505da9294132b1bfaaefebc5f008df781b4651512dcd"
     },
     {
       "id": "fastq_scan",
@@ -517,13 +517,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip",
-      "license": "GPL-3.0",
+      "upstream": "https://github.com/s-andrews/FastQC",
+      "license": "GPL-3.0-only",
       "source_sha256": "5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7",
-      "pinned_commit": "",
+      "pinned_commit": "e7ef390bf10382f60786bdd0cf28abd4f8683ffd",
       "apptainer_definition": "containers/apptainer/fastqc.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastqc",
-      "contract_sha256": "c763f79412eb7b1da333c034c0a9dfc8c2f05f51680d5d6d8e7cc807cb52410e"
+      "contract_sha256": "24f5ded8803b699ac2a74a56b934ecd645aa59c2093f928113f1808cf2bddff4"
     },
     {
       "id": "fastqvalidator",
@@ -533,12 +533,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/statgen/fastQValidator",
-      "license": "GPL-3.0",
-      "source_sha256": "",
-      "pinned_commit": "fb764e0d5ba0c791eb0293b544f44e49da05e3d0",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "0172c7e86bdb33dbf71900a3a9b2a6aae4ec9f6918f934a7c23a9d599e12181c",
+      "pinned_commit": "4cb293ca4153459b05ae7983f65a082d56b55c21",
       "apptainer_definition": "containers/apptainer/fastqvalidator.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastqvalidator",
-      "contract_sha256": "dfb47231fbba146aa3005f3d7d6e7e2d690463f502d331fa038074558560970d"
+      "contract_sha256": "d977c23f4aa1f72420314b1bbee485ee8975862710fb01fd2574f580ea4405c7"
     },
     {
       "id": "fastuniq",
@@ -622,13 +622,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://www.cs.columbia.edu/~gusev/germline/",
-      "license": "GPL-3.0",
-      "source_sha256": "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d2",
-      "pinned_commit": "",
+      "upstream": "https://github.com/gusevlab/germline",
+      "license": "Apache-2.0",
+      "source_sha256": "42a6e14e003ac6aa5cc5c3b14db4ba355d748c014b0d0a10f0f734dca2bfb991",
+      "pinned_commit": "f8029fcf469a09a83aa1e0d1fb45769f6dcb3c6d",
       "apptainer_definition": "containers/apptainer/germline.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.germline",
-      "contract_sha256": "2002bd96f9bf8a061f01c8c646beb7e382149e03c8e0cb384b129bc3b8c0f78a"
+      "contract_sha256": "089bb11f6dbd251c719cb4aa3e7740e911bb51b6cd535396d759464fc82f2578"
     },
     {
       "id": "glimpse",
@@ -648,17 +648,17 @@
     {
       "id": "ibdhap",
       "display_name": "IBDHap",
-      "version": "2010.08",
+      "version": "3.4",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml",
       "license": "LicenseRef-MORGAN-2006",
-      "source_sha256": "10ef49ee0124eb97db95cdab4a1208dc14912dbd6eb6d5159dd90df16a281df7",
+      "source_sha256": "195a84d877413a83de15a20da45d92d2441303b8373b47727ed2e3ab92dc2e6a",
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/ibdhap.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.ibdhap",
-      "contract_sha256": "3e9ea27d51258e3877c64491bc440d35f96f31163a85c31bfc436061e5dd84e0"
+      "contract_sha256": "0916020f905eac4a08fa91f3effb64f7736856c925efbcfacf6fb56fc16c8d27"
     },
     {
       "id": "ibdne",
@@ -742,13 +742,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz",
-      "license": "GPL-3.0",
-      "source_sha256": "5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69",
-      "pinned_commit": "",
+      "upstream": "https://github.com/DerrickWood/kraken2",
+      "license": "MIT",
+      "source_sha256": "8204c3d8450d3869372d1d87a2298d80b3d7dd4942b1e7477cde55ef55d69d42",
+      "pinned_commit": "8f82a7ded7816c7ceed5086598b2979f80c970d8",
       "apptainer_definition": "containers/apptainer/kraken2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.kraken2",
-      "contract_sha256": "98ad44f6999a9ea99d8bcefefd305d3f9b89f8843ca5fabc42c19394f3e6f77f"
+      "contract_sha256": "a0479cb4766967a46681b6c97e5a7a6ff7a6403574a27c205ce9685dac79fdbf"
     },
     {
       "id": "krakenuniq",
@@ -848,12 +848,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/brentp/mosdepth",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "4564b69249f03cb5ccb2bb04a8b4723293c86b9c9183cf40c50711e5003cdef2",
       "pinned_commit": "e065a5f38ad6ff6c612a63d32f82fcfb6c00915d",
       "apptainer_definition": "containers/apptainer/mosdepth.def",
-      "dockerfile": "containers/docker/Dockerfile.arm64.mosdepth",
-      "contract_sha256": "2edc6ac52f860efec2eb3a245a5c62a1ace678fb3d15e3b191feea194caf5edf"
+      "dockerfile": "",
+      "contract_sha256": "2de3efecd86ad43156479c113c0de203a58ef10f5d5cd3524f2c884932519569"
     },
     {
       "id": "multiqc",
@@ -933,22 +933,22 @@
     {
       "id": "plink",
       "display_name": "PLINK",
-      "version": "1.90",
+      "version": "1.90b7.2",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://www.cog-genomics.org/plink/",
       "license": "GPL-3.0",
-      "source_sha256": "6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578",
+      "source_sha256": "1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3",
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/plink.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.plink",
-      "contract_sha256": "f54ce3c107c7dbd427b9aef39f5649a8f5654b63497b909affce3e64dbedd070"
+      "contract_sha256": "d700bf14abc0a06cae415ca0776b442cb7d10d5a93e21760135f2b0d0d131086"
     },
     {
       "id": "plink2",
       "display_name": "PLINK 2",
-      "version": "2.00a5",
+      "version": "2.00a6",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
@@ -958,7 +958,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/plink2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.plink2",
-      "contract_sha256": "a6727722040b49d8dc51b8f412c7dd76889ac4feff0c0878b2dda64dc9d32eb4"
+      "contract_sha256": "79ead092281caa14324c8824c49d441d2d5686ba76fdf4c3b6797e980e5ead28"
     },
     {
       "id": "pmdtools",
@@ -1117,13 +1117,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz",
-      "license": "GPL-3.0",
-      "source_sha256": "8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc",
-      "pinned_commit": "",
+      "upstream": "https://github.com/shenwei356/seqkit",
+      "license": "MIT",
+      "source_sha256": "a6515a64bf28ceba6922a3854d8ec898ca2ca637b4b00fc883c83076dfaf1ffa",
+      "pinned_commit": "1aef84fbc2381db2e73639632bc44a5f7a0a8bcc",
       "apptainer_definition": "containers/apptainer/seqkit.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqkit",
-      "contract_sha256": "04c5d3c32cee46bd6db7bfea340a39886889b02201a6c371cb84df4a71628b84"
+      "contract_sha256": "ba64de4d796e2757938343aa7911df0873e947fbc8afc365d0e50316cc4c7a87"
     },
     {
       "id": "seqkit_stats",
@@ -1133,12 +1133,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/shenwei356/seqkit",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "a6515a64bf28ceba6922a3854d8ec898ca2ca637b4b00fc883c83076dfaf1ffa",
       "pinned_commit": "1aef84fbc2381db2e73639632bc44a5f7a0a8bcc",
       "apptainer_definition": "containers/apptainer/seqkit_stats.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqkit_stats",
-      "contract_sha256": "30a3dc448c458e48d83206478ebf0de06daf320aece53fae525188db723d4f3f"
+      "contract_sha256": "e6e39cc6da49562424251235b7f374deb06fd1627fa025a625699c17fd0879e5"
     },
     {
       "id": "seqprep",
@@ -1148,12 +1148,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/jstjohn/SeqPrep",
-      "license": "NOASSERTION",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "f45d466650f40b66a83f6ccaa8dbfee104d142ca2cc69c5014b14a92c7b76cb8",
       "pinned_commit": "575507b0b9c94701bdf67bb592da8ba91ba9639c",
       "apptainer_definition": "containers/apptainer/seqprep.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqprep",
-      "contract_sha256": "cd4a8a2798a0f78bab0551141d5bfc77bc0b548691120ad2c65ba153b768a301"
+      "contract_sha256": "08023601b9e0c2c27287cf470b723b4fa9e7b33fb930070d89076f52de7c1300"
     },
     {
       "id": "seqpurge",
@@ -1177,13 +1177,13 @@
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
-      "upstream": "https://github.com/lh3/seqtk.git",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "upstream": "https://github.com/lh3/seqtk",
+      "license": "MIT",
+      "source_sha256": "d124604ec24f29ed14ce127426ab90e0f3a2c0280c80d1a3ff8b1c09feede19c",
       "pinned_commit": "ae7defa8bead3ef77d241f12194dc66acdd40fca",
       "apptainer_definition": "containers/apptainer/seqtk.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqtk",
-      "contract_sha256": "d062392b185bdbc1a4cc70c55492d5d27ec7153c23d2c4f5f8b9abd832e2a4be"
+      "contract_sha256": "39ab4d27ada206899fe8625460a17a2147f7c1b08afcfc029d9194e324ee7acb"
     },
     {
       "id": "shapeit",
@@ -1343,12 +1343,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/torognes/vsearch",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "BSD-2-Clause",
+      "source_sha256": "6a1039a99422340cbfb3c723f0caa414e91e7d36b963075e59f033ac59580c0e",
       "pinned_commit": "bbd17a05faaf7401176e36b7947874c1e5152cee",
       "apptainer_definition": "containers/apptainer/vsearch.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.vsearch",
-      "contract_sha256": "aa66b1707e2c7e1138eed1baf84daf02aa7789c84a73cd0bade5289a8823ed29"
+      "contract_sha256": "cc2a31a1f889b945b9214a48b31626377ee7f8867f85a37cf2981e95261c1fea"
     },
     {
       "id": "yleaf",

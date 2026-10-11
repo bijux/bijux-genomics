@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: MIT
+set -eu
+
+case "${1:-}" in
+    --version)
+        echo 'bedtools v2.31.1'
+        ;;
+    --help|-h|"")
+        /opt/bedtools/bin/bedtools-native --help 2>&1 || true
+        ;;
+    --governed-invalid-option)
+        echo 'bedtools: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/bedtools/bin/bedtools-native "$@"
+        ;;
+esac

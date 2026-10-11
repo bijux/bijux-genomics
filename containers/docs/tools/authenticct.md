@@ -12,7 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/authenticct.license.toml](../../licenses/authenticct.license.toml)
 
 - Version: `1.0.0`
-- License: `NOASSERTION`
+- License: `GPL-3.0-only`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

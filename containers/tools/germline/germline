@@ -1,0 +1,54 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: Apache-2.0
+set -eu
+
+die() {
+    printf 'germline: error: %s\n' "$1" >&2
+    exit 2
+}
+
+validate_native_arguments() {
+    input_seen=false
+    output_seen=false
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            -input)
+                [ "$#" -ge 3 ] || die '-input requires PED and MAP paths'
+                [ -f "$2" ] || die "input PED does not exist: $2"
+                [ -f "$3" ] || die "input MAP does not exist: $3"
+                input_seen=true
+                shift 3
+                ;;
+            -output)
+                [ "$#" -ge 2 ] || die '-output requires a prefix'
+                output_parent=$(dirname "$2")
+                [ -d "$output_parent" ] || die "output directory does not exist: $output_parent"
+                [ -w "$output_parent" ] || die "output directory is not writable: $output_parent"
+                output_seen=true
+                shift 2
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+    [ "$input_seen" = true ] || die 'native execution requires -input PED MAP'
+    [ "$output_seen" = true ] || die 'native execution requires -output PREFIX'
+}
+
+case "${1:-}" in
+    --version)
+        echo 'germline 1.5.3'
+        ;;
+    --help|-h|"")
+        printf '%s\n' \
+            'usage: germline -input INPUT_PREFIX -output OUTPUT_PREFIX [native options]' \
+            '' \
+            'Run the pinned GERMLINE 1.5.3 binary with native PED/MAP input.' \
+            'Use --version to print the governed runtime version.'
+        ;;
+    *)
+        validate_native_arguments "$@"
+        exec /opt/germline/bin/germline-native "$@"
+        ;;
+esac

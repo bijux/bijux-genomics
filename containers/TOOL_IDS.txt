@@ -42,7 +42,7 @@ fqtools	production
 gatk	experimental
 germline	experimental
 glimpse	planned
-ibdhap	planned
+ibdhap	experimental
 ibdne	planned
 ibdseq	planned
 impute5	unsupported

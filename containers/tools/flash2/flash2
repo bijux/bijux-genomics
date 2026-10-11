@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: GPL-3.0-or-later
+set -eu
+
+case "${1:-}" in
+    --version)
+        echo 'flash2 2.2.00'
+        ;;
+    --help|-h|"")
+        exec /opt/flash2/bin/flash2-native --help
+        ;;
+    --governed-invalid-option)
+        echo 'flash2: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/flash2/bin/flash2-native "$@"
+        ;;
+esac

@@ -1,0 +1,45 @@
+{
+  "schema_version": "bijux.container.report_index.v1",
+  "report_id": "lunarc-ancient-genotype-likelihoods",
+  "site": "lunarc",
+  "corpus": "ena-prjeb22390-err2112767",
+  "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
+  "claims": {
+    "runtime": "passed",
+    "stage": "passed",
+    "science": "not_assessed",
+    "benchmark": "not_assessed",
+    "release": "not_qualified"
+  },
+  "runs": [
+    {
+      "tool": "angsd",
+      "run_id": "run-1094",
+      "repository_commit": "555e96c43b87ad12b9eb057d43cca6a1c08ad4d6",
+      "slurm_job_id": "3458115",
+      "status": "passed",
+      "elapsed_seconds": 2,
+      "image_sha256": "57a9d028f40a93703044c1dc2f17a97ad440e8acaf370e8b56df16d943d6c776",
+      "image_size_bytes": 210747392,
+      "build_evidence_sha256": "3739872a66182e52aa653913a101a25de7588674749018d45702b5076a885922",
+      "input_bam_sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87",
+      "input_index_sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3",
+      "evidence_sha256": "be612588b0be19687678fded7a96f5795653fc2cf386006c71ffd8f35891ccc3",
+      "accounting_sha256": "ed6b956ea8b1d97bb431159bb759caa7aca29eeb94b7dc438d28df6daa1f2608",
+      "outputs": {
+        "arguments_sha256": "38492a1e4052f5d6b663e9942201c7d9271c27157fb455f76e7635dc8d6bf7f5",
+        "beagle_sha256": "da7d86b29e1255c8f96f3f546603fc27ad30d6153a19279f7fbc8c4e2d13e541",
+        "beagle_bytes": 1518600,
+        "maf_sha256": "5171f1b8d8940d6a7afc7e5367971be5bc96b22942331241f6adab1c681ba101",
+        "maf_bytes": 1275716
+      },
+      "observations": {
+        "sites_read": 404955,
+        "sites_retained": 388677,
+        "samples": 1,
+        "minimum_mapping_quality": 20,
+        "minimum_base_quality": 20
+      }
+    }
+  ]
+}

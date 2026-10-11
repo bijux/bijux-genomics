@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: MIT
+set -eu
+
+case "${1:-}" in
+    --version)
+        echo 'seqkit_stats 2.8.2'
+        ;;
+    --help|-h|"")
+        exec /opt/seqkit/bin/seqkit-native stats --help
+        ;;
+    *)
+        exec /opt/seqkit/bin/seqkit-native stats "$@"
+        ;;
+esac

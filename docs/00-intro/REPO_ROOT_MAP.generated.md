@@ -39,7 +39,6 @@ Top-level workspace paths only.
 | `rust-toolchain.toml` | `file` | `-` | - |
 | `rustfmt.toml` | `file` | `-` | - |
 | `science` | `dir` | `-` | - |
-| `tests` | `dir` | `-` | - |
 
 ## Automation Intent
 | Control Plane Path | Purpose |

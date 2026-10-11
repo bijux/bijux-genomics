@@ -1,0 +1,69 @@
+{
+  "schema_version": "bijux.container.report_index.v1",
+  "report_id": "lunarc-vcf-qc",
+  "site": "lunarc",
+  "corpus": "1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome",
+  "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
+  "claims": {
+    "runtime": "passed",
+    "stage": "passed",
+    "science": "not_assessed",
+    "benchmark": "not_assessed",
+    "release": "not_qualified"
+  },
+  "runs": [
+    {
+      "tool": "plink2",
+      "run_id": "run-1063",
+      "repository_commit": "7950bde13673acbf12afd252b278ed185234274c",
+      "slurm_job_id": "3457946",
+      "status": "passed",
+      "elapsed_seconds": 6,
+      "record_count": 41924,
+      "sample_count": 100,
+      "evidence_sha256": "5f76fbc09392ef7ba0b447a66e3ee6aa5ff09df51245932cb71cee82a055aef2",
+      "accounting_sha256": "c050b610a45964d9da8f1a2f9e981420bd711851a05e38c889bc155b5ada5127",
+      "output_sha256": "b30fdaa5cf4f171a0b39df7848b2de6174cb75a98a6f55d0211c5bb1cc02e103"
+    },
+    {
+      "tool": "plink2",
+      "run_id": "run-1064",
+      "repository_commit": "7950bde13673acbf12afd252b278ed185234274c",
+      "slurm_job_id": "3457961",
+      "status": "passed",
+      "elapsed_seconds": 24,
+      "output_kind": "ped_map_interchange",
+      "evidence_sha256": "41fb9e8dccb0f862f33289b0a7dbf76b39d4756abe0b40b7ffd8a4731e331043",
+      "accounting_sha256": "741e1c40c30d9a023ddcf9ffaca78e89c16df56c30822fa81d1749e3943781a9",
+      "ped_sha256": "8b41fd461bd92fcb2479115838a6e15a8b27c7c48a541d137d4946c0b1e7967f",
+      "map_sha256": "f2aa63ea1b97682ada7a75f753e17d7351c506361f0ca3aaff454fd39c195c29"
+    },
+    {
+      "tool": "plink",
+      "run_id": "run-1066",
+      "repository_commit": "1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+      "slurm_job_id": "3457971",
+      "status": "passed",
+      "elapsed_seconds": 7,
+      "evidence_sha256": "b1089ba1ca0ac57cba8a18574bd2931c55dbdaf3145485f966036437e2b5b637",
+      "accounting_sha256": "2082700ba91b602232b0291a88832fd74e3a06a69c26053b31827cb81e72e8e4",
+      "output_sha256": "83a19b6dc64cdf725ba92ca901dc15f431475cca9ee64de889d36b3f7c23b20a"
+    },
+    {
+      "tool": "eigensoft",
+      "run_id": "run-1070",
+      "repository_commit": "e91d3dac0ccf34fba5f266ab175449ddeb5a7079",
+      "slurm_job_id": "3457998",
+      "status": "passed",
+      "elapsed_seconds": 5,
+      "sample_count": 100,
+      "principal_component_count": 10,
+      "population_labels": "absent",
+      "interpretation": "runtime PCA output, not ancestry inference",
+      "evidence_sha256": "137cf7ab69abec9583d3df3260624a7b505f37b57c17d48697e2d4e49141c2e6",
+      "accounting_sha256": "5d786f8988239acbea39397f4fec00baa2cea288b7047c054e00fa92fbb4e5de",
+      "eigenvectors_sha256": "25e766f8bbcb0bac1a2fb4046d72b9eabcf0c1ed79dbb016c5fffc19343f01a8",
+      "eigenvalues_sha256": "759891c83d17cdcacec95e82f0d683be3658ea605f2174f876828d460eebd49d"
+    }
+  ]
+}

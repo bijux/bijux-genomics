@@ -29,7 +29,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 - `eigensoft` (experimental) : vcf.pca, vcf.population_structure
 - `germline` (experimental) : vcf.ibd
 - `glimpse` (planned) : vcf.impute, vcf.imputation_metrics
-- `ibdhap` (planned) : vcf.ibd
+- `ibdhap` (experimental) : vcf.ibd
 - `ibdne` (planned) : vcf.ibd, vcf.demography
 - `ibdseq` (planned) : vcf.ibd
 - `impute5` (unsupported) : vcf.impute, vcf.imputation_metrics
@@ -78,7 +78,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `gatk` | `transform` | `bam.recalibration` | `bijuxdna/gatk:4.6.2.0` | `4.6.2.0` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC2928508/ | `production` |
 | `germline` | `relatedness` | `vcf.ibd` | `registry_lock` | `1.5.3` | planned | `experimental` |
 | `glimpse` | `imputation` | `vcf.impute, vcf.imputation_metrics` | `registry_lock` | `0.0.0-planned` | planned | `planned` |
-| `ibdhap` | `relatedness` | `vcf.ibd` | `registry_lock` | `0.1.0-planned` | planned | `planned` |
+| `ibdhap` | `relatedness` | `vcf.ibd` | `registry_lock` | `3.4` | Thompson EA. The MORGAN package for Markov chain Monte Carlo in genetic analysis. | `experimental` |
 | `ibdne` | `demography` | `vcf.ibd, vcf.demography` | `registry_lock` | `1.0-planned` | planned | `planned` |
 | `ibdseq` | `relatedness` | `vcf.ibd` | `registry_lock` | `3.0-planned` | planned | `planned` |
 | `impute5` | `imputation` | `vcf.impute, vcf.imputation_metrics` | `external@licensed-installation` | `1.2.0` | paper:https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009049 | `unsupported` |

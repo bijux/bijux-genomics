@@ -42,6 +42,37 @@ def git_blob(repository: Path, commit: str, relative_path: Path) -> bytes:
     return completed.stdout
 
 
+def definition_file_sources(definition: bytes) -> list[Path]:
+    sources: list[Path] = []
+    in_files = False
+    for raw_line in definition.decode("utf-8").splitlines():
+        line = raw_line.strip()
+        if line.startswith("%"):
+            in_files = line == "%files"
+            continue
+        if not in_files or not line or line.startswith("#"):
+            continue
+        source = Path(line.split()[0])
+        if source.is_absolute() or ".." in source.parts:
+            raise ContractError(f"%files source must remain repository-relative: {source}")
+        sources.append(source)
+    return sources
+
+
+def committed_build_context(
+    repository: Path,
+    commit: str,
+    definition: bytes,
+) -> list[dict[str, str]]:
+    context: list[dict[str, str]] = []
+    for source in definition_file_sources(definition):
+        object_id = git_output(repository, "rev-parse", f"{commit}:{source.as_posix()}")
+        if not (repository / source).exists():
+            raise ContractError(f"%files source is absent from the active worktree: {source}")
+        context.append({"path": source.as_posix(), "git_object": object_id})
+    return context
+
+
 def immutable_image_name(tool: str, version: str, architecture: str, digest: str) -> str:
     return f"{tool}-{version}-{architecture.replace('/', '-')}-{digest[:12]}.sif"
 
@@ -68,6 +99,12 @@ def finalize_image(
     if git_output(repository, "status", "--porcelain"):
         raise ContractError("active repository must be clean before image admission")
     git_output(repository, "cat-file", "-e", f"{repository_commit}^{{commit}}")
+    active_commit = git_output(repository, "rev-parse", "HEAD")
+    if active_commit != repository_commit:
+        raise ContractError(
+            "active repository HEAD must equal the declared build commit: "
+            f"{active_commit} != {repository_commit}"
+        )
 
     definition_path = definition_path.resolve()
     definition_root = repository / "containers" / "apptainer"
@@ -79,6 +116,7 @@ def finalize_image(
     committed_definition = git_blob(repository, repository_commit, definition_relative)
     if definition_path.read_bytes() != committed_definition:
         raise ContractError("definition differs from the declared repository commit")
+    build_context = committed_build_context(repository, repository_commit, committed_definition)
 
     study_root: Path = governance["study_root"]
     image_root = study_root / "containers" / "apptainer"
@@ -158,6 +196,7 @@ def finalize_image(
             "path": definition_relative.as_posix(),
             "sha256": definition_sha256,
         },
+        "build_context": build_context,
         "build_log": {
             "path": str(build_log_path),
             "sha256": sha256_file(build_log_path),

@@ -12,7 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/fastqc.license.toml](../../licenses/fastqc.license.toml)
 
 - Version: `0.12.1`
-- License: `NOASSERTION`
+- License: `GPL-3.0-only`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 
