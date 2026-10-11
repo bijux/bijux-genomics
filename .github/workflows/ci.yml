@@ -32,14 +32,14 @@ jobs:
       - name: "Check out the repository"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
           components: rustfmt
       - name: "Set up sccache"
         uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
       - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-fmt
       - name: "Run repository formatting gate"
@@ -55,14 +55,14 @@ jobs:
       - name: "Install Linux build dependencies"
         run: "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev"
       - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
           components: clippy
       - name: "Set up sccache"
         uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
       - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-lint
       - name: "Run repository lint gate"
@@ -76,13 +76,13 @@ jobs:
       - name: "Check out the repository"
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - name: "Set up sccache"
         uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
       - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-audit
       - name: "Install Rust audit tools"
@@ -100,13 +100,13 @@ jobs:
       - name: "Install Linux build dependencies"
         run: "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev"
       - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+        uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - name: "Set up sccache"
         uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
       - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-test
       - name: "Install cargo-nextest"
@@ -123,11 +123,11 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "SSOT policy fast gate"
@@ -137,7 +137,6 @@ jobs:
         run:
           |
             make ssot-policy-fast
-          
   workspace_hygiene:
     name: workspace-hygiene
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -147,11 +146,11 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Workspace formatting and lint gate"
@@ -162,7 +161,6 @@ jobs:
           |
             make fmt
             make lint-workspace
-          
   unit_contract_fast:
     name: unit-contract-fast
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -172,11 +170,11 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Unit and contract gate"
@@ -186,7 +184,6 @@ jobs:
         run:
           |
             make _unit-contract-fast
-          
   release_readiness:
     name: release-readiness
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -196,11 +193,11 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Release readiness gate"
@@ -210,7 +207,6 @@ jobs:
         run:
           |
             make _release-readiness
-          
   fastq_container_readiness:
     name: fastq-container-readiness
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -220,11 +216,11 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "FASTQ container readiness gate"
@@ -234,7 +230,6 @@ jobs:
         run:
           |
             make _fastq-container-readiness
-          
   profile_invariants:
     name: profile-invariants
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -244,11 +239,11 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Profile invariants gate"
@@ -258,7 +253,6 @@ jobs:
         run:
           |
             make _test-profile-invariants
-          
   cargo_policy:
     name: cargo-policy
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -268,11 +262,11 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Cargo policy gate"
@@ -282,7 +276,6 @@ jobs:
         run:
           |
             make _policy-no-raw-cargo
-          
   fast-tier:
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (always() && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]')))) }}"
     runs-on: ubuntu-latest
@@ -330,7 +323,6 @@ jobs:
               "${CARGO_POLICY_RESULT}"; do
               [[ "${result}" == "success" ]]
             done
-          
   benchmark-active-scope:
     runs-on: ubuntu-latest
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -339,18 +331,17 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Active benchmark readiness"
         run:
           |
             make bench-active-fast
-          
   parser-fixtures:
     runs-on: ubuntu-latest
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -359,18 +350,17 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Parser fixtures"
         run:
           |
             make bench-parser-fast
-          
   adapter-rendering:
     runs-on: ubuntu-latest
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -379,18 +369,17 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Adapter rendering"
         run:
           |
             make bench-adapter-fast
-          
   science-fixtures:
     runs-on: ubuntu-latest
     if: "${{ (github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]') && (github.event_name == 'workflow_dispatch' || github.event_name == 'merge_group' || (github.event_name == 'pull_request' && github.event.pull_request.user.type != 'Bot' && !endsWith(github.event.pull_request.user.login, '[bot]'))) }}"
@@ -399,15 +388,14 @@ jobs:
       RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
         with:
           toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: ci-build
       - name: "Science fixtures"
         run:
           |
             make science-fixtures-fast
-          

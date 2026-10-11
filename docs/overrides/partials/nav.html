@@ -1,0 +1,47 @@
+{% set bijux = config.extra.bijux if config.extra and config.extra.bijux else {} %}
+{% set hub_links = bijux.hub_links if bijux and bijux.hub_links else [] %}
+{% set active_repository = bijux.repository if bijux and bijux.repository else "" %}
+{% import "partials/nav-item.html" as item with context %}
+{% set page_occurrences = {} %}
+{% for document in nav.pages %}
+  {% set source = document.file.src_uri %}
+  {% set _ = page_occurrences.update({source: page_occurrences.get(source, 0) + 1}) %}
+{% endfor %}
+<nav id="bijux-navigation" class="md-nav md-nav--primary bijux-nav bijux-nav--mobile" aria-label="{{ config.site_name | e }} documentation navigation" data-md-level="0" data-bijux-nav-variant="complete">
+  <div class="bijux-nav__title">
+    <a href="{{ config.extra.homepage | d(nav.homepage.url, true) | url }}" class="md-nav__button md-logo" aria-label="{{ config.site_name }}" data-md-component="logo">
+      {% include "partials/logo.html" %}
+    </a>
+    <span class="bijux-nav__site-name">{{ config.site_name }}</span>
+    <label class="bijux-drawer-close md-icon" role="button" tabindex="0" aria-label="Close navigation" data-bijux-control-target="__drawer" data-bijux-control-close>
+      {% include ".icons/material/close.svg" %}
+    </label>
+  </div>
+  <ul class="md-nav__list bijux-tree" data-md-scrollfix>
+    {% for nav_item in nav %}
+      {%- set authored = none -%}
+      {%- if config.nav is mapping -%}
+        {%- set names = config.nav | list -%}
+        {%- if loop.index0 < names | length -%}
+          {%- set name = names[loop.index0] -%}
+          {%- set authored = {name: config.nav[name]} -%}
+        {%- endif -%}
+      {%- elif config.nav is sequence and config.nav is not string and loop.index0 < config.nav | length -%}
+        {%- set authored = config.nav[loop.index0] -%}
+      {%- endif -%}
+      {{ item.render(nav_item, "bijux-node-" ~ loop.index, 1, authored, page_occurrences) }}
+    {% endfor %}
+  </ul>
+  {% if hub_links %}
+    <section class="bijux-site-registry" aria-labelledby="bijux-sites-title">
+      <h2 id="bijux-sites-title">Bijux sites</h2>
+      <ul class="bijux-mobile-hub__list">
+        {% for entry in hub_links %}
+          <li class="bijux-mobile-hub__item{{ ' bijux-mobile-hub__item--active' if entry.key == active_repository else '' }}">
+            <a href="{{ entry.url }}" class="bijux-mobile-hub__link"{{ ' aria-current="location"' if entry.key == active_repository else '' }}>{{ entry.label }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endif %}
+</nav>

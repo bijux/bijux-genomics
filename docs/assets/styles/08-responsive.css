@@ -1,0 +1,460 @@
+/* Responsive composition follows Material's admitted drawer breakpoint. */
+.md-sidebar--primary .bijux-nav--mobile {
+  display: block;
+}
+
+.md-header__inner {
+  gap: 0.35rem;
+  min-block-size: 2.2rem;
+}
+
+.md-header__title {
+  min-inline-size: 0;
+}
+
+.bijux-header-tools {
+  flex: 0 0 auto;
+}
+
+.md-header__button,
+.bijux-header-tools .md-source {
+  min-inline-size: 2.2rem;
+  min-block-size: 2.2rem;
+}
+
+.bijux-header-tools .md-header__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+}
+
+.bijux-site-tabs .md-tabs__list.bijux-tabs__list--site,
+.bijux-detail-tabs .bijux-tabs__list,
+.bijux-course-tabs .bijux-tabs__list {
+  min-block-size: 2.2rem;
+  padding-block: 0.15rem;
+}
+
+.bijux-site-tabs .md-tabs__link.bijux-tabs__link--site,
+.bijux-detail-tabs .bijux-tabs__link,
+.bijux-course-tabs .bijux-tabs__link {
+  min-block-size: 2rem;
+  padding-block: 0.3rem;
+}
+
+@media screen and (min-width: 76.25em) {
+  /* Native in-flow disclosures need an owning desktop hit surface. Material's
+     zero-height sticky shell otherwise leaves the visible tree outside its box. */
+  .md-sidebar.md-sidebar--primary:has([data-bijux-nav-variant="complete"]) {
+    height: auto;
+  }
+
+  .md-grid {
+    max-width: min(calc(100vw - 3rem), var(--bijux-shell-width));
+  }
+  /* An owned visible desktop registry is the sole global-site presentation.
+     Native Material headers retain the complete sidebar registry. */
+  body:has(> header[data-bijux-drawer-target] .bijux-hub-strip:not([hidden]))
+    .md-sidebar--primary .bijux-site-registry { display: none; }
+
+  /* The complete sidebar tree owns local document context at desktop widths.
+     Preserve contextual ribbons when the complete owned tree is unavailable. */
+  body:has(.md-sidebar--primary [data-bijux-nav-variant="complete"])
+    > header[data-bijux-drawer-target] :is(.bijux-site-tabs, .bijux-detail-tabs, .bijux-course-tabs) {
+    display: none !important;
+  }
+
+  .md-header__title { display: none; }
+  .md-header__button[data-bijux-header-control="drawer-toggle"],
+  .bijux-drawer-close { display: none; }
+}
+
+/* Native checkbox navigation becomes the sole local presentation while open.
+   Closed compact headers and native Material headers retain their own controls. */
+@media screen and (min-width: 48em) and (max-width: 76.2344em) {
+  body:has(#__drawer:checked):has(.md-sidebar--primary [data-bijux-nav-variant="complete"])
+    > header[data-bijux-drawer-target] :is(.bijux-site-tabs, .bijux-detail-tabs, .bijux-course-tabs) {
+    display: none !important;
+  }
+}
+
+@media screen and (min-width: 90em) {
+  :root { --bijux-shell-width: var(--bijux-shell-width-wide); }
+}
+
+@media screen and (min-width: 110em) {
+  :root { --bijux-shell-width: var(--bijux-shell-width-ultra); }
+}
+
+@media screen and (max-width: 76.2344em) {
+  .bijux-hub-strip,
+  .bijux-detail-tabs,
+  .bijux-course-tabs { display: none !important; }
+
+  [data-bijux-header-control="drawer-toggle"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+  }
+
+  .md-header__inner { padding-block: 0.15rem; }
+  .md-header__button.md-logo { margin: 0; }
+  .bijux-header-tools { gap: 0.1rem; }
+  .bijux-header-tools .md-header__source { display: none; }
+  .md-header__topic[data-md-component="header-topic"] { display: none; }
+
+  body[data-bijux-drawer-ready="true"] .md-sidebar.md-sidebar--primary {
+    position: fixed;
+    top: var(--md-header-height, 3rem);
+    bottom: 0;
+    left: auto;
+    right: auto;
+    inset-inline-start: 0;
+    inline-size: min(20rem, 92vw);
+    min-width: 0;
+    max-width: 92vw;
+    height: auto;
+    max-height: calc(100vh - var(--md-header-height, 3rem));
+    max-height: calc(100dvh - var(--md-header-height, 3rem));
+    background: var(--md-default-bg-color);
+    border-inline-end: 1px solid var(--bijux-border);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    visibility: hidden;
+    transform: translateX(-100%);
+  }
+
+  body[dir="rtl"][data-bijux-drawer-ready="true"] .md-sidebar.md-sidebar--primary,
+  [dir="rtl"] body[data-bijux-drawer-ready="true"] .md-sidebar.md-sidebar--primary { transform: translateX(100%); }
+  body[data-bijux-drawer-ready="true"] #__drawer:checked ~ .md-container .md-sidebar--primary,
+  body[data-bijux-drawer-ready="true"] #__drawer:checked ~ .md-main .md-sidebar--primary {
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  .md-sidebar--primary .md-sidebar__scrollwrap,
+  .md-sidebar--primary .md-sidebar__inner {
+    position: static;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  html { scroll-padding-top: 6rem; }
+  body[data-bijux-drawer-ready="true"][data-bijux-drawer-open="true"] { overflow: hidden; }
+}
+
+@media screen and (max-width: 47.9375em) {
+  .bijux-site-tabs { display: none !important; }
+  .md-header__inner { gap: 0.15rem; }
+  .md-header__title { margin-inline: 0.2rem; flex: 1; }
+  .md-header__ellipsis { overflow: hidden; }
+  .md-header__topic { position: static; }
+  /* Own spacing above Material's direction-specific title margins. Intrinsic
+     text and tool sizes may wrap instead of losing the site identity. */
+  .md-header[data-bijux-header-contract] .md-header__inner { flex-wrap: wrap; }
+  .md-header[data-bijux-header-contract] .md-header__title {
+    margin-inline: 0.1rem;
+    flex: 1 1 min-content;
+    min-inline-size: min-content;
+    height: auto;
+    line-height: 1.5;
+  }
+  .md-header[data-bijux-header-contract] .md-header__ellipsis {
+    height: auto;
+    overflow: visible;
+  }
+  .md-header[data-bijux-header-contract] [data-bijux-header-topic="site"] .md-ellipsis {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    overflow: visible;
+  }
+  .bijux-header-tools { margin-inline-start: 0; }
+  .bijux-header-tools .md-search__inner { width: 100%; }
+  html { scroll-padding-top: 4rem; }
+}
+
+@media screen and (max-width: 44.9375em) {
+  .md-header__topic[data-md-component="header-topic"] {
+    display: none;
+  }
+
+  .md-header__inner {
+    padding-block: 0.24rem;
+  }
+
+  .md-main__inner {
+    margin-top: 0.34rem;
+  }
+
+  .bijux-header-tools .md-source {
+    display: none;
+  }
+
+  .bijux-header-tools .md-search__inner {
+    width: auto;
+  }
+
+  .md-content__inner > .md-content__button {
+    background: var(--bijux-panel);
+    border: 1px solid var(--bijux-border);
+    border-radius: 999px;
+    float: none;
+    margin: 0 0.4rem 0.7rem 0;
+    padding: 0.35rem;
+  }
+
+  .md-content__inner > h1 {
+    clear: both;
+  }
+
+  .bijux-header-tools .md-search__inner {
+    width: min(100%, calc(100vw - 7.75rem));
+  }
+
+  .bijux-quicklinks {
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: 1fr;
+  }
+
+  .bijux-panel-grid,
+  .bijux-media-grid,
+  .bijux-showcase-grid {
+    gap: 0.9rem;
+    grid-template-columns: 1fr;
+    margin: 1.25rem 0;
+  }
+
+  .bijux-panel,
+  .bijux-callout,
+  .bijux-showcase-card {
+    border-radius: 0.9rem;
+    box-shadow: 0 12px 26px rgba(30, 41, 89, 0.08);
+    padding: 0.95rem 1rem;
+  }
+
+  .bijux-hero {
+    border-radius: 1.05rem;
+    gap: 0.4rem;
+    padding: 1.1rem 0.95rem 1rem;
+  }
+
+  .bijux-hero__title {
+    font-size: clamp(1.8rem, 10vw, 2.5rem);
+    max-width: none;
+  }
+
+  .bijux-hero__eyebrow {
+    font-size: 0.67rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.55rem;
+  }
+
+  .bijux-hero__lede {
+    font-size: 0.98rem;
+    line-height: 1.72;
+  }
+
+  .bijux-topic-row {
+    gap: 0.55rem;
+  }
+
+  .bijux-topic-pill {
+    font-size: 0.72rem;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .md-typeset pre,
+  .md-typeset .mermaid,
+  .md-typeset table:not([class]) {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .md-typeset pre > code {
+    font-size: 0.78rem;
+  }
+
+  .md-typeset table:not([class]) {
+    display: table;
+    font-size: 0.8rem;
+    overflow-x: visible;
+    white-space: normal;
+    width: auto;
+  }
+
+  .md-typeset table:not([class]) th,
+  .md-typeset table:not([class]) td {
+    min-inline-size: min(10.5rem, calc(100vw - 4rem));
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .md-typeset .mermaid {
+    padding: 0.75rem;
+  }
+
+  .md-typeset .mermaid svg {
+    max-width: none;
+    min-width: 18rem;
+  }
+
+  .md-typeset .md-button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .md-main__inner {
+    margin-top: 0.45rem;
+  }
+
+  .md-content__inner {
+    padding-bottom: 2.4rem;
+  }
+
+  .bijux-map-frame iframe {
+    min-height: 58vh;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .bijux-panel:hover,
+  .bijux-showcase-card:hover,
+  .md-typeset .md-button:hover,
+  .bijux-hub-strip .bijux-tabs__link:hover,
+  .bijux-hub-strip .bijux-tabs__item--active .bijux-tabs__link,
+  .bijux-site-tabs .bijux-tabs__link:hover,
+  .bijux-site-tabs .bijux-tabs__item--active .bijux-tabs__link,
+  .bijux-detail-tabs .bijux-tabs__link:hover,
+  .bijux-detail-tabs .bijux-tabs__item--active .bijux-tabs__link {
+    transform: none;
+  }
+}
+
+/* Preserve useful content height: identity, site sections, one contextual ribbon. */
+.bijux-hub-strip .bijux-tabs__list { padding-block: 0.15rem; }
+.bijux-hub-strip .bijux-tabs__link { min-block-size: 2.2rem; }
+.bijux-site-tabs .md-tabs__item.bijux-tabs__item { height: auto; padding-inline: 0.25rem; }
+.bijux-site-tabs .md-tabs__link.bijux-tabs__link--site { margin-block: 0; }
+
+/* Larger text must preserve all primary controls within a narrow masthead. */
+@media (max-width: 47.9375em) {
+  .bijux-header-tools .md-header__button,
+  .md-header__button[data-bijux-header-control] {
+    box-sizing: border-box;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    inline-size: clamp(44px, 2.2rem, 56px);
+    padding: 4px;
+  }
+  .bijux-header-tools .md-header__button svg,
+  .md-header__button[data-bijux-header-control] svg {
+    max-inline-size: 100%;
+    max-block-size: 100%;
+  }
+}
+
+/* The admitted Material checkbox keeps its native Space activation without scripts. */
+.bijux-native-drawer-label { display: none; }
+
+body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) [data-bijux-header-control="drawer-toggle"],
+body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) [data-bijux-header-control="search-toggle"],
+body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) [data-bijux-control-close],
+body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) .md-overlay { display: none; }
+
+@media screen and (max-width: 76.2344em) {
+  /* Keep the native 44px target and its 5px outer focus extent on the
+     opaque header surface while allowing enlarged content to grow. */
+  body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) > header .md-header__inner {
+    min-block-size: 54px;
+    padding-block: 5px;
+    align-items: flex-start;
+  }
+
+  /* Native labels stay beside their fixed-size checkbox; an intrinsically
+     wider identity can take another row instead of a narrow word column. */
+  body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) > header .md-header__title {
+    flex-basis: auto;
+  }
+
+  body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) #__drawer {
+    display: block;
+    position: fixed;
+    inset-block-start: 5px;
+    inset-inline-start: 6px;
+    inline-size: 44px;
+    block-size: 44px;
+    margin: 0;
+    opacity: 1;
+    visibility: visible;
+    z-index: 7;
+    accent-color: var(--md-accent-fg-color);
+  }
+
+  body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) #__drawer:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
+
+  body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) .bijux-native-drawer-label {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    padding-inline-start: 50px;
+    padding-inline-end: 0.3rem;
+    font-size: 0.64rem;
+    font-weight: 700;
+    cursor: pointer;
+    flex: 0 0 auto;
+  }
+}
+
+/* Native fallback remains in document flow until the owned drawer is ready. */
+@media screen and (max-width: 76.2344em) {
+  body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) .md-sidebar.md-sidebar--primary {
+    display: none;
+    position: static;
+    inset: auto;
+    inline-size: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: auto;
+    max-height: none;
+    margin: 0;
+    visibility: visible;
+    transform: none;
+    overflow: visible;
+    background: var(--md-default-bg-color);
+  }
+  body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) #__drawer:checked ~ .md-container .md-sidebar--primary,
+  body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) #__drawer:checked ~ .md-main .md-sidebar--primary {
+    display: block;
+    transform: none;
+    box-shadow: none;
+  }
+  body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) .md-main__inner { display: block; }
+
+}
+
+/* Native header focus uses system foreground when forced colors are active. */
+@media (forced-colors: active) {
+  body:has(> header[data-bijux-drawer-target]):not([data-bijux-drawer-ready="true"]) #__drawer:focus-visible {
+    outline-color: CanvasText;
+  }
+}
