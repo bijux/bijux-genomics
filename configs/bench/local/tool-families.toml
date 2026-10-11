@@ -62,7 +62,7 @@ tool_ids = ["bayeshammer", "lighter", "musket", "rcorrector"]
 [[families]]
 family_id = "duplicate_handling"
 summary = "Tools whose primary benchmark role is identifying or removing duplicate reads."
-tool_ids = ["clumpify", "fastuniq"]
+tool_ids = ["clumpify"]
 
 [[families]]
 family_id = "umi_processing"

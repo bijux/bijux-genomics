@@ -1,0 +1,111 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "fastuniq",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "70aaf1ce2c156f4d34287baa0339f269d778fc82f3359f2084986be4ce7d566c"
+    },
+    "negative": {
+      "argv": [
+        "fastuniq",
+        "-i",
+        "/governed-missing-inputs.txt",
+        "-t",
+        "q",
+        "-o",
+        "/tmp/missing.fastq"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "7fb968a37b93ac3fec85b6325a3599b5d93f137ffbeb2f28a5ad9fd43e7edb9c",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "fastuniq",
+        "-i",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/container-validation/fastuniq/ERR1021817.read-prefix-100000.inputs.txt",
+        "-t",
+        "q",
+        "-o",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastuniq/run-1023/unique_1.fastq",
+        "-p",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastuniq/run-1023/unique_2.fastq"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "fastuniq",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "1523e9e982ff804c6d979e1bb2c6f3d7bae35307e8ce458bffc0d12a442b98da"
+    }
+  },
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fastuniq-1.1-linux-amd64-acd5448128a3.sif",
+    "sha256": "acd5448128a3cb760ca97ce9ba38e87275e994c6434d33e7c3b04e2b35a3632e",
+    "size_bytes": 132460544
+  },
+  "inputs": [
+    {
+      "id": "fastuniq-pair-list",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/container-validation/fastuniq/ERR1021817.read-prefix-100000.inputs.txt",
+      "sha256": "76ecf9fe7c60fec84a68cbdb96f88903e8369fb0e96586d2c71a0deace8e594e"
+    },
+    {
+      "id": "fqtools-run-1021-mate1",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fqtools/run-1021/mate1.fastq",
+      "sha256": "f95166df34bf2c3ce3b8641f62068a3ab1e3a9bbb1ec71c570035b7d844588e2"
+    },
+    {
+      "id": "fqtools-run-1022-mate2",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fqtools/run-1022/mate2.fastq",
+      "sha256": "6aeb5d35367d230e90f5709899411f3bcae1bde280d8409931af7ea398f75acc"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "unique_1.fastq",
+      "sha256": "03c25c96bf21395c8814246fb9bdce6a3a5f62e01876e92081e25bd4cc6e09ee",
+      "size_bytes": 26002257
+    },
+    {
+      "path": "unique_2.fastq",
+      "sha256": "6448a5aa9cf64663102c2327b61d969801cecb4474bb8a91edbda59fed5f85c0",
+      "size_bytes": 25729335
+    }
+  ],
+  "pipeline_sha256": "ad8172614dba298c81cbab30029b809a0cd8c9d036967308fcdc800f1198d214",
+  "repository_clean": true,
+  "repository_commit": "8cee26d799267731746bd3b1679af4f4c8f8f1cc",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/8cee26d799267731746bd3b1679af4f4c8f8f1cc",
+  "run_id": "run-1023",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "host": "cn053",
+    "slurm_job_id": "3457651",
+    "started_at_utc": "2026-08-02T15:12:43.675497+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn053",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

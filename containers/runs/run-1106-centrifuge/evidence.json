@@ -1,0 +1,134 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "centrifuge",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "f04f5e605292eb9c056f2af5883bfb0f944b80cceb840b4f07f8f29d5ab76a03"
+    },
+    "negative": {
+      "argv": [
+        "centrifuge",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "e793d8eec10d2763b06a6bddb9421d90247419830132a9e6f7214e2f6cdba542",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "centrifuge",
+        "-x",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/centrifuge/run-1105/nc-038500.1",
+        "-1",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+        "-2",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+        "-p",
+        "2",
+        "--report-file",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/centrifuge/run-1106/single-reference.report.tsv",
+        "-S",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/centrifuge/run-1106/single-reference.classifications.tsv"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "6d80015d33661e84148ebce0b4d1675c0506f369035fdf7ba2f71a2523c29eb9",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "centrifuge",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "75736d5811a6567b06f0ab712fb202f1da67bccfb07bbe8186a1302176c24627"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/centrifuge-1.0.4-linux-amd64-ef902ccdea50.sif",
+    "sha256": "ef902ccdea50babb3c1627156469589f645f6473294650ca0304023aa211d0ec",
+    "size_bytes": 60235776
+  },
+  "inputs": [
+    {
+      "id": "ena-err1021817-read-prefix-100000-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    },
+    {
+      "id": "ena-err1021817-read-prefix-100000-r2",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "sha256": "14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf"
+    },
+    {
+      "id": "centrifuge-run-1105-index-primary",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/centrifuge/run-1105/nc-038500.1.1.cf",
+      "sha256": "c9394eda3879ca88336bc06ab8cf15deb5a33cbbfc338c8c4a0d4c8f64911155"
+    },
+    {
+      "id": "centrifuge-run-1105-index-secondary",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/centrifuge/run-1105/nc-038500.1.2.cf",
+      "sha256": "944e6ddde06795f17db952f8b9456992c318f6bd148836d715729b68916ab10e"
+    },
+    {
+      "id": "centrifuge-run-1105-index-taxonomy",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/centrifuge/run-1105/nc-038500.1.3.cf",
+      "sha256": "da40baa80c50bc3443ee67ed474106c476eabbc4d62247caeaf2e24d851891af"
+    },
+    {
+      "id": "centrifuge-run-1105-index-names",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/centrifuge/run-1105/nc-038500.1.4.cf",
+      "sha256": "69381f0c0c759323f11fc0c02668323629cf5002856da4f4946e51dace031dac"
+    },
+    {
+      "id": "centrifuge-single-reference-catalog",
+      "kind": "database",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/centrifuge-nc-038500.1-single-reference.json",
+      "sha256": "7c135f7a056f46e2bea9e62d02585bb13af75952449106c08cf594c07ed7b00e"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "single-reference.classifications.tsv",
+      "sha256": "a36600e0f92b312cdac95b6baa3992c64aeb36231e4c27f930ad9c8040282830",
+      "size_bytes": 4388753
+    },
+    {
+      "path": "single-reference.report.tsv",
+      "sha256": "ea1242c7dc61db18a65eacd3a30be67c212ea5d40d2c1aeb9cbcdcd4403c6535",
+      "size_bytes": 129
+    }
+  ],
+  "pipeline_sha256": "0770c52320d597f3eb79f1c46c48840be9b6d23e7ff11e2f12a7936430263ec5",
+  "repository_clean": true,
+  "repository_commit": "71bc19ce7b89a7abe7aff3a2ac2058c3067c8468",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/71bc19ce7b89a7abe7aff3a2ac2058c3067c8468",
+  "run_id": "run-1106",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "host": "cn091",
+    "slurm_job_id": "3458128",
+    "started_at_utc": "2026-08-03T01:06:06.162762+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

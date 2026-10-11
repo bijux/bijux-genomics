@@ -1,0 +1,54 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1007
+  campaign: horse-wgs-container-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: fastq.merge_pairs
+  tool: bbmerge
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/a7690273fbf58648d4adf485d7d4037e0f983132
+  commit: a7690273fbf58648d4adf485d7d4037e0f983132
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bbmerge-39.06-linux-amd64-c2eb1201530e.sif
+  sha256: c2eb1201530e2f7113b5e2ca2f1c91aef34b3fc5a6de67cea958c54bc0c32643
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-pair1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: ena-err1021817-read-prefix-100000-pair2
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+      sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+commands:
+  version: [bbmerge, --version]
+  help: [bbmerge, --help]
+  real:
+    - bbmerge
+    - in1=/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - in2=/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+    - out=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bbmerge/run-1007/merged.fastq.gz
+    - outu1=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bbmerge/run-1007/unmerged.pair1.fastq.gz
+    - outu2=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bbmerge/run-1007/unmerged.pair2.fastq.gz
+    - threads=4
+    - overwrite=t
+  negative: [bbmerge, in1=/governed-missing-1.fastq.gz, in2=/governed-missing-2.fastq.gz, out=/tmp/rejected.fastq.gz]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bbmerge/run-1007
+  required_files: [merged.fastq.gz, unmerged.pair1.fastq.gz, unmerged.pair2.fastq.gz]
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 8192
+  walltime: 01:00:00
+  scratch_mb: 2048
+execution: {locale: C, timezone: UTC, runtime_network: false}
+acceptance:
+  version_regex: '^BBMap 39[.]06 [(]BBMerge[)]$'
+  negative_exit_nonzero: true

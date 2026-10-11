@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T14:10:16.928223+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "fc3935cb3dde32c78bb4b457b12d4ba1cefbdc0e9eefe21a4a52ddd754a9e055",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "16",
+      "Elapsed": "00:00:04",
+      "ElapsedRaw": "4",
+      "ExitCode": "0:0",
+      "JobID": "3457602",
+      "JobName": "fastq-deduplicate-clumpify-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn010",
+      "ReqMem": "16G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1008",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457602",
+  "submit_script_sha256": "e453672dc6be166509ada94f02471dc66a8ab72e2919712c211586759af46c6f"
+}

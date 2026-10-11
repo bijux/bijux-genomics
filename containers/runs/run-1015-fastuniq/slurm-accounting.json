@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T15:01:55.146923+00:00",
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "1e380487db195f2842666f1e496589af5fb0cf69f37588f695fb5dd448200495",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "12",
+      "Elapsed": "00:00:03",
+      "ElapsedRaw": "3",
+      "ExitCode": "1:0",
+      "JobID": "3457636",
+      "JobName": "fastq-duplicate-removal-fastuniq-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn053",
+      "ReqMem": "8G",
+      "State": "FAILED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1015",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457636",
+  "submit_script_sha256": "8c7a6fa1e828d9430f2f77f2cfcdb02449918918eb97ea6b42ebc4ddbf9c6c39"
+}

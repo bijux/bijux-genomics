@@ -1,0 +1,119 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "shapeit",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "5c056ae55c63d98cf010fe3f5e72875ebe1e5e49b1e02a9dafc3d4239cedf264"
+    },
+    "negative": {
+      "argv": [
+        "shapeit",
+        "--input",
+        "/governed-missing.vcf.gz",
+        "--map",
+        "/governed-missing-map.gmap.gz",
+        "--region",
+        "22:20000000-22000000",
+        "--output",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/shapeit/run-1037/missing.bcf"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "a3168e270a3672ea73d7ea91d813f4486243511bc7dcff868d60f09c1b5087ec",
+      "stdout_sha256": "f388ba196641d1551ff9a3971002aaf37bde1105c6336ef9a0d3ca82154f0ac3"
+    },
+    "real": {
+      "argv": [
+        "shapeit",
+        "--input",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-20-22mb/normalized.vcf.gz",
+        "--map",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/chr22.b37.shapeit5.gmap.gz",
+        "--region",
+        "22:20000000-22000000",
+        "--thread",
+        "8",
+        "--seed",
+        "15052011",
+        "--output",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/shapeit/run-1037/phased.bcf",
+        "--log",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/shapeit/run-1037/shapeit.log"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "1300c1388180d1a7c1f2870a9f42165df5374fb64d07792945b85222c1816175"
+    },
+    "version": {
+      "argv": [
+        "shapeit",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "bae08d125053a41a41120f13db54200706c022ec2341b43ef9cf15adfa957217"
+    }
+  },
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/shapeit-4.2.2-linux-amd64-9aec28c1a0b7.sif",
+    "sha256": "9aec28c1a0b74dd5fa893e723aea4456794a4bab608b00867925e65ac8671225",
+    "size_bytes": 193593344
+  },
+  "inputs": [
+    {
+      "id": "1000-genomes-phase3-chr22-v5b-biallelic-20-22mb",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-20-22mb/normalized.vcf.gz",
+      "sha256": "f7e7ff32ac8d9c802dff6bc097e28e18111ae3342101294334d01dbc5f0aad15"
+    },
+    {
+      "id": "1000-genomes-phase3-chr22-v5b-biallelic-20-22mb-index",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-20-22mb/normalized.vcf.gz.csi",
+      "sha256": "ed88479f949fe41bae1029c5851e1ee9025ed717ba777081c0cc2883c37edc15"
+    },
+    {
+      "id": "shapeit-c34d4db3-chr22-b37-map",
+      "kind": "reference",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/chr22.b37.shapeit5.gmap.gz",
+      "sha256": "75b0026033139f7c2515eda80c330d93d1eb728374a31e0a713589c0d413b24f"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "phased.bcf",
+      "sha256": "1f7dbdc685af7961c96d54cbbaf535d3018e3bb9acce665a65951790d85fdb7c",
+      "size_bytes": 5516885
+    },
+    {
+      "path": "shapeit.log",
+      "sha256": "86e90c4d6e80204280a56e47859bb9a0c6abb2051064aa77b2f3b85cffb43e03",
+      "size_bytes": 6130
+    }
+  ],
+  "pipeline_sha256": "cb65a0c0924c260def15218b76787ed168ace44779ec21179d8b833090605df6",
+  "repository_clean": true,
+  "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/c07932e6374fc0ef1511a6341223fd8e0baf226c",
+  "run_id": "run-1037",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "8",
+    "host": "cn053",
+    "slurm_job_id": "3457752",
+    "started_at_utc": "2026-08-02T17:02:25.379356+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn053",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

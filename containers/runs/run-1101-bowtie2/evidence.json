@@ -1,0 +1,134 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "bowtie2",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "c5e894b0a2a83cb820f5fa94f9bca177edb0b3c190a0683dddcaebc534fb6fb9"
+    },
+    "negative": {
+      "argv": [
+        "bowtie2",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "2d1916021cf1b268366b397910689ff388eaddfa4cb6ec436b10d399d726e00a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "bowtie2",
+        "--very-sensitive",
+        "--threads",
+        "2",
+        "-x",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase",
+        "-1",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+        "-2",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+        "-S",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2/run-1101/equcab3-first-megabase.sam"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "0a0b258b69900dc775f7fa72ddc3f0f86c389181d60a488ee173379ea15ea744",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "bowtie2",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "541e495e5a2502b9531b0e7bf57e3be963d82a3396a4fdfa0ffec6091158c80b"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bowtie2-2.5.4-linux-amd64-71a296b7b15f.sif",
+    "sha256": "71a296b7b15f5b59c9213910cfad03a7393624b099b2f973041a18c0fb98b558",
+    "size_bytes": 93663232
+  },
+  "inputs": [
+    {
+      "id": "ena-err1021817-read-prefix-100000-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    },
+    {
+      "id": "ena-err1021817-read-prefix-100000-r2",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "sha256": "14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf"
+    },
+    {
+      "id": "bowtie2-index-forward-primary",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.1.bt2",
+      "sha256": "945f5044ebd8db69239aabff27c93076b9803c6c38a10e92b16f26d4ef2dd744"
+    },
+    {
+      "id": "bowtie2-index-forward-secondary",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.2.bt2",
+      "sha256": "427b2699b8344bb7bcd9dc0d069135a3e523388b52693fe9b4a4fc0469a48d11"
+    },
+    {
+      "id": "bowtie2-index-forward-offsets",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.3.bt2",
+      "sha256": "a9b6e245ee52e756e9a37f7ff284df5f420ff79bc9bcc19602d7cac80fcefc33"
+    },
+    {
+      "id": "bowtie2-index-forward-names",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.4.bt2",
+      "sha256": "dc622d329ff6a15985bd4835cec68b89687eb2f23e33de54d59b70a8ddf0be6e"
+    },
+    {
+      "id": "bowtie2-index-reverse-primary",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.rev.1.bt2",
+      "sha256": "08ef156df383cc0e1d838a4af7507acc85c7b19a809d7fab5e92fe47bd760e5a"
+    },
+    {
+      "id": "bowtie2-index-reverse-secondary",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase.rev.2.bt2",
+      "sha256": "8c06a53480c19c563e4d4343f4e413fdac442b901ed863f9cffa8b72e46f76f1"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "equcab3-first-megabase.sam",
+      "sha256": "4b5d0a85ee31df1c25b79cc7a2c163c641e0f581ba3d866cbb0336ba7ebf071a",
+      "size_bytes": 47621650
+    }
+  ],
+  "pipeline_sha256": "2333791cfc4efdb4b769e0579aecb006fa7b1c621171044e8d44ee7f1feed6f2",
+  "repository_clean": true,
+  "repository_commit": "b5a58ac70e8deb09184cc20535fa86d019147e3c",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/b5a58ac70e8deb09184cc20535fa86d019147e3c",
+  "run_id": "run-1101",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "host": "cn091",
+    "slurm_job_id": "3458123",
+    "started_at_utc": "2026-08-03T00:36:06.566340+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

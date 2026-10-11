@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+archive="$work_dir/fastq-scan.tar.gz"
+source_dir="$work_dir/source"
+
+curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+  --output "$archive" \
+  'https://github.com/rpetit3/fastq-scan/archive/966991c58bd44cbf7644851b7118f7d06146f3c5.tar.gz'
+printf '%s  %s\n' \
+  '74a665f4550a98bb0565de47cc17772d8372a9777c4dc845b959090363fe778e' \
+  "$archive" | sha256sum --check --strict
+mkdir -p "$source_dir"
+tar --extract --gzip --file "$archive" --directory "$source_dir" \
+  --strip-components=1
+
+make --directory "$source_dir"
+install -m 0755 "$source_dir/fastq-scan" /usr/local/libexec-fastq-scan
+/usr/local/libexec-fastq-scan -v | grep -Fx 'fastq-scan 1.0.1'
+/usr/local/libexec-fastq-scan -h >/dev/null

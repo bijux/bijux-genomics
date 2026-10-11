@@ -35,7 +35,7 @@ fastq_scan	production
 fastq_screen	experimental
 fastqc	production
 fastqvalidator	production
-fastuniq	production
+fastuniq	unsupported
 fastx_clipper	production
 flash2	production
 fqtools	production

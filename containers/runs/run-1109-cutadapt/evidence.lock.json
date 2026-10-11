@@ -1,0 +1,126 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/cutadapt-4.9-linux-amd64-17a50c534197.sif",
+    "sha256": "17a50c534197eb2bcb6b5512b96c273bef336d95ec50ebe1b2e740459f778b40",
+    "size_bytes": 70537216
+  },
+  "repository_commit": "446f6241c18db432f89a399acf477142dcea2554",
+  "run_id": "run-1109",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458151",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "049680b77d2e5ec0b5085c1554cec2369ea8fb0a39097906e71e4a9ef1591253",
+      "size_bytes": 2509
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "16f20a8879879eb3ee82609d5d71c7810a6018ecd35e350cc237cd09d3068247",
+      "size_bytes": 4226
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "db93817f2e1ccbdfc570953eebe938398efa8cf8b1d67594ae5047744ce1d251",
+      "size_bytes": 12475
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "de0b9375e0185a8bd2fa0cc589bdc7594e8d81ebb8feeeb75db08dc47ad8896c",
+      "size_bytes": 271
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "61f8fc7ce4f565b6911560bb6785324c91912a4d0bfd13f7ceba4387d0f9c156",
+      "size_bytes": 2645
+    },
+    {
+      "path": "report.json",
+      "sha256": "16d753532c7cb5dd3432fdd157f23b98ffbc5244057e00cde5188f08b9a858ea",
+      "size_bytes": 5683
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "0cc6983a4c64e7c89e26149a0c0eb3962a1ec251d3193db93014e44e31f5001f",
+      "size_bytes": 931
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "d4156a6bb9f4431a25bf1fabfa6f8e4f84ada483e3c0c64de882f979a5ec95cc",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "1290675fd3e2842aed3c1d955142ed668ef893835413bf174e3886cf9845323e",
+      "size_bytes": 1063
+    },
+    {
+      "path": "trimmed.1.fastq.gz",
+      "sha256": "56c38ed928eb8f318526693eb975e847d4b94a61445a400fa84935206a33f999",
+      "size_bytes": 7593418
+    },
+    {
+      "path": "trimmed.2.fastq.gz",
+      "sha256": "bbb9d366e87d3d2a4224e6e22f52c5765e964421f534503be432d76563441eda",
+      "size_bytes": 7825133
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "2e5d3cf3acb0a8d0cc0e152cde65449f85111c01edb6c7cd6a3cbf9ea06aea9d",
+      "size_bytes": 4
+    }
+  ],
+  "source_result": "results/container-validation/cutadapt/run-1109",
+  "tool": "cutadapt",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "049680b77d2e5ec0b5085c1554cec2369ea8fb0a39097906e71e4a9ef1591253",
+      "size_bytes": 2509
+    },
+    "evidence.json": {
+      "sha256": "16f20a8879879eb3ee82609d5d71c7810a6018ecd35e350cc237cd09d3068247",
+      "size_bytes": 4226
+    },
+    "slurm-accounting.json": {
+      "sha256": "0cc6983a4c64e7c89e26149a0c0eb3962a1ec251d3193db93014e44e31f5001f",
+      "size_bytes": 931
+    }
+  }
+}

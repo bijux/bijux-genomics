@@ -1,0 +1,111 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bedtools-2.31.1-linux-amd64-e74534c14624.sif",
+    "sha256": "e74534c14624fff630e0fc50a8c1f167c847424b9884c6b23a99823734ce664b",
+    "size_bytes": 45842432
+  },
+  "repository_commit": "f909c78337c345d853aa11a003e9e9e005bc4ff3",
+  "run_id": "run-1074",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458053",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "36f8f4d62ceac49352f2cbf913367c8333f51f4e6a32138b44ab4dbf74f9057b",
+      "size_bytes": 1563
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "91f2d2084a21c760bd2f8f5450e2a5281a339549dfc40ed47a3386cb4421b842",
+      "size_bytes": 2968
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "95b77a1b319b2bb5aef97af0d893bf6b6d6c5544fc0f27f29b0e5b89c85da87d",
+      "size_bytes": 3875
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "0bb5e548b79d962a320e6d10345615abb876b1241028368b9554155fbb763d18",
+      "size_bytes": 114
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "c46cef7b31b06a833c2dadc785c7b1469804a95c63e9bce1f256ea3a25351973",
+      "size_bytes": 234720
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "1d16640ff25d4bbbb07c2c544acbeefc116edc25227a3f540c25e8669439c9cb",
+      "size_bytes": 923
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "66a5425f0b2c2b31fe3dbb306a890f6737079e24651dc8ae78d5ae5e00ac4ecb",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "1fbedfd8b73554088446dfe239b27d2854e953746875d7530e5d8058ab1a4181",
+      "size_bytes": 1052
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "0577f8bb261a44762497546cb1f7738a91b91633e8a6b48de3eb61dd82e00fcf",
+      "size_bytes": 17
+    }
+  ],
+  "source_result": "results/container-validation/bedtools/run-1074",
+  "tool": "bedtools",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "36f8f4d62ceac49352f2cbf913367c8333f51f4e6a32138b44ab4dbf74f9057b",
+      "size_bytes": 1563
+    },
+    "evidence.json": {
+      "sha256": "91f2d2084a21c760bd2f8f5450e2a5281a339549dfc40ed47a3386cb4421b842",
+      "size_bytes": 2968
+    },
+    "slurm-accounting.json": {
+      "sha256": "1d16640ff25d4bbbb07c2c544acbeefc116edc25227a3f540c25e8669439c9cb",
+      "size_bytes": 923
+    }
+  }
+}

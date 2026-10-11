@@ -1,0 +1,136 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/flash2-2.2.00-linux-amd64-3fdfb65afaf1.sif",
+    "sha256": "3fdfb65afaf1c9967f7ffae5a0015f18b627099fd7ed95efc07626d7932aeac7",
+    "size_bytes": 30740480
+  },
+  "repository_commit": "db43a6f9c6b724685a5dbaaf4e58c04abef62b9e",
+  "run_id": "run-1078",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458063",
+  "source_files": [
+    {
+      "path": "ERR1021817.extendedFrags.fastq",
+      "sha256": "7659c995d4d2d5f336afdcc0941aed51e13d63d00d219c343bc7de2b01b68947",
+      "size_bytes": 774658
+    },
+    {
+      "path": "ERR1021817.hist",
+      "sha256": "cd74cda829198d625cdf3349f6afd31fef5f6a777d930fceb2dbb277c1ebf0c1",
+      "size_bytes": 630
+    },
+    {
+      "path": "ERR1021817.histogram",
+      "sha256": "429840c6aa5297585b25c3fed64a97bced5080f7799219b4b4743218d52613d0",
+      "size_bytes": 763
+    },
+    {
+      "path": "ERR1021817.notCombined_1.fastq",
+      "sha256": "3b562430d76de659060ac8c09598382277c1b87fb7737ced654d46f5624f6e5a",
+      "size_bytes": 25533814
+    },
+    {
+      "path": "ERR1021817.notCombined_2.fastq",
+      "sha256": "395cb8d09f02b1a67b65700da52ddaed24bcf4515998017f1817133f5746da05",
+      "size_bytes": 25263808
+    },
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "218467a7bc8fb996f85c3624eb7a24303c274ecea8569abb1d24467c27e6b1d4",
+      "size_bytes": 2170
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "977f50051cabb6905a6740f2a5fb77a66d1f3f835dc476ce46f13ce221b5ac77",
+      "size_bytes": 3591
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "a9d47110b7838ed56735daae4056322ca42e33435a69884a2620cb31976b7a39",
+      "size_bytes": 14294
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "7e78db0075436380a28d826c8f9473d0115e107bcf3ee593f91ebe5082e03573",
+      "size_bytes": 60
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "3a0dfa00a762a048e4caae44a95afb3ebcb04f2eca41c390a16cb8d8c98da166",
+      "size_bytes": 2148
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "7bdf4fe5adcc667514e59656fe3e51bbaba245e4d9ff97704e4e9d901a6daa12",
+      "size_bytes": 923
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "b7a6b70086e49093891cca19498e2e7e27f1c3bbe5b9b011a9385937a8c8d5c6",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "b57b3c2198b1acecdbd29fd24266b246925c2216b670873a408a9d3b62880c2b",
+      "size_bytes": 1045
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "3d0fa6dd7d03b06850e8ae6a762bb1a25d375634698e167283746e1d4e216eee",
+      "size_bytes": 14
+    }
+  ],
+  "source_result": "results/container-validation/flash2/run-1078",
+  "tool": "flash2",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "218467a7bc8fb996f85c3624eb7a24303c274ecea8569abb1d24467c27e6b1d4",
+      "size_bytes": 2170
+    },
+    "evidence.json": {
+      "sha256": "977f50051cabb6905a6740f2a5fb77a66d1f3f835dc476ce46f13ce221b5ac77",
+      "size_bytes": 3591
+    },
+    "slurm-accounting.json": {
+      "sha256": "7bdf4fe5adcc667514e59656fe3e51bbaba245e4d9ff97704e4e9d901a6daa12",
+      "size_bytes": 923
+    }
+  }
+}

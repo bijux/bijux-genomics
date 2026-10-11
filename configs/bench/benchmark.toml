@@ -157,7 +157,7 @@ tools = ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch"]
 stage_id = "fastq.remove_duplicates"
 scenario_id = "dedup_fairness"
 sample_scope = "paired"
-tools = ["clumpify", "fastuniq"]
+tools = ["clumpify"]
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.deplete_host"

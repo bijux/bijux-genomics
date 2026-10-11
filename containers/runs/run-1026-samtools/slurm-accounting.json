@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T15:18:54.108735+00:00",
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "pipeline_sha256": "c4b16c06fd67f63fd343cbc05bc6b80d2bde1a35079dd4c78cbf06682ae8dbfc",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "12",
+      "Elapsed": "00:00:03",
+      "ElapsedRaw": "3",
+      "ExitCode": "1:0",
+      "JobID": "3457656",
+      "JobName": "bam-sort_and_index-samtools-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn007",
+      "ReqMem": "8G",
+      "State": "FAILED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1026",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457656",
+  "submit_script_sha256": "a0da43ddd99dfaa440e7adca782d37ddceac1491dc2106272947809f897aee20"
+}

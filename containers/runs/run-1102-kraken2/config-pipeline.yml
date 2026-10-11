@@ -1,0 +1,80 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1102
+  campaign: public-fastq-viral-taxonomy-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: fastq.screen_taxonomy
+  tool: kraken2
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/4e050cb0432c0e70d0e7c6256a15bc3df1e3c4c2
+  commit: 4e050cb0432c0e70d0e7c6256a15bc3df1e3c4c2
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/kraken2-2.1.3-linux-amd64-4a2f52a05b4e.sif
+  sha256: 4a2f52a05b4ead9a99848c5c0ffb0f1cd5aaf18d011992389027ade1e5ebbf2b
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: ena-err1021817-read-prefix-100000-r2
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+      sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+    - id: kraken2-viral-20260626-hash
+      kind: database
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/databases/kraken2/viral-20260626/database/hash.k2d
+      sha256: 1bd239b207e1d0f679f910cf323c9b6894fdb85c80f0358fa144aca25a7bdfa7
+    - id: kraken2-viral-20260626-options
+      kind: database
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/databases/kraken2/viral-20260626/database/opts.k2d
+      sha256: b7ecfc6e365325b71a3514049bc80faeaf2549463ab93ff07cdbc112bd5a8c75
+    - id: kraken2-viral-20260626-taxonomy
+      kind: database
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/databases/kraken2/viral-20260626/database/taxo.k2d
+      sha256: 681162e42813064ebe74d55950cf53da33157d28db3ef4e4ad378af007384d24
+    - id: kraken2-viral-20260626-catalog
+      kind: database
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/kraken2-viral-20260626.json
+      sha256: e2bc8e270425d064b4cef7a0856eefc288bd114a0549eaa6cb86ca781e736d2e
+commands:
+  version: [kraken2, --version]
+  help: [kraken2, --help]
+  real:
+    - kraken2
+    - --db
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/databases/kraken2/viral-20260626/database
+    - --threads
+    - '2'
+    - --paired
+    - --gzip-compressed
+    - --report
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/kraken2/run-1102/viral.report.tsv
+    - --output
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/kraken2/run-1102/viral.classifications.tsv
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+  negative: [kraken2, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/kraken2/run-1102
+  required_files:
+    - viral.classifications.tsv
+    - viral.report.tsv
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 4096
+  walltime: '00:15:00'
+  scratch_mb: 2048
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^Kraken 2[.]1[.]3$'
+  negative_exit_nonzero: true

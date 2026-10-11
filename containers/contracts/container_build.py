@@ -7,11 +7,11 @@ import argparse
 import datetime as dt
 import hashlib
 import json
-from pathlib import Path
 import re
 import socket
 import subprocess
 import sys
+from pathlib import Path
 
 from container_validation import (
     ContractError,
@@ -21,7 +21,6 @@ from container_validation import (
     sha256_file,
     write_json,
 )
-
 
 TOOL_PATTERN = re.compile(r"[a-z0-9_]+")
 VERSION_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
@@ -54,7 +53,9 @@ def definition_file_sources(definition: bytes) -> list[Path]:
             continue
         source = Path(line.split()[0])
         if source.is_absolute() or ".." in source.parts:
-            raise ContractError(f"%files source must remain repository-relative: {source}")
+            raise ContractError(
+                f"%files source must remain repository-relative: {source}"
+            )
         sources.append(source)
     return sources
 
@@ -68,12 +69,16 @@ def committed_build_context(
     for source in definition_file_sources(definition):
         object_id = git_output(repository, "rev-parse", f"{commit}:{source.as_posix()}")
         if not (repository / source).exists():
-            raise ContractError(f"%files source is absent from the active worktree: {source}")
+            raise ContractError(
+                f"%files source is absent from the build worktree: {source}"
+            )
         context.append({"path": source.as_posix(), "git_object": object_id})
     return context
 
 
-def immutable_image_name(tool: str, version: str, architecture: str, digest: str) -> str:
+def immutable_image_name(
+    tool: str, version: str, architecture: str, digest: str
+) -> str:
     return f"{tool}-{version}-{architecture.replace('/', '-')}-{digest[:12]}.sif"
 
 
@@ -86,6 +91,7 @@ def finalize_image(
     image_path: Path,
     build_log_path: Path,
     already_immutable: bool = False,
+    repository_path: Path | None = None,
 ) -> Path:
     governance = load_governance(governance_path)
     if TOOL_PATTERN.fullmatch(tool) is None:
@@ -95,15 +101,22 @@ def finalize_image(
     if COMMIT_PATTERN.fullmatch(repository_commit) is None:
         raise ContractError("repository commit must be a full Git identity")
 
-    repository: Path = governance["active_repository"]
+    active_repository: Path = governance["active_repository"]
+    repository = (repository_path or active_repository).resolve()
+    if repository != active_repository:
+        require_under(
+            repository,
+            governance["frozen_repositories"] / "image-builds",
+            "frozen image-build repository",
+        )
     if git_output(repository, "status", "--porcelain"):
-        raise ContractError("active repository must be clean before image admission")
+        raise ContractError("build repository must be clean before image admission")
     git_output(repository, "cat-file", "-e", f"{repository_commit}^{{commit}}")
-    active_commit = git_output(repository, "rev-parse", "HEAD")
-    if active_commit != repository_commit:
+    build_commit = git_output(repository, "rev-parse", "HEAD")
+    if build_commit != repository_commit:
         raise ContractError(
-            "active repository HEAD must equal the declared build commit: "
-            f"{active_commit} != {repository_commit}"
+            "build repository HEAD must equal the declared build commit: "
+            f"{build_commit} != {repository_commit}"
         )
 
     definition_path = definition_path.resolve()
@@ -111,12 +124,16 @@ def finalize_image(
     require_under(definition_path, definition_root, "definition")
     expected_definition = definition_root / f"{tool}.def"
     if definition_path != expected_definition or not definition_path.is_file():
-        raise ContractError(f"definition must be the canonical recipe: {expected_definition}")
+        raise ContractError(
+            f"definition must be the canonical recipe: {expected_definition}"
+        )
     definition_relative = definition_path.relative_to(repository)
     committed_definition = git_blob(repository, repository_commit, definition_relative)
     if definition_path.read_bytes() != committed_definition:
         raise ContractError("definition differs from the declared repository commit")
-    build_context = committed_build_context(repository, repository_commit, committed_definition)
+    build_context = committed_build_context(
+        repository, repository_commit, committed_definition
+    )
 
     study_root: Path = governance["study_root"]
     image_root = study_root / "containers" / "apptainer"
@@ -148,9 +165,13 @@ def finalize_image(
         image_sha256,
     )
     if already_immutable and image_path != final_image_path:
-        raise ContractError(f"immutable image name does not match its content: {image_path}")
+        raise ContractError(
+            f"immutable image name does not match its content: {image_path}"
+        )
     if not already_immutable and final_image_path.exists():
-        raise ContractError(f"refusing to overwrite immutable image: {final_image_path}")
+        raise ContractError(
+            f"refusing to overwrite immutable image: {final_image_path}"
+        )
 
     inspection = subprocess.run(
         ["apptainer", "inspect", "--json", str(image_path)],
@@ -170,12 +191,18 @@ def finalize_image(
     inspection_path = evidence_root / f"{identity}.inspect.json"
     build_evidence_path = evidence_root / f"{identity}.build.json"
     if build_evidence_path.exists():
-        raise ContractError(f"refusing to overwrite image evidence: {build_evidence_path}")
+        raise ContractError(
+            f"refusing to overwrite image evidence: {build_evidence_path}"
+        )
     if inspection_path.exists():
         try:
-            recorded_inspection = json.loads(inspection_path.read_text(encoding="utf-8"))
+            recorded_inspection = json.loads(
+                inspection_path.read_text(encoding="utf-8")
+            )
         except json.JSONDecodeError as exc:
-            raise ContractError(f"recorded Apptainer inspection is invalid: {exc}") from exc
+            raise ContractError(
+                f"recorded Apptainer inspection is invalid: {exc}"
+            ) from exc
         if recorded_inspection != inspection_record:
             raise ContractError("recorded inspection differs from the candidate image")
 
@@ -235,6 +262,7 @@ def parser() -> argparse.ArgumentParser:
     image.add_argument("--staged-image", type=Path)
     image.add_argument("--immutable-image", type=Path)
     root.add_argument("--build-log", type=Path, required=True)
+    root.add_argument("--repository", type=Path)
     return root
 
 
@@ -250,6 +278,7 @@ def main() -> int:
             args.staged_image or args.immutable_image,
             args.build_log,
             already_immutable=args.immutable_image is not None,
+            repository_path=args.repository,
         )
         print(admitted)
         return 0

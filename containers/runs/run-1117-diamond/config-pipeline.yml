@@ -1,0 +1,60 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1117
+  campaign: public-horse-translated-read-container-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: container.runtime
+  tool: diamond
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/18b311fb90881e765510bcb81dcc7319546997b6
+  commit: 18b311fb90881e765510bcb81dcc7319546997b6
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/diamond-2.1.10-linux-amd64-d86c946a7abb.sif
+  sha256: d86c946a7abb2f28f3da389735b425eff159fd2415e95cab5cf4a5b8611b579d
+data:
+  inputs:
+    - id: ena-prjeb10854-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: equcab3-gcf-002863925.1-protein-database
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/diamond/run-1116/equcab3-protein.dmnd
+      sha256: f34a40c4339b51a4216532e883c69c322fab40fe972dc6f13f1c1f3a21183a36
+commands:
+  version: [diamond, version]
+  help: [diamond, help]
+  real:
+    - sh
+    - -c
+    - >-
+      diamond blastx
+      --db /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/diamond/run-1116/equcab3-protein.dmnd
+      --query /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      --out /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/diamond/run-1117/ERR1021817.equcab3-protein.tsv
+      --outfmt 6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore
+      --threads 4 --sensitive --evalue 1e-5 --max-target-seqs 1 --block-size 0.5 --index-chunks 1
+      && test -s /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/diamond/run-1117/ERR1021817.equcab3-protein.tsv
+  negative: [diamond, governed-invalid-command]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/diamond/run-1117
+  required_files:
+    - ERR1021817.equcab3-protein.tsv
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 16384
+  walltime: '01:00:00'
+  scratch_mb: 8192
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^diamond version 2[.]1[.]10$'
+  negative_exit_nonzero: true

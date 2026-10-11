@@ -1,0 +1,115 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "angsd",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "a66d955a058fe1b69efcb6affadaa99d814866a6556b58aca02c29a5bac95758",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "negative": {
+      "argv": [
+        "angsd",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "f2845dbcf45ed5ac14fb927b03a7fcfdd81277f1d1f901942bb53e2228a38a4c",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "angsd",
+        "-i",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+        "-GL",
+        "1",
+        "-doGlf",
+        "2",
+        "-doMajorMinor",
+        "1",
+        "-doMaf",
+        "1",
+        "-minMapQ",
+        "20",
+        "-minQ",
+        "20",
+        "-P",
+        "1",
+        "-out",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/angsd/run-1094/ERR2112767"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "76e3a75072b5e980d41f6d4bb162bdd976309c55dbf917d02c71c711869abdcf",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "angsd",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "af5851be10b7fb8af917d6b971884c4d88cfcc3c89f42cf23bc7f1361bd8db56"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/angsd-0.941-linux-amd64-57a9d028f40a.sif",
+    "sha256": "57a9d028f40a93703044c1dc2f17a97ad440e8acaf370e8b56df16d943d6c776",
+    "size_bytes": 210747392
+  },
+  "inputs": [
+    {
+      "id": "ena-err2112767-sorted-bam",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+      "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+    },
+    {
+      "id": "ena-err2112767-sorted-bam-index",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai",
+      "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "ERR2112767.arg",
+      "sha256": "38492a1e4052f5d6b663e9942201c7d9271c27157fb455f76e7635dc8d6bf7f5",
+      "size_bytes": 9031
+    },
+    {
+      "path": "ERR2112767.beagle.gz",
+      "sha256": "da7d86b29e1255c8f96f3f546603fc27ad30d6153a19279f7fbc8c4e2d13e541",
+      "size_bytes": 1518600
+    },
+    {
+      "path": "ERR2112767.mafs.gz",
+      "sha256": "5171f1b8d8940d6a7afc7e5367971be5bc96b22942331241f6adab1c681ba101",
+      "size_bytes": 1275716
+    }
+  ],
+  "pipeline_sha256": "0844679bbca8736d5c9398bdf310c13ec34c209fbf36c1acc1c2e665e05dc574",
+  "repository_clean": true,
+  "repository_commit": "555e96c43b87ad12b9eb057d43cca6a1c08ad4d6",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/555e96c43b87ad12b9eb057d43cca6a1c08ad4d6",
+  "run_id": "run-1094",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn091",
+    "slurm_job_id": "3458115",
+    "started_at_utc": "2026-08-02T23:58:26.934856+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

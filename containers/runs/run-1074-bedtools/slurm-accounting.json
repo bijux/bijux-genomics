@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T21:34:33.767190+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "36f8f4d62ceac49352f2cbf913367c8333f51f4e6a32138b44ab4dbf74f9057b",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "154",
+      "Elapsed": "00:01:17",
+      "ElapsedRaw": "77",
+      "ExitCode": "0:0",
+      "JobID": "3458053",
+      "JobName": "bam-coverage-bedtools-ERR2112767",
+      "MaxRSS": "",
+      "NodeList": "cn005",
+      "ReqMem": "2G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1074",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458053",
+  "submit_script_sha256": "1fbedfd8b73554088446dfe239b27d2854e953746875d7530e5d8058ab1a4181"
+}

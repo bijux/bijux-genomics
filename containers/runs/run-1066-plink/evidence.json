@@ -1,0 +1,101 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "plink",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "01bca925f4c10429e9db90b677a40b096f33b3a58eb463e773d726f37c1062e6"
+    },
+    "negative": {
+      "argv": [
+        "plink",
+        "--vcf",
+        "/governed-missing-panel.vcf.gz",
+        "--freq",
+        "--out",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink/run-1066/negative/plink"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "65559dc4c3d26d9d1825eb0b60a37ebafd1243b837eac34c0a47c3986ecd33b9",
+      "stdout_sha256": "eae3f9b08bb925e64d36c3a27e8c3c3f0fdbb7f0c432fdf654f3400345a29188"
+    },
+    "real": {
+      "argv": [
+        "plink",
+        "--vcf",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome/panel.vcf.gz",
+        "--chr",
+        "22",
+        "--from-bp",
+        "20000000",
+        "--to-bp",
+        "22000000",
+        "--freq",
+        "--out",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink/run-1066/plink"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "b88d6271b0e87ff98b5d04e22077d3a8c6fd0b9c9e7da1ce5f993cc1d2762ca1"
+    },
+    "version": {
+      "argv": [
+        "plink",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "07ccf88dba2965c49f204b77c88fcb28077ab6d41c7a8013105e2b9c98652596"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/plink-1.90b7.2-linux-amd64-ce4688add11d.sif",
+    "sha256": "ce4688add11dc0e87d6da70236a508c18373b54b8582a4519cc645f7a8ad9f99",
+    "size_bytes": 40054784
+  },
+  "inputs": [
+    {
+      "id": "1000-genomes-phase3-chr22-biallelic-100-samples",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome/panel.vcf.gz",
+      "sha256": "343a756d611cb58c1187e9b8f6c9a15a297772ea4fc9691a51ad2a56457a91bb"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "plink.frq",
+      "sha256": "83a19b6dc64cdf725ba92ca901dc15f431475cca9ee64de889d36b3f7c23b20a",
+      "size_bytes": 1760850
+    },
+    {
+      "path": "plink.log",
+      "sha256": "00c25d3f29735770943d940773662839c0d24039ae56ac5306cfd26168850455",
+      "size_bytes": 1483
+    }
+  ],
+  "pipeline_sha256": "3f390df5469e35b3ecb084728c021cb310cac3ad24812cd6c7a57252e3092adf",
+  "repository_clean": true,
+  "repository_commit": "1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+  "run_id": "run-1066",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "host": "cn046",
+    "slurm_job_id": "3457971",
+    "started_at_utc": "2026-08-02T20:55:40.605876+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn046",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

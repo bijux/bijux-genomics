@@ -24,7 +24,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.revision unknown
     org.opencontainers.image.created unknown
     org.opencontainers.image.licenses GPL-3.0
-    org.opencontainers.image.version 1.21
+    org.opencontainers.image.version 1.24
     org.opencontainers.image.tool multiqc
     org.opencontainers.image.title multiqc
 %environment
@@ -47,9 +47,12 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
         python3-dev && \
 
     python3 -m venv /opt/multiqc-venv && \
+    python3 -c 'import urllib.request; urllib.request.urlretrieve("https://files.pythonhosted.org/packages/70/47/ba71ed113c96221ce33113baaeac9d75a21e1dd0b5c76eb378ab6a61f87b/multiqc-1.24-py3-none-any.whl", "/tmp/multiqc-1.24-py3-none-any.whl")' && \
+    echo '991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099cb  /tmp/multiqc-1.24-py3-none-any.whl' | sha256sum -c - && \
     /opt/multiqc-venv/bin/pip install --no-cache-dir \
-        multiqc==1.24 && \
+        /tmp/multiqc-1.24-py3-none-any.whl && \
     ln -sf /opt/multiqc-venv/bin/multiqc /usr/local/bin/multiqc && \
+    rm -f /tmp/multiqc-1.24-py3-none-any.whl && \
 
     rm -rf /var/lib/apt/lists/*
 %runscript

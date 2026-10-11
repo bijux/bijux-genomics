@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T15:33:54.226193+00:00",
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "pipeline_sha256": "b6a48f5d5138a90afadfc913668baa862a4145c73aa2ccd2bc5e447d40018102",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "40",
+      "Elapsed": "00:00:10",
+      "ElapsedRaw": "10",
+      "ExitCode": "1:0",
+      "JobID": "3457664",
+      "JobName": "bam-quality_control-qualimap-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn053",
+      "ReqMem": "6G",
+      "State": "FAILED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1029",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457664",
+  "submit_script_sha256": "d4339ec9c2966b5f10d35dc86f91bf3203468bacd162498fa45d86104ab3c000"
+}

@@ -1,0 +1,73 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1068
+  campaign: public-chromosome-22-ibd-segment-qualification
+  corpus: 1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome
+  sample: HG00096-HG00097
+  domain: vcf
+  stage: vcf.ibd_segments
+  tool: germline
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/17a6ee7ab1163f07b34a5619cc44b3679e9ccd03
+  commit: 17a6ee7ab1163f07b34a5619cc44b3679e9ccd03
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/germline-1.5.3-linux-amd64-3ff976e69406.sif
+  sha256: 3ff976e694067ce2252b79d3923a5e640a6b2aadc8c99e244db125f41d63a2a8
+data:
+  inputs:
+    - id: chromosome-22-plink-ped
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.ped
+      sha256: 8b41fd461bd92fcb2479115838a6e15a8b27c7c48a541d137d4946c0b1e7967f
+    - id: chromosome-22-plink-map
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.map
+      sha256: f2aa63ea1b97682ada7a75f753e17d7351c506361f0ca3aaff454fd39c195c29
+commands:
+  version: [germline, --version]
+  help: [germline, --help]
+  real:
+    - germline
+    - -silent
+    - -input
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.ped
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.map
+    - -output
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/germline/run-1068/germline
+    - -bits
+    - '50'
+    - -min_m
+    - '1'
+    - -err_hom
+    - '2'
+    - -err_het
+    - '0'
+  negative:
+    - germline
+    - -silent
+    - -input
+    - /governed-missing-panel.ped
+    - /governed-missing-panel.map
+    - -output
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/germline/run-1068/negative/germline
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/germline/run-1068
+  required_files:
+    - germline.match
+    - germline.log
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 4096
+  walltime: '00:30:00'
+  scratch_mb: 2048
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^germline 1[.]5[.]3$'
+  negative_exit_nonzero: true

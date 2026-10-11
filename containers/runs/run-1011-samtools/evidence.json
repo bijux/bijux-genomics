@@ -1,0 +1,89 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "samtools",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "c2683ee6f1b4c188b5ace5b3834b9b904224a239fe29f04e1e60d34d11251daf"
+    },
+    "negative": {
+      "argv": [
+        "samtools",
+        "view",
+        "/governed-missing-alignment.sam"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "5fbd9bd5d1c1612ae6bb4397fc492c35510917a90ed017c6cdbd24e4d6b29e85",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "samtools",
+        "view",
+        "-@",
+        "4",
+        "-b",
+        "-o",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1011/aligned.bam",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1004/real.stdout.log"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "samtools",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "74ced0742d39983660c8edd3752e77c9c339a736ee6204371b00a591fc21a7da"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/samtools-1.20-linux-amd64-5217bae01b27.sif",
+    "sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+    "size_bytes": 122355712
+  },
+  "inputs": [
+    {
+      "id": "bwa-run-1004-alignment-sam",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1004/real.stdout.log",
+      "sha256": "f531b482cc3738c84959675da5ebccab2844b30d6d4f4449aed870aab87dc87a"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "aligned.bam",
+      "sha256": "15478b05bfffbc047fa18977e874af5c9a10470a4ba0b1c683a5e7d1714a23bd",
+      "size_bytes": 15639030
+    }
+  ],
+  "pipeline_sha256": "84431c8db3e3cfe336c21d06d6e0996299b80d5f50efecadd2dd74e58e97211b",
+  "repository_clean": true,
+  "repository_commit": "a7690273fbf58648d4adf485d7d4037e0f983132",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/a7690273fbf58648d4adf485d7d4037e0f983132",
+  "run_id": "run-1011",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "host": "cn053",
+    "slurm_job_id": "3457606",
+    "started_at_utc": "2026-08-02T14:10:55.864435+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn053",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

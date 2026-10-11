@@ -1,0 +1,56 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1100
+  campaign: public-reference-index-qualification
+  corpus: equcab3-nc-009144.3-first-megabase
+  sample: EquCab3.0-NC_009144.3
+  domain: fastq
+  stage: fastq.index_reference
+  tool: bowtie2_build
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/b5a58ac70e8deb09184cc20535fa86d019147e3c
+  commit: b5a58ac70e8deb09184cc20535fa86d019147e3c
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bowtie2_build-2.5.4-linux-amd64-a134b7012023.sif
+  sha256: a134b7012023af66a0a313572bc355a54f67cdd0f3e45cb5559638d03294fef2
+data:
+  inputs:
+    - id: equcab3-nc-009144.3-first-megabase
+      kind: reference
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-nc_009144.3-first-megabase/equcab3-nc_009144.3-1-1000000.fasta
+      sha256: 31c05c963f35d1c98fb95ef7872712ea005f95d9ebffeee35c1f7207a17bbd9a
+commands:
+  version: [bowtie2-build, --version]
+  help: [bowtie2-build, --help]
+  real:
+    - bowtie2-build
+    - --threads
+    - '2'
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-nc_009144.3-first-megabase/equcab3-nc_009144.3-1-1000000.fasta
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100/equcab3-first-megabase
+  negative: [bowtie2-build, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bowtie2_build/run-1100
+  required_files:
+    - equcab3-first-megabase.1.bt2
+    - equcab3-first-megabase.2.bt2
+    - equcab3-first-megabase.3.bt2
+    - equcab3-first-megabase.4.bt2
+    - equcab3-first-megabase.rev.1.bt2
+    - equcab3-first-megabase.rev.2.bt2
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 2048
+  walltime: '00:30:00'
+  scratch_mb: 1024
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^Bowtie 2 Build 2[.]5[.]4$'
+  negative_exit_nonzero: true

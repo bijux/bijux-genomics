@@ -344,7 +344,6 @@ stage_tool_integration:
     flash2: governed_contract
     leehom: governed_contract
   fastq.remove_duplicates:
-    fastuniq: governed_contract
     clumpify: governed_contract
   fastq.filter_low_complexity:
     fastp: governed_contract
@@ -767,9 +766,6 @@ stage_default_settings:
       profile: adna_sane_default
       notes: chimera screening and removal preset
   fastq.remove_duplicates:
-    fastuniq:
-      profile: adna_sane_default
-      notes: pair-aware duplicate removal preset
     clumpify:
       profile: adna_sane_default
       notes: kmer-clumped duplicate removal preset

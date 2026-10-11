@@ -1,0 +1,74 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1060
+  campaign: public-amplicon-asv-container-qualification
+  corpus: mothur-miseq-sop-f3d0
+  sample: F3D0
+  domain: fastq
+  stage: fastq.infer_asvs
+  tool: dada2
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/0402016c18e5c932e6af6338094bf250cd3ba97b
+  commit: 0402016c18e5c932e6af6338094bf250cd3ba97b
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/dada2-1.30.0-linux-amd64-912e10759d87.sif
+  sha256: 912e10759d87d3f64492b39db9c06f14af8504235f69ac3a92dafe76a2fd5114
+data:
+  inputs:
+    - id: mothur-miseq-sop-f3d0-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R1_001.fastq
+      sha256: f908bf940a2413f9d026615afca8cacfbcb36bf3c91ffa5ad809738b0f7064d3
+    - id: mothur-miseq-sop-f3d0-r2
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R2_001.fastq
+      sha256: 1b3feb32e2bef0a573382cdd2b4eb833af5a3fb093e3544f6882da371db64937
+commands:
+  version: [dada2, --version]
+  help: [dada2, --help]
+  real:
+    - dada2
+    - infer-asvs
+    - --input
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R1_001.fastq
+    - --input-r2
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R2_001.fastq
+    - --output-dir
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/dada2/run-1060
+    - --sample-id
+    - F3D0
+    - --threads
+    - '4'
+  negative:
+    - dada2
+    - infer-asvs
+    - --input
+    - /governed-missing-r1.fastq.gz
+    - --input-r2
+    - /governed-missing-r2.fastq.gz
+    - --output-dir
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/dada2/run-1060/negative
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/dada2/run-1060
+  required_files:
+    - asv-table.tsv
+    - asv-sequences.fasta
+    - taxonomy-ready.fasta
+    - taxonomy-ready.fastq.gz
+    - report.json
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 16384
+  walltime: '01:00:00'
+  scratch_mb: 8192
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^dada2 1[.]30[.]0$'
+  negative_exit_nonzero: true

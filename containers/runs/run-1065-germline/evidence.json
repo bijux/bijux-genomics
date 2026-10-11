@@ -1,0 +1,113 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "germline",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "bf009dc78a1209010eed18bfa57d9ff47bc88d5373c461d8266a049bcbe25b8d"
+    },
+    "negative": {
+      "argv": [
+        "germline",
+        "-silent",
+        "-input",
+        "/governed-missing-panel.ped",
+        "/governed-missing-panel.map",
+        "-output",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/germline/run-1065/negative/germline"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "2c6f7a33368a9273c0360e49c30bf917075348860dff5138a2377bcddfe8988e",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "germline",
+        "-silent",
+        "-input",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.ped",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.map",
+        "-output",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/germline/run-1065/germline",
+        "-bits",
+        "50",
+        "-min_m",
+        "1",
+        "-err_hom",
+        "2",
+        "-err_het",
+        "0"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "germline",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "acc2546b6e27cd36cbd938f2e4731d07bd86deba9d3409334b7c08d1fafaf7f8"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": "container_validation",
+  "failures": [
+    "negative command unexpectedly succeeded"
+  ],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/germline-1.5.3-linux-amd64-7c9bc32127d9.sif",
+    "sha256": "7c9bc32127d93a73f5c881f5e095e36e38cc902ab72e3d77b42901e68a597403",
+    "size_bytes": 30781440
+  },
+  "inputs": [
+    {
+      "id": "chromosome-22-plink-ped",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.ped",
+      "sha256": "8b41fd461bd92fcb2479115838a6e15a8b27c7c48a541d137d4946c0b1e7967f"
+    },
+    {
+      "id": "chromosome-22-plink-map",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.map",
+      "sha256": "f2aa63ea1b97682ada7a75f753e17d7351c506361f0ca3aaff454fd39c195c29"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "germline.match",
+      "sha256": "64e746d07343a8be7a78f806ec51d0e3cbc97d430f123ecc7059da7a5faf0879",
+      "size_bytes": 1203
+    },
+    {
+      "path": "germline.log",
+      "sha256": "bf6daefe2516000dc402bd6f838484ac37530086f3a92b2d72585015a53d4574",
+      "size_bytes": 970
+    }
+  ],
+  "pipeline_sha256": "0ba0d61bf54cd54efe42cf330d47af822d55ee6303ea05683e12ee470177b459",
+  "repository_clean": true,
+  "repository_commit": "1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+  "run_id": "run-1065",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "host": "cn046",
+    "slurm_job_id": "3457970",
+    "started_at_utc": "2026-08-02T20:55:37.667944+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn046",
+    "id": "lunarc"
+  },
+  "status": "failed"
+}

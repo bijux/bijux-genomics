@@ -1,0 +1,135 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "trim_galore",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "c2a4f8abe3026abe8e43734b33b4bd8b8748558ff4dfeb38ba1247e7924e3d70"
+    },
+    "negative": {
+      "argv": [
+        "trim_galore",
+        "--definitely-invalid-option"
+      ],
+      "exit_code": 255,
+      "stderr_sha256": "c023587e11dc44b8af2327e74acbfa91d2f4f00d83304b6197ee509eb0705861",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "bash",
+        "-c",
+        "set -euo pipefail; trim_galore --paired --cores 2 --output_dir /result /input/ERR1021817.read-prefix-100000_1.fastq.gz /input/ERR1021817.read-prefix-100000_2.fastq.gz; r1=$(gzip -cd /result/ERR1021817.read-prefix-100000_1_val_1.fq.gz | awk 'END { print NR / 4 }'); r2=$(gzip -cd /result/ERR1021817.read-prefix-100000_2_val_2.fq.gz | awk 'END { print NR / 4 }'); printf '{\"paired_read_records_r1\":%s,\"paired_read_records_r2\":%s}\\n' \"$r1\" \"$r2\" > /result/metrics.json"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "798aee76eafc5ffdb5c7d09cb46d9f58ea2469627a1fbd43926461b395d40e72",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "trim_galore",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "c1eebb776a1fb64e29d138b1e44b67b794001183cc12005e359a28ca7b3e455a"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "execution": {
+    "cache_policy": "cold",
+    "determinism": "deterministic",
+    "locale": "C",
+    "random_seed": null,
+    "runtime_network": false,
+    "threads": 2,
+    "timezone": "UTC"
+  },
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/trim_galore-0.6.10-linux-amd64-25567e0ec95d.sif",
+    "sha256": "25567e0ec95dcb8914178d6daf3f0439a24e9e3cfd8832e88e79cc1154387b14",
+    "size_bytes": 382722048
+  },
+  "inputs": [
+    {
+      "id": "err1021817_read_one",
+      "kind": "data",
+      "mount_path": "/input/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    },
+    {
+      "id": "err1021817_read_two",
+      "kind": "data",
+      "mount_path": "/input/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "sha256": "14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf"
+    }
+  ],
+  "metrics": [
+    {
+      "expected": 1,
+      "id": "paired_read_records_r1",
+      "json_pointer": "/paired_read_records_r1",
+      "observed": 99998,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "reads"
+    },
+    {
+      "expected": 1,
+      "id": "paired_read_records_r2",
+      "json_pointer": "/paired_read_records_r2",
+      "observed": 99998,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "reads"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "ERR1021817.read-prefix-100000_1_val_1.fq.gz",
+      "sha256": "3340613154aea4e0f70c9445e31bf03bfb38e25bb289ff50d90ead3f8e513783",
+      "size_bytes": 7526630
+    },
+    {
+      "path": "ERR1021817.read-prefix-100000_2_val_2.fq.gz",
+      "sha256": "4c186ac01312d6b579f3e1c3b6dd4dded0eeac0648736d39170d2512c25c04c2",
+      "size_bytes": 7760479
+    },
+    {
+      "path": "metrics.json",
+      "sha256": "4bb7d84258188d6cbfd2c416fd10bc816415cae82d6c1012f5704913e327a96a",
+      "size_bytes": 64
+    }
+  ],
+  "pipeline_schema_version": "bijux.container.pipeline.v2",
+  "pipeline_sha256": "2447d535511125460f64fb2ca32afb10ac07218163db29deb60b135b0786d94f",
+  "repository_clean": true,
+  "repository_commit": "5306d62788b314d1b0cfac8f6fa19ee55d45dd35",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/5306d62788b314d1b0cfac8f6fa19ee55d45dd35",
+  "run_id": "run-1124",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "finished_at_utc": "2026-08-03T05:07:09.624002+00:00",
+    "host": "cn091",
+    "scratch_path": "/tmp/bijux-genomics-3458670-RODtlO",
+    "slurm_job_id": "3458670",
+    "started_at_utc": "2026-08-03T05:07:01.987011+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v2",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

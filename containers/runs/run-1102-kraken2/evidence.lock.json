@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/kraken2-2.1.3-linux-amd64-4a2f52a05b4e.sif",
+    "sha256": "4a2f52a05b4ead9a99848c5c0ffb0f1cd5aaf18d011992389027ade1e5ebbf2b",
+    "size_bytes": 42635264
+  },
+  "repository_commit": "4e050cb0432c0e70d0e7c6256a15bc3df1e3c4c2",
+  "run_id": "run-1102",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458124",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "fc49520827f7f744e7c6d5b92019c19424412e746aacafae23c39e86b79cbcc5",
+      "size_bytes": 3418
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "8c37c2cf3ce31d9a5eb5614575879cb43661132a38e2179c1762e939928148e9",
+      "size_bytes": 5106
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "62df0dc613b2b81eb86ab4bcef7a634722ced1ed83c2a2797abcebbe4cd48a30",
+      "size_bytes": 2120
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "2267f0fb6c111dc04cfe94d4abd1caee1f6e2ade5baa172996364e708a2f8af2",
+      "size_bytes": 61
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "ece119623bc9ceac4e21c6081982c9b510545cb911605add0fc37cccf30749cf",
+      "size_bytes": 194
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "b4925ef0adee352b3eae810ace48a56fc87181ceb97c625262349f49410401b7",
+      "size_bytes": 928
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "fa0d7997de8b9fc25d844829fcbb927e60382a059c1c24d66b9b73d2c9782a41",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "ba508d56297303a7e31ca6391e5f037878b7bacd36e05adaca9c760d49b1a047",
+      "size_bytes": 1055
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "faf0ef011a68641ec99af2d3b70c89bf59a0c0c101f158f7bede0e06e85ea156",
+      "size_bytes": 13
+    },
+    {
+      "path": "viral.classifications.tsv",
+      "sha256": "b994a9d99372e3876d50455f2178d64f4d12936a5f012c1637c27c7c1a63af68",
+      "size_bytes": 4135227
+    },
+    {
+      "path": "viral.report.tsv",
+      "sha256": "95623c1c63c1e3ce139483d5f63e2c712be0edcd0427490861596d4dcb6b9307",
+      "size_bytes": 544
+    }
+  ],
+  "source_result": "results/container-validation/kraken2/run-1102",
+  "tool": "kraken2",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "fc49520827f7f744e7c6d5b92019c19424412e746aacafae23c39e86b79cbcc5",
+      "size_bytes": 3418
+    },
+    "evidence.json": {
+      "sha256": "8c37c2cf3ce31d9a5eb5614575879cb43661132a38e2179c1762e939928148e9",
+      "size_bytes": 5106
+    },
+    "slurm-accounting.json": {
+      "sha256": "b4925ef0adee352b3eae810ace48a56fc87181ceb97c625262349f49410401b7",
+      "size_bytes": 928
+    }
+  }
+}

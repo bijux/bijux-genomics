@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "d5a613e88d9263dbae7f21b27a7a4ab64b5ca04af7bd4fbcc5271eb7b946574b",
+  "source_sha256": "b97340aa9eba6892ec3e068aecf60be8c79661d13dc17a605f482498b015e580",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -43,7 +43,7 @@
       "pinned_commit": "79b296b8fcfd853757d798528128c37a166331a9",
       "apptainer_definition": "containers/apptainer/adapterremoval.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.adapterremoval",
-      "contract_sha256": "5d69e6cf0f8c7e14537f9772deb4fcafe0aa1674011c110c689589d3206850dd"
+      "contract_sha256": "7e72d81492cb6ab224f79bd8996950f0a2fd0fceca8684267bd80b1c180fd361"
     },
     {
       "id": "addeam",
@@ -58,7 +58,7 @@
       "pinned_commit": "8122b9a99d560ef8ea8abdd5b1aacccd00ea0cdd",
       "apptainer_definition": "containers/apptainer/addeam.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.addeam",
-      "contract_sha256": "81ace7c0e5a0d0178661597f84c9eae087055f62f2a6c94ef4be060958483c61"
+      "contract_sha256": "18014cd91dba43cadf282b4f91346c8f646d2809c6de203e708367c49c69357e"
     },
     {
       "id": "alientrimmer",
@@ -73,7 +73,7 @@
       "pinned_commit": "6ec40283b87f845dbb833342633258c8e7c18333",
       "apptainer_definition": "containers/apptainer/alientrimmer.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.alientrimmer",
-      "contract_sha256": "4abc70bad80a7adfaa61975816d595bc8e5985992737fdaf7466917749a9b94c"
+      "contract_sha256": "3c4b6d882d3c66be56d138f05274205f4074cbeb3e34a4ea4b6e6631b26ac33c"
     },
     {
       "id": "angsd",
@@ -88,7 +88,7 @@
       "pinned_commit": "b3099ed756e7aff87d2d1dd4fd30cdf36998380b",
       "apptainer_definition": "containers/apptainer/angsd.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.angsd",
-      "contract_sha256": "5155403bd3fb0d2ff9a3a74f921b7f3c3393d0989c07946207a5544ae3b987ab"
+      "contract_sha256": "e26ae6ca6d5ec5a5cad2785116fb6877aaaaf0ee6d7007c3a0dc0f65b8f52331"
     },
     {
       "id": "atropos",
@@ -103,7 +103,7 @@
       "pinned_commit": "916a0bfbc18149bbefb83ccff9fe2a0807415807",
       "apptainer_definition": "containers/apptainer/atropos.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.atropos",
-      "contract_sha256": "99ef79d9f9e56978530a77c6fa2887e72a25b95aa0a947af44ba33cf9a689928"
+      "contract_sha256": "f04aa97a58c01d55bbfe5d4beb84e6452db9d3e296a2c0155e531a41d122e85e"
     },
     {
       "id": "authenticct",
@@ -118,7 +118,7 @@
       "pinned_commit": "13ba26ef82f5a3febd74401f65fb8c1776aa16b2",
       "apptainer_definition": "containers/apptainer/authenticct.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.authenticct",
-      "contract_sha256": "9e86d052f2b93c7ec43cf8922127b1d6e79cdb91ca12c1310b4bba29241326d8"
+      "contract_sha256": "5086759b1b6a43d73f4e56fe406212a3aee61d9bc7b9bbd191deec473ad58c55"
     },
     {
       "id": "bamtools",
@@ -133,7 +133,7 @@
       "pinned_commit": "9f2fa61d5c10588a426dec12422255d6d0c87d84",
       "apptainer_definition": "containers/apptainer/bamtools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bamtools",
-      "contract_sha256": "842cf87bb5a33d7cda4b884c270288c667423db19eca3ec7ea9e6ffcbea7b886"
+      "contract_sha256": "c4421a1c26cae21936c4304e1be6cafccd111fa9b83bfa4d6a34877ca2f77f82"
     },
     {
       "id": "bamutil",
@@ -148,7 +148,7 @@
       "pinned_commit": "3ad3980a3a3a3fc35eca3636b7206676c8303ce6",
       "apptainer_definition": "containers/apptainer/bamutil.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bamutil",
-      "contract_sha256": "d4afda8c268afccfe11f1c9c10d43affb3e0e8d7a96e02d35e771a79de21caf1"
+      "contract_sha256": "734b26eb69e9820f6c583c246bf8c9151e04d8409e2875758f2ab961428b96ed"
     },
     {
       "id": "bayeshammer",
@@ -163,7 +163,7 @@
       "pinned_commit": "7fee3c1050a732faef8a0d93d70861015a96f44e",
       "apptainer_definition": "containers/apptainer/bayeshammer.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bayeshammer",
-      "contract_sha256": "0ce8112686916cb511e1cf4eebdd88dba1e8be452c81ea8abf98b1617939dc55"
+      "contract_sha256": "8a6bc916919cf0fbef8bacccd3f446e7d807d853075075b5e1ae2a228db2d8c7"
     },
     {
       "id": "bbduk",
@@ -178,7 +178,7 @@
       "pinned_commit": "0000000000000000000000000000000000000000",
       "apptainer_definition": "containers/apptainer/bbduk.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bbduk",
-      "contract_sha256": "64b26571c7caf6084611ede54c19197db3c39ebd30624c657cc4b5fdb745a998"
+      "contract_sha256": "6d3eec3716c4e1dd07b55ed703b7b896b7aee04441c783e258896fe6e5dae112"
     },
     {
       "id": "bbmerge",
@@ -193,7 +193,7 @@
       "pinned_commit": "0000000000000000000000000000000000000000",
       "apptainer_definition": "containers/apptainer/bbmerge.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bbmerge",
-      "contract_sha256": "3624dab69724c801b9b8a1cbe0c647dab23d57a9309f73a5ae3296a7f2f9f2ab"
+      "contract_sha256": "6bfcd9f4f4f524694b5e64e30ceec2176c6d94e0bcc278c774781ea05239e2ee"
     },
     {
       "id": "bcftools",
@@ -208,7 +208,7 @@
       "pinned_commit": "02ee548d77916357dcd3699eab88273acd8f9f7c",
       "apptainer_definition": "containers/apptainer/bcftools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bcftools",
-      "contract_sha256": "c3a038590037fbaf7678156f9bc01692eeef0de2dc3744c33305afc5c50d8267"
+      "contract_sha256": "78e6b0383b954bdec5a2c0b6649c6af8268f3696c85bceadef75a50d8169b026"
     },
     {
       "id": "beagle",
@@ -223,7 +223,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/beagle.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.beagle",
-      "contract_sha256": "c02608a2c32b2bc686e053e3255da5ff29fe87c27b14c4a9c9108a5ac08327b4"
+      "contract_sha256": "c6578379a2fbf65b755fa3842b92bcefa43fbaec5750fff48590f83fcd48df97"
     },
     {
       "id": "bedtools",
@@ -238,7 +238,7 @@
       "pinned_commit": "705ccfdf2c9a77d71560c8adcece0663c2f5e18e",
       "apptainer_definition": "containers/apptainer/bedtools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bedtools",
-      "contract_sha256": "c492d9acc78b9e79d93561d5a5a331587733307a18a6ce0bcacb518be948008a"
+      "contract_sha256": "e7e7c5ed4c1513addc6c8ceb132b9c5e1fc1d88632844fd5f177cce21ad00703"
     },
     {
       "id": "bijux_dna",
@@ -253,7 +253,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/bijux_dna.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bijux_dna",
-      "contract_sha256": "1aaf5b83b1cab705ee7f4fe9f4a0b78d794c9c1164831e176c6f72c19867cc1a"
+      "contract_sha256": "86b61cf57b4e4822dfdf77c79a8f09f9699e62aa6f253e808218c2e1a4781c25"
     },
     {
       "id": "bowtie2",
@@ -268,7 +268,7 @@
       "pinned_commit": "4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba",
       "apptainer_definition": "containers/apptainer/bowtie2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bowtie2",
-      "contract_sha256": "f4703d9384778180c689c35ac4fb17d75e6a7319688d67e92afc462ec27be76f"
+      "contract_sha256": "f2b59b80666a40e11f35982175c0378234c7ab009d5640e5d55cac53d7751a24"
     },
     {
       "id": "bowtie2_build",
@@ -283,7 +283,7 @@
       "pinned_commit": "4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba",
       "apptainer_definition": "containers/apptainer/bowtie2_build.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bowtie2_build",
-      "contract_sha256": "181459fd0b1afcd75276f3db31f71ca8d5cf0c8beddabcdb47ebff30c25a77dd"
+      "contract_sha256": "f0444c4710d336e3433e8d441e77308cb6c7414ca25574a8c3aed6e7d0ef75ea"
     },
     {
       "id": "bracken",
@@ -313,7 +313,7 @@
       "pinned_commit": "9f26bfcc7780753129b60717ecab0ebba6f04b7c",
       "apptainer_definition": "containers/apptainer/bwa.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bwa",
-      "contract_sha256": "f1bc7a062de10ddecd2c5112344498c3f92fa7671f302d4453a87ee3b257db3e"
+      "contract_sha256": "778c4a1d0a05b2d193cfe73ee7dba1ea9ed3d9b2280b83bae0965ec4de1bc428"
     },
     {
       "id": "centrifuge",
@@ -323,12 +323,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/DaehwanKimLab/centrifuge",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "43b07cf2adcd8ad8b4b79721db6512cc5d3fe53f80ed306ece65fe468fe021cb",
       "pinned_commit": "92d6e7969afd786ba196b019620453a965a46cdd",
       "apptainer_definition": "containers/apptainer/centrifuge.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.centrifuge",
-      "contract_sha256": "36fcc15facdd201a3d22edab4011965d10b18c2492502dd5f2a4ff41c7b284e4"
+      "contract_sha256": "47c3f36554607e2eb2558dd15d78e985ef0becd14e839c7d24c12b5d03796407"
     },
     {
       "id": "clumpify",
@@ -343,7 +343,7 @@
       "pinned_commit": "0000000000000000000000000000000000000000",
       "apptainer_definition": "containers/apptainer/clumpify.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.clumpify",
-      "contract_sha256": "c0bd20761a7f5efc7e43f83aeeff0757b812b296ab94146233aa7ae1e90cf60b"
+      "contract_sha256": "90a2aaf45fcc869a0c3f851cea0e843f91cf2c6c85844c349318a41d7110722c"
     },
     {
       "id": "contammix",
@@ -354,11 +354,11 @@
       "qualification": "unverified",
       "upstream": "https://github.com/plfjohnson/contamMix",
       "license": "GPL-3.0-only",
-      "source_sha256": "1bfd53eca5554c957771daa51a2520306e90da17423dded39454ac8f23424a22",
+      "source_sha256": "8fb3b2c84827e9697abb75e2fc71ffec82031db59514879d35b62257365a10f5",
       "pinned_commit": "46c2b9c9fa82c2507f2b084f0b37d862a0825f4b",
       "apptainer_definition": "containers/apptainer/contammix.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.contammix",
-      "contract_sha256": "a5a803d02683a630c94e3db7875a74f0ef8bf61c8f724a512d100d215c79af61"
+      "contract_sha256": "50aef7771ba04e32ce31ad0947a92585d78fca4f9fc48122a72bb50c839e3975"
     },
     {
       "id": "cutadapt",
@@ -368,12 +368,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/marcelm/cutadapt",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "MIT",
+      "source_sha256": "ca893162f11dbe31cb1956e7611334d6f5fee91a54d4ddd2272ecf427da776dd",
       "pinned_commit": "9276a89d5df9282ff51602b042b40c3b48c98566",
       "apptainer_definition": "containers/apptainer/cutadapt.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.cutadapt",
-      "contract_sha256": "21054de51d6f271358525d9ffdbe6849283e46fc1af8bd39abba4a143a2ec492"
+      "contract_sha256": "1670117873f18a5820d0224d17808f269403ddf9c9db2b16f4481aba875bde80"
     },
     {
       "id": "dada2",
@@ -388,7 +388,7 @@
       "pinned_commit": "ec87892",
       "apptainer_definition": "containers/apptainer/dada2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.dada2",
-      "contract_sha256": "edadab41131d35502363c757577f0ad02a1d93a9533d2cf2b9a83bcbbc68a0bb"
+      "contract_sha256": "12be0f83b694e175ff086f56e9e538278aef5c3698499020cb840c9757c3e40b"
     },
     {
       "id": "damageprofiler",
@@ -398,12 +398,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/Integrative-Transcriptomics/DamageProfiler",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-only",
+      "source_sha256": "009a5d6a638f73ef9b7f9e3cf0182e184a176d8b9e9344d33a850f2b7945a126",
       "pinned_commit": "3be52404124ae294f0eaf2fa622fe8af548bb6ed",
       "apptainer_definition": "containers/apptainer/damageprofiler.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.damageprofiler",
-      "contract_sha256": "d325460c9722d6e6812b0098427255ddbec453c9eefaec67b853aac2ee02bcc4"
+      "contract_sha256": "eb32db19a892f2765e48b91ec6dd372dbd406ad79208f088993fd7bd800f3564"
     },
     {
       "id": "diamond",
@@ -413,12 +413,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/bbuchfink/diamond",
-      "license": "NOASSERTION",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "f89f765d5a144546356c167304406b9abdfad46396421cd2d3c74044416afe53",
       "pinned_commit": "1130513e06223ffd12c74a11e8e2c967e108a825",
       "apptainer_definition": "containers/apptainer/diamond.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.diamond",
-      "contract_sha256": "6327cc544aca37c3bd3951268f4b252ab4c5574f14334b23946d9940290a6edc"
+      "contract_sha256": "dbbd0e798062712f9e54b1f537ffe4a24edd1385936545fc5c475f5182ed9289"
     },
     {
       "id": "dustmasker",
@@ -433,7 +433,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/dustmasker.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.dustmasker",
-      "contract_sha256": "0cd951ee4598599b7da397921022aabbfd1dc55c2b6f11aae9985ccdc89e5221"
+      "contract_sha256": "9cd029dd30b00d3bc81658611da0220b5f047e016bfd1a5441dd6ff7c9495da2"
     },
     {
       "id": "eagle",
@@ -448,7 +448,7 @@
       "pinned_commit": "dec140eefc0eda3b7f02233a3c02361eaeb8227c",
       "apptainer_definition": "containers/apptainer/eagle.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.eagle",
-      "contract_sha256": "8ea04bff39faf9763632922328730be1a35621ca08026eaa4d3cfb8b725e72e3"
+      "contract_sha256": "2aa1e8fea65885b71cf007af2c04c7675d77fb0e5f7330c989737bbf7416715a"
     },
     {
       "id": "eigensoft",
@@ -463,7 +463,7 @@
       "pinned_commit": "09ed563fdec05648a66c206ba1fc37a198395cd7",
       "apptainer_definition": "containers/apptainer/eigensoft.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.eigensoft",
-      "contract_sha256": "f70847961274ef08f52ac6dc30666926f8140fadacb313a546a56410d7996840"
+      "contract_sha256": "3a7e8875281f2af66768a312bef8d6d4dce42bda6f3c8da50e736d936b07e38b"
     },
     {
       "id": "fastp",
@@ -478,7 +478,7 @@
       "pinned_commit": "1ffcaed6892832c09c4b4094c201cd4eff8fa622",
       "apptainer_definition": "containers/apptainer/fastp.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastp",
-      "contract_sha256": "b6a3bacdd65ea8deb4cb505da9294132b1bfaaefebc5f008df781b4651512dcd"
+      "contract_sha256": "02dbe794d9d37eb8807573fe669928e6be71c9d55c10a670af53770124891293"
     },
     {
       "id": "fastq_scan",
@@ -493,7 +493,7 @@
       "pinned_commit": "966991c58bd44cbf7644851b7118f7d06146f3c5",
       "apptainer_definition": "containers/apptainer/fastq_scan.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastq_scan",
-      "contract_sha256": "5c9ae7b909b241503770b9f9b141488b1eb68ef29bb77fb8e89fde7a1d6a5f98"
+      "contract_sha256": "44a22bf217036ad835f2a270cbb0932b2b5770a0f2f1f3c1d8580dc83661d93a"
     },
     {
       "id": "fastq_screen",
@@ -508,7 +508,7 @@
       "pinned_commit": "6dfa1eef0d3103dd7829eb1f586b4d8a121f911b",
       "apptainer_definition": "containers/apptainer/fastq_screen.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastq_screen",
-      "contract_sha256": "74bf8dd98c9cb2e489ed0df0c5840601d29d0c7c299c5cd5fde7d398a65c6677"
+      "contract_sha256": "37b62b15ede118e48aa28fe50bacd670b19dc1079c06f516cfa83ad11c113fb9"
     },
     {
       "id": "fastqc",
@@ -538,22 +538,22 @@
       "pinned_commit": "4cb293ca4153459b05ae7983f65a082d56b55c21",
       "apptainer_definition": "containers/apptainer/fastqvalidator.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastqvalidator",
-      "contract_sha256": "d977c23f4aa1f72420314b1bbee485ee8975862710fb01fd2574f580ea4405c7"
+      "contract_sha256": "777a6f35898582aa1515424fe13fc7e488cd79278eac8babce89cd23b477a8e9"
     },
     {
       "id": "fastuniq",
       "display_name": "FastUniq",
       "version": "1.1",
-      "support_disposition": "retained",
-      "support_reason": "",
-      "qualification": "unverified",
+      "support_disposition": "unsupported",
+      "support_reason": "The FastUniq 1.1 source archive and SourceForge project metadata contain no software license grant; Bijux Genomics cannot redistribute a container until upstream licensing is clarified.",
+      "qualification": "not_applicable",
       "upstream": "https://sourceforge.net/projects/fastuniq/",
-      "license": "GPL-3.0",
+      "license": "NOASSERTION",
       "source_sha256": "9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae",
-      "pinned_commit": "0000000000000000000000000000000000000000",
-      "apptainer_definition": "containers/apptainer/fastuniq.def",
-      "dockerfile": "containers/docker/Dockerfile.arm64.fastuniq",
-      "contract_sha256": "5b120f055d78e194bad620c31ea55de73b753a404d09ec620234112c381d33b8"
+      "pinned_commit": "",
+      "apptainer_definition": "",
+      "dockerfile": "",
+      "contract_sha256": "2c59ad4101e03be87c581decf8d2fdc15893b760fc6b57d76c46c86238826664"
     },
     {
       "id": "fastx_clipper",
@@ -563,12 +563,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/agordon/fastx_toolkit",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "AGPL-3.0-or-later",
+      "source_sha256": "9e1f00c4c9f286be59ac0e07ddb7504f3b6433c93c5c7941d6e3208306ff5806",
       "pinned_commit": "105a189a102d66d246bd618f07af2b861916272c",
       "apptainer_definition": "containers/apptainer/fastx_clipper.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastx_clipper",
-      "contract_sha256": "87f493d5c71a3556f61330d64177a459287caaf7b3e4bd1a8b51566239e8b905"
+      "contract_sha256": "fc7c5d931b94619c5a9e823e30853834fde812babbdc938fe261f0dfa29dfa5f"
     },
     {
       "id": "flash2",
@@ -578,12 +578,12 @@
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/dstreett/FLASH2",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "da5aa6c5791c69cf254f8d9b817392be79a74d6c3384fbcf6c32fcd392b76ae8",
       "pinned_commit": "64826f4574b11b3c0ae7460826f30be16f49c3ea",
       "apptainer_definition": "containers/apptainer/flash2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.flash2",
-      "contract_sha256": "7ec583d8f1bf5abc8950a2f0c119f28b41cbff3402d49d8158996c15fd61e36d"
+      "contract_sha256": "525362cebf60a1fa7a1aebcc99dd1581802ef403b481f34a58dff1d0ce15e8a6"
     },
     {
       "id": "fqtools",
@@ -598,7 +598,7 @@
       "pinned_commit": "63c6fa707fabc7569c2f256b8bcfc6ebb760f72a",
       "apptainer_definition": "containers/apptainer/fqtools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fqtools",
-      "contract_sha256": "df8f8313c8385ee2ffc328e6f08968868e58fac54402d7e869e1dc0cc4cdf977"
+      "contract_sha256": "fdcddf721eb02fbee39686b18e383df7ca56d37eadbe05fd12a08d1d6f9fd8d4"
     },
     {
       "id": "gatk",
@@ -613,7 +613,7 @@
       "pinned_commit": "76edc75c26504da94bbaee66584e107e76ee15de",
       "apptainer_definition": "containers/apptainer/gatk.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.gatk",
-      "contract_sha256": "8589d059fb0be4639ea811050ce3234841301ef929468321227e150b3738e2f3"
+      "contract_sha256": "dab012db4ecf0d44f5ad3756866c17bb25dac8faa2405fb5de97b3127b8baccb"
     },
     {
       "id": "germline",
@@ -628,7 +628,7 @@
       "pinned_commit": "f8029fcf469a09a83aa1e0d1fb45769f6dcb3c6d",
       "apptainer_definition": "containers/apptainer/germline.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.germline",
-      "contract_sha256": "089bb11f6dbd251c719cb4aa3e7740e911bb51b6cd535396d759464fc82f2578"
+      "contract_sha256": "83abff9ffabdb43953253cff92b0bff4b9534da4b766eb0dee54417df9f275c0"
     },
     {
       "id": "glimpse",
@@ -643,7 +643,7 @@
       "pinned_commit": "c27e90d0f8df6b64c0ecf26af13ad6f112c94a9a",
       "apptainer_definition": "containers/apptainer/glimpse.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.glimpse",
-      "contract_sha256": "0d4675083f63a7d79a5c329c7aabde59e320c2fda975b6dc068b03ad31e24435"
+      "contract_sha256": "239187c5355598164e99db860ec2f80f43a3981ad7ebdd418bf46fdced8b0dde"
     },
     {
       "id": "ibdhap",
@@ -703,7 +703,7 @@
       "pinned_commit": "",
       "apptainer_definition": "",
       "dockerfile": "",
-      "contract_sha256": "f943c0434d525afe58c2efa398a09d54d87b7b8d981316c87062ed37fdd37430"
+      "contract_sha256": "68f8c2762253e100fc354b1761584a158a468c2432095e4f87798935d5589db4"
     },
     {
       "id": "kaiju",
@@ -718,7 +718,7 @@
       "pinned_commit": "4653635b1321f5779707adc79c054012ed28b221",
       "apptainer_definition": "containers/apptainer/kaiju.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.kaiju",
-      "contract_sha256": "06bcac38729751243f7a2321f7a5396aa76823e8e8796d6905c5dd587204369d"
+      "contract_sha256": "845b371ddff0d4b442ea9495dbef8ebbe1d9ded7e3baf83b4837a21f21e4cb91"
     },
     {
       "id": "king",
@@ -733,7 +733,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/king.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.king",
-      "contract_sha256": "0715d9dfff4c6c640da860b7b7a2bd20c521d804a42bc47da5f21e25c8f5a312"
+      "contract_sha256": "2e460c671f4c19717016a20873f43829e55615751c291439a258f5da33ca0b53"
     },
     {
       "id": "kraken2",
@@ -763,7 +763,7 @@
       "pinned_commit": "d3305ac7d7fddbd3e62240ab62869aded869f133",
       "apptainer_definition": "containers/apptainer/krakenuniq.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.krakenuniq",
-      "contract_sha256": "ab7758ec2417f2b67fc6ebd33b699aa97e2b53420900ac859c2f0f27bff0cf84"
+      "contract_sha256": "3f3a909e260631c6e210c68485b6e81738ba5af00f9f4fb007fd71e4ba5f38d3"
     },
     {
       "id": "leehom",
@@ -793,7 +793,7 @@
       "pinned_commit": "fecf71152ee923033358306264aaed0a693622cd",
       "apptainer_definition": "containers/apptainer/lighter.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.lighter",
-      "contract_sha256": "3bc1fc1d916add57139bda29ee5c335f8fc443e5becc6b056e00a3eb12f2e678"
+      "contract_sha256": "0dcb142126f6b5f339b89599069f4c8a6f8942c6b11057f08dd80b0ac7058598"
     },
     {
       "id": "mapdamage2",
@@ -823,7 +823,7 @@
       "pinned_commit": "66d5a7ebd21c64c5b6fd6db6a35ff44b820dfbd2",
       "apptainer_definition": "containers/apptainer/metaphlan.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.metaphlan",
-      "contract_sha256": "2037ae9bf8a0ddb47a3a684b82fe9cba60aca4054d6d4bc9841ed5d43955e200"
+      "contract_sha256": "12981a53296e503b1e8fb17111989d5a4068ef5cf7dc8230c904ed32108574a8"
     },
     {
       "id": "minimac4",
@@ -838,7 +838,7 @@
       "pinned_commit": "0c4a8d894338809eb257be2a9f4bf37ced0e2a6c",
       "apptainer_definition": "containers/apptainer/minimac4.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.minimac4",
-      "contract_sha256": "02f2f02d55f1f90c1924effb53bcd7f52ab390357bc06cc2abfda7ade3f20360"
+      "contract_sha256": "4b7d13dec5d44860ff542ce6902b15eb8176b93dd5ff5105ec9ce8d4c855fcb0"
     },
     {
       "id": "mosdepth",
@@ -853,22 +853,22 @@
       "pinned_commit": "e065a5f38ad6ff6c612a63d32f82fcfb6c00915d",
       "apptainer_definition": "containers/apptainer/mosdepth.def",
       "dockerfile": "",
-      "contract_sha256": "2de3efecd86ad43156479c113c0de203a58ef10f5d5cd3524f2c884932519569"
+      "contract_sha256": "58a1f984644f2885732f2bd66f6fe50363657c329b3266b0d3a946fd880de3c1"
     },
     {
       "id": "multiqc",
       "display_name": "MultiQC",
-      "version": "1.21",
+      "version": "1.24",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/multiqc/multiqc",
       "license": "GPL-3.0",
-      "source_sha256": "",
-      "pinned_commit": "abe4d3d8a0aaebada77dc5ffcb0c352c23d8de82",
+      "source_sha256": "991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099cb",
+      "pinned_commit": "3c55b3c3f1194e5256a77048535c064e8509487e",
       "apptainer_definition": "containers/apptainer/multiqc.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.multiqc",
-      "contract_sha256": "413c39df3648ad9cf2c3b17cca7d65c046abc9c409a7e2a7d7ed39cce48e1798"
+      "contract_sha256": "81b09f5d01acab1984749816edaf72346715c89ce9a7f3b1bf450a79d537b5f5"
     },
     {
       "id": "musket",
@@ -883,7 +883,7 @@
       "pinned_commit": "0000000000000000000000000000000000000000",
       "apptainer_definition": "containers/apptainer/musket.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.musket",
-      "contract_sha256": "b4fd88baacc12dfb3e8f80875ace81a970972c055eb7e55d82fc977323d2fd41"
+      "contract_sha256": "7a8576744bb0b49a92e3dfdaad614d5e34e9a73298132fe7341d3e31d420e767"
     },
     {
       "id": "ngsbriggs",
@@ -898,7 +898,7 @@
       "pinned_commit": "ab3b5ae8a388b9b1874dd2854fdec32bd9195f22",
       "apptainer_definition": "containers/apptainer/ngsbriggs.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.ngsbriggs",
-      "contract_sha256": "bdd44453c328775b746529dea99d0622632ff058f155e2c3357cb4a5716380b5"
+      "contract_sha256": "fe15d4be9e8332b1d9f652c30b3b163d3c10b8451a0207955c17d36b1b8a2be8"
     },
     {
       "id": "pear",
@@ -913,7 +913,7 @@
       "pinned_commit": "0000000000000000000000000000000000000000",
       "apptainer_definition": "containers/apptainer/pear.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.pear",
-      "contract_sha256": "6d0017684f69ebf24549287c85ab6b957ef44f79a73158c0093afc0c124c3fa3"
+      "contract_sha256": "f948f277c2184dd9b7346eeb8f57494dee2cc8edb00d433f62d7152ebdca06c2"
     },
     {
       "id": "picard",
@@ -928,7 +928,7 @@
       "pinned_commit": "63138fc8b7ae33eb0490a8ef707b61befa2f51d4",
       "apptainer_definition": "containers/apptainer/picard.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.picard",
-      "contract_sha256": "3127a0179338caa1c1a56084d22eb1267303683cf7a210c0e5ea4372b082b384"
+      "contract_sha256": "f402917a8c0639e9e38a72328f71945dba608c296c39ab896bd117fbbeecdd61"
     },
     {
       "id": "plink",
@@ -943,7 +943,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/plink.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.plink",
-      "contract_sha256": "d700bf14abc0a06cae415ca0776b442cb7d10d5a93e21760135f2b0d0d131086"
+      "contract_sha256": "3560e3f58ace815b09c7f8e78be4713f6dcd6e07edeb8e224b7b3a91f444b141"
     },
     {
       "id": "plink2",
@@ -958,7 +958,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/plink2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.plink2",
-      "contract_sha256": "79ead092281caa14324c8824c49d441d2d5686ba76fdf4c3b6797e980e5ead28"
+      "contract_sha256": "c3b4fdd6ac6488eced254651d8a4e73b0c9ecd44053827617cbd28cb757fabca"
     },
     {
       "id": "pmdtools",
@@ -973,7 +973,7 @@
       "pinned_commit": "18b5901e93d417ea91fd675b499e401deadfe3c5",
       "apptainer_definition": "containers/apptainer/pmdtools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.pmdtools",
-      "contract_sha256": "523b4c6db8e85d0959843584180416cd69d149815a268ae3688809321240eb04"
+      "contract_sha256": "a0062085103507f7d69473736262972b11903c38408516c4ca3309c0b3069ec7"
     },
     {
       "id": "preseq",
@@ -988,7 +988,7 @@
       "pinned_commit": "3dc2a7b1a2d3fdadedaeffebdceb29ea88dbd8bb",
       "apptainer_definition": "containers/apptainer/preseq.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.preseq",
-      "contract_sha256": "dfb00dfcedef08f2f2da18f43086f5c1a6c043026b5f3e68fdeae128d9019fce"
+      "contract_sha256": "f12125c5d38f97c2611fab28bb2f524c3e797cd1a296aee49601b480b73b555b"
     },
     {
       "id": "prinseq",
@@ -1003,22 +1003,22 @@
       "pinned_commit": "3dde89b381c9df27792478f68e7e4f3bca4d45ff",
       "apptainer_definition": "containers/apptainer/prinseq.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.prinseq",
-      "contract_sha256": "2f5aa4dd7d33e1b818ac14947daf9cbfd7fad17220828080604c9f49e5b5b512"
+      "contract_sha256": "91da1e846bdc55774603c848d74bef3e0000d7762b2d61698fe78eaf1f2205a6"
     },
     {
       "id": "pydamage",
       "display_name": "PyDamage",
-      "version": "0.80",
+      "version": "1.0",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/maxibor/pydamage",
       "license": "GPL-3.0",
-      "source_sha256": "",
-      "pinned_commit": "65f40b4dec0d414d1cb3962e8692f3e990e68491",
+      "source_sha256": "f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f",
+      "pinned_commit": "08f1d0f2d1981d350decbf10964f989e9567ddbf",
       "apptainer_definition": "containers/apptainer/pydamage.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.pydamage",
-      "contract_sha256": "d8658dc5ca2e3e254a13d1deb53f4050f9bb28fa10a42721b179ac3d10a30552"
+      "contract_sha256": "2b31cdd34783d847980b466e4a5e498740801895a9ef28d06fbf8ac8b65bbe2c"
     },
     {
       "id": "qualimap",
@@ -1033,7 +1033,7 @@
       "pinned_commit": "0000000000000000000000000000000000000000",
       "apptainer_definition": "containers/apptainer/qualimap.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.qualimap",
-      "contract_sha256": "8d7aff21f2cb046be12ee58cc951495f42b00d7e6c4272f4cffd822218f58381"
+      "contract_sha256": "bde3a9a20c94d9401dda3a71cd08bd3d72827e67d202edf671f392a9ef2b8edb"
     },
     {
       "id": "rcorrector",
@@ -1048,7 +1048,7 @@
       "pinned_commit": "f8915b79363e896409bd9ca56819f56c3f77a47e",
       "apptainer_definition": "containers/apptainer/rcorrector.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.rcorrector",
-      "contract_sha256": "cde41869b36250f234430f8f88cf71d4d62259cdd9b3a8d210b96201d2a79aca"
+      "contract_sha256": "9324c47fb3140e96d53cc60c0b99f27e25fea337090236941637afd5f8db7718"
     },
     {
       "id": "rxy",
@@ -1078,7 +1078,7 @@
       "pinned_commit": "906a3b562ef985d2a9777768f8a81001d6ce6dcb",
       "apptainer_definition": "containers/apptainer/samtools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.samtools",
-      "contract_sha256": "c64187745af3020a21f64c44f215441793b51333ae175478bb46a11c6c6fc775"
+      "contract_sha256": "3a9285e3df2c9ab3e22cf7c02b5510f740f1263f1fe78866f4e202d5ed71f3b0"
     },
     {
       "id": "schmutzi",
@@ -1093,7 +1093,7 @@
       "pinned_commit": "a42e6a90b2cb6ee395f17c87ceeb76bde5127017",
       "apptainer_definition": "containers/apptainer/schmutzi.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.schmutzi",
-      "contract_sha256": "adf6140352940a9e56bf3cdbc05361bbd1f28949a4d30f6c9e72efaf765a6184"
+      "contract_sha256": "aac99ea60c244d1c3770a5d511c5a7842d55a3ef498c7fb512410b0726a1ba95"
     },
     {
       "id": "seqfu",
@@ -1108,7 +1108,7 @@
       "pinned_commit": "681a8fe013f8bed1590ff68e2f62820d2d4303c5",
       "apptainer_definition": "containers/apptainer/seqfu.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqfu",
-      "contract_sha256": "c37824d737260f31ba4ea72a670e54bcd3b9a5e0083557ef5d4ef7f39f434733"
+      "contract_sha256": "0f1532c0e557a95b59644fe49b2ec6c682625cffee9f4641684bc4de20636f6e"
     },
     {
       "id": "seqkit",
@@ -1123,7 +1123,7 @@
       "pinned_commit": "1aef84fbc2381db2e73639632bc44a5f7a0a8bcc",
       "apptainer_definition": "containers/apptainer/seqkit.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqkit",
-      "contract_sha256": "ba64de4d796e2757938343aa7911df0873e947fbc8afc365d0e50316cc4c7a87"
+      "contract_sha256": "70701f6b30cb6a85601fdcbf238918bcf176b94da2279b3fd72f7e6a113a92f9"
     },
     {
       "id": "seqkit_stats",
@@ -1138,7 +1138,7 @@
       "pinned_commit": "1aef84fbc2381db2e73639632bc44a5f7a0a8bcc",
       "apptainer_definition": "containers/apptainer/seqkit_stats.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqkit_stats",
-      "contract_sha256": "e6e39cc6da49562424251235b7f374deb06fd1627fa025a625699c17fd0879e5"
+      "contract_sha256": "fb1818438b206cceda820ef117fff5410b7199599501383626862984a1b66e1e"
     },
     {
       "id": "seqprep",
@@ -1183,7 +1183,7 @@
       "pinned_commit": "ae7defa8bead3ef77d241f12194dc66acdd40fca",
       "apptainer_definition": "containers/apptainer/seqtk.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.seqtk",
-      "contract_sha256": "39ab4d27ada206899fe8625460a17a2147f7c1b08afcfc029d9194e324ee7acb"
+      "contract_sha256": "7db711b6efe9d43f86dac627947e5ce42d02087f7da8f9e1b0e3e4e6bfff08b8"
     },
     {
       "id": "shapeit",
@@ -1198,7 +1198,7 @@
       "pinned_commit": "16865e593ad50689271ead985dc8f4296d2f491d",
       "apptainer_definition": "containers/apptainer/shapeit.def",
       "dockerfile": "",
-      "contract_sha256": "6487089d437a5b97d2f4e0211e3f41774c0bd6fa951fcd9c068d6de6ebff4285"
+      "contract_sha256": "c0410ab0cceaac7c205d50f5210e3a5cce26bf3adb6e014ef6412cba697ea451"
     },
     {
       "id": "shapeit5",
@@ -1213,7 +1213,7 @@
       "pinned_commit": "c34d4db3e99a2f7e23deb727671ae260901a5886",
       "apptainer_definition": "containers/apptainer/shapeit5.def",
       "dockerfile": "",
-      "contract_sha256": "283500152d8b208dbb54e80cd6750bdbfa92eeba2040313094d87eb85a46adbd"
+      "contract_sha256": "0ad00edcb4e6975e7348b22e5fb2eced74f0fc680664434e2e17adbb89a5f03c"
     },
     {
       "id": "skewer",
@@ -1228,7 +1228,7 @@
       "pinned_commit": "978e8e46cba44595ece623e5387749284a86b74b",
       "apptainer_definition": "containers/apptainer/skewer.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.skewer",
-      "contract_sha256": "b2f81f93ad94323c4547f78969c58ccd5473cd9168c44f16b7daf8f222708515"
+      "contract_sha256": "ecb0b39ca6fffca4644b1995b5b8615361a4df7abcd80d273d93892e59a88e45"
     },
     {
       "id": "sortmerna",
@@ -1243,22 +1243,22 @@
       "pinned_commit": "307e84021ab3561c38fbee2854bef3eba8e6cfda",
       "apptainer_definition": "containers/apptainer/sortmerna.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.sortmerna",
-      "contract_sha256": "395ffe3a318ed1e72ba627c1f8855d399baba739cf55385dc12ec389b6f2a4a7"
+      "contract_sha256": "f5fbca4b2d25b8cb6f5d22e2cb88706aaf337e05e4acb1ecea241daf6ef7ec18"
     },
     {
       "id": "spades",
       "display_name": "SPAdes",
-      "version": "4.0.0",
+      "version": "4.2.0",
       "support_disposition": "retained",
       "support_reason": "",
       "qualification": "unverified",
       "upstream": "https://github.com/ablab/spades",
       "license": "NOASSERTION",
-      "source_sha256": "",
-      "pinned_commit": "38af83de44403f833a32073fd47ba469d998efd1",
+      "source_sha256": "b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985",
+      "pinned_commit": "7fee3c1050a732faef8a0d93d70861015a96f44e",
       "apptainer_definition": "containers/apptainer/spades.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.spades",
-      "contract_sha256": "6f8f1047089a2f68b69ca5716b30105c0ce014a574ff1d47c2fd776972a0a50d"
+      "contract_sha256": "dc50b4c82cedbde92628cd31551e7659e0ea1ab45425589d324e1c081b3c3d66"
     },
     {
       "id": "star",
@@ -1273,7 +1273,7 @@
       "pinned_commit": "b1edc1208d91a53bf40ebae8669f71d50b994851",
       "apptainer_definition": "containers/apptainer/star.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.star",
-      "contract_sha256": "780112a4bbb8256ebfd57352fd0237962e3d49931cfd856b2ab17ac883ce97ee"
+      "contract_sha256": "0c9624ec6a54253266437313925560e1cb70379989ca992feab11ea99192981d"
     },
     {
       "id": "trim_galore",
@@ -1288,7 +1288,7 @@
       "pinned_commit": "4edff97d22f3837d42a29e4afbfaeb6e07ffb11b",
       "apptainer_definition": "containers/apptainer/trim_galore.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.trim_galore",
-      "contract_sha256": "a07dd4a03756eb1819e9f63048a12fc2c056fcf93e66792f3c8bb62d79de8582"
+      "contract_sha256": "659b2b0a353ffd45dfc0fa0a7e47f171f1a77cbdcf9aa7643b9bbae2f294d6c0"
     },
     {
       "id": "trimmomatic",
@@ -1303,7 +1303,7 @@
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/trimmomatic.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.trimmomatic",
-      "contract_sha256": "c069eee4ef8227f522160af4cd3adbfc767f513adcc58146452d1b4a9b0db731"
+      "contract_sha256": "209cafa6203d94960706a87eda4c21308b650290976aab1a7fe6cfa13c8ee204"
     },
     {
       "id": "umi_tools",
@@ -1318,7 +1318,7 @@
       "pinned_commit": "3f2cb4f41e07fe4a6cea3b3389f534bee957176b",
       "apptainer_definition": "containers/apptainer/umi_tools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.umi_tools",
-      "contract_sha256": "bedd22c1532e93de76df2e51b91a0d7ab517a54d66c61f5515b8dc9fd66f0112"
+      "contract_sha256": "4bfb9f831512ed9ede4c136ae8a08be9ae8b99250b6dad69389e0370dcd99aad"
     },
     {
       "id": "verifybamid2",
@@ -1333,7 +1333,7 @@
       "pinned_commit": "83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447",
       "apptainer_definition": "containers/apptainer/verifybamid2.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.verifybamid2",
-      "contract_sha256": "a4a6c50daf31c8e860e5fe2eab7461868fe7660b3363910c6d638f1bd585dc2f"
+      "contract_sha256": "9677bf44d2756d23a62e720f518f87a8c6bdaf01edf5673ea9b9714ac901a13e"
     },
     {
       "id": "vsearch",
@@ -1348,7 +1348,7 @@
       "pinned_commit": "bbd17a05faaf7401176e36b7947874c1e5152cee",
       "apptainer_definition": "containers/apptainer/vsearch.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.vsearch",
-      "contract_sha256": "cc2a31a1f889b945b9214a48b31626377ee7f8867f85a37cf2981e95261c1fea"
+      "contract_sha256": "91c141c237147c8d9b22a748b66cdb9f97a2087beee80a49ebc4b78de17f5ebc"
     },
     {
       "id": "yleaf",

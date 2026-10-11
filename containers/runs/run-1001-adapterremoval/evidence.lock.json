@@ -1,0 +1,92 @@
+{
+  "execution_status": "failed",
+  "failures": [
+    "real one-sample command failed",
+    "required output is absent or empty: reads.settings",
+    "required output is absent or empty: reads.pair1.truncated.gz",
+    "required output is absent or empty: reads.pair2.truncated.gz"
+  ],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/adapterremoval-2.3.4-linux-amd64-a662fe75344f.sif",
+    "sha256": "a662fe75344f09f9f756dbedf1000f1dcc572d1aff35136e0eeb80fcfd0c2687",
+    "size_bytes": 121462784
+  },
+  "repository_commit": "9a0627180295c5149850a76a5a2e8a72fa0b497d",
+  "run_id": "run-1001",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457165",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "e5605deed48375c9f86174cab213fe48a4c5de42f2240d6ee07d634f6754d9f9",
+      "size_bytes": 2316
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "9dabb4412a8fd3f0cd35729766e94e55034bd7a509461fe24af79ef92918e89d",
+      "size_bytes": 3580
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "58b397c95e49a9e0386d11a2fc458874d1279e1892fddfb997f1bb344da25d02",
+      "size_bytes": 12147
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "374035b3d042e53eb7aa35ed2793d3230353b2de5f44c7711f5970db17b5e5f6",
+      "size_bytes": 336
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "2fb578ad5cae710b0d91f2975f54291113064f21e322fc769b196dcaf386fae3",
+      "size_bytes": 425
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "7a0cb94485e2ae7a62d7c5d1e83a880cb505b7c7cfeeb43cdd52cf68d3e3ff66",
+      "size_bytes": 26
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    }
+  ],
+  "source_result": "results/container-validation/adapterremoval/run-1001",
+  "tool": "adapterremoval",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "e5605deed48375c9f86174cab213fe48a4c5de42f2240d6ee07d634f6754d9f9",
+      "size_bytes": 2316
+    },
+    "evidence.json": {
+      "sha256": "9dabb4412a8fd3f0cd35729766e94e55034bd7a509461fe24af79ef92918e89d",
+      "size_bytes": 3580
+    }
+  }
+}

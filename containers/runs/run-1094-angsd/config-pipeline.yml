@@ -1,0 +1,71 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1094
+  campaign: public-ancient-dna-container-qualification
+  corpus: ena-prjeb22390-err2112767
+  sample: ERR2112767
+  domain: bam
+  stage: bam.genotyping
+  tool: angsd
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/555e96c43b87ad12b9eb057d43cca6a1c08ad4d6
+  commit: 555e96c43b87ad12b9eb057d43cca6a1c08ad4d6
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/angsd-0.941-linux-amd64-57a9d028f40a.sif
+  sha256: 57a9d028f40a93703044c1dc2f17a97ad440e8acaf370e8b56df16d943d6c776
+data:
+  inputs:
+    - id: ena-err2112767-sorted-bam
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam
+      sha256: 1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87
+    - id: ena-err2112767-sorted-bam-index
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai
+      sha256: ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3
+commands:
+  version: [angsd, --version]
+  help: [angsd, --help]
+  real:
+    - angsd
+    - -i
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam
+    - -GL
+    - '1'
+    - -doGlf
+    - '2'
+    - -doMajorMinor
+    - '1'
+    - -doMaf
+    - '1'
+    - -minMapQ
+    - '20'
+    - -minQ
+    - '20'
+    - -P
+    - '1'
+    - -out
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/angsd/run-1094/ERR2112767
+  negative: [angsd, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/angsd/run-1094
+  required_files:
+    - ERR2112767.arg
+    - ERR2112767.beagle.gz
+    - ERR2112767.mafs.gz
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 4096
+  walltime: '00:30:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^ANGSD 0[.]941$'
+  negative_exit_nonzero: true

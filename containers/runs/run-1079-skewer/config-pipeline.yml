@@ -1,0 +1,51 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1079
+  campaign: public-fastq-adapter-trim-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817-R1
+  domain: fastq
+  stage: fastq.trim_reads
+  tool: skewer
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/bda7a8a945f2cc88733fd72aa2bc663f6fdb1cfe
+  commit: bda7a8a945f2cc88733fd72aa2bc663f6fdb1cfe
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/skewer-0.2.2-linux-amd64-d3a3db911786.sif
+  sha256: d3a3db911786f3aa6c75876130b5b048ed67b2a081a9374f49388a524523f32e
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+commands:
+  version: [skewer, --version]
+  help: [skewer, --help]
+  real:
+    - skewer
+    - --stdout
+    - --quiet
+    - --threads
+    - '2'
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+  negative: [skewer, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/skewer/run-1079
+  required_files: [real.stdout.log]
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^skewer 0[.]2[.]2$'
+  negative_exit_nonzero: true

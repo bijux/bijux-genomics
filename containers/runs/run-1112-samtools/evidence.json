@@ -1,0 +1,96 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "samtools",
+        "view",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "7376c18b24a948f8680c17f7b05f3db774f0799405e4645021055919c16d4961"
+    },
+    "negative": {
+      "argv": [
+        "samtools",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "2a4ab4fc5bb5e38a0662eed7df6cc624e0089b98e6879d14850f7ff786dd7855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "sh",
+        "-c",
+        "samtools calmd /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna > /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1112/ERR2112767.calmd.sam"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "f39ef40da18e30bf166f2273737960a97cfcc46c4e611fce6ab1d4eb61d89cb0",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "samtools",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "74ced0742d39983660c8edd3752e77c9c339a736ee6204371b00a591fc21a7da"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/samtools-1.20-linux-amd64-5217bae01b27.sif",
+    "sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+    "size_bytes": 122355712
+  },
+  "inputs": [
+    {
+      "id": "ena-prjeb22390-err2112767",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+      "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+    },
+    {
+      "id": "equcab3-gcf-002863925.1",
+      "kind": "reference",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna",
+      "sha256": "3a60f0b912bad2d78d76add5eb93fc08cb2ad52e4afdb9181046c219671809b6"
+    },
+    {
+      "id": "equcab3-gcf-002863925.1-faidx",
+      "kind": "reference",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna.fai",
+      "sha256": "fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "ERR2112767.calmd.sam",
+      "sha256": "8f6b56f8699512142726bf2f1911680897443ccd03f22affc56ebca614719716",
+      "size_bytes": 86363579
+    }
+  ],
+  "pipeline_sha256": "ccadc65a3831063668faf58fe94125f14dc96dfe5425298140bfe84b6dcf7e5b",
+  "repository_clean": true,
+  "repository_commit": "12514022891a719e82c87c8535fc9c40bc56eb6c",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/12514022891a719e82c87c8535fc9c40bc56eb6c",
+  "run_id": "run-1112",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn091",
+    "slurm_job_id": "3458154",
+    "started_at_utc": "2026-08-03T01:42:08.088861+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T15:01:56.659386+00:00",
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "c853eefd997a589887337f245667d8082ff8be202e3d1ed3de841f6dcbc5b29c",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "8",
+      "Elapsed": "00:00:02",
+      "ElapsedRaw": "2",
+      "ExitCode": "0:0",
+      "JobID": "3457639",
+      "JobName": "fastq-low-complexity-filter-prinseq-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn053",
+      "ReqMem": "8G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1018",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457639",
+  "submit_script_sha256": "f090dfe89cdc45ad56dfb02a93c33c63b103c2c2083fbc42c0f1002b1f2c24d5"
+}

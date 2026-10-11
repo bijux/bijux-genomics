@@ -1,0 +1,112 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "pear",
+        "--help"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "4c72a7cb68a90b5a009787f5d837601801e910c92e695c19105854a8fe2e5393"
+    },
+    "negative": {
+      "argv": [
+        "pear",
+        "-f",
+        "/governed-missing-r1.fastq.gz",
+        "-r",
+        "/governed-missing-r2.fastq.gz",
+        "-o",
+        "/tmp/missing"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "ace458d2b610bd3bd5507e968426314d1e56e10861d08aecd1f73d27c4546f67",
+      "stdout_sha256": "bd9d05ebd2dc9a2eb5723b6fcd8f493a10161de22e41e96a6bf351a12c9e7dbf"
+    },
+    "real": {
+      "argv": [
+        "pear",
+        "-f",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+        "-r",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+        "-o",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/pear/run-1017/reads",
+        "-j",
+        "4"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "29cfa2074ed978316384d53a1a42b98d507b867355784ed49bd82e851b217bf8"
+    },
+    "version": {
+      "argv": [
+        "pear",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "fd51233354c9a61adaf49572b45f44f7e9cc76fc2465ea25beca00ef95856ee1"
+    }
+  },
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "failure_class": "container_validation",
+  "failures": [
+    "help command failed"
+  ],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/pear-0.9.6-linux-amd64-1fa2df569ac9.sif",
+    "sha256": "1fa2df569ac9197cffe5f0fc8375a53029a463c9557a3bf28d9f775823118ee1",
+    "size_bytes": 134995968
+  },
+  "inputs": [
+    {
+      "id": "err1021817-read-prefix-100000-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    },
+    {
+      "id": "err1021817-read-prefix-100000-r2",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "sha256": "14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "reads.assembled.fastq",
+      "sha256": "c4feb05060887f4ef17fc2f02da536eff3e94b4ac29e43c9d0c807b6dd3df4df",
+      "size_bytes": 1066978
+    },
+    {
+      "path": "reads.unassembled.forward.fastq",
+      "sha256": "46ebd7b2ca7d6583f7bc5118b7ac4521a527df46e14c0e0bff4ac3aa84d61573",
+      "size_bytes": 25313280
+    },
+    {
+      "path": "reads.unassembled.reverse.fastq",
+      "sha256": "569ceb0e7b8ee6c86ad4501870612e1e5ca22efaf31332ae14bd04ce7ea4247d",
+      "size_bytes": 25044870
+    }
+  ],
+  "pipeline_sha256": "8680e6717b3e28c2dc54a168dfd0fabe48ab44f677cd2855e2f934b938b532b3",
+  "repository_clean": true,
+  "repository_commit": "953e9a17bcc2ec15b82789a788f8b9301b5d9c56",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/953e9a17bcc2ec15b82789a788f8b9301b5d9c56",
+  "run_id": "run-1017",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "host": "cn053",
+    "slurm_job_id": "3457638",
+    "started_at_utc": "2026-08-02T14:56:20.335745+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn053",
+    "id": "lunarc"
+  },
+  "status": "failed"
+}

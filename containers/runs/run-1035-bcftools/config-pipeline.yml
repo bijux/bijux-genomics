@@ -1,0 +1,17 @@
+schema_version: bijux.container.pipeline.v1
+run: {id: run-1035, campaign: public-human-phasing-input-preparation, corpus: 1000-genomes-phase3-chr22, sample: 2504-sample-cohort, domain: vcf, stage: vcf.prepare_reference_panel, tool: bcftools, operator: bijan}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/c07932e6374fc0ef1511a6341223fd8e0baf226c, commit: c07932e6374fc0ef1511a6341223fd8e0baf226c, clean: true}
+image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bcftools-1.20-linux-amd64-6f7cdc3f6e83.sif, sha256: 6f7cdc3f6e830f69c44fdc164c140ce8e82b52eecb14dc1e237fdd04a22f0f99}
+data:
+  inputs:
+    - {id: 1000-genomes-phase3-chr22-v5b, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz, sha256: a90c16c4ff2b3196476d506ae13cb3047fae8670163c7c932c4b0239aef3daf5}
+    - {id: 1000-genomes-phase3-chr22-v5b-index, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz.tbi, sha256: 27de6b77af65d300bb968e8e372439deb949389e4395eb0dd251f9ba7d73bbed}
+commands:
+  version: [bcftools, --version]
+  help: [bcftools, --help]
+  real: [sh, -c, 'set -eu; bcftools view -r 22:20000000-22000000 /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz -Ou | bcftools norm -m -any -Oz -o /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bcftools/run-1035/normalized.vcf.gz; bcftools index -f /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bcftools/run-1035/normalized.vcf.gz']
+  negative: [bcftools, view, /governed-missing.vcf.gz]
+outputs: {result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bcftools/run-1035, required_files: [normalized.vcf.gz, normalized.vcf.gz.csi]}
+resources: {account: lu2026-2-20, partition: lu48, cpus: 2, memory_mb: 4096, walltime: '00:20:00', scratch_mb: 1024}
+execution: {locale: C, timezone: UTC, runtime_network: false}
+acceptance: {version_regex: '^bcftools 1[.]20', negative_exit_nonzero: true}

@@ -1,12 +1,12 @@
 schema_version: "bijux.tool.v1"
 tool_id: "fastuniq"
-status: "supported"
+status: "planned"
 scope: "pre_hpc_pre_vcf"
 capabilities:
   - "PE"
 container:
-  image: "bijuxdna/fastuniq"
-  digest: "sha256:4e0aba0be50a2894b7d36e34599cb4ff727be3e57fe47895f1a35b04985fcacf"
+  image: "external"
+  digest: "external"
 command_template:
   - "bash"
   - "-lc"
@@ -46,11 +46,11 @@ execution_contract:
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 upstream: "https://sourceforge.net/projects/fastuniq/"
-versioning_strategy: "pinned"
-pin_strategy: "pinned"
+versioning_strategy: "external"
+pin_strategy: "external_tool"
 default_version: "1.1"
-install_kind: "container"
-license: "GPL-3.0"
+install_kind: "external_tool"
+license: "NOASSERTION"
 citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3527383/"
 stage_ids: ["fastq.remove_duplicates"]
 stage_contracts:
@@ -71,6 +71,6 @@ metrics_schema: "bijux.stage.metrics.v1"
 version_cmd: "fastuniq --version"
 help_cmd: "fastuniq -h"
 comparability:
-  comparable_with: ["clumpify"]
+  comparable_with: []
   non_comparable_with: []
-comparability_notes: "Comparable when duplicate definition and pair-handling parameters are aligned and the governed report_json plus duplicate_provenance_json artifacts are compared together."
+comparability_notes: "Upstream does not publish a software license grant, so FastUniq remains an external planned option and is excluded from governed execution and comparison."

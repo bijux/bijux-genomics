@@ -1,0 +1,100 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "bcftools",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "7e63e570bf2f0833a0ef85dd89d9ab270561910ce3342ac105cc15f36d14ccd6"
+    },
+    "negative": {
+      "argv": [
+        "bcftools",
+        "view",
+        "/governed-missing.vcf.gz"
+      ],
+      "exit_code": 255,
+      "stderr_sha256": "e0e3debca047bc8e2b0b8e6ad59d75f6ddd673f6d8b20d2b981898f796d55b38",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "sh",
+        "-c",
+        "set -eu; bcftools query -l /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz | sed -n '1,100p' > /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bcftools/run-1051/samples.txt; bcftools view -m2 -M2 -v snps -S /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bcftools/run-1051/samples.txt -Oz -o /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bcftools/run-1051/panel.vcf.gz /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz; bcftools index -f /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bcftools/run-1051/panel.vcf.gz"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "bcftools",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "2f0708a9210a04f2e6add5d9fcddd92853688e85391ac65eb5c48bef42863a40"
+    }
+  },
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bcftools-1.20-linux-amd64-6f7cdc3f6e83.sif",
+    "sha256": "6f7cdc3f6e830f69c44fdc164c140ce8e82b52eecb14dc1e237fdd04a22f0f99",
+    "size_bytes": 63156224
+  },
+  "inputs": [
+    {
+      "id": "1000-genomes-phase3-chr22-v5b",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz",
+      "sha256": "a90c16c4ff2b3196476d506ae13cb3047fae8670163c7c932c4b0239aef3daf5"
+    },
+    {
+      "id": "1000-genomes-phase3-chr22-v5b-index",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz.tbi",
+      "sha256": "27de6b77af65d300bb968e8e372439deb949389e4395eb0dd251f9ba7d73bbed"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "samples.txt",
+      "sha256": "f540b2454beeb87a34cb872c7c2c85eaa93ec2e82945e372dbab273d8ab79425",
+      "size_bytes": 800
+    },
+    {
+      "path": "panel.vcf.gz",
+      "sha256": "343a756d611cb58c1187e9b8f6c9a15a297772ea4fc9691a51ad2a56457a91bb",
+      "size_bytes": 24613261
+    },
+    {
+      "path": "panel.vcf.gz.csi",
+      "sha256": "01e8c2f9a3abb4b87cb082b6ce15733d402ee53381d8d744343cecf6b6e89d33",
+      "size_bytes": 21857
+    }
+  ],
+  "pipeline_sha256": "5358c12300ad63ab14a90e179cb838d1e10f4cf2e406b8d0c5dc51595524387a",
+  "repository_clean": true,
+  "repository_commit": "52826e147fb99ac2b9e08821a7e6bf8159e9d114",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/52826e147fb99ac2b9e08821a7e6bf8159e9d114",
+  "run_id": "run-1051",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "host": "cn087",
+    "slurm_job_id": "3457868",
+    "started_at_utc": "2026-08-02T18:37:38.454908+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn087",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

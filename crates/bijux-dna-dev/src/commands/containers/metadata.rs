@@ -171,13 +171,47 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
             docker_source.to_string(),
         ));
     }
+    let inventory = read_json(&workspace.path("containers/reports/image-inventory.json"))?;
+    let runtime = read_json(&workspace.path("containers/reports/runtime-verification.json"))?;
+    let runs = read_json(&workspace.path("containers/reports/run-evidence.json"))?;
+    let inventory_states = inventory
+        .pointer("/summary/states")
+        .and_then(serde_json::Value::as_object)
+        .map(|states| {
+            states
+                .iter()
+                .map(|(state, count)| format!("{state} {}", count.as_u64().unwrap_or(0)))
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .unwrap_or_else(|| "unavailable".to_string());
+    let runtime_status =
+        runtime.get("status").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
+    let runtime_passed =
+        runtime.pointer("/summary/passed").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let governed_runs =
+        runs.pointer("/summary/run_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let passed_runs = runs
+        .pointer("/summary/execution_status/passed")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
     let mut lines = vec![
         "# Containers Docs Index".to_string(),
         String::new(),
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- source: cargo run -p bijux-dna-dev -- containers run generate-index -->".to_string(),
         String::new(),
-        "Purpose: Authoritative tool/container index for container governance and CI checks.".to_string(),
+        "This page routes operators and reviewers to the evidence that supports each".to_string(),
+        "container claim. Recipe presence and planner lifecycle labels are not proof that".to_string(),
+        "an image builds, starts, processes real data, or produces scientifically useful".to_string(),
+        "output.".to_string(),
+        String::new(),
+        "## Current evidence".to_string(),
+        String::new(),
+        format!("- Image inventory: **{inventory_states}** ([details](../reports/image-inventory.md))."),
+        format!("- Version/help runtime campaign: **{runtime_status}**, **{runtime_passed} images passed** ([details](../reports/runtime-verification.md))."),
+        format!("- Governed real executions: **{governed_runs} attempts**, **{passed_runs} passed**; scientific status is tracked independently ([details](../reports/run-evidence.md))."),
+        "- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.".to_string(),
         String::new(),
         "## Strict TOC".to_string(),
         "- Root contract: [containers/README.md](../README.md)".to_string(),
@@ -206,16 +240,20 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
             .to_string(),
         String::new(),
         "## Authority".to_string(),
-        "- Tool IDs + lifecycle status: [containers/TOOL_IDS.txt](../TOOL_IDS.txt) (generated from registry).".to_string(),
-        "- Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.".to_string(),
-        "- Container version metadata: [containers/versions/versions.toml](../versions/versions.toml) + [containers/versions/lock.json](../versions/lock.json).".to_string(),
+        "- Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).".to_string(),
+        "- Immutable admitted images: [image inventory](../reports/image-inventory.md).".to_string(),
+        "- Planner registry labels: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); these labels describe planner compatibility, not production qualification.".to_string(),
+        "- Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).".to_string(),
         "- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.".to_string(),
         "- GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.".to_string(),
         "- Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).".to_string(),
-        "- Ownership authority: [containers/contracts/catalog.toml](../contracts/catalog.toml)."
-            .to_string(),
         String::new(),
-        "## Tool Container Coverage".to_string(),
+        "## Planner compatibility surface".to_string(),
+        String::new(),
+        "This compatibility table is retained for workflow planning and build-matrix".to_string(),
+        "validation. Its `status` column is not a production or scientific claim; use the".to_string(),
+        "catalog and evidence reports above for those decisions.".to_string(),
+        String::new(),
         "| tool_id | status | apptainer_source | docker_source |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
@@ -573,6 +611,7 @@ pub(super) fn generate_ghcr_apptainer_publish_matrix(
 struct LicenseMetadataEntry {
     tool: String,
     kind: String,
+    support_disposition: String,
     spdx: String,
     upstream_url: String,
     upstream_version: String,
@@ -627,6 +666,11 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
                 (!license.is_empty()).then_some(license)
             })
             .unwrap_or_else(|| "NOASSERTION".to_string());
+        let redistribution_note = if status == "unsupported" {
+            "Bijux Genomics does not redistribute this unsupported tool; consult the canonical container catalog for the support rationale."
+        } else {
+            "Redistribution follows upstream license obligations; verify notice/source requirements before release."
+        };
         let file_content = [
             "# schema_version = 1".to_string(),
             "# owner = bijux-genomics".to_string(),
@@ -637,7 +681,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
             format!("upstream_url = \"{source}\""),
             format!("upstream_version = \"{version}\""),
             format!("upstream_checksum = \"{checksum}\""),
-            "redistribution_note = \"Redistribution follows upstream license obligations; verify notice/source requirements before release.\"".to_string(),
+            format!("redistribution_note = \"{redistribution_note}\""),
             format!("citation = \"upstream:{source}\""),
             format!("version = \"{version}\""),
             String::new(),
@@ -646,6 +690,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
         entries.push(LicenseMetadataEntry {
             tool,
             kind,
+            support_disposition: status,
             spdx,
             upstream_url: source,
             upstream_version: version,
@@ -677,13 +722,14 @@ fn generate_license_index_content(entries: &[LicenseMetadataEntry]) -> String {
         "- Every containerized tool in registry scope must have a corresponding license metadata row.".to_string(),
         "- Regenerated output is the sole authority for this index document.".to_string(),
         String::new(),
-        "| Tool | Kind | SPDX | Upstream | Version | Checksum |".to_string(),
-        "|---|---|---|---|---|---|".to_string(),
+        "| Tool | Support | Kind | SPDX | Upstream | Version | Checksum |".to_string(),
+        "|---|---|---|---|---|---|---|".to_string(),
     ];
     for entry in entries {
         lines.push(format!(
-            "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
+            "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
             entry.tool,
+            entry.support_disposition,
             entry.kind,
             entry.spdx,
             entry.upstream_url,
@@ -1036,6 +1082,18 @@ pub(super) fn check_network_disclosure(
 
 fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> {
     let versions = tool_versions(workspace)?;
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    let catalog_rows = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(|row| {
+            let table = row.as_table()?.clone();
+            let tool = table.get("id")?.as_str()?.to_string();
+            Some((tool, table))
+        })
+        .collect::<BTreeMap<_, _>>();
     let mut licenses = BTreeMap::new();
     for path in fs::read_dir(workspace.path("containers/licenses"))
         .with_context(|| format!("read {}", workspace.path("containers/licenses").display()))?
@@ -1065,45 +1123,6 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         }
     }
 
-    let mut status = BTreeMap::new();
-    let artifacts_dir = workspace.path("artifacts/containers");
-    if artifacts_dir.is_dir() {
-        for path in fs::read_dir(&artifacts_dir)
-            .with_context(|| format!("read {}", artifacts_dir.display()))?
-            .filter_map(std::result::Result::ok)
-            .map(|entry| entry.path())
-            .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("json"))
-        {
-            if matches!(
-                path.file_name().and_then(|name| name.to_str()),
-                Some("summary.json" | "report.json")
-            ) {
-                continue;
-            }
-            let Ok(value) =
-                serde_json::from_str::<serde_json::Value>(&read_utf8(&path).unwrap_or_default())
-            else {
-                continue;
-            };
-            let tool = value
-                .get("tool")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or_default()
-                .trim()
-                .to_string();
-            if !tool.is_empty() {
-                status.insert(
-                    tool,
-                    value
-                        .get("status")
-                        .and_then(serde_json::Value::as_str)
-                        .unwrap_or("unknown")
-                        .to_string(),
-                );
-            }
-        }
-    }
-
     let docker_ids = fs::read_dir(workspace.path("containers/docker"))
         .with_context(|| format!("read {}", workspace.path("containers/docker").display()))?
         .filter_map(std::result::Result::ok)
@@ -1128,17 +1147,62 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- source: cargo run -p bijux-dna-dev -- containers run generate-tool-docs -->"
             .to_string(),
-        "# Tool Docs Index".to_string(),
+        "# Container tool catalog".to_string(),
         String::new(),
-        "- Root contract: [containers/README.md](../../README.md)".to_string(),
-        "- Container docs index: [containers/docs/index.md](../index.md)".to_string(),
-        "- Tool name map: [containers/docs/TOOL_NAME_MAP.md](../TOOL_NAME_MAP.md)".to_string(),
-        "- Tool ID manifest: [containers/TOOL_IDS.txt](../../TOOL_IDS.txt)".to_string(),
+        "This page is the readable catalog surface. It replaces one-file-per-tool".to_string(),
+        "summaries that repeated links and reported unknown smoke status without".to_string(),
+        "helping a scientist choose or assess a tool.".to_string(),
         String::new(),
+        "Execution evidence and image integrity are independent from catalog metadata:".to_string(),
+        "[real LUNARC runs](../../reports/run-evidence.md) and [immutable image inventory](../../reports/image-inventory.md).".to_string(),
+        String::new(),
+        "| Tool | Purpose | Version | Disposition | Domains and stages | Runtimes | License | Limitation |".to_string(),
+        "|---|---|---|---|---|---|---|---|".to_string(),
     ];
     for (tool, version_row) in &versions {
         let license_row = licenses.get(tool).cloned().unwrap_or_default();
         let network_row = network.get(tool).cloned().unwrap_or_default();
+        let catalog_row = catalog_rows.get(tool).cloned().unwrap_or_default();
+        let support_disposition = catalog_row
+            .get("support_disposition")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("unknown");
+        let support_reason =
+            catalog_row.get("support_reason").and_then(toml::Value::as_str).unwrap_or_default();
+        let purpose = catalog_row
+            .get("purpose")
+            .and_then(toml::Value::as_str)
+            .unwrap_or("Purpose is not yet declared.")
+            .replace('|', "\\|");
+        let domains = catalog_row
+            .get("domains")
+            .and_then(toml::Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(toml::Value::as_str)
+            .collect::<Vec<_>>();
+        let stages = catalog_row
+            .get("stage_ids")
+            .and_then(toml::Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(toml::Value::as_str)
+            .collect::<Vec<_>>();
+        let upstream =
+            catalog_row.get("upstream").and_then(toml::Value::as_str).unwrap_or_default();
+        let license = {
+            let spdx = table_string(&license_row, "spdx");
+            if spdx.is_empty() {
+                let upstream = table_string(version_row, "upstream_license");
+                if upstream.is_empty() {
+                    "unknown".to_string()
+                } else {
+                    upstream
+                }
+            } else {
+                spdx
+            }
+        };
         let mut runtimes = Vec::new();
         if docker_ids.contains(tool) {
             runtimes.push("docker-arm64");
@@ -1148,65 +1212,39 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         }
         let mut limitations = Vec::new();
         if table_bool(&network_row, "runtime_network") {
-            limitations.push("Runtime network access required.".to_string());
+            limitations.push("runtime network required".to_string());
         }
         if runtimes.is_empty() {
-            limitations.push("No runtime implementation currently present.".to_string());
+            limitations.push("no runtime implementation".to_string());
+        }
+        if !support_reason.is_empty() {
+            limitations.push(support_reason.replace('|', "\\|"));
         }
         if limitations.is_empty() {
-            limitations.push("No declared limitations.".to_string());
+            limitations.push("none declared".to_string());
         }
-        let mut lines = vec![
-            "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-            "<!-- source: cargo run -p bijux-dna-dev -- containers run generate-tool-docs -->"
-                .to_string(),
-            format!("# {tool}"),
-            String::new(),
-            "Purpose: generated per-tool container contract summary.".to_string(),
-            String::new(),
-            "- Root contract: [containers/README.md](../../README.md)".to_string(),
-            "- Tool docs index: [containers/docs/tools/index.md](index.md)".to_string(),
-            "- Tool name map: [containers/docs/TOOL_NAME_MAP.md](../TOOL_NAME_MAP.md)"
-                .to_string(),
-            "- Version inventory: [containers/versions/versions.toml](../../versions/versions.toml)"
-                .to_string(),
-            "- License index: [containers/licenses/README.md](../../licenses/README.md)"
-                .to_string(),
-            format!(
-                "- Tool license record: [containers/licenses/{tool}.license.toml](../../licenses/{tool}.license.toml)"
-            ),
-            String::new(),
-            format!("- Version: `{}`", table_string(version_row, "version")),
-            format!("- License: `{}`", {
-                let spdx = table_string(&license_row, "spdx");
-                if spdx.is_empty() {
-                    let upstream = table_string(&license_row, "upstream_license");
-                    if upstream.is_empty() {
-                        "unknown".to_string()
-                    } else {
-                        upstream
-                    }
-                } else {
-                    spdx
-                }
-            }),
-            format!(
-                "- Runtime support: `{}`",
-                if runtimes.is_empty() { "none".to_string() } else { runtimes.join(", ") }
-            ),
-            format!(
-                "- Smoke status: `{}`",
-                status.get(tool).cloned().unwrap_or_else(|| "unknown".to_string())
-            ),
-            String::new(),
-            "## Known Limitations".to_string(),
-        ];
-        for limitation in limitations {
-            lines.push(format!("- {limitation}"));
-        }
-        outputs.insert(format!("{tool}.md"), format!("{}\n", lines.join("\n")));
-        index_lines.push(format!("- [{tool}]({tool}.md)"));
+        let tool_label = if upstream.is_empty() {
+            format!("`{tool}`")
+        } else {
+            format!("[`{tool}`]({upstream})")
+        };
+        let domain_stage = if stages.is_empty() {
+            domains.join(", ")
+        } else {
+            format!("{}<br>{}", domains.join(", "), stages.join("<br>"))
+        };
+        index_lines.push(format!(
+            "| {tool_label} | {purpose} | `{}` | {support_disposition} | {} | {} | `{license}` | {} |",
+            table_string(version_row, "version"),
+            if domain_stage.is_empty() { "not applicable" } else { &domain_stage },
+            if runtimes.is_empty() { "none".to_string() } else { runtimes.join(", ") },
+            limitations.join("; ")
+        ));
     }
+    index_lines.extend([
+        String::new(),
+        "A catalog row is not a production claim. Follow its run and image evidence before using a tool for scientific inference.".to_string(),
+    ]);
     outputs.insert("index.md".to_string(), format!("{}\n", index_lines.join("\n")));
     Ok(outputs)
 }

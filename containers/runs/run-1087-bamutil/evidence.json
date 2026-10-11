@@ -1,0 +1,87 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "bamutil",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "ed2f9320643e4127f16b02df57942572904b2e5eb5df1aa292983520dea0976a"
+    },
+    "negative": {
+      "argv": [
+        "bamutil",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "9644ffca682bb6435536cc60dec0141e45a3e9c4ed78be01f6fd5ceeaa3f40bd",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "bamutil",
+        "clipOverlap",
+        "--in",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1013/aligned.sorted.bam",
+        "--out",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bamutil/run-1087/overlap-corrected.bam",
+        "--stats"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "57aa26dc3fc8e49e0016e6cd8f29856bdb07eeaf863a33c4e338f042d8eccca6",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "bamutil",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "48558810e60205d9531b671e21078183c82768167f11ce24cf2e90afd2c56539"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bamutil-1.0.15-linux-amd64-b9e8aebb7038.sif",
+    "sha256": "b9e8aebb70381153230b3e2883af7f71b47ad8efed9f3c8beb1392dec7cda5c3",
+    "size_bytes": 31178752
+  },
+  "inputs": [
+    {
+      "id": "ena-err1021817-equcab3-coordinate-sorted-bam",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1013/aligned.sorted.bam",
+      "sha256": "c35d6ede7718dbeac93bdb22befd63c8510153920a350a6ae8b4353151710927"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "overlap-corrected.bam",
+      "sha256": "4a34eeff3387b0d9bda611770df1ad44ade56f57f11f20614bdfc5e0246699c1",
+      "size_bytes": 15764483
+    }
+  ],
+  "pipeline_sha256": "707492ea3cd2bd9961bf6db3998c10b4785608224d02d59debda21496e7d99af",
+  "repository_clean": true,
+  "repository_commit": "1c38962f2871667b738f648ec66c526a31081670",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/1c38962f2871667b738f648ec66c526a31081670",
+  "run_id": "run-1087",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn087",
+    "slurm_job_id": "3458070",
+    "started_at_utc": "2026-08-02T22:23:59.007392+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn087",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

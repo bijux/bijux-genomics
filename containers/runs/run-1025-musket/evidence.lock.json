@@ -1,0 +1,116 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/musket-1.1-linux-amd64-66cc57153cc4.sif",
+    "sha256": "66cc57153cc40ea65f19dd660baa30cda11eedd5084f94acac2e35a3700c2c56",
+    "size_bytes": 132648960
+  },
+  "repository_commit": "8cee26d799267731746bd3b1679af4f4c8f8f1cc",
+  "run_id": "run-1025",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457655",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+      "size_bytes": 397
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "13a281e6116851716b3ec16fc5d1e4eb7bee416624fabacaf9933eb614dff5c6",
+      "size_bytes": 1669
+    },
+    {
+      "path": "corrected.fastq",
+      "sha256": "a66e36a39feea7ade8a5dc07910039099a1d45a97a88cf1f72430b90f64b3188",
+      "size_bytes": 21561239
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "65574d9bf7437424a61a63795c9b883d8322d23995251b8cef7cfa6417368467",
+      "size_bytes": 3206
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "f6c2fb7e3f7514a75511fbaaac766acdb0c177eea744e224a77ef5eefbdcdb9a",
+      "size_bytes": 1266
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "28e8cbf40dca7ce844973ca7748df0d77c68fb3b31bce407e8a89380ef661013",
+      "size_bytes": 1398
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "f7efd0ab9db3f45f6619dbfd9cd6c79e7dfab3e466595a4791cb4de0c7f343df",
+      "size_bytes": 1228
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "44f2e8054ddcf383d199f1b79544177cbc3b92e4a3a9ab22964d736043fadade",
+      "size_bytes": 930
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "8763a9f31deca87539ebb48227033c528080ea9aa6fbff5c4c9b9bdf2c41ccf8",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "6e9ddf59de98e4a4caacf9ab12b402739575828051d7f0a779e5ae5545649d2d",
+      "size_bytes": 1051
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "1523e9e982ff804c6d979e1bb2c6f3d7bae35307e8ce458bffc0d12a442b98da",
+      "size_bytes": 4
+    }
+  ],
+  "source_result": "results/container-validation/musket/run-1025",
+  "tool": "musket",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "13a281e6116851716b3ec16fc5d1e4eb7bee416624fabacaf9933eb614dff5c6",
+      "size_bytes": 1669
+    },
+    "evidence.json": {
+      "sha256": "65574d9bf7437424a61a63795c9b883d8322d23995251b8cef7cfa6417368467",
+      "size_bytes": 3206
+    },
+    "slurm-accounting.json": {
+      "sha256": "44f2e8054ddcf383d199f1b79544177cbc3b92e4a3a9ab22964d736043fadade",
+      "size_bytes": 930
+    }
+  }
+}

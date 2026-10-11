@@ -1,0 +1,55 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1006
+  campaign: horse-wgs-container-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: fastq.trim
+  tool: bbduk
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/a7690273fbf58648d4adf485d7d4037e0f983132
+  commit: a7690273fbf58648d4adf485d7d4037e0f983132
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bbduk-39.06-linux-amd64-ad3f94f44b4e.sif
+  sha256: ad3f94f44b4e8871c326298d260d2594215851be7289a328da04e1ef5be409af
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-pair1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: ena-err1021817-read-prefix-100000-pair2
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+      sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+commands:
+  version: [bbduk, --version]
+  help: [bbduk, --help]
+  real:
+    - bbduk
+    - in=/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - in2=/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+    - out=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bbduk/run-1006/trimmed.pair1.fastq.gz
+    - out2=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bbduk/run-1006/trimmed.pair2.fastq.gz
+    - stats=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bbduk/run-1006/stats.txt
+    - entropy=0.5
+    - threads=4
+    - overwrite=t
+  negative: [bbduk, in=/governed-missing.fastq.gz, out=/tmp/rejected.fastq.gz]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bbduk/run-1006
+  required_files: [trimmed.pair1.fastq.gz, trimmed.pair2.fastq.gz, stats.txt]
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 8192
+  walltime: 01:00:00
+  scratch_mb: 2048
+execution: {locale: C, timezone: UTC, runtime_network: false}
+acceptance:
+  version_regex: '^BBMap 39[.]06 [(]BBDuk[)]$'
+  negative_exit_nonzero: true

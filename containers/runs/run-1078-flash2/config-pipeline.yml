@@ -1,0 +1,58 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1078
+  campaign: public-fastq-pair-merge-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: fastq.merge_pairs
+  tool: flash2
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/db43a6f9c6b724685a5dbaaf4e58c04abef62b9e
+  commit: db43a6f9c6b724685a5dbaaf4e58c04abef62b9e
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/flash2-2.2.00-linux-amd64-3fdfb65afaf1.sif
+  sha256: 3fdfb65afaf1c9967f7ffae5a0015f18b627099fd7ed95efc07626d7932aeac7
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: ena-err1021817-read-prefix-100000-r2
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+      sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+commands:
+  version: [flash2, --version]
+  help: [flash2, --help]
+  real:
+    - flash2
+    - --output-directory
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/flash2/run-1078
+    - --output-prefix
+    - ERR1021817
+    - --threads
+    - '2'
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+  negative: [flash2, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/flash2/run-1078
+  required_files: [ERR1021817.extendedFrags.fastq]
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^flash2 2[.]2[.]00$'
+  negative_exit_nonzero: true

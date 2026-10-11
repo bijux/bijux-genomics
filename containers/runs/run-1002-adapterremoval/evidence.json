@@ -1,0 +1,102 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "adapterremoval",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "58b397c95e49a9e0386d11a2fc458874d1279e1892fddfb997f1bb344da25d02",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "negative": {
+      "argv": [
+        "adapterremoval",
+        "--file1",
+        "/governed-missing.fastq.gz",
+        "--basename",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/adapterremoval/run-1002/negative"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "374035b3d042e53eb7aa35ed2793d3230353b2de5f44c7711f5970db17b5e5f6",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "adapterremoval",
+        "--file1",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+        "--file2",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+        "--basename",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/adapterremoval/run-1002/reads",
+        "--gzip",
+        "--threads",
+        "4"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "9a03e5ca00cc62275b949dea107a3a949ccda6c7dea23080d35bda76c4ad08ed",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "adapterremoval",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "7a0cb94485e2ae7a62d7c5d1e83a880cb505b7c7cfeeb43cdd52cf68d3e3ff66",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/adapterremoval-2.3.4-linux-amd64-a662fe75344f.sif",
+    "sha256": "a662fe75344f09f9f756dbedf1000f1dcc572d1aff35136e0eeb80fcfd0c2687",
+    "size_bytes": 121462784
+  },
+  "inputs": [
+    {
+      "id": "ERR1021817-mate-1-read-prefix-100000",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    },
+    {
+      "id": "ERR1021817-mate-2-read-prefix-100000",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "sha256": "14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "reads.settings",
+      "sha256": "713d074e7da44879d6065304fec5d45d0b89f28e56a42428c0fc519b1a890503",
+      "size_bytes": 2911
+    },
+    {
+      "path": "reads.pair1.truncated.gz",
+      "sha256": "a59b53576a7978d5ebf3a927aa91a8d7492ed43d6fe05c9326025ac93dbd8a6b",
+      "size_bytes": 7564194
+    },
+    {
+      "path": "reads.pair2.truncated.gz",
+      "sha256": "b74a01e0b2f2c6c4dbfdcb39778118b16547edffb8ab337bab76cf9bcace64bf",
+      "size_bytes": 7796415
+    }
+  ],
+  "pipeline_sha256": "32a908264a00227dd85808fa40490ba87d4a2d9ec0908f3405898f946e427fcc",
+  "repository_clean": true,
+  "repository_commit": "fd989ab019a266afb10950271012bfef48833570",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/fd989ab019a266afb10950271012bfef48833570",
+  "run_id": "run-1002",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "host": "cn046",
+    "slurm_job_id": "3457168",
+    "started_at_utc": "2026-08-02T13:02:42.043550+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "status": "passed"
+}

@@ -1,0 +1,93 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "dustmasker",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "7364c0c543f559157b1220c918c2e343a83525ba71df6da6a963f2fed73439b4"
+    },
+    "negative": {
+      "argv": [
+        "dustmasker",
+        "-in",
+        "/governed-missing.fasta",
+        "-out",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/dustmasker/run-1055/missing.intervals",
+        "-outfmt",
+        "interval"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "cddbafad46a8f45a8bdce187e591260f5b2a9a68b25511de765f3c77a01ac322",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "sh",
+        "-c",
+        "set -eu; dustmasker -in /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-nc_009144.3-first-megabase/equcab3-nc_009144.3-1-1000000.fasta -out /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/dustmasker/run-1055/low-complexity.intervals -outfmt interval -parse_seqids; dustmasker -in /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-nc_009144.3-first-megabase/equcab3-nc_009144.3-1-1000000.fasta -out /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/dustmasker/run-1055/masked.fasta -outfmt fasta -parse_seqids"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "dustmasker",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "654e96d2848bc5cbe134a473a16fbfc33fc4213850cc0bf9bd1ba718d2e61a23"
+    }
+  },
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/dustmasker-2.15.0-linux-amd64-416c38e6a7e1.sif",
+    "sha256": "416c38e6a7e13ea4042d15aa7f7f177c287aa535ee8e3aef6dc4bc543518682d",
+    "size_bytes": 40480768
+  },
+  "inputs": [
+    {
+      "id": "equcab3-nc_009144.3-first-megabase",
+      "kind": "reference",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-nc_009144.3-first-megabase/equcab3-nc_009144.3-1-1000000.fasta",
+      "sha256": "31c05c963f35d1c98fb95ef7872712ea005f95d9ebffeee35c1f7207a17bbd9a"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "low-complexity.intervals",
+      "sha256": "e2dd6a037053ddff8ccc8c72c16a31bd37ef96707f97f1aa597d9ee3f56af924",
+      "size_bytes": 15274
+    },
+    {
+      "path": "masked.fasta",
+      "sha256": "b929c7182b9cadd81403d2a9acdf7d623deb7a2506f977081c558fba5799b909",
+      "size_bytes": 1016675
+    }
+  ],
+  "pipeline_sha256": "32a1aa9fdbf90418fb2995cf1f6ce5c28da5138b99f9c292b60859d9e810abbe",
+  "repository_clean": true,
+  "repository_commit": "3151d5ae8139baf2035914c59d3830da3cadf62b",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/3151d5ae8139baf2035914c59d3830da3cadf62b",
+  "run_id": "run-1055",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn088",
+    "slurm_job_id": "3457878",
+    "started_at_utc": "2026-08-02T18:47:33.923727+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn088",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

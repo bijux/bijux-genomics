@@ -1,0 +1,116 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bamutil-1.0.15-linux-amd64-b9e8aebb7038.sif",
+    "sha256": "b9e8aebb70381153230b3e2883af7f71b47ad8efed9f3c8beb1392dec7cda5c3",
+    "size_bytes": 31178752
+  },
+  "repository_commit": "1c38962f2871667b738f648ec66c526a31081670",
+  "run_id": "run-1087",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458070",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "707492ea3cd2bd9961bf6db3998c10b4785608224d02d59debda21496e7d99af",
+      "size_bytes": 1768
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "7acc39da7b6793177dee064ba8909fb2f894f92ed1b1f7cc357644eeea65f1ec",
+      "size_bytes": 3131
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "ed2f9320643e4127f16b02df57942572904b2e5eb5df1aa292983520dea0976a",
+      "size_bytes": 2340
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "9644ffca682bb6435536cc60dec0141e45a3e9c4ed78be01f6fd5ceeaa3f40bd",
+      "size_bytes": 61
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "overlap-corrected.bam",
+      "sha256": "4a34eeff3387b0d9bda611770df1ad44ade56f57f11f20614bdfc5e0246699c1",
+      "size_bytes": 15764483
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "57aa26dc3fc8e49e0016e6cd8f29856bdb07eeaf863a33c4e338f042d8eccca6",
+      "size_bytes": 348
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "d895c2114c5917961e695edbb1776b6b90707e2b85b8d0ba899f95c7ff833f93",
+      "size_bytes": 929
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "f8c772ac5f31b7b4c88333e770988a205312b29185d888fb313cf1876b3e6951",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "4548971ecbecb73f577871abe7a2c2b6c91855a63dd77236a85a8a188226a16e",
+      "size_bytes": 1056
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "48558810e60205d9531b671e21078183c82768167f11ce24cf2e90afd2c56539",
+      "size_bytes": 15
+    }
+  ],
+  "source_result": "results/container-validation/bamutil/run-1087",
+  "tool": "bamutil",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "707492ea3cd2bd9961bf6db3998c10b4785608224d02d59debda21496e7d99af",
+      "size_bytes": 1768
+    },
+    "evidence.json": {
+      "sha256": "7acc39da7b6793177dee064ba8909fb2f894f92ed1b1f7cc357644eeea65f1ec",
+      "size_bytes": 3131
+    },
+    "slurm-accounting.json": {
+      "sha256": "d895c2114c5917961e695edbb1776b6b90707e2b85b8d0ba899f95c7ff833f93",
+      "size_bytes": 929
+    }
+  }
+}

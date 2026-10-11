@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T15:11:23.481994+00:00",
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "pipeline_sha256": "15574fb970a8659fc6fa267d911b9d0bbaad1407a0e939393d0d049d9b6440b1",
+  "rows": [
+    {
+      "AllocCPUS": "1",
+      "AveRSS": "",
+      "CPUTimeRAW": "1",
+      "Elapsed": "00:00:01",
+      "ElapsedRaw": "1",
+      "ExitCode": "0:0",
+      "JobID": "3457648",
+      "JobName": "fastq-materialize-fqtools-ERR1021817-R1",
+      "MaxRSS": "",
+      "NodeList": "cn046",
+      "ReqMem": "2G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1021",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457648",
+  "submit_script_sha256": "a0a7e6a6ac959a37e1e3b481cb8b492ba48c2254845f88f038e352cce8fb1809"
+}

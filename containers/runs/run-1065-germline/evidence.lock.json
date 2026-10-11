@@ -1,0 +1,123 @@
+{
+  "execution_status": "failed",
+  "failures": [
+    "negative command unexpectedly succeeded"
+  ],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/germline-1.5.3-linux-amd64-7c9bc32127d9.sif",
+    "sha256": "7c9bc32127d93a73f5c881f5e095e36e38cc902ab72e3d77b42901e68a597403",
+    "size_bytes": 30781440
+  },
+  "repository_commit": "1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+  "run_id": "run-1065",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457970",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "0ba0d61bf54cd54efe42cf330d47af822d55ee6303ea05683e12ee470177b459",
+      "size_bytes": 2371
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "1abf0ae6503d159c96e778072cbf3f3c255cb20ff579d5e399dc14e340e7f0ba",
+      "size_bytes": 3989
+    },
+    {
+      "path": "germline.log",
+      "sha256": "bf6daefe2516000dc402bd6f838484ac37530086f3a92b2d72585015a53d4574",
+      "size_bytes": 970
+    },
+    {
+      "path": "germline.match",
+      "sha256": "64e746d07343a8be7a78f806ec51d0e3cbc97d430f123ecc7059da7a5faf0879",
+      "size_bytes": 1203
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "bf009dc78a1209010eed18bfa57d9ff47bc88d5373c461d8266a049bcbe25b8d",
+      "size_bytes": 193
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "2c6f7a33368a9273c0360e49c30bf917075348860dff5138a2377bcddfe8988e",
+      "size_bytes": 65
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "c9011d02f44e62876a7515edcff9b86a6ac402f26466dbe2ad7afa3f076ed186",
+      "size_bytes": 927
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "ae2611ed7b4bb00db41284df763b3e3c3a2fa8d93aabf33e9a6ccf99dba37b27",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "39f6cd929a6f6d8c77f8a8d6c7b98bd3d2450cfef52c782eaa6eb829a92b7855",
+      "size_bytes": 1016
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "acc2546b6e27cd36cbd938f2e4731d07bd86deba9d3409334b7c08d1fafaf7f8",
+      "size_bytes": 15
+    }
+  ],
+  "source_result": "results/container-validation/germline/run-1065",
+  "tool": "germline",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "0ba0d61bf54cd54efe42cf330d47af822d55ee6303ea05683e12ee470177b459",
+      "size_bytes": 2371
+    },
+    "evidence.json": {
+      "sha256": "1abf0ae6503d159c96e778072cbf3f3c255cb20ff579d5e399dc14e340e7f0ba",
+      "size_bytes": 3989
+    },
+    "slurm-accounting.json": {
+      "sha256": "c9011d02f44e62876a7515edcff9b86a6ac402f26466dbe2ad7afa3f076ed186",
+      "size_bytes": 927
+    }
+  }
+}

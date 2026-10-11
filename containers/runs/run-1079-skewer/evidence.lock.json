@@ -1,0 +1,111 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/skewer-0.2.2-linux-amd64-d3a3db911786.sif",
+    "sha256": "d3a3db911786f3aa6c75876130b5b048ed67b2a081a9374f49388a524523f32e",
+    "size_bytes": 30801920
+  },
+  "repository_commit": "bda7a8a945f2cc88733fd72aa2bc663f6fdb1cfe",
+  "run_id": "run-1079",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458064",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "dcfbf25de425c36487d6e7bc915ac64be399d57113791507f9a340b47d99032a",
+      "size_bytes": 1636
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "c07e9f171527bbadb657fef43215b29bb4e3729afa1f9eb479cb8e0e51b5a8ae",
+      "size_bytes": 3009
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "3b3963b7cfe00cf54b99746878916df9660e4ebc425d73a74be07dbe829f3d22",
+      "size_bytes": 3771
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "f8ef74e85f36eacef8dc9a67971d78b6ceb4b9ae5362b59dff4edc9a5c14548b",
+      "size_bytes": 60
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "688942f9d17e565c2cecdfa137e89381160f84fdcc78d8bcacb0e6498e3f16cb",
+      "size_bytes": 2633
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3c8e22aeed7333a765880c161a615e8a975df231962ebe95d767a52b97d864c",
+      "size_bytes": 25992094
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "3e9ee9c3774460396ed1c9ea348369be27dc60eb266952575367c6cfb20c5c2f",
+      "size_bytes": 925
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "87bfc76d52ed2458ec8ae8bf3f4f57398150b4aa3b3ee45eff7c6260aa65edef",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "85b722e6539e9da2c770d9a421acdb9cc02bb5aef704ae6259f7a0592d7b4264",
+      "size_bytes": 1047
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "0077a5bc9e92fd6f69964db00a55695a1e4aa4b527fe12d6cf83ed9576abba98",
+      "size_bytes": 13
+    }
+  ],
+  "source_result": "results/container-validation/skewer/run-1079",
+  "tool": "skewer",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "dcfbf25de425c36487d6e7bc915ac64be399d57113791507f9a340b47d99032a",
+      "size_bytes": 1636
+    },
+    "evidence.json": {
+      "sha256": "c07e9f171527bbadb657fef43215b29bb4e3729afa1f9eb479cb8e0e51b5a8ae",
+      "size_bytes": 3009
+    },
+    "slurm-accounting.json": {
+      "sha256": "3e9ee9c3774460396ed1c9ea348369be27dc60eb266952575367c6cfb20c5c2f",
+      "size_bytes": 925
+    }
+  }
+}

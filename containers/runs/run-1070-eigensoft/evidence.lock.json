@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/eigensoft-8.0.0-linux-amd64-b514b5c1541d.sif",
+    "sha256": "b514b5c1541d77b77b200ea90c8aa620592da77e4b45aab995d6735e84d23e18",
+    "size_bytes": 53198848
+  },
+  "repository_commit": "e91d3dac0ccf34fba5f266ab175449ddeb5a7079",
+  "run_id": "run-1070",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457998",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "7edf30f479913d143b651c82aad7386e0e848856240dee5e982fa3f41a4d316b",
+      "size_bytes": 2142
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "137cf7ab69abec9583d3df3260624a7b505f37b57c17d48697e2d4e49141c2e6",
+      "size_bytes": 3658
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "48447e9efa6fe7681407403b330c60f3e288f0783f30b17648507d04e1a8ddb7",
+      "size_bytes": 153
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "03b4143839304f3327ce736a3c69dbcb83f34cf1d8d080fece272950e57095fc",
+      "size_bytes": 96
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "b838cc4e26cdb06d1a4e3fc8315e1ef5167177c5fedb226489e540e234a7f5cc",
+      "size_bytes": 49
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "191b9b723721a37d52010d885fbe8795d8159fbb699f971c2dc02f73932ea7d0",
+      "size_bytes": 17830
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "5d786f8988239acbea39397f4fec00baa2cea288b7047c054e00fa92fbb4e5de",
+      "size_bytes": 934
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "2276cacdb5c44956aebee1ae3ecd7ce0b0a4c9156287312eb178f627e0e24862",
+      "size_bytes": 8
+    },
+    {
+      "path": "smartpca.eval",
+      "sha256": "759891c83d17cdcacec95e82f0d683be3658ea605f2174f876828d460eebd49d",
+      "size_bytes": 1300
+    },
+    {
+      "path": "smartpca.evec",
+      "sha256": "25e766f8bbcb0bac1a2fb4046d72b9eabcf0c1ed79dbb016c5fffc19343f01a8",
+      "size_bytes": 15822
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "baf998cfc9467ccfdd627b52f3f07bd92b378e15365f944ebe943550257c8df6",
+      "size_bytes": 1020
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "ccdc6b2d303cc262f51a0bd9cb409113166259f2136ed8678b54eef2a055042e",
+      "size_bytes": 15
+    }
+  ],
+  "source_result": "results/container-validation/eigensoft/run-1070",
+  "tool": "eigensoft",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "7edf30f479913d143b651c82aad7386e0e848856240dee5e982fa3f41a4d316b",
+      "size_bytes": 2142
+    },
+    "evidence.json": {
+      "sha256": "137cf7ab69abec9583d3df3260624a7b505f37b57c17d48697e2d4e49141c2e6",
+      "size_bytes": 3658
+    },
+    "slurm-accounting.json": {
+      "sha256": "5d786f8988239acbea39397f4fec00baa2cea288b7047c054e00fa92fbb4e5de",
+      "size_bytes": 934
+    }
+  }
+}

@@ -1,0 +1,74 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1108
+  campaign: public-ancient-horse-mitochondrial-contamination-qualification
+  corpus: ena-prjeb22390-err2112767
+  sample: ERR2112767
+  domain: bam
+  stage: bam.contamination
+  tool: contammix
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/84651657741bfebe8ab25874e95139dcafd3c962
+  commit: 84651657741bfebe8ab25874e95139dcafd3c962
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/contammix-1.0.11-linux-amd64-10a74dccedc1.sif
+  sha256: 10a74dccedc1580d500c18d9fc1724fea0229ccc6646825cecab69364e3a4243
+data:
+  inputs:
+    - id: samtools-run-1107-mitochondrial-bam
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1107/ERR2112767.NC_001640.1.bam
+      sha256: 340f22ee1509baf1cc172a276712f8c769c3362256498b14a689de202a455edc
+    - id: equus-mitochondrial-candidate-alignment
+      kind: reference
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equus-mitochondrial-candidates/equus-mitochondrial-candidates.coordinate-aligned.fasta
+      sha256: 68e4140f9032519994de43f626fa4aed82414785170dee12088dca6ae37e3507
+    - id: equus-mitochondrial-candidate-catalog
+      kind: reference
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/equus-mitochondrial-candidates.json
+      sha256: bce69464d22798b67220d9e2d31e679129da884e441d08afcfb65c63898ac1a2
+commands:
+  version: [contammix, --version]
+  help: [contammix, --help]
+  real:
+    - contammix
+    - estimate
+    - --samFn
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1107/ERR2112767.NC_001640.1.bam
+    - --malnFn
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equus-mitochondrial-candidates/equus-mitochondrial-candidates.coordinate-aligned.fasta
+    - --consId
+    - NC_001640.1
+    - --nIter
+    - '50000'
+    - --nChains
+    - '3'
+    - --nrThreads
+    - '2'
+    - --tabOutput
+    - --figure
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/contammix/run-1108/contammix-diagnostics.pdf
+    - --saveData
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/contammix/run-1108/contammix-chains.Rdata
+  negative: [contammix, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/contammix/run-1108
+  required_files:
+    - contammix-chains.Rdata
+    - contammix-diagnostics.pdf
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 2048
+  walltime: '00:30:00'
+  scratch_mb: 1024
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^contammix 1[.]0[.]11 [(]contamMix package 1[.]0-10[)]$'
+  negative_exit_nonzero: true

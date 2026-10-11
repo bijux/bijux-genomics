@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T22:09:05.075839+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "0f82983c953f74781c884d547a27a17d91d1f039cd804465961710f4429ec0b1",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "10",
+      "Elapsed": "00:00:05",
+      "ElapsedRaw": "5",
+      "ExitCode": "0:0",
+      "JobID": "3458068",
+      "JobName": "fastq-cluster_otus-vsearch-ERR1021817-R1",
+      "MaxRSS": "",
+      "NodeList": "cn087",
+      "ReqMem": "4G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1084",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458068",
+  "submit_script_sha256": "a51bdf42fd79c3050dd2722017ab2aa6b02c88a71ba6af9445541cf538120a39"
+}

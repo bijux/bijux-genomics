@@ -153,9 +153,14 @@ pub(in super::super::super) fn check_vcf_imputation_toolchain(
                 workspace.rel(&license_file).display()
             ));
         }
-        let tool_doc = workspace.path(&format!("containers/docs/tools/{tool}.md"));
-        if !tool_doc.exists() {
-            errors.push(format!("{tool}: missing tool doc {}", workspace.rel(&tool_doc).display()));
+        let tool_catalog = workspace.path("containers/docs/tools/index.md");
+        if !tool_catalog.exists()
+            || !read_utf8(&tool_catalog).unwrap_or_default().contains(&format!("[`{tool}`]"))
+        {
+            errors.push(format!(
+                "{tool}: missing from container tool catalog {}",
+                workspace.rel(&tool_catalog).display()
+            ));
         }
     }
 

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 30956eea7138fdd3fa12628064c00684c7e6aae2
+# source_commit: 49f670f4bfd6ac79fdadfc69456c693bf9d168e3
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -100,9 +100,6 @@ version = "0.12.1"
 [fastqvalidator]
 version = "0.1.1"
 
-[fastuniq]
-version = "1.1"
-
 [fastx_clipper]
 version = "0.0.14"
 
@@ -168,7 +165,7 @@ enabled = false
 version = "0.3.11"
 
 [multiqc]
-version = "1.21"
+version = "1.24"
 
 [musket]
 version = "1.1"
@@ -199,7 +196,7 @@ version = "3.2.0"
 version = "1.2.4"
 
 [pydamage]
-version = "0.80"
+version = "1.0"
 
 [rcorrector]
 version = "1.0.7"

@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T21:03:04.804376+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "3f390df5469e35b3ecb084728c021cb310cac3ad24812cd6c7a57252e3092adf",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "14",
+      "Elapsed": "00:00:07",
+      "ElapsedRaw": "7",
+      "ExitCode": "0:0",
+      "JobID": "3457971",
+      "JobName": "vcf-allele_frequency-plink-HG00096-HG00097",
+      "MaxRSS": "",
+      "NodeList": "cn046",
+      "ReqMem": "4G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1066",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457971",
+  "submit_script_sha256": "dd6f5752755f9160d332a0c8bbf8801613b7ee76497840d51f0ab286f7b894d0"
+}

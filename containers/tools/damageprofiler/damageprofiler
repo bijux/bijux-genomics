@@ -1,0 +1,40 @@
+#!/bin/sh
+set -eu
+
+input=
+reference=
+need_value=
+for argument in "$@"; do
+    if [ -n "$need_value" ]; then
+        case "$need_value" in
+            input) input=$argument ;;
+            reference) reference=$argument ;;
+        esac
+        need_value=
+        continue
+    fi
+    case "$argument" in
+        -i) need_value=input ;;
+        -r) need_value=reference ;;
+        --help|--version) ;;
+        --*)
+            printf 'damageprofiler: unsupported option: %s\n' "$argument" >&2
+            exit 64
+            ;;
+    esac
+done
+
+if [ -n "$need_value" ]; then
+    printf 'damageprofiler: option requires a value\n' >&2
+    exit 64
+fi
+if [ -n "$input" ] && [ ! -r "$input" ]; then
+    printf 'damageprofiler: input is not readable: %s\n' "$input" >&2
+    exit 66
+fi
+if [ -n "$reference" ] && [ ! -r "$reference" ]; then
+    printf 'damageprofiler: reference is not readable: %s\n' "$reference" >&2
+    exit 66
+fi
+
+exec java -jar /opt/damageprofiler.jar "$@"

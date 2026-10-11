@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "30956eea7138fdd3fa12628064c00684c7e6aae2",
-  "bundle_checksum_sha256": "3ee34587208fed0c9a126b6b773e32e085b53ffec68c9b2b4051e2fe284c4b5e",
+  "source_commit": "49f670f4bfd6ac79fdadfc69456c693bf9d168e3",
+  "bundle_checksum_sha256": "37917bcef0ce8ed9b5c4b59f78b2c8a9087e5e789df1a1bc5580c5743c509a11",
   "domains": [
     {
       "domain_id": "bam",
@@ -3129,7 +3129,7 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "1.0.0",
+          "default_version": "1.0",
           "upstream": "https://github.com/maxibor/pydamage",
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
@@ -3149,7 +3149,7 @@
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
-            "image": "bijuxdna/pydamage:1.0.0",
+            "image": "bijuxdna/pydamage:1.0",
             "digest": ""
           }
         },
@@ -4358,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "96862d87f3b8452583c530c8a94f6c5f53886bee7d01822e16bf4bea989ebb0b"
+      "checksum_sha256": "0ba831eb44a805dad899e6b2b1dbc3bdd37c4ee7378457b4c11f23bff03faea7"
     },
     {
       "domain_id": "fastq",
@@ -8319,8 +8319,7 @@
           ],
           "tool_capability_requirements": [],
           "compatible_tools": [
-            "clumpify",
-            "fastuniq"
+            "clumpify"
           ],
           "assumptions": [
             "paired-end input may emit r1+r2 outputs; single-end may omit r2 artifact.",
@@ -8339,7 +8338,9 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": []
+          "planned_out_of_scope": [
+            "fastuniq"
+          ]
         },
         {
           "stage_id": "fastq.repair_pairs",
@@ -10475,13 +10476,13 @@
         },
         {
           "tool_id": "fastuniq",
-          "status": "supported",
+          "status": "planned",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "1.1",
           "upstream": "https://sourceforge.net/projects/fastuniq/",
-          "pin_strategy": "pinned",
-          "license": "GPL-3.0",
+          "pin_strategy": "external_tool",
+          "license": "NOASSERTION",
           "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3527383/",
           "version_cmd": "fastuniq --version",
           "help_cmd": "fastuniq -h",
@@ -10500,10 +10501,10 @@
             "PE"
           ],
           "metrics_schema_id": "bijux.stage.metrics.v1",
-          "comparability_notes": "Comparable when duplicate definition and pair-handling parameters are aligned and the governed report_json plus duplicate_provenance_json artifacts are compared together.",
+          "comparability_notes": "Upstream does not publish a software license grant, so FastUniq remains an external planned option and is excluded from governed execution and comparison.",
           "container": {
-            "image": "bijuxdna/fastuniq",
-            "digest": "sha256:4e0aba0be50a2894b7d36e34599cb4ff727be3e57fe47895f1a35b04985fcacf"
+            "image": "external",
+            "digest": "external"
           }
         },
         {
@@ -10514,8 +10515,8 @@
           "default_version": "0.0.14",
           "upstream": "https://github.com/agordon/fastx_toolkit",
           "pin_strategy": "pinned",
-          "license": "GPL-3.0",
-          "citation": "software:http://hannonlab.cshl.edu/fastx_toolkit/",
+          "license": "AGPL-3.0-or-later",
+          "citation": "software:https://github.com/agordon/fastx_toolkit/tree/0.0.14",
           "version_cmd": "fastx_clipper --version",
           "help_cmd": "fastx_clipper --help",
           "stage_ids": [
@@ -10547,8 +10548,8 @@
           "default_version": "2.2.00",
           "upstream": "https://github.com/dstreett/FLASH2",
           "pin_strategy": "pinned",
-          "license": "GPL-3.0",
-          "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3198573/",
+          "license": "GPL-3.0-or-later",
+          "citation": "software:https://github.com/dstreett/FLASH2/tree/2.2.00",
           "version_cmd": "flash2 --version",
           "help_cmd": "flash2 --help",
           "stage_ids": [
@@ -10577,11 +10578,11 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "latest-pinned",
-          "upstream": "unknown",
+          "default_version": "2.3",
+          "upstream": "https://github.com/alastair-droop/fqtools",
           "pin_strategy": "pinned",
-          "license": "GPL-3.0",
-          "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4908325/",
+          "license": "GPL-3.0-only",
+          "citation": "software:https://github.com/alastair-droop/fqtools/tree/63c6fa707fabc7569c2f256b8bcfc6ebb760f72a",
           "version_cmd": "fqtools --version",
           "help_cmd": "fqtools --help",
           "stage_ids": [
@@ -13501,7 +13502,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "a305c8fae6f2a610a4c6caf2e335c671a0e1090d032cdecbbfad5d626445218d"
+      "checksum_sha256": "236702f6d5d02c159695f2a2e432de6c6cc23983c5163a13f608696b4b230659"
     },
     {
       "domain_id": "vcf",
@@ -16661,7 +16662,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "470c25ea1f94ed76e8bda29272c9f6119859663526c5cc3aefd08c3413da19ec"
+      "checksum_sha256": "8173b3c643ad17c13a31693f537feccc4502d46f192c025b6a1d1e9e395ce298"
     }
   ]
 }

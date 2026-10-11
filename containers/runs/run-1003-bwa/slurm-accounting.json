@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T14:02:35.012467+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "7f1aad5cc5493f9b79e72662f63ca1108d487073169f75a2cab44e9270ef0963",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "7204",
+      "Elapsed": "00:30:01",
+      "ElapsedRaw": "1801",
+      "ExitCode": "0:0",
+      "JobID": "3457577",
+      "JobName": "reference-build_bwa_index-bwa-EquCab3.0",
+      "MaxRSS": "",
+      "NodeList": "cn010",
+      "ReqMem": "32G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1003",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457577",
+  "submit_script_sha256": "a895d369cd7b358af1125d2659aa9a8e01e6cc30be1d5446ca4cd449fcbbf6ba"
+}

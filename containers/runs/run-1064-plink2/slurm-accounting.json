@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T20:43:53.406516+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "de3b841003de436580ebe95b11ca22211785ce93075a0237cd372d4854c20a12",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "48",
+      "Elapsed": "00:00:24",
+      "ElapsedRaw": "24",
+      "ExitCode": "0:0",
+      "JobID": "3457961",
+      "JobName": "vcf-export_ped-plink2-HG00096-HG00097",
+      "MaxRSS": "",
+      "NodeList": "cn046",
+      "ReqMem": "4G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1064",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457961",
+  "submit_script_sha256": "6628291ce26b506b842694c216150fba357ddbcd7ba09e6e5b07ff0f6e2bd730"
+}

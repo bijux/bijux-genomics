@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/beagle-5.4-linux-amd64-98b380fa3e87.sif",
+    "sha256": "98b380fa3e87bd7811baac9a95bd97521028062672c72b48197187c37c2562db",
+    "size_bytes": 101904384
+  },
+  "repository_commit": "5b6f49a03cbd13c1b3a5c06fa39d2e18a7749a30",
+  "run_id": "run-1062",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457945",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "ec0e7157ae3bfd1ab67cd339fe1396319f9077e9a9d74359ca508aa8c5b9b464",
+      "size_bytes": 1928
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "eb19207ac26212ca4e88a5e21d4869679d36209ec4e5f069f8324e91183feee5",
+      "size_bytes": 3401
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "bc11ca37b002d6e98ba0516b2eb26753076c35ea47c7d63e78b4cf5b14035533",
+      "size_bytes": 339
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "9ca3b99471df3ccfa1fd4e7c627fb8770f3295fee75f0a2d01be9d6e2550545c",
+      "size_bytes": 299
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "phased.log",
+      "sha256": "abc0e147a0439f442e39e8ef8ffa9c23539ad59b1f42c8f4352c50dd0a302608",
+      "size_bytes": 900
+    },
+    {
+      "path": "phased.vcf.gz",
+      "sha256": "6a254883f1c5be69b116f59dc608e568dab82efeee91b29178a16f64599dff9c",
+      "size_bytes": 447771
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "abc0e147a0439f442e39e8ef8ffa9c23539ad59b1f42c8f4352c50dd0a302608",
+      "size_bytes": 900
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "12b64ffd33211391c8baad074bc6ca741cad92315c081e43fd33c0625280a832",
+      "size_bytes": 923
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "91c6cff04020bfea69931b8f43aa610dc138c9fb552d4712cfc30142ef51d65e",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "3d7f25323e6d199f5c5fb93fcef40774258ce1b7a16216a1f9e821163c659913",
+      "size_bytes": 1009
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "2b367d3c00845da516ae3caae2124d303bac7bb27ece361e2acbe0b7f91e29fb",
+      "size_bytes": 11
+    }
+  ],
+  "source_result": "results/container-validation/beagle/run-1062",
+  "tool": "beagle",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "ec0e7157ae3bfd1ab67cd339fe1396319f9077e9a9d74359ca508aa8c5b9b464",
+      "size_bytes": 1928
+    },
+    "evidence.json": {
+      "sha256": "eb19207ac26212ca4e88a5e21d4869679d36209ec4e5f069f8324e91183feee5",
+      "size_bytes": 3401
+    },
+    "slurm-accounting.json": {
+      "sha256": "12b64ffd33211391c8baad074bc6ca741cad92315c081e43fd33c0625280a832",
+      "size_bytes": 923
+    }
+  }
+}

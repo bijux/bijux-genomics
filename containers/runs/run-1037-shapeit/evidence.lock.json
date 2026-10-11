@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/shapeit-4.2.2-linux-amd64-9aec28c1a0b7.sif",
+    "sha256": "9aec28c1a0b74dd5fa893e723aea4456794a4bab608b00867925e65ac8671225",
+    "size_bytes": 193593344
+  },
+  "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+  "run_id": "run-1037",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457752",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+      "size_bytes": 397
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "cb65a0c0924c260def15218b76787ed168ace44779ec21179d8b833090605df6",
+      "size_bytes": 2653
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "bb8642eab60615e4e5181b323cc1292d82f8fc6faccd82e1f58e2277a091b733",
+      "size_bytes": 4470
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "5c056ae55c63d98cf010fe3f5e72875ebe1e5e49b1e02a9dafc3d4239cedf264",
+      "size_bytes": 2744
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "a3168e270a3672ea73d7ea91d813f4486243511bc7dcff868d60f09c1b5087ec",
+      "size_bytes": 96
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "f388ba196641d1551ff9a3971002aaf37bde1105c6336ef9a0d3ca82154f0ac3",
+      "size_bytes": 992
+    },
+    {
+      "path": "phased.bcf",
+      "sha256": "1f7dbdc685af7961c96d54cbbaf535d3018e3bb9acce665a65951790d85fdb7c",
+      "size_bytes": 5516885
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "1300c1388180d1a7c1f2870a9f42165df5374fb64d07792945b85222c1816175",
+      "size_bytes": 92222
+    },
+    {
+      "path": "shapeit.log",
+      "sha256": "86e90c4d6e80204280a56e47859bb9a0c6abb2051064aa77b2f3b85cffb43e03",
+      "size_bytes": 6130
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "0a2bdb8a65a00794c107d14019e91690d98d01382ce43fcc9cf402c1efccf725",
+      "size_bytes": 932
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "473498a9b83877dc1ac093a607a277d7b282d0070a4cb7f4bcd62b11fb875fa8",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "1aeff5a16e3a657a59d58418ec931955d9962a315bfa7560eda80f4118f7d4dd",
+      "size_bytes": 1054
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "bae08d125053a41a41120f13db54200706c022ec2341b43ef9cf15adfa957217",
+      "size_bytes": 14
+    }
+  ],
+  "source_result": "results/container-validation/shapeit/run-1037",
+  "tool": "shapeit",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "cb65a0c0924c260def15218b76787ed168ace44779ec21179d8b833090605df6",
+      "size_bytes": 2653
+    },
+    "evidence.json": {
+      "sha256": "bb8642eab60615e4e5181b323cc1292d82f8fc6faccd82e1f58e2277a091b733",
+      "size_bytes": 4470
+    },
+    "slurm-accounting.json": {
+      "sha256": "0a2bdb8a65a00794c107d14019e91690d98d01382ce43fcc9cf402c1efccf725",
+      "size_bytes": 932
+    }
+  }
+}

@@ -1,0 +1,89 @@
+schema_version: bijux.container.pipeline.v2
+run:
+  id: run-1122
+  campaign: public-horse-paired-read-trimming
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: fastq.trim_reads
+  tool: trim_galore
+  operator: bijan
+  submitted_at_utc: '2026-08-03T04:35:00Z'
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/9467d8db6d609815c4ffe1b5c8e4719b2be58b71
+  commit: 9467d8db6d609815c4ffe1b5c8e4719b2be58b71
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/trim_galore-0.6.10-linux-amd64-25567e0ec95d.sif
+  sha256: 25567e0ec95dcb8914178d6daf3f0439a24e9e3cfd8832e88e79cc1154387b14
+data:
+  inputs:
+    - id: err1021817_read_one
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      mount_path: /input/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: err1021817_read_two
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+      mount_path: /input/ERR1021817.read-prefix-100000_2.fastq.gz
+      sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+commands:
+  version: [trim_galore, --version]
+  help: [trim_galore, --help]
+  real:
+    - bash
+    - -c
+    - >-
+      set -euo pipefail;
+      trim_galore --paired --cores 2 --output_dir /result
+      /input/ERR1021817.read-prefix-100000_1.fastq.gz
+      /input/ERR1021817.read-prefix-100000_2.fastq.gz;
+      r1=$(gzip -cd /result/ERR1021817.read-prefix-100000_1_val_1.fq.gz | awk 'END { print NR / 4 }');
+      r2=$(gzip -cd /result/ERR1021817.read-prefix-100000_2_val_2.fq.gz | awk 'END { print NR / 4 }');
+      printf '{"paired_read_records_r1":%s,"paired_read_records_r2":%s}\n' "$r1" "$r2" > /result/metrics.json
+  negative: [trim_galore, --definitely-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/run-1122-trim_galore
+  mount_path: /result
+  required_files:
+    - ERR1021817.read-prefix-100000_1_val_1.fq.gz
+    - ERR1021817.read-prefix-100000_2_val_2.fq.gz
+    - metrics.json
+  collection_rule: required_files_and_metrics
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 4096
+  walltime: '00:15:00'
+  scratch_mb: 2048
+  retry:
+    max_attempts: 1
+    backoff_seconds: 0
+    retryable_exit_codes: []
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+  threads: 2
+  random_seed: null
+  cache_policy: cold
+  determinism: deterministic
+dependencies: []
+acceptance:
+  version_regex: 'v?0[.]6[.]10'
+  negative_exit_nonzero: true
+  metrics:
+    - id: paired_read_records_r1
+      path: metrics.json
+      json_pointer: /paired_read_records_r1
+      operator: ge
+      expected: 1
+      unit: reads
+    - id: paired_read_records_r2
+      path: metrics.json
+      json_pointer: /paired_read_records_r2
+      operator: ge
+      expected: 1
+      unit: reads

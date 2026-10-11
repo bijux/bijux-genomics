@@ -1,0 +1,146 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/leehom-1.2.18-linux-amd64-b3ea2f42cfc8.sif",
+    "sha256": "b3ea2f42cfc89539bda6b3c2b216a5a36ebcccc3ea820b2c05fbbe958c623373",
+    "size_bytes": 166760448
+  },
+  "repository_commit": "953e9a17bcc2ec15b82789a788f8b9301b5d9c56",
+  "run_id": "run-1016",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457637",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "c6ed16065736f7d4f19ae41ee963d7551c2498d4e21f7757e44a4b56f2e2a4aa",
+      "size_bytes": 2269
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "68df396063a0871679db949243e4be88a54891f2f0e0e1c759eaead8938d1d93",
+      "size_bytes": 4024
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "bb28ce9e3d88874a1dba04332e6d06b1660457ef64807674e1075443ccda2e02",
+      "size_bytes": 3264
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "4f77e4a670a05bc701790594fb79b3034cf7c198597d86f7b237fdb4e0570c35",
+      "size_bytes": 51
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "reads.fail.fq.gz",
+      "sha256": "59869db34853933b239f1e2219cf7d431da006aa919635478511fabbfc8849d2",
+      "size_bytes": 20
+    },
+    {
+      "path": "reads.fq.gz",
+      "sha256": "2d68d8c03b6c00f3b25a202bbceea9c2d0f6f269196998ef05dc105311bdabfb",
+      "size_bytes": 1000
+    },
+    {
+      "path": "reads_r1.fail.fq.gz",
+      "sha256": "59869db34853933b239f1e2219cf7d431da006aa919635478511fabbfc8849d2",
+      "size_bytes": 20
+    },
+    {
+      "path": "reads_r1.fq.gz",
+      "sha256": "ed81c6605035a6a9315345c72d4eb06d0485dcb2054ee1719fc3ba60ef3fea5e",
+      "size_bytes": 6263958
+    },
+    {
+      "path": "reads_r2.fail.fq.gz",
+      "sha256": "59869db34853933b239f1e2219cf7d431da006aa919635478511fabbfc8849d2",
+      "size_bytes": 20
+    },
+    {
+      "path": "reads_r2.fq.gz",
+      "sha256": "7dc5f4b9b29ec30df5d0be4ea3c1fc7056366a7548efc8ec7e10e7dad1597393",
+      "size_bytes": 6504734
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "6f698dbfd2dded636f5fdf393a0f43122e7ef45a266139d78a97789190c4e50c",
+      "size_bytes": 144
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "ecb2aad46b8f2d8afe1f4dd261325c45ee637219c2167f353f6282f703091bf7",
+      "size_bytes": 941
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "e56bf7673031cd89a8b39b509255571521e0bd4c4b7f564100cd6cfd440e5479",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "f5b62f409c5eaf1ed9a523cda44146905e298394160552152ba34282019972a7",
+      "size_bytes": 1062
+    },
+    {
+      "path": "summary.txt",
+      "sha256": "73fb85544c4cda1b886533627409883fb9a74f843333101cc09e64f2bf1e0b63",
+      "size_bytes": 180
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "4d94288e832e32e055e6ebc05508b2c559842cf9a877cafe392ce55e65f866e5",
+      "size_bytes": 24
+    }
+  ],
+  "source_result": "results/container-validation/leehom/run-1016",
+  "tool": "leehom",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "c6ed16065736f7d4f19ae41ee963d7551c2498d4e21f7757e44a4b56f2e2a4aa",
+      "size_bytes": 2269
+    },
+    "evidence.json": {
+      "sha256": "68df396063a0871679db949243e4be88a54891f2f0e0e1c759eaead8938d1d93",
+      "size_bytes": 4024
+    },
+    "slurm-accounting.json": {
+      "sha256": "ecb2aad46b8f2d8afe1f4dd261325c45ee637219c2167f353f6282f703091bf7",
+      "size_bytes": 941
+    }
+  }
+}

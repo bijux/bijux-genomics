@@ -920,16 +920,6 @@ resource_origin = "tool_constraints_with_stage_walltime_profile"
 
 [[rows]]
 domain = "fastq"
-stage_id = "fastq.remove_duplicates"
-tool_id = "fastuniq"
-threads = 4
-memory_gb = 8
-walltime_minutes = 15
-scratch_gb = 4
-resource_origin = "tool_constraints_with_stage_walltime_profile"
-
-[[rows]]
-domain = "fastq"
 stage_id = "fastq.report_qc"
 tool_id = "multiqc"
 threads = 2

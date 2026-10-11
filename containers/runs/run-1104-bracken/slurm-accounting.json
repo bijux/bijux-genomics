@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T00:56:02.547936+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "671506f42205d7352d7a0b0d52d8fdc98d3398bd9c4c372230d931099333f1cf",
+  "rows": [
+    {
+      "AllocCPUS": "1",
+      "AveRSS": "",
+      "CPUTimeRAW": "1",
+      "Elapsed": "00:00:01",
+      "ElapsedRaw": "1",
+      "ExitCode": "0:0",
+      "JobID": "3458126",
+      "JobName": "fastq-runtime-bracken-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn091",
+      "ReqMem": "1G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1104",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458126",
+  "submit_script_sha256": "bd1183bdc8ed2300eb2a5e2da6c7b640c73703ec041cd6f28702a5bea90b5aa3"
+}
