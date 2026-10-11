@@ -17,6 +17,7 @@ pub(crate) struct ScientificObservation {
     pub(crate) values: BTreeMap<String, BenchmarkScientificValue>,
     pub(crate) bam_input_bytes: u64,
     pub(crate) bam_index_input_bytes: u64,
+    pub(crate) reference_input_bytes: u64,
     pub(crate) input_bytes: u64,
     pub(crate) output_bytes: u64,
     pub(crate) normalized_bundle_sha256: String,

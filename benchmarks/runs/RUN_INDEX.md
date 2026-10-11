@@ -5,10 +5,10 @@
 Run IDs identify permanent protocols. A citation key is stable, but a run is citable as executed evidence only when this index names its selected publication and replay receipt.
 
 - Registered protocols: **71**
-- Active protocols: **12**
-- Reserved protocols: **59**
-- Citable publications: **0**
-- Unpublished protocols: **71**
+- Active protocols: **13**
+- Reserved protocols: **58**
+- Citable publications: **3**
+- Unpublished protocols: **68**
 
 | Run | Citation key | Stage | Tools | Protocol | Publication |
 |---|---|---|---|---|---|
@@ -21,7 +21,7 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 | `run-2007` | `bijux-benchmark-run-2007` | `bam.bias_mitigation` | `mapdamage2` | `reserved` | `not selected` |
 | `run-2008` | `bijux-benchmark-run-2008` | `bam.complexity` | `preseq` | `reserved` | `not selected` |
 | `run-2009` | `bijux-benchmark-run-2009` | `bam.contamination` | `contammix`, `schmutzi`, `verifybamid2` | `reserved` | `not selected` |
-| `run-2010` | `bijux-benchmark-run-2010` | `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, `pydamage` | `reserved` | `not selected` |
+| `run-2010` | `bijux-benchmark-run-2010` | `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, `pydamage` | `active` | `not selected` |
 | `run-2011` | `bijux-benchmark-run-2011` | `bam.duplication_metrics` | `picard`, `samtools` | `active` | `not selected` |
 | `run-2012` | `bijux-benchmark-run-2012` | `bam.filter` | `bamtools`, `bedtools`, `samtools` | `reserved` | `not selected` |
 | `run-2013` | `bijux-benchmark-run-2013` | `bam.gc_bias` | `picard` | `active` | `not selected` |
@@ -53,8 +53,8 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 | `run-2039` | `bijux-benchmark-run-2039` | `fastq.normalize_abundance` | `seqkit` | `reserved` | `not selected` |
 | `run-2040` | `bijux-benchmark-run-2040` | `fastq.normalize_primers` | `cutadapt` | `reserved` | `not selected` |
 | `run-2041` | `bijux-benchmark-run-2041` | `fastq.profile_overrepresented_sequences` | `fastq_scan`, `fastqc`, `seqkit` | `reserved` | `not selected` |
-| `run-2042` | `bijux-benchmark-run-2042` | `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `active` | `not selected` |
-| `run-2043` | `bijux-benchmark-run-2043` | `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `active` | `not selected` |
+| `run-2042` | `bijux-benchmark-run-2042` | `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `active` | `run-2042-production-74b7042739d9` |
+| `run-2043` | `bijux-benchmark-run-2043` | `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `active` | `run-2043-production-74b7042739d9` |
 | `run-2044` | `bijux-benchmark-run-2044` | `fastq.remove_chimeras` | `vsearch` | `reserved` | `not selected` |
 | `run-2045` | `bijux-benchmark-run-2045` | `fastq.remove_duplicates` | `clumpify`, `fastuniq` | `reserved` | `not selected` |
 | `run-2046` | `bijux-benchmark-run-2046` | `fastq.report_qc` | `multiqc` | `reserved` | `not selected` |
@@ -62,7 +62,7 @@ Run IDs identify permanent protocols. A citation key is stable, but a run is cit
 | `run-2048` | `bijux-benchmark-run-2048` | `fastq.trim_polyg_tails` | `bbduk`, `fastp` | `reserved` | `not selected` |
 | `run-2049` | `bijux-benchmark-run-2049` | `fastq.trim_reads` | `adapterremoval`, `alientrimmer`, `atropos`, `bbduk`, `cutadapt`, `fastp`, `fastx_clipper`, `leehom`, `prinseq`, `seqkit`, `seqprep`, `skewer`, `trim_galore`, `trimmomatic` | `reserved` | `not selected` |
 | `run-2050` | `bijux-benchmark-run-2050` | `fastq.trim_terminal_damage` | `adapterremoval`, `cutadapt`, `seqkit` | `reserved` | `not selected` |
-| `run-2051` | `bijux-benchmark-run-2051` | `fastq.validate_reads` | `fastq_scan`, `fastqc`, `fastqvalidator`, `fqtools`, `seqtk` | `active` | `not selected` |
+| `run-2051` | `bijux-benchmark-run-2051` | `fastq.validate_reads` | `fastq_scan`, `fastqc`, `fastqvalidator`, `fqtools`, `seqtk` | `active` | `run-2051-production-74b7042739d9` |
 | `run-2052` | `bijux-benchmark-run-2052` | `vcf.admixture` | `plink`, `plink2` | `reserved` | `not selected` |
 | `run-2053` | `bijux-benchmark-run-2053` | `vcf.call` | `bcftools` | `reserved` | `not selected` |
 | `run-2054` | `bijux-benchmark-run-2054` | `vcf.call_diploid` | `bcftools` | `reserved` | `not selected` |

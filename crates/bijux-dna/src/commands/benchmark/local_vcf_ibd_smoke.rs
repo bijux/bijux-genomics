@@ -4,10 +4,15 @@ use std::path::Path;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_vcf_ibd_smoke_report,
+    BenchmarkLocalVcfIbdInsufficientOverlapProbe as LocalVcfIbdInsufficientOverlapProbe,
+    BenchmarkLocalVcfIbdSmokeReport as LocalVcfIbdSmokeReport,
+    BenchmarkLocalVcfIbdSmokeRow as LocalVcfIbdSmokeRow, BENCHMARK_LOCAL_VCF_IBD_SMOKE_SCHEMA_V1,
+};
 use bijux_dna_stages_vcf::pipeline::{
     run_ibd_stage, run_roh_stage, IbdStageParams, RohStageParams,
 };
-use serde::Serialize;
 
 use super::local_corpus_fixture::vcf::{
     load_sample_metadata, load_vcf_corpus_fixture_manifest_path, SampleMetadataRow,
@@ -25,7 +30,6 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const DEFAULT_VCF_IBD_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.ibd";
-const LOCAL_VCF_IBD_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_ibd_smoke.v1";
 const LOCAL_VCF_IBD_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-ibd-smoke";
 const GOVERNED_VCF_IBD_STAGE_ID: &str = "vcf.ibd";
 const GOVERNED_VCF_IBD_TOOL_ID: &str = "germline";
@@ -70,68 +74,6 @@ struct ParsedIbdSegment {
     end: u64,
     length_cm: f64,
     marker_count: u64,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) struct LocalVcfIbdSmokeRow {
-    pub(crate) sample_a: String,
-    pub(crate) sample_b: String,
-    pub(crate) segment_count: u64,
-    pub(crate) total_length: f64,
-    pub(crate) overlap_marker_count: u64,
-    pub(crate) status: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) struct LocalVcfIbdInsufficientOverlapProbe {
-    pub(crate) input_vcf_path: String,
-    pub(crate) ibd_status: String,
-    pub(crate) insufficient_data_reason: String,
-    pub(crate) overlap_marker_count: u64,
-    pub(crate) filtered_segment_count: u64,
-    pub(crate) source_ibd_summary_path: String,
-    pub(crate) source_ibd_filtered_segments_path: String,
-    pub(crate) unrelated_stage_id: String,
-    pub(crate) unrelated_stage_status: String,
-    pub(crate) unrelated_stage_segment_count: u64,
-    pub(crate) source_roh_summary_path: String,
-    pub(crate) source_roh_segments_path: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) struct LocalVcfIbdSmokeReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) command: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) input_fixture_id: String,
-    pub(crate) fixture_manifest_path: String,
-    pub(crate) input_vcf_path: String,
-    pub(crate) sample_metadata_path: String,
-    pub(crate) output_root: String,
-    pub(crate) ibd_tsv_path: String,
-    pub(crate) ibd_json_path: String,
-    pub(crate) source_ibd_input_path: String,
-    pub(crate) source_ibd_segments_path: String,
-    pub(crate) source_ibd_merged_segments_path: String,
-    pub(crate) source_ibd_filtered_segments_path: String,
-    pub(crate) source_ibd_summary_path: String,
-    pub(crate) source_ibd_metrics_path: String,
-    pub(crate) source_logs_path: String,
-    pub(crate) stage_result_manifest_path: String,
-    pub(crate) started_at: String,
-    pub(crate) finished_at: String,
-    pub(crate) elapsed_seconds: f64,
-    pub(crate) exit_code: i32,
-    pub(crate) execution_mode: String,
-    pub(crate) germline_tool_ok: bool,
-    pub(crate) ibdseq_tool_ok: bool,
-    pub(crate) ibdhap_tool_ok: bool,
-    pub(crate) pair_count: u64,
-    pub(crate) rows: Vec<LocalVcfIbdSmokeRow>,
-    pub(crate) insufficient_overlap_probe: LocalVcfIbdInsufficientOverlapProbe,
-    pub(crate) status: String,
 }
 
 pub(crate) fn run_vcf_ibd_smoke(args: &parse::BenchLocalRunVcfIbdSmokeArgs) -> Result<()> {
@@ -320,7 +262,7 @@ pub(super) fn run_local_vcf_ibd_smoke_unlocked(
     let finished_at = timestamp_marker();
     let pair_count = u64::try_from(rows.len()).map_err(|_| anyhow!("pair count overflow"))?;
     let report = LocalVcfIbdSmokeReport {
-        schema_version: LOCAL_VCF_IBD_SMOKE_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_VCF_IBD_SMOKE_SCHEMA_V1.to_string(),
         command: format!("{LOCAL_VCF_IBD_SMOKE_COMMAND} --tool-id {}", contract.tool_id),
         stage_id: contract.stage_id.clone(),
         tool_id: contract.tool_id.clone(),
@@ -359,6 +301,7 @@ pub(super) fn run_local_vcf_ibd_smoke_unlocked(
         insufficient_overlap_probe,
         status,
     };
+    validate_benchmark_local_vcf_ibd_smoke_report(&report)?;
     bijux_dna_infra::atomic_write_json(&ibd_json_path, &report)?;
 
     let stage_result_manifest = BenchStageResultManifestV1 {

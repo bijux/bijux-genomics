@@ -347,6 +347,7 @@ mod tests {
             size_bytes: 63_160_320,
             repository_commit: "a".repeat(40),
             catalog_sha256: "b".repeat(64),
+            external_artifact_admission_sha256: None,
         };
 
         let binding = binding_from_image(

@@ -25,8 +25,9 @@ pub struct ImageActivationPlanRequest<'a> {
 /// Derive and publish a no-clobber plan for activating canonical images by hard link.
 ///
 /// # Errors
-/// Returns an error when inventory selection is incomplete, roots are unsafe, source identity has
-/// drifted, or any active destination already exists.
+/// Returns an error when a selected image is non-current, roots are unsafe, source identity has
+/// drifted, or any active destination already exists. Missing tools are outside the activation
+/// frontier and do not prevent independent selected images from being published.
 pub fn create_image_activation_plan(
     request: &ImageActivationPlanRequest<'_>,
     output: &Path,
@@ -226,6 +227,9 @@ fn collect_publications(
     let mut publications = Vec::new();
     for tool in &inventory.tools {
         if tool.artifact_delivery != ContainerArtifactDelivery::RedistributableImage {
+            continue;
+        }
+        if tool.state == ContainerImageState::Missing {
             continue;
         }
         if tool.state != ContainerImageState::Current {

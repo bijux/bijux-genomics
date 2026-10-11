@@ -31,6 +31,15 @@ The governed local mirror layout is:
 
 Use the mirrored remote-cache subtree when publication needs the shared-tree layout exactly as it existed on the frontend. Use the top-level `corpus_01/<stage_id>/lunarc/` archive when a stable local run root is sufficient.
 
+## Convergence Safety
+
+Workspace convergence is checksum-backed and reversible. A legacy entry is considered a duplicate
+only when its path kind and content SHA-256 match the canonical entry. Matching legacy bytes move by
+same-filesystem rename into `.quarantine/workspace-layout/<corpus>/<stage>/<sha256>/`; they are never
+deleted. Differing content remains at its source with `manual-review-required`, regardless of size or
+modification time. The persisted convergence plan records source, target, summaries, digests, and
+apply status so `rollback_benchmark_workspace_convergence` can verify and restore every move.
+
 ## Remote Workspace
 
 - `workspace.remote.repo_root` is the private frontend checkout used for code sync.

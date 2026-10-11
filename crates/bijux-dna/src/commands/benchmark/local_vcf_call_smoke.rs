@@ -1,14 +1,19 @@
-use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result};
+pub(crate) use bijux_dna_api::v1::api::bench::BenchmarkLocalVcfCallSmokeReport as LocalVcfCallSmokeReport;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_vcf_call_smoke_metrics,
+    validate_benchmark_local_vcf_call_smoke_report,
+    BenchmarkLocalVcfCallSmokeMetrics as LocalVcfCallSmokeMetrics,
+    BENCHMARK_LOCAL_VCF_CALL_SMOKE_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_VCF_CALL_SMOKE_SCHEMA_V1,
+};
 use bijux_dna_domain_vcf::params::VcfCallParams;
 use bijux_dna_stages_vcf::metrics::parse_vcf_call_summary;
 use bijux_dna_stages_vcf::pipeline::run_call_diploid_stage;
 use bijux_dna_stages_vcf::vcf_io::{vcf_validate_input, VcfFieldRequirement};
-use serde::Serialize;
 
 use super::local_stage_result_manifest::path_relative_to_repo;
 use super::local_stage_result_manifest::validate_stage_result_manifest;
@@ -21,9 +26,6 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const DEFAULT_VCF_CALL_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.call";
-const LOCAL_VCF_CALL_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_call_smoke.v1";
-const LOCAL_VCF_CALL_SMOKE_METRICS_SCHEMA_VERSION: &str =
-    "bijux.bench.local_vcf_call_smoke.metrics.v1";
 const LOCAL_VCF_CALL_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-call-smoke";
 const GOVERNED_VCF_CALL_STAGE_ID: &str = "vcf.call";
 const GOVERNED_VCF_CALL_RESOLVED_STAGE_ID: &str = "vcf.call_diploid";
@@ -42,56 +44,6 @@ struct GovernedVcfCallSmokeContract {
     reference: String,
     sample_id: String,
     sample_name: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalVcfCallSmokeMetrics {
-    pub(crate) schema_version: &'static str,
-    pub(crate) stage_id: String,
-    pub(crate) resolved_stage_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) sample_id: String,
-    pub(crate) input_bam: String,
-    pub(crate) reference: String,
-    pub(crate) variant_count: u64,
-    pub(crate) snp_count: u64,
-    pub(crate) indel_count: u64,
-    pub(crate) sample_count: u64,
-    pub(crate) tool_id: String,
-    pub(crate) exit_code: i32,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) struct LocalVcfCallSmokeReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) command: String,
-    pub(crate) stage_id: String,
-    pub(crate) resolved_stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) sample_id: String,
-    pub(crate) sample_name: String,
-    pub(crate) input_bam: String,
-    pub(crate) input_bam_index: String,
-    pub(crate) reference: String,
-    pub(crate) materialized_reference_path: String,
-    pub(crate) output_root: String,
-    pub(crate) output_vcf_path: String,
-    pub(crate) output_tbi_path: String,
-    pub(crate) metrics_path: String,
-    pub(crate) stage_result_manifest_path: String,
-    pub(crate) started_at: String,
-    pub(crate) finished_at: String,
-    pub(crate) elapsed_seconds: f64,
-    pub(crate) exit_code: i32,
-    pub(crate) variant_count: u64,
-    pub(crate) snp_count: u64,
-    pub(crate) indel_count: u64,
-    pub(crate) sample_count: u64,
-    pub(crate) parseable: bool,
-    pub(crate) validation_checks: BTreeMap<String, bool>,
-    pub(crate) gt_present: bool,
-    pub(crate) gl_present: bool,
 }
 
 pub(crate) fn run_vcf_call_smoke(args: &parse::BenchLocalRunVcfCallSmokeArgs) -> Result<()> {
@@ -176,7 +128,7 @@ pub(crate) fn run_local_vcf_call_smoke(
         .with_context(|| format!("count samples in {}", output_vcf.display()))?;
 
     let metrics = LocalVcfCallSmokeMetrics {
-        schema_version: LOCAL_VCF_CALL_SMOKE_METRICS_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_VCF_CALL_SMOKE_METRICS_SCHEMA_V1.to_string(),
         stage_id: contract.stage_id.clone(),
         resolved_stage_id: contract.resolved_stage_id.clone(),
         corpus_id: contract.corpus_id.clone(),
@@ -190,6 +142,7 @@ pub(crate) fn run_local_vcf_call_smoke(
         tool_id: contract.tool_id.clone(),
         exit_code: 0,
     };
+    validate_benchmark_local_vcf_call_smoke_metrics(&metrics)?;
     let metrics_path = output_root.join(DEFAULT_OUTPUT_METRICS_NAME);
     bijux_dna_infra::atomic_write_json(&metrics_path, &metrics)?;
 
@@ -237,19 +190,8 @@ pub(crate) fn run_local_vcf_call_smoke(
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
 
-    let _publish_lock =
-        bijux_dna_infra::FileLock::try_acquire(&repo_root.join(VCF_CALL_SMOKE_LOCK_PATH))
-            .context("acquire VCF call smoke publish lock")?;
-    if published_output_root.exists() {
-        fs::remove_dir_all(&published_output_root)
-            .with_context(|| format!("remove {}", published_output_root.display()))?;
-    }
-    fs::rename(&output_root, &published_output_root).with_context(|| {
-        format!("publish {} to {}", output_root.display(), published_output_root.display())
-    })?;
-
-    Ok(LocalVcfCallSmokeReport {
-        schema_version: LOCAL_VCF_CALL_SMOKE_SCHEMA_VERSION,
+    let report = LocalVcfCallSmokeReport {
+        schema_version: BENCHMARK_LOCAL_VCF_CALL_SMOKE_SCHEMA_V1.to_string(),
         command: format!("{LOCAL_VCF_CALL_SMOKE_COMMAND} --tool-id {}", contract.tool_id),
         stage_id: contract.stage_id,
         resolved_stage_id: contract.resolved_stage_id,
@@ -284,7 +226,21 @@ pub(crate) fn run_local_vcf_call_smoke(
         validation_checks: validation.checks,
         gt_present: validation.gt_present,
         gl_present: validation.gl_present,
-    })
+    };
+    validate_benchmark_local_vcf_call_smoke_report(&report)?;
+
+    let _publish_lock =
+        bijux_dna_infra::FileLock::try_acquire(&repo_root.join(VCF_CALL_SMOKE_LOCK_PATH))
+            .context("acquire VCF call smoke publish lock")?;
+    if published_output_root.exists() {
+        fs::remove_dir_all(&published_output_root)
+            .with_context(|| format!("remove {}", published_output_root.display()))?;
+    }
+    fs::rename(&output_root, &published_output_root).with_context(|| {
+        format!("publish {} to {}", output_root.display(), published_output_root.display())
+    })?;
+
+    Ok(report)
 }
 
 fn resolve_governed_vcf_call_smoke_contract(

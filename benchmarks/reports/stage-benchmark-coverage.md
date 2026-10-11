@@ -8,13 +8,13 @@ benchmark. Comparative readiness is governed separately by the corpus portfolio,
 truth strategy, cohort size, output contract, and downstream substitution probes.
 
 - Retained stages: **71**
-- Defined campaigns: **12**
-- Qualification-only campaigns: **6**
+- Defined campaigns: **13**
+- Qualification-only campaigns: **7**
 - Comparative campaigns: **6**
 - Admitted campaigns: **0**
 - Stale campaigns: **0**
 - Failed campaigns: **0**
-- Missing campaigns: **59**
+- Missing campaigns: **58**
 
 | Stage | Retained tools | Campaign | Definition | Execution |
 |---|---|---|---|---|
@@ -24,7 +24,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `bam.complexity` | `preseq` | - | missing | not_defined |
 | `bam.contamination` | `contammix`, `schmutzi`, `verifybamid2` | - | missing | not_defined |
 | `bam.coverage` | `bedtools`, `mosdepth`, `samtools` | `run-2002` | qualification | not_admitted |
-| `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, `pydamage` | - | missing | not_defined |
+| `bam.damage` | `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, `pydamage` | `run-2010` | qualification | not_admitted |
 | `bam.duplication_metrics` | `picard`, `samtools` | `run-2011` | qualification | not_admitted |
 | `bam.endogenous_content` | `samtools` | `run-2003` | qualification | not_admitted |
 | `bam.filter` | `bamtools`, `bedtools`, `samtools` | - | missing | not_defined |

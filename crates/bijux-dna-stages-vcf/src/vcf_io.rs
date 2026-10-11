@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::File;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -52,10 +52,29 @@ fn parse_key(line: &str) -> Option<(String, u64)> {
 /// Read a VCF/BCF payload into plain text for validation or assertions.
 ///
 /// # Errors
-/// Returns an error if the file cannot be read or decoded via `bcftools view`.
+/// Returns an error if plain/BGZF VCF cannot be read or BCF cannot be decoded via `bcftools view`.
 pub fn read_vcf_text(path: &Path) -> Result<String> {
     let ext = path.extension().and_then(|x| x.to_str()).unwrap_or_default();
-    if ext == "gz" || ext == "bcf" {
+    if ext == "gz" {
+        let mut signature = [0_u8; 2];
+        let mut input = File::open(path).with_context(|| format!("open {}", path.display()))?;
+        let signature_len = input
+            .read(&mut signature)
+            .with_context(|| format!("read compression signature from {}", path.display()))?;
+        if signature_len < signature.len() || signature != [0x1f, 0x8b] {
+            return std::fs::read_to_string(path)
+                .with_context(|| format!("read {}", path.display()));
+        }
+
+        let input = File::open(path).with_context(|| format!("open {}", path.display()))?;
+        let mut reader = bgzf::io::Reader::new(input);
+        let mut raw = String::new();
+        reader
+            .read_to_string(&mut raw)
+            .with_context(|| format!("decode BGZF VCF {}", path.display()))?;
+        return Ok(raw);
+    }
+    if ext == "bcf" {
         return run_cmd("bcftools", &["view".to_string(), path.display().to_string()]);
     }
     std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))

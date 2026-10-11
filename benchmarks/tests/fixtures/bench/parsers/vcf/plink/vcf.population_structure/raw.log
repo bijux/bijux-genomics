@@ -1,0 +1,4 @@
+toolchain=plink
+stage=population_structure
+tool_success=true
+variant_count=2

@@ -1,0 +1,291 @@
+{
+  "$defs": {
+    "BenchmarkCorpusClass": {
+      "enum": [
+        "production_real",
+        "qualification_real",
+        "test_fixture",
+        "toy",
+        "synthetic",
+        "smoke",
+        "local_development"
+      ],
+      "type": "string"
+    },
+    "GovernedDataDerivation": {
+      "additionalProperties": false,
+      "properties": {
+        "contig_dictionary_sha256": {
+          "type": "string"
+        },
+        "parameter_sha256": {
+          "type": "string"
+        },
+        "pipeline_id": {
+          "type": "string"
+        },
+        "pipeline_version": {
+          "type": "string"
+        },
+        "reference_catalog_sha256": {
+          "type": "string"
+        },
+        "reference_id": {
+          "type": "string"
+        },
+        "source_commit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "pipeline_id",
+        "pipeline_version",
+        "source_commit",
+        "parameter_sha256",
+        "reference_id",
+        "reference_catalog_sha256",
+        "contig_dictionary_sha256"
+      ],
+      "type": "object"
+    },
+    "GovernedDerivedDataCatalogFile": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sample_id": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source_sha256s": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes",
+        "kind",
+        "sample_id",
+        "source_sha256s"
+      ],
+      "type": "object"
+    },
+    "GovernedDerivedDataCatalogSample": {
+      "additionalProperties": false,
+      "properties": {
+        "assay_context": {
+          "type": "string"
+        },
+        "control_roles": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "held_out_split": {
+          "type": "string"
+        },
+        "library_context": {
+          "type": "string"
+        },
+        "read_group_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sample_id": {
+          "type": "string"
+        },
+        "source_accessions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "strata": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "truth_roles": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "sample_id",
+        "source_accessions",
+        "library_context",
+        "assay_context",
+        "strata",
+        "control_roles",
+        "truth_roles",
+        "held_out_split",
+        "read_group_ids"
+      ],
+      "type": "object"
+    },
+    "GovernedDerivedDataSource": {
+      "additionalProperties": false,
+      "properties": {
+        "catalog_id": {
+          "type": "string"
+        },
+        "catalog_path": {
+          "type": "string"
+        },
+        "catalog_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "catalog_id",
+        "catalog_path",
+        "catalog_sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "access_classification": {
+      "type": "string"
+    },
+    "access_terms_url": {
+      "type": "string"
+    },
+    "admitted_at_utc": {
+      "type": "string"
+    },
+    "allowed_uses": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "attribution": {
+      "type": "string"
+    },
+    "class": {
+      "$ref": "#/$defs/BenchmarkCorpusClass"
+    },
+    "derivation": {
+      "$ref": "#/$defs/GovernedDataDerivation"
+    },
+    "files": {
+      "items": {
+        "$ref": "#/$defs/GovernedDerivedDataCatalogFile"
+      },
+      "type": "array"
+    },
+    "id": {
+      "type": "string"
+    },
+    "known_limitations": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "projected_cpu_hours": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "projected_storage_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "projection_basis": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "redistribution_classification": {
+      "type": "string"
+    },
+    "reference_assembly": {
+      "type": "string"
+    },
+    "samples": {
+      "items": {
+        "$ref": "#/$defs/GovernedDerivedDataCatalogSample"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.data_catalog.derived.v1",
+      "type": "string"
+    },
+    "scientific_name": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/GovernedDerivedDataSource"
+      },
+      "type": "array"
+    },
+    "truth_roles": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "truth_strategy": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "purpose",
+    "source",
+    "class",
+    "access_classification",
+    "redistribution_classification",
+    "access_terms_url",
+    "attribution",
+    "projected_storage_bytes",
+    "projected_cpu_hours",
+    "projection_basis",
+    "truth_roles",
+    "truth_strategy",
+    "known_limitations",
+    "sources",
+    "admitted_at_utc",
+    "scientific_name",
+    "reference_assembly",
+    "allowed_uses",
+    "derivation",
+    "samples",
+    "files"
+  ],
+  "title": "GovernedDerivedDataCatalog",
+  "type": "object"
+}

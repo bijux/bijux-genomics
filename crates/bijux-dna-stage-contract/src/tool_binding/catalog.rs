@@ -3,8 +3,9 @@ use bijux_dna_core::contract::ToolConstraints;
 use bijux_dna_core::ids::{StageId, ToolId};
 
 use super::{
-    BindingInputV1, BindingOutputV1, BindingParameterV1, OutputDiscoveryV1, ToolArtifactSourceV1,
-    ToolBindingRegistry, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
+    BindingInputV1, BindingOutputV1, BindingParameterV1, OutputDiscoveryV1,
+    OutputSidecarDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingV1,
+    TOOL_BINDING_SCHEMA_V1,
 };
 
 mod bam;
@@ -190,21 +191,21 @@ fn damageprofiler_damage() -> ToolBindingV1 {
     retained_binding(
         "bam.damage",
         "damageprofiler",
-        &["sam_input", "terminal_damage_evidence", "native_report_directory"],
-        &[input("sam", SAM)],
+        &["bam_input", "terminal_damage_evidence", "native_report_directory"],
+        &[input("bam", BAM)],
         &[],
         &[output("damageprofiler_reports", DIRECTORY)],
         &[
             "/bin/sh",
             "-c",
-            "set -eu; mkdir -p '${output:damageprofiler_reports}'; '${executable}' -i '${input:sam}' -o '${output:damageprofiler_reports}' -title bijux-sample",
+            "set -eu; mkdir -p '${output:damageprofiler_reports}'; '${executable}' -i '${input:bam}' -o '${output:damageprofiler_reports}' -title bijux-sample",
         ],
         "bijux.benchmark.bam.damage.bundle.v1",
         "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
         "benchmark.bam.damage.consume",
         resources(1, 8, 4),
         &[
-            "input_sam_must_retain_recalculated_md_and_nm_tags",
+            "input_bam_must_retain_recalculated_md_and_nm_tags",
             "native_damage_tables_plots_and_logs_are_preserved_before_damage_normalization",
             "comparative_admission_requires_matching_alignment_and_damage_strata",
         ],
@@ -253,14 +254,9 @@ fn mapdamage2_damage() -> ToolBindingV1 {
         &[],
         &[output("mapdamage2_reports", DIRECTORY)],
         &[
-            "${executable}",
-            "analyze",
-            "--bam",
-            "${input:bam}",
-            "--reference",
-            "${input:reference}",
-            "--out-dir",
-            "${output:mapdamage2_reports}",
+            "/bin/sh",
+            "-c",
+            "set -eu; mkdir -p '${output:mapdamage2_reports}'; exec '${executable}' analyze --bam '${input:bam}' --reference '${input:reference}' --out-dir '${output:mapdamage2_reports}'",
         ],
         "bijux.benchmark.bam.damage.bundle.v1",
         "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan",
@@ -268,6 +264,7 @@ fn mapdamage2_damage() -> ToolBindingV1 {
         resources(1, 8, 4),
         &[
             "reference_identity_must_match_the_alignment_header",
+            "the_report_directory_is_created_before_the_non_overwriting_wrapper_runs",
             "native_misincorporation_composition_and_length_tables_are_preserved",
         ],
     )
@@ -334,7 +331,9 @@ fn pmdtools_binding(
         &[],
         &[output("pmd_scores", TABLE), output("pmd_statistics", FILE)],
         &[
-            "/bin/sh",
+            "/bin/bash",
+            "-o",
+            "pipefail",
             "-c",
             "set -eu; samtools view -h '${input:bam}' | '${executable}' --printDS --stats > '${output:pmd_scores}' 2> '${output:pmd_statistics}'",
         ],
@@ -344,6 +343,7 @@ fn pmdtools_binding(
         resources(1, 4, 2),
         &[
             "the_admitted_pmdtools_image_must_include_the_samtools_stream_adapter",
+            "the_samtools_producer_status_must_not_be_masked_by_the_pmdtools_consumer",
             "native_per_read_scores_and_statistics_are_preserved_before_normalization",
             "scientific_verdicts_are_derived_from_normalized_scores_not_process_success",
         ],
@@ -1569,7 +1569,10 @@ fn picard_duplication_metrics() -> ToolBindingV1 {
         &["bam_input", "duplicate_detection", "native_duplication_metrics"],
         &[input("bam", BAM)],
         &[],
-        &[output("duplication_metrics", TABLE), output("marked_bam", BAM)],
+        &[
+            output("duplication_metrics", TABLE),
+            output_with_replaced_extension_sidecar("marked_bam", BAM, "bai"),
+        ],
         &[
             "${executable}",
             "MarkDuplicates",
@@ -1596,7 +1599,10 @@ fn samtools_duplication_metrics() -> ToolBindingV1 {
         &["bam_input", "duplicate_detection", "native_markdup_statistics"],
         &[input("bam", BAM)],
         &[],
-        &[output("markdup_statistics", TABLE), output("marked_bam", BAM)],
+        &[
+            output("markdup_statistics", TABLE),
+            output_with_appended_sidecars("marked_bam", BAM, &[".bai"]),
+        ],
         &[
             "/bin/sh",
             "-c",
@@ -1906,7 +1912,7 @@ fn bcftools_genotyping() -> ToolBindingV1 {
             input("candidate_alleles", TABLE),
         ],
         &[],
-        &[output("called_vcf", VCF)],
+        &[output_with_appended_sidecars("called_vcf", VCF, &[".csi"])],
         &[
             "/bin/sh",
             "-c",
@@ -2225,6 +2231,41 @@ fn output(name: &str, artifact_contract_id: &str) -> BindingOutputV1 {
         name: name.to_string(),
         artifact_contract_id: artifact_contract_id.to_string(),
         discovery: OutputDiscoveryV1::ExactPath,
+    }
+}
+
+fn output_with_appended_sidecars(
+    name: &str,
+    artifact_contract_id: &str,
+    suffixes: &[&str],
+) -> BindingOutputV1 {
+    BindingOutputV1 {
+        name: name.to_string(),
+        artifact_contract_id: artifact_contract_id.to_string(),
+        discovery: OutputDiscoveryV1::ExactPathWithSidecars {
+            sidecars: suffixes
+                .iter()
+                .map(|suffix| OutputSidecarDiscoveryV1::AppendSuffix {
+                    suffix: (*suffix).to_owned(),
+                })
+                .collect(),
+        },
+    }
+}
+
+fn output_with_replaced_extension_sidecar(
+    name: &str,
+    artifact_contract_id: &str,
+    extension: &str,
+) -> BindingOutputV1 {
+    BindingOutputV1 {
+        name: name.to_string(),
+        artifact_contract_id: artifact_contract_id.to_string(),
+        discovery: OutputDiscoveryV1::ExactPathWithSidecars {
+            sidecars: vec![OutputSidecarDiscoveryV1::ReplaceExtension {
+                extension: extension.to_owned(),
+            }],
+        },
     }
 }
 

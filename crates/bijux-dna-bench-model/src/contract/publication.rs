@@ -40,6 +40,7 @@ pub fn validate_benchmark_publication_receipt(
     }
     validate_sorted_components(&receipt.case_ids, "case_ids", false)?;
     validate_attempt_selection(&receipt.run, &receipt.selected_attempts, "publication")?;
+    validate_case_selection(&receipt.case_ids, &receipt.selected_attempts)?;
     validate_evidence_reference(&receipt.report)?;
     validate_evidence_reference(&receipt.decision)?;
     if receipt.report.uri == receipt.decision.uri {
@@ -47,6 +48,25 @@ pub fn validate_benchmark_publication_receipt(
     }
     validate_evidence_set(&receipt.evidence)?;
     validate_limitations(&receipt.limitations)?;
+    Ok(())
+}
+
+fn validate_case_selection(
+    case_ids: &[String],
+    attempts: &[BenchmarkAttemptIdentity],
+) -> Result<(), BenchError> {
+    let selected = attempts
+        .iter()
+        .map(|attempt| {
+            attempt.case_id.as_deref().ok_or_else(|| {
+                invalid("benchmark publication selected attempt omits its case identity")
+            })
+        })
+        .collect::<Result<BTreeSet<_>, _>>()?;
+    let declared = case_ids.iter().map(String::as_str).collect::<BTreeSet<_>>();
+    if attempts.len() != case_ids.len() || selected != declared {
+        return Err(invalid("benchmark publication case identities differ from selected attempts"));
+    }
     Ok(())
 }
 

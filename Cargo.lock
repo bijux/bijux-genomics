@@ -512,6 +512,7 @@ dependencies = [
 name = "bijux-dna-dev"
 version = "0.1.0"
 dependencies = [
+ "aho-corasick",
  "anyhow",
  "bijux-dna-api",
  "bijux-dna-bench",
@@ -519,6 +520,7 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-db-ena",
  "bijux-dna-db-ref",
+ "bijux-dna-domain-compiler",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "bijux-dna-runner",

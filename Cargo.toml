@@ -38,6 +38,7 @@ license = "Apache-2.0"
 rust-version = "1.95"
 
 [workspace.dependencies]
+aho-corasick = "1"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 serde = { version = "1", features = ["derive"] }
@@ -121,7 +122,7 @@ expect_used = "deny"
 [profile.dev]
 debug = 1
 incremental = true
-codegen-units = 256
+codegen-units = 16
 
 [profile.dev.package."*"]
 opt-level = 1
@@ -129,7 +130,7 @@ opt-level = 1
 [profile.test]
 debug = 1
 incremental = true
-codegen-units = 256
+codegen-units = 16
 
 [profile.test-fast]
 inherits = "test"

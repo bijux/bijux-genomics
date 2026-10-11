@@ -22,6 +22,8 @@ pub const BAM_COMPARABLE_METRICS_SCHEMA_V1: &str =
 pub const VCF_COMPARABLE_METRICS_SCHEMA_V1: &str =
     "bijux.bench.readiness.vcf_comparable_metrics.v1";
 pub const STAGE_CENTRIC_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.stage_centric_report.v1";
+pub const STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1: &str =
+    "bijux.bench.readiness.fastq_bam_stage_tool_benchmark_ready.v1";
 pub const TOOL_CENTRIC_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.tool_centric_report.v1";
 pub const CORPUS_CENTRIC_REPORT_SCHEMA_V1: &str = "bijux.bench.readiness.corpus_centric_report.v1";
 pub const ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1: &str =
@@ -59,6 +61,7 @@ pub const BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1: &str =
     "bijux.benchmark.corpus_materialization_publication.v1";
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V1: &str = "bijux.data_catalog.v1";
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V2: &str = "bijux.data_catalog.v2";
+pub const GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1: &str = "bijux.data_catalog.derived.v1";
 pub const GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1: &str = "bijux.data_catalog_registry.v1";
 pub const GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1: &str =
     "bijux.data_catalog_snapshot_publication.v1";
@@ -103,6 +106,8 @@ pub const BENCHMARK_CITATION_RECORD_SCHEMA_V1: &str = "bijux.benchmark.citation_
 pub const BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1: &str = "bijux.benchmark.replay_receipt.v1";
 pub const BENCHMARK_EXECUTION_SPEC_SCHEMA_V1: &str = "bijux.benchmark.execution_spec.v1";
 pub const BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1: &str = "bijux.benchmark.stage_plan_manifest.v1";
+pub const BENCHMARK_SLURM_SUBMISSION_INTENT_SCHEMA_V1: &str =
+    "bijux.runner.benchmark_submission_intent.v1";
 pub const BENCHMARK_EXECUTION_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.execution_admission.v1";
 pub const BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1: &str =
     "bijux.benchmark.effective_parameters.v1";
@@ -125,6 +130,8 @@ pub const BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1: &str =
     "bijux.benchmark.run_publication_pointer.v1";
 pub const BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1: &str =
     "bijux.benchmark.publication_registry.v1";
+pub const BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V2: &str =
+    "bijux.benchmark.publication_registry.v2";
 pub const BENCHMARK_STAGE_INTERFACES_SCHEMA_V1: &str = "bijux.benchmark.stage_interfaces.v1";
 pub const BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1: &str = "bijux.benchmark.pipeline_parameters.v1";
 pub const BENCHMARK_STAGE_REPORT_SCHEMA_V1: &str = "bijux.benchmark.stage_report.v1";
@@ -196,6 +203,11 @@ pub const BENCHMARK_LOCAL_STAGE_FAKE_FAILURE_RECORD_SCHEMA_V1: &str =
 pub const BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1: &str = "bijux.bench.local_benchmark_summary.v1";
 pub const BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1: &str =
     "bijux.bench.local_vcf_smoke_suite_ready.v1";
+pub const LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1: &str = "bijux.bench.vcf.local_stage_catalog.v1";
+pub const LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1: &str = "bijux.bench.local_vcf_stage_catalog.v1";
+pub const LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1: &str = "bijux.bench.vcf.local_stage_matrix.v1";
+pub const LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1: &str = "bijux.bench.local_vcf_stage_matrix.v1";
+pub const VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1: &str = "bijux.bench.validate_matrix.v1";
 pub const BENCHMARK_ESSENTIAL_PIPELINE_READINESS_SCHEMA_V1: &str =
     "bijux.bench.readiness.essential_pipelines_ready.v1";
 pub const BENCHMARK_REPORT_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.report_admission.v1";

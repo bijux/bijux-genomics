@@ -3,7 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_stage_tool_benchmark_ready_report, StageToolBenchmarkReadyExcludedPair,
+    StageToolBenchmarkReadyFailingPair, StageToolBenchmarkReadyReport,
+    StageToolBenchmarkReadySurfaceStatus, StageToolBenchmarkReadySurfaceSummary,
+    STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1,
+};
 
 use super::bam_corpus_assignment::collect_bam_corpus_assignment_rows;
 use super::bam_report_map::{collect_bam_report_map_rows, DEFAULT_BAM_REPORT_MAP_PATH};
@@ -42,88 +47,11 @@ use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_BENCHMARK_READY_PATH: &str =
     "artifacts/benchmark-smoke/readiness/FASTQ_BAM_STAGE_TOOL_BENCHMARK_READY.json";
-const STAGE_TOOL_BENCHMARK_READY_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.fastq_bam_stage_tool_benchmark_ready.v1";
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
-#[serde(rename_all = "snake_case")]
-pub(crate) enum StageToolBenchmarkReadySurfaceStatus {
-    ReadySliceComplete,
-    FailingPairsPresent,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BenchmarkBindingKey {
     domain: String,
     stage_id: String,
     tool_id: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct StageToolBenchmarkReadySurfaceSummary {
-    pub(crate) surface_id: String,
-    pub(crate) surface_status: StageToolBenchmarkReadySurfaceStatus,
-    pub(crate) measured_scope: String,
-    pub(crate) expected_count: usize,
-    pub(crate) covered_count: usize,
-    pub(crate) excluded_count: usize,
-    pub(crate) failing_count: usize,
-    pub(crate) evidence_paths: Vec<String>,
-    pub(crate) detail: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct StageToolBenchmarkReadyFailingPair {
-    pub(crate) row_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) failure_surfaces: Vec<String>,
-    pub(crate) benchmark_status: String,
-    pub(crate) readiness_gap: String,
-    pub(crate) support_status: String,
-    pub(crate) adapter_status: String,
-    pub(crate) parser_status: String,
-    pub(crate) corpus_status: String,
-    pub(crate) asset_status: String,
-    pub(crate) registry_status: String,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct StageToolBenchmarkReadyExcludedPair {
-    pub(crate) row_id: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) readiness_gap: String,
-    pub(crate) support_status: String,
-    pub(crate) adapter_status: String,
-    pub(crate) parser_status: String,
-    pub(crate) corpus_status: String,
-    pub(crate) asset_status: String,
-    pub(crate) registry_status: String,
-    pub(crate) excluded_from_generated_jobs: bool,
-    pub(crate) excluded_from_expected_results: bool,
-    pub(crate) reason: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct StageToolBenchmarkReadyReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) passes_gate: bool,
-    pub(crate) expected_pair_count: usize,
-    pub(crate) benchmark_ready_pair_count: usize,
-    pub(crate) excluded_pair_count: usize,
-    pub(crate) failing_pair_count: usize,
-    pub(crate) generated_job_pair_count: usize,
-    pub(crate) expected_result_pair_count: usize,
-    pub(crate) benchmark_ready_stage_count: usize,
-    pub(crate) excluded_registry_gap_count: usize,
-    pub(crate) surface_summaries: Vec<StageToolBenchmarkReadySurfaceSummary>,
-    pub(crate) failing_pairs: Vec<StageToolBenchmarkReadyFailingPair>,
-    pub(crate) excluded_pairs: Vec<StageToolBenchmarkReadyExcludedPair>,
 }
 
 pub(crate) fn run_render_stage_tool_benchmark_ready(
@@ -696,7 +624,7 @@ pub(crate) fn render_stage_tool_benchmark_ready(
     ];
 
     let report = StageToolBenchmarkReadyReport {
-        schema_version: STAGE_TOOL_BENCHMARK_READY_SCHEMA_VERSION,
+        schema_version: STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         passes_gate,
         expected_pair_count: pair_rows.len(),
@@ -711,6 +639,7 @@ pub(crate) fn render_stage_tool_benchmark_ready(
         failing_pairs,
         excluded_pairs,
     };
+    validate_stage_tool_benchmark_ready_report(&report)?;
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
@@ -790,7 +719,7 @@ mod tests {
 
     use super::{
         render_stage_tool_benchmark_ready, DEFAULT_STAGE_TOOL_BENCHMARK_READY_PATH,
-        STAGE_TOOL_BENCHMARK_READY_SCHEMA_VERSION,
+        STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1,
     };
 
     struct CurrentDirGuard(PathBuf);
@@ -826,7 +755,7 @@ mod tests {
         )
         .expect("render stage-tool benchmark-ready gate");
 
-        assert_eq!(report.schema_version, STAGE_TOOL_BENCHMARK_READY_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1);
         assert!(report.passes_gate);
         assert!(report.expected_pair_count > 0);
         assert_eq!(report.benchmark_ready_pair_count, report.expected_pair_count);

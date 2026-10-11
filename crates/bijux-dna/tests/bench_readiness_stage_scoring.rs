@@ -48,10 +48,10 @@ fn bench_readiness_stage_scoring_reports_governed_stage_decision_contracts() {
         Some("configs/bench/local/stage-scoring.toml")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
-    assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(36));
+    assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(39));
     assert_eq!(
         payload.get("single_tool_stage_count").and_then(serde_json::Value::as_u64),
-        Some(35)
+        Some(32)
     );
     assert_eq!(payload.get("scientific_stage_count").and_then(serde_json::Value::as_u64), Some(28));
     assert_eq!(payload.get("failure_class_count").and_then(serde_json::Value::as_u64), Some(8));

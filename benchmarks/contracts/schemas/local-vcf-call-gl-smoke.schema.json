@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "command": {
+      "type": "string"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "elapsed_seconds": {
+      "format": "double",
+      "type": "number"
+    },
+    "exit_code": {
+      "format": "int32",
+      "type": "integer"
+    },
+    "finished_at": {
+      "type": "string"
+    },
+    "gl_present": {
+      "type": "boolean"
+    },
+    "gt_present": {
+      "type": "boolean"
+    },
+    "input_bam": {
+      "type": "string"
+    },
+    "input_bam_index": {
+      "type": "string"
+    },
+    "likelihood_field": {
+      "type": "string"
+    },
+    "materialized_reference_path": {
+      "type": "string"
+    },
+    "metrics_path": {
+      "type": "string"
+    },
+    "missing_likelihoods": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_root": {
+      "type": "string"
+    },
+    "output_tbi_path": {
+      "type": "string"
+    },
+    "output_vcf_path": {
+      "type": "string"
+    },
+    "parseable": {
+      "type": "boolean"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "sample_id": {
+      "type": "string"
+    },
+    "sample_name": {
+      "type": "string"
+    },
+    "samples_with_likelihoods": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_vcf_call_gl_smoke.v1",
+      "type": "string"
+    },
+    "sites_with_likelihoods": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "stage_result_manifest_path": {
+      "type": "string"
+    },
+    "started_at": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    },
+    "validation_checks": {
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "command",
+    "stage_id",
+    "tool_id",
+    "corpus_id",
+    "sample_id",
+    "sample_name",
+    "input_bam",
+    "input_bam_index",
+    "reference",
+    "materialized_reference_path",
+    "output_root",
+    "output_vcf_path",
+    "output_tbi_path",
+    "metrics_path",
+    "stage_result_manifest_path",
+    "started_at",
+    "finished_at",
+    "elapsed_seconds",
+    "exit_code",
+    "likelihood_field",
+    "sites_with_likelihoods",
+    "samples_with_likelihoods",
+    "missing_likelihoods",
+    "sample_count",
+    "parseable",
+    "validation_checks",
+    "gt_present",
+    "gl_present"
+  ],
+  "title": "BenchmarkLocalVcfCallGlSmokeReport",
+  "type": "object"
+}

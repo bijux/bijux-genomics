@@ -11,10 +11,20 @@ pub use crate::contract::{
     STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1,
     STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
 };
+pub use crate::model::benchmark_config::{
+    benchmark_config_schema, BenchmarkConfig, BenchmarkCorpusConfig,
+    BenchmarkCorpusPublicationConfig, BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig,
+    BenchmarkReferenceInputConfig, BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig,
+    BenchmarkWorkspaceArtifact, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
+    BenchmarkWorkspaceLocal, BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns,
+    BenchmarkWorkspaceSync, BenchmarkWorkspaceSyncDefaults, CorpusBenchmarkContract,
+    CorpusBenchmarkExclusion,
+};
 pub use crate::model::output_declarations::{
     all_domain_output_declarations_schema, AllDomainOutputDeclarationRow,
     AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport,
 };
+pub use crate::model::persisted_schema::{persisted_benchmark_schemas, PersistedBenchmarkSchema};
 pub use crate::model::stage_tool_assets::{
     stage_tool_assets_config_schema, stage_tool_assets_report_schema, StageToolAssetRow,
     StageToolAssetsConfig, StageToolAssetsReport, STAGE_TOOL_ASSETS_DECLARATION_ORIGIN,
@@ -29,6 +39,13 @@ pub use crate::model::stage_tool_resources::{
     stage_tool_resources_config_schema, stage_tool_resources_report_schema, StageToolResourceRow,
     StageToolResourcesConfig, StageToolResourcesReport, BAM_STAGE_TOOL_RESOURCE_ORIGIN,
     FASTQ_STAGE_TOOL_RESOURCE_ORIGIN, STAGE_TOOL_RESOURCES_SCOPE, VCF_STAGE_TOOL_RESOURCE_ORIGIN,
+};
+pub use crate::model::workspace_layout::{
+    workspace_convergence_plan_schema, workspace_layout_report_schema,
+    workspace_normalization_report_schema, WorkspaceAuthoritativeRoots, WorkspaceConvergenceAction,
+    WorkspaceConvergencePlan, WorkspaceEntrySummary, WorkspaceLayoutIssue, WorkspaceLayoutReport,
+    WorkspaceLocalStageLayout, WorkspaceNormalizationReport, WorkspaceRootPairSummary,
+    WorkspaceStageNormalizationReport,
 };
 
 pub use crate::compare;
@@ -76,6 +93,11 @@ pub use crate::contract::{
     validate_benchmark_local_stage_fake_run_result, validate_benchmark_local_stage_inventory,
     validate_benchmark_local_stage_manifest_completion,
     validate_benchmark_local_stage_output_completion, validate_benchmark_local_summary,
+    validate_benchmark_local_vcf_call_gl_smoke_metrics,
+    validate_benchmark_local_vcf_call_gl_smoke_report,
+    validate_benchmark_local_vcf_call_smoke_metrics,
+    validate_benchmark_local_vcf_call_smoke_report, validate_benchmark_local_vcf_ibd_smoke_report,
+    validate_benchmark_local_vcf_imputation_metrics_smoke_report,
     validate_benchmark_local_vcf_smoke_suite, validate_benchmark_matrix_report,
     validate_benchmark_protocol_citation, validate_benchmark_publication_findings,
     validate_benchmark_publication_receipt, validate_benchmark_publication_registry,
@@ -84,30 +106,31 @@ pub use crate::contract::{
     validate_benchmark_run_case_index, validate_benchmark_run_definition,
     validate_benchmark_run_definition_revision, validate_benchmark_run_index,
     validate_benchmark_run_publication_pointer, validate_benchmark_run_registry,
-    validate_benchmark_stage_result_manifest, validate_benchmark_stage_result_validation_report,
-    validate_benchmark_stage_tool_closure, validate_campaign_plan,
-    validate_container_report_portfolio_index, validate_corpus_acquisition_plan,
-    validate_corpus_centric_report, validate_cross_benchmark_campaign_report,
-    validate_cycle_admission, validate_cycle_preparation, validate_cycle_status_v1,
-    validate_cycle_status_v2, validate_data_fitness_portfolio_alignment,
-    validate_data_fitness_rubric, validate_execution_spec,
+    validate_benchmark_slurm_submission_intent, validate_benchmark_stage_result_manifest,
+    validate_benchmark_stage_result_validation_report, validate_benchmark_stage_tool_closure,
+    validate_campaign_plan, validate_container_report_portfolio_index,
+    validate_corpus_acquisition_plan, validate_corpus_centric_report,
+    validate_cross_benchmark_campaign_report, validate_cycle_admission, validate_cycle_preparation,
+    validate_cycle_status_v1, validate_cycle_status_v2, validate_data_fitness_portfolio_alignment,
+    validate_data_fitness_rubric, validate_execution_spec, validate_execution_unit_manifest,
     validate_fastq_benchmark_campaign_report, validate_fastq_comparable_metrics_report,
     validate_fastq_corpus_source_spec, validate_fastq_read_length_expectations,
     validate_full_benchmark_report, validate_full_benchmark_result_collector,
     validate_governed_data_catalog, validate_governed_data_catalog_document,
     validate_governed_data_catalog_registry, validate_governed_data_catalog_registry_publication,
-    validate_governed_data_catalog_snapshot_publication, validate_governed_preserved_data_catalog,
-    validate_hardening_benchmark_campaign_report, validate_hardening_queue_report,
-    validate_scheduler_observation, validate_scientific_acceptance_thresholds_config,
+    validate_governed_data_catalog_snapshot_publication, validate_governed_derived_data_catalog,
+    validate_governed_preserved_data_catalog, validate_hardening_benchmark_campaign_report,
+    validate_hardening_queue_report, validate_scheduler_observation,
+    validate_scientific_acceptance_thresholds_config,
     validate_scientific_acceptance_thresholds_report, validate_scientific_readiness,
     validate_stage_centric_report, validate_stage_plan_manifest,
-    validate_stage_registry_extra_pairs, validate_stage_universe, validate_tool_centric_report,
-    validate_utc_timestamp, validate_vcf_benchmark_campaign_report,
-    validate_vcf_comparable_metrics_report, ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1,
-    ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1, ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1,
-    ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1, ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1,
-    BAM_COMPARABLE_METRICS_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    validate_stage_registry_extra_pairs, validate_stage_tool_benchmark_ready_report,
+    validate_stage_universe, validate_tool_centric_report, validate_utc_timestamp,
+    validate_vcf_benchmark_campaign_report, validate_vcf_comparable_metrics_report,
+    ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1,
+    ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1,
+    ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1, BAM_COMPARABLE_METRICS_SCHEMA_V1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
@@ -154,12 +177,13 @@ pub use crate::contract::{
     BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V2,
     BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1, BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1,
-    BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1, BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1,
-    BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_RUN_CASE_INDEX_SCHEMA_V1,
-    BENCHMARK_RUN_DEFINITION_SCHEMA_V1, BENCHMARK_RUN_INDEX_SCHEMA_V1,
-    BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1, BENCHMARK_RUN_REGISTRY_SCHEMA_V1,
-    BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
-    BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1, BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V2,
+    BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
+    BENCHMARK_RUN_CASE_INDEX_SCHEMA_V1, BENCHMARK_RUN_DEFINITION_SCHEMA_V1,
+    BENCHMARK_RUN_INDEX_SCHEMA_V1, BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1,
+    BENCHMARK_RUN_REGISTRY_SCHEMA_V1, BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
+    BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2,
+    BENCHMARK_SLURM_SUBMISSION_INTENT_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
     BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
     BENCHMARK_STAGE_RESULT_SCHEMA_V2, BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1,
@@ -171,11 +195,21 @@ pub use crate::contract::{
     FULL_BENCHMARK_REPORT_SCHEMA_V1, FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
-    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
-    REQUIRED_ALL_DOMAIN_FAILURE_CLASSES, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1,
-    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1,
-    STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
+    OBSERVATION_SCHEMA_V1, REQUIRED_ALL_DOMAIN_FAILURE_CLASSES,
+    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1,
+    STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
+    STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
     TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+};
+pub use crate::contract::{
+    validate_local_vcf_stage_catalog_config, validate_local_vcf_stage_catalog_report,
+    LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1, LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1,
+};
+pub use crate::contract::{
+    validate_local_vcf_stage_matrix_config, validate_local_vcf_stage_matrix_report,
+    validate_vcf_stage_matrix_validation_report, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1,
+    LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1, VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1,
 };
 pub use crate::contract::{
     FullBenchmarkResultBinding, FullBenchmarkResultCollectorAdmissionContext,
@@ -245,6 +279,10 @@ pub use crate::model::data_portfolio_audit::{
     benchmark_data_portfolio_audit_schema, BenchmarkCorpusDataAudit, BenchmarkDataPortfolioAudit,
     BenchmarkDataPortfolioAuditSummary, BenchmarkDataSourceSpecIdentity,
     BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset,
+};
+pub use crate::model::derived_catalog::{
+    governed_derived_data_catalog_schema, GovernedDataDerivation, GovernedDerivedDataCatalog,
+    GovernedDerivedDataCatalogFile, GovernedDerivedDataCatalogSample, GovernedDerivedDataSource,
 };
 pub use crate::model::domain_campaign::{
     bam_benchmark_campaign_report_schema, fastq_benchmark_campaign_report_schema,
@@ -459,10 +497,40 @@ pub use crate::model::local_stage_inventory::{
     BenchmarkLocalAllDomainStageInventory, BenchmarkLocalStageInventory,
     BenchmarkLocalStageInventoryEntry,
 };
+pub use crate::model::local_vcf_call_gl_smoke::{
+    benchmark_local_vcf_call_gl_smoke_metrics_schema, benchmark_local_vcf_call_gl_smoke_schema,
+    BenchmarkLocalVcfCallGlSmokeMetrics, BenchmarkLocalVcfCallGlSmokeReport,
+    BENCHMARK_LOCAL_VCF_CALL_GL_SMOKE_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_VCF_CALL_GL_SMOKE_SCHEMA_V1,
+};
+pub use crate::model::local_vcf_call_smoke::{
+    benchmark_local_vcf_call_smoke_metrics_schema, benchmark_local_vcf_call_smoke_schema,
+    BenchmarkLocalVcfCallSmokeMetrics, BenchmarkLocalVcfCallSmokeReport,
+    BENCHMARK_LOCAL_VCF_CALL_SMOKE_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_VCF_CALL_SMOKE_SCHEMA_V1,
+};
+pub use crate::model::local_vcf_ibd_smoke::{
+    benchmark_local_vcf_ibd_smoke_schema, BenchmarkLocalVcfIbdInsufficientOverlapProbe,
+    BenchmarkLocalVcfIbdSmokeReport, BenchmarkLocalVcfIbdSmokeRow,
+    BENCHMARK_LOCAL_VCF_IBD_SMOKE_SCHEMA_V1,
+};
+pub use crate::model::local_vcf_imputation_metrics_smoke::{
+    benchmark_local_vcf_imputation_metrics_smoke_schema,
+    BenchmarkImputationQualityFieldAvailability, BenchmarkLocalVcfImputationMetricsSmokeReport,
+    BENCHMARK_LOCAL_VCF_IMPUTATION_METRICS_SMOKE_SCHEMA_V1,
+};
 pub use crate::model::local_vcf_smoke::{
     benchmark_local_vcf_smoke_suite_schema, BenchmarkLocalVcfSmokeGoalCheck,
     BenchmarkLocalVcfSmokeGoalContract, BenchmarkLocalVcfSmokeSuiteReport,
     BENCHMARK_LOCAL_VCF_SMOKE_GOALS, BENCHMARK_LOCAL_VCF_SMOKE_OUTPUT_PATH,
+};
+pub use crate::model::local_vcf_stage_catalog::{
+    local_vcf_stage_catalog_config_schema, local_vcf_stage_catalog_report_schema,
+    LocalVcfStageCatalogConfig, LocalVcfStageCatalogReport, VcfStageCatalogRow,
+};
+pub use crate::model::local_vcf_stage_matrix::{
+    local_vcf_stage_matrix_config_schema, local_vcf_stage_matrix_report_schema,
+    validate_vcf_stage_matrix_report_schema, LocalVcfStageMatrixConfig, LocalVcfStageMatrixReport,
+    ValidateVcfStageMatrixReport, VcfStageMatrixRow,
 };
 pub use crate::model::materialization::{
     corpus_acquisition_plan_schema, corpus_materialization_publication_schema,
@@ -514,8 +582,8 @@ pub use crate::model::publication_outcome::{
 pub use crate::model::publication_registry::{
     benchmark_publication_registry_schema, BenchmarkCurrentPublication,
     BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
-    BenchmarkQuarantinedPublicationSurface, BenchmarkStagePublication,
-    BenchmarkStagePublicationDisposition,
+    BenchmarkQuarantinedPublicationSurface, BenchmarkRunReportDisposition,
+    BenchmarkRunReportIndexEntry, BenchmarkStagePublication, BenchmarkStagePublicationDisposition,
 };
 pub use crate::model::publication_status::{
     benchmark_publication_status_schema, BenchmarkPublicationAuditIssue,
@@ -552,6 +620,11 @@ pub use crate::model::run_index::{
     BenchmarkRunIndexFileReference, BenchmarkRunIndexPublication, BenchmarkRunIndexSummary,
     BenchmarkRunPublicationPointer,
 };
+pub use crate::model::slurm_submission::{
+    benchmark_slurm_submission_intent_schema, BenchmarkSlurmArraySpec,
+    BenchmarkSlurmDependencyCondition, BenchmarkSlurmSubmissionIntent,
+    BenchmarkSlurmSubmissionMaterial,
+};
 pub use crate::model::source_authority::{
     benchmark_data_source_spec_schema, BenchmarkDataSourceCollection, BenchmarkDataSourceSpec,
 };
@@ -586,10 +659,11 @@ pub use crate::model::{
     fastq_comparable_metrics_schema, fastq_profile_reads_expectations_schema,
     full_benchmark_report_schema, full_benchmark_result_collector_schema,
     scientific_acceptance_thresholds_report_schema, scientific_acceptance_thresholds_schema,
-    stage_centric_report_schema, stage_registry_extra_pairs_schema, tool_centric_report_schema,
-    vcf_comparable_metrics_schema, AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet,
-    AdmittedBamCohort, AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile,
-    AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
+    stage_centric_report_schema, stage_registry_extra_pairs_schema,
+    stage_tool_benchmark_ready_schema, tool_centric_report_schema, vcf_comparable_metrics_schema,
+    AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet, AdmittedBamCohort,
+    AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
+    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedIndexedReference,
     AdmittedReferenceBundle, AllDomainActiveStageToolMatrixReport,
     AllDomainActiveStageToolMatrixRow, AllDomainExpectedBenchmarkResultRow,
     AllDomainExpectedBenchmarkResultsReport, AllDomainRetainedToolRow,
@@ -619,9 +693,11 @@ pub use crate::model::{
     ScientificAcceptanceThresholdsConfig, ScientificAcceptanceThresholdsReport,
     ScientificAcceptanceToleranceKind, StageCentricReport, StageCentricStageReport,
     StageCentricToolRow, StageRegistryExtraPairRow, StageRegistryExtraPairsReport,
-    ToolCentricReport, ToolCentricStageRow, ToolCentricToolReport, TruthSetHook, TruthSetStatus,
-    VcfComparableMetricsReport, VcfComparableMetricsRow,
-    BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1,
+    StageToolBenchmarkReadyExcludedPair, StageToolBenchmarkReadyFailingPair,
+    StageToolBenchmarkReadyReport, StageToolBenchmarkReadySurfaceStatus,
+    StageToolBenchmarkReadySurfaceSummary, ToolCentricReport, ToolCentricStageRow,
+    ToolCentricToolReport, TruthSetHook, TruthSetStatus, VcfComparableMetricsReport,
+    VcfComparableMetricsRow, BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1,
 };
 pub use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
 pub use crate::policy::{

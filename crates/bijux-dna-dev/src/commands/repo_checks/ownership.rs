@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+use aho_corasick::AhoCorasick;
 use anyhow::{ensure, Context, Result};
 use bijux_dna_infra::{atomic_write_bytes, atomic_write_json, ensure_dir};
 use regex::Regex;
@@ -11,10 +12,9 @@ use crate::commands::command_support::{pass, run_command};
 use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::runtime::workspace::Workspace;
 
-const OUTPUT_JSON: &str = "artifacts/architecture/benchmark-container-ownership-audit.json";
-const OUTPUT_MARKDOWN: &str = "artifacts/architecture/benchmark-container-ownership-audit.md";
-const OUTPUT_SCHEMA: &str =
-    "artifacts/architecture/benchmark-container-ownership-audit.schema.json";
+const OUTPUT_JSON: &str = "artifacts/architecture/container-benchmark-ownership.json";
+const OUTPUT_MARKDOWN: &str = "artifacts/architecture/container-benchmark-ownership.md";
+const OUTPUT_SCHEMA: &str = "artifacts/architecture/container-benchmark-ownership.schema.json";
 const OWNERSHIP_AUDIT_SOURCE: &str = "crates/bijux-dna-dev/src/commands/repo_checks/ownership.rs";
 const DIRECT_BENCH_PRODUCT_CONSUMERS: [&str; 2] = ["bijux-dna-api", "bijux-dna-dev"];
 const ROOT_PYTHON_AUTHORITIES: [&str; 8] = [
@@ -41,7 +41,7 @@ const CRATE_SCOPES: [&str; 11] = [
     "crates/bijux-dna/src/commands/benchmark/",
 ];
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct SourceFile {
     path: String,
     content: String,
@@ -59,8 +59,11 @@ struct AuditSummary {
     generated_from_commit: String,
     total_files: usize,
     unclassified_files: usize,
+    unknown_owner_files: usize,
     classification_counts: BTreeMap<String, usize>,
     scope_counts: BTreeMap<String, usize>,
+    direct_caller_edges: usize,
+    indirect_caller_edges: usize,
     dependency_consumers: BTreeMap<String, Vec<String>>,
     legacy_authorities: Vec<LegacyAuthorityRow>,
 }
@@ -84,6 +87,8 @@ struct OwnershipRow {
     current_owner: String,
     target_owner: String,
     callers: Vec<String>,
+    direct_callers: Vec<String>,
+    indirect_callers: Vec<String>,
     replacement: String,
     removal_gate: String,
     reasons: Vec<String>,
@@ -122,7 +127,7 @@ pub(crate) fn check_ownership_audit(
 
 fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
     ensure!(
-        audit.schema_version == "bijux.architecture.ownership_audit.v2",
+        audit.schema_version == "bijux.architecture.ownership_audit.v3",
         "unexpected ownership audit schema version"
     );
     ensure!(
@@ -136,6 +141,7 @@ fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
         "ownership audit total does not match file rows"
     );
     ensure!(audit.summary.unclassified_files == 0, "ownership audit contains unclassified files");
+    ensure!(audit.summary.unknown_owner_files == 0, "ownership audit contains unknown owners");
     ensure!(
         audit.summary.classification_counts.values().sum::<usize>() == audit.files.len(),
         "ownership classification counts do not match file rows"
@@ -155,6 +161,29 @@ fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
         ensure!(!row.replacement.is_empty(), "{} has no replacement contract", row.path);
         ensure!(!row.removal_gate.is_empty(), "{} has no removal gate", row.path);
         ensure!(!row.reasons.is_empty(), "{} has no classification reason", row.path);
+        ensure!(
+            row.direct_callers.windows(2).all(|pair| pair[0] < pair[1]),
+            "{} direct callers are not sorted and unique",
+            row.path
+        );
+        ensure!(
+            row.indirect_callers.windows(2).all(|pair| pair[0] < pair[1]),
+            "{} indirect callers are not sorted and unique",
+            row.path
+        );
+        ensure!(
+            row.direct_callers.iter().all(|caller| !row.indirect_callers.contains(caller)),
+            "{} direct and indirect callers overlap",
+            row.path
+        );
+        let mut complete_callers = row.direct_callers.clone();
+        complete_callers.extend(row.indirect_callers.iter().cloned());
+        complete_callers.sort();
+        ensure!(
+            row.callers == complete_callers,
+            "{} complete caller closure is inconsistent",
+            row.path
+        );
         if is_live_root_python_authority(row) {
             ensure!(
                 ROOT_PYTHON_AUTHORITIES.contains(&row.path.as_str()),
@@ -210,6 +239,16 @@ fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
         ROOT_PYTHON_AUTHORITIES.iter().all(|authority| authority_paths.contains(authority)),
         "legacy authority inventory is incomplete"
     );
+    ensure!(
+        audit.summary.direct_caller_edges
+            == audit.files.iter().map(|row| row.direct_callers.len()).sum::<usize>(),
+        "direct caller edge count does not match file rows"
+    );
+    ensure!(
+        audit.summary.indirect_caller_edges
+            == audit.files.iter().map(|row| row.indirect_callers.len()).sum::<usize>(),
+        "indirect caller edge count does not match file rows"
+    );
     let bench_consumers = audit
         .summary
         .dependency_consumers
@@ -224,12 +263,14 @@ fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
 }
 
 fn build_audit(workspace: &Workspace) -> Result<OwnershipAudit> {
-    let files = tracked_source_files(workspace)?;
+    let repository_files = tracked_repository_files(workspace)?;
+    let files = repository_files.iter().filter(|file| is_relevant(&file.path)).collect::<Vec<_>>();
     let schema_pattern = Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")
         .context("compile schema identity pattern")?;
-    let callers = legacy_callers(&files);
+    let legacy_callers = legacy_callers(&repository_files);
+    let caller_graph = production_callers(&repository_files)?;
     let mut rows =
-        files.iter().map(|file| classify(file, &schema_pattern, &callers)).collect::<Vec<_>>();
+        files.iter().map(|file| classify(file, &schema_pattern, &caller_graph)).collect::<Vec<_>>();
     rows.sort_by(|left, right| left.path.cmp(&right.path));
 
     let mut classification_counts = BTreeMap::new();
@@ -240,7 +281,7 @@ fn build_audit(workspace: &Workspace) -> Result<OwnershipAudit> {
     }
 
     Ok(OwnershipAudit {
-        schema_version: "bijux.architecture.ownership_audit.v2",
+        schema_version: "bijux.architecture.ownership_audit.v3",
         summary: AuditSummary {
             generated_from_commit: git_value(workspace, &["rev-parse", "HEAD"])?.trim().to_string(),
             total_files: rows.len(),
@@ -248,23 +289,29 @@ fn build_audit(workspace: &Workspace) -> Result<OwnershipAudit> {
                 .iter()
                 .filter(|row| row.classification == "unclassified")
                 .count(),
+            unknown_owner_files: rows
+                .iter()
+                .filter(|row| row.current_owner == "unknown" || row.target_owner == "unknown")
+                .count(),
             classification_counts,
             scope_counts,
-            dependency_consumers: dependency_consumers(&files),
-            legacy_authorities: legacy_authorities(&rows, callers),
+            direct_caller_edges: rows.iter().map(|row| row.direct_callers.len()).sum(),
+            indirect_caller_edges: rows.iter().map(|row| row.indirect_callers.len()).sum(),
+            dependency_consumers: dependency_consumers(&repository_files),
+            legacy_authorities: legacy_authorities(&rows, legacy_callers),
         },
         files: rows,
     })
 }
 
-fn tracked_source_files(workspace: &Workspace) -> Result<Vec<SourceFile>> {
+fn tracked_repository_files(workspace: &Workspace) -> Result<Vec<SourceFile>> {
     let output = run_command(workspace, "git", &["ls-files", "-z"])?;
     let mut files = output
         .stdout
         .split(|byte| *byte == 0)
         .filter(|path| !path.is_empty())
         .filter_map(|bytes| std::str::from_utf8(bytes).ok())
-        .filter(|path| is_relevant(path))
+        .filter(|path| is_supported_file(path))
         .filter(|path| workspace.path(path).is_file())
         .map(|path| {
             let content = std::fs::read_to_string(workspace.path(path))
@@ -277,25 +324,7 @@ fn tracked_source_files(workspace: &Workspace) -> Result<Vec<SourceFile>> {
 }
 
 fn is_relevant(path: &str) -> bool {
-    let source_extension = Path::new(path).extension().and_then(|value| value.to_str());
-    let supported = matches!(
-        source_extension,
-        Some(
-            "def"
-                | "json"
-                | "md"
-                | "mk"
-                | "py"
-                | "rs"
-                | "sh"
-                | "toml"
-                | "tsv"
-                | "txt"
-                | "yaml"
-                | "yml"
-        )
-    );
-    if !supported {
+    if !is_supported_file(path) {
         return false;
     }
     if path.starts_with("benchmarks/") || path.starts_with("containers/") {
@@ -313,15 +342,39 @@ fn is_relevant(path: &str) -> bool {
         || path.starts_with("makes/")
 }
 
+fn is_supported_file(path: &str) -> bool {
+    let source_extension = Path::new(path).extension().and_then(|value| value.to_str());
+    matches!(
+        source_extension,
+        Some(
+            "def"
+                | "json"
+                | "md"
+                | "mk"
+                | "py"
+                | "rs"
+                | "sh"
+                | "toml"
+                | "tsv"
+                | "txt"
+                | "yaml"
+                | "yml"
+        )
+    )
+}
+
 fn classify(
     file: &SourceFile,
     schema_pattern: &Regex,
-    callers: &BTreeMap<String, Vec<String>>,
+    caller_graph: &BTreeMap<String, CallerClosure>,
 ) -> OwnershipRow {
     let (classification, reason) = classification_for(&file.path, &file.content);
     let current_owner = current_owner(&file.path);
     let target_owner = target_owner(&file.path, classification);
-    let authority_callers = callers.get(&file.path).cloned().unwrap_or_default();
+    let caller_closure = caller_graph.get(&file.path).cloned().unwrap_or_default();
+    let mut callers = caller_closure.direct.clone();
+    callers.extend(caller_closure.indirect.iter().cloned());
+    callers.sort();
     let bridges_legacy_control_plane = ROOT_PYTHON_AUTHORITIES.iter().any(|authority| {
         file.path == *authority || references_legacy_authority(&file.path, &file.content, authority)
     });
@@ -344,7 +397,9 @@ fn classify(
         classification: classification.to_string(),
         current_owner,
         target_owner: target_owner.clone(),
-        callers: authority_callers,
+        callers,
+        direct_callers: caller_closure.direct,
+        indirect_callers: caller_closure.indirect,
         replacement: if removable {
             format!("replace with typed services owned by {target_owner}")
         } else {
@@ -362,6 +417,26 @@ fn classify(
 }
 
 fn classification_for(path: &str, content: &str) -> (&'static str, &'static str) {
+    if is_test_source(path) {
+        return (
+            "test contract",
+            "test-only verification may exercise product contracts but cannot own production semantics or evidence",
+        );
+    }
+    if path.starts_with("crates/") && path.ends_with("/Cargo.toml") {
+        return (
+            "declarative product asset",
+            "the manifest declares package composition without owning product lifecycle semantics",
+        );
+    }
+    if path.starts_with("crates/bijux-dna/src/commands/benchmark/readiness/")
+        && path.ends_with("/mod.rs")
+    {
+        return (
+            "thin external adapter",
+            "the readiness namespace declares modules without owning their product decisions",
+        );
+    }
     if path.starts_with("crates/bijux-dna/src/commands/benchmark/readiness/")
         || path.starts_with("benchmarks/readiness/")
         || path.contains("/simulation/")
@@ -411,7 +486,15 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
     if path.starts_with("crates/bijux-dna/src/commands/benchmark/")
         || path.starts_with("crates/bijux-dna-api/")
     {
-        if path.ends_with("/mod.rs") || path.ends_with("/dispatch.rs") || path.contains("public") {
+        if path.ends_with("/mod.rs")
+            || path.ends_with("/dispatch.rs")
+            || path.contains("public")
+            || matches!(
+                path,
+                "crates/bijux-dna/src/commands/benchmark/local_vcf_stage_catalog.rs"
+                    | "crates/bijux-dna/src/commands/benchmark/local_vcf_stage_matrix.rs"
+            )
+        {
             return (
                 "thin external adapter",
                 "the public command/API surface may delegate to benchmark services",
@@ -462,6 +545,13 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
         );
     }
     ("unclassified", "the ownership audit has no explicit rule for this product file")
+}
+
+fn is_test_source(path: &str) -> bool {
+    path.starts_with("tests/")
+        || path.contains("/tests/")
+        || path.ends_with("_test.py")
+        || path.ends_with("_tests.rs")
 }
 
 fn is_declarative_asset(path: &str) -> bool {
@@ -559,6 +649,249 @@ fn scope_for(path: &str) -> String {
     )
 }
 
+#[derive(Clone, Debug, Default)]
+struct CallerClosure {
+    direct: Vec<String>,
+    indirect: Vec<String>,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum ReferenceScope {
+    Any,
+    SameOwner,
+    SiblingModule,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum ReferenceSyntax {
+    None,
+    RustModule,
+    RustSourcePath,
+    PythonModule,
+}
+
+#[derive(Clone, Debug)]
+struct ReferenceTarget {
+    path: String,
+    scope: ReferenceScope,
+    syntax: ReferenceSyntax,
+}
+
+fn production_callers(files: &[SourceFile]) -> Result<BTreeMap<String, CallerClosure>> {
+    let mut references = BTreeMap::<String, Vec<ReferenceTarget>>::new();
+    for target in files {
+        references.entry(target.path.clone()).or_default().push(ReferenceTarget {
+            path: target.path.clone(),
+            scope: ReferenceScope::Any,
+            syntax: ReferenceSyntax::None,
+        });
+        let rust_module =
+            (!is_namespace_module(&target.path)).then(|| rust_module_path(&target.path)).flatten();
+        if let Some(module_path) = rust_module {
+            references.entry(module_path.clone()).or_default().push(ReferenceTarget {
+                path: target.path.clone(),
+                scope: ReferenceScope::SameOwner,
+                syntax: if module_path.contains("::") {
+                    ReferenceSyntax::None
+                } else {
+                    ReferenceSyntax::RustModule
+                },
+            });
+            let crate_module =
+                format!("{}::{module_path}", current_owner(&target.path).replace('-', "_"));
+            references.entry(crate_module).or_default().push(ReferenceTarget {
+                path: target.path.clone(),
+                scope: ReferenceScope::Any,
+                syntax: ReferenceSyntax::None,
+            });
+            if let Some(module_name) = module_path.rsplit("::").next() {
+                references.entry(module_name.to_string()).or_default().push(ReferenceTarget {
+                    path: target.path.clone(),
+                    scope: ReferenceScope::SiblingModule,
+                    syntax: ReferenceSyntax::RustModule,
+                });
+            }
+            if let Some(file_name) =
+                Path::new(&target.path).file_name().and_then(|value| value.to_str())
+            {
+                references.entry(file_name.to_string()).or_default().push(ReferenceTarget {
+                    path: target.path.clone(),
+                    scope: ReferenceScope::SameOwner,
+                    syntax: ReferenceSyntax::RustSourcePath,
+                });
+            }
+        } else if let Some(module_path) = python_module_path(&target.path) {
+            references.entry(module_path.clone()).or_default().push(ReferenceTarget {
+                path: target.path.clone(),
+                scope: ReferenceScope::Any,
+                syntax: ReferenceSyntax::None,
+            });
+            if let Some(module_name) = module_path.rsplit('.').next() {
+                references.entry(module_name.to_string()).or_default().push(ReferenceTarget {
+                    path: target.path.clone(),
+                    scope: ReferenceScope::SiblingModule,
+                    syntax: ReferenceSyntax::PythonModule,
+                });
+            }
+        }
+    }
+
+    let patterns = references.keys().cloned().collect::<Vec<_>>();
+    let matcher = AhoCorasick::new(&patterns).context("compile ownership caller matcher")?;
+    let mut direct = files
+        .iter()
+        .map(|target| (target.path.clone(), BTreeSet::<String>::new()))
+        .collect::<BTreeMap<_, _>>();
+    for caller in files
+        .iter()
+        .filter(|caller| caller.path != OWNERSHIP_AUDIT_SOURCE)
+        .filter(|caller| is_production_code_reference(&caller.path))
+    {
+        for matched in matcher.find_overlapping_iter(caller.content.as_bytes()) {
+            let pattern = &patterns[matched.pattern().as_usize()];
+            if !has_identifier_boundaries(&caller.content, matched.start(), matched.end()) {
+                continue;
+            }
+            for target in &references[pattern] {
+                if caller.path == target.path || !reference_scope_matches(caller, target) {
+                    continue;
+                }
+                let syntax_matches = match target.syntax {
+                    ReferenceSyntax::None => true,
+                    ReferenceSyntax::RustModule => {
+                        has_rust_module_syntax(&caller.content, matched.start(), matched.end())
+                    }
+                    ReferenceSyntax::RustSourcePath => {
+                        has_rust_source_path_syntax(&caller.content, matched.start())
+                    }
+                    ReferenceSyntax::PythonModule => {
+                        has_python_module_syntax(&caller.content, matched.start(), matched.end())
+                    }
+                };
+                if !syntax_matches {
+                    continue;
+                }
+                direct
+                    .get_mut(&target.path)
+                    .context("caller graph target disappeared")?
+                    .insert(caller.path.clone());
+            }
+        }
+    }
+    let direct = direct
+        .into_iter()
+        .map(|(target, callers)| (target, callers.into_iter().collect::<Vec<_>>()))
+        .collect::<BTreeMap<_, _>>();
+
+    direct
+        .iter()
+        .map(|(target, immediate)| {
+            let direct_set = immediate.iter().cloned().collect::<BTreeSet<_>>();
+            let mut visited = direct_set.clone();
+            let mut frontier = immediate.clone();
+            while let Some(caller) = frontier.pop() {
+                // A namespace declares children but does not execute all of them. Stopping here
+                // prevents one child's caller closure from expanding through unrelated siblings.
+                if is_namespace_module(&caller) {
+                    continue;
+                }
+                if let Some(parents) = direct.get(&caller) {
+                    for parent in parents {
+                        if parent != target && visited.insert(parent.clone()) {
+                            frontier.push(parent.clone());
+                        }
+                    }
+                }
+            }
+            let indirect = visited.difference(&direct_set).cloned().collect::<Vec<_>>();
+            Ok((target.clone(), CallerClosure { direct: immediate.clone(), indirect }))
+        })
+        .collect()
+}
+
+fn reference_scope_matches(caller: &SourceFile, target: &ReferenceTarget) -> bool {
+    match target.scope {
+        ReferenceScope::Any => true,
+        ReferenceScope::SameOwner => current_owner(&caller.path) == current_owner(&target.path),
+        ReferenceScope::SiblingModule => {
+            current_owner(&caller.path) == current_owner(&target.path)
+                && shares_module_parent(&caller.path, &target.path)
+        }
+    }
+}
+
+fn has_identifier_boundaries(content: &str, start: usize, end: usize) -> bool {
+    let bytes = content.as_bytes();
+    let identifier = |byte: u8| byte.is_ascii_alphanumeric() || byte == b'_';
+    (start == 0 || !identifier(bytes[start - 1])) && (end == bytes.len() || !identifier(bytes[end]))
+}
+
+fn has_rust_module_syntax(content: &str, start: usize, end: usize) -> bool {
+    let before = &content[..start];
+    let after = &content[end..];
+    let preceding = before.trim_end();
+    let following = after.trim_start();
+    following.starts_with("::")
+        || preceding.ends_with("::")
+        || preceding.ends_with("mod")
+        || (preceding.ends_with('{') || preceding.ends_with(','))
+            && (following.starts_with(',')
+                || following.starts_with('}')
+                || following.starts_with("::"))
+}
+
+fn has_rust_source_path_syntax(content: &str, start: usize) -> bool {
+    let line_start = content[..start].rfind('\n').map_or(0, |index| index + 1);
+    let before = &content[line_start..start];
+    before.contains("include!(") || before.contains("#[path")
+}
+
+fn has_python_module_syntax(content: &str, start: usize, end: usize) -> bool {
+    let line_start = content[..start].rfind('\n').map_or(0, |index| index + 1);
+    let line_end = content[end..].find('\n').map_or(content.len(), |index| end + index);
+    let before = content[line_start..start].trim_end();
+    let after = content[end..line_end].trim_start();
+    before.ends_with("import")
+        || before.ends_with("from")
+        || before.ends_with('.')
+        || after.starts_with("import")
+}
+
+fn rust_module_path(path: &str) -> Option<String> {
+    let (_, source_path) = path.split_once("/src/")?;
+    let mut components =
+        source_path.trim_end_matches(".rs").split('/').map(str::to_string).collect::<Vec<_>>();
+    if components.last().is_some_and(|component| component == "lib" || component == "main") {
+        return None;
+    }
+    if components.last().is_some_and(|component| component == "mod") {
+        components.pop();
+    }
+    (!components.is_empty()).then(|| components.join("::"))
+}
+
+fn shares_module_parent(caller: &str, target: &str) -> bool {
+    let Some(target_module) = rust_module_path(target) else {
+        return Path::new(caller).parent() == Path::new(target).parent();
+    };
+    let Some(target_parent) = target_module.rsplit_once("::").map(|(parent, _)| parent) else {
+        return Path::new(caller).parent() == Path::new(target).parent();
+    };
+    let Some(caller_module) = rust_module_path(caller) else {
+        return false;
+    };
+    caller_module == target_parent
+        || caller_module.rsplit_once("::").is_some_and(|(parent, _)| parent == target_parent)
+}
+
+fn is_namespace_module(path: &str) -> bool {
+    path.ends_with("/mod.rs") || path.ends_with("/lib.rs") || path.ends_with("/main.rs")
+}
+
+fn python_module_path(path: &str) -> Option<String> {
+    path.strip_suffix(".py").map(|module| module.replace('/', "."))
+}
+
 fn legacy_callers(files: &[SourceFile]) -> BTreeMap<String, Vec<String>> {
     ROOT_PYTHON_AUTHORITIES
         .iter()
@@ -639,11 +972,18 @@ fn is_executable_reference(path: &str) -> bool {
 }
 
 fn is_production_executable_reference(path: &str) -> bool {
-    is_executable_reference(path)
-        && !path.starts_with("tests/")
-        && !path.contains("/tests/")
-        && !path.ends_with("_test.py")
-        && !path.ends_with("_tests.rs")
+    is_executable_reference(path) && !is_test_source(path)
+}
+
+fn is_production_code_reference(path: &str) -> bool {
+    (path == "Makefile"
+        || path.starts_with("makes/")
+        || path.starts_with(".github/workflows/")
+        || matches!(
+            Path::new(path).extension().and_then(|value| value.to_str()),
+            Some("mk" | "py" | "rs" | "sh" | "yaml" | "yml")
+        ))
+        && !is_test_source(path)
 }
 
 fn is_live_root_python_authority(row: &OwnershipRow) -> bool {
@@ -660,7 +1000,8 @@ fn dependency_consumers(files: &[SourceFile]) -> BTreeMap<String, Vec<String>> {
             let consumers = files
                 .iter()
                 .filter(|file| {
-                    file.path.ends_with("Cargo.toml")
+                    file.path.starts_with("crates/")
+                        && file.path.ends_with("Cargo.toml")
                         && file.content.lines().any(|line| {
                             line.trim_start().strip_prefix(dependency).is_some_and(|suffix| {
                                 suffix.starts_with(" =") || suffix.starts_with(".workspace")
@@ -693,6 +1034,9 @@ fn render_markdown(audit: &OwnershipAudit) -> String {
         format!("- Source commit: `{}`", audit.summary.generated_from_commit),
         format!("- Files audited: `{}`", audit.summary.total_files),
         format!("- Unclassified files: `{}`", audit.summary.unclassified_files),
+        format!("- Unknown owner files: `{}`", audit.summary.unknown_owner_files),
+        format!("- Direct production caller edges: `{}`", audit.summary.direct_caller_edges),
+        format!("- Indirect production caller edges: `{}`", audit.summary.indirect_caller_edges),
         String::new(),
         "## Classification Counts".to_string(),
         String::new(),
@@ -726,10 +1070,21 @@ mod tests {
     use regex::Regex;
 
     use super::{
-        classify, dependency_consumers, legacy_authorities, legacy_callers, render_markdown,
-        validate_audit, AuditSummary, OwnershipAudit, OwnershipRow, SourceFile,
-        DIRECT_BENCH_PRODUCT_CONSUMERS, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
+        classify, dependency_consumers, is_relevant, legacy_authorities, legacy_callers,
+        production_callers, render_markdown, validate_audit, AuditSummary, OwnershipAudit,
+        OwnershipRow, SourceFile, DIRECT_BENCH_PRODUCT_CONSUMERS, OUTPUT_JSON, OUTPUT_MARKDOWN,
+        OUTPUT_SCHEMA, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
     };
+
+    #[test]
+    fn ownership_outputs_match_the_execution_contract() {
+        assert_eq!(OUTPUT_JSON, "artifacts/architecture/container-benchmark-ownership.json");
+        assert_eq!(OUTPUT_MARKDOWN, "artifacts/architecture/container-benchmark-ownership.md");
+        assert_eq!(
+            OUTPUT_SCHEMA,
+            "artifacts/architecture/container-benchmark-ownership.schema.json"
+        );
+    }
 
     #[test]
     fn authoritative_crate_logic_remains_canonical() -> anyhow::Result<()> {
@@ -760,6 +1115,10 @@ mod tests {
             SourceFile {
                 path: "crates/bijux-dna/Cargo.toml".to_string(),
                 content: "bijux-dna-api.workspace = true".to_string(),
+            },
+            SourceFile {
+                path: "Cargo.toml".to_string(),
+                content: "bijux-dna-bench = { path = \"crates/bijux-dna-bench\" }".to_string(),
             },
         ];
         let consumers = dependency_consumers(&files);
@@ -803,6 +1162,23 @@ mod tests {
     }
 
     #[test]
+    fn crate_owned_vcf_planning_commands_are_thin_adapters() -> anyhow::Result<()> {
+        let schema_pattern = Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?;
+        for path in [
+            "crates/bijux-dna/src/commands/benchmark/local_vcf_stage_catalog.rs",
+            "crates/bijux-dna/src/commands/benchmark/local_vcf_stage_matrix.rs",
+        ] {
+            let row = classify(
+                &SourceFile { path: path.to_string(), content: String::new() },
+                &schema_pattern,
+                &BTreeMap::new(),
+            );
+            assert_eq!(row.classification, "thin external adapter", "{path}");
+        }
+        Ok(())
+    }
+
+    #[test]
     fn generated_publications_are_not_declarative_authority() -> anyhow::Result<()> {
         let row = classify(
             &SourceFile {
@@ -813,6 +1189,41 @@ mod tests {
             &BTreeMap::new(),
         );
         assert_eq!(row.classification, "generated artifact");
+        Ok(())
+    }
+
+    #[test]
+    fn tests_and_manifests_are_not_reported_as_product_authorities() -> anyhow::Result<()> {
+        let schema_pattern = Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?;
+        let test_row = classify(
+            &SourceFile {
+                path: "crates/bijux-dna-bench-model/tests/contracts/local_hpc_simulation.rs"
+                    .to_string(),
+                content: String::new(),
+            },
+            &schema_pattern,
+            &BTreeMap::new(),
+        );
+        let manifest_row = classify(
+            &SourceFile {
+                path: "crates/bijux-dna-api/Cargo.toml".to_string(),
+                content: String::new(),
+            },
+            &schema_pattern,
+            &BTreeMap::new(),
+        );
+        let readiness_namespace = classify(
+            &SourceFile {
+                path: "crates/bijux-dna/src/commands/benchmark/readiness/mod.rs".to_string(),
+                content: "pub(crate) mod catalog;".to_string(),
+            },
+            &schema_pattern,
+            &BTreeMap::new(),
+        );
+
+        assert_eq!(test_row.classification, "test contract");
+        assert_eq!(manifest_row.classification, "declarative product asset");
+        assert_eq!(readiness_namespace.classification, "thin external adapter");
         Ok(())
     }
 
@@ -862,6 +1273,8 @@ mod tests {
             current_owner: "containers".to_string(),
             target_owner: "bijux-dna-containers".to_string(),
             callers: Vec::new(),
+            direct_callers: Vec::new(),
+            indirect_callers: Vec::new(),
             replacement: "replacement".to_string(),
             removal_gate: "gate".to_string(),
             reasons: vec!["reason".to_string()],
@@ -915,6 +1328,108 @@ mod tests {
     }
 
     #[test]
+    fn production_callers_include_direct_and_indirect_rust_consumers() -> anyhow::Result<()> {
+        let files = [
+            SourceFile {
+                path: "crates/bijux-dna/src/commands/benchmark/local_stage_inventory.rs"
+                    .to_string(),
+                content: "pub fn load() {}".to_string(),
+            },
+            SourceFile {
+                path: "crates/bijux-dna/src/commands/benchmark/local_pipeline_dag.rs".to_string(),
+                content: "use super::local_stage_inventory::load;".to_string(),
+            },
+            SourceFile {
+                path: "crates/bijux-dna/src/commands/fastq/meta/entrypoint.rs".to_string(),
+                content:
+                    "crate::commands::benchmark::local_pipeline_dag::validate_pipeline_dag_path();"
+                        .to_string(),
+            },
+            SourceFile {
+                path: "crates/bijux-dna/src/commands/benchmark/mod.rs".to_string(),
+                content: "pub mod local_pipeline_dag; pub mod local_stage_inventory;".to_string(),
+            },
+            SourceFile {
+                path: "crates/bijux-dna/tests/local_stage_inventory.rs".to_string(),
+                content: "crate::commands::benchmark::local_stage_inventory::load();".to_string(),
+            },
+        ];
+
+        let graph = production_callers(&files)?;
+        assert!(!is_relevant("crates/bijux-dna/src/commands/fastq/meta/entrypoint.rs"));
+        let callers = &graph["crates/bijux-dna/src/commands/benchmark/local_stage_inventory.rs"];
+        assert_eq!(
+            callers.direct,
+            [
+                "crates/bijux-dna/src/commands/benchmark/local_pipeline_dag.rs",
+                "crates/bijux-dna/src/commands/benchmark/mod.rs"
+            ]
+        );
+        assert_eq!(callers.indirect, ["crates/bijux-dna/src/commands/fastq/meta/entrypoint.rs"]);
+        Ok(())
+    }
+
+    #[test]
+    fn production_callers_follow_python_imports_into_automation() -> anyhow::Result<()> {
+        let files = [
+            SourceFile {
+                path: "benchmarks/data_catalog.py".to_string(),
+                content: "def load(): pass".to_string(),
+            },
+            SourceFile {
+                path: "benchmarks/catalog_consumer.py".to_string(),
+                content: "from data_catalog import load".to_string(),
+            },
+            SourceFile {
+                path: "Makefile".to_string(),
+                content: "catalog:\n\tpython3 benchmarks/catalog_consumer.py".to_string(),
+            },
+        ];
+
+        let graph = production_callers(&files)?;
+        let callers = &graph["benchmarks/data_catalog.py"];
+        assert_eq!(callers.direct, ["benchmarks/catalog_consumer.py"]);
+        assert_eq!(callers.indirect, ["Makefile"]);
+        Ok(())
+    }
+
+    #[test]
+    fn production_callers_resolve_file_modules_and_included_rust_sources() -> anyhow::Result<()> {
+        let files = [
+            SourceFile {
+                path: "crates/bijux-dna/src/commands/benchmark/workspace/config_loading.rs"
+                    .to_string(),
+                content: "pub fn load() {}".to_string(),
+            },
+            SourceFile {
+                path: "crates/bijux-dna/src/commands/benchmark/workspace.rs".to_string(),
+                content: "mod config_loading;".to_string(),
+            },
+            SourceFile {
+                path: "crates/bijux-dna/src/commands/benchmark/suite/suite_sections/run_suite.rs"
+                    .to_string(),
+                content: "pub fn run() {}".to_string(),
+            },
+            SourceFile {
+                path: "crates/bijux-dna/src/commands/benchmark/suite/mod.rs".to_string(),
+                content: "include!(\"suite_sections/run_suite.rs\");".to_string(),
+            },
+        ];
+
+        let graph = production_callers(&files)?;
+        assert_eq!(
+            graph["crates/bijux-dna/src/commands/benchmark/workspace/config_loading.rs"].direct,
+            ["crates/bijux-dna/src/commands/benchmark/workspace.rs"]
+        );
+        assert_eq!(
+            graph["crates/bijux-dna/src/commands/benchmark/suite/suite_sections/run_suite.rs"]
+                .direct,
+            ["crates/bijux-dna/src/commands/benchmark/suite/mod.rs"]
+        );
+        Ok(())
+    }
+
+    #[test]
     fn similarly_named_python_adapters_do_not_imply_legacy_script_calls() -> anyhow::Result<()> {
         let row = classify(
             &SourceFile {
@@ -931,13 +1446,16 @@ mod tests {
     #[test]
     fn markdown_rendering_is_deterministic() {
         let audit = OwnershipAudit {
-            schema_version: "bijux.architecture.ownership_audit.v2",
+            schema_version: "bijux.architecture.ownership_audit.v3",
             summary: AuditSummary {
                 generated_from_commit: "abc123".to_string(),
                 total_files: 0,
                 unclassified_files: 0,
+                unknown_owner_files: 0,
                 classification_counts: BTreeMap::new(),
                 scope_counts: BTreeMap::new(),
+                direct_caller_edges: 0,
+                indirect_caller_edges: 0,
                 dependency_consumers: BTreeMap::new(),
                 legacy_authorities: Vec::new(),
             },
@@ -949,13 +1467,16 @@ mod tests {
     #[test]
     fn semantic_validation_rejects_an_empty_audit() {
         let audit = OwnershipAudit {
-            schema_version: "bijux.architecture.ownership_audit.v2",
+            schema_version: "bijux.architecture.ownership_audit.v3",
             summary: AuditSummary {
                 generated_from_commit: "a".repeat(40),
                 total_files: 0,
                 unclassified_files: 0,
+                unknown_owner_files: 0,
                 classification_counts: BTreeMap::new(),
                 scope_counts: BTreeMap::new(),
+                direct_caller_edges: 0,
+                indirect_caller_edges: 0,
                 dependency_consumers: BTreeMap::new(),
                 legacy_authorities: Vec::new(),
             },

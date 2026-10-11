@@ -463,17 +463,7 @@
   "edges": [
     {
       "consumer": "crate:bijux-dna",
-      "dependency": "crate:bijux-dna-analyze",
-      "kind": "normal"
-    },
-    {
-      "consumer": "crate:bijux-dna",
       "dependency": "crate:bijux-dna-api",
-      "kind": "normal"
-    },
-    {
-      "consumer": "crate:bijux-dna",
-      "dependency": "crate:bijux-dna-bench",
       "kind": "normal"
     },
     {
@@ -763,6 +753,11 @@
     },
     {
       "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
       "dependency": "crate:bijux-dna-infra",
       "kind": "normal"
     },
@@ -784,6 +779,11 @@
     {
       "consumer": "crate:bijux-dna-bench",
       "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-stages-vcf",
       "kind": "normal"
     },
     {
@@ -944,6 +944,11 @@
     {
       "consumer": "crate:bijux-dna-dev",
       "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-domain-compiler",
       "kind": "normal"
     },
     {

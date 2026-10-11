@@ -3,7 +3,12 @@ use std::path::Path;
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, Context, Result};
-use serde::Serialize;
+pub(crate) use bijux_dna_api::v1::api::bench::BenchmarkLocalVcfImputationMetricsSmokeReport as LocalVcfImputationMetricsSmokeReport;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_vcf_imputation_metrics_smoke_report,
+    BenchmarkImputationQualityFieldAvailability as QualityFieldAvailability,
+    BENCHMARK_LOCAL_VCF_IMPUTATION_METRICS_SMOKE_SCHEMA_V1,
+};
 
 use super::local_stage_result_manifest::{
     path_relative_to_repo, validate_stage_result_manifest, BenchStageResultCommandV1,
@@ -17,8 +22,6 @@ use crate::commands::cli::render;
 
 const DEFAULT_VCF_IMPUTATION_METRICS_SMOKE_ROOT: &str =
     "runs/bench/local-smoke/vcf.imputation_metrics";
-const LOCAL_VCF_IMPUTATION_METRICS_SMOKE_SCHEMA_VERSION: &str =
-    "bijux.bench.local_vcf_imputation_metrics_smoke.v1";
 const LOCAL_VCF_IMPUTATION_METRICS_COMMAND: &str =
     "bijux-dna bench local run-vcf-imputation-metrics-smoke";
 const LOCAL_VCF_IMPUTATION_METRICS_STAGE_ID: &str = "vcf.imputation_metrics";
@@ -32,45 +35,6 @@ const DEFAULT_OUTPUT_SOURCE_MANIFEST_NAME: &str = "source_imputation_manifest.js
 const DEFAULT_OUTPUT_SOURCE_LOGS_NAME: &str = "source_logs.txt";
 const DEFAULT_OUTPUT_ORCHESTRATION_MANIFEST_NAME: &str = "orchestration_manifest.json";
 const DEFAULT_STAGE_RESULT_NAME: &str = "stage-result.json";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct QualityFieldAvailability {
-    concordance: bool,
-    dosage_r2: bool,
-    maf_strata: bool,
-    masked_truth_sites: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize)]
-pub(crate) struct LocalVcfImputationMetricsSmokeReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) command: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) input_fixture_id: String,
-    pub(crate) panel_id: String,
-    pub(crate) map_id: String,
-    pub(crate) output_root: String,
-    pub(crate) imputation_metrics_path: String,
-    pub(crate) source_imputation_qc_path: String,
-    pub(crate) source_impute_smoke_metrics_path: String,
-    pub(crate) source_imputation_manifest_path: String,
-    pub(crate) stage_result_manifest_path: String,
-    pub(crate) started_at: String,
-    pub(crate) finished_at: String,
-    pub(crate) elapsed_seconds: f64,
-    pub(crate) exit_code: i32,
-    pub(crate) concordance: Option<f64>,
-    pub(crate) mean_info_score: f64,
-    pub(crate) r2_available: bool,
-    pub(crate) dosage_r2: Option<f64>,
-    pub(crate) low_confidence_sites: u64,
-    pub(crate) masked_truth_sites: u64,
-    pub(crate) quality_field_availability: QualityFieldAvailability,
-    pub(crate) missing_quality_fields: Vec<String>,
-    pub(crate) status: String,
-}
 
 #[derive(Debug, Clone, PartialEq)]
 struct ImputationMetricsSummary {
@@ -183,7 +147,7 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
 
     let imputation_metrics_path = output_root.join(DEFAULT_OUTPUT_REPORT_NAME);
     let report_payload = LocalVcfImputationMetricsSmokeReport {
-        schema_version: LOCAL_VCF_IMPUTATION_METRICS_SMOKE_SCHEMA_VERSION,
+        schema_version: BENCHMARK_LOCAL_VCF_IMPUTATION_METRICS_SMOKE_SCHEMA_V1.to_string(),
         command: format!(
             "{LOCAL_VCF_IMPUTATION_METRICS_COMMAND} --tool-id {}",
             source_report.tool_id
@@ -223,7 +187,6 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
         missing_quality_fields: summary.missing_quality_fields.clone(),
         status: summary.status.clone(),
     };
-    bijux_dna_infra::atomic_write_json(&imputation_metrics_path, &report_payload)?;
     let orchestration_manifest = serde_json::json!({
         "schema_version": "bijux.bench.local_vcf_imputation_metrics_orchestration.v1",
         "stage_id": LOCAL_VCF_IMPUTATION_METRICS_STAGE_ID,
@@ -246,6 +209,15 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
     let elapsed_seconds = started.elapsed().as_secs_f64();
     let finished_at = timestamp_marker();
     let stage_result_manifest_path = output_root.join(DEFAULT_STAGE_RESULT_NAME);
+    let report = LocalVcfImputationMetricsSmokeReport {
+        finished_at: finished_at.clone(),
+        elapsed_seconds,
+        stage_result_manifest_path: path_relative_to_repo(repo_root, &stage_result_manifest_path),
+        ..report_payload
+    };
+    validate_benchmark_local_vcf_imputation_metrics_smoke_report(&report)?;
+    bijux_dna_infra::atomic_write_json(&imputation_metrics_path, &report)?;
+
     let stage_result_manifest = BenchStageResultManifestV1 {
         schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
         stage_id: LOCAL_VCF_IMPUTATION_METRICS_STAGE_ID.to_string(),
@@ -346,13 +318,7 @@ pub(crate) fn run_local_vcf_imputation_metrics_smoke(
     };
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
-
-    Ok(LocalVcfImputationMetricsSmokeReport {
-        finished_at,
-        elapsed_seconds,
-        stage_result_manifest_path: path_relative_to_repo(repo_root, &stage_result_manifest_path),
-        ..report_payload
-    })
+    Ok(report)
 }
 
 fn summarize_imputation_metrics(

@@ -20,10 +20,10 @@ pub(crate) use self::science::{
 };
 use super::super::{
     load_stage_campaign_registry, load_stage_interface_catalog_for_publication,
-    verify_campaign_plan_source,
+    verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
 };
 use crate::workflow::stage_report::{
-    build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
+    build_stage_report, canonical_directory, is_selected_plan_attempt, publish_stage_report,
     require_complete_plan, BenchmarkStageReportPublication,
 };
 
@@ -42,12 +42,14 @@ pub(crate) struct BamObservationReportPolicy {
 
 pub type BamObservationStageReportPublication = BenchmarkStageReportPublication;
 
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn publish_bam_observation_stage_report(
     repository_root: &Path,
     presentation_repository_root: &Path,
     study_root: &Path,
     benchmark_root: &Path,
     plan: &BenchmarkCampaignPlan,
+    source_authority: BenchmarkCampaignPlanSource<'_>,
     output_root: &Path,
     policy: &BamObservationReportPolicy,
 ) -> Result<BamObservationStageReportPublication> {
@@ -60,7 +62,12 @@ pub(crate) fn publish_bam_observation_stage_report(
     let registry_path = repository_root.join("benchmarks/contracts/stage-campaigns.toml");
     let interface_path = repository_root.join("benchmarks/contracts/stage-interfaces.toml");
     let registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)?;
-    verify_campaign_plan_source(plan, &plan.repository_commit, &registry_sha256)?;
+    verify_campaign_plan_source_authority(
+        plan,
+        source_authority,
+        &plan.repository_commit,
+        &registry_sha256,
+    )?;
     let repository_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)?;
     if repository_commit != plan.repository_commit {
         bail!("benchmark report source worktree differs from campaign plan");
@@ -86,13 +93,13 @@ pub(crate) fn publish_bam_observation_stage_report(
 
     let mut evidence_by_tool = BTreeMap::new();
     for tool in &campaign.tool_ids {
-        let planned = plan
+        let selected = plan
             .cycle
             .attempts
             .iter()
-            .filter(|attempt| is_active_plan_origin(attempt))
+            .filter(|attempt| is_selected_plan_attempt(attempt))
             .find(|attempt| attempt.identity.tool_id == *tool)
-            .with_context(|| format!("campaign plan omits tool attempt {tool}"))?;
+            .with_context(|| format!("campaign plan omits selected tool attempt {tool}"))?;
         let evidence = load_attempt_evidence(
             &repository_root,
             &study_root,
@@ -100,7 +107,7 @@ pub(crate) fn publish_bam_observation_stage_report(
             campaign,
             interface,
             plan,
-            &planned.identity,
+            &selected.identity,
             policy,
         )?;
         evidence_by_tool.insert(tool.clone(), evidence);

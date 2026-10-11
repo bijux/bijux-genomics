@@ -13,6 +13,10 @@ use bijux_dna_bench_model::{
 
 use crate::workflow::{benchmark_case_matrix_sha256, validate_benchmark_case_matrix};
 
+fn terminal_tip_requires_retry(status: BenchmarkLifecycleStatus) -> bool {
+    status != BenchmarkLifecycleStatus::Passed
+}
+
 /// Derive one independently addressable attempt per generic benchmark case.
 ///
 /// Case identity is retained in every attempt and in its source-locked campaign plan, so two
@@ -62,11 +66,12 @@ pub fn plan_benchmark_case_attempts(
     Ok(plan)
 }
 
-/// Plan one retry for every terminal case lineage in an exact generic case matrix.
+/// Plan one retry for every non-passing terminal case lineage in an exact generic case matrix.
 ///
 /// The matrix provides the complete expected case closure. Each case/tool pair must have exactly
 /// one unreferenced terminal lineage tip, and every retained prior attempt must belong to that
-/// matrix. The new attempts preserve their case identity and explicit supersession edge.
+/// matrix. Passed tips remain the selected evidence; every other terminal tip receives a new
+/// attempt with its case identity and explicit supersession edge preserved.
 ///
 /// # Errors
 /// Returns an error when matrix closure, prior lifecycle state, lineage, retry identity, timestamp,
@@ -144,7 +149,10 @@ pub fn plan_benchmark_case_retry_attempts(
         )) && tips
             .insert(
                 (case_id.to_string(), attempt.identity.tool_id.clone()),
-                attempt.identity.attempt_id.clone(),
+                (
+                    attempt.identity.attempt_id.clone(),
+                    attempt.current_status().context("benchmark case retry tip is nonterminal")?,
+                ),
             )
             .is_some()
         {
@@ -163,9 +171,14 @@ pub fn plan_benchmark_case_retry_attempts(
     let mut attempts = prior_attempts;
     let mut ordered_cases = matrix.cases.iter().collect::<Vec<_>>();
     ordered_cases.sort_by(|left, right| left.case_id.cmp(&right.case_id));
+    let mut retry_count = 0;
     for case in ordered_cases {
         let key = (case.case_id.clone(), case.tool_id.clone());
-        let prior_attempt_id = tips.get(&key).context("benchmark case retry tip is absent")?;
+        let (prior_attempt_id, status) =
+            tips.get(&key).context("benchmark case retry tip is absent")?;
+        if !terminal_tip_requires_retry(*status) {
+            continue;
+        }
         let mut retry = BenchmarkAttemptRecordV2::planned(
             BenchmarkAttemptIdentity {
                 campaign_id: campaign_id.clone(),
@@ -182,6 +195,10 @@ pub fn plan_benchmark_case_retry_attempts(
         );
         retry.supersedes_attempt_id = Some(prior_attempt_id.clone());
         attempts.push(retry);
+        retry_count += 1;
+    }
+    if retry_count == 0 {
+        bail!("benchmark case retry has no non-passing terminal tips");
     }
     let cycle = BenchmarkCycleStatusV2::new(campaign_id, observed_at_utc.to_string(), attempts);
     validate_cycle_status_v2(&cycle).context("validate planned benchmark case retry cycle")?;
@@ -256,10 +273,11 @@ pub fn plan_stage_campaign_attempts(
     Ok(plan)
 }
 
-/// Derive one new planned attempt per tool while retaining complete terminal retry lineage.
+/// Derive one new planned attempt per non-passing tool while retaining terminal retry lineage.
 ///
 /// `prior_attempts` must be a complete, terminal cycle snapshot. The unreferenced lineage tip for
-/// each declared tool becomes the explicit supersession target of its new attempt.
+/// each declared tool is retained. Passed tips remain selected evidence; every other terminal tip
+/// becomes the explicit supersession target of its new attempt.
 ///
 /// # Errors
 /// Returns an error when prior lineage is incomplete, nonterminal, source-inconsistent, or does
@@ -317,7 +335,13 @@ pub fn plan_stage_campaign_retry_attempts(
         if !referenced
             .contains(&(attempt.identity.tool_id.as_str(), attempt.identity.attempt_id.as_str()))
             && tips
-                .insert(attempt.identity.tool_id.clone(), attempt.identity.attempt_id.clone())
+                .insert(
+                    attempt.identity.tool_id.clone(),
+                    (
+                        attempt.identity.attempt_id.clone(),
+                        attempt.current_status().context("benchmark retry tip is nonterminal")?,
+                    ),
+                )
                 .is_some()
         {
             bail!("benchmark retry lineage has multiple terminal tips for one tool");
@@ -332,8 +356,13 @@ pub fn plan_stage_campaign_retry_attempts(
     let mut attempts = prior_attempts;
     let mut tools = campaign.tool_ids.clone();
     tools.sort();
+    let mut retry_count = 0;
     for tool in tools {
-        let prior_attempt_id = tips.get(&tool).context("benchmark retry tip is absent")?;
+        let (prior_attempt_id, status) =
+            tips.get(&tool).context("benchmark retry tip is absent")?;
+        if !terminal_tip_requires_retry(*status) {
+            continue;
+        }
         let mut retry = BenchmarkAttemptRecordV2::planned(
             BenchmarkAttemptIdentity {
                 campaign_id: campaign_id.clone(),
@@ -346,6 +375,10 @@ pub fn plan_stage_campaign_retry_attempts(
         );
         retry.supersedes_attempt_id = Some(prior_attempt_id.clone());
         attempts.push(retry);
+        retry_count += 1;
+    }
+    if retry_count == 0 {
+        bail!("benchmark retry has no non-passing terminal tips");
     }
     let cycle = BenchmarkCycleStatusV2::new(campaign_id, observed_at_utc.to_string(), attempts);
     validate_cycle_status_v2(&cycle).context("validate planned benchmark retry cycle")?;
@@ -399,4 +432,33 @@ pub fn verify_case_campaign_plan_source(
         bail!("case-scoped benchmark plan source identity is stale");
     }
     Ok(())
+}
+
+#[derive(Clone, Copy)]
+pub(crate) enum BenchmarkCampaignPlanSource<'a> {
+    Legacy,
+    CaseMatrix(&'a BenchmarkCaseMatrixV2),
+}
+
+pub(crate) fn verify_campaign_plan_source_authority(
+    plan: &BenchmarkCampaignPlan,
+    authority: BenchmarkCampaignPlanSource<'_>,
+    repository_commit: &str,
+    campaign_registry_sha256: &str,
+) -> Result<()> {
+    match authority {
+        BenchmarkCampaignPlanSource::Legacy => {
+            verify_campaign_plan_source(plan, repository_commit, campaign_registry_sha256)
+        }
+        BenchmarkCampaignPlanSource::CaseMatrix(matrix) => {
+            verify_case_campaign_plan_source(plan, matrix)?;
+            if matrix.repository_commit != repository_commit {
+                bail!("benchmark case matrix repository commit is stale");
+            }
+            if matrix.campaign_registry_sha256 != campaign_registry_sha256 {
+                bail!("benchmark case matrix registry digest is stale");
+            }
+            Ok(())
+        }
+    }
 }

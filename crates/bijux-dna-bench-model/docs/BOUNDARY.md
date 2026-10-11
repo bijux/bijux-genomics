@@ -13,6 +13,8 @@ Owner: benchmark model contracts and persisted decision records.
   including generated schemas and pure state/payload consistency validation.
 - Versioned normalized-result records and execution-metrics envelopes, including
   deterministic schema generation and payload validation.
+- The pure registry that maps persisted benchmark schema renderers to their
+  checked-in repository paths; drift checking and writes remain test/workflow effects.
 - Schema ids and validation entrypoints for suite, observation, summary, and
   gate decision records.
 - Deterministic summary comparison reports.

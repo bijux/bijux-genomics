@@ -12,10 +12,11 @@ use bijux_dna_bench_model::{
     BenchmarkCycleAdmission, BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit,
     BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkLifecycleStatus,
 };
+use chrono::DateTime;
 
 use super::{
-    plan_benchmark_case_attempts, plan_stage_campaign_attempts, verify_campaign_plan_source,
-    verify_case_campaign_plan_source,
+    plan_benchmark_case_attempts, plan_benchmark_case_retry_attempts, plan_stage_campaign_attempts,
+    verify_campaign_plan_source, verify_case_campaign_plan_source,
 };
 use crate::workflow::{
     load_benchmark_case_matrix, load_stage_campaign_registry,
@@ -36,6 +37,30 @@ pub struct BenchmarkCyclePlanRequest {
     pub attempt_id: String,
     pub observed_at_utc: String,
     pub output: PathBuf,
+}
+
+/// Inputs for one source-descendant retry of an exact case-scoped benchmark campaign.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkCycleRetryRequest {
+    pub repository_root: PathBuf,
+    pub benchmark_root: PathBuf,
+    pub case_matrix: PathBuf,
+    pub prior_plan: PathBuf,
+    pub prior_case_matrix: PathBuf,
+    pub attempt_id: String,
+    pub observed_at_utc: String,
+    pub output: PathBuf,
+}
+
+/// Inputs for one source-descendant terminalization of superseded case attempts.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkCycleSupersedeRequest {
+    pub repository_root: PathBuf,
+    pub benchmark_root: PathBuf,
+    pub prior_plan: PathBuf,
+    pub prior_case_matrix: PathBuf,
+    pub superseded_at_utc: String,
+    pub reason: String,
 }
 
 /// Inputs for one source-locked snapshot of persisted benchmark attempt state.
@@ -108,6 +133,188 @@ pub fn plan_checked_in_benchmark_campaign(
     };
     publish_plan(&request.output, &plan)?;
     Ok(plan)
+}
+
+/// Plan one explicit retry for every non-passing terminal lineage tip in a case-scoped campaign.
+///
+/// The prior plan and its matrix remain immutable authorities. Their source must be an ancestor of
+/// the clean current repository, while the new matrix must match the current source exactly.
+/// Persisted terminal attempts provide the retry lineage and cannot be replaced by plan snapshots.
+///
+/// # Errors
+/// Returns an error when source ancestry, current or prior matrices, persisted terminal lineage,
+/// retry identity, timestamp, or immutable output publication is invalid.
+pub fn retry_checked_in_benchmark_campaign(
+    request: &BenchmarkCycleRetryRequest,
+) -> Result<BenchmarkCampaignPlan> {
+    validate_utc_timestamp(&request.observed_at_utc, "benchmark retry observed_at_utc")
+        .context("validate benchmark retry timestamp")?;
+    let repository_root = request
+        .repository_root
+        .canonicalize()
+        .context("canonicalize benchmark retry repository")?;
+    let benchmark_root = request
+        .benchmark_root
+        .canonicalize()
+        .context("canonicalize benchmark retry evidence root")?;
+    let repository_commit =
+        bijux_dna_containers::api::clean_repository_head_commit(&repository_root)
+            .context("require a clean benchmark retry source repository")?;
+    let campaign_registry_sha256 =
+        bijux_dna_infra::hash_file_sha256(&repository_root.join(CAMPAIGN_REGISTRY_PATH))
+            .context("hash benchmark retry campaign registry")?;
+
+    let matrix = load_benchmark_case_matrix(&request.case_matrix)?;
+    if matrix.repository_commit != repository_commit
+        || matrix.campaign_registry_sha256 != campaign_registry_sha256
+    {
+        bail!("benchmark retry case matrix differs from the current source");
+    }
+
+    let prior_plan = load_plan(&request.prior_plan)?;
+    let prior_matrix = load_benchmark_case_matrix(&request.prior_case_matrix)?;
+    verify_case_campaign_plan_source(&prior_plan, &prior_matrix)
+        .context("verify prior benchmark retry authorities")?;
+    if !bijux_dna_containers::api::repository_commit_is_ancestor_of_head(
+        &repository_root,
+        &prior_plan.repository_commit,
+    )? {
+        bail!("benchmark retry prior source is not an ancestor of the current source");
+    }
+
+    let prior_attempts = prior_plan
+        .cycle
+        .attempts
+        .iter()
+        .map(|attempt| {
+            bijux_dna_runtime::load_attempt_lifecycle(&benchmark_root, &attempt.identity)
+                .with_context(|| {
+                    format!(
+                        "load prior benchmark retry attempt {}/{}/{}",
+                        attempt.identity.run.run_id,
+                        attempt.identity.tool_id,
+                        attempt.identity.attempt_id
+                    )
+                })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let retry = plan_benchmark_case_retry_attempts(
+        &matrix,
+        prior_attempts,
+        &request.attempt_id,
+        &request.observed_at_utc,
+    )?;
+    publish_plan(&request.output, &retry)?;
+    Ok(retry)
+}
+
+/// Supersede every non-active, nonterminal attempt retained by an ancestor case campaign.
+///
+/// This operation first validates the entire attempt closure and timestamp, so an active scheduler
+/// attempt or missing ledger rejects the request before any transition is appended. Completed
+/// terminal attempts remain unchanged and an identical repeated supersession is idempotent.
+///
+/// # Errors
+/// Returns an error when source ancestry, prior authorities, persisted lineage, timestamp, reason,
+/// or any active scheduler attempt prevents safe supersession.
+pub fn supersede_checked_in_benchmark_campaign(
+    request: &BenchmarkCycleSupersedeRequest,
+) -> Result<BenchmarkCycleStatusV2> {
+    validate_utc_timestamp(&request.superseded_at_utc, "benchmark superseded_at_utc")
+        .context("validate benchmark supersession timestamp")?;
+    if request.reason.trim() != request.reason || request.reason.len() < 10 {
+        bail!("benchmark supersession reason must be trimmed and contain at least ten characters");
+    }
+    let superseded_at = DateTime::parse_from_rfc3339(&request.superseded_at_utc)
+        .context("parse benchmark supersession timestamp")?;
+    let repository_root = request
+        .repository_root
+        .canonicalize()
+        .context("canonicalize benchmark supersession repository")?;
+    let benchmark_root = request
+        .benchmark_root
+        .canonicalize()
+        .context("canonicalize benchmark supersession evidence root")?;
+    bijux_dna_containers::api::clean_repository_head_commit(&repository_root)
+        .context("require a clean benchmark supersession source repository")?;
+    let prior_plan = load_plan(&request.prior_plan)?;
+    let prior_matrix = load_benchmark_case_matrix(&request.prior_case_matrix)?;
+    verify_case_campaign_plan_source(&prior_plan, &prior_matrix)
+        .context("verify benchmark supersession authorities")?;
+    if !bijux_dna_containers::api::repository_commit_is_ancestor_of_head(
+        &repository_root,
+        &prior_plan.repository_commit,
+    )? {
+        bail!("benchmark supersession prior source is not an ancestor of the current source");
+    }
+
+    let attempts = prior_plan
+        .cycle
+        .attempts
+        .iter()
+        .map(|attempt| {
+            bijux_dna_runtime::load_attempt_lifecycle(&benchmark_root, &attempt.identity)
+                .with_context(|| {
+                    format!(
+                        "load benchmark supersession attempt {}/{}/{}",
+                        attempt.identity.run.run_id,
+                        attempt.identity.tool_id,
+                        attempt.identity.attempt_id
+                    )
+                })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    for attempt in &attempts {
+        if matches!(
+            attempt.current_status(),
+            Some(BenchmarkLifecycleStatus::Submitted | BenchmarkLifecycleStatus::Running)
+        ) {
+            bail!("benchmark supersession refuses an active scheduler attempt");
+        }
+        let last_observed_at = attempt
+            .transitions
+            .last()
+            .context("benchmark supersession attempt has no transition")?
+            .observed_at_utc
+            .as_str();
+        if DateTime::parse_from_rfc3339(last_observed_at)
+            .context("parse retained benchmark transition timestamp")?
+            > superseded_at
+        {
+            bail!("benchmark supersession timestamp predates retained attempt evidence");
+        }
+    }
+
+    let mut terminal = Vec::with_capacity(attempts.len());
+    for attempt in attempts {
+        if matches!(
+            attempt.current_status(),
+            Some(
+                BenchmarkLifecycleStatus::Planned
+                    | BenchmarkLifecycleStatus::Ready
+                    | BenchmarkLifecycleStatus::Collecting
+            )
+        ) || (attempt.current_status() == Some(BenchmarkLifecycleStatus::Superseded)
+            && attempt.transitions.last().and_then(|event| event.reason.as_deref())
+                == Some(request.reason.as_str()))
+        {
+            terminal.push(bijux_dna_runtime::record_attempt_superseded(
+                &benchmark_root,
+                &attempt.identity,
+                &request.superseded_at_utc,
+                &request.reason,
+            )?);
+        } else {
+            terminal.push(attempt);
+        }
+    }
+    let status = BenchmarkCycleStatusV2::new(
+        prior_plan.cycle.campaign_id,
+        request.superseded_at_utc.clone(),
+        terminal,
+    );
+    validate_cycle_status_v2(&status).context("validate superseded benchmark cycle")?;
+    Ok(status)
 }
 
 /// Read every persisted attempt in a source-locked campaign exactly once.
@@ -445,6 +652,58 @@ mod tests {
         Ok(repository)
     }
 
+    fn case_matrix_for(
+        repository: &Path,
+        repository_commit: &str,
+    ) -> Result<crate::workflow::BenchmarkCaseMatrixV2> {
+        let (mut campaigns, _, mut interfaces) =
+            crate::workflow::load_checked_in_benchmark_planning_contracts()?;
+        campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2042");
+        interfaces
+            .interfaces
+            .retain(|interface| interface.stage_id == "fastq.profile_read_lengths");
+        let campaign = campaigns.campaigns.first().context("run-2042 campaign")?;
+        let data_snapshots = [
+            (&campaign.corpus_catalog_ids, crate::workflow::BenchmarkDataSnapshotRoleV1::Corpus),
+            (
+                &campaign.reference_catalog_ids,
+                crate::workflow::BenchmarkDataSnapshotRoleV1::Reference,
+            ),
+            (
+                &campaign.database_catalog_ids,
+                crate::workflow::BenchmarkDataSnapshotRoleV1::Database,
+            ),
+        ]
+        .into_iter()
+        .flat_map(|(ids, role)| {
+            ids.iter().map(move |id| crate::workflow::BenchmarkDataSnapshotV1 {
+                catalog_id: id.clone(),
+                role,
+                catalog_sha256: "8".repeat(64),
+                sample_ids: if role == crate::workflow::BenchmarkDataSnapshotRoleV1::Corpus {
+                    vec!["sample-a".to_string()]
+                } else {
+                    Vec::new()
+                },
+            })
+        })
+        .collect::<Vec<_>>();
+        let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+        let binding_bytes = serde_json::to_vec(&bindings.bindings().cloned().collect::<Vec<_>>())?;
+        crate::workflow::plan_benchmark_case_matrix(&crate::workflow::BenchmarkCaseMatrixRequest {
+            repository_commit,
+            campaign_registry_sha256: &bijux_dna_infra::hash_file_sha256(
+                &repository.join(CAMPAIGN_REGISTRY_PATH),
+            )?,
+            interface_catalog_sha256: &"9".repeat(64),
+            tool_binding_registry_sha256: &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
+            campaigns: &campaigns,
+            interfaces: &interfaces,
+            bindings: &bindings,
+            data_snapshots: &data_snapshots,
+        })
+    }
+
     #[test]
     fn checked_in_plan_is_idempotent_and_refuses_identity_replacement() -> Result<()> {
         let repository = clean_repository()?;
@@ -466,6 +725,118 @@ mod tests {
 
         request.attempt_id = "attempt-0002".to_string();
         assert!(plan_checked_in_benchmark_campaign(&request).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn checked_in_case_retry_retains_terminal_lineage_and_current_source() -> Result<()> {
+        let repository = clean_repository()?;
+        let repository_commit =
+            bijux_dna_containers::api::clean_repository_head_commit(repository.path())?;
+        let matrix = case_matrix_for(repository.path(), &repository_commit)?;
+        let prior = plan_benchmark_case_attempts(
+            &matrix,
+            "human-short-read-length-comparison",
+            "attempt-001",
+            "2026-08-10T00:00:00Z",
+        )?;
+        let temporary = bijux_dna_infra::temp_dir("benchmark-cycle-case-retry")?;
+        let benchmark_root = temporary.path().join("evidence");
+        crate::workflow::ensure_stage_campaign_attempts(&benchmark_root, &prior)?;
+        for attempt in &prior.cycle.attempts {
+            bijux_dna_runtime::record_attempt_superseded(
+                &benchmark_root,
+                &attempt.identity,
+                "2026-08-10T00:01:00Z",
+                "execution preparation authority was replaced",
+            )?;
+        }
+        let matrix_path = temporary.path().join("case-matrix.json");
+        let prior_plan_path = temporary.path().join("prior-plan.json");
+        fs::write(&matrix_path, serde_json::to_vec_pretty(&matrix)?)?;
+        fs::write(&prior_plan_path, serde_json::to_vec_pretty(&prior)?)?;
+        let request = BenchmarkCycleRetryRequest {
+            repository_root: repository.path().to_path_buf(),
+            benchmark_root,
+            case_matrix: matrix_path.clone(),
+            prior_plan: prior_plan_path,
+            prior_case_matrix: matrix_path,
+            attempt_id: "attempt-002".to_string(),
+            observed_at_utc: "2026-08-10T00:02:00Z".to_string(),
+            output: temporary.path().join("retry-plan.json"),
+        };
+
+        let retry = retry_checked_in_benchmark_campaign(&request)?;
+        assert_eq!(retry, retry_checked_in_benchmark_campaign(&request)?);
+        let active = retry
+            .cycle
+            .attempts
+            .iter()
+            .filter(|attempt| attempt.identity.attempt_id == "attempt-002")
+            .collect::<Vec<_>>();
+        assert_eq!(active.len(), matrix.cases.len());
+        assert!(active
+            .iter()
+            .all(|attempt| attempt.supersedes_attempt_id.as_deref() == Some("attempt-001")));
+        assert_eq!(retry.repository_commit, repository_commit);
+        Ok(())
+    }
+
+    #[test]
+    fn checked_in_case_supersession_terminalizes_nonactive_ancestor_attempts() -> Result<()> {
+        let repository = clean_repository()?;
+        let repository_commit =
+            bijux_dna_containers::api::clean_repository_head_commit(repository.path())?;
+        let matrix = case_matrix_for(repository.path(), &repository_commit)?;
+        let prior = plan_benchmark_case_attempts(
+            &matrix,
+            "human-short-read-length-comparison",
+            "attempt-001",
+            "2026-08-10T00:00:00Z",
+        )?;
+        let temporary = bijux_dna_infra::temp_dir("benchmark-cycle-case-supersession")?;
+        let benchmark_root = temporary.path().join("evidence");
+        crate::workflow::ensure_stage_campaign_attempts(&benchmark_root, &prior)?;
+        let matrix_path = temporary.path().join("case-matrix.json");
+        let prior_plan_path = temporary.path().join("prior-plan.json");
+        fs::write(&matrix_path, serde_json::to_vec_pretty(&matrix)?)?;
+        fs::write(&prior_plan_path, serde_json::to_vec_pretty(&prior)?)?;
+        fs::write(repository.path().join("README.md"), "descendant source\n")?;
+        for arguments in
+            [vec!["add", "README.md"], vec!["commit", "-m", "docs: add descendant source"]]
+        {
+            let output = Command::new("git")
+                .current_dir(repository.path())
+                .args(arguments)
+                .output()
+                .context("execute descendant source Git fixture command")?;
+            if !output.status.success() {
+                bail!(
+                    "descendant source Git fixture command failed: {}",
+                    String::from_utf8_lossy(&output.stderr).trim()
+                );
+            }
+        }
+        let request = BenchmarkCycleSupersedeRequest {
+            repository_root: repository.path().to_path_buf(),
+            benchmark_root,
+            prior_plan: prior_plan_path,
+            prior_case_matrix: matrix_path,
+            superseded_at_utc: "2026-08-10T00:01:00Z".to_string(),
+            reason: "source execution authority was replaced".to_string(),
+        };
+
+        let superseded = supersede_checked_in_benchmark_campaign(&request)?;
+        assert_eq!(superseded, supersede_checked_in_benchmark_campaign(&request)?);
+        assert!(superseded.attempts.iter().all(|attempt| {
+            attempt.current_status() == Some(BenchmarkLifecycleStatus::Superseded)
+                && attempt.transitions.len() == 2
+        }));
+        let mut replacement = request;
+        replacement.superseded_at_utc = "2026-08-10T00:02:00Z".to_string();
+        replacement.reason = "a different retained supersession classification".to_string();
+        let retained = supersede_checked_in_benchmark_campaign(&replacement)?;
+        assert_eq!(retained.attempts, superseded.attempts);
         Ok(())
     }
 

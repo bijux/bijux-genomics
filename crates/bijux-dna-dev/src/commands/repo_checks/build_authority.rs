@@ -10,6 +10,7 @@ const WORKFLOW_PATH: &str = ".github/workflows/ci.yml";
 const RUNNER_PATH: &str = "makes/bin/run_github_workflow_gate.sh";
 const CARGO_MAKE_PATH: &str = "makes/cargo.mk";
 const FAST_GROUP_PATH: &str = "configs/ci/fast-groups.json";
+const LEGACY_BUILD_AUTHORITY_PATH: &str = "configs/runtime/cargo_build.toml";
 
 pub(crate) fn check_ci_build_authority(
     workspace: &Workspace,
@@ -20,6 +21,10 @@ pub(crate) fn check_ci_build_authority(
     let authority: CiBuildAuthority =
         serde_json::from_str(&raw).with_context(|| format!("parse {AUTHORITY_PATH}"))?;
     validate_ci_build_authority(&authority)?;
+    ensure!(
+        !workspace.path(LEGACY_BUILD_AUTHORITY_PATH).exists(),
+        "legacy runtime Cargo build authority must not coexist with {AUTHORITY_PATH}"
+    );
 
     let toolchain_raw = std::fs::read_to_string(workspace.path(&authority.toolchain.manifest))
         .context("read CI toolchain manifest")?;
@@ -50,6 +55,36 @@ pub(crate) fn check_ci_build_authority(
         declared_components == required_components,
         "build authority components differ from rust-toolchain.toml"
     );
+
+    let compilation_raw = std::fs::read_to_string(workspace.path(&authority.compilation.manifest))
+        .context("read CI compilation manifest")?;
+    let compilation: toml::Value =
+        toml::from_str(&compilation_raw).context("parse CI compilation manifest")?;
+    for (profile, expected_codegen_units) in [
+        ("dev", authority.compilation.dev_codegen_units),
+        ("test", authority.compilation.test_codegen_units),
+    ] {
+        let profile_table = compilation
+            .get("profile")
+            .and_then(|value| value.get(profile))
+            .with_context(|| format!("compilation manifest omits profile.{profile}"))?;
+        let codegen_units = profile_table
+            .get("codegen-units")
+            .and_then(toml::Value::as_integer)
+            .with_context(|| format!("profile.{profile} omits integer codegen-units"))?;
+        ensure!(
+            codegen_units == i64::from(expected_codegen_units),
+            "profile.{profile} codegen-units differs from the build authority"
+        );
+        let incremental = profile_table
+            .get("incremental")
+            .and_then(toml::Value::as_bool)
+            .with_context(|| format!("profile.{profile} omits incremental policy"))?;
+        ensure!(
+            incremental == authority.compilation.incremental,
+            "profile.{profile} incremental policy differs from the build authority"
+        );
+    }
 
     let lockfile = std::fs::read_to_string(workspace.path(&authority.lockfile.manifest))
         .context("read workspace Cargo lock")?;
@@ -115,8 +150,10 @@ pub(crate) fn check_ci_build_authority(
     pass(
         check,
         format!(
-            "validated Rust {}, cargo-nextest {}, locked metadata, sccache JSON receipts, and isolated concurrent targets",
-            authority.toolchain.channel, authority.test_executor.version
+            "validated Rust {}, cargo-nextest {}, {}-unit dev/test codegen, locked metadata, sccache JSON receipts, and isolated concurrent targets",
+            authority.toolchain.channel,
+            authority.test_executor.version,
+            authority.compilation.dev_codegen_units
         ),
     )
 }

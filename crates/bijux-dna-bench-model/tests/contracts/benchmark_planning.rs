@@ -13,15 +13,16 @@ use bijux_dna_bench_model::{
     BenchmarkExecutionScheduler, BenchmarkLocalHpcJobGraph, BenchmarkLocalHpcJobGraphNode,
     BenchmarkMeasurementContract, BenchmarkPortfolio, BenchmarkProfileAssignment,
     BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
-    BenchmarkQuarantinedPublicationSurface, BenchmarkScientificProfile,
-    BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
-    BenchmarkScientificReadinessReport, BenchmarkScientificReadinessStage,
-    BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
-    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
-    BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
-    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus, BenchmarkStagePublication,
-    BenchmarkStagePublicationDisposition, BenchmarkStageUniverse, BenchmarkStageUniverseRow,
-    BenchmarkStageUniverseSummary, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
+    BenchmarkQuarantinedPublicationSurface, BenchmarkRunReportDisposition,
+    BenchmarkRunReportIndexEntry, BenchmarkScientificProfile, BenchmarkScientificReadinessCorpus,
+    BenchmarkScientificReadinessDomain, BenchmarkScientificReadinessReport,
+    BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
+    BenchmarkScientificReadinessSummary, BenchmarkStageCampaignRegistry,
+    BenchmarkStageCampaignSpec, BenchmarkStageCoverage, BenchmarkStageCoverageRow,
+    BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
+    BenchmarkStageInterfaceStatus, BenchmarkStagePublication, BenchmarkStagePublicationDisposition,
+    BenchmarkStageUniverse, BenchmarkStageUniverseRow, BenchmarkStageUniverseSummary,
+    BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
 };
 
 const TEST_SHA256: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -29,9 +30,14 @@ const TEST_COMMIT: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
 #[test]
 fn benchmark_publication_registry_rejects_summary_drift() -> anyhow::Result<()> {
-    let mut registry = BenchmarkPublicationRegistry::v1(
+    let mut registry = BenchmarkPublicationRegistry::v2(
         BenchmarkPublicationRegistrySummary {
             current_product_count: 1,
+            current_run_report_count: 0,
+            missing_run_report_count: 1,
+            stale_run_report_count: 0,
+            failed_run_report_count: 0,
+            superseded_run_report_count: 0,
             active_stage_report_count: 0,
             historical_stage_report_count: 1,
             quarantined_surface_count: 1,
@@ -43,6 +49,14 @@ fn benchmark_publication_registry_rejects_summary_drift() -> anyhow::Result<()> 
             json_sha256: TEST_SHA256.into(),
             markdown_path: "benchmarks/reports/coverage.md".into(),
             markdown_sha256: TEST_SHA256.into(),
+        }],
+        vec![BenchmarkRunReportIndexEntry {
+            run_id: "run-2001".into(),
+            stage_id: "bam.genotyping".into(),
+            disposition: BenchmarkRunReportDisposition::Missing,
+            report: None,
+            publication_receipt: None,
+            limitations: vec!["No admitted publication exists.".into()],
         }],
         vec![BenchmarkStagePublication {
             run_id: "run-2001".into(),
@@ -63,6 +77,14 @@ fn benchmark_publication_registry_rejects_summary_drift() -> anyhow::Result<()> 
         }],
     );
     validate_benchmark_publication_registry(&registry)?;
+    let mut invalid_missing = registry.clone();
+    invalid_missing.run_reports[0].limitations.clear();
+    assert!(validate_benchmark_publication_registry(&invalid_missing).is_err());
+    let mut invalid_current = registry.clone();
+    invalid_current.summary.current_run_report_count = 1;
+    invalid_current.summary.missing_run_report_count = 0;
+    invalid_current.run_reports[0].disposition = BenchmarkRunReportDisposition::Current;
+    assert!(validate_benchmark_publication_registry(&invalid_current).is_err());
     registry.summary.historical_stage_report_count = 0;
     assert!(validate_benchmark_publication_registry(&registry).is_err());
     Ok(())

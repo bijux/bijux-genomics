@@ -10,23 +10,25 @@ use bijux_dna_bench_model::contract::{
     validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
-    benchmark_run_directory_name, validate_campaign_plan, validate_execution_spec,
-    BenchmarkAttemptIdentity, BenchmarkCampaignPlan, BenchmarkExecutionAcceptance,
-    BenchmarkExecutionCachePolicy, BenchmarkExecutionCommands, BenchmarkExecutionDeterminism,
-    BenchmarkExecutionDownstreamProbe, BenchmarkExecutionImage, BenchmarkExecutionInput,
-    BenchmarkExecutionInterface, BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs,
-    BenchmarkExecutionParameterEvidence, BenchmarkExecutionResources,
-    BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock,
-    BenchmarkExecutionSpec, BenchmarkLifecycleStatus, BenchmarkStageCampaignRegistry,
-    BenchmarkStageInterfaceCatalog, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+    validate_campaign_plan, validate_execution_spec, BenchmarkAttemptIdentity,
+    BenchmarkCampaignPlan, BenchmarkExecutionAcceptance, BenchmarkExecutionCachePolicy,
+    BenchmarkExecutionCommands, BenchmarkExecutionDeterminism, BenchmarkExecutionDownstreamProbe,
+    BenchmarkExecutionImage, BenchmarkExecutionInput, BenchmarkExecutionInterface,
+    BenchmarkExecutionMeasurement, BenchmarkExecutionOutputs, BenchmarkExecutionParameterEvidence,
+    BenchmarkExecutionResources, BenchmarkExecutionRetryPolicy, BenchmarkExecutionRuntimePolicy,
+    BenchmarkExecutionSourceLock, BenchmarkExecutionSpec, BenchmarkLifecycleStatus,
+    BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
+    BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
 };
 use bijux_dna_containers::api::{ContainerCatalog, ContainerCatalogTool, CurrentApptainerImage};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
 use bijux_dna_core::ids::{ArtifactId, StepId};
 use bijux_dna_core::prelude::ContainerImageRefV1;
+use bijux_dna_runtime::benchmark_attempt_directory;
 use bijux_dna_stage_contract::{
-    build_binding_stage_plan, project_tool_parameters, BindingStagePlanRequest, StagePlanV1,
-    ToolBinding, ToolBindingV1, ToolParameterProjectionRequest,
+    build_binding_stage_plan, canonical_tool_bindings, project_tool_parameters,
+    required_binding_output_paths, BindingStagePlanRequest, StagePlanV1, ToolBinding,
+    ToolBindingV1, ToolParameterProjectionRequest,
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -337,13 +339,7 @@ pub fn build_execution_spec(
         .copied()
         .or(campaign.threads)
         .context("campaign does not allocate threads for the attempt tool")?;
-    let result_root = material
-        .benchmark_root
-        .join(benchmark_run_directory_name(&identity.run)?)
-        .join(&identity.tool_id)
-        .join("attempts")
-        .join(&identity.campaign_id)
-        .join(&identity.attempt_id);
+    let result_root = benchmark_attempt_directory(&material.benchmark_root, identity)?;
     let cache_policy = match campaign.cache_policy {
         bijux_dna_bench_model::BenchmarkCachePolicy::Cold => BenchmarkExecutionCachePolicy::Cold,
         bijux_dna_bench_model::BenchmarkCachePolicy::Warm => BenchmarkExecutionCachePolicy::Warm,
@@ -352,9 +348,19 @@ pub fn build_execution_spec(
         .stage_plan_units
         .as_ref()
         .context("campaign execution material omits stage-plan units")?;
-    material
-        .required_files
-        .extend(stage_plan_required_files(stage_plan_units, campaign.measured_repetitions)?);
+    let bindings =
+        canonical_tool_bindings().context("load canonical execution output authority")?;
+    let binding = bindings
+        .binding(
+            &bijux_dna_core::ids::StageId::new(&identity.run.stage_id),
+            &bijux_dna_core::ids::ToolId::new(&identity.tool_id),
+        )
+        .context("canonical bindings omit the planned execution output authority")?;
+    material.required_files.extend(stage_plan_required_files(
+        stage_plan_units,
+        binding,
+        campaign.measured_repetitions,
+    )?);
     if material.required_files.iter().collect::<BTreeSet<_>>().len()
         != material.required_files.len()
     {
@@ -362,6 +368,11 @@ pub fn build_execution_spec(
     }
     let mut acceptance = material.acceptance;
     acceptance.version_regex.clone_from(&tool.expected_version_regex);
+    let mut source_contract_sha256 = material.source_contract_sha256;
+    if let Some(admission_sha256) = &image.external_artifact_admission_sha256 {
+        source_contract_sha256
+            .insert("external_artifact_admission".to_string(), admission_sha256.clone());
+    }
     let spec = BenchmarkExecutionSpec {
         schema_version: BENCHMARK_EXECUTION_SPEC_SCHEMA_V1.to_string(),
         identity: identity.clone(),
@@ -370,7 +381,7 @@ pub fn build_execution_spec(
         source: BenchmarkExecutionSourceLock {
             repository_commit: plan.repository_commit.clone(),
             repository_path: material.repository_path.display().to_string(),
-            contract_sha256: material.source_contract_sha256,
+            contract_sha256: source_contract_sha256,
         },
         image: BenchmarkExecutionImage {
             path: image.path.display().to_string(),
@@ -438,6 +449,7 @@ pub fn build_execution_spec(
 
 fn stage_plan_required_files(
     units: &[BenchmarkStagePlanUnitMaterial],
+    binding: &impl ToolBinding,
     measured_repetitions: u32,
 ) -> Result<Vec<String>> {
     let mut units = units.iter().collect::<Vec<_>>();
@@ -450,12 +462,19 @@ fn stage_plan_required_files(
                 format!("repetitions/measured-repetition-{repetition}--{}", unit.execution_unit_id);
             for output in &unit.outputs {
                 validate_relative_output_path(&output.relative_path)?;
-                required.push(
-                    Path::new(&root)
-                        .join(&output.relative_path)
-                        .to_string_lossy()
-                        .replace('\\', "/"),
-                );
+                let authority = binding
+                    .outputs()
+                    .iter()
+                    .find(|authority| authority.name == output.binding_name)
+                    .with_context(|| {
+                        format!(
+                            "benchmark stage-plan output `{}` is not declared by the binding",
+                            output.binding_name
+                        )
+                    })?;
+                for path in required_binding_output_paths(authority, &output.relative_path)? {
+                    required.push(Path::new(&root).join(path).to_string_lossy().replace('\\', "/"));
+                }
             }
             required.push(format!("{root}/resource.tsv"));
         }
@@ -484,9 +503,17 @@ fn supports_offline_stage(
 
 #[cfg(test)]
 mod tests {
+    use std::collections::{BTreeMap, BTreeSet};
+    use std::path::PathBuf;
+
     use bijux_dna_containers::api::ContainerCatalog;
 
-    use super::supports_offline_stage;
+    use super::{
+        stage_plan_required_files, supports_offline_stage, BenchmarkStagePlanOutputMaterial,
+        BenchmarkStagePlanUnitMaterial,
+    };
+    use bijux_dna_core::contract::ArtifactRole;
+    use bijux_dna_stage_contract::canonical_tool_bindings;
 
     #[test]
     fn licensed_external_tools_remain_executable_stage_candidates() -> anyhow::Result<()> {
@@ -506,6 +533,39 @@ mod tests {
             assert!(!tool.redistribution_permitted);
             assert!(supports_offline_stage(tool, stage_id));
         }
+        Ok(())
+    }
+
+    #[test]
+    fn required_files_include_binding_declared_bam_index_sidecar() -> anyhow::Result<()> {
+        let bindings = canonical_tool_bindings()?;
+        let binding = bindings
+            .binding(
+                &bijux_dna_core::ids::StageId::new("bam.duplication_metrics"),
+                &bijux_dna_core::ids::ToolId::new("samtools"),
+            )
+            .expect("canonical samtools duplication binding");
+        let unit = BenchmarkStagePlanUnitMaterial {
+            execution_unit_id: "err2112767".to_owned(),
+            inputs: Vec::new(),
+            outputs: vec![BenchmarkStagePlanOutputMaterial {
+                binding_name: "marked_bam".to_owned(),
+                relative_path: PathBuf::from("marked.bam"),
+                role: ArtifactRole::DedupBam,
+            }],
+            scientific_defaults: BTreeMap::new(),
+            input_derived: BTreeMap::new(),
+            operator_overrides: BTreeMap::new(),
+            immutable_parameters: BTreeSet::new(),
+        };
+        assert_eq!(
+            stage_plan_required_files(&[unit], binding, 1)?,
+            vec![
+                "repetitions/measured-repetition-1--err2112767/marked.bam",
+                "repetitions/measured-repetition-1--err2112767/marked.bam.bai",
+                "repetitions/measured-repetition-1--err2112767/resource.tsv",
+            ]
+        );
         Ok(())
     }
 }

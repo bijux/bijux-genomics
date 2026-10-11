@@ -6,7 +6,66 @@
     "stage_id": "fastq.profile_read_lengths"
   },
   "protocol_sha256": "0a26dba2a05494983199517d323be9bad0f6bb56354b2da71f65b202123f53ff",
+  "selected_publication": {
+    "publication_id": "run-2042-production-74b7042739d9",
+    "selected_attempts": [
+      {
+        "campaign_id": "production-run-2042-e410adee18a3819606db911c2cb48c1414972178",
+        "run": {
+          "run_id": "run-2042",
+          "domain": "fastq",
+          "stage_id": "fastq.profile_read_lengths"
+        },
+        "case_id": "run-2042--seqfu--human-short-read-diversity",
+        "attempt_id": "attempt-003",
+        "tool_id": "seqfu"
+      },
+      {
+        "campaign_id": "production-run-2042-e410adee18a3819606db911c2cb48c1414972178",
+        "run": {
+          "run_id": "run-2042",
+          "domain": "fastq",
+          "stage_id": "fastq.profile_read_lengths"
+        },
+        "case_id": "run-2042--seqkit--human-short-read-diversity",
+        "attempt_id": "attempt-002",
+        "tool_id": "seqkit"
+      }
+    ],
+    "repository_commit": "74b7042739d93b2b1b504790d92d556f34be0d64",
+    "report": {
+      "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/run-2042-fastq-profile-read-lengths.json",
+      "sha256": "725b0f32d9dc164931b237c8a822a0dab332f54d718785c70a9471ac8e0e0186",
+      "size_bytes": 48686
+    },
+    "evidence_book": {
+      "uri": "study://results/benchmarks/evidence-books/45c49ae3e9afb3445986fc31b41383b32418403b/candidate-publications.json",
+      "sha256": "5525e3caab74b61a15205c69df50c6a140cf582097f37fe435297bd3cc1dc2f4",
+      "size_bytes": 3258
+    },
+    "publication_receipt": {
+      "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/publication-receipt.json",
+      "sha256": "3a765e9bed552750783a1cd26af140478be7d53f00d673ca5b484aee33c1a7da",
+      "size_bytes": 3365
+    },
+    "citation_record": {
+      "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/citation-record.json",
+      "sha256": "03b938ad3e9e48fb6badd6c9ef3be3c76ace6e3a0bee241f66b292a4fd25affd",
+      "size_bytes": 2961
+    },
+    "replay_receipt": {
+      "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2042/semantic-identity.json",
+      "sha256": "a78b929e2df7bbea34b1d3bda13f36b450a61614cc49ab6b5e5a061600fd08d1",
+      "size_bytes": 3656
+    },
+    "limitations": [
+      "The publication covers one governed human short-read diversity cohort.",
+      "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+    ],
+    "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
+  },
   "limitations": [
-    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+    "The publication covers one governed human short-read diversity cohort.",
+    "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
   ]
 }

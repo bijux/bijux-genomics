@@ -153,6 +153,7 @@ fn admit_snapshot(
 fn catalog_id(catalog: &GovernedDataCatalogDocument) -> &str {
     match catalog {
         GovernedDataCatalogDocument::Materialized(catalog) => &catalog.id,
+        GovernedDataCatalogDocument::Derived(catalog) => &catalog.id,
         GovernedDataCatalogDocument::Preserved(catalog) => &catalog.id,
     }
 }
@@ -162,6 +163,9 @@ fn catalog_sample_ids(catalog: &GovernedDataCatalogDocument) -> Result<Vec<Strin
     match catalog {
         GovernedDataCatalogDocument::Materialized(catalog) => {
             samples.extend(catalog.samples.iter().map(|sample| sample.accession.clone()));
+        }
+        GovernedDataCatalogDocument::Derived(catalog) => {
+            samples.extend(catalog.samples.iter().map(|sample| sample.sample_id.clone()));
         }
         GovernedDataCatalogDocument::Preserved(catalog) => {
             let value = catalog

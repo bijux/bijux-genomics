@@ -5,10 +5,13 @@ use std::collections::BTreeSet;
 use std::ffi::OsStr;
 use std::path::Path;
 
-use crate::model::{BenchmarkPublicationRegistry, BenchmarkStagePublicationDisposition};
+use crate::model::{
+    BenchmarkPublicationRegistry, BenchmarkRunIndexFileReference, BenchmarkRunReportDisposition,
+    BenchmarkStagePublicationDisposition,
+};
 use crate::BenchError;
 
-use super::BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1;
+use super::BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V2;
 
 /// Validate publication counts, identities, paths, digests, and quarantine policy.
 ///
@@ -17,12 +20,13 @@ use super::BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1;
 pub fn validate_benchmark_publication_registry(
     registry: &BenchmarkPublicationRegistry,
 ) -> Result<(), BenchError> {
-    if registry.schema_version != BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1 {
+    if registry.schema_version != BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V2 {
         return Err(BenchError::InvalidPolicy("unsupported publication registry schema".into()));
     }
     if registry.summary.current_product_count != registry.current_products.len() {
         return Err(BenchError::InvalidPolicy("current publication count drifted".into()));
     }
+    validate_run_reports(registry)?;
     let active = registry
         .stage_reports
         .iter()
@@ -95,6 +99,111 @@ pub fn validate_benchmark_publication_registry(
         validate_hex(&surface.tree_sha256, 64, "quarantined publication tree digest")?;
     }
     Ok(())
+}
+
+fn validate_run_reports(registry: &BenchmarkPublicationRegistry) -> Result<(), BenchError> {
+    if registry.run_reports.is_empty() {
+        return Err(BenchError::InvalidPolicy("run report portfolio is empty".into()));
+    }
+    let mut current = 0;
+    let mut missing = 0;
+    let mut stale = 0;
+    let mut failed = 0;
+    let mut superseded = 0;
+    let mut previous_run_id = None;
+    let mut run_ids = BTreeSet::new();
+    for report in &registry.run_reports {
+        if !is_run_id(&report.run_id)
+            || report.stage_id.trim().is_empty()
+            || previous_run_id.is_some_and(|previous| previous >= report.run_id.as_str())
+            || !run_ids.insert(report.run_id.as_str())
+        {
+            return Err(BenchError::InvalidPolicy(
+                "run report identities are invalid, duplicated, or unsorted".into(),
+            ));
+        }
+        previous_run_id = Some(report.run_id.as_str());
+        match report.disposition {
+            BenchmarkRunReportDisposition::Current => {
+                current += 1;
+                validate_reference_option(report.report.as_ref(), "current run report")?;
+                validate_reference_option(
+                    report.publication_receipt.as_ref(),
+                    "current run publication receipt",
+                )?;
+            }
+            BenchmarkRunReportDisposition::Missing => {
+                missing += 1;
+                if report.report.is_some()
+                    || report.publication_receipt.is_some()
+                    || report.limitations.is_empty()
+                {
+                    return Err(BenchError::InvalidPolicy(
+                        "missing run report has evidence or lacks a limitation".into(),
+                    ));
+                }
+            }
+            BenchmarkRunReportDisposition::Stale | BenchmarkRunReportDisposition::Superseded => {
+                if report.disposition == BenchmarkRunReportDisposition::Stale {
+                    stale += 1;
+                } else {
+                    superseded += 1;
+                }
+                validate_reference_option(report.report.as_ref(), "historical run report")?;
+                validate_reference_option(
+                    report.publication_receipt.as_ref(),
+                    "historical run publication receipt",
+                )?;
+                if report.limitations.is_empty() {
+                    return Err(BenchError::InvalidPolicy(
+                        "non-current run report lacks a limitation".into(),
+                    ));
+                }
+            }
+            BenchmarkRunReportDisposition::Failed => {
+                failed += 1;
+                if let Some(reference) = &report.report {
+                    validate_reference(reference, "failed run report")?;
+                }
+                if report.publication_receipt.is_some() || report.limitations.is_empty() {
+                    return Err(BenchError::InvalidPolicy(
+                        "failed run report has a publication receipt or lacks a limitation".into(),
+                    ));
+                }
+            }
+        }
+    }
+    let summary = &registry.summary;
+    if summary.current_run_report_count != current
+        || summary.missing_run_report_count != missing
+        || summary.stale_run_report_count != stale
+        || summary.failed_run_report_count != failed
+        || summary.superseded_run_report_count != superseded
+    {
+        return Err(BenchError::InvalidPolicy("run report disposition counts drifted".into()));
+    }
+    Ok(())
+}
+
+fn validate_reference_option(
+    reference: Option<&BenchmarkRunIndexFileReference>,
+    label: &str,
+) -> Result<(), BenchError> {
+    let reference = reference
+        .ok_or_else(|| BenchError::InvalidPolicy(format!("{label} reference is missing")))?;
+    validate_reference(reference, label)
+}
+
+fn validate_reference(
+    reference: &BenchmarkRunIndexFileReference,
+    label: &str,
+) -> Result<(), BenchError> {
+    if !(reference.uri.starts_with("repo://") || reference.uri.starts_with("study://"))
+        || reference.size_bytes == 0
+    {
+        return Err(BenchError::InvalidPolicy(format!("invalid {label} reference")));
+    }
+    validate_hex(&reference.sha256, 64, label)
 }
 
 fn validate_publication_pair<'a>(

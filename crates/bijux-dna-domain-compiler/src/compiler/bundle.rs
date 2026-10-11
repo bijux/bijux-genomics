@@ -585,7 +585,7 @@ fn build_fixture_bindings(
                 fixtures.push(RegistryFixtureBinding {
                     stage_id: stage_id.clone(),
                     tool_id: tool_id.clone(),
-                    fixture_path: fixture_path.display().to_string(),
+                    fixture_path: stable_repository_path(domain_dir, &fixture_path),
                 });
             }
         }
@@ -594,6 +594,14 @@ fn build_fixture_bindings(
         left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
     });
     fixtures
+}
+
+fn stable_repository_path(domain_dir: &Path, path: &Path) -> String {
+    let relative = domain_dir
+        .parent()
+        .and_then(|repository_root| path.strip_prefix(repository_root).ok())
+        .unwrap_or(path);
+    relative.to_string_lossy().replace('\\', "/")
 }
 
 fn build_deprecation_records(
@@ -1041,5 +1049,27 @@ pub fn query_domain_registry_bundle(
                     && query.tool_id.as_deref().is_none_or(|wanted| fixture.tool_id == wanted)
             })
             .collect::<Vec<_>>()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use super::stable_repository_path;
+
+    #[test]
+    fn fixture_identity_is_repository_relative_for_absolute_and_relative_domain_roots() {
+        let relative = stable_repository_path(
+            Path::new("domain"),
+            Path::new("domain/bam/fixtures/bam.align/bwa.txt"),
+        );
+        let absolute = stable_repository_path(
+            Path::new("/workspace/domain"),
+            Path::new("/workspace/domain/bam/fixtures/bam.align/bwa.txt"),
+        );
+
+        assert_eq!(relative, "domain/bam/fixtures/bam.align/bwa.txt");
+        assert_eq!(absolute, relative);
     }
 }

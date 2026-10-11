@@ -452,7 +452,7 @@ mod tests {
         assert_eq!(run_2042.stage_id, "fastq.profile_read_lengths");
         assert!(matches!(run_2042.evidence_tier, BenchmarkEvidenceTier::Comparative));
         assert_eq!(run_2042.tool_ids, vec!["seqfu".to_string(), "seqkit".to_string()]);
-        assert_eq!(interfaces.interfaces.len(), 12);
+        assert_eq!(interfaces.interfaces.len(), 13);
         let validation = interfaces
             .interfaces
             .iter()

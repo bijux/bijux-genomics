@@ -8,11 +8,11 @@ and decision records, and statistical helpers.
 
 - `src/public_api/` exposes the curated stable surface.
 - `src/model/` owns observations, suites, decisions, summaries, graph nodes, stage-profile data
-  fitness, persisted container report-portfolio identities, normalized-result records and
-  execution-metrics envelopes, and suite support records.
+  fitness, persisted container report-portfolio identities, permanent-run report dispositions,
+  normalized-result records and execution-metrics envelopes, and suite support records.
 - `src/contract/` validates records, suite shape, stage governance, graph edges, data-fitness and
-  portfolio closure, parameter bindings, container report freshness, diversity requirements, and
-  analysis requirements.
+  portfolio closure, parameter bindings, container and benchmark report freshness, diversity
+  requirements, and analysis requirements.
 - `src/compare/` builds deterministic typed diffs between benchmark summaries.
 - `src/policy/` owns typed gate configuration, violations, and decision records.
   `bijux-dna-science` owns scientific gate evaluation.

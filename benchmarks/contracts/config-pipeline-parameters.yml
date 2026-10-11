@@ -19,6 +19,11 @@
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Coverage)",
       "overrides": {}
     },
+    "bam.damage": {
+      "parameter_schema_version": "bijux.bam.params.damage.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Damage)",
+      "overrides": {}
+    },
     "bam.endogenous_content": {
       "parameter_schema_version": "bijux.bam.params.endogenous_content.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::EndogenousContent)",

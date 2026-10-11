@@ -2,6 +2,9 @@ use serde::Serialize;
 
 use crate::taxonomy::VcfDomainStage;
 
+pub const BAM_INDEX_DATA_TYPE: &str = "bam.bai";
+pub const VCF_INDEX_DATA_TYPE: &str = "vcf.tbi";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PortCardinality {
@@ -40,7 +43,7 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
             vec![port("vcf", "vcf", one)],
             vec!["bam"],
             vec!["vcf"],
-            vec!["bam.bai"],
+            vec![BAM_INDEX_DATA_TYPE],
         ),
         VcfDomainStage::DamageFilter
         | VcfDomainStage::Filter
@@ -65,7 +68,7 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
             vec![port("ibd_segments", "tsv", one)],
             vec!["filtered_vcf", "genetic_map_tsv"],
             vec!["ibd_segments"],
-            vec!["vcf.tbi"],
+            vec![VCF_INDEX_DATA_TYPE],
         ),
         VcfDomainStage::Demography => contract(
             stage,
@@ -111,7 +114,7 @@ fn indexed_vcf_transform_contract(
         vec![port(output_name, "vcf", PortCardinality::One)],
         vec![input_name],
         vec![output_name],
-        vec!["vcf.tbi"],
+        vec![VCF_INDEX_DATA_TYPE],
     )
 }
 
@@ -126,6 +129,6 @@ fn indexed_vcf_report_contract(
         vec![port(output_name, "json", PortCardinality::One)],
         vec![input_name],
         vec![output_name],
-        vec!["vcf.tbi"],
+        vec![VCF_INDEX_DATA_TYPE],
     )
 }

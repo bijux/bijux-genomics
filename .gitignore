@@ -63,6 +63,7 @@ Thumbs.db
 !/runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json
 *.log
 !/runs/bench/micro/logs/MICRO_RUN.log
+!/benchmarks/tests/fixtures/bench/parsers/vcf/plink/vcf.population_structure/raw.log
 
 # Temp files
 /tmp/

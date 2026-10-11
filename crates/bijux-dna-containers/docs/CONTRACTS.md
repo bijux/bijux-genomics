@@ -39,8 +39,10 @@ promoted merely because they remain replayable.
   every tracked pipeline declaration. Source and target hashes make interrupted atomic-per-file
   application resumable and reject unplanned content drift.
 - `ContainerImageInventoryPublication`: immutable image selection and build identity evidence.
-- `CurrentApptainerImage`: absolute current retained SIF identity reverified against the selected
-  inventory candidate at consumption time.
+- `CurrentApptainerImage`: absolute SIF identity reverified at consumption time through either the
+  selected repository-distributable inventory candidate or an exact commit-addressed external
+  artifact admission. External selections carry the admission document digest into downstream
+  execution evidence; blocked access and admitted binaries remain explicit non-image outcomes.
 - `ImageInventoryDerivationRequest`: governed repository, study, image, build-evidence, and run-lock
   roots used to derive a portable publication without delegating selection to contract scripts.
 - `ImageInventoryScan`: complete typed identities for scanned SIFs, build-evidence sources, and
@@ -78,8 +80,9 @@ promoted merely because they remain replayable.
 - `ImageCampaignPlan` and `ImageCampaignExecution`: exact retained roster, commit, catalog, roots,
   worker policy, per-tool publications or failures, resumable progress, append-only invocation
   history, and an all-passed canonical terminal record.
-- `ImageActivationPlan`: a no-clobber, resumable, reversible publication of every selected
-  canonical campaign image into the active image root by verified same-filesystem hard link.
+- `ImageActivationPlan`: a no-clobber, resumable, reversible publication of every selected current
+  campaign image into the active image root by verified same-filesystem hard link. Missing tools
+  remain outside that resource-class frontier; historical or ambiguous selections still fail.
 - `ImageStoragePlan` and `ImageStorageReport`: a resumable, reversible migration of historical,
   unreferenced obsolete, and interrupted images out of the active top level while preserving
   exact file identity and historical run-reference authority through the source inventory.

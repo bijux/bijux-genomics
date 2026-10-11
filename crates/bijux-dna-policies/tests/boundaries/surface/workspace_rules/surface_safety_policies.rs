@@ -83,7 +83,6 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna/src/commands/benchmark/publication/dossier_index.rs",
         "crates/bijux-dna/src/commands/benchmark/taxonomy_database.rs",
         "crates/bijux-dna/src/commands/benchmark/config.rs",
-        "crates/bijux-dna/src/commands/benchmark/workspace/layout_normalization.rs",
         "crates/bijux-dna/src/commands/benchmark/workspace/layout_status.rs",
         "crates/bijux-dna/src/commands/benchmark/corpus_fastq/report_qc_support.rs",
         "crates/bijux-dna/src/commands/benchmark/corpus_fastq/mod.rs",

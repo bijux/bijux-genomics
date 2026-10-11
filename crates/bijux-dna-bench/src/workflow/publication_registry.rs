@@ -7,13 +7,14 @@ use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
-    validate_benchmark_publication_registry, validate_stage_report,
+    validate_benchmark_publication_registry, validate_benchmark_run_index, validate_stage_report,
 };
 use bijux_dna_bench_model::{
     benchmark_publication_registry_schema, BenchmarkCurrentPublication,
     BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
-    BenchmarkQuarantinedPublicationSurface, BenchmarkStagePublication,
-    BenchmarkStagePublicationDisposition, BenchmarkStageReport,
+    BenchmarkQuarantinedPublicationSurface, BenchmarkRunIndex, BenchmarkRunReportDisposition,
+    BenchmarkRunReportIndexEntry, BenchmarkStagePublication, BenchmarkStagePublicationDisposition,
+    BenchmarkStageReport,
 };
 
 use super::stage_report::report_source_is_current;
@@ -39,6 +40,7 @@ pub fn derive_benchmark_publication_registry(
     repository_root: &Path,
 ) -> Result<BenchmarkPublicationRegistry> {
     let current_products = current_products(repository_root)?;
+    let run_reports = permanent_run_reports(repository_root)?;
     let repository_commit = bijux_dna_containers::api::repository_head_commit(repository_root)?;
     let mut stage_reports = active_stage_reports(repository_root, &repository_commit)?;
     stage_reports.extend(historical_stage_reports(repository_root)?);
@@ -52,6 +54,26 @@ pub fn derive_benchmark_publication_registry(
         quarantined_readiness_surface(repository_root)?.into_iter().collect();
     let summary = BenchmarkPublicationRegistrySummary {
         current_product_count: current_products.len(),
+        current_run_report_count: count_run_reports(
+            &run_reports,
+            BenchmarkRunReportDisposition::Current,
+        ),
+        missing_run_report_count: count_run_reports(
+            &run_reports,
+            BenchmarkRunReportDisposition::Missing,
+        ),
+        stale_run_report_count: count_run_reports(
+            &run_reports,
+            BenchmarkRunReportDisposition::Stale,
+        ),
+        failed_run_report_count: count_run_reports(
+            &run_reports,
+            BenchmarkRunReportDisposition::Failed,
+        ),
+        superseded_run_report_count: count_run_reports(
+            &run_reports,
+            BenchmarkRunReportDisposition::Superseded,
+        ),
         active_stage_report_count: stage_reports
             .iter()
             .filter(|row| row.disposition == BenchmarkStagePublicationDisposition::Active)
@@ -66,15 +88,53 @@ pub fn derive_benchmark_publication_registry(
             .map(|surface| surface.tracked_file_count)
             .sum(),
     };
-    let registry = BenchmarkPublicationRegistry::v1(
+    let registry = BenchmarkPublicationRegistry::v2(
         summary,
         current_products,
+        run_reports,
         stage_reports,
         quarantined_surfaces,
     );
     validate_benchmark_publication_registry(&registry)
         .context("validate benchmark publication registry")?;
     Ok(registry)
+}
+
+fn count_run_reports(
+    reports: &[BenchmarkRunReportIndexEntry],
+    disposition: BenchmarkRunReportDisposition,
+) -> usize {
+    reports.iter().filter(|report| report.disposition == disposition).count()
+}
+
+fn permanent_run_reports(repository_root: &Path) -> Result<Vec<BenchmarkRunReportIndexEntry>> {
+    let path = repository_root.join("benchmarks/runs/RUN_INDEX.json");
+    let bytes = fs::read(&path).context("read permanent benchmark run index")?;
+    let index: BenchmarkRunIndex =
+        serde_json::from_slice(&bytes).context("parse permanent benchmark run index")?;
+    validate_benchmark_run_index(&index).context("validate permanent benchmark run index")?;
+    Ok(index
+        .runs
+        .into_iter()
+        .map(|run| match run.selected_publication {
+            Some(publication) => BenchmarkRunReportIndexEntry {
+                run_id: run.run_id,
+                stage_id: run.stage_id,
+                disposition: BenchmarkRunReportDisposition::Current,
+                report: Some(publication.report),
+                publication_receipt: Some(publication.publication_receipt),
+                limitations: publication.limitations,
+            },
+            None => BenchmarkRunReportIndexEntry {
+                run_id: run.run_id,
+                stage_id: run.stage_id,
+                disposition: BenchmarkRunReportDisposition::Missing,
+                report: None,
+                publication_receipt: None,
+                limitations: run.limitations,
+            },
+        })
+        .collect())
 }
 
 /// Write or check the checked-in publication registry, review report, and generated schema.
@@ -124,9 +184,14 @@ pub fn render_benchmark_publication_registry_markdown(
         "<!-- source: bijux-dna-bench::workflow::publication_registry -->".to_string(),
         "# Benchmark publication registry".to_string(),
         String::new(),
-        "Path presence does not confer current benchmark authority. Current products are deterministic crate-owned governance reports; stage evidence is active only in the top-level report namespace and historical only below its exact source commit; any tracked legacy readiness output is quarantined until removed.".to_string(),
+        "Path presence does not confer current benchmark authority. Every permanent run is explicit below: current requires an admitted selected report and publication receipt, while absent evidence remains missing. Source-addressed legacy stage reports remain historical; tracked legacy readiness output is quarantined until removed.".to_string(),
         String::new(),
         format!("- Current governance products: **{}**", summary.current_product_count),
+        format!("- Current run reports: **{}**", summary.current_run_report_count),
+        format!("- Missing run reports: **{}**", summary.missing_run_report_count),
+        format!("- Stale run reports: **{}**", summary.stale_run_report_count),
+        format!("- Failed run reports: **{}**", summary.failed_run_report_count),
+        format!("- Superseded run reports: **{}**", summary.superseded_run_report_count),
         format!("- Active stage reports: **{}**", summary.active_stage_report_count),
         format!("- Historical stage reports: **{}**", summary.historical_stage_report_count),
         format!("- Quarantined tracked files: **{}**", summary.quarantined_file_count),
@@ -140,6 +205,29 @@ pub fn render_benchmark_publication_registry_markdown(
         lines.push(format!(
             "| `{}` | `{}` | `{}` |",
             product.product_id, product.json_path, product.markdown_path
+        ));
+    }
+    lines.extend([
+        String::new(),
+        "## Permanent run reports".to_string(),
+        String::new(),
+        "| Run | Stage | Disposition | Report | Publication receipt |".to_string(),
+        "|---|---|---|---|---|".to_string(),
+    ]);
+    for report in &registry.run_reports {
+        let disposition = match report.disposition {
+            BenchmarkRunReportDisposition::Current => "current",
+            BenchmarkRunReportDisposition::Missing => "missing",
+            BenchmarkRunReportDisposition::Stale => "stale",
+            BenchmarkRunReportDisposition::Failed => "failed",
+            BenchmarkRunReportDisposition::Superseded => "superseded",
+        };
+        let report_uri = report.report.as_ref().map_or("—", |reference| reference.uri.as_str());
+        let receipt_uri =
+            report.publication_receipt.as_ref().map_or("—", |reference| reference.uri.as_str());
+        lines.push(format!(
+            "| `{}` | `{}` | {} | `{report_uri}` | `{receipt_uri}` |",
+            report.run_id, report.stage_id, disposition
         ));
     }
     lines.extend([

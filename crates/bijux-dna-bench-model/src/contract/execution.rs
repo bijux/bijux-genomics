@@ -111,6 +111,19 @@ pub fn validate_stage_plan_manifest(
     Ok(())
 }
 
+/// Validate an immutable execution-unit manifest before generic runner materialization.
+///
+/// This execution-facing alias preserves the stage-plan persistence protocol while keeping
+/// scheduler code independent of benchmark planning vocabulary.
+///
+/// # Errors
+/// Returns the same semantic validation errors as [`validate_stage_plan_manifest`].
+pub fn validate_execution_unit_manifest(
+    manifest: &BenchmarkStagePlanManifest,
+) -> Result<(), BenchError> {
+    validate_stage_plan_manifest(manifest)
+}
+
 fn validate_source(spec: &BenchmarkExecutionSpec) -> Result<(), BenchError> {
     validate_commit(&spec.source.repository_commit)?;
     require_absolute_path(&spec.source.repository_path, "repository path")?;
@@ -215,13 +228,18 @@ fn validate_measurement(spec: &BenchmarkExecutionSpec) -> Result<(), BenchError>
 
 fn validate_outputs(spec: &BenchmarkExecutionSpec) -> Result<(), BenchError> {
     require_absolute_path(&spec.outputs.result_root, "result root")?;
-    let expected_suffix = format!(
-        "/{}/{}/attempts/{}/{}",
+    let mut expected_suffix = format!(
+        "/{}/{}/attempts/{}",
         crate::contract::benchmark_run_directory_name(&spec.identity.run)?,
         spec.identity.tool_id,
         spec.identity.campaign_id,
-        spec.identity.attempt_id,
     );
+    if let Some(case_id) = &spec.identity.case_id {
+        expected_suffix.push('/');
+        expected_suffix.push_str(case_id);
+    }
+    expected_suffix.push('/');
+    expected_suffix.push_str(&spec.identity.attempt_id);
     if !spec.outputs.result_root.ends_with(&expected_suffix) {
         return Err(invalid(
             "benchmark result root does not encode the immutable attempt identity",

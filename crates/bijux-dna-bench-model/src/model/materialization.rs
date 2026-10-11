@@ -11,6 +11,7 @@ use crate::contract::{
     FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use crate::model::BenchmarkCorpusClass;
+use crate::model::GovernedDerivedDataCatalog;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -236,6 +237,7 @@ pub struct GovernedPreservedDataCatalog {
 #[serde(untagged)]
 pub enum GovernedDataCatalogDocument {
     Materialized(Box<GovernedDataCatalog>),
+    Derived(Box<GovernedDerivedDataCatalog>),
     Preserved(GovernedPreservedDataCatalog),
 }
 

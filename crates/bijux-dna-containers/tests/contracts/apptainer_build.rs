@@ -3,6 +3,7 @@
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::{Arc, Barrier};
 
 use bijux_dna_containers::api::{
     apptainer_build_log_path, build_apptainer_image, classify_apptainer_build_failure,
@@ -187,6 +188,70 @@ fn apptainer_build_lifecycle_is_one_shot() -> anyhow::Result<()> {
     assert!(!source.contains("thread::sleep"));
     assert!(!source.contains("maximum_invocations"));
     assert!(!source.contains("retry_delay"));
+    Ok(())
+}
+
+#[test]
+fn concurrent_apptainer_builds_isolate_cache_and_temporary_roots() -> anyhow::Result<()> {
+    let temporary = tempfile::tempdir()?;
+    let executable = temporary.path().join("apptainer");
+    write_executable(
+        &executable,
+        "#!/bin/sh\n\
+         test -d \"$APPTAINER_CACHEDIR\"\n\
+         test -d \"$APPTAINER_TMPDIR\"\n\
+         printf '%s\\n%s\\n' \"$APPTAINER_CACHEDIR\" \"$APPTAINER_TMPDIR\" > \"$3.env\"\n\
+         printf 'sif' > \"$3\"\n",
+    )?;
+    let build_roots = [temporary.path().join("first"), temporary.path().join("second")];
+    for root in &build_roots {
+        std::fs::create_dir_all(root)?;
+    }
+    let requests = build_roots
+        .iter()
+        .map(|root| {
+            let definition_path = root.join("tool.def");
+            std::fs::write(&definition_path, "Bootstrap: docker\nFrom: scratch\n")?;
+            Ok(ApptainerBuildRequest {
+                executable: executable.clone(),
+                definition_path,
+                image_path: root.join("tool.sif"),
+                evidence_root: root.join("evidence"),
+                tool_id: "samtools".to_string(),
+                build_evidence_id: "a".repeat(64),
+            })
+        })
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    let barrier = Arc::new(Barrier::new(requests.len() + 1));
+    std::thread::scope(|scope| -> anyhow::Result<()> {
+        let handles = requests
+            .iter()
+            .map(|request| {
+                let barrier = Arc::clone(&barrier);
+                scope.spawn(move || {
+                    barrier.wait();
+                    build_apptainer_image(request)
+                })
+            })
+            .collect::<Vec<_>>();
+        barrier.wait();
+        for handle in handles {
+            handle.join().map_err(|_| anyhow::anyhow!("concurrent Apptainer build panicked"))??;
+        }
+        Ok(())
+    })?;
+
+    let scratch_roots = requests
+        .iter()
+        .map(|request| {
+            let receipt = std::fs::read_to_string(request.image_path.with_extension("sif.env"))?;
+            let roots = receipt.lines().map(PathBuf::from).collect::<Vec<_>>();
+            anyhow::ensure!(roots.len() == 2, "Apptainer environment receipt is incomplete");
+            Ok(roots)
+        })
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    assert_ne!(scratch_roots[0], scratch_roots[1]);
+    assert!(scratch_roots.iter().flatten().all(|root| !root.exists()));
     Ok(())
 }
 

@@ -62,12 +62,22 @@ cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull \
   --exclude-profile pull-full-default
 cargo run -q -p bijux-dna -- bench normalize-workspace-layout \
   --config configs/bench/benchmark.toml \
+  --corpus-id corpus-01 \
   --confirm
 cargo run -q -p bijux-dna -- bench corpus-fastq-published-dossiers \
   --config configs/bench/benchmark.toml
 ```
 
-Those commands pull the governed results mirror, preserve the sync profile contract from `configs/hpc/benchmark_sync_profiles.toml`, normalize the local archive layout, refresh the published dossiers, and rebuild the publication audits.
+Those commands pull the governed results mirror, preserve the sync profile contract from `configs/hpc/benchmark_sync_profiles.toml`, normalize the local archive layout, refresh the published dossiers, and rebuild the publication audits. Run normalization without `--confirm` first to review the complete checksum-backed plan. Confirmation quarantines only byte-identical duplicates; differing entries remain untouched for manual review.
+
+Persist the JSON emitted by a confirmed normalization. To roll it back, pass that exact report with
+the same corpus identity:
+
+```bash
+cargo run -q -p bijux-dna -- bench normalize-workspace-layout \
+  --corpus-id corpus-01 \
+  --rollback-report artifacts/benchmark-workspace-normalization.json
+```
 
 `make benchmark-publication-refresh` remains an optional wrapper around that governed sequence; it is not the benchmark authority. `make benchmark-lunarc-publication-refresh` remains only as a compatibility alias.
 

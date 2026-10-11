@@ -27,6 +27,14 @@ directory with its definition, stable citation, immutable case index, and
 current-publication pointer. An unpublished pointer is an explicit non-evidence
 record. Large attempts and raw logs remain under `STUDY`.
 
+`benchmarks/reports/REPORT_INDEX.json` is the report authority over that run
+index. It emits one typed row for every permanent protocol. A row is `current`
+only when it carries the selected immutable report and publication-receipt
+identities; a protocol without selected evidence remains explicitly `missing`.
+The same contract reserves `stale`, `failed`, and `superseded` dispositions so
+those states cannot be hidden by path presence or omitted from portfolio
+counts. Source-addressed legacy stage reports remain separately historical.
+
 `bijux_dna_bench::workflow::bam_mapping_summary` owns the Picard and Samtools
 qualification campaign for `bam.mapping_summary`. It re-hashes one governed
 coordinate-sorted BAM and its BAI, normalizes both tools to one primary-read

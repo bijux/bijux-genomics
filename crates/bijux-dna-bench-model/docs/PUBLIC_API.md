@@ -9,6 +9,10 @@ stable names and use namespaces only when they need grouped operations such as
 
 Model contracts:
 
+- `BenchmarkSlurmSubmissionIntent`
+- `BenchmarkSlurmSubmissionMaterial`
+- `BenchmarkSlurmArraySpec`
+- `BenchmarkSlurmDependencyCondition`
 - `AllDomainParserCollectorSourceKind`
 - `AllDomainParserCollectorRow`
 - `AllDomainParserCollectorReport`
@@ -76,6 +80,11 @@ Model contracts:
 - `StageCentricReport`
 - `StageCentricStageReport`
 - `StageCentricToolRow`
+- `StageToolBenchmarkReadyReport`
+- `StageToolBenchmarkReadySurfaceSummary`
+- `StageToolBenchmarkReadySurfaceStatus`
+- `StageToolBenchmarkReadyFailingPair`
+- `StageToolBenchmarkReadyExcludedPair`
 - `ToolCentricReport`
 - `ToolCentricToolReport`
 - `ToolCentricStageRow`
@@ -92,6 +101,22 @@ Model contracts:
 - `BenchmarkLocalVcfSmokeGoalContract`
 - `BenchmarkLocalVcfSmokeGoalCheck`
 - `BenchmarkLocalVcfSmokeSuiteReport`
+- `BenchmarkLocalVcfCallGlSmokeMetrics`
+- `BenchmarkLocalVcfCallGlSmokeReport`
+- `BenchmarkLocalVcfCallSmokeMetrics`
+- `BenchmarkLocalVcfCallSmokeReport`
+- `BenchmarkLocalVcfIbdSmokeRow`
+- `BenchmarkLocalVcfIbdInsufficientOverlapProbe`
+- `BenchmarkLocalVcfIbdSmokeReport`
+- `BenchmarkImputationQualityFieldAvailability`
+- `BenchmarkLocalVcfImputationMetricsSmokeReport`
+- `LocalVcfStageCatalogConfig`
+- `VcfStageCatalogRow`
+- `LocalVcfStageCatalogReport`
+- `LocalVcfStageMatrixConfig`
+- `VcfStageMatrixRow`
+- `LocalVcfStageMatrixReport`
+- `ValidateVcfStageMatrixReport`
 - `BenchmarkScientificProfile`
 - `BenchmarkProfileAssignment`
 - `BenchmarkComparisonMetricTolerance`
@@ -287,6 +312,7 @@ Schema derivation:
 - `gate_decision_schema`
 - `benchmark_execution_spec_schema`
 - `benchmark_stage_plan_manifest_schema`
+- `benchmark_slurm_submission_intent_schema`
 - `benchmark_scheduler_observation_schema`
 - `benchmark_local_hpc_job_graph_schema`
 - `benchmark_local_corpus_skip_report_schema`
@@ -308,6 +334,12 @@ Schema derivation:
 - `all_domain_retained_tools_schema`
 - `stage_registry_extra_pairs_schema`
 - `benchmark_local_vcf_smoke_suite_schema`
+- `benchmark_local_vcf_call_gl_smoke_metrics_schema`
+- `benchmark_local_vcf_call_gl_smoke_schema`
+- `benchmark_local_vcf_call_smoke_metrics_schema`
+- `benchmark_local_vcf_call_smoke_schema`
+- `benchmark_local_vcf_ibd_smoke_schema`
+- `benchmark_local_vcf_imputation_metrics_smoke_schema`
 - `governed_data_catalog_schema`
 - `governed_data_catalog_registry_schema`
 - `benchmark_data_index_schema`
@@ -320,6 +352,7 @@ Schema derivation:
 - `validate_cross_benchmark_campaign_report`
 - `validate_benchmark_matrix_report`
 - `validate_execution_spec`
+- `validate_benchmark_slurm_submission_intent`
 - `validate_corpus_acquisition_plan`
 - `validate_fastq_corpus_source_spec`
 - `validate_fastq_comparable_metrics_report`
@@ -333,6 +366,12 @@ Schema derivation:
 - `validate_all_domain_retained_tools`
 - `validate_stage_registry_extra_pairs`
 - `validate_benchmark_local_vcf_smoke_suite`
+- `validate_benchmark_local_vcf_call_gl_smoke_metrics`
+- `validate_benchmark_local_vcf_call_gl_smoke_report`
+- `validate_benchmark_local_vcf_call_smoke_metrics`
+- `validate_benchmark_local_vcf_call_smoke_report`
+- `validate_benchmark_local_vcf_ibd_smoke_report`
+- `validate_benchmark_local_vcf_imputation_metrics_smoke_report`
 - `validate_governed_data_catalog`
 - `validate_governed_data_catalog_registry`
 - `validate_benchmark_data_index`

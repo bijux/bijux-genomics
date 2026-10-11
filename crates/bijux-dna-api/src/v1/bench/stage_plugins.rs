@@ -9,6 +9,8 @@ use bijux_dna_stages_fastq::FastqStagePlugin;
 use bijux_dna_stages_vcf::VcfStagePlugin;
 
 /// Concrete domain plugin ownership at the public application boundary.
+///
+/// Stability: stable within the versioned `bijux_dna_api::v1` namespace.
 pub struct BenchmarkStagePluginComposition {
     fastq: FastqStagePlugin,
     bam: BamStagePlugin,

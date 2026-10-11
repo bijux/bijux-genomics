@@ -90,7 +90,7 @@ pub fn parse_process_cli(argv: &[String]) -> cli::Cli {
 #[cfg(test)]
 mod tests {
     use super::{normalize_cli_argv, parse_cli_from_argv};
-    use crate::commands::cli::{BenchCommand, BenchCycleCommand, DnaCommand};
+    use crate::commands::cli::{BenchCasesCommand, BenchCommand, BenchCycleCommand, DnaCommand};
 
     fn argv(values: &[&str]) -> Vec<String> {
         values.iter().map(|value| (*value).to_string()).collect()
@@ -222,6 +222,113 @@ mod tests {
     }
 
     #[test]
+    fn benchmark_cycle_retry_retains_prior_and_current_case_authorities() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "retry",
+            "--benchmark-root",
+            "artifacts/benchmark-cycle/evidence",
+            "--case-matrix",
+            "artifacts/benchmark-cycle/current-cases.json",
+            "--prior-plan",
+            "artifacts/benchmark-cycle/prior-plan.json",
+            "--prior-case-matrix",
+            "artifacts/benchmark-cycle/prior-cases.json",
+            "--attempt-id",
+            "attempt-002",
+            "--observed-at-utc",
+            "2026-08-10T00:02:00Z",
+            "--output",
+            "artifacts/benchmark-cycle/retry-plan.json",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        let BenchCycleCommand::Retry(args) = command else {
+            panic!("expected benchmark cycle retry command");
+        };
+        assert_eq!(args.attempt_id, "attempt-002");
+        assert_eq!(
+            args.prior_case_matrix,
+            std::path::Path::new("artifacts/benchmark-cycle/prior-cases.json")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn benchmark_cases_plan_retains_data_and_output_authorities() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cases",
+            "plan",
+            "--study-root",
+            "/study",
+            "--data-index",
+            "/study/data/evidence/benchmark-data-index.json",
+            "--run-id",
+            "run-2042",
+            "--output",
+            "/study/data/evidence/benchmark-case-matrices/current/run-2042.json",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cases { command } = root.command else {
+            panic!("expected benchmark cases command");
+        };
+        let BenchCasesCommand::Plan(args) = command else {
+            panic!("expected benchmark cases plan command");
+        };
+        assert_eq!(args.run_id, "run-2042");
+        assert_eq!(
+            args.data_index,
+            std::path::Path::new("/study/data/evidence/benchmark-data-index.json")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn benchmark_cycle_supersede_retains_ancestor_case_authorities() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "supersede",
+            "--benchmark-root",
+            "artifacts/benchmark-cycle/evidence",
+            "--prior-plan",
+            "artifacts/benchmark-cycle/prior-plan.json",
+            "--prior-case-matrix",
+            "artifacts/benchmark-cycle/prior-cases.json",
+            "--superseded-at-utc",
+            "2026-08-10T00:02:00Z",
+            "--reason",
+            "source execution authority was replaced",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        let BenchCycleCommand::Supersede(args) = command else {
+            panic!("expected benchmark cycle supersede command");
+        };
+        assert_eq!(args.reason, "source execution authority was replaced");
+        assert_eq!(
+            args.prior_case_matrix,
+            std::path::Path::new("artifacts/benchmark-cycle/prior-cases.json")
+        );
+        Ok(())
+    }
+
+    #[test]
     fn benchmark_cycle_status_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",
@@ -346,6 +453,8 @@ mod tests {
             "benchmark-book-2026-08-10",
             "--generated-at-utc",
             "2026-08-10T00:00:00Z",
+            "--publication-receipt-uri",
+            "study://results/benchmarks/publications/source/run-2043/publication-receipt.json",
             "--limitation",
             "Only independently admitted current publications are included.",
             "--output",
@@ -357,7 +466,13 @@ mod tests {
         let BenchCommand::Cycle { command } = root.command else {
             panic!("expected benchmark cycle command");
         };
-        assert!(matches!(command, BenchCycleCommand::Book(_)));
+        let BenchCycleCommand::Book(args) = command else {
+            panic!("expected benchmark evidence-book command");
+        };
+        assert_eq!(
+            args.publication_receipt_uri,
+            ["study://results/benchmarks/publications/source/run-2043/publication-receipt.json"]
+        );
         Ok(())
     }
 
@@ -376,10 +491,14 @@ mod tests {
             "run-2002-replay-20260810",
             "--replayed-at-utc",
             "2026-08-10T00:00:00Z",
+            "--publication-receipt-uri",
+            "study://results/benchmarks/publications/source/run-2043/publication-receipt.json",
+            "--evidence-book-uri",
+            "study://results/benchmarks/evidence-books/source/candidate-publications.json",
             "--run-definition-uri",
             "study://contracts/run-2002.json",
-            "--case-definition-uri",
-            "study://contracts/run-2002-bedtools.json",
+            "--case-matrix-uri",
+            "study://contracts/run-2002-cases.json",
             "--immutable-input-uri",
             "study://data/bam/input.json",
             "--difference",
@@ -395,7 +514,92 @@ mod tests {
         let BenchCommand::Cycle { command } = root.command else {
             panic!("expected benchmark cycle command");
         };
-        assert!(matches!(command, BenchCycleCommand::Replay(_)));
+        let BenchCycleCommand::Replay(args) = command else {
+            panic!("expected benchmark replay command");
+        };
+        assert_eq!(
+            args.publication_receipt_uri.as_deref(),
+            Some(
+                "study://results/benchmarks/publications/source/run-2043/publication-receipt.json"
+            )
+        );
+        assert_eq!(
+            args.evidence_book_uri.as_deref(),
+            Some("study://results/benchmarks/evidence-books/source/candidate-publications.json")
+        );
+        assert_eq!(args.case_matrix_uri, "study://contracts/run-2002-cases.json");
+        Ok(())
+    }
+
+    #[test]
+    fn benchmark_cycle_cite_uses_the_public_product_namespace() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "cite",
+            "--study-root",
+            "/study",
+            "--publication-receipt-uri",
+            "study://publications/run-2042/publication-receipt.json",
+            "--evidence-book-uri",
+            "study://evidence-books/candidate-publications.json",
+            "--replay-receipt-uri",
+            "study://replays/run-2042/semantic-identity.json",
+            "--case-matrix-uri",
+            "study://case-matrices/run-2042.json",
+            "--limitation",
+            "The citation covers the admitted FASTQ cohort only.",
+            "--access-statement",
+            "Public corpus access is governed by the cited source archive terms.",
+            "--output",
+            "/study/publications/run-2042/citation-record.json",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        let BenchCycleCommand::Cite(args) = command else {
+            panic!("expected benchmark citation command");
+        };
+        assert_eq!(args.replay_receipt_uri, "study://replays/run-2042/semantic-identity.json");
+        assert_eq!(args.case_matrix_uri, "study://case-matrices/run-2042.json");
+        Ok(())
+    }
+
+    #[test]
+    fn benchmark_cycle_select_uses_the_public_product_namespace() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "select",
+            "--study-root",
+            "/study",
+            "--run-id",
+            "run-2042",
+            "--publication-receipt-uri",
+            "study://publications/run-2042/publication-receipt.json",
+            "--evidence-book-uri",
+            "study://evidence-books/candidate-publications.json",
+            "--citation-record-uri",
+            "study://publications/run-2042/citation-record.json",
+            "--replay-receipt-uri",
+            "study://replays/run-2042/semantic-identity.json",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        let BenchCycleCommand::Select(args) = command else {
+            panic!("expected benchmark selection command");
+        };
+        assert_eq!(args.run_id, "run-2042");
+        assert_eq!(args.citation_record_uri, "study://publications/run-2042/citation-record.json");
         Ok(())
     }
 
@@ -426,6 +630,46 @@ mod tests {
             panic!("expected benchmark cycle command");
         };
         assert!(matches!(command, BenchCycleCommand::Publish(_)));
+        Ok(())
+    }
+
+    #[test]
+    fn benchmark_cycle_receipt_uses_the_public_product_namespace() -> anyhow::Result<()> {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "cycle",
+            "receipt",
+            "--repository-root",
+            "/source",
+            "--study-root",
+            "/study",
+            "--benchmark-root",
+            "/study/results/benchmarks",
+            "--plan-uri",
+            "study://data/evidence/benchmark-campaign-plans/source/run-2051.json",
+            "--case-matrix-uri",
+            "study://data/evidence/benchmark-case-matrices/source/run-2051.json",
+            "--report-uri",
+            "study://results/benchmarks/publications/source/run-2051/report.json",
+            "--decision-uri",
+            "study://results/benchmarks/publications/source/run-2051/report.md",
+            "--publication-id",
+            "run-2051-publication-source",
+            "--published-at-utc",
+            "2026-08-14T12:00:00Z",
+            "--limitation",
+            "The publication covers one governed FASTQ cohort.",
+            "--output",
+            "/study/results/benchmarks/publications/source/run-2051/publication-receipt.json",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::Cycle { command } = root.command else {
+            panic!("expected benchmark cycle command");
+        };
+        assert!(matches!(command, BenchCycleCommand::Receipt(_)));
         Ok(())
     }
 }

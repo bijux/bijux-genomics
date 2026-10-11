@@ -44,7 +44,10 @@ targets, and isolated concurrent target roots.
 - Complete-workspace hash shards each use a tracked-source clone and a distinct absolute artifact
   root. Cargo targets, test and coverage targets, temporary directories, and profraw directories
   are disjoint between shards; all shards retain the single toolchain and sccache authority from
-  `configs/ci/build-authority.json`.
+  `configs/ci/build-authority.json`. Bounded logs and timing receipts remain beneath
+  `ARTIFACT_ROOT`; high-volume archives, clones, targets, extraction trees, and runtime products
+  use the disjoint absolute `BIJUX_CI_FULL_SHARD_SCRATCH_ROOT` when configured and are removed
+  before the command returns.
 - The local helper surface for cache-aware Rust workflows is
   [makes/cargo-dev.mk](../../makes/cargo-dev.mk).
 - Crate-local `RUSTFLAGS` overrides require governance review.
@@ -54,6 +57,10 @@ targets, and isolated concurrent target roots.
 2. Export `RUSTC_WRAPPER=$(command -v sccache)` in your shell profile.
 3. Use shared `artifacts/target` reuse for interactive local builds and sequential gates in one
    checkout. Concurrent independent runs receive isolated artifact roots.
+4. For a Slurm full-shard invocation, set
+   `BIJUX_CI_FULL_SHARD_SCRATCH_ROOT="$SNIC_TMP/bijux-dna-full-shards-$SLURM_JOB_ID"` while
+   keeping `ARTIFACT_ROOT` on the governed evidence filesystem. The runner rejects relative,
+   non-normalized, or overlapping scratch and evidence roots before materialization.
 
 ## Diagnostics
 - `sccache --show-stats`

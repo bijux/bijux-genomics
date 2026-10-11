@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Tool-independent normalized evidence for one BAM damage execution.",
+  "properties": {
+    "authenticity_certified": {
+      "const": false,
+      "type": "boolean"
+    },
+    "native_file_count": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "native_output_bytes": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "normalization_complete": {
+      "const": 1,
+      "type": "integer"
+    },
+    "sample_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.bam.damage.bundle.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "const": "bam.damage",
+      "type": "string"
+    },
+    "tool_id": {
+      "enum": [
+        "addeam",
+        "damageprofiler",
+        "mapdamage2",
+        "ngsbriggs",
+        "pmdtools",
+        "pydamage"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "tool_id",
+    "sample_id",
+    "normalization_complete",
+    "native_file_count",
+    "native_output_bytes",
+    "authenticity_certified"
+  ],
+  "title": "BenchmarkBamDamageResult",
+  "type": "object"
+}

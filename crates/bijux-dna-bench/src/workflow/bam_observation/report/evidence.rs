@@ -49,7 +49,14 @@ pub(super) fn load_attempt_evidence(
         .collect::<Result<Vec<_>>>()?;
     let input_identity = science
         .iter()
-        .map(|row| (row.bam_input_bytes, row.bam_index_input_bytes, row.input_bytes))
+        .map(|row| {
+            (
+                row.bam_input_bytes,
+                row.bam_index_input_bytes,
+                row.reference_input_bytes,
+                row.input_bytes,
+            )
+        })
         .collect::<BTreeSet<_>>();
     if input_identity.len() != 1 {
         bail!("BAM observational repetitions disagree on input bytes");
@@ -88,6 +95,14 @@ pub(super) fn load_attempt_evidence(
         bail!("attempt stage interface differs from repository authority");
     }
     let first = science.first().context("BAM observational evidence has no repetitions")?;
+    let mut input_bytes = BTreeMap::from([
+        ("bam".to_string(), first.bam_input_bytes),
+        ("bam_index".to_string(), first.bam_index_input_bytes),
+        ("total".to_string(), first.input_bytes),
+    ]);
+    if first.reference_input_bytes > 0 {
+        input_bytes.insert("reference".to_string(), first.reference_input_bytes);
+    }
     let tool_report = BenchmarkToolReport {
         tool: identity.tool_id.clone(),
         verdict: BenchmarkReportVerdict::Passed,
@@ -96,11 +111,7 @@ pub(super) fn load_attempt_evidence(
         slurm: admitted.slurm,
         source_evidence_sha256: admitted.source_evidence_sha256,
         input_locks: admitted.input_locks,
-        input_bytes: BTreeMap::from([
-            ("bam".to_string(), first.bam_input_bytes),
-            ("bam_index".to_string(), first.bam_index_input_bytes),
-            ("total".to_string(), first.input_bytes),
-        ]),
+        input_bytes,
         performance,
         scientific_observations,
         scientific_strata: Vec::new(),

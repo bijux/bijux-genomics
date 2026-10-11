@@ -7,6 +7,7 @@ pub mod admission;
 pub mod all_domain_failure_classification;
 pub mod all_domain_parser_collector;
 pub mod appraisal;
+pub mod benchmark_config;
 pub mod benchmark_matrix;
 pub mod campaign_engine;
 pub mod comparable_metrics;
@@ -17,6 +18,7 @@ pub mod cross_campaign;
 pub mod data_catalog_registry;
 pub mod data_fitness;
 pub mod data_portfolio_audit;
+pub mod derived_catalog;
 pub mod domain_campaign;
 pub mod dossier_index;
 pub mod essential_pipeline_readiness;
@@ -52,11 +54,18 @@ pub mod local_stage_commands;
 pub mod local_stage_completion;
 pub mod local_stage_fake_run;
 pub mod local_stage_inventory;
+pub mod local_vcf_call_gl_smoke;
+pub mod local_vcf_call_smoke;
+pub mod local_vcf_ibd_smoke;
+pub mod local_vcf_imputation_metrics_smoke;
 pub mod local_vcf_smoke;
+pub mod local_vcf_stage_catalog;
+pub mod local_vcf_stage_matrix;
 pub mod materialization;
 pub mod normalized_result;
 pub mod observation;
 pub mod output_declarations;
+pub mod persisted_schema;
 pub mod planning;
 pub mod protocol;
 pub mod publication;
@@ -72,14 +81,17 @@ pub mod report;
 pub mod run_index;
 pub mod scientific_acceptance;
 pub mod scope_views;
+pub mod slurm_submission;
 pub mod source_authority;
 pub mod stage_result;
 pub mod stage_tool_assets;
+pub mod stage_tool_benchmark_ready;
 pub mod stage_tool_closure;
 pub mod stage_tool_containers;
 pub mod stage_tool_resources;
 pub mod suite;
 pub mod summary;
+pub mod workspace_layout;
 
 #[allow(unused_imports)]
 pub use active_scope::{
@@ -108,6 +120,16 @@ pub use appraisal::{
     appraisal_report_schema, hardening_queue_report_schema, AppraisalFinding, AppraisalReport,
     AppraisalSummary, HardeningQueueEntry, HardeningQueueReport, APPRAISAL_REPORT_SCHEMA_V1,
     HARDENING_QUEUE_REPORT_SCHEMA_V1,
+};
+#[allow(unused_imports)]
+pub use benchmark_config::{
+    benchmark_config_schema, BenchmarkConfig, BenchmarkCorpusConfig,
+    BenchmarkCorpusPublicationConfig, BenchmarkDepleteRrnaInputConfig, BenchmarkPublicationConfig,
+    BenchmarkReferenceInputConfig, BenchmarkScreenTaxonomyInputConfig, BenchmarkStageInputConfig,
+    BenchmarkWorkspaceArtifact, BenchmarkWorkspaceConfig, BenchmarkWorkspaceLayout,
+    BenchmarkWorkspaceLocal, BenchmarkWorkspaceRemote, BenchmarkWorkspaceStageRuns,
+    BenchmarkWorkspaceSync, BenchmarkWorkspaceSyncDefaults, CorpusBenchmarkContract,
+    CorpusBenchmarkExclusion,
 };
 #[allow(unused_imports)]
 pub use benchmark_matrix::{
@@ -147,12 +169,12 @@ pub use corpus::{
     benchmark_data_index_schema, fastq_profile_reads_expectations_schema,
     AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet, AdmittedBamCohort,
     AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
-    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedReferenceBundle,
-    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex,
-    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
-    BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusDatasetSpec,
-    CorpusDomain, CorpusScale, DataIntegrityStatus, DriftScenarioSpec,
-    FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
+    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedIndexedReference,
+    AdmittedReferenceBundle, BackendComparisonSpec, BenchmarkBundleManifest,
+    BenchmarkCorpusManifest, BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkDataIndexRecord,
+    BenchmarkDataIndexSummary, BenchmarkEligibility, BenchmarkFastqLayout,
+    BenchmarkTemporalProvenance, CorpusDatasetSpec, CorpusDomain, CorpusScale, DataIntegrityStatus,
+    DriftScenarioSpec, FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
     FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
 };
 #[allow(unused_imports)]
@@ -184,6 +206,11 @@ pub use data_portfolio_audit::{
     benchmark_data_portfolio_audit_schema, BenchmarkCorpusDataAudit, BenchmarkDataPortfolioAudit,
     BenchmarkDataPortfolioAuditSummary, BenchmarkDataSourceSpecIdentity,
     BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset,
+};
+#[allow(unused_imports)]
+pub use derived_catalog::{
+    governed_derived_data_catalog_schema, GovernedDataDerivation, GovernedDerivedDataCatalog,
+    GovernedDerivedDataCatalogFile, GovernedDerivedDataCatalogSample, GovernedDerivedDataSource,
 };
 #[allow(unused_imports)]
 pub use domain_campaign::{
@@ -446,10 +473,46 @@ pub use local_stage_inventory::{
     BenchmarkLocalStageInventoryEntry,
 };
 #[allow(unused_imports)]
+pub use local_vcf_call_gl_smoke::{
+    benchmark_local_vcf_call_gl_smoke_metrics_schema, benchmark_local_vcf_call_gl_smoke_schema,
+    BenchmarkLocalVcfCallGlSmokeMetrics, BenchmarkLocalVcfCallGlSmokeReport,
+    BENCHMARK_LOCAL_VCF_CALL_GL_SMOKE_METRICS_SCHEMA_V1,
+    BENCHMARK_LOCAL_VCF_CALL_GL_SMOKE_SCHEMA_V1,
+};
+#[allow(unused_imports)]
+pub use local_vcf_call_smoke::{
+    benchmark_local_vcf_call_smoke_metrics_schema, benchmark_local_vcf_call_smoke_schema,
+    BenchmarkLocalVcfCallSmokeMetrics, BenchmarkLocalVcfCallSmokeReport,
+    BENCHMARK_LOCAL_VCF_CALL_SMOKE_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_VCF_CALL_SMOKE_SCHEMA_V1,
+};
+#[allow(unused_imports)]
+pub use local_vcf_ibd_smoke::{
+    benchmark_local_vcf_ibd_smoke_schema, BenchmarkLocalVcfIbdInsufficientOverlapProbe,
+    BenchmarkLocalVcfIbdSmokeReport, BenchmarkLocalVcfIbdSmokeRow,
+    BENCHMARK_LOCAL_VCF_IBD_SMOKE_SCHEMA_V1,
+};
+#[allow(unused_imports)]
+pub use local_vcf_imputation_metrics_smoke::{
+    benchmark_local_vcf_imputation_metrics_smoke_schema,
+    BenchmarkImputationQualityFieldAvailability, BenchmarkLocalVcfImputationMetricsSmokeReport,
+    BENCHMARK_LOCAL_VCF_IMPUTATION_METRICS_SMOKE_SCHEMA_V1,
+};
+#[allow(unused_imports)]
 pub use local_vcf_smoke::{
     benchmark_local_vcf_smoke_suite_schema, BenchmarkLocalVcfSmokeGoalCheck,
     BenchmarkLocalVcfSmokeGoalContract, BenchmarkLocalVcfSmokeSuiteReport,
     BENCHMARK_LOCAL_VCF_SMOKE_GOALS, BENCHMARK_LOCAL_VCF_SMOKE_OUTPUT_PATH,
+};
+#[allow(unused_imports)]
+pub use local_vcf_stage_catalog::{
+    local_vcf_stage_catalog_config_schema, local_vcf_stage_catalog_report_schema,
+    LocalVcfStageCatalogConfig, LocalVcfStageCatalogReport, VcfStageCatalogRow,
+};
+#[allow(unused_imports)]
+pub use local_vcf_stage_matrix::{
+    local_vcf_stage_matrix_config_schema, local_vcf_stage_matrix_report_schema,
+    validate_vcf_stage_matrix_report_schema, LocalVcfStageMatrixConfig, LocalVcfStageMatrixReport,
+    ValidateVcfStageMatrixReport, VcfStageMatrixRow,
 };
 #[allow(unused_imports)]
 pub use materialization::{
@@ -514,8 +577,8 @@ pub use publication_outcome::{
 pub use publication_registry::{
     benchmark_publication_registry_schema, BenchmarkCurrentPublication,
     BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
-    BenchmarkQuarantinedPublicationSurface, BenchmarkStagePublication,
-    BenchmarkStagePublicationDisposition,
+    BenchmarkQuarantinedPublicationSurface, BenchmarkRunReportDisposition,
+    BenchmarkRunReportIndexEntry, BenchmarkStagePublication, BenchmarkStagePublicationDisposition,
 };
 #[allow(unused_imports)]
 pub use publication_status::{
@@ -580,6 +643,12 @@ pub use scope_views::{
     StageRegistryExtraPairRow, StageRegistryExtraPairsReport,
 };
 #[allow(unused_imports)]
+pub use slurm_submission::{
+    benchmark_slurm_submission_intent_schema, BenchmarkSlurmArraySpec,
+    BenchmarkSlurmDependencyCondition, BenchmarkSlurmSubmissionIntent,
+    BenchmarkSlurmSubmissionMaterial,
+};
+#[allow(unused_imports)]
 pub use source_authority::{
     benchmark_data_source_spec_schema, BenchmarkDataSourceCollection, BenchmarkDataSourceSpec,
 };
@@ -596,6 +665,12 @@ pub use stage_tool_assets::{
     stage_tool_assets_config_schema, stage_tool_assets_report_schema, StageToolAssetRow,
     StageToolAssetsConfig, StageToolAssetsReport, STAGE_TOOL_ASSETS_DECLARATION_ORIGIN,
     STAGE_TOOL_ASSETS_SCOPE,
+};
+#[allow(unused_imports)]
+pub use stage_tool_benchmark_ready::{
+    stage_tool_benchmark_ready_schema, StageToolBenchmarkReadyExcludedPair,
+    StageToolBenchmarkReadyFailingPair, StageToolBenchmarkReadyReport,
+    StageToolBenchmarkReadySurfaceStatus, StageToolBenchmarkReadySurfaceSummary,
 };
 #[allow(unused_imports)]
 pub use stage_tool_closure::{
@@ -625,3 +700,11 @@ pub use suite::{
 };
 #[allow(unused_imports)]
 pub use summary::{BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum};
+#[allow(unused_imports)]
+pub use workspace_layout::{
+    workspace_convergence_plan_schema, workspace_layout_report_schema,
+    workspace_normalization_report_schema, WorkspaceAuthoritativeRoots, WorkspaceConvergenceAction,
+    WorkspaceConvergencePlan, WorkspaceEntrySummary, WorkspaceLayoutIssue, WorkspaceLayoutReport,
+    WorkspaceLocalStageLayout, WorkspaceNormalizationReport, WorkspaceRootPairSummary,
+    WorkspaceStageNormalizationReport,
+};

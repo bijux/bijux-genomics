@@ -58,6 +58,121 @@ fn thin_cli_delegates_stage_result_admission_to_benchmark_owners() {
 }
 
 #[test]
+fn thin_cli_delegates_dossier_index_publication_to_benchmark_owner() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/publication/dossier_index.rs");
+    let cli = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+    for service in [
+        "build_benchmark_dossier_stage_entry",
+        "publish_benchmark_dossier_index",
+        "benchmark_dossier_path",
+    ] {
+        assert!(cli.contains(service), "thin CLI must invoke {service}");
+    }
+    for forbidden in [
+        "fs::read",
+        "fs::write",
+        "serde_json::from_",
+        "validate_benchmark_dossier_index",
+        "fn render_dossier_index_markdown",
+        "fn classify_run_root_source",
+    ] {
+        assert!(!cli.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+
+    let owner_source = repo_root.join("crates/bijux-dna-bench/src/workflow/dossier_index.rs");
+    let owner = fs::read_to_string(&owner_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", owner_source.display()));
+    for service in [
+        "pub fn build_benchmark_dossier_stage_entry",
+        "pub fn publish_benchmark_dossier_index",
+        "pub fn render_benchmark_dossier_index_markdown",
+        "bijux_dna_infra::ensure_dir",
+        "bijux_dna_infra::atomic_write_bytes",
+    ] {
+        assert!(owner.contains(service), "benchmark owner is missing {service}");
+    }
+    assert!(
+        !owner.contains("fs::create_dir_all(&request.docs_root)"),
+        "benchmark publication must use the shared filesystem authority"
+    );
+}
+
+#[test]
+fn thin_cli_delegates_workspace_stage_run_paths_to_benchmark_owner() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/workspace/stage_run_layout.rs");
+    let cli = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    for service in ["benchmark_runtime_corpus_dir_name", "benchmark_stage_run_relative_root"] {
+        assert!(cli.contains(service), "thin CLI must delegate to {service}");
+        assert!(!cli.contains(&format!("fn {service}")), "thin CLI must not implement {service}");
+    }
+    for forbidden in [
+        ".remote_results_template",
+        ".local_cache_results_template",
+        ".local_archive_results_template",
+        ".corpus_root",
+        ".replace(\"{corpus_id}\"",
+    ] {
+        assert!(!cli.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+
+    let owner_source = repo_root.join("crates/bijux-dna-bench/src/workflow/benchmark_config.rs");
+    let owner = fs::read_to_string(&owner_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", owner_source.display()));
+    for service in
+        ["pub fn benchmark_runtime_corpus_dir_name", "pub fn benchmark_stage_run_relative_root"]
+    {
+        assert!(owner.contains(service), "benchmark owner is missing {service}");
+    }
+
+    let api_source = repo_root.join("crates/bijux-dna-api/src/v1/bench/exports.rs");
+    let api = fs::read_to_string(&api_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", api_source.display()));
+    for service in ["benchmark_runtime_corpus_dir_name", "benchmark_stage_run_relative_root"] {
+        assert!(api.contains(service), "stable API is missing {service}");
+    }
+}
+
+#[test]
+fn thin_cli_delegates_corpus_skip_publication_to_benchmark_owner() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_corpus_skip_report.rs");
+    let cli = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(cli.contains("publish_benchmark_local_corpus_skip_report"));
+    for forbidden in [
+        "fn build_skip_report",
+        "BenchmarkLocalCorpusSkip {",
+        "BenchmarkLocalAssetBackedStage {",
+        "BenchmarkLocalPlannerOnlyStage {",
+        "std::fs::create_dir_all",
+        "atomic_write_json",
+    ] {
+        assert!(!cli.contains(forbidden), "thin CLI reintroduced {forbidden}");
+    }
+
+    let owner_source = repo_root.join("crates/bijux-dna-bench/src/workflow/local_corpus_skip.rs");
+    let owner = fs::read_to_string(&owner_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", owner_source.display()));
+    for service in [
+        "pub fn derive_benchmark_local_corpus_skip_report",
+        "pub fn publish_benchmark_local_corpus_skip_report",
+        "validate_benchmark_local_corpus_skip_report",
+        "bijux_dna_infra::atomic_write_json",
+    ] {
+        assert!(owner.contains(service), "benchmark owner is missing {service}");
+    }
+}
+
+#[test]
 fn thin_cli_uses_model_owned_local_runtime_metrics_contract() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_source =
@@ -97,6 +212,67 @@ fn thin_cli_uses_model_owned_local_vcf_smoke_suite_contract() {
     assert!(!contents.contains("struct LocalVcfSmokeSuiteGoalCheck"));
     assert!(!contents.contains("struct LocalVcfSmokeSuiteReadyReport"));
     assert!(!contents.contains("bijux.bench.local_vcf_smoke_suite_ready.v1"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_vcf_imputation_metrics_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source = repo_root
+        .join("crates/bijux-dna/src/commands/benchmark/local_vcf_imputation_metrics_smoke.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_vcf_imputation_metrics_smoke_report"));
+    assert!(!contents.contains("struct QualityFieldAvailability"));
+    assert!(!contents.contains("struct LocalVcfImputationMetricsSmokeReport"));
+    assert!(!contents.contains("bijux.bench.local_vcf_imputation_metrics_smoke.v1"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_vcf_ibd_smoke_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_vcf_ibd_smoke.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_vcf_ibd_smoke_report"));
+    assert!(!contents.contains("struct LocalVcfIbdSmokeRow"));
+    assert!(!contents.contains("struct LocalVcfIbdInsufficientOverlapProbe"));
+    assert!(!contents.contains("struct LocalVcfIbdSmokeReport"));
+    assert!(!contents.contains("bijux.bench.local_vcf_ibd_smoke.v1"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_vcf_call_smoke_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_vcf_call_smoke.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_vcf_call_smoke_metrics"));
+    assert!(contents.contains("validate_benchmark_local_vcf_call_smoke_report"));
+    assert!(!contents.contains("struct LocalVcfCallSmokeMetrics"));
+    assert!(!contents.contains("struct LocalVcfCallSmokeReport"));
+    assert!(!contents.contains("bijux.bench.local_vcf_call_smoke.metrics.v1"));
+    assert!(!contents.contains("bijux.bench.local_vcf_call_smoke.v1"));
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_vcf_call_gl_smoke_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let cli_source =
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_vcf_call_gl_smoke.rs");
+    let contents = fs::read_to_string(&cli_source)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
+
+    assert!(contents.contains("validate_benchmark_local_vcf_call_gl_smoke_metrics"));
+    assert!(contents.contains("validate_benchmark_local_vcf_call_gl_smoke_report"));
+    assert!(!contents.contains("struct LocalVcfCallGlSmokeMetrics"));
+    assert!(!contents.contains("struct LocalVcfCallGlSmokeReport"));
+    assert!(!contents.contains("bijux.bench.local_vcf_call_gl_smoke.metrics.v1"));
+    assert!(!contents.contains("bijux.bench.local_vcf_call_gl_smoke.v1"));
 }
 
 #[test]
@@ -493,16 +669,19 @@ fn thin_cli_uses_model_owned_published_results_status_contract() {
 }
 
 #[test]
-fn thin_cli_uses_model_owned_dossier_index_contract() {
+fn benchmark_owner_uses_model_owned_dossier_index_contract() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let owner =
+        fs::read_to_string(repo_root.join("crates/bijux-dna-bench/src/workflow/dossier_index.rs"))
+            .expect("read dossier-index owner");
     let cli_root = repo_root.join("crates/bijux-dna/src/commands/benchmark/publication");
-    let command =
-        fs::read_to_string(cli_root.join("dossier_index.rs")).expect("read dossier-index command");
     let local_models =
         fs::read_to_string(cli_root.join("models.rs")).expect("read publication CLI models");
 
-    assert!(command.contains("validate_benchmark_dossier_index"));
-    assert!(command.contains("BenchmarkDossierIndex"));
+    assert!(owner.contains("validate_benchmark_dossier_index"));
+    assert!(owner.contains("BenchmarkDossierIndex"));
+    assert!(owner.contains("validate_benchmark_corpus_dossier_summary"));
+    assert!(owner.contains("BenchmarkCorpusDossierSummary"));
     assert!(!local_models.contains("struct DossierIndex"));
     assert!(!local_models.contains("struct DossierStageEntry"));
 }
@@ -673,6 +852,77 @@ fn thin_cli_uses_model_owned_readiness_view_contracts() {
             assert!(!source.contains(forbidden_type));
         }
         assert!(!source.contains(forbidden_schema));
+    }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_stage_tool_benchmark_ready_contract() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let source =
+        fs::read_to_string(repo_root.join(
+            "crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_benchmark_ready.rs",
+        ))
+        .expect("read stage/tool benchmark-ready command");
+
+    assert!(source.contains("validate_stage_tool_benchmark_ready_report"));
+    assert!(source.contains("STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1"));
+    for forbidden in [
+        "struct StageToolBenchmarkReadySurfaceSummary",
+        "struct StageToolBenchmarkReadyFailingPair",
+        "struct StageToolBenchmarkReadyExcludedPair",
+        "struct StageToolBenchmarkReadyReport",
+        "bijux.bench.readiness.fastq_bam_stage_tool_benchmark_ready.v1",
+    ] {
+        assert!(!source.contains(forbidden));
+    }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_vcf_stage_catalog_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let source = fs::read_to_string(
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_vcf_stage_catalog.rs"),
+    )
+    .expect("read local VCF stage-catalog command");
+
+    assert!(source.contains("render_vcf_stage_catalog"));
+    assert!(source.contains("DEFAULT_VCF_STAGE_CATALOG_PATH"));
+    for forbidden in [
+        "struct LocalVcfStageCatalogConfig",
+        "struct VcfStageCatalogRow",
+        "struct LocalVcfStageCatalogReport",
+        "bijux.bench.vcf.local_stage_catalog.v1",
+        "bijux.bench.local_vcf_stage_catalog.v1",
+        "vcf_stage_catalog()",
+        "stage_io_contract",
+    ] {
+        assert!(!source.contains(forbidden));
+    }
+}
+
+#[test]
+fn thin_cli_uses_model_owned_local_vcf_stage_matrix_contracts() {
+    let repo_root = crate::support::repo_root().expect("resolve repository root");
+    let source = fs::read_to_string(
+        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_vcf_stage_matrix.rs"),
+    )
+    .expect("read local VCF stage-matrix command");
+
+    for validator in ["render_vcf_stage_matrix", "validate_vcf_stage_matrix"] {
+        assert!(source.contains(validator));
+    }
+    for forbidden in [
+        "struct LocalVcfStageMatrixConfig",
+        "struct VcfStageMatrixRow",
+        "struct LocalVcfStageMatrixReport",
+        "struct ValidateMatrixReport",
+        "bijux.bench.vcf.local_stage_matrix.v1",
+        "bijux.bench.local_vcf_stage_matrix.v1",
+        "bijux.bench.validate_matrix.v1",
+        "vcf_domain_stage_adapter_id",
+        "load_required_tool_ids",
+    ] {
+        assert!(!source.contains(forbidden));
     }
 }
 

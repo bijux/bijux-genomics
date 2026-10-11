@@ -1,0 +1,81 @@
+{
+  "$defs": {
+    "VcfStageCatalogRow": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_category": {
+          "type": "string"
+        },
+        "default_tool_id": {
+          "type": "string"
+        },
+        "input_types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "local_smoke_mode": {
+          "type": "string"
+        },
+        "metrics_schema_id": {
+          "type": "string"
+        },
+        "output_types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "required_assets": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stage_name": {
+          "type": "string"
+        },
+        "support_status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "stage_name",
+        "support_status",
+        "default_tool_id",
+        "metrics_schema_id",
+        "input_types",
+        "output_types",
+        "required_assets",
+        "benchmark_category",
+        "local_smoke_mode"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/VcfStageCatalogRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.vcf.local_stage_catalog.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "rows"
+  ],
+  "title": "LocalVcfStageCatalogConfig",
+  "type": "object"
+}

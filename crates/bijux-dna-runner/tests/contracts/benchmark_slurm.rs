@@ -315,6 +315,7 @@ fn benchmark_slurm_material_is_isolated_complete_and_restart_safe() -> anyhow::R
     let script = std::fs::read_to_string(&first.request.script_path)?;
     assert!(script.contains("#SBATCH --account=lu2024-12-24"));
     assert!(script.contains("--containall' '--cleanenv' '--net' '--network' 'none'"));
+    assert!(script.contains("'--env' 'TMPDIR=/scratch'"));
     assert!(script.contains(":/repository:ro"));
     assert!(script.contains(":/input/ERR1.fastq.gz:ro"));
     assert!(script.contains("repetition-3.resource.tsv.partial"));
@@ -322,6 +323,8 @@ fn benchmark_slurm_material_is_isolated_complete_and_restart_safe() -> anyhow::R
         "'/usr/bin/time' '-o' \"${RESULT_ROOT}/\"'repetitions/repetition-1.resource.tsv.partial' '-f'"
     ));
     assert!(script.contains("test -x /usr/bin/time"));
+    assert!(script.contains("command -v find >/dev/null"));
+    assert!(script.contains("command -v sort >/dev/null"));
     assert!(!script.contains("'--quiet'"));
     assert!(!script.contains("'--output="));
     assert!(!script.contains("'--format="));
@@ -336,6 +339,11 @@ fn benchmark_slurm_material_is_isolated_complete_and_restart_safe() -> anyhow::R
     assert!(script.contains("%e\t%U\t%S\t%M\t%I\t%O\t%x' 'apptainer' 'exec' "));
     assert!(!script.contains("{repetition}"));
     assert!(script.contains("output-sha256.tsv"));
+    assert!(script.contains("elif test -d"));
+    assert!(script.contains("-type f -print0 | LC_ALL=C sort -z"));
+    assert!(script.contains("required benchmark output is absent"));
+    assert!(!script.lines().any(|line| line.contains("test -f") && line.contains("&&")));
+    assert!(!script.lines().any(|line| line.contains("test ! -e") && line.contains("&&")));
     assert!(script.contains("stage-plan-manifest.json"));
     assert!(script.contains("raw > /result/repetitions/measured-repetition-3--sample-a/raw.tsv"));
     assert!(script.contains("repetitions/measured-repetition-3--sample-a/resource.tsv.partial"));

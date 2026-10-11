@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use anyhow::{ensure, Result};
 use serde::{Deserialize, Serialize};
 
-pub const CI_BUILD_AUTHORITY_SCHEMA_V2: &str = "bijux.ci.build_authority.v2";
+pub const CI_BUILD_AUTHORITY_SCHEMA_V3: &str = "bijux.ci.build_authority.v3";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -12,6 +12,7 @@ pub struct CiBuildAuthority {
     pub toolchain: CiToolchainAuthority,
     pub test_executor: CiTestExecutorAuthority,
     pub lockfile: CiLockfileAuthority,
+    pub compilation: CiCompilationAuthority,
     pub cache: CiCacheAuthority,
     pub targets: CiTargetAuthority,
 }
@@ -42,6 +43,15 @@ pub struct CiLockfileAuthority {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub struct CiCompilationAuthority {
+    pub manifest: String,
+    pub dev_codegen_units: u16,
+    pub test_codegen_units: u16,
+    pub incremental: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CiCacheAuthority {
     pub compiler_wrapper: String,
     pub metrics_format: String,
@@ -59,14 +69,15 @@ pub struct CiTargetAuthority {
     pub reuse_policy: String,
 }
 
-/// Validate the single CI toolchain, lock, cache, and target-isolation authority.
+/// Validate the single CI toolchain, compilation, lock, cache, and target-isolation authority.
 ///
 /// # Errors
 /// Returns an error when the declaration permits toolchain drift, unlocked resolution, missing
-/// cache metrics, or a shared Cargo target lock across concurrent gates.
+/// cache metrics, excessive codegen parallelism, or a shared Cargo target lock across concurrent
+/// gates.
 pub fn validate_ci_build_authority(authority: &CiBuildAuthority) -> Result<()> {
     ensure!(
-        authority.schema == CI_BUILD_AUTHORITY_SCHEMA_V2,
+        authority.schema == CI_BUILD_AUTHORITY_SCHEMA_V3,
         "unsupported CI build authority schema"
     );
     ensure!(
@@ -91,6 +102,19 @@ pub fn validate_ci_build_authority(authority: &CiBuildAuthority) -> Result<()> {
         authority.lockfile.metadata_mode == "locked"
             && authority.lockfile.dependency_resolution == "workspace_lock_only",
         "CI dependency resolution must fail closed to the workspace lock"
+    );
+    ensure!(
+        authority.compilation.manifest == "Cargo.toml",
+        "CI compilation authority must use the workspace Cargo.toml"
+    );
+    ensure!(
+        authority.compilation.dev_codegen_units == 16
+            && authority.compilation.test_codegen_units == 16,
+        "CI development and test profiles must use the verified 16 codegen units"
+    );
+    ensure!(
+        authority.compilation.incremental,
+        "CI development and test profiles must retain incremental compilation"
     );
     ensure!(authority.cache.compiler_wrapper == "sccache", "CI compiler cache must use sccache");
     ensure!(authority.cache.metrics_format == "json", "CI cache metrics must be JSON");
@@ -119,14 +143,14 @@ pub fn validate_ci_build_authority(authority: &CiBuildAuthority) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::{
-        validate_ci_build_authority, CiBuildAuthority, CiCacheAuthority, CiLockfileAuthority,
-        CiTargetAuthority, CiTestExecutorAuthority, CiToolchainAuthority,
-        CI_BUILD_AUTHORITY_SCHEMA_V2,
+        validate_ci_build_authority, CiBuildAuthority, CiCacheAuthority, CiCompilationAuthority,
+        CiLockfileAuthority, CiTargetAuthority, CiTestExecutorAuthority, CiToolchainAuthority,
+        CI_BUILD_AUTHORITY_SCHEMA_V3,
     };
 
     fn authority() -> CiBuildAuthority {
         CiBuildAuthority {
-            schema: CI_BUILD_AUTHORITY_SCHEMA_V2.to_string(),
+            schema: CI_BUILD_AUTHORITY_SCHEMA_V3.to_string(),
             toolchain: CiToolchainAuthority {
                 manifest: "rust-toolchain.toml".to_string(),
                 channel: "1.95.0".to_string(),
@@ -141,6 +165,12 @@ mod tests {
                 manifest: "Cargo.lock".to_string(),
                 metadata_mode: "locked".to_string(),
                 dependency_resolution: "workspace_lock_only".to_string(),
+            },
+            compilation: CiCompilationAuthority {
+                manifest: "Cargo.toml".to_string(),
+                dev_codegen_units: 16,
+                test_codegen_units: 16,
+                incremental: true,
             },
             cache: CiCacheAuthority {
                 compiler_wrapper: "sccache".to_string(),
@@ -181,6 +211,13 @@ mod tests {
     fn rejects_unpinned_test_executor() {
         let mut authority = authority();
         authority.test_executor.version.clear();
+        assert!(validate_ci_build_authority(&authority).is_err());
+    }
+
+    #[test]
+    fn rejects_excessive_codegen_parallelism() {
+        let mut authority = authority();
+        authority.compilation.dev_codegen_units = 256;
         assert!(validate_ci_build_authority(&authority).is_err());
     }
 }

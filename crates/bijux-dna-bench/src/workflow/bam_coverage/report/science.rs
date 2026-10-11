@@ -66,6 +66,7 @@ pub(super) fn derive_scientific_observation(
         values: summary,
         bam_input_bytes: metrics.bam_input_bytes,
         bam_index_input_bytes: metrics.bam_index_input_bytes,
+        reference_input_bytes: 0,
         input_bytes: metrics.input_bytes,
         output_bytes: metrics.output_bytes,
         normalized_bundle_sha256: bijux_dna_infra::hash_file_sha256(&summary_path)?,

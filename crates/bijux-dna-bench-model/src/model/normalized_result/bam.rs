@@ -9,6 +9,9 @@ pub const BAM_ALIGN_STAGE_ID: &str = bijux_dna_core::id_catalog::BAM_ALIGN;
 pub const BAM_COVERAGE_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.coverage.bundle.v1";
 pub const BAM_COVERAGE_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.coverage.metrics.v1";
 pub const BAM_COVERAGE_STAGE_ID: &str = bijux_dna_core::id_catalog::BAM_COVERAGE;
+pub const BAM_DAMAGE_RESULT_SCHEMA_V1: &str = "bijux.benchmark.bam.damage.bundle.v1";
+pub const BAM_DAMAGE_METRICS_SCHEMA_V1: &str = "bijux.benchmark.bam.damage.metrics.v1";
+pub const BAM_DAMAGE_STAGE_ID: &str = bijux_dna_core::id_catalog::BAM_DAMAGE;
 pub const BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1: &str =
     "bijux.benchmark.bam.duplication_metrics.bundle.v1";
 pub const BAM_DUPLICATION_METRICS_MEASUREMENTS_SCHEMA_V1: &str =
@@ -494,6 +497,60 @@ pub struct BenchmarkBamMappingSummaryMetrics {
     pub output_bytes: u64,
 }
 
+/// Tool-independent normalized evidence for one BAM damage execution.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamDamageResult {
+    #[serde(deserialize_with = "deserialize_damage_schema_version")]
+    #[schemars(schema_with = "damage_schema_version")]
+    pub schema_version: String,
+    #[serde(deserialize_with = "deserialize_damage_stage_id")]
+    #[schemars(schema_with = "damage_stage_id")]
+    pub stage_id: String,
+    #[serde(deserialize_with = "deserialize_damage_tool_id")]
+    #[schemars(schema_with = "damage_tool_id")]
+    pub tool_id: String,
+    #[serde(deserialize_with = "deserialize_sample_id")]
+    #[schemars(schema_with = "sample_id_schema")]
+    pub sample_id: String,
+    #[serde(deserialize_with = "deserialize_normalization_complete")]
+    #[schemars(schema_with = "normalization_complete_schema")]
+    pub normalization_complete: u8,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub native_file_count: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub native_output_bytes: u64,
+    #[serde(deserialize_with = "deserialize_false")]
+    #[schemars(schema_with = "false_schema")]
+    pub authenticity_certified: bool,
+}
+
+/// Execution measurements accompanying one normalized BAM damage result.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBamDamageMetrics {
+    #[serde(deserialize_with = "deserialize_damage_metrics_schema_version")]
+    #[schemars(schema_with = "damage_metrics_schema_version")]
+    pub schema_version: String,
+    #[serde(deserialize_with = "deserialize_normalization_complete")]
+    #[schemars(schema_with = "normalization_complete_schema")]
+    pub normalization_complete: u8,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub native_file_count: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub native_output_bytes: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub bam_input_bytes: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub bam_index_input_bytes: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub reference_input_bytes: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub input_bytes: u64,
+    #[schemars(schema_with = "positive_integer_schema")]
+    pub output_bytes: u64,
+}
+
 #[must_use]
 pub fn bam_align_result_schema() -> Schema {
     schemars::schema_for!(BenchmarkBamAlignResult)
@@ -589,6 +646,16 @@ pub fn bam_mapping_summary_metrics_schema() -> Schema {
     schemars::schema_for!(BenchmarkBamMappingSummaryMetrics)
 }
 
+#[must_use]
+pub fn bam_damage_result_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamDamageResult)
+}
+
+#[must_use]
+pub fn bam_damage_metrics_schema() -> Schema {
+    schemars::schema_for!(BenchmarkBamDamageMetrics)
+}
+
 macro_rules! const_string_schema {
     ($name:ident, $value:expr) => {
         fn $name(_: &mut SchemaGenerator) -> Schema {
@@ -603,6 +670,9 @@ const_string_schema!(align_metrics_schema_version, BAM_ALIGN_METRICS_SCHEMA_V1);
 const_string_schema!(align_stage_id, BAM_ALIGN_STAGE_ID);
 const_string_schema!(coverage_metrics_schema_version, BAM_COVERAGE_METRICS_SCHEMA_V1);
 const_string_schema!(coverage_stage_id, BAM_COVERAGE_STAGE_ID);
+const_string_schema!(damage_schema_version, BAM_DAMAGE_RESULT_SCHEMA_V1);
+const_string_schema!(damage_metrics_schema_version, BAM_DAMAGE_METRICS_SCHEMA_V1);
+const_string_schema!(damage_stage_id, BAM_DAMAGE_STAGE_ID);
 const_string_schema!(duplication_schema_version, BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1);
 const_string_schema!(
     duplication_measurements_schema_version,
@@ -644,12 +714,27 @@ fn mapping_tool_id(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "string", "enum": ["picard", "samtools"]})
 }
 
+fn damage_tool_id(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "enum": ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+    })
+}
+
 fn sample_id_schema(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"})
 }
 
 fn positive_integer_schema(_: &mut SchemaGenerator) -> Schema {
     json_schema!({"type": "integer", "minimum": 1})
+}
+
+fn normalization_complete_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "integer", "const": 1})
+}
+
+fn false_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({"type": "boolean", "const": false})
 }
 
 fn fraction_schema(_: &mut SchemaGenerator) -> Schema {
@@ -689,6 +774,9 @@ exact_deserializer!(deserialize_align_metrics_schema_version, BAM_ALIGN_METRICS_
 exact_deserializer!(deserialize_align_stage_id, BAM_ALIGN_STAGE_ID);
 exact_deserializer!(deserialize_coverage_metrics_schema_version, BAM_COVERAGE_METRICS_SCHEMA_V1);
 exact_deserializer!(deserialize_coverage_stage_id, BAM_COVERAGE_STAGE_ID);
+exact_deserializer!(deserialize_damage_schema_version, BAM_DAMAGE_RESULT_SCHEMA_V1);
+exact_deserializer!(deserialize_damage_metrics_schema_version, BAM_DAMAGE_METRICS_SCHEMA_V1);
+exact_deserializer!(deserialize_damage_stage_id, BAM_DAMAGE_STAGE_ID);
 exact_deserializer!(
     deserialize_duplication_schema_version,
     BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1
@@ -755,6 +843,40 @@ where
     D: Deserializer<'de>,
 {
     deserialize_one_of(deserializer, &["picard", "samtools"])
+}
+
+fn deserialize_damage_tool_id<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserialize_one_of(
+        deserializer,
+        &["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"],
+    )
+}
+
+fn deserialize_normalization_complete<'de, D>(deserializer: D) -> Result<u8, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = u8::deserialize(deserializer)?;
+    if value == 1 {
+        Ok(value)
+    } else {
+        Err(D::Error::custom("BAM damage normalization must be complete"))
+    }
+}
+
+fn deserialize_false<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let value = bool::deserialize(deserializer)?;
+    if value {
+        Err(D::Error::custom("BAM damage qualification cannot certify biological authenticity"))
+    } else {
+        Ok(value)
+    }
 }
 
 fn deserialize_one_of<'de, D>(deserializer: D, allowed: &[&str]) -> Result<String, D::Error>

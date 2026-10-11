@@ -1,0 +1,216 @@
+{
+  "$defs": {
+    "WorkspaceAuthoritativeRoots": {
+      "properties": {
+        "local_stage_root": {
+          "type": "string"
+        },
+        "remote_reference_root": {
+          "type": "string"
+        },
+        "remote_results_root": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "remote_results_root",
+        "remote_reference_root",
+        "local_stage_root"
+      ],
+      "type": "object"
+    },
+    "WorkspaceLayoutIssue": {
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "issue_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "issue_id",
+        "detail"
+      ],
+      "type": "object"
+    },
+    "WorkspaceLocalStageLayout": {
+      "properties": {
+        "archive_corpus_root": {
+          "type": "string"
+        },
+        "archive_only_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "archive_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "authoritative_stage_root": {
+          "type": "string"
+        },
+        "cache_corpus_root": {
+          "type": "string"
+        },
+        "cache_only_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "cache_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "shared_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "archive_corpus_root",
+        "cache_corpus_root",
+        "archive_stage_ids",
+        "cache_stage_ids",
+        "shared_stage_ids",
+        "archive_only_stage_ids",
+        "cache_only_stage_ids",
+        "authoritative_stage_root"
+      ],
+      "type": "object"
+    },
+    "WorkspaceRootPairSummary": {
+      "properties": {
+        "canonical_entries": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "canonical_exists": {
+          "type": "boolean"
+        },
+        "canonical_only_entries": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "canonical_root": {
+          "type": "string"
+        },
+        "legacy_entries": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "legacy_exists": {
+          "type": "boolean"
+        },
+        "legacy_only_entries": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "legacy_root": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "shared_entries": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope",
+        "canonical_root",
+        "legacy_root",
+        "canonical_exists",
+        "legacy_exists",
+        "canonical_entries",
+        "legacy_entries",
+        "shared_entries",
+        "canonical_only_entries",
+        "legacy_only_entries",
+        "status"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "authoritative_roots": {
+      "$ref": "#/$defs/WorkspaceAuthoritativeRoots"
+    },
+    "issue_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "issues": {
+      "items": {
+        "$ref": "#/$defs/WorkspaceLayoutIssue"
+      },
+      "type": "array"
+    },
+    "local_cache_mirror_root": {
+      "type": "string"
+    },
+    "local_results_root": {
+      "type": "string"
+    },
+    "local_stage_layout": {
+      "$ref": "#/$defs/WorkspaceLocalStageLayout"
+    },
+    "remote_workspace_root": {
+      "type": "string"
+    },
+    "root_pairs": {
+      "items": {
+        "$ref": "#/$defs/WorkspaceRootPairSummary"
+      },
+      "type": "array"
+    },
+    "status": {
+      "type": "string"
+    },
+    "unexpected_remote_siblings": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "local_results_root",
+    "local_cache_mirror_root",
+    "remote_workspace_root",
+    "authoritative_roots",
+    "root_pairs",
+    "unexpected_remote_siblings",
+    "local_stage_layout",
+    "status",
+    "issue_count",
+    "issues"
+  ],
+  "title": "WorkspaceLayoutReport",
+  "type": "object"
+}

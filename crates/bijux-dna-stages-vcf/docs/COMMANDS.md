@@ -53,7 +53,7 @@ command routing.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
-| `read-vcf-text` | `vcf_io::read_vcf_text` | Read plain or best-effort compressed VCF text. |
+| `read-vcf-text` | `vcf_io::read_vcf_text` | Read plain or BGZF VCF text natively; use the admitted `bcftools` binding only for BCF decoding. |
 | `validate-vcf-input` | `vcf_io::vcf_validate_input` | Validate VCF records against field requirements. |
 | `normalize-vcf-headers` | `vcf_io::vcf_normalize_headers` | Write normalized VCF header/sample ordering. |
 | `index-vcf-bgzip-tabix` | `vcf_io::vcf_index_bgzip_tabix` | Write bgzip VCF and tabix index artifacts. |

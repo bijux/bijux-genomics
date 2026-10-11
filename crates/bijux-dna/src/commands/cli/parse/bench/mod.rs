@@ -3,6 +3,7 @@ use clap::Subcommand;
 use super::BenchBamCommand;
 
 mod active_scope;
+mod cases;
 mod config;
 mod corpus_fastq;
 mod cycle;
@@ -19,6 +20,9 @@ mod schema_validation;
 mod suite;
 
 pub use self::active_scope::{BenchActiveScopeCommand, BenchActiveScopeValidateArgs};
+pub use self::cases::{
+    BenchCasesAdmitArgs, BenchCasesAggregateArgs, BenchCasesCommand, BenchCasesPlanArgs,
+};
 pub use self::config::{
     BenchConfigCommand, BenchConfigJsonArgs, BenchConfigValidateArgs,
     BenchNormalizeWorkspaceLayoutArgs, BenchRepoChecksArgs, BenchWorkspaceValueArgs,
@@ -27,7 +31,7 @@ pub use self::config::{
 pub use self::corpus_fastq::BenchCorpusFastqArgs;
 pub use self::cycle::{
     BenchCycleAdmitArgs, BenchCycleBookArgs, BenchCycleCollectArgs, BenchCycleCommand,
-    BenchCyclePlanArgs, BenchCycleReplayArgs, BenchCycleStatusArgs,
+    BenchCyclePlanArgs, BenchCycleReceiptArgs, BenchCycleReplayArgs, BenchCycleStatusArgs,
 };
 pub use self::data_index::{
     BenchCatalogRegistryCommand, BenchCatalogRegistryPublishArgs, BenchDataIndexArgs,
@@ -238,6 +242,10 @@ pub use self::suite::BenchRunArgs;
 
 #[derive(Debug, Subcommand)]
 pub enum BenchCommand {
+    Cases {
+        #[command(subcommand)]
+        command: BenchCasesCommand,
+    },
     Config {
         #[command(subcommand)]
         command: BenchConfigCommand,

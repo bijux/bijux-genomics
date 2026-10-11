@@ -22,14 +22,17 @@ pub use execution::{
 };
 pub use operator::{
     admit_checked_in_benchmark_campaign, load_checked_in_benchmark_campaign_plan,
-    plan_checked_in_benchmark_campaign, status_checked_in_benchmark_campaign,
-    BenchmarkCycleAdmissionRequest, BenchmarkCyclePlanRequest, BenchmarkCycleStatusRequest,
+    plan_checked_in_benchmark_campaign, retry_checked_in_benchmark_campaign,
+    status_checked_in_benchmark_campaign, supersede_checked_in_benchmark_campaign,
+    BenchmarkCycleAdmissionRequest, BenchmarkCyclePlanRequest, BenchmarkCycleRetryRequest,
+    BenchmarkCycleStatusRequest, BenchmarkCycleSupersedeRequest,
 };
 pub use planning::{
     plan_benchmark_case_attempts, plan_benchmark_case_retry_attempts, plan_stage_campaign_attempts,
     plan_stage_campaign_retry_attempts, verify_campaign_plan_source,
     verify_case_campaign_plan_source,
 };
+pub(crate) use planning::{verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource};
 pub use preparation::{prepare_checked_in_benchmark_campaign, BenchmarkCyclePreparationRequest};
 pub use storage::{
     ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,

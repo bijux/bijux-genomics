@@ -1,0 +1,287 @@
+{
+  "$defs": {
+    "StageToolBenchmarkReadyExcludedPair": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_status": {
+          "type": "string"
+        },
+        "asset_status": {
+          "type": "string"
+        },
+        "corpus_status": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "excluded_from_expected_results": {
+          "type": "boolean"
+        },
+        "excluded_from_generated_jobs": {
+          "type": "boolean"
+        },
+        "parser_status": {
+          "type": "string"
+        },
+        "readiness_gap": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "registry_status": {
+          "type": "string"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "support_status": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "row_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "readiness_gap",
+        "support_status",
+        "adapter_status",
+        "parser_status",
+        "corpus_status",
+        "asset_status",
+        "registry_status",
+        "excluded_from_generated_jobs",
+        "excluded_from_expected_results",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "StageToolBenchmarkReadyFailingPair": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_status": {
+          "type": "string"
+        },
+        "asset_status": {
+          "type": "string"
+        },
+        "benchmark_status": {
+          "type": "string"
+        },
+        "corpus_status": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "failure_surfaces": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "parser_status": {
+          "type": "string"
+        },
+        "readiness_gap": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "registry_status": {
+          "type": "string"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "support_status": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "row_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "failure_surfaces",
+        "benchmark_status",
+        "readiness_gap",
+        "support_status",
+        "adapter_status",
+        "parser_status",
+        "corpus_status",
+        "asset_status",
+        "registry_status",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "StageToolBenchmarkReadySurfaceStatus": {
+      "enum": [
+        "ready_slice_complete",
+        "failing_pairs_present"
+      ],
+      "type": "string"
+    },
+    "StageToolBenchmarkReadySurfaceSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "covered_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "evidence_paths": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "excluded_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "expected_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "failing_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "measured_scope": {
+          "type": "string"
+        },
+        "surface_id": {
+          "type": "string"
+        },
+        "surface_status": {
+          "$ref": "#/$defs/StageToolBenchmarkReadySurfaceStatus"
+        }
+      },
+      "required": [
+        "surface_id",
+        "surface_status",
+        "measured_scope",
+        "expected_count",
+        "covered_count",
+        "excluded_count",
+        "failing_count",
+        "evidence_paths",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_ready_pair_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "benchmark_ready_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "excluded_pair_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "excluded_pairs": {
+      "items": {
+        "$ref": "#/$defs/StageToolBenchmarkReadyExcludedPair"
+      },
+      "type": "array"
+    },
+    "excluded_registry_gap_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "expected_pair_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "expected_result_pair_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failing_pair_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failing_pairs": {
+      "items": {
+        "$ref": "#/$defs/StageToolBenchmarkReadyFailingPair"
+      },
+      "type": "array"
+    },
+    "generated_job_pair_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passes_gate": {
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.fastq_bam_stage_tool_benchmark_ready.v1",
+      "type": "string"
+    },
+    "surface_summaries": {
+      "items": {
+        "$ref": "#/$defs/StageToolBenchmarkReadySurfaceSummary"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "passes_gate",
+    "expected_pair_count",
+    "benchmark_ready_pair_count",
+    "excluded_pair_count",
+    "failing_pair_count",
+    "generated_job_pair_count",
+    "expected_result_pair_count",
+    "benchmark_ready_stage_count",
+    "excluded_registry_gap_count",
+    "surface_summaries",
+    "failing_pairs",
+    "excluded_pairs"
+  ],
+  "title": "StageToolBenchmarkReadyReport",
+  "type": "object"
+}

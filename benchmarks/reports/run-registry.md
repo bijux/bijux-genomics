@@ -4,10 +4,10 @@
 
 Run IDs identify durable stage protocols, not attempts or publications. Existing IDs are immutable; additions allocate monotonically from the declared frontier.
 
-- Registry SHA-256: `e0b94149fd8efeae28a44859161d1cec3a74821d02d15605ba47be8900a08a67`
+- Registry SHA-256: `e098eddc58a8e8c8c5e04da604abd9eec4929751fd8297713945ed7d7e43853b`
 - Registered protocols: **71**
-- Active protocols: **12**
-- Reserved protocols: **59**
+- Active protocols: **13**
+- Reserved protocols: **58**
 - Next allocation: **run-2072**
 
 | Run | Stage | Profile | Tools | State | Interface |
@@ -21,7 +21,7 @@ Run IDs identify durable stage protocols, not attempts or publications. Existing
 | `run-2007` | `bam.bias_mitigation` | `bam-transformation` | `mapdamage2` | `reserved` | - |
 | `run-2008` | `bam.complexity` | `bam-observational-qc` | `preseq` | `reserved` | - |
 | `run-2009` | `bam.contamination` | `bam-biological-inference` | `contammix`, `schmutzi`, `verifybamid2` | `reserved` | - |
-| `run-2010` | `bam.damage` | `bam-ancient-authentication` | `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, `pydamage` | `reserved` | - |
+| `run-2010` | `bam.damage` | `bam-ancient-authentication` | `addeam`, `damageprofiler`, `mapdamage2`, `ngsbriggs`, `pmdtools`, `pydamage` | `active` | `bijux.benchmark.bam.damage.bundle.v1` |
 | `run-2011` | `bam.duplication_metrics` | `bam-observational-qc` | `picard`, `samtools` | `active` | `bijux.benchmark.bam.duplication_metrics.bundle.v1` |
 | `run-2012` | `bam.filter` | `bam-transformation` | `bamtools`, `bedtools`, `samtools` | `reserved` | - |
 | `run-2013` | `bam.gc_bias` | `bam-observational-qc` | `picard` | `active` | `bijux.benchmark.bam.gc_bias.bundle.v1` |

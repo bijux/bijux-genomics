@@ -9,15 +9,15 @@
     "identity_policy": "existing_ids_immutable"
   },
   "source_contract_sha256": {
-    "benchmarks/contracts/portfolio.toml": "3114fe7216160e729253c9a07ea94e7ad9503644ba4d5006c5d1190d138c7a72",
-    "benchmarks/contracts/stage-campaigns.toml": "a078200374a0e58254a1b4578385086805e5f2637366d2bb787b4beb05ce6ced",
-    "benchmarks/contracts/stage-interfaces.toml": "6534c02c1dfe60dc4481f0fa544e7b2d5dd9c457ac4f744a82a6c7ccc602b82c",
+    "benchmarks/contracts/portfolio.toml": "6f2ae70a6fd5ea53127d3e9c429c7d0a92b3e85d372027514aff5f2280d8e5fb",
+    "benchmarks/contracts/stage-campaigns.toml": "a656a9f31901aebd49096c7592e1a1ad3c2b526e965304a7e149e373eaaab7eb",
+    "benchmarks/contracts/stage-interfaces.toml": "069fceff18959c1b1da4d45af8f292fcb81304bca15e71e7cef68576c72b48b3",
     "containers/contracts/catalog.toml": "7315eeaae2364f99df38ad66fa46d9a2b3e3dc64d8757619b714df94de9d780a"
   },
   "summary": {
     "run_count": 71,
-    "active_count": 12,
-    "reserved_count": 59,
+    "active_count": 13,
+    "reserved_count": 58,
     "retired_count": 0
   },
   "runs": [
@@ -290,11 +290,15 @@
         "bam_diversity",
         "ancient_damage_truth"
       ],
-      "accepted_input_contracts": [],
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.damage.bundle.v1",
+      "normalized_result_contract": "benchmarks/contracts/schemas/bam-damage-result.schema.json",
       "measurement_policy_id": "benchmark-measurement-v1",
       "acceptance_policy_id": "bam-ancient-authentication-acceptance-v1",
-      "state": "reserved",
-      "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+      "state": "active",
       "supersedes_run_ids": [],
       "introduced_at_commit": "3d8daa382e46074fc21e486131b7bd334b7e943d"
     },
