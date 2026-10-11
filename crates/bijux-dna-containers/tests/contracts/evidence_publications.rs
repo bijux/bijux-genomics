@@ -164,6 +164,36 @@ fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
         &root, &commit, &catalog, &inventory,
     )?;
 
+    let parent_output = std::process::Command::new("git")
+        .arg("-C")
+        .arg(&root)
+        .args(["rev-parse", &format!("{commit}^")])
+        .output()?;
+    assert!(parent_output.status.success());
+    let parent_commit = String::from_utf8(parent_output.stdout)?.trim().to_string();
+    let parent_recipe = bijux_dna_containers::evidence::apptainer_recipe_identity_at_commit(
+        &root,
+        &parent_commit,
+        &tool.apptainer_definition,
+    )?;
+    let selected = inventory.tools[0]
+        .candidates
+        .iter_mut()
+        .find(|candidate| candidate.sha256 == selected_sha256)
+        .context("ibdhap inventory omits selected candidate")?;
+    selected.build_evidence[0].repository_commit = parent_commit.clone();
+    selected.build_evidence[0].definition_sha256 = parent_recipe.definition_sha256;
+    selected.build_evidence[0].build_context = Some(parent_recipe.build_context);
+    assert_eq!(
+        bijux_dna_containers::api::resolve_current_apptainer_contract_commit(
+            &root, &commit, &inventory, tool,
+        )?,
+        parent_commit
+    );
+    bijux_dna_containers::evidence::validate_container_recipe_evidence_chain(
+        &root, &commit, &catalog, &inventory,
+    )?;
+
     inventory.tools[0]
         .candidates
         .iter_mut()
@@ -174,7 +204,7 @@ fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
     assert!(bijux_dna_containers::evidence::validate_container_recipe_evidence_chain(
         &root, &commit, &catalog, &inventory,
     )
-    .is_err_and(|error| error.to_string().contains("lacks exact current recipe")));
+    .is_err_and(|error| error.to_string().contains("lacks current recipe")));
     Ok(())
 }
 
@@ -183,6 +213,7 @@ fn checked_in_publication_schemas_are_owned_by_environment_types() {
     let inventory = bijux_dna_containers::evidence::image_inventory_publication_schema();
     let scan = bijux_dna_containers::evidence::image_inventory_scan_schema();
     let runtime = bijux_dna_containers::evidence::runtime_verification_publication_schema();
+    let external_artifact = bijux_dna_containers::evidence::external_artifact_admission_schema();
     let storage_plan = bijux_dna_containers::evidence::image_storage_plan_schema();
     let storage_report = bijux_dna_containers::evidence::image_storage_report_schema();
     let catalog = bijux_dna_containers::evidence::container_catalog_schema();
@@ -196,6 +227,7 @@ fn checked_in_publication_schemas_are_owned_by_environment_types() {
     assert_eq!(inventory["title"], "ContainerImageInventoryPublication");
     assert_eq!(scan["title"], "ImageInventoryScan");
     assert_eq!(runtime["title"], "RuntimeVerificationPublication");
+    assert_eq!(external_artifact["title"], "ExternalArtifactAdmission");
     assert_eq!(storage_plan["title"], "ImageStoragePlan");
     assert_eq!(storage_report["title"], "ImageStorageReport");
     assert_eq!(catalog["title"], "ContainerCatalog");
@@ -409,6 +441,18 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     assert_eq!(campaign_execution, bijux_dna_containers::api::image_campaign_execution_schema());
     assert_eq!(catalog, bijux_dna_containers::api::container_catalog_schema());
     assert_eq!(catalog_lock, bijux_dna_containers::api::container_catalog_lock_schema());
+    Ok(())
+}
+
+#[test]
+fn checked_in_external_artifact_schema_matches_rust_type() -> Result<()> {
+    let path =
+        repository_root()?.join("containers/contracts/schemas/external-artifact-admission.v1.json");
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        bijux_dna_containers::evidence::write_external_artifact_admission_schema(&path)?;
+    }
+    let checked_in: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
+    assert_eq!(checked_in, bijux_dna_containers::evidence::external_artifact_admission_schema());
     Ok(())
 }
 

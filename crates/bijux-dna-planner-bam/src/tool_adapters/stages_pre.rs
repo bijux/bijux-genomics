@@ -824,22 +824,22 @@ pub mod overlap_correction {
             bijux_dna_stage_contract::ArtifactRef::required(
                 ArtifactId::from_static("flagstat_before"),
                 flagstat_before.clone(),
-                ArtifactRole::ReportJson,
+                ArtifactRole::Report,
             ),
             bijux_dna_stage_contract::ArtifactRef::required(
                 ArtifactId::from_static("flagstat_after"),
                 flagstat_after.clone(),
-                ArtifactRole::ReportJson,
+                ArtifactRole::Report,
             ),
             bijux_dna_stage_contract::ArtifactRef::required(
                 ArtifactId::from_static("idxstats_before"),
                 idxstats_before.clone(),
-                ArtifactRole::ReportJson,
+                ArtifactRole::Report,
             ),
             bijux_dna_stage_contract::ArtifactRef::required(
                 ArtifactId::from_static("idxstats_after"),
                 idxstats_after.clone(),
-                ArtifactRole::ReportJson,
+                ArtifactRole::Report,
             ),
         ]);
         let command = match tool.tool_id.as_str() {

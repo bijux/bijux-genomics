@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -130,9 +131,15 @@ pub(crate) fn render_retained_toolset_executable_local(
                 .filter(|(kind, _)| matches!(kind.as_str(), "docker_image" | "apptainer_image"))
                 .map(|(_, count)| *count)
                 .sum::<usize>();
+            let external_artifact_count =
+                report.resolution_counts.get("external_artifact").copied().unwrap_or_default();
             Ok(format!(
-                "row_count={}, host_binary_count={}, container_count={}, unavailable_count={}",
-                report.row_count, host_binary_count, container_count, report.unavailable_count
+                "row_count={}, host_binary_count={}, container_count={}, external_artifact_count={}, unavailable_count={}",
+                report.row_count,
+                host_binary_count,
+                container_count,
+                external_artifact_count,
+                report.unavailable_count
             ))
         },
     );
@@ -171,6 +178,10 @@ pub(crate) fn render_retained_toolset_executable_local(
         "retained_tool_container_smoke",
         Some(DEFAULT_CONTAINER_TOOL_SMOKE_ROOT.to_string()),
         || {
+            container_smoke_tool_count = collect_version_probe_rows(repo_root)?
+                .into_iter()
+                .filter(|row| row.resolution_kind != "host_binary")
+                .count();
             let summary = validate_container_tool_smoke_manifests(repo_root)?;
             container_smoke_tool_count = summary.tool_count;
             Ok(format!(
@@ -225,8 +236,11 @@ pub(crate) fn render_retained_toolset_executable_local(
                 PathBuf::from(DEFAULT_OUTPUT_CONTRACT_TESTS_PATH),
             )?;
             Ok(format!(
-                "row_count={}, passed_row_count={}, failed_row_count={}",
-                report.row_count, report.passed_row_count, report.failed_row_count
+                "row_count={}, passed_row_count={}, blocked_row_count={}, failed_row_count={}",
+                report.row_count,
+                report.passed_row_count,
+                report.blocked_row_count,
+                report.failed_row_count
             ))
         },
     );
@@ -338,36 +352,56 @@ fn validate_host_tool_smoke_manifests(repo_root: &Path) -> Result<HostSmokeSumma
         .filter(|row| row.resolution_kind == "host_binary" && row.version_probe_status == "ready")
         .collect::<Vec<_>>();
     let mut failures = Vec::new();
+    let missing_tool_ids = host_rows
+        .iter()
+        .filter(|row| {
+            !repo_root
+                .join(DEFAULT_HOST_TOOL_SMOKE_ROOT)
+                .join(&row.tool_id)
+                .join("manifest.json")
+                .is_file()
+        })
+        .map(|row| row.tool_id.clone())
+        .collect::<Vec<_>>();
+    if !missing_tool_ids.is_empty() {
+        failures.push(format!(
+            "missing {} retained host smoke manifests under `{}`: {}",
+            missing_tool_ids.len(),
+            DEFAULT_HOST_TOOL_SMOKE_ROOT,
+            missing_tool_ids.join(", ")
+        ));
+    }
     for row in &host_rows {
+        if missing_tool_ids.contains(&row.tool_id) {
+            continue;
+        }
         let manifest_path =
             repo_root.join(DEFAULT_HOST_TOOL_SMOKE_ROOT).join(&row.tool_id).join("manifest.json");
-        let manifest: ValidatedHostToolSmokeManifest = read_json_document(&manifest_path)?;
+        let manifest_label = path_relative_to_repo(repo_root, &manifest_path);
+        let manifest: ValidatedHostToolSmokeManifest =
+            read_json_document(&manifest_path, &manifest_label)?;
         if manifest.tool_id != row.tool_id {
             failures.push(format!(
                 "{}: manifest tool_id `{}` does not match expected `{}`",
-                manifest_path.display(),
-                manifest.tool_id,
-                row.tool_id
+                manifest_label, manifest.tool_id, row.tool_id
             ));
         }
         if manifest.status != "ok" {
             failures.push(format!(
                 "{}: expected status `ok`, found `{}`",
-                manifest_path.display(),
-                manifest.status
+                manifest_label, manifest.status
             ));
         }
         if manifest.exit_code != 0 {
             failures.push(format!(
                 "{}: expected exit_code 0, found {}",
-                manifest_path.display(),
-                manifest.exit_code
+                manifest_label, manifest.exit_code
             ));
         }
         if manifest.version.as_deref().is_none_or(str::is_empty) {
             failures.push(format!(
                 "{}: missing parsed version for host smoke manifest",
-                manifest_path.display()
+                manifest_label
             ));
         }
     }
@@ -386,67 +420,118 @@ fn validate_container_tool_smoke_manifests(repo_root: &Path) -> Result<Container
         .filter(|row| row.resolution_kind != "host_binary")
         .collect::<Vec<_>>();
     let mut failures = Vec::new();
+    let mut ready_execution_failures = BTreeMap::<(String, Option<String>), Vec<String>>::new();
+    let missing_tool_ids = container_rows
+        .iter()
+        .filter(|row| {
+            !repo_root
+                .join(DEFAULT_CONTAINER_TOOL_SMOKE_ROOT)
+                .join(&row.tool_id)
+                .join("manifest.json")
+                .is_file()
+        })
+        .map(|row| row.tool_id.clone())
+        .collect::<Vec<_>>();
+    if !missing_tool_ids.is_empty() {
+        failures.push(format!(
+            "missing {} retained container smoke manifests under `{}`: {}",
+            missing_tool_ids.len(),
+            DEFAULT_CONTAINER_TOOL_SMOKE_ROOT,
+            missing_tool_ids.join(", ")
+        ));
+    }
     let mut success_count = 0usize;
     let mut unavailable_count = 0usize;
     for row in &container_rows {
+        if missing_tool_ids.contains(&row.tool_id) {
+            continue;
+        }
         let manifest_path = repo_root
             .join(DEFAULT_CONTAINER_TOOL_SMOKE_ROOT)
             .join(&row.tool_id)
             .join("manifest.json");
-        let manifest: ValidatedContainerToolSmokeManifest = read_json_document(&manifest_path)?;
+        let manifest_label = path_relative_to_repo(repo_root, &manifest_path);
+        let manifest: ValidatedContainerToolSmokeManifest =
+            read_json_document(&manifest_path, &manifest_label)?;
         if manifest.tool_id != row.tool_id {
             failures.push(format!(
                 "{}: manifest tool_id `{}` does not match expected `{}`",
-                manifest_path.display(),
-                manifest.tool_id,
-                row.tool_id
+                manifest_label, manifest.tool_id, row.tool_id
             ));
             continue;
         }
-        match row.version_probe_status.as_str() {
-            "ready" => {
-                if manifest.status != "ok" {
+        match (row.resolution_kind.as_str(), row.version_probe_status.as_str()) {
+            ("external_artifact", "ready") => {
+                if manifest.status != "unavailable_with_reason" {
                     failures.push(format!(
-                        "{}: expected status `ok`, found `{}`",
-                        manifest_path.display(),
+                        "{}: external artifact smoke must remain unavailable before admission, found `{}`",
+                        manifest_label,
                         manifest.status
                     ));
+                    continue;
+                }
+                if manifest
+                    .unavailable_reason
+                    .as_deref()
+                    .is_none_or(|reason| !reason.contains("external artifact admission"))
+                {
+                    failures.push(format!(
+                        "{}: external artifact smoke is missing its admission requirement",
+                        manifest_label
+                    ));
+                    continue;
+                }
+                if manifest.exit_code.is_some() {
+                    failures.push(format!(
+                        "{}: external artifact smoke must not record an execution exit code before admission",
+                        manifest_label
+                    ));
+                    continue;
+                }
+                unavailable_count += 1;
+            }
+            (_, "ready") => {
+                if manifest.status != "ok" {
+                    ready_execution_failures
+                        .entry((manifest.status.clone(), manifest.unavailable_reason.clone()))
+                        .or_default()
+                        .push(row.tool_id.clone());
                     continue;
                 }
                 if manifest.exit_code != Some(0) {
                     failures.push(format!(
                         "{}: expected exit_code 0, found {:?}",
-                        manifest_path.display(),
-                        manifest.exit_code
+                        manifest_label, manifest.exit_code
                     ));
                     continue;
                 }
                 success_count += 1;
             }
-            "unavailable_with_reason" => {
+            (_, "unavailable_with_reason") => {
                 if manifest.status != "unavailable_with_reason" {
                     failures.push(format!(
                         "{}: expected status `unavailable_with_reason`, found `{}`",
-                        manifest_path.display(),
-                        manifest.status
+                        manifest_label, manifest.status
                     ));
                     continue;
                 }
                 if manifest.unavailable_reason.as_deref().is_none_or(str::is_empty) {
                     failures.push(format!(
                         "{}: unavailable manifest is missing unavailable_reason",
-                        manifest_path.display()
+                        manifest_label
                     ));
                     continue;
                 }
                 unavailable_count += 1;
             }
-            other => failures.push(format!(
+            (_, other) => failures.push(format!(
                 "{}: unsupported version probe status `{other}` for `{}`",
-                manifest_path.display(),
-                row.tool_id
+                manifest_label, row.tool_id
             )),
         }
+    }
+    for ((status, reason), tool_ids) in ready_execution_failures {
+        failures.push(render_ready_execution_failure(&status, reason.as_deref(), &tool_ids));
     }
     if !failures.is_empty() {
         return Err(anyhow!(
@@ -462,9 +547,24 @@ fn validate_container_tool_smoke_manifests(repo_root: &Path) -> Result<Container
     })
 }
 
-fn read_json_document<T: DeserializeOwned>(path: &Path) -> Result<T> {
-    let bytes = std::fs::read(path).with_context(|| format!("read {}", path.display()))?;
-    serde_json::from_slice(&bytes).with_context(|| format!("parse {}", path.display()))
+fn render_ready_execution_failure(
+    status: &str,
+    unavailable_reason: Option<&str>,
+    tool_ids: &[String],
+) -> String {
+    let reason = unavailable_reason
+        .filter(|reason| !reason.trim().is_empty())
+        .map_or_else(String::new, |reason| format!(", reason=\"{reason}\""));
+    format!(
+        "{} ready retained container tools have status `{status}`{reason}: {}",
+        tool_ids.len(),
+        tool_ids.join(", ")
+    )
+}
+
+fn read_json_document<T: DeserializeOwned>(path: &Path, label: &str) -> Result<T> {
+    let bytes = std::fs::read(path).with_context(|| format!("read {label}"))?;
+    serde_json::from_slice(&bytes).with_context(|| format!("parse {label}"))
 }
 
 fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
@@ -477,4 +577,23 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::render_ready_execution_failure;
+
+    #[test]
+    fn ready_execution_failure_groups_tools_under_one_runtime_reason() {
+        let rendered = render_ready_execution_failure(
+            "unavailable_with_reason",
+            Some("docker daemon probe exited with code 1"),
+            &["adapterremoval".to_string(), "fastqc".to_string()],
+        );
+
+        assert_eq!(
+            rendered,
+            "2 ready retained container tools have status `unavailable_with_reason`, reason=\"docker daemon probe exited with code 1\": adapterremoval, fastqc"
+        );
+    }
 }

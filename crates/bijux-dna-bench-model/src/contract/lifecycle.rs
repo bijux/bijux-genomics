@@ -2,7 +2,9 @@
 
 use std::collections::BTreeSet;
 
+use bijux_dna_core::contract::canonical::to_canonical_json_bytes;
 use chrono::{DateTime, FixedOffset};
+use sha2::{Digest, Sha256};
 
 use crate::diagnostics::BenchError;
 use crate::model::{
@@ -40,6 +42,20 @@ pub fn validate_attempt_identity(
     validate_run_identity(&identity.run)?;
     validate_attempt_id(&identity.attempt_id)?;
     validate_component(&identity.tool_id, "tool_id")
+}
+
+/// Return the canonical SHA-256 identity of one valid benchmark attempt.
+///
+/// # Errors
+/// Returns an error when the identity is invalid or cannot be canonically serialized.
+pub fn benchmark_attempt_identity_sha256(
+    identity: &crate::model::BenchmarkAttemptIdentity,
+) -> Result<String, BenchError> {
+    validate_attempt_identity(identity)?;
+    let bytes = to_canonical_json_bytes(identity).map_err(|error| {
+        invalid(format!("cannot canonicalize benchmark attempt identity: {error}"))
+    })?;
+    Ok(sha256_hex(&bytes))
 }
 
 /// Append one validated lifecycle event without rewriting prior transitions.
@@ -144,9 +160,13 @@ pub fn validate_attempt_record_v2(record: &BenchmarkAttemptRecordV2) -> Result<(
     if status == BenchmarkLifecycleStatus::Collecting && !has_completed_accounting {
         return Err(invalid("collecting benchmark attempt requires completed accounting"));
     }
-    if status == BenchmarkLifecycleStatus::Failed && !jobs.is_empty() && accounting_jobs.is_empty()
+    if matches!(status, BenchmarkLifecycleStatus::Failed | BenchmarkLifecycleStatus::Cancelled)
+        && !jobs.is_empty()
+        && accounting_jobs.is_empty()
     {
-        return Err(invalid("failed submitted benchmark attempt requires terminal accounting"));
+        return Err(invalid(
+            "unsuccessful submitted benchmark attempt requires terminal accounting",
+        ));
     }
     if status == BenchmarkLifecycleStatus::Passed
         && (evidence.is_empty() || !has_completed_accounting)
@@ -265,6 +285,7 @@ pub fn validate_attempt_transition(
     let reason_required = matches!(
         transition.to_status,
         BenchmarkLifecycleStatus::Failed
+            | BenchmarkLifecycleStatus::Cancelled
             | BenchmarkLifecycleStatus::Superseded
             | BenchmarkLifecycleStatus::BlockedExternal
     );
@@ -417,6 +438,16 @@ fn slug(stage_id: &str) -> String {
     stage_id.replace(['.', '_'], "-")
 }
 
+fn sha256_hex(bytes: &[u8]) -> String {
+    let digest = Sha256::digest(bytes);
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        use std::fmt::Write as _;
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
+}
+
 fn parse_timestamp(value: &str, field: &str) -> Result<DateTime<FixedOffset>, BenchError> {
     let timestamp = DateTime::parse_from_rfc3339(value)
         .map_err(|_| invalid(format!("benchmark {field} is not RFC 3339")))?;
@@ -444,12 +475,14 @@ fn allowed_transition(from: BenchmarkLifecycleStatus, to: BenchmarkLifecycleStat
             BenchmarkLifecycleStatus::Running
                 | BenchmarkLifecycleStatus::Collecting
                 | BenchmarkLifecycleStatus::Failed
+                | BenchmarkLifecycleStatus::Cancelled
                 | BenchmarkLifecycleStatus::BlockedExternal
                 | BenchmarkLifecycleStatus::Superseded
         ) | (
             BenchmarkLifecycleStatus::Running,
             BenchmarkLifecycleStatus::Collecting
                 | BenchmarkLifecycleStatus::Failed
+                | BenchmarkLifecycleStatus::Cancelled
                 | BenchmarkLifecycleStatus::BlockedExternal
                 | BenchmarkLifecycleStatus::Superseded
         ) | (
@@ -485,8 +518,9 @@ fn validate_scheduler_accounting(
                 BenchmarkLifecycleStatus::Collecting | BenchmarkLifecycleStatus::Passed
             ) && accounting.exit_code == 0
                 && accounting.signal == 0 => {}
+        BenchmarkSchedulerTerminalState::Cancelled
+            if transition_status == BenchmarkLifecycleStatus::Cancelled => {}
         BenchmarkSchedulerTerminalState::Failed
-        | BenchmarkSchedulerTerminalState::Cancelled
         | BenchmarkSchedulerTerminalState::Timeout
         | BenchmarkSchedulerTerminalState::Preempted
         | BenchmarkSchedulerTerminalState::NodeFailure
@@ -565,6 +599,7 @@ fn requires_scheduler_job(status: BenchmarkLifecycleStatus) -> bool {
         BenchmarkLifecycleStatus::Submitted
             | BenchmarkLifecycleStatus::Running
             | BenchmarkLifecycleStatus::Collecting
+            | BenchmarkLifecycleStatus::Cancelled
             | BenchmarkLifecycleStatus::Passed
     )
 }
@@ -574,6 +609,7 @@ fn is_terminal(status: BenchmarkLifecycleStatus) -> bool {
         status,
         BenchmarkLifecycleStatus::Passed
             | BenchmarkLifecycleStatus::Failed
+            | BenchmarkLifecycleStatus::Cancelled
             | BenchmarkLifecycleStatus::Superseded
             | BenchmarkLifecycleStatus::BlockedExternal
     )

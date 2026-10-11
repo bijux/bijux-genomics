@@ -10,6 +10,9 @@ The execution spec is the runner contract for turning already-planned tool inten
 - `exit semantics`: exit code `0` is success; nonzero exits are recorded as failed tool execution.
 - `timeouts`: timeout failures are normalized into failed execution outcomes with captured context.
 - `file permissions`: output writes follow the declared runtime root and backend permissions.
+- `external artifacts`: `external-artifact://<tool>` plans require an admission record; the runner
+  reverifies its catalog, checksum, version evidence, stage allowlist, and command binding before
+  selecting local binary or Apptainer SIF execution.
 
 ## Hashing
 Invocation hash includes command, args, env, cwd, mounts, and image digest.
@@ -39,6 +42,8 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 | --- | --- | --- |
 | Docker or Apptainer missing | Backend executable is unavailable. | Install or configure the selected runtime. |
 | Image missing | Backend cannot resolve or run the declared image. | Fix the image reference or registry access. |
+| External access blocked | Admission records licensed artifact access as unavailable. | Supply and admit a lawful artifact or retain the blocker as the execution result. |
+| External identity drift | Catalog, checksum, version evidence, tool identity, or stage binding differs from admission. | Re-admit the exact artifact against the current governed contract. |
 | Permission error | Backend returns a filesystem permission failure. | Fix declared mount or output-root permissions. |
 | Timeout | Backend exceeds the declared runtime limit. | Increase the limit or reduce input size. |
 | Nonzero exit | Tool exits with a nonzero status. | Inspect captured stdout/stderr and tool arguments. |

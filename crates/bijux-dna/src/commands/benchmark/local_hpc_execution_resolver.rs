@@ -11,7 +11,8 @@ use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, Bench
 use super::readiness::apptainer_map::{collect_apptainer_map_rows, ApptainerMapRow};
 use super::readiness::executable_resolution::{
     resolve_runtime_probe_signature, RuntimeResolutionSignature, RESOLUTION_KIND_APPTAINER_IMAGE,
-    RESOLUTION_KIND_DOCKER_IMAGE, RESOLUTION_KIND_HOST_BINARY, RESOLUTION_KIND_UNAVAILABLE,
+    RESOLUTION_KIND_DOCKER_IMAGE, RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY,
+    RESOLUTION_KIND_UNAVAILABLE,
 };
 use super::readiness::tool_execution_modes::{
     load_runtime_probe_with_source, load_tool_execution_mode_assignments,
@@ -376,6 +377,18 @@ fn resolve_hpc_resolution(
         };
     }
 
+    if signature.resolution_kind == RESOLUTION_KIND_EXTERNAL_ARTIFACT {
+        return HpcResolution {
+            resolution_kind: RESOLUTION_KIND_UNAVAILABLE.to_string(),
+            resolution_target: String::new(),
+            registry_paths: Vec::new(),
+            unavailable_reason: Some(format!(
+                "selected tool `{}` requires a governed external artifact admission",
+                scope.tool_id
+            )),
+        };
+    }
+
     if let Some(apptainer_row) = apptainer_row {
         return HpcResolution {
             resolution_kind: RESOLUTION_KIND_APPTAINER_IMAGE.to_string(),
@@ -541,4 +554,56 @@ fn ensure_execution_resolver_contract(rows: &[LocalHpcExecutionResolverRow]) -> 
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn external_artifact_admission_overrides_stale_apptainer_mapping() {
+        let scope = SelectedToolScope {
+            tool_id: "angsd".to_string(),
+            lookup_tool_id: "angsd".to_string(),
+            domains: vec!["bam".to_string()],
+            selected_stage_ids: vec!["bam.genotyping".to_string()],
+            selected_job_ids: vec!["job-angsd".to_string()],
+            selected_result_ids: vec!["result-angsd".to_string()],
+            selected_pipeline_ids: Vec::new(),
+            selected_node_ids: Vec::new(),
+        };
+        let signature = RuntimeResolutionSignature {
+            install_kind: "external".to_string(),
+            resolution_kind: RESOLUTION_KIND_EXTERNAL_ARTIFACT.to_string(),
+            resolution_target: "external-artifact://angsd".to_string(),
+            command_entrypoint: Some("angsd".to_string()),
+            unavailable_reason: None,
+        };
+        let stale_apptainer_row = ApptainerMapRow {
+            tool_id: "angsd".to_string(),
+            domains: vec!["bam".to_string()],
+            active_stage_ids: vec!["bam.genotyping".to_string()],
+            docker_runtime: "docker-arm64".to_string(),
+            image_uri: "docker-daemon://bijuxdna/angsd:stale".to_string(),
+            local_image_name: "bijuxdna/angsd:stale".to_string(),
+            dockerfile: "containers/docker/Dockerfile.arm64.angsd".to_string(),
+            apptainer_def: "containers/apptainer/angsd.def".to_string(),
+            apptainer_cache_key: "stale".to_string(),
+            cache_root: "${BIJUX_HPC_ROOT}/.cache".to_string(),
+            expected_sif_path: "${BIJUX_HPC_ROOT}/.cache/angsd-stale.sif".to_string(),
+            conversion_command: "apptainer build stale".to_string(),
+            runtime_probe_paths: vec!["domain/bam/tools/angsd.yaml".to_string()],
+            registry_paths: vec!["configs/ci/registry/tool_registry.toml".to_string()],
+        };
+
+        let resolution = resolve_hpc_resolution(&scope, &signature, Some(&stale_apptainer_row));
+
+        assert_eq!(resolution.resolution_kind, RESOLUTION_KIND_UNAVAILABLE);
+        assert!(resolution.resolution_target.is_empty());
+        assert!(resolution.registry_paths.is_empty());
+        assert_eq!(
+            resolution.unavailable_reason.as_deref(),
+            Some("selected tool `angsd` requires a governed external artifact admission")
+        );
+    }
 }

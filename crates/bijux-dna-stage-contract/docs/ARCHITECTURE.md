@@ -32,6 +32,12 @@ src/
 │   ├── json.rs             # JSON projections
 │   ├── mod.rs              # stage-plan public module surface
 │   └── reason.rs           # decision reason vocabulary
+├── tool_binding/
+│   ├── mod.rs              # tool-binding public module surface
+│   ├── model.rs            # binding interface and serialized model
+│   ├── registry.rs         # deterministic stage/tool registry
+│   ├── rendering.rs        # pure generic argv projection
+│   └── validation.rs       # binding conformance validation
 ├── lib.rs                  # crate public exports
 └── stage_plugin.rs         # stage-plugin invocation and output contracts
 ```
@@ -46,8 +52,10 @@ interpret those payloads; this crate does not execute them.
 
 - Keep the crate root limited to `Cargo.toml`, `README.md`, `docs/`, `src/`,
   and `tests/`.
-- Keep source modules scoped to the five source areas listed above.
+- Keep source modules scoped to the six source areas listed above.
 - Add new modules only when they express stable contract vocabulary that cannot
-  live inside an existing source area.
+  live inside an existing source area. Tool bindings are a separate stable
+  concern because generic planners consume them independently of stage-plugin
+  result parsing.
 - Update boundary tests and docs in the same change as any intentional layout
   change.

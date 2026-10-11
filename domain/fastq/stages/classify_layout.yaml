@@ -3,6 +3,8 @@ stage_id: "fastq.classify_layout"
 status: "planned"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
+benchmark_disposition: "qualification_only"
+benchmark_disposition_reason: "This utility transformation requires contract qualification but does not support a standalone scientific benchmark claim."
 inputs:
   - name: "reads"
     data_type: "fastq"

@@ -19,7 +19,6 @@ pub type BamDuplicationMetricsStageReportPublication = BamObservationStageReport
 const POLICY: BamObservationReportPolicy = BamObservationReportPolicy {
     run_id: "run-2011",
     stage_id: "bam.duplication_metrics",
-    report_file_stem: "run-2011-bam-duplication-metrics",
     tool_ids: &["picard", "samtools"],
     result_artifact: "duplication-summary.tsv",
     input_size_keys: &["bam_input_bytes", "bam_index_input_bytes"],
@@ -39,8 +38,27 @@ pub fn publish_bam_duplication_metrics_stage_report(
     plan: &BenchmarkCampaignPlan,
     output_root: &Path,
 ) -> Result<BamDuplicationMetricsStageReportPublication> {
+    publish_bam_duplication_metrics_stage_report_with_presentation_authority(
+        repository_root,
+        repository_root,
+        study_root,
+        benchmark_root,
+        plan,
+        output_root,
+    )
+}
+
+pub(crate) fn publish_bam_duplication_metrics_stage_report_with_presentation_authority(
+    repository_root: &Path,
+    presentation_repository_root: &Path,
+    study_root: &Path,
+    benchmark_root: &Path,
+    plan: &BenchmarkCampaignPlan,
+    output_root: &Path,
+) -> Result<BamDuplicationMetricsStageReportPublication> {
     publish_bam_observation_stage_report(
         repository_root,
+        presentation_repository_root,
         study_root,
         benchmark_root,
         plan,

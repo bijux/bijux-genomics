@@ -27,12 +27,14 @@
         "name": "reads_r1",
         "path": "reads_R1.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "reads_r2",
         "path": "reads_R2.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       }
     ],
@@ -41,24 +43,28 @@
         "name": "merged_reads",
         "path": "out/pear.assembled.fastq",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "unmerged_reads_r1",
         "path": "out/pear.unassembled.forward.fastq",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": true
       },
       {
         "name": "unmerged_reads_r2",
         "path": "out/pear.unassembled.reverse.fastq",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": true
       },
       {
         "name": "report_json",
         "path": "out/merge_report.json",
         "role": "metrics_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       },
       {

@@ -19,6 +19,7 @@ use self::commands::{measured_command, negative_command, required_files, warmup_
 use super::bam_observation::{ensure_parameter_evidence, execution_inputs, BamParameterPolicy};
 use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
 
+pub(crate) use report::publish_bam_duplication_metrics_stage_report_with_presentation_authority;
 pub use report::{
     publish_bam_duplication_metrics_stage_report, render_bam_duplication_metrics_markdown,
     BamDuplicationMetricsStageReportPublication,

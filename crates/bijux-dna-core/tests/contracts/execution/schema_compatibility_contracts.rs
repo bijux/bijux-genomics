@@ -21,6 +21,7 @@ fn schema_registry_covers_governed_iteration_contracts() {
     assert_eq!(ids.get("workflow_manifest"), Some(&"bijux.workflow_manifest.v1"));
     assert_eq!(ids.get("plan_manifest"), Some(&"bijux.plan_manifest.v1"));
     assert_eq!(ids.get("artifact_inventory"), Some(&"bijux.artifact_inventory.v1"));
+    assert_eq!(ids.get("artifact_contract"), Some(&"bijux.artifact_contract.v1"));
     assert_eq!(ids.get("evidence_bundle"), Some(&"bijux.evidence_bundle.v1"));
     assert_eq!(ids.get("metrics_envelope"), Some(&"bijux.metrics_envelope.v2"));
     assert_eq!(ids.get("report"), Some(&"bijux.report.v1"));
@@ -181,6 +182,7 @@ fn current_plan_manifest() -> anyhow::Result<bijux_dna_core::contract::PlanManif
         profile_id: "essential_qc".to_string(),
         inputs: vec![WorkflowInputArtifactV1 {
             artifact_id: "reads".to_string(),
+            artifact_contract_id: Some("bijux.fastq.artifact.single_end.v1".to_string()),
             role: ArtifactRole::Reads,
             path: PathBuf::from("/tmp/runtime-root/inputs/sample.fastq.gz"),
             layout: Some(ReadLayoutMode::SingleEnd),

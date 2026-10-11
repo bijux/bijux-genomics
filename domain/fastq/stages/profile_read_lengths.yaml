@@ -3,6 +3,8 @@ stage_id: "fastq.profile_read_lengths"
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
+benchmark_disposition: "benchmark_required"
+benchmark_disposition_reason: "The stage has a permanent run reservation in the governed benchmark portfolio."
 inputs:
   - name: "reads_r1"
     data_type: "fastq"

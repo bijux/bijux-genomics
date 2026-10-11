@@ -51,12 +51,12 @@ pub(crate) fn default_tool(stage: VcfDomainStage, coverage: CoverageRegime) -> &
 
 pub(crate) fn image_for_tool(tool: &str) -> ContainerImageRefV1 {
     let image = match tool {
-        "angsd" => "quay.io/biocontainers/angsd:0.940--h2e03b76_2",
+        "angsd" => "external-artifact://angsd",
         "shapeit5" => "quay.io/biocontainers/shapeit5:5.1.1--h9948957_0",
         "eagle" => "quay.io/biocontainers/eagle:2.4.1--h8b12597_2",
         "beagle" => "quay.io/biocontainers/beagle:5.4--hdfd78af_0",
         "glimpse" => "quay.io/biocontainers/glimpse:2.0.0--h9ee0642_0",
-        "impute5" => "quay.io/biocontainers/impute5:1.2.0--h43eeafb_4",
+        "impute5" => "external-artifact://impute5",
         "minimac4" => "quay.io/biocontainers/minimac4:4.1.6--h7d875b9_4",
         "plink" => "quay.io/biocontainers/plink:1.90b6.21--h0a44026_2",
         "plink2" => "quay.io/biocontainers/plink2:2.00a3.7--h5ef6573_0",

@@ -30,6 +30,7 @@
         "name": "reads_r1",
         "path": "reads_R1.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       }
     ],
@@ -38,12 +39,14 @@
         "name": "qc_json",
         "path": "out/qc.json",
         "role": "metrics_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       },
       {
         "name": "qc_tsv",
         "path": "out/qc.tsv",
         "role": "summary_tsv",
+        "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
         "optional": false
       },
       {

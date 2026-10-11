@@ -89,10 +89,10 @@ pub use self::local::{
     BenchLocalValidateVcfSmokeSuiteReadyArgs, BenchLocalValidateVcfStageCatalogReadyArgs,
 };
 pub use self::materialization::{
-    BenchCorpusMaterializationCollectArgs, BenchCorpusMaterializationCommand,
-    BenchCorpusMaterializationPrepareArgs, BenchCorpusMaterializationSlurmArgs,
-    BenchCorpusMaterializationStatusArgs, BenchCorpusMaterializationSubmitArgs,
-    BenchMaterializeFastqCorpusArgs,
+    BenchAcquireFastqCorpusArgs, BenchCorpusMaterializationCollectArgs,
+    BenchCorpusMaterializationCommand, BenchCorpusMaterializationPrepareArgs,
+    BenchCorpusMaterializationSlurmArgs, BenchCorpusMaterializationStatusArgs,
+    BenchCorpusMaterializationSubmitArgs, BenchMaterializeFastqCorpusArgs,
 };
 pub use self::matrix::{BenchMatrixDomainArg, BenchValidateMatrixArgs};
 pub use self::micro::BenchRunMicroArgs;
@@ -238,6 +238,8 @@ pub enum BenchCommand {
     RunMicro(BenchRunMicroArgs),
     #[command(name = "data-index")]
     DataIndex(BenchDataIndexArgs),
+    #[command(name = "acquire-fastq-corpus")]
+    AcquireFastqCorpus(BenchAcquireFastqCorpusArgs),
     #[command(name = "materialize-fastq-corpus")]
     MaterializeFastqCorpus(BenchMaterializeFastqCorpusArgs),
     #[command(name = "corpus-materialization")]

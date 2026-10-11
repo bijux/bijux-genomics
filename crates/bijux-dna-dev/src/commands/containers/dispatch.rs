@@ -195,11 +195,23 @@ pub(super) fn run_native_container_command(
         NativeContainerCommandKey::GenerateImageInventoryScanSchema => {
             inventory::generate_scan_schema(workspace, args)
         }
+        NativeContainerCommandKey::CredentialReference => {
+            execution_contract::run_credential_reference(workspace, args)
+        }
+        NativeContainerCommandKey::ExternalArtifact => external_artifact::run(workspace, args),
         NativeContainerCommandKey::ImageActivation => image_activation::run(workspace, args),
         NativeContainerCommandKey::ImageStorage => storage::run(workspace, args),
+        NativeContainerCommandKey::PipelineContract => {
+            execution_contract::run_pipeline_contract(workspace, args)
+        }
         NativeContainerCommandKey::QualificationRegistry => {
             qualification_registry::run(workspace, args)
         }
+        NativeContainerCommandKey::QualificationSlurm => qualification_slurm::run(workspace, args),
+        NativeContainerCommandKey::RepositoryFreeze => {
+            site_policy::freeze_repository(workspace, args)
+        }
+        NativeContainerCommandKey::RunEvidence => run_evidence::run(workspace, args),
         NativeContainerCommandKey::RuntimeVerification => {
             runtime_verification::run(workspace, args)
         }

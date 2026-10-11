@@ -17,6 +17,11 @@
 - `backend/` owns backend kind contracts and backend-facing facade exports.
 - `backend/slurm/` owns bounded non-waiting scheduler submission, one-shot queue
   observation, terminal accounting collection, cancellation, and fail-closed parsing.
+- `backend/slurm/qualification/` owns immutable container qualification preparation,
+  intent-first submission, disconnect-safe recovery, one-shot observation, terminal scheduler
+  evidence, process execution, and cancellation. Container contract admission remains in
+  `bijux-dna-containers`; probe planning and verdict evaluation remain in
+  `bijux-dna-containers-qa`.
 - `backend/stable_surface.rs` keeps stable backend exports out of the backend root module.
 - `backend/facade.rs` keeps backend re-exports out of the backend root module.
 - `step_runner/` owns step orchestration plus support modules for contracts, runtime policy, dispatch, container argument assembly, backend-specific execution, effects, records, inputs, observer calls, identity, and artifacts.
@@ -56,9 +61,9 @@ once through `sacct`. Missing accounting remains explicit and is not success.
 - `tests/support/workspace_paths.rs` contains shared workspace-root helpers only.
 
 ## Dependency Direction
-Runner may depend on core, runtime, and low-level infrastructure contracts
-needed to execute declared backend commands. It must not plan workflows, select
-domain tools, own CLI behavior, or depend on API/engine orchestration.
+Runner may depend on core, runtime, container, container-QA, and low-level infrastructure
+contracts needed to execute declared backend commands. It must not plan workflows, select domain
+tools, own qualification verdicts, own CLI behavior, or depend on API/engine orchestration.
 
 ## Pointers
 - `INDEX.md` for the doc map.

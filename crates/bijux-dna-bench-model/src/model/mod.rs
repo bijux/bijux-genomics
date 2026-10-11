@@ -3,6 +3,7 @@
 //! Must not perform IO or depend on repo/policy/compare logic.
 
 pub mod admission;
+pub mod campaign_engine;
 pub mod corpus;
 pub mod execution;
 pub mod graph;
@@ -24,6 +25,13 @@ pub mod summary;
 pub use admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
+};
+#[allow(unused_imports)]
+pub use campaign_engine::{
+    benchmark_admitted_case_observation_schema, benchmark_case_aggregation_schema,
+    benchmark_case_matrix_schema, BenchmarkAdmittedCaseObservationV1, BenchmarkCaseAggregationV1,
+    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1,
+    BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
 };
 #[allow(unused_imports)]
 pub use corpus::{
@@ -53,25 +61,29 @@ pub use execution::{
 pub use graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 #[allow(unused_imports)]
 pub use interfaces::{
-    BenchmarkParameterValue, BenchmarkPipelineParameterConfig, BenchmarkStageDownstreamProbe,
-    BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
+    BenchmarkParameterValue, BenchmarkPipelineParameterConfig,
+    BenchmarkReportComparisonPresentation, BenchmarkReportDeterminismPresentation,
+    BenchmarkReportMetricFormat, BenchmarkReportPerformanceColumn, BenchmarkReportPresentation,
+    BenchmarkReportTitleClass, BenchmarkStageDownstreamProbe, BenchmarkStageInterfaceCatalog,
+    BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
 };
 #[allow(unused_imports)]
 pub use lifecycle::{
-    benchmark_attempt_migration_verification_schema, benchmark_campaign_plan_schema,
-    benchmark_scheduler_observation_schema, BenchmarkArchiveFileRecord,
-    BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive, BenchmarkAttemptDisposition,
-    BenchmarkAttemptDocument, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationEntry,
-    BenchmarkAttemptMigrationExclusion, BenchmarkAttemptMigrationLedger,
-    BenchmarkAttemptMigrationLedgerEntry, BenchmarkAttemptMigrationPlan,
-    BenchmarkAttemptMigrationState, BenchmarkAttemptMigrationVerification,
-    BenchmarkAttemptMigrationVerificationEntry, BenchmarkAttemptRecord, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkAttemptV1MigrationContext, BenchmarkCampaignPlan,
-    BenchmarkCycleDocument, BenchmarkCycleStatus, BenchmarkCycleStatusV2,
-    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
-    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
-    BenchmarkSchedulerObservation, BenchmarkSchedulerObservationDraft,
-    BenchmarkSchedulerObservedState, BenchmarkSchedulerTerminalState,
+    benchmark_attempt_identity_schema, benchmark_attempt_migration_verification_schema,
+    benchmark_campaign_plan_schema, benchmark_scheduler_observation_schema,
+    BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
+    BenchmarkAttemptDisposition, BenchmarkAttemptDocument, BenchmarkAttemptIdentity,
+    BenchmarkAttemptMigrationEntry, BenchmarkAttemptMigrationExclusion,
+    BenchmarkAttemptMigrationLedger, BenchmarkAttemptMigrationLedgerEntry,
+    BenchmarkAttemptMigrationPlan, BenchmarkAttemptMigrationState,
+    BenchmarkAttemptMigrationVerification, BenchmarkAttemptMigrationVerificationEntry,
+    BenchmarkAttemptRecord, BenchmarkAttemptRecordV2, BenchmarkAttemptTransition,
+    BenchmarkAttemptV1MigrationContext, BenchmarkCampaignPlan, BenchmarkCycleDocument,
+    BenchmarkCycleStatus, BenchmarkCycleStatusV2, BenchmarkEvidenceReference,
+    BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
+    BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
+    BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
+    BenchmarkSchedulerTerminalState,
 };
 #[allow(unused_imports)]
 pub use materialization::{
@@ -84,16 +96,18 @@ pub use materialization::{
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]
 pub use planning::{
-    benchmark_stage_coverage_schema, BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance,
-    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
-    BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
-    BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
-    BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
-    BenchmarkScientificReadinessReport, BenchmarkScientificReadinessStage,
-    BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
-    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
-    BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
-    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus,
+    benchmark_stage_coverage_schema, benchmark_stage_universe_schema, BenchmarkCachePolicy,
+    BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract, BenchmarkCorpusStatus,
+    BenchmarkDisposition, BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
+    BenchmarkExecutionScheduler, BenchmarkMeasurementContract, BenchmarkPortfolio,
+    BenchmarkProfileAssignment, BenchmarkScientificProfile, BenchmarkScientificReadinessCorpus,
+    BenchmarkScientificReadinessDomain, BenchmarkScientificReadinessReport,
+    BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
+    BenchmarkScientificReadinessSummary, BenchmarkStageCampaignRegistry,
+    BenchmarkStageCampaignSpec, BenchmarkStageCoverage, BenchmarkStageCoverageRow,
+    BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
+    BenchmarkStageInterfaceStatus, BenchmarkStageUniverse, BenchmarkStageUniverseRow,
+    BenchmarkStageUniverseSummary,
 };
 #[allow(unused_imports)]
 pub use protocol::{

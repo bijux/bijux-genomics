@@ -33,12 +33,10 @@ pub fn benchmark_attempt_directory(
     validate_attempt_identity(identity).context("validate benchmark attempt identity")?;
     let run_directory =
         benchmark_run_directory_name(&identity.run).context("derive benchmark run directory")?;
-    Ok(benchmark_root
-        .join(run_directory)
-        .join(&identity.tool_id)
-        .join("attempts")
-        .join(&identity.campaign_id)
-        .join(&identity.attempt_id))
+    let layout_identity = layout_identity(identity, run_directory);
+    Ok(bijux_dna_infra::attempt_layout_paths(benchmark_root, &layout_identity)
+        .context("derive governed benchmark attempt layout")?
+        .attempt_dir)
 }
 
 /// Initialize a permanent attempt with its immutable planned event.
@@ -62,6 +60,7 @@ pub fn initialize_attempt_lifecycle(
     if attempt_directory.exists() {
         bail!("benchmark attempt directory already exists: {}", attempt_directory.display());
     }
+    ensure_governed_layout(benchmark_root, &record.identity)?;
     bijux_dna_infra::atomic_create_json(&attempt_directory.join(ATTEMPT_FILE), record)
         .with_context(|| format!("create benchmark attempt {}", attempt_directory.display()))?;
     Ok(attempt_directory)
@@ -89,7 +88,9 @@ pub fn ensure_attempt_lifecycle(
     validate_supersession_target(benchmark_root, record)?;
     let _lock = acquire_attempt_lock(benchmark_root, &record.identity)?;
     let attempt_directory = benchmark_attempt_directory(benchmark_root, &record.identity)?;
-    if attempt_directory.exists() {
+    let layout = ensure_governed_layout(benchmark_root, &record.identity)?;
+    let attempt_path = attempt_directory.join(ATTEMPT_FILE);
+    if attempt_path.exists() {
         let existing = load_attempt_lifecycle_unlocked(benchmark_root, &record.identity)?;
         if existing != *record {
             bail!(
@@ -99,7 +100,13 @@ pub fn ensure_attempt_lifecycle(
         }
         return Ok(attempt_directory);
     }
-    bijux_dna_infra::atomic_create_json(&attempt_directory.join(ATTEMPT_FILE), record)
+    if !is_pristine_governed_layout(&layout)? {
+        bail!(
+            "benchmark attempt layout contains evidence without an initial lifecycle record: {}",
+            attempt_directory.display()
+        );
+    }
+    bijux_dna_infra::atomic_create_json(&attempt_path, record)
         .with_context(|| format!("create benchmark attempt {}", attempt_directory.display()))?;
     Ok(attempt_directory)
 }
@@ -370,10 +377,11 @@ pub fn record_attempt_running(
     })
 }
 
-/// Derive collecting or failed state from terminal scheduler accounting.
+/// Derive collecting, cancelled, or failed state from terminal scheduler accounting.
 ///
-/// Completed accounting enters collection. Every other terminal state fails the attempt while
-/// preserving raw state, exit data, resource accounting, node identity, and scheduler reason.
+/// Completed accounting enters collection, cancellation remains distinct, and every other
+/// terminal state fails the attempt while preserving raw state, exit data, resource accounting,
+/// node identity, and scheduler reason.
 /// Repeating collection with byte-equivalent accounting is idempotent.
 ///
 /// # Errors
@@ -400,13 +408,18 @@ pub fn record_attempt_accounting(
         {
             bail!("benchmark scheduler accounting has no retained job identity");
         }
-        let status = if accounting.state == BenchmarkSchedulerTerminalState::Completed {
-            BenchmarkLifecycleStatus::Collecting
-        } else {
-            BenchmarkLifecycleStatus::Failed
+        let status = match accounting.state {
+            BenchmarkSchedulerTerminalState::Completed => BenchmarkLifecycleStatus::Collecting,
+            BenchmarkSchedulerTerminalState::Cancelled => BenchmarkLifecycleStatus::Cancelled,
+            BenchmarkSchedulerTerminalState::Failed
+            | BenchmarkSchedulerTerminalState::Timeout
+            | BenchmarkSchedulerTerminalState::Preempted
+            | BenchmarkSchedulerTerminalState::NodeFailure
+            | BenchmarkSchedulerTerminalState::OutOfMemory => BenchmarkLifecycleStatus::Failed,
         };
         let mut transition = next_transition(record, status, observed_at_utc)?;
-        if status == BenchmarkLifecycleStatus::Failed {
+        if matches!(status, BenchmarkLifecycleStatus::Failed | BenchmarkLifecycleStatus::Cancelled)
+        {
             transition.reason = Some(accounting.reason.clone().unwrap_or_else(|| {
                 format!("scheduler reported terminal state {}", accounting.raw_state)
             }));
@@ -579,6 +592,7 @@ fn is_terminal_status(status: BenchmarkLifecycleStatus) -> bool {
         status,
         BenchmarkLifecycleStatus::Passed
             | BenchmarkLifecycleStatus::Failed
+            | BenchmarkLifecycleStatus::Cancelled
             | BenchmarkLifecycleStatus::Superseded
             | BenchmarkLifecycleStatus::BlockedExternal
     )
@@ -599,6 +613,81 @@ fn acquire_attempt_lock(
         .join(format!("{}.lock", identity.attempt_id));
     bijux_dna_infra::FileLock::acquire(&lock_path, LIFECYCLE_LOCK_TIMEOUT)
         .with_context(|| format!("acquire benchmark attempt lock {}", lock_path.display()))
+}
+
+fn ensure_governed_layout(
+    benchmark_root: &Path,
+    identity: &BenchmarkAttemptIdentity,
+) -> Result<bijux_dna_infra::AttemptLayoutPaths> {
+    let run_directory =
+        benchmark_run_directory_name(&identity.run).context("derive benchmark layout directory")?;
+    let layout_identity = layout_identity(identity, run_directory);
+    bijux_dna_infra::ensure_attempt_layout(
+        benchmark_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &layout_identity,
+    )
+    .context("ensure governed benchmark attempt layout")
+}
+
+fn layout_identity(
+    identity: &BenchmarkAttemptIdentity,
+    run_directory: String,
+) -> bijux_dna_infra::AttemptLayoutIdentity {
+    bijux_dna_infra::AttemptLayoutIdentity {
+        run_directory,
+        tool_id: identity.tool_id.clone(),
+        campaign_id: identity.campaign_id.clone(),
+        attempt_id: identity.attempt_id.clone(),
+    }
+}
+
+fn is_pristine_governed_layout(layout: &bijux_dna_infra::AttemptLayoutPaths) -> Result<bool> {
+    let root_names = directory_entry_names(&layout.attempt_dir)?;
+    let expected_root =
+        ["accounting", "logs", "manifests", "outputs", "receipts", "science", "validation"]
+            .into_iter()
+            .map(std::ffi::OsString::from)
+            .collect::<std::collections::BTreeSet<_>>();
+    if root_names != expected_root {
+        return Ok(false);
+    }
+    let manifest_names = directory_entry_names(&layout.manifests_dir)?;
+    if manifest_names
+        != [std::ffi::OsString::from("attempt-layout.json")]
+            .into_iter()
+            .collect::<std::collections::BTreeSet<_>>()
+    {
+        return Ok(false);
+    }
+    for directory in [
+        &layout.logs_dir,
+        &layout.outputs_dir,
+        &layout.accounting_dir,
+        &layout.validation_dir,
+        &layout.science_dir,
+        &layout.receipts_dir,
+    ] {
+        if fs::read_dir(directory)
+            .with_context(|| format!("read governed attempt directory {}", directory.display()))?
+            .next()
+            .is_some()
+        {
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+fn directory_entry_names(path: &Path) -> Result<std::collections::BTreeSet<std::ffi::OsString>> {
+    fs::read_dir(path)
+        .with_context(|| format!("read governed attempt layout {}", path.display()))?
+        .map(|entry| {
+            entry
+                .map(|value| value.file_name())
+                .with_context(|| format!("read governed attempt entry in {}", path.display()))
+        })
+        .collect()
 }
 
 fn validate_attempt_directory_shape(attempt_directory: &Path) -> Result<()> {

@@ -40,7 +40,8 @@ pub use recording::{
     record_attempt_running, record_attempt_scheduler_observation, record_attempt_submission,
     record_attempt_superseded, validate_run_evidence_index, write_canonical_json,
     write_profile_and_lock_manifests, write_run_manifest, AttemptExecutionStatus, RunEvidenceIndex,
-    RunEvidenceRecord, ScientificAcceptanceStatus, CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
+    RunEvidenceRecord, RunEvidenceSummary, ScientificAcceptanceStatus,
+    CONTAINER_RUN_EVIDENCE_INDEX_SCHEMA_V2,
 };
 
 // Run layout entrypoints

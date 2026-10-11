@@ -8,8 +8,11 @@ use bijux_dna_bench_model::contract::{
 use bijux_dna_bench_model::{
     BenchmarkCachePolicy, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
     BenchmarkExecutionScheduler, BenchmarkParameterValue, BenchmarkPipelineParameterConfig,
-    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageDownstreamProbe,
-    BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec, BenchmarkStageParameterConfig,
+    BenchmarkReportComparisonPresentation, BenchmarkReportDeterminismPresentation,
+    BenchmarkReportMetricFormat, BenchmarkReportPerformanceColumn, BenchmarkReportPresentation,
+    BenchmarkReportTitleClass, BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec,
+    BenchmarkStageDownstreamProbe, BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceSpec,
+    BenchmarkStageParameterConfig,
 };
 
 fn interface_catalog() -> BenchmarkStageInterfaceCatalog {
@@ -49,6 +52,22 @@ fn interface_catalog() -> BenchmarkStageInterfaceCatalog {
                 input_contract: "bijux.benchmark.fastq.profile_read_lengths.bundle.v1".to_string(),
                 source: "benchmarks/execution/fastq_read_lengths.awk".to_string(),
                 assertions: vec!["all records preserve exact length".to_string()],
+            },
+            report_presentation: BenchmarkReportPresentation {
+                report_file_stem: "run-2042-fastq-profile-read-lengths".to_string(),
+                generated_source: "bijux-dna-bench::workflow::fastq_profile_read_lengths::report"
+                    .to_string(),
+                title_class: BenchmarkReportTitleClass::Comparative,
+                separate_accuracy_claim: true,
+                include_comparison_closure: true,
+                determinism: BenchmarkReportDeterminismPresentation::DetailedEvidence,
+                comparison: BenchmarkReportComparisonPresentation::ToolMeans,
+                performance_columns: vec![BenchmarkReportPerformanceColumn {
+                    metric: "wall_seconds".to_string(),
+                    heading: "Wall mean (range), s".to_string(),
+                    format: BenchmarkReportMetricFormat::Seconds3,
+                    include_range: true,
+                }],
             },
         }],
     }
@@ -148,6 +167,44 @@ fn stage_interface_contracts_reject_parameter_ownership_overlap() {
 
     let error = validate_stage_interface_catalog(&catalog).err().map(|error| error.to_string());
     assert!(error.as_deref().is_some_and(|message| message.contains("ownership overlaps")));
+}
+
+#[test]
+fn stage_interface_contracts_reject_unknown_artifact_contracts() {
+    let mut catalog = interface_catalog();
+    catalog.interfaces[0].accepted_input_contracts =
+        vec!["bijux.fastq.artifact.tool_specific_filename.v1".to_string()];
+
+    let error = validate_stage_interface_catalog(&catalog).err().map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("unknown canonical artifact contract")));
+}
+
+#[test]
+fn stage_interface_contracts_reject_unsafe_report_presentation() {
+    let mut catalog = interface_catalog();
+    let duplicate = catalog.interfaces[0].report_presentation.performance_columns[0].clone();
+    catalog.interfaces[0].report_presentation.performance_columns.push(duplicate);
+
+    let error = validate_stage_interface_catalog(&catalog).err().map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("unsafe or duplicate columns")));
+}
+
+#[test]
+fn stage_interface_contracts_reject_undeclared_report_metrics() {
+    let catalog = interface_catalog();
+    let mut registry = campaign_registry();
+    registry.campaigns[0].performance_metrics.clear();
+
+    let error = validate_defined_interface_campaign_alignment(&catalog, &registry)
+        .err()
+        .map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("undeclared performance metric")));
 }
 
 #[test]

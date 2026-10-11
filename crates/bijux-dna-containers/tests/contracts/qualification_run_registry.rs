@@ -180,6 +180,39 @@ fn checked_in_reservations_survive_out_of_order_attempts() -> Result<()> {
 }
 
 #[test]
+fn derivation_refreshes_stale_catalog_identity_without_reallocating_runs() -> Result<()> {
+    let root = repository_root()?;
+    let directory = tempfile::tempdir()?;
+    let registry_path = directory.path().join("qualification-runs.toml");
+    let current = derive_qualification_run_registry(&request(&root))?;
+    let mut stale = current.registry.clone();
+    stale.catalog_sha256 = "0".repeat(64);
+    stale
+        .tools
+        .iter_mut()
+        .find(|row| row.tool_id == "adapterremoval")
+        .context("adapterremoval row")?
+        .stage_id = "fastq.trim_reads".to_string();
+    fs::write(&registry_path, render_qualification_run_registry(&stale)?)?;
+    assert!(load_qualification_run_registry(&root, &registry_path).is_err());
+
+    let refreshed = derive_qualification_run_registry(&QualificationRegistryDerivationRequest {
+        repository_root: root.clone(),
+        current_runs_root: root.join("containers/runs"),
+        attempt_ledger_path: root.join("containers/runs/attempt-ledger.json"),
+        supplemental_history_path: root.join("containers/contracts/qualification-run-history.toml"),
+        existing_registry_path: Some(registry_path),
+    })?;
+
+    assert_eq!(refreshed.registry.catalog_sha256, current.registry.catalog_sha256);
+    assert_eq!(run_id(&refreshed, "adapterremoval"), Some("run-1002"));
+    assert_eq!(refreshed.registry.tools[0].stage_id, current.registry.tools[0].stage_id);
+    assert_eq!(run_id(&refreshed, "bijux_dna"), Some("run-1141"));
+    assert_eq!(run_id(&refreshed, "yleaf"), Some("run-1157"));
+    Ok(())
+}
+
+#[test]
 fn tombstones_cannot_be_reused_by_checked_in_reservations() -> Result<()> {
     let root = repository_root()?;
     let directory = tempfile::tempdir()?;

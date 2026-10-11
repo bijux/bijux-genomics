@@ -27,12 +27,14 @@
         "name": "reads_r1",
         "path": "reads_R1.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "rrna_reference",
         "path": "rrna_reference",
         "role": "reference",
+        "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
         "optional": false
       }
     ],
@@ -41,24 +43,28 @@
         "name": "rrna_filtered_reads_r1",
         "path": "out/rrna_filtered.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "rrna_report_tsv",
         "path": "out/rrna_report.tsv",
         "role": "summary_tsv",
+        "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
         "optional": false
       },
       {
         "name": "rrna_removed_reads_r1",
         "path": "out/removed_rrna.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "rrna_report_json",
         "path": "out/rrna_report.json",
         "role": "metrics_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       }
     ]

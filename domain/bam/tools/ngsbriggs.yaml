@@ -6,7 +6,7 @@ pin_strategy: "external_tool"
 default_version: "0.01"
 install_kind: "external"
 container:
-  image: "external"
+  image: "external-artifact://ngsbriggs"
 license: "NOASSERTION"
 citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC11646307/"
 outputs:
@@ -42,7 +42,7 @@ execution_contract:
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 stage_ids: ["bam.damage"]
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
   bam.damage:

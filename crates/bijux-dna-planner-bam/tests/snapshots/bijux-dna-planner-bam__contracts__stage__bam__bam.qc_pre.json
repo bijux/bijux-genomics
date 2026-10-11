@@ -18,6 +18,7 @@
   "io": {
     "inputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "bam",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -29,21 +30,22 @@
         "name": "flagstat",
         "optional": false,
         "path": "out/flagstat.txt",
-        "role": "report_json"
+        "role": "report"
       },
       {
         "name": "idxstats",
         "optional": false,
         "path": "out/idxstats.txt",
-        "role": "unknown"
+        "role": "report"
       },
       {
         "name": "stats",
         "optional": false,
         "path": "out/samtools_stats.txt",
-        "role": "unknown"
+        "role": "report"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",

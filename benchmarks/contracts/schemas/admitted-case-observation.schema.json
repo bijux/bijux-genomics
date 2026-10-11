@@ -1,0 +1,94 @@
+{
+  "$defs": {
+    "BenchmarkCaseRepetitionObservationV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allocated_cpus": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "normalized_result_sha256": {
+          "type": "string"
+        },
+        "performance": {
+          "additionalProperties": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "object"
+        },
+        "repetition": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scientific": {
+          "additionalProperties": {
+            "$ref": "#/$defs/BenchmarkScientificValue"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "repetition",
+        "allocated_cpus",
+        "performance",
+        "scientific",
+        "normalized_result_sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkScientificValue": {
+      "anyOf": [
+        {
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "admission_sha256": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "input_lock_sha256": {
+      "type": "string"
+    },
+    "parameter_lock_sha256": {
+      "type": "string"
+    },
+    "repetitions": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkCaseRepetitionObservationV1"
+      },
+      "type": "array"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.admitted_case_observation.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "case_id",
+    "repository_commit",
+    "admission_sha256",
+    "input_lock_sha256",
+    "parameter_lock_sha256",
+    "repetitions"
+  ],
+  "title": "BenchmarkAdmittedCaseObservationV1",
+  "type": "object"
+}

@@ -19,6 +19,7 @@ fn dependency_graph_matches_dev_boundary() {
         "bijux-dna-infra",
         "bijux-dna-runtime",
         "bijux-dna-runner",
+        "bijux-dna-stage-contract",
         "chrono",
         "clap",
         "regex",

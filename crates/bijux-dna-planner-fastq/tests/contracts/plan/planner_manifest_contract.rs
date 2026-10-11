@@ -84,6 +84,7 @@ fn workflow_manifest(advisory_trim: bool) -> WorkflowManifestV1 {
     let mut manifest = WorkflowManifestV1::new("fastq", "fastq-to-fastq__default__v1");
     manifest.inputs = vec![WorkflowInputArtifactV1 {
         artifact_id: "reads".to_string(),
+        artifact_contract_id: Some("bijux.fastq.artifact.single_end.v1".to_string()),
         role: ArtifactRole::Reads,
         path: PathBuf::from("reads_R1.fastq.gz"),
         layout: None,

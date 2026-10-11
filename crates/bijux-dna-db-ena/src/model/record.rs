@@ -14,11 +14,21 @@ pub struct EnaRecord {
     pub library_layout: Option<String>,
     pub library_source: Option<String>,
     pub library_strategy: Option<String>,
+    #[serde(default)]
+    pub library_selection: Option<String>,
+    #[serde(default)]
+    pub instrument_platform: Option<String>,
     pub instrument_model: Option<String>,
     pub base_count: Option<u64>,
     pub read_count: Option<u64>,
     pub fastq_bytes: Vec<u64>,
     pub fastq_ftp: Vec<String>,
+    #[serde(default)]
+    pub fastq_md5: Vec<String>,
+    #[serde(default)]
+    pub first_public: Option<String>,
+    #[serde(default)]
+    pub last_updated: Option<String>,
     pub submitted_ftp: Vec<String>,
     pub sra_ftp: Vec<String>,
     pub bam_ftp: Vec<String>,

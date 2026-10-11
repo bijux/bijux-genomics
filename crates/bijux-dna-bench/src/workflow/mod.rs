@@ -9,8 +9,10 @@ mod bam_endogenous_content;
 mod bam_genotyping;
 mod bam_mapping_summary;
 mod bam_observation;
+mod campaign_engine;
 mod campaign_lifecycle;
 mod campaign_material;
+mod corpus_acquisition;
 mod corpus_materialization;
 mod evaluation;
 mod fastq_detect_adapters;
@@ -24,6 +26,7 @@ mod run_suite;
 mod scientific_readiness;
 mod stage_coverage;
 mod stage_report;
+mod stage_universe;
 mod suite_load;
 mod summary;
 mod summary_fairness;
@@ -64,6 +67,15 @@ pub use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
     load_attempt_lifecycle,
 };
+pub use campaign_engine::{
+    aggregate_benchmark_case_observations, plan_benchmark_case_matrix,
+    validate_benchmark_case_matrix, BenchmarkAdmittedCaseObservationV1, BenchmarkCaseAggregationV1,
+    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV1,
+    BenchmarkCaseMeasurementPlanV1, BenchmarkCaseRepetitionObservationV1,
+    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V1,
+    BENCHMARK_CASE_MATRIX_SCHEMA_V1,
+};
 pub use campaign_lifecycle::{
     build_execution_spec, ensure_execution_spec, ensure_stage_campaign_attempts,
     load_execution_authorities, load_execution_spec, plan_stage_campaign_attempts,
@@ -72,8 +84,12 @@ pub use campaign_lifecycle::{
 };
 pub use campaign_material::{
     admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
-    publish_benchmark_campaign_report, BenchmarkCampaignEvidence, BenchmarkCampaignMaterialRequest,
-    BenchmarkCampaignReportPublication,
+    publish_benchmark_campaign_report,
+    publish_benchmark_campaign_report_with_presentation_authority, BenchmarkCampaignEvidence,
+    BenchmarkCampaignMaterialRequest, BenchmarkCampaignReportPublication,
+};
+pub use corpus_acquisition::{
+    acquire_fastq_corpus, derive_fastq_corpus_acquisition_plan, CorpusAcquisitionRequest,
 };
 pub use corpus_materialization::{
     materialize_fastq_corpus, CorpusMaterializationPublication, CorpusMaterializationRequest,
@@ -117,10 +133,19 @@ pub use stage_coverage::{
     derive_stage_coverage, publish_checked_in_stage_coverage, render_stage_coverage_markdown,
     BenchmarkCoverageWriteMode,
 };
+pub use stage_report::{
+    publish_stage_report, render_stage_report_markdown, BenchmarkStageReportPublication,
+};
+pub use stage_universe::{
+    derive_stage_universe, publish_checked_in_stage_universe, render_stage_universe_markdown,
+    BenchmarkUniverseWriteMode,
+};
 pub use suite_load::{
     load_benchmark_portfolio, load_bundle_catalog, load_bundle_manifest,
     load_checked_in_benchmark_contracts, load_checked_in_benchmark_planning_contracts,
     load_corpus_catalog, load_corpus_manifest, load_stage_campaign_registry,
-    load_stage_interface_catalog, load_stage_interface_catalog_from_repo, load_suite,
+    load_stage_interface_catalog, load_stage_interface_catalog_for_publication,
+    load_stage_interface_catalog_from_repo, load_suite, BenchmarkPublicationInterfaceCatalog,
+    BenchmarkReportPresentationAuthority,
 };
 pub use summary::summarize;

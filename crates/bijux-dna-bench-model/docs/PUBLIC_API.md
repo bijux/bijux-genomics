@@ -19,6 +19,10 @@ Model contracts:
 - `BenchmarkStageCoverageRow`
 - `BenchmarkStageDefinitionStatus`
 - `BenchmarkStageExecutionStatus`
+- `BenchmarkDisposition`
+- `BenchmarkStageUniverse`
+- `BenchmarkStageUniverseSummary`
+- `BenchmarkStageUniverseRow`
 - `BenchmarkPortfolio`
 - `BenchmarkStageInterfaceCatalog`
 - `BenchmarkStageInterfaceSpec`
@@ -45,6 +49,9 @@ Model contracts:
 - `BenchmarkEvidenceReference`
 - `BenchmarkRunIdentity`
 - `BenchmarkAttemptIdentity`
+- `BenchmarkRunDefinition`
+- `BenchmarkPublicationReceipt`
+- `BenchmarkCitationRecord`
 - `BenchmarkAttemptTransition`
 - `BenchmarkAttemptRecordV2`
 - `BenchmarkCycleStatusV2`
@@ -108,6 +115,7 @@ Policy and diagnostics:
 - `BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1`
 - `BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1`
 - `BENCHMARK_STAGE_COVERAGE_SCHEMA_V1`
+- `BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1`
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
@@ -119,8 +127,15 @@ Statistics:
 
 - `robust_stats`
 
+Identity operations:
+
+- `benchmark_attempt_identity_sha256`
+- `benchmark_run_definition_sha256`
+- `validate_benchmark_run_definition_revision`
+
 Schema derivation:
 
+- `benchmark_attempt_identity_schema`
 - `benchmark_campaign_plan_schema`
 - `benchmark_suite_spec_schema`
 - `benchmark_corpus_manifest_schema`
@@ -158,6 +173,8 @@ for operation names and entrypoints.
 - V2 attempt transitions are append-only and retain checksummed evidence plus
   terminal scheduler accounting. A retry receives a new permanent attempt
   identity and records explicit same-run, same-tool supersession.
+- Run-protocol changes increase canonical `protocol_version` under the same run
+  identity or allocate a replacement run with explicit supersession.
 - Public validation behavior must be reflected in contract tests and the
   relevant docs.
 - Public ordering of lists, reports, and rationale traces must remain

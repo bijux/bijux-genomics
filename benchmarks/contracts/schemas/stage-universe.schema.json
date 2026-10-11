@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkStageUniverse",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.stage_universe.v1"
+    },
+    "stages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageUniverseRow"
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkStageUniverseSummary"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "summary",
+    "stages"
+  ],
+  "$defs": {
+    "BenchmarkDisposition": {
+      "type": "string",
+      "enum": [
+        "benchmark_required",
+        "qualification_only",
+        "orchestration_only",
+        "test_only",
+        "retired",
+        "excluded"
+      ]
+    },
+    "BenchmarkStageUniverseRow": {
+      "type": "object",
+      "properties": {
+        "benchmark_disposition": {
+          "$ref": "#/$defs/BenchmarkDisposition"
+        },
+        "benchmark_disposition_reason": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "reserved_run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "stage_id",
+        "domain",
+        "status",
+        "benchmark_disposition",
+        "benchmark_disposition_reason"
+      ]
+    },
+    "BenchmarkStageUniverseSummary": {
+      "type": "object",
+      "properties": {
+        "benchmark_required_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "excluded_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "orchestration_only_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "qualification_only_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "retired_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "test_only_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "stage_count",
+        "benchmark_required_count",
+        "qualification_only_count",
+        "orchestration_only_count",
+        "test_only_count",
+        "retired_count",
+        "excluded_count"
+      ]
+    }
+  }
+}

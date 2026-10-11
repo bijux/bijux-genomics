@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::contract::{
     BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
+    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
 };
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -328,6 +329,74 @@ impl BenchmarkStageCoverage {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkDisposition {
+    BenchmarkRequired,
+    QualificationOnly,
+    OrchestrationOnly,
+    TestOnly,
+    Retired,
+    Excluded,
+}
+
+impl BenchmarkDisposition {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::BenchmarkRequired => "benchmark_required",
+            Self::QualificationOnly => "qualification_only",
+            Self::OrchestrationOnly => "orchestration_only",
+            Self::TestOnly => "test_only",
+            Self::Retired => "retired",
+            Self::Excluded => "excluded",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageUniverseSummary {
+    pub stage_count: usize,
+    pub benchmark_required_count: usize,
+    pub qualification_only_count: usize,
+    pub orchestration_only_count: usize,
+    pub test_only_count: usize,
+    pub retired_count: usize,
+    pub excluded_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageUniverseRow {
+    pub stage_id: String,
+    pub domain: String,
+    pub status: String,
+    pub benchmark_disposition: BenchmarkDisposition,
+    pub benchmark_disposition_reason: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reserved_run_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageUniverse {
+    #[schemars(schema_with = "benchmark_stage_universe_schema_version")]
+    pub schema_version: String,
+    pub summary: BenchmarkStageUniverseSummary,
+    pub stages: Vec<BenchmarkStageUniverseRow>,
+}
+
+impl BenchmarkStageUniverse {
+    #[must_use]
+    pub fn v1(
+        summary: BenchmarkStageUniverseSummary,
+        stages: Vec<BenchmarkStageUniverseRow>,
+    ) -> Self {
+        Self { schema_version: BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1.to_string(), summary, stages }
+    }
+}
+
 #[must_use]
 pub fn benchmark_stage_campaign_registry_schema() -> Schema {
     schemars::schema_for!(BenchmarkStageCampaignRegistry)
@@ -369,9 +438,21 @@ pub fn benchmark_stage_coverage_schema() -> Schema {
     schemars::schema_for!(BenchmarkStageCoverage)
 }
 
+#[must_use]
+pub fn benchmark_stage_universe_schema() -> Schema {
+    schemars::schema_for!(BenchmarkStageUniverse)
+}
+
 fn benchmark_stage_coverage_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
+    })
+}
+
+fn benchmark_stage_universe_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
     })
 }

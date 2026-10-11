@@ -97,6 +97,7 @@ fn synthetic_inputs_from_graph(
         })
         .map(|input| WorkflowInputArtifactV1 {
             artifact_id: input.name.to_string(),
+            artifact_contract_id: input.artifact_contract_id.clone(),
             role: input.role,
             path: input.path.clone(),
             layout: None,

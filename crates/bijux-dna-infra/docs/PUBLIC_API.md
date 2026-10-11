@@ -23,6 +23,10 @@
 - Retry: `RetryPolicy`, `Clock`, `SystemClock`, `backoff_delay`, and `retry_with`.
 - Run layout: `RunLayoutContract`, `RunLayoutPaths`, `RUN_LAYOUT_CONTRACT`,
   `PIPELINE_RUN_DIR_TEMPLATE`, `lock_run`, and `publish_run`.
+- Attempt layout: `AttemptLayoutIdentity`, `AttemptLayoutPaths`, `AttemptLayoutManifestV1`,
+  `AttemptEvidenceOwner`, `ATTEMPT_LAYOUT_CONTRACT`, `ATTEMPT_LAYOUT_SCHEMA_V1`,
+  `attempt_layout_paths`, `attempt_layout_schema`, `ensure_attempt_layout`, and
+  `validate_attempt_owner_roots`.
 - Temp directories: `temp_dir` and `temp_dir_in`.
 
 ## Stability Rules

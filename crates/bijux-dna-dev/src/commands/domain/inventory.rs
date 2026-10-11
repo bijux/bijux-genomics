@@ -352,6 +352,7 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
     }
 
     let registry_tools = cargo_registry_list_tools(workspace)?;
+    let executable_registry_tools = registry_tools.union(&external).cloned().collect();
     let mut code_registry_tools = registry_tools.clone();
     for path in [
         workspace.path("configs/ci/registry/tool_registry_vcf.toml"),
@@ -446,7 +447,12 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
     }
 
     let mut diffs = Vec::new();
-    push_diff(&mut diffs, &domain_tools, &registry_tools, "domain tools missing from registry");
+    push_diff(
+        &mut diffs,
+        &domain_tools,
+        &executable_registry_tools,
+        "domain tools missing from distributable or external-artifact registries",
+    );
     push_diff(
         &mut diffs,
         &code_tools,
@@ -456,8 +462,8 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
     push_diff(
         &mut diffs,
         &make_tools,
-        &registry_tools,
-        "make-referenced tools missing from registry",
+        &executable_registry_tools,
+        "make-referenced tools missing from distributable or external-artifact registries",
     );
     push_diff(&mut diffs, &registry_tools, &domain_tools, "registry tools missing from domain");
     push_diff(
@@ -486,6 +492,7 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
     stdout.push_str("--- inventory counts ---\n");
     stdout.push_str(&format!("domain:   {}\n", domain_tools.len()));
     stdout.push_str(&format!("registry: {}\n", registry_tools.len()));
+    stdout.push_str(&format!("external: {}\n", external.len()));
     stdout.push_str(&format!("code:     {}\n", code_tools.len()));
     stdout.push_str(&format!("make:     {}\n", make_tools.len()));
     stdout.push_str(&format!("stages(domain): {}\n", domain_stages.len()));

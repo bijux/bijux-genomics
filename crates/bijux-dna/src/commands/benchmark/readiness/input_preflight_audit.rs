@@ -18,6 +18,7 @@ use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
 };
 use super::all_domain_retained_tools::collect_all_domain_retained_tool_rows;
+use super::catalog::load_external_artifact_tool_contracts;
 use super::stage_tool_assets::{collect_stage_tool_asset_rows, StageToolAssetRow};
 use super::vcf_adapter_missing_input_audit::render_vcf_adapter_missing_input_audit;
 use super::vcf_angsd_adapter::render_vcf_angsd_adapter;
@@ -103,6 +104,17 @@ struct LocalCaseInputs {
 #[derive(Debug, Deserialize)]
 struct LocalCaseConfig {
     cases: Vec<LocalCaseInputs>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ExternalPreflightToolContract {
+    #[serde(default)]
+    execution_contract: Option<ExternalPreflightExecutionContract>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ExternalPreflightExecutionContract {
+    required_inputs: Vec<String>,
 }
 
 pub(crate) fn run_render_input_preflight_audit(
@@ -192,6 +204,11 @@ pub(crate) fn render_input_preflight_audit(
 fn collect_input_preflight_test_rows(repo_root: &Path) -> Result<Vec<InputPreflightTestRow>> {
     let mut rows = collect_fastq_and_bam_input_preflight_rows(repo_root)?;
     rows.extend(collect_vcf_input_preflight_rows(repo_root)?);
+    rows.extend(collect_external_artifact_input_preflight_rows(repo_root, &rows)?);
+    for row in &mut rows {
+        row.artifact_path = normalize_repo_paths_in_text(repo_root, &row.artifact_path);
+        row.observed_error = normalize_repo_paths_in_text(repo_root, &row.observed_error);
+    }
     rows.sort_by(|left, right| {
         left.domain
             .cmp(&right.domain)
@@ -199,6 +216,95 @@ fn collect_input_preflight_test_rows(repo_root: &Path) -> Result<Vec<InputPrefli
             .then_with(|| left.tool_id.cmp(&right.tool_id))
             .then_with(|| left.missing_input_role.cmp(&right.missing_input_role))
     });
+    Ok(rows)
+}
+
+fn normalize_repo_paths_in_text(repo_root: &Path, text: &str) -> String {
+    let repo_root = repo_root.to_string_lossy().replace('\\', "/");
+    let normalized = text.replace('\\', "/");
+    normalized.replace(&format!("{}/", repo_root.trim_end_matches('/')), "")
+}
+
+fn collect_external_artifact_input_preflight_rows(
+    repo_root: &Path,
+    existing_rows: &[InputPreflightTestRow],
+) -> Result<Vec<InputPreflightTestRow>> {
+    let covered_tool_ids =
+        existing_rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>();
+    let mut rows = Vec::new();
+
+    for contract in load_external_artifact_tool_contracts(repo_root)? {
+        for domain in &contract.domains {
+            let contract_path = repo_root
+                .join("domain")
+                .join(domain)
+                .join("tools")
+                .join(format!("{}.yaml", contract.tool_id));
+            let raw = fs::read_to_string(&contract_path)
+                .with_context(|| format!("read {}", contract_path.display()))?;
+            let parsed: ExternalPreflightToolContract = bijux_dna_infra::formats::parse_yaml(&raw)
+                .with_context(|| format!("parse {}", contract_path.display()))?;
+            let Some(execution_contract) = parsed.execution_contract else {
+                continue;
+            };
+            if execution_contract.required_inputs.is_empty() {
+                return Err(anyhow!(
+                    "external artifact tool `{}` has an empty required-input contract in {}",
+                    contract.tool_id,
+                    contract_path.display()
+                ));
+            }
+
+            for stage_id in contract
+                .stage_ids
+                .iter()
+                .filter(|stage_id| stage_id.starts_with(&format!("{domain}.")))
+            {
+                let matrix_row = AllDomainActiveStageToolMatrixRow {
+                    domain: domain.clone(),
+                    stage_id: stage_id.clone(),
+                    tool_id: contract.tool_id.clone(),
+                    corpus_id: "external_artifact_contract".to_string(),
+                    asset_profile_id: "external_artifact_contract".to_string(),
+                    adapter_id: "external_artifact_contract".to_string(),
+                    parser_id: "external_artifact_contract".to_string(),
+                    schema_id: "external_artifact_contract".to_string(),
+                    status: "not_benchmark_ready".to_string(),
+                };
+                for required_input in &execution_contract.required_inputs {
+                    let input_path = PathBuf::from(format!(
+                        "artifacts/bench-readiness/input-preflight-tests/external-contract/{domain}/{}/{required_input}.missing",
+                        contract.tool_id
+                    ));
+                    let artifact = ProbeArtifact {
+                        name: ArtifactId::new(required_input.clone()),
+                        role: ArtifactRole::Unknown,
+                        missing_input_class: infer_missing_input_class(required_input, &input_path),
+                        path: input_path,
+                    };
+                    let base_step =
+                        build_probe_step(repo_root, &matrix_row, std::slice::from_ref(&artifact))?;
+                    let mut row = run_runtime_probe(repo_root, &matrix_row, &base_step, &artifact);
+                    row.contract_surface = "external_artifact_execution_contract".to_string();
+                    row.reason = format!(
+                        "operator-provided tool `{}` fails before artifact admission or execution when required `{required_input}` input is absent",
+                        contract.tool_id
+                    );
+                    rows.push(row);
+                }
+            }
+        }
+
+        if !covered_tool_ids.contains(contract.tool_id.as_str())
+            && !rows.iter().any(|row| row.tool_id == contract.tool_id)
+        {
+            return Err(anyhow!(
+                "external artifact tool `{}` has neither adapter nor execution-contract preflight coverage",
+                contract.tool_id
+            ));
+        }
+    }
+
     Ok(rows)
 }
 

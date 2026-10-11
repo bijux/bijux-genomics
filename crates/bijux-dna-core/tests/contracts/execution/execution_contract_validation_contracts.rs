@@ -5,7 +5,9 @@ use bijux_dna_core::contract::execution::{
     validate_execution_outputs, ExecutionEdge, ExecutionGraph, ExecutionStep,
 };
 use bijux_dna_core::contract::{
-    ArtifactRole, ExecutionContract, PlanPolicy, StageIO, ToolConstraints,
+    artifact_contract_catalog_schema, canonical_artifact_contract_catalog,
+    ensure_artifact_compatibility, ArtifactPresenceV1, ArtifactRole, ExecutionContract, PlanPolicy,
+    StageIO, ToolConstraints,
 };
 use bijux_dna_core::metrics::{
     validate_derived_metric_id_str, ToolInvocationSpecV1, ToolInvocationV1,
@@ -225,4 +227,40 @@ fn derived_metric_validation_and_tool_invocation_constructor_paths() {
     assert!(invocation.bank_assets.is_none());
     assert_eq!(invocation.input_hashes.len(), 1);
     assert_eq!(invocation.output_hashes.len(), 1);
+}
+
+#[test]
+fn canonical_artifact_contracts_reject_incompatible_handoffs_before_execution() {
+    let catalog = canonical_artifact_contract_catalog();
+    assert!(catalog.validate().is_ok());
+    assert_eq!(catalog.contracts.len(), 17);
+    assert!(serde_json::to_value(artifact_contract_catalog_schema()).is_ok());
+
+    let consumer = catalog
+        .contract("bijux.bam.artifact.coordinate_sorted_indexed.v1")
+        .unwrap_or_else(|| panic!("canonical BAM contract must exist"));
+    assert!(ensure_artifact_compatibility(consumer, consumer).is_ok());
+
+    let mut producer = consumer.clone();
+    producer.contract_id = "bijux.bam.artifact.coordinate_sorted_optional_index.v1".to_string();
+    producer.index = ArtifactPresenceV1::Optional;
+    producer.sidecars[0].presence = ArtifactPresenceV1::Optional;
+    let error = ensure_artifact_compatibility(&producer, consumer)
+        .err()
+        .unwrap_or_else(|| panic!("optional index cannot satisfy indexed BAM input"));
+    assert!(error.to_string().contains("incompatible index"));
+}
+
+#[test]
+fn specific_fastq_contract_satisfies_role_level_reads_contract() {
+    let catalog = canonical_artifact_contract_catalog();
+    let producer = catalog
+        .contract("bijux.fastq.artifact.paired_end.v1")
+        .unwrap_or_else(|| panic!("canonical paired-end contract must exist"));
+    let consumer = catalog
+        .contract("bijux.fastq.artifact.reads.v1")
+        .unwrap_or_else(|| panic!("canonical role-level reads contract must exist"));
+
+    assert!(ensure_artifact_compatibility(producer, consumer).is_ok());
+    assert!(ensure_artifact_compatibility(consumer, producer).is_err());
 }

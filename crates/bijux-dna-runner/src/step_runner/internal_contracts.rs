@@ -5,7 +5,7 @@ use super::identity::{
 use super::inputs::container_input_mapping;
 use super::observer::build_observer_command_args;
 use super::runtime_policy::stage_workdir_for_value;
-use super::{build_apptainer_exec_args, container_command_template, hash_inputs};
+use super::{build_apptainer_exec_args, container_command_template, execute_step, hash_inputs};
 use anyhow::anyhow;
 use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_core::contract::ExecutionStep;
@@ -59,6 +59,26 @@ fn runtime_platform_identity_defaults_to_runner_name() {
     assert_eq!(runtime_platform_identity(RuntimeKind::Docker), "docker");
     assert_eq!(runtime_platform_identity(RuntimeKind::Apptainer), "apptainer");
     assert_eq!(runtime_platform_identity(RuntimeKind::Singularity), "singularity");
+}
+
+#[test]
+fn ordinary_runner_refuses_external_artifact_plans_before_execution() -> anyhow::Result<()> {
+    let step = execution_step_fixture(
+        "sample-0001.vcf.call-gl.angsd",
+        "vcf.call_gl",
+        &["angsd".to_string(), "-i".to_string(), "sample.bam".to_string()],
+        "external-artifact://angsd",
+        Vec::new(),
+        Vec::new(),
+        "/artifacts/runtime/out",
+    );
+
+    let error = execute_step(&step, RuntimeKind::Local, None)
+        .err()
+        .ok_or_else(|| anyhow!("ordinary runner accepted restricted-tool execution"))?;
+
+    assert!(error.to_string().contains("execute_external_artifact_step"));
+    Ok(())
 }
 
 #[test]

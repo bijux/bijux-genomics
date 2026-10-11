@@ -320,8 +320,8 @@ mod tests {
 
         assert_eq!(report.schema_version, TOOL_FAMILIES_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.classification_scope, "primary_benchmark_function");
-        assert_eq!(report.family_count, 32);
-        assert_eq!(report.tool_count, 73);
+        assert_eq!(report.family_count, 31);
+        assert_eq!(report.tool_count, 71);
         assert!(report.valid, "governed tool family config must validate cleanly");
 
         let bowtie2_build = report
@@ -348,6 +348,9 @@ mod tests {
         let shapeit5 =
             report.rows.iter().find(|row| row.tool_id == "shapeit5").expect("shapeit5 row");
         assert_eq!(shapeit5.family_id, "vcf_phasing");
+
+        let ibdseq = report.rows.iter().find(|row| row.tool_id == "ibdseq").expect("ibdseq row");
+        assert_eq!(ibdseq.family_id, "vcf_identity_by_descent");
     }
 
     #[test]

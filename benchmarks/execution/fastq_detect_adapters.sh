@@ -2,6 +2,7 @@
 
 set -eu
 
+repository_root=${BIJUX_BENCHMARK_REPOSITORY_ROOT:-/repository}
 mode=${1:-}
 shift || true
 
@@ -34,7 +35,11 @@ detect_bank_rows() {
             }
             id = ""
         }
-    ' /repository/assets/reference/adapters/bank.v1.yaml
+    ' "${repository_root}/assets/reference/adapters/bank.v1.yaml"
+}
+
+summary_header() {
+    printf 'sample_id\tinput_layout\tfile_count\treads_in\treads_out\tbases_in\tbases_out\tmean_q\tcandidate_adapter_count\tdetected_adapter_ids\tdetection_confidence\tdetection_threshold\tadapter_trimmed_fraction\tadapter_content_max\tadapter_content_mean\tduplication_rate\tn_rate\tkmer_warning_count\toverrepresented_sequence_count\n'
 }
 
 sample_report() {
@@ -235,7 +240,8 @@ sample_report() {
             printf "  \"detected_adapter_source\": \"normalized_fastqc_evidence\",\n" > report_handle
             printf "  \"detected_adapter_ids\": [" > report_handle
             for (i = 1; i <= detected_count; i++) {
-                printf "%s\"%s\"", i > 1 ? ", " : "", json_escape(detected_ids[i]) > report_handle
+                separator = i > 1 ? ", " : ""
+                printf "%s\"%s\"", separator, json_escape(detected_ids[i]) > report_handle
             }
             printf "],\n" > report_handle
             if (detected_count > 0) {
@@ -310,13 +316,29 @@ sample_report() {
 normalize_reports() {
     [ $# -eq 1 ] || fail "normalize requires one manifest path"
     manifest=$1
-    awk '
-        BEGIN {
-            FS = OFS = "\t"
-            print "sample_id\tinput_layout\tfile_count\treads_in\treads_out\tbases_in\tbases_out\tmean_q\tcandidate_adapter_count\tdetected_adapter_ids\tdetection_confidence\tdetection_threshold\tadapter_trimmed_fraction\tadapter_content_max\tadapter_content_mean\tduplication_rate\tn_rate\tkmer_warning_count\toverrepresented_sequence_count"
+    expected_header=$(summary_header)
+    awk -v expected_header="$expected_header" '
+        function fail(message) {
+            print message > "/dev/stderr"
+            exit 2
         }
-        { print }
-    ' "$manifest" | LC_ALL=C sort -t '	' -k1,1
+        BEGIN {
+            saw_header = 0
+        }
+        NR == 1 {
+            if ($0 != expected_header) {
+                fail("FASTQ detect adapters manifest header is invalid")
+            }
+            saw_header = 1
+        }
+        END {
+            if (!saw_header) {
+                fail("FASTQ detect adapters manifest is empty")
+            }
+        }
+    ' "$manifest" > /dev/null
+    summary_header
+    awk 'NR > 1 { print }' "$manifest" | LC_ALL=C sort -t '	' -k1,1
 }
 
 bundle_reports() {
@@ -360,7 +382,8 @@ bundle_reports() {
                 if (length(ids[i]) == 0) {
                     continue
                 }
-                printf "%s\"%s\"", written ? "," : "", json_escape(ids[i])
+                separator = written ? "," : ""
+                printf "%s\"%s\"", separator, json_escape(ids[i])
                 written = 1
             }
             printf "],\"detection_confidence\":%s,\"detection_threshold\":%.12f,\"adapter_trimmed_fraction\":%.12f,\"adapter_content_max\":%.12f,\"adapter_content_mean\":%.12f,\"duplication_rate\":%.12f,\"n_rate\":%.12f,\"kmer_warning_count\":%.0f,\"overrepresented_sequence_count\":%.0f}", json_number($11), $12, $13, $14, $15, $16, $17, $18, $19
@@ -439,6 +462,7 @@ aggregate_reports() {
 }
 
 case "$mode" in
+    header) summary_header "$@" ;;
     sample-report) sample_report "$@" ;;
     normalize) normalize_reports "$@" ;;
     bundle) bundle_reports "$@" ;;

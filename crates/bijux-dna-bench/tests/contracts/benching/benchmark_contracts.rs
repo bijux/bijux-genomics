@@ -156,6 +156,48 @@ fn checked_in_stage_coverage_publications_have_no_drift() -> Result<()> {
 }
 
 #[test]
+fn checked_in_stage_universe_closes_every_domain_stage() -> Result<()> {
+    let reports_dir = bijux_dna_bench::bench_reports_dir();
+    let repository_root = reports_dir
+        .ancestors()
+        .find(|root| root.join(".git").exists())
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?;
+    let portfolio = bijux_dna_bench::load_benchmark_portfolio(
+        &repository_root.join("benchmarks/contracts/portfolio.toml"),
+    )?;
+    let universe = bijux_dna_bench::derive_stage_universe(repository_root, &portfolio)?;
+
+    assert_eq!(universe.summary.stage_count, 89);
+    assert_eq!(universe.summary.benchmark_required_count, 71);
+    assert_eq!(universe.summary.qualification_only_count, 9);
+    assert_eq!(universe.summary.orchestration_only_count, 9);
+    assert_eq!(universe.summary.test_only_count, 0);
+    assert_eq!(universe.summary.retired_count, 0);
+    assert_eq!(universe.summary.excluded_count, 0);
+    assert!(universe.stages.iter().all(|stage| {
+        !stage.benchmark_disposition_reason.trim().is_empty()
+            && (stage.benchmark_disposition
+                == bijux_dna_bench::BenchmarkDisposition::BenchmarkRequired)
+                == stage.reserved_run_id.is_some()
+    }));
+    Ok(())
+}
+
+#[test]
+fn checked_in_stage_universe_publications_have_no_drift() -> Result<()> {
+    let reports_dir = bijux_dna_bench::bench_reports_dir();
+    let repository_root = reports_dir
+        .ancestors()
+        .find(|root| root.join(".git").exists())
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?;
+    bijux_dna_bench::publish_checked_in_stage_universe(
+        repository_root,
+        bijux_dna_bench::BenchmarkUniverseWriteMode::Check,
+    )?;
+    Ok(())
+}
+
+#[test]
 fn stage_report_admission_rejects_incomplete_tool_closure() -> Result<()> {
     let mut reports = bijux_dna_bench::load_checked_in_stage_reports()?;
     let mut report =

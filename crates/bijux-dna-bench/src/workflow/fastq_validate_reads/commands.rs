@@ -134,7 +134,9 @@ mod tests {
             let measured = measured_command(&repository, tool, &samples, 42)?;
             let negative = negative_command(&repository, tool)?;
             assert!(warmup[2].contains("bijux.fastq.validate.report.v1"));
+            assert!(!warmup[2].contains("%%s"));
             assert!(measured[2].contains("fastq_validate_reads.awk"));
+            assert!(!measured[2].contains("%%s"));
             assert!(measured[2].contains("sample-19"));
             assert!(negative[2].contains("missing.fastq.gz"));
         }

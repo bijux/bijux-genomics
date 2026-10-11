@@ -1,8 +1,8 @@
 # bijux-dna-containers-qa Dependencies
 
 This crate is allowed to be heavier than production crates because it is the QA edge. The graph must
-still point one way: environment QA consumes lower contracts; production layers must not consume
-environment QA.
+still point one way: environment QA consumes lower contracts, and only the runner consumes its
+stable qualification facade.
 
 ## Allowed Production Dependencies
 
@@ -14,7 +14,9 @@ environment QA.
 - `bijux-dna-infra`: directory creation, atomic writes, fixture IO, and config helpers.
 - `bijux-dna-runtime`: runtime manifest loading for QA stage/tool discovery.
 - `clap`: binary argument parsing.
+- `regex`: version-contract evaluation for qualification probe observations.
 - `rusqlite`: QA SQLite record store.
+- `serde`: generic immutable QA evidence serialization.
 - `serde_json`: QA summary and artifact fixture JSON.
 - `sha2`: input and output digest calculation.
 - `tracing`: warnings for image resolution and seqkit parsing drift.

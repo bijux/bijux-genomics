@@ -3,11 +3,11 @@ use std::collections::BTreeMap;
 use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_portfolio_campaign_alignment,
     validate_scientific_readiness, validate_stage_campaign_registry, validate_stage_coverage,
-    BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    validate_stage_universe, BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
 };
 use bijux_dna_bench_model::{
     BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract,
-    BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
+    BenchmarkCorpusStatus, BenchmarkDisposition, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
     BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
     BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
     BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
@@ -15,7 +15,8 @@ use bijux_dna_bench_model::{
     BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
     BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
     BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
-    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus,
+    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus, BenchmarkStageUniverse,
+    BenchmarkStageUniverseRow, BenchmarkStageUniverseSummary,
 };
 
 fn stage_campaign_registry() -> BenchmarkStageCampaignRegistry {
@@ -166,6 +167,10 @@ fn checked_planning_schemas_match_model_authority() -> anyhow::Result<()> {
         (
             "portfolio.schema.json",
             serde_json::to_value(bijux_dna_bench_model::benchmark_portfolio_schema())?,
+        ),
+        (
+            "stage-universe.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_stage_universe_schema())?,
         ),
     ];
     let schema_root = repository_root.join("benchmarks/contracts/schemas");
@@ -340,4 +345,60 @@ fn benchmark_stage_coverage_rejects_incoherent_missing_state() {
     assert!(error
         .as_deref()
         .is_some_and(|message| message.contains("definition, execution, and run identity")));
+}
+
+fn stage_universe() -> BenchmarkStageUniverse {
+    BenchmarkStageUniverse::v1(
+        BenchmarkStageUniverseSummary {
+            stage_count: 2,
+            benchmark_required_count: 1,
+            qualification_only_count: 1,
+            orchestration_only_count: 0,
+            test_only_count: 0,
+            retired_count: 0,
+            excluded_count: 0,
+        },
+        vec![
+            BenchmarkStageUniverseRow {
+                stage_id: "fastq.profile_read_lengths".to_string(),
+                domain: "fastq".to_string(),
+                status: "supported".to_string(),
+                benchmark_disposition: BenchmarkDisposition::BenchmarkRequired,
+                benchmark_disposition_reason: "Reserved comparative benchmark.".to_string(),
+                reserved_run_id: Some("run-2001".to_string()),
+            },
+            BenchmarkStageUniverseRow {
+                stage_id: "fastq.repair_pairs".to_string(),
+                domain: "fastq".to_string(),
+                status: "planned".to_string(),
+                benchmark_disposition: BenchmarkDisposition::QualificationOnly,
+                benchmark_disposition_reason: "Utility contract qualification.".to_string(),
+                reserved_run_id: None,
+            },
+        ],
+    )
+}
+
+#[test]
+fn benchmark_stage_universe_accepts_explicit_disposition_closure() -> anyhow::Result<()> {
+    validate_stage_universe(&stage_universe())?;
+    Ok(())
+}
+
+#[test]
+fn benchmark_stage_universe_rejects_run_on_qualification_utility() {
+    let mut universe = stage_universe();
+    universe.stages[1].reserved_run_id = Some("run-2002".to_string());
+    assert!(validate_stage_universe(&universe).is_err());
+}
+
+#[test]
+fn benchmark_stage_universe_rejects_non_monotonic_run_reservation() {
+    let mut universe = stage_universe();
+    universe.stages[0].reserved_run_id = Some("run-2002".to_string());
+
+    let error = validate_stage_universe(&universe).err().map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("monotonic and contiguous from run-2001")));
 }

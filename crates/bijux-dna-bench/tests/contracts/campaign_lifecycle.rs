@@ -293,6 +293,83 @@ fn campaign_retry_rejects_nonterminal_predecessors() -> anyhow::Result<()> {
 }
 
 #[test]
+fn campaign_retry_accepts_cancelled_scheduler_predecessors() -> anyhow::Result<()> {
+    let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
+    let initial = plan_stage_campaign_attempts(
+        &registry,
+        "run-2042",
+        "current-source-campaign",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-campaign-cancelled-retry");
+    ensure_stage_campaign_attempts(temporary.path(), &initial)?;
+    for (index, attempt) in initial.cycle.attempts.iter().enumerate() {
+        let job_id = format!("34610{}", index + 1);
+        bijux_dna_runtime::record_attempt_ready(
+            temporary.path(),
+            &attempt.identity,
+            "2026-08-05T00:01:00Z",
+        )?;
+        bijux_dna_runtime::record_attempt_submission(
+            temporary.path(),
+            &attempt.identity,
+            "2026-08-05T00:02:00Z",
+            vec![bijux_dna_bench::BenchmarkJobReference {
+                scheduler: "slurm".to_string(),
+                job_id: job_id.clone(),
+            }],
+        )?;
+        bijux_dna_runtime::record_attempt_accounting(
+            temporary.path(),
+            &attempt.identity,
+            "2026-08-05T00:03:00Z",
+            bijux_dna_bench::BenchmarkSchedulerAccounting {
+                scheduler: "slurm".to_string(),
+                job_id,
+                state: bijux_dna_bench::BenchmarkSchedulerTerminalState::Cancelled,
+                raw_state: "CANCELLED".to_string(),
+                exit_code: 1,
+                signal: 0,
+                elapsed_seconds: 30,
+                total_cpu_seconds: 10,
+                max_rss_bytes: Some(1024),
+                node_list: "n001".to_string(),
+                reason: Some("operator requested scheduler cancellation".to_string()),
+            },
+        )?;
+    }
+    let prior = initial
+        .cycle
+        .attempts
+        .iter()
+        .map(|attempt| load_attempt_lifecycle(temporary.path(), &attempt.identity))
+        .collect::<anyhow::Result<Vec<_>>>()?;
+
+    let retry = plan_stage_campaign_retry_attempts(
+        &registry,
+        &"a".repeat(40),
+        &"b".repeat(64),
+        prior,
+        "attempt-002",
+        "2026-08-05T00:04:00Z",
+    )?;
+
+    let active = retry
+        .cycle
+        .attempts
+        .iter()
+        .filter(|attempt| attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned))
+        .collect::<Vec<_>>();
+    assert_eq!(active.len(), 2);
+    assert!(active.iter().all(|attempt| {
+        attempt.identity.attempt_id == "attempt-002"
+            && attempt.supersedes_attempt_id.as_deref() == Some("attempt-001")
+    }));
+    Ok(())
+}
+
+#[test]
 fn campaign_retry_recovery_selects_explicit_complete_tool_lineage() -> anyhow::Result<()> {
     let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
     let temporary = bijux_dna_testkit::tempdir_for("benchmark-campaign-retry-recovery");

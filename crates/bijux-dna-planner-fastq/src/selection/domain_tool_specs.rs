@@ -331,6 +331,21 @@ mod tests {
     }
 
     #[test]
+    fn load_fastq_domain_tool_execution_spec_marks_fastuniq_as_external_artifact() -> Result<()> {
+        let repo_root = repo_root();
+        let stage_id = StageId::from_static("fastq.remove_duplicates");
+        let tool_id = ToolId::from_static("fastuniq");
+
+        let metadata = load_fastq_domain_tool_contract_metadata(&repo_root, &tool_id)?;
+        let spec = load_fastq_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
+
+        assert_eq!(metadata.support_level, FastqDomainToolSupportLevel::Supported);
+        assert_eq!(spec.image.image, "external-artifact://fastuniq");
+        assert!(spec.image.digest.is_none());
+        Ok(())
+    }
+
+    #[test]
     fn load_fastq_domain_tool_execution_spec_accepts_container_stage_without_command_template(
     ) -> Result<()> {
         let repo_root = repo_root();

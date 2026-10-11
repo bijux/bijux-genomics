@@ -27,6 +27,7 @@
         "name": "reads_r1",
         "path": "reads_R1.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       }
     ],
@@ -35,18 +36,21 @@
         "name": "trimmed_reads_r1",
         "path": "out/fastp.fastq.gz",
         "role": "trimmed_reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "report_json",
         "path": "out/trim_report.json",
         "role": "report_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       },
       {
         "name": "raw_backend_report_json",
         "path": "out/trim_report.fastp.json",
         "role": "report_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": true
       }
     ]

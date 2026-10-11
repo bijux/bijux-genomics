@@ -12,6 +12,8 @@ Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux
 ## Allowed Runtime Responsibilities
 - Build backend execution specs from typed tool execution contracts.
 - Resolve declared container images through environment/runtime policy contracts.
+- Reverify and bind admitted operator-provided binaries or SIFs for explicit external-artifact
+  plans before spawning them.
 - Spawn declared backend commands and capture stdout, stderr, and exit status.
 - Write runner-owned execution artifacts under declared run/output roots.
 - Replay existing execution manifests without executing tools.
@@ -24,6 +26,7 @@ Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux
 - Reading undeclared inputs or writing outside declared runtime paths.
 - Enabling network access unless a runtime policy explicitly declares it.
 - Reaching into engine internals or planner internals.
+- Executing `external-artifact://` plans through an ordinary local or container runner.
 
 ## Contract Changes
 Boundary changes must update `DEPENDENCIES.md`, `EFFECTS.md`, `EXECUTION_SPEC.md`, and the matching runner boundary tests in the same reviewable change.

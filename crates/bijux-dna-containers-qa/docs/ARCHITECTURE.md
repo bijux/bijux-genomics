@@ -6,7 +6,7 @@ dataset concerns.
 
 ## Source Layout
 
-- `src/bin/`: command wrappers for `image_qa`, `qa_docker_images`, and `build_docker_images`.
+- `src/bin/`: thin command wrappers for Docker QA, image QA, and Apptainer runtime verification.
 - `src/lib.rs`: public module exports.
 - `src/public_api.rs`: stable facade that re-exports environment APIs for QA consumers.
 - `src/image_qa/contracts.rs`: QA stage roster and dataset contract models.
@@ -20,14 +20,20 @@ dataset concerns.
   resolution, layout helpers, and seqkit metrics.
 - `src/image_qa/qa_docker_images/`: Docker catalog probe planning, runtime abstraction, probe
   execution, and reporting.
+- `src/image_qa/runtime_verification/`: catalog-wide Apptainer probe orchestration and immutable
+  QA evidence publication.
+- `src/qualification/`: pipeline-derived probe plans, declared-output validation, metric
+  evaluation, and classified qualification verdicts consumed by execution backends.
 
 ## Data Flow
 
 1. Platform and tool-image catalog facts come from `bijux-dna-containers`.
 2. QA datasets are discovered or hydrated under declared QA inputs.
-3. Docker/Apptainer checks run only through explicit commands.
-4. Results become `ImageQaRecord` values and are persisted under `artifacts/image-qa/<platform>/`.
-5. Validation helpers read those records when higher layers require prior QA evidence.
+3. Qualification pipelines become typed QA probe and acceptance plans before execution.
+4. Docker/Apptainer checks run only through explicit commands owned by execution backends.
+5. QA evaluates probe observations, declared outputs, and metrics into classified verdicts.
+6. Results become typed records persisted under governed evidence roots.
+7. Validation helpers read those records when higher layers require prior QA evidence.
 
 ## Tree Rules
 

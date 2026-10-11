@@ -24,6 +24,7 @@ pub enum BenchmarkLifecycleStatus {
     Collecting,
     Passed,
     Failed,
+    Cancelled,
     Superseded,
     BlockedExternal,
 }
@@ -499,6 +500,11 @@ impl BenchmarkCampaignPlan {
 #[must_use]
 pub fn benchmark_attempt_schema() -> Schema {
     schemars::schema_for!(BenchmarkAttemptRecord)
+}
+
+#[must_use]
+pub fn benchmark_attempt_identity_schema() -> Schema {
+    schemars::schema_for!(BenchmarkAttemptIdentity)
 }
 
 #[must_use]

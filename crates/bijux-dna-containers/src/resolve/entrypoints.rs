@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use super::{
     cache, catalog, platform, shell, smoke, EnvError, PlatformSpec, ResolvedImage, RuntimeKind,
@@ -12,6 +12,14 @@ use super::{
 /// Returns an error if the config file cannot be read or parsed, or if the platform is missing.
 pub fn load_platform(name: Option<&str>) -> Result<PlatformSpec, EnvError> {
     platform::load_platform(name)
+}
+
+/// Load and resolve one platform from an explicit configuration path.
+///
+/// # Errors
+/// Returns an error if the config file cannot be read or parsed, or if the platform is missing.
+pub fn load_platform_from_path(path: &Path, name: Option<&str>) -> Result<PlatformSpec, EnvError> {
+    platform::load_platform_from_file(path, name)
 }
 
 /// Select the best runner with a fallback order.
@@ -42,6 +50,17 @@ pub fn resolve_image(
 /// Returns an error if the file cannot be read, parsed, or contains invalid entries.
 pub fn load_image_catalog() -> Result<HashMap<String, ToolImageSpec>, EnvError> {
     catalog::load_image_catalog()
+}
+
+/// Load tool image declarations and registry identities from explicit paths.
+///
+/// # Errors
+/// Returns an error if either file cannot be read, parsed, or reconciled.
+pub fn load_image_catalog_from_paths(
+    images_path: &Path,
+    registry_path: &Path,
+) -> Result<HashMap<String, ToolImageSpec>, EnvError> {
+    catalog::load_image_catalog_from_paths(images_path, registry_path)
 }
 
 /// Validate that tools have image entries.

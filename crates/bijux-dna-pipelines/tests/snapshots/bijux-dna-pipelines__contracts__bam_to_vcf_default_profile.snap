@@ -195,7 +195,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "remove_duplicates": false
       },
       "bam.genotyping": {
-        "caller": "angsd",
+        "caller": "bcftools",
         "min_call_rate": 0.7,
         "min_posterior": 0.8
       },

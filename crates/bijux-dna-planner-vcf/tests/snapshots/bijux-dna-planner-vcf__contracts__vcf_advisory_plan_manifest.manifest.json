@@ -2185,7 +2185,7 @@
     }
   ],
   "pipeline_id": "vcf-to-vcf__downstream_diploid_sctx_0a9734ff9d35__v2",
-  "plan_fingerprint": "6615e84a9f71f8f426bffd987182632cb9dec1613945e37ec5f9f3be4b09d9e4",
+  "plan_fingerprint": "cdadac57b9ee45a9e00a0527b82e000535d020e771ba77ff7b203d848ab8b16a",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "policy": "PreferAccuracy",
   "profile_id": "vcf-downstream",
@@ -2209,5 +2209,5 @@
       "stage_id": "vcf.stats"
     }
   ],
-  "workflow_fingerprint": "1e06fe84930494424437235836e080adf168b0ad311c4b9357d376aaeded02e4"
+  "workflow_fingerprint": "bebb53c4ed34b64791088ae0176cf40a8a11e48e7da0bcc1efca91c6dceed18f"
 }

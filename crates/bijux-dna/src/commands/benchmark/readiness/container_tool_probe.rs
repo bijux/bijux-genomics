@@ -3,12 +3,11 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use anyhow::{anyhow, bail, Context, Result};
-use bijux_dna_api::v1::api::run::run_command;
 use serde::Serialize;
 
 use super::tool_probe_support::{
-    now_unix_s, path_relative_to_repo, repo_relative_path, run_command_with_timeout_and_env,
-    CommandExecution,
+    now_unix_s, path_relative_to_repo, repo_relative_path, run_command_with_timeout,
+    run_command_with_timeout_and_env, CommandExecution,
 };
 use super::version_probes::{collect_version_probe_rows, VersionProbeRow};
 use crate::commands::cli::parse;
@@ -24,6 +23,7 @@ const CONTAINER_TOOL_SMOKE_STATUS_OK: &str = "ok";
 const CONTAINER_TOOL_SMOKE_STATUS_UNAVAILABLE: &str = "unavailable_with_reason";
 const CONTAINER_TOOL_SMOKE_STATUS_COMMAND_FAILED: &str = "command_failed";
 const CONTAINER_TOOL_SMOKE_STATUS_TIMED_OUT: &str = "timed_out";
+const RUNTIME_AVAILABILITY_PROBE_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct ContainerToolSmokeReport {
@@ -81,6 +81,12 @@ struct PreparedSmokeCommand {
     unavailable_reason: Option<String>,
 }
 
+#[derive(Debug, Clone, Default)]
+struct SmokeRuntimeAvailability {
+    docker_unavailable_reason: Option<String>,
+    apptainer_unavailable_reason: Option<String>,
+}
+
 pub(crate) fn run_container_tool_smoke(
     args: &parse::BenchReadinessRunContainerToolSmokeArgs,
 ) -> Result<()> {
@@ -108,10 +114,12 @@ pub(crate) fn render_container_tool_smoke(
     timeout: Duration,
 ) -> Result<ContainerToolSmokeReport> {
     let rows = collect_container_version_probe_rows(repo_root, requested_tools)?;
+    let runtime_availability = detect_smoke_runtime_availability(repo_root, &rows);
     render_container_tool_smoke_with_executor(
         repo_root,
         output_root,
         &rows,
+        &runtime_availability,
         timeout,
         |root, argv, envs, limit, label| {
             run_command_with_timeout_and_env(root, argv, envs, limit, label)
@@ -123,6 +131,7 @@ fn render_container_tool_smoke_with_executor<F>(
     repo_root: &Path,
     output_root: PathBuf,
     rows: &[VersionProbeRow],
+    runtime_availability: &SmokeRuntimeAvailability,
     timeout: Duration,
     execute: F,
 ) -> Result<ContainerToolSmokeReport>
@@ -135,7 +144,13 @@ where
     let mut unavailable_count = 0usize;
 
     for row in rows {
-        let manifest = build_container_tool_smoke_manifest(repo_root, row, timeout, &execute)?;
+        let manifest = build_container_tool_smoke_manifest(
+            repo_root,
+            row,
+            runtime_availability,
+            timeout,
+            &execute,
+        )?;
         let manifest_dir = output_root.join(&row.tool_id);
         bijux_dna_infra::ensure_dir(&manifest_dir)
             .with_context(|| format!("create {}", manifest_dir.display()))?;
@@ -230,13 +245,14 @@ fn collect_container_version_probe_rows(
 fn build_container_tool_smoke_manifest<F>(
     repo_root: &Path,
     row: &VersionProbeRow,
+    runtime_availability: &SmokeRuntimeAvailability,
     timeout: Duration,
     execute: &F,
 ) -> Result<ContainerToolSmokeManifest>
 where
     F: Fn(&Path, &[String], &[(String, String)], Duration, &str) -> Result<CommandExecution>,
 {
-    let prepared = prepare_container_smoke_command(repo_root, row)?;
+    let prepared = prepare_container_smoke_command(repo_root, row, runtime_availability)?;
     let (status, exit_code, stdout, stderr, unavailable_reason) = if let Some(reason) =
         prepared.unavailable_reason.clone()
     {
@@ -296,6 +312,7 @@ where
 fn prepare_container_smoke_command(
     repo_root: &Path,
     row: &VersionProbeRow,
+    runtime_availability: &SmokeRuntimeAvailability,
 ) -> Result<PreparedSmokeCommand> {
     let Some(smoke_executable) = current_smoke_executable(repo_root)? else {
         bail!("container tool smoke could not resolve a governed smoke executable");
@@ -306,64 +323,54 @@ fn prepare_container_smoke_command(
 
     match row.resolution_kind.as_str() {
         "docker_image" => {
-            if !command_on_path("docker") {
-                return Ok(PreparedSmokeCommand {
-                    smoke_runtime: Some("docker-arm64".to_string()),
-                    declared_command: Some(format!("bijux-dna env smoke docker-arm64 {}", row.tool_id)),
-                    applied_command: smoke_command_argv(
-                        &smoke_executable,
-                        "docker-arm64",
-                    ),
-                    applied_env: smoke_command_env(
-                        &row.tool_id,
-                        bijux_bin_env.clone(),
-                        registry_path,
-                    ),
-                    unavailable_reason: Some(
-                        "governed smoke runtime `docker-arm64` requires docker on PATH".to_string(),
-                    ),
-                });
-            }
-            Ok(PreparedSmokeCommand {
-                smoke_runtime: Some("docker-arm64".to_string()),
-                declared_command: Some(format!("bijux-dna env smoke docker-arm64 {}", row.tool_id)),
-                applied_command: smoke_command_argv(&smoke_executable, "docker-arm64"),
-                applied_env: smoke_command_env(
-                    &row.tool_id,
-                    bijux_bin_env.clone(),
+            if runtime_availability.docker_unavailable_reason.is_some()
+                && runtime_availability.apptainer_unavailable_reason.is_none()
+            {
+                return Ok(prepare_runtime_smoke_command(
+                    row,
+                    &smoke_executable,
+                    bijux_bin_env,
                     registry_path,
-                ),
-                unavailable_reason: None,
-            })
-        }
-        "apptainer_image" => {
-            if !command_on_path("apptainer") {
-                return Ok(PreparedSmokeCommand {
-                    smoke_runtime: Some("apptainer".to_string()),
-                    declared_command: Some(format!("bijux-dna env smoke apptainer {}", row.tool_id)),
-                    applied_command: smoke_command_argv(&smoke_executable, "apptainer"),
-                    applied_env: smoke_command_env(
-                        &row.tool_id,
-                        bijux_bin_env.clone(),
-                        registry_path,
-                    ),
-                    unavailable_reason: Some(
-                        "governed smoke runtime `apptainer` is not available on PATH".to_string(),
-                    ),
-                });
+                    "apptainer",
+                    None,
+                ));
             }
-            Ok(PreparedSmokeCommand {
-                smoke_runtime: Some("apptainer".to_string()),
-                declared_command: Some(format!("bijux-dna env smoke apptainer {}", row.tool_id)),
-                applied_command: smoke_command_argv(&smoke_executable, "apptainer"),
-                applied_env: smoke_command_env(
-                    &row.tool_id,
-                    bijux_bin_env.clone(),
-                    registry_path,
-                ),
-                unavailable_reason: None,
-            })
+            let unavailable_reason = runtime_availability.docker_unavailable_reason.as_ref().map(
+                |docker_reason| {
+                    let apptainer_reason = runtime_availability
+                        .apptainer_unavailable_reason
+                        .as_deref()
+                        .unwrap_or("governed fallback runtime `apptainer` was not probed");
+                    format!("{docker_reason}; fallback {apptainer_reason}")
+                },
+            );
+            Ok(prepare_runtime_smoke_command(
+                row,
+                &smoke_executable,
+                bijux_bin_env,
+                registry_path,
+                "docker-arm64",
+                unavailable_reason,
+            ))
         }
+        "apptainer_image" => Ok(prepare_runtime_smoke_command(
+            row,
+            &smoke_executable,
+            bijux_bin_env,
+            registry_path,
+            "apptainer",
+            runtime_availability.apptainer_unavailable_reason.clone(),
+        )),
+        "external_artifact" => Ok(PreparedSmokeCommand {
+            smoke_runtime: None,
+            declared_command: None,
+            applied_command: Vec::new(),
+            applied_env: Vec::new(),
+            unavailable_reason: Some(format!(
+                "external artifact admission is required before container smoke for {}",
+                row.tool_id
+            )),
+        }),
         "unavailable_with_reason" => Ok(PreparedSmokeCommand {
             smoke_runtime: None,
             declared_command: None,
@@ -377,6 +384,23 @@ fn prepare_container_smoke_command(
             "container tool smoke expected only non-host retained tools, found `{unsupported}` for `{}`",
             row.tool_id
         ),
+    }
+}
+
+fn prepare_runtime_smoke_command(
+    row: &VersionProbeRow,
+    smoke_executable: &str,
+    bijux_bin_env: Option<String>,
+    registry_path: Option<&str>,
+    runtime: &str,
+    unavailable_reason: Option<String>,
+) -> PreparedSmokeCommand {
+    PreparedSmokeCommand {
+        smoke_runtime: Some(runtime.to_string()),
+        declared_command: Some(format!("bijux-dna env smoke {runtime} {}", row.tool_id)),
+        applied_command: smoke_command_argv(smoke_executable, runtime),
+        applied_env: smoke_command_env(&row.tool_id, bijux_bin_env, registry_path),
+        unavailable_reason,
     }
 }
 
@@ -432,8 +456,89 @@ fn smoke_command_env(
     envs
 }
 
-fn command_on_path(program: &str) -> bool {
-    run_command(program, &["--version".to_string()]).is_ok()
+fn detect_smoke_runtime_availability(
+    repo_root: &Path,
+    rows: &[VersionProbeRow],
+) -> SmokeRuntimeAvailability {
+    let requires_docker = rows.iter().any(|row| row.resolution_kind == "docker_image");
+    let docker_unavailable_reason =
+        requires_docker.then(|| docker_runtime_unavailable_reason(repo_root)).flatten();
+    let requires_apptainer = rows.iter().any(|row| row.resolution_kind == "apptainer_image")
+        || docker_unavailable_reason.is_some();
+    let apptainer_unavailable_reason =
+        requires_apptainer.then(|| apptainer_runtime_unavailable_reason(repo_root)).flatten();
+    SmokeRuntimeAvailability { docker_unavailable_reason, apptainer_unavailable_reason }
+}
+
+fn docker_runtime_unavailable_reason(repo_root: &Path) -> Option<String> {
+    let Ok(version) = run_command_with_timeout(
+        repo_root,
+        &["docker".to_string(), "--version".to_string()],
+        RUNTIME_AVAILABILITY_PROBE_TIMEOUT,
+        "probe governed docker smoke runtime",
+    ) else {
+        return Some("governed smoke runtime `docker-arm64` requires docker on PATH".to_string());
+    };
+    if version.timed_out {
+        return Some(
+            "governed smoke runtime `docker-arm64` is unavailable: `docker --version` timed out"
+                .to_string(),
+        );
+    }
+    if version.exit_code != 0 {
+        return Some(format!(
+            "governed smoke runtime `docker-arm64` is unavailable: `docker --version` exited with code {}",
+            version.exit_code
+        ));
+    }
+
+    match run_command_with_timeout(
+        repo_root,
+        &[
+            "docker".to_string(),
+            "info".to_string(),
+            "--format".to_string(),
+            "{{.ServerVersion}}".to_string(),
+        ],
+        RUNTIME_AVAILABILITY_PROBE_TIMEOUT,
+        "probe governed docker daemon",
+    ) {
+        Ok(output) if output.timed_out => Some(
+            "governed smoke runtime `docker-arm64` is unavailable: docker daemon probe timed out"
+                .to_string(),
+        ),
+        Ok(output) if output.exit_code == 0 => None,
+        Ok(output) => Some(format!(
+            "governed smoke runtime `docker-arm64` is unavailable: docker daemon probe exited with code {}",
+            output.exit_code
+        )),
+        Err(_) => Some(
+            "governed smoke runtime `docker-arm64` is unavailable: docker daemon probe could not execute"
+                .to_string(),
+        ),
+    }
+}
+
+fn apptainer_runtime_unavailable_reason(repo_root: &Path) -> Option<String> {
+    match run_command_with_timeout(
+        repo_root,
+        &["apptainer".to_string(), "--version".to_string()],
+        RUNTIME_AVAILABILITY_PROBE_TIMEOUT,
+        "probe governed apptainer smoke runtime",
+    ) {
+        Ok(output) if output.timed_out => Some(
+            "governed smoke runtime `apptainer` is unavailable: `apptainer --version` timed out"
+                .to_string(),
+        ),
+        Ok(output) if output.exit_code == 0 => None,
+        Ok(output) => Some(format!(
+            "governed smoke runtime `apptainer` is unavailable: `apptainer --version` exited with code {}",
+            output.exit_code
+        )),
+        Err(_) => Some(
+            "governed smoke runtime `apptainer` is not available on PATH".to_string(),
+        ),
+    }
 }
 
 fn parse_requested_tools(requested_tools: Option<&str>) -> BTreeSet<String> {
@@ -500,6 +605,7 @@ mod tests {
         let output_root = PathBuf::from("runs/bench/tool-smoke/container");
         let rows = vec![
             sample_row("adapterremoval", "docker_image"),
+            sample_row("angsd", "external_artifact"),
             sample_row("shapeit5", "unavailable_with_reason"),
         ];
 
@@ -507,6 +613,7 @@ mod tests {
             repo_root.path(),
             output_root,
             &rows,
+            &SmokeRuntimeAvailability::default(),
             Duration::from_secs(5),
             |_, argv, envs, _, _| {
                 assert_eq!(
@@ -541,9 +648,9 @@ mod tests {
             },
         )?;
 
-        assert_eq!(report.tool_count, 2);
+        assert_eq!(report.tool_count, 3);
         assert_eq!(report.success_count, 1);
-        assert_eq!(report.unavailable_count, 1);
+        assert_eq!(report.unavailable_count, 2);
         assert_eq!(report.failure_count, 0);
         assert!(repo_root
             .path()
@@ -551,8 +658,24 @@ mod tests {
             .is_file());
         assert!(repo_root
             .path()
+            .join("runs/bench/tool-smoke/container/angsd/manifest.json")
+            .is_file());
+        assert!(repo_root
+            .path()
             .join("runs/bench/tool-smoke/container/shapeit5/manifest.json")
             .is_file());
+        let external_manifest: serde_json::Value = serde_json::from_slice(&std::fs::read(
+            repo_root.path().join("runs/bench/tool-smoke/container/angsd/manifest.json"),
+        )?)?;
+        assert_eq!(
+            external_manifest.get("status").and_then(serde_json::Value::as_str),
+            Some("unavailable_with_reason")
+        );
+        assert!(external_manifest.get("exit_code").is_none_or(serde_json::Value::is_null));
+        assert!(external_manifest
+            .get("unavailable_reason")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|reason| reason.contains("external artifact admission")));
         Ok(())
     }
 
@@ -573,6 +696,7 @@ mod tests {
             repo_root.path(),
             output_root,
             &rows,
+            &SmokeRuntimeAvailability::default(),
             Duration::from_secs(5),
             |_, _, _, _, _| {
                 Ok(CommandExecution {
@@ -589,5 +713,73 @@ mod tests {
             err.to_string().contains("container tool smoke recorded 1 failed execution probes"),
             "unexpected error: {err}"
         );
+    }
+
+    #[test]
+    fn render_container_tool_smoke_records_unavailable_runtime_without_execution() -> Result<()> {
+        let repo_root = tempfile::tempdir()?;
+        let dev_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna-dev");
+        bijux_dna_infra::ensure_dir(dev_binary.parent().expect("dev binary parent"))?;
+        bijux_dna_infra::write_bytes(&dev_binary, b"#!/bin/sh\nexit 0\n")?;
+        let unavailable_reason =
+            "governed smoke runtime `docker-arm64` is unavailable: docker daemon probe exited with code 1";
+        let apptainer_reason = "governed smoke runtime `apptainer` is not available on PATH";
+
+        let report = render_container_tool_smoke_with_executor(
+            repo_root.path(),
+            PathBuf::from("runs/bench/tool-smoke/container"),
+            &[sample_row("adapterremoval", "docker_image")],
+            &SmokeRuntimeAvailability {
+                docker_unavailable_reason: Some(unavailable_reason.to_string()),
+                apptainer_unavailable_reason: Some(apptainer_reason.to_string()),
+            },
+            Duration::from_secs(5),
+            |_, _, _, _, _| panic!("unavailable runtime must not execute a smoke command"),
+        )?;
+
+        assert_eq!(report.tool_count, 1);
+        assert_eq!(report.success_count, 0);
+        assert_eq!(report.unavailable_count, 1);
+        assert_eq!(report.failure_count, 0);
+        assert_eq!(
+            report.rows[0].unavailable_reason.as_deref(),
+            Some(
+                "governed smoke runtime `docker-arm64` is unavailable: docker daemon probe exited with code 1; fallback governed smoke runtime `apptainer` is not available on PATH"
+            )
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn render_container_tool_smoke_falls_back_to_apptainer() -> Result<()> {
+        let repo_root = tempfile::tempdir()?;
+        let dev_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna-dev");
+        bijux_dna_infra::ensure_dir(dev_binary.parent().expect("dev binary parent"))?;
+        bijux_dna_infra::write_bytes(&dev_binary, b"#!/bin/sh\nexit 0\n")?;
+
+        let report = render_container_tool_smoke_with_executor(
+            repo_root.path(),
+            PathBuf::from("runs/bench/tool-smoke/container"),
+            &[sample_row("adapterremoval", "docker_image")],
+            &SmokeRuntimeAvailability {
+                docker_unavailable_reason: Some("docker daemon unavailable".to_string()),
+                apptainer_unavailable_reason: None,
+            },
+            Duration::from_secs(5),
+            |_, argv, _, _, _| {
+                assert_eq!(argv.last().map(String::as_str), Some("smoke-containers-apptainer"));
+                Ok(CommandExecution {
+                    exit_code: 0,
+                    stdout: "apptainer smoke ok\n".to_string(),
+                    stderr: String::new(),
+                    timed_out: false,
+                })
+            },
+        )?;
+
+        assert_eq!(report.success_count, 1);
+        assert_eq!(report.unavailable_count, 0);
+        assert_eq!(report.rows[0].smoke_runtime.as_deref(), Some("apptainer"));
+        Ok(())
     }
 }

@@ -1,10 +1,13 @@
 use std::borrow::Cow;
 
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::foundation::{BijuxError, Result};
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema,
+)]
 pub struct StageId(pub Cow<'static, str>);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]

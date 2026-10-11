@@ -5,9 +5,10 @@ mod evidence;
 mod freshness;
 mod metrics;
 mod publication;
+mod rendering;
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{validate_stage_report, validate_stage_report_alignment};
@@ -20,12 +21,59 @@ use bijux_dna_bench_model::{
 };
 use serde::Serialize;
 
+use super::BenchmarkReportPresentationAuthority;
+
 pub(super) use evidence::load_admitted_attempt_evidence;
 pub(super) use freshness::current_report_sources;
 pub(super) use metrics::{distribution, read_resource_observation, ResourceObservation};
 pub(super) use publication::{
     canonical_directory, ensure_bytes, ensure_directory, MAX_REPORT_INPUT_BYTES,
 };
+pub use rendering::render_stage_report_markdown;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct BenchmarkStageReportPublication {
+    pub report_path: PathBuf,
+    pub markdown_path: PathBuf,
+    pub report_sha256: String,
+    pub markdown_sha256: String,
+    pub report: BenchmarkStageReport,
+    pub presentation_authority: BenchmarkReportPresentationAuthority,
+}
+
+/// Publish one validated report using only its stage-interface presentation contract.
+///
+/// # Errors
+/// Returns an error when report alignment, presentation rendering, output safety, or immutable
+/// no-clobber publication fails.
+pub fn publish_stage_report(
+    output_root: &Path,
+    campaign: &BenchmarkStageCampaignSpec,
+    interface: &BenchmarkStageInterfaceSpec,
+    report: BenchmarkStageReport,
+    presentation_authority: &BenchmarkReportPresentationAuthority,
+) -> Result<BenchmarkStageReportPublication> {
+    validate_stage_report(&report).context("validate benchmark stage report before publication")?;
+    validate_stage_report_alignment(&report, campaign, Some(interface))
+        .context("align benchmark stage report before publication")?;
+    let markdown = render_stage_report_markdown(&report, &interface.report_presentation)?;
+    let mut report_bytes = serde_json::to_vec_pretty(&report)?;
+    report_bytes.push(b'\n');
+    ensure_directory(output_root)?;
+    let stem = &interface.report_presentation.report_file_stem;
+    let report_path = output_root.join(format!("{stem}.json"));
+    let markdown_path = output_root.join(format!("{stem}.md"));
+    ensure_bytes(&report_path, &report_bytes)?;
+    ensure_bytes(&markdown_path, markdown.as_bytes())?;
+    Ok(BenchmarkStageReportPublication {
+        report_path,
+        markdown_path,
+        report_sha256: bijux_dna_infra::hash_bytes_sha256(&report_bytes),
+        markdown_sha256: bijux_dna_infra::hash_bytes_sha256(markdown.as_bytes()),
+        report,
+        presentation_authority: presentation_authority.clone(),
+    })
+}
 
 #[derive(Debug, Clone)]
 pub(super) struct ComparableAttemptEvidence {

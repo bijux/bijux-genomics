@@ -12,6 +12,7 @@ stay small and must not point at higher orchestration layers.
 - `schemars`: JSON Schema generation for evidence and embedded image contracts.
 - `serde`: serialized environment model contracts.
 - `serde_json`: typed evidence loading, label inspection, and schema rendering.
+- `serde_yaml`: strict site-governance, pipeline-support, and credential-reference declarations.
 - `sha2`: reference content digests.
 - `thiserror`: typed `EnvError`.
 - `toml`: strict loading of the canonical container catalog during build preparation.

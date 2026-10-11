@@ -129,6 +129,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingArchitectureReport => {
             tooling::tooling_architecture_report(workspace, args)
         }
+        NativeOpsCommandKey::ToolingArtifactContracts => {
+            tooling::tooling_artifact_contracts(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkCampaignCycle => {
             tooling::tooling_benchmark_campaign_cycle(workspace, args)
         }
@@ -137,6 +140,9 @@ pub(super) fn run_native_ops_command(
         }
         NativeOpsCommandKey::ToolingBenchmarkStageCoverage => {
             tooling::tooling_benchmark_stage_coverage(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingBenchmarkStageUniverse => {
+            tooling::tooling_benchmark_stage_universe(workspace, args)
         }
         NativeOpsCommandKey::ToolingBenchmarkSmokeLevel1 => {
             tooling::tooling_benchmark_smoke_level1(workspace, args)

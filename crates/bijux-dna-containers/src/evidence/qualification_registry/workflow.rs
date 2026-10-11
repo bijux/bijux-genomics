@@ -118,7 +118,7 @@ pub fn derive_qualification_run_registry(
         .existing_registry_path
         .as_deref()
         .filter(|path| path.is_file())
-        .map(|path| load_qualification_run_registry(&request.repository_root, path))
+        .map(load_qualification_run_registry_for_derivation)
         .transpose()?;
     let reservations = existing
         .as_ref()
@@ -270,10 +270,7 @@ pub fn load_qualification_run_registry(
     repository_root: &Path,
     registry_path: &Path,
 ) -> Result<QualificationRunRegistry> {
-    let bytes = fs::read(registry_path)
-        .with_context(|| format!("read qualification registry {}", registry_path.display()))?;
-    let registry: QualificationRunRegistry = toml::from_slice(&bytes)
-        .with_context(|| format!("parse qualification registry {}", registry_path.display()))?;
+    let registry = load_qualification_run_registry_for_derivation(registry_path)?;
     let catalog = load_container_catalog(repository_root)?;
     validate_qualification_run_registry(&catalog, &registry)?;
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(
@@ -283,6 +280,53 @@ pub fn load_qualification_run_registry(
         bail!("qualification registry catalog identity is stale");
     }
     Ok(registry)
+}
+
+fn load_qualification_run_registry_for_derivation(
+    registry_path: &Path,
+) -> Result<QualificationRunRegistry> {
+    let bytes = fs::read(registry_path)
+        .with_context(|| format!("read qualification registry {}", registry_path.display()))?;
+    let registry: QualificationRunRegistry = toml::from_slice(&bytes)
+        .with_context(|| format!("parse qualification registry {}", registry_path.display()))?;
+    validate_qualification_run_reservations(&registry)?;
+    Ok(registry)
+}
+
+fn validate_qualification_run_reservations(registry: &QualificationRunRegistry) -> Result<()> {
+    if registry.schema_version != QUALIFICATION_RUN_REGISTRY_SCHEMA_V1 {
+        bail!("unsupported qualification-run registry schema");
+    }
+    validate_sha256(&registry.catalog_sha256, "qualification registry catalog")?;
+    let mut tool_ids = BTreeSet::new();
+    let mut run_ids = BTreeSet::new();
+    for row in &registry.tools {
+        if row.tool_id.is_empty() || !tool_ids.insert(row.tool_id.as_str()) {
+            bail!("qualification registry contains an empty or duplicate tool ID");
+        }
+        match row.support_disposition.as_str() {
+            "retained" => {
+                let run_id = row.run_id.as_deref().context("retained tool has no run ID")?;
+                parse_run_id(run_id)?;
+                if !run_ids.insert(run_id) {
+                    bail!("qualification registry contains duplicate run ID {run_id}");
+                }
+                if row.resource_profile.is_none() || row.acceptance_adapter.is_none() {
+                    bail!("retained tool {} has incomplete execution fields", row.tool_id);
+                }
+            }
+            "unsupported" => {
+                if row.run_id.is_some()
+                    || row.resource_profile.is_some()
+                    || row.acceptance_adapter.is_some()
+                {
+                    bail!("unsupported tool {} has runnable qualification fields", row.tool_id);
+                }
+            }
+            other => bail!("unexpected support disposition {other}"),
+        }
+    }
+    Ok(())
 }
 
 /// Validate catalog closure, support disposition, run identity, stage, and adapter contracts.

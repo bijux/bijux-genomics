@@ -5,7 +5,10 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest;
 use std::fmt::Write as _;
 
-use crate::contract::{ContractVersion, StageIO, ToolConstraints};
+use crate::contract::{
+    canonical_artifact_contract_catalog, ensure_artifact_compatibility, ArtifactSpec,
+    ContractVersion, StageIO, ToolConstraints,
+};
 use crate::foundation::{BijuxError, CommandSpecV1, ContainerImageRefV1, Result};
 use crate::id_catalog;
 use crate::ids::{ArtifactId, PipelineId, StageId, StepId};
@@ -414,22 +417,29 @@ fn validate_graph_edges(
         })?;
         match (edge.from_output_id(), edge.to_input_id()) {
             (Some(from_output_id), Some(to_input_id)) => {
-                if !from_step.io.outputs.iter().any(|artifact| artifact.name == *from_output_id) {
-                    return Err(BijuxError::validation(format!(
-                        "edge {} -> {} references unknown output artifact {}",
-                        edge.from().as_str(),
-                        edge.to().as_str(),
-                        from_output_id.as_str()
-                    )));
-                }
-                if !step_input_binding_exists(to_step, to_input_id.as_str()) {
-                    return Err(BijuxError::validation(format!(
-                        "edge {} -> {} references unknown input artifact {}",
-                        edge.from().as_str(),
-                        edge.to().as_str(),
-                        to_input_id.as_str()
-                    )));
-                }
+                let from_artifact = from_step
+                    .io
+                    .outputs
+                    .iter()
+                    .find(|artifact| artifact.name == *from_output_id)
+                    .ok_or_else(|| {
+                        BijuxError::validation(format!(
+                            "edge {} -> {} references unknown output artifact {}",
+                            edge.from().as_str(),
+                            edge.to().as_str(),
+                            from_output_id.as_str()
+                        ))
+                    })?;
+                let to_artifact = step_input_binding(to_step, to_input_id.as_str(), from_artifact)
+                    .ok_or_else(|| {
+                        BijuxError::validation(format!(
+                            "edge {} -> {} references unknown input artifact {}",
+                            edge.from().as_str(),
+                            edge.to().as_str(),
+                            to_input_id.as_str()
+                        ))
+                    })?;
+                validate_edge_artifact_compatibility(edge, from_artifact, to_artifact)?;
             }
             (None, None) => {}
             _ => {
@@ -444,13 +454,44 @@ fn validate_graph_edges(
     Ok(())
 }
 
-fn step_input_binding_exists(step: &ExecutionStep, input_id: &str) -> bool {
-    if step.io.inputs.iter().any(|artifact| artifact.name.as_str() == input_id) {
-        return true;
-    }
-    step.stage_id.as_str() == id_catalog::FASTQ_QC_POST
-        && input_id == "qc_artifacts"
-        && !step.io.inputs.is_empty()
+fn step_input_binding<'a>(
+    step: &'a ExecutionStep,
+    input_id: &str,
+    producer: &ArtifactSpec,
+) -> Option<&'a ArtifactSpec> {
+    step.io.inputs.iter().find(|artifact| artifact.name.as_str() == input_id).or_else(|| {
+        (step.stage_id.as_str() == id_catalog::FASTQ_QC_POST && input_id == "qc_artifacts")
+            .then(|| step.io.inputs.iter().find(|artifact| artifact.path == producer.path))
+            .flatten()
+    })
+}
+
+fn validate_edge_artifact_compatibility(
+    edge: &ExecutionEdge,
+    producer: &ArtifactSpec,
+    consumer: &ArtifactSpec,
+) -> Result<()> {
+    let (Some(producer_id), Some(consumer_id)) =
+        (producer.artifact_contract_id.as_deref(), consumer.artifact_contract_id.as_deref())
+    else {
+        return Ok(());
+    };
+    let catalog = canonical_artifact_contract_catalog();
+    let producer_contract = catalog.contract(producer_id).ok_or_else(|| {
+        BijuxError::validation(format!(
+            "edge {} -> {} references unknown producer artifact contract {producer_id}",
+            edge.from().as_str(),
+            edge.to().as_str()
+        ))
+    })?;
+    let consumer_contract = catalog.contract(consumer_id).ok_or_else(|| {
+        BijuxError::validation(format!(
+            "edge {} -> {} references unknown consumer artifact contract {consumer_id}",
+            edge.from().as_str(),
+            edge.to().as_str()
+        ))
+    })?;
+    ensure_artifact_compatibility(producer_contract, consumer_contract).map(|_| ())
 }
 
 fn validate_acyclic(graph: &ExecutionGraph) -> Result<()> {
@@ -668,5 +709,68 @@ mod tests {
         assert!(error.is_err_and(|err| err
             .to_string()
             .contains("duplicate execution edge validate -> trim")));
+    }
+
+    #[test]
+    fn execution_graph_rejects_incompatible_bound_artifacts_before_submission() {
+        let producer = step("validate", id_catalog::FASTQ_VALIDATE_READS);
+        let mut consumer = step("trim", id_catalog::FASTQ_TRIM);
+        consumer.io.inputs[0] = consumer.io.inputs[0]
+            .clone()
+            .with_artifact_contract("bijux.bam.artifact.coordinate_sorted_indexed.v1");
+        let edge = ExecutionEdge::with_artifact_binding(
+            StepId::new("validate"),
+            StepId::new("trim"),
+            ArtifactId::new("out"),
+            ArtifactId::new("in"),
+        );
+
+        let error = ExecutionGraph::new(
+            "fastq-to-fastq__graph__v1",
+            "planner",
+            PlanPolicy::PreferAccuracy,
+            vec![producer, consumer],
+            vec![edge],
+        );
+        assert!(error.is_err_and(|err| err.to_string().contains("incompatible class")));
+    }
+
+    #[test]
+    fn execution_graph_matches_variadic_qc_inputs_to_their_producer_artifacts() {
+        let mut producer = step("profile", "fastq.profile_reads");
+        producer.io.outputs = vec![ArtifactRef::required(
+            ArtifactId::new("qc_tsv"),
+            PathBuf::from("profile/qc.tsv"),
+            ArtifactRole::SummaryTsv,
+        )];
+        let mut consumer = step("report", id_catalog::FASTQ_QC_POST);
+        consumer.io.inputs = vec![
+            ArtifactRef::required(
+                ArtifactId::new("profile.qc_json"),
+                PathBuf::from("profile/qc.json"),
+                ArtifactRole::MetricsJson,
+            ),
+            ArtifactRef::required(
+                ArtifactId::new("profile.qc_tsv"),
+                PathBuf::from("profile/qc.tsv"),
+                ArtifactRole::SummaryTsv,
+            ),
+        ];
+        let edge = ExecutionEdge::with_artifact_binding(
+            StepId::new("profile"),
+            StepId::new("report"),
+            ArtifactId::new("qc_tsv"),
+            ArtifactId::new("qc_artifacts"),
+        );
+
+        let graph = ExecutionGraph::new(
+            "fastq-to-fastq__qc_artifacts__v1",
+            "planner",
+            PlanPolicy::PreferAccuracy,
+            vec![producer, consumer],
+            vec![edge],
+        );
+
+        assert!(graph.is_ok(), "variadic QC inputs must retain their own contracts: {graph:?}");
     }
 }

@@ -3,6 +3,8 @@ stage_id: "fastq.build_rrna_db"
 status: "planned"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
+benchmark_disposition: "orchestration_only"
+benchmark_disposition_reason: "This preparation or provenance operation supports benchmark orchestration and is not an independently measured scientific stage."
 inputs:
   - name: "rrna_sources"
     data_type: "manifest"

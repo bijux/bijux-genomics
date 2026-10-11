@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RunEvidenceIndex",
+  "type": "object",
+  "properties": {
+    "runs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RunEvidenceRecord"
+      }
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "summary": {
+      "$ref": "#/$defs/RunEvidenceSummary"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "summary",
+    "runs"
+  ],
+  "$defs": {
+    "AttemptExecutionStatus": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "failed",
+        "blocked",
+        "incomplete"
+      ]
+    },
+    "RunEvidenceRecord": {
+      "type": "object",
+      "properties": {
+        "campaign": {
+          "type": "string"
+        },
+        "corpus": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence_lock_sha256": {
+          "type": "string"
+        },
+        "execution_status": {
+          "$ref": "#/$defs/AttemptExecutionStatus"
+        },
+        "pipeline_schema_version": {
+          "type": "string"
+        },
+        "repository_commit": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "sample": {
+          "type": "string"
+        },
+        "scientific_status": {
+          "$ref": "#/$defs/ScientificAcceptanceStatus"
+        },
+        "slurm_job_id": {
+          "type": "string"
+        },
+        "source_file_count": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "source_result": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "campaign",
+        "corpus",
+        "domain",
+        "evidence_lock_sha256",
+        "execution_status",
+        "pipeline_schema_version",
+        "repository_commit",
+        "run_id",
+        "sample",
+        "scientific_status",
+        "slurm_job_id",
+        "source_file_count",
+        "source_result",
+        "stage",
+        "tool"
+      ]
+    },
+    "RunEvidenceSummary": {
+      "type": "object",
+      "properties": {
+        "execution_status": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "uint",
+            "minimum": 0
+          }
+        },
+        "run_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "scientific_status": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "uint",
+            "minimum": 0
+          }
+        },
+        "tool_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_count",
+        "tool_count",
+        "execution_status",
+        "scientific_status"
+      ]
+    },
+    "ScientificAcceptanceStatus": {
+      "type": "string",
+      "enum": [
+        "passed",
+        "failed",
+        "not_assessed"
+      ]
+    }
+  }
+}

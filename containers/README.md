@@ -197,7 +197,7 @@ restoring network access:
 runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/${image_commit}"
 publication_root="${runtime_root}/publication"
 
-cargo run -p bijux-dna-dev -- containers run runtime-verification -- execute \
+cargo run -p bijux-dna-containers-qa --bin runtime_verification -- execute \
   "${source_repository}" \
   /home/bijan/lu2024-12-24/Dardel/STUDY \
   "${canonical_inventory}" \
@@ -210,7 +210,7 @@ cargo run -p bijux-dna-dev -- containers run runtime-verification -- execute \
   30
 ```
 
-The environment crate resolves every image through the canonical inventory,
+The QA crate resolves every image through the canonical inventory,
 re-hashes it before execution, runs independent workers without polling or
 serial queueing, and preserves one immutable manifest plus stdout/stderr pair
 per probe. Every invocation re-inspects the embedded contract and image labels;
@@ -308,18 +308,26 @@ execution checkout:
 
 ```console
 run_commit="$(git rev-parse HEAD)"
-python3 -B containers/contracts/container_validation.py freeze-repository \
+cargo run -q -p bijux-dna-dev -- containers run repository-freeze -- \
   --governance containers/contracts/sites/lunarc.yml \
   --commit "${run_commit}"
+cargo build --locked --release -p bijux-dna-dev
+operator_program="$(pwd)/artifacts/rust/target/release/bijux-dna-dev"
+test -x "${operator_program}"
 
 run_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1125-trimmomatic"
-python3 -B containers/contracts/container_validation.py validate \
-  --governance containers/contracts/sites/lunarc.yml \
-  --pipeline "${run_spec}/config-pipeline.yml" \
-  --credentials "${run_spec}/config-credential.yml"
-python3 -B containers/contracts/container_validation.py submit \
-  --manifest "${run_spec}" \
-  --governance containers/contracts/sites/lunarc.yml
+attempt_id=attempt-001
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
+  "${attempt_id}" \
+  containers/contracts/sites/lunarc.yml \
+  "${run_spec}/config-pipeline.yml" \
+  "${run_spec}/config-credential.yml" \
+  "${operator_program}" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+qualification_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1125-trimmomatic/attempts/${attempt_id}/qualification-spec.json"
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
+  "${qualification_spec}"
 ```
 
 To validate every staged specification before submitting any of them, run:
@@ -327,15 +335,19 @@ To validate every staged specification before submitting any of them, run:
 ```console
 spec_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications"
 for run_spec in "${spec_root}"/run-*-*; do
-  python3 -B containers/contracts/container_validation.py validate \
+  cargo run -q -p bijux-dna-dev -- containers run credential-reference -- validate \
+    "${run_spec}/config-credential.yml"
+  cargo run -q -p bijux-dna-dev -- containers run pipeline-contract -- admit \
     --governance containers/contracts/sites/lunarc.yml \
-    --pipeline "${run_spec}/config-pipeline.yml" \
-    --credentials "${run_spec}/config-credential.yml"
+    "${run_spec}/config-pipeline.yml"
 done
 ```
 
 Submission remains an explicit per-run action so a malformed or scientifically
 inappropriate batch cannot enter the queue merely because it shares a folder.
+Each preparation requires a nonzero `attempt-NNN` identity. Submission evidence
+and result data are isolated below that attempt, so a retry cannot overwrite or
+invalidate an earlier attempt.
 
 ## Collect results and publish run evidence
 
@@ -343,29 +355,28 @@ After Slurm reaches a terminal state, collection adds immutable scheduler
 accounting and preserves failures even when the executor never started:
 
 ```console
-python3 -B containers/contracts/container_validation.py collect-accounting \
-  --manifest "${run_spec}" \
-  --governance containers/contracts/sites/lunarc.yml
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- collect \
+  "${qualification_spec}" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
-If the collected `evidence.json` is failed, archive that attempt before
-correcting and resubmitting the same stable run specification:
+If collected scheduler evidence marks the attempt failed, archive it before
+correcting and resubmitting the same stable run specification. This also covers
+scheduler failures that occurred before execution could publish `evidence.json`:
 
 ```console
-python3 -B containers/contracts/container_validation.py archive-failure \
-  --manifest "${run_spec}" \
-  --governance containers/contracts/sites/lunarc.yml
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- archive-failure \
+  "${qualification_spec}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
 Archival accepts only failed terminal evidence with matching Slurm accounting.
 It hashes every submission and result file, verifies that both trees and the
 owner-specific archive root share one filesystem, then moves them through a
 recoverable partial directory. Qualification failures remain under
-`containers/evidence/failures/RUN-TOOL-slurm-JOB/`; benchmark failures use
-`results/benchmark-attempts/failed/RUN-TOOL-slurm-JOB/` and the governed
-`bijux.benchmark.attempt_archive.v1` record. This frees the canonical submission
-and result paths without deleting the failed attempt or allowing it into the
-final run index. A passed result cannot be archived by this command.
+`containers/evidence/failures/RUN-TOOL-slurm-JOB/`. This frees the canonical
+submission and result paths without deleting the failed attempt or allowing it
+into the final run index. A passed result and a benchmark attempt cannot be
+archived by this qualification command.
 
 If a passed attempt later proves scientifically or structurally invalid,
 preserve it with an explicit disposition rather than deleting or relabelling
@@ -391,39 +402,29 @@ empty artifact directory so existing tracked evidence is never overwritten:
 result_root="/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation"
 
 # One run
-python3 -B containers/runs/manage.py import-evidence \
-  --result-root "${result_root}" \
-  --output-root containers/runs \
-  --minimum-run 1125 \
-  --maximum-run 1125
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  import "${result_root}" containers/runs 1125 1125
 
 # Full replay into disposable review output
 replay_root="artifacts/containers/run-evidence-replay"
-python3 -B containers/runs/manage.py import-evidence \
-  --result-root "${result_root}" \
-  --output-root "${replay_root}"
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  import "${result_root}" "${replay_root}"
 
-python3 -B containers/runs/manage.py publish-final-evidence \
-  --runs-root "${replay_root}" \
-  --ledger "${replay_root}/attempt-ledger.json" \
-  --apply
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  publish "${replay_root}" "${replay_root}/attempt-ledger.json" --apply
 
 # Publish the newly imported tracked run only after previewing the selection
-python3 -B containers/runs/manage.py publish-final-evidence \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json
-python3 -B containers/runs/manage.py publish-final-evidence \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json \
-  --apply
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  publish containers/runs containers/runs/attempt-ledger.json
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  publish containers/runs containers/runs/attempt-ledger.json --apply
 
-python3 -B containers/runs/manage.py validate --runs-root containers/runs
-python3 -B containers/runs/manage.py render-index \
-  --runs-root containers/runs \
-  --output containers/reports/run-evidence.json
-python3 -B containers/runs/manage.py render-report \
-  --runs-root containers/runs \
-  --output containers/reports/run-evidence.md
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  validate containers/runs
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  generate containers/runs \
+  containers/reports/run-evidence.json \
+  containers/reports/run-evidence.md
 ```
 
 The all-runs importer is intentionally non-overwriting. Use an empty artifact

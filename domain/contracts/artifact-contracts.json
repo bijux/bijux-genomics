@@ -1,0 +1,560 @@
+{
+  "contracts": [
+    {
+      "cardinality": "one",
+      "class": "auxiliary",
+      "compressions": [
+        "none"
+      ],
+      "contract_id": "bijux.auxiliary.artifact.database.v1",
+      "formats": [
+        "database"
+      ],
+      "index": "optional",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "optional",
+      "sample_identity": "forbidden",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "auxiliary",
+      "compressions": [
+        "none"
+      ],
+      "contract_id": "bijux.auxiliary.artifact.directory.v1",
+      "formats": [
+        "directory"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "optional",
+      "sample_identity": "optional",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "auxiliary",
+      "compressions": [
+        "none",
+        "gzip"
+      ],
+      "contract_id": "bijux.auxiliary.artifact.file.v1",
+      "formats": [
+        "file"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "optional",
+      "sample_identity": "optional",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "auxiliary",
+      "compressions": [
+        "none",
+        "gzip"
+      ],
+      "contract_id": "bijux.auxiliary.artifact.html.v1",
+      "formats": [
+        "html"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "optional",
+      "sample_identity": "optional",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "auxiliary",
+      "compressions": [
+        "none"
+      ],
+      "contract_id": "bijux.auxiliary.artifact.index.v1",
+      "formats": [
+        "index"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "optional",
+      "sample_identity": "optional",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "auxiliary",
+      "compressions": [
+        "none"
+      ],
+      "contract_id": "bijux.auxiliary.artifact.json.v1",
+      "formats": [
+        "json"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "optional",
+      "sample_identity": "optional",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "auxiliary",
+      "compressions": [
+        "none",
+        "gzip"
+      ],
+      "contract_id": "bijux.auxiliary.artifact.table.v1",
+      "formats": [
+        "tabular"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "optional",
+      "sample_identity": "optional",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "auxiliary",
+      "compressions": [
+        "none",
+        "gzip"
+      ],
+      "contract_id": "bijux.auxiliary.artifact.text.v1",
+      "formats": [
+        "text"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "optional",
+      "sample_identity": "optional",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "alignment",
+      "compressions": [
+        "bgzf"
+      ],
+      "contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+      "formats": [
+        "bam"
+      ],
+      "index": "required",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "single_end",
+        "paired_end"
+      ],
+      "reference_identity": "required",
+      "sample_identity": "required",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sidecars": [
+        {
+          "format": "index",
+          "presence": "required",
+          "role": "index"
+        }
+      ],
+      "sort_orders": [
+        "coordinate"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "coordinate_sorted",
+        "index_readable",
+        "sample_identity_present",
+        "reference_identity_present",
+        "header_reference_consistent",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "fastq",
+      "compressions": [
+        "none",
+        "gzip"
+      ],
+      "contract_id": "bijux.fastq.artifact.interleaved.v1",
+      "formats": [
+        "fastq"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "interleaved"
+      ],
+      "reference_identity": "forbidden",
+      "sample_identity": "required",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "fastq_record_structure",
+        "paired_record_synchronization",
+        "sample_identity_present",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "fastq",
+      "compressions": [
+        "none",
+        "gzip"
+      ],
+      "contract_id": "bijux.fastq.artifact.merged.v1",
+      "formats": [
+        "fastq"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "merged"
+      ],
+      "reference_identity": "forbidden",
+      "sample_identity": "required",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "fastq_record_structure",
+        "sample_identity_present",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "fastq",
+      "compressions": [
+        "none",
+        "gzip"
+      ],
+      "contract_id": "bijux.fastq.artifact.paired_end.v1",
+      "formats": [
+        "fastq"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "paired_end"
+      ],
+      "reference_identity": "forbidden",
+      "sample_identity": "required",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "fastq_record_structure",
+        "paired_record_synchronization",
+        "sample_identity_present",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "fastq",
+      "compressions": [
+        "none",
+        "gzip"
+      ],
+      "contract_id": "bijux.fastq.artifact.reads.v1",
+      "formats": [
+        "fastq"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "single_end",
+        "paired_end",
+        "interleaved",
+        "merged"
+      ],
+      "reference_identity": "forbidden",
+      "sample_identity": "required",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "fastq_record_structure",
+        "sample_identity_present",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "fastq",
+      "compressions": [
+        "none",
+        "gzip"
+      ],
+      "contract_id": "bijux.fastq.artifact.single_end.v1",
+      "formats": [
+        "fastq"
+      ],
+      "index": "forbidden",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "single_end"
+      ],
+      "reference_identity": "forbidden",
+      "sample_identity": "required",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "fastq_record_structure",
+        "sample_identity_present",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "reference",
+      "compressions": [
+        "none",
+        "gzip"
+      ],
+      "contract_id": "bijux.reference.artifact.fasta.v1",
+      "formats": [
+        "fasta"
+      ],
+      "index": "optional",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "required",
+      "sample_identity": "forbidden",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sort_orders": [
+        "not_applicable"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "reference_identity_present",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "variant",
+      "compressions": [
+        "bgzf"
+      ],
+      "contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
+      "formats": [
+        "vcf"
+      ],
+      "index": "required",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "required",
+      "sample_identity": "required",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sidecars": [
+        {
+          "format": "index",
+          "presence": "required",
+          "role": "index"
+        }
+      ],
+      "sort_orders": [
+        "coordinate"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "coordinate_sorted",
+        "index_readable",
+        "sample_identity_present",
+        "reference_identity_present",
+        "header_reference_consistent",
+        "lineage_recorded"
+      ]
+    },
+    {
+      "cardinality": "one",
+      "class": "variant",
+      "compressions": [
+        "bgzf"
+      ],
+      "contract_id": "bijux.vcf.artifact.reference_panel_indexed.v1",
+      "formats": [
+        "vcf"
+      ],
+      "index": "required",
+      "lineage": {
+        "minimum_parent_count": 1,
+        "presence": "required"
+      },
+      "pairing": [
+        "not_applicable"
+      ],
+      "reference_identity": "required",
+      "sample_identity": "forbidden",
+      "schema_version": "bijux.artifact_contract.v1",
+      "sidecars": [
+        {
+          "format": "index",
+          "presence": "required",
+          "role": "index"
+        }
+      ],
+      "sort_orders": [
+        "coordinate"
+      ],
+      "validation_invariants": [
+        "non_empty",
+        "coordinate_sorted",
+        "index_readable",
+        "reference_identity_present",
+        "header_reference_consistent",
+        "lineage_recorded"
+      ]
+    }
+  ],
+  "schema_version": "bijux.artifact_contract_catalog.v1"
+}

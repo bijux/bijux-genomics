@@ -185,6 +185,8 @@ pub(super) struct DomainStage {
     pub(super) status: String,
     pub(super) scope: String,
     pub(super) domain: String,
+    pub(super) benchmark_disposition: String,
+    pub(super) benchmark_disposition_reason: String,
     #[serde(default)]
     pub(super) inputs: Vec<StagePort>,
     #[serde(default)]

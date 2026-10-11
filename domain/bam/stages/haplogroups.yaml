@@ -3,6 +3,8 @@ stage_id: "bam.haplogroups"
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "bam"
+benchmark_disposition: "benchmark_required"
+benchmark_disposition_reason: "The stage has a permanent run reservation in the governed benchmark portfolio."
 inputs:
   - name: "bam"
     data_type: "bam"

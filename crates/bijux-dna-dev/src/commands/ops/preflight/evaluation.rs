@@ -7,8 +7,11 @@ pub(super) fn evaluate(
     policy_sha256: String,
 ) -> PreflightReport {
     let mut checks = Vec::new();
-    let host_matches = Regex::new(&policy.site.hostname_regex)
-        .is_ok_and(|pattern| pattern.is_match(&observation.hostname));
+    let host_matches = bijux_dna_containers::api::validate_container_governance_host(
+        policy,
+        &observation.hostname,
+    )
+    .is_ok();
     add_check(&mut checks, "site.hostname", host_matches, format!("host={}", observation.hostname));
     add_check(
         &mut checks,
@@ -57,6 +60,7 @@ pub(super) fn evaluate(
         observation.utc_probe.passed()
             && observation
                 .clock_skew_seconds
+                .and_then(|skew| u64::try_from(skew).ok())
                 .is_some_and(|skew| skew <= policy.preflight.maximum_clock_skew_seconds),
         format!("skew_seconds={:?}", observation.clock_skew_seconds),
     );
@@ -307,7 +311,7 @@ mod tests {
     fn policy() -> SiteCyclePolicy {
         let study = PathBuf::from("/study");
         SiteCyclePolicy {
-            schema_version: SITE_POLICY_SCHEMA_V1.to_string(),
+            schema_version: bijux_dna_containers::api::CONTAINER_GOVERNANCE_SCHEMA_V1.to_string(),
             site: SitePolicy {
                 id: "lunarc".to_string(),
                 hostname_regex: "^cosmos[0-9]+$".to_string(),

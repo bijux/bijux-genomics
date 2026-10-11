@@ -1,7 +1,7 @@
 schema_version: bijux.container.governance.v1
 site:
   id: lunarc
-  hostname_regex: '^(cosmos[0-9]+|cn[0-9]+)(\.int\.lunarc)?$'
+  hostname_regex: '^(cosmos[0-9]+(\.int\.lunarc)?|cn[0-9]+(\.int(\.lunarc)?)?)$'
 paths:
   study_root: /home/bijan/lu2024-12-24/Dardel/STUDY
   containers_root: /home/bijan/lu2024-12-24/Dardel/STUDY/containers
@@ -9,7 +9,7 @@ paths:
   results_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results
   finalization_root: /home/bijan/lu2024-12-24/Dardel/STUDY/evidence/finalization
   active_repository: /home/bijan/bijux/bijux-genomics
-  frozen_repositories: /home/bijan/bijux/bijux-genomics-runs
+  frozen_repositories: /home/bijan/lu2024-12-24/Dardel/STUDY/data/evidence/source-checkouts
 runtime:
   apptainer_architecture: linux/amd64
 slurm:

@@ -114,6 +114,19 @@ fn bench_readiness_input_preflight_audit_report_governed_retained_tool_coverage(
             && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
     }));
 
+    for (domain, stage_id, tool_id) in
+        [("fastq", "fastq.remove_duplicates", "fastuniq"), ("bam", "bam.damage", "ngsbriggs")]
+    {
+        assert!(rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some(domain)
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("contract_surface").and_then(serde_json::Value::as_str)
+                    == Some("external_artifact_execution_contract")
+                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+        }));
+    }
+
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")
             && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.merge_pairs")

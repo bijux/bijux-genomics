@@ -57,7 +57,7 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
     let fastq_bam_count =
         domain_counts.get("fastq").and_then(serde_json::Value::as_u64).expect("fastq count")
             + domain_counts.get("bam").and_then(serde_json::Value::as_u64).expect("bam count");
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(21));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let command_source_counts = support::json_object(&payload, "command_source_counts");
@@ -89,7 +89,7 @@ fn bench_readiness_all_domain_rendered_commands_tracks_governed_rows() {
     );
     assert_eq!(
         command_source_counts.get("vcf_descent_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(4)
     );
 
     let rows = support::json_array(&payload, "rows");

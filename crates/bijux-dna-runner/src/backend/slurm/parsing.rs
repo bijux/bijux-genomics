@@ -1,9 +1,11 @@
 //! Owner: bijux-dna-runner
 //! Fail-closed parsing for Slurm command output.
 
+use std::collections::BTreeMap;
+
 use anyhow::{bail, Context, Result};
 
-use super::{SlurmAccounting, SlurmJobState};
+use super::{SlurmAccounting, SlurmArraySpec, SlurmArrayTaskAccounting, SlurmJobState};
 
 pub(super) fn parse_job_id(output: &str) -> Result<String> {
     let job_id = output.trim().split_once(';').map_or(output.trim(), |(id, _)| id);
@@ -24,20 +26,46 @@ pub(super) fn parse_queue_state(output: &str) -> Result<Option<SlurmJobState>> {
     Ok(Some(parse_state(states[0])?))
 }
 
-pub(super) fn parse_accounting(output: &str, job_id: &str) -> Result<Option<SlurmAccounting>> {
+pub(super) fn parse_accounting(
+    output: &str,
+    job_id: &str,
+    array: Option<&SlurmArraySpec>,
+) -> Result<Option<SlurmAccounting>> {
     let mut matched = None;
     let mut max_rss_bytes = None;
+    let mut tasks = BTreeMap::<u32, (Option<SlurmArrayTaskAccounting>, Option<u64>)>::new();
     for line in output.lines().map(str::trim).filter(|line| !line.is_empty()) {
         let fields = line.split('|').collect::<Vec<_>>();
         if fields.len() != 8 {
             bail!("sacct row has {} fields instead of 8", fields.len());
         }
         let allocation_row = fields[0] == job_id;
-        let step_row = fields[0].strip_prefix(job_id).is_some_and(|suffix| suffix.starts_with('.'));
-        if !allocation_row && !step_row {
+        let parent_step =
+            fields[0].strip_prefix(job_id).is_some_and(|suffix| suffix.starts_with('.'));
+        let task_row = parse_array_row_identity(fields[0], job_id)?;
+        if !allocation_row && !parent_step && task_row.is_none() {
             continue;
         }
-        max_rss_bytes = max_rss_bytes.max(parse_memory_bytes(fields[5])?);
+        let row_max_rss = parse_memory_bytes(fields[5])?;
+        if parent_step || allocation_row {
+            max_rss_bytes = max_rss_bytes.max(row_max_rss);
+        }
+        if let Some((task_id, is_step)) = task_row {
+            let spec = array.context("sacct returned array-task evidence for a scalar job")?;
+            if task_id < spec.first_task_id || task_id > spec.last_task_id {
+                bail!("sacct returned out-of-range array task {task_id} for job {job_id}");
+            }
+            let (task, task_max_rss) = tasks.entry(task_id).or_default();
+            *task_max_rss = (*task_max_rss).max(row_max_rss);
+            if is_step {
+                continue;
+            }
+            if task.is_some() {
+                bail!("sacct returned duplicate allocation rows for array task {task_id}");
+            }
+            *task = Some(parse_array_task(&fields, task_id)?);
+            continue;
+        }
         if !allocation_row {
             continue;
         }
@@ -56,12 +84,82 @@ pub(super) fn parse_accounting(output: &str, job_id: &str) -> Result<Option<Slur
             max_rss_bytes: None,
             node_list: fields[6].to_string(),
             reason: nonempty(fields[7]),
+            array_tasks: Vec::new(),
         });
     }
     if let Some(accounting) = matched.as_mut() {
         accounting.max_rss_bytes = max_rss_bytes;
+        accounting.array_tasks = tasks
+            .into_values()
+            .map(|(task, max_rss)| {
+                let mut task = task.context("sacct array task has steps but no allocation row")?;
+                task.max_rss_bytes = max_rss;
+                Ok(task)
+            })
+            .collect::<Result<Vec<_>>>()?;
+        validate_terminal_array_accounting(accounting, array)?;
     }
     Ok(matched)
+}
+
+fn parse_array_row_identity(row_job_id: &str, parent_job_id: &str) -> Result<Option<(u32, bool)>> {
+    let Some(suffix) =
+        row_job_id.strip_prefix(parent_job_id).and_then(|value| value.strip_prefix('_'))
+    else {
+        return Ok(None);
+    };
+    let (task, step) =
+        suffix.split_once('.').map_or((suffix, None), |(task, step)| (task, Some(step)));
+    if task.is_empty() || !task.bytes().all(|byte| byte.is_ascii_digit()) {
+        bail!("sacct returned a malformed array task identity: {row_job_id}");
+    }
+    if step.is_some_and(str::is_empty) {
+        bail!("sacct returned a malformed array task step identity: {row_job_id}");
+    }
+    Ok(Some((task.parse().context("parse Slurm array task id")?, step.is_some())))
+}
+
+fn parse_array_task(fields: &[&str], task_id: u32) -> Result<SlurmArrayTaskAccounting> {
+    let (exit_code, signal) = parse_exit_code(fields[2])?;
+    Ok(SlurmArrayTaskAccounting {
+        task_id,
+        job_id: fields[0].to_string(),
+        state: parse_state(fields[1])?,
+        raw_state: fields[1].to_string(),
+        exit_code,
+        signal,
+        elapsed_seconds: fields[3].parse().context("parse Slurm elapsed seconds")?,
+        total_cpu_seconds: parse_duration_seconds(fields[4])?,
+        max_rss_bytes: None,
+        node_list: fields[6].to_string(),
+        reason: nonempty(fields[7]),
+    })
+}
+
+fn validate_terminal_array_accounting(
+    accounting: &SlurmAccounting,
+    array: Option<&SlurmArraySpec>,
+) -> Result<()> {
+    let Some(array) = array else {
+        if !accounting.array_tasks.is_empty() {
+            bail!("scalar Slurm accounting contains array tasks");
+        }
+        return Ok(());
+    };
+    if !accounting.state.is_terminal() {
+        return Ok(());
+    }
+    let expected = u64::from(array.last_task_id) - u64::from(array.first_task_id) + 1;
+    if accounting.array_tasks.len() as u64 != expected {
+        bail!(
+            "terminal Slurm array accounting has {} tasks instead of {expected}",
+            accounting.array_tasks.len()
+        );
+    }
+    if accounting.array_tasks.iter().any(|task| !task.state.is_terminal()) {
+        bail!("terminal Slurm array accounting contains a non-terminal task");
+    }
+    Ok(())
 }
 
 fn parse_state(raw: &str) -> Result<SlurmJobState> {

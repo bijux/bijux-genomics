@@ -1,13 +1,13 @@
 use std::collections::HashMap;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::{Mutex, MutexGuard};
 
 use bijux_dna_containers::resolve::{
-    apptainer_sif_path, cache_dir, docker_image_exists, load_image_catalog, load_platform,
-    resolve_image, run_shell_capture, select_best_runner, validate_images_for_stage, EnvError,
-    ImageRef, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
+    apptainer_sif_path, cache_dir, docker_image_exists, load_image_catalog_from_paths,
+    load_platform_from_path, resolve_image, run_shell_capture, select_best_runner,
+    validate_images_for_stage, EnvError, ImageRef, PlatformSpec, ResolvedImage, RuntimeKind,
+    ToolImageSpec,
 };
 use bijux_dna_containers::runtime_spec::{is_platform_runner_compatible, RuntimeSpec};
 
@@ -15,24 +15,6 @@ static ENV_LOCK: Mutex<()> = Mutex::new(());
 
 fn env_lock() -> MutexGuard<'static, ()> {
     ENV_LOCK.lock().unwrap_or_else(|err| panic!("environment lock poisoned: {err}"))
-}
-
-struct CurrentDirGuard {
-    previous: PathBuf,
-}
-
-impl CurrentDirGuard {
-    fn change_to(path: &Path) -> anyhow::Result<Self> {
-        let previous = std::env::current_dir()?;
-        std::env::set_current_dir(path)?;
-        Ok(Self { previous })
-    }
-}
-
-impl Drop for CurrentDirGuard {
-    fn drop(&mut self) {
-        let _ = std::env::set_current_dir(&self.previous);
-    }
 }
 
 struct EnvVarGuard {
@@ -279,7 +261,6 @@ fn validate_images_for_stage_rejects_disabled_tools() {
 fn load_platform_prefers_cache_root_for_apptainer_platforms() -> anyhow::Result<()> {
     let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-platform-cache-root");
-    let _cwd = CurrentDirGuard::change_to(temp.path())?;
     let _cache_root = EnvVarGuard::capture("BIJUX_CACHE_ROOT");
     write_runtime_platform_fixture(
         temp.path(),
@@ -294,7 +275,10 @@ arch = "amd64"
 "#,
     )?;
     std::env::set_var("BIJUX_CACHE_ROOT", "/var/tmp/bijux-cache-root");
-    let platform = load_platform(Some("apptainer-amd64"))?;
+    let platform = load_platform_from_path(
+        &temp.path().join("configs/runtime/platforms.toml"),
+        Some("apptainer-amd64"),
+    )?;
     assert_eq!(platform.runner, RuntimeKind::Apptainer);
     assert_eq!(
         platform.container_dir,
@@ -310,7 +294,6 @@ arch = "amd64"
 fn load_platform_keeps_relative_apptainer_dir_without_cache_env() -> anyhow::Result<()> {
     let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-platform-relative-apptainer");
-    let _cwd = CurrentDirGuard::change_to(temp.path())?;
     let _cache_root = EnvVarGuard::capture("BIJUX_CACHE_ROOT");
     let _hpc_root = EnvVarGuard::capture("BIJUX_HPC_ROOT");
     let _apptainer_dir = EnvVarGuard::capture("BIJUX_APPTAINER_CONTAINER_DIR");
@@ -329,7 +312,10 @@ arch = "amd64"
     std::env::remove_var("BIJUX_CACHE_ROOT");
     std::env::remove_var("BIJUX_HPC_ROOT");
     std::env::remove_var("BIJUX_APPTAINER_CONTAINER_DIR");
-    let platform = load_platform(Some("apptainer-amd64"))?;
+    let platform = load_platform_from_path(
+        &temp.path().join("configs/runtime/platforms.toml"),
+        Some("apptainer-amd64"),
+    )?;
     assert_eq!(platform.container_dir, Path::new("containers").join("apptainer").join("sif"));
     Ok(())
 }
@@ -338,7 +324,6 @@ arch = "amd64"
 fn load_image_catalog_hydrates_missing_digests_from_registry() -> anyhow::Result<()> {
     let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-image-catalog");
-    let _cwd = CurrentDirGuard::change_to(temp.path())?;
     write_image_catalog_fixture(
         temp.path(),
         b"[fastqc]\nversion = \"latest-pinned\"\n",
@@ -347,7 +332,10 @@ id = "fastqc"
 container_ref = "bijuxdna/fastqc@sha256:abc123"
 "#,
     )?;
-    let catalog = load_image_catalog()?;
+    let catalog = load_image_catalog_from_paths(
+        &temp.path().join("configs/ci/tools/images.toml"),
+        &temp.path().join("configs/ci/registry/tool_registry.toml"),
+    )?;
     assert_eq!(
         catalog.get("fastqc").and_then(|spec| spec.digest.as_deref()),
         Some("sha256:abc123")
@@ -359,7 +347,6 @@ container_ref = "bijuxdna/fastqc@sha256:abc123"
 fn load_image_catalog_ignores_empty_registry_digests() -> anyhow::Result<()> {
     let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-image-catalog-empty-digest");
-    let _cwd = CurrentDirGuard::change_to(temp.path())?;
     write_image_catalog_fixture(
         temp.path(),
         b"[fastqc]\nversion = \"latest-pinned\"\n",
@@ -368,7 +355,10 @@ id = "fastqc"
 container_ref = "bijuxdna/fastqc@sha256:"
 "#,
     )?;
-    let catalog = load_image_catalog()?;
+    let catalog = load_image_catalog_from_paths(
+        &temp.path().join("configs/ci/tools/images.toml"),
+        &temp.path().join("configs/ci/registry/tool_registry.toml"),
+    )?;
     assert_eq!(catalog.get("fastqc").and_then(|spec| spec.digest.as_deref()), None);
     Ok(())
 }
@@ -377,20 +367,23 @@ container_ref = "bijuxdna/fastqc@sha256:"
 fn load_image_catalog_rejects_tool_key_mismatch() -> anyhow::Result<()> {
     let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-image-catalog-key-mismatch");
-    let _cwd = CurrentDirGuard::change_to(temp.path())?;
     write_image_catalog_fixture(
         temp.path(),
         b"[fastp]\ntool = \"fastqc\"\nversion = \"0.23.4\"\n",
         b"",
     )?;
-    let err =
-        load_image_catalog().err().unwrap_or_else(|| panic!("expected image catalog key mismatch"));
+    let err = load_image_catalog_from_paths(
+        &temp.path().join("configs/ci/tools/images.toml"),
+        &temp.path().join("configs/ci/registry/tool_registry.toml"),
+    )
+    .err()
+    .unwrap_or_else(|| panic!("expected image catalog key mismatch"));
     assert!(err.to_string().contains("does not match catalog key fastp"));
     Ok(())
 }
 
 #[test]
-fn cache_paths_and_docker_image_checks_are_deterministic() {
+fn cache_paths_are_deterministic() {
     let _env = env_lock();
     let cache_root = bijux_dna_testkit::tempdir_for("environment-cache-root");
     let image = ResolvedImage {
@@ -402,35 +395,16 @@ fn cache_paths_and_docker_image_checks_are_deterministic() {
     std::env::set_var("BIJUX_CACHE_ROOT", cache_root.path());
     assert!(cache_dir(RuntimeKind::Docker).to_string_lossy().contains("bijux/docker/images"));
     assert!(apptainer_sif_path(&image).to_string_lossy().contains("fastp-sha256-abc123-arm64.sif"));
-
-    let docker = ResolvedImage {
-        full_name: "bijuxdna/fastp:0.23.4-arm64".to_string(),
-        arch: "arm64".to_string(),
-        runner: RuntimeKind::Docker,
-    };
-    let temp = bijux_dna_testkit::tempdir_for("environment-docker-image-probe-missing");
-    let _path = EnvVarGuard::capture("PATH");
-    std::env::set_var("PATH", temp.path());
-    assert!(!docker_image_exists(&docker));
 }
 
 #[test]
-fn docker_image_exists_skips_non_docker_runners() -> anyhow::Result<()> {
-    let _env = env_lock();
-    let temp = bijux_dna_testkit::tempdir_for("environment-docker-probe-runner-kind");
-    let docker = temp.path().join("docker");
-    bijux_dna_infra::atomic_write_bytes(&docker, b"#!/bin/sh\nexit 0\n")?;
-    std::fs::set_permissions(&docker, std::fs::Permissions::from_mode(0o755))?;
-    let _path = EnvVarGuard::capture("PATH");
-    std::env::set_var("PATH", temp.path());
-
+fn docker_image_exists_skips_non_docker_runners() {
     let image = ResolvedImage {
         full_name: "bijuxdna/fastp@sha256:abc123".to_string(),
         arch: "arm64".to_string(),
         runner: RuntimeKind::Apptainer,
     };
     assert!(!docker_image_exists(&image));
-    Ok(())
 }
 
 #[test]

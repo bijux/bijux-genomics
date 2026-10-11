@@ -49,11 +49,16 @@ pub(crate) fn parse_filereport_tsv(
             library_layout: opt_field(field("library_layout")).map(ToString::to_string),
             library_source: opt_field(field("library_source")).map(ToString::to_string),
             library_strategy: opt_field(field("library_strategy")).map(ToString::to_string),
+            library_selection: opt_field(field("library_selection")).map(ToString::to_string),
+            instrument_platform: opt_field(field("instrument_platform")).map(ToString::to_string),
             instrument_model: opt_field(field("instrument_model")).map(ToString::to_string),
             base_count: parse_optional_u64("base_count", field("base_count"), line_index + 2)?,
             read_count: parse_optional_u64("read_count", field("read_count"), line_index + 2)?,
             fastq_bytes: parse_u64_list("fastq_bytes", field("fastq_bytes"), line_index + 2)?,
             fastq_ftp: split_ena_field(field("fastq_ftp")),
+            fastq_md5: split_ena_field(field("fastq_md5")),
+            first_public: opt_field(field("first_public")).map(ToString::to_string),
+            last_updated: opt_field(field("last_updated")).map(ToString::to_string),
             submitted_ftp: split_ena_field(field("submitted_ftp")),
             sra_ftp: split_ena_field(field("sra_ftp")),
             bam_ftp: split_ena_field(field("bam_ftp")),
@@ -138,8 +143,8 @@ mod tests {
         let tsv = concat!(
             "study_accession\tsample_accession\texperiment_accession\trun_accession\t",
             "tax_id\tscientific_name\tlibrary_layout\tlibrary_source\tlibrary_strategy\t",
-            "instrument_model\tbase_count\tread_count\tfastq_bytes\tfastq_ftp\t",
-            "submitted_ftp\tsra_ftp\n",
+            "library_selection\tinstrument_platform\tinstrument_model\tbase_count\tread_count\t",
+            "fastq_bytes\tfastq_ftp\tfastq_md5\tfirst_public\tlast_updated\tsubmitted_ftp\tsra_ftp\n",
             "PRJEB1\tSAMEA1\tERX1\tERR1\n",
         );
 
@@ -162,10 +167,10 @@ mod tests {
         let tsv = concat!(
             "study_accession\tsample_accession\texperiment_accession\trun_accession\t",
             "tax_id\tscientific_name\tlibrary_layout\tlibrary_source\tlibrary_strategy\t",
-            "instrument_model\tbase_count\tread_count\tfastq_bytes\tfastq_ftp\t",
-            "submitted_ftp\tsra_ftp\n",
-            "PRJEB1\tSAMEA1\tERX1\tERR1\t9606\tHomo sapiens\tPAIRED\tGENOMIC\tWGS\t",
-            "Illumina NovaSeq 6000\tbad\t20\t84\tftp.sra.ebi.ac.uk/a.fastq.gz\t",
+            "library_selection\tinstrument_platform\tinstrument_model\tbase_count\tread_count\t",
+            "fastq_bytes\tfastq_ftp\tfastq_md5\tfirst_public\tlast_updated\tsubmitted_ftp\tsra_ftp\n",
+            "PRJEB1\tSAMEA1\tERX1\tERR1\t9606\tHomo sapiens\tPAIRED\tGENOMIC\tWGS\tRANDOM\tILLUMINA\t",
+            "Illumina NovaSeq 6000\tbad\t20\t84\tftp.sra.ebi.ac.uk/a.fastq.gz\taaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\t2020-01-01\t2020-01-02\t",
             "ftp.sra.ebi.ac.uk/a.submitted.fastq.gz\tftp.sra.ebi.ac.uk/a.sra\n",
         );
 
@@ -188,10 +193,10 @@ mod tests {
         let tsv = concat!(
             "study_accession\tsample_accession\texperiment_accession\trun_accession\t",
             "tax_id\tscientific_name\tlibrary_layout\tlibrary_source\tlibrary_strategy\t",
-            "instrument_model\tbase_count\tread_count\tfastq_bytes\tfastq_ftp\t",
-            "submitted_ftp\tsra_ftp\n",
-            "PRJEB1\tSAMEA1\tERX1\tERR1\t9606\tHomo sapiens\tPAIRED\tGENOMIC\tWGS\t",
-            "Illumina NovaSeq 6000\t100\t20\t84;bad\tftp.sra.ebi.ac.uk/a.fastq.gz\t",
+            "library_selection\tinstrument_platform\tinstrument_model\tbase_count\tread_count\t",
+            "fastq_bytes\tfastq_ftp\tfastq_md5\tfirst_public\tlast_updated\tsubmitted_ftp\tsra_ftp\n",
+            "PRJEB1\tSAMEA1\tERX1\tERR1\t9606\tHomo sapiens\tPAIRED\tGENOMIC\tWGS\tRANDOM\tILLUMINA\t",
+            "Illumina NovaSeq 6000\t100\t20\t84;bad\tftp.sra.ebi.ac.uk/a.fastq.gz\taaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\t2020-01-01\t2020-01-02\t",
             "ftp.sra.ebi.ac.uk/a.submitted.fastq.gz\tftp.sra.ebi.ac.uk/a.sra\n",
         );
 

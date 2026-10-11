@@ -75,73 +75,45 @@ pub fn bench_bam_local_stage_matrix_path() -> PathBuf {
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
-
     use super::{
         bench_bam_local_stage_matrix_path, bench_contracts_dir,
         bench_fastq_local_stage_matrix_path, bench_local_config_dir, bench_portfolio_path,
         bench_reports_dir, bench_stage_campaigns_path, bench_stage_interfaces_path,
     };
 
-    struct RepoRootOverrideGuard {
-        previous: Option<std::ffi::OsString>,
-    }
-
-    impl RepoRootOverrideGuard {
-        fn install(root: &std::path::Path) -> Self {
-            let previous = std::env::var_os("BIJUX_REPO_ROOT");
-            std::env::set_var("BIJUX_REPO_ROOT", root);
-            Self { previous }
-        }
-    }
-
-    impl Drop for RepoRootOverrideGuard {
-        fn drop(&mut self) {
-            if let Some(previous) = self.previous.take() {
-                std::env::set_var("BIJUX_REPO_ROOT", previous);
-            } else {
-                std::env::remove_var("BIJUX_REPO_ROOT");
-            }
-        }
-    }
-
     #[test]
     fn bench_local_config_paths_follow_repo_layout() -> anyhow::Result<()> {
-        let temp = tempfile::tempdir()?;
-        fs::write(temp.path().join("Cargo.lock"), "")?;
-        fs::create_dir_all(temp.path().join("crates"))?;
-        fs::create_dir_all(bijux_dna_infra::configs_dir(temp.path()).join("bench").join("local"))?;
-        fs::create_dir_all(temp.path().join("benchmarks").join("contracts"))?;
-        let _guard = RepoRootOverrideGuard::install(temp.path());
+        let repository =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
 
         assert_eq!(
             bench_local_config_dir(),
-            bijux_dna_infra::configs_dir(temp.path()).join("bench").join("local"),
+            bijux_dna_infra::configs_dir(&repository).join("bench").join("local"),
         );
-        assert_eq!(bench_contracts_dir(), temp.path().join("benchmarks").join("contracts"),);
+        assert_eq!(bench_contracts_dir(), repository.join("benchmarks").join("contracts"),);
         assert_eq!(
             bench_stage_campaigns_path(),
-            temp.path().join("benchmarks").join("contracts").join("stage-campaigns.toml"),
+            repository.join("benchmarks").join("contracts").join("stage-campaigns.toml"),
         );
         assert_eq!(
             bench_portfolio_path(),
-            temp.path().join("benchmarks").join("contracts").join("portfolio.toml"),
+            repository.join("benchmarks").join("contracts").join("portfolio.toml"),
         );
         assert_eq!(
             bench_stage_interfaces_path(),
-            temp.path().join("benchmarks").join("contracts").join("stage-interfaces.toml"),
+            repository.join("benchmarks").join("contracts").join("stage-interfaces.toml"),
         );
-        assert_eq!(bench_reports_dir(), temp.path().join("benchmarks").join("reports"));
+        assert_eq!(bench_reports_dir(), repository.join("benchmarks").join("reports"));
         assert_eq!(
             bench_fastq_local_stage_matrix_path(),
-            bijux_dna_infra::configs_dir(temp.path())
+            bijux_dna_infra::configs_dir(&repository)
                 .join("bench")
                 .join("local")
                 .join("fastq-stage-matrix.toml"),
         );
         assert_eq!(
             bench_bam_local_stage_matrix_path(),
-            bijux_dna_infra::configs_dir(temp.path())
+            bijux_dna_infra::configs_dir(&repository)
                 .join("bench")
                 .join("local")
                 .join("bam-stage-matrix.toml"),

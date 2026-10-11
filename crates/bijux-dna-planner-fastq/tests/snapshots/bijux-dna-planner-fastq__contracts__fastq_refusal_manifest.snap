@@ -16,6 +16,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&payload)"
     },
     "inputs": [
       {
+        "artifact_contract_id": "bijux.fastq.artifact.single_end.v1",
         "artifact_id": "reads",
         "format_id": "fastq.gz",
         "path": "reads_R1.fastq.gz",

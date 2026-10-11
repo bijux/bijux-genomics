@@ -32,20 +32,17 @@ but it must never contain a credential value.
 From the repository root:
 
 ```console
-python3 containers/runs/manage.py validate \
-  --runs-root containers/runs
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  validate containers/runs
 ```
 
 Render the compact website/report index after validation:
 
 ```console
-python3 containers/runs/manage.py render-index \
-  --runs-root containers/runs \
-  --output containers/reports/run-evidence.json
-
-python3 containers/runs/manage.py render-report \
-  --runs-root containers/runs \
-  --output containers/reports/run-evidence.md
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  generate containers/runs \
+  containers/reports/run-evidence.json \
+  containers/reports/run-evidence.md
 ```
 
 ## Admit final execution evidence
@@ -55,11 +52,9 @@ range so one reviewable scientific or operational group is admitted per
 commit:
 
 ```console
-python3 containers/runs/manage.py import-evidence \
-  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
-  --output-root containers/runs \
-  --minimum-run 1001 \
-  --maximum-run 1018
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  import /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
+  containers/runs 1001 1018
 ```
 
 The importer refuses to replace an existing tracked run, rejects embedded
@@ -68,14 +63,11 @@ and records hashes for the complete remote result. Before rendering reports,
 preview and then publish the latest successful execution per tool:
 
 ```console
-python3 containers/runs/manage.py publish-final-evidence \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  publish containers/runs containers/runs/attempt-ledger.json
 
-python3 containers/runs/manage.py publish-final-evidence \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json \
-  --apply
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  publish containers/runs containers/runs/attempt-ledger.json --apply
 ```
 
 Preview reports the exact final and superseded counts without changing files.
@@ -97,26 +89,40 @@ an already frozen repository commit, immutable images and inputs, stable
 container mount names, predefined metrics, and non-secret credential
 references.
 
-Validate and submit it on LUNARC:
+Prepare and submit it on LUNARC through the non-waiting Rust scheduler boundary:
 
 ```console
 specification=/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1122-trim_galore
+attempt_id=attempt-001
+cargo build --locked --release -p bijux-dna-dev
+operator_program="$(pwd)/artifacts/rust/target/release/bijux-dna-dev"
+test -x "${operator_program}"
 
-python3 containers/contracts/container_validation.py validate \
-  --governance containers/contracts/sites/lunarc.yml \
-  --pipeline "${specification}/config-pipeline.yml" \
-  --credentials "${specification}/config-credential.yml"
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- prepare \
+  "${attempt_id}" \
+  containers/contracts/sites/lunarc.yml \
+  "${specification}/config-pipeline.yml" \
+  "${specification}/config-credential.yml" \
+  "${operator_program}" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-python3 containers/contracts/container_validation.py submit \
-  --manifest "${specification}" \
-  --governance containers/contracts/sites/lunarc.yml
+qualification_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/submissions/run-1122-trim_galore/attempts/${attempt_id}/qualification-spec.json"
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- submit \
+  "${qualification_spec}"
 ```
 
 Submission copies the resolved contracts and generated Slurm script to the
-immutable operational evidence directory. After the job becomes terminal,
-collect scheduler accounting and import the completed flat result into this
-directory. Only completed or failed evidence is tracked; provisional files do
-not masquerade as a replay record.
+immutable attempt directory. The pipeline declares a stable result namespace;
+the runner writes each execution below `attempts/attempt-NNN` in both submission
+and result namespaces. After the job becomes terminal, collect scheduler
+accounting into that same attempt. Only completed or failed evidence is tracked;
+provisional files do not masquerade as a replay record.
+
+```console
+cargo run -q -p bijux-dna-dev -- containers run qualification-slurm -- collect \
+  "${qualification_spec}" \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+```
 
 ## Migrate historical result paths
 
@@ -126,24 +132,24 @@ rename and supports verification and rollback. It never copies or deletes a
 result. On LUNARC:
 
 ```console
-python3 containers/runs/result_layout.py plan \
-  --runs-root containers/runs \
-  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
-  --plan /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/.governance/result-layout.json
+study=/home/bijan/lu2024-12-24/Dardel/STUDY
+results="$study/results/container-validation"
+plan="$results/.governance/result-layout.json"
 
-python3 containers/runs/result_layout.py apply \
-  --runs-root containers/runs \
-  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
-  --plan /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/.governance/result-layout.json
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  layout-plan containers/runs "$results" "$plan"
 
-python3 containers/runs/result_layout.py verify \
-  --runs-root containers/runs \
-  --result-root /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation \
-  --plan /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/.governance/result-layout.json
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  layout-apply containers/runs "$results" "$plan"
+
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  layout-verify containers/runs "$results" "$plan"
 ```
 
-`rollback` accepts the same arguments and restores the recorded nested paths.
-The journal is execution-site evidence and remains outside Git.
+`layout-rollback` accepts the same positional arguments and restores the
+recorded nested paths. The journal is execution-site evidence and remains
+outside Git. Its contract is checked in as
+[`../contracts/schemas/result-layout-plan.v1.json`](../contracts/schemas/result-layout-plan.v1.json).
 
 ## Keep the active result surface publication-only
 
@@ -163,28 +169,20 @@ study=/home/bijan/lu2024-12-24/Dardel/STUDY
 plan="$study/containers/evidence/result-layout/$commit/superseded-results.json"
 archive="$study/containers/evidence/superseded/results/$commit"
 
-python3 containers/runs/result_layout.py plan-superseded-archive \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json \
-  --result-root "$study/results/container-validation" \
-  --archive-root "$archive" \
-  --plan "$plan"
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  archive-plan containers/runs containers/runs/attempt-ledger.json \
+  "$study/results/container-validation" "$archive" "$plan"
 
-python3 containers/runs/result_layout.py apply-superseded-archive \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json \
-  --result-root "$study/results/container-validation" \
-  --archive-root "$archive" \
-  --plan "$plan"
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  archive-apply containers/runs containers/runs/attempt-ledger.json \
+  "$study/results/container-validation" "$archive" "$plan"
 
-python3 containers/runs/result_layout.py verify-superseded-archive \
-  --runs-root containers/runs \
-  --ledger containers/runs/attempt-ledger.json \
-  --result-root "$study/results/container-validation" \
-  --archive-root "$archive" \
-  --plan "$plan"
+cargo run -q -p bijux-dna-dev -- containers run run-evidence -- \
+  archive-verify containers/runs containers/runs/attempt-ledger.json \
+  "$study/results/container-validation" "$archive" "$plan"
 ```
 
-`rollback-superseded-archive` accepts the same arguments. No result file is
+`archive-rollback` accepts the same positional arguments. No result file is
 deleted or rewritten; the plan records its path, size, SHA-256, category, and
-replacement identity before any move occurs.
+replacement identity before any move occurs. Its contract is checked in as
+[`../contracts/schemas/superseded-result-archive.v1.json`](../contracts/schemas/superseded-result-archive.v1.json).

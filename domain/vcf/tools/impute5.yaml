@@ -4,7 +4,7 @@ stage_ids: ["vcf.imputation_metrics", "vcf.impute"]
 role: "analysis"
 authoritative: false
 strict_capable: true
-status: "planned"
+status: "supported"
 scope: "post_vcf"
 default_version: "1.2.0"
 upstream: "https://jmarchini.org/software/#impute-5"
@@ -16,7 +16,6 @@ help_cmd: "impute5 --help"
 expected_artifacts: ["imputed_vcf"]
 capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.imputation_metrics.v1"
-comparability_notes: "External planned tool pending container policy and licensing review."
+comparability_notes: "Execution requires a governed operator-provided artifact under the institution's Oxford academic-use license."
 container:
-  image: "external"
-  digest: "external"
+  image: "external-artifact://impute5"

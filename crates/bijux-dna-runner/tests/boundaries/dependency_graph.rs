@@ -19,6 +19,7 @@ fn dependency_graph_matches_runner_boundary() {
             "bijux-dna-bench-model",
             "bijux-dna-core",
             "bijux-dna-containers",
+            "bijux-dna-containers-qa",
             "bijux-dna-infra",
             "bijux-dna-runtime",
             "serde",
@@ -28,7 +29,7 @@ fn dependency_graph_matches_runner_boundary() {
             "uuid",
             "walkdir",
         ]),
-        "runtime dependencies must stay limited to execution contracts, environment resolution, infra effects, and deterministic identity"
+        "runtime dependencies must stay limited to execution contracts, environment resolution, infra effects, validation, timestamps, and deterministic identity"
     );
 
     assert_eq!(
@@ -38,6 +39,7 @@ fn dependency_graph_matches_runner_boundary() {
             "bijux-dna-policies",
             "bijux-dna-testkit",
             "cargo_metadata",
+            "regex",
             "tempfile",
             "toml",
         ]),

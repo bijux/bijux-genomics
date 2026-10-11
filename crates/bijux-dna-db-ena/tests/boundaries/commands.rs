@@ -29,6 +29,7 @@ fn commands_doc_lists_managed_library_operations() {
         "build-download-tasks",
         "download-tasks",
         "download-verified-files",
+        "verify-existing-files",
         "write-manifest",
     ];
 

@@ -25,6 +25,7 @@ use super::{
     load_attempt_lifecycle, BenchmarkExecutionMaterial, FastqProfileReadsExpectationPublication,
 };
 
+pub(crate) use report::publish_fastq_profile_reads_stage_report_with_presentation_authority;
 pub use report::{
     publish_fastq_profile_reads_stage_report, render_fastq_profile_reads_markdown,
     FastqProfileReadsStageReportPublication,

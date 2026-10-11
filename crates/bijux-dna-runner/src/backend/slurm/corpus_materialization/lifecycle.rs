@@ -20,8 +20,9 @@ use super::validation::{
     validate_catalog_closure, validate_specification,
 };
 use crate::backend::slurm::{
-    collect_slurm_job, observe_slurm_job, submit_slurm_job, SlurmClientPaths, SlurmJobHandle,
-    SlurmJobObservation, SlurmJobState, SlurmSubmitRequest, SLURM_JOB_HANDLE_SCHEMA_V1,
+    collect_slurm_job, observe_slurm_job, submit_slurm_job, SlurmArraySpec, SlurmClientPaths,
+    SlurmDependencyCondition, SlurmJobHandle, SlurmJobObservation, SlurmJobState,
+    SlurmSubmitRequest, SLURM_JOB_HANDLE_SCHEMA_V1,
 };
 
 const SUBMISSION_INTENT_SCHEMA_V1: &str =
@@ -34,6 +35,12 @@ const SUBMISSION_FAILURE_SCHEMA_V1: &str =
 struct SubmissionIntent {
     schema_version: String,
     run_id: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    dependencies: Vec<String>,
+    #[serde(default, skip_serializing_if = "SlurmDependencyCondition::is_after_ok")]
+    dependency_condition: SlurmDependencyCondition,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    array: Option<SlurmArraySpec>,
     specification_sha256: String,
     script_sha256: String,
     script_path: PathBuf,
@@ -356,6 +363,9 @@ fn prepared_from_evidence(
         schema_version: CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1.to_string(),
         request: SlurmSubmitRequest {
             run_id: handle.run_id.clone(),
+            dependencies: handle.dependencies.clone(),
+            dependency_condition: handle.dependency_condition,
+            array: handle.array.clone(),
             script_path: handle.script_path.clone(),
             working_directory: handle.working_directory.clone(),
             stdout_path: handle.stdout_path.clone(),
@@ -405,6 +415,9 @@ fn submission_intent(prepared: &PreparedCorpusMaterializationSlurmJob) -> Submis
     SubmissionIntent {
         schema_version: SUBMISSION_INTENT_SCHEMA_V1.to_string(),
         run_id: prepared.request.run_id.clone(),
+        dependencies: prepared.request.dependencies.clone(),
+        dependency_condition: prepared.request.dependency_condition,
+        array: prepared.request.array.clone(),
         specification_sha256: prepared.specification_sha256.clone(),
         script_sha256: prepared.script_sha256.clone(),
         script_path: prepared.request.script_path.clone(),
@@ -439,6 +452,9 @@ fn load_matching_handle(path: &Path, request: &SlurmSubmitRequest) -> Result<Slu
     let handle: SlurmJobHandle = read_json(path)?;
     if handle.schema_version != SLURM_JOB_HANDLE_SCHEMA_V1
         || handle.run_id != request.run_id
+        || handle.dependencies != request.dependencies
+        || handle.dependency_condition != request.dependency_condition
+        || handle.array != request.array
         || handle.script_path != request.script_path
         || handle.working_directory != request.working_directory
         || handle.stdout_path != request.stdout_path

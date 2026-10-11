@@ -21,6 +21,11 @@ Corpus acquisition callers use the parallel `prepare_corpus_materialization_slur
 These bind a frozen repository, exact executable, checksum-pinned plan, and governed data root
 without moving transfer or FASTQ validation into the runner.
 
+Container qualification callers use `prepare_container_qualification_slurm_job` to archive exact
+declarative contracts and bind a commit-addressed frozen repository. Submission, one-shot
+observation, terminal collection, resume, and cancellation then remain runner-owned scheduler
+effects. The archived executor script is transitional execution payload, not scheduler authority.
+
 ## Key contracts it owns/consumes
 The runner owns backend execution specs, command invocation identity, stdout/stderr capture, exit mapping, runner artifacts, replay verification, and the dependency/effect boundary around those responsibilities.
 

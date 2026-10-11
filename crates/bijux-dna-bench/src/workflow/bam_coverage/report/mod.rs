@@ -19,7 +19,6 @@ pub type BamCoverageStageReportPublication = BamObservationStageReportPublicatio
 const POLICY: BamObservationReportPolicy = BamObservationReportPolicy {
     run_id: "run-2002",
     stage_id: "bam.coverage",
-    report_file_stem: "run-2002-bam-coverage",
     tool_ids: &["bedtools", "mosdepth", "samtools"],
     result_artifact: "coverage-summary.tsv",
     input_size_keys: &["bam_input_bytes", "bam_index_input_bytes"],
@@ -39,8 +38,27 @@ pub fn publish_bam_coverage_stage_report(
     plan: &BenchmarkCampaignPlan,
     output_root: &Path,
 ) -> Result<BamCoverageStageReportPublication> {
+    publish_bam_coverage_stage_report_with_presentation_authority(
+        repository_root,
+        repository_root,
+        study_root,
+        benchmark_root,
+        plan,
+        output_root,
+    )
+}
+
+pub(crate) fn publish_bam_coverage_stage_report_with_presentation_authority(
+    repository_root: &Path,
+    presentation_repository_root: &Path,
+    study_root: &Path,
+    benchmark_root: &Path,
+    plan: &BenchmarkCampaignPlan,
+    output_root: &Path,
+) -> Result<BamCoverageStageReportPublication> {
     publish_bam_observation_stage_report(
         repository_root,
+        presentation_repository_root,
         study_root,
         benchmark_root,
         plan,

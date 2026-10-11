@@ -18,6 +18,7 @@ const EXECUTABLE_RESOLUTION_SCHEMA_VERSION: &str = "bijux.bench.readiness.execut
 pub(crate) const RESOLUTION_KIND_HOST_BINARY: &str = "host_binary";
 pub(crate) const RESOLUTION_KIND_DOCKER_IMAGE: &str = "docker_image";
 pub(crate) const RESOLUTION_KIND_APPTAINER_IMAGE: &str = "apptainer_image";
+pub(crate) const RESOLUTION_KIND_EXTERNAL_ARTIFACT: &str = "external_artifact";
 pub(crate) const RESOLUTION_KIND_UNAVAILABLE: &str = "unavailable_with_reason";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -174,6 +175,18 @@ pub(crate) fn resolve_runtime_probe_signature(
     let command_entrypoint = probe.command_entrypoint();
     let container_id = probe.container_id();
 
+    if let Some(container_id) =
+        container_id.as_deref().filter(|container_id| is_external_artifact_reference(container_id))
+    {
+        return RuntimeResolutionSignature {
+            install_kind: RESOLUTION_KIND_EXTERNAL_ARTIFACT.to_string(),
+            resolution_kind: RESOLUTION_KIND_EXTERNAL_ARTIFACT.to_string(),
+            resolution_target: container_id.to_string(),
+            command_entrypoint,
+            unavailable_reason: None,
+        };
+    }
+
     match install_kind.clone().as_str() {
         "workspace_binary" | "host_binary" => RuntimeResolutionSignature {
             install_kind,
@@ -262,6 +275,12 @@ fn is_external_reference(container_id: &str) -> bool {
         || container_id.ends_with("@external")
 }
 
+fn is_external_artifact_reference(container_id: &str) -> bool {
+    container_id
+        .strip_prefix("external-artifact://")
+        .is_some_and(|tool_id| !tool_id.trim().is_empty())
+}
+
 fn is_planned_reference(container_id: &str) -> bool {
     let trimmed = container_id.trim();
     trimmed == "planned"
@@ -317,7 +336,8 @@ fn ensure_executable_resolution_contract(
         match row.resolution_kind.as_str() {
             RESOLUTION_KIND_HOST_BINARY
             | RESOLUTION_KIND_DOCKER_IMAGE
-            | RESOLUTION_KIND_APPTAINER_IMAGE => {
+            | RESOLUTION_KIND_APPTAINER_IMAGE
+            | RESOLUTION_KIND_EXTERNAL_ARTIFACT => {
                 if row.resolution_target.trim().is_empty() || row.unavailable_reason.is_some() {
                     return Err(anyhow!(
                         "resolved tool `{}` must keep a concrete target and no unavailable reason",

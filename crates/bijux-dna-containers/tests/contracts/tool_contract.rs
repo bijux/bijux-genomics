@@ -143,6 +143,12 @@ fn canonical_catalog_loader_preserves_the_complete_contract_and_rejects_unknown_
 fn catalog_lock_is_model_owned_current_and_fail_closed() -> Result<()> {
     let root = repository_root()?;
     let rendered = bijux_dna_containers::evidence::render_container_catalog_lock(&root)?;
+    if std::env::var_os("BIJUX_UPDATE_CONTAINER_CATALOG_LOCK").is_some() {
+        bijux_dna_infra::atomic_write_bytes(
+            &root.join("containers/contracts/catalog.lock.json"),
+            rendered.as_bytes(),
+        )?;
+    }
     assert_eq!(rendered, fs::read_to_string(root.join("containers/contracts/catalog.lock.json"))?);
 
     let lock = bijux_dna_containers::evidence::load_container_catalog_lock(&root)?;

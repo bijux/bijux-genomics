@@ -17,10 +17,13 @@ pub(super) fn execute_apptainer_step(
     inputs: &[PathBuf],
     input_root: &Path,
     out_dir: &Path,
+    runtime_executable: Option<&Path>,
 ) -> Result<StepExecutionOutcome> {
     let args = build_apptainer_exec_args(step, inputs, input_root, out_dir, runner)?;
-    let bin = if runner == RuntimeKind::Apptainer { "apptainer" } else { "singularity" };
-    let command_output = run_command(bin, &args)
+    let default_bin = if runner == RuntimeKind::Apptainer { "apptainer" } else { "singularity" };
+    let bin = runtime_executable
+        .map_or_else(|| default_bin.to_string(), |path| path.display().to_string());
+    let command_output = run_command(&bin, &args)
         .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
     let exit_code = command_output.exit_code;
     let stdout = command_output.stdout.clone();

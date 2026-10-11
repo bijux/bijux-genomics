@@ -181,7 +181,7 @@ fn validate_runtime(spec: &BenchmarkExecutionSpec) -> Result<(), BenchError> {
         || spec.runtime.timezone != "UTC"
         || spec.runtime.runtime_network
         || spec.runtime.threads == 0
-        || spec.runtime.threads > spec.resources.cpus
+        || spec.runtime.threads != spec.resources.cpus
     {
         return Err(invalid("benchmark runtime policy is invalid"));
     }

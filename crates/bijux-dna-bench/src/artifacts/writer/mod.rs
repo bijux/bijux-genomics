@@ -5,6 +5,7 @@
 //! Invariants: writes are atomic and stable.
 #![allow(dead_code)]
 
+mod effective_parameters;
 mod observation_reader;
 mod observation_writer;
 mod structured_writer;
@@ -14,6 +15,11 @@ use std::path::Path;
 use anyhow::Result;
 
 use bijux_dna_bench_model::{BenchmarkObservation, BenchmarkSummary, GateDecision};
+
+pub use effective_parameters::{
+    archive_effective_tool_parameters, EffectiveToolParametersPublication,
+    EFFECTIVE_TOOL_PARAMETERS_FILE,
+};
 
 type ObservationKey = observation_reader::ObservationKey;
 
