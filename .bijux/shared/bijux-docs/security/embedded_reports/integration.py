@@ -19,10 +19,12 @@ from .html import (
     parent_iframe,
     reviewed_recipe,
     report_recipe,
+    report_class,
     validate_report,
 )
 from .planning import plan_embedded_reports, final_receipt, _report_capability
 from .resources import registration_data
+from .native_presentations import bootstrap, document_budget, sequence_data
 
 
 def processor_inputs():
@@ -232,7 +234,10 @@ def verify_composition(
             record["admitted_scripts"] = [
                 s["body"] for s in executable_scripts(Document(source))
             ]
+            document_budget(repo, owner, source.encode(), retained["site_url"])
             validated = validate_report(source, owner, retained["site_url"])
+            if report_class(owner) == "interactive":
+                bootstrap(validated, owner)
             expected_recipe = report_recipe(
                 repo, validated, owner, retained["site_url"], record["path"]
             )
@@ -252,6 +257,8 @@ def verify_composition(
                         retained["site_url"],
                         record["path"],
                     )
+                elif resource["kind"] == "native-sequence-data":
+                    entry["data"] = sequence_data(repo, owner, name, resource, content_bytes, retained["site_url"])
                 expected_resources.append(entry)
             if (
                 record["source"] != owner["source"]
