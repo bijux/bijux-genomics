@@ -8,10 +8,9 @@
   },
   "protocol_title": "BAM bias mitigation benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "2acb689e492c2bb5cbaf078b19903751552a65958f619f712715703a5fe89033",
+  "protocol_sha256": "98df80d238885888d1e081d76526e5ee95e2a4add84c8fba0ea0bbc9d243151c",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

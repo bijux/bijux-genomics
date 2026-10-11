@@ -47,6 +47,12 @@
             "null"
           ]
         },
+        "selected_accessions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
         "selection_scope": {
           "type": "string"
         },
@@ -80,6 +86,15 @@
     "access_terms_url": {
       "type": "string"
     },
+    "allowed_uses": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "assay_context": {
+      "type": "string"
+    },
     "attribution": {
       "type": "string"
     },
@@ -92,6 +107,12 @@
       },
       "type": "array"
     },
+    "controls": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
     "data_types": {
       "items": {
         "type": "string"
@@ -101,11 +122,17 @@
     "description": {
       "type": "string"
     },
+    "held_out_split": {
+      "type": "string"
+    },
     "known_limitations": {
       "items": {
         "type": "string"
       },
       "type": "array"
+    },
+    "lineage": {
+      "type": "string"
     },
     "portfolio_id": {
       "type": "string"
@@ -126,9 +153,18 @@
     "redistribution_classification": {
       "type": "string"
     },
+    "sample_context": {
+      "type": "string"
+    },
     "schema_version": {
       "const": "bijux.benchmark.data_source.v1",
       "type": "string"
+    },
+    "strata": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
     },
     "target_sample_count": {
       "format": "uint64",
@@ -159,6 +195,13 @@
     "truth_roles",
     "truth_strategy",
     "known_limitations",
+    "sample_context",
+    "assay_context",
+    "strata",
+    "controls",
+    "held_out_split",
+    "lineage",
+    "allowed_uses",
     "description",
     "data_types",
     "target_sample_count",

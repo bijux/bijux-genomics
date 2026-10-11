@@ -199,7 +199,7 @@ fn fastq_stage_plugin_uses_reported_outputs_for_metrics() -> anyhow::Result<()> 
 }
 
 #[test]
-fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
+fn parse_outputs_fails_closed_without_observer_artifact() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.detect_adapters");
     let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
@@ -216,10 +216,95 @@ fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
         output.report_parts[1].payload["benchmark_scenarios"][0]["scenario_id"],
         serde_json::json!("detect_adapters_fairness")
     );
-    assert_eq!(
-        output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
-        Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Pass)
-    );
+    let verdict = output.verdict.as_ref().expect("verdict");
+    assert_eq!(verdict.verdict, bijux_dna_core::prelude::invariants::InvariantStatusV1::Fail);
+    assert!(verdict
+        .reasons
+        .iter()
+        .any(|reason| reason == "declared observer parser did not produce semantic metrics"));
+}
+
+#[test]
+fn parse_outputs_normalizes_premerge_duplicate_and_complexity_reports() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let plugin = FastqStagePlugin;
+    for (stage_id, artifact_name, payload, metric, expected) in [
+        (
+            "fastq.detect_duplicates_premerge",
+            "duplicate_signal_report",
+            serde_json::json!({
+                "schema_version": "bijux.fastq.detect_duplicates_premerge.report.v1",
+                "stage": "fastq.detect_duplicates_premerge",
+                "stage_id": "fastq.detect_duplicates_premerge",
+                "tool_id": "bijux_dna",
+                "paired_mode": "single_end",
+                "duplicate_detection_policy": "report_only",
+                "measurement_scope": "premerge_sequence_signature",
+                "modifies_reads": false,
+                "advisory_only": true,
+                "reads_in": 12,
+                "duplicate_signal_reads": 4,
+                "duplicate_signal_fraction": 0.333_333_333_333_333_3,
+                "compared_read_pairs": null
+            }),
+            "duplicate_count",
+            serde_json::json!(4),
+        ),
+        (
+            "fastq.estimate_library_complexity_prealign",
+            "library_complexity_report",
+            serde_json::json!({
+                "schema_version": "bijux.fastq.estimate_library_complexity_prealign.report.v1",
+                "stage": "fastq.estimate_library_complexity_prealign",
+                "stage_id": "fastq.estimate_library_complexity_prealign",
+                "tool_id": "bijux_dna",
+                "paired_mode": "single_end",
+                "complexity_policy": "prealign_kmer",
+                "estimate_method": "kmer_redundancy",
+                "modifies_reads": false,
+                "advisory_only": true,
+                "reads_in": 12,
+                "estimated_unique_fraction": 0.75,
+                "estimated_duplicate_fraction": 0.25,
+                "insufficient_data_reason": null,
+                "kmer_size": 31
+            }),
+            "estimated_complexity",
+            serde_json::json!(0.75),
+        ),
+    ] {
+        let report_path = temp.path().join(format!("{metric}.json"));
+        std::fs::write(&report_path, serde_json::to_vec(&payload)?)?;
+        let mut plan = plan(stage_id);
+        plan.tool_id = ToolId::from_static("bijux_dna");
+        let outputs = vec![ArtifactRef::required(
+            ArtifactId::new(artifact_name),
+            report_path,
+            ArtifactRole::ReportJson,
+        )];
+        plan.io.outputs = outputs.clone();
+
+        let output = plugin.parse_outputs(&plan, &outputs)?;
+        let semantic = output
+            .report_parts
+            .iter()
+            .find(|part| part.name == "observed_semantic_metrics")
+            .expect("specialized semantic report");
+        assert_eq!(semantic.payload["semantic_metrics"][metric], expected);
+        assert_eq!(
+            output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
+            Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Pass)
+        );
+
+        std::fs::write(&outputs[0].path, b"{}")?;
+        let malformed = plugin.parse_outputs(&plan, &outputs)?;
+        assert_eq!(
+            malformed.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
+            Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Fail)
+        );
+        assert!(malformed.report_parts.iter().all(|part| part.name != "observed_semantic_metrics"));
+    }
+    Ok(())
 }
 
 #[test]

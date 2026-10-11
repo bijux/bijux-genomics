@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
     admit_external_artifact, bind_external_artifact_command, load_external_artifact_admission,
     repository_head_commit, verify_external_artifact_admission, ContainerArtifactDelivery,
@@ -140,6 +140,7 @@ fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<
             repository_commit: &commit,
             tool_id: "angsd",
             recorded_at_utc: "2026-08-06T12:00:00Z",
+            availability: ExternalArtifactAdmissionStatus::Admitted,
             artifact: Some(ExternalArtifactInput {
                 kind: ExternalArtifactKind::Binary,
                 path: &binary,
@@ -206,6 +207,7 @@ fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<
             repository_commit: &commit,
             tool_id: "angsd",
             recorded_at_utc: "2026-08-06T12:00:00Z",
+            availability: ExternalArtifactAdmissionStatus::Admitted,
             artifact: Some(ExternalArtifactInput {
                 kind: ExternalArtifactKind::Binary,
                 path: &active_binary,
@@ -239,6 +241,7 @@ fn every_license_restricted_tool_has_an_explicit_blocked_access_record() -> Resu
                 repository_commit: &commit,
                 tool_id: tool,
                 recorded_at_utc: "2026-08-06T12:00:00Z",
+                availability: ExternalArtifactAdmissionStatus::BlockedExternalAccess,
                 artifact: None,
                 blocker_reason: Some("no licensed institutional artifact was supplied"),
             },
@@ -277,6 +280,43 @@ fn every_license_restricted_tool_has_an_explicit_blocked_access_record() -> Resu
         .map(|binding| (binding.stage_id.to_string(), binding.tool_id.to_string()))
         .collect::<BTreeSet<_>>();
     assert_eq!(blocked_pairs, binding_pairs);
+    Ok(())
+}
+
+#[test]
+fn unavailable_artifact_is_distinct_from_blocked_access() -> Result<()> {
+    let root = repository_root();
+    let temporary = tempfile::tempdir()?;
+    let active = temporary.path().join("active");
+    std::fs::create_dir(&active)?;
+    let commit = repository_head_commit(root)?;
+    let path = temporary.path().join("impute5-unavailable.json");
+    let record = admit_external_artifact(
+        &ExternalArtifactAdmissionRequest {
+            repository_root: root,
+            distributable_image_root: &active,
+            repository_commit: &commit,
+            tool_id: "impute5",
+            recorded_at_utc: "2026-08-16T06:45:00Z",
+            availability: ExternalArtifactAdmissionStatus::Unavailable,
+            artifact: None,
+            blocker_reason: Some("no artifact exists on the audited site surfaces"),
+        },
+        &path,
+    )?;
+    assert_eq!(record.availability, ExternalArtifactAdmissionStatus::Unavailable);
+    assert_eq!(record.product_support, ContainerProductSupport::Supported);
+    let error = bind_external_artifact_command(
+        root,
+        &active,
+        &path,
+        "vcf.impute",
+        &["impute5".to_string(), "--help".to_string()],
+        None,
+    )
+    .err()
+    .context("unavailable artifact must fail before command binding")?;
+    assert!(error.to_string().contains("external artifact unavailable for impute5"));
     Ok(())
 }
 

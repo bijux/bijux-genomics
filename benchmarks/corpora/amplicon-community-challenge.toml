@@ -22,6 +22,13 @@ known_limitations = [
   "Exact reference sequences, primer regions, expected abundance tables, and negative controls remain unmaterialized.",
 ]
 description = "Replicated HMP mock-community amplicons plus the abundance-extreme Stanford community define real sequencing authorities for ASV, OTU, chimera, and normalization evaluation."
+sample_context = "Replicated defined microbial communities sequenced across centers, amplified regions, and abundance ranges."
+assay_context = "Illumina 16S rRNA amplicons with independently declared organism membership and mixture composition."
+strata = ["amplified_region", "community", "sequencing_center"]
+controls = ["expected_absence", "known_membership", "technical_replicates"]
+held_out_split = "Reserve one center-region combination and the extreme-abundance community for final evaluation."
+lineage = "SRA accessions and community composition to checksummed reads and truth tables to feature evidence."
+allowed_uses = ["amplicon_accuracy", "interoperability", "performance", "robustness"]
 data_types = ["amplicon_reference", "fastq"]
 target_sample_count = 10
 

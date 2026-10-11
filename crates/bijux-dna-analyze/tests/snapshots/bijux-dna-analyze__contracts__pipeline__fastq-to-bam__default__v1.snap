@@ -3039,7 +3039,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "definitions": []
     },
     "run_provenance": {
-      "domain_snapshot_hash": "111280b27029e7c30195c2d8594fb36e4e5f5108",
+      "domain_snapshot_hash": "635d2cdf0dda217becd037f72285137faf153aa3",
       "graph_hash": "unknown",
       "input_hashes": [],
       "manifest_signature_sha256": "unknown",

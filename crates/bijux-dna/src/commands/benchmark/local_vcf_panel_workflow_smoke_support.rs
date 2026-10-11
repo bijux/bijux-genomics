@@ -3,11 +3,13 @@ use std::path::Path;
 use std::sync::{Mutex, OnceLock};
 
 use anyhow::{anyhow, bail, Result};
+use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_db_ref::public_api::{
     resolve_map, resolve_map_lock, resolve_panel, resolve_panel_lock,
     validate_imputation_tool_compatibility,
 };
 use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
+use bijux_dna_stage_contract::canonical_tool_bindings;
 use serde::Serialize;
 
 use super::local_stage_result_manifest::{
@@ -42,7 +44,18 @@ pub(crate) struct ResolvedVcfPanelAssetContract {
     pub(crate) panel_id: String,
     pub(crate) map_id: String,
     pub(crate) panel_files: Vec<String>,
+    pub(crate) panel_derivations: Vec<ResolvedVcfPanelDerivationContract>,
     pub(crate) map_files: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct ResolvedVcfPanelDerivationContract {
+    pub(crate) path: String,
+    pub(crate) source_file_name: String,
+    pub(crate) tool_id: String,
+    pub(crate) tool_version: String,
+    pub(crate) tool_artifact_sha256: String,
+    pub(crate) argv: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -63,12 +76,30 @@ pub(crate) fn resolve_governed_vcf_panel_workflow_smoke_contract(
         .into_iter()
         .find(|row| row.stage_id == requested_stage_id)
         .ok_or_else(|| anyhow!("VCF stage matrix is missing `{requested_stage_id}`"))?;
-    if requested_tool_id != matrix_row.tool_id {
+    let bindings = canonical_tool_bindings()?;
+    if bindings
+        .binding(&StageId::new(requested_stage_id), &ToolId::new(requested_tool_id))
+        .is_none()
+    {
         bail!(
-            "VCF panel workflow smoke only retains tool `{}` for `{}`; requested `{requested_tool_id}`",
-            matrix_row.tool_id,
-            matrix_row.stage_id
+            "VCF panel workflow smoke has no canonical binding for `{requested_stage_id}` / `{requested_tool_id}`"
         );
+    }
+    let requires_governed_map_compatibility = requested_stage_id == "vcf.phasing"
+        || (matches!(requested_stage_id, "vcf.impute" | "vcf.imputation_metrics")
+            && requested_tool_id != "beagle");
+    if requires_governed_map_compatibility {
+        let panel = resolve_panel(
+            GOVERNED_VCF_PANEL_SPECIES_ID,
+            GOVERNED_VCF_PANEL_BUILD_ID,
+            Some(GOVERNED_VCF_PANEL_ID),
+        )?;
+        let map = resolve_map(
+            GOVERNED_VCF_PANEL_SPECIES_ID,
+            GOVERNED_VCF_PANEL_BUILD_ID,
+            Some(GOVERNED_VCF_MAP_ID),
+        )?;
+        validate_imputation_tool_compatibility(requested_tool_id, &panel, &map)?;
     }
     if matrix_row.corpus_id != "vcf_production_regression" {
         bail!(
@@ -92,7 +123,7 @@ pub(crate) fn resolve_governed_vcf_panel_workflow_smoke_contract(
 
     Ok(GovernedVcfPanelWorkflowSmokeContract {
         stage_id: matrix_row.stage_id,
-        tool_id: matrix_row.tool_id,
+        tool_id: requested_tool_id.to_string(),
         corpus_id: matrix_row.corpus_id,
         panel_id: GOVERNED_VCF_PANEL_ID.to_string(),
         map_id: GOVERNED_VCF_MAP_ID.to_string(),
@@ -113,6 +144,24 @@ pub(crate) fn resolve_governed_vcf_panel_asset_contract() -> Result<ResolvedVcfP
     let panel_lock = resolve_panel_lock(&panel)?;
     let map_lock = resolve_map_lock(&map)?;
     validate_imputation_tool_compatibility("glimpse", &panel, &map)?;
+    if panel.compatibility.minimac_reference_format == "msav" {
+        validate_imputation_tool_compatibility("minimac4", &panel, &map)?;
+    }
+
+    let panel_derivations = panel_lock
+        .files
+        .iter()
+        .filter_map(|file| {
+            file.derivation.as_ref().map(|derivation| ResolvedVcfPanelDerivationContract {
+                path: file.path.clone(),
+                source_file_name: derivation.source_file_name.clone(),
+                tool_id: derivation.tool_id.clone(),
+                tool_version: derivation.tool_version.clone(),
+                tool_artifact_sha256: derivation.tool_artifact_sha256.clone(),
+                argv: derivation.argv.clone(),
+            })
+        })
+        .collect::<Vec<_>>();
 
     Ok(ResolvedVcfPanelAssetContract {
         schema_version: "bijux.local_vcf_panel_asset_contract.v1",
@@ -122,6 +171,7 @@ pub(crate) fn resolve_governed_vcf_panel_asset_contract() -> Result<ResolvedVcfP
         panel_id: panel.id,
         map_id: map.id,
         panel_files: panel_lock.files.into_iter().map(|file| file.path).collect(),
+        panel_derivations,
         map_files: map_lock.files.into_iter().map(|file| file.path).collect(),
     })
 }
@@ -135,18 +185,42 @@ pub(crate) fn materialize_local_vcf_panel_fixture(
     let map_root = fixture_root.join("maps").join(&contract.map_id);
     let mut materialized_files = Vec::new();
 
-    for (root, paths, asset_kind) in
-        [(&panel_root, &contract.panel_files, "panel"), (&map_root, &contract.map_files, "map")]
-    {
-        for relative in paths {
-            let target = root.join(relative);
-            write_local_smoke_marker(&target, asset_kind, relative)?;
-            materialized_files.push(target.display().to_string());
+    for relative in &contract.panel_files {
+        let target = panel_root.join(relative);
+        if let Some(derivation) =
+            contract.panel_derivations.iter().find(|derivation| derivation.path == *relative)
+        {
+            write_local_smoke_derived_marker(&target, derivation)?;
+        } else {
+            write_local_smoke_marker(&target, "panel", relative)?;
         }
+        materialized_files.push(target.display().to_string());
     }
-    if !contract.panel_files.iter().any(|path| path.ends_with("panel.m3vcf.gz")) {
-        let target = panel_root.join("panel.m3vcf.gz");
-        write_local_smoke_derived_marker(&target, "panel.vcf.gz", "minimac4_process_reference")?;
+    if !contract.panel_files.iter().any(|path| path.ends_with("panel.msav")) {
+        let target = panel_root.join("panel.msav");
+        let derivation = ResolvedVcfPanelDerivationContract {
+            path: "panel.msav".to_string(),
+            source_file_name: "panel_vcf".to_string(),
+            tool_id: "minimac4".to_string(),
+            tool_version: "4.1.6".to_string(),
+            tool_artifact_sha256:
+                "e627d6955c1c103caa0bd2ccc2ecf674cafc4a974694fc38b91c0a6bf000b478".to_string(),
+            argv: vec![
+                "minimac4".to_string(),
+                "--compress-reference".to_string(),
+                "panel.vcf.gz".to_string(),
+                "--output".to_string(),
+                "panel.msav".to_string(),
+                "--threads".to_string(),
+                "8".to_string(),
+            ],
+        };
+        write_local_smoke_derived_marker(&target, &derivation)?;
+        materialized_files.push(target.display().to_string());
+    }
+    for relative in &contract.map_files {
+        let target = map_root.join(relative);
+        write_local_smoke_marker(&target, "map", relative)?;
         materialized_files.push(target.display().to_string());
     }
 
@@ -173,8 +247,7 @@ fn write_local_smoke_marker(target: &Path, asset_kind: &str, relative: &str) -> 
 
 fn write_local_smoke_derived_marker(
     target: &Path,
-    derived_from: &str,
-    derivation: &str,
+    derivation: &ResolvedVcfPanelDerivationContract,
 ) -> Result<()> {
     let parent = target.parent().ok_or_else(|| {
         anyhow!("local VCF derived fixture path has no parent: {}", target.display())
@@ -183,7 +256,12 @@ fn write_local_smoke_derived_marker(
     fs::write(
         target,
         format!(
-            "fixture_class=local_smoke\nasset_kind=derived_panel\nderived_from={derived_from}\nderivation={derivation}\n"
+            "fixture_class=local_smoke\nasset_kind=derived_panel\nderived_from={}\nderivation_tool={}\nderivation_tool_version={}\nderivation_tool_artifact_sha256={}\nderivation_argv={}\n",
+            derivation.source_file_name,
+            derivation.tool_id,
+            derivation.tool_version,
+            derivation.tool_artifact_sha256,
+            derivation.argv.join(" "),
         ),
     )?;
     Ok(())
@@ -266,7 +344,7 @@ mod tests {
     };
 
     #[test]
-    fn governed_panel_workflow_contract_uses_matrix_row() {
+    fn governed_panel_workflow_contract_accepts_canonical_tool_substitution() {
         let contract = resolve_governed_vcf_panel_workflow_smoke_contract(
             "vcf.phasing",
             "shapeit5",
@@ -276,6 +354,39 @@ mod tests {
         assert_eq!(contract.stage_id, "vcf.phasing");
         assert_eq!(contract.tool_id, "shapeit5");
         assert_eq!(contract.corpus_id, "vcf_production_regression");
+        assert_eq!(contract.panel_id, "hsapiens_grch38_1kg_3202_chr22");
+        assert_eq!(contract.map_id, "hsapiens_grch38_glimpse_chr22");
+
+        let shapeit = resolve_governed_vcf_panel_workflow_smoke_contract(
+            "vcf.phasing",
+            "shapeit",
+            "phased_vcf",
+        )
+        .expect("resolve Shapeit4 contract");
+        assert_eq!(shapeit.stage_id, "vcf.phasing");
+        assert_eq!(shapeit.tool_id, "shapeit");
+    }
+
+    #[test]
+    fn governed_panel_workflow_contract_refuses_unknown_tool_binding() {
+        let error = resolve_governed_vcf_panel_workflow_smoke_contract(
+            "vcf.phasing",
+            "not-a-phasing-tool",
+            "phased_vcf",
+        )
+        .expect_err("unknown tool must be refused");
+        assert!(error.to_string().contains("has no canonical binding"));
+    }
+
+    #[test]
+    fn governed_imputation_contract_accepts_derived_minimac_panel() {
+        let contract = resolve_governed_vcf_panel_workflow_smoke_contract(
+            "vcf.impute",
+            "minimac4",
+            "imputed_vcf",
+        )
+        .expect("Minimac4 must accept the governed derived MSAV panel");
+        assert_eq!(contract.tool_id, "minimac4");
         assert_eq!(contract.panel_id, "hsapiens_grch38_1kg_3202_chr22");
         assert_eq!(contract.map_id, "hsapiens_grch38_glimpse_chr22");
     }
@@ -296,15 +407,16 @@ mod tests {
         let report = materialize_local_vcf_panel_fixture(dir.path()).expect("materialize fixture");
         assert_eq!(report.fixture_class, "local_smoke");
         assert!(report.materialized_files.iter().all(|path| std::path::Path::new(path).is_file()));
-        let derived_m3vcf = report
+        let derived_msav = report
             .materialized_files
             .iter()
-            .find(|path| path.ends_with("/panel.m3vcf.gz"))
-            .expect("derived M3VCF fixture");
-        let marker = std::fs::read_to_string(derived_m3vcf).expect("read derived M3VCF marker");
+            .find(|path| path.ends_with("/panel.msav"))
+            .expect("derived MSAV fixture");
+        let marker = std::fs::read_to_string(derived_msav).expect("read derived MSAV marker");
         assert!(marker.contains("fixture_class=local_smoke"));
-        assert!(marker.contains("derived_from=panel.vcf.gz"));
-        assert!(marker.contains("derivation=minimac4_process_reference"));
+        assert!(marker.contains("derived_from=panel_vcf"));
+        assert!(marker.contains("derivation_tool=minimac4"));
+        assert!(marker.contains("--compress-reference panel.vcf.gz --output panel.msav"));
     }
 
     #[test]

@@ -360,6 +360,43 @@ fn array_accounting_retains_every_exact_task_and_peak_step_memory() -> anyhow::R
 }
 
 #[test]
+fn array_accounting_accepts_task_rows_without_a_parent_allocation_row() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp);
+    let argument_log = temp.path().join("sacct.args");
+    let mut handle = submitted_handle(&temp, &paths)?;
+    handle.array =
+        Some(SlurmArraySpec { first_task_id: 0, last_task_id: 3, maximum_parallel_tasks: Some(4) });
+    write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
+    write_executable(
+        &paths.sacct,
+        &format!(
+            "#!/bin/sh\nprintf '%s\n' \"$*\" > {}\nprintf '%s\n' \\
+'3504826_0|COMPLETED|0:0|39|00:00:30||cn001|None' \\
+'3504826_1|COMPLETED|0:0|40|00:00:31|128M|cn002|None' \\
+'3504826_2|COMPLETED|0:0|39|00:00:32||cn003|None' \\
+'3504826_3|COMPLETED|0:0|39|00:00:33|64M|cn004|None'\n",
+            shell_literal(&argument_log)
+        ),
+    )?;
+
+    handle.job_id = "3504826".to_string();
+    let observed = collect_slurm_job(&paths, &handle, "2026-08-16T00:43:00Z")?;
+    let accounting = observed.accounting.ok_or_else(|| anyhow::anyhow!("missing accounting"))?;
+
+    assert_eq!(observed.state, SlurmJobState::Completed);
+    assert_eq!(accounting.raw_state, "ARRAY_TASKS");
+    assert_eq!(accounting.array_tasks.len(), 4);
+    assert_eq!(accounting.max_rss_bytes, Some(128 * 1024 * 1024));
+    assert_eq!(accounting.total_cpu_seconds, 126);
+    assert_eq!(accounting.node_list, "cn001,cn002,cn003,cn004");
+    let arguments = std::fs::read_to_string(argument_log)?;
+    assert!(arguments.contains("JobID,State"));
+    assert!(!arguments.contains("JobIDRaw"));
+    Ok(())
+}
+
+#[test]
 fn terminal_array_accounting_requires_exact_declared_task_coverage() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
     let paths = client(&temp);

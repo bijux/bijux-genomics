@@ -7,7 +7,7 @@ default_version: "1.0.15"
 install_kind: "container"
 container:
   image: "bijuxdna/bamutil:1.0.15"
-license: "GPL-3.0"
+license: "GPL-3.0-or-later"
 citation: "pending:tool-publication"
 outputs:
   - name: "overlap_corrected_bam"

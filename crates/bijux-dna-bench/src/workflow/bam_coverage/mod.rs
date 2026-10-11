@@ -145,6 +145,7 @@ pub fn prepare_bam_coverage_material_from_corpus(
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
         stage_plan_units: Some(stage_plan_units),
+        downstream_probe_mode: crate::workflow::BenchmarkDownstreamProbeMode::RunnerProduced,
     };
     Ok(BamCoverageMaterial { execution, admitted_corpus: corpus.clone() })
 }

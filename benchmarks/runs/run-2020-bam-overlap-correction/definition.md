@@ -5,7 +5,7 @@
 - Run: `run-2020`
 - Stage: `bam.overlap_correction`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2020`
 
 Compare the runnable bam.overlap_correction tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.

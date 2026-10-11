@@ -5,7 +5,7 @@
 - Run: `run-2048`
 - Stage: `fastq.trim_polyg_tails`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2048`
 
 Compare the runnable fastq.trim_polyg_tails tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.

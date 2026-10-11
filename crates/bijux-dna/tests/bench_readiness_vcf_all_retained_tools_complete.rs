@@ -7,6 +7,8 @@ mod support;
 
 fn run_cli_json() -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _process_guard = support::RepoProcessLock::acquire("benchmark-readiness-mutators")
+        .expect("repo process lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
@@ -123,6 +125,10 @@ fn bench_readiness_vcf_all_retained_tools_complete_reports_licensed_evidence_blo
         assert!(checks.iter().any(|check| {
             check.get("goal_id").and_then(serde_json::Value::as_u64) == Some(goal_id)
                 && check.get("ok") == Some(&serde_json::Value::Bool(false))
+                && check
+                    .get("detail")
+                    .and_then(serde_json::Value::as_str)
+                    .is_some_and(|detail| detail.starts_with("blocked_external_access:"))
         }));
     }
 

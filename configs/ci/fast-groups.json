@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.ci.fast_groups.v2",
+  "schema_version": "bijux.ci.fast_groups.v3",
   "max_parallelism": 6,
   "warm_cache_target_milliseconds": 300000,
   "minimum_cache_hit_ratio_basis_points": 8000,
@@ -7,12 +7,30 @@
   "report_root": "artifacts/ci/ci-fast-groups",
   "timing_report": "artifacts/ci/ci-fast-timing.json",
   "timing_history": "artifacts/ci/ci-fast-timing-history.json",
+  "baseline_report": "artifacts/ci/baseline-timing.json",
   "reference_runner": {
     "os": "linux",
     "architecture": "x86_64",
     "rust_toolchain": "1.95.0",
     "compiler_wrapper": "sccache"
   },
+  "excluded_lanes": [
+    {
+      "id": "full-workspace",
+      "reason": "all-target, all-feature, and ignored-test coverage belongs to the sharded full workspace lane",
+      "evidence_command": "cargo run -q -p bijux-dna-dev -- tooling run ci-test-all-sharded"
+    },
+    {
+      "id": "lunarc-integration",
+      "reason": "container, real-data, security, and replay execution requires immutable LUNARC evidence and must not gate ordinary pull requests",
+      "evidence_command": "bijux-dna benchmark cycle advance"
+    },
+    {
+      "id": "nightly-release",
+      "reason": "complete replay, evidence books, security, and publication validation belongs to the bounded nightly or release lane",
+      "evidence_command": "make _ci-slow"
+    }
+  ],
   "groups": [
     {
       "id": "metadata-path-ownership",

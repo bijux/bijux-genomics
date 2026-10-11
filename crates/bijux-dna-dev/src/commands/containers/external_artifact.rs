@@ -1,7 +1,7 @@
 use super::{path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Result, Workspace};
 
 const SCHEMA_PATH: &str = "containers/contracts/schemas/external-artifact-admission.v2.json";
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers run external-artifact -- admit <repository-root> <active-image-root> <repository-commit> <tool-id> <binary|apptainer_sif> <artifact> <sha256> <lawful-access-basis> <recorded-at-utc> <output> [<apptainer>]\n  bijux-dna-dev containers run external-artifact -- block <repository-root> <active-image-root> <repository-commit> <tool-id> <recorded-at-utc> <output> <reason>\n  bijux-dna-dev containers run external-artifact -- verify <repository-root> <active-image-root> <record>\n  bijux-dna-dev containers run external-artifact -- bind <repository-root> <active-image-root> <record> <stage-id> <apptainer-or-dash> <program> [<argument> ...]\n  bijux-dna-dev containers run external-artifact -- generate-schema [<output>]\n  bijux-dna-dev containers run external-artifact -- check-schema";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers run external-artifact -- admit <repository-root> <active-image-root> <repository-commit> <tool-id> <binary|apptainer_sif> <artifact> <sha256> <lawful-access-basis> <recorded-at-utc> <output> [<apptainer>]\n  bijux-dna-dev containers run external-artifact -- block <repository-root> <active-image-root> <repository-commit> <tool-id> <recorded-at-utc> <output> <reason>\n  bijux-dna-dev containers run external-artifact -- unavailable <repository-root> <active-image-root> <repository-commit> <tool-id> <recorded-at-utc> <output> <reason>\n  bijux-dna-dev containers run external-artifact -- verify <repository-root> <active-image-root> <record>\n  bijux-dna-dev containers run external-artifact -- bind <repository-root> <active-image-root> <record> <stage-id> <apptainer-or-dash> <program> [<argument> ...]\n  bijux-dna-dev containers run external-artifact -- generate-schema [<output>]\n  bijux-dna-dev containers run external-artifact -- check-schema";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -12,7 +12,16 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
     }
     match operation.as_str() {
         "admit" => admit(workspace, options),
-        "block" => block(workspace, options),
+        "block" => record_absence(
+            workspace,
+            options,
+            bijux_dna_containers::api::ExternalArtifactAdmissionStatus::BlockedExternalAccess,
+        ),
+        "unavailable" => record_absence(
+            workspace,
+            options,
+            bijux_dna_containers::api::ExternalArtifactAdmissionStatus::Unavailable,
+        ),
         "verify" => verify(workspace, options),
         "bind" => bind(workspace, options),
         "generate-schema" => generate_schema(workspace, options),
@@ -46,6 +55,7 @@ fn admit(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutco
             repository_commit,
             tool_id,
             recorded_at_utc,
+            availability: bijux_dna_containers::api::ExternalArtifactAdmissionStatus::Admitted,
             artifact: Some(bijux_dna_containers::api::ExternalArtifactInput {
                 kind,
                 path: &artifact,
@@ -65,7 +75,11 @@ fn admit(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutco
     ))
 }
 
-fn block(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
+fn record_absence(
+    workspace: &Workspace,
+    args: &[String],
+    availability: bijux_dna_containers::api::ExternalArtifactAdmissionStatus,
+) -> Result<ContainerCommandOutcome> {
     let [repository_root, active_root, repository_commit, tool_id, recorded_at_utc, output, reason] =
         args
     else {
@@ -81,13 +95,15 @@ fn block(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutco
             repository_commit,
             tool_id,
             recorded_at_utc,
+            availability,
             artifact: None,
             blocker_reason: Some(reason),
         },
         &output,
     )?;
     success_line(format!(
-        "recorded blocked external access for {} at {}",
+        "recorded external artifact availability {:?} for {} at {}",
+        record.availability,
         record.tool_id,
         output.display()
     ))

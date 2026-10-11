@@ -5,7 +5,7 @@
     "domain": "vcf",
     "stage_id": "vcf.imputation_metrics"
   },
-  "protocol_sha256": "f31fd2dbd4cf879922fa6dda43765131755bf0ba7acd5f1a1e123d490ae4e83c",
+  "protocol_sha256": "89d7c1b2ff53bec25eb2c455ea8faa395b04ca7539dc0fdd1a9295e1ddcf8c4d",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

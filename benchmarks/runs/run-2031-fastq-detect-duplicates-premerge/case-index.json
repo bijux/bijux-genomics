@@ -5,7 +5,7 @@
     "domain": "fastq",
     "stage_id": "fastq.detect_duplicates_premerge"
   },
-  "protocol_sha256": "e835707d6e023e7557cc0f1d668f791e46a3bd3e9f9487ffffb12887fc547597",
+  "protocol_sha256": "a649ed1d599903739f59f864d63513c79f6d9c039a75880f1300f39cf9b1c81e",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

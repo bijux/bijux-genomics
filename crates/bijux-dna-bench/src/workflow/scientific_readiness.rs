@@ -8,8 +8,8 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_defined_campaign_portfolio_alignment,
-    validate_report_admission, validate_scientific_readiness, validate_stage_campaign_registry,
-    validate_stage_interface_catalog,
+    validate_executable_stage_campaign_registry, validate_report_admission,
+    validate_scientific_readiness, validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
     benchmark_scientific_readiness_schema, AdmittedBenchmarkStageReport, BenchmarkCorpusClass,
@@ -22,8 +22,9 @@ use bijux_dna_bench_model::{
 use bijux_dna_containers::api::ContainerCatalog;
 
 use super::stage_coverage::runnable_stage_tools;
+use super::suite_load::load_benchmark_portfolio_from_repo;
 use super::{
-    load_benchmark_portfolio, load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
+    load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
     load_stage_reports_from_dir, BenchmarkCoverageWriteMode,
 };
 
@@ -66,7 +67,8 @@ fn derive_scientific_readiness_with_current_sources(
     current_report_sources: &BTreeSet<String>,
 ) -> Result<BenchmarkScientificReadinessReport> {
     validate_benchmark_portfolio(portfolio).context("validate benchmark portfolio")?;
-    validate_stage_campaign_registry(registry).context("validate benchmark campaigns")?;
+    validate_executable_stage_campaign_registry(registry)
+        .context("validate benchmark campaigns")?;
     validate_defined_campaign_portfolio_alignment(registry, portfolio)
         .context("align defined campaigns with portfolio")?;
     validate_stage_interface_catalog(interfaces).context("validate benchmark interfaces")?;
@@ -301,8 +303,10 @@ pub fn publish_checked_in_scientific_readiness(
     if !catalog_validation.is_valid() {
         bail!("container catalog validation failed: {:?}", catalog_validation.errors);
     }
-    let portfolio =
-        load_benchmark_portfolio(&repository_root.join("benchmarks/contracts/portfolio.toml"))?;
+    let portfolio = load_benchmark_portfolio_from_repo(
+        &repository_root.join("benchmarks/contracts/portfolio.toml"),
+        repository_root,
+    )?;
     let registry = load_stage_campaign_registry(
         &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
     )?;

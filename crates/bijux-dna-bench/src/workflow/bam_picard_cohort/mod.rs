@@ -153,6 +153,7 @@ pub fn prepare_bam_picard_cohort_material(
             }],
         },
         stage_plan_units: Some(stage_plan_units),
+        downstream_probe_mode: crate::workflow::BenchmarkDownstreamProbeMode::RunnerProduced,
     };
     Ok(BamPicardCohortMaterial {
         execution,

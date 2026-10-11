@@ -8,10 +8,9 @@
   },
   "protocol_title": "FASTQ index reference benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "dd4012dae167fa33c9bb9ff137de36949acf4fd5dd09fa6bf739ee054380539a",
+  "protocol_sha256": "d801f903e217cf7b1134224c63a546d3837472ba74feb3f5998dbb2d07b94476",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

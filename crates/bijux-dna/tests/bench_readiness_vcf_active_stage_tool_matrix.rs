@@ -89,8 +89,11 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
         Some(active_row_count)
     );
     assert_eq!(
-        scope_state_counts.get("removed_from_scope").and_then(serde_json::Value::as_u64),
-        Some(removed_row_count)
+        scope_state_counts
+            .get("removed_from_scope")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or_default(),
+        removed_row_count
     );
     assert!(
         scope_state_counts.get("complete").is_none(),
@@ -267,11 +270,11 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("tool_status").and_then(serde_json::Value::as_str) == Some("production")
             && row.get("stage_support_status").and_then(serde_json::Value::as_str)
                 == Some("supported")
-            && row.get("scope_state").and_then(serde_json::Value::as_str)
-                == Some("removed_from_scope")
-            && row.get("scope_detail").and_then(serde_json::Value::as_str)
-                == Some("benchmark_not_ready")
+            && row.get("scope_state").and_then(serde_json::Value::as_str) == Some("active")
+            && row.get("scope_detail").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
 }

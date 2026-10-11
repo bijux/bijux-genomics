@@ -54,7 +54,7 @@ versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "39.01"
 install_kind: "container"
-license: "GPL-3.0"
+license: "BSD-3-Clause"
 citation: "paper:https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0185056"
 stage_ids: ["fastq.merge_pairs"]
 stage_contracts:

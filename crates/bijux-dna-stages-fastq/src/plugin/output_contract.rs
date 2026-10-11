@@ -25,11 +25,17 @@ pub(super) fn output_invariants(
             format!("missing declared output artifacts: {}", missing_expected.join(", ")),
         )
     }];
-    invariants.push(if context.observer_covered {
+    invariants.push(if context.observer_covered && !context.semantic_metrics.is_null() {
         invariant(
             "observer_parser_coverage",
             InvariantStatusV1::Pass,
             "stage has observer-specialized runtime interpretation".to_string(),
+        )
+    } else if context.observer_covered {
+        invariant(
+            "observer_parser_coverage",
+            InvariantStatusV1::Fail,
+            "declared observer parser did not produce semantic metrics".to_string(),
         )
     } else {
         invariant(

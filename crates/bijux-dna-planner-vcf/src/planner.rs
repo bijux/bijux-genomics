@@ -109,6 +109,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             inputs.reference_panel_vcf.as_deref(),
             resolved_coverage,
             selected_panel.as_ref(),
+            &panel_catalog,
             &map_catalog,
             &bundle,
             &inputs.species_context.species_id,

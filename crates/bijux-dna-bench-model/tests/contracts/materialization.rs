@@ -2,8 +2,8 @@ use bijux_dna_bench_model::{
     validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
     validate_governed_data_catalog, validate_governed_data_catalog_document, BenchmarkCorpusClass,
     CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
-    CorpusMaterializationDisposition, CorpusMaterializationPublication, CorpusSourcePolicy,
-    FastqCorpusSourceSample, FastqCorpusSourceSpec, GovernedDataCatalog,
+    CorpusEvaluationDesign, CorpusMaterializationDisposition, CorpusMaterializationPublication,
+    CorpusSourcePolicy, FastqCorpusSourceSample, FastqCorpusSourceSpec, GovernedDataCatalog,
     GovernedDataCatalogDocument, GovernedDataCatalogFile, GovernedDataCatalogSample,
     GovernedPreservedDataCatalog, BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1,
     CORPUS_ACQUISITION_SCHEMA_V2, FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
@@ -21,6 +21,11 @@ fn corpus_acquisition_layout_has_stable_wire_labels() {
 fn fastq_source_contract_accepts_real_data_and_rejects_fixtures() {
     let source = fastq_source_spec();
     assert!(validate_fastq_corpus_source_spec(&source).is_ok());
+
+    let mut missing_controls = source.clone();
+    missing_controls.evaluation.controls.clear();
+    assert!(validate_fastq_corpus_source_spec(&missing_controls)
+        .is_err_and(|error| error.to_string().contains("control")));
 
     let mut fixture = source;
     fixture.policy.class = BenchmarkCorpusClass::TestFixture;
@@ -193,6 +198,7 @@ fn acquisition_plan() -> CorpusAcquisitionPlan {
         source_authority: "European Nucleotide Archive".to_string(),
         description: "real human short-read diversity panel".to_string(),
         policy: source_policy(),
+        evaluation: evaluation_design(),
         source_spec: "benchmarks/corpora/human-short-read-diversity.toml".to_string(),
         source_spec_sha256: "a".repeat(64),
         sample_count: 1,
@@ -228,6 +234,7 @@ fn fastq_source_spec() -> FastqCorpusSourceSpec {
         corpus_id: "corpus-01".to_string(),
         portfolio_id: "human-short-read-diversity".to_string(),
         policy: source_policy(),
+        evaluation: evaluation_design(),
         species: "Homo sapiens".to_string(),
         species_id: Some("homo-sapiens".to_string()),
         preferred_root: Some("${BIJUX_CORPUS_01_ROOT}".to_string()),
@@ -296,6 +303,18 @@ fn source_policy() -> CorpusSourcePolicy {
     }
 }
 
+fn evaluation_design() -> CorpusEvaluationDesign {
+    CorpusEvaluationDesign {
+        sample_context: "Ten public short-read libraries.".to_string(),
+        assay_context: "Illumina whole-genome sequencing.".to_string(),
+        strata: vec!["era".to_string(), "layout".to_string()],
+        controls: vec!["ancient_modern_contrast".to_string()],
+        held_out_split: "Freeze stratified acquisition and evaluation partitions.".to_string(),
+        lineage: "ENA run to acquisition manifest to admitted catalog.".to_string(),
+        allowed_uses: vec!["performance".to_string(), "robustness".to_string()],
+    }
+}
+
 fn catalog() -> GovernedDataCatalog {
     let sample = acquisition_sample();
     GovernedDataCatalog {
@@ -304,6 +323,7 @@ fn catalog() -> GovernedDataCatalog {
         purpose: "real human short-read diversity corpus".to_string(),
         source: "European Nucleotide Archive".to_string(),
         policy: source_policy(),
+        evaluation: evaluation_design(),
         source_record: "study://data/evidence/acquisition-plans/plan.json".to_string(),
         source_record_sha256: "c".repeat(64),
         retrieved_at_utc: "2026-08-06T00:00:00+00:00".to_string(),

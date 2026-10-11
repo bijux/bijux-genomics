@@ -36,8 +36,7 @@ use bijux_dna_stage_contract::{
     TOOL_BINDING_SCHEMA_V1,
 };
 
-const EXISTING_CAMPAIGN_COUNT: usize = 13;
-const EXISTING_CASE_COUNT: usize = 30;
+const COMPLETE_CAMPAIGN_COUNT: usize = 71;
 const COVERAGE_STAGE: &str = "bam.coverage";
 
 struct PlanningFixture {
@@ -50,13 +49,19 @@ struct PlanningFixture {
 #[test]
 fn checked_in_campaigns_plan_through_one_order_independent_engine() -> Result<()> {
     let fixture = planning_fixture()?;
-    assert_eq!(fixture.campaigns.campaigns.len(), EXISTING_CAMPAIGN_COUNT);
+    assert_eq!(fixture.campaigns.campaigns.len(), COMPLETE_CAMPAIGN_COUNT);
 
+    let expected_case_count = ready_case_count(&fixture.campaigns);
     let matrix = plan(&fixture)?;
-    assert_eq!(matrix.cases.len(), EXISTING_CASE_COUNT);
+    assert_eq!(matrix.cases.len(), expected_case_count);
     assert_eq!(
         matrix.cases.iter().map(|case| case.run_id.as_str()).collect::<BTreeSet<_>>().len(),
-        EXISTING_CAMPAIGN_COUNT
+        fixture
+            .campaigns
+            .campaigns
+            .iter()
+            .filter(|campaign| !campaign.corpus_catalog_ids.is_empty())
+            .count()
     );
 
     let mut reordered = fixture;
@@ -76,16 +81,96 @@ fn checked_in_campaigns_plan_through_one_order_independent_engine() -> Result<()
 
 #[test]
 fn checked_in_campaigns_close_the_canonical_binding_registry() -> Result<()> {
-    let mut fixture = planning_fixture()?;
-    fixture.bindings = canonical_tool_bindings()?;
-
-    let matrix = plan(&fixture)?;
-
-    assert_eq!(matrix.cases.len(), EXISTING_CASE_COUNT);
-    assert_eq!(
-        matrix.cases.iter().map(|case| case.run_id.as_str()).collect::<BTreeSet<_>>().len(),
-        EXISTING_CAMPAIGN_COUNT
-    );
+    let fixture = planning_fixture()?;
+    let bindings = canonical_tool_bindings()?;
+    let mut independently_ready = 0;
+    let mut input_authority_blocked = 0;
+    for campaign in fixture
+        .campaigns
+        .campaigns
+        .iter()
+        .filter(|campaign| !campaign.corpus_catalog_ids.is_empty())
+    {
+        let selected_campaigns = BenchmarkStageCampaignRegistry {
+            schema_version: fixture.campaigns.schema_version.clone(),
+            campaigns: vec![campaign.clone()],
+        };
+        let selected_interfaces = BenchmarkStageInterfaceCatalog {
+            schema_version: fixture.interfaces.schema_version.clone(),
+            interfaces: fixture
+                .interfaces
+                .interfaces
+                .iter()
+                .filter(|interface| interface.stage_id == campaign.stage_id)
+                .cloned()
+                .collect(),
+        };
+        let snapshots = campaign_snapshots(campaign);
+        let repository_commit = "1".repeat(40);
+        let campaign_sha256 = "2".repeat(64);
+        let interface_sha256 = "3".repeat(64);
+        let binding_sha256 = "4".repeat(64);
+        let request = BenchmarkCaseMatrixRequest {
+            repository_commit: &repository_commit,
+            campaign_registry_sha256: &campaign_sha256,
+            interface_catalog_sha256: &interface_sha256,
+            tool_binding_registry_sha256: &binding_sha256,
+            campaigns: &selected_campaigns,
+            interfaces: &selected_interfaces,
+            bindings: &bindings,
+            data_snapshots: &snapshots,
+        };
+        let lacks_input_authority = campaign.tool_ids.iter().any(|tool| {
+            bindings.binding(&StageId::new(&campaign.stage_id), &ToolId::new(tool)).is_some_and(
+                |binding| {
+                    binding.inputs.iter().filter(|input| input.required).any(|input| {
+                        let catalog_ids = match input.source {
+                            bijux_dna_stage_contract::BindingInputSourceV1::LegacyUnspecified => {
+                                return true;
+                            }
+                            bijux_dna_stage_contract::BindingInputSourceV1::Corpus => {
+                                &campaign.corpus_catalog_ids
+                            }
+                            bijux_dna_stage_contract::BindingInputSourceV1::Reference => {
+                                &campaign.reference_catalog_ids
+                            }
+                            bijux_dna_stage_contract::BindingInputSourceV1::Database => {
+                                &campaign.database_catalog_ids
+                            }
+                            bijux_dna_stage_contract::BindingInputSourceV1::UpstreamResult => {
+                                return true;
+                            }
+                        };
+                        catalog_ids.is_empty()
+                            || catalog_ids.iter().all(|catalog_id| {
+                                !snapshots.iter().any(|snapshot| snapshot.catalog_id == *catalog_id)
+                            })
+                    })
+                },
+            )
+        });
+        if lacks_input_authority {
+            let error = plan_benchmark_case_matrix(&request)
+                .expect_err("campaign without complete input authority must refuse planning");
+            let message = error.to_string();
+            assert!(
+                message.contains("has no admitted")
+                    || message.contains("cannot be planned as an independent stage case")
+                    || message.contains("lacks an explicit data source authority"),
+                "unexpected input-authority refusal: {message}"
+            );
+            input_authority_blocked += 1;
+        } else {
+            let matrix = plan_benchmark_case_matrix(&request)?;
+            assert_eq!(
+                matrix.cases.len(),
+                campaign.tool_ids.len() * campaign.corpus_catalog_ids.len()
+            );
+            independently_ready += 1;
+        }
+    }
+    assert!(independently_ready > 0);
+    assert!(input_authority_blocked > 0);
     Ok(())
 }
 
@@ -134,6 +219,10 @@ fn case_scoped_plan_loading_requires_the_exact_matrix_authority() -> Result<()> 
         &repository.path().join("benchmarks/contracts/stage-campaigns.toml"),
     )?;
     let mut fixture = planning_fixture()?;
+    fixture.campaigns.campaigns.retain(|campaign| campaign.run_id == "run-2002");
+    fixture.interfaces.interfaces.retain(|interface| interface.stage_id == COVERAGE_STAGE);
+    fixture.snapshots =
+        campaign_snapshots(fixture.campaigns.campaigns.first().expect("run-2002 campaign"));
     fixture.bindings = canonical_tool_bindings()?;
     let interface_catalog_sha256 = bijux_dna_infra::hash_file_sha256(
         &repository.path().join("benchmarks/contracts/stage-interfaces.toml"),
@@ -719,6 +808,7 @@ fn adding_a_tool_and_stage_changes_only_registry_data() -> Result<()> {
     added_campaign.run_id = "run-2999".to_string();
     added_campaign.slug = "bam-synthetic-summary".to_string();
     added_campaign.stage_id = "bam.synthetic_summary".to_string();
+    added_campaign.material_driver = None;
     added_campaign.tool_ids = vec!["synthetic-summary".to_string()];
     added_campaign.threads = Some(2);
     added_campaign.threads_by_tool.clear();
@@ -783,6 +873,95 @@ fn campaign_binding_cpu_drift_is_refused() -> Result<()> {
 }
 
 #[test]
+fn campaign_binding_requires_an_admitted_authority_for_each_input_source() -> Result<()> {
+    let mut fixture = planning_fixture()?;
+    fixture.campaigns.campaigns.retain(|campaign| campaign.stage_id == COVERAGE_STAGE);
+    fixture.interfaces.interfaces.retain(|interface| interface.stage_id == COVERAGE_STAGE);
+    let campaign = fixture
+        .campaigns
+        .campaigns
+        .iter()
+        .find(|campaign| campaign.stage_id == COVERAGE_STAGE)
+        .expect("coverage campaign");
+    fixture.snapshots = campaign_snapshots(campaign);
+    let tool = campaign.tool_ids.first().expect("coverage tool");
+    let mut replacement = ToolBindingRegistry::default();
+    for registered in fixture.bindings.bindings() {
+        let mut binding = registered.clone();
+        if binding.stage_id.as_str() == COVERAGE_STAGE && binding.tool_id.as_str() == tool {
+            binding.inputs[0].source = bijux_dna_stage_contract::BindingInputSourceV1::Database;
+        }
+        replacement.insert(binding)?;
+    }
+    fixture.bindings = replacement;
+
+    let error = plan(&fixture).expect_err("missing database authority must fail planning");
+    assert!(error.to_string().contains("has no admitted Database data authority"));
+    Ok(())
+}
+
+#[test]
+fn independent_campaign_refuses_an_upstream_only_binding_input() -> Result<()> {
+    let mut fixture = planning_fixture()?;
+    fixture.campaigns.campaigns.retain(|campaign| campaign.stage_id == COVERAGE_STAGE);
+    fixture.interfaces.interfaces.retain(|interface| interface.stage_id == COVERAGE_STAGE);
+    let campaign = fixture
+        .campaigns
+        .campaigns
+        .iter()
+        .find(|campaign| campaign.stage_id == COVERAGE_STAGE)
+        .expect("coverage campaign");
+    fixture.snapshots = campaign_snapshots(campaign);
+    let tool = campaign.tool_ids.first().expect("coverage tool");
+    let mut replacement = ToolBindingRegistry::default();
+    for registered in fixture.bindings.bindings() {
+        let mut binding = registered.clone();
+        if binding.stage_id.as_str() == COVERAGE_STAGE && binding.tool_id.as_str() == tool {
+            binding.inputs[0].source =
+                bijux_dna_stage_contract::BindingInputSourceV1::UpstreamResult;
+        }
+        replacement.insert(binding)?;
+    }
+    fixture.bindings = replacement;
+
+    let error = plan(&fixture).expect_err("upstream-only input must fail independent planning");
+    assert!(error.to_string().contains("cannot be planned as an independent stage case"));
+    Ok(())
+}
+
+#[test]
+fn legacy_binding_input_without_source_remains_readable_but_cannot_plan() -> Result<()> {
+    let legacy: bijux_dna_stage_contract::BindingInputV1 =
+        serde_json::from_value(serde_json::json!({
+            "name": "bam",
+            "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+            "required": true
+        }))?;
+    assert_eq!(legacy.source, bijux_dna_stage_contract::BindingInputSourceV1::LegacyUnspecified);
+
+    let mut fixture = planning_fixture()?;
+    fixture.campaigns.campaigns.retain(|campaign| campaign.stage_id == COVERAGE_STAGE);
+    fixture.interfaces.interfaces.retain(|interface| interface.stage_id == COVERAGE_STAGE);
+    let campaign = fixture.campaigns.campaigns.first().expect("coverage campaign");
+    fixture.snapshots = campaign_snapshots(campaign);
+    let tool = campaign.tool_ids.first().expect("coverage tool");
+    let mut replacement = ToolBindingRegistry::default();
+    for registered in fixture.bindings.bindings() {
+        let mut binding = registered.clone();
+        if binding.stage_id.as_str() == COVERAGE_STAGE && binding.tool_id.as_str() == tool {
+            binding.inputs[0].source =
+                bijux_dna_stage_contract::BindingInputSourceV1::LegacyUnspecified;
+        }
+        replacement.insert(binding)?;
+    }
+    fixture.bindings = replacement;
+
+    let error = plan(&fixture).expect_err("legacy input source must fail new planning");
+    assert!(error.to_string().contains("lacks an explicit data source authority"));
+    Ok(())
+}
+
+#[test]
 fn campaign_data_authority_must_be_exact_and_role_correct() -> Result<()> {
     let mut missing = planning_fixture()?;
     missing.snapshots.pop();
@@ -806,6 +985,12 @@ fn campaign_data_authority_must_be_exact_and_role_correct() -> Result<()> {
         role: BenchmarkDataSnapshotRoleV1::Database,
         catalog_sha256: "f".repeat(64),
         sample_ids: Vec::new(),
+        files: vec![bijux_dna_bench::BenchmarkDataArtifactSnapshotV1 {
+            path: "study://data/fixtures/unreferenced-production-data.bin".to_string(),
+            sha256: "e".repeat(64),
+            size_bytes: 1,
+            role: "fixture-artifact".to_string(),
+        }],
     });
     assert!(plan(&extra).is_err_and(|error| {
         error.to_string().contains("do not exactly close campaign data authorities")
@@ -867,7 +1052,7 @@ fn admitted_observations_aggregate_all_cases_without_dispatch() -> Result<()> {
     validate_benchmark_case_matrix(&matrix)?;
     let mut observations = admitted_observations(&matrix);
     let aggregations = aggregate_benchmark_case_observations(&matrix, &observations)?;
-    assert_eq!(aggregations.len(), EXISTING_CASE_COUNT);
+    assert_eq!(aggregations.len(), matrix.cases.len());
     assert!(aggregations.iter().all(|aggregation| {
         aggregation.repetition_count == 3
             && aggregation.performance.len()
@@ -1002,6 +1187,36 @@ fn aggregation_refuses_incomplete_or_nondeterministic_evidence() -> Result<()> {
 }
 
 #[test]
+fn campaign_data_authority_requires_exact_safe_file_identities() -> Result<()> {
+    let legacy: BenchmarkDataSnapshotV1 = serde_json::from_value(serde_json::json!({
+        "catalog_id": "legacy-corpus",
+        "role": "corpus",
+        "catalog_sha256": "1".repeat(64),
+        "sample_ids": ["legacy-sample"]
+    }))?;
+    assert!(legacy.files.is_empty());
+
+    let mut missing = planning_fixture()?;
+    missing.snapshots[0].files.clear();
+    assert!(plan(&missing).is_err_and(|error| {
+        error.to_string().contains("data snapshot has no exact file authorities")
+    }));
+
+    let mut unsafe_path = planning_fixture()?;
+    unsafe_path.snapshots[0].files[0].path = "study://data/../escape.fastq".to_string();
+    assert!(plan(&unsafe_path)
+        .is_err_and(|error| error.to_string().contains("data artifact path is unsafe")));
+
+    let mut duplicate = planning_fixture()?;
+    let repeated = duplicate.snapshots[0].files[0].clone();
+    duplicate.snapshots[0].files.push(repeated);
+    assert!(plan(&duplicate).is_err_and(|error| {
+        error.to_string().contains("data snapshot contains duplicate file authority")
+    }));
+    Ok(())
+}
+
+#[test]
 fn generic_aggregations_build_a_citable_stage_report_without_dispatch() -> Result<()> {
     let fixture = planning_fixture()?;
     let mut matrix = plan(&fixture)?;
@@ -1088,7 +1303,7 @@ fn planning_fixture() -> Result<PlanningFixture> {
         .into_iter()
         .enumerate()
         .map(|(index, (catalog_id, role))| BenchmarkDataSnapshotV1 {
-            catalog_id,
+            catalog_id: catalog_id.clone(),
             role,
             catalog_sha256: format!("{index:064x}"),
             sample_ids: if role == BenchmarkDataSnapshotRoleV1::Corpus {
@@ -1096,9 +1311,23 @@ fn planning_fixture() -> Result<PlanningFixture> {
             } else {
                 Vec::new()
             },
+            files: vec![bijux_dna_bench::BenchmarkDataArtifactSnapshotV1 {
+                path: format!("study://data/fixtures/{catalog_id}.bin"),
+                sha256: format!("{:064x}", index + 1024),
+                size_bytes: 1,
+                role: "fixture-artifact".to_string(),
+            }],
         })
         .collect();
     Ok(PlanningFixture { campaigns, interfaces, bindings, snapshots })
+}
+
+fn ready_case_count(campaigns: &BenchmarkStageCampaignRegistry) -> usize {
+    campaigns
+        .campaigns
+        .iter()
+        .map(|campaign| campaign.tool_ids.len() * campaign.corpus_catalog_ids.len())
+        .sum()
 }
 
 fn clean_source_repository() -> Result<tempfile::TempDir> {
@@ -1118,7 +1347,14 @@ fn clean_source_repository() -> Result<tempfile::TempDir> {
         vec!["init", "--initial-branch=main"],
         vec!["config", "user.email", "tests@bijux.invalid"],
         vec!["config", "user.name", "Bijux Tests"],
-        vec!["add", "benchmarks/contracts", "benchmarks/execution", "crates", "domain"],
+        vec![
+            "add",
+            "benchmarks/contracts",
+            "benchmarks/execution",
+            "benchmarks/schemas",
+            "crates",
+            "domain",
+        ],
         vec!["commit", "-m", "test: seed campaign registry"],
     ] {
         git_stdout(repository.path(), &arguments)?;
@@ -1185,6 +1421,7 @@ fn binding(
         inputs: vec![BindingInputV1 {
             name: "source".to_string(),
             artifact_contract_id: interface.accepted_input_contracts[0].clone(),
+            source: bijux_dna_stage_contract::BindingInputSourceV1::Corpus,
             required: true,
         }],
         parameters: vec![BindingParameterV1 { name: "threads".to_string(), required: true }],
@@ -1315,6 +1552,12 @@ fn campaign_snapshots(
             } else {
                 Vec::new()
             },
+            files: vec![bijux_dna_bench::BenchmarkDataArtifactSnapshotV1 {
+                path: format!("study://data/fixtures/{id}.bin"),
+                sha256: "b".repeat(64),
+                size_bytes: 1,
+                role: "fixture-artifact".to_string(),
+            }],
         })
     })
     .collect()

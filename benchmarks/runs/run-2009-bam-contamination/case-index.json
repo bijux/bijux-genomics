@@ -5,7 +5,7 @@
     "domain": "bam",
     "stage_id": "bam.contamination"
   },
-  "protocol_sha256": "3be6fdaf945f2f212b8c4e676b3d5e8fe91bc095886e01aa6e8c57119564968c",
+  "protocol_sha256": "e20b00c30dc4035d7cd368f71d24f1c8c325f915fd666393b277b059dad17e4f",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

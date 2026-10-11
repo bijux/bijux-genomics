@@ -70,7 +70,7 @@ pub(crate) struct VcfImputationFamilyAdapterRow {
     pub(crate) map_id: String,
     pub(crate) target_vcf_path: String,
     pub(crate) panel_vcf_path: String,
-    pub(crate) panel_m3vcf_path: Option<String>,
+    pub(crate) panel_msav_path: Option<String>,
     pub(crate) genetic_map_path: String,
     pub(crate) region_literal: Option<String>,
     pub(crate) imputed_vcf_path: String,
@@ -121,7 +121,7 @@ struct MaterializedPanelInputs {
     panel_id: String,
     map_id: String,
     panel_vcf_path: String,
-    panel_m3vcf_path: Option<String>,
+    panel_msav_path: Option<String>,
     genetic_map_path: String,
 }
 
@@ -281,19 +281,18 @@ fn build_imputation_family_row(
     ];
     if registry_tool.tool_id == "minimac4" {
         required_inputs.push(artifact(
-            "reference_panel_m3vcf",
+            "reference_panel_msav",
             "variant",
-            materialized_inputs.panel_m3vcf_path.as_deref().ok_or_else(|| {
-                anyhow!("VCF minimac4 adapter row `{stage_id}` is missing panel.m3vcf.gz")
+            materialized_inputs.panel_msav_path.as_deref().ok_or_else(|| {
+                anyhow!("VCF minimac4 adapter row `{stage_id}` is missing panel.msav")
             })?,
         ));
-    } else {
-        required_inputs.push(artifact(
-            "genetic_map_tsv",
-            "reference",
-            &materialized_inputs.genetic_map_path,
-        ));
     }
+    required_inputs.push(artifact(
+        "genetic_map_tsv",
+        "reference",
+        &materialized_inputs.genetic_map_path,
+    ));
     validate_required_inputs(repo_root, stage_id, &required_inputs)?;
     let stage_output_ids = vcf_domain_stage_expected_output_ids(stage)
         .ok_or_else(|| anyhow!("VCF {stage_id} is missing expected output ids"))?
@@ -353,7 +352,7 @@ fn build_imputation_family_row(
         map_id: materialized_inputs.map_id,
         target_vcf_path,
         panel_vcf_path: materialized_inputs.panel_vcf_path,
-        panel_m3vcf_path: materialized_inputs.panel_m3vcf_path,
+        panel_msav_path: materialized_inputs.panel_msav_path,
         genetic_map_path: materialized_inputs.genetic_map_path,
         region_literal,
         imputed_vcf_path: contract.imputed_vcf_path,
@@ -482,16 +481,15 @@ fn build_stage_contract(
                 "sh".to_string(),
                 "-lc".to_string(),
                 format!(
-                    "minimac4 --refHaps '{}' --haps '{}' --prefix '{}' --cpus 8 > '{}' 2>&1 && mv '{}.dose.vcf.gz' '{}'",
+                    "minimac4 --threads 8 --map '{}' --output '{}' '{}' '{}' > '{}' 2>&1",
+                    materialized_inputs.genetic_map_path,
+                    imputed_vcf_path,
                     materialized_inputs
-                        .panel_m3vcf_path
+                        .panel_msav_path
                         .as_deref()
-                        .ok_or_else(|| anyhow!("missing panel.m3vcf.gz for minimac4"))?,
+                        .ok_or_else(|| anyhow!("missing panel.msav for minimac4"))?,
                     target_vcf_path,
-                    output_prefix,
-                    log_output_path,
-                    output_prefix,
-                    imputed_vcf_path
+                    log_output_path
                 ),
             ],
         ),
@@ -668,8 +666,8 @@ fn materialize_panel_inputs(
         .find(|path| path.ends_with("/panel.vcf.gz"))
         .cloned()
         .ok_or_else(|| anyhow!("local VCF panel fixture did not produce panel.vcf.gz"))?;
-    let panel_m3vcf_path =
-        report.materialized_files.iter().find(|path| path.ends_with("/panel.m3vcf.gz")).cloned();
+    let panel_msav_path =
+        report.materialized_files.iter().find(|path| path.ends_with("/panel.msav")).cloned();
     let genetic_map_path = report
         .materialized_files
         .iter()
@@ -683,7 +681,7 @@ fn materialize_panel_inputs(
         panel_id: report.panel_id,
         map_id: report.map_id,
         panel_vcf_path: path_relative_to_repo(repo_root, Path::new(&panel_vcf_path)),
-        panel_m3vcf_path: panel_m3vcf_path
+        panel_msav_path: panel_msav_path
             .as_deref()
             .map(|path| path_relative_to_repo(repo_root, Path::new(path))),
         genetic_map_path: path_relative_to_repo(repo_root, Path::new(&genetic_map_path)),
@@ -817,7 +815,7 @@ fn validate_command_steps(
             }
         }
         "minimac4" => {
-            for needle in ["minimac4", "--refHaps", "panel.m3vcf.gz", "--prefix"] {
+            for needle in ["minimac4", "--threads", "--map", "--output", "panel.msav"] {
                 if !joined.contains(needle) {
                     return Err(anyhow!(
                         "VCF minimac4 adapter row `{stage_id}` is missing `{needle}`: {joined}"
@@ -1000,10 +998,7 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "minimac4"
                 && row.stage_id == "vcf.impute"
-                && row
-                    .panel_m3vcf_path
-                    .as_deref()
-                    .is_some_and(|path| path.ends_with("panel.m3vcf.gz"))
+                && row.panel_msav_path.as_deref().is_some_and(|path| path.ends_with("panel.msav"))
         }));
     }
 }

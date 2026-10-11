@@ -5,7 +5,7 @@
 - Run: `run-2035`
 - Stage: `fastq.filter_reads`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2035`
 
 Compare the runnable fastq.filter_reads tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.

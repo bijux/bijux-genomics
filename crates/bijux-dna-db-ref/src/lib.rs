@@ -1,4 +1,5 @@
 mod catalog;
+mod materialization;
 mod model;
 mod providers;
 pub mod public_api;

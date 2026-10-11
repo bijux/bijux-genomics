@@ -390,7 +390,9 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         if !rel.contains("/src/") {
             continue;
         }
-        if allowed_paths.iter().any(|allowed| rel == *allowed) {
+        if rel.starts_with("crates/bijux-dna-stage-contract/src/tool_binding/catalog/")
+            || allowed_paths.iter().any(|allowed| rel == *allowed)
+        {
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");

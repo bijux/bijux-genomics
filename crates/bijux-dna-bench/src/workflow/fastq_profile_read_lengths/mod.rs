@@ -161,6 +161,7 @@ pub fn prepare_fastq_profile_read_lengths_material_from_expectations(
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
         stage_plan_units: Some(stage_plan_units),
+        downstream_probe_mode: crate::workflow::BenchmarkDownstreamProbeMode::RunnerProduced,
     };
     Ok(FastqProfileReadLengthsMaterial { execution, expectations: expectations.clone() })
 }

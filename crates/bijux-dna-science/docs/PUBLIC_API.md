@@ -28,13 +28,16 @@ The crate root exports these modules from `src/lib.rs`:
 - `compile::compile_loaded` compiles already loaded specs.
 - `decision::evaluate_benchmark_gate_policy` evaluates measured benchmark metrics against a stage-aware scientific policy.
 - `decision::validate_benchmark_gate_policy` rejects policy metrics without governed or explicit semantics.
+- `evidence::genotypes_equivalent_unphased` compares diploid allele calls when phase is outside
+  the declared truth claim.
 - `release::cut_release` writes a science release bundle.
 
 ## Data Surface
 
 `domain` owns typed science identifiers, authored spec structs, compiled row structs,
 `ScienceIndex`, `FastqClosureSummary`, `FastqEvidenceSummary`, and `CompiledScience`. `evidence`
-owns independent FASTQ read-length truth through `derive_fastq_read_length_truth`.
+owns independent FASTQ read-length truth through `derive_fastq_read_length_truth` and unphased
+genotype truth comparison through `genotypes_equivalent_unphased`.
 `decision` owns pure benchmark science gate validation and evaluation over persisted model inputs.
 `render` owns TSV and JSON rendering for the compiled rows. `schema` owns the accepted
 authored spec schema version constants.

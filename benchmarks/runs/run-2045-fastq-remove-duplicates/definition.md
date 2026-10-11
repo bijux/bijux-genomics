@@ -5,7 +5,7 @@
 - Run: `run-2045`
 - Stage: `fastq.remove_duplicates`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2045`
 
 Compare the runnable fastq.remove_duplicates tools using signal_specific_sensitivity_specificity_and_read_retention; downstream substitution: feed every tool output into validation, QC, and alignment consumers.

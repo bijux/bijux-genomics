@@ -94,6 +94,17 @@ cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- \
   "${inventory_root}/image-inventory.json"
 canonical_inventory="${inventory_root}/image-inventory.json"
 
+# Re-inventory an applied active roster without reconstructing its campaign roots in shell.
+activation_plan="${activation_plan:?set applied image-activation plan}"
+cargo run -p bijux-dna-dev -- containers run generate-image-inventory -- \
+  --activation-plan \
+  "${source_repository}" \
+  "${study_root}" \
+  "${activation_plan}" \
+  "${run_evidence_root}" \
+  "${inventory_root}/active-scan.json" \
+  "${inventory_root}/active-image-inventory.json"
+
 # Compose selected catalog-locked images into one runner site-binding manifest.
 cargo run -p bijux-dna-dev -- containers run generate-execution-bindings -- \
   "${source_repository}" "${study_root}" "${canonical_inventory}" \

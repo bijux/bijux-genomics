@@ -87,6 +87,7 @@ mod tests {
                 source_checksum: "a".repeat(40),
                 source_authority_url: "https://authority.example/map.json".to_string(),
                 required: true,
+                derivation: None,
             }],
             compatibility: MapCompatibility {
                 tool_tags: vec!["glimpse".to_string()],

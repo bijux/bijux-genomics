@@ -7,7 +7,7 @@ default_version: "2.31.1"
 install_kind: "container"
 container:
   image: "bijuxdna/bedtools:2.31.1"
-license: "GPL-3.0"
+license: "MIT"
 citation: "paper:https://academic.oup.com/bioinformatics/article/26/6/841/244688"
 outputs:
   - name: "validation_report"

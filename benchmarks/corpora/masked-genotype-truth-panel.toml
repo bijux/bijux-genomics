@@ -1,0 +1,45 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Independent held-out truth authority for phasing and imputation
+# authority = bijux-genomics-benchmarks
+# stability = stable
+# last_updated = 2026-08-16
+
+schema_version = "bijux.benchmark.data_source.v1"
+portfolio_id = "masked-genotype-truth-panel"
+class = "production_real"
+access_classification = "public"
+redistribution_classification = "public-accession-referenced-source-copy"
+access_terms_url = "https://www.internationalgenome.org/data/"
+attribution = "Cite IGSR, the 1000 Genomes Project, the high-coverage call-set release, and the selected genetic-map authority."
+projected_storage_bytes = 750000000000
+projected_cpu_hours = 4000
+projection_basis = "The projection reserves 750 GB and 4,000 CPU-hours for a release-frozen high-coverage evaluation cohort, an evaluation-excluded reference panel, a matching genetic map, immutable masks, and validation outputs."
+truth_roles = ["masked_genotype_truth"]
+truth_strategy = "held_out_high_coverage_genotypes_with_panel_exclusion"
+known_limitations = [
+  "High-coverage consensus genotypes remain uncertain in difficult regions and are not universal truth for every variant class.",
+  "Reference-panel composition and genetic-map choice can introduce population-specific bias.",
+  "Evaluation samples and close relatives must be proven absent from the imputation panel before accuracy claims are admissible.",
+]
+description = "A release-addressed high-coverage genotype cohort is masked after panel exclusion and scored against withheld genotypes using frozen panel and map authorities."
+sample_context = "At least one hundred high-coverage individuals selected across populations and held out from the reference panel with family-aware partitions."
+assay_context = "High-coverage GRCh38 genotypes evaluated through masked phasing and imputation with release-frozen panel and map inputs."
+strata = ["allele_frequency", "genomic_region", "mask_fraction", "population", "variant_class"]
+controls = ["panel_exclusion", "unmasked_positive_control", "withheld_genotype_truth"]
+held_out_split = "Freeze family-aware evaluation samples and genomic masks before parameter selection; exclude evaluation samples and close relatives from the reference panel."
+lineage = "IGSR releases and checksums to evaluation and panel partitions to immutable masks, effective parameters, and scored genotype evidence."
+allowed_uses = ["genotype_accuracy", "imputation_accuracy", "interoperability", "performance", "phasing_accuracy"]
+data_types = ["genetic_map", "reference_panel", "sample_metadata", "vcf"]
+target_sample_count = 100
+
+[[collections]]
+id = "igsr-held-out-genotype-evaluation"
+authority = "International Genome Sample Resource"
+accession = "1000G-NYGC-30X-3202"
+source_url = "https://www.internationalgenome.org/data-portal/data-collections/1000genomes_30x/"
+access_terms_url = "https://www.internationalgenome.org/data/"
+data_types = ["genetic_map", "reference_panel", "sample_metadata", "vcf"]
+planned_sample_count = 100
+selection_scope = "At least one hundred release-addressed evaluation individuals with population and family strata, plus a disjoint phased panel and matching genetic map frozen before masking."
+truth_basis = "High-coverage release genotypes are withheld after family-aware panel exclusion and revealed only to score masked phasing and imputation outputs."
+known_limitations = ["The exact release, evaluation samples, excluded relatives, chromosomes, genetic map, checksums, and mask split remain to be frozen in an acquisition plan."]

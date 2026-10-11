@@ -30,8 +30,8 @@ mod tests {
 
     use anyhow::Result;
     use bijux_dna_bench_model::{
-        BenchmarkCorpusClass, BenchmarkDataSourceCollection, CorpusSourcePolicy,
-        BENCHMARK_DATA_SOURCE_SCHEMA_V1,
+        BenchmarkCorpusClass, BenchmarkDataSourceCollection, CorpusEvaluationDesign,
+        CorpusSourcePolicy, BENCHMARK_DATA_SOURCE_SCHEMA_V1,
     };
 
     use super::{load_benchmark_data_source_spec, BenchmarkDataSourceSpec};
@@ -68,6 +68,15 @@ mod tests {
                 truth_strategy: "independent_reference_material".to_string(),
                 known_limitations: vec!["The source is not population representative.".to_string()],
             },
+            evaluation: CorpusEvaluationDesign {
+                sample_context: "Ten reference-material samples.".to_string(),
+                assay_context: "Whole-genome sequencing.".to_string(),
+                strata: vec!["pedigree_role".to_string()],
+                controls: vec!["mendelian_consistency".to_string()],
+                held_out_split: "Mask truth genotypes before evaluation.".to_string(),
+                lineage: "Archive accession to source catalog to derived panel.".to_string(),
+                allowed_uses: vec!["accuracy".to_string(), "performance".to_string()],
+            },
             description: "Public reference material for variant benchmarking.".to_string(),
             data_types: vec!["bam".to_string(), "vcf".to_string()],
             target_sample_count: 10,
@@ -79,6 +88,7 @@ mod tests {
                 access_terms_url: "https://example.org/access".to_string(),
                 data_types: vec!["bam".to_string(), "vcf".to_string()],
                 planned_sample_count: Some(10),
+                selected_accessions: Vec::new(),
                 selection_scope: "All ten independently characterized samples.".to_string(),
                 truth_basis: "Orthogonal measurements define benchmark genotypes.".to_string(),
                 known_limitations: vec![

@@ -8,10 +8,9 @@
   },
   "protocol_title": "VCF ibd benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "6bd6208c8febc80e5551e25315526650a0859b3f81ccb725afa9b4f927979e9f",
+  "protocol_sha256": "39e674214eba3872fc16393ab569cd9a2c6ab7d2abf20bcc79670d8a25d0f2f4",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

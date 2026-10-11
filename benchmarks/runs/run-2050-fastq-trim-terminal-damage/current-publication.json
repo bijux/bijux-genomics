@@ -5,9 +5,8 @@
     "domain": "fastq",
     "stage_id": "fastq.trim_terminal_damage"
   },
-  "protocol_sha256": "e4d026046fc0c44c47784bc57476614d5c50834b6191aced9a33e1b005103f43",
+  "protocol_sha256": "1011070d73ced87c46917b77c9946133f0d8f1f528b05dfb3111e172e85bf7d3",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

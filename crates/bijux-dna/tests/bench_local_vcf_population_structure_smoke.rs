@@ -91,6 +91,19 @@ fn bench_local_vcf_population_structure_smoke_reports_consumed_upstream_contract
         Some("runs/bench/local-smoke/vcf.population_structure/plink2/stage-result.json")
     );
     assert_eq!(payload.get("status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert_eq!(
+        payload.get("selected_pca_tool_id").and_then(serde_json::Value::as_str),
+        Some("plink2")
+    );
+    assert!(payload.get("selected_pca_tool_ok").and_then(serde_json::Value::as_bool).is_some());
+    assert_eq!(
+        payload.get("selected_admixture_tool_id").and_then(serde_json::Value::as_str),
+        Some("plink2")
+    );
+    assert!(payload
+        .get("selected_admixture_tool_ok")
+        .and_then(serde_json::Value::as_bool)
+        .is_some());
 
     let consumed_pca = payload.get("consumed_pca").expect("consumed pca");
     assert_eq!(

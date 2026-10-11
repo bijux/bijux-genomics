@@ -47,10 +47,10 @@ fn bench_readiness_benchmark_readiness_dashboard_tracks_governed_summary_counts(
     assert_eq!(payload.get("production_ready").and_then(serde_json::Value::as_bool), Some(false));
     assert_eq!(payload.get("product_stage_count").and_then(serde_json::Value::as_u64), Some(71));
     assert_eq!(payload.get("product_pair_count").and_then(serde_json::Value::as_u64), Some(159));
-    assert_eq!(payload.get("active_protocol_count").and_then(serde_json::Value::as_u64), Some(12));
+    assert_eq!(payload.get("active_protocol_count").and_then(serde_json::Value::as_u64), Some(13));
     assert_eq!(
         payload.get("reserved_protocol_count").and_then(serde_json::Value::as_u64),
-        Some(59)
+        Some(58)
     );
     assert_eq!(
         payload.get("fixture_covered_pair_count").and_then(serde_json::Value::as_u64),

@@ -84,13 +84,82 @@ pub(crate) fn validate_catalog_source_authority(
             bail!("{asset_kind} {asset_id} repeats file path `{}`", file.path);
         }
         validate_sha256(&file.checksum_sha256, "catalog checksum_sha256")?;
-        validate_https_authority_url(asset_kind, asset_id, &file.url)?;
+        if let Some(derivation) = &file.derivation {
+            validate_derived_catalog_file(asset_kind, asset_id, file, derivation, files)?;
+        } else {
+            validate_https_authority_url(asset_kind, asset_id, &file.url)?;
+        }
         validate_https_authority_url(asset_kind, asset_id, &file.source_authority_url)?;
         if file.size_bytes == 0 {
             bail!("{asset_kind} {asset_id} file {} missing positive size_bytes", file.name);
         }
         validate_source_checksum(asset_kind, asset_id, file)?;
     }
+    Ok(())
+}
+
+fn validate_derived_catalog_file(
+    asset_kind: &str,
+    asset_id: &str,
+    file: &CatalogFileEntry,
+    derivation: &crate::CatalogFileDerivation,
+    files: &[CatalogFileEntry],
+) -> Result<()> {
+    if !file.url.trim().is_empty() {
+        bail!(
+            "{asset_kind} {asset_id} derived file {} must not claim a remote artifact URL",
+            file.name
+        );
+    }
+    let source = files
+        .iter()
+        .find(|candidate| candidate.name == derivation.source_file_name)
+        .ok_or_else(|| {
+            anyhow!(
+                "{asset_kind} {asset_id} derived file {} references missing source file `{}`",
+                file.name,
+                derivation.source_file_name
+            )
+        })?;
+    if source.derivation.is_some() {
+        bail!(
+            "{asset_kind} {asset_id} derived file {} must reference an authoritative source file",
+            file.name
+        );
+    }
+    if file.source_checksum_algorithm != "sha256" || file.source_checksum != source.checksum_sha256
+    {
+        bail!(
+            "{asset_kind} {asset_id} derived file {} must pin the source artifact SHA-256",
+            file.name
+        );
+    }
+    if file.source_authority_url != source.url {
+        bail!(
+            "{asset_kind} {asset_id} derived file {} must retain the source artifact authority URL",
+            file.name
+        );
+    }
+    if derivation.tool_id.trim().is_empty()
+        || derivation.tool_version.trim().is_empty()
+        || derivation.argv.is_empty()
+        || derivation.argv.iter().any(|argument| argument.trim().is_empty())
+    {
+        bail!(
+            "{asset_kind} {asset_id} derived file {} has an incomplete derivation command",
+            file.name
+        );
+    }
+    if derivation.argv.first() != Some(&derivation.tool_id)
+        || !derivation.argv.iter().any(|argument| argument == &source.path)
+        || !derivation.argv.iter().any(|argument| argument == &file.path)
+    {
+        bail!(
+            "{asset_kind} {asset_id} derived file {} command must identify its tool, source path, and output path",
+            file.name
+        );
+    }
+    validate_sha256(&derivation.tool_artifact_sha256, "derived file tool_artifact_sha256")?;
     Ok(())
 }
 
@@ -135,6 +204,7 @@ fn validate_source_checksum(
     let (length, label) = match file.source_checksum_algorithm.as_str() {
         "md5" => (32, "MD5"),
         "git_blob_sha1" => (40, "Git blob SHA-1"),
+        "sha256" => (64, "SHA-256"),
         other => bail!(
             "{asset_kind} {asset_id} file {} uses unsupported source checksum algorithm `{other}`",
             file.name
@@ -163,7 +233,7 @@ fn contains_placeholder_marker(value: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::{parse_lock_ref, validate_catalog_source_authority, validate_sha256};
-    use crate::CatalogFileEntry;
+    use crate::{CatalogFileDerivation, CatalogFileEntry};
 
     #[test]
     fn parse_lock_ref_trims_path_and_key_segments() {
@@ -226,6 +296,7 @@ mod tests {
             source_checksum: "b".repeat(32),
             source_authority_url: "https://example.org/manifest.txt".to_string(),
             required: true,
+            derivation: None,
         }];
 
         let Err(error) = validate_catalog_source_authority(
@@ -239,5 +310,68 @@ mod tests {
         };
 
         assert!(error.to_string().contains("placeholder data"));
+    }
+
+    #[test]
+    fn derived_catalog_file_requires_exact_source_and_tool_identity() {
+        let source = CatalogFileEntry {
+            name: "panel_vcf".to_string(),
+            path: "panel.vcf.gz".to_string(),
+            format: "vcf.gz".to_string(),
+            url: "https://data.example.net/panel.vcf.gz".to_string(),
+            checksum_sha256: "a".repeat(64),
+            size_bytes: 10,
+            source_checksum_algorithm: "md5".to_string(),
+            source_checksum: "b".repeat(32),
+            source_authority_url: "https://data.example.net/manifest.txt".to_string(),
+            required: true,
+            derivation: None,
+        };
+        let mut derived = CatalogFileEntry {
+            name: "panel_msav".to_string(),
+            path: "panel.msav".to_string(),
+            format: "msav".to_string(),
+            url: String::new(),
+            checksum_sha256: "c".repeat(64),
+            size_bytes: 5,
+            source_checksum_algorithm: "sha256".to_string(),
+            source_checksum: source.checksum_sha256.clone(),
+            source_authority_url: source.url.clone(),
+            required: true,
+            derivation: Some(CatalogFileDerivation {
+                source_file_name: source.name.clone(),
+                tool_id: "minimac4".to_string(),
+                tool_version: "4.1.6".to_string(),
+                tool_artifact_sha256: "d".repeat(64),
+                argv: vec![
+                    "minimac4".to_string(),
+                    "--compress-reference".to_string(),
+                    "panel.vcf.gz".to_string(),
+                    "--output".to_string(),
+                    "panel.msav".to_string(),
+                ],
+            }),
+        };
+
+        validate_catalog_source_authority(
+            "panel",
+            "derived-panel",
+            "supported",
+            Some("Byrska-Bishop et al. 2022"),
+            &[source.clone(), derived.clone()],
+        )
+        .expect("exact derived artifact provenance must validate");
+
+        derived.source_checksum = "e".repeat(64);
+        let Err(error) = validate_catalog_source_authority(
+            "panel",
+            "derived-panel",
+            "supported",
+            Some("Byrska-Bishop et al. 2022"),
+            &[source, derived],
+        ) else {
+            panic!("derived artifact with drifted source identity must fail");
+        };
+        assert!(error.to_string().contains("source artifact SHA-256"));
     }
 }

@@ -5,7 +5,7 @@
 - Run: `run-2016`
 - Stage: `bam.kinship`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2016`
 
 Compare the runnable bam.kinship tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.

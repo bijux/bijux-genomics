@@ -6,11 +6,11 @@ mod report;
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use anyhow::{bail, Result};
+use anyhow::{Context, Result};
 use bijux_dna_bench_model::{
     AdmittedAlignmentTruthSet, AdmittedBamCohort, AdmittedBamCorpus, AdmittedFastqCorpus,
     AdmittedIndexedReference, AdmittedReferenceBundle, BenchmarkAttemptIdentity,
-    BenchmarkCorpusSnapshotV1,
+    BenchmarkCampaignMaterialDriver, BenchmarkCorpusSnapshotV1,
 };
 
 use super::{
@@ -44,11 +44,6 @@ const FASTQ_CORPUS_ID: &str = "human-short-read-diversity";
 const FASTQ_EXPECTED_SAMPLE_COUNT: usize = 20;
 const FASTQ_EXPECTED_FILE_COUNT: usize = 30;
 
-const EXECUTABLE_CAMPAIGN_RUN_IDS: &[&str] = &[
-    "run-2001", "run-2002", "run-2003", "run-2004", "run-2005", "run-2011", "run-2013", "run-2015",
-    "run-2010", "run-2030", "run-2042", "run-2043", "run-2051",
-];
-
 /// Admitted evidence closure required to prepare one governed campaign.
 pub enum BenchmarkCampaignEvidence {
     BamAlignment {
@@ -61,13 +56,19 @@ pub enum BenchmarkCampaignEvidence {
         corpus: AdmittedBamCorpus,
         reference: AdmittedIndexedReference,
     },
-    BamPicardCohort {
+    BamCoverage(AdmittedBamCorpus),
+    BamDuplicationMetrics(AdmittedBamCorpus),
+    BamEndogenousContent(AdmittedBamCorpus),
+    BamGcBias {
         cohort: AdmittedBamCohort,
-        reference: Option<AdmittedReferenceBundle>,
+        reference: AdmittedReferenceBundle,
     },
-    BamObservation(AdmittedBamCorpus),
+    BamInsertSize(AdmittedBamCohort),
+    BamMappingSummary(AdmittedBamCorpus),
+    FastqDetectAdapters(FastqProfileReadsExpectationPublication),
     FastqReadLengths(FastqReadLengthExpectationPublication),
     FastqProfileReads(FastqProfileReadsExpectationPublication),
+    FastqValidateReads(FastqProfileReadsExpectationPublication),
 }
 
 impl BenchmarkCampaignEvidence {
@@ -78,18 +79,25 @@ impl BenchmarkCampaignEvidence {
             Self::BamAlignment { corpus, .. } => fastq_corpus_snapshot(corpus),
             Self::BamGenotyping(corpus) => bam_corpus_snapshot(&corpus.bam),
             Self::BamDamage { corpus, .. } => bam_corpus_snapshot(corpus),
-            Self::BamPicardCohort { cohort, .. } => BenchmarkCorpusSnapshotV1 {
-                corpus_id: cohort.corpus_id.clone(),
-                snapshot_sha256: cohort.catalog_sha256.clone(),
-                sample_ids: sorted_sample_ids(
-                    cohort.samples.iter().map(|sample| sample.sample_id.as_str()),
-                ),
-            },
-            Self::BamObservation(corpus) => bam_corpus_snapshot(corpus),
-            Self::FastqReadLengths(publication) => {
+            Self::BamGcBias { cohort, .. } | Self::BamInsertSize(cohort) => {
+                BenchmarkCorpusSnapshotV1 {
+                    corpus_id: cohort.corpus_id.clone(),
+                    snapshot_sha256: cohort.catalog_sha256.clone(),
+                    sample_ids: sorted_sample_ids(
+                        cohort.samples.iter().map(|sample| sample.sample_id.as_str()),
+                    ),
+                }
+            }
+            Self::BamCoverage(corpus)
+            | Self::BamDuplicationMetrics(corpus)
+            | Self::BamEndogenousContent(corpus)
+            | Self::BamMappingSummary(corpus) => bam_corpus_snapshot(corpus),
+            Self::FastqDetectAdapters(publication)
+            | Self::FastqProfileReads(publication)
+            | Self::FastqValidateReads(publication) => {
                 fastq_corpus_snapshot(&publication.admitted_corpus)
             }
-            Self::FastqProfileReads(publication) => {
+            Self::FastqReadLengths(publication) => {
                 fastq_corpus_snapshot(&publication.admitted_corpus)
             }
         }
@@ -132,11 +140,6 @@ pub struct BenchmarkCampaignMaterialRequest<'a> {
     pub partition: &'a str,
 }
 
-#[must_use]
-pub(crate) fn benchmark_campaign_has_executable_material(run_id: &str) -> bool {
-    EXECUTABLE_CAMPAIGN_RUN_IDS.contains(&run_id)
-}
-
 /// Admit the exact corpus or expectation evidence required by a campaign.
 ///
 /// # Errors
@@ -147,22 +150,42 @@ pub fn admit_benchmark_campaign_evidence(
     data_index: &Path,
     run_id: &str,
 ) -> Result<BenchmarkCampaignEvidence> {
-    match run_id {
-        "run-2001" => Ok(BenchmarkCampaignEvidence::BamGenotyping(Box::new(
-            admit_bam_genotyping_corpus(study_root, data_index)?,
-        ))),
-        "run-2005" => Ok(BenchmarkCampaignEvidence::BamAlignment {
-            corpus: admit_fastq_benchmark_corpus(
-                study_root,
-                data_index,
-                "alignment-truth-panel",
-                10,
-                20,
-            )?,
-            reference: admit_benchmark_reference(study_root, data_index, "grch38-reference")?,
-            truth: admit_alignment_truth_set(study_root, data_index, "alignment-truth-panel", 10)?,
-        }),
-        "run-2010" => Ok(BenchmarkCampaignEvidence::BamDamage {
+    let campaigns = super::load_stage_campaign_registry(
+        &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
+    let campaign = campaigns
+        .campaigns
+        .iter()
+        .find(|campaign| campaign.run_id == run_id)
+        .with_context(|| format!("benchmark campaign is not declared: {run_id}"))?;
+    let material_driver = campaign
+        .material_driver
+        .context("validated benchmark campaign omits its material driver")?;
+    match material_driver {
+        BenchmarkCampaignMaterialDriver::BamGenotyping => {
+            Ok(BenchmarkCampaignEvidence::BamGenotyping(Box::new(admit_bam_genotyping_corpus(
+                study_root, data_index,
+            )?)))
+        }
+        BenchmarkCampaignMaterialDriver::BamAlignment => {
+            Ok(BenchmarkCampaignEvidence::BamAlignment {
+                corpus: admit_fastq_benchmark_corpus(
+                    study_root,
+                    data_index,
+                    "alignment-truth-panel",
+                    10,
+                    20,
+                )?,
+                reference: admit_benchmark_reference(study_root, data_index, "grch38-reference")?,
+                truth: admit_alignment_truth_set(
+                    study_root,
+                    data_index,
+                    "alignment-truth-panel",
+                    10,
+                )?,
+            })
+        }
+        BenchmarkCampaignMaterialDriver::BamDamage => Ok(BenchmarkCampaignEvidence::BamDamage {
             corpus: admit_bam_benchmark_corpus(
                 study_root,
                 data_index,
@@ -174,28 +197,51 @@ pub fn admit_benchmark_campaign_evidence(
                 "equcab3-gcf-002863925.1",
             )?,
         }),
-        "run-2002" | "run-2003" | "run-2004" | "run-2011" => {
-            Ok(BenchmarkCampaignEvidence::BamObservation(admit_bam_benchmark_corpus(
+        BenchmarkCampaignMaterialDriver::BamCoverage => Ok(BenchmarkCampaignEvidence::BamCoverage(
+            admit_bam_benchmark_corpus(study_root, data_index, BAM_CORPUS_ID)?,
+        )),
+        BenchmarkCampaignMaterialDriver::BamDuplicationMetrics => {
+            Ok(BenchmarkCampaignEvidence::BamDuplicationMetrics(admit_bam_benchmark_corpus(
                 study_root,
                 data_index,
                 BAM_CORPUS_ID,
             )?))
         }
-        "run-2013" | "run-2015" => {
-            let cohort = admit_bam_benchmark_cohort(
+        BenchmarkCampaignMaterialDriver::BamEndogenousContent => {
+            Ok(BenchmarkCampaignEvidence::BamEndogenousContent(admit_bam_benchmark_corpus(
+                study_root,
+                data_index,
+                BAM_CORPUS_ID,
+            )?))
+        }
+        BenchmarkCampaignMaterialDriver::BamMappingSummary => {
+            Ok(BenchmarkCampaignEvidence::BamMappingSummary(admit_bam_benchmark_corpus(
+                study_root,
+                data_index,
+                BAM_CORPUS_ID,
+            )?))
+        }
+        BenchmarkCampaignMaterialDriver::BamGcBias => Ok(BenchmarkCampaignEvidence::BamGcBias {
+            cohort: admit_bam_benchmark_cohort(
                 study_root,
                 data_index,
                 "ancient-dna-bam-diversity",
                 10,
-            )?;
-            let reference = if run_id == "run-2013" {
-                Some(admit_benchmark_reference(study_root, data_index, "grch38-reference")?)
-            } else {
-                None
-            };
-            Ok(BenchmarkCampaignEvidence::BamPicardCohort { cohort, reference })
+            )?,
+            reference: admit_benchmark_reference(study_root, data_index, "grch38-reference")?,
+        }),
+        BenchmarkCampaignMaterialDriver::BamInsertSize => {
+            Ok(BenchmarkCampaignEvidence::BamInsertSize(admit_bam_benchmark_cohort(
+                study_root,
+                data_index,
+                "ancient-dna-bam-diversity",
+                10,
+            )?))
         }
-        "run-2030" | "run-2042" | "run-2043" | "run-2051" => {
+        BenchmarkCampaignMaterialDriver::FastqDetectAdapters
+        | BenchmarkCampaignMaterialDriver::FastqProfileReadLengths
+        | BenchmarkCampaignMaterialDriver::FastqProfileReads
+        | BenchmarkCampaignMaterialDriver::FastqValidateReads => {
             let read_lengths = super::ensure_fastq_read_length_expectations(
                 repository_root,
                 study_root,
@@ -204,15 +250,24 @@ pub fn admit_benchmark_campaign_evidence(
                 FASTQ_EXPECTED_SAMPLE_COUNT,
                 FASTQ_EXPECTED_FILE_COUNT,
             )?;
-            if run_id == "run-2042" {
-                Ok(BenchmarkCampaignEvidence::FastqReadLengths(read_lengths))
-            } else {
-                Ok(BenchmarkCampaignEvidence::FastqProfileReads(
-                    super::ensure_fastq_profile_reads_expectations(study_root, &read_lengths)?,
-                ))
+            if material_driver == BenchmarkCampaignMaterialDriver::FastqProfileReadLengths {
+                return Ok(BenchmarkCampaignEvidence::FastqReadLengths(read_lengths));
+            }
+            let expectations =
+                super::ensure_fastq_profile_reads_expectations(study_root, &read_lengths)?;
+            match material_driver {
+                BenchmarkCampaignMaterialDriver::FastqDetectAdapters => {
+                    Ok(BenchmarkCampaignEvidence::FastqDetectAdapters(expectations))
+                }
+                BenchmarkCampaignMaterialDriver::FastqProfileReads => {
+                    Ok(BenchmarkCampaignEvidence::FastqProfileReads(expectations))
+                }
+                BenchmarkCampaignMaterialDriver::FastqValidateReads => {
+                    Ok(BenchmarkCampaignEvidence::FastqValidateReads(expectations))
+                }
+                _ => unreachable!("read-length material driver handled before profile admission"),
             }
         }
-        _ => bail!("benchmark campaign has no crate-owned executable material: {run_id}"),
     }
 }
 
@@ -271,10 +326,49 @@ pub fn prepare_benchmark_campaign_material(
             )?
             .execution)
         }
-        BenchmarkCampaignEvidence::BamObservation(corpus) => {
-            prepare_bam_observation_material(request, corpus)
+        BenchmarkCampaignEvidence::BamCoverage(corpus) => {
+            Ok(prepare_bam_coverage_material_from_corpus(
+                request.repository_root,
+                request.benchmark_root,
+                request.identity,
+                request.source_contract_sha256,
+                request.operator,
+                request.prepared_at_utc,
+                request.account,
+                request.partition,
+                corpus,
+            )?
+            .execution)
         }
-        BenchmarkCampaignEvidence::BamPicardCohort { cohort, reference } => {
+        BenchmarkCampaignEvidence::BamDuplicationMetrics(corpus) => {
+            Ok(prepare_bam_duplication_metrics_material_from_corpus(
+                request.repository_root,
+                request.benchmark_root,
+                request.identity,
+                request.source_contract_sha256,
+                request.operator,
+                request.prepared_at_utc,
+                request.account,
+                request.partition,
+                corpus,
+            )?
+            .execution)
+        }
+        BenchmarkCampaignEvidence::BamEndogenousContent(corpus) => {
+            Ok(prepare_bam_endogenous_content_material_from_corpus(
+                request.repository_root,
+                request.benchmark_root,
+                request.identity,
+                request.source_contract_sha256,
+                request.operator,
+                request.prepared_at_utc,
+                request.account,
+                request.partition,
+                corpus,
+            )?
+            .execution)
+        }
+        BenchmarkCampaignEvidence::BamGcBias { cohort, reference } => {
             Ok(prepare_bam_picard_cohort_material(
                 request.repository_root,
                 request.benchmark_root,
@@ -285,7 +379,48 @@ pub fn prepare_benchmark_campaign_material(
                 request.account,
                 request.partition,
                 cohort,
-                reference.as_ref(),
+                Some(reference),
+            )?
+            .execution)
+        }
+        BenchmarkCampaignEvidence::BamInsertSize(cohort) => Ok(prepare_bam_picard_cohort_material(
+            request.repository_root,
+            request.benchmark_root,
+            request.identity,
+            request.source_contract_sha256,
+            request.operator,
+            request.prepared_at_utc,
+            request.account,
+            request.partition,
+            cohort,
+            None,
+        )?
+        .execution),
+        BenchmarkCampaignEvidence::BamMappingSummary(corpus) => {
+            Ok(prepare_bam_mapping_summary_material_from_corpus(
+                request.repository_root,
+                request.benchmark_root,
+                request.identity,
+                request.source_contract_sha256,
+                request.operator,
+                request.prepared_at_utc,
+                request.account,
+                request.partition,
+                corpus,
+            )?
+            .execution)
+        }
+        BenchmarkCampaignEvidence::FastqDetectAdapters(expectations) => {
+            Ok(prepare_fastq_detect_adapters_material_from_expectations(
+                request.repository_root,
+                request.benchmark_root,
+                request.identity,
+                request.source_contract_sha256,
+                request.operator,
+                request.prepared_at_utc,
+                request.account,
+                request.partition,
+                expectations,
             )?
             .execution)
         }
@@ -304,114 +439,34 @@ pub fn prepare_benchmark_campaign_material(
             .execution)
         }
         BenchmarkCampaignEvidence::FastqProfileReads(expectations) => {
-            if request.identity.run.run_id == "run-2030" {
-                Ok(prepare_fastq_detect_adapters_material_from_expectations(
-                    request.repository_root,
-                    request.benchmark_root,
-                    request.identity,
-                    request.source_contract_sha256,
-                    request.operator,
-                    request.prepared_at_utc,
-                    request.account,
-                    request.partition,
-                    expectations,
-                )?
-                .execution)
-            } else if request.identity.run.run_id == "run-2051" {
-                Ok(prepare_fastq_validate_reads_material_from_expectations(
-                    request.repository_root,
-                    request.benchmark_root,
-                    request.identity,
-                    request.source_contract_sha256,
-                    request.operator,
-                    request.prepared_at_utc,
-                    request.account,
-                    request.partition,
-                    expectations,
-                )?
-                .execution)
-            } else {
-                Ok(prepare_fastq_profile_reads_material_from_expectations(
-                    request.repository_root,
-                    request.benchmark_root,
-                    request.identity,
-                    request.source_contract_sha256,
-                    request.operator,
-                    request.prepared_at_utc,
-                    request.account,
-                    request.partition,
-                    expectations,
-                )?
-                .execution)
-            }
+            Ok(prepare_fastq_profile_reads_material_from_expectations(
+                request.repository_root,
+                request.benchmark_root,
+                request.identity,
+                request.source_contract_sha256,
+                request.operator,
+                request.prepared_at_utc,
+                request.account,
+                request.partition,
+                expectations,
+            )?
+            .execution)
+        }
+        BenchmarkCampaignEvidence::FastqValidateReads(expectations) => {
+            Ok(prepare_fastq_validate_reads_material_from_expectations(
+                request.repository_root,
+                request.benchmark_root,
+                request.identity,
+                request.source_contract_sha256,
+                request.operator,
+                request.prepared_at_utc,
+                request.account,
+                request.partition,
+                expectations,
+            )?
+            .execution)
         }
     }
-}
-
-fn prepare_bam_observation_material(
-    request: &BenchmarkCampaignMaterialRequest<'_>,
-    corpus: &AdmittedBamCorpus,
-) -> Result<BenchmarkExecutionMaterial> {
-    let material = match request.identity.run.run_id.as_str() {
-        "run-2002" => {
-            prepare_bam_coverage_material_from_corpus(
-                request.repository_root,
-                request.benchmark_root,
-                request.identity,
-                request.source_contract_sha256,
-                request.operator,
-                request.prepared_at_utc,
-                request.account,
-                request.partition,
-                corpus,
-            )?
-            .execution
-        }
-        "run-2003" => {
-            prepare_bam_endogenous_content_material_from_corpus(
-                request.repository_root,
-                request.benchmark_root,
-                request.identity,
-                request.source_contract_sha256,
-                request.operator,
-                request.prepared_at_utc,
-                request.account,
-                request.partition,
-                corpus,
-            )?
-            .execution
-        }
-        "run-2004" => {
-            prepare_bam_mapping_summary_material_from_corpus(
-                request.repository_root,
-                request.benchmark_root,
-                request.identity,
-                request.source_contract_sha256,
-                request.operator,
-                request.prepared_at_utc,
-                request.account,
-                request.partition,
-                corpus,
-            )?
-            .execution
-        }
-        "run-2011" => {
-            prepare_bam_duplication_metrics_material_from_corpus(
-                request.repository_root,
-                request.benchmark_root,
-                request.identity,
-                request.source_contract_sha256,
-                request.operator,
-                request.prepared_at_utc,
-                request.account,
-                request.partition,
-                corpus,
-            )?
-            .execution
-        }
-        run_id => bail!("BAM observation evidence is not valid for campaign {run_id}"),
-    };
-    Ok(material)
 }
 
 #[cfg(test)]
@@ -420,23 +475,28 @@ mod tests {
 
     use bijux_dna_bench_model::{AdmittedBamCorpus, AdmittedBamCorpusFile};
 
-    use super::{
-        benchmark_campaign_has_executable_material, BenchmarkCampaignEvidence,
-        EXECUTABLE_CAMPAIGN_RUN_IDS,
-    };
+    use super::BenchmarkCampaignEvidence;
 
     #[test]
-    fn executable_campaign_material_covers_the_declared_registry() -> anyhow::Result<()> {
+    fn executable_campaigns_use_reviewed_drivers_or_generic_bindings() -> anyhow::Result<()> {
         let (registry, _, _) = super::super::load_checked_in_benchmark_planning_contracts()?;
-        let declared = registry
+        let drivers = registry
             .campaigns
             .iter()
-            .map(|campaign| campaign.run_id.as_str())
+            .filter_map(|campaign| campaign.material_driver)
             .collect::<BTreeSet<_>>();
-        let executable = EXECUTABLE_CAMPAIGN_RUN_IDS.iter().copied().collect::<BTreeSet<_>>();
-        assert_eq!(executable, declared);
-        assert!(declared.iter().all(|run_id| benchmark_campaign_has_executable_material(run_id)));
-        assert!(!benchmark_campaign_has_executable_material("run-9999"));
+        assert_eq!(drivers.len(), 13);
+        assert!(registry
+            .campaigns
+            .iter()
+            .filter(|campaign| campaign.material_driver.is_some())
+            .all(|campaign| campaign
+                .material_driver
+                .is_some_and(|driver| driver.stage_id() == campaign.stage_id)));
+        assert_eq!(
+            registry.campaigns.iter().filter(|campaign| campaign.material_driver.is_none()).count(),
+            58
+        );
         Ok(())
     }
 
@@ -447,7 +507,7 @@ mod tests {
             sha256: "a".repeat(64),
             size_bytes: 42,
         };
-        let evidence = BenchmarkCampaignEvidence::BamObservation(AdmittedBamCorpus {
+        let evidence = BenchmarkCampaignEvidence::BamCoverage(AdmittedBamCorpus {
             corpus_id: "real-bam-corpus".to_string(),
             sample_id: "sample-a".to_string(),
             data_index_path: "/study/data-index.json".to_string(),

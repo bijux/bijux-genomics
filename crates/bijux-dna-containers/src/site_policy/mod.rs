@@ -12,8 +12,8 @@ pub use model::{
     CONTAINER_GOVERNANCE_SCHEMA_V1, REPOSITORY_FREEZE_ARCHIVE_RECEIPT_SCHEMA_V1,
 };
 pub use repository_archive::{
-    archive_frozen_repository, restore_frozen_repository_archive, retire_frozen_repository,
-    verify_frozen_repository_archive,
+    archive_and_retire_frozen_repository, archive_frozen_repository,
+    restore_frozen_repository_archive, retire_frozen_repository, verify_frozen_repository_archive,
 };
 pub use repository_freeze::{freeze_repository, verify_frozen_repository};
 pub use repository_tracking::tracked_repository_files_under;

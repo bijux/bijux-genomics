@@ -26,6 +26,13 @@ known_limitations = [
   "Archive metadata and cohort strata support observational diversity claims, not ground-truth base or variant accuracy.",
   "EMBL-EBI imposes no additional sequence-record restrictions, but users remain responsible for rights asserted by original data owners.",
 ]
+sample_context = "Twenty public human libraries balanced across eras, layouts, and archive-size bands."
+assay_context = "Heterogeneous public Illumina DNA libraries for real-workload and observational consistency claims."
+strata = ["era", "layout", "size_band", "study"]
+controls = ["ancient_modern_observational_contrast", "paired_layout_balance"]
+held_out_split = "Freeze study-aware development and evaluation partitions while preserving era-layout balance."
+lineage = "ENA run accessions and checksums to immutable acquisition metadata, admitted catalogs, and case evidence."
+allowed_uses = ["interoperability", "observational_consistency", "performance", "robustness"]
 target_total = 20
 target_ancient_se = 5
 target_ancient_pe = 5

@@ -37,6 +37,49 @@ pub enum BenchmarkCachePolicy {
     Warm,
 }
 
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkCampaignMaterialDriver {
+    BamAlignment,
+    BamCoverage,
+    BamDamage,
+    BamDuplicationMetrics,
+    BamEndogenousContent,
+    BamGcBias,
+    BamGenotyping,
+    BamInsertSize,
+    BamMappingSummary,
+    FastqDetectAdapters,
+    FastqProfileReadLengths,
+    FastqProfileReads,
+    FastqValidateReads,
+}
+
+impl BenchmarkCampaignMaterialDriver {
+    #[must_use]
+    pub const fn stage_id(self) -> &'static str {
+        use bijux_dna_core::id_catalog;
+
+        match self {
+            Self::BamAlignment => id_catalog::BAM_ALIGN,
+            Self::BamCoverage => id_catalog::BAM_COVERAGE,
+            Self::BamDamage => id_catalog::BAM_DAMAGE,
+            Self::BamDuplicationMetrics => id_catalog::BAM_DUPLICATION_METRICS,
+            Self::BamEndogenousContent => id_catalog::BAM_ENDOGENOUS_CONTENT,
+            Self::BamGcBias => id_catalog::BAM_GC_BIAS,
+            Self::BamGenotyping => id_catalog::BAM_GENOTYPING,
+            Self::BamInsertSize => id_catalog::BAM_INSERT_SIZE,
+            Self::BamMappingSummary => id_catalog::BAM_MAPPING_SUMMARY,
+            Self::FastqDetectAdapters => id_catalog::FASTQ_DETECT_ADAPTERS,
+            Self::FastqProfileReadLengths => id_catalog::FASTQ_PROFILE_READ_LENGTHS,
+            Self::FastqProfileReads => id_catalog::FASTQ_STATS_NEUTRAL,
+            Self::FastqValidateReads => id_catalog::FASTQ_VALIDATE_READS,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkComparisonMetricTolerance {
@@ -52,6 +95,8 @@ pub struct BenchmarkStageCampaignSpec {
     pub slug: String,
     pub domain: String,
     pub stage_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub material_driver: Option<BenchmarkCampaignMaterialDriver>,
     pub evidence_tier: BenchmarkEvidenceTier,
     pub profile_id: String,
     pub corpus_ids: Vec<String>,

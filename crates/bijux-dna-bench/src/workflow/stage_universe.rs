@@ -13,7 +13,7 @@ use bijux_dna_bench_model::{
 };
 use serde::Deserialize;
 
-use super::load_benchmark_portfolio;
+use super::suite_load::load_benchmark_portfolio_from_repo;
 
 const UNIVERSE_JSON: &str = "benchmarks/contracts/stage-universe.json";
 const UNIVERSE_MARKDOWN: &str = "benchmarks/reports/stage-universe.md";
@@ -149,8 +149,10 @@ pub fn publish_checked_in_stage_universe(
     repository_root: &Path,
     mode: BenchmarkUniverseWriteMode,
 ) -> Result<BenchmarkStageUniverse> {
-    let portfolio =
-        load_benchmark_portfolio(&repository_root.join("benchmarks/contracts/portfolio.toml"))?;
+    let portfolio = load_benchmark_portfolio_from_repo(
+        &repository_root.join("benchmarks/contracts/portfolio.toml"),
+        repository_root,
+    )?;
     let universe = derive_stage_universe(repository_root, &portfolio)?;
     let json = serde_json::to_string_pretty(&universe)? + "\n";
     let markdown = render_stage_universe_markdown(&universe);

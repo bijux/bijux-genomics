@@ -26,11 +26,15 @@ pub fn validate_imputation_tool_compatibility(
     if !map.compatibility.tool_tags.iter().any(|tag| tag == tool_id) {
         bail!("map {} not compatible with tool {}", map.id, tool_id);
     }
-    if tool_id == "minimac4" && !panel.compatibility.supports_minimac_m3vcf {
-        bail!("minimac4 requires m3vcf-compatible panel representation");
+    if tool_id == "minimac4" && panel.compatibility.minimac_reference_format != "msav" {
+        bail!("minimac4 requires an msav reference representation");
     }
-    if tool_id == "minimac4" && !panel.files.iter().any(|file| file.name == "panel_m3vcf") {
-        bail!("minimac4 requires `panel_m3vcf` in panel files");
+    if tool_id == "minimac4"
+        && !panel.files.iter().any(|file| {
+            file.name == "panel_msav" && file.format == "msav" && file.derivation.is_some()
+        })
+    {
+        bail!("minimac4 requires a derived `panel_msav` catalog file");
     }
     if tool_id == "glimpse" && panel.compatibility.glimpse_reference_format.trim().is_empty() {
         bail!("GLIMPSE requires declared reference format");
@@ -75,22 +79,23 @@ mod tests {
             lock_ref: "locks/panel_locks.toml#locks.panel".to_string(),
             citation: None,
             files: vec![CatalogFileEntry {
-                name: "panel_m3vcf".to_string(),
-                path: "panel.m3vcf.gz".to_string(),
-                format: "m3vcf.gz".to_string(),
-                url: "https://example.org/panel.m3vcf.gz".to_string(),
+                name: "panel_msav".to_string(),
+                path: "panel.msav".to_string(),
+                format: "msav".to_string(),
+                url: "https://example.org/panel.msav".to_string(),
                 checksum_sha256: "a".repeat(64),
                 size_bytes: 1,
                 source_checksum_algorithm: "md5".to_string(),
                 source_checksum: "a".repeat(32),
                 source_authority_url: "https://authority.example/panel.md5".to_string(),
                 required: true,
+                derivation: None,
             }],
             compatibility: CatalogCompatibility {
                 tool_tags: vec!["minimac4".to_string()],
                 requires_phased: true,
                 supports_gl_input: true,
-                supports_minimac_m3vcf: true,
+                minimac_reference_format: "msav".to_string(),
                 glimpse_reference_format: "bcf+sites".to_string(),
             },
         };

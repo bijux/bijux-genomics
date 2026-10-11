@@ -5,7 +5,7 @@
 - Run: `run-2024`
 - Stage: `bam.validate`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2024`
 
 Compare the runnable bam.validate tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.

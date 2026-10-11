@@ -11,15 +11,25 @@
   "owner": "bijux-dna-bench",
   "profile_id": "vcf-calling",
   "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
-  "state": "reserved",
-  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "state": "active",
   "tool_ids": [
     "angsd",
     "bcftools"
   ],
-  "accepted_input_contracts": [],
+  "accepted_input_contracts": [
+    "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+    "bijux.reference.artifact.fasta.v1"
+  ],
+  "output_contract": "bijux.benchmark.vcf.call_pseudohaploid.bundle.v1",
+  "normalized_result_contract": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
   "measurement_policy_id": "benchmark-measurement-v1",
-  "contracts": [],
+  "contracts": [
+    {
+      "contract_id": "normalized-result-contract",
+      "repository_path": "benchmarks/schemas/vcf-normalized-metrics.v1.json",
+      "sha256": "e0cd70fde88eb2dae8030bb1abe7aa6ff1b27de2f972df948e8e77262121f6d1"
+    }
+  ],
   "corpus_roles": [
     {
       "role": "ancient_damage_truth",

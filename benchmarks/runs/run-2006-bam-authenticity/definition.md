@@ -5,7 +5,7 @@
 - Run: `run-2006`
 - Stage: `bam.authenticity`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2006`
 
 Compare the runnable bam.authenticity tools using damage_and_authenticity_recovery_against_orthogonal_assays; downstream substitution: consume every report through the same authentication decision surface.

@@ -39,8 +39,10 @@ library can manage when callers invoke the matching API.
 - `freeze_repository()`: runs bounded Git inspection and worktree commands to materialize an
   immutable commit-addressed checkout under site-governed roots.
 - `archive_frozen_repository()` and `verify_frozen_repository_archive()`: create and verify a
-  checksum-bound Git bundle, then clone it into an isolated proof checkout to establish exact
-  commit, sparse-index, cleanliness, and self-contained object identity before publication.
+  checksum-bound Git bundle from either an existing governed snapshot or the exact clean active
+  repository when snapshot inode capacity is unavailable, then use an isolated bare proof
+  repository to establish commit, sparse-index, cleanliness, and self-contained object identity
+  before publication.
 - `retire_frozen_repository()` and `restore_frozen_repository_archive()`: remove only the exact
   receipt-bound checkout after archive verification and atomically reconstruct the same read-only
   sparse checkout when rollback is required.
@@ -49,9 +51,11 @@ library can manage when callers invoke the matching API.
 - `import_run_evidence()`, `plan_final_run_evidence()`, and
   `apply_final_run_evidence_plan()`: import immutable run locks, select the latest passing run per
   tool, and preserve superseded attempt lineage behind an explicit non-mutating plan boundary.
-- `admit_external_artifact()`: runs the cataloged version probe against an operator-provided
-  binary or through `apptainer exec`, verifies the declared checksum, and publishes a no-copy
-  admission record. Restricted artifacts must remain outside the repository and active image root.
+- `admit_external_artifact()`: explicitly admits an operator-provided artifact, records audited
+  access denial, or records audited artifact absence. Admission runs the cataloged version probe
+  against a binary or through `apptainer exec`, verifies the declared checksum, and publishes a
+  no-copy record. Restricted artifacts must remain outside the repository and active image root;
+  blocked and unavailable records remain product-supported but cannot bind an execution command.
 - `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
   after strict commit validation and hashes the exact historical catalog bytes.
 - `derive_container_catalog_lock()` and `load_container_catalog_lock()`: derive and admit the
@@ -99,9 +103,9 @@ library can manage when callers invoke the matching API.
   external admission; it never copies or publishes the restricted artifact.
 - `src/site_policy/repository_freeze.rs`: clean-source verification and commit-addressed Git
   worktree materialization under site-governed roots.
-- `src/site_policy/repository_archive.rs`: bounded Git-bundle creation, empty-bare-repository
-  completeness proof, receipt-gated checkout retirement, and atomic rollback under the same
-  governed root.
+- `src/site_policy/repository_archive.rs`: bounded Git-bundle creation from an existing snapshot or
+  exact clean active source, empty-bare-repository completeness proof, receipt-gated checkout
+  retirement, and atomic rollback under the same governed root.
 - `src/site_policy/repository_tracking.rs`: prefix-scoped tracked-file discovery for governed
   repository publications.
 - `src/execution_contract/pipeline/admission.rs`: execution-site repository identity and clean-state

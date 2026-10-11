@@ -5,9 +5,8 @@
     "domain": "bam",
     "stage_id": "bam.haplogroups"
   },
-  "protocol_sha256": "f0d0d8272fd72372b8d1feba0672a7e6e2922ea2422c498294a477e8ae009295",
+  "protocol_sha256": "7c5f6255913ae0f1b849192e1d680d6542f83725a6e5c80caa282fbcfa7d3b64",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

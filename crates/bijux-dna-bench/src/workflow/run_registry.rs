@@ -8,7 +8,7 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_benchmark_run_registry,
-    validate_defined_campaign_portfolio_alignment, validate_stage_campaign_registry,
+    validate_defined_campaign_portfolio_alignment, validate_executable_stage_campaign_registry,
     validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
@@ -19,9 +19,8 @@ use bijux_dna_bench_model::{
 use bijux_dna_containers::api::{load_container_catalog, ContainerCatalog};
 
 use super::stage_coverage::runnable_stage_tools;
-use super::{
-    load_benchmark_portfolio, load_stage_campaign_registry, load_stage_interface_catalog_from_repo,
-};
+use super::suite_load::load_benchmark_portfolio_from_repo;
+use super::{load_stage_campaign_registry, load_stage_interface_catalog_from_repo};
 
 const REGISTRY_JSON: &str = "benchmarks/contracts/run-registry.json";
 const REGISTRY_CHECKSUM: &str = "benchmarks/contracts/run-registry.sha256";
@@ -48,7 +47,8 @@ pub fn derive_benchmark_run_registry(
     source_contract_sha256: BTreeMap<String, String>,
 ) -> Result<BenchmarkRunRegistry> {
     validate_benchmark_portfolio(portfolio).context("validate benchmark portfolio")?;
-    validate_stage_campaign_registry(campaigns).context("validate benchmark campaigns")?;
+    validate_executable_stage_campaign_registry(campaigns)
+        .context("validate benchmark campaigns")?;
     validate_defined_campaign_portfolio_alignment(campaigns, portfolio)
         .context("align campaigns with permanent reservations")?;
     validate_stage_interface_catalog(interfaces).context("validate benchmark interfaces")?;
@@ -194,7 +194,7 @@ pub fn publish_checked_in_benchmark_run_registry(
     let campaign_path = repository_root.join("benchmarks/contracts/stage-campaigns.toml");
     let interface_path = repository_root.join("benchmarks/contracts/stage-interfaces.toml");
     let catalog_path = repository_root.join("containers/contracts/catalog.toml");
-    let portfolio = load_benchmark_portfolio(&portfolio_path)?;
+    let portfolio = load_benchmark_portfolio_from_repo(&portfolio_path, repository_root)?;
     let campaigns = load_stage_campaign_registry(&campaign_path)?;
     let interfaces = load_stage_interface_catalog_from_repo(&interface_path, repository_root)?;
     let catalog = load_container_catalog(repository_root)?;

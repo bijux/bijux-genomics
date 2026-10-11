@@ -8,10 +8,9 @@
   },
   "protocol_title": "FASTQ remove duplicates benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "707799960105831b0a1f5efaf3c08f9cd828bfee22d3d576e8cdbbd4ebc64cde",
+  "protocol_sha256": "7c30a4939ec67ce5bd18ab0cd832cc233f60a03023d6b231544dc5035fe499c4",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

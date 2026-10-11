@@ -19,9 +19,11 @@ use bijux_dna_bench_model::{
 use serde::Deserialize;
 
 use crate::{
-    load_benchmark_data_fitness_rubric, load_benchmark_data_source_spec, load_benchmark_portfolio,
+    load_benchmark_data_fitness_rubric, load_benchmark_data_source_spec,
     load_fastq_corpus_source_spec,
 };
+
+use super::suite_load::load_benchmark_portfolio_from_repo;
 
 const PORTFOLIO_PATH: &str = "benchmarks/contracts/portfolio.toml";
 const DATA_FITNESS_PATH: &str = "benchmarks/contracts/data-fitness.toml";
@@ -108,7 +110,7 @@ pub fn derive_benchmark_data_portfolio_audit(
         "benchmark data-fitness rubric",
     )?;
     let data_index_path = governed_file(&study_root, &request.data_index_path, "data index")?;
-    let portfolio = load_benchmark_portfolio(&portfolio_path)?;
+    let portfolio = load_benchmark_portfolio_from_repo(&portfolio_path, &repository_root)?;
     let data_fitness = load_benchmark_data_fitness_rubric(&data_fitness_path)?;
     validate_data_fitness_portfolio_alignment(&data_fitness, &portfolio)
         .context("validate benchmark data-fitness rubric against portfolio profiles")?;

@@ -5,7 +5,7 @@
 - Run: `run-2046`
 - Stage: `fastq.report_qc`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2046`
 
 Compare the runnable fastq.report_qc tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.

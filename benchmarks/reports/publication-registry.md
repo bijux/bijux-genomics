@@ -5,8 +5,8 @@
 Path presence does not confer current benchmark authority. Every permanent run is explicit below: current requires an admitted selected report and publication receipt, while absent evidence remains missing. Source-addressed legacy stage reports remain historical; tracked legacy readiness output is quarantined until removed.
 
 - Current governance products: **6**
-- Current run reports: **3**
-- Missing run reports: **68**
+- Current run reports: **8**
+- Missing run reports: **63**
 - Stale run reports: **0**
 - Failed run reports: **0**
 - Superseded run reports: **0**
@@ -29,10 +29,10 @@ Path presence does not confer current benchmark authority. Every permanent run i
 
 | Run | Stage | Disposition | Report | Publication receipt |
 |---|---|---|---|---|
-| `run-2001` | `bam.genotyping` | missing | `—` | `—` |
-| `run-2002` | `bam.coverage` | missing | `—` | `—` |
-| `run-2003` | `bam.endogenous_content` | missing | `—` | `—` |
-| `run-2004` | `bam.mapping_summary` | missing | `—` | `—` |
+| `run-2001` | `bam.genotyping` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/run-2001-bam-genotyping.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/publication-receipt.json` |
+| `run-2002` | `bam.coverage` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/run-2002-bam-coverage.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/publication-receipt.json` |
+| `run-2003` | `bam.endogenous_content` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/run-2003-bam-endogenous-content.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/publication-receipt.json` |
+| `run-2004` | `bam.mapping_summary` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/run-2004-bam-mapping-summary.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/publication-receipt.json` |
 | `run-2005` | `bam.align` | missing | `—` | `—` |
 | `run-2006` | `bam.authenticity` | missing | `—` | `—` |
 | `run-2007` | `bam.bias_mitigation` | missing | `—` | `—` |
@@ -58,7 +58,7 @@ Path presence does not confer current benchmark authority. Every permanent run i
 | `run-2027` | `fastq.deplete_host` | missing | `—` | `—` |
 | `run-2028` | `fastq.deplete_reference_contaminants` | missing | `—` | `—` |
 | `run-2029` | `fastq.deplete_rrna` | missing | `—` | `—` |
-| `run-2030` | `fastq.detect_adapters` | missing | `—` | `—` |
+| `run-2030` | `fastq.detect_adapters` | current | `study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/run-2030-fastq-detect-adapters.json` | `study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/publication-receipt.json` |
 | `run-2031` | `fastq.detect_duplicates_premerge` | missing | `—` | `—` |
 | `run-2032` | `fastq.estimate_library_complexity_prealign` | missing | `—` | `—` |
 | `run-2033` | `fastq.extract_umis` | missing | `—` | `—` |
@@ -70,8 +70,8 @@ Path presence does not confer current benchmark authority. Every permanent run i
 | `run-2039` | `fastq.normalize_abundance` | missing | `—` | `—` |
 | `run-2040` | `fastq.normalize_primers` | missing | `—` | `—` |
 | `run-2041` | `fastq.profile_overrepresented_sequences` | missing | `—` | `—` |
-| `run-2042` | `fastq.profile_read_lengths` | current | `study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/run-2042-fastq-profile-read-lengths.json` | `study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/publication-receipt.json` |
-| `run-2043` | `fastq.profile_reads` | current | `study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/run-2043-fastq-profile-reads.json` | `study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/publication-receipt.json` |
+| `run-2042` | `fastq.profile_read_lengths` | current | `study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/run-2042-fastq-profile-read-lengths.json` | `study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/publication-receipt.json` |
+| `run-2043` | `fastq.profile_reads` | current | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2043/run-2043-fastq-profile-reads.json` | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2043/publication-receipt.json` |
 | `run-2044` | `fastq.remove_chimeras` | missing | `—` | `—` |
 | `run-2045` | `fastq.remove_duplicates` | missing | `—` | `—` |
 | `run-2046` | `fastq.report_qc` | missing | `—` | `—` |
@@ -79,7 +79,7 @@ Path presence does not confer current benchmark authority. Every permanent run i
 | `run-2048` | `fastq.trim_polyg_tails` | missing | `—` | `—` |
 | `run-2049` | `fastq.trim_reads` | missing | `—` | `—` |
 | `run-2050` | `fastq.trim_terminal_damage` | missing | `—` | `—` |
-| `run-2051` | `fastq.validate_reads` | current | `study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/run-2051-fastq-validate-reads.json` | `study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/publication-receipt.json` |
+| `run-2051` | `fastq.validate_reads` | current | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2051/run-2051-fastq-validate-reads.json` | `study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2051/publication-receipt.json` |
 | `run-2052` | `vcf.admixture` | missing | `—` | `—` |
 | `run-2053` | `vcf.call` | missing | `—` | `—` |
 | `run-2054` | `vcf.call_diploid` | missing | `—` | `—` |

@@ -12,7 +12,7 @@ pub use catalog::{
     canonical_tool_bindings,
 };
 pub use model::{
-    BindingInputV1, BindingOutputV1, BindingParameterV1, OutputDiscoveryV1,
+    BindingInputSourceV1, BindingInputV1, BindingOutputV1, BindingParameterV1, OutputDiscoveryV1,
     OutputSidecarDiscoveryV1, ToolArtifactSourceV1, ToolBinding, ToolBindingRenderContext,
     ToolBindingV1, TOOL_BINDING_SCHEMA_V1,
 };

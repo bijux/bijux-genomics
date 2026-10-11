@@ -4,8 +4,8 @@ use std::process::Command;
 
 use anyhow::{ensure, Context, Result};
 use bijux_dna_containers::api::{
-    archive_frozen_repository, container_governance_schema, freeze_repository,
-    load_container_governance, repository_freeze_archive_receipt_schema,
+    archive_and_retire_frozen_repository, archive_frozen_repository, container_governance_schema,
+    freeze_repository, load_container_governance, repository_freeze_archive_receipt_schema,
     restore_frozen_repository_archive, retire_frozen_repository, validate_container_governance,
     validate_container_governance_host, verify_frozen_repository, verify_frozen_repository_archive,
     write_container_governance_schema, write_repository_freeze_archive_receipt_schema,
@@ -308,6 +308,63 @@ fn repository_freeze_archive_proves_retirement_and_exact_restoration() -> Result
     verify_frozen_repository(&restored, &commit)?;
     assert_eq!(std::fs::read_to_string(restored.join("other/source.txt"))?, "complete tree\n");
     assert!(!restored.join("containers/contracts/governance.yml").exists());
+    Ok(())
+}
+
+#[test]
+fn repository_archive_and_retire_closes_the_storage_lifecycle() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let (governance, commit) = fixture(root.path())?;
+    let snapshot = freeze_repository(&request(
+        &governance,
+        &commit,
+        RepositoryFreezeScope::Sources,
+        vec![PathBuf::from("other")],
+    ))?;
+    let archive_request = RepositoryFreezeArchiveRequest {
+        governance,
+        hostname: "worker-7".to_string(),
+        snapshot: snapshot.clone(),
+        commit: commit.clone(),
+    };
+
+    let receipt = archive_and_retire_frozen_repository(&archive_request)?;
+    assert!(receipt.restoration_verified);
+    assert!(receipt.bundle_path.is_file());
+    assert!(!snapshot.exists());
+    verify_frozen_repository_archive(&archive_request, &receipt)?;
+    assert_eq!(archive_and_retire_frozen_repository(&archive_request)?, receipt);
+
+    let restored = restore_frozen_repository_archive(&archive_request, &receipt)?;
+    verify_frozen_repository(&restored, &commit)?;
+    assert_eq!(std::fs::read_to_string(restored.join("other/source.txt"))?, "complete tree\n");
+    Ok(())
+}
+
+#[test]
+fn repository_archive_can_precede_inode_expensive_snapshot_materialization() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let (governance, commit) = fixture(root.path())?;
+    std::fs::create_dir_all(&governance.paths.frozen_repositories)?;
+    let snapshot = governance.paths.frozen_repositories.join(&commit);
+    assert!(!snapshot.exists());
+    let request = RepositoryFreezeArchiveRequest {
+        governance,
+        hostname: "worker-7".to_string(),
+        snapshot: snapshot.clone(),
+        commit: commit.clone(),
+    };
+
+    let receipt = archive_frozen_repository(&request)?;
+    assert!(!snapshot.exists());
+    assert!(receipt.sparse_checkout_paths.is_empty());
+    assert!(receipt.restoration_verified);
+    verify_frozen_repository_archive(&request, &receipt)?;
+
+    let restored = restore_frozen_repository_archive(&request, &receipt)?;
+    assert_eq!(restored, snapshot);
+    verify_frozen_repository(&restored, &commit)?;
+    assert_eq!(std::fs::read_to_string(restored.join("other/source.txt"))?, "complete tree\n");
     Ok(())
 }
 

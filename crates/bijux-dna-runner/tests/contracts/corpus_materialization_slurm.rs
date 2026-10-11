@@ -2,8 +2,8 @@ use std::fs;
 
 use bijux_dna_bench_model::{
     BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan,
-    CorpusAcquisitionSample, CorpusMaterializationDisposition, CorpusSourcePolicy,
-    GovernedDataCatalog, GovernedDataCatalogFile, GovernedDataCatalogSample,
+    CorpusAcquisitionSample, CorpusEvaluationDesign, CorpusMaterializationDisposition,
+    CorpusSourcePolicy, GovernedDataCatalog, GovernedDataCatalogFile, GovernedDataCatalogSample,
     CORPUS_ACQUISITION_SCHEMA_V2, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use bijux_dna_runner::api::{
@@ -317,6 +317,7 @@ fn acquisition_plan(size_bytes: u64) -> CorpusAcquisitionPlan {
         source_authority: "European Nucleotide Archive".to_string(),
         description: "real benchmark corpus".to_string(),
         policy: source_policy(size_bytes),
+        evaluation: evaluation_design(),
         source_spec: "benchmarks/corpora/human-short-read-diversity.toml".to_string(),
         source_spec_sha256: "b".repeat(64),
         sample_count: 1,
@@ -391,6 +392,7 @@ fn publish_catalog(fixture: &Fixture) -> anyhow::Result<GovernedDataCatalog> {
         purpose: "real benchmark corpus".to_string(),
         source: "European Nucleotide Archive".to_string(),
         policy: fixture.plan.policy.clone(),
+        evaluation: fixture.plan.evaluation.clone(),
         source_record: "study://data/evidence/acquisition-plans/plan.json".to_string(),
         source_record_sha256: fixture.spec.plan_sha256.clone(),
         retrieved_at_utc: fixture.plan.retrieved_at_utc.clone(),
@@ -444,6 +446,18 @@ fn source_policy(projected_storage_bytes: u64) -> CorpusSourcePolicy {
         truth_roles: vec!["archive_context".to_string()],
         truth_strategy: "observational_only".to_string(),
         known_limitations: vec!["not population representative".to_string()],
+    }
+}
+
+fn evaluation_design() -> CorpusEvaluationDesign {
+    CorpusEvaluationDesign {
+        sample_context: "One public short-read library.".to_string(),
+        assay_context: "Illumina whole-genome sequencing.".to_string(),
+        strata: vec!["era".to_string(), "layout".to_string()],
+        controls: vec!["contract_validation".to_string()],
+        held_out_split: "No scientific split; scheduler contract use only.".to_string(),
+        lineage: "Acquisition plan to materialization job to admitted catalog.".to_string(),
+        allowed_uses: vec!["contract_validation".to_string()],
     }
 }
 

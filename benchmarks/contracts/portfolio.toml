@@ -279,31 +279,35 @@ source_specs = ["benchmarks/corpora/alignment-truth-panel.toml"]
 
 [[corpora]]
 id = "ancient-dna-bam-diversity"
+status = "admitted"
+evidence_scope = "comparative"
+class = "production_real"
+sample_count = 10
+minimum_sample_count = 10
+data_types = ["bam", "fasta"]
+roles = ["bam_diversity"]
+catalog_ids = ["ancient-dna-bam-diversity", "grch38-reference"]
+truth_strategy = "observational_alignment_diversity_with_separate_orthogonal_controls"
+scientific_rationale = "Multiple libraries spanning damage, depth, duplication, contamination, fragment length, and library preparation are required for defensible BAM-stage comparisons; independent damage controls are governed by a separate corpus authority."
+limitations = [
+  "The ten checksum-admitted ancient-human BAMs are observational and cannot serve as their own damage truth.",
+  "Independent damage controls remain governed by the ancient-dna-damage-controls corpus.",
+]
+source_specs = ["benchmarks/corpora/ancient-dna-bam-diversity.toml"]
+
+[[corpora]]
+id = "ancient-dna-damage-controls"
 status = "source_defined"
 evidence_scope = "comparative"
 class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
-data_types = ["bam", "fasta"]
-roles = ["bam_diversity"]
-truth_strategy = "observational_alignment_diversity_with_separate_orthogonal_controls"
-scientific_rationale = "Multiple libraries spanning damage, depth, duplication, contamination, fragment length, and library preparation are required for defensible BAM-stage comparisons; independent damage controls are governed by a separate corpus authority."
-limitations = ["Only one ancient horse BAM is currently checksum-admitted for qualification, and this observational corpus cannot serve as its own damage truth."]
-source_specs = ["benchmarks/corpora/ancient-dna-bam-diversity.toml"]
-
-[[corpora]]
-id = "ancient-dna-damage-controls"
-status = "missing"
-evidence_scope = "comparative"
-class = "production_real"
-sample_count = 0
-minimum_sample_count = 10
-data_types = ["bam", "fasta", "orthogonal_assay", "sample_metadata"]
+data_types = ["bam", "fasta", "fastq", "orthogonal_assay", "sample_metadata"]
 roles = ["ancient_damage_truth"]
-truth_strategy = "independently_authenticated_positive_negative_and_blank_controls"
-scientific_rationale = "Damage-model accuracy requires controls whose expected state is established independently of every compared terminal-damage implementation."
-limitations = ["No checksum-admitted control panel with authenticated positives, modern negatives, blanks, and orthogonal assay evidence is currently available."]
-source_specs = []
+truth_strategy = "paired_udg_treatment_labels_with_extraction_blank_and_observational_modern_negatives"
+scientific_rationale = "Same-individual UDG/non-UDG library pairs provide independently labeled relative-damage expectations; an extraction blank and stratified modern libraries probe contamination and false-positive behavior without being misrepresented as per-molecule truth."
+limitations = ["The selected sources, common-protocol alignments, checksums, treatment metadata, held-out split, and orthogonal expectation table are not yet admitted, and the design cannot establish per-molecule damage truth."]
+source_specs = ["benchmarks/corpora/ancient-dna-damage-controls.toml"]
 
 [[corpora]]
 id = "variant-truth-panel"
@@ -313,11 +317,25 @@ class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
 data_types = ["bam", "genetic_map", "reference_panel", "vcf"]
-roles = ["variant_truth", "masked_genotype_truth"]
-truth_strategy = "independently_curated_genotypes_with_masked_truth"
-scientific_rationale = "A diverse truth cohort with held-out genotypes, immutable panels, and genetic maps is required for calling, filtering, phasing, and imputation accuracy."
-limitations = ["No governed multi-sample truth VCF, mask split, reference panel, or genetic map is admitted."]
+roles = ["variant_truth"]
+truth_strategy = "independently_curated_genotypes_with_mendelian_consistency"
+scientific_rationale = "A diverse inheritance-supported truth cohort with immutable reference and map authorities is required for calling, filtering, transformation, and phasing accuracy."
+limitations = ["No governed multi-sample truth VCF, pedigree partition, reference snapshot, or genetic-map snapshot is admitted."]
 source_specs = ["benchmarks/corpora/variant-truth-panel.toml"]
+
+[[corpora]]
+id = "masked-genotype-truth-panel"
+status = "source_defined"
+evidence_scope = "comparative"
+class = "production_real"
+sample_count = 0
+minimum_sample_count = 100
+data_types = ["genetic_map", "reference_panel", "sample_metadata", "vcf"]
+roles = ["masked_genotype_truth"]
+truth_strategy = "held_out_high_coverage_genotypes_with_panel_exclusion"
+scientific_rationale = "Phasing and imputation require independently held-out high-coverage genotypes, a frozen reference panel, and a genetic map, with evaluation samples excluded from the panel before masking."
+limitations = ["No governed evaluation cohort, panel-exclusion receipt, genotype mask split, reference-panel snapshot, or genetic-map snapshot is admitted."]
+source_specs = ["benchmarks/corpora/masked-genotype-truth-panel.toml"]
 
 [[corpora]]
 id = "ancient-population-panel"
@@ -327,11 +345,25 @@ class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
 data_types = ["genotype_likelihoods", "sample_metadata", "vcf"]
-roles = ["population_inference_truth", "ancient_population_diversity"]
+roles = ["ancient_population_diversity"]
 truth_strategy = "real_cohort_with_independent_metadata_and_sensitivity_analysis"
 scientific_rationale = "Population analyses require a cohort large and diverse enough to test missingness, relatedness, ancestry, sex, age, and low-coverage sensitivity without treating software agreement as truth."
 limitations = ["No governed population cohort, metadata authority, or expected-result sensitivity surface is admitted."]
 source_specs = ["benchmarks/corpora/ancient-population-panel.toml"]
+
+[[corpora]]
+id = "population-inference-truth-panel"
+status = "source_defined"
+evidence_scope = "comparative"
+class = "production_real"
+sample_count = 0
+minimum_sample_count = 100
+data_types = ["pedigree", "sample_metadata", "vcf"]
+roles = ["population_inference_truth"]
+truth_strategy = "masked_population_metadata_and_pedigree_relationship_truth"
+scientific_rationale = "Population inference requires a cohort independent from the ancient diversity panel, with frozen population labels and pedigrees that can be masked during analysis and scored after inference."
+limitations = ["No governed population-label and pedigree truth panel, mask split, or expected-result sensitivity surface is admitted."]
+source_specs = ["benchmarks/corpora/population-inference-truth-panel.toml"]
 
 [[profiles]]
 id = "fastq-observational-qc"

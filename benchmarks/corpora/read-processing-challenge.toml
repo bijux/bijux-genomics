@@ -22,6 +22,13 @@ known_limitations = [
   "No files, checksums, spike-in truth tables, or expected-output observations are admitted by this declaration.",
 ]
 description = "A source-defined panel combining calibrated SEQC RNA-seq lanes with public ancient-DNA reads for signal-specific read-processing evaluation."
+sample_context = "Calibrated SEQC reference-RNA lanes and public ancient-DNA libraries across signal and workload strata."
+assay_context = "Illumina RNA and ancient-DNA short reads with spike-ins and independently recorded library context."
+strata = ["damage_context", "lane", "reference_mixture", "site"]
+controls = ["ancient_library_contrast", "ercc_spike_in", "technical_replicate"]
+held_out_split = "Reserve SEQC sites and ancient studies for final scoring before tool parameter selection."
+lineage = "GEO, SRA, and ENA accessions to checksummed reads and calibration tables to transformation evidence."
+allowed_uses = ["performance", "read_transformation_accuracy", "repeatability", "robustness"]
 data_types = ["fastq"]
 target_sample_count = 10
 

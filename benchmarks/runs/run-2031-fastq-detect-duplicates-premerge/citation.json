@@ -8,10 +8,9 @@
   },
   "protocol_title": "FASTQ detect duplicates premerge benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "e835707d6e023e7557cc0f1d668f791e46a3bd3e9f9487ffffb12887fc547597",
+  "protocol_sha256": "a649ed1d599903739f59f864d63513c79f6d9c039a75880f1300f39cf9b1c81e",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

@@ -10,6 +10,8 @@ use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_execution_spec, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
     BenchmarkAcceptanceOperator, BenchmarkEvidenceReference, BenchmarkExecutionSpec,
+    BenchmarkStageNormalizationV1, BENCHMARK_STAGE_NORMALIZATION_ARTIFACT,
+    BENCHMARK_STAGE_NORMALIZATION_SCHEMA_V1,
 };
 use serde::Deserialize;
 
@@ -89,6 +91,7 @@ pub fn admit_benchmark_execution_outputs(
     {
         bail!("benchmark version validation evidence is empty");
     }
+    validate_stage_plugin_normalization(&result_root, spec)?;
     let downstream_probe = file_evidence(&result_root, &spec.interface.downstream_probe.artifact)?;
     let metrics = spec
         .acceptance
@@ -127,6 +130,56 @@ pub fn admit_benchmark_execution_outputs(
             size_bytes: report_file.size_bytes,
         },
     })
+}
+
+fn validate_stage_plugin_normalization(
+    result_root: &Path,
+    spec: &BenchmarkExecutionSpec,
+) -> Result<()> {
+    if spec.interface.downstream_probe.artifact != BENCHMARK_STAGE_NORMALIZATION_ARTIFACT {
+        return Ok(());
+    }
+    let publication: BenchmarkStageNormalizationV1 =
+        read_json(&result_root.join(&spec.interface.downstream_probe.artifact))?;
+    bijux_dna_bench_model::validate_utc_timestamp(
+        &publication.normalized_at_utc,
+        "stage-plugin normalization timestamp",
+    )?;
+    if publication.schema_version != BENCHMARK_STAGE_NORMALIZATION_SCHEMA_V1
+        || publication.identity != spec.identity
+        || publication.units.is_empty()
+        || !publication.passed
+        || publication.stage_plan_manifest_sha256
+            != bijux_dna_infra::hash_file_sha256(&result_root.join("stage-plan-manifest.json"))?
+        || publication.units.iter().any(|unit| {
+            !unit.passed
+                || unit.producer_stage_id != spec.identity.run.stage_id
+                || unit.tool_id != spec.identity.tool_id
+                || unit.probe_id != spec.interface.downstream_probe.stage_id
+                || unit.binding_id.trim().is_empty()
+                || unit.checks.len() != 4
+                || unit.checks.iter().any(|check| check.detail.trim().is_empty())
+                || unit.checks.iter().map(|check| check.assertion.as_str()).collect::<BTreeSet<_>>()
+                    != [
+                        "declared_artifacts",
+                        "normalized_identity",
+                        "scientific_invariants",
+                        "scientific_metrics",
+                    ]
+                    .into_iter()
+                    .collect()
+                || unit.checks.iter().any(|check| !check.passed)
+                || match serde_json::to_vec(&unit.normalized_output) {
+                    Ok(bytes) => {
+                        bijux_dna_infra::hash_bytes_sha256(&bytes) != unit.normalized_output_sha256
+                    }
+                    Err(_) => true,
+                }
+        })
+    {
+        bail!("stage-plugin downstream normalization did not pass");
+    }
+    Ok(())
 }
 
 /// Revalidate one retained immutable acceptance publication without assigning a new identity.
@@ -446,7 +499,10 @@ mod tests {
         BenchmarkExecutionOutputs, BenchmarkExecutionParameterEvidence,
         BenchmarkExecutionResources, BenchmarkExecutionRetryPolicy,
         BenchmarkExecutionRuntimePolicy, BenchmarkExecutionSourceLock, BenchmarkExecutionSpec,
-        BenchmarkRunIdentity, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
+        BenchmarkRunIdentity, BenchmarkStageNormalizationCheckV1,
+        BenchmarkStageNormalizationUnitV1, BenchmarkStageNormalizationV1,
+        BENCHMARK_EXECUTION_SPEC_SCHEMA_V1, BENCHMARK_STAGE_NORMALIZATION_ARTIFACT,
+        BENCHMARK_STAGE_NORMALIZATION_SCHEMA_V1,
     };
 
     use super::{
@@ -512,6 +568,91 @@ mod tests {
             "2026-08-05T04:00:00Z"
         )
         .is_err_and(|error| error.to_string().contains("undeclared or missing")));
+        Ok(())
+    }
+
+    #[test]
+    fn admission_requires_passing_stage_plugin_normalization() -> anyhow::Result<()> {
+        let mut fixture = fixture()?;
+        fixture.spec.interface.downstream_probe.artifact =
+            BENCHMARK_STAGE_NORMALIZATION_ARTIFACT.to_string();
+        std::fs::create_dir(fixture.result_root.join("admission"))?;
+        std::fs::write(fixture.result_root.join("stage-plan-manifest.json"), b"{}")?;
+        let manifest_sha256 = bijux_dna_infra::hash_file_sha256(
+            &fixture.result_root.join("stage-plan-manifest.json"),
+        )?;
+        let mut normalization = BenchmarkStageNormalizationV1 {
+            schema_version: BENCHMARK_STAGE_NORMALIZATION_SCHEMA_V1.to_string(),
+            identity: fixture.spec.identity.clone(),
+            normalized_at_utc: "2026-08-05T04:00:00Z".to_string(),
+            stage_plan_manifest_sha256: manifest_sha256,
+            units: vec![BenchmarkStageNormalizationUnitV1 {
+                stage_instance_id: "measured-repetition-1--sample".to_string(),
+                normalized_output: serde_json::json!({"metrics": {"read_count": 42}}),
+                normalized_output_sha256: bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec(
+                    &serde_json::json!({
+                        "metrics": {"read_count": 42}
+                    }),
+                )?),
+                probe_id: "benchmark.fastq.profile_read_lengths.compare".to_string(),
+                binding_id: "fastq.profile_read_lengths/seqkit".to_string(),
+                producer_stage_id: fixture.spec.identity.run.stage_id.clone(),
+                tool_id: fixture.spec.identity.tool_id.clone(),
+                passed: false,
+                checks: [
+                    ("scientific_metrics", false),
+                    ("normalized_identity", true),
+                    ("declared_artifacts", true),
+                    ("scientific_invariants", true),
+                ]
+                .into_iter()
+                .map(|(assertion, passed)| BenchmarkStageNormalizationCheckV1 {
+                    assertion: assertion.to_string(),
+                    passed,
+                    detail: format!("{assertion} evidence"),
+                })
+                .collect(),
+            }],
+            passed: false,
+        };
+        std::fs::write(
+            fixture.result_root.join(BENCHMARK_STAGE_NORMALIZATION_ARTIFACT),
+            serde_json::to_vec_pretty(&normalization)?,
+        )?;
+        persist_completion(&fixture.result_root, &fixture.spec)?;
+        assert!(admit_benchmark_execution_outputs(
+            &fixture.study_root,
+            &fixture.spec,
+            "2026-08-05T04:00:00Z"
+        )
+        .is_err_and(|error| error.to_string().contains("did not pass")));
+
+        normalization.passed = true;
+        normalization.units[0].passed = true;
+        normalization.units[0].checks[0].passed = true;
+        std::fs::write(
+            fixture.result_root.join(BENCHMARK_STAGE_NORMALIZATION_ARTIFACT),
+            serde_json::to_vec_pretty(&normalization)?,
+        )?;
+        assert!(admit_benchmark_execution_outputs(
+            &fixture.study_root,
+            &fixture.spec,
+            "2026-08-05T04:00:00Z"
+        )
+        .is_ok());
+
+        let duplicate_check = normalization.units[0].checks[0].clone();
+        normalization.units[0].checks.push(duplicate_check);
+        std::fs::write(
+            fixture.result_root.join(BENCHMARK_STAGE_NORMALIZATION_ARTIFACT),
+            serde_json::to_vec_pretty(&normalization)?,
+        )?;
+        assert!(admit_benchmark_execution_outputs(
+            &fixture.study_root,
+            &fixture.spec,
+            "2026-08-05T04:00:00Z"
+        )
+        .is_err_and(|error| error.to_string().contains("did not pass")));
         Ok(())
     }
 

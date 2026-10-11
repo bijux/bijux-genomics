@@ -100,7 +100,7 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
         check.get("surface_id").and_then(serde_json::Value::as_str)
             == Some("vcf_imputation_identity")
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("legacy_imputation_row_count=0, impute_row_count=2, imputation_metrics_row_count=2")
+                == Some("legacy_imputation_row_count=0, impute_row_count=4, imputation_metrics_row_count=4")
     }));
     assert!(checks.iter().any(|check| {
         check.get("surface_id").and_then(serde_json::Value::as_str)

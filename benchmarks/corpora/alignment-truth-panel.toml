@@ -22,6 +22,13 @@ known_limitations = [
   "Supplementary simulation may probe controlled placement edge cases but cannot satisfy the real-data requirement alone.",
 ]
 description = "A controlled-access pedigree with inheritance-supported genotypes and an immutable GRCh38 reference defines the real-material anchor for alignment scoring."
+sample_context = "Seventeen related Platinum Genomes individuals with authorized raw reads and pedigree relationships."
+assay_context = "Deep human whole-genome sequencing aligned to one immutable GRCh38 coordinate authority."
+strata = ["family_role", "read_layout", "sequencing_center"]
+controls = ["inheritance_consistency", "supplementary_simulated_placement"]
+held_out_split = "Freeze disjoint pedigree members and genomic regions for tuning and final scoring before alignment execution."
+lineage = "dbGaP accessions to checksum-bound reads and GRCh38 to common-protocol alignments and placement evidence."
+allowed_uses = ["alignment_accuracy", "interoperability", "performance", "robustness"]
 data_types = ["bam", "fasta", "fastq"]
 target_sample_count = 10
 

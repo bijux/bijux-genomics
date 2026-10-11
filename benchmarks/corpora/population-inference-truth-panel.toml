@@ -1,0 +1,45 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Independent masked truth authority for comparative population inference
+# authority = bijux-genomics-benchmarks
+# stability = stable
+# last_updated = 2026-08-16
+
+schema_version = "bijux.benchmark.data_source.v1"
+portfolio_id = "population-inference-truth-panel"
+class = "production_real"
+access_classification = "public"
+redistribution_classification = "public-accession-referenced-source-copy"
+access_terms_url = "https://www.internationalgenome.org/data-portal/data-collection/30x-grch38"
+attribution = "Cite the 1000 Genomes Project, IGSR, the high-coverage GRCh38 collection, and every relationship or population metadata authority used by the selected cohort."
+projected_storage_bytes = 300000000000
+projected_cpu_hours = 2500
+projection_basis = "The projection reserves 300 GB and 2,500 CPU-hours for a chromosome-stratified high-coverage genotype panel, frozen population metadata, declared relatives, masked evaluation splits, and sensitivity analyses."
+truth_roles = ["population_inference_truth"]
+truth_strategy = "masked_population_metadata_and_pedigree_relationship_truth"
+known_limitations = [
+  "Population labels are sampling and metadata strata rather than experimental ancestry ground truth.",
+  "Declared pedigrees support relationship recovery but do not validate every demographic or admixture parameter.",
+  "Chromosome subsets may qualify interfaces and sensitivity behavior but cannot support genome-wide biological conclusions.",
+]
+description = "A release-frozen 1000 Genomes high-coverage cohort whose population metadata and declared relationships are hidden from inference and revealed only for governed scoring."
+sample_context = "Unrelated and declared-related individuals selected across super-populations and populations without overlap with the ancient diversity cohort."
+assay_context = "High-coverage short-read genotypes on GRCh38 with release-addressed sample metadata and pedigree relationships."
+strata = ["family", "population", "relatedness", "sex", "super_population"]
+controls = ["held_out_population_labels", "known_pedigree_pairs", "metadata_permutation_negative_control"]
+held_out_split = "Freeze family-aware development and evaluation partitions; mask population and pedigree labels from every evaluated tool until scoring."
+lineage = "IGSR release records and checksums to selected VCF and metadata assets to immutable mask assignments and scored population-inference evidence."
+allowed_uses = ["accuracy", "interoperability", "performance", "population_sensitivity", "robustness"]
+data_types = ["pedigree", "sample_metadata", "vcf"]
+target_sample_count = 100
+
+[[collections]]
+id = "1000-genomes-high-coverage-population-truth"
+authority = "International Genome Sample Resource"
+accession = "1000-genomes-30x-grch38"
+source_url = "https://www.internationalgenome.org/data-portal/data-collection/30x-grch38"
+access_terms_url = "https://www.internationalgenome.org/data-portal/data-collection/30x-grch38"
+data_types = ["pedigree", "sample_metadata", "vcf"]
+planned_sample_count = 100
+selection_scope = "At least one hundred release-addressed individuals spanning declared populations and pedigrees, with family groups kept within one held-out partition and evaluation labels masked from tools."
+truth_basis = "IGSR population metadata and declared pedigree relationships provide independent scoring expectations after labels are withheld during inference; metadata permutations provide a negative control."
+known_limitations = ["The exact release, sample IDs, chromosomes, pedigree records, checksums, and immutable mask split remain to be frozen in an acquisition plan."]

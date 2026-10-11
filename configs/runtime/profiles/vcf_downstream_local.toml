@@ -17,7 +17,7 @@ stages = [
   "vcf.impute",
   "vcf.postprocess",
 ]
-default_tools = ["beagle", "glimpse", "impute5", "shapeit5", "eagle", "minimac4"]
+default_tools = ["beagle", "glimpse", "impute5", "shapeit", "shapeit5", "eagle", "minimac4"]
 reference_panel_path = "artifacts/vcf/reference_store/panels/hsapiens_grch38_1kg_3202_chr22/raw/panel.vcf.gz"
 reference_panel_id = "hsapiens_grch38_1kg_3202_chr22"
 reference_map_id = "hsapiens_grch38_glimpse_chr22"

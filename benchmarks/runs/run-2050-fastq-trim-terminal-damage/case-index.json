@@ -5,7 +5,7 @@
     "domain": "fastq",
     "stage_id": "fastq.trim_terminal_damage"
   },
-  "protocol_sha256": "e4d026046fc0c44c47784bc57476614d5c50834b6191aced9a33e1b005103f43",
+  "protocol_sha256": "1011070d73ced87c46917b77c9946133f0d8f1f528b05dfb3111e172e85bf7d3",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

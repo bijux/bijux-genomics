@@ -5,9 +5,8 @@
     "domain": "vcf",
     "stage_id": "vcf.call_pseudohaploid"
   },
-  "protocol_sha256": "00275a2c7a55ccb6d6d51af442c199668a31907a3489b331256c6c1f928088f0",
+  "protocol_sha256": "2cb75be6ddc7b237e4a4be648bb804e350827942cb577d27090ff0c83f89f57d",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

@@ -5,7 +5,7 @@
 - Run: `run-2063`
 - Stage: `vcf.impute`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2063`
 
 Compare the runnable vcf.impute tools using masked_concordance_switch_error_calibration_and_rare_variant_recovery; downstream substitution: run QC, association-neutral population summaries, and re-masking checks on every output.

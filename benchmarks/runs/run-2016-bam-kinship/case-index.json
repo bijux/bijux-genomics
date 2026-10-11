@@ -5,7 +5,7 @@
     "domain": "bam",
     "stage_id": "bam.kinship"
   },
-  "protocol_sha256": "26de956e8cd4eff30f9b0859f0d47ba32d81832309d983fbdf9aa6c287ef6873",
+  "protocol_sha256": "764998d97515d0a38c7e92aa85f05f8c7cfeb7856b4d4d3b9d05a075697e40ad",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

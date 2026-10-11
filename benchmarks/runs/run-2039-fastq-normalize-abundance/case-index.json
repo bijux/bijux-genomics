@@ -5,7 +5,7 @@
     "domain": "fastq",
     "stage_id": "fastq.normalize_abundance"
   },
-  "protocol_sha256": "45c4394304bddf66afe01f1986b8b6d63db28329fedb7322db029bb5c84ca122",
+  "protocol_sha256": "6fa029292f08661f94cdb7d3f8afb90638646037671150132b03398c032d77ee",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

@@ -14,6 +14,10 @@ fn campaign_engine_schemas_match_model_authority() -> anyhow::Result<()> {
             serde_json::to_value(bijux_dna_bench_model::benchmark_case_matrix_schema())?,
         ),
         (
+            "stage-normalization.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_stage_normalization_schema())?,
+        ),
+        (
             "admitted-case-observation.schema.json",
             serde_json::to_value(
                 bijux_dna_bench_model::benchmark_admitted_case_observation_schema(),
@@ -64,6 +68,10 @@ fn campaign_engine_schema_versions_are_exact() -> anyhow::Result<()> {
         (
             bijux_dna_bench_model::benchmark_case_matrix_schema(),
             bijux_dna_bench_model::BENCHMARK_CASE_MATRIX_SCHEMA_V2,
+        ),
+        (
+            bijux_dna_bench_model::benchmark_stage_normalization_schema(),
+            bijux_dna_bench_model::BENCHMARK_STAGE_NORMALIZATION_SCHEMA_V1,
         ),
         (
             bijux_dna_bench_model::benchmark_admitted_case_observation_schema(),

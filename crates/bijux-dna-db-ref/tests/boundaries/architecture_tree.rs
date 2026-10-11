@@ -16,6 +16,7 @@ fn db_ref_tree_matches_architecture_contract() {
         entries([
             "catalog/",
             "lib.rs",
+            "materialization/",
             "model/",
             "providers/",
             "public_api/",
@@ -23,6 +24,12 @@ fn db_ref_tree_matches_architecture_contract() {
             "runtime_config/",
         ]),
         "src tree must match the documented reference resolver layout"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/materialization")),
+        entries(["mod.rs", "panel_files.rs"]),
+        "materialization tree must separate pure placement policy from execution"
     );
 
     assert_eq!(

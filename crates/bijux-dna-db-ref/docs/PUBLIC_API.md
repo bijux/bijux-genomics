@@ -8,7 +8,7 @@ compatibility re-exports from `src/lib.rs`.
 - `public_api`
 
 The remaining source modules are crate-private implementation namespaces:
-`catalog`, `model`, `providers`, `resolution`, and `runtime_config`.
+`catalog`, `materialization`, `model`, `providers`, `resolution`, and `runtime_config`.
 
 ## Stable Re-Exports
 
@@ -31,6 +31,8 @@ The remaining source modules are crate-private implementation namespaces:
   `resolve_species_alias`, `normalize_contig_name`,
   `enforce_declared_build_and_contigs`, and
   `validate_imputation_tool_compatibility`
+- materialization planning: `plan_panel_file_materialization`,
+  `CatalogFileMaterializationArea`, and `CatalogFileMaterializationPlan`
 
 ## Extension Rules
 
@@ -41,4 +43,5 @@ The remaining source modules are crate-private implementation namespaces:
    `docs/ARCHITECTURE.md`, this file, and boundary tests.
 4. Do not expose planner, runner, stage, environment, CLI, or API behavior
    through this crate.
-5. Do not expose materialization or fixture-writing operations; this crate is read-only.
+5. Keep materialization planning pure and read-only; byte transfer and fixture writing belong to
+   execution-owning crates.

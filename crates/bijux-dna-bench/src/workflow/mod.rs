@@ -9,6 +9,7 @@ mod bam_alignment;
 mod bam_campaign;
 mod bam_coverage;
 mod bam_damage;
+mod bam_diversity_catalog;
 mod bam_duplication_metrics;
 mod bam_endogenous_content;
 mod bam_genotyping;
@@ -41,6 +42,7 @@ mod hardening_campaign;
 mod local_corpus_skip;
 mod options;
 mod parameter_authority;
+mod protocol_portfolio;
 mod publication_receipt;
 mod publication_registry;
 mod publication_selection;
@@ -101,6 +103,9 @@ pub use bam_damage::{
     prepare_bam_damage_material_from_evidence, publish_bam_damage_stage_report,
     render_bam_damage_markdown, BamDamageStageReportPublication,
 };
+pub use bam_diversity_catalog::{
+    build_ancient_dna_bam_diversity_catalog, BamDiversityCatalogRequest,
+};
 pub use bam_duplication_metrics::{
     prepare_bam_duplication_metrics_material, prepare_bam_duplication_metrics_material_from_corpus,
     publish_bam_duplication_metrics_stage_report, render_bam_duplication_metrics_markdown,
@@ -160,29 +165,30 @@ pub use campaign_engine::{
     BenchmarkCaseAggregationSetV1, BenchmarkCaseAggregationV2, BenchmarkCaseDefinitionV1,
     BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV2,
     BenchmarkCaseMeasurementPlanV1, BenchmarkCaseRepetitionObservationV1,
-    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1, BenchmarkDataSnapshotRoleV1,
-    BenchmarkDataSnapshotV1, BenchmarkStageNormalization, BenchmarkStagePluginRegistry,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1, BenchmarkDataArtifactSnapshotV1,
+    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1, BenchmarkStageNormalization,
+    BenchmarkStagePluginRegistry, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
     BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
 };
 pub use campaign_lifecycle::{
-    admit_checked_in_benchmark_campaign, build_benchmark_stage_plans, build_execution_spec,
-    ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
-    load_case_execution_authorities, load_checked_in_benchmark_campaign_plan,
-    load_execution_authorities, load_execution_spec, load_stage_plan_manifest,
-    plan_benchmark_case_attempts, plan_benchmark_case_retry_attempts,
-    plan_checked_in_benchmark_campaign, plan_stage_campaign_attempts,
-    plan_stage_campaign_retry_attempts, prepare_checked_in_benchmark_campaign,
-    recover_stage_campaign_retry_lineage, retry_checked_in_benchmark_campaign,
-    status_checked_in_benchmark_campaign, supersede_checked_in_benchmark_campaign,
-    verify_campaign_plan_source, verify_case_campaign_plan_source, BenchmarkCycleAdmission,
-    BenchmarkCycleAdmissionRequest, BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit,
-    BenchmarkCyclePlanRequest, BenchmarkCyclePreparation, BenchmarkCyclePreparationRequest,
-    BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit, BenchmarkCycleRetryRequest,
-    BenchmarkCycleStatusRequest, BenchmarkCycleSupersedeRequest, BenchmarkExecutionAuthorities,
+    admit_checked_in_benchmark_campaign, admit_checked_in_benchmark_campaign_with_plugins,
+    build_benchmark_stage_plans, build_execution_spec, ensure_execution_spec,
+    ensure_stage_campaign_attempts, ensure_stage_plan_manifest, load_case_execution_authorities,
+    load_checked_in_benchmark_campaign_plan, load_execution_authorities, load_execution_spec,
+    load_stage_plan_manifest, normalize_benchmark_execution_outputs, plan_benchmark_case_attempts,
+    plan_benchmark_case_retry_attempts, plan_checked_in_benchmark_campaign,
+    plan_stage_campaign_attempts, plan_stage_campaign_retry_attempts,
+    prepare_checked_in_benchmark_campaign, recover_stage_campaign_retry_lineage,
+    retry_checked_in_benchmark_campaign, status_checked_in_benchmark_campaign,
+    supersede_checked_in_benchmark_campaign, verify_campaign_plan_source,
+    verify_case_campaign_plan_source, BenchmarkCycleAdmission, BenchmarkCycleAdmissionRequest,
+    BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit, BenchmarkCyclePlanRequest,
+    BenchmarkCyclePreparation, BenchmarkCyclePreparationRequest, BenchmarkCyclePreparationState,
+    BenchmarkCyclePreparationUnit, BenchmarkCycleRetryRequest, BenchmarkCycleStatusRequest,
+    BenchmarkCycleSupersedeRequest, BenchmarkDownstreamProbeMode, BenchmarkExecutionAuthorities,
     BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
-    BenchmarkStagePlanUnitMaterial,
+    BenchmarkStagePlanUnitMaterial, STAGE_PLUGIN_NORMALIZATION_ARTIFACT,
 };
 pub(crate) use campaign_lifecycle::{
     verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
@@ -270,6 +276,10 @@ pub use local_corpus_skip::{
     BenchmarkLocalCorpusSkipPublicationRequest,
 };
 pub use options::BenchRunOptions;
+pub use protocol_portfolio::{
+    derive_benchmark_protocol_portfolio, publish_checked_in_benchmark_protocol_portfolio,
+    BenchmarkProtocolPortfolio, BenchmarkProtocolPortfolioWriteMode,
+};
 pub use publication_receipt::{
     issue_benchmark_publication_receipt, BenchmarkPublicationReceiptRequest,
 };

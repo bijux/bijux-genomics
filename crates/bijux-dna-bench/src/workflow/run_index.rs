@@ -26,7 +26,7 @@ use bijux_dna_bench_model::{
     BenchmarkRunRegistryRow, BenchmarkRunRegistryState, BenchmarkRunState,
 };
 
-use super::load_benchmark_portfolio;
+use super::suite_load::load_benchmark_portfolio_from_repo;
 
 const RUN_REGISTRY: &str = "benchmarks/contracts/run-registry.json";
 const RUN_INDEX_JSON: &str = "benchmarks/runs/RUN_INDEX.json";
@@ -159,7 +159,8 @@ pub fn publish_checked_in_benchmark_run_index(
     let registry_sha256 = bijux_dna_infra::hash_bytes_sha256(&registry_bytes);
     let registry_size_bytes =
         u64::try_from(registry_bytes.len()).context("run registry size exceeds u64")?;
-    let portfolio = load_benchmark_portfolio(&repository_root.join(PORTFOLIO))?;
+    let portfolio =
+        load_benchmark_portfolio_from_repo(&repository_root.join(PORTFOLIO), repository_root)?;
     let surfaces = derive_run_publication_surfaces(repository_root, &registry, &portfolio)?;
     ensure_no_unindexed_publication_directories(repository_root, &surfaces)?;
     let protocol_hashes = surfaces

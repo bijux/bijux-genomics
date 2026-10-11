@@ -72,6 +72,8 @@ pub fn ensure_fastq_read_length_expectations(
     let root = study_root
         .join("data/evidence/benchmark-expectations")
         .join(&admitted.catalog_sha256)
+        .join("data-indexes")
+        .join(&admitted.data_index_sha256)
         .join("derivations")
         .join(&derivation_sha256)
         .join(EXPECTATION_KIND);

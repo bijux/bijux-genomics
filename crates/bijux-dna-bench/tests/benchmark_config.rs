@@ -214,6 +214,35 @@ fn accepts_complete_configuration_and_existing_paths() {
 }
 
 #[test]
+fn workspace_publication_contracts_match_governed_fastq_bindings() {
+    let repository_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(Path::parent)
+        .expect("repository root");
+    let raw = std::fs::read_to_string(repository_root.join("configs/bench/benchmark.toml"))
+        .expect("read workspace benchmark config");
+    let config: BenchmarkConfig = toml::from_str(&raw).expect("parse workspace benchmark config");
+    let publication =
+        config.publication.corpora.get("corpus_01").expect("corpus-01 publication contracts");
+
+    for contract in &publication.contracts {
+        let Some(mut governed) =
+            bijux_dna_domain_fastq::stage_compatible_tool_ids(&contract.stage_id)
+        else {
+            continue;
+        };
+        governed.sort();
+        let mut published = contract.tools.clone();
+        published.sort();
+        assert_eq!(
+            published, governed,
+            "{} publication tools drifted from governed stage bindings",
+            contract.stage_id
+        );
+    }
+}
+
+#[test]
 fn requires_a_declared_corpus() {
     let temp = tempfile::tempdir().expect("tempdir");
     let mut config = valid_config(temp.path());

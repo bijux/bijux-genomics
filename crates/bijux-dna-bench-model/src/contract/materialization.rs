@@ -8,8 +8,8 @@ use chrono::{DateTime, FixedOffset};
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan,
-    CorpusSourcePolicy, FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogDocument,
-    GovernedDataCatalogFile, GovernedPreservedDataCatalog,
+    CorpusEvaluationDesign, CorpusSourcePolicy, FastqCorpusSourceSpec, GovernedDataCatalog,
+    GovernedDataCatalogDocument, GovernedDataCatalogFile, GovernedPreservedDataCatalog,
 };
 
 use super::{
@@ -59,6 +59,7 @@ pub fn validate_fastq_corpus_source_spec(spec: &FastqCorpusSourceSpec) -> Result
     }
     validate_nonempty_list(&spec.policy.truth_roles, "truth role")?;
     validate_nonempty_list(&spec.policy.known_limitations, "known limitation")?;
+    validate_corpus_evaluation_design(&spec.evaluation)?;
     if spec.samples.is_empty() || spec.samples.len() != spec.target_total {
         return Err(invalid("FASTQ corpus target total disagrees with samples"));
     }
@@ -120,6 +121,30 @@ pub(super) fn validate_source_policy(policy: &CorpusSourcePolicy) -> Result<(), 
     Ok(())
 }
 
+pub(super) fn validate_corpus_evaluation_design(
+    design: &CorpusEvaluationDesign,
+) -> Result<(), BenchError> {
+    for (value, label) in [
+        (&design.sample_context, "sample context"),
+        (&design.assay_context, "assay context"),
+        (&design.held_out_split, "held-out split"),
+        (&design.lineage, "lineage"),
+    ] {
+        validate_nonempty(value, label)?;
+    }
+    validate_ordered_nonempty_values(&design.strata, "stratum")?;
+    validate_ordered_nonempty_values(&design.controls, "control")?;
+    validate_ordered_nonempty_values(&design.allowed_uses, "allowed use")
+}
+
+fn validate_ordered_nonempty_values(values: &[String], label: &str) -> Result<(), BenchError> {
+    validate_nonempty_list(values, label)?;
+    if values.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return Err(invalid("corpus evaluation values are not strictly ordered"));
+    }
+    Ok(())
+}
+
 /// Validate acquisition identity, source checksums, sample context, and aggregate closure.
 ///
 /// # Errors
@@ -141,6 +166,7 @@ pub fn validate_corpus_acquisition_plan(plan: &CorpusAcquisitionPlan) -> Result<
     validate_utc_timestamp(&plan.retrieved_at_utc, "retrieval")?;
     validate_sha256(&plan.source_spec_sha256, "source specification")?;
     validate_source_policy(&plan.policy)?;
+    validate_corpus_evaluation_design(&plan.evaluation)?;
     if plan.samples.is_empty() {
         return Err(invalid("corpus acquisition contains no samples"));
     }
@@ -224,6 +250,7 @@ pub fn validate_governed_data_catalog(catalog: &GovernedDataCatalog) -> Result<(
     validate_utc_timestamp(&catalog.retrieved_at_utc, "retrieval")?;
     validate_utc_timestamp(&catalog.admitted_at_utc, "admission")?;
     validate_source_policy(&catalog.policy)?;
+    validate_corpus_evaluation_design(&catalog.evaluation)?;
     if catalog.samples.is_empty() || catalog.files.is_empty() {
         return Err(invalid("governed data catalog must contain samples and files"));
     }

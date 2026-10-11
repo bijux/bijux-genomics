@@ -473,6 +473,13 @@ digest-bound v2 authority, retains current v2 records from an explicit prior reg
 publishes the complete source-addressed registry. Existing identical publications are replayed;
 conflicting snapshot or registry bytes are rejected without replacement.
 
+`benchmark-data-catalog-snapshots build-bam-diversity` revalidates one exact materialization plan
+against the structured sample selection in `ancient-dna-bam-diversity.toml`, source-addressed
+FASTQ and reference catalogs, container-image digests, and all ten BAM/index result pairs. It
+publishes a new derived-catalog candidate under the governed data root; it does not replace the
+flat authority. `admit-derived` separately performs compare-and-replace admission and republishes
+the complete source-addressed registry.
+
 `benchmark-data-portfolio-audit` publishes an immutable typed join between the benchmark portfolio
 and one exact governed STUDY data index. It records catalog identity, access and redistribution
 classes, access terms, observed sample-count authority, verified storage, source projections,

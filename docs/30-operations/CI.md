@@ -37,6 +37,10 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
 - Slow CI profile: `cargo run -q -p bijux-dna-dev -- tooling run ci-slow`
 - Fast profile intent: static/policy/contract gates with deterministic runner settings.
 - Slow profile intent: heavier coverage/docs/release-readiness checks.
+- Every fast invocation writes `artifacts/ci/baseline-timing.json` with the exact target commands
+  and dependency graph, per-target wall times, sccache hit/miss deltas, Cargo lock-wait diagnostic
+  counts and conservative duration bounds, and the full-workspace, LUNARC integration, and
+  nightly/release lanes that the fast profile intentionally does not execute.
 - Test/coverage runner defaults are pinned in
   [configs/rust/nextest.toml](../../configs/rust/nextest.toml) and
   [configs/coverage/runner.toml](../../configs/coverage/runner.toml).

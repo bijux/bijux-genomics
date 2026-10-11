@@ -5,9 +5,8 @@
     "domain": "bam",
     "stage_id": "bam.kinship"
   },
-  "protocol_sha256": "26de956e8cd4eff30f9b0859f0d47ba32d81832309d983fbdf9aa6c287ef6873",
+  "protocol_sha256": "764998d97515d0a38c7e92aa85f05f8c7cfeb7856b4d4d3b9d05a075697e40ad",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

@@ -1,6 +1,9 @@
 pub use crate::catalog::{
-    CatalogCompatibility, CatalogFileEntry, MapCatalogEntry, MapCompatibility, MapLockEntry,
-    PanelCatalogEntry, PanelLockEntry,
+    CatalogCompatibility, CatalogFileDerivation, CatalogFileEntry, MapCatalogEntry,
+    MapCompatibility, MapLockEntry, PanelCatalogEntry, PanelLockEntry,
+};
+pub use crate::materialization::{
+    plan_panel_file_materialization, CatalogFileMaterializationArea, CatalogFileMaterializationPlan,
 };
 pub use crate::model::{
     BuildId, ContigAliasResolutionReport, ContigAliasResolutionRow, ContigMap,

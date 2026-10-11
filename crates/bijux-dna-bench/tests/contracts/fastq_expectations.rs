@@ -90,6 +90,40 @@ fn publishes_exact_read_and_base_count_admission_profile() -> Result<()> {
 }
 
 #[test]
+fn data_index_identity_names_immutable_expectation_root() -> Result<()> {
+    let fixture = expectation_fixture()?;
+    let first = ensure_fastq_read_length_expectations(
+        &fixture.repository_root,
+        &fixture.study_root,
+        &fixture.data_index,
+        CORPUS_ID,
+        1,
+        1,
+    )?;
+
+    use std::io::Write as _;
+    let mut index = fs::OpenOptions::new().append(true).open(&fixture.data_index)?;
+    index.write_all(b"\n")?;
+    drop(index);
+
+    let second = ensure_fastq_read_length_expectations(
+        &fixture.repository_root,
+        &fixture.study_root,
+        &fixture.data_index,
+        CORPUS_ID,
+        1,
+        1,
+    )?;
+
+    assert_eq!(first.expectations.catalog_sha256, second.expectations.catalog_sha256);
+    assert_ne!(first.expectations.data_index_sha256, second.expectations.data_index_sha256);
+    assert_ne!(first.root, second.root);
+    assert!(first.manifest_path.is_file());
+    assert!(second.manifest_path.is_file());
+    Ok(())
+}
+
+#[test]
 fn rejects_conflicting_existing_read_profile_truth() -> Result<()> {
     let fixture = expectation_fixture()?;
     let read_lengths = ensure_fastq_read_length_expectations(

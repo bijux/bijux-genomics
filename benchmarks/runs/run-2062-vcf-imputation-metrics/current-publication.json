@@ -5,9 +5,8 @@
     "domain": "vcf",
     "stage_id": "vcf.imputation_metrics"
   },
-  "protocol_sha256": "f31fd2dbd4cf879922fa6dda43765131755bf0ba7acd5f1a1e123d490ae4e83c",
+  "protocol_sha256": "89d7c1b2ff53bec25eb2c455ea8faa395b04ca7539dc0fdd1a9295e1ddcf8c4d",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

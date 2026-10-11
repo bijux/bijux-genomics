@@ -11,17 +11,26 @@
   "owner": "bijux-dna-bench",
   "profile_id": "fastq-read-transformation",
   "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
-  "state": "reserved",
-  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "state": "active",
   "tool_ids": [
     "bbduk",
     "fastp",
     "prinseq",
     "seqkit"
   ],
-  "accepted_input_contracts": [],
+  "accepted_input_contracts": [
+    "bijux.fastq.artifact.single_end.v1"
+  ],
+  "output_contract": "bijux.benchmark.fastq.filter_reads.bundle.v1",
+  "normalized_result_contract": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
   "measurement_policy_id": "benchmark-measurement-v1",
-  "contracts": [],
+  "contracts": [
+    {
+      "contract_id": "normalized-result-contract",
+      "repository_path": "benchmarks/schemas/fastq-normalized-metrics.v1.json",
+      "sha256": "65a42ba0a4fa9a8a8fbbac666fbb568316a623e9ac0beb57c9d35eabda9a5b27"
+    }
+  ],
   "corpus_roles": [
     {
       "role": "read_processing_truth",

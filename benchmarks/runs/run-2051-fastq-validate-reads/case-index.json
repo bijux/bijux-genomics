@@ -11,45 +11,45 @@
       "case_id": "run-2051--fastq_scan--human-short-read-diversity",
       "tool_id": "fastq_scan",
       "definition": {
-        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/case-definition-run-2051--fastq_scan--human-short-read-diversity.json",
-        "sha256": "1782d30c230c0d4c5368f1a25850dda67ff649cc8c3b964b30e241b0ed15c682",
-        "size_bytes": 12247
+        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2051/case-definition-run-2051--fastq_scan--human-short-read-diversity.json",
+        "sha256": "f10b07fcf131630da6ac1f2e37c11e722308606eaf662bf3b15e02543498e9dd",
+        "size_bytes": 12294
       }
     },
     {
       "case_id": "run-2051--fastqc--human-short-read-diversity",
       "tool_id": "fastqc",
       "definition": {
-        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/case-definition-run-2051--fastqc--human-short-read-diversity.json",
-        "sha256": "499156c2bac9719de714777bdc6a58aa2305c9ec8a98c9bc51175d3a7cb101aa",
-        "size_bytes": 12302
+        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2051/case-definition-run-2051--fastqc--human-short-read-diversity.json",
+        "sha256": "f0559b074595c0046a0866948f6193ed90d3b779209fcf452eb6930a9b2cee52",
+        "size_bytes": 12349
       }
     },
     {
       "case_id": "run-2051--fastqvalidator--human-short-read-diversity",
       "tool_id": "fastqvalidator",
       "definition": {
-        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/case-definition-run-2051--fastqvalidator--human-short-read-diversity.json",
-        "sha256": "59f3a41a7206f13f899f86e1b0cde6f1da9b3802662646de1f6c4c487e149f81",
-        "size_bytes": 13266
+        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2051/case-definition-run-2051--fastqvalidator--human-short-read-diversity.json",
+        "sha256": "ec67a3cd3e9e4ba3e12d75112821d80771620657dd167bfb972e418d2976c06e",
+        "size_bytes": 13313
       }
     },
     {
       "case_id": "run-2051--fqtools--human-short-read-diversity",
       "tool_id": "fqtools",
       "definition": {
-        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/case-definition-run-2051--fqtools--human-short-read-diversity.json",
-        "sha256": "91bb0283f62917f0e95c7a619434d9680e5eb0afda1d41d19f2f7019eea0eceb",
-        "size_bytes": 13209
+        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2051/case-definition-run-2051--fqtools--human-short-read-diversity.json",
+        "sha256": "48e683c6bc230a1d8f538d88ef123a8b156ebc8f25a49e3e04da6d06eeb4fafd",
+        "size_bytes": 13256
       }
     },
     {
       "case_id": "run-2051--seqtk--human-short-read-diversity",
       "tool_id": "seqtk",
       "definition": {
-        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/case-definition-run-2051--seqtk--human-short-read-diversity.json",
-        "sha256": "de449b327e6dc32fc3b15557d29c8bded8554745711e0cef22f66d683e675d22",
-        "size_bytes": 13183
+        "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2051/case-definition-run-2051--seqtk--human-short-read-diversity.json",
+        "sha256": "ee6993ed7c693b0fe7668ec5b6e271b7f7ee5b1bde77ab9b8fc67b5259462370",
+        "size_bytes": 13230
       }
     }
   ],

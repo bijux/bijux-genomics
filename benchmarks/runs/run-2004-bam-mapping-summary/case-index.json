@@ -6,8 +6,27 @@
     "stage_id": "bam.mapping_summary"
   },
   "protocol_sha256": "bc88a25ce32b489f6eb18d2329b9c2a3d0ead1bd3fcd0d6ce4db8cb6be2e1449",
-  "cases": [],
+  "cases": [
+    {
+      "case_id": "run-2004--picard--ena-prjeb22390-err2112767-bam",
+      "tool_id": "picard",
+      "definition": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/case-definition-run-2004--picard--ena-prjeb22390-err2112767-bam.json",
+        "sha256": "ef3508e7fea118d6c4b8e900febc39c2a8ae7c6d25617bb85a1630c93d3f32f7",
+        "size_bytes": 10435
+      }
+    },
+    {
+      "case_id": "run-2004--samtools--ena-prjeb22390-err2112767-bam",
+      "tool_id": "samtools",
+      "definition": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/case-definition-run-2004--samtools--ena-prjeb22390-err2112767-bam.json",
+        "sha256": "bca8bc2b866b15f43373b2c292225c5ead302896f8fe8a7b78c84badee2a7deb",
+        "size_bytes": 10369
+      }
+    }
+  ],
   "limitations": [
-    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+    "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure."
   ]
 }

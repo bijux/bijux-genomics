@@ -133,6 +133,7 @@ pub fn prepare_bam_damage_material_from_evidence(
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
         stage_plan_units: Some(vec![stage_plan_unit(&identity.tool_id)?]),
+        downstream_probe_mode: crate::workflow::BenchmarkDownstreamProbeMode::RunnerProduced,
     };
     Ok(BamDamageMaterial {
         execution,

@@ -34,10 +34,10 @@ pub fn choose_tool(
         };
         let phased_gt_ready = planned_stages.contains(&VcfDomainStage::Phasing);
         if phased_gt_ready
-            && panel.compatibility.supports_minimac_m3vcf
+            && panel.compatibility.minimac_reference_format == "msav"
             && shared_support("minimac4")
         {
-            return Ok(("minimac4".to_string(), "phased_gt_plus_m3vcf_minimac4".to_string()));
+            return Ok(("minimac4".to_string(), "phased_gt_plus_msav_minimac4".to_string()));
         }
         if shared_support("impute5") {
             return Ok(("impute5".to_string(), "shared_source_format_impute5".to_string()));
@@ -78,7 +78,9 @@ pub fn validate_selected_tool(
                 stage.as_str()
             );
         }
-        if matches!(tool, "shapeit5" | "eagle") && resolved_coverage != CoverageRegime::Diploid {
+        if matches!(tool, "shapeit" | "shapeit5" | "eagle")
+            && resolved_coverage != CoverageRegime::Diploid
+        {
             bail!(
                 "planner refusal: tool {} requires diploid coverage regime for {}",
                 tool,

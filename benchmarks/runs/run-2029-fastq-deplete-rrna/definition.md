@@ -5,7 +5,7 @@
 - Run: `run-2029`
 - Stage: `fastq.deplete_rrna`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2029`
 
 Compare the runnable fastq.deplete_rrna tools using target_removal_and_non_target_retention_against_orthogonal_truth; downstream substitution: feed every depleted output into taxonomy, QC, and alignment consumers.

@@ -458,6 +458,7 @@
                 species_id: "Homo sapiens".to_string(),
                 build_id: "GRCh38".to_string(),
                 backend: PhasingBackend::Shapeit5,
+                panel_id: None,
                 map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
                 threads: 2,
                 seed: 7,
@@ -498,6 +499,60 @@
     }
 
     #[test]
+    fn phasing_stage_preserves_shapeit4_backend_identity_and_command() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = Path::new("tests/fixtures/vcf/default/input.vcf");
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest:
+                "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
+                    .to_string(),
+            contigs: vec![ContigSpec { name: "1".to_string(), length_bp: 248_956_422 }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let outputs = run_phasing_stage(
+            input,
+            dir.path(),
+            &species,
+            &PhasingStageParams {
+                species_id: species.species_id.clone(),
+                build_id: species.build_id.clone(),
+                backend: PhasingBackend::Shapeit,
+                panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
+                map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
+                threads: 2,
+                seed: 42,
+                region: Some("1:1-1000000".to_string()),
+                allow_gl_only_input: false,
+            },
+        )
+        .unwrap_or_else(|err| panic!("shapeit4 phasing stage: {err}"));
+        let manifest: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(&outputs.phasing_manifest_json)
+                .unwrap_or_else(|err| panic!("read shapeit4 manifest: {err}")),
+        )
+        .unwrap_or_else(|err| panic!("parse shapeit4 manifest: {err}"));
+        assert_eq!(manifest.get("backend").and_then(serde_json::Value::as_str), Some("shapeit"));
+        assert_eq!(
+            manifest.pointer("/command_argv/0").and_then(serde_json::Value::as_str),
+            Some("shapeit")
+        );
+        assert!(manifest
+            .get("command_exact")
+            .and_then(serde_json::Value::as_str)
+            .is_some_and(|command| {
+                command.contains("shapeit --input") && command.contains("--reference")
+            }));
+        assert_eq!(
+            manifest.pointer("/panel/panel_id").and_then(serde_json::Value::as_str),
+            Some("hsapiens_grch38_1kg_3202_chr22")
+        );
+    }
+
+    #[test]
     fn phasing_stage_refuses_unknown_species_build_mismatch() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
@@ -528,6 +583,7 @@
                 species_id: "Homo sapiens".to_string(),
                 build_id: "GRCh37".to_string(),
                 backend: PhasingBackend::Beagle,
+                panel_id: None,
                 map_id: None,
                 threads: 1,
                 seed: 1,
@@ -569,6 +625,7 @@
                 species_id: "Homo sapiens".to_string(),
                 build_id: "GRCh38".to_string(),
                 backend: PhasingBackend::Shapeit5,
+                panel_id: None,
                 map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
                 threads: 2,
                 seed: 11,
@@ -615,6 +672,7 @@
                 species_id: "Homo sapiens".to_string(),
                 build_id: "GRCh38".to_string(),
                 backend: PhasingBackend::Beagle,
+                panel_id: None,
                 map_id: None,
                 threads: 2,
                 seed: 12,
@@ -661,6 +719,7 @@
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
                 backend: PhasingBackend::Beagle,
+                panel_id: None,
                 map_id: None,
                 threads: 1,
                 seed: 42,
@@ -702,6 +761,7 @@
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
                 backend: PhasingBackend::Auto,
+                panel_id: None,
                 map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
                 threads: 2,
                 seed: 42,
@@ -759,6 +819,7 @@
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
                 backend: PhasingBackend::Auto,
+                panel_id: None,
                 map_id: None,
                 threads: 2,
                 seed: 42,
@@ -811,6 +872,7 @@
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
                 backend: PhasingBackend::Eagle,
+                panel_id: None,
                 map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
                 threads: 2,
                 seed: 42,
@@ -846,6 +908,7 @@
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
                 backend: PhasingBackend::Shapeit5,
+                panel_id: None,
                 map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
                 threads: 2,
                 seed: 42,

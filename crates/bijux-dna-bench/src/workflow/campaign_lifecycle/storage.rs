@@ -7,7 +7,7 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use bijux_dna_bench_model::contract::validate_stage_campaign_registry;
+use bijux_dna_bench_model::contract::validate_executable_stage_campaign_registry;
 use bijux_dna_bench_model::{
     validate_campaign_plan, validate_execution_spec, validate_stage_plan_manifest,
     BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2, BenchmarkCampaignPlan,
@@ -38,7 +38,8 @@ pub fn recover_stage_campaign_retry_lineage(
     campaign_id: &str,
     tip_attempt_id: &str,
 ) -> Result<Vec<BenchmarkAttemptRecordV2>> {
-    validate_stage_campaign_registry(registry).context("validate benchmark campaign registry")?;
+    validate_executable_stage_campaign_registry(registry)
+        .context("validate benchmark campaign registry")?;
     let campaign = registry
         .campaigns
         .iter()

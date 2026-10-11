@@ -5,7 +5,7 @@
 - Run: `run-2057`
 - Stage: `vcf.damage_filter`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2057`
 
 Compare the runnable vcf.damage_filter tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.
