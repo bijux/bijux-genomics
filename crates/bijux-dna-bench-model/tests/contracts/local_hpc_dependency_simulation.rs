@@ -134,8 +134,9 @@ fn simulation_case(
 fn report() -> BenchmarkLocalHpcDependencySimulationReport {
     BenchmarkLocalHpcDependencySimulationReport {
         schema_version: BENCHMARK_LOCAL_HPC_DEPENDENCY_SIMULATION_SCHEMA_V1.to_string(),
-        manifest_path: "runs/bench/hpc-dry-run/job-graph.json".to_string(),
-        output_path: "runs/bench/hpc-dry-run/slurm-dependency-simulation.json".to_string(),
+        manifest_path: "artifacts/runs/bench/hpc-dry-run/job-graph.json".to_string(),
+        output_path: "artifacts/runs/bench/hpc-dry-run/slurm-dependency-simulation.json"
+            .to_string(),
         job_count: 7,
         benchmark_job_count: 1,
         essential_pipeline_job_count: 6,

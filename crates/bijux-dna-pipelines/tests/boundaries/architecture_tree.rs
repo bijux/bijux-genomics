@@ -13,6 +13,7 @@ fn pipelines_tree_matches_architecture_contract() {
 
     let src_entries = dir_entries(&root.join("src"));
     for required in [
+        "artifact_flow.rs",
         "bam/",
         "contract/",
         "cross.rs",

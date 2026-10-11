@@ -396,6 +396,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         root.join("containers/contracts/schemas/image-campaign-execution.v1.json");
     let catalog_path = root.join("containers/contracts/schemas/catalog.v1.json");
     let catalog_lock_path = root.join("containers/contracts/schemas/catalog-lock.v1.json");
+    let activation_path = root.join("containers/contracts/schemas/image-activation-plan.v1.json");
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_containers::evidence::write_image_inventory_publication_schema(&inventory_path)?;
         bijux_dna_containers::evidence::write_image_inventory_scan_schema(&scan_path)?;
@@ -424,14 +425,15 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         bijux_dna_containers::api::write_image_campaign_execution_schema(&campaign_execution_path)?;
         bijux_dna_containers::api::write_container_catalog_schema(&catalog_path)?;
         bijux_dna_containers::api::write_container_catalog_lock_schema(&catalog_lock_path)?;
+        bijux_dna_containers::api::write_image_activation_plan_schema(&activation_path)?;
     }
     let inventory = read_json(inventory_path)?;
     let scan = read_json(scan_path)?;
-    let runtime = read_json(runtime_path)?;
+    let runtime = read_json(&runtime_path)?;
     let security_probe = read_json(security_probe_path)?;
-    let tool_identity = read_json(tool_identity_path)?;
-    let storage_plan = read_json(storage_plan_path)?;
-    let storage_report = read_json(storage_report_path)?;
+    let tool_identity = read_json(&tool_identity_path)?;
+    let storage_plan = read_json(&storage_plan_path)?;
+    let storage_report = read_json(&storage_report_path)?;
     let qualification_registry = read_json(qualification_registry_path)?;
     let qualification_audit = read_json(qualification_audit_path)?;
     let tool_contract = read_json(tool_contract_path)?;
@@ -440,6 +442,7 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let campaign_execution = read_json(campaign_execution_path)?;
     let catalog = read_json(catalog_path)?;
     let catalog_lock = read_json(catalog_lock_path)?;
+    let activation = read_json(&activation_path)?;
     assert_eq!(inventory, bijux_dna_containers::evidence::image_inventory_publication_schema());
     assert_eq!(scan, bijux_dna_containers::evidence::image_inventory_scan_schema());
     assert_eq!(runtime, bijux_dna_containers::evidence::runtime_verification_publication_schema());
@@ -450,6 +453,10 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     );
     assert_eq!(storage_plan, bijux_dna_containers::evidence::image_storage_plan_schema());
     assert_eq!(storage_report, bijux_dna_containers::evidence::image_storage_report_schema());
+    assert!(bijux_dna_containers::api::image_storage_schemas_match(
+        &storage_plan_path,
+        &storage_report_path,
+    )?);
     assert_eq!(
         qualification_registry,
         bijux_dna_containers::evidence::qualification_run_registry_schema()
@@ -467,6 +474,39 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     assert_eq!(campaign_execution, bijux_dna_containers::api::image_campaign_execution_schema());
     assert_eq!(catalog, bijux_dna_containers::api::container_catalog_schema());
     assert_eq!(catalog_lock, bijux_dna_containers::api::container_catalog_lock_schema());
+    assert_eq!(activation, bijux_dna_containers::api::image_activation_plan_schema());
+    assert!(bijux_dna_containers::api::runtime_verification_schemas_match(
+        &runtime_path,
+        &tool_identity_path,
+    )?);
+    assert!(bijux_dna_containers::api::image_activation_plan_schema_matches(&activation_path)?);
+
+    let drifted_runtime = tempfile::NamedTempFile::new()?;
+    std::fs::write(drifted_runtime.path(), b"{}")?;
+    assert!(!bijux_dna_containers::api::runtime_verification_schemas_match(
+        drifted_runtime.path(),
+        &tool_identity_path,
+    )?);
+
+    let drifted_identity = tempfile::NamedTempFile::new()?;
+    std::fs::write(drifted_identity.path(), b"{}")?;
+    assert!(!bijux_dna_containers::api::runtime_verification_schemas_match(
+        &runtime_path,
+        drifted_identity.path(),
+    )?);
+
+    let drifted_storage = tempfile::NamedTempFile::new()?;
+    std::fs::write(drifted_storage.path(), b"{}")?;
+    assert!(!bijux_dna_containers::api::image_storage_schemas_match(
+        drifted_storage.path(),
+        &storage_report_path,
+    )?);
+
+    let drifted_activation = tempfile::NamedTempFile::new()?;
+    std::fs::write(drifted_activation.path(), b"{}")?;
+    assert!(!bijux_dna_containers::api::image_activation_plan_schema_matches(
+        drifted_activation.path()
+    )?);
     Ok(())
 }
 
@@ -510,8 +550,15 @@ fn checked_in_external_artifact_schema_matches_rust_type() -> Result<()> {
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_containers::evidence::write_external_artifact_admission_schema(&path)?;
     }
-    let checked_in: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
+    assert!(bijux_dna_containers::evidence::external_artifact_admission_schema_matches(&path)?);
+    let checked_in: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&path)?)?;
     assert_eq!(checked_in, bijux_dna_containers::evidence::external_artifact_admission_schema());
+
+    let drifted = tempfile::NamedTempFile::new()?;
+    std::fs::write(drifted.path(), b"{}")?;
+    assert!(!bijux_dna_containers::evidence::external_artifact_admission_schema_matches(
+        drifted.path()
+    )?);
 
     let historical: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
         root.join("containers/contracts/schemas/external-artifact-admission.v1.json"),

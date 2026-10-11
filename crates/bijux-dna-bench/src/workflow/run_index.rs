@@ -42,7 +42,18 @@ const PORTFOLIO: &str = "benchmarks/contracts/portfolio.toml";
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BenchmarkRunIndexWriteMode {
     Write,
+    DemoteStale,
     Check,
+}
+
+impl BenchmarkRunIndexWriteMode {
+    const fn writes(self) -> bool {
+        matches!(self, Self::Write | Self::DemoteStale)
+    }
+
+    const fn demotes_stale(self) -> bool {
+        matches!(self, Self::DemoteStale)
+    }
 }
 
 struct BenchmarkRunPublicationSurface {
@@ -161,7 +172,7 @@ pub fn publish_checked_in_benchmark_run_index(
         u64::try_from(registry_bytes.len()).context("run registry size exceeds u64")?;
     let portfolio =
         load_benchmark_portfolio_from_repo(&repository_root.join(PORTFOLIO), repository_root)?;
-    let surfaces = derive_run_publication_surfaces(repository_root, &registry, &portfolio)?;
+    let surfaces = derive_run_publication_surfaces(repository_root, &registry, &portfolio, mode)?;
     ensure_no_unindexed_publication_directories(repository_root, &surfaces)?;
     let protocol_hashes = surfaces
         .iter()
@@ -210,7 +221,7 @@ pub fn publish_checked_in_benchmark_run_index(
     ] {
         let path = repository_root.join(relative);
         match mode {
-            BenchmarkRunIndexWriteMode::Write => {
+            BenchmarkRunIndexWriteMode::Write | BenchmarkRunIndexWriteMode::DemoteStale => {
                 bijux_dna_infra::atomic_write_bytes(&path, content)
                     .with_context(|| format!("write benchmark run index {relative}"))?;
             }
@@ -233,11 +244,12 @@ fn derive_run_publication_surfaces(
     repository_root: &Path,
     registry: &BenchmarkRunRegistry,
     portfolio: &BenchmarkPortfolio,
+    mode: BenchmarkRunIndexWriteMode,
 ) -> Result<Vec<BenchmarkRunPublicationSurface>> {
     registry
         .runs
         .iter()
-        .map(|row| derive_run_publication_surface(repository_root, row, portfolio))
+        .map(|row| derive_run_publication_surface(repository_root, row, portfolio, mode))
         .collect()
 }
 
@@ -245,6 +257,7 @@ fn derive_run_publication_surface(
     repository_root: &Path,
     row: &BenchmarkRunRegistryRow,
     portfolio: &BenchmarkPortfolio,
+    mode: BenchmarkRunIndexWriteMode,
 ) -> Result<BenchmarkRunPublicationSurface> {
     let definition = derive_run_definition(repository_root, row, portfolio)?;
     validate_benchmark_run_definition(&definition)
@@ -256,6 +269,7 @@ fn derive_run_publication_surface(
         &directory.join("current-publication.json"),
         &definition.identity,
         &protocol_sha256,
+        mode,
     )?;
     let limitations = selected_publication.as_ref().map_or_else(
         || unpublished_limitations(row.state, row.state_reason.as_deref()),
@@ -265,6 +279,7 @@ fn derive_run_publication_surface(
         &directory.join("case-index.json"),
         &definition.identity,
         &protocol_sha256,
+        mode,
     )?;
     let citation = BenchmarkProtocolCitation {
         schema_version: BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1.to_string(),
@@ -384,6 +399,7 @@ fn load_current_publication_selection(
     path: &Path,
     identity: &BenchmarkRunIdentity,
     protocol_sha256: &str,
+    mode: BenchmarkRunIndexWriteMode,
 ) -> Result<Option<BenchmarkRunIndexPublication>> {
     let bytes = match fs::read(path) {
         Ok(bytes) => bytes,
@@ -398,19 +414,39 @@ fn load_current_publication_selection(
     if pointer.run != *identity {
         bail!("current publication pointer targets another run: {}", path.display());
     }
-    if pointer.protocol_sha256 != protocol_sha256 {
-        if pointer.selected_publication.is_some() {
-            bail!("selected publication is stale for current protocol: {}", path.display());
-        }
+    current_protocol_selection(
+        mode,
+        &pointer.protocol_sha256,
+        protocol_sha256,
+        pointer.selected_publication,
+        path,
+    )
+}
+
+fn current_protocol_selection<T>(
+    mode: BenchmarkRunIndexWriteMode,
+    stored_protocol_sha256: &str,
+    current_protocol_sha256: &str,
+    selection: Option<T>,
+    path: &Path,
+) -> Result<Option<T>> {
+    if stored_protocol_sha256 == current_protocol_sha256 {
+        return Ok(selection);
+    }
+    if mode.demotes_stale() {
         return Ok(None);
     }
-    Ok(pointer.selected_publication)
+    if selection.is_some() {
+        bail!("selected publication is stale for current protocol: {}", path.display());
+    }
+    Ok(None)
 }
 
 fn load_case_index(
     path: &Path,
     identity: &BenchmarkRunIdentity,
     protocol_sha256: &str,
+    mode: BenchmarkRunIndexWriteMode,
 ) -> Result<BenchmarkRunCaseIndex> {
     let existing = match fs::read(path) {
         Ok(bytes) => Some(bytes),
@@ -428,7 +464,7 @@ fn load_case_index(
         if index.protocol_sha256 == protocol_sha256 {
             return Ok(index);
         }
-        if !index.cases.is_empty() {
+        if !index.cases.is_empty() && !mode.demotes_stale() {
             bail!("case index is stale for current protocol: {}", path.display());
         }
     }
@@ -450,7 +486,7 @@ fn publish_run_surface(
     surface: &BenchmarkRunPublicationSurface,
 ) -> Result<()> {
     let directory = repository_root.join("benchmarks/runs").join(&surface.directory_name);
-    if mode == BenchmarkRunIndexWriteMode::Write {
+    if mode.writes() {
         fs::create_dir_all(&directory)
             .with_context(|| format!("create benchmark run directory {}", directory.display()))?;
     }
@@ -467,7 +503,7 @@ fn publish_run_surface(
     ] {
         let path = directory.join(name);
         match mode {
-            BenchmarkRunIndexWriteMode::Write => {
+            BenchmarkRunIndexWriteMode::Write | BenchmarkRunIndexWriteMode::DemoteStale => {
                 bijux_dna_infra::atomic_write_bytes(&path, content)
                     .with_context(|| format!("write benchmark run surface {}", path.display()))?
             }
@@ -632,4 +668,34 @@ fn ensure_no_unindexed_publication_directories(
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+
+    use super::{current_protocol_selection, BenchmarkRunIndexWriteMode};
+
+    #[test]
+    fn stale_publication_demotion_is_explicit_and_preserves_strict_modes() {
+        let path = Path::new("benchmarks/runs/run-2001/current-publication.json");
+        let strict = current_protocol_selection(
+            BenchmarkRunIndexWriteMode::Write,
+            "stale-protocol",
+            "current-protocol",
+            Some("immutable-publication"),
+            path,
+        );
+        assert!(strict.is_err());
+
+        let demoted = current_protocol_selection(
+            BenchmarkRunIndexWriteMode::DemoteStale,
+            "stale-protocol",
+            "current-protocol",
+            Some("immutable-publication"),
+            path,
+        )
+        .expect("explicit stale demotion");
+        assert_eq!(demoted, None);
+    }
 }

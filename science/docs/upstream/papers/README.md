@@ -3,12 +3,16 @@
 `science/docs/upstream/papers/` is the tracked contract surface for local paper
 roots that anchor tool evidence packets to publications.
 
+Paper payloads live in the external sibling `bijux-genomics-science/` archive.
+The `science/docs/` prefix in paper locators is a logical namespace: remove it
+before resolving the path below that archive, as defined in [../README.md](../README.md).
+
 [../README.md](../README.md) defines the broader upstream archive boundary that
 this paper packet surface specializes.
 
 ## Purpose
 
-- give each cited tool paper a durable local root under `science/docs/`
+- give each cited tool paper a durable locator independent of payload storage
 - let tool-source packets point at paper roots without embedding PDFs in Git
 - support incremental completion from tool claims to publication evidence
 

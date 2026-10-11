@@ -59,6 +59,7 @@ fn db_ref_tree_matches_architecture_contract() {
             "mod.rs",
             "panels.rs",
             "reference_assets.rs",
+            "reference_catalog.rs",
             "species.rs",
         ]),
         "resolution tree must stay focused on lookup behavior"

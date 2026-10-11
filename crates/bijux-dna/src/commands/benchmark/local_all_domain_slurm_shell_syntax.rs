@@ -7,7 +7,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_BASH_N_REPORT_PATH: &str =
-    "runs/bench/slurm-dry-run/all-domains/bash-n-report.json";
+    "artifacts/runs/bench/slurm-dry-run/all-domains/bash-n-report.json";
 
 pub(crate) fn run_validate_all_domain_slurm_shell_syntax(
     args: &parse::BenchLocalValidateAllDomainSlurmShellSyntaxArgs,

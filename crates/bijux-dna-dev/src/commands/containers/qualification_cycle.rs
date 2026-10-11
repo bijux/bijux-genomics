@@ -1,12 +1,8 @@
 //! Thin operator composition for governed container qualification cycles.
 
-use std::fs;
-use std::io::ErrorKind;
-use std::path::Path;
+use anyhow::bail;
 
-use anyhow::{bail, Context};
-
-use super::{path_from_arg, write_utf8, ContainerCommandOutcome, Result, Workspace};
+use super::{path_from_arg, ContainerCommandOutcome, Result, Workspace};
 
 const USAGE: &str = "Usage:\n  bijux-dna-dev containers cycle plan <registry> <image-inventory> <publication-root> <submission-root> [<external-artifact-admission-root> [<preparation>]] <observed-at-utc>\n  bijux-dna-dev containers cycle advance <registry> <image-inventory> <publication-root> <submission-root> [<external-artifact-admission-root> [<preparation>]] <observed-at-utc>\n  bijux-dna-dev containers cycle status <registry> <image-inventory> <publication-root> <submission-root> [<external-artifact-admission-root> [<preparation>]] <observed-at-utc>\n  bijux-dna-dev containers cycle collect <registry> <image-inventory> <publication-root> <submission-root> [<external-artifact-admission-root> [<preparation>]] <observed-at-utc>\n  bijux-dna-dev containers cycle admit <registry> <image-inventory> <publication-root> <submission-root> [<external-artifact-admission-root> [<preparation>]] <observed-at-utc>\n  bijux-dna-dev containers cycle book <runs-root> <json-output> <markdown-output>\n  bijux-dna-dev containers cycle replay <result-root> <empty-publication-root> <json-output> <markdown-output>";
 
@@ -114,11 +110,15 @@ fn book(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcom
     let [runs_root, json_output, markdown_output] = args else {
         bail!(USAGE);
     };
-    publish_book(
-        &path_from_arg(workspace, runs_root),
-        &path_from_arg(workspace, json_output),
-        &path_from_arg(workspace, markdown_output),
-    )
+    let runs_root = path_from_arg(workspace, runs_root);
+    let json_output = path_from_arg(workspace, json_output);
+    let markdown_output = path_from_arg(workspace, markdown_output);
+    let index = bijux_dna_containers::api::publish_run_evidence_book(
+        &runs_root,
+        &json_output,
+        &markdown_output,
+    )?;
+    book_out(&runs_root, &json_output, &markdown_output, index.runs.len())
 }
 
 fn replay(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
@@ -127,61 +127,29 @@ fn replay(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutc
     };
     let result_root = path_from_arg(workspace, result_root);
     let publication_root = path_from_arg(workspace, publication_root);
-    require_empty_publication_root(&publication_root)?;
-    fs::create_dir_all(&publication_root)
-        .with_context(|| format!("create replay root {}", publication_root.display()))?;
-    bijux_dna_containers::api::import_run_evidence(
-        &bijux_dna_containers::api::RunEvidenceImportRequest {
-            result_root,
-            output_root: publication_root.clone(),
-            minimum_run: None,
-            maximum_run: None,
-        },
-    )?;
-    let ledger = publication_root.join("attempt-ledger.json");
-    let plan = bijux_dna_containers::api::plan_final_run_evidence(&publication_root, &ledger)?;
-    bijux_dna_containers::api::apply_final_run_evidence_plan(&publication_root, &ledger, &plan)?;
-    publish_book(
+    let json_output = path_from_arg(workspace, json_output);
+    let markdown_output = path_from_arg(workspace, markdown_output);
+    let index = bijux_dna_containers::api::replay_run_evidence_book(
+        &result_root,
         &publication_root,
-        &path_from_arg(workspace, json_output),
-        &path_from_arg(workspace, markdown_output),
-    )
+        &json_output,
+        &markdown_output,
+    )?;
+    book_out(&publication_root, &json_output, &markdown_output, index.runs.len())
 }
 
-fn publish_book(
-    runs_root: &Path,
-    json_output: &Path,
-    markdown_output: &Path,
+fn book_out(
+    runs_root: &std::path::Path,
+    json_output: &std::path::Path,
+    markdown_output: &std::path::Path,
+    selected_run_count: usize,
 ) -> Result<ContainerCommandOutcome> {
-    let index = bijux_dna_containers::api::derive_run_evidence_index(runs_root)?;
-    write_utf8(json_output, &(serde_json::to_string_pretty(&index)? + "\n"))?;
-    write_utf8(markdown_output, &bijux_dna_containers::api::render_run_evidence_markdown(&index))?;
     json_out(&serde_json::json!({
         "runs_root": runs_root,
-        "selected_run_count": index.runs.len(),
+        "selected_run_count": selected_run_count,
         "json_output": json_output,
         "markdown_output": markdown_output,
     }))
-}
-
-fn require_empty_publication_root(path: &Path) -> Result<()> {
-    match fs::symlink_metadata(path) {
-        Ok(metadata) if metadata.file_type().is_symlink() || !metadata.is_dir() => {
-            bail!("replay publication root is not a regular directory: {}", path.display())
-        }
-        Ok(_) => {
-            if fs::read_dir(path)
-                .with_context(|| format!("read replay root {}", path.display()))?
-                .next()
-                .is_some()
-            {
-                bail!("replay publication root must be empty: {}", path.display());
-            }
-            Ok(())
-        }
-        Err(error) if error.kind() == ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(error).with_context(|| format!("inspect replay root {}", path.display())),
-    }
 }
 
 fn json_out(value: &impl serde::Serialize) -> Result<ContainerCommandOutcome> {
@@ -201,14 +169,6 @@ mod tests {
         for operation in ["plan", "advance", "status", "collect", "admit", "book", "replay"] {
             assert!(output.stdout.contains(operation));
         }
-        Ok(())
-    }
-
-    #[test]
-    fn replay_rejects_nonempty_publication_root() -> Result<()> {
-        let temporary = bijux_dna_infra::temp_dir("container-cycle-replay")?;
-        fs::write(temporary.path().join("retained.json"), b"{}\n")?;
-        assert!(require_empty_publication_root(temporary.path()).is_err());
         Ok(())
     }
 }

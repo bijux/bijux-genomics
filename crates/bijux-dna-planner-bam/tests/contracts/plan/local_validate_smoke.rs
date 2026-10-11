@@ -40,7 +40,9 @@ fn local_validate_smoke_plans_use_governed_bam_fixtures() -> Result<()> {
     assert!(passing.required_refusal_codes.is_empty());
     assert_eq!(
         passing.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools")
+        PathBuf::from(
+            "artifacts/runs/bench/local-smoke/bam.validate/core-v1-coordinate-pass/samtools"
+        )
     );
 
     let refusal = plans
@@ -58,7 +60,9 @@ fn local_validate_smoke_plans_use_governed_bam_fixtures() -> Result<()> {
     assert_eq!(refusal.required_refusal_codes, vec!["malformed_alignment_record".to_string()]);
     assert_eq!(
         refusal.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/bam.validate/core-v1-malformed-refusal/samtools")
+        PathBuf::from(
+            "artifacts/runs/bench/local-smoke/bam.validate/core-v1-malformed-refusal/samtools"
+        )
     );
 
     let validation_output = refusal
@@ -71,7 +75,7 @@ fn local_validate_smoke_plans_use_governed_bam_fixtures() -> Result<()> {
     assert_eq!(
         validation_output.path,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/validation.json"
+            "artifacts/runs/bench/local-smoke/bam.validate/core-v1-malformed-refusal/samtools/validation.json"
         )
     );
 

@@ -27,7 +27,7 @@ use crate::commands::cli::render;
 const LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_VERSION: &str =
     BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_STAGE_BENCHMARK_ARRAY_SCRIPT_PATH: &str =
-    "runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch";
+    "artifacts/runs/bench/hpc-dry-run/slurm/stage-benchmark-array.sbatch";
 const STAGE_BENCHMARK_ARRAY_JOB_NAME: &str = "bijux-stage-benchmark-array";
 
 pub(crate) type LocalHpcStageBenchmarkArrayRow = BenchmarkLocalHpcStageBenchmarkArrayRow;

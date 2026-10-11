@@ -33,6 +33,36 @@ pub struct CorpusMaterializationRequest {
     pub admitted_at_utc: String,
 }
 
+/// Project the benchmark-owned corpus materialization command for an execution backend.
+///
+/// # Errors
+/// Returns an error when the request cannot authorize corpus materialization.
+pub fn corpus_materialization_command_arguments(
+    request: &CorpusMaterializationRequest,
+) -> Result<Vec<String>> {
+    validate_request(request)?;
+    let data_root = canonical_directory(&request.data_root, "governed data root")?;
+    let plan_path = canonical_file_under(&request.plan_path, &data_root, "acquisition plan")?;
+    Ok(vec![
+        "bench".to_string(),
+        "materialize-fastq-corpus".to_string(),
+        "--plan".to_string(),
+        plan_path.display().to_string(),
+        "--data-root".to_string(),
+        data_root.display().to_string(),
+        "--repository-commit".to_string(),
+        request.repository_commit.clone(),
+        "--jobs".to_string(),
+        request.maximum_parallelism.to_string(),
+        "--retries".to_string(),
+        request.retries.to_string(),
+        "--timeout-seconds".to_string(),
+        request.timeout_seconds.to_string(),
+        "--admitted-at-utc".to_string(),
+        request.admitted_at_utc.clone(),
+    ])
+}
+
 #[derive(Debug, Clone)]
 struct MaterializationTarget {
     sample_index: usize,
@@ -60,14 +90,13 @@ pub fn materialize_fastq_corpus(
         .with_context(|| format!("parse acquisition plan {}", plan_path.display()))?;
     validate_corpus_acquisition_plan(&plan).context("validate corpus acquisition plan")?;
 
-    let lock_path = data_root
-        .join("evidence/materialization-locks")
-        .join(format!("{}.lock", plan.portfolio_id));
+    let lock_path =
+        data_root.join("evidence/materialization-locks").join(format!("{}.lock", plan.corpus_id));
     let _lock = bijux_dna_infra::FileLock::try_acquire(&lock_path)
         .context("acquire corpus materialization lock")?;
     let targets = materialization_targets(&data_root, &plan);
     let catalog_path =
-        catalog_snapshot_path(&data_root, &request.repository_commit, &plan.portfolio_id);
+        catalog_snapshot_path(&data_root, &request.repository_commit, &plan.corpus_id);
     if let Some(catalog) = load_existing_catalog(&catalog_path)? {
         return revalidate_existing_catalog(
             request,
@@ -247,8 +276,8 @@ fn validate_request(request: &CorpusMaterializationRequest) -> Result<()> {
     Ok(())
 }
 
-fn catalog_snapshot_path(data_root: &Path, repository_commit: &str, portfolio_id: &str) -> PathBuf {
-    data_root.join("catalog/snapshots").join(repository_commit).join(format!("{portfolio_id}.json"))
+fn catalog_snapshot_path(data_root: &Path, repository_commit: &str, corpus_id: &str) -> PathBuf {
+    data_root.join("catalog/snapshots").join(repository_commit).join(format!("{corpus_id}.json"))
 }
 
 fn materialization_targets(
@@ -264,7 +293,7 @@ fn materialization_targets(
                 file_index,
                 path: data_root
                     .join("corpora")
-                    .join(&plan.portfolio_id)
+                    .join(&plan.corpus_id)
                     .join("raw")
                     .join(&sample.accession)
                     .join(&file.name),

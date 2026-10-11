@@ -54,8 +54,8 @@ pub fn write_local_estimate_library_complexity_prealign_smoke_report() -> Result
         bijux_dna_planner_fastq::stage_api::local_estimate_library_complexity_prealign_smoke_plans(
             &repo_root,
         )?;
-    let output_root =
-        repo_root.join("runs/bench/local-smoke/fastq.estimate_library_complexity_prealign");
+    let output_root = repo_root
+        .join("artifacts/runs/bench/local-smoke/fastq.estimate_library_complexity_prealign");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let case_reports = cases

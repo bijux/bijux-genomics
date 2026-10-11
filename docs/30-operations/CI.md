@@ -45,6 +45,18 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
   [configs/rust/nextest.toml](../../configs/rust/nextest.toml) and
   [configs/coverage/runner.toml](../../configs/coverage/runner.toml).
 
+## Full Workspace Shards
+
+- `configs/ci/full-shards.json` owns the exactly-once five-way hash partition contract.
+- The warm-cache reference allocation is 32 CPUs and 128 GiB. The archive build uses eight jobs;
+  shard execution begins only after the immutable archive closes, so these resources do not
+  contend with shard processes.
+- `ci-test-all-sharded` runs all five partitions by default. Repeated `--shard <id>` arguments are
+  reserved for classified affected recovery and must publish a receipt that disclaims complete
+  workspace coverage.
+- Timing receipts must report archive duration, each selected shard duration, checksum stability,
+  wall time, cache authority, and whether the execution covered the complete contract.
+
 ## Artifact Contract
 - See [docs/30-operations/ISOLATION.md](ISOLATION.md).
 
@@ -72,3 +84,21 @@ Applies only to the files and workflows referenced in this document.
 ## Failure modes
 - Running CI-related scripts outside the shared artifact contract fails by policy.
 - HPC path assumptions in docs/scripts can cause false failures when profile roots differ.
+
+Full workspace archive and shard stdout/stderr are written directly beneath
+`artifacts/ci/full-shards/` as `archive-build.stdout.log`, `archive-build.stderr.log`,
+and `hash-N-of-5.stdout.log` / `hash-N-of-5.stderr.log`. Inspect these files while a
+run is active. Completed combined logs and timing receipts remain available at
+their existing paths. A new invocation replaces logs with the same labels; preserve
+needed evidence before rerunning. A missing final receipt after interruption is
+not a successful gate, even when partial logs contain passing tests.
+
+The full-shard runner emits `bijux.ci.full_gate_timing.v4`. After archive creation, the producer lists its complete all-feature test inventory using the same source and Cargo target. This is an additional measured discovery operation. Shards emit pinned `libtest-json-plus` 0.1 events with zero retries and execute ignored tests. The final receipt includes the inventory digest, expected ordinary/ignored counts, missing/duplicate/failed cases, and invalid shard reports. Full coverage requires exact observed membership and successful complete event sequences, as well as all declared shards being selected. A selected recovery shard can pass without claiming full coverage.
+
+`all_declared_shards_selected` records scheduling; `complete_contract_coverage` requires observed coverage. A fresh running receipt invalidates earlier success before producer execution; absent, running, failed or mismatched-source evidence cannot establish completion. The source commit and clean-worktree observation accompany the result; final qualification still requires an immutable clean candidate. The pinned event format is experimental upstream and must be qualified alongside any executor upgrade.
+
+Nextest 0.9.100 can repeat suite blocks and retain an ignored counter when ignored cases execute. Admission accepts those bounded suite blocks while checking actual start/finish events and passed/failed counters. Every ignored case still needs its own successful result in the exact global case set; summary counters never substitute for execution.
+
+Full-shard source preparation captures tracked changes once before archive production. Every isolated workspace checks out the captured commit and applies the same binary patch when needed; clean sources require no second file copy. Receipts include the patch digest and archive/shard preparation durations. Untracked files are excluded from the source snapshot.
+
+Before discovery, each full shard excludes binary IDs with no cases in its existing hash partition. The plan uses the qualified Nextest 0.9.100 xxHash64 case-name protocol; the native hash partition remains enabled. Receipts retain discovery plans, and selected-shard success requires exactly the planned case outcomes. A different executor version requires qualification before this optimization is admitted. The protocol is defined in [the pinned Nextest partition implementation](https://github.com/nextest-rs/nextest/blob/cargo-nextest-0.9.100/nextest-runner/src/partition.rs).

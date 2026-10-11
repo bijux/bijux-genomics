@@ -42,7 +42,7 @@ fn local_complexity_smoke_plans_use_governed_projection_fixture() -> Result<()> 
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq"
+            "artifacts/runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq"
         )
     );
     assert_eq!(case.plan.params["min_reads"], serde_json::json!(3));
@@ -70,7 +70,7 @@ fn local_complexity_smoke_plans_use_governed_projection_fixture() -> Result<()> 
     assert_eq!(
         complexity_curve_output.path,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity_curve.tsv"
+            "artifacts/runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity_curve.tsv"
         )
     );
 
@@ -84,7 +84,7 @@ fn local_complexity_smoke_plans_use_governed_projection_fixture() -> Result<()> 
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity.summary.json"
+            "artifacts/runs/bench/local-smoke/bam.complexity/human_like_complexity_projection/preseq/complexity.summary.json"
         )
     );
 

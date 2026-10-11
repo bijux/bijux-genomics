@@ -9,9 +9,9 @@
     "identity_policy": "existing_ids_immutable"
   },
   "source_contract_sha256": {
-    "benchmarks/contracts/portfolio.toml": "c8429d06aad85727f2ca83b4c0a0fb28a1206b24d19ee6a10333f2a074896dbd",
-    "benchmarks/contracts/stage-campaigns.toml": "0bf439d8dba796f5f1cca0651cfd6054944a7e3857e024ff1f5f514e0ce08977",
-    "benchmarks/contracts/stage-interfaces.toml": "78a5b9742e7cb328488fbfb6f38ddf83b62b25aef55af39965b3fa58e087e39d",
+    "benchmarks/contracts/portfolio.toml": "03fb5b5edeb33aaa39a689fd6d7530a5004b3cb0252ad04ddf82443402e1a5d1",
+    "benchmarks/contracts/stage-campaigns.toml": "60e526bf1da3ee4f4b411535803a1c4cd339d8ccd2417e4280b9e90695dce873",
+    "benchmarks/contracts/stage-interfaces.toml": "63ba55a3542258bc8b629a169997a51dde94682dd3abc0f03748751931b579b4",
     "containers/contracts/catalog.toml": "7315eeaae2364f99df38ad66fa46d9a2b3e3dc64d8757619b714df94de9d780a"
   },
   "summary": {
@@ -40,7 +40,9 @@
         "population_inference_truth"
       ],
       "accepted_input_contracts": [
-        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+        "bijux.auxiliary.artifact.table.v1",
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+        "bijux.reference.artifact.fasta.v1"
       ],
       "output_contract": "bijux.benchmark.bam.genotyping.bundle.v1",
       "normalized_result_contract": "benchmarks/contracts/schemas/bam-genotyping-result.schema.json",

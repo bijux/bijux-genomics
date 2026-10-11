@@ -29,6 +29,9 @@ persistence without defining a parallel state machine.
 - Publish no-clobber scientific expectation artifacts under their catalog digest identity.
 - Prepare source-locked stage-specific inputs, commands, parameter evidence, acceptance rules,
   and required-file closures without executing them.
+- Inspect caller-declared source files, directories, and index-prefix bundles into
+  typed content identities. Compound digests retain sorted logical member paths;
+  directory cycles and filesystem failures are rejected before staging.
 
 ## Forbidden Effects
 

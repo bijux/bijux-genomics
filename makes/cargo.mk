@@ -363,7 +363,7 @@ bench-bam-tool-scores-dry-run: ## Render then validate the governed BAM tool sco
 	@$(MAKE) bench-bam-tool-scores-render
 	@$(MAKE) bench-bam-tool-scores-validate
 
-bench-hpc-asset-staging-render: ## Render the governed HPC asset staging manifest under runs/bench/hpc-dry-run/.
+bench-hpc-asset-staging-render: ## Render the governed HPC asset staging manifest under artifacts/runs/bench/hpc-dry-run/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-asset-staging-render
 
@@ -402,7 +402,7 @@ bench-hpc-dry-run-ready-dry-run: ## Render then validate the governed final HPC 
 	@$(MAKE) bench-hpc-dry-run-ready-render
 	@$(MAKE) bench-hpc-dry-run-ready-validate
 
-bench-hpc-scratch-layout-render: ## Render the governed HPC scratch layout under runs/bench/hpc-dry-run/.
+bench-hpc-scratch-layout-render: ## Render the governed HPC scratch layout under artifacts/runs/bench/hpc-dry-run/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-scratch-layout-render
 
@@ -415,7 +415,7 @@ bench-hpc-scratch-layout-dry-run: ## Render then validate the governed HPC scrat
 	@$(MAKE) bench-hpc-scratch-layout-render
 	@$(MAKE) bench-hpc-scratch-layout-validate
 
-bench-hpc-execution-resolver-render: ## Render the governed HPC execution resolver under runs/bench/hpc-dry-run/.
+bench-hpc-execution-resolver-render: ## Render the governed HPC execution resolver under artifacts/runs/bench/hpc-dry-run/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-execution-resolver-render
 
@@ -428,7 +428,7 @@ bench-hpc-execution-resolver-dry-run: ## Render then validate the governed HPC e
 	@$(MAKE) bench-hpc-execution-resolver-render
 	@$(MAKE) bench-hpc-execution-resolver-validate
 
-bench-hpc-dependency-simulation-render: ## Render the governed HPC dependency simulation under runs/bench/hpc-dry-run/.
+bench-hpc-dependency-simulation-render: ## Render the governed HPC dependency simulation under artifacts/runs/bench/hpc-dry-run/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-dependency-simulation-render
 
@@ -441,7 +441,7 @@ bench-hpc-dependency-simulation-dry-run: ## Render then validate the governed HP
 	@$(MAKE) bench-hpc-dependency-simulation-render
 	@$(MAKE) bench-hpc-dependency-simulation-validate
 
-bench-hpc-resume-simulation-render: ## Render the governed HPC resume simulation under runs/bench/hpc-dry-run/.
+bench-hpc-resume-simulation-render: ## Render the governed HPC resume simulation under artifacts/runs/bench/hpc-dry-run/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-resume-simulation-render
 
@@ -454,7 +454,7 @@ bench-hpc-resume-simulation-dry-run: ## Render then validate the governed HPC re
 	@$(MAKE) bench-hpc-resume-simulation-render
 	@$(MAKE) bench-hpc-resume-simulation-validate
 
-bench-hpc-result-collection-simulation-render: ## Render the governed HPC result-collection simulation under runs/bench/hpc-dry-run/.
+bench-hpc-result-collection-simulation-render: ## Render the governed HPC result-collection simulation under artifacts/runs/bench/hpc-dry-run/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-result-collection-simulation-render
 
@@ -467,7 +467,7 @@ bench-hpc-result-collection-simulation-dry-run: ## Render then validate the gove
 	@$(MAKE) bench-hpc-result-collection-simulation-render
 	@$(MAKE) bench-hpc-result-collection-simulation-validate
 
-bench-hpc-stage-benchmark-array-render: ## Render the governed HPC stage benchmark SLURM array under runs/bench/hpc-dry-run/slurm/.
+bench-hpc-stage-benchmark-array-render: ## Render the governed HPC stage benchmark SLURM array under artifacts/runs/bench/hpc-dry-run/slurm/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-stage-benchmark-array-render
 
@@ -480,7 +480,7 @@ bench-hpc-stage-benchmark-array-dry-run: ## Render then validate the governed HP
 	@$(MAKE) bench-hpc-stage-benchmark-array-render
 	@$(MAKE) bench-hpc-stage-benchmark-array-validate
 
-bench-hpc-pipeline-node-array-render: ## Render the governed HPC pipeline node SLURM array under runs/bench/hpc-dry-run/slurm/.
+bench-hpc-pipeline-node-array-render: ## Render the governed HPC pipeline node SLURM array under artifacts/runs/bench/hpc-dry-run/slurm/.
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets bench-hpc-pipeline-node-array-render
 

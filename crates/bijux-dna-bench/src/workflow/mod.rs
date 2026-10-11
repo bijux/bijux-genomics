@@ -42,6 +42,8 @@ mod hardening_campaign;
 mod local_corpus_skip;
 mod options;
 mod parameter_authority;
+mod pipeline_profiles;
+mod progress_ledger;
 mod protocol_portfolio;
 mod publication_receipt;
 mod publication_registry;
@@ -57,6 +59,7 @@ mod scientific_readiness;
 mod source_authority;
 mod stage_coverage;
 mod stage_families;
+mod stage_inventory;
 mod stage_report;
 mod stage_result;
 mod stage_tool_closure;
@@ -71,6 +74,8 @@ mod vcf_stage_catalog;
 mod vcf_stage_matrix;
 mod workspace_convergence;
 mod workspace_layout;
+
+pub use pipeline_profiles::{validate_benchmark_pipeline_profiles, PipelineProfileEvidence};
 
 pub use alias_resolution::{
     choose_canonical_tool_id, legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases,
@@ -207,11 +212,13 @@ pub use container_report_portfolio::{
     render_container_report_portfolio_index_markdown,
 };
 pub use corpus_acquisition::{
-    acquire_fastq_corpus, derive_fastq_corpus_acquisition_plan, load_fastq_corpus_source_spec,
-    CorpusAcquisitionRequest,
+    acquire_fastq_corpus, acquire_selected_fastq_collection, derive_fastq_corpus_acquisition_plan,
+    derive_selected_fastq_collection_acquisition_plan, load_fastq_corpus_source_spec,
+    CorpusAcquisitionRequest, SelectedFastqCollectionAcquisitionRequest,
 };
 pub use corpus_materialization::{
-    materialize_fastq_corpus, CorpusMaterializationPublication, CorpusMaterializationRequest,
+    corpus_materialization_command_arguments, materialize_fastq_corpus,
+    CorpusMaterializationPublication, CorpusMaterializationRequest,
 };
 pub use cross_campaign::{
     derive_cross_benchmark_campaign, load_cross_benchmark_campaign_report,
@@ -276,6 +283,7 @@ pub use local_corpus_skip::{
     BenchmarkLocalCorpusSkipPublicationRequest,
 };
 pub use options::BenchRunOptions;
+pub use progress_ledger::load_benchmark_progress_ledger;
 pub use protocol_portfolio::{
     derive_benchmark_protocol_portfolio, publish_checked_in_benchmark_protocol_portfolio,
     BenchmarkProtocolPortfolio, BenchmarkProtocolPortfolioWriteMode,
@@ -362,4 +370,8 @@ pub use workspace_layout::{
     benchmark_workspace_layout_corpus_dir_name, benchmark_workspace_layout_report,
     publish_benchmark_workspace_layout_status, render_benchmark_workspace_layout_markdown,
     summarize_benchmark_workspace_root_pair,
+};
+
+pub use stage_inventory::{
+    render_benchmark_all_domain_stage_inventory, DEFAULT_BENCHMARK_ALL_DOMAIN_STAGE_LIST_PATH,
 };

@@ -45,6 +45,7 @@ fn publication_index_targets() -> BTreeSet<String> {
 #[test]
 fn policy__contracts__root_science_docs_policy__science_index_links_root_docs_exactly() {
     let expected = BTreeSet::from([
+        "DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md".to_string(),
         "SCIENTIFIC_DECISIONS.md".to_string(),
         "SCIENTIFIC_DEFAULTS.md".to_string(),
         "PUBLICATION_ASSETS.md".to_string(),

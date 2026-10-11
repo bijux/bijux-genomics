@@ -2,16 +2,16 @@
 <!-- source: bijux-dna-bench::workflow::publication_registry -->
 # Benchmark publication registry
 
-Path presence does not confer current benchmark authority. Every permanent run is explicit below: current requires an admitted selected report and publication receipt, while absent evidence remains missing. Source-addressed legacy stage reports remain historical; tracked legacy readiness output is quarantined until removed.
+Path presence does not confer current benchmark authority. Every permanent run is explicit below: current requires an admitted selected report and publication receipt, while absent evidence remains missing. Historical publications remain immutable in STUDY and are not copied into this current-only report namespace; tracked legacy readiness output is quarantined until removed.
 
-- Current governance products: **6**
-- Current run reports: **8**
-- Missing run reports: **63**
+- Current governance products: **7**
+- Current run reports: **7**
+- Missing run reports: **64**
 - Stale run reports: **0**
 - Failed run reports: **0**
 - Superseded run reports: **0**
 - Active stage reports: **0**
-- Historical stage reports: **11**
+- Historical stage reports: **0**
 - Quarantined tracked files: **0**
 
 ## Current products
@@ -24,12 +24,13 @@ Path presence does not confer current benchmark authority. Every permanent run i
 | `stage-benchmark-coverage` | `benchmarks/reports/stage-benchmark-coverage.json` | `benchmarks/reports/stage-benchmark-coverage.md` |
 | `stage-tool-closure` | `benchmarks/reports/STAGE_TOOL_CLOSURE.json` | `benchmarks/reports/STAGE_TOOL_CLOSURE.md` |
 | `scientific-benchmark-readiness` | `benchmarks/reports/scientific-benchmark-readiness.json` | `benchmarks/reports/scientific-benchmark-readiness.md` |
+| `data-portfolio` | `benchmarks/reports/DATA_PORTFOLIO.json` | `benchmarks/reports/DATA_PORTFOLIO.md` |
 
 ## Permanent run reports
 
 | Run | Stage | Disposition | Report | Publication receipt |
 |---|---|---|---|---|
-| `run-2001` | `bam.genotyping` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/run-2001-bam-genotyping.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/publication-receipt.json` |
+| `run-2001` | `bam.genotyping` | missing | `—` | `—` |
 | `run-2002` | `bam.coverage` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/run-2002-bam-coverage.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/publication-receipt.json` |
 | `run-2003` | `bam.endogenous_content` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/run-2003-bam-endogenous-content.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/publication-receipt.json` |
 | `run-2004` | `bam.mapping_summary` | current | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/run-2004-bam-mapping-summary.json` | `study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/publication-receipt.json` |
@@ -105,17 +106,6 @@ Path presence does not confer current benchmark authority. Every permanent run i
 
 | Run | Stage | Source commit | Disposition | JSON |
 |---|---|---|---|---|
-| `run-2001` | `bam.genotyping` | `9348a2417384417ab59052193b56717b69cb0309` | historical | `benchmarks/reports/historical/9348a2417384417ab59052193b56717b69cb0309/run-2001-bam-genotyping.json` |
-| `run-2002` | `bam.coverage` | `8282c2232d021ce60f07edb1ddc65d85598836ed` | historical | `benchmarks/reports/historical/8282c2232d021ce60f07edb1ddc65d85598836ed/run-2002-bam-coverage.json` |
-| `run-2002` | `bam.coverage` | `b087cd5ca6412b19a51cb43e7bf4eb098235b7db` | historical | `benchmarks/reports/historical/b087cd5ca6412b19a51cb43e7bf4eb098235b7db/run-2002-bam-coverage.json` |
-| `run-2003` | `bam.endogenous_content` | `27d88388e2fed29f96478c32ec5a5e8c73a7747d` | historical | `benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2003-bam-endogenous-content.json` |
-| `run-2003` | `bam.endogenous_content` | `4e24ded282af44fb985dd869ba944684538814aa` | historical | `benchmarks/reports/historical/4e24ded282af44fb985dd869ba944684538814aa/run-2003-bam-endogenous-content.json` |
-| `run-2004` | `bam.mapping_summary` | `27d88388e2fed29f96478c32ec5a5e8c73a7747d` | historical | `benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2004-bam-mapping-summary.json` |
-| `run-2004` | `bam.mapping_summary` | `520efb95cf753b65fca168f0610b1b4138932031` | historical | `benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2004-bam-mapping-summary.json` |
-| `run-2004` | `bam.mapping_summary` | `e1c74a4d910ae0fcf0855a0b776830188ea2eed4` | historical | `benchmarks/reports/historical/e1c74a4d910ae0fcf0855a0b776830188ea2eed4/run-2004-bam-mapping-summary.json` |
-| `run-2011` | `bam.duplication_metrics` | `27d88388e2fed29f96478c32ec5a5e8c73a7747d` | historical | `benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2011-bam-duplication-metrics.json` |
-| `run-2042` | `fastq.profile_read_lengths` | `520efb95cf753b65fca168f0610b1b4138932031` | historical | `benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2042-fastq-profile-read-lengths.json` |
-| `run-2043` | `fastq.profile_reads` | `520efb95cf753b65fca168f0610b1b4138932031` | historical | `benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2043-fastq-profile-reads.json` |
 
 ## Quarantined surfaces
 

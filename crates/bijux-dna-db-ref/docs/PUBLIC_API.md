@@ -45,3 +45,5 @@ The remaining source modules are crate-private implementation namespaces:
    through this crate.
 5. Keep materialization planning pure and read-only; byte transfer and fixture writing belong to
    execution-owning crates.
+
+`find_species_authority_at` and `find_reference_bundle_identity_at` query an explicitly selected repository root through the complete owner catalog schemas. Missing identities return `None`; missing/malformed catalogs and ambiguous matching identities return errors. `ReferenceBundleIdentity` is a metadata projection, not artifact-readiness evidence.

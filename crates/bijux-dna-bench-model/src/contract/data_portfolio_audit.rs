@@ -161,6 +161,42 @@ fn validate_source_specs(corpus: &BenchmarkCorpusDataAudit) -> Result<(), BenchE
             return Err(BenchError::InvalidPolicy("duplicate or empty source-spec path".into()));
         }
         validate_hex(&source.sha256, 64, "source-spec digest")?;
+        let selection = [
+            source.selection_group_count.is_some(),
+            source.planned_sample_count.is_some(),
+            source.planned_accession_count.is_some(),
+            source.selected_accession_count.is_some(),
+            source.selection_complete.is_some(),
+        ];
+        if selection.iter().any(|present| *present) && !selection.iter().all(|present| *present) {
+            return Err(BenchError::InvalidPolicy(
+                "source-spec selection authority is partial".into(),
+            ));
+        }
+        if let (
+            Some(groups),
+            Some(planned_samples),
+            Some(planned_accessions),
+            Some(selected),
+            Some(complete),
+        ) = (
+            source.selection_group_count,
+            source.planned_sample_count,
+            source.planned_accession_count,
+            source.selected_accession_count,
+            source.selection_complete,
+        ) {
+            if groups == 0
+                || planned_samples == 0
+                || planned_accessions < planned_samples
+                || selected > planned_accessions
+                || (complete != (selected == planned_accessions))
+            {
+                return Err(BenchError::InvalidPolicy(
+                    "source-spec selection authority is inconsistent".into(),
+                ));
+            }
+        }
     }
     Ok(())
 }

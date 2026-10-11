@@ -1,0 +1,79 @@
+{
+  "$defs": {
+    "BenchmarkLocalPipelineDagNode": {
+      "additionalProperties": false,
+      "properties": {
+        "depends_on": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "external_inputs": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "outputs": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "readiness_kind": {
+          "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "upstream_inputs": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "node_id",
+        "stage_id",
+        "readiness_kind",
+        "summary"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "nodes": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalPipelineDagNode"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "nodes"
+  ],
+  "title": "BenchmarkLocalPipelineDagStagesConfig",
+  "type": "object"
+}

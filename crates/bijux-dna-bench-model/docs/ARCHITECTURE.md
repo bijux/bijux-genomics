@@ -10,6 +10,8 @@ and decision records, and statistical helpers.
 - `src/model/` owns observations, suites, decisions, summaries, graph nodes, stage-profile data
   fitness, persisted container report-portfolio identities, permanent-run report dispositions,
   normalized-result records and execution-metrics envelopes, and suite support records.
+- `src/model/local_pipeline_dag/` separates TOML/YAML configuration inputs from persisted validation reports; three configuration schemas share the model schema registry.
+- `src/contract/local_pipeline_dag/` separates input declaration admission from persisted report validation. Project sources, ancient DNA tool policy and reference/variant asset declarations are checked without repository IO.
 - `src/contract/` validates records, suite shape, stage governance, graph edges, data-fitness and
   portfolio closure, parameter bindings, container and benchmark report freshness, diversity
   requirements, and analysis requirements.
@@ -45,3 +47,5 @@ serialization, validation errors, and seeded sampling.
 
 `docs/COMMANDS.md` lists model-level operations owned by this crate and must
 stay aligned with public API and contract tests.
+
+Local pipeline execution-context admission is a pure contract: identity, frontend/compute surface closure, duplicate rejection and optional campaign-path presence. Repository site-profile availability is evaluated by the benchmark repository adapter after this contract passes.

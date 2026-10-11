@@ -11,8 +11,11 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
+    let runtime_root = tempfile::tempdir().expect("runtime tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+    support::configure_isolated_runtime_resolution(&mut command, runtime_root.path());
+    let output = command
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -52,7 +55,7 @@ fn bench_readiness_version_probes_report_governed_probe_contracts() {
         support::json_u64(&payload, "unavailable_count").expect("unavailable count");
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
     assert_eq!(ready_count + unavailable_count, row_count);
-    assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(0));
 
     let parser_kind_counts = payload
         .get("parser_kind_counts")
@@ -104,20 +107,21 @@ fn bench_readiness_version_probes_report_governed_probe_contracts() {
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5")
-            && row.get("version_probe_status").and_then(serde_json::Value::as_str)
-                == Some("unavailable_with_reason")
-            && row
-                .get("unavailable_reason")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|reason| reason.contains("external container source"))
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("apptainer_image")
+            && row.get("resolution_target").and_then(serde_json::Value::as_str).is_some_and(
+                |target| target.starts_with("containers/apptainer/shapeit5.def@sha256:"),
+            )
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink")
-            && row.get("version_probe_status").and_then(serde_json::Value::as_str)
-                == Some("unavailable_with_reason")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("apptainer_image")
             && row
-                .get("unavailable_reason")
+                .get("resolution_target")
                 .and_then(serde_json::Value::as_str)
-                .is_some_and(|reason| reason.contains("planned container source"))
+                .is_some_and(|target| target.starts_with("containers/apptainer/plink.def@sha256:"))
     }));
 }

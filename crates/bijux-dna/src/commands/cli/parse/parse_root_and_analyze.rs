@@ -235,7 +235,7 @@ pub struct AnalyzeBenchArgs {
 
 #[derive(Debug, Args)]
 pub struct AnalyzeRunsArgs {
-    #[arg(long, default_value = "runs/bijux-dna-runs/index.jsonl")]
+    #[arg(long, default_value = "artifacts/runs/bijux-dna-runs/index.jsonl")]
     pub index: PathBuf,
     #[arg(long)]
     pub stage: Option<String>,

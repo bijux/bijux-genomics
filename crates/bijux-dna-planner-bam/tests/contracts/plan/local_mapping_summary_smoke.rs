@@ -41,7 +41,7 @@ fn local_mapping_summary_smoke_plans_use_governed_partial_mapping_fixture() -> R
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools"
+            "artifacts/runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools"
         )
     );
 
@@ -64,7 +64,7 @@ fn local_mapping_summary_smoke_plans_use_governed_partial_mapping_fixture() -> R
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/mapping.summary.json"
+            "artifacts/runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/mapping.summary.json"
         )
     );
 
@@ -277,7 +277,7 @@ fn mapping_summary_plan_accepts_picard_governed_planning_contract() -> Result<()
         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_partial_mapping.sam",
     );
     let out_dir = PathBuf::from(
-        "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/picard",
+        "artifacts/runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/picard",
     );
     let plan = bijux_dna_planner_bam::tool_adapters::stages_pre::mapping_summary::plan(
         &tool_spec, &bam, &out_dir,
@@ -296,7 +296,7 @@ fn mapping_summary_plan_accepts_picard_governed_planning_contract() -> Result<()
     assert_eq!(
         stats_output.path,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/picard/alignment_summary.metrics.txt"
+            "artifacts/runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/picard/alignment_summary.metrics.txt"
         )
     );
 

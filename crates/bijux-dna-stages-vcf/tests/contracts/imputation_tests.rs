@@ -299,7 +299,7 @@ fn impute_backend_selector_prefers_glimpse_for_gl_regime_when_requested_beagle()
 }
 
 #[test]
-fn impute_backend_selector_prefers_impute5_when_panel_lacks_m3vcf() {
+fn impute_backend_selector_prefers_minimac_when_panel_has_msav() {
     let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
     let input = dir.path().join("phased_gt_input.vcf");
     std::fs::write(
@@ -336,13 +336,13 @@ fn impute_backend_selector_prefers_impute5_when_panel_lacks_m3vcf() {
             chunk_overlap_bp: 0,
         },
     )
-    .unwrap_or_else(|err| panic!("run impute5 selector test: {err}"));
+    .unwrap_or_else(|err| panic!("run minimac selector test: {err}"));
     let manifest_raw = std::fs::read_to_string(&out.imputation_manifest_json)
         .unwrap_or_else(|err| panic!("read imputation manifest: {err}"));
     let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
         .unwrap_or_else(|err| panic!("parse imputation manifest: {err}"));
-    assert_eq!(manifest.get("backend").and_then(|v| v.as_str()).unwrap_or_default(), "impute5");
-    assert!(manifest["minimac_reference_conversion_cache"].is_null());
+    assert_eq!(manifest.get("backend").and_then(|v| v.as_str()).unwrap_or_default(), "minimac4");
+    assert!(!manifest["minimac_reference_conversion_cache"].is_null());
 }
 
 #[test]
@@ -471,7 +471,7 @@ fn impute_stage_refuses_unsupported_ploidy_models() {
 }
 
 #[test]
-fn minimac_path_refuses_panel_without_m3vcf_support() {
+fn minimac_path_accepts_panel_with_msav_support() {
     let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
     let input = dir.path().join("phased_input.vcf");
     std::fs::write(
@@ -488,7 +488,7 @@ fn minimac_path_refuses_panel_without_m3vcf_support() {
         par_policy: "grch38_par".to_string(),
         default_coverage_regime: None,
     };
-    let err = run_impute_stage(
+    let outputs = run_impute_stage(
         &input,
         dir.path(),
         &species,
@@ -508,8 +508,9 @@ fn minimac_path_refuses_panel_without_m3vcf_support() {
             chunk_overlap_bp: 0,
         },
     )
-    .expect_err("Minimac4 must reject a panel without an M3VCF representation");
-    assert!(err.to_string().contains("not compatible with tool minimac4"));
+    .unwrap_or_else(|error| panic!("Minimac4 must accept the governed MSAV panel: {error}"));
+    assert!(outputs.imputed_vcf.exists());
+    assert!(outputs.imputation_manifest_json.exists());
 }
 
 #[test]

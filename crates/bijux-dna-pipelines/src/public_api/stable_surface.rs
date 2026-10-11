@@ -1,3 +1,4 @@
+pub use crate::artifact_flow;
 pub use crate::bam;
 pub use crate::contract;
 pub use crate::cross;

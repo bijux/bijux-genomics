@@ -39,7 +39,7 @@ fn local_overlap_correction_smoke_plans_use_governed_bam_fixture() -> Result<()>
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil",
+            "artifacts/runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil",
         )
     );
     assert_eq!(
@@ -81,7 +81,7 @@ fn local_overlap_correction_smoke_plans_use_governed_bam_fixture() -> Result<()>
     assert_eq!(
         corrected_output.path,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap.corrected.bam"
+            "artifacts/runs/bench/local-smoke/bam.overlap_correction/human_like_paired_overlap_control/bamutil/overlap.corrected.bam"
         )
     );
 

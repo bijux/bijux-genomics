@@ -1,0 +1,142 @@
+#![allow(clippy::expect_used, clippy::too_many_lines)]
+
+use std::process::Command;
+
+use crate::support;
+
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(args)
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
+#[test]
+fn bench_readiness_vcf_population_structure_ready_reports_every_complete_active_backend() {
+    let payload =
+        run_cli_json(&["bench", "readiness", "render-vcf-population-structure-ready", "--json"]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.readiness.vcf_population_structure_ready.v1")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("artifacts/benchmark-smoke/readiness/vcf/population-structure-ready.json")
+    );
+    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(3));
+    assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(8));
+    assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(
+        payload.get("required_metric_names").and_then(serde_json::Value::as_array),
+        Some(&vec![
+            serde_json::Value::String("consumed_admixture".to_string()),
+            serde_json::Value::String("consumed_pca".to_string()),
+            serde_json::Value::String("distance_summary".to_string()),
+            serde_json::Value::String("sample_groups".to_string()),
+            serde_json::Value::String("status".to_string()),
+            serde_json::Value::String("variant_count".to_string()),
+        ])
+    );
+
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    assert_eq!(rows.len(), 3);
+    let observed_tools = rows
+        .iter()
+        .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(observed_tools, std::collections::BTreeSet::from(["eigensoft", "plink", "plink2"]));
+    assert!(rows.iter().all(|row| {
+        row.get("coverage_status").and_then(serde_json::Value::as_str) == Some("complete")
+            && row.get("smoke_ready").and_then(serde_json::Value::as_bool) == Some(true)
+            && row.get("smoke_tool_id").and_then(serde_json::Value::as_str) == Some("plink2")
+    }));
+
+    let row = rows
+        .iter()
+        .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink2"))
+        .expect("plink2 readiness row");
+    assert_eq!(
+        row.get("result_id").and_then(serde_json::Value::as_str),
+        Some("vcf:vcf_production_regression:vcf.population_structure:vcf_cohort:plink2")
+    );
+    assert_eq!(
+        row.get("stage_id").and_then(serde_json::Value::as_str),
+        Some("vcf.population_structure")
+    );
+    assert_eq!(row.get("tool_id").and_then(serde_json::Value::as_str), Some("plink2"));
+    assert_eq!(row.get("coverage_status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert_eq!(row.get("command_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(row.get("output_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(row.get("parser_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(row.get("expected_result_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(row.get("report_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(row.get("smoke_ready").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(
+        row.get("command_source").and_then(serde_json::Value::as_str),
+        Some("vcf_plink_family_adapter")
+    );
+    assert_eq!(
+        row.get("summary_table_id").and_then(serde_json::Value::as_str),
+        Some("population_structure_metrics")
+    );
+    assert_eq!(row.get("command_step_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(
+        row.get("smoke_command").and_then(serde_json::Value::as_str),
+        Some("bijux-dna bench local run-vcf-population-structure-smoke --tool-id plink2")
+    );
+    assert_eq!(
+        row.get("smoke_output_root").and_then(serde_json::Value::as_str),
+        Some("artifacts/runs/bench/local-smoke/vcf.population_structure/plink2")
+    );
+    assert_eq!(row.get("smoke_status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert_eq!(row.get("smoke_sample_group_count").and_then(serde_json::Value::as_u64), Some(4));
+    assert!(row.get("expected_metrics").and_then(serde_json::Value::as_array).is_some_and(
+        |items| {
+            items.iter().any(|item| item.as_str() == Some("sample_groups"))
+                && items.iter().any(|item| item.as_str() == Some("distance_summary"))
+                && items.iter().any(|item| item.as_str() == Some("consumed_pca"))
+                && items.iter().any(|item| item.as_str() == Some("consumed_admixture"))
+        }
+    ));
+    assert!(row.get("raw_outputs").and_then(serde_json::Value::as_array).is_some_and(|items| {
+        items.iter().any(|item| item.as_str().is_some_and(|value| value.contains("ld_prune_in=")))
+            && items.iter().any(|item| {
+                item.as_str().is_some_and(|value| value.contains("population_pca_eigenvec="))
+            })
+    }));
+    assert!(row.get("smoke_distance_summary").and_then(serde_json::Value::as_object).is_some_and(
+        |summary| {
+            summary.get("pair_count").and_then(serde_json::Value::as_u64) == Some(6)
+                && summary.get("within_population_pair_count").and_then(serde_json::Value::as_u64)
+                    == Some(2)
+                && summary.get("cross_population_pair_count").and_then(serde_json::Value::as_u64)
+                    == Some(4)
+        }
+    ));
+}

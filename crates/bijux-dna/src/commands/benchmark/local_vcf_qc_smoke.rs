@@ -18,7 +18,7 @@ use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_qc_benchmark
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_QC_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.qc";
+const DEFAULT_VCF_QC_SMOKE_ROOT: &str = "artifacts/runs/bench/local-smoke/vcf.qc";
 const LOCAL_VCF_QC_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_qc_smoke.v1";
 const LOCAL_VCF_QC_SMOKE_METRICS_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_qc_smoke.metrics.v1";
 const LOCAL_VCF_QC_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-qc-smoke";

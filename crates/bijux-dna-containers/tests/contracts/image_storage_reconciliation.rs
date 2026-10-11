@@ -4,13 +4,14 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
     apply_image_storage_plan, create_image_storage_plan, derive_image_storage_report,
-    load_image_storage_plan, publish_image_storage_report, render_image_storage_report_markdown,
-    rollback_image_storage_plan, verify_image_storage_plan, ContainerArtifactDelivery,
-    ContainerDetachedImage, ContainerImageCandidate, ContainerImageInventoryPublication,
-    ContainerImageInventorySummary, ContainerImageInventoryTool, ContainerImageState,
-    ContainerProductSupport, ContainerStagedImage, DetachedImageDisposition,
-    ImageCandidateDisposition, ImageInventoryPublicationIdentity, ImageStoragePlanRequest,
-    ImageStoragePlanState, ImageStorageVerdict, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
+    image_storage_report_matches, load_image_storage_plan, publish_image_storage_report,
+    render_image_storage_report_markdown, rollback_image_storage_plan, verify_image_storage_plan,
+    ContainerArtifactDelivery, ContainerDetachedImage, ContainerImageCandidate,
+    ContainerImageInventoryPublication, ContainerImageInventorySummary,
+    ContainerImageInventoryTool, ContainerImageState, ContainerProductSupport,
+    ContainerStagedImage, DetachedImageDisposition, ImageCandidateDisposition,
+    ImageInventoryPublicationIdentity, ImageStoragePlanRequest, ImageStoragePlanState,
+    ImageStorageVerdict, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
 };
 
 #[test]
@@ -77,6 +78,12 @@ fn report_publication_resumes_an_exact_partial_pair_and_rejects_drift() -> Resul
         &json_output,
         &markdown_output,
     )?;
+    assert!(image_storage_report_matches(
+        &fixture.plan,
+        &fixture.after_inventory,
+        &json_output,
+        &markdown_output,
+    )?);
     publish_image_storage_report(
         &fixture.plan,
         &fixture.after_inventory,
@@ -89,6 +96,12 @@ fn report_publication_resumes_an_exact_partial_pair_and_rejects_drift() -> Resul
     );
 
     std::fs::write(&markdown_output, b"drifted")?;
+    assert!(!image_storage_report_matches(
+        &fixture.plan,
+        &fixture.after_inventory,
+        &json_output,
+        &markdown_output,
+    )?);
     assert!(publish_image_storage_report(
         &fixture.plan,
         &fixture.after_inventory,

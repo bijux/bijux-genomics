@@ -59,7 +59,7 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_27_stage_slice()
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("fastq"));
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/slurm-dry-run/fastq")
+        Some("artifacts/runs/bench/slurm-dry-run/fastq")
     );
     assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(27));
     let scripts =
@@ -71,7 +71,7 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_27_stage_slice()
             && entry
                 .get("script_path")
                 .and_then(serde_json::Value::as_str)
-                .is_some_and(|path| path.starts_with("runs/bench/slurm-dry-run/fastq/") && path.ends_with(".sbatch"))
+                .is_some_and(|path| path.starts_with("artifacts/runs/bench/slurm-dry-run/fastq/") && path.ends_with(".sbatch"))
             && entry
                 .get("command")
                 .and_then(serde_json::Value::as_str)
@@ -96,19 +96,19 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_run_paths() {
     assert_eq!(
         validate_reads.get("stdout_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stdout.log"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stdout.log"
         )
     );
     assert_eq!(
         validate_reads.get("stderr_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stderr.log"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stderr.log"
         )
     );
     assert_eq!(
         validate_reads.get("result_root").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator"
         )
     );
     assert_eq!(
@@ -116,7 +116,7 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_run_paths() {
             .get("stage_result_manifest_path")
             .and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stage-result.json"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stage-result.json"
         )
     );
 
@@ -130,7 +130,7 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_run_paths() {
     assert_eq!(
         index_reference.get("stdout_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stdout.log"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stdout.log"
         )
     );
     assert_eq!(
@@ -138,7 +138,7 @@ fn bench_local_render_slurm_scripts_fastq_json_reports_governed_run_paths() {
             .get("stage_result_manifest_path")
             .and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stage-result.json"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/reference-index-assets/fastq.index_reference/asset-set/bowtie2_build/stage-result.json"
         )
     );
 }
@@ -156,7 +156,7 @@ fn bench_local_render_slurm_scripts_bam_json_reports_governed_24_stage_slice() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("bam"));
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/slurm-dry-run/bam")
+        Some("artifacts/runs/bench/slurm-dry-run/bam")
     );
     assert_eq!(payload.get("script_count").and_then(serde_json::Value::as_u64), Some(24));
     let scripts =
@@ -168,7 +168,7 @@ fn bench_local_render_slurm_scripts_bam_json_reports_governed_24_stage_slice() {
             && entry
                 .get("script_path")
                 .and_then(serde_json::Value::as_str)
-                .is_some_and(|path| path.starts_with("runs/bench/slurm-dry-run/bam/") && path.ends_with(".sbatch"))
+                .is_some_and(|path| path.starts_with("artifacts/runs/bench/slurm-dry-run/bam/") && path.ends_with(".sbatch"))
             && entry
                 .get("command")
                 .and_then(serde_json::Value::as_str)
@@ -201,13 +201,13 @@ fn bench_local_render_slurm_scripts_bam_reports_governed_run_paths() {
     assert_eq!(
         bam_damage.get("stdout_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/mapdamage2/stdout.log"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/mapdamage2/stdout.log"
         )
     );
     assert_eq!(
         bam_damage.get("stderr_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/mapdamage2/stderr.log"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/mapdamage2/stderr.log"
         )
     );
     assert_eq!(
@@ -215,22 +215,22 @@ fn bench_local_render_slurm_scripts_bam_reports_governed_run_paths() {
             .get("stage_result_manifest_path")
             .and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/mapdamage2/stage-result.json"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-damage-mini/bam.damage/adna_damage_non_udg/mapdamage2/stage-result.json"
         )
     );
 
     let sex_script = support::repo_root()
         .expect("repo root")
-        .join("runs/bench/slurm-dry-run/bam/bam.sex.sbatch");
+        .join("artifacts/runs/bench/slurm-dry-run/bam/bam.sex.sbatch");
     let script_body = std::fs::read_to_string(&sex_script).expect("read sex script");
     assert!(
         script_body.contains(
-            "#SBATCH --output=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/adna_xy_autosome_coverage/rxy/stdout.log"
+            "#SBATCH --output=artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/adna_xy_autosome_coverage/rxy/stdout.log"
         )
     );
     assert!(
         script_body.contains(
-            "STAGE_RESULT_MANIFEST_PATH=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/adna_xy_autosome_coverage/rxy/stage-result.json"
+            "STAGE_RESULT_MANIFEST_PATH=artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-adna-bam-mini/bam.sex/adna_xy_autosome_coverage/rxy/stage-result.json"
         )
     );
 }
@@ -247,7 +247,7 @@ fn bench_local_render_slurm_scripts_fastq_writes_bash_parseable_27_script_slice(
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let output_root = repo_root.join("runs/bench/slurm-dry-run/fastq");
+    let output_root = repo_root.join("artifacts/runs/bench/slurm-dry-run/fastq");
     assert!(output_root.is_dir(), "FASTQ slurm dry-run root must exist");
 
     let mut scripts = std::fs::read_dir(&output_root)
@@ -274,22 +274,22 @@ fn bench_local_render_slurm_scripts_fastq_writes_bash_parseable_27_script_slice(
     assert!(script_body.contains("#SBATCH --job-name=fastq-validate_reads"));
     assert!(
         script_body.contains(
-            "#SBATCH --output=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stdout.log"
+            "#SBATCH --output=artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stdout.log"
         )
     );
     assert!(
         script_body.contains(
-            "#SBATCH --error=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stderr.log"
+            "#SBATCH --error=artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stderr.log"
         )
     );
     assert!(
         script_body.contains(
-            "RESULT_ROOT=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator"
+            "RESULT_ROOT=artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator"
         )
     );
     assert!(
         script_body.contains(
-            "STAGE_RESULT_MANIFEST_PATH=runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stage-result.json"
+            "STAGE_RESULT_MANIFEST_PATH=artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-mini/fastq.validate_reads/sample-set/fastqvalidator/stage-result.json"
         )
     );
     assert!(
@@ -312,7 +312,7 @@ fn bench_local_render_slurm_scripts_bam_writes_bash_parseable_24_script_slice() 
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let output_root = repo_root.join("runs/bench/slurm-dry-run/bam");
+    let output_root = repo_root.join("artifacts/runs/bench/slurm-dry-run/bam");
     assert!(output_root.is_dir(), "BAM slurm dry-run root must exist");
 
     let mut scripts = std::fs::read_dir(&output_root)

@@ -35,5 +35,6 @@ pub use validation::{
 };
 pub use workflow::{
     apply_final_run_evidence_plan, derive_run_evidence_index, ensure_container_attempt_layout,
-    import_run_evidence, plan_final_run_evidence, verify_run_evidence_publication,
+    import_run_evidence, plan_final_run_evidence, publish_run_evidence_book,
+    replay_run_evidence_book, verify_run_evidence_publication,
 };

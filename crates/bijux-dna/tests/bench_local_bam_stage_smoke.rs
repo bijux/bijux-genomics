@@ -70,7 +70,7 @@ fn bench_local_run_bam_stage_smoke_json_for_coverage_reports_tsv_artifact() {
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.coverage"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.coverage/coverage.tsv")
+        Some("artifacts/runs/bench/local-smoke/bam.coverage/coverage.tsv")
     );
     assert_eq!(payload.get("artifact_format").and_then(serde_json::Value::as_str), Some("tsv"));
 }

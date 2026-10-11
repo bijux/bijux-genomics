@@ -93,13 +93,15 @@ const DEFAULT_BENCHMARK_SUMMARY_JSON_PATH: &str =
 const DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/benchmark-summary.md";
 const DEFAULT_LOCAL_STAGE_FAILURE_ROOT: &str = "artifacts/benchmark-smoke/simulated-runs/failures";
-const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "runs/bench/slurm-dry-run";
-const DEFAULT_SLURM_SUBMIT_MANIFEST_PATH: &str = "runs/bench/slurm-dry-run/submit-manifest.json";
+const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "artifacts/runs/bench/slurm-dry-run";
+const DEFAULT_SLURM_SUBMIT_MANIFEST_PATH: &str =
+    "artifacts/runs/bench/slurm-dry-run/submit-manifest.json";
 const DEFAULT_SLURM_DEPENDENCY_CHECK_REPORT_PATH: &str =
-    "runs/bench/slurm-dry-run/dependency-check.json";
-const DEFAULT_SLURM_SHELL_SYNTAX_REPORT_PATH: &str = "runs/bench/slurm-dry-run/bash-n-report.json";
+    "artifacts/runs/bench/slurm-dry-run/dependency-check.json";
+const DEFAULT_SLURM_SHELL_SYNTAX_REPORT_PATH: &str =
+    "artifacts/runs/bench/slurm-dry-run/bash-n-report.json";
 const DEFAULT_SLURM_SCRIPT_BODY_REPORT_PATH: &str =
-    "runs/bench/slurm-dry-run/no-placeholder-report.json";
+    "artifacts/runs/bench/slurm-dry-run/no-placeholder-report.json";
 const DEFAULT_CORPUS_SKIP_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/corpus-skip-report.json";
 const DEFAULT_HPC_SUPPORT_ROOT: &str = "artifacts/hpc/hpc-submission-ready";
@@ -110,33 +112,45 @@ const FASTQ_STAGE_GOALS: &[(&str, u32, &str)] = &[
         2,
         "artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference",
     ),
-    ("fastq.validate_reads", 3, "runs/bench/local-smoke/fastq.validate_reads"),
-    ("fastq.profile_read_lengths", 4, "runs/bench/local-smoke/fastq.profile_read_lengths"),
-    ("fastq.detect_adapters", 5, "runs/bench/local-smoke/fastq.detect_adapters"),
+    ("fastq.validate_reads", 3, "artifacts/runs/bench/local-smoke/fastq.validate_reads"),
+    (
+        "fastq.profile_read_lengths",
+        4,
+        "artifacts/runs/bench/local-smoke/fastq.profile_read_lengths",
+    ),
+    ("fastq.detect_adapters", 5, "artifacts/runs/bench/local-smoke/fastq.detect_adapters"),
     (
         "fastq.detect_duplicates_premerge",
         6,
-        "runs/bench/local-smoke/fastq.detect_duplicates_premerge",
+        "artifacts/runs/bench/local-smoke/fastq.detect_duplicates_premerge",
     ),
     (
         "fastq.estimate_library_complexity_prealign",
         7,
-        "runs/bench/local-smoke/fastq.estimate_library_complexity_prealign",
+        "artifacts/runs/bench/local-smoke/fastq.estimate_library_complexity_prealign",
     ),
-    ("fastq.trim_terminal_damage", 8, "runs/bench/local-smoke/fastq.trim_terminal_damage"),
-    ("fastq.normalize_primers", 9, "runs/bench/local-smoke/fastq.normalize_primers"),
-    ("fastq.trim_polyg_tails", 10, "runs/bench/local-smoke/fastq.trim_polyg_tails"),
-    ("fastq.trim_reads", 11, "runs/bench/local-smoke/fastq.trim_reads"),
-    ("fastq.filter_reads", 12, "runs/bench/local-smoke/fastq.filter_reads"),
-    ("fastq.profile_reads", 13, "runs/bench/local-smoke/fastq.profile_reads"),
+    (
+        "fastq.trim_terminal_damage",
+        8,
+        "artifacts/runs/bench/local-smoke/fastq.trim_terminal_damage",
+    ),
+    ("fastq.normalize_primers", 9, "artifacts/runs/bench/local-smoke/fastq.normalize_primers"),
+    ("fastq.trim_polyg_tails", 10, "artifacts/runs/bench/local-smoke/fastq.trim_polyg_tails"),
+    ("fastq.trim_reads", 11, "artifacts/runs/bench/local-smoke/fastq.trim_reads"),
+    ("fastq.filter_reads", 12, "artifacts/runs/bench/local-smoke/fastq.filter_reads"),
+    ("fastq.profile_reads", 13, "artifacts/runs/bench/local-smoke/fastq.profile_reads"),
     (
         "fastq.deplete_rrna",
         14,
         "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_rrna",
     ),
-    ("fastq.merge_pairs", 15, "runs/bench/local-smoke/fastq.merge_pairs"),
-    ("fastq.remove_duplicates", 16, "runs/bench/local-smoke/fastq.remove_duplicates"),
-    ("fastq.filter_low_complexity", 17, "runs/bench/local-smoke/fastq.filter_low_complexity"),
+    ("fastq.merge_pairs", 15, "artifacts/runs/bench/local-smoke/fastq.merge_pairs"),
+    ("fastq.remove_duplicates", 16, "artifacts/runs/bench/local-smoke/fastq.remove_duplicates"),
+    (
+        "fastq.filter_low_complexity",
+        17,
+        "artifacts/runs/bench/local-smoke/fastq.filter_low_complexity",
+    ),
     (
         "fastq.deplete_host",
         18,
@@ -147,17 +161,17 @@ const FASTQ_STAGE_GOALS: &[(&str, u32, &str)] = &[
         19,
         "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants",
     ),
-    ("fastq.correct_errors", 20, "runs/bench/local-smoke/fastq.correct_errors"),
-    ("fastq.extract_umis", 21, "runs/bench/local-smoke/fastq.extract_umis"),
+    ("fastq.correct_errors", 20, "artifacts/runs/bench/local-smoke/fastq.correct_errors"),
+    ("fastq.extract_umis", 21, "artifacts/runs/bench/local-smoke/fastq.extract_umis"),
     (
         "fastq.profile_overrepresented_sequences",
         22,
-        "runs/bench/local-smoke/fastq.profile_overrepresented_sequences",
+        "artifacts/runs/bench/local-smoke/fastq.profile_overrepresented_sequences",
     ),
-    ("fastq.remove_chimeras", 23, "runs/bench/local-smoke/fastq.remove_chimeras"),
-    ("fastq.infer_asvs", 24, "runs/bench/local-smoke/fastq.infer_asvs"),
-    ("fastq.cluster_otus", 25, "runs/bench/local-smoke/fastq.cluster_otus"),
-    ("fastq.normalize_abundance", 26, "runs/bench/local-smoke/fastq.normalize_abundance"),
+    ("fastq.remove_chimeras", 23, "artifacts/runs/bench/local-smoke/fastq.remove_chimeras"),
+    ("fastq.infer_asvs", 24, "artifacts/runs/bench/local-smoke/fastq.infer_asvs"),
+    ("fastq.cluster_otus", 25, "artifacts/runs/bench/local-smoke/fastq.cluster_otus"),
+    ("fastq.normalize_abundance", 26, "artifacts/runs/bench/local-smoke/fastq.normalize_abundance"),
     (
         "fastq.screen_taxonomy",
         27,
@@ -167,29 +181,29 @@ const FASTQ_STAGE_GOALS: &[(&str, u32, &str)] = &[
 
 const BAM_STAGE_GOALS: &[(&str, u32, &str)] = &[
     ("bam.align", 29, "artifacts/benchmark-smoke/readiness/local-ready/bam.align"),
-    ("bam.validate", 30, "runs/bench/local-smoke/bam.validate"),
-    ("bam.qc_pre", 31, "runs/bench/local-smoke/bam.qc_pre"),
-    ("bam.mapping_summary", 32, "runs/bench/local-smoke/bam.mapping_summary"),
-    ("bam.filter", 33, "runs/bench/local-smoke/bam.filter"),
-    ("bam.mapq_filter", 34, "runs/bench/local-smoke/bam.mapq_filter"),
-    ("bam.length_filter", 35, "runs/bench/local-smoke/bam.length_filter"),
-    ("bam.markdup", 36, "runs/bench/local-smoke/bam.markdup"),
-    ("bam.duplication_metrics", 37, "runs/bench/local-smoke/bam.duplication_metrics"),
-    ("bam.complexity", 38, "runs/bench/local-smoke/bam.complexity"),
-    ("bam.coverage", 39, "runs/bench/local-smoke/bam.coverage"),
-    ("bam.insert_size", 40, "runs/bench/local-smoke/bam.insert_size"),
-    ("bam.gc_bias", 41, "runs/bench/local-smoke/bam.gc_bias"),
-    ("bam.endogenous_content", 42, "runs/bench/local-smoke/bam.endogenous_content"),
-    ("bam.overlap_correction", 43, "runs/bench/local-smoke/bam.overlap_correction"),
-    ("bam.damage", 44, "runs/bench/local-smoke/bam.damage"),
-    ("bam.authenticity", 45, "runs/bench/local-smoke/bam.authenticity"),
+    ("bam.validate", 30, "artifacts/runs/bench/local-smoke/bam.validate"),
+    ("bam.qc_pre", 31, "artifacts/runs/bench/local-smoke/bam.qc_pre"),
+    ("bam.mapping_summary", 32, "artifacts/runs/bench/local-smoke/bam.mapping_summary"),
+    ("bam.filter", 33, "artifacts/runs/bench/local-smoke/bam.filter"),
+    ("bam.mapq_filter", 34, "artifacts/runs/bench/local-smoke/bam.mapq_filter"),
+    ("bam.length_filter", 35, "artifacts/runs/bench/local-smoke/bam.length_filter"),
+    ("bam.markdup", 36, "artifacts/runs/bench/local-smoke/bam.markdup"),
+    ("bam.duplication_metrics", 37, "artifacts/runs/bench/local-smoke/bam.duplication_metrics"),
+    ("bam.complexity", 38, "artifacts/runs/bench/local-smoke/bam.complexity"),
+    ("bam.coverage", 39, "artifacts/runs/bench/local-smoke/bam.coverage"),
+    ("bam.insert_size", 40, "artifacts/runs/bench/local-smoke/bam.insert_size"),
+    ("bam.gc_bias", 41, "artifacts/runs/bench/local-smoke/bam.gc_bias"),
+    ("bam.endogenous_content", 42, "artifacts/runs/bench/local-smoke/bam.endogenous_content"),
+    ("bam.overlap_correction", 43, "artifacts/runs/bench/local-smoke/bam.overlap_correction"),
+    ("bam.damage", 44, "artifacts/runs/bench/local-smoke/bam.damage"),
+    ("bam.authenticity", 45, "artifacts/runs/bench/local-smoke/bam.authenticity"),
     ("bam.contamination", 46, "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination"),
-    ("bam.sex", 47, "runs/bench/local-smoke/bam.sex"),
-    ("bam.bias_mitigation", 48, "runs/bench/local-smoke/bam.bias_mitigation"),
-    ("bam.recalibration", 49, "runs/bench/local-smoke/bam.recalibration"),
+    ("bam.sex", 47, "artifacts/runs/bench/local-smoke/bam.sex"),
+    ("bam.bias_mitigation", 48, "artifacts/runs/bench/local-smoke/bam.bias_mitigation"),
+    ("bam.recalibration", 49, "artifacts/runs/bench/local-smoke/bam.recalibration"),
     ("bam.haplogroups", 50, "artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups"),
     ("bam.genotyping", 51, "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping"),
-    ("bam.kinship", 52, "runs/bench/local-smoke/bam.kinship"),
+    ("bam.kinship", 52, "artifacts/runs/bench/local-smoke/bam.kinship"),
 ];
 
 const PIPELINE_DAG_GOALS: &[(u32, &str, &str)] = &[
@@ -1767,7 +1781,7 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
             92,
             "slurm_dry_run",
             "FASTQ local benchmark stages render governed SLURM dry-run scripts",
-            Some("runs/bench/slurm-dry-run/fastq".to_string()),
+            Some("artifacts/runs/bench/slurm-dry-run/fastq".to_string()),
             format!("{err:#}"),
         )),
     }
@@ -1786,7 +1800,7 @@ fn evaluate_slurm_goals(repo_root: &Path, checks: &mut Vec<BenchLocalHpcSubmissi
                 93,
                 "slurm_dry_run",
                 "BAM local benchmark stages render governed SLURM dry-run scripts",
-                Some("runs/bench/slurm-dry-run/bam".to_string()),
+                Some("artifacts/runs/bench/slurm-dry-run/bam".to_string()),
                 format!("{err:#}"),
             ));
             None
@@ -2031,7 +2045,7 @@ fn evaluate_slurm_run_path_goal(
             98,
             "slurm_dry_run",
             "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
+            Some("artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
             "BAM SLURM script rendering failed earlier".to_string(),
         ));
         return;
@@ -2041,7 +2055,7 @@ fn evaluate_slurm_run_path_goal(
             98,
             "slurm_dry_run",
             "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
+            Some("artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
             "SLURM submit manifest rendering failed earlier".to_string(),
         ));
         return;
@@ -2062,7 +2076,7 @@ fn evaluate_slurm_run_path_goal(
             98,
             "slurm_dry_run",
             "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
+            Some("artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
             "SLURM dry-run scripts and submit manifest both carry governed run-path fields"
                 .to_string(),
         ));
@@ -2071,7 +2085,7 @@ fn evaluate_slurm_run_path_goal(
             98,
             "slurm_dry_run",
             "SLURM dry-run scripts resolve predictable log and result paths",
-            Some("runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
+            Some("artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run".to_string()),
             "one or more generated SLURM path fields are missing the governed run-id layout"
                 .to_string(),
         ));

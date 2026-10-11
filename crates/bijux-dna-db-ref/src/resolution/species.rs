@@ -40,11 +40,7 @@ pub fn resolve_species_alias(
 /// # Errors
 /// Returns an error if species authority config cannot be read or species is not declared.
 pub fn resolve_species_authority(species: &str) -> Result<SpeciesAuthorityEntry> {
-    let path = workspace_root().join("configs/runtime/species.toml");
-    let cfg: SpeciesAuthorityConfig = load_toml(&path)?;
-    cfg.species
-        .into_iter()
-        .find(|entry| entry.species_id == species)
+    super::find_species_authority_at(&workspace_root(), species)?
         .ok_or_else(|| anyhow!("species authority entry missing for {species}"))
 }
 

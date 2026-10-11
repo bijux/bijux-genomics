@@ -81,7 +81,7 @@ fn bench_local_render_hpc_asset_staging_manifest_reports_governed_inputs() {
     );
     assert_eq!(
         payload.get("staging_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/hpc-dry-run/staged")
+        Some("artifacts/runs/bench/hpc-dry-run/staged")
     );
     assert!(
         payload
@@ -115,7 +115,7 @@ fn bench_local_render_hpc_asset_staging_manifest_reports_governed_inputs() {
             input.get("source_path").and_then(serde_json::Value::as_str)
                 == Some("assets/reference/host/references/toy_host_reference")
                 && input.get("staged_path").and_then(serde_json::Value::as_str)
-                    == Some("runs/bench/hpc-dry-run/staged/assets/reference/host/references/toy_host_reference")
+                    == Some("artifacts/runs/bench/hpc-dry-run/staged/assets/reference/host/references/toy_host_reference")
                 && input.get("source_kind").and_then(serde_json::Value::as_str)
                     == Some("prefix_bundle")
                 && input.get("checksum_sha256").and_then(serde_json::Value::as_str).is_some()

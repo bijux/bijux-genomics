@@ -1,0 +1,12 @@
+mod adapter_output_contract;
+mod adapter_output_contract_tsv;
+mod corpus_assignment;
+mod corpus_assignment_tsv;
+mod parser_coverage;
+mod parser_coverage_tsv;
+mod parser_fixture_coverage;
+mod parser_fixture_coverage_tsv;
+mod report_map;
+mod report_map_tsv;
+mod tool_serving_map;
+mod tool_serving_map_tsv;

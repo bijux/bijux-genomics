@@ -82,6 +82,18 @@ fn acquisition_and_admission_contracts_accept_complete_fastq_identity() {
 }
 
 #[test]
+fn acquisition_and_admission_accept_paired_single_file_archive_delivery() {
+    let mut plan = acquisition_plan();
+    plan.samples[0].layout = CorpusAcquisitionLayout::Pe;
+    assert!(validate_corpus_acquisition_plan(&plan).is_ok());
+
+    let mut admitted = catalog();
+    admitted.samples[0].layout = CorpusAcquisitionLayout::Pe;
+    admitted.files[0].layout = CorpusAcquisitionLayout::Pe;
+    assert!(validate_governed_data_catalog(&admitted).is_ok());
+}
+
+#[test]
 fn preservation_contract_binds_heterogeneous_v1_authority() {
     let preserved = preserved_catalog();
     let document = GovernedDataCatalogDocument::Preserved(preserved.clone());

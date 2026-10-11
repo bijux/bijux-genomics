@@ -12,7 +12,8 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_SMOKE_ROOT_PATH: &str = "runs/bench/local-smoke/vcf/SMOKE_ROOT.json";
+pub(crate) const DEFAULT_VCF_SMOKE_ROOT_PATH: &str =
+    "artifacts/runs/bench/local-smoke/vcf/SMOKE_ROOT.json";
 const LOCAL_VCF_SMOKE_ROOT_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_smoke_root.v1";
 const LOCAL_VCF_SMOKE_ROOT_COMMAND: &str = "bijux-dna bench local render-vcf-smoke-root";
 
@@ -262,7 +263,7 @@ mod tests {
 
         assert_eq!(report.schema_version, LOCAL_VCF_SMOKE_ROOT_SCHEMA_VERSION);
         assert_eq!(report.manifest_path, DEFAULT_VCF_SMOKE_ROOT_PATH);
-        assert_eq!(report.root_path, "runs/bench/local-smoke/vcf");
+        assert_eq!(report.root_path, "artifacts/runs/bench/local-smoke/vcf");
         assert_eq!(report.command, LOCAL_VCF_SMOKE_ROOT_COMMAND);
         assert_eq!(report.corpus_id, "vcf_production_regression");
         assert_eq!(report.stage_count, 20);
@@ -280,15 +281,15 @@ mod tests {
         assert_eq!(prepare_reference_panel.asset_profile_id, "vcf_reference_panel");
         assert_eq!(
             prepare_reference_panel.pair_root,
-            "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools"
+            "artifacts/runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools"
         );
         assert_eq!(
             prepare_reference_panel.artifacts_root,
-            "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts"
+            "artifacts/runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts"
         );
         assert_eq!(
             prepare_reference_panel.result_manifest_path,
-            "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/stage-result.json"
+            "artifacts/runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/stage-result.json"
         );
 
         let phasing =
@@ -312,11 +313,11 @@ mod tests {
             report.manifest_path,
             super::path_relative_to_repo(&repo_root, &redirected_manifest)
         );
-        assert_eq!(report.root_path, "runs/bench/local-smoke/vcf");
+        assert_eq!(report.root_path, "artifacts/runs/bench/local-smoke/vcf");
         assert!(report
             .rows
             .iter()
-            .all(|row| row.pair_root.starts_with("runs/bench/local-smoke/vcf/")));
+            .all(|row| row.pair_root.starts_with("artifacts/runs/bench/local-smoke/vcf/")));
     }
 
     #[test]

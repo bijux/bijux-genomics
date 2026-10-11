@@ -197,7 +197,7 @@ schema_version = "{registry_schema}"
   "profile": "test-profile",
   "stages": {
     "vcf.impute": {
-      "parameter_schema_version": "bijux.vcf.params.v1",
+      "parameter_schema_version": "test.vcf.parameter.schema.v1",
       "defaults_provider": "test::vcf_defaults",
       "overrides": {}
     }
@@ -212,8 +212,8 @@ source = "test VCF parameter contracts"
 
 [[entries]]
 stage_id = "vcf.impute"
-param_type_id = "bijux.vcf.impute.params"
-schema_version = "bijux.vcf.params.v1"
+param_type_id = "test.vcf.impute.parameters"
+schema_version = "test.vcf.parameter.schema.v1"
 params = []
 "#,
         )?;

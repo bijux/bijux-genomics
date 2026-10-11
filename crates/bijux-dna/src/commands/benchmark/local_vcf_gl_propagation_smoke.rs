@@ -19,7 +19,8 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_GL_PROPAGATION_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.gl_propagation";
+const DEFAULT_VCF_GL_PROPAGATION_SMOKE_ROOT: &str =
+    "artifacts/runs/bench/local-smoke/vcf.gl_propagation";
 const LOCAL_VCF_GL_PROPAGATION_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_gl_propagation_smoke.v1";
 const LOCAL_VCF_GL_PROPAGATION_SMOKE_METRICS_SCHEMA_VERSION: &str =

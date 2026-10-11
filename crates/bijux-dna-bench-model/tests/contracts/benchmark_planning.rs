@@ -533,7 +533,8 @@ fn benchmark_stage_universe_rejects_non_monotonic_run_reservation() {
 fn local_hpc_job_graph() -> BenchmarkLocalHpcJobGraph {
     BenchmarkLocalHpcJobGraph {
         schema_version: BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1.to_string(),
-        manifest_path: "runs/bench/hpc-dry-run/all-domain-slurm-submit-manifest.json".to_string(),
+        manifest_path: "artifacts/runs/bench/hpc-dry-run/all-domain-slurm-submit-manifest.json"
+            .to_string(),
         job_count: 2,
         benchmark_job_count: 1,
         essential_pipeline_job_count: 1,

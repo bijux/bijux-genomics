@@ -75,28 +75,30 @@ fn bench_local_vcf_call_pseudohaploid_smoke_reports_real_governed_outputs() {
             .get("materialized_reference_path")
             .and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/artifacts/reference/corpus_01_bam_reference.fasta"
+            "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/artifacts/reference/corpus_01_bam_reference.fasta"
         )
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools")
+        Some("artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools")
     );
     assert_eq!(
         payload.get("output_vcf_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz")
+        Some(
+            "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz"
+        )
     );
     assert_eq!(
         payload.get("output_tbi_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz.tbi")
+        Some("artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz.tbi")
     );
     assert_eq!(
         payload.get("metrics_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json")
     );
     assert_eq!(
         payload.get("stage_result_manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/stage-result.json")
+        Some("artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/stage-result.json")
     );
     assert_eq!(payload.get("exit_code").and_then(serde_json::Value::as_i64), Some(0));
     assert_eq!(payload.get("target_sites").and_then(serde_json::Value::as_u64), Some(3));
@@ -150,8 +152,8 @@ fn bench_local_vcf_call_pseudohaploid_smoke_reports_real_governed_outputs() {
     assert_eq!(checks.get("sample_ids_valid").and_then(serde_json::Value::as_bool), Some(true));
 
     let repo_root = support::repo_root().expect("repo root");
-    let metrics_path =
-        repo_root.join("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json");
+    let metrics_path = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json");
     let raw = std::fs::read_to_string(&metrics_path).expect("read metrics");
     let metrics: serde_json::Value = serde_json::from_str(&raw).expect("parse metrics");
     assert_eq!(

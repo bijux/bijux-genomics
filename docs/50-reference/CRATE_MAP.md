@@ -11,7 +11,7 @@ Provides quick architectural orientation without duplicating the normative respo
 
 ## Contracts
 - Crate ownership and responsibilities are cataloged in
-  [TARGET_ARCHITECTURE.md](../../TARGET_ARCHITECTURE.md).
+  [TARGET_ARCHITECTURE.md](../10-architecture/TARGET_ARCHITECTURE.md).
 - Allowed boundary edges are defined in
   [BOUNDARY_MAP.md](../10-architecture/BOUNDARY_MAP.md).
 - Required enforcement level by crate maturity is defined in

@@ -65,5 +65,7 @@ mod mod_contracts_ssot_ids_rs;
 mod mod_contracts_stage_result_rs;
 #[path = "contracts/benching/suite_catalog.rs"]
 mod mod_contracts_suite_catalog_rs;
+#[path = "contracts/benching/source_assets.rs"]
+mod source_assets;
 #[path = "workspace_paths.rs"]
 mod support;

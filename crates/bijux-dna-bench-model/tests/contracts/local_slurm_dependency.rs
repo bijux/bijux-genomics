@@ -12,9 +12,9 @@ use bijux_dna_bench_model::{
 fn report() -> BenchmarkLocalSlurmDependencyCheckReport {
     BenchmarkLocalSlurmDependencyCheckReport {
         schema_version: BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1.to_string(),
-        root_path: "runs/bench/slurm-dry-run".to_string(),
-        manifest_path: "runs/bench/slurm-dry-run/submit-manifest.json".to_string(),
-        report_path: "runs/bench/slurm-dry-run/dependency-check.json".to_string(),
+        root_path: "artifacts/runs/bench/slurm-dry-run".to_string(),
+        manifest_path: "artifacts/runs/bench/slurm-dry-run/submit-manifest.json".to_string(),
+        report_path: "artifacts/runs/bench/slurm-dry-run/dependency-check.json".to_string(),
         job_count: 1,
         manifest_dependency_count: 1,
         script_header_dependency_count: 0,
@@ -24,7 +24,7 @@ fn report() -> BenchmarkLocalSlurmDependencyCheckReport {
         jobs: vec![BenchmarkLocalSlurmDependencyCheckJob {
             job_name: "fastq-profile".to_string(),
             stage_id: Some("fastq.profile_reads".to_string()),
-            script_path: "runs/bench/slurm-dry-run/fastq-profile.sbatch".to_string(),
+            script_path: "artifacts/runs/bench/slurm-dry-run/fastq-profile.sbatch".to_string(),
             manifest_dependencies: vec!["fastq-validate".to_string()],
             script_header_dependencies: Vec::new(),
             dependency_source: "submit_manifest".to_string(),
@@ -37,14 +37,14 @@ fn report() -> BenchmarkLocalSlurmDependencyCheckReport {
 fn shell_syntax_report() -> BenchmarkLocalSlurmShellSyntaxReport {
     BenchmarkLocalSlurmShellSyntaxReport {
         schema_version: BENCHMARK_LOCAL_SLURM_SHELL_SYNTAX_SCHEMA_V1.to_string(),
-        root_path: "runs/bench/slurm-dry-run".to_string(),
-        report_path: "runs/bench/slurm-dry-run/bash-n-report.json".to_string(),
+        root_path: "artifacts/runs/bench/slurm-dry-run".to_string(),
+        report_path: "artifacts/runs/bench/slurm-dry-run/bash-n-report.json".to_string(),
         script_count: 1,
         findings_count: 0,
         ok: true,
         report_findings: Vec::new(),
         scripts: vec![BenchmarkLocalSlurmShellSyntaxEntry {
-            script_path: "runs/bench/slurm-dry-run/fastq-profile.sbatch".to_string(),
+            script_path: "artifacts/runs/bench/slurm-dry-run/fastq-profile.sbatch".to_string(),
             ok: true,
             findings: Vec::new(),
         }],
@@ -55,7 +55,7 @@ fn dry_run_report() -> BenchmarkLocalSlurmDryRunReport {
     BenchmarkLocalSlurmDryRunReport {
         schema_version: BENCHMARK_LOCAL_SLURM_DRY_RUN_SCHEMA_V1.to_string(),
         domain: "fastq".to_string(),
-        output_root: "runs/bench/slurm-dry-run/fastq".to_string(),
+        output_root: "artifacts/runs/bench/slurm-dry-run/fastq".to_string(),
         script_count: 1,
         scripts: vec![BenchmarkLocalSlurmScriptEntry {
             stage_id: "fastq.validate_reads".to_string(),
@@ -64,11 +64,11 @@ fn dry_run_report() -> BenchmarkLocalSlurmDryRunReport {
             cpus_per_task: 2,
             memory_mb: 4096,
             time_limit: "04:00:00".to_string(),
-            script_path: "runs/bench/slurm-dry-run/fastq/fastq.validate_reads.sbatch".to_string(),
-            stdout_path: "runs/bench/slurm-dry-run/runs/run-1/fastq.validate_reads/sample-set/fastqvalidator/stdout.log".to_string(),
-            stderr_path: "runs/bench/slurm-dry-run/runs/run-1/fastq.validate_reads/sample-set/fastqvalidator/stderr.log".to_string(),
-            result_root: "runs/bench/slurm-dry-run/runs/run-1/fastq.validate_reads/sample-set/fastqvalidator".to_string(),
-            stage_result_manifest_path: "runs/bench/slurm-dry-run/runs/run-1/fastq.validate_reads/sample-set/fastqvalidator/stage-result.json".to_string(),
+            script_path: "artifacts/runs/bench/slurm-dry-run/fastq/fastq.validate_reads.sbatch".to_string(),
+            stdout_path: "artifacts/runs/bench/slurm-dry-run/runs/run-1/fastq.validate_reads/sample-set/fastqvalidator/stdout.log".to_string(),
+            stderr_path: "artifacts/runs/bench/slurm-dry-run/runs/run-1/fastq.validate_reads/sample-set/fastqvalidator/stderr.log".to_string(),
+            result_root: "artifacts/runs/bench/slurm-dry-run/runs/run-1/fastq.validate_reads/sample-set/fastqvalidator".to_string(),
+            stage_result_manifest_path: "artifacts/runs/bench/slurm-dry-run/runs/run-1/fastq.validate_reads/sample-set/fastqvalidator/stage-result.json".to_string(),
             command: "bijux-dna bench local materialize-stage --stage-id fastq.validate_reads".to_string(),
         }],
     }

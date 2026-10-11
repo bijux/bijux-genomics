@@ -1,4 +1,5 @@
 use std::fs;
+use std::process::Command;
 
 use bijux_dna_bench_model::{
     BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan,
@@ -8,11 +9,12 @@ use bijux_dna_bench_model::{
 };
 use bijux_dna_runner::api::{
     collect_corpus_materialization_slurm_job, load_corpus_materialization_slurm_spec,
-    load_prepared_corpus_materialization_slurm_job, prepare_corpus_materialization_slurm_job,
-    publish_corpus_materialization_evidence_correction, submit_prepared_corpus_materialization_job,
-    CorpusMaterializationEvidenceCorrectionRequest, CorpusMaterializationEvidenceStatus,
+    load_prepared_corpus_materialization_slurm_job, plan_corpus_materialization_slurm_spec,
+    prepare_corpus_materialization_slurm_job, publish_corpus_materialization_evidence_correction,
+    submit_prepared_corpus_materialization_job, CorpusMaterializationEvidenceCorrectionRequest,
+    CorpusMaterializationEvidenceStatus, CorpusMaterializationSlurmPlanRequest,
     CorpusMaterializationSlurmResources, CorpusMaterializationSlurmSpec, SlurmClientPaths,
-    CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1,
+    CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1, CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V2,
 };
 
 #[cfg(unix)]
@@ -20,6 +22,90 @@ use crate::scheduler_executable::write_executable;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt as _;
+
+#[test]
+fn planning_derives_source_plan_catalog_and_command_authorities() -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    fs::write(fixture.spec.repository_path.join("source.txt"), b"source authority\n")?;
+    run_git(&fixture.spec.repository_path, &["init", "-q"])?;
+    run_git(&fixture.spec.repository_path, &["add", "source.txt"])?;
+    run_git(
+        &fixture.spec.repository_path,
+        &[
+            "-c",
+            "user.name=Bijux Test",
+            "-c",
+            "user.email=bijux@example.invalid",
+            "commit",
+            "-qm",
+            "fixture",
+        ],
+    )?;
+    let repository_commit = git_stdout(&fixture.spec.repository_path, &["rev-parse", "HEAD"])?;
+    let mut command_arguments = fixture.spec.command_arguments.clone();
+    let commit_index = command_arguments
+        .iter()
+        .position(|argument| argument == "--repository-commit")
+        .ok_or_else(|| anyhow::anyhow!("fixture command omits repository commit"))?
+        + 1;
+    command_arguments[commit_index] = repository_commit.clone();
+    let request = CorpusMaterializationSlurmPlanRequest {
+        repository_path: fixture.spec.repository_path.clone(),
+        executable_path: fixture.spec.executable_path.clone(),
+        plan_path: fixture.spec.plan_path.clone(),
+        data_root: fixture.spec.data_root.clone(),
+        run_id: fixture.spec.run_id.clone(),
+        attempt_id: fixture.spec.attempt_id.clone(),
+        resources: fixture.spec.resources.clone(),
+        maximum_parallelism: fixture.spec.maximum_parallelism,
+        retries: fixture.spec.retries,
+        timeout_seconds: fixture.spec.timeout_seconds,
+        admitted_at_utc: fixture.spec.admitted_at_utc.clone(),
+    };
+
+    let mut unsafe_request = request.clone();
+    unsafe_request.attempt_id = "../escape".to_string();
+    assert!(plan_corpus_materialization_slurm_spec(
+        &unsafe_request,
+        &repository_commit,
+        &command_arguments
+    )
+    .is_err_and(|error| { format!("{error:#}").contains("attempt identity is invalid") }));
+    assert!(!fixture.spec.data_root.join("evidence/materializations/escape").exists());
+    assert!(plan_corpus_materialization_slurm_spec(&request, &repository_commit, &[])
+        .is_err_and(|error| format!("{error:#}").contains("command must contain")));
+    assert!(plan_corpus_materialization_slurm_spec(&request, &"f".repeat(40), &command_arguments)
+        .is_err_and(|error| format!("{error:#}").contains("after product command projection")));
+
+    let planned =
+        plan_corpus_materialization_slurm_spec(&request, &repository_commit, &command_arguments)?;
+    assert_eq!(planned.corpus_id, fixture.plan.corpus_id);
+    assert_eq!(planned.portfolio_id, fixture.plan.portfolio_id);
+    assert_eq!(planned.plan_sha256, bijux_dna_infra::hash_file_sha256(&fixture.spec.plan_path)?);
+    assert_eq!(planned.existing_catalog_sha256, None);
+    assert!(planned.command_arguments.windows(2).any(|values| {
+        values == ["--repository-commit".to_string(), planned.repository_commit.clone()]
+    }));
+    assert_eq!(
+        plan_corpus_materialization_slurm_spec(&request, &repository_commit, &command_arguments,)?,
+        planned
+    );
+    assert_eq!(
+        load_corpus_materialization_slurm_spec(
+            &planned.evidence_root.join("materialization-spec.json")
+        )?,
+        planned
+    );
+
+    fs::write(fixture.spec.repository_path.join("untracked.txt"), b"dirty\n")?;
+    assert!(plan_corpus_materialization_slurm_spec(
+        &request,
+        &repository_commit,
+        &command_arguments
+    )
+    .is_err_and(|error| format!("{error:#}").contains("clean corpus materialization repository")));
+    Ok(())
+}
 
 #[test]
 fn preparation_binds_exact_authorities_and_renders_rust_cli() -> anyhow::Result<()> {
@@ -103,17 +189,46 @@ fn historical_specifications_remain_loadable_but_cannot_prepare_without_a_comman
 ) -> anyhow::Result<()> {
     let fixture = fixture()?;
     let mut historical = serde_json::to_value(&fixture.spec)?;
-    historical
+    let object = historical
         .as_object_mut()
-        .ok_or_else(|| anyhow::anyhow!("serialized specification is not an object"))?
-        .remove("command_arguments");
+        .ok_or_else(|| anyhow::anyhow!("serialized specification is not an object"))?;
+    object.insert(
+        "schema_version".to_string(),
+        serde_json::Value::String(CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1.to_string()),
+    );
+    object.remove("command_arguments");
+    object.remove("corpus_id");
     let path = fixture.root.path().join("historical-specification.json");
     fs::write(&path, serde_json::to_vec_pretty(&historical)?)?;
 
     let loaded = load_corpus_materialization_slurm_spec(&path)?;
+    assert_eq!(loaded.schema_version, CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1);
+    assert!(loaded.corpus_id.is_empty());
     assert!(loaded.command_arguments.is_empty());
     assert!(prepare_corpus_materialization_slurm_job(&loaded, "2026-08-06T10:20:00Z")
         .is_err_and(|error| error.to_string().contains("command must contain")));
+    Ok(())
+}
+
+#[test]
+fn historical_portfolio_keyed_specification_remains_loadable() -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    let mut historical = serde_json::to_value(&fixture.spec)?;
+    let object = historical
+        .as_object_mut()
+        .ok_or_else(|| anyhow::anyhow!("serialized specification is not an object"))?;
+    object.insert(
+        "schema_version".to_string(),
+        serde_json::Value::String(CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1.to_string()),
+    );
+    object.remove("corpus_id");
+    let path = fixture.root.path().join("historical-v1-specification.json");
+    fs::write(&path, serde_json::to_vec_pretty(&historical)?)?;
+
+    let loaded = load_corpus_materialization_slurm_spec(&path)?;
+    assert_eq!(loaded.schema_version, CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1);
+    assert!(loaded.corpus_id.is_empty());
+    assert_eq!(loaded.portfolio_id, fixture.plan.portfolio_id);
     Ok(())
 }
 
@@ -256,8 +371,7 @@ fn fixture() -> anyhow::Result<Fixture> {
     let plan_path = data_root.join("evidence/acquisition-plans/plan.json");
     fs::write(&plan_path, serde_json::to_vec_pretty(&plan)?)?;
     let plan_path = plan_path.canonicalize()?;
-    let fastq_path =
-        data_root.join("corpora/human-short-read-diversity/raw/ERR000001/ERR000001.fastq.gz");
+    let fastq_path = data_root.join("corpora/corpus-01/raw/ERR000001/ERR000001.fastq.gz");
     let command_arguments = vec![
         "bench".to_string(),
         "materialize-fastq-corpus".to_string(),
@@ -278,9 +392,10 @@ fn fixture() -> anyhow::Result<Fixture> {
         "--json".to_string(),
     ];
     let spec = CorpusMaterializationSlurmSpec {
-        schema_version: CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1.to_string(),
+        schema_version: CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V2.to_string(),
         run_id: "run-2042".to_string(),
         attempt_id: "acquisition-attempt-001".to_string(),
+        corpus_id: plan.corpus_id.clone(),
         portfolio_id: "human-short-read-diversity".to_string(),
         repository_path: repository,
         repository_commit: "a".repeat(40),
@@ -388,7 +503,7 @@ fn publish_catalog(fixture: &Fixture) -> anyhow::Result<GovernedDataCatalog> {
     };
     let catalog = GovernedDataCatalog {
         schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(),
-        id: fixture.spec.portfolio_id.clone(),
+        id: fixture.spec.corpus_id.clone(),
         purpose: "real benchmark corpus".to_string(),
         source: "European Nucleotide Archive".to_string(),
         policy: fixture.plan.policy.clone(),
@@ -430,7 +545,7 @@ fn catalog_snapshot_path(fixture: &Fixture) -> std::path::PathBuf {
         .data_root
         .join("catalog/snapshots")
         .join(&fixture.spec.repository_commit)
-        .join(format!("{}.json", fixture.spec.portfolio_id))
+        .join(format!("{}.json", fixture.spec.corpus_id))
 }
 
 fn source_policy(projected_storage_bytes: u64) -> CorpusSourcePolicy {
@@ -471,4 +586,20 @@ fn scheduler_client(root: &std::path::Path, sbatch_body: &str) -> anyhow::Result
     };
     write_executable(&paths.sbatch, &format!("#!/bin/sh\n{sbatch_body}"))?;
     Ok(paths)
+}
+
+fn run_git(repository: &std::path::Path, arguments: &[&str]) -> anyhow::Result<()> {
+    let output = Command::new("git").args(arguments).current_dir(repository).output()?;
+    if !output.status.success() {
+        anyhow::bail!("git command failed: {}", String::from_utf8_lossy(&output.stderr));
+    }
+    Ok(())
+}
+
+fn git_stdout(repository: &std::path::Path, arguments: &[&str]) -> anyhow::Result<String> {
+    let output = Command::new("git").args(arguments).current_dir(repository).output()?;
+    if !output.status.success() {
+        anyhow::bail!("git command failed: {}", String::from_utf8_lossy(&output.stderr));
+    }
+    Ok(String::from_utf8(output.stdout)?.trim().to_string())
 }

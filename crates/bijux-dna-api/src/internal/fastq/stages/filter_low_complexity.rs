@@ -77,7 +77,7 @@ struct PlannedFilterLowComplexityEffectiveParams {
 /// Materialize the governed local-smoke `fastq.filter_low_complexity` artifacts.
 ///
 /// The written summary artifact lives at
-/// `runs/bench/local-smoke/fastq.filter_low_complexity/report.json` under the active repository root,
+/// `artifacts/runs/bench/local-smoke/fastq.filter_low_complexity/report.json` under the active repository root,
 /// alongside the top-level `filtered.fastq.gz`.
 ///
 /// # Errors
@@ -91,7 +91,8 @@ pub fn write_local_filter_low_complexity_smoke_report() -> Result<PathBuf> {
         anyhow!("local-smoke fastq.filter_low_complexity requires at least one governed case")
     })?;
 
-    let output_root = repo_root.join("runs/bench/local-smoke/fastq.filter_low_complexity");
+    let output_root =
+        repo_root.join("artifacts/runs/bench/local-smoke/fastq.filter_low_complexity");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let summary =
         materialize_local_filter_low_complexity_smoke_case(&repo_root, case, &output_root, true)?;

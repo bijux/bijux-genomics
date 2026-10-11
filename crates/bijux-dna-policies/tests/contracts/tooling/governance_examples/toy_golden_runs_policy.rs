@@ -7,13 +7,8 @@ fn slow__policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_d
     let root = support::workspace_root();
     let checksum = root.join("assets/toy/core-v1/CHECKSUMS.sha256");
     assert!(checksum.exists(), "missing governed toy checksum: {}", checksum.display());
-    let status = std::process::Command::new("cargo")
-        .current_dir(&root)
-        .arg("run")
-        .arg("-q")
-        .arg("-p")
-        .arg("bijux-dna-dev")
-        .arg("--")
+    let status = support::workspace_binary_command(&root, "bijux-dna-dev", "bijux-dna-dev")
+        .unwrap_or_else(|error| panic!("resolve developer executable: {error}"))
         .arg("test")
         .arg("run")
         .arg("toy-runs")
@@ -31,13 +26,8 @@ fn slow__policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_d
 #[test]
 fn slow__policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_flag() {
     let root = support::workspace_root();
-    let status = std::process::Command::new("cargo")
-        .current_dir(&root)
-        .arg("run")
-        .arg("-q")
-        .arg("-p")
-        .arg("bijux-dna-dev")
-        .arg("--")
+    let status = support::workspace_binary_command(&root, "bijux-dna-dev", "bijux-dna-dev")
+        .unwrap_or_else(|error| panic!("resolve developer executable: {error}"))
         .arg("test")
         .arg("run")
         .arg("toy-runs")

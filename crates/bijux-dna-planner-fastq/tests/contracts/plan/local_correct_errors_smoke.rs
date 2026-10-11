@@ -29,7 +29,9 @@ fn local_correct_errors_smoke_plans_use_governed_paired_fixture() -> Result<()> 
     assert_eq!(case.plan.tool_id.as_str(), "rcorrector");
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector")
+        PathBuf::from(
+            "artifacts/runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector"
+        )
     );
     assert_eq!(case.plan.resources.threads, 1);
     assert_eq!(case.plan.effective_params["paired_mode"], serde_json::json!("paired_end"));
@@ -47,19 +49,19 @@ fn local_correct_errors_smoke_plans_use_governed_paired_fixture() -> Result<()> 
     assert_eq!(
         case.plan.params["output_r1"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz"
+            "artifacts/runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r1.fastq.gz"
         )
     );
     assert_eq!(
         case.plan.params["output_r2"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r2.fastq.gz"
+            "artifacts/runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/reads_r2.fastq.gz"
         )
     );
     assert_eq!(
         case.plan.params["report_json"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/correct_report.json"
+            "artifacts/runs/bench/local-smoke/fastq.correct_errors/paired-dry-run/rcorrector/correct_report.json"
         )
     );
     assert!(

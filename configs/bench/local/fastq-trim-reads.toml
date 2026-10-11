@@ -16,7 +16,7 @@ adapter_preset = "illumina-default"
 polyx_policy = "none"
 n_policy = "retain"
 contaminant_policy = "none"
-output_dir = "runs/bench/local-smoke/fastq.trim_reads"
+output_dir = "artifacts/runs/bench/local-smoke/fastq.trim_reads"
 
 [[cases]]
 sample_id = "adapter-quality-se"

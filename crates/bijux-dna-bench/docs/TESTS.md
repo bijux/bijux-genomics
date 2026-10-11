@@ -61,3 +61,7 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test con
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test determinism --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test semantics --no-default-features
 ```
+
+`repo::corpus::normalized_fastq::tests` covers deterministic mate discovery, curated accession joins, full and paired cohorts, orphan mates, missing/ambiguous accessions, count drift, and requested corpus identity. The adjacent BAM and FASTQ admission modules retain their existing owner tests.
+
+Normalized corpus admission fixtures cover conflicting mate accessions, missing mates, repeated source/sample identities, stale raw and normalized bytes, manifest schema/duplicate-key/path/size rejection, symlinked authority, missing metadata and valid zero-sized cohorts. Tiny compressed reads exercise content identity without claiming external scientific qualification.

@@ -26,9 +26,9 @@ Only build commands may write:
 
 Generated science outputs are never hand-edited.
 
-[science/docs/README.md](docs/README.md) is not a generated surface. It is the
-local manually managed archive for evidence payloads that should not be
-committed.
+[science/docs/README.md](docs/README.md) governs tracked locator metadata for the
+external archive at `../bijux-genomics-science/`. Downloaded payloads stay outside
+the product checkout and are not generated science outputs.
 
 ## Planes
 
@@ -49,9 +49,9 @@ committed.
 - assumptions belong under evidence
 - findings belong under results
 - cross-plane links use typed IDs
-- science source records may point at planned local archive paths under
-  `science/docs/**`, but those payloads are not review-authored truth by
-  themselves
+- science source records retain logical archive locators under `science/docs/**`;
+  resolve that namespace against the external archive as defined in its contract;
+  payloads are not review-authored truth by themselves
 - local archive payloads must support authored source records rather than replace
   them
 
@@ -68,3 +68,12 @@ relationship among:
 - [crates/bijux-dna-containers/docs/ENV_REFERENCE.md](../crates/bijux-dna-containers/docs/ENV_REFERENCE.md)
 - [science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv](docs/upstream/fastq/tools/EVIDENCE_MAP.tsv)
 - [science/docs/upstream/papers/TOOL_PAPER_MAP.tsv](docs/upstream/papers/TOOL_PAPER_MAP.tsv)
+
+## Checkout boundary
+
+The native `check-root-layout` gate admits only indexed science source and
+metadata (`.md`, `.tsv`, `.yaml`, `.json`, and the governed archive `.gitignore`).
+It rejects untracked or ignored payloads, nested repository trees, binary
+archives, and symlinks without deleting evidence. Stage newly authored metadata
+before running this index-aware check. Downloaded material belongs in the
+external archive even when it could be force-added to Git.

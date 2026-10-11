@@ -407,6 +407,8 @@ benchmark-campaign-cycle
 benchmark-data-catalog-snapshots
 benchmark-data-portfolio-audit
 benchmark-integrity-mini
+benchmark-progress-ledger
+benchmark-protocol-portfolio
 benchmark-publication-registry
 benchmark-run-index
 benchmark-run-registry
@@ -468,6 +470,14 @@ simulate-coverage-regime
 validate-frontend-mini-domain-stacks
 ```
 
+`ci-test-all-sharded` executes every shard in the checked-in coverage contract when no arguments
+are supplied. A classified failure may be recovered with repeated `--shard <id>` pairs; the
+timing receipt records `affected_recovery` scope and cannot claim complete contract coverage.
+Unknown, duplicate, empty, or malformed selections fail before the archive build starts.
+The exclusive `--preflight-only` option validates the same build authority, pinned executor and
+runtime dependency bindings, writes the normal dependency report, and returns before preparing
+an archive or launching shards. A preflight pass is not a test or coverage pass.
+
 `benchmark-data-catalog-snapshots publish` preserves each flat v1 governed catalog inside a
 digest-bound v2 authority, retains current v2 records from an explicit prior registry, and
 publishes the complete source-addressed registry. Existing identical publications are replayed;
@@ -485,6 +495,12 @@ and one exact governed STUDY data index. It records catalog identity, access and
 classes, access terms, observed sample-count authority, verified storage, source projections,
 unbound holdings, and suspected toy, fixture, synthetic, or smoke contamination without promoting
 index eligibility to scientific admission.
+
+`benchmark-progress-ledger validate` performs bounded loading and Rust-owned semantic validation
+of task, execution-unit, attempt, check, commit, external-wait, and complete frontier references.
+
+`benchmark-protocol-portfolio` generates or checks the complete permanent campaign, stage
+interface, parameter, and run-directory declaration closure from the Rust benchmark authority.
 
 `benchmark-publication-registry` generates or checks the crate-owned classification of current
 governance products, active and historical stage reports, and quarantined legacy readiness files.
@@ -529,3 +545,5 @@ presentation metadata. Historical v1 catalogs that predate that metadata receive
 `report_presentation` tables from the explicit presentation repository; all execution, scientific,
 parameter, adapter, and downstream-probe fields remain validated against `--repository-root`. The
 operator reports the presentation commit, catalog SHA-256, and exact overlaid stage IDs.
+
+Fast policy lanes (`policy-fast`, `ssot-policy-fast`, `registry-lint`, and `release-readiness`) list their required selections before execution. Every module group or exact named case must resolve to a non-ignored test. Missing, renamed, unexpected, or ignored selections fail the lane. The inventory is retained under `artifacts/ci/<lane>/inventory.json`. `policy-fast` uses nextest for module groups. The other three lanes use Cargo's compiled test executable directly: one build, exact case and ignored-case inventory, then one concurrent Rust test harness batch. They require no additional installed test executor.

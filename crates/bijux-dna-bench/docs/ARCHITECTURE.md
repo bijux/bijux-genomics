@@ -20,6 +20,8 @@ belong under `docs/`.
 
 ## Source Layout
 
+`src/workflow/pipeline_profiles/` owns benchmark profile selection and scientific handoff requirements, grouped into ancient-DNA, germline, imputation, population, taxonomy and amplicon rules. `PipelineProfileEvidence` supplies admitted corpus compatibility and VCF matrix data; repository acquisition and process execution are outside these profile rules.
+
 - `src/lib.rs` keeps the crate root thin and re-exports `public_api`.
 - `src/public_api/` owns the curated stable surface and stable-surface owner.
 - `src/workflow/` owns suite loading, summarization, comparison, gate evaluation,
@@ -42,7 +44,9 @@ belong under `docs/`.
   loading.
 - `src/repo/sqlite/queries/run_index/` separates run-index queries from
   metadata-path policy.
-- `src/artifacts/` owns deterministic artifact serialization.
+- `src/artifacts/` owns source content identities, output admission, and deterministic serialization.
+- `src/artifacts/source_assets.rs` inspects files, directories, and index-prefix
+  bundles before staging, with typed source kinds and stable member digests.
 - `src/artifacts/writer/` separates observation reading, observation writing,
   and structured JSON writing.
 
@@ -78,3 +82,13 @@ planner, runner, or domain execution crates for production behavior.
 source tree, test tree, and Markdown location rules. Contract tests enforce the
 public API snapshot, no raw JSON outside repo/artifacts, no public API panics,
 and suite catalog governance.
+
+`src/repo/corpus/` groups BAM and FASTQ governed admission and normalized FASTQ metadata. Normalized discovery, accession joins, and publication cohort selection serve benchmark execution and dossier consumers through the public API.
+
+`src/repo/stage_inventory/` admits local domain matrices from an explicit repository root. `src/workflow/stage_inventory.rs` aggregates the admitted inventories and publishes their validated report atomically. Persisted inventory models and report validators belong to `bijux-dna-bench-model`; CLI consumers use the curated API facade.
+
+`repo/pipeline_reference.rs` admits benchmark pipeline reference identities using explicit-root db-ref catalog queries. The reference owner reads complete catalog schemas; benchmark admission checks the declared default build and bundle binding. The CLI calls this service without duplicating catalog DTOs or IO.
+
+`repo/pipeline_config.rs` adapts governed TOML and paired YAML files into benchmark-model pipeline inputs. Bundle selection, contextual parse failures and strict field handling have one repository owner; CLI/HPC callers consume the public service facade. Scientific and execution-context admission remain separate from transport parsing.
+
+Pipeline inventory acquisition and explicit site-profile lookup belong to repository adapters. The benchmark model admits execution-context symbols without filesystem access; repository admission then checks custom site-profile availability. Pipeline graph planning and profile semantics retain their existing owners, with no additional normal Cargo edges.

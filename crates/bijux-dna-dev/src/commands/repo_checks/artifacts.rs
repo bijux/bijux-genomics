@@ -53,9 +53,14 @@ pub(crate) fn check_artifacts_layout(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let _ = workspace;
-    let _ = regex(r"artifacts/[A-Za-z0-9._/-]+")?;
-    pass(check, "artifact paths stay under approved roots")
+    let offenders = super::artifact_paths::configured_artifact_path_offenders(workspace)?;
+    if offenders.is_empty() {
+        return pass(
+            check,
+            "declared CI build, archive and report destinations stay inside artifacts",
+        );
+    }
+    fail(check, offenders.join("\n"))
 }
 
 pub(crate) fn check_artifacts_tracked(

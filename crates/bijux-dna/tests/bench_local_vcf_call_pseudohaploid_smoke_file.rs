@@ -36,23 +36,25 @@ fn bench_local_vcf_call_pseudohaploid_smoke_writes_governed_files() {
 
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz"
+        "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz"
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let output_vcf = repo_root
-        .join("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz");
-    let output_tbi = repo_root
-        .join("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz.tbi");
-    let metrics_path =
-        repo_root.join("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json");
-    let manifest_path =
-        repo_root.join("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/stage-result.json");
+    let output_vcf = repo_root.join(
+        "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz",
+    );
+    let output_tbi = repo_root.join(
+        "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz.tbi",
+    );
+    let metrics_path = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json");
+    let manifest_path = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/stage-result.json");
     let materialized_reference = repo_root.join(
-        "runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/artifacts/reference/corpus_01_bam_reference.fasta",
+        "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/artifacts/reference/corpus_01_bam_reference.fasta",
     );
     let materialized_reference_fai = repo_root.join(
-        "runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/artifacts/reference/corpus_01_bam_reference.fasta.fai",
+        "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/artifacts/reference/corpus_01_bam_reference.fasta.fai",
     );
     let governed_reference_fai = repo_root.join(
         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta.fai",
@@ -114,12 +116,14 @@ fn bench_local_vcf_call_pseudohaploid_smoke_writes_governed_files() {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("pseudohaploid_vcf")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
                 == Some(
-                    "runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz",
+                    "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz",
                 )
     }));
     assert!(outputs.iter().any(|row| {
         row.get("artifact_id").and_then(serde_json::Value::as_str) == Some("metrics_json")
             && row.get("realized_path").and_then(serde_json::Value::as_str)
-                == Some("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json")
+                == Some(
+                    "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json",
+                )
     }));
 }

@@ -1,8 +1,13 @@
 //! Owner: bijux-dna-bench
-//! Artifact writers for bench.
+//! Benchmark source inspection, output admission, and deterministic persistence.
 
 pub mod admission;
+mod source_assets;
 pub mod writer;
+
+pub use source_assets::{
+    inspect_benchmark_source_asset, BenchmarkSourceAsset, BenchmarkSourceKind,
+};
 
 pub use admission::{
     admit_benchmark_execution_outputs, revalidate_benchmark_execution_outputs,

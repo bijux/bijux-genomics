@@ -68,7 +68,7 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
     assert_eq!(
         insufficient.plan.out_dir,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king"
+            "artifacts/runs/bench/local-smoke/bam.kinship/human_like_kinship_low_overlap_pair/king"
         )
     );
     assert_eq!(
@@ -128,7 +128,7 @@ fn local_kinship_smoke_plans_use_governed_pair_expectations() -> Result<()> {
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.summary.json"
+            "artifacts/runs/bench/local-smoke/bam.kinship/human_like_kinship_related_pair/king/kinship.summary.json"
         )
     );
 
@@ -187,7 +187,7 @@ fn local_kinship_smoke_plans_reject_empty_sample_ids() -> Result<()> {
 schema_version = "bijux.bench.bam.local_kinship.v1"
 tool_id = "king"
 threads = 2
-output_dir = "runs/bench/local-smoke/bam.kinship"
+output_dir = "artifacts/runs/bench/local-smoke/bam.kinship"
 
 [[cases]]
 sample_id = " "
@@ -226,7 +226,7 @@ fn local_kinship_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
 schema_version = "bijux.bench.bam.local_kinship.v1"
 tool_id = "king"
 threads = 2
-output_dir = "runs/bench/local-smoke/bam.kinship"
+output_dir = "artifacts/runs/bench/local-smoke/bam.kinship"
 
 [[cases]]
 sample_id = "duplicate-kinship-case"
@@ -295,7 +295,7 @@ fn local_kinship_smoke_plans_reject_pairwise_results_for_insufficient_cases() ->
 schema_version = "bijux.bench.bam.local_kinship.v1"
 tool_id = "king"
 threads = 2
-output_dir = "runs/bench/local-smoke/bam.kinship"
+output_dir = "artifacts/runs/bench/local-smoke/bam.kinship"
 
 [[cases]]
 sample_id = "insufficient-case-with-pairs"
@@ -347,7 +347,7 @@ fn local_kinship_smoke_plans_reject_duplicate_pairwise_sample_combinations() -> 
 schema_version = "bijux.bench.bam.local_kinship.v1"
 tool_id = "king"
 threads = 2
-output_dir = "runs/bench/local-smoke/bam.kinship"
+output_dir = "artifacts/runs/bench/local-smoke/bam.kinship"
 
 [[cases]]
 sample_id = "duplicate-pairwise-combination"

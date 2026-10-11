@@ -382,8 +382,8 @@ reason = "Compact validation fixture."
             &remote_corpus_root.join("MANIFEST.json"),
             serde_json::json!({
                 "files": {
-                    "raw/DRR000001/reads.fastq.gz": "sha256:fixture",
-                    "normalized/sample_0001_R1.fastq.gz": "sha256:fixture"
+                    "raw/DRR000001/reads.fastq.gz": bijux_dna_infra::hash_file_sha256(&raw_fastq).expect("hash raw fixture"),
+                    "normalized/sample_0001_R1.fastq.gz": bijux_dna_infra::hash_file_sha256(&normalized_fastq).expect("hash normalized fixture")
                 }
             }),
         );

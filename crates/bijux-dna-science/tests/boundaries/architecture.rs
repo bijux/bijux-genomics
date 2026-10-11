@@ -74,6 +74,7 @@ fn science_test_tree_matches_architecture_contract() {
             "boundaries.rs",
             "benchmark_gate.rs",
             "contracts.rs",
+            "contracts/",
             "fastq_environment_slice.rs",
             "fastq_read_length_truth.rs",
             "guardrails.rs",

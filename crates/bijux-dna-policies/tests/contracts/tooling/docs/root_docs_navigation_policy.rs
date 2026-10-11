@@ -211,7 +211,7 @@ fn policy__contracts__root_docs_navigation_policy__architecture_doc_links_govern
         "../../configs/ci/registry/tool_registry.toml".to_string(),
         "../../configs/ci/stages/stages.toml".to_string(),
         "../../configs/ci/tools/images.toml".to_string(),
-        "../../TARGET_ARCHITECTURE.md".to_string(),
+        "TARGET_ARCHITECTURE.md".to_string(),
     ]);
     let documented = markdown_link_targets("docs/10-architecture/ARCHITECTURE.md");
     assert_eq!(
@@ -227,7 +227,7 @@ fn policy__contracts__root_docs_navigation_policy__architecture_litmus_links_gov
         "BOUNDARY_MAP.md".to_string(),
         "CONTRACT_SPINE.md".to_string(),
         "SSOT.md".to_string(),
-        "../../TARGET_ARCHITECTURE.md".to_string(),
+        "TARGET_ARCHITECTURE.md".to_string(),
     ]);
     let documented = markdown_link_targets("docs/10-architecture/ARCHITECTURE_LITMUS.md");
     assert_eq!(
@@ -487,7 +487,7 @@ fn policy__contracts__root_docs_navigation_policy__architecture_contract_links_g
     let expected = BTreeSet::from([
         "../../Cargo.toml".to_string(),
         "BOUNDARY_MAP.md".to_string(),
-        "../../TARGET_ARCHITECTURE.md".to_string(),
+        "TARGET_ARCHITECTURE.md".to_string(),
         "CONTRACT_SPINE.md".to_string(),
         "CONTRACT_INDEX.md".to_string(),
     ]);
@@ -502,15 +502,15 @@ fn policy__contracts__root_docs_navigation_policy__architecture_contract_links_g
 fn policy__contracts__root_docs_navigation_policy__target_architecture_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
-        "docs/10-architecture/BOUNDARY_MAP.md".to_string(),
-        "docs/10-architecture/SSOT.md".to_string(),
-        "DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md".to_string(),
-        "containers/".to_string(),
-        "benchmarks/".to_string(),
-        "docs/10-architecture/ROOT_TREE_CONTRACT.md".to_string(),
-        "docs/10-architecture/CONTRACT_INDEX.md".to_string(),
+        "BOUNDARY_MAP.md".to_string(),
+        "SSOT.md".to_string(),
+        "../20-science/DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md".to_string(),
+        "../../containers/".to_string(),
+        "../../benchmarks/".to_string(),
+        "ROOT_TREE_CONTRACT.md".to_string(),
+        "CONTRACT_INDEX.md".to_string(),
     ]);
-    let documented = markdown_link_targets("TARGET_ARCHITECTURE.md");
+    let documented = markdown_link_targets("docs/10-architecture/TARGET_ARCHITECTURE.md");
     assert_eq!(
         expected, documented,
         "TARGET_ARCHITECTURE.md must link the governed product architecture authorities exactly"
@@ -553,7 +553,7 @@ fn policy__contracts__root_docs_navigation_policy__contract_authority_ladder_lin
 fn policy__contracts__root_docs_navigation_policy__crate_authority_map_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
-        "../../TARGET_ARCHITECTURE.md".to_string(),
+        "TARGET_ARCHITECTURE.md".to_string(),
         "BOUNDARY_MAP.md".to_string(),
         "../../crates/bijux-dna-policies/docs/ENFORCEMENT.md".to_string(),
         "../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs"
@@ -582,8 +582,8 @@ fn policy__contracts__root_docs_navigation_policy__contract_index_links_governed
         "ROOT_TREE_CONTRACT.md".to_string(),
         "CRATE_BOUNDARY_CONTRACTS.md".to_string(),
         "BOUNDARY_MAP.md".to_string(),
-        "../../TARGET_ARCHITECTURE.md".to_string(),
-        "../../DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md".to_string(),
+        "TARGET_ARCHITECTURE.md".to_string(),
+        "../20-science/DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md".to_string(),
         "CONTRACT_SPINE.md".to_string(),
         "SSOT.md".to_string(),
         "GENERATED_FILES_CONTRACT.md".to_string(),

@@ -46,7 +46,7 @@ fn policy__contracts__root_architecture_contract_policy__root_contract_declares_
 fn policy__contracts__root_architecture_contract_policy__target_architecture_assigns_product_owners(
 ) {
     let root = repo_root();
-    let path = root.join("TARGET_ARCHITECTURE.md");
+    let path = root.join("docs/10-architecture/TARGET_ARCHITECTURE.md");
     let content = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| bijux_dna_policies::policy_panic!("read {}: {err}", path.display()));
     let required = [
@@ -90,7 +90,7 @@ fn policy__contracts__root_architecture_contract_policy__target_architecture_ass
 fn policy__contracts__root_architecture_contract_policy__data_portfolio_separates_sources_from_evidence(
 ) {
     let root = repo_root();
-    let path = root.join("DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md");
+    let path = root.join("docs/20-science/DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md");
     let content = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| bijux_dna_policies::policy_panic!("read {}: {err}", path.display()));
     let required = [

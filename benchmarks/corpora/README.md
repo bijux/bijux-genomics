@@ -16,6 +16,11 @@ campaign uses it, the acquisition plan, source checksums, local checksums,
 read counts, access and redistribution facts, and known limitations must be
 recorded in the governed data catalog.
 
+Every explicitly selected FASTQ collection declares `sample_era` as `ancient`, `modern`, or
+`not_applicable`. Acquisition refuses to infer that scientific context from an accession or a
+collection name, and resolves each collection independently when a portfolio spans multiple ENA
+scientific names.
+
 ## Production classes
 
 The production portfolio accepts only `production_real` corpora for comparative evidence and

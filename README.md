@@ -52,7 +52,7 @@ This keeps stage claims tied to owned code and checked fixtures instead of prose
 - `domain/`: source-of-truth stage and tool manifests for FASTQ, BAM, and VCF
 - `docs/`: human-facing architecture, operations, and reference documentation
 - `examples/`: small usage examples and focused walkthrough inputs
-- `runs/`: local smoke and execution output roots
+- `artifacts/`: generated local run outputs, build products, caches, and reports
 
 ## Quick Start
 
@@ -94,7 +94,7 @@ The full CLI inventory is maintained in [`crates/bijux-dna/docs/COMMANDS.md`](cr
 ## Documentation
 
 - Project introduction: [`docs/00-intro/WHAT_IS_BIJUX.md`](docs/00-intro/WHAT_IS_BIJUX.md)
-- Product ownership: [`TARGET_ARCHITECTURE.md`](TARGET_ARCHITECTURE.md)
+- Product ownership: [`TARGET_ARCHITECTURE.md`](docs/10-architecture/TARGET_ARCHITECTURE.md)
 - Architecture overview: [`docs/10-architecture/ARCHITECTURE_OVERVIEW.md`](docs/10-architecture/ARCHITECTURE_OVERVIEW.md)
 - CI operations: [`docs/30-operations/CI.md`](docs/30-operations/CI.md)
 - HPC dry-run guidance: [`docs/30-operations/HPC_CAMPAIGN_DRYRUN.md`](docs/30-operations/HPC_CAMPAIGN_DRYRUN.md)
@@ -103,7 +103,7 @@ The full CLI inventory is maintained in [`crates/bijux-dna/docs/COMMANDS.md`](cr
 ## Development Notes
 
 - Generated benchmark proof belongs under `benchmarks/readiness/` when it is deterministic and worth checking in.
-- Disposable local execution output belongs under `artifacts/` or `runs/`.
+- Disposable local execution output belongs under `artifacts/`.
 - Use `make bench-fastq-tool-scores-dry-run` to refresh and validate the governed FASTQ score table under `artifacts/benchmark-smoke/micro/fastq/`.
 - Use `make bench-bam-tool-scores-dry-run` to refresh and validate the governed BAM score table under `artifacts/benchmark-smoke/micro/bam/`.
 - Source-of-truth domain changes should be followed by the relevant index, registry, and readiness regeneration commands before commit.

@@ -3,6 +3,9 @@
 
 use std::path::PathBuf;
 
+/// Governed local VCF stage matrix declaration.
+pub const DEFAULT_VCF_STAGE_MATRIX_PATH: &str = "configs/bench/local/vcf-stage-matrix.toml";
+
 #[must_use]
 pub fn bench_data_dir() -> PathBuf {
     super::resolve_repo_root()

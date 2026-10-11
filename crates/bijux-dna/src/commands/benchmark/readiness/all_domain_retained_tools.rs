@@ -20,7 +20,6 @@ use crate::commands::cli::render;
 pub(crate) const DEFAULT_ALL_DOMAIN_RETAINED_TOOLS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/tools/retained-tool-inventory.tsv";
 const BENCHMARK_READY_STATUS: &str = "benchmark_ready";
-const STATUS_NOT_BENCHMARK_READY: &str = "not_benchmark_ready";
 const NO_BENCHMARK_READY_STAGE_IDS: &str = "none";
 
 #[derive(Default)]
@@ -122,7 +121,6 @@ fn build_all_domain_retained_tool_rows(
     for contract in external_artifacts {
         let entry = by_tool.entry(contract.tool_id.clone()).or_default();
         entry.domains.extend(contract.domains.iter().cloned());
-        entry.benchmark_statuses.insert(STATUS_NOT_BENCHMARK_READY.to_string());
         for stage_id in &contract.stage_ids {
             if entry.active_stage_ids.insert(stage_id.clone()) {
                 entry.active_binding_count += 1;
@@ -205,6 +203,19 @@ fn ensure_all_domain_retained_tool_contract(
         }
         if row.active_stage_count == 0 {
             return Err(anyhow!("retained tool `{}` serves zero active stages", row.tool_id));
+        }
+    }
+
+    for contract in external_artifacts {
+        let row = rows
+            .iter()
+            .find(|row| row.tool_id == contract.tool_id)
+            .ok_or_else(|| anyhow!("external artifact tool `{}` is missing", contract.tool_id))?;
+        if row.benchmark_statuses.as_slice() != [BENCHMARK_READY_STATUS] {
+            return Err(anyhow!(
+                "external artifact tool `{}` must remain benchmark-ready independently of artifact availability",
+                contract.tool_id
+            ));
         }
     }
 

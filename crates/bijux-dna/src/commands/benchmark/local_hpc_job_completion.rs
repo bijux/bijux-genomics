@@ -280,13 +280,13 @@ mod tests {
             result_id: Some(
                 "vcf:vcf_production_regression:vcf.stats:vcf_cohort:bcftools".to_string(),
             ),
-            script_path: "runs/bench/slurm-dry-run/all-domains/controls/job.sbatch".to_string(),
-            stdout: "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log".to_string(),
-            stderr: "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stderr.log".to_string(),
+            script_path: "artifacts/runs/bench/slurm-dry-run/all-domains/controls/job.sbatch".to_string(),
+            stdout: "artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log".to_string(),
+            stderr: "artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stderr.log".to_string(),
             outputs: vec![
-                "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/declared-outputs/bcftools_stats_txt.txt".to_string(),
-                "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/declared-outputs/stats.json".to_string(),
-                "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stage-result.json".to_string(),
+                "artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/declared-outputs/bcftools_stats_txt.txt".to_string(),
+                "artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/declared-outputs/stats.json".to_string(),
+                "artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stage-result.json".to_string(),
             ],
             dependencies: Vec::new(),
             resources: BenchLocalAllDomainSlurmSubmitResources {

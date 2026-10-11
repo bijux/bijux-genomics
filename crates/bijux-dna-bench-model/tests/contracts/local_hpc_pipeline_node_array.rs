@@ -24,13 +24,16 @@ fn output(output_id: &str, output_path: &str) -> BenchmarkLocalHpcPipelineNodeAr
 
 fn row(index: usize, node_id: &str) -> BenchmarkLocalHpcPipelineNodeArrayRow {
     let job_id = format!("pipeline:vcf-essential:{node_id}");
-    let root = format!("runs/bench/results/{node_id}");
+    let root = format!("artifacts/runs/bench/results/{node_id}");
     let dependency = (index == 1).then(|| BenchmarkLocalHpcPipelineNodeArrayDependency {
         node_id: "map".to_string(),
         job_id_local: "pipeline:vcf-essential:map".to_string(),
         array_index: 0,
         upstream_result_ids: vec!["aligned-bam".to_string()],
-        expected_outputs: vec![output("aligned-bam", "runs/bench/results/map/aligned.bam")],
+        expected_outputs: vec![output(
+            "aligned-bam",
+            "artifacts/runs/bench/results/map/aligned.bam",
+        )],
     });
     BenchmarkLocalHpcPipelineNodeArrayRow {
         array_index: index,
@@ -49,11 +52,11 @@ fn row(index: usize, node_id: &str) -> BenchmarkLocalHpcPipelineNodeArrayRow {
             .collect(),
         dependencies: dependency.into_iter().collect(),
         expected_outputs: if index == 0 {
-            vec![output("aligned-bam", "runs/bench/results/map/aligned.bam")]
+            vec![output("aligned-bam", "artifacts/runs/bench/results/map/aligned.bam")]
         } else {
-            vec![output("variants-vcf", "runs/bench/results/call/variants.vcf.gz")]
+            vec![output("variants-vcf", "artifacts/runs/bench/results/call/variants.vcf.gz")]
         },
-        script_path: format!("runs/bench/slurm/{node_id}.sbatch"),
+        script_path: format!("artifacts/runs/bench/slurm/{node_id}.sbatch"),
         pipeline_node_argv: vec!["bijux-dna".to_string(), "bench".to_string()],
         pipeline_node_command: "bijux-dna bench".to_string(),
         scratch_root: format!("{root}/scratch"),
@@ -69,9 +72,12 @@ fn row(index: usize, node_id: &str) -> BenchmarkLocalHpcPipelineNodeArrayRow {
 fn report() -> BenchmarkLocalHpcPipelineNodeArrayReport {
     BenchmarkLocalHpcPipelineNodeArrayReport {
         schema_version: BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1.to_string(),
-        script_path: "runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch".to_string(),
-        manifest_path: "runs/bench/hpc-dry-run/slurm/pipeline-node-array-manifest.json".to_string(),
-        wrapper_log_root: "runs/bench/hpc-dry-run/slurm/logs/pipeline-node-array".to_string(),
+        script_path: "artifacts/runs/bench/hpc-dry-run/slurm/pipeline-node-array.sbatch"
+            .to_string(),
+        manifest_path: "artifacts/runs/bench/hpc-dry-run/slurm/pipeline-node-array-manifest.json"
+            .to_string(),
+        wrapper_log_root: "artifacts/runs/bench/hpc-dry-run/slurm/logs/pipeline-node-array"
+            .to_string(),
         array_spec: "0-1".to_string(),
         pipeline_count: 1,
         pipeline_job_count: 2,

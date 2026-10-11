@@ -7,17 +7,18 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{CorpusAcquisitionPlan, GovernedDataCatalog};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
 use super::contracts::{
     CorpusMaterializationCollection, CorpusMaterializationEvidence,
     CorpusMaterializationEvidenceStatus, CorpusMaterializationSlurmSpec,
     PreparedCorpusMaterializationSlurmJob, CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1,
-    CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
+    CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V2, CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
 };
 use super::validation::{
-    canonical_directory, ensure_json_identity, read_json, require_utc_timestamp,
-    validate_catalog_closure, validate_specification,
+    canonical_directory, ensure_json_identity, materialization_catalog_id, read_json,
+    require_utc_timestamp, validate_catalog_closure, validate_specification,
 };
 use crate::backend::slurm::{
     collect_slurm_job, observe_slurm_job, submit_slurm_job, SlurmArraySpec, SlurmClientPaths,
@@ -144,7 +145,7 @@ pub fn load_prepared_corpus_materialization_slurm_job(
     require_utc_timestamp(&prepared.request.submitted_at_utc, "submission timestamp")?;
     if prepared.schema_version != CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1
         || prepared.request.run_id
-            != format!("{}:{}:{}", spec.run_id, spec.portfolio_id, spec.attempt_id)
+            != format!("{}:{}:{}", spec.run_id, materialization_catalog_id(spec), spec.attempt_id)
         || prepared.request.script_path != scheduler_root.join("job.sbatch")
         || prepared.request.working_directory != spec.repository_path
         || prepared.request.stdout_path != scheduler_root.join("stdout.log")
@@ -248,13 +249,14 @@ pub fn collect_corpus_materialization_slurm_job(
         }
     }
     let evidence = CorpusMaterializationEvidence {
-        schema_version: CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1.to_string(),
+        schema_version: CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V2.to_string(),
         status,
         run_id: spec.run_id.clone(),
         attempt_id: spec.attempt_id.clone(),
+        corpus_id: spec.corpus_id.clone(),
         portfolio_id: spec.portfolio_id.clone(),
         repository_commit: spec.repository_commit.clone(),
-        job_id: handle.job_id,
+        job_id: handle.job_id.clone(),
         specification_sha256: prepared.specification_sha256,
         script_sha256: prepared.script_sha256,
         executable_sha256: spec.executable_sha256.clone(),
@@ -268,8 +270,23 @@ pub fn collect_corpus_materialization_slurm_job(
         collected_at_utc: collected_at_utc.to_string(),
         failure,
     };
-    ensure_json_identity(&terminal_path, &evidence)?;
-    Ok(CorpusMaterializationCollection { observation, evidence: Some(evidence) })
+    let retained = publish_json_or_load_winner(&terminal_path, &evidence)?;
+    validate_retained_evidence(spec, &plan, &handle, &retained)?;
+    Ok(CorpusMaterializationCollection { observation, evidence: Some(retained) })
+}
+
+fn publish_json_or_load_winner<T>(path: &Path, candidate: &T) -> Result<T>
+where
+    T: Clone + DeserializeOwned + PartialEq + Serialize,
+{
+    match ensure_json_identity(path, candidate) {
+        Ok(()) => Ok(candidate.clone()),
+        Err(publication_error) => read_json(path).with_context(|| {
+            format!(
+                "reload immutable evidence after concurrent publication conflict: {publication_error:#}"
+            )
+        }),
+    }
 }
 
 fn validate_success(
@@ -307,9 +324,12 @@ fn validate_retained_evidence(
     evidence: &CorpusMaterializationEvidence,
 ) -> Result<()> {
     let prepared = prepared_from_evidence(spec, handle)?;
-    if evidence.schema_version != CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1
-        || evidence.run_id != spec.run_id
+    if !matches!(
+        evidence.schema_version.as_str(),
+        CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1 | CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V2
+    ) || evidence.run_id != spec.run_id
         || evidence.attempt_id != spec.attempt_id
+        || evidence.corpus_id != spec.corpus_id
         || evidence.portfolio_id != spec.portfolio_id
         || evidence.repository_commit != spec.repository_commit
         || evidence.job_id != handle.job_id
@@ -425,6 +445,28 @@ fn submission_intent(prepared: &PreparedCorpusMaterializationSlurmJob) -> Submis
         stdout_path: prepared.request.stdout_path.clone(),
         stderr_path: prepared.request.stderr_path.clone(),
         submitted_at_utc: prepared.request.submitted_at_utc.clone(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::publish_json_or_load_winner;
+
+    #[test]
+    fn concurrent_publication_reloads_the_immutable_winner() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let path = root.path().join("materialization-evidence.json");
+        let winner = json!({"collected_at_utc": "2026-08-16T13:39:38Z"});
+        let concurrent_candidate = json!({"collected_at_utc": "2026-08-16T13:40:45Z"});
+        bijux_dna_infra::atomic_write_json(&path, &winner)?;
+
+        let retained = publish_json_or_load_winner(&path, &concurrent_candidate)?;
+
+        assert_eq!(retained, winner);
+        assert_eq!(serde_json::from_slice::<serde_json::Value>(&std::fs::read(path)?)?, winner);
+        Ok(())
     }
 }
 

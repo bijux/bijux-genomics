@@ -66,31 +66,52 @@ pub use artifacts::{
     summarize_tiny_bam_gc_bias_truth, summarize_tiny_bam_haplogroup_truth,
     summarize_tiny_bam_insert_size, summarize_tiny_bam_kinship, summarize_tiny_bam_mapping,
     summarize_tiny_bam_overlap_correction_outputs, summarize_tiny_bam_qc_pre,
-    summarize_tiny_bam_recalibration, summarize_tiny_bam_sex, BamAdnaContaminationTruthSummaryV1,
-    BamAdnaDamageTruthSummaryV1, BamAdnaWorkflowV1, BamAdvisoryBoundaryV1,
-    BamAlignmentProvenanceV1, BamAlignmentStrategyV1, BamAlignmentSuitabilityV1,
-    BamAlignmentTruthCigarClassV1, BamAlignmentTruthMapqClassV1, BamAlignmentTruthPositionV1,
-    BamAlignmentTruthRecordV1, BamAlignmentTruthSummaryV1, BamArtifactEntryV1,
-    BamArtifactInventoryV1, BamAuthenticityAdvisoryV1, BamBenchCorpusDatasetManifestEntryV1,
-    BamBenchCorpusManifestV1, BamBenchDatasetScenarioV1, BamBiasMitigationSummaryV1,
-    BamComplexitySummaryV1, BamContaminationEvidenceV1, BamContaminationToolContractV1,
-    BamContaminationWorkflowV1, BamCoverageRegimeClassV1, BamCoverageRegimeV1,
-    BamCoverageRegionSummaryV1, BamCoverageSummaryV1, BamCoverageTruthSummaryV1,
-    BamDamageEvidenceV1, BamDuplicateComparisonV1, BamDuplicateFamilyHistogramBinV1,
-    BamDuplicateInsertTruthSummaryV1, BamDuplicateMethodMetricsV1, BamDuplicatePolicyV1,
-    BamDuplicationMetricsSummaryV1, BamEndogenousContentEstimateV1, BamEndogenousTruthSummaryV1,
-    BamFilterSummaryV1, BamFlagstatCountsV1, BamGcBiasBinSummaryV1, BamGcBiasSummaryV1,
-    BamGcBiasTruthSummaryV1, BamHaplogroupReadinessV1, BamHaplogroupTruthSummaryV1,
-    BamInputOriginV1, BamInputScaleV1, BamInsertSizeHistogramBinV1, BamInsertSizeSummaryV1,
-    BamKinshipPairResultV1, BamKinshipPrerequisitesV1, BamKinshipSummaryV1,
-    BamLengthFilterSummaryV1, BamMappingSummaryV1, BamMapqFilterSummaryV1, BamMapqRegimeV1,
-    BamMarkdupSummaryV1, BamMergeCompatibilityV1, BamMergeInputIdentityV1,
-    BamOverlapCorrectionSummaryV1, BamPostAlignmentChainV1, BamQcPreSummaryV1,
-    BamReadGroupMappingCountV1, BamRecalibrationCoverageGateV1, BamRecalibrationSummaryV1,
-    BamReferenceAssetIdentityV1, BamReferencePreflightV1, BamSampleIdentityV1,
-    BamScientificReportContractV1, BamScientificReportIdV1, BamSexInferenceEvidenceV1,
-    BamSexSummaryV1, BamStageResourcePlanV1, BamTinyAlignmentInspectionV1, BamValidationSummaryV1,
-    BamWorkflowModeV1, BamWorkflowTemplateV1, BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION,
+    summarize_tiny_bam_recalibration, summarize_tiny_bam_sex,
+};
+
+pub use benchmark_corpus_assignment::{
+    benchmark_corpus_assignment_for_stage_tool, governed_benchmark_stage_tool_bindings,
+    BenchmarkCorpusAssignment, BenchmarkCorpusFamily,
+};
+pub use comparison_contract::{
+    comparable_benchmark_stage_contract_for_stage, comparable_benchmark_stage_contracts,
+    comparable_benchmark_stage_ids, comparable_tool_ids_for_stage,
+    stage_comparable_metric_contracts_for_stage, stage_comparable_metric_fields_for_stage,
+    BamComparableMetricContract, BamComparableStageContract, BamScientificInsufficiencyPolicy,
+    BamScientificPassDirection, BamScientificThresholdContract, BamScientificToleranceKind,
+};
+pub use invariants::bam_invariant_specs;
+pub use stage_specs::{
+    contract_for_stage, required_audit_artifacts, stage_contract_hash, stage_contract_json,
+    stage_spec, stage_spec_opt, stage_specs, ArtifactPolicy, AuditArtifact, BamArtifactKind,
+    BamStage, BamStageContract, BamStageSpec, StageSpec, STAGE_PREFIX,
+};
+pub use types::artifact_reports::{
+    BamAdnaContaminationTruthSummaryV1, BamAdnaDamageTruthSummaryV1, BamAdnaWorkflowV1,
+    BamAdvisoryBoundaryV1, BamAlignmentProvenanceV1, BamAlignmentStrategyV1,
+    BamAlignmentSuitabilityV1, BamAlignmentTruthCigarClassV1, BamAlignmentTruthMapqClassV1,
+    BamAlignmentTruthPositionV1, BamAlignmentTruthRecordV1, BamAlignmentTruthSummaryV1,
+    BamArtifactEntryV1, BamArtifactInventoryV1, BamAuthenticityAdvisoryV1,
+    BamBenchCorpusDatasetManifestEntryV1, BamBenchCorpusManifestV1, BamBenchDatasetScenarioV1,
+    BamBiasMitigationSummaryV1, BamComplexitySummaryV1, BamContaminationEvidenceV1,
+    BamContaminationToolContractV1, BamContaminationWorkflowV1, BamCoverageRegimeClassV1,
+    BamCoverageRegimeV1, BamCoverageRegionSummaryV1, BamCoverageSummaryV1,
+    BamCoverageTruthSummaryV1, BamDamageEvidenceV1, BamDuplicateComparisonV1,
+    BamDuplicateFamilyHistogramBinV1, BamDuplicateInsertTruthSummaryV1,
+    BamDuplicateMethodMetricsV1, BamDuplicatePolicyV1, BamDuplicationMetricsSummaryV1,
+    BamEndogenousContentEstimateV1, BamEndogenousTruthSummaryV1, BamFilterSummaryV1,
+    BamFlagstatCountsV1, BamGcBiasBinSummaryV1, BamGcBiasSummaryV1, BamGcBiasTruthSummaryV1,
+    BamHaplogroupReadinessV1, BamHaplogroupTruthSummaryV1, BamInputOriginV1, BamInputScaleV1,
+    BamInsertSizeHistogramBinV1, BamInsertSizeSummaryV1, BamKinshipPairResultV1,
+    BamKinshipPrerequisitesV1, BamKinshipSummaryV1, BamLengthFilterSummaryV1, BamMappingSummaryV1,
+    BamMapqFilterSummaryV1, BamMapqRegimeV1, BamMarkdupSummaryV1, BamMergeCompatibilityV1,
+    BamMergeInputIdentityV1, BamOverlapCorrectionSummaryV1, BamPostAlignmentChainV1,
+    BamQcPreSummaryV1, BamReadGroupMappingCountV1, BamRecalibrationCoverageGateV1,
+    BamRecalibrationSummaryV1, BamReferenceAssetIdentityV1, BamReferencePreflightV1,
+    BamSampleIdentityV1, BamScientificReportContractV1, BamScientificReportIdV1,
+    BamSexInferenceEvidenceV1, BamSexSummaryV1, BamStageResourcePlanV1,
+    BamTinyAlignmentInspectionV1, BamValidationSummaryV1, BamWorkflowModeV1, BamWorkflowTemplateV1,
+    BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION,
     BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_ADNA_WORKFLOW_SCHEMA_VERSION,
     BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION, BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION,
     BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION,
@@ -115,23 +136,6 @@ pub use artifacts::{
     BAM_SAMPLE_IDENTITY_SCHEMA_VERSION, BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION,
     BAM_SEX_EVIDENCE_SCHEMA_VERSION, BAM_SEX_SUMMARY_SCHEMA_VERSION,
     BAM_VALIDATION_SUMMARY_SCHEMA_VERSION, BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
-};
-pub use benchmark_corpus_assignment::{
-    benchmark_corpus_assignment_for_stage_tool, governed_benchmark_stage_tool_bindings,
-    BenchmarkCorpusAssignment, BenchmarkCorpusFamily,
-};
-pub use comparison_contract::{
-    comparable_benchmark_stage_contract_for_stage, comparable_benchmark_stage_contracts,
-    comparable_benchmark_stage_ids, comparable_tool_ids_for_stage,
-    stage_comparable_metric_contracts_for_stage, stage_comparable_metric_fields_for_stage,
-    BamComparableMetricContract, BamComparableStageContract, BamScientificInsufficiencyPolicy,
-    BamScientificPassDirection, BamScientificThresholdContract, BamScientificToleranceKind,
-};
-pub use invariants::bam_invariant_specs;
-pub use stage_specs::{
-    contract_for_stage, required_audit_artifacts, stage_contract_hash, stage_contract_json,
-    stage_spec, stage_spec_opt, stage_specs, ArtifactPolicy, AuditArtifact, BamArtifactKind,
-    BamStage, BamStageContract, BamStageSpec, StageSpec, STAGE_PREFIX,
 };
 pub use types::{
     BamInvariantsPreset, BAM_LOCAL_BENCH_STAGE_ID_CATALOG, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG,

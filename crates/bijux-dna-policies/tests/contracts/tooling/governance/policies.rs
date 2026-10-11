@@ -269,7 +269,7 @@ fn policy__contracts__policies__litmus_doc_exists_and_lists_rules() {
         ),
         "ARCHITECTURE.md must define the SSOT rule"
     );
-    let authority_map_path = root.join("TARGET_ARCHITECTURE.md");
+    let authority_map_path = root.join("docs/10-architecture/TARGET_ARCHITECTURE.md");
     bijux_dna_policies::policy_assert!(
         authority_map_path.exists(),
         "TARGET_ARCHITECTURE.md must exist"

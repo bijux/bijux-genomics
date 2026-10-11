@@ -413,7 +413,7 @@ struct MergePlanOutputs<'a> {
 
 /// Materialize the governed local-smoke `fastq.merge_pairs` artifacts.
 ///
-/// The written summary artifact lives at `runs/bench/local-smoke/fastq.merge_pairs/report.json`
+/// The written summary artifact lives at `artifacts/runs/bench/local-smoke/fastq.merge_pairs/report.json`
 /// under the active repository root, alongside top-level `merged.fastq.gz` and `unmerged/`
 /// outputs.
 ///
@@ -430,7 +430,7 @@ pub fn write_local_merge_pairs_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("runs/bench/local-smoke/fastq.merge_pairs");
+    let output_root = repo_root.join("artifacts/runs/bench/local-smoke/fastq.merge_pairs");
     let unmerged_root = output_root.join("unmerged");
     bijux_dna_infra::ensure_dir(&output_root)?;
     bijux_dna_infra::ensure_dir(&unmerged_root)?;

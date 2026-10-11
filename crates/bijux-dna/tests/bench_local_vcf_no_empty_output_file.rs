@@ -56,7 +56,7 @@ fn bench_local_validate_vcf_no_empty_output_writes_governed_json_file() {
     assert!(rows.iter().all(|row| {
         row.get("output_path")
             .and_then(serde_json::Value::as_str)
-            .is_some_and(|value| value.starts_with("runs/bench/local-smoke/vcf/"))
+            .is_some_and(|value| value.starts_with("artifacts/runs/bench/local-smoke/vcf/"))
             && row.get("bytes").and_then(serde_json::Value::as_u64).is_some_and(|bytes| bytes > 0)
             && row.get("status").and_then(serde_json::Value::as_str) == Some("non_empty")
     }));
@@ -73,7 +73,7 @@ fn bench_local_validate_vcf_no_empty_output_writes_governed_json_file() {
     assert_eq!(
         chunks_json.get("output_path").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/chunks.json"
+            "artifacts/runs/bench/local-smoke/vcf/vcf.prepare_reference_panel/bcftools/artifacts/chunks.json"
         )
     );
 }

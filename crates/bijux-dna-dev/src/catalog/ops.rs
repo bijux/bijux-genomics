@@ -371,14 +371,19 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingBenchmarkDataPortfolioAudit,
         ),
         native(
-            "benchmark-publication-registry",
-            "Generate or check current, historical, and quarantined benchmark publications.",
-            NativeOpsCommandKey::ToolingBenchmarkPublicationRegistry,
+            "benchmark-progress-ledger",
+            "Validate a typed progress ledger and its task, execution-unit, attempt, and frontier references.",
+            NativeOpsCommandKey::ToolingBenchmarkProgressLedger,
         ),
         native(
             "benchmark-protocol-portfolio",
             "Generate or check complete campaign, interface, and parameter declarations.",
             NativeOpsCommandKey::ToolingBenchmarkProtocolPortfolio,
+        ),
+        native(
+            "benchmark-publication-registry",
+            "Generate or check current, historical, and quarantined benchmark publications.",
+            NativeOpsCommandKey::ToolingBenchmarkPublicationRegistry,
         ),
         native(
             "benchmark-run-index",

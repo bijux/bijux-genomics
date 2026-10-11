@@ -51,6 +51,10 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
   publishes the wrapper and specification, duplicate-safe submission persists intent before the
   scheduler effect, observation performs one query, and terminal collection records accounting and
   log digests without interpreting the worker's domain output.
+- Corpus materialization planning binds a clean repository commit, executable and plan digests,
+  catalog precondition, generated Rust command, resources, and collection-level `corpus_id` before
+  preparation. Version 2 uses collection identities for locks, catalogs, data roots, and evidence;
+  historical version 1 remains readable at its portfolio-keyed paths.
 - Container qualification status v2 names the next one-shot action `observe` and exposes
   `earliest_observation_at_utc`; v1 `poll` spellings remain deserialize-only compatibility aliases.
 - Container qualification `advance` runs one bounded collect pass, admits every newly passing

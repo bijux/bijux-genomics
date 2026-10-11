@@ -472,6 +472,7 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
         if path.ends_with("/mod.rs")
             || path.ends_with("/dispatch.rs")
             || path.ends_with("/command_support.rs")
+            || is_thin_container_operator(path, content)
         {
             return (
                 "thin external adapter",
@@ -547,6 +548,37 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
     ("unclassified", "the ownership audit has no explicit rule for this product file")
 }
 
+fn is_thin_container_operator(path: &str, content: &str) -> bool {
+    const MIGRATED_SURFACES: &[&str] = &[
+        "crates/bijux-dna-dev/src/commands/containers/external_artifact.rs",
+        "crates/bijux-dna-dev/src/commands/containers/image_activation.rs",
+        "crates/bijux-dna-dev/src/commands/containers/runtime_verification.rs",
+        "crates/bijux-dna-dev/src/commands/containers/storage.rs",
+        "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs",
+        "crates/bijux-dna-dev/src/commands/containers/qualification_slurm.rs",
+    ];
+    const FORBIDDEN_OPERATOR_PRIMITIVES: &[&str] = &[
+        "use std::fs",
+        "std::fs::",
+        "use std::process",
+        "Command::",
+        "ProcessRunner",
+        "chrono::Utc::now",
+        "serde_json::from_",
+        "toml::",
+        "read_utf8(",
+        "write_utf8(",
+        "atomic_write",
+        "create_dir_all(",
+        "remove_file(",
+        "rename(",
+    ];
+    MIGRATED_SURFACES.contains(&path)
+        && content.contains("bijux_dna_")
+        && content.contains("::api::")
+        && !FORBIDDEN_OPERATOR_PRIMITIVES.iter().any(|primitive| content.contains(primitive))
+}
+
 fn is_test_source(path: &str) -> bool {
     path.starts_with("tests/")
         || path.contains("/tests/")
@@ -596,6 +628,19 @@ fn current_owner(path: &str) -> String {
 fn target_owner(path: &str, classification: &str) -> String {
     if let Some(owner) = legacy_target_owner(path) {
         return owner.to_string();
+    }
+    // Automation composes product owners; its filename does not transfer its
+    // implementation authority to a product service mentioned in that name.
+    if path.starts_with(".github/workflows/") {
+        return "bijux-std".to_string();
+    }
+    if classification == "thin external adapter"
+        && (path == "Makefile" || path.starts_with("makes/"))
+    {
+        return "bijux-dna-dev".to_string();
+    }
+    if classification == "test contract" && path.starts_with("crates/") {
+        return current_owner(path);
     }
     if classification == "canonical crate logic" || classification == "declarative product asset" {
         return current_owner(path);
@@ -1071,9 +1116,9 @@ mod tests {
 
     use super::{
         classify, dependency_consumers, is_relevant, legacy_authorities, legacy_callers,
-        production_callers, render_markdown, validate_audit, AuditSummary, OwnershipAudit,
-        OwnershipRow, SourceFile, DIRECT_BENCH_PRODUCT_CONSUMERS, OUTPUT_JSON, OUTPUT_MARKDOWN,
-        OUTPUT_SCHEMA, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
+        production_callers, render_markdown, target_owner, validate_audit, AuditSummary,
+        OwnershipAudit, OwnershipRow, SourceFile, DIRECT_BENCH_PRODUCT_CONSUMERS, OUTPUT_JSON,
+        OUTPUT_MARKDOWN, OUTPUT_SCHEMA, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
     };
 
     #[test]
@@ -1099,6 +1144,28 @@ mod tests {
         assert_eq!(row.classification, "canonical crate logic");
         assert_eq!(row.target_owner, "bijux-dna-bench");
         Ok(())
+    }
+
+    #[test]
+    fn automation_and_tests_keep_their_declared_implementation_owner() {
+        for path in [
+            ".github/workflows/automerge-pr.yml",
+            ".github/workflows/publish-ghcr-container-images.yml",
+            ".github/workflows/release-qualification.yml",
+        ] {
+            assert_eq!(target_owner(path, "thin external adapter"), "bijux-std");
+        }
+        for path in ["Makefile", "makes/containers.mk", "makes/bin/dev_dna_bootstrap.sh"] {
+            assert_eq!(target_owner(path, "thin external adapter"), "bijux-dna-dev");
+        }
+        assert_eq!(
+            target_owner("crates/bijux-dna-containers-qa/tests/qualification.rs", "test contract"),
+            "bijux-dna-containers-qa"
+        );
+        assert_eq!(
+            target_owner("crates/bijux-dna-runtime/tests/campaign.rs", "test contract"),
+            "bijux-dna-runtime"
+        );
     }
 
     #[test]
@@ -1175,6 +1242,61 @@ mod tests {
             );
             assert_eq!(row.classification, "thin external adapter", "{path}");
         }
+        Ok(())
+    }
+
+    #[test]
+    fn migrated_container_operator_commands_remain_thin_adapters() -> anyhow::Result<()> {
+        let schema_pattern = Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?;
+        for (path, content) in [
+            (
+                "crates/bijux-dna-dev/src/commands/containers/external_artifact.rs",
+                include_str!("../containers/external_artifact.rs"),
+            ),
+            (
+                "crates/bijux-dna-dev/src/commands/containers/image_activation.rs",
+                include_str!("../containers/image_activation.rs"),
+            ),
+            (
+                "crates/bijux-dna-dev/src/commands/containers/runtime_verification.rs",
+                include_str!("../containers/runtime_verification.rs"),
+            ),
+            (
+                "crates/bijux-dna-dev/src/commands/containers/storage.rs",
+                include_str!("../containers/storage.rs"),
+            ),
+            (
+                "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs",
+                include_str!("../containers/qualification_cycle.rs"),
+            ),
+            (
+                "crates/bijux-dna-dev/src/commands/containers/qualification_slurm.rs",
+                include_str!("../containers/qualification_slurm.rs"),
+            ),
+        ] {
+            let row = classify(
+                &SourceFile { path: path.to_string(), content: content.to_string() },
+                &schema_pattern,
+                &BTreeMap::new(),
+            );
+            assert_eq!(row.classification, "thin external adapter", "{path}");
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn migrated_container_operator_commands_reject_direct_io_regression() -> anyhow::Result<()> {
+        let row = classify(
+            &SourceFile {
+                path: "crates/bijux-dna-dev/src/commands/containers/qualification_cycle.rs"
+                    .to_string(),
+                content: "bijux_dna_runner::api::status(); std::fs::write(path, bytes);"
+                    .to_string(),
+            },
+            &Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?,
+            &BTreeMap::new(),
+        );
+        assert_eq!(row.classification, "duplicate legacy logic");
         Ok(())
     }
 

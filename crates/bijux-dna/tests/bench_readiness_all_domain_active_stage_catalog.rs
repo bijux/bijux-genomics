@@ -179,14 +179,18 @@ fn bench_readiness_all_domain_active_stage_catalog_reports_governed_rows() {
             && row.get("stage_id").and_then(serde_json::Value::as_str)
                 == Some("vcf.population_structure")
             && row.get("readiness_kind").and_then(serde_json::Value::as_str) == Some("smoke")
-            && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(1)
-            && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64) == Some(1)
-            && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(1)
-            && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("active_tool_count").and_then(serde_json::Value::as_u64) == Some(3)
+            && row.get("benchmark_ready_tool_count").and_then(serde_json::Value::as_u64) == Some(3)
+            && row.get("parser_row_count").and_then(serde_json::Value::as_u64) == Some(3)
+            && row.get("parser_covered_row_count").and_then(serde_json::Value::as_u64) == Some(3)
             && row.get("schema_present").and_then(serde_json::Value::as_bool) == Some(true)
-            && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("report_row_count").and_then(serde_json::Value::as_u64) == Some(3)
             && row.get("benchmark_ready_tool_ids").and_then(serde_json::Value::as_array)
-                == Some(&vec![serde_json::Value::String("plink2".to_string())])
+                == Some(&vec![
+                    serde_json::Value::String("eigensoft".to_string()),
+                    serde_json::Value::String("plink".to_string()),
+                    serde_json::Value::String("plink2".to_string()),
+                ])
             && row.get("report_section_ids").and_then(serde_json::Value::as_array)
                 == Some(&vec![serde_json::Value::String("population_structure".to_string())])
     }));

@@ -101,8 +101,9 @@ pub use self::local::{
     BenchLocalValidateVcfSmokeSuiteReadyArgs, BenchLocalValidateVcfStageCatalogReadyArgs,
 };
 pub use self::materialization::{
-    BenchAcquireFastqCorpusArgs, BenchCorpusMaterializationCollectArgs,
-    BenchCorpusMaterializationCommand, BenchCorpusMaterializationCorrectEvidenceArgs,
+    BenchAcquireFastqCorpusArgs, BenchAcquireSelectedFastqCollectionArgs,
+    BenchCorpusMaterializationCollectArgs, BenchCorpusMaterializationCommand,
+    BenchCorpusMaterializationCorrectEvidenceArgs, BenchCorpusMaterializationPlanArgs,
     BenchCorpusMaterializationPrepareArgs, BenchCorpusMaterializationSlurmArgs,
     BenchCorpusMaterializationStatusArgs, BenchCorpusMaterializationSubmitArgs,
     BenchMaterializeFastqCorpusArgs,
@@ -266,6 +267,8 @@ pub enum BenchCommand {
     },
     #[command(name = "acquire-fastq-corpus")]
     AcquireFastqCorpus(BenchAcquireFastqCorpusArgs),
+    #[command(name = "acquire-selected-fastq-collection")]
+    AcquireSelectedFastqCollection(BenchAcquireSelectedFastqCollectionArgs),
     #[command(name = "materialize-fastq-corpus")]
     MaterializeFastqCorpus(BenchMaterializeFastqCorpusArgs),
     #[command(name = "materialize-reference-bundle")]

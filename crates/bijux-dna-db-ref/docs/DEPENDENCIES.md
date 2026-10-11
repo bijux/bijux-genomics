@@ -24,3 +24,5 @@ runtime, environment, stage, benchmark, data-download, or infrastructure crates.
 ## Verification
 
 The dependency boundary is locked by `tests/boundaries/dependency_graph.rs`.
+
+`tempfile` is a test-only dependency for isolated explicit-root catalog fixtures. Production catalog lookup has no new dependencies.

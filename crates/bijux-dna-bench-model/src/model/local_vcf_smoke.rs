@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::contract::BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1;
 
 pub const BENCHMARK_LOCAL_VCF_SMOKE_OUTPUT_PATH: &str =
-    "runs/bench/local-smoke/VCF_SMOKE_SUITE_READY.json";
+    "artifacts/runs/bench/local-smoke/VCF_SMOKE_SUITE_READY.json";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BenchmarkLocalVcfSmokeGoalContract {
@@ -17,56 +17,56 @@ pub struct BenchmarkLocalVcfSmokeGoalContract {
 }
 
 pub const BENCHMARK_LOCAL_VCF_SMOKE_GOALS: [BenchmarkLocalVcfSmokeGoalContract; 19] = [
-    goal(211, "vcf.call smoke", "runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz"),
+    goal(211, "vcf.call smoke", "artifacts/runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz"),
     goal(
         212,
         "vcf.call_diploid smoke",
-        "runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz",
+        "artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz",
     ),
     goal(
         213,
         "vcf.call_pseudohaploid smoke",
-        "runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz",
+        "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz",
     ),
-    goal(214, "vcf.call_gl smoke", "runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz"),
+    goal(214, "vcf.call_gl smoke", "artifacts/runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz"),
     goal(
         215,
         "vcf.damage_filter smoke",
-        "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json",
+        "artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json",
     ),
     goal(
         216,
         "vcf.gl_propagation smoke",
-        "runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json",
+        "artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json",
     ),
-    goal(217, "vcf.filter smoke", "runs/bench/local-smoke/vcf.filter/bcftools/filter_explain.json"),
-    goal(218, "vcf.stats smoke", "runs/bench/local-smoke/vcf.stats/bcftools/stats.json"),
-    goal(219, "vcf.qc smoke", "runs/bench/local-smoke/vcf.qc/plink2/qc.json"),
+    goal(217, "vcf.filter smoke", "artifacts/runs/bench/local-smoke/vcf.filter/bcftools/filter_explain.json"),
+    goal(218, "vcf.stats smoke", "artifacts/runs/bench/local-smoke/vcf.stats/bcftools/stats.json"),
+    goal(219, "vcf.qc smoke", "artifacts/runs/bench/local-smoke/vcf.qc/plink2/qc.json"),
     goal(
         220,
         "vcf.prepare_reference_panel smoke",
-        "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz",
+        "artifacts/runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz",
     ),
-    goal(221, "vcf.phasing smoke", "runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz"),
-    goal(222, "vcf.impute smoke", "runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz"),
+    goal(221, "vcf.phasing smoke", "artifacts/runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz"),
+    goal(222, "vcf.impute smoke", "artifacts/runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz"),
     goal(
         223,
         "vcf.imputation_metrics smoke",
-        "runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json",
+        "artifacts/runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json",
     ),
-    goal(224, "vcf.pca smoke", "runs/bench/local-smoke/vcf.pca/plink2/pca.json"),
-    goal(225, "vcf.admixture smoke", "runs/bench/local-smoke/vcf.admixture/plink2/admixture.json"),
+    goal(224, "vcf.pca smoke", "artifacts/runs/bench/local-smoke/vcf.pca/plink2/pca.json"),
+    goal(225, "vcf.admixture smoke", "artifacts/runs/bench/local-smoke/vcf.admixture/plink2/admixture.json"),
     goal(
         226,
         "vcf.population_structure smoke",
-        "runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json",
+        "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json",
     ),
-    goal(227, "vcf.roh smoke", "runs/bench/local-smoke/vcf.roh/plink2/roh.json"),
-    goal(228, "vcf.ibd smoke", "runs/bench/local-smoke/vcf.ibd/germline/ibd.json"),
+    goal(227, "vcf.roh smoke", "artifacts/runs/bench/local-smoke/vcf.roh/plink2/roh.json"),
+    goal(228, "vcf.ibd smoke", "artifacts/runs/bench/local-smoke/vcf.ibd/germline/ibd.json"),
     goal(
         229,
         "vcf.demography smoke",
-        "runs/bench/local-smoke/vcf.demography/ibdne/demography.json",
+        "artifacts/runs/bench/local-smoke/vcf.demography/ibdne/demography.json",
     ),
 ];
 

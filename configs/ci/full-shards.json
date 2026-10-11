@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.ci.full_shards.v4",
+  "schema_version": "bijux.ci.full_shards.v5",
   "coverage": {
     "workspace": true,
     "all_targets": true,
@@ -10,26 +10,42 @@
   "partition_strategy": "hash",
   "workspace_isolation": "tracked_source_clones_with_shared_immutable_archive",
   "build_authority": "configs/ci/build-authority.json",
-  "archive_build_jobs": 4,
+  "runtime_dependency_report": "artifacts/ci/full-shards/runtime-dependencies.json",
+  "runtime_dependencies": [
+    {
+      "id": "bcftools",
+      "executable": "bcftools",
+      "version_args": [
+        "--version"
+      ],
+      "expected_version_line": "bcftools 1.20",
+      "provisioning": "checksum-bound runner execution binding; site modules are not required"
+    }
+  ],
+  "archive_build_jobs": 8,
   "archive_root": "artifacts/ci/full-shards/archive",
   "shard_artifact_root": "artifacts/ci/full-shards/shards",
   "report_root": "artifacts/ci/full-shards",
   "shards": [
     {
-      "id": "hash-1-of-4",
-      "partition": "hash:1/4"
+      "id": "hash-1-of-5",
+      "partition": "hash:1/5"
     },
     {
-      "id": "hash-2-of-4",
-      "partition": "hash:2/4"
+      "id": "hash-2-of-5",
+      "partition": "hash:2/5"
     },
     {
-      "id": "hash-3-of-4",
-      "partition": "hash:3/4"
+      "id": "hash-3-of-5",
+      "partition": "hash:3/5"
     },
     {
-      "id": "hash-4-of-4",
-      "partition": "hash:4/4"
+      "id": "hash-4-of-5",
+      "partition": "hash:4/5"
+    },
+    {
+      "id": "hash-5-of-5",
+      "partition": "hash:5/5"
     }
   ]
 }

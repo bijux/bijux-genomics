@@ -22,7 +22,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const DEFAULT_VCF_POPULATION_STRUCTURE_SMOKE_ROOT: &str =
-    "runs/bench/local-smoke/vcf.population_structure";
+    "artifacts/runs/bench/local-smoke/vcf.population_structure";
 const LOCAL_VCF_POPULATION_STRUCTURE_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.local_vcf_population_structure_smoke.v1";
 const LOCAL_VCF_POPULATION_STRUCTURE_SMOKE_COMMAND: &str =
@@ -520,8 +520,6 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         let tool_log = stage_outputs.tool_log.as_ref().ok_or_else(|| {
             anyhow!("governed PLINK population-structure smoke did not expose its tool log")
         })?;
-        ensure_file_exists(population_mds, "PLINK population-structure MDS output")?;
-        ensure_file_exists(tool_log, "PLINK population-structure log")?;
         outputs.extend([
             BenchStageResultOutputV1 {
                 artifact_id: "population_mds".to_string(),
@@ -532,7 +530,7 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
                 ),
                 role: "table_output".to_string(),
                 optional: false,
-                exists: true,
+                exists: population_mds.is_file(),
             },
             BenchStageResultOutputV1 {
                 artifact_id: "plink_log".to_string(),
@@ -543,7 +541,7 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
                 ),
                 role: "log_output".to_string(),
                 optional: false,
-                exists: true,
+                exists: tool_log.is_file(),
             },
         ]);
     }

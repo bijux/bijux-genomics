@@ -9,10 +9,14 @@ use super::super::{SlurmAccounting, SlurmJobObservation, SlurmSubmitRequest};
 
 pub const CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1: &str =
     "bijux.runner.corpus_materialization_slurm_spec.v1";
+pub const CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V2: &str =
+    "bijux.runner.corpus_materialization_slurm_spec.v2";
 pub const CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1: &str =
     "bijux.runner.corpus_materialization_prepared_job.v1";
 pub const CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1: &str =
     "bijux.runner.corpus_materialization_evidence.v1";
+pub const CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V2: &str =
+    "bijux.runner.corpus_materialization_evidence.v2";
 pub const CORPUS_MATERIALIZATION_EVIDENCE_CORRECTION_SCHEMA_V1: &str =
     "bijux.runner.corpus_materialization_evidence_correction.v1";
 
@@ -26,12 +30,29 @@ pub struct CorpusMaterializationSlurmResources {
     pub walltime: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CorpusMaterializationSlurmPlanRequest {
+    pub repository_path: PathBuf,
+    pub executable_path: PathBuf,
+    pub plan_path: PathBuf,
+    pub data_root: PathBuf,
+    pub run_id: String,
+    pub attempt_id: String,
+    pub resources: CorpusMaterializationSlurmResources,
+    pub maximum_parallelism: usize,
+    pub retries: usize,
+    pub timeout_seconds: u64,
+    pub admitted_at_utc: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct CorpusMaterializationSlurmSpec {
     pub schema_version: String,
     pub run_id: String,
     pub attempt_id: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub corpus_id: String,
     pub portfolio_id: String,
     pub repository_path: PathBuf,
     pub repository_commit: String,
@@ -75,6 +96,8 @@ pub struct CorpusMaterializationEvidence {
     pub status: CorpusMaterializationEvidenceStatus,
     pub run_id: String,
     pub attempt_id: String,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub corpus_id: String,
     pub portfolio_id: String,
     pub repository_commit: String,
     pub job_id: String,

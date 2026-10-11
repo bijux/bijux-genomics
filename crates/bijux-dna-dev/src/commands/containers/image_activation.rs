@@ -1,4 +1,4 @@
-use super::{path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Result, Workspace};
+use super::{path_from_arg, success_line, ContainerCommandOutcome, Result, Workspace};
 
 const PLAN_SCHEMA_PATH: &str = "containers/contracts/schemas/image-activation-plan.v1.json";
 
@@ -98,11 +98,11 @@ fn check_schema(workspace: &Workspace, args: &[String]) -> Result<ContainerComma
     if !args.is_empty() {
         anyhow::bail!(USAGE);
     }
-    let checked: serde_json::Value =
-        serde_json::from_str(&read_utf8(&workspace.path(PLAN_SCHEMA_PATH))?)?;
-    if checked != bijux_dna_containers::api::image_activation_plan_schema() {
+    if !bijux_dna_containers::api::image_activation_plan_schema_matches(
+        &workspace.path(PLAN_SCHEMA_PATH),
+    )? {
         return Ok(ContainerCommandOutcome::failure(
-            "image-activation schema drifted from Rust environment types\n",
+            "image-activation schema drifted from Rust container types\n",
         ));
     }
     success_line("image-activation schema: OK")

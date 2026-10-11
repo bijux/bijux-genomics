@@ -758,7 +758,7 @@ fn collect_local_smoke_proofs(repo_root: &Path) -> Result<BTreeMap<String, Local
         required_json_path(&overlap_payload, "overlap_corrected_bam", &overlap_report_path)?;
     let overlap_corrected_bam_index = ensure_repo_relative_file(
         repo_root,
-        "runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam.bai",
+        "artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam.bai",
     )?;
     let mut overlap_artifact_paths = vec![path_relative_to_repo(repo_root, &overlap_report_path)];
     for relative in [
@@ -1033,11 +1033,8 @@ mod tests {
             .required_local_smoke_fields
             .iter()
             .any(|field| field == "endogenous_fraction"));
-        assert!(endogenous_row
-            .local_smoke_artifact_paths
-            .iter()
-            .any(|path| path
-                == "runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json"));
+        assert!(endogenous_row.local_smoke_artifact_paths.iter().any(|path| path
+            == "artifacts/runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json"));
 
         let overlap_row = report
             .rows
@@ -1051,12 +1048,11 @@ mod tests {
             .required_local_smoke_fields
             .iter()
             .any(|field| field == "corrected_overlap_bases"));
-        assert!(overlap_row
-            .local_smoke_artifact_paths
-            .iter()
-            .any(|path| path
-                == "runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json"));
         assert!(overlap_row.local_smoke_artifact_paths.iter().any(|path| path
-            == "runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam.bai"));
+            == "artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json"));
+        assert!(overlap_row.local_smoke_artifact_paths.iter().any(|path| {
+            path
+            == "artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_corrected.bam.bai"
+        }));
     }
 }

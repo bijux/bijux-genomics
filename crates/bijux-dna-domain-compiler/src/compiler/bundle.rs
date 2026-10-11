@@ -460,6 +460,12 @@ fn load_artifacts(
             domain_id
         ));
     }
+    if !doc.artifact_ids.is_empty() && !doc.artifacts.is_empty() {
+        return Err(anyhow!(
+            "{} mixes artifact_ids and artifacts; use one complete declaration so no IDs are discarded",
+            path.display()
+        ));
+    }
     let mut artifacts = if doc.artifacts.is_empty() {
         doc.artifact_ids
             .into_iter()
@@ -475,6 +481,17 @@ fn load_artifacts(
             .collect::<Vec<_>>()
     };
     artifacts.sort_by(|left, right| left.artifact_id.cmp(&right.artifact_id));
+    for artifact in &artifacts {
+        if artifact.artifact_id.trim().is_empty()
+            || artifact.artifact_id.trim() != artifact.artifact_id
+        {
+            return Err(anyhow!("{} contains a blank or padded artifact ID", path.display()));
+        }
+    }
+    if let Some(pair) = artifacts.windows(2).find(|pair| pair[0].artifact_id == pair[1].artifact_id)
+    {
+        return Err(anyhow!("{} repeats artifact ID {}", path.display(), pair[0].artifact_id));
+    }
     Ok((doc.schema_version, artifacts))
 }
 
@@ -1056,7 +1073,65 @@ pub fn query_domain_registry_bundle(
 mod tests {
     use std::path::Path;
 
-    use super::stable_repository_path;
+    use super::{load_artifacts, stable_repository_path};
+
+    #[test]
+    fn artifact_declarations_preserve_legacy_ids_and_explicit_types() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let directory = root.path().join("fastq");
+        std::fs::create_dir(&directory)?;
+        for (body, expected_types) in [
+            ("artifact_ids: [report, reads]\n", vec![None, None]),
+            (
+                "artifacts: [{id: report, type: json}, {id: reads, type: fastq}]\n",
+                vec![Some("fastq".to_string()), Some("json".to_string())],
+            ),
+        ] {
+            std::fs::write(
+                directory.join("artifacts.yaml"),
+                format!("schema_version: bijux.domain.artifacts.v1\ndomain: fastq\n{body}"),
+            )?;
+            let (_, artifacts) = load_artifacts(root.path(), "fastq")?;
+            assert_eq!(
+                artifacts.iter().map(|row| row.artifact_id.as_str()).collect::<Vec<_>>(),
+                ["reads", "report"]
+            );
+            assert_eq!(
+                artifacts.into_iter().map(|row| row.artifact_type).collect::<Vec<_>>(),
+                expected_types
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn artifact_declarations_reject_lossy_mixes_duplicates_and_invalid_ids() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let directory = root.path().join("fastq");
+        std::fs::create_dir(&directory)?;
+        for (body, diagnostic) in [
+            (
+                "artifact_ids: [reads]\nartifacts: [{id: report, type: json}]\n",
+                "mixes artifact_ids and artifacts",
+            ),
+            ("artifact_ids: [reads, reads]\n", "repeats artifact ID reads"),
+            (
+                "artifacts: [{id: reads, type: fastq}, {id: reads, type: json}]\n",
+                "repeats artifact ID reads",
+            ),
+            ("artifact_ids: ['']\n", "blank or padded artifact ID"),
+            ("artifacts: [{id: ' reads ', type: fastq}]\n", "blank or padded artifact ID"),
+        ] {
+            std::fs::write(
+                directory.join("artifacts.yaml"),
+                format!("schema_version: bijux.domain.artifacts.v1\ndomain: fastq\n{body}"),
+            )?;
+            let error =
+                load_artifacts(root.path(), "fastq").expect_err("invalid artifact declaration");
+            assert!(error.to_string().contains(diagnostic), "{error:#}");
+        }
+        Ok(())
+    }
 
     #[test]
     fn fixture_identity_is_repository_relative_for_absolute_and_relative_domain_roots() {

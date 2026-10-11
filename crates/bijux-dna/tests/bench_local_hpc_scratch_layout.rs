@@ -66,7 +66,7 @@ fn bench_local_render_hpc_scratch_layout_reports_governed_job_layout() {
     );
     assert_eq!(
         payload.get("scratch_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/hpc-dry-run/scratch")
+        Some("artifacts/runs/bench/hpc-dry-run/scratch")
     );
     assert!(
         payload
@@ -92,7 +92,7 @@ fn bench_local_render_hpc_scratch_layout_reports_governed_job_layout() {
         })
         .expect("governed BAM benchmark job");
     assert!(benchmark_job.get("scratch_root").and_then(serde_json::Value::as_str).is_some_and(
-        |path| { path.starts_with("runs/bench/hpc-dry-run/scratch/benchmark-results/") }
+        |path| { path.starts_with("artifacts/runs/bench/hpc-dry-run/scratch/benchmark-results/") }
     ));
     assert_eq!(
         benchmark_job
@@ -110,7 +110,7 @@ fn bench_local_render_hpc_scratch_layout_reports_governed_job_layout() {
                     link.get("source_path").and_then(serde_json::Value::as_str)
                         == Some("assets/reference/host/references/toy_host_reference")
                         && link.get("staged_path").and_then(serde_json::Value::as_str)
-                            == Some("runs/bench/hpc-dry-run/staged/assets/reference/host/references/toy_host_reference")
+                            == Some("artifacts/runs/bench/hpc-dry-run/staged/assets/reference/host/references/toy_host_reference")
                 })
             }),
         "benchmark scratch layout must keep staged source and staged path"

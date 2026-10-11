@@ -478,6 +478,19 @@ pub(crate) fn handle_meta_commands(
                     )?;
                     crate::commands::cli::render::json::print_pretty(&plan)?;
                 }
+                BenchCommand::AcquireSelectedFastqCollection(args) => {
+                    let plan =
+                        bijux_dna_api::v1::api::bench::acquire_selected_fastq_collection(
+                            &bijux_dna_api::v1::api::bench::SelectedFastqCollectionAcquisitionRequest {
+                                spec_path: args.spec.clone(),
+                                collection_id: args.collection_id.clone(),
+                                offline_fixture_path: args.offline_fixture.clone(),
+                                output_path: args.output.clone(),
+                                retrieved_at_utc: args.retrieved_at_utc.clone(),
+                            },
+                        )?;
+                    crate::commands::cli::render::json::print_pretty(&plan)?;
+                }
                 BenchCommand::MaterializeFastqCorpus(args) => {
                     let publication =
                         bijux_dna_api::v1::api::bench::materialize_fastq_corpus(
@@ -510,6 +523,50 @@ pub(crate) fn handle_meta_commands(
                     crate::commands::cli::render::json::print_pretty(&publication)?;
                 }
                 BenchCommand::CorpusMaterialization { command } => match command {
+                    cli::BenchCorpusMaterializationCommand::Plan(args) => {
+                        let cpus = u32::try_from(args.jobs)
+                            .map_err(|_| anyhow::anyhow!("materialization jobs exceed CPU range"))?;
+                        let repository_commit =
+                            bijux_dna_api::v1::api::env::clean_repository_head_commit(
+                                &args.repository,
+                            )?;
+                        let command_arguments =
+                            bijux_dna_api::v1::api::bench::corpus_materialization_command_arguments(
+                                &bijux_dna_api::v1::api::bench::CorpusMaterializationRequest {
+                                    plan_path: args.plan.clone(),
+                                    data_root: args.data_root.clone(),
+                                    repository_commit: repository_commit.clone(),
+                                    maximum_parallelism: args.jobs,
+                                    retries: args.retries,
+                                    timeout_seconds: args.timeout_seconds,
+                                    admitted_at_utc: args.admitted_at_utc.clone(),
+                                },
+                            )?;
+                        let spec = bijux_dna_api::v1::api::bench::plan_corpus_materialization_slurm_spec(
+                            &bijux_dna_api::v1::api::bench::CorpusMaterializationSlurmPlanRequest {
+                                repository_path: args.repository.clone(),
+                                executable_path: args.executable.clone(),
+                                plan_path: args.plan.clone(),
+                                data_root: args.data_root.clone(),
+                                run_id: args.run_id.clone(),
+                                attempt_id: args.attempt_id.clone(),
+                                resources: bijux_dna_api::v1::api::bench::CorpusMaterializationSlurmResources {
+                                    account: args.account.clone(),
+                                    partition: args.partition.clone(),
+                                    cpus,
+                                    memory_mb: args.memory_mb,
+                                    walltime: args.walltime.clone(),
+                                },
+                                maximum_parallelism: args.jobs,
+                                retries: args.retries,
+                                timeout_seconds: args.timeout_seconds,
+                                admitted_at_utc: args.admitted_at_utc.clone(),
+                            },
+                            &repository_commit,
+                            &command_arguments,
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&spec)?;
+                    }
                     cli::BenchCorpusMaterializationCommand::Prepare(args) => {
                         let spec = bijux_dna_api::v1::api::bench::load_corpus_materialization_slurm_spec(
                             &args.specification,

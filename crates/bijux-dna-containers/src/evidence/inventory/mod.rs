@@ -7,7 +7,8 @@ mod source;
 
 pub use activation::image_inventory_request_from_activation_plan;
 pub use derivation::{
-    derive_image_inventory_evidence, derive_image_inventory_publication, DerivedImageInventory,
+    derive_image_inventory_evidence, derive_image_inventory_publication,
+    publish_image_inventory_evidence, DerivedImageInventory,
 };
 pub use report::render_image_inventory_markdown;
 pub use source::{

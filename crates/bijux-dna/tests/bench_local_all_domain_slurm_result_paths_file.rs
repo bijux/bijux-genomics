@@ -35,7 +35,7 @@ fn bench_local_validate_all_domain_slurm_result_paths_writes_governed_report_pat
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "runs/bench/slurm-dry-run/all-domains/path-convention-check.json"
+        "artifacts/runs/bench/slurm-dry-run/all-domains/path-convention-check.json"
     );
 
     let report_path = repo_root.join(rendered_path.trim());
@@ -65,7 +65,8 @@ fn bench_local_validate_all_domain_slurm_result_paths_writes_governed_report_pat
         Some(5)
     );
 
-    let manifest_path = repo_root.join("runs/bench/slurm-dry-run/all-domains/submit-manifest.json");
+    let manifest_path =
+        repo_root.join("artifacts/runs/bench/slurm-dry-run/all-domains/submit-manifest.json");
     let manifest: serde_json::Value =
         serde_json::from_slice(&fs::read(&manifest_path).expect("read manifest"))
             .expect("parse manifest");
@@ -82,7 +83,7 @@ fn bench_local_validate_all_domain_slurm_result_paths_writes_governed_report_pat
     assert_eq!(
         pipeline_manifest_job.get("stdout").and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.demography/ibdne/vcf_production_regression/sample-set/stdout.log"
+            "artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.demography/ibdne/vcf_production_regression/sample-set/stdout.log"
         )
     );
 }

@@ -136,6 +136,9 @@ pub fn derive_benchmark_data_portfolio_audit(
         )?;
         let mut bindings = Vec::with_capacity(corpus.catalog_ids.len());
         let mut blockers = Vec::new();
+        if source_specs.iter().any(|source| source.selection_complete == Some(false)) {
+            blockers.push("source selection is not frozen by exact accessions".to_string());
+        }
         for catalog_id in &corpus.catalog_ids {
             referenced.insert(catalog_id.as_str());
             let binding = match records.get(catalog_id.as_str()) {
@@ -304,6 +307,33 @@ pub fn render_benchmark_data_portfolio_audit_markdown(
             if corpus.publishable_data_ready { "yes" } else { "no" },
             blockers,
         ));
+    }
+    lines.extend([
+        String::new(),
+        "## Source selection closure".to_string(),
+        String::new(),
+        "A source declaration is acquisition-ready only when every sample-bearing collection is frozen by exact accession.".to_string(),
+        String::new(),
+        "| Corpus | Source specification | Selection groups | Samples | Selected/planned accessions | Frozen |".to_string(),
+        "|---|---|---:|---:|---:|---|".to_string(),
+    ]);
+    for corpus in &audit.corpora {
+        for source in &corpus.source_specs {
+            lines.push(format!(
+                "| `{}` | `{}` | {} | {} | {}/{} | {} |",
+                corpus.corpus_id,
+                source.path,
+                optional_u64(source.selection_group_count),
+                optional_u64(source.planned_sample_count),
+                optional_u64(source.selected_accession_count),
+                optional_u64(source.planned_accession_count),
+                match source.selection_complete {
+                    Some(true) => "yes",
+                    Some(false) => "no",
+                    None => "not recorded",
+                },
+            ));
+        }
     }
     lines.extend([
         String::new(),
@@ -480,7 +510,13 @@ fn source_spec_identities(
             std::str::from_utf8(&bytes).context("source specification is not UTF-8")?,
         )
         .with_context(|| format!("parse source specification header {}", path.display()))?;
-        let policy = match header.schema_version.as_str() {
+        let (
+            policy,
+            selection_group_count,
+            planned_sample_count,
+            planned_accession_count,
+            selected_accession_count,
+        ) = match header.schema_version.as_str() {
             FASTQ_CORPUS_SOURCE_SCHEMA_V1 => {
                 let spec = load_fastq_corpus_source_spec(&path)?;
                 ensure_source_identity(
@@ -491,7 +527,17 @@ fn source_spec_identities(
                     &spec.portfolio_id,
                     &spec.policy,
                 )?;
-                spec.policy
+                let planned_sample_count = u64::try_from(spec.target_total)
+                    .context("FASTQ planned sample count overflow")?;
+                let selected_accession_count = u64::try_from(spec.samples.len())
+                    .context("FASTQ selected accession count overflow")?;
+                (
+                    spec.policy,
+                    1,
+                    planned_sample_count,
+                    planned_sample_count,
+                    selected_accession_count,
+                )
             }
             BENCHMARK_DATA_SOURCE_SCHEMA_V1 => {
                 let spec = load_benchmark_data_source_spec(&path)?;
@@ -508,7 +554,38 @@ fn source_spec_identities(
                         "benchmark data source specification disagrees with portfolio data types for {corpus_id}"
                     );
                 }
-                spec.policy
+                let selection_group_count = u64::try_from(spec.collections.len())
+                    .context("source selection group count overflow")?;
+                let planned_sample_count =
+                    spec.collections.iter().try_fold(0_u64, |total, collection| {
+                        total
+                            .checked_add(collection.planned_sample_count.unwrap_or(0))
+                            .context("source planned sample count overflow")
+                    })?;
+                let planned_accession_count =
+                    spec.collections.iter().try_fold(0_u64, |total, collection| {
+                        total
+                            .checked_add(
+                                collection
+                                    .planned_accession_count
+                                    .or(collection.planned_sample_count)
+                                    .unwrap_or(0),
+                            )
+                            .context("source planned accession count overflow")
+                    })?;
+                let selected_accession_count =
+                    spec.collections.iter().try_fold(0_u64, |total, collection| {
+                        total
+                            .checked_add(u64::try_from(collection.selected_accessions.len())?)
+                            .context("source selected accession count overflow")
+                    })?;
+                (
+                    spec.policy,
+                    selection_group_count,
+                    planned_sample_count,
+                    planned_accession_count,
+                    selected_accession_count,
+                )
             }
             schema => bail!("unsupported benchmark source specification schema {schema}"),
         };
@@ -517,6 +594,11 @@ fn source_spec_identities(
             sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
             projected_storage_bytes: Some(policy.projected_storage_bytes),
             projected_cpu_hours: Some(policy.projected_cpu_hours),
+            selection_group_count: Some(selection_group_count),
+            planned_sample_count: Some(planned_sample_count),
+            planned_accession_count: Some(planned_accession_count),
+            selected_accession_count: Some(selected_accession_count),
+            selection_complete: Some(selected_accession_count == planned_accession_count),
         });
     }
     identities.sort_by(|left, right| left.path.cmp(&right.path));

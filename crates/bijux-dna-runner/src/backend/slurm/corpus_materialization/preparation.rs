@@ -13,8 +13,9 @@ use super::contracts::{
     CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
 };
 use super::validation::{
-    canonical_directory, catalog_snapshot_path, ensure_json_identity, require_utc_timestamp,
-    validate_catalog_precondition, validate_command_arguments, validate_specification,
+    canonical_directory, catalog_snapshot_path, ensure_json_identity, materialization_catalog_id,
+    require_utc_timestamp, validate_catalog_precondition, validate_command_arguments,
+    validate_specification,
 };
 use crate::backend::slurm::{SlurmDependencyCondition, SlurmSubmitRequest};
 
@@ -49,7 +50,12 @@ pub fn prepare_corpus_materialization_slurm_job(
     let prepared = PreparedCorpusMaterializationSlurmJob {
         schema_version: CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1.to_string(),
         request: SlurmSubmitRequest {
-            run_id: format!("{}:{}:{}", spec.run_id, spec.portfolio_id, spec.attempt_id),
+            run_id: format!(
+                "{}:{}:{}",
+                spec.run_id,
+                materialization_catalog_id(spec),
+                spec.attempt_id
+            ),
             dependencies: Vec::new(),
             dependency_condition: SlurmDependencyCondition::AfterOk,
             array: None,
@@ -192,7 +198,7 @@ fn make_executable(path: &Path) -> Result<()> {
 }
 
 fn job_name(spec: &CorpusMaterializationSlurmSpec) -> String {
-    let suffix = spec.portfolio_id.chars().take(28).collect::<String>();
+    let suffix = materialization_catalog_id(spec).chars().take(28).collect::<String>();
     format!("bijux-data-{}-{suffix}", spec.run_id)
 }
 

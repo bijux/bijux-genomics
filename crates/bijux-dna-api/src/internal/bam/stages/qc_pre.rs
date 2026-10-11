@@ -56,7 +56,7 @@ struct LocalQcPreMultiqcPaths {
 
 /// Materialize the governed local-smoke `bam.qc_pre` artifacts and summary report.
 ///
-/// The written summary artifact lives at `runs/bench/local-smoke/bam.qc_pre/qc_pre.json`
+/// The written summary artifact lives at `artifacts/runs/bench/local-smoke/bam.qc_pre/qc_pre.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -65,7 +65,7 @@ struct LocalQcPreMultiqcPaths {
 pub fn write_local_qc_pre_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases = bijux_dna_planner_bam::stage_api::local_qc_pre_smoke_plans(&repo_root)?;
-    let output_root = repo_root.join("runs/bench/local-smoke/bam.qc_pre");
+    let output_root = repo_root.join("artifacts/runs/bench/local-smoke/bam.qc_pre");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let case_reports = cases

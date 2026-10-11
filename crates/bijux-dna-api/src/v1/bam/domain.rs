@@ -42,7 +42,7 @@ pub fn write_local_contamination_plan() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `bam.contamination` report bundle.
 ///
 /// The written report artifact lives at
-/// `runs/bench/local-smoke/bam.contamination/local_smoke.json`
+/// `artifacts/runs/bench/local-smoke/bam.contamination/local_smoke.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -73,7 +73,7 @@ pub fn write_local_haplogroups_plan() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.haplogroups` proof bundle.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.haplogroups/haplogroups.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.haplogroups/haplogroups.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -114,7 +114,7 @@ pub fn write_local_genotyping_plan() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.validate` report bundle.
 ///
-/// The written summary artifact lives at `runs/bench/local-smoke/bam.validate/validation.json`
+/// The written summary artifact lives at `artifacts/runs/bench/local-smoke/bam.validate/validation.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -126,7 +126,7 @@ pub fn write_local_validate_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.damage` report bundle.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.damage/damage.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.damage/damage.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -138,7 +138,7 @@ pub fn write_local_damage_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.authenticity` report bundle.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.authenticity/authenticity.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.authenticity/authenticity.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -150,7 +150,7 @@ pub fn write_local_authenticity_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.qc_pre` report bundle.
 ///
-/// The written summary artifact lives at `runs/bench/local-smoke/bam.qc_pre/qc_pre.json`
+/// The written summary artifact lives at `artifacts/runs/bench/local-smoke/bam.qc_pre/qc_pre.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -162,7 +162,7 @@ pub fn write_local_qc_pre_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.filter` report bundle.
 ///
-/// The written metrics artifact lives at `runs/bench/local-smoke/bam.filter/filter_metrics.json`
+/// The written metrics artifact lives at `artifacts/runs/bench/local-smoke/bam.filter/filter_metrics.json`
 /// under the active repository root, alongside the curated top-level `filtered.bam`.
 ///
 /// # Errors
@@ -175,7 +175,7 @@ pub fn write_local_filter_smoke_report() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `bam.duplication_metrics` report bundle.
 ///
 /// The written report artifact lives at
-/// `runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json`
+/// `artifacts/runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -188,7 +188,7 @@ pub fn write_local_duplication_metrics_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.complexity` report bundle.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.complexity/complexity.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.complexity/complexity.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -200,7 +200,7 @@ pub fn write_local_complexity_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.insert_size` report bundle.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.insert_size/insert_size.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.insert_size/insert_size.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -213,7 +213,7 @@ pub fn write_local_insert_size_smoke_report() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `bam.recalibration` report bundle.
 ///
 /// The written report artifact lives at
-/// `runs/bench/local-smoke/bam.recalibration/recalibration.json`
+/// `artifacts/runs/bench/local-smoke/bam.recalibration/recalibration.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -225,7 +225,7 @@ pub fn write_local_recalibration_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.gc_bias` TSV bundle.
 ///
-/// The written summary artifact lives at `runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv`
+/// The written summary artifact lives at `artifacts/runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv`
 /// under the active repository root.
 ///
 /// # Errors
@@ -238,7 +238,7 @@ pub fn write_local_gc_bias_smoke_summary() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `bam.bias_mitigation` report bundle.
 ///
 /// The written report artifact lives at
-/// `runs/bench/local-smoke/bam.bias_mitigation/bias_mitigation.json`
+/// `artifacts/runs/bench/local-smoke/bam.bias_mitigation/bias_mitigation.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -252,7 +252,7 @@ pub fn write_local_bias_mitigation_smoke_report() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `bam.endogenous_content` report bundle.
 ///
 /// The written report artifact lives at
-/// `runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json`
+/// `artifacts/runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -265,7 +265,7 @@ pub fn write_local_endogenous_content_smoke_report() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `bam.overlap_correction` report bundle.
 ///
 /// The written report artifact lives at
-/// `runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json`
+/// `artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json`
 /// under the active repository root, alongside the curated top-level
 /// `overlap_corrected.bam`.
 ///
@@ -279,7 +279,7 @@ pub fn write_local_overlap_correction_smoke_report() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `bam.coverage` TSV bundle.
 ///
 /// The written summary artifact lives at
-/// `runs/bench/local-smoke/bam.coverage/coverage.tsv`
+/// `artifacts/runs/bench/local-smoke/bam.coverage/coverage.tsv`
 /// under the active repository root.
 ///
 /// # Errors
@@ -291,7 +291,7 @@ pub fn write_local_coverage_smoke_summary() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.length_filter` report bundle.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.length_filter/length_filter.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.length_filter/length_filter.json`
 /// under the active repository root, alongside the curated top-level `length_filtered.bam`.
 ///
 /// # Errors
@@ -303,7 +303,7 @@ pub fn write_local_length_filter_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.markdup` report bundle.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.markdup/duplicates.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.markdup/duplicates.json`
 /// under the active repository root, alongside the curated top-level `marked.bam`.
 ///
 /// # Errors
@@ -315,7 +315,7 @@ pub fn write_local_markdup_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.mapq_filter` report bundle.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json`
 /// under the active repository root, alongside the curated top-level `mapq_filtered.bam`.
 ///
 /// # Errors
@@ -328,7 +328,7 @@ pub fn write_local_mapq_filter_smoke_report() -> Result<PathBuf> {
 /// Materialize the governed local-smoke `bam.mapping_summary` TSV bundle.
 ///
 /// The written summary artifact lives at
-/// `runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv`
+/// `artifacts/runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv`
 /// under the active repository root.
 ///
 /// # Errors
@@ -340,7 +340,7 @@ pub fn write_local_mapping_summary_smoke_summary() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.sex` report bundle.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.sex/sex.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.sex/sex.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -352,7 +352,7 @@ pub fn write_local_sex_smoke_report() -> Result<PathBuf> {
 
 /// Materialize governed `bam.sex` tool-smoke outputs for all retained tools.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.sex/tool_smoke.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.sex/tool_smoke.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -364,7 +364,7 @@ pub fn write_local_sex_tool_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-smoke `bam.kinship` report bundle.
 ///
-/// The written report artifact lives at `runs/bench/local-smoke/bam.kinship/kinship.json`
+/// The written report artifact lives at `artifacts/runs/bench/local-smoke/bam.kinship/kinship.json`
 /// under the active repository root.
 ///
 /// # Errors

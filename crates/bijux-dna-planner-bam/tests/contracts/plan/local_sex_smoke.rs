@@ -62,7 +62,7 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
     assert_eq!(case.expected_status, "ok");
     assert_eq!(
         case.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy")
+        PathBuf::from("artifacts/runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy")
     );
     assert_eq!(
         case.plan.params["bam"],
@@ -117,7 +117,7 @@ fn local_sex_smoke_plans_use_governed_bam_reference_and_expectations() -> Result
     assert_eq!(
         summary_output.path,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json"
+            "artifacts/runs/bench/local-smoke/bam.sex/adna_xy_autosome_coverage/rxy/sex.summary.json"
         )
     );
 
@@ -182,7 +182,7 @@ fn local_sex_smoke_plans_require_expected_method_to_match_governed_tool() -> Res
 schema_version = "bijux.bench.bam.local_sex.v1"
 tool_id = "rxy"
 threads = 2
-output_dir = "runs/bench/local-smoke/bam.sex"
+output_dir = "artifacts/runs/bench/local-smoke/bam.sex"
 
 [[cases]]
 sample_id = "wrong-method"
@@ -225,7 +225,7 @@ fn local_sex_smoke_plans_require_expected_call_to_match_governed_summary() -> Re
 schema_version = "bijux.bench.bam.local_sex.v1"
 tool_id = "rxy"
 threads = 2
-output_dir = "runs/bench/local-smoke/bam.sex"
+output_dir = "artifacts/runs/bench/local-smoke/bam.sex"
 
 [[cases]]
 sample_id = "wrong-call"
@@ -268,7 +268,7 @@ fn local_sex_smoke_plans_require_expected_x_coverage_to_match_governed_summary()
 schema_version = "bijux.bench.bam.local_sex.v1"
 tool_id = "rxy"
 threads = 2
-output_dir = "runs/bench/local-smoke/bam.sex"
+output_dir = "artifacts/runs/bench/local-smoke/bam.sex"
 
 [[cases]]
 sample_id = "wrong-x-coverage"
@@ -311,7 +311,7 @@ fn local_sex_smoke_plans_require_expected_status_to_match_governed_summary() -> 
 schema_version = "bijux.bench.bam.local_sex.v1"
 tool_id = "rxy"
 threads = 2
-output_dir = "runs/bench/local-smoke/bam.sex"
+output_dir = "artifacts/runs/bench/local-smoke/bam.sex"
 
 [[cases]]
 sample_id = "wrong-status"
@@ -352,7 +352,7 @@ fn local_sex_smoke_plans_reject_empty_sample_ids() -> Result<()> {
 schema_version = "bijux.bench.bam.local_sex.v1"
 tool_id = "rxy"
 threads = 2
-output_dir = "runs/bench/local-smoke/bam.sex"
+output_dir = "artifacts/runs/bench/local-smoke/bam.sex"
 
 [[cases]]
 sample_id = " "
@@ -385,7 +385,7 @@ fn local_sex_smoke_plans_reject_duplicate_sample_ids() -> Result<()> {
 schema_version = "bijux.bench.bam.local_sex.v1"
 tool_id = "rxy"
 threads = 2
-output_dir = "runs/bench/local-smoke/bam.sex"
+output_dir = "artifacts/runs/bench/local-smoke/bam.sex"
 
 [[cases]]
 sample_id = "duplicate-case"

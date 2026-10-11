@@ -10,7 +10,7 @@ use super::version_probes::{collect_version_probe_rows, VersionProbeRow};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_HOST_TOOL_SMOKE_ROOT: &str = "runs/bench/tool-smoke/host";
+pub(crate) const DEFAULT_HOST_TOOL_SMOKE_ROOT: &str = "artifacts/runs/bench/tool-smoke/host";
 const HOST_TOOL_SMOKE_REPORT_SCHEMA_VERSION: &str = "bijux.bench.host_tool_smoke_report.v1";
 const HOST_TOOL_SMOKE_MANIFEST_SCHEMA_VERSION: &str = "bijux.bench.host_tool_smoke_manifest.v1";
 const HOST_TOOL_SMOKE_STATUS_OK: &str = "ok";

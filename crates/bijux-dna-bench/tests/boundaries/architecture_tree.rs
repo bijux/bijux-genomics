@@ -20,8 +20,8 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
-        entries(["admission/", "mod.rs", "writer/"]),
-        "artifacts tree must stay focused on deterministic serialization"
+        entries(["admission/", "mod.rs", "source_assets.rs", "writer/"]),
+        "artifacts tree must separate source inspection, output admission, and serialization"
     );
     assert_eq!(
         dir_entries(&root.join("src/artifacts/admission")),
@@ -50,21 +50,37 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/repo")),
         entries([
-            "bam_corpus_authority.rs",
             "case_data_authority.rs",
             "catalog_registry_authority.rs",
             "catalog_snapshot_authority.rs",
-            "corpus_authority.rs",
+            "corpus/",
             "data_index_authority.rs",
             "mod.rs",
+            "pipeline_config.rs",
+            "pipeline_execution.rs",
+            "pipeline_inventory.rs",
+            "pipeline_reference.rs",
             "repo_root.rs",
             "repository.rs",
             "run_artifacts/",
             "run_metadata.rs",
             "sqlite/",
+            "stage_inventory/",
             "workspace_paths.rs",
         ]),
         "repo tree must stay split between repository policy and persisted artifacts"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/repo/corpus")),
+        entries(["bam.rs", "fastq.rs", "mod.rs", "normalized_fastq/"]),
+        "corpus tree must separate governed admission from normalized read metadata"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/repo/corpus/normalized_fastq")),
+        entries(["manifest.rs", "mod.rs", "tests.rs"]),
+        "normalized corpus admission must separate manifest IO from sample metadata"
     );
 
     assert_eq!(
@@ -95,6 +111,7 @@ fn bench_tree_matches_architecture_contract() {
             "bam_campaign.rs",
             "bam_coverage/",
             "bam_damage/",
+            "bam_diversity_catalog.rs",
             "bam_duplication_metrics/",
             "bam_endogenous_content/",
             "bam_genotyping/",
@@ -128,6 +145,9 @@ fn bench_tree_matches_architecture_contract() {
             "mod.rs",
             "options.rs",
             "parameter_authority.rs",
+            "pipeline_profiles/",
+            "progress_ledger.rs",
+            "protocol_portfolio.rs",
             "publication_receipt.rs",
             "publication_registry.rs",
             "publication_selection.rs",
@@ -142,6 +162,7 @@ fn bench_tree_matches_architecture_contract() {
             "source_authority.rs",
             "stage_coverage.rs",
             "stage_families.rs",
+            "stage_inventory.rs",
             "stage_universe.rs",
             "stage_report/",
             "stage_result.rs",
@@ -158,6 +179,22 @@ fn bench_tree_matches_architecture_contract() {
             "workspace_layout.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/pipeline_profiles")),
+        entries([
+            "amplicon.rs",
+            "ancient_dna.rs",
+            "evidence.rs",
+            "germline.rs",
+            "imputation.rs",
+            "mod.rs",
+            "population.rs",
+            "taxonomy.rs",
+            "tests.rs",
+        ]),
+        "pipeline profiles must separate scientific rules from evidence acquisition"
     );
 
     assert_eq!(
@@ -227,8 +264,10 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow/campaign_lifecycle")),
         entries([
             "authorities.rs",
+            "binding_case_material.rs",
             "execution.rs",
             "mod.rs",
+            "normalization.rs",
             "operator.rs",
             "planning.rs",
             "preparation.rs",

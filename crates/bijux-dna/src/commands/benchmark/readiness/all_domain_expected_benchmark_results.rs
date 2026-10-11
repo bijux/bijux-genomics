@@ -533,10 +533,13 @@ mod tests {
 
     #[test]
     fn report_path_never_persists_an_absolute_workspace_location() {
-        let root = repo_root();
-        let external = tempfile::tempdir().expect("temporary output");
-        let output = external.path().join("expected-results.tsv");
-
-        assert_eq!(path_relative_to_repo(&root, &output), "expected-results.tsv");
+        let root = std::path::Path::new("/workspace");
+        let external = std::path::Path::new("/outside-repository/expected-results.tsv");
+        assert_eq!(path_relative_to_repo(root, external), "expected-results.tsv");
+        let governed = root.join("artifacts/readiness/expected-results.tsv");
+        assert_eq!(
+            path_relative_to_repo(root, &governed),
+            "artifacts/readiness/expected-results.tsv"
+        );
     }
 }

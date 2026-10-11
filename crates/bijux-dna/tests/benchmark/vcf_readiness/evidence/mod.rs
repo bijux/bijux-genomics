@@ -1,0 +1,10 @@
+mod adapter_output_coverage;
+mod adapter_output_coverage_tsv;
+mod expected_benchmark_results;
+mod expected_benchmark_results_tsv;
+mod missing_result_report;
+mod parser_fixture_coverage;
+mod parser_fixture_coverage_tsv;
+mod parsers_report_ready;
+mod parsers_report_ready_file;
+mod report_map;

@@ -27,6 +27,13 @@ directory with its definition, stable citation, immutable case index, and
 current-publication pointer. An unpublished pointer is an explicit non-evidence
 record. Large attempts and raw logs remain under `STUDY`.
 
+Normal run-index generation fails closed when a checked-in selection or case
+index names an older protocol hash. After the immutable publication has been
+classified and retained in `STUDY`, an operator may invoke
+`benchmark-run-index -- --demote-stale` to clear only the checked-in current
+selection and case pointers while regenerating the current protocol surfaces.
+The ordinary write and check modes never demote selected evidence implicitly.
+
 `benchmarks/reports/REPORT_INDEX.json` is the report authority over that run
 index. It emits one typed row for every permanent protocol. A row is `current`
 only when it carries the selected immutable report and publication-receipt

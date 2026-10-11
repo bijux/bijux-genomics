@@ -27,7 +27,7 @@ fn local_profile_read_lengths_smoke_plans_use_governed_toy_fixtures() -> Result<
     assert_eq!(single_end.histogram_bins, 16);
     assert_eq!(
         single_end.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit")
+        PathBuf::from("artifacts/runs/bench/local-smoke/fastq.profile_read_lengths/toy-se/seqkit")
     );
     assert_eq!(single_end.plan.resources.threads, 4);
     assert_eq!(single_end.plan.params["histogram_bins"], serde_json::json!(16));
@@ -41,7 +41,7 @@ fn local_profile_read_lengths_smoke_plans_use_governed_toy_fixtures() -> Result<
     assert_eq!(paired_end.histogram_bins, 16);
     assert_eq!(
         paired_end.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit")
+        PathBuf::from("artifacts/runs/bench/local-smoke/fastq.profile_read_lengths/toy-pe/seqkit")
     );
     assert_eq!(
         paired_end.plan.params["input_r2"],

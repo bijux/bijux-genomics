@@ -447,6 +447,10 @@ pub fn vcf_concat(inputs: &[PathBuf], output_vcfgz: &Path) -> Result<PathBuf> {
     Ok(out_tbi)
 }
 
+/// Extract records using a bcftools regions file. Tab-delimited CHROM/BEG/END
+/// coordinates are one-based and inclusive; `.bed` and `.bed.gz` coordinates are
+/// zero-based and half-open. Inline `CHROM:BEG-END` syntax is not a regions-file row.
+///
 /// # Errors
 /// Returns an error if region extraction fails or boundaries look inconsistent.
 pub fn vcf_region_extract(

@@ -308,7 +308,8 @@ pub fn validate_governed_data_catalog(catalog: &GovernedDataCatalog) -> Result<(
         let valid = match sample.layout {
             CorpusAcquisitionLayout::Se => files.len() == 1 && mates == BTreeSet::from([None]),
             CorpusAcquisitionLayout::Pe => {
-                files.len() == 2 && mates == BTreeSet::from([Some(1), Some(2)])
+                (files.len() == 1 && mates == BTreeSet::from([None]))
+                    || (files.len() == 2 && mates == BTreeSet::from([Some(1), Some(2)]))
             }
         };
         if !valid {
@@ -395,9 +396,10 @@ fn validate_layout_files(
     match layout {
         CorpusAcquisitionLayout::Se if files.len() == 1 && files[0].mate.is_none() => Ok(()),
         CorpusAcquisitionLayout::Pe
-            if files.len() == 2
-                && files.iter().map(|file| file.mate).collect::<BTreeSet<_>>()
-                    == BTreeSet::from([Some(1), Some(2)]) =>
+            if (files.len() == 1 && files[0].mate.is_none())
+                || (files.len() == 2
+                    && files.iter().map(|file| file.mate).collect::<BTreeSet<_>>()
+                        == BTreeSet::from([Some(1), Some(2)])) =>
         {
             Ok(())
         }
@@ -447,7 +449,8 @@ fn validate_catalog_file(file: &GovernedDataCatalogFile) -> Result<(), BenchErro
         return Err(invalid("catalog FASTQ size, reads, and bases must be positive"));
     }
     match (file.layout, file.mate) {
-        (CorpusAcquisitionLayout::Se, None) | (CorpusAcquisitionLayout::Pe, Some(1 | 2)) => Ok(()),
+        (CorpusAcquisitionLayout::Se | CorpusAcquisitionLayout::Pe, None)
+        | (CorpusAcquisitionLayout::Pe, Some(1 | 2)) => Ok(()),
         _ => Err(invalid("catalog FASTQ mate identity disagrees with layout")),
     }
 }

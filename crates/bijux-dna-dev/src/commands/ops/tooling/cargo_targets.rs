@@ -16,75 +16,9 @@ pub(in super::super) fn tooling_cargo_targets(
     let envs = artifact_env(workspace)?;
     let common_envs = artifact_env_with_common_test_env(workspace)?;
     match subcommand {
-        "policy-fast" => run_program_with_env(
-            workspace,
-            "cargo",
-            &[
-                "test".to_string(),
-                "-p".to_string(),
-                "bijux-dna-policies".to_string(),
-                "--test".to_string(),
-                "dependency_graph".to_string(),
-                "--test".to_string(),
-                "purity_scans".to_string(),
-                "--test".to_string(),
-                "core_layering".to_string(),
-                "--test".to_string(),
-                "domain_dependency_policy".to_string(),
-                "--test".to_string(),
-                "ci_tools_policy".to_string(),
-                "--test".to_string(),
-                "dev_deps_policy".to_string(),
-                "--test".to_string(),
-                "heavy_deps_policy".to_string(),
-            ],
-            &envs,
-        ),
-        "ssot-policy-fast" => run_programs_with_env(
-            workspace,
-            &[
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "policy_test_names_are_consistent",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "supported_stages_and_tools_are_complete",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "each_tool_has_exactly_one_domain_and_stage_binding",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-            ],
-            &common_envs,
-        ),
+        "policy-fast" | "ssot-policy-fast" | "registry-lint" | "release-readiness" => {
+            super::policy_fast::run(workspace, &common_envs, subcommand)
+        }
         "test-profile-invariants" => run_program_with_env(
             workspace,
             "cargo",
@@ -99,74 +33,10 @@ pub(in super::super) fn tooling_cargo_targets(
             ],
             &common_envs,
         ),
-        "registry-lint" => run_programs_with_env(
-            workspace,
-            &[
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "production_registry_is_pinned_and_non_floating",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "profiles_only_use_valid_production_tools",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-            ],
-            &common_envs,
-        ),
         "unit-contract-fast" => run_program_with_env(
             workspace,
             "cargo",
             &unit_contract_fast_command_args(),
-            &common_envs,
-        ),
-        "release-readiness" => run_programs_with_env(
-            workspace,
-            &[
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "profiles_release_readiness_gate",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-                (
-                    "cargo",
-                    vec![
-                        "test",
-                        "-p",
-                        "bijux-dna-policies",
-                        "--test",
-                        "contracts",
-                        "reference_adna_profile_uses_production_tools_only",
-                        "--",
-                        "--nocapture",
-                    ],
-                ),
-            ],
             &common_envs,
         ),
         "bench-active-fast" => run_program_with_env(
@@ -177,33 +47,7 @@ pub(in super::super) fn tooling_cargo_targets(
                 "-p".to_string(),
                 "bijux-dna".to_string(),
                 "--test".to_string(),
-                "bench_readiness_all_domain_active_stage_tool_matrix".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_active_stage_tool_matrix_tsv".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_adapter_coverage".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_adapter_coverage_tsv".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_parser_fixture_coverage".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_parser_fixture_coverage_tsv".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_output_declarations".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_output_declarations_tsv".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_output_contract_coverage".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_output_contract_coverage_tsv".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_expected_result_coverage".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_expected_result_coverage_tsv".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_report_map_coverage".to_string(),
-                "--test".to_string(),
-                "bench_readiness_all_domain_report_map_coverage_tsv".to_string(),
+                "benchmark_readiness".to_string(),
                 "--".to_string(),
                 "--nocapture".to_string(),
             ],
@@ -226,10 +70,19 @@ pub(in super::super) fn tooling_cargo_targets(
                         "bench_readiness_vcf_parser_failure_tests",
                         "--test",
                         "bench_readiness_vcf_parser_failure_tests_file",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna",
                         "--test",
+                        "benchmark_readiness",
                         "bench_readiness_all_domain_parser_fixture_coverage",
-                        "--test",
-                        "bench_readiness_all_domain_parser_fixture_coverage_tsv",
                         "--",
                         "--nocapture",
                     ],
@@ -1506,127 +1359,40 @@ fn unit_contract_fast_command_args() -> Vec<String> {
 }
 
 fn science_fixtures_fast_command_args() -> Vec<String> {
-    vec![
-        "test".to_string(),
-        "-p".to_string(),
-        "bijux-dna".to_string(),
-        "--test".to_string(),
-        "bench_local_corpus_fixture".to_string(),
-        "--test".to_string(),
-        "bench_local_bam_corpus_fixture".to_string(),
-        "--test".to_string(),
-        "bench_local_edna_corpus_fixture".to_string(),
-        "--test".to_string(),
-        "bench_local_amplicon_corpus_fixture".to_string(),
-        "--test".to_string(),
-        "bench_local_vcf_population_structure_smoke".to_string(),
-        "--test".to_string(),
-        "bench_local_vcf_population_structure_smoke_file".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_all".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_fastq_duplicates_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_fastq_duplicates_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_duplicates_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_duplicates_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_fastq_taxonomy_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_fastq_taxonomy_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_taxonomy_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_taxonomy_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_amplicon_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_amplicon_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_amplicon_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_amplicon_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_adna_damage_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_adna_damage_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_adna_damage_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_adna_damage_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_adna_contamination_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_adna_contamination_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_adna_contamination_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_adna_contamination_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_alignment_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_alignment_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_alignment_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_alignment_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_duplicate_insert_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_duplicate_insert_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_duplicate_insert_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_duplicate_insert_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_endogenous_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_endogenous_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_endogenous_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_endogenous_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_gc_coverage_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_gc_coverage_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_gc_coverage_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_gc_coverage_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_haplogroup_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_haplogroup_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_haplogroup_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_haplogroup_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_sex_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_bam_sex_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_sex_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_bam_sex_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_trimming_truth".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_fastq_trimming_truth_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_vcf_mini".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_vcf_mini_stdout".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_vcf_mini".to_string(),
-        "--test".to_string(),
-        "fixtures_validate_expected_vcf_mini_stdout".to_string(),
-        "--".to_string(),
-        "--nocapture".to_string(),
+    [
+        "test",
+        "-p",
+        "bijux-dna",
+        "--test",
+        "bench_local_corpus_fixture",
+        "--test",
+        "bench_local_bam_corpus_fixture",
+        "--test",
+        "bench_local_edna_corpus_fixture",
+        "--test",
+        "bench_local_amplicon_corpus_fixture",
+        "--test",
+        "bench_local_vcf_population_structure_smoke",
+        "--test",
+        "bench_local_vcf_population_structure_smoke_file",
+        "--test",
+        "fixtures_validate_all",
+        "--test",
+        "fixtures_amplicon",
+        "--test",
+        "fixtures_ancient_dna",
+        "--test",
+        "fixtures_bam",
+        "--test",
+        "fixtures_fastq",
+        "--test",
+        "fixtures_vcf",
+        "--",
+        "--nocapture",
     ]
+    .into_iter()
+    .map(ToOwned::to_owned)
+    .collect()
 }
 
 #[cfg(test)]
@@ -1645,85 +1411,18 @@ mod tests {
     #[test]
     fn science_fixtures_fast_keeps_taxonomy_and_fixture_validation_targets() {
         let args = science_fixtures_fast_command_args();
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_fastq_taxonomy_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_expected_fastq_taxonomy_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_fastq_duplicates_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_amplicon_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_adna_damage_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_expected_adna_damage_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == ["--test".to_string(), "fixtures_validate_adna_contamination_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_expected_adna_contamination_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_bam_alignment_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_bam_duplicate_insert_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_bam_endogenous_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_expected_bam_endogenous_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_bam_gc_coverage_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_bam_haplogroup_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window
-                == [
-                    "--test".to_string(),
-                    "fixtures_validate_expected_bam_haplogroup_truth".to_string(),
-                ]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_bam_sex_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_expected_bam_sex_truth".to_string()]
-        }));
-        assert!(args.windows(2).any(|window| {
-            window == ["--test".to_string(), "fixtures_validate_all".to_string()]
-        }));
+        for target in [
+            "fixtures_fastq",
+            "fixtures_bam",
+            "fixtures_vcf",
+            "fixtures_ancient_dna",
+            "fixtures_amplicon",
+            "fixtures_validate_all",
+            "bench_local_vcf_population_structure_smoke",
+            "bench_local_vcf_population_structure_smoke_file",
+        ] {
+            assert!(args.windows(2).any(|pair| pair == ["--test", target]), "missing {target}");
+        }
         assert_eq!(args.last().map(String::as_str), Some("--nocapture"));
     }
 }

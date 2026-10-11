@@ -29,7 +29,7 @@ use super::readiness::all_domain_active_stage_tool_matrix::collect_all_domain_ac
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_IBD_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.ibd";
+const DEFAULT_VCF_IBD_SMOKE_ROOT: &str = "artifacts/runs/bench/local-smoke/vcf.ibd";
 const LOCAL_VCF_IBD_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-ibd-smoke";
 const GOVERNED_VCF_IBD_STAGE_ID: &str = "vcf.ibd";
 const GOVERNED_VCF_IBD_TOOL_ID: &str = "germline";

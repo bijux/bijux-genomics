@@ -26,7 +26,8 @@ pub use chain::{
 };
 pub use external_artifact::{
     admit_external_artifact, bind_external_artifact_command, external_artifact_admission_schema,
-    external_artifact_image_ref, external_artifact_tool_id, load_external_artifact_admission,
+    external_artifact_admission_schema_matches, external_artifact_image_ref,
+    external_artifact_tool_id, load_external_artifact_admission,
     verify_external_artifact_admission, write_external_artifact_admission_schema,
     ExternalArtifactAdmission, ExternalArtifactAdmissionRequest, ExternalArtifactAdmissionStatus,
     ExternalArtifactCommandBinding, ExternalArtifactIdentity, ExternalArtifactInput,
@@ -35,26 +36,28 @@ pub use external_artifact::{
 };
 pub use image_activation::{
     apply_image_activation_plan, create_image_activation_plan, image_activation_plan_schema,
-    load_image_activation_plan, rollback_image_activation_plan, verify_image_activation_plan,
+    image_activation_plan_schema_matches, load_image_activation_plan,
+    rollback_image_activation_plan, verify_image_activation_plan,
     write_image_activation_plan_schema, ImageActivationPlan, ImageActivationPlanRequest,
     ImageActivationPlanState, ImageActivationPublication, IMAGE_ACTIVATION_PLAN_SCHEMA_V1,
 };
 pub use image_storage::{
     apply_image_storage_plan, create_image_storage_plan, derive_image_storage_report,
-    image_storage_plan_schema, image_storage_report_schema, load_image_storage_plan,
-    publish_image_storage_report, render_image_storage_report_markdown,
-    rollback_image_storage_plan, verify_image_storage_plan, write_image_storage_plan_schema,
-    write_image_storage_report_schema, ImageStorageMove, ImageStorageMoveCategory,
-    ImageStoragePlan, ImageStoragePlanRequest, ImageStoragePlanState, ImageStorageRecovery,
-    ImageStorageReport, ImageStorageReportSource, ImageStorageReportSources, ImageStorageVerdict,
-    QuarantinedImageIdentity, IMAGE_STORAGE_PLAN_SCHEMA_V1, IMAGE_STORAGE_REPORT_SCHEMA_V1,
+    image_storage_plan_schema, image_storage_report_matches, image_storage_report_schema,
+    image_storage_schemas_match, load_image_storage_plan, publish_image_storage_report,
+    render_image_storage_report_markdown, rollback_image_storage_plan, verify_image_storage_plan,
+    write_image_storage_plan_schema, write_image_storage_report_schema, ImageStorageMove,
+    ImageStorageMoveCategory, ImageStoragePlan, ImageStoragePlanRequest, ImageStoragePlanState,
+    ImageStorageRecovery, ImageStorageReport, ImageStorageReportSource, ImageStorageReportSources,
+    ImageStorageVerdict, QuarantinedImageIdentity, IMAGE_STORAGE_PLAN_SCHEMA_V1,
+    IMAGE_STORAGE_REPORT_SCHEMA_V1,
 };
 pub use inventory::{
     derive_image_inventory_evidence, derive_image_inventory_publication,
-    image_inventory_request_from_activation_plan, render_image_inventory_markdown,
-    DerivedImageInventory, ImageInventoryDerivationRequest, ImageInventoryEvidenceRootIdentity,
-    ImageInventoryEvidenceRoots, ImageInventoryScan, ImageInventoryScannedImage,
-    ImageInventorySourceFile,
+    image_inventory_request_from_activation_plan, publish_image_inventory_evidence,
+    render_image_inventory_markdown, DerivedImageInventory, ImageInventoryDerivationRequest,
+    ImageInventoryEvidenceRootIdentity, ImageInventoryEvidenceRoots, ImageInventoryScan,
+    ImageInventoryScannedImage, ImageInventorySourceFile,
 };
 pub use load::{
     load_image_inventory_publication, load_image_inventory_scan,
@@ -93,9 +96,9 @@ pub use run_evidence::{
     container_attempt_layout_schema, derive_result_layout_plan, derive_run_evidence_index,
     derive_superseded_result_archive_plan, ensure_container_attempt_layout, import_run_evidence,
     load_run_evidence_index, load_run_evidence_lock, plan_final_run_evidence,
-    render_run_evidence_markdown, result_layout_plan_schema, rollback_result_layout,
-    rollback_superseded_result_archive, run_evidence_index_schema,
-    superseded_result_archive_plan_schema, validate_run_attempt_ledger,
+    publish_run_evidence_book, render_run_evidence_markdown, replay_run_evidence_book,
+    result_layout_plan_schema, rollback_result_layout, rollback_superseded_result_archive,
+    run_evidence_index_schema, superseded_result_archive_plan_schema, validate_run_attempt_ledger,
     validate_run_evidence_index, validate_run_evidence_root, verify_result_layout,
     verify_run_evidence_publication, verify_superseded_result_archive,
     write_result_movement_schemas, write_run_evidence_index_schema, ArchivedResultCategory,
@@ -114,8 +117,9 @@ pub use runtime_verification::{
 };
 pub use schema::{
     image_inventory_publication_schema, image_inventory_scan_schema,
-    runtime_verification_publication_schema, write_image_inventory_publication_schema,
-    write_image_inventory_scan_schema, write_runtime_verification_publication_schema,
+    runtime_verification_publication_schema, runtime_verification_schemas_match,
+    write_image_inventory_publication_schema, write_image_inventory_scan_schema,
+    write_runtime_verification_publication_schema,
 };
 pub use security_database::{
     load_grype_database_contract, verify_grype_database, AdmittedGrypeDatabase,

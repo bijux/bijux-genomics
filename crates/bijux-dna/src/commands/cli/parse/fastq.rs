@@ -163,7 +163,7 @@ pub struct FastqCompareArgs {
     pub run_a: String,
     #[arg(long)]
     pub run_b: String,
-    #[arg(long, default_value = "runs")]
+    #[arg(long, default_value = "artifacts/runs")]
     pub search_root: PathBuf,
     #[arg(long)]
     pub baseline: Option<String>,

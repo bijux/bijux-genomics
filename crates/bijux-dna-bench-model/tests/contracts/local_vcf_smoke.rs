@@ -63,7 +63,7 @@ fn local_vcf_smoke_suite_rejects_goal_and_aggregate_drift() {
     assert!(validate_benchmark_local_vcf_smoke_suite(&report).is_err());
 
     let mut report = report_with_failed_goals(&[]);
-    report.output_path = "runs/bench/local-smoke/renamed.json".to_string();
+    report.output_path = "artifacts/runs/bench/local-smoke/renamed.json".to_string();
     assert!(validate_benchmark_local_vcf_smoke_suite(&report).is_err());
 }
 

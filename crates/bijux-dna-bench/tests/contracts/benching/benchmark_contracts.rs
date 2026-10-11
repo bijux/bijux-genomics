@@ -61,19 +61,15 @@ fn stage_interface_admission_uses_the_declared_repository_root() -> Result<()> {
 }
 
 #[test]
-fn checked_in_stage_reports_exclude_historical_evidence() -> Result<()> {
+fn checked_in_report_namespace_excludes_historical_evidence() -> Result<()> {
     let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
     assert!(reports.is_empty());
 
     let repository_root = repository_root()?;
     let registry = bijux_dna_bench::derive_benchmark_publication_registry(&repository_root)?;
     assert_eq!(registry.summary.active_stage_report_count, 0);
-    assert_eq!(registry.summary.historical_stage_report_count, 11);
-    assert!(registry.stage_reports.iter().all(|report| {
-        report.disposition == bijux_dna_bench::BenchmarkStagePublicationDisposition::Historical
-            && report.json_path.contains("/historical/")
-            && report.json_path.contains(&report.source_commit)
-    }));
+    assert_eq!(registry.summary.historical_stage_report_count, 0);
+    assert!(registry.stage_reports.is_empty());
     Ok(())
 }
 
@@ -287,16 +283,16 @@ fn checked_in_run_index_covers_every_protocol_without_hidden_publications() -> R
         &repository_root,
         bijux_dna_bench::BenchmarkRunIndexWriteMode::Check,
     )?;
+    let selected_run_count =
+        index.runs.iter().filter(|run| run.selected_publication.is_some()).count();
     assert_eq!(index.summary.registered_run_count, 71);
-    assert_eq!(index.summary.citable_publication_count, 3);
-    assert_eq!(index.summary.unpublished_run_count, 68);
+    assert_eq!(index.summary.citable_publication_count, selected_run_count);
+    assert_eq!(index.summary.unpublished_run_count, 71 - selected_run_count);
     for run in &index.runs {
         assert_eq!(run.citation_key, format!("bijux-benchmark-{}", run.run_id));
-        if ["run-2042", "run-2043", "run-2051"].contains(&run.run_id.as_str()) {
-            assert!(run.selected_publication.is_some());
+        if run.selected_publication.is_some() {
             assert!(run.limitations.is_empty());
         } else {
-            assert!(run.selected_publication.is_none());
             assert!(!run.limitations.is_empty());
         }
     }
@@ -311,19 +307,31 @@ fn checked_in_run_index_covers_every_protocol_without_hidden_publications() -> R
 #[test]
 fn checked_in_publication_registry_has_no_drift() -> Result<()> {
     let repository_root = repository_root()?;
+    let run_index = bijux_dna_bench::publish_checked_in_benchmark_run_index(
+        &repository_root,
+        bijux_dna_bench::BenchmarkRunIndexWriteMode::Check,
+    )?;
     let registry = bijux_dna_bench::publish_checked_in_benchmark_publication_registry(
         &repository_root,
         bijux_dna_bench::BenchmarkPublicationRegistryWriteMode::Check,
     )?;
-    assert_eq!(registry.summary.current_product_count, 6);
-    assert_eq!(registry.summary.current_run_report_count, 3);
-    assert_eq!(registry.summary.missing_run_report_count, 68);
+    assert_eq!(registry.summary.current_product_count, 7);
+    assert!(registry.current_products.iter().any(|product| {
+        product.product_id == "data-portfolio"
+            && product.json_path == "benchmarks/reports/DATA_PORTFOLIO.json"
+            && product.markdown_path == "benchmarks/reports/DATA_PORTFOLIO.md"
+    }));
+    assert_eq!(
+        registry.summary.current_run_report_count,
+        run_index.summary.citable_publication_count
+    );
+    assert_eq!(registry.summary.missing_run_report_count, run_index.summary.unpublished_run_count);
     assert_eq!(registry.summary.stale_run_report_count, 0);
     assert_eq!(registry.summary.failed_run_report_count, 0);
     assert_eq!(registry.summary.superseded_run_report_count, 0);
     assert_eq!(registry.run_reports.len(), 71);
     assert_eq!(registry.summary.active_stage_report_count, 0);
-    assert_eq!(registry.summary.historical_stage_report_count, 11);
+    assert_eq!(registry.summary.historical_stage_report_count, 0);
     assert_eq!(registry.summary.quarantined_surface_count, 0);
     assert_eq!(registry.summary.quarantined_file_count, 0);
     assert!(registry.quarantined_surfaces.is_empty());
@@ -332,10 +340,18 @@ fn checked_in_publication_registry_has_no_drift() -> Result<()> {
 
 #[test]
 fn derived_publication_registry_classifies_every_permanent_run() -> Result<()> {
-    let registry = bijux_dna_bench::derive_benchmark_publication_registry(&repository_root()?)?;
+    let repository_root = repository_root()?;
+    let run_index = bijux_dna_bench::publish_checked_in_benchmark_run_index(
+        &repository_root,
+        bijux_dna_bench::BenchmarkRunIndexWriteMode::Check,
+    )?;
+    let registry = bijux_dna_bench::derive_benchmark_publication_registry(&repository_root)?;
     assert_eq!(registry.run_reports.len(), 71);
-    assert_eq!(registry.summary.current_run_report_count, 3);
-    assert_eq!(registry.summary.missing_run_report_count, 68);
+    assert_eq!(
+        registry.summary.current_run_report_count,
+        run_index.summary.citable_publication_count
+    );
+    assert_eq!(registry.summary.missing_run_report_count, run_index.summary.unpublished_run_count);
     assert_eq!(registry.summary.stale_run_report_count, 0);
     assert_eq!(registry.summary.failed_run_report_count, 0);
     assert_eq!(registry.summary.superseded_run_report_count, 0);
@@ -357,7 +373,7 @@ fn derived_publication_registry_classifies_every_permanent_run() -> Result<()> {
 
 #[test]
 fn stage_report_admission_rejects_incomplete_tool_closure() -> Result<()> {
-    let mut report = historical_stage_report()?;
+    let mut report = reference_stage_report()?;
     report.report.tools.pop();
 
     let error = bijux_dna_bench_model::contract::validate_stage_report(&report.report)
@@ -369,7 +385,7 @@ fn stage_report_admission_rejects_incomplete_tool_closure() -> Result<()> {
 
 #[test]
 fn stage_report_admission_rejects_verdict_drift() -> Result<()> {
-    let mut report = historical_stage_report()?;
+    let mut report = reference_stage_report()?;
     report.report.verdict = bijux_dna_bench::BenchmarkReportVerdict::Failed;
 
     let error = bijux_dna_bench_model::contract::validate_stage_report(&report.report)
@@ -381,7 +397,7 @@ fn stage_report_admission_rejects_verdict_drift() -> Result<()> {
 
 #[test]
 fn stage_report_admission_rejects_abbreviated_identities() -> Result<()> {
-    let mut admission = historical_stage_report()?;
+    let mut admission = reference_stage_report()?;
     let report_sha256 = admission.report_sha256.clone();
     admission.report_sha256 = "1234567".to_string();
     let error = bijux_dna_bench_model::contract::validate_report_admission(&admission)
@@ -409,7 +425,7 @@ fn stage_report_admission_rejects_abbreviated_identities() -> Result<()> {
 
 #[test]
 fn stage_report_admission_requires_data_locks() -> Result<()> {
-    let mut report = historical_stage_report()?.report;
+    let mut report = reference_stage_report()?.report;
     report.comparability = None;
     for tool in &mut report.tools {
         tool.input_locks.clear();
@@ -428,7 +444,7 @@ fn stage_report_admission_requires_data_locks() -> Result<()> {
 fn stage_report_admission_rejects_stale_catalog_identity() -> Result<()> {
     let (registry, _, interfaces) =
         bijux_dna_bench::load_checked_in_benchmark_planning_contracts()?;
-    let mut report = historical_stage_report()?.report;
+    let mut report = reference_stage_report()?.report;
     report.catalog_sha256 = "f".repeat(64);
 
     let reports_dir = bijux_dna_bench::bench_reports_dir();
@@ -457,10 +473,10 @@ fn repository_root() -> Result<std::path::PathBuf> {
         .ok_or_else(|| anyhow::anyhow!("resolve repository root"))
 }
 
-fn historical_stage_report() -> Result<bijux_dna_bench::AdmittedBenchmarkStageReport> {
+fn reference_stage_report() -> Result<bijux_dna_bench::AdmittedBenchmarkStageReport> {
     bijux_dna_bench::load_stage_report(
         &repository_root()?.join(
-            "benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2042-fastq-profile-read-lengths.json",
+            "crates/bijux-dna-bench/tests/fixtures/stage-report-renderer/run-2042-fastq-profile-read-lengths.json",
         ),
     )
 }

@@ -94,13 +94,13 @@ fn job(
         missing_output_paths: if complete {
             Vec::new()
         } else {
-            vec![format!("runs/bench/results/{id}/output.txt")]
+            vec![format!("artifacts/runs/bench/results/{id}/output.txt")]
         },
         resume_action: resume_action.to_string(),
         reason: reason.to_string(),
         rerun_dependencies,
-        result_root: format!("runs/bench/results/{id}"),
-        stage_result_manifest_path: format!("runs/bench/results/{id}/stage-result.json"),
+        result_root: format!("artifacts/runs/bench/results/{id}"),
+        stage_result_manifest_path: format!("artifacts/runs/bench/results/{id}/stage-result.json"),
     }
 }
 
@@ -160,9 +160,9 @@ fn report() -> BenchmarkLocalHpcResumeSimulationReport {
     ];
     BenchmarkLocalHpcResumeSimulationReport {
         schema_version: BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1.to_string(),
-        manifest_path: "runs/bench/hpc-dry-run/job-graph.json".to_string(),
-        output_path: "runs/bench/hpc-dry-run/resume-simulation.json".to_string(),
-        simulation_root: "runs/bench/hpc-dry-run/resume-simulation-tree".to_string(),
+        manifest_path: "artifacts/runs/bench/hpc-dry-run/job-graph.json".to_string(),
+        output_path: "artifacts/runs/bench/hpc-dry-run/resume-simulation.json".to_string(),
+        simulation_root: "artifacts/runs/bench/hpc-dry-run/resume-simulation-tree".to_string(),
         job_count: 6,
         benchmark_job_count: 3,
         essential_pipeline_job_count: 3,
