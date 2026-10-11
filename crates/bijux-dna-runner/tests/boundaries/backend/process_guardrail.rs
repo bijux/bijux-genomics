@@ -19,8 +19,10 @@ fn is_allowed_command_path(path: &Path) -> bool {
             .contains("/crates/bijux-dna-containers/src/execution_contract/pipeline/admission.rs")
         || path_str.contains("/crates/bijux-dna-containers/src/resolve/")
         || path_str.contains("/crates/bijux-dna-containers/src/site_policy/repository_freeze.rs")
+        || path_str.contains("/crates/bijux-dna-containers/src/site_policy/repository_tracking.rs")
         || path_str.contains("/crates/bijux-dna-containers-qa/src/bin/")
         || path_str.contains("/crates/bijux-dna-containers-qa/src/image_qa/")
+        || path_str.contains("/crates/bijux-dna-containers-qa/src/security_verification/")
         || path_str.contains("/crates/bijux-dna-dev/")
 }
 

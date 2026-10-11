@@ -120,12 +120,104 @@ class = "qualification_real"
 sample_count = 1
 data_types = ["bam"]
 roles = ["ancient_bam_qualification"]
-catalog_ids = ["ena-prjeb22390-err2112767-bam", "equcab3-gcf-002863925.1"]
+catalog_ids = [
+  "ena-prjeb22390-err2112767-bam",
+  "ena-prjeb22390-err2112767-ngsbriggs-input",
+  "ensembl-113-equcab3-refseq-genotyping-inputs-10mb",
+  "ensembl-113-equcab3-refseq-known-sites-10mb",
+  "ensembl-113-equcab3-variation",
+  "equcab3-gcf-002863925.1",
+  "equus-mitochondrial-candidates",
+]
 truth_strategy = "observational_only"
 scientific_rationale = "A checksum-admitted ancient horse BAM supports container and metric-contract qualification without being misrepresented as a comparative cohort."
 limitations = [
   "One sample cannot support biological generalization or tool ranking.",
   "Mapping-derived observations are not independent alignment truth.",
+]
+
+[[corpora]]
+id = "human-population-stage-qualification"
+status = "admitted"
+evidence_scope = "qualification"
+class = "qualification_real"
+sample_count = 100
+data_types = ["ibd_segments", "vcf"]
+roles = ["human_population_stage_qualification"]
+catalog_ids = [
+  "1000-genomes-phase3-chr22-100-samples-ibdseq-segments-full-chromosome",
+  "1000-genomes-phase3-chr22-biallelic-100-samples",
+  "1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome",
+  "1000-genomes-phase3-chr22-biallelic-20-22mb",
+  "1000-genomes-phase3-chr22-ibdseq-segments",
+]
+truth_strategy = "observational_only"
+scientific_rationale = "Checksum-admitted 1000 Genomes chromosome 22 panels and derived IBD segments provide real-data qualification for VCF, relatedness, and demographic stage contracts."
+limitations = [
+  "The cohort follows source header order and is not population-stratified.",
+  "Single-chromosome and interval subsets cannot support genome-wide demographic inference, benchmark ranking, or chromosome-bootstrap uncertainty.",
+  "Derived IBD segments validate downstream execution and formats but are not independent relationship truth.",
+]
+
+[[corpora]]
+id = "amplicon-stage-qualification"
+status = "admitted"
+evidence_scope = "qualification"
+class = "qualification_real"
+sample_count = 1
+data_types = ["fastq"]
+roles = ["amplicon_stage_qualification"]
+catalog_ids = [
+  "ena-prjdb2953-drr021371",
+  "ena-prjdb4000-drr037766",
+  "mothur-miseq-sop-f3d0",
+]
+truth_strategy = "observational_only"
+scientific_rationale = "Three checksum-admitted real amplicon runs cover paired-end, single-end, and overlapping-read ASV execution contracts."
+limitations = [
+  "Each governed source represents one sample and cannot establish cross-sample or population behavior.",
+  "The sources lack a common independently measured composition and therefore cannot support ASV accuracy ranking or ecological interpretation.",
+]
+
+[[corpora]]
+id = "equine-read-stage-qualification"
+status = "admitted"
+evidence_scope = "qualification"
+class = "qualification_real"
+sample_count = 1
+data_types = ["fasta", "fastq"]
+roles = ["equine_read_stage_qualification"]
+catalog_ids = [
+  "ena-prjeb10854-err1021817-full",
+  "ena-prjeb10854-err1021817-read-prefix-100000",
+  "ena-prjeb10854-err1021817-split-paired-fastq",
+  "equcab3-nc_009144.3-first-megabase",
+]
+truth_strategy = "observational_only"
+scientific_rationale = "A checksum-admitted real horse WGS library, its governed representations, and an equine reference slice qualify read-processing and FASTQ-to-BAM contracts."
+limitations = [
+  "One modern horse library cannot establish cross-library correction or alignment performance.",
+  "The read-prefix and reference subsets are qualification assets, not independent biological replicates.",
+  "No read-level truth is available for base-correction or alignment-accuracy ranking.",
+]
+
+[[corpora]]
+id = "viral-taxonomy-stage-qualification"
+status = "admitted"
+evidence_scope = "qualification"
+class = "qualification_real"
+sample_count = 1
+data_types = ["fasta", "taxonomy_database"]
+roles = ["viral_taxonomy_stage_qualification"]
+catalog_ids = [
+  "centrifuge-nc-038500.1-single-reference",
+  "kraken2-viral-20260626",
+]
+truth_strategy = "observational_only"
+scientific_rationale = "A governed viral reference and time-versioned Kraken database qualify taxonomy index and classification runtime contracts."
+limitations = [
+  "The Centrifuge input contains one viral reference and cannot measure broad classification sensitivity or specificity.",
+  "The Kraken database is viral-only and cannot support whole-microbiome, host-taxonomy, prevalence, or abundance conclusions.",
 ]
 
 [[corpora]]

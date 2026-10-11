@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2016",
+  "run": {
+    "run_id": "run-2016",
+    "domain": "bam",
+    "stage_id": "bam.kinship"
+  },
+  "protocol_title": "BAM kinship benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "26de956e8cd4eff30f9b0859f0d47ba32d81832309d983fbdf9aa6c287ef6873",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

@@ -51,6 +51,9 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/repo")),
         entries([
             "bam_corpus_authority.rs",
+            "case_data_authority.rs",
+            "catalog_registry_authority.rs",
+            "catalog_snapshot_authority.rs",
             "corpus_authority.rs",
             "data_index_authority.rs",
             "mod.rs",
@@ -97,6 +100,7 @@ fn bench_tree_matches_architecture_contract() {
             "campaign_material/",
             "corpus_acquisition.rs",
             "corpus_materialization/",
+            "data_portfolio_audit.rs",
             "evaluation.rs",
             "fastq_detect_adapters/",
             "fastq_expectations/",
@@ -105,9 +109,13 @@ fn bench_tree_matches_architecture_contract() {
             "fastq_validate_reads/",
             "mod.rs",
             "options.rs",
+            "parameter_authority.rs",
+            "publication_registry.rs",
             "report_load.rs",
+            "run_registry.rs",
             "run_suite/",
             "scientific_readiness.rs",
+            "source_authority.rs",
             "stage_coverage.rs",
             "stage_universe.rs",
             "stage_report/",
@@ -161,8 +169,14 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/campaign_engine")),
-        entries(["aggregation.rs", "mod.rs", "planning.rs"]),
-        "campaign engine must keep persisted models in bench-model and separate planning from aggregation"
+        entries([
+            "aggregation.rs",
+            "mod.rs",
+            "persistence.rs",
+            "planning.rs",
+            "reporting.rs",
+        ]),
+        "campaign engine must keep persisted models in bench-model and separate planning, persistence, aggregation, and reporting"
     );
 
     assert_eq!(

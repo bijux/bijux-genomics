@@ -1,0 +1,44 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2042",
+    "domain": "fastq",
+    "stage_id": "fastq.profile_read_lengths"
+  },
+  "protocol_version": "1.0.0",
+  "title": "FASTQ profile read lengths benchmark protocol",
+  "purpose": "Compare the runnable fastq.profile_read_lengths tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "fastq-observational-qc",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "active",
+  "tool_ids": [
+    "seqfu",
+    "seqkit"
+  ],
+  "accepted_input_contracts": [
+    "bijux.fastq.artifact.paired_end.v1",
+    "bijux.fastq.artifact.single_end.v1"
+  ],
+  "output_contract": "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
+  "normalized_result_contract": "benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json",
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [
+    {
+      "contract_id": "normalized-result-contract",
+      "repository_path": "benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json",
+      "sha256": "ca1bdf88383cbb68553f95b70182ef36f0ff5a707c468b00ea65350e81b9d47d"
+    }
+  ],
+  "corpus_roles": [
+    {
+      "role": "short_read_diversity",
+      "corpus_ids": [
+        "human-short-read-diversity"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2042",
+  "supersedes_run_ids": []
+}

@@ -1,0 +1,43 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2030",
+    "domain": "fastq",
+    "stage_id": "fastq.detect_adapters"
+  },
+  "protocol_version": "1.0.0",
+  "title": "FASTQ detect adapters benchmark protocol",
+  "purpose": "Compare the runnable fastq.detect_adapters tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "fastq-observational-qc",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "active",
+  "tool_ids": [
+    "fastqc"
+  ],
+  "accepted_input_contracts": [
+    "bijux.fastq.artifact.paired_end.v1",
+    "bijux.fastq.artifact.single_end.v1"
+  ],
+  "output_contract": "bijux.benchmark.fastq.detect_adapters.bundle.v1",
+  "normalized_result_contract": "benchmarks/contracts/schemas/fastq-detect-adapters-result.schema.json",
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [
+    {
+      "contract_id": "normalized-result-contract",
+      "repository_path": "benchmarks/contracts/schemas/fastq-detect-adapters-result.schema.json",
+      "sha256": "dfba047768872db3d51f695d9cfc417bf733caec95c2b3e24b063aae5166ce48"
+    }
+  ],
+  "corpus_roles": [
+    {
+      "role": "short_read_diversity",
+      "corpus_ids": [
+        "human-short-read-diversity"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2030",
+  "supersedes_run_ids": []
+}

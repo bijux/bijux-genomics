@@ -103,7 +103,7 @@ pub fn build_execution_spec(
         .iter()
         .find(|tool| tool.id == identity.tool_id)
         .context("container catalog does not contain the attempt tool")?;
-    if tool.support_disposition != "retained"
+    if !tool.is_redistributable_image()
         || !tool.apptainer_supported
         || tool.runtime_network
         || !tool.stage_ids.contains(&campaign.stage_id)

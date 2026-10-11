@@ -75,8 +75,10 @@ fn executes_canonical_inventory_and_binds_immutable_manifests() -> Result<()> {
     let inventory_request = ImageInventoryDerivationRequest {
         repository_root: repository.clone(),
         study_root: study.clone(),
-        image_root: study.join("containers/apptainer"),
-        build_evidence_root: study.join("containers/evidence"),
+        evidence_roots: vec![bijux_dna_containers_qa::api::ImageInventoryEvidenceRoots {
+            image_root: study.join("containers/apptainer"),
+            build_evidence_root: study.join("containers/evidence"),
+        }],
         run_evidence_root: repository.join("containers/runs"),
     };
     let inventory = derive_image_inventory_evidence(&inventory_request)?.publication;
@@ -95,6 +97,7 @@ fn executes_canonical_inventory_and_binds_immutable_manifests() -> Result<()> {
         apptainer_executable: apptainer,
         data_root: inventory_request.study_root.join("data"),
         evidence_root: evidence_root.clone(),
+        baseline_publication_path: None,
         worker_count: 2,
         timeout: Duration::from_secs(2),
     };
@@ -102,6 +105,8 @@ fn executes_canonical_inventory_and_binds_immutable_manifests() -> Result<()> {
 
     assert_runtime_evidence(&result, &evidence_root)?;
     verify_runtime_verification_report(&publication_path, &markdown_path)?;
+
+    assert_baseline_reuses_unchanged_evidence(&request, &publication_path)?;
 
     assert_label_tampering_rejected(
         temporary.path(),
@@ -115,6 +120,7 @@ fn executes_canonical_inventory_and_binds_immutable_manifests() -> Result<()> {
 
 fn assert_runtime_evidence(result: &RuntimeVerificationResult, evidence_root: &Path) -> Result<()> {
     assert_eq!((result.passed, result.failed), (1, 0));
+    assert_eq!((result.executed, result.reused), (1, 0));
     let tool = result.publication.tools.get("example").context("missing runtime tool")?;
     assert_eq!(tool.status, RuntimeEvidenceStatus::Passed);
     let prefix = "study://containers/evidence/runtime/";
@@ -123,6 +129,22 @@ fn assert_runtime_evidence(result: &RuntimeVerificationResult, evidence_root: &P
     assert!(evidence_root.join("manifests/example.json").is_file());
     assert!(evidence_root.join("identities/example.json").is_file());
     assert_eq!(fs::read_dir(evidence_root.join("logs/example"))?.count(), 4);
+    Ok(())
+}
+
+fn assert_baseline_reuses_unchanged_evidence(
+    request: &RuntimeVerificationRequest,
+    baseline: &Path,
+) -> Result<()> {
+    let mut request = request.clone();
+    request.baseline_publication_path = Some(baseline.to_path_buf());
+    request.evidence_root = request.evidence_root.join("incremental");
+    let publication_path = request.evidence_root.join("runtime-verification.json");
+    let markdown_path = request.evidence_root.join("runtime-verification.md");
+    let result = execute_runtime_verification(&request, &publication_path, &markdown_path)?;
+    assert_eq!((result.passed, result.failed), (1, 0));
+    assert_eq!((result.executed, result.reused), (0, 1));
+    assert_eq!(result.publication.tools["example"].image_sha256.len(), 64);
     Ok(())
 }
 

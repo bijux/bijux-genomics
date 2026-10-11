@@ -134,12 +134,21 @@ pub fn repository_changed_paths_since(
 /// # Errors
 /// Returns an error when the commit is malformed or Git cannot inspect repository ancestry.
 pub fn repository_commit_is_ancestor_of_head(repository_root: &Path, commit: &str) -> Result<bool> {
-    validate_commit_identity(commit)?;
     let head = repository_head_commit(repository_root)?;
+    repository_commit_is_ancestor(repository_root, commit, &head)
+}
+
+pub(crate) fn repository_commit_is_ancestor(
+    repository_root: &Path,
+    ancestor_commit: &str,
+    descendant_commit: &str,
+) -> Result<bool> {
+    validate_commit_identity(ancestor_commit)?;
+    validate_commit_identity(descendant_commit)?;
     let output = Command::new("git")
         .arg("-C")
         .arg(repository_root)
-        .args(["merge-base", "--is-ancestor", commit, &head])
+        .args(["merge-base", "--is-ancestor", ancestor_commit, descendant_commit])
         .output()
         .context("verify repository source ancestry")?;
     match output.status.code() {

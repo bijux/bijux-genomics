@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2007",
+  "run": {
+    "run_id": "run-2007",
+    "domain": "bam",
+    "stage_id": "bam.bias_mitigation"
+  },
+  "protocol_title": "BAM bias mitigation benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "2acb689e492c2bb5cbaf078b19903751552a65958f619f712715703a5fe89033",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

@@ -564,7 +564,7 @@ fn legacy_callers(files: &[SourceFile]) -> BTreeMap<String, Vec<String>> {
             let mut matches = files
                 .iter()
                 .filter(|file| file.path != OWNERSHIP_AUDIT_SOURCE)
-                .filter(|file| is_executable_reference(&file.path))
+                .filter(|file| is_production_executable_reference(&file.path))
                 .filter(|file| references_legacy_authority(&file.path, &file.content, authority))
                 .map(|file| file.path.clone())
                 .collect::<Vec<_>>();
@@ -634,6 +634,14 @@ fn is_executable_reference(path: &str) -> bool {
             Path::new(path).extension().and_then(|value| value.to_str()),
             Some("md" | "mk" | "py" | "rs" | "sh" | "yaml" | "yml")
         )
+}
+
+fn is_production_executable_reference(path: &str) -> bool {
+    is_executable_reference(path)
+        && !path.starts_with("tests/")
+        && !path.contains("/tests/")
+        && !path.ends_with("_test.py")
+        && !path.ends_with("_tests.rs")
 }
 
 fn is_live_root_python_authority(row: &OwnershipRow) -> bool {
@@ -807,6 +815,16 @@ mod tests {
         assert!(callers["benchmarks/data_catalog.py"].is_empty());
         assert!(callers["containers/runs/result_layout.py"].is_empty());
         assert_eq!(callers["containers/runs/manage.py"], ["containers/README.md"]);
+    }
+
+    #[test]
+    fn legacy_inventory_ignores_test_only_negative_references() {
+        let callers = legacy_callers(&[SourceFile {
+            path: "crates/bijux-dna-runner/tests/qualification.rs".to_string(),
+            content: "assert!(!script.contains(\"container_validation.py\"));".to_string(),
+        }]);
+
+        assert!(callers["containers/contracts/container_validation.py"].is_empty());
     }
 
     #[test]

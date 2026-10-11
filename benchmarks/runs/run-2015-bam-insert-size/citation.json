@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2015",
+  "run": {
+    "run_id": "run-2015",
+    "domain": "bam",
+    "stage_id": "bam.insert_size"
+  },
+  "protocol_title": "BAM insert size benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "861f3b8e5a161d7ec614769667f517e7ff747f4ee81b6265371c32aefb71d02c",
+  "status": "protocol_only",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

@@ -367,6 +367,7 @@ fn validate_workflow_input_contract_metadata(
 fn artifact_format_from_id(format_id: &str) -> Option<ArtifactFormatV1> {
     match format_id.to_ascii_lowercase().as_str() {
         "fastq" | "fastq.gz" | "fq" | "fq.gz" => Some(ArtifactFormatV1::Fastq),
+        "sam" => Some(ArtifactFormatV1::Sam),
         "bam" => Some(ArtifactFormatV1::Bam),
         "cram" => Some(ArtifactFormatV1::Cram),
         "vcf" | "vcf.gz" | "vcf.bgz" => Some(ArtifactFormatV1::Vcf),

@@ -5,8 +5,9 @@ use std::path::Path;
 use anyhow::Result;
 use bijux_dna_containers::api::{
     admit_external_artifact, bind_external_artifact_command, load_external_artifact_admission,
-    repository_head_commit, verify_external_artifact_admission, ExternalArtifactAdmissionRequest,
-    ExternalArtifactAdmissionStatus, ExternalArtifactInput, ExternalArtifactKind,
+    repository_head_commit, verify_external_artifact_admission, ContainerArtifactDelivery,
+    ContainerProductSupport, ExternalArtifactAdmissionRequest, ExternalArtifactAdmissionStatus,
+    ExternalArtifactInput, ExternalArtifactKind,
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
@@ -108,7 +109,7 @@ fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<
         },
         &record_path,
     )?;
-    assert_eq!(record.status, ExternalArtifactAdmissionStatus::Admitted);
+    assert_eq!(record.availability, ExternalArtifactAdmissionStatus::Admitted);
     assert_eq!(
         record.artifact.as_ref().map(|artifact| artifact.path.as_str()),
         canonical_binary.to_str()
@@ -201,7 +202,9 @@ fn every_license_restricted_tool_has_an_explicit_blocked_access_record() -> Resu
             },
             &path,
         )?;
-        assert_eq!(record.status, ExternalArtifactAdmissionStatus::BlockedExternalAccess);
+        assert_eq!(record.availability, ExternalArtifactAdmissionStatus::BlockedExternalAccess);
+        assert_eq!(record.product_support, ContainerProductSupport::Supported);
+        assert_eq!(record.artifact_delivery, ContainerArtifactDelivery::ExternalArtifact);
         assert!(!record.redistribution_permitted);
         for stage_id in &record.stage_ids {
             assert!(

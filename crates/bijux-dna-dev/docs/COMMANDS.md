@@ -268,14 +268,18 @@ generate-tool-ids
 generate-tool-name-map
 generate-version-lock
 generate-versions-index-sha
+grype-database
 image-activation
+image-campaign
 image-qa
 image-smoke-vcf
 image-storage
 lint
 pipeline-contract
+qualification-cycle
 qualification-registry
 qualification-slurm
+qualification-specification
 registry-tools
 release-gate
 repository-freeze
@@ -284,6 +288,8 @@ run-apptainer-frontend-security
 run-apptainer-frontend-smoke
 run-evidence
 runtime-verification
+security-evidence
+security-toolchain
 smoke-apptainer
 smoke-containers-apptainer
 smoke-containers-apptainer-apptainer-run
@@ -395,6 +401,7 @@ benchmark-data-catalog-snapshots
 benchmark-data-portfolio-audit
 benchmark-integrity-mini
 benchmark-publication-registry
+benchmark-run-index
 benchmark-run-registry
 benchmark-scientific-readiness
 benchmark-smoke-level1

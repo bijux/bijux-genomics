@@ -22,6 +22,7 @@ fn dependency_graph_matches_runner_boundary() {
             "bijux-dna-containers-qa",
             "bijux-dna-infra",
             "bijux-dna-runtime",
+            "chrono",
             "serde",
             "serde_json",
             "sha2",
@@ -61,7 +62,6 @@ fn dependency_graph_matches_runner_boundary() {
         "bijux-dna-stages-bam",
         "bijux-dna-stages-fastq",
         "bijux-dna-stages-vcf",
-        "chrono",
         "flate2",
         "reqwest",
     ] {

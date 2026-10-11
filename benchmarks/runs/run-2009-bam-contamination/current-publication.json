@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.benchmark.run_publication_pointer.v1",
+  "run": {
+    "run_id": "run-2009",
+    "domain": "bam",
+    "stage_id": "bam.contamination"
+  },
+  "protocol_sha256": "3be6fdaf945f2f212b8c4e676b3d5e8fe91bc095886e01aa6e8c57119564968c",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

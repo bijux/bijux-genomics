@@ -1,0 +1,7 @@
+schema_version = "bijux.container.grype_database_contract.v1"
+acquisition_script_sha256 = "f2517a6c9efa3c1a016ba738b4e5e66564a11f4ea2e19084d3317e9373242374"
+grype_version = "0.116.1"
+grype_sha256 = "a8fff88f37a08af6a536e162f37f9902ec94af03df9928ee6295dffe7044dc43"
+update_url = "https://grype.anchore.io/databases"
+schema_major = 6
+maximum_age_days = 5

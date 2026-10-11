@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if ((BASH_VERSINFO[0] < 5 || (BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] < 1))); then
+  echo "GitHub workflow gate supervision requires Bash 5.1 or newer for wait -n -p" >&2
+  exit 1
+fi
+
 require_tool() {
   if ! command -v "$1" >/dev/null 2>&1; then
     echo "required tool is unavailable: $1" >&2
@@ -74,8 +79,6 @@ fi
 
 mkdir -p "${artifact_dir}"
 rm -f \
-  "${artifact_dir}"/*.exit.status \
-  "${artifact_dir}"/*.exit.status.pending \
   "${artifact_dir}"/*.log \
   "${summary_file}"
 printf 'gate\ttarget\texit_code\tlog\n' >"${summary_file}"
@@ -102,6 +105,7 @@ else
 fi
 
 pids=()
+declare -A gate_index_by_pid=()
 
 # shellcheck disable=SC2329  # Invoked indirectly by the signal trap.
 terminate_gates() {
@@ -115,61 +119,46 @@ for index in "${!gate_names[@]}"; do
   gate_name="${gate_names[${index}]}"
   gate_target="${gate_targets[${index}]}"
   gate_log="${artifact_dir}/${gate_name}.log"
-  gate_status="${artifact_dir}/${gate_name}.exit.status"
-  gate_pending_status="${gate_status}.pending"
   printf 'started gate: %s (make %s)\nlog: %s\n' \
     "${gate_name}" \
     "${gate_target}" \
     "${gate_log}"
   (
-    set +e
     "${make_bin}" --no-print-directory "${gate_target}" >"${gate_log}" 2>&1
-    exit_code=$?
-    set -e
-    printf '%s\n' "${exit_code}" >"${gate_pending_status}"
-    mv "${gate_pending_status}" "${gate_status}"
-    exit "${exit_code}"
   ) &
-  pids+=("$!")
+  gate_pid="$!"
+  pids+=("${gate_pid}")
+  gate_index_by_pid["${gate_pid}"]="${index}"
 done
 
 overall_status=0
-completed=()
 exit_codes=()
-completed_count=0
-while [[ "${completed_count}" -lt "${#gate_names[@]}" ]]; do
-  observed_completion=0
-  for index in "${!gate_names[@]}"; do
-    if [[ "${completed[${index}]:-0}" -eq 1 ]]; then
-      continue
-    fi
-    gate_status="${artifact_dir}/${gate_names[${index}]}.exit.status"
-    if [[ ! -f "${gate_status}" ]]; then
-      continue
-    fi
-    exit_code="$(<"${gate_status}")"
-    if [[ ! "${exit_code}" =~ ^[0-9]+$ ]]; then
-      echo "invalid gate status: ${gate_status}" >&2
-      exit 1
-    fi
-    completed[index]=1
-    exit_codes[index]="${exit_code}"
-    completed_count=$((completed_count + 1))
-    observed_completion=1
-    if [[ "${exit_code}" -ne 0 ]]; then
-      overall_status=1
-    fi
-    printf 'completed gate: %s (exit %s)\n' \
-      "${gate_names[${index}]}" \
-      "${exit_code}"
-  done
-  if [[ "${observed_completion}" -eq 0 ]]; then
-    sleep 0.2
+remaining_pids=("${pids[@]}")
+while [[ "${#remaining_pids[@]}" -gt 0 ]]; do
+  completed_pid=""
+  set +e
+  wait -n -p completed_pid "${remaining_pids[@]}"
+  exit_code=$?
+  set -e
+  if [[ -z "${completed_pid}" || -z "${gate_index_by_pid[${completed_pid}]:-}" ]]; then
+    echo "wait returned an unknown GitHub gate process" >&2
+    exit 1
   fi
-done
-
-for pid in "${pids[@]}"; do
-  wait "${pid}" 2>/dev/null || true
+  index="${gate_index_by_pid[${completed_pid}]}"
+  exit_codes[index]="${exit_code}"
+  if [[ "${exit_code}" -ne 0 ]]; then
+    overall_status=1
+  fi
+  printf 'completed gate: %s (exit %s)\n' \
+    "${gate_names[${index}]}" \
+    "${exit_code}"
+  next_remaining=()
+  for pid in "${remaining_pids[@]}"; do
+    if [[ "${pid}" != "${completed_pid}" ]]; then
+      next_remaining+=("${pid}")
+    fi
+  done
+  remaining_pids=("${next_remaining[@]}")
 done
 
 for index in "${!gate_names[@]}"; do

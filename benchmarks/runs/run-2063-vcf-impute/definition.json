@@ -1,0 +1,42 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2063",
+    "domain": "vcf",
+    "stage_id": "vcf.impute"
+  },
+  "protocol_version": "1.0.0",
+  "title": "VCF impute benchmark protocol",
+  "purpose": "Compare the runnable vcf.impute tools using masked_concordance_switch_error_calibration_and_rare_variant_recovery; downstream substitution: run QC, association-neutral population summaries, and re-masking checks on every output.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "vcf-phasing-imputation",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "beagle",
+    "glimpse",
+    "impute5",
+    "minimac4"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "masked_genotype_truth",
+      "corpus_ids": [
+        "variant-truth-panel"
+      ]
+    },
+    {
+      "role": "variant_truth",
+      "corpus_ids": [
+        "variant-truth-panel"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "vcf-phasing-imputation-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2063",
+  "supersedes_run_ids": []
+}

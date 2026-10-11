@@ -1,0 +1,43 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2013",
+    "domain": "bam",
+    "stage_id": "bam.gc_bias"
+  },
+  "protocol_version": "1.0.0",
+  "title": "BAM gc bias benchmark protocol",
+  "purpose": "Compare the runnable bam.gc_bias tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "bam-observational-qc",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "active",
+  "tool_ids": [
+    "picard"
+  ],
+  "accepted_input_contracts": [
+    "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+    "bijux.reference.artifact.fasta.v1"
+  ],
+  "output_contract": "bijux.benchmark.bam.gc_bias.bundle.v1",
+  "normalized_result_contract": "benchmarks/contracts/schemas/bam-gc-bias-result.schema.json",
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [
+    {
+      "contract_id": "normalized-result-contract",
+      "repository_path": "benchmarks/contracts/schemas/bam-gc-bias-result.schema.json",
+      "sha256": "1d106b1cff5e6117697263c8f065db4a1ab60e7be8251062df4e126ffa812d3c"
+    }
+  ],
+  "corpus_roles": [
+    {
+      "role": "bam_diversity",
+      "corpus_ids": [
+        "ancient-dna-bam-diversity"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2013",
+  "supersedes_run_ids": []
+}

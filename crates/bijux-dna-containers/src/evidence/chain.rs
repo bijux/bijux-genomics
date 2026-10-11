@@ -74,7 +74,8 @@ pub fn validate_container_recipe_evidence_chain(
             inventory.repository_commit
         );
     }
-    for tool in catalog.tools.iter().filter(|tool| tool.support_disposition == "retained") {
+    for tool in catalog.tools.iter().filter(|tool| tool.legacy_support_disposition() == "retained")
+    {
         resolve_current_apptainer_contract_commit(
             repository_root,
             repository_commit,
@@ -179,7 +180,7 @@ pub fn validate_container_evidence_chain(
         let inventory_tool = inventory_tools
             .get(tool.id.as_str())
             .ok_or_else(|| anyhow::anyhow!("image inventory omits {}", tool.id))?;
-        if tool.support_disposition != "retained" {
+        if tool.legacy_support_disposition() != "retained" {
             continue;
         }
         retained_ids.insert(tool.id.as_str());
@@ -230,7 +231,7 @@ pub fn validate_container_inventory_catalog(
         let inventory_tool = inventory_tools
             .get(tool.id.as_str())
             .ok_or_else(|| anyhow::anyhow!("image inventory omits {}", tool.id))?;
-        let expected_disposition = catalog_support_disposition(&tool.support_disposition)?;
+        let expected_disposition = catalog_support_disposition(tool.legacy_support_disposition())?;
         if inventory_tool.version != tool.version
             || inventory_tool.support_disposition != expected_disposition
             || inventory_tool.apptainer_supported != tool.apptainer_supported

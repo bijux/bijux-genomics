@@ -27,6 +27,7 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
       'https://downloads.sourceforge.net/project/bbmap/BBMap_39.06.tar.gz?download' && \
     echo '61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e  /tmp/bbmap.tar.gz' | sha256sum --check --strict && \
     mkdir -p /opt && tar --extract --gzip --file /tmp/bbmap.tar.gz --directory /opt && \
+    chmod -R go-w /opt/bbmap && \
     clumpify --version > /tmp/clumpify.version && \
     grep -Fx 'BBMap 39.06 (Clumpify)' /tmp/clumpify.version && \
     clumpify --help > /tmp/clumpify.help && \

@@ -106,7 +106,7 @@ pub(super) fn build_tool_registries_toml(
         let apptainer_def_rel = contract.apptainer_definition.clone();
         let runtimes = contract.runtimes();
         let has_container_defs = !runtimes.is_empty();
-        let is_not_retained = contract.support_disposition != "retained";
+        let is_external_delivery = !contract.is_redistributable_image();
         let is_planned = tool.status == "planned"
             || tool.default_version == "planned"
             || tool_is_planned_out_of_scope(tool, stage_planned);
@@ -127,8 +127,10 @@ pub(super) fn build_tool_registries_toml(
             || (upstream == "unknown" && !required_tool_set.contains(&tool.id))
             || (upstream_pin == "unresolved" && !required_tool_set.contains(&tool.id));
 
-        let emitted_status = if is_not_retained {
-            contract.support_disposition.as_str()
+        let emitted_status = if contract.product_support != "supported" {
+            contract.product_support.as_str()
+        } else if is_external_delivery {
+            "supported"
         } else if is_planned {
             "planned"
         } else if is_experimental {
@@ -141,7 +143,7 @@ pub(super) fn build_tool_registries_toml(
             benchmark_integrated_tool_ids.insert(tool.id.clone());
         }
 
-        let out = if is_not_retained || is_planned || is_experimental {
+        let out = if is_external_delivery || is_planned || is_experimental {
             experimental_tool_count += 1;
             &mut experimental_toml
         } else {
@@ -195,7 +197,7 @@ pub(super) fn build_tool_registries_toml(
     let domain_tool_ids = tools.keys().chain(vcf_tool_ids).collect::<BTreeSet<_>>();
     let mut catalog_only_count = 0usize;
     for contract in container_catalog.values() {
-        if contract.support_disposition == "retained" && !domain_tool_ids.contains(&contract.id) {
+        if contract.is_redistributable_image() && !domain_tool_ids.contains(&contract.id) {
             write_catalog_only_tool(&mut container_experimental_toml, contract);
             catalog_only_count += 1;
         }

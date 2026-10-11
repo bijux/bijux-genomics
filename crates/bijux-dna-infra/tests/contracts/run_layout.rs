@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+use anyhow::Context as _;
+
 #[test]
 fn lock_acquisition_times_out() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;
@@ -252,4 +254,239 @@ fn governed_attempt_layout_schema_closes_owner_and_directory_shape() {
     assert_eq!(schema["properties"]["schema_version"]["const"], "bijux.attempt_layout.v1");
     assert_eq!(schema["properties"]["attempt_id"]["pattern"], "^[A-Za-z0-9][A-Za-z0-9._-]*$");
     assert_eq!(schema["properties"]["directories"]["properties"]["receipts"]["const"], "receipts");
+}
+
+#[test]
+fn governed_attempt_archive_schemas_close_transaction_receipts() {
+    let archive = bijux_dna_infra::attempt_archive_schema();
+    assert_eq!(archive["additionalProperties"], false);
+    assert_eq!(
+        archive["properties"]["schema_version"]["const"],
+        bijux_dna_infra::ATTEMPT_ARCHIVE_SCHEMA_V1
+    );
+    assert_eq!(archive["properties"]["files"]["minItems"], 1);
+    let rollback = bijux_dna_infra::attempt_archive_rollback_schema();
+    assert_eq!(rollback["additionalProperties"], false);
+    assert_eq!(
+        rollback["properties"]["schema_version"]["const"],
+        bijux_dna_infra::ATTEMPT_ARCHIVE_ROLLBACK_SCHEMA_V1
+    );
+    assert_eq!(rollback["properties"]["archive_receipt_sha256"]["pattern"], "^[0-9a-f]{64}$");
+    assert_eq!(rollback["properties"]["files"]["minItems"], 1);
+}
+
+#[test]
+fn governed_attempt_archive_is_idempotent_verified_and_reversible() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-archive")?;
+    let owner_root = temporary.path().join("benchmarks");
+    let identity = attempt_identity();
+    let layout = bijux_dna_infra::ensure_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+    )?;
+    std::fs::write(layout.outputs_dir.join("result.json"), b"{\"result\":true}\n")?;
+    std::fs::write(layout.logs_dir.join("stderr.log"), b"")?;
+
+    let archived = bijux_dna_infra::archive_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Superseded,
+        "2026-08-09T04:30:00Z",
+    )?;
+    assert!(!archived.source.attempt_dir.exists());
+    assert!(archived.archive_receipt_path.is_file());
+    assert_eq!(
+        bijux_dna_infra::archive_attempt_layout(
+            &owner_root,
+            bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+            &identity,
+            bijux_dna_infra::AttemptArchiveDisposition::Superseded,
+            "2026-08-09T04:30:00Z",
+        )?,
+        archived
+    );
+    bijux_dna_infra::verify_attempt_archive(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Superseded,
+        "2026-08-09T04:30:00Z",
+    )?;
+
+    let restored = bijux_dna_infra::rollback_attempt_archive(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Superseded,
+        "2026-08-09T04:30:00Z",
+        "2026-08-09T04:31:00Z",
+    )?;
+    assert!(restored.source.attempt_dir.is_dir());
+    assert!(!restored.archive_dir.exists());
+    assert!(restored.rollback_receipt_path.is_file());
+    assert!(!restored.source.manifests_dir.join("attempt-archive.json").exists());
+    assert_eq!(
+        std::fs::read(restored.source.outputs_dir.join("result.json"))?,
+        b"{\"result\":true}\n"
+    );
+    bijux_dna_infra::rollback_attempt_archive(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Superseded,
+        "2026-08-09T04:30:00Z",
+        "2026-08-09T04:31:00Z",
+    )?;
+    Ok(())
+}
+
+#[test]
+fn governed_attempt_archive_recovers_move_before_receipt_publication() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-archive-recovery")?;
+    let owner_root = temporary.path().join("containers");
+    let identity = attempt_identity();
+    let layout = bijux_dna_infra::ensure_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+    )?;
+    std::fs::write(layout.accounting_dir.join("slurm.json"), b"{}")?;
+    let paths = bijux_dna_infra::attempt_archive_paths(&owner_root, &identity)?;
+    std::fs::create_dir_all(paths.archive_dir.parent().context("archive parent")?)?;
+    std::fs::rename(&paths.source.attempt_dir, &paths.archive_dir)?;
+
+    let recovered = bijux_dna_infra::archive_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        "2026-08-09T04:32:00Z",
+    )?;
+    assert!(recovered.archive_receipt_path.is_file());
+    bijux_dna_infra::verify_attempt_archive(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        "2026-08-09T04:32:00Z",
+    )?;
+    Ok(())
+}
+
+#[test]
+fn governed_attempt_rollback_recovers_move_before_receipt_removal() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-rollback-recovery")?;
+    let owner_root = temporary.path().join("benchmarks");
+    let identity = attempt_identity();
+    let layout = bijux_dna_infra::ensure_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+    )?;
+    std::fs::write(layout.validation_dir.join("verdict.json"), b"{\"passed\":false}")?;
+    let archived = bijux_dna_infra::archive_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        "2026-08-09T04:35:00Z",
+    )?;
+    std::fs::create_dir_all(
+        archived.source.attempt_dir.parent().context("active attempt parent")?,
+    )?;
+    std::fs::rename(&archived.archive_dir, &archived.source.attempt_dir)?;
+
+    let recovered = bijux_dna_infra::rollback_attempt_archive(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        "2026-08-09T04:35:00Z",
+        "2026-08-09T04:36:00Z",
+    )?;
+    assert!(recovered.source.attempt_dir.is_dir());
+    assert!(!recovered.source.manifests_dir.join("attempt-archive.json").exists());
+    assert!(recovered.rollback_receipt_path.is_file());
+    bijux_dna_infra::rollback_attempt_archive(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Benchmarks,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        "2026-08-09T04:35:00Z",
+        "2026-08-09T04:36:00Z",
+    )?;
+    Ok(())
+}
+
+#[test]
+fn governed_attempt_archive_rejects_digest_drift() -> anyhow::Result<()> {
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-archive-drift")?;
+    let owner_root = temporary.path().join("containers");
+    let identity = attempt_identity();
+    let layout = bijux_dna_infra::ensure_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+    )?;
+    std::fs::write(layout.outputs_dir.join("result.json"), b"original")?;
+    let archived = bijux_dna_infra::archive_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        "2026-08-09T04:33:00Z",
+    )?;
+    std::fs::write(archived.archive_dir.join("outputs/result.json"), b"changed")?;
+    assert!(bijux_dna_infra::verify_attempt_archive(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        "2026-08-09T04:33:00Z",
+    )
+    .is_err_and(|error| error.kind == bijux_dna_infra::IoErrorKind::Corruption));
+    assert!(bijux_dna_infra::rollback_attempt_archive(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        "2026-08-09T04:33:00Z",
+        "2026-08-09T04:34:00Z",
+    )
+    .is_err());
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn governed_attempt_archive_rejects_symlinks_before_moving_source() -> anyhow::Result<()> {
+    use std::os::unix::fs::symlink;
+
+    let temporary = bijux_dna_infra::temp_dir("bijux-attempt-archive-symlink")?;
+    let owner_root = temporary.path().join("containers");
+    let identity = attempt_identity();
+    let layout = bijux_dna_infra::ensure_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+    )?;
+    let target = layout.outputs_dir.join("result.json");
+    std::fs::write(&target, b"owned")?;
+    symlink(&target, layout.outputs_dir.join("result-link.json"))?;
+
+    assert!(bijux_dna_infra::archive_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        "2026-08-09T05:30:00Z",
+    )
+    .is_err_and(|error| {
+        error.kind == bijux_dna_infra::IoErrorKind::Corruption && error.message.contains("symlink")
+    }));
+    assert!(layout.attempt_dir.is_dir());
+    assert!(!bijux_dna_infra::attempt_archive_paths(&owner_root, &identity)?.archive_dir.exists());
+    Ok(())
 }

@@ -5,17 +5,18 @@ use anyhow::{bail, Context, Result};
 
 use crate::evidence::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
-    load_container_catalog, repository_head_commit, BuildEvidenceStatus, ContainerDetachedImage,
-    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
+    load_container_catalog, repository_commit_is_ancestor, repository_head_commit,
+    BuildEvidenceStatus, ContainerDetachedImage, ContainerImageCandidate,
+    ContainerImageInventoryPublication, ContainerImageInventorySummary,
     ContainerImageInventoryTool, ContainerImageState, ContainerStagedImage,
     ContainerSupportDisposition, DetachedImageDisposition, ImageCandidateDisposition,
     ImageInventoryPublicationIdentity, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
 };
 
 use super::source::{
-    load_build_evidence, load_run_references, portable_evidence_path, scan_images,
-    scan_staged_images, ImageInventoryDerivationRequest, ImageInventoryScan,
-    ImageInventoryScannedImage, IndexedBuildEvidence, RAW_INVENTORY_SCHEMA_V1,
+    evidence_root_identities, load_build_evidence, load_run_references, portable_evidence_path,
+    scan_images, scan_staged_images, validate_evidence_roots, ImageInventoryDerivationRequest,
+    ImageInventoryScan, ImageInventoryScannedImage, IndexedBuildEvidence, RAW_INVENTORY_SCHEMA_V2,
 };
 
 type CandidateWithReference = (ContainerImageCandidate, bool);
@@ -44,6 +45,7 @@ pub fn derive_image_inventory_publication(
 pub fn derive_image_inventory_evidence(
     request: &ImageInventoryDerivationRequest,
 ) -> Result<DerivedImageInventory> {
+    validate_evidence_roots(request)?;
     let repository_commit = repository_head_commit(&request.repository_root)?;
     let catalog_path = request.repository_root.join("containers/contracts/catalog.toml");
     let catalog_bytes = fs::read(&catalog_path)
@@ -95,9 +97,10 @@ pub fn derive_image_inventory_evidence(
         inventory_summary(&tools, &historical_images, &unknown_images, &staged_publication);
 
     let scan = ImageInventoryScan {
-        schema_version: RAW_INVENTORY_SCHEMA_V1.to_string(),
+        schema_version: RAW_INVENTORY_SCHEMA_V2.to_string(),
         repository_commit: repository_commit.clone(),
         catalog_sha256: catalog_sha256.clone(),
+        evidence_roots: evidence_root_identities(request)?,
         images: images.iter().map(|(_, identity)| identity.clone()).collect(),
         staged_images,
         build_evidence: build_evidence.identities,
@@ -111,7 +114,7 @@ pub fn derive_image_inventory_evidence(
         catalog_sha256,
         repository_commit,
         publication: ImageInventoryPublicationIdentity {
-            raw_schema_version: RAW_INVENTORY_SCHEMA_V1.to_string(),
+            raw_schema_version: RAW_INVENTORY_SCHEMA_V2.to_string(),
             raw_sha256: bijux_dna_infra::hash_bytes_sha256(&raw_bytes),
         },
         summary,
@@ -132,7 +135,7 @@ fn derive_tool(
     evidence_by_digest: &BTreeMap<String, Vec<IndexedBuildEvidence>>,
     run_references: &BTreeMap<String, Vec<String>>,
 ) -> Result<ContainerImageInventoryTool> {
-    let support_disposition = support_disposition(&tool.support_disposition)?;
+    let support_disposition = support_disposition(tool.legacy_support_disposition())?;
     if !tool.apptainer_supported {
         return Ok(ContainerImageInventoryTool {
             tool: tool.id.clone(),
@@ -152,7 +155,8 @@ fn derive_tool(
     )?;
     let candidates =
         derive_candidates(request, tool, &recipe, images, evidence_by_digest, run_references)?;
-    let (state, selected, retained) = select_candidates(candidates);
+    let (state, selected, retained) =
+        select_candidates(&request.repository_root, &recipe, candidates)?;
     verify_historical_references(&retained)?;
     Ok(ContainerImageInventoryTool {
         tool: tool.id.clone(),
@@ -222,8 +226,10 @@ fn derive_candidates(
 }
 
 fn select_candidates(
+    repository_root: &std::path::Path,
+    recipe: &crate::evidence::ApptainerRecipeIdentity,
     mut candidates: Vec<CandidateWithReference>,
-) -> (ContainerImageState, Option<String>, Vec<ContainerImageCandidate>) {
+) -> Result<(ContainerImageState, Option<String>, Vec<ContainerImageCandidate>)> {
     let current =
         candidates.iter().filter(|(candidate, _)| candidate.current_recipe).collect::<Vec<_>>();
     let admitted =
@@ -231,8 +237,11 @@ fn select_candidates(
     let selection_pool = if current.is_empty() { &admitted } else { &current };
     let unreferenced =
         selection_pool.iter().copied().filter(|(_, referenced)| !referenced).collect::<Vec<_>>();
+    let descendant = unique_descendant_candidate(repository_root, recipe, selection_pool)?;
     let selected_candidate = if selection_pool.len() == 1 {
         selection_pool.first().copied()
+    } else if descendant.is_some() {
+        descendant
     } else if unreferenced.len() == 1 {
         unreferenced.first().copied()
     } else {
@@ -260,7 +269,56 @@ fn select_candidates(
         None if selection_pool_is_empty => ContainerImageState::Missing,
         None => ContainerImageState::Ambiguous,
     };
-    (state, selected, retained)
+    Ok((state, selected, retained))
+}
+
+fn unique_descendant_candidate<'a>(
+    repository_root: &std::path::Path,
+    recipe: &crate::evidence::ApptainerRecipeIdentity,
+    candidates: &[&'a CandidateWithReference],
+) -> Result<Option<&'a CandidateWithReference>> {
+    if candidates.len() < 2 {
+        return Ok(None);
+    }
+    let commits = candidates
+        .iter()
+        .map(|(candidate, _)| {
+            candidate
+                .build_evidence
+                .iter()
+                .filter(|evidence| evidence_matches_recipe_content(evidence, recipe))
+                .map(|evidence| evidence.repository_commit.as_str())
+                .collect::<BTreeSet<_>>()
+        })
+        .collect::<Vec<_>>();
+    let mut descendants = Vec::new();
+    for (candidate_index, candidate_commits) in commits.iter().enumerate() {
+        let mut candidate_is_descendant = false;
+        for candidate_commit in candidate_commits {
+            let mut descends_from_all = true;
+            for competing_commit in commits.iter().flatten() {
+                if !repository_commit_is_ancestor(
+                    repository_root,
+                    competing_commit,
+                    candidate_commit,
+                )? {
+                    descends_from_all = false;
+                    break;
+                }
+            }
+            if descends_from_all {
+                candidate_is_descendant = true;
+                break;
+            }
+        }
+        if candidate_is_descendant {
+            descendants.push(candidates[candidate_index]);
+        }
+    }
+    Ok(match descendants.as_slice() {
+        [candidate] => Some(*candidate),
+        _ => None,
+    })
 }
 
 fn verify_historical_references(candidates: &[ContainerImageCandidate]) -> Result<()> {

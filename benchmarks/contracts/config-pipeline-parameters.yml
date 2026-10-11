@@ -2,6 +2,13 @@
   "schema_version": "bijux.benchmark.pipeline_parameters.v1",
   "profile": "generic-fastq",
   "stages": {
+    "bam.align": {
+      "parameter_schema_version": "bijux.bam.params.align.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Align)",
+      "overrides": {
+        "threads": 8
+      }
+    },
     "bam.genotyping": {
       "parameter_schema_version": "bijux.bam.params.genotyping.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Genotyping)",
@@ -20,6 +27,16 @@
     "bam.duplication_metrics": {
       "parameter_schema_version": "bijux.bam.params.duplication_metrics.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::DuplicationMetrics)",
+      "overrides": {}
+    },
+    "bam.gc_bias": {
+      "parameter_schema_version": "bijux.bam.params.gc_bias.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::GcBias)",
+      "overrides": {}
+    },
+    "bam.insert_size": {
+      "parameter_schema_version": "bijux.bam.params.insert_size.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::InsertSize)",
       "overrides": {}
     },
     "bam.mapping_summary": {

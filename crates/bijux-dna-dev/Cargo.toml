@@ -15,6 +15,7 @@ bijux-dna-db-ena.workspace = true
 bijux-dna-db-ref.workspace = true
 bijux-dna-containers.workspace = true
 bijux-dna-infra.workspace = true
+bijux-dna-policies.workspace = true
 bijux-dna-runtime.workspace = true
 bijux-dna-runner.workspace = true
 chrono.workspace = true
@@ -30,7 +31,6 @@ toml.workspace = true
 walkdir.workspace = true
 
 [dev-dependencies]
-bijux-dna-policies.workspace = true
 tempfile.workspace = true
 
 [lints]

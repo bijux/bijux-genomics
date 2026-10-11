@@ -1,0 +1,44 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2010",
+    "domain": "bam",
+    "stage_id": "bam.damage"
+  },
+  "protocol_version": "1.0.0",
+  "title": "BAM damage benchmark protocol",
+  "purpose": "Compare the runnable bam.damage tools using damage_and_authenticity_recovery_against_orthogonal_assays; downstream substitution: consume every report through the same authentication decision surface.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "bam-ancient-authentication",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "reserved",
+  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "tool_ids": [
+    "addeam",
+    "damageprofiler",
+    "mapdamage2",
+    "ngsbriggs",
+    "pmdtools",
+    "pydamage"
+  ],
+  "accepted_input_contracts": [],
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [],
+  "corpus_roles": [
+    {
+      "role": "ancient_damage_truth",
+      "corpus_ids": [
+        "ancient-dna-bam-diversity"
+      ]
+    },
+    {
+      "role": "bam_diversity",
+      "corpus_ids": [
+        "ancient-dna-bam-diversity"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "bam-ancient-authentication-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2010",
+  "supersedes_run_ids": []
+}

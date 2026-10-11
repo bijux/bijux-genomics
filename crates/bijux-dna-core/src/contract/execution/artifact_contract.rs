@@ -26,6 +26,7 @@ pub enum ArtifactClassV1 {
 #[serde(rename_all = "snake_case")]
 pub enum ArtifactFormatV1 {
     Fastq,
+    Sam,
     Bam,
     Cram,
     Vcf,
@@ -352,7 +353,7 @@ fn artifact_contract_catalog_schema_version(_: &mut SchemaGenerator) -> Schema {
 #[must_use]
 pub fn canonical_artifact_contract_catalog() -> ArtifactContractCatalogV1 {
     let mut contracts = canonical_fastq_contracts();
-    contracts.push(canonical_alignment_contract());
+    contracts.extend(canonical_alignment_contracts());
     contracts.extend(canonical_variant_contracts());
     contracts.extend(canonical_single_artifact_contracts());
     contracts.sort_by(|left, right| left.contract_id.cmp(&right.contract_id));
@@ -430,36 +431,60 @@ fn canonical_fastq_contracts() -> Vec<ArtifactContractV1> {
     ]
 }
 
-fn canonical_alignment_contract() -> ArtifactContractV1 {
+fn canonical_alignment_contracts() -> Vec<ArtifactContractV1> {
     use ArtifactValidationInvariantV1::{
         CoordinateSorted, HeaderReferenceConsistent, IndexReadable, LineageRecorded, NonEmpty,
         ReferenceIdentityPresent, SampleIdentityPresent,
     };
 
-    ArtifactContractV1 {
-        schema_version: ARTIFACT_CONTRACT_SCHEMA_V1.to_string(),
-        contract_id: "bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string(),
-        class: ArtifactClassV1::Alignment,
-        formats: vec![ArtifactFormatV1::Bam],
-        compressions: vec![ArtifactCompressionV1::Bgzf],
-        cardinality: ArtifactCardinalityV1::One,
-        pairing: vec![ArtifactPairingV1::SingleEnd, ArtifactPairingV1::PairedEnd],
-        sort_orders: vec![ArtifactSortOrderV1::Coordinate],
-        index: ArtifactPresenceV1::Required,
-        sample_identity: ArtifactPresenceV1::Required,
-        reference_identity: ArtifactPresenceV1::Required,
-        sidecars: vec![required_index_sidecar(ArtifactFormatV1::Index)],
-        lineage: required_lineage(),
-        validation_invariants: vec![
-            NonEmpty,
-            CoordinateSorted,
-            IndexReadable,
-            SampleIdentityPresent,
-            ReferenceIdentityPresent,
-            HeaderReferenceConsistent,
-            LineageRecorded,
-        ],
-    }
+    vec![
+        ArtifactContractV1 {
+            schema_version: ARTIFACT_CONTRACT_SCHEMA_V1.to_string(),
+            contract_id: "bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string(),
+            class: ArtifactClassV1::Alignment,
+            formats: vec![ArtifactFormatV1::Bam],
+            compressions: vec![ArtifactCompressionV1::Bgzf],
+            cardinality: ArtifactCardinalityV1::One,
+            pairing: vec![ArtifactPairingV1::SingleEnd, ArtifactPairingV1::PairedEnd],
+            sort_orders: vec![ArtifactSortOrderV1::Coordinate],
+            index: ArtifactPresenceV1::Required,
+            sample_identity: ArtifactPresenceV1::Required,
+            reference_identity: ArtifactPresenceV1::Required,
+            sidecars: vec![required_index_sidecar(ArtifactFormatV1::Index)],
+            lineage: required_lineage(),
+            validation_invariants: vec![
+                NonEmpty,
+                CoordinateSorted,
+                IndexReadable,
+                SampleIdentityPresent,
+                ReferenceIdentityPresent,
+                HeaderReferenceConsistent,
+                LineageRecorded,
+            ],
+        },
+        ArtifactContractV1 {
+            schema_version: ARTIFACT_CONTRACT_SCHEMA_V1.to_string(),
+            contract_id: "bijux.sam.artifact.unsorted.v1".to_string(),
+            class: ArtifactClassV1::Alignment,
+            formats: vec![ArtifactFormatV1::Sam],
+            compressions: vec![ArtifactCompressionV1::None],
+            cardinality: ArtifactCardinalityV1::One,
+            pairing: vec![ArtifactPairingV1::SingleEnd, ArtifactPairingV1::PairedEnd],
+            sort_orders: vec![ArtifactSortOrderV1::Unsorted],
+            index: ArtifactPresenceV1::Forbidden,
+            sample_identity: ArtifactPresenceV1::Required,
+            reference_identity: ArtifactPresenceV1::Required,
+            sidecars: vec![],
+            lineage: required_lineage(),
+            validation_invariants: vec![
+                NonEmpty,
+                SampleIdentityPresent,
+                ReferenceIdentityPresent,
+                HeaderReferenceConsistent,
+                LineageRecorded,
+            ],
+        },
+    ]
 }
 
 fn canonical_variant_contracts() -> Vec<ArtifactContractV1> {
@@ -661,7 +686,9 @@ where
 fn validate_class_formats(contract: &ArtifactContractV1) -> Result<()> {
     let allowed = match contract.class {
         ArtifactClassV1::Fastq => vec![ArtifactFormatV1::Fastq],
-        ArtifactClassV1::Alignment => vec![ArtifactFormatV1::Bam, ArtifactFormatV1::Cram],
+        ArtifactClassV1::Alignment => {
+            vec![ArtifactFormatV1::Sam, ArtifactFormatV1::Bam, ArtifactFormatV1::Cram]
+        }
         ArtifactClassV1::Variant => vec![ArtifactFormatV1::Vcf, ArtifactFormatV1::Bcf],
         ArtifactClassV1::Reference => vec![ArtifactFormatV1::Fasta],
         ArtifactClassV1::Auxiliary => vec![

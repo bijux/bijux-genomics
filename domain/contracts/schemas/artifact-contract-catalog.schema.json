@@ -110,6 +110,7 @@
     "ArtifactFormatV1": {
       "enum": [
         "fastq",
+        "sam",
         "bam",
         "cram",
         "vcf",

@@ -104,7 +104,7 @@ fn verify(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutc
     )?;
     success_line(format!(
         "verified external artifact record for {} with status {:?}",
-        record.tool_id, record.status
+        record.tool_id, record.availability
     ))
 }
 

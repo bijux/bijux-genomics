@@ -1,41 +1,33 @@
 //! Owner: bijux-dna-runner
-//! Immutable archival for failed container qualification attempts.
+//! Failed qualification admission for owner-generic attempt archive transactions.
 
-use std::fs;
-use std::io::ErrorKind;
 use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::load_container_governance;
-use walkdir::WalkDir;
 
 use super::contracts::{
-    ArchivedContainerQualificationAttempt, ContainerQualificationAccountingRecord,
-    ContainerQualificationArchiveFile, ContainerQualificationArchiveSources,
-    ContainerQualificationFailedAttemptArchive, ContainerQualificationSchedulerEvidence,
+    ContainerQualificationAccountingRecord, ContainerQualificationSchedulerEvidence,
     ContainerQualificationSchedulerStatus, ContainerQualificationSlurmSpec,
-    CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1,
-    CONTAINER_QUALIFICATION_FAILED_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
 };
 use super::lifecycle::{load_container_qualification_slurm_job_handle, validate_retained_evidence};
 use super::validation::{
     canonical_directory, read_json, require_utc_timestamp, validate_specification,
 };
 
-/// Move one terminal failed qualification attempt into its immutable governed archive.
-///
-/// The submission and result roots are moved through a recoverable staging directory. They must
-/// share a filesystem with the governed failure archive, so publication never degrades to a copy.
+/// Move one terminal failed qualification attempt through the shared container archive contract.
 ///
 /// # Errors
-/// Returns an error for non-failed or conflicting evidence, symlinks, cross-filesystem paths,
-/// existing archive identities, or an incomplete filesystem move.
+/// Returns an error for historical layouts, non-failed evidence, identity drift, or any shared
+/// archive transaction failure.
 pub fn archive_failed_container_qualification_attempt(
     spec: &ContainerQualificationSlurmSpec,
     archived_at_utc: &str,
-) -> Result<ArchivedContainerQualificationAttempt> {
+) -> Result<bijux_dna_infra::AttemptArchivePaths> {
     require_utc_timestamp(archived_at_utc, "qualification archival timestamp")?;
     validate_specification(spec)?;
+    require_current_owned_layout(spec)?;
     let handle = load_container_qualification_slurm_job_handle(spec)?;
     let evidence_path = spec.evidence_root.join("scheduler-evidence.json");
     let evidence: ContainerQualificationSchedulerEvidence = read_json(&evidence_path)?;
@@ -44,56 +36,108 @@ pub fn archive_failed_container_qualification_attempt(
         bail!("only terminal failed qualification evidence can be archived");
     }
 
+    let attempt_root = canonical_directory(&spec.evidence_root, "qualification attempt root")?;
     let result_root = canonical_directory(&spec.result_root, "qualification result root")?;
-    let accounting_path = result_root.join("slurm-accounting.json");
+    if attempt_root != result_root {
+        bail!("current qualification result evidence must share one governed attempt root");
+    }
+    let accounting_path = attempt_root.join("slurm-accounting.json");
     let accounting: ContainerQualificationAccountingRecord = read_json(&accounting_path)?;
     validate_accounting(spec, &evidence, &accounting)?;
     let mirrored: ContainerQualificationSchedulerEvidence =
-        read_json(&result_root.join("qualification-scheduler-evidence.json"))?;
+        read_json(&attempt_root.join("qualification-scheduler-evidence.json"))?;
     if mirrored != evidence {
         bail!("result scheduler evidence conflicts with terminal submission evidence");
     }
 
     let governance = load_container_governance(&spec.governance_path)?;
-    let study_root = canonical_directory(&governance.paths.study_root, "governed study root")?;
     let containers_root =
         canonical_directory(&governance.paths.containers_root, "governed containers root")?;
-    let submission_root = canonical_directory(&spec.evidence_root, "qualification evidence root")?;
-    let archive_root = containers_root.join("evidence/failures");
-    fs::create_dir_all(&archive_root)
-        .with_context(|| format!("create qualification archive root {}", archive_root.display()))?;
-    let archive_root = canonical_directory(&archive_root, "qualification archive root")?;
-    require_same_filesystem(&submission_root, &result_root, &archive_root)?;
+    let owner_root = canonical_directory(
+        &containers_root.join("evidence/attempts"),
+        "qualification attempt owner root",
+    )?;
+    let identity = archive_identity(spec)?;
+    require_expected_attempt_root(&owner_root, &identity, &attempt_root)?;
+    bijux_dna_infra::archive_attempt_layout(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        archived_at_utc,
+    )
+    .context("archive failed qualification attempt")
+}
 
-    let attempt_component =
-        spec.attempt_id.as_deref().map_or_else(String::new, |attempt_id| format!("-{attempt_id}"));
-    let bundle_name =
-        format!("{}-{}{}-slurm-{}", spec.run_id, spec.tool_id, attempt_component, handle.job_id);
-    let target = archive_root.join(&bundle_name);
-    let staging = archive_root.join(format!(".{bundle_name}.partial"));
-    require_absent(&target, "qualification attempt archive")?;
-    require_absent(&staging, "qualification attempt archive staging directory")?;
+/// Restore one failed current qualification archive through the shared rollback contract.
+///
+/// The owner root is explicit because the archived attempt contains the immutable governance input
+/// that originally identified it.
+///
+/// # Errors
+/// Returns an error for historical layouts, owner-root drift, changed archive bytes, or a
+/// conflicting rollback receipt.
+pub fn rollback_failed_container_qualification_attempt_archive(
+    owner_root: &Path,
+    spec: &ContainerQualificationSlurmSpec,
+    archived_at_utc: &str,
+    rolled_back_at_utc: &str,
+) -> Result<bijux_dna_infra::AttemptArchivePaths> {
+    require_utc_timestamp(archived_at_utc, "qualification archival timestamp")?;
+    require_utc_timestamp(rolled_back_at_utc, "qualification rollback timestamp")?;
+    require_current_owned_layout(spec)?;
+    let owner_root = canonical_directory(owner_root, "qualification attempt owner root")?;
+    let identity = archive_identity(spec)?;
+    require_expected_attempt_root(&owner_root, &identity, &spec.evidence_root)?;
+    bijux_dna_infra::rollback_attempt_archive(
+        &owner_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &identity,
+        bijux_dna_infra::AttemptArchiveDisposition::Failed,
+        archived_at_utc,
+        rolled_back_at_utc,
+    )
+    .context("roll back failed qualification attempt archive")
+}
 
-    let mut files = archive_file_records(&submission_root, "submission")?;
-    files.extend(archive_file_records(&result_root, "result")?);
-    let source_paths = ContainerQualificationArchiveSources {
-        submission: study_uri(&study_root, &submission_root)?,
-        result: study_uri(&study_root, &result_root)?,
-    };
-    let archive = ContainerQualificationFailedAttemptArchive {
-        schema_version: CONTAINER_QUALIFICATION_FAILED_ATTEMPT_ARCHIVE_SCHEMA_V1.to_string(),
-        run_id: spec.run_id.clone(),
+fn archive_identity(
+    spec: &ContainerQualificationSlurmSpec,
+) -> Result<bijux_dna_infra::AttemptLayoutIdentity> {
+    Ok(bijux_dna_infra::AttemptLayoutIdentity {
+        run_directory: spec.run_id.clone(),
         tool_id: spec.tool_id.clone(),
-        attempt_id: spec.attempt_id.clone(),
-        slurm_job_id: handle.job_id,
-        archived_at_utc: archived_at_utc.to_string(),
-        source_paths,
-        scheduler_evidence_sha256: bijux_dna_infra::hash_file_sha256(&evidence_path)?,
-        accounting_sha256: bijux_dna_infra::hash_file_sha256(&accounting_path)?,
-        files,
-    };
-    publish_archive(&submission_root, &result_root, &staging, &target, &archive)?;
-    Ok(ArchivedContainerQualificationAttempt { path: target, archive })
+        campaign_id: spec
+            .campaign_id
+            .clone()
+            .context("current qualification archive omits campaign identity")?,
+        attempt_id: spec
+            .attempt_id
+            .clone()
+            .context("current qualification archive omits attempt identity")?,
+    })
+}
+
+fn require_current_owned_layout(spec: &ContainerQualificationSlurmSpec) -> Result<()> {
+    if spec.schema_version != CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5 {
+        bail!("only current owner-scoped qualification attempts can be archived");
+    }
+    if spec.result_root != spec.evidence_root {
+        bail!("current qualification result evidence must share one governed attempt root");
+    }
+    Ok(())
+}
+
+fn require_expected_attempt_root(
+    owner_root: &Path,
+    identity: &bijux_dna_infra::AttemptLayoutIdentity,
+    observed: &Path,
+) -> Result<()> {
+    let expected = bijux_dna_infra::attempt_layout_paths(owner_root, identity)
+        .context("derive qualification attempt archive path")?;
+    if expected.attempt_dir != observed {
+        bail!("qualification attempt path differs from its permanent identity");
+    }
+    Ok(())
 }
 
 fn validate_accounting(
@@ -116,77 +160,4 @@ fn validate_accounting(
         bail!("Slurm accounting does not identify the terminal qualification attempt");
     }
     Ok(())
-}
-
-fn archive_file_records(
-    root: &Path,
-    scope: &str,
-) -> Result<Vec<ContainerQualificationArchiveFile>> {
-    let mut records = Vec::new();
-    for entry in WalkDir::new(root).sort_by_file_name() {
-        let entry = entry.with_context(|| format!("walk archived evidence {}", root.display()))?;
-        let metadata = fs::symlink_metadata(entry.path())
-            .with_context(|| format!("inspect archived evidence {}", entry.path().display()))?;
-        if metadata.file_type().is_symlink() {
-            bail!("archived qualification evidence contains a symlink: {}", entry.path().display());
-        }
-        if metadata.is_file() {
-            let relative =
-                entry.path().strip_prefix(root).context("derive archive inventory path")?;
-            records.push(ContainerQualificationArchiveFile {
-                path: format!("{scope}/{}", relative.to_string_lossy().replace('\\', "/")),
-                size_bytes: metadata.len(),
-                sha256: bijux_dna_infra::hash_file_sha256(entry.path())?,
-            });
-        }
-    }
-    Ok(records)
-}
-
-fn require_same_filesystem(left: &Path, right: &Path, archive_root: &Path) -> Result<()> {
-    if !bijux_dna_infra::same_filesystem(left, right)?
-        || !bijux_dna_infra::same_filesystem(left, archive_root)?
-    {
-        bail!("qualification attempt evidence and archive must remain on one filesystem");
-    }
-    Ok(())
-}
-
-fn study_uri(study_root: &Path, path: &Path) -> Result<String> {
-    let relative = path.strip_prefix(study_root).with_context(|| {
-        format!("attempt evidence is outside governed STUDY: {}", path.display())
-    })?;
-    Ok(format!("study://{}", relative.to_string_lossy().replace('\\', "/")))
-}
-
-fn require_absent(path: &Path, label: &str) -> Result<()> {
-    match fs::symlink_metadata(path) {
-        Err(error) if error.kind() == ErrorKind::NotFound => Ok(()),
-        Ok(_) => bail!("refusing to replace {label}: {}", path.display()),
-        Err(error) => Err(error).with_context(|| format!("inspect {label}")),
-    }
-}
-
-fn publish_archive(
-    submission_root: &Path,
-    result_root: &Path,
-    staging: &Path,
-    target: &Path,
-    archive: &ContainerQualificationFailedAttemptArchive,
-) -> Result<()> {
-    fs::create_dir(staging)
-        .with_context(|| format!("create archive staging directory {}", staging.display()))?;
-    let operation = || -> Result<()> {
-        fs::rename(submission_root, staging.join("submission"))?;
-        fs::rename(result_root, staging.join("result"))?;
-        bijux_dna_infra::atomic_create_json(&staging.join("archive.json"), archive)?;
-        fs::rename(staging, target)?;
-        Ok(())
-    };
-    operation().with_context(|| {
-        format!(
-            "qualification archival stopped; inspect recoverable staging path {}",
-            staging.display()
-        )
-    })
 }

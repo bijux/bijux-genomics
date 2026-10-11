@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2025",
+  "run": {
+    "run_id": "run-2025",
+    "domain": "fastq",
+    "stage_id": "fastq.cluster_otus"
+  },
+  "protocol_title": "FASTQ cluster otus benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "89990090aa664a645ae92ac47291574686cd8f32b28b72e172f64a76825c4605",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

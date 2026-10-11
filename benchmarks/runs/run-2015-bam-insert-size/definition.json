@@ -1,0 +1,42 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2015",
+    "domain": "bam",
+    "stage_id": "bam.insert_size"
+  },
+  "protocol_version": "1.0.0",
+  "title": "BAM insert size benchmark protocol",
+  "purpose": "Compare the runnable bam.insert_size tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "bam-observational-qc",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "active",
+  "tool_ids": [
+    "picard"
+  ],
+  "accepted_input_contracts": [
+    "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+  ],
+  "output_contract": "bijux.benchmark.bam.insert_size.bundle.v1",
+  "normalized_result_contract": "benchmarks/contracts/schemas/bam-insert-size-result.schema.json",
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [
+    {
+      "contract_id": "normalized-result-contract",
+      "repository_path": "benchmarks/contracts/schemas/bam-insert-size-result.schema.json",
+      "sha256": "b09ff1923cb4696e35447cd8ad7800e5205833b27131905087545a7464052145"
+    }
+  ],
+  "corpus_roles": [
+    {
+      "role": "bam_diversity",
+      "corpus_ids": [
+        "ancient-dna-bam-diversity"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2015",
+  "supersedes_run_ids": []
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2030",
+  "run": {
+    "run_id": "run-2030",
+    "domain": "fastq",
+    "stage_id": "fastq.detect_adapters"
+  },
+  "protocol_title": "FASTQ detect adapters benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "3d080eb36305a023c3dc9274d9922af968ee524c3583e36f56ab2803d9312de3",
+  "status": "protocol_only",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

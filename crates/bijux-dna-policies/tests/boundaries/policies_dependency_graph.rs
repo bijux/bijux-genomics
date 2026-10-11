@@ -16,7 +16,17 @@ fn policy__boundaries__policies_dependency_graph__dependency_graph_matches_polic
 
     assert_eq!(
         dependency_keys(&manifest, "dependencies"),
-        keys(["anyhow", "regex", "serde", "toml", "walkdir"]),
+        keys([
+            "anyhow",
+            "chrono",
+            "regex",
+            "schemars",
+            "serde",
+            "serde_json",
+            "sha2",
+            "toml",
+            "walkdir",
+        ]),
         "runtime dependencies must stay limited to deterministic policy support"
     );
 
@@ -31,9 +41,7 @@ fn policy__boundaries__policies_dependency_graph__dependency_graph_matches_polic
             "bijux-dna-testkit",
             "cargo_metadata",
             "insta",
-            "serde_json",
             "serde_yaml",
-            "sha2",
         ]),
         "dev dependencies must carry repository inspection and contract test support"
     );
@@ -41,7 +49,6 @@ fn policy__boundaries__policies_dependency_graph__dependency_graph_matches_polic
     let runtime_dependencies = dependency_keys(&manifest, "dependencies");
     for forbidden in [
         "cargo_metadata",
-        "serde_json",
         "serde_yaml",
         "bijux-dna",
         "bijux-dna-api",

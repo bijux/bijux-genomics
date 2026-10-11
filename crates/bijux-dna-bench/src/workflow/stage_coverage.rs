@@ -36,10 +36,10 @@ pub enum BenchmarkCoverageWriteMode {
     Check,
 }
 
-/// Derive complete retained-stage coverage from typed catalog, campaign, and admitted evidence.
+/// Derive complete runnable-stage coverage from typed catalog, campaign, and admitted evidence.
 ///
 /// # Errors
-/// Returns an error when campaign tools drift from the retained catalog or report identities drift
+/// Returns an error when campaign tools drift from the runnable catalog or report identities drift
 /// from their declared campaigns.
 pub fn derive_stage_coverage(
     registry: &BenchmarkStageCampaignRegistry,
@@ -70,23 +70,23 @@ fn derive_stage_coverage_with_current_sources(
         bail!("benchmark coverage requires a full repository commit identity");
     }
     validate_stage_campaign_registry(registry).context("validate stage campaign registry")?;
-    let retained_stages = retained_stage_tools(catalog)?;
+    let runnable_stages = runnable_stage_tools(catalog)?;
     let campaigns = registry
         .campaigns
         .iter()
         .map(|campaign| (campaign.stage_id.as_str(), campaign))
         .collect::<BTreeMap<_, _>>();
     for campaign in &registry.campaigns {
-        let retained_tools = retained_stages.get(&campaign.stage_id).ok_or_else(|| {
+        let runnable_tools = runnable_stages.get(&campaign.stage_id).ok_or_else(|| {
             anyhow::anyhow!(
-                "benchmark campaign has no retained catalog tools: {}",
+                "benchmark campaign has no runnable catalog tools: {}",
                 campaign.stage_id
             )
         })?;
         let declared_tools = campaign.tool_ids.iter().cloned().collect::<BTreeSet<_>>();
-        if &declared_tools != retained_tools {
-            let missing = retained_tools.difference(&declared_tools).collect::<Vec<_>>();
-            let extra = declared_tools.difference(retained_tools).collect::<Vec<_>>();
+        if &declared_tools != runnable_tools {
+            let missing = runnable_tools.difference(&declared_tools).collect::<Vec<_>>();
+            let extra = declared_tools.difference(runnable_tools).collect::<Vec<_>>();
             bail!(
                 "benchmark campaign tool closure failed for {}: missing={missing:?}, extra={extra:?}",
                 campaign.stage_id
@@ -110,8 +110,8 @@ fn derive_stage_coverage_with_current_sources(
         }
     }
 
-    let mut rows = Vec::with_capacity(retained_stages.len());
-    for (stage_id, tools) in retained_stages {
+    let mut rows = Vec::with_capacity(runnable_stages.len());
+    for (stage_id, tools) in runnable_stages {
         let campaign = campaigns.get(stage_id.as_str()).copied();
         let definition_status = campaign.map_or(BenchmarkStageDefinitionStatus::Missing, |value| {
             match value.evidence_tier {
@@ -263,7 +263,8 @@ pub fn render_stage_coverage_markdown(coverage: &BenchmarkStageCoverage) -> Stri
         "<!-- source: bijux-dna-bench::workflow::stage_coverage -->".to_string(),
         "# Stage benchmark coverage".to_string(),
         String::new(),
-        "A qualification campaign proves container execution, retained-tool closure,".to_string(),
+        "A qualification campaign proves container execution and runnable-tool closure,"
+            .to_string(),
         "and a reproducible measurement contract. It is not a comparative scientific".to_string(),
         "benchmark. Comparative readiness is governed separately by the corpus portfolio,"
             .to_string(),
@@ -305,12 +306,12 @@ pub fn render_stage_coverage_markdown(coverage: &BenchmarkStageCoverage) -> Stri
     lines.join("\n") + "\n"
 }
 
-pub(super) fn retained_stage_tools(
+pub(super) fn runnable_stage_tools(
     catalog: &ContainerCatalog,
 ) -> Result<BTreeMap<String, BTreeSet<String>>> {
     let mut stages: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for tool in &catalog.tools {
-        if tool.support_disposition != "retained" {
+        if !tool.is_product_supported() {
             continue;
         }
         for stage_id in &tool.stage_ids {
@@ -320,7 +321,7 @@ pub(super) fn retained_stage_tools(
         }
     }
     if stages.is_empty() {
-        bail!("container catalog has no retained benchmark stages");
+        bail!("container catalog has no runnable benchmark stages");
     }
     Ok(stages)
 }

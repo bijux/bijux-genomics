@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2014",
+  "run": {
+    "run_id": "run-2014",
+    "domain": "bam",
+    "stage_id": "bam.haplogroups"
+  },
+  "protocol_title": "BAM haplogroups benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "f0d0d8272fd72372b8d1feba0672a7e6e2922ea2422c498294a477e8ae009295",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

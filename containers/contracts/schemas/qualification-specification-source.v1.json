@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QualificationSpecificationSourceV1",
+  "type": "object",
+  "properties": {
+    "campaign": {
+      "type": "string"
+    },
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "corpus": {
+      "type": "string"
+    },
+    "corpus_role": {
+      "type": "string"
+    },
+    "governed_study_root": {
+      "type": "string"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/QualificationSpecificationInputV1"
+      }
+    },
+    "inventory_sha256": {
+      "type": "string"
+    },
+    "negative_command": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "operator": {
+      "type": "string"
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/QualificationSpecificationOutputV1"
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {}
+    },
+    "registry_sha256": {
+      "type": "string"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "repository_path": {
+      "type": "string"
+    },
+    "result_root": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "sample": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "site": {
+      "$ref": "#/$defs/QualificationSpecificationSiteResourcesV1"
+    },
+    "submitted_at_utc": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "catalog_sha256",
+    "registry_sha256",
+    "inventory_sha256",
+    "governed_study_root",
+    "repository_path",
+    "repository_commit",
+    "run_id",
+    "tool_id",
+    "campaign",
+    "corpus",
+    "corpus_role",
+    "sample",
+    "operator",
+    "submitted_at_utc",
+    "result_root",
+    "inputs",
+    "outputs",
+    "negative_command",
+    "site"
+  ],
+  "$defs": {
+    "QualificationSpecificationInputKindV1": {
+      "type": "string",
+      "enum": [
+        "data",
+        "reference",
+        "database",
+        "upstream_result"
+      ]
+    },
+    "QualificationSpecificationInputV1": {
+      "type": "object",
+      "properties": {
+        "artifact_contract_id": {
+          "type": "string"
+        },
+        "binding_input": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/QualificationSpecificationInputKindV1"
+        },
+        "mount_path": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "binding_input",
+        "artifact_contract_id",
+        "id",
+        "kind",
+        "path",
+        "mount_path",
+        "sha256"
+      ]
+    },
+    "QualificationSpecificationOutputV1": {
+      "type": "object",
+      "properties": {
+        "artifact_contract_id": {
+          "type": "string"
+        },
+        "binding_output": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "binding_output",
+        "artifact_contract_id",
+        "path"
+      ]
+    },
+    "QualificationSpecificationSiteResourcesV1": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "type": "string"
+        },
+        "partition": {
+          "type": "string"
+        },
+        "walltime": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "account",
+        "partition",
+        "walltime"
+      ]
+    }
+  }
+}

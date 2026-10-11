@@ -10,7 +10,7 @@ output.
 
 ## Published evidence and current qualification
 
-- Qualification evidence chain: **current**; the current catalog recognizes **85 build**, **85 runtime**, and **85 freshness** passes ([details](../reports/qualification.md)).
+- Qualification evidence chain: **current**; the current catalog recognizes **83 build**, **85 runtime**, and **83 freshness** passes ([details](../reports/qualification.md)).
 - Published image inventory records **current 85, unsupported 4**; their published identities support the current qualification chain ([details](../reports/image-inventory.md)).
 - Published canonical storage report: **passed**, **2 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
 - Published isolated rebuild: **passed**, **87 retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md)).

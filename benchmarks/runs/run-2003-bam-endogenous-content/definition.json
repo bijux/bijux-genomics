@@ -1,0 +1,42 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2003",
+    "domain": "bam",
+    "stage_id": "bam.endogenous_content"
+  },
+  "protocol_version": "1.0.0",
+  "title": "BAM endogenous content benchmark protocol",
+  "purpose": "Compare the runnable bam.endogenous_content tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "bam-observational-qc",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "active",
+  "tool_ids": [
+    "samtools"
+  ],
+  "accepted_input_contracts": [
+    "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+  ],
+  "output_contract": "bijux.benchmark.bam.endogenous_content.bundle.v1",
+  "normalized_result_contract": "benchmarks/contracts/schemas/bam-endogenous-content-result.schema.json",
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [
+    {
+      "contract_id": "normalized-result-contract",
+      "repository_path": "benchmarks/contracts/schemas/bam-endogenous-content-result.schema.json",
+      "sha256": "e5dfb51d611cc03fe38d23b126d3f6e0f939809f9272f12eab3606f05028d97c"
+    }
+  ],
+  "corpus_roles": [
+    {
+      "role": "bam_diversity",
+      "corpus_ids": [
+        "ancient-dna-bam-diversity"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2003",
+  "supersedes_run_ids": []
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2004",
+  "run": {
+    "run_id": "run-2004",
+    "domain": "bam",
+    "stage_id": "bam.mapping_summary"
+  },
+  "protocol_title": "BAM mapping summary benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "bc88a25ce32b489f6eb18d2329b9c2a3d0ead1bd3fcd0d6ce4db8cb6be2e1449",
+  "status": "protocol_only",
+  "limitations": [
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
+  ]
+}

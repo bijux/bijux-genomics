@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2039",
+  "run": {
+    "run_id": "run-2039",
+    "domain": "fastq",
+    "stage_id": "fastq.normalize_abundance"
+  },
+  "protocol_title": "FASTQ normalize abundance benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "45c4394304bddf66afe01f1986b8b6d63db28329fedb7322db029bb5c84ca122",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

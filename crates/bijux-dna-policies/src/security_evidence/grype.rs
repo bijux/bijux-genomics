@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 
 use anyhow::{bail, Context, Result};
 use serde::Deserialize;
@@ -46,12 +46,12 @@ struct GrypeArtifact {
 /// Parse a Grype JSON report without discarding package or remediation identity.
 ///
 /// # Errors
-/// Returns an error when JSON is malformed, required identities are empty, or findings repeat.
+/// Returns an error when JSON is malformed, required identities are empty, or repeated findings
+/// carry conflicting normalized evidence.
 pub fn parse_grype_vulnerability_report(raw: &[u8]) -> Result<ParsedVulnerabilityReport> {
     let report: GrypeReport =
         serde_json::from_slice(raw).context("parse Grype vulnerability report")?;
-    let mut observed = BTreeSet::new();
-    let mut findings = Vec::with_capacity(report.matches.len());
+    let mut findings = BTreeMap::new();
     let mut severity_counts =
         VulnerabilitySeverityCounts { critical: 0, high: 0, medium: 0, low: 0, unknown: 0 };
 
@@ -59,11 +59,7 @@ pub fn parse_grype_vulnerability_report(raw: &[u8]) -> Result<ParsedVulnerabilit
         let id = required_value(&item.vulnerability.id, "vulnerability ID")?;
         let package = required_value(&item.artifact.name, "package name")?;
         let installed_version = required_value(&item.artifact.version, "installed version")?;
-        if !observed.insert((id.clone(), package.clone())) {
-            bail!("Grype report repeats vulnerability {id} for package {package}");
-        }
         let severity = parse_severity(&item.vulnerability.severity);
-        increment_severity(&mut severity_counts, severity);
         let mut fixed_versions = item
             .vulnerability
             .fix
@@ -74,22 +70,30 @@ pub fn parse_grype_vulnerability_report(raw: &[u8]) -> Result<ParsedVulnerabilit
             .collect::<Vec<_>>();
         fixed_versions.sort();
         fixed_versions.dedup();
-        findings.push(VulnerabilityFinding {
+        let finding = VulnerabilityFinding {
             id,
             severity,
             package,
             installed_version,
             fixed_versions,
             waiver_id: None,
-        });
+        };
+        let key = (finding.id.clone(), finding.package.clone(), finding.installed_version.clone());
+        if let Some(existing) = findings.get(&key) {
+            if existing != &finding {
+                bail!(
+                    "Grype report conflicts for vulnerability {} package {} version {}",
+                    finding.id,
+                    finding.package,
+                    finding.installed_version
+                );
+            }
+            continue;
+        }
+        increment_severity(&mut severity_counts, severity);
+        findings.insert(key, finding);
     }
-    findings.sort_by(|left, right| {
-        (&left.id, &left.package, &left.installed_version).cmp(&(
-            &right.id,
-            &right.package,
-            &right.installed_version,
-        ))
-    });
+    let findings = findings.into_values().collect();
     Ok(ParsedVulnerabilityReport { findings, severity_counts })
 }
 
@@ -160,7 +164,7 @@ mod tests {
     }
 
     #[test]
-    fn rejects_duplicate_vulnerability_package_pairs() -> Result<()> {
+    fn preserves_distinct_installed_versions() -> Result<()> {
         let raw = br#"{
           "matches": [
             {
@@ -173,10 +177,59 @@ mod tests {
             }
           ]
         }"#;
+        let report = parse_grype_vulnerability_report(raw)?;
+        assert_eq!(report.findings.len(), 2);
+        assert_eq!(report.severity_counts.high, 1);
+        assert_eq!(report.severity_counts.low, 1);
+        Ok(())
+    }
+
+    #[test]
+    fn deduplicates_exact_findings_from_multiple_artifact_locations() -> Result<()> {
+        let raw = br#"{
+          "matches": [
+            {
+              "vulnerability": {
+                "id": "GHSA-4xh5-x5gv-qwph",
+                "severity": "Medium",
+                "fix": {"versions": ["25.3"]}
+              },
+              "artifact": {"name": "pip", "version": "24.0", "locations": [{"path": "/opt/venv"}]}
+            },
+            {
+              "vulnerability": {
+                "id": "GHSA-4xh5-x5gv-qwph",
+                "severity": "Medium",
+                "fix": {"versions": ["25.3"]}
+              },
+              "artifact": {"name": "pip", "version": "24.0", "locations": [{"path": "/usr/lib/python3"}]}
+            }
+          ]
+        }"#;
+        let report = parse_grype_vulnerability_report(raw)?;
+        assert_eq!(report.findings.len(), 1);
+        assert_eq!(report.severity_counts.medium, 1);
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_conflicting_repeated_findings() -> Result<()> {
+        let raw = br#"{
+          "matches": [
+            {
+              "vulnerability": {"id": "CVE-1", "severity": "Low"},
+              "artifact": {"name": "libalpha", "version": "1"}
+            },
+            {
+              "vulnerability": {"id": "CVE-1", "severity": "High"},
+              "artifact": {"name": "libalpha", "version": "1"}
+            }
+          ]
+        }"#;
         let Err(error) = parse_grype_vulnerability_report(raw) else {
-            anyhow::bail!("duplicate vulnerability-package pair was accepted");
+            anyhow::bail!("conflicting repeated finding was accepted");
         };
-        assert!(error.to_string().contains("repeats vulnerability"));
+        assert!(error.to_string().contains("conflicts"));
         Ok(())
     }
 

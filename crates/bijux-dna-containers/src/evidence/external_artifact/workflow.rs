@@ -68,14 +68,18 @@ pub fn admit_external_artifact(
         .into_iter()
         .find(|tool| tool.id == request.tool_id)
         .with_context(|| format!("container catalog omits tool {}", request.tool_id))?;
-    if tool.support_disposition != "unsupported" || !tool.external_artifact_supported {
+    if !tool.is_product_supported()
+        || !tool.permits_external_artifact()
+        || tool.redistribution_permitted
+        || !tool.external_artifact_supported
+    {
         bail!("tool {} does not permit external artifact admission", request.tool_id);
     }
     if tool.apptainer_supported || tool.docker_arm64_supported {
         bail!("external artifact tool {} exposes a distributable image", request.tool_id);
     }
 
-    let (status, lawful_access_basis, artifact, version_probe, blocker_reason) =
+    let (availability, lawful_access_basis, artifact, version_probe, blocker_reason) =
         match (&request.artifact, request.blocker_reason) {
             (Some(input), None) => {
                 let admitted =
@@ -103,7 +107,7 @@ pub fn admit_external_artifact(
 
     let admission = ExternalArtifactAdmission {
         schema_version: EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1.to_string(),
-        status,
+        availability,
         recorded_at_utc: request.recorded_at_utc.to_string(),
         repository_commit: request.repository_commit.to_string(),
         catalog: EvidenceSourceIdentity {
@@ -113,8 +117,9 @@ pub fn admit_external_artifact(
         distributable_image_root: distributable_image_root.display().to_string(),
         tool_id: tool.id,
         version: tool.version,
-        support_disposition: tool.support_disposition,
-        support_reason: tool.support_reason,
+        product_support: tool.product_support,
+        artifact_delivery: tool.artifact_delivery,
+        delivery_reason: tool.delivery_reason,
         stage_ids: tool.stage_ids,
         expected_binary: tool.expected_bin,
         version_command: tool.version_command,
@@ -180,8 +185,9 @@ pub fn verify_external_artifact_admission(
         .find(|tool| tool.id == admission.tool_id)
         .context("external-artifact tool no longer exists in catalog")?;
     if !tool.external_artifact_supported
-        || tool.support_disposition != admission.support_disposition
-        || tool.support_reason != admission.support_reason
+        || tool.product_support != admission.product_support
+        || tool.artifact_delivery != admission.artifact_delivery
+        || tool.delivery_reason != admission.delivery_reason
         || tool.version != admission.version
         || tool.stage_ids != admission.stage_ids
         || tool.expected_bin != admission.expected_binary
@@ -232,7 +238,7 @@ pub fn bind_external_artifact_command(
         distributable_image_root,
         admission_path,
     )?;
-    if admission.status == ExternalArtifactAdmissionStatus::BlockedExternalAccess {
+    if admission.availability == ExternalArtifactAdmissionStatus::BlockedExternalAccess {
         bail!(
             "external artifact access blocked for {}: {}",
             admission.tool_id,
@@ -494,8 +500,10 @@ fn validate_external_artifact_admission(admission: &ExternalArtifactAdmission) -
     }
     if admission.tool_id.trim().is_empty()
         || admission.version.trim().is_empty()
-        || admission.support_disposition != "unsupported"
-        || admission.support_reason.trim().is_empty()
+        || admission.product_support != crate::evidence::ContainerProductSupport::Supported
+        || admission.artifact_delivery
+            == crate::evidence::ContainerArtifactDelivery::RedistributableImage
+        || admission.delivery_reason.trim().is_empty()
         || admission.distributable_image_root.trim().is_empty()
         || !Path::new(&admission.distributable_image_root).is_absolute()
         || admission.stage_ids.is_empty()
@@ -512,7 +520,7 @@ fn validate_external_artifact_admission(admission: &ExternalArtifactAdmission) -
     if stages != admission.stage_ids {
         bail!("external-artifact stage bindings must be sorted and unique");
     }
-    match admission.status {
+    match admission.availability {
         ExternalArtifactAdmissionStatus::Admitted => {
             let basis = admission.lawful_access_basis.as_deref().unwrap_or_default();
             let artifact = admission.artifact.as_ref().context("admission omits artifact")?;
@@ -540,6 +548,15 @@ fn validate_external_artifact_admission(admission: &ExternalArtifactAdmission) -
                 || admission.blocker_reason.as_deref().unwrap_or_default().trim().is_empty()
             {
                 bail!("blocked external artifact has invalid access state");
+            }
+        }
+        ExternalArtifactAdmissionStatus::Unavailable => {
+            if admission.artifact.is_some()
+                || admission.version_probe.is_some()
+                || admission.lawful_access_basis.is_some()
+                || admission.blocker_reason.as_deref().unwrap_or_default().trim().is_empty()
+            {
+                bail!("unavailable external artifact has invalid access state");
             }
         }
     }

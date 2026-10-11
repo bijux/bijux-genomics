@@ -50,6 +50,11 @@ pub(super) struct ContainersCommand {
 #[derive(Subcommand, Debug)]
 pub(super) enum ContainersSubcommand {
     List,
+    Cycle {
+        operation: String,
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
     Run {
         id: String,
         #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
@@ -87,4 +92,32 @@ pub(super) enum OpsSubcommand {
         #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
         args: Vec<String>,
     },
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn container_cycle_uses_the_direct_operator_surface() {
+        let cli = Cli::try_parse_from([
+            "bijux-dna-dev",
+            "containers",
+            "cycle",
+            "plan",
+            "registry.toml",
+            "runs",
+            "submissions",
+            "2026-08-09T12:00:00Z",
+        ])
+        .unwrap_or_else(|error| panic!("parse direct container cycle command: {error}"));
+        let Command::Containers(command) = cli.command else {
+            panic!("expected containers command");
+        };
+        let ContainersSubcommand::Cycle { operation, args } = command.command else {
+            panic!("expected container cycle command");
+        };
+        assert_eq!(operation, "plan");
+        assert_eq!(args.len(), 4);
+    }
 }

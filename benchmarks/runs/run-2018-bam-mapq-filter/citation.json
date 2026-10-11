@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2018",
+  "run": {
+    "run_id": "run-2018",
+    "domain": "bam",
+    "stage_id": "bam.mapq_filter"
+  },
+  "protocol_title": "BAM mapq filter benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "a4f7fa95a8a9e5612c544dab880331069b888bbf087e40491a98fc2715a5aeae",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

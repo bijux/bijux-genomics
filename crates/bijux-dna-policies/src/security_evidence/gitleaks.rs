@@ -14,6 +14,8 @@ struct GitleaksFinding {
     file: String,
     start_line: u64,
     #[serde(default)]
+    end_line: u64,
+    #[serde(default)]
     secret: String,
 }
 
@@ -28,8 +30,10 @@ pub fn parse_gitleaks_report(raw: &[u8]) -> Result<ParsedSecretScanReport> {
         if finding.rule_id.trim().is_empty() || finding.file.trim().is_empty() {
             bail!("Gitleaks report contains a finding without rule or file identity");
         }
-        if finding.start_line == 0 {
-            bail!("Gitleaks report contains a finding without a source line");
+        if finding.end_line != 0
+            && (finding.start_line == 0 || finding.end_line < finding.start_line)
+        {
+            bail!("Gitleaks report contains an incoherent source locator");
         }
         let secret = finding.secret.trim();
         if !secret.is_empty() && !is_redacted(secret) {
@@ -66,6 +70,35 @@ mod tests {
     fn accepts_empty_report() -> Result<()> {
         let report = parse_gitleaks_report(b"[]")?;
         assert_eq!(report.finding_count, 0);
+        Ok(())
+    }
+
+    #[test]
+    fn accepts_file_scoped_binary_findings() -> Result<()> {
+        let report = parse_gitleaks_report(
+            br#"[
+              {
+                "RuleID":"pkcs12-file",
+                "File":"usr/share/cmake/Templates/Windows_TemporaryKey.pfx",
+                "StartLine":0,
+                "EndLine":0,
+                "Secret":"REDACTED"
+              }
+            ]"#,
+        )?;
+        assert_eq!(report.finding_count, 1);
+        Ok(())
+    }
+
+    #[test]
+    fn rejects_incoherent_source_locator() -> Result<()> {
+        let raw = br#"[
+          {"RuleID":"generic-api-key","File":"etc/tool.conf","StartLine":4,"EndLine":2,"Secret":"REDACTED"}
+        ]"#;
+        let Err(error) = parse_gitleaks_report(raw) else {
+            anyhow::bail!("incoherent source locator was accepted");
+        };
+        assert!(error.to_string().contains("incoherent source locator"));
         Ok(())
     }
 

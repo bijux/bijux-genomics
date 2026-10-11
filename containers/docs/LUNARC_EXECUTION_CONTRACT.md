@@ -72,21 +72,10 @@ governed failure root. A corrected retry uses the next `attempt-NNN` identity;
 preparation never reuses or overwrites an earlier attempt.
 
 A scheduler-passed attempt whose evidence is later found scientifically or
-structurally invalid must not be relabelled as failed or deleted. Archive it
-with a substantive reason before correcting and resubmitting the stable run:
-
-```console
-python3 containers/contracts/container_validation.py archive-superseded \
-  --manifest MANIFEST \
-  --reason "resource measurements did not satisfy the declared TSV evidence format"
-```
-
-This preserves the immutable submission and result trees under the governed
-owner root, records their hashes and disposition, and frees only their canonical
-execution paths. Qualification attempts remain under
-`$STUDY/containers/evidence/{failures,superseded}`. Benchmark attempts are
-isolated under `$STUDY/results/benchmark-attempts/{failed,superseded}` and use
-the benchmark-owned attempt archive contract.
+structurally invalid must not be relabelled, deleted, or reused. Keep its
+submission and result trees immutable, record its supersession in the run
+lifecycle, and prepare the next `attempt-NNN`. Historical import and replay
+retain the prior attempt as evidence without executing a legacy worker.
 
 Historical owner correction must use `hpc run benchmark-attempt-migration`.
 Direct `mv`, copy-and-delete, and path-name classification are not admissible:

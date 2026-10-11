@@ -2,6 +2,15 @@
 
 This crate owns the environment contracts consumed by API, runner, and environment QA layers.
 
+## Container Run Protocols
+
+`QualificationRunRegistry` owns the permanent container namespace independently of attempts and
+Slurm jobs. The generated v2 registry closes `run-1000..run-1157`, retains historical and current
+tool ownership, reserves 1081 and 1085 permanently, and gives every identity a purpose, operation,
+contract/corpus requirements, acceptance rule, supersession links, and citation anchor. Allocated
+protocols remain non-publishable until a terminal attempt is admitted; historical records are never
+promoted merely because they remain replayable.
+
 ## Owned Contracts
 
 - `PlatformSpec`: selected runtime, architecture, image prefix, and container directory.
@@ -69,6 +78,13 @@ This crate owns the environment contracts consumed by API, runner, and environme
   exact file identity and historical run-reference authority through the source inventory.
 - `ApptainerSmokeManifest`: offline probe evidence whose version verdict is derived from the exact
   `ContainerToolContract.expected_version_regex` contract.
+- `SecurityProbePublication`: exact raw SBOM, vulnerability, secret, signature, structural, and
+  runtime observations bound to repository, catalog, inventory, scanner, database, image, and tool
+  contract identities. Admission rejects authority drift, unsafe governed URIs, incomplete states,
+  and every missing or digest-mismatched referenced artifact without deriving a policy verdict.
+  Baseline admission permits prior repository and inventory identities only when catalog, scanner,
+  and database identities remain exact; individual reuse additionally requires exact image, build,
+  and serialized tool-contract identity.
 - `ExternalArtifactAdmission`: immutable no-copy admission for an operator-provided binary or SIF,
   including lawful-access basis, checksum, size, live cataloged version probe, permitted stage IDs,
   and an explicit non-redistribution decision. When access is unavailable, the same contract owns a

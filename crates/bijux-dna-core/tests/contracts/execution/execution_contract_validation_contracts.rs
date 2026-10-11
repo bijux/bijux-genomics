@@ -233,13 +233,21 @@ fn derived_metric_validation_and_tool_invocation_constructor_paths() {
 fn canonical_artifact_contracts_reject_incompatible_handoffs_before_execution() {
     let catalog = canonical_artifact_contract_catalog();
     assert!(catalog.validate().is_ok());
-    assert_eq!(catalog.contracts.len(), 17);
+    assert_eq!(catalog.contracts.len(), 18);
     assert!(serde_json::to_value(artifact_contract_catalog_schema()).is_ok());
 
     let consumer = catalog
         .contract("bijux.bam.artifact.coordinate_sorted_indexed.v1")
         .unwrap_or_else(|| panic!("canonical BAM contract must exist"));
     assert!(ensure_artifact_compatibility(consumer, consumer).is_ok());
+
+    let raw_sam = catalog
+        .contract("bijux.sam.artifact.unsorted.v1")
+        .unwrap_or_else(|| panic!("canonical raw SAM contract must exist"));
+    assert_eq!(raw_sam.formats, [bijux_dna_core::contract::ArtifactFormatV1::Sam]);
+    assert_eq!(raw_sam.sort_orders, [bijux_dna_core::contract::ArtifactSortOrderV1::Unsorted]);
+    assert_eq!(raw_sam.index, ArtifactPresenceV1::Forbidden);
+    assert!(ensure_artifact_compatibility(raw_sam, consumer).is_err());
 
     let mut producer = consumer.clone();
     producer.contract_id = "bijux.bam.artifact.coordinate_sorted_optional_index.v1".to_string();

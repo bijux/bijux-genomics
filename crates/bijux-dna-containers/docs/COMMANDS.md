@@ -30,12 +30,19 @@ library can manage when callers invoke the matching API.
   `hostname` and `apptainer --version` to bind the builder environment to the evidence.
 - `execute_apptainer_image_campaign()`: owns catalog-wide bounded workers, immutable planning,
   atomic per-tool progress, fresh resumed-image inspection, append-only invocation records, and
-  all-passed terminal execution publication.
+  all-passed terminal execution publication. An explicit retained-tool selection executes only
+  that dependency closure under deterministic `selected-<tool-set-sha256>` staging and evidence
+  roots; the complete retained roster preserves the historical commit-addressed root.
+- `execute_apptainer_image_campaign_attempt()`: binds one campaign execution to an immutable
+  attempt root, Slurm job identity, completion timestamp, execution digest, and atomic terminal
+  receipt without owning scheduler submission or observation.
 - `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
   bijux-runtime --net --network none` probes, persists immutable streams when requested, and
   admits version output against the catalog contract regex.
 - `freeze_repository()`: runs bounded Git inspection and worktree commands to materialize an
   immutable commit-addressed checkout under site-governed roots.
+- `tracked_repository_files_under()`: runs bounded `git ls-files` inspection for one safe
+  repository-relative prefix and returns sorted tracked file identities.
 - `import_run_evidence()`, `plan_final_run_evidence()`, and
   `apply_final_run_evidence_plan()`: import immutable run locks, select the latest passing run per
   tool, and preserve superseded attempt lineage behind an explicit non-mutating plan boundary.
@@ -90,6 +97,8 @@ library can manage when callers invoke the matching API.
   external admission; it never copies or publishes the restricted artifact.
 - `src/site_policy/repository_freeze.rs`: clean-source verification and commit-addressed Git
   worktree materialization under site-governed roots.
+- `src/site_policy/repository_tracking.rs`: prefix-scoped tracked-file discovery for governed
+  repository publications.
 - `src/execution_contract/pipeline/admission.rs`: execution-site repository identity and clean-state
   inspection before immutable pipeline inputs are admitted.
 - `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.

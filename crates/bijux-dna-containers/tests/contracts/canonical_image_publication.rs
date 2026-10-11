@@ -9,10 +9,11 @@ use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::{
-    clean_repository_head_commit, derive_image_inventory_evidence, prepare_apptainer_tool_contract,
-    publish_canonical_apptainer_image, tool_contract_labels, CanonicalApptainerImageDestination,
-    CanonicalApptainerImagePublicationRequest, ContainerImageState,
-    ImageInventoryDerivationRequest, ToolContractBuildRequest,
+    clean_repository_head_commit, derive_apptainer_tool_contract, derive_image_inventory_evidence,
+    publish_canonical_apptainer_image, tool_contract_labels,
+    verify_apptainer_image_campaign_receipt, CanonicalApptainerImageDestination,
+    CanonicalApptainerImagePublicationRequest, ContainerImageState, ImageCampaignJobCompletion,
+    ImageInventoryDerivationRequest, IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1,
 };
 
 #[test]
@@ -23,22 +24,16 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
     commit_fixture(repository.path())?;
     let commit = clean_repository_head_commit(repository.path())?;
 
-    let preview_root = repository.path().join("artifacts/containers/tool-contract-build-inputs");
-    let prepared = prepare_apptainer_tool_contract(&ToolContractBuildRequest {
-        repository_root: repository.path().to_path_buf(),
-        tool_id: "contract_tool".to_string(),
-        repository_commit: commit.clone(),
-        architecture: "linux/amd64".to_string(),
-        output_root: preview_root.clone(),
-    })?;
-    let labels = tool_contract_labels(&prepared.contract).into_iter().collect::<BTreeMap<_, _>>();
+    let preview_root =
+        study.path().join(format!("containers/evidence/image-campaigns/{commit}/build-inputs"));
+    let contract =
+        derive_apptainer_tool_contract(repository.path(), "contract_tool", &commit, "linux/amd64")?;
+    let labels = tool_contract_labels(&contract).into_iter().collect::<BTreeMap<_, _>>();
     let labels_path = study.path().join("labels.json");
     bijux_dna_infra::atomic_write_json(
         &labels_path,
         &serde_json::json!({"data": {"attributes": {"labels": labels}}}),
     )?;
-    fs::remove_dir_all(repository.path().join("artifacts"))?;
-
     let executable = study.path().join("apptainer");
     let contract_path = preview_root.join("contract_tool/tool-contract.json");
     write_executable(
@@ -49,6 +44,10 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
             shell_literal(&labels_path),
         ),
     )?;
+    let original_permissions = fs::metadata(repository.path())?.permissions();
+    let mut read_only_permissions = original_permissions.clone();
+    read_only_permissions.set_mode(original_permissions.mode() & !0o222);
+    fs::set_permissions(repository.path(), read_only_permissions)?;
     let publication =
         publish_canonical_apptainer_image(&CanonicalApptainerImagePublicationRequest {
             repository_root: repository.path().to_path_buf(),
@@ -60,8 +59,15 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
             retry_delay: Duration::ZERO,
             lock_timeout: Duration::from_secs(1),
             destination: CanonicalApptainerImageDestination::CommitCampaign,
-        })?;
+            campaign_scope: None,
+        });
+    fs::set_permissions(repository.path(), original_permissions)?;
+    let publication = publication?;
 
+    assert!(!repository.path().join("artifacts").exists());
+    let rendered_definition =
+        fs::read_to_string(preview_root.join("contract_tool/contract_tool.def"))?;
+    assert!(rendered_definition.contains(&contract_path.display().to_string()));
     assert_eq!(publication.status, "passed");
     assert_eq!(publication.image.sha256.len(), 64);
     assert_eq!(publication.base_image_digest, "b".repeat(64));
@@ -86,10 +92,12 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
     let inventory = derive_image_inventory_evidence(&ImageInventoryDerivationRequest {
         repository_root: repository.path().to_path_buf(),
         study_root: study.path().to_path_buf(),
-        image_root: study.path().join(format!("containers/staging/{commit}")),
-        build_evidence_root: study
-            .path()
-            .join(format!("containers/evidence/image-campaigns/{commit}")),
+        evidence_roots: vec![bijux_dna_containers::evidence::ImageInventoryEvidenceRoots {
+            image_root: study.path().join(format!("containers/staging/{commit}")),
+            build_evidence_root: study
+                .path()
+                .join(format!("containers/evidence/image-campaigns/{commit}")),
+        }],
         run_evidence_root: run_root,
     })?;
     assert_eq!(inventory.publication.tools.len(), 1);
@@ -110,6 +118,31 @@ fn clean_commit_identity_rejects_uncommitted_build_inputs() -> Result<()> {
     fs::write(repository.path().join("containers/apptainer/contract_tool.def"), "changed")?;
     assert!(clean_repository_head_commit(repository.path())
         .is_err_and(|error| error.to_string().contains("repository changes")));
+    Ok(())
+}
+
+#[test]
+fn campaign_receipt_rejects_execution_digest_mutation() -> Result<()> {
+    let attempt = tempfile::tempdir()?;
+    let execution_path = attempt.path().join("campaign-execution.json");
+    fs::write(&execution_path, b"{}\n")?;
+    let completion = ImageCampaignJobCompletion {
+        schema_version: IMAGE_CAMPAIGN_JOB_COMPLETION_SCHEMA_V1.to_string(),
+        attempt_id: "fixture-attempt-001".to_string(),
+        repository_commit: "a".repeat(40),
+        slurm_job_id: "12345".to_string(),
+        completed_at: "2026-08-08T19:45:53Z".to_string(),
+        campaign_execution: "campaign-execution.json".to_string(),
+        campaign_execution_sha256: "b".repeat(64),
+    };
+    bijux_dna_infra::atomic_write_json(&attempt.path().join("completion.json"), &completion)?;
+    assert!(verify_apptainer_image_campaign_receipt(
+        Path::new("/unreached/repository"),
+        Path::new("/unreached/study"),
+        Path::new("/unreached/apptainer"),
+        attempt.path(),
+    )
+    .is_err_and(|error| error.to_string().contains("digest differs")));
     Ok(())
 }
 

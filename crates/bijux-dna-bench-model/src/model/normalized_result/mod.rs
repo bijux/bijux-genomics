@@ -36,10 +36,13 @@ fn probe_stage_id(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "enum": [
+            "benchmark.bam.align.compare",
             "benchmark.bam.coverage.compare",
             "benchmark.bam.duplication_metrics.compare",
             "benchmark.bam.endogenous_content.consume",
             "benchmark.bam.genotyping.consume",
+            "benchmark.bam.gc_bias.consume",
+            "benchmark.bam.insert_size.consume",
             "benchmark.bam.mapping_summary.compare"
         ]
     })
@@ -49,10 +52,13 @@ fn probe_input_contract(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "enum": [
+            bam::BAM_ALIGN_RESULT_SCHEMA_V1,
             bam::BAM_COVERAGE_RESULT_SCHEMA_V1,
             bam::BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1,
             bam::BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1,
             bam::BAM_GENOTYPING_RESULT_SCHEMA_V1,
+            bam::BAM_GC_BIAS_RESULT_SCHEMA_V1,
+            bam::BAM_INSERT_SIZE_RESULT_SCHEMA_V1,
             bam::BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1
         ]
     })
@@ -72,10 +78,13 @@ where
     deserialize_probe_identity(
         deserializer,
         &[
+            "benchmark.bam.align.compare",
             "benchmark.bam.coverage.compare",
             "benchmark.bam.duplication_metrics.compare",
             "benchmark.bam.endogenous_content.consume",
             "benchmark.bam.genotyping.consume",
+            "benchmark.bam.gc_bias.consume",
+            "benchmark.bam.insert_size.consume",
             "benchmark.bam.mapping_summary.compare",
         ],
     )
@@ -88,10 +97,13 @@ where
     deserialize_probe_identity(
         deserializer,
         &[
+            bam::BAM_ALIGN_RESULT_SCHEMA_V1,
             bam::BAM_COVERAGE_RESULT_SCHEMA_V1,
             bam::BAM_DUPLICATION_METRICS_RESULT_SCHEMA_V1,
             bam::BAM_ENDOGENOUS_CONTENT_RESULT_SCHEMA_V1,
             bam::BAM_GENOTYPING_RESULT_SCHEMA_V1,
+            bam::BAM_GC_BIAS_RESULT_SCHEMA_V1,
+            bam::BAM_INSERT_SIZE_RESULT_SCHEMA_V1,
             bam::BAM_MAPPING_SUMMARY_RESULT_SCHEMA_V1,
         ],
     )

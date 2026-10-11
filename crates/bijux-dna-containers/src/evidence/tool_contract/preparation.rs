@@ -8,7 +8,7 @@ use super::catalog::{load_retained_tool, CatalogToolSource};
 use super::labels::tool_contract_labels;
 use super::model::{
     ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest,
-    CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V1,
+    CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V2,
 };
 use super::validation::validate_tool_contract;
 
@@ -17,6 +17,13 @@ struct InterfaceIdentity<'a> {
     expected_binary: &'a str,
     version_command: &'a str,
     expected_version_regex: &'a str,
+}
+
+#[derive(Serialize)]
+struct CatalogEntryIdentity<'a> {
+    schema_version: &'static str,
+    architecture: &'a str,
+    tool: &'a super::catalog::ContainerCatalogTool,
 }
 
 /// Generate one embedded contract and a definition that installs it.
@@ -29,10 +36,28 @@ pub fn prepare_apptainer_tool_contract(
     if !request.output_root.starts_with(&request.repository_root) {
         bail!("tool-contract output root must be inside the repository");
     }
+    prepare_tool_contract_build(request, true)
+}
+
+pub(crate) fn prepare_apptainer_tool_contract_for_publication(
+    request: &ToolContractBuildRequest,
+) -> Result<PreparedToolContractBuild> {
+    if !request.output_root.is_absolute()
+        || request.output_root.starts_with(&request.repository_root)
+    {
+        bail!("publication tool-contract output root must be absolute and outside the repository");
+    }
+    prepare_tool_contract_build(request, false)
+}
+
+fn prepare_tool_contract_build(
+    request: &ToolContractBuildRequest,
+    repository_relative_output: bool,
+) -> Result<PreparedToolContractBuild> {
     let source =
         load_retained_tool(&request.repository_root, &request.tool_id, &request.architecture)?;
     let contract = derive_contract(request, &source)?;
-    persist_contract_build(request, source, contract)
+    persist_contract_build(request, source, contract, repository_relative_output)
 }
 
 /// Derive the immutable contract identity for one retained Apptainer tool without writing files.
@@ -70,6 +95,11 @@ fn derive_contract(
         .to_string_lossy()
         .replace('\\', "/");
     let catalog_sha256 = sha256_hex(&source.catalog_bytes);
+    let catalog_entry_sha256 = sha256_json(&CatalogEntryIdentity {
+        schema_version: super::catalog::CONTAINER_CATALOG_SCHEMA_V1,
+        architecture: &request.architecture,
+        tool: &source.tool,
+    })?;
     let recipe_sha256 = sha256_hex(&source.recipe_bytes);
     let interface_sha256 = sha256_json(&InterfaceIdentity {
         expected_binary: &source.tool.expected_bin,
@@ -78,10 +108,9 @@ fn derive_contract(
     })?;
     let build_evidence_id = sha256_json(&serde_json::json!({
         "architecture": request.architecture,
-        "catalog_sha256": catalog_sha256,
+        "catalog_entry_sha256": catalog_entry_sha256,
         "interface_sha256": interface_sha256,
         "recipe_sha256": recipe_sha256,
-        "repository_commit": request.repository_commit,
         "tool_id": request.tool_id,
     }))?;
     let (source_sha256, pinned_commit) = if valid_sha256(&source.tool.source_sha256) {
@@ -92,10 +121,11 @@ fn derive_contract(
         bail!("retained tool {} has no valid source identity", request.tool_id);
     };
     let contract = ContainerToolContract {
-        schema_version: CONTAINER_TOOL_CONTRACT_SCHEMA_V1.to_string(),
+        schema_version: CONTAINER_TOOL_CONTRACT_SCHEMA_V2.to_string(),
         tool_id: source.tool.id.clone(),
         version: source.tool.version.clone(),
-        support_disposition: source.tool.support_disposition.clone(),
+        support_disposition: source.tool.legacy_support_disposition().to_string(),
+        catalog_entry_sha256,
         catalog_sha256,
         recipe_path,
         recipe_sha256,
@@ -117,6 +147,7 @@ fn persist_contract_build(
     request: &ToolContractBuildRequest,
     source: CatalogToolSource,
     contract: ContainerToolContract,
+    repository_relative_output: bool,
 ) -> Result<PreparedToolContractBuild> {
     let tool_root = request.output_root.join(&contract.tool_id);
     bijux_dna_infra::ensure_dir(&tool_root)
@@ -124,11 +155,15 @@ fn persist_contract_build(
     let contract_path = tool_root.join("tool-contract.json");
     bijux_dna_infra::atomic_write_json(&contract_path, &contract)
         .with_context(|| format!("write tool contract {}", contract_path.display()))?;
-    let contract_source = contract_path
-        .strip_prefix(&request.repository_root)
-        .context("tool-contract output root must be inside the repository")?
-        .to_string_lossy()
-        .replace('\\', "/");
+    let contract_source = if repository_relative_output {
+        contract_path
+            .strip_prefix(&request.repository_root)
+            .context("tool-contract output root must be inside the repository")?
+            .to_string_lossy()
+            .replace('\\', "/")
+    } else {
+        contract_path.to_string_lossy().replace('\\', "/")
+    };
     let recipe =
         String::from_utf8(source.recipe_bytes).context("Apptainer definition is not UTF-8")?;
     let rendered = render_definition(&recipe, &contract_source, &contract)?;

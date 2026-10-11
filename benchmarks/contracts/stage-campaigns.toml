@@ -200,6 +200,66 @@ limitations = [
 ]
 
 [[campaigns]]
+run_id = "run-2005"
+slug = "bam-align"
+domain = "bam"
+stage_id = "bam.align"
+evidence_tier = "comparative"
+profile_id = "bam-alignment"
+corpus_ids = ["alignment-truth-panel"]
+scientific_question = "How accurately and efficiently do Bowtie2 and BWA place primary reads from the governed real alignment-truth panel, and do their canonical BAM outputs preserve downstream scientific results?"
+comparison_scope = "at least ten independently characterized real human libraries aligned to one immutable GRCh38 reference and scored against read-placement truth"
+tool_ids = ["bowtie2", "bwa"]
+corpus_catalog_ids = ["alignment-truth-panel"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["fastq_input_bytes", "reference_input_bytes", "reference_index_input_bytes", "truth_input_bytes"]
+result_artifact = "alignment-truth-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 8
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "exact_primary_read_placement_against_independent_truth_with_downstream_substitution"
+interpretation = "Read-level placement precision and recall are scored against an independent truth surface. Scientific admission additionally requires the common validation, mapping-summary, coverage, filtering, variant-recovery, and damage-stratified downstream probes; tool agreement alone is not treated as truth."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_input_operations",
+  "filesystem_output_operations",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+  "throughput_reads_per_second",
+]
+scientific_metrics = [
+  "total_reads",
+  "mapped_reads",
+  "alignment_rate",
+  "expected_mapped_reads",
+  "exact_placement_reads",
+  "placement_precision",
+  "placement_recall",
+]
+comparison_metrics = [
+  {id = "alignment_rate", absolute_tolerance = 0.000001, relative_tolerance = 0.02},
+  {id = "exact_placement_reads", absolute_tolerance = 0.0, relative_tolerance = 0.02},
+  {id = "placement_precision", absolute_tolerance = 0.000001, relative_tolerance = 0.02},
+  {id = "placement_recall", absolute_tolerance = 0.000001, relative_tolerance = 0.02},
+]
+limitations = [
+  "The controlled-access Platinum Genomes material is not yet admitted, so the protocol is defined but scientific readiness remains blocked.",
+  "Exact leftmost-coordinate agreement does not fully characterize multi-mapping equivalence, graph-reference alternatives, structural variants, or alignment scoring calibration.",
+  "Supplementary simulation may exercise controlled edge cases but cannot satisfy the real-data evidence requirement.",
+  "Variant recovery and damage-stratified error are separate downstream admission requirements and are not inferred from mapping rate or cross-tool agreement.",
+]
+
+[[campaigns]]
 run_id = "run-2011"
 slug = "bam-duplication-metrics"
 domain = "bam"
@@ -246,6 +306,115 @@ limitations = [
   "The corpus is one low-coverage ancient horse library and cannot establish agreement across all library structures or sequencing technologies.",
   "Picard and Samtools implement different duplicate-scoring and optical-duplicate models, so small count differences are interpreted within declared tolerances rather than as truth error.",
   "Duplicate fraction is an operational BAM statistic and does not independently estimate original molecular diversity.",
+]
+
+[[campaigns]]
+run_id = "run-2013"
+slug = "bam-gc-bias"
+domain = "bam"
+stage_id = "bam.gc_bias"
+evidence_tier = "comparative"
+profile_id = "bam-observational-qc"
+corpus_ids = ["ancient-dna-bam-diversity"]
+scientific_question = "How do reference-context AT and GC dropout profiles vary across the governed ancient-DNA BAM diversity cohort, and what resources does the retained implementation consume?"
+comparison_scope = "Picard GC-bias summaries across at least ten governed real ancient human alignments against one immutable GRCh38 reference policy"
+tool_ids = ["picard"]
+corpus_catalog_ids = ["ancient-dna-bam-diversity"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes", "reference_input_bytes"]
+result_artifact = "gc-bias-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 1
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "picard_reference_context_dropout_with_cross_library_stratification_not_sequence_bias_truth"
+interpretation = "This campaign preserves Picard's all-reads AT and GC dropout summary under one normalized contract and compares the observations across independently governed ancient libraries. The result characterizes reference-context coverage behavior; it is not an independent truth estimate of library or sequencing bias and does not rank tools."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_input_operations",
+  "filesystem_output_operations",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+]
+scientific_metrics = [
+  "gc_bias_score",
+  "at_dropout",
+  "gc_dropout",
+  "total_clusters",
+  "aligned_reads",
+  "windows",
+  "read_starts",
+]
+comparison_metrics = []
+limitations = [
+  "The ten-library production corpus is source-defined but not admitted, so this protocol remains scientifically blocked and no execution result is claimed.",
+  "Only Picard is retained for this stage, so the campaign compares governed library distributions and resource behavior rather than ranking alternative tools.",
+  "AT and GC dropout depend on the exact reference assembly, windowing, alignment, filtering, and library preparation policies and cannot be interpreted independently of those locks.",
+  "The normalized GC-bias score is GC dropout divided by one hundred for a bounded machine-comparable value; the native percentage is preserved separately.",
+]
+
+[[campaigns]]
+run_id = "run-2015"
+slug = "bam-insert-size"
+domain = "bam"
+stage_id = "bam.insert_size"
+evidence_tier = "comparative"
+profile_id = "bam-observational-qc"
+corpus_ids = ["ancient-dna-bam-diversity"]
+scientific_question = "How do paired-template length distributions vary across the governed ancient-DNA BAM diversity cohort, and what resources does the retained implementation consume?"
+comparison_scope = "Picard FR-oriented insert-size distributions across at least ten governed real ancient human alignments"
+tool_ids = ["picard"]
+corpus_catalog_ids = ["ancient-dna-bam-diversity"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes"]
+result_artifact = "insert-size-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 1
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "picard_fr_insert_size_distribution_with_cross_library_stratification_not_fragment_truth"
+interpretation = "This campaign preserves Picard's FR paired-template distribution under one normalized contract and compares distributions across independently governed ancient libraries. The result characterizes observed alignments and library strata; it is not molecule-level fragment-length truth or a cross-tool ranking."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "cpu_utilization_percent",
+  "peak_rss_kib",
+  "filesystem_input_operations",
+  "filesystem_output_operations",
+  "input_bytes",
+  "output_bytes",
+  "throughput_input_bytes_per_second",
+]
+scientific_metrics = [
+  "median_insert_size",
+  "mean_insert_size",
+  "standard_deviation",
+  "median_absolute_deviation",
+  "minimum_insert_size",
+  "maximum_insert_size",
+  "read_pairs",
+  "pair_orientation_fr_fraction",
+]
+comparison_metrics = []
+limitations = [
+  "The ten-library production corpus is source-defined but not admitted, so this protocol remains scientifically blocked and no execution result is claimed.",
+  "Only Picard is retained for this stage, so the campaign compares governed library distributions and resource behavior rather than ranking alternative tools.",
+  "The normalized distribution selects Picard's FR orientation while retaining the FR fraction of all reported read pairs; other orientation-specific distributions are not represented as the primary result.",
+  "Observed template lengths depend on reference choice, alignment parameters, filtering, duplicate policy, and surviving paired records and are not direct molecule-level fragment truth.",
 ]
 
 [[campaigns]]

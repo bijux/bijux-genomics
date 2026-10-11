@@ -8,7 +8,7 @@ This crate is allowed to depend on stable workspace primitives and developer-pol
 - `bijux-dna-runtime` is used to read and compose runtime-owned immutable lifecycle evidence.
 - `bijux-dna-runner` is used only through its stable facade to materialize or invoke typed,
   non-waiting scheduler effects; runner retains backend execution ownership.
-- `bijux-dna-policies` is a dev-dependency for policy contract checks.
+- `bijux-dna-policies` owns verdict derivation consumed by thin developer composition commands.
 - `clap`, `anyhow`, `serde`, `serde_json`, `toml`, `regex`, `sha2`, `chrono`, `walkdir`, and `reqwest` support CLI parsing, error context, structured data, checksums, deterministic traversal, and explicit automation workflows.
 
 ## Allowed direction

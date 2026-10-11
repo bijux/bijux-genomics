@@ -6,7 +6,12 @@ use std::path::Path;
 use anyhow::Result;
 use schemars::{schema_for, Schema};
 
-use super::{QualificationRunIdAudit, QualificationRunRegistry};
+use super::{ContainerRunIndex, QualificationRunIdAudit, QualificationRunRegistry};
+
+#[must_use]
+pub fn container_run_index_schema() -> Schema {
+    schema_for!(ContainerRunIndex)
+}
 
 #[must_use]
 pub fn qualification_run_registry_schema() -> Schema {
@@ -33,5 +38,14 @@ pub fn write_qualification_run_registry_schema(path: &Path) -> Result<()> {
 /// Returns an error when serialization or publication fails.
 pub fn write_qualification_run_id_audit_schema(path: &Path) -> Result<()> {
     bijux_dna_infra::atomic_write_json(path, &qualification_run_id_audit_schema())?;
+    Ok(())
+}
+
+/// Write the container run-index schema atomically.
+///
+/// # Errors
+/// Returns an error when serialization or publication fails.
+pub fn write_container_run_index_schema(path: &Path) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(path, &container_run_index_schema())?;
     Ok(())
 }

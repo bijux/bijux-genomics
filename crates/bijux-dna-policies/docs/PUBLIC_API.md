@@ -28,3 +28,5 @@
 - `src/lib.rs` controls module visibility and root re-exports.
 - `src/public_api/stable_surface.rs` curates the callable guardrail surface.
 - `src/policy_diagnostics/stable_surface.rs` curates diagnostics exports.
+- `security_evidence::derive_security_evidence`: converts complete effect-free scanner,
+  structural, and runtime observations into a validated policy publication.

@@ -87,8 +87,8 @@ fn infra_tree_matches_architecture_contract() {
     );
     assert_dir_entries(
         &root.join("src/run_directories"),
-        ["contract.rs", "mod.rs", "operations.rs", "stable_surface.rs"],
-        "run-directory support must keep contract and operations separate",
+        ["archive.rs", "contract.rs", "mod.rs", "operations.rs", "stable_surface.rs"],
+        "run-directory support must keep layout and archive transactions separate",
     );
 
     assert_dir_entries(

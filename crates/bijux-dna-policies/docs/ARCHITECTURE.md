@@ -18,7 +18,8 @@ audit orchestration.
 - `src/public_api/` exposes the curated guardrail caller surface.
 - `src/qualification/` owns evidence dimensions, claims, publication freshness, portable
   qualification reports, and deterministic reviewer-facing rendering.
-- `src/security_evidence/` owns typed scanner evidence and deterministic security decisions.
+- `src/security_evidence/` owns typed scanner evidence, pure observation derivation, and
+  deterministic security decisions.
 - `src/guardrails/` owns baseline configuration, crate presets, source inventory setup, and runner wiring.
 - `src/checks/` partitions reusable rule families by directory layout, module files, public surface, failure policy, and stage ID literals.
 - `src/source_scan/` performs deterministic Rust source discovery.

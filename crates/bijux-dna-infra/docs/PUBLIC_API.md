@@ -27,6 +27,10 @@
   `AttemptEvidenceOwner`, `ATTEMPT_LAYOUT_CONTRACT`, `ATTEMPT_LAYOUT_SCHEMA_V1`,
   `attempt_layout_paths`, `attempt_layout_schema`, `ensure_attempt_layout`, and
   `validate_attempt_owner_roots`.
+- Attempt archive: `AttemptArchiveDisposition`, `AttemptArchiveReceiptV1`,
+  `AttemptArchiveRollbackReceiptV1`, `attempt_archive_paths`, `archive_attempt_layout`,
+  `verify_attempt_archive`, `rollback_attempt_archive`, `attempt_archive_schema`, and
+  `attempt_archive_rollback_schema`.
 - Temp directories: `temp_dir` and `temp_dir_in`.
 
 ## Stability Rules

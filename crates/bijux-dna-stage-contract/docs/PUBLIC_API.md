@@ -57,6 +57,8 @@ CLI parsing, process execution, or environment control APIs.
 - `ToolBindingV1`
 - `ToolBindingRegistry`
 - `canonical_external_artifact_tool_bindings`
+- `canonical_retained_tool_bindings`
+- `canonical_tool_bindings`
 - `ToolBindingRenderContext`
 - `ToolArtifactSourceV1`
 - `BindingInputV1`
@@ -95,7 +97,7 @@ These examples are abbreviated for readability. Fixture snapshots under
 ### ToolBindingV1
 
 ```json
-{"schema_version":"bijux.tool_binding.v1","binding_id":"fastq.trim_reads__fastp","stage_id":"fastq.trim_reads","tool_id":"fastp","artifact_source":{"kind":"catalog_image","catalog_tool_id":"fastp"},"capabilities":["paired_or_single_reads"],"inputs":[{"name":"reads","artifact_contract_id":"bijux.artifact.fastq.reads.v1","required":true}],"parameters":[{"name":"threads","required":true}],"outputs":[{"name":"trimmed","artifact_contract_id":"bijux.artifact.fastq.reads.v1","discovery":{"kind":"exact_path"}}],"command_template":["${executable}","--in=${input:reads}","--out","${output:trimmed}"],"resources":{"runtime":"apptainer","mem_gb":4,"tmp_gb":2,"threads":8},"normalizer_id":"fastq.trim_reads.v1","downstream_probe_id":"fastq.reads-readable.v1","limitations":[]}
+{"schema_version":"bijux.tool_binding.v1","binding_id":"fastq.trim_reads__fastp","stage_id":"fastq.trim_reads","tool_id":"fastp","artifact_source":{"kind":"catalog_image","catalog_tool_id":"fastp"},"capabilities":["paired_or_single_reads"],"inputs":[{"name":"reads","artifact_contract_id":"bijux.fastq.artifact.reads.v1","required":true}],"parameters":[{"name":"threads","required":true}],"outputs":[{"name":"trimmed","artifact_contract_id":"bijux.fastq.artifact.reads.v1","discovery":{"kind":"exact_path"}}],"normalized_output_contract_id":"bijux.fastq.artifact.reads.v1","command_template":["${executable}","--in=${input:reads}","--out","${output:trimmed}"],"resources":{"runtime":"apptainer","mem_gb":4,"tmp_gb":2,"threads":8},"normalizer_id":"fastq.trim_reads.v1","downstream_probe_id":"fastq.reads-readable.v1","limitations":[]}
 ```
 
 ## Snapshots And Fixtures

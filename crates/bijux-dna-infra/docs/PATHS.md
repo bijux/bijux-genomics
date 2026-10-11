@@ -13,5 +13,7 @@ Infra can only construct paths via stable path helpers.
 - `attempt_layout_paths` rejects unsafe identity segments instead of silently normalizing them and
   preserves the permanent run/tool/campaign/attempt hierarchy under an owner-provided root.
 - `validate_attempt_owner_roots` refuses equal or nested container and benchmark evidence roots.
+- Attempt archives and rollback receipts remain under hidden owner-local roots and preserve the
+  permanent run/tool/campaign/attempt identity without crossing container/benchmark ownership.
 
 No independent normalization allowed outside bijux-dna-core `contract::canonical`.

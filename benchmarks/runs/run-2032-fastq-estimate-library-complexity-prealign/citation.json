@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2032",
+  "run": {
+    "run_id": "run-2032",
+    "domain": "fastq",
+    "stage_id": "fastq.estimate_library_complexity_prealign"
+  },
+  "protocol_title": "FASTQ estimate library complexity prealign benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "ee02926496986a2ae8c50741ec1c1cc57f78b121b1be44d01778b22d9fe6a73f",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

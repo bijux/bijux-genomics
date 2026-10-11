@@ -1,0 +1,234 @@
+{
+  "$defs": {
+    "BenchmarkAdmittedCaseObservationV2": {
+      "additionalProperties": false,
+      "properties": {
+        "admission_sha256": {
+          "type": "string"
+        },
+        "case_id": {
+          "type": "string"
+        },
+        "execution": {
+          "$ref": "#/$defs/BenchmarkCaseExecutionEvidenceV1"
+        },
+        "input_lock_sha256": {
+          "type": "string"
+        },
+        "parameter_lock_sha256": {
+          "type": "string"
+        },
+        "repetitions": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkCaseRepetitionObservationV1"
+          },
+          "type": "array"
+        },
+        "repository_commit": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "bijux.benchmark.admitted_case_observation.v2",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "case_id",
+        "repository_commit",
+        "admission_sha256",
+        "input_lock_sha256",
+        "parameter_lock_sha256",
+        "execution",
+        "repetitions"
+      ],
+      "type": "object"
+    },
+    "BenchmarkCaseExecutionEvidenceV1": {
+      "additionalProperties": false,
+      "properties": {
+        "image": {
+          "$ref": "#/$defs/BenchmarkReportImage"
+        },
+        "input_bytes": {
+          "additionalProperties": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "input_locks": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkReportInputLock"
+          },
+          "type": "array"
+        },
+        "slurm": {
+          "$ref": "#/$defs/BenchmarkReportSlurmJob"
+        },
+        "source_evidence_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "image",
+        "slurm",
+        "source_evidence_sha256",
+        "input_locks",
+        "input_bytes"
+      ],
+      "type": "object"
+    },
+    "BenchmarkCaseRepetitionObservationV1": {
+      "additionalProperties": false,
+      "properties": {
+        "allocated_cpus": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "normalized_result_sha256": {
+          "type": "string"
+        },
+        "performance": {
+          "additionalProperties": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "object"
+        },
+        "repetition": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scientific": {
+          "additionalProperties": {
+            "$ref": "#/$defs/BenchmarkScientificValue"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "repetition",
+        "allocated_cpus",
+        "performance",
+        "scientific",
+        "normalized_result_sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportImage": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportInputLock": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "mount_path": {
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "mount_path",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkReportSlurmJob": {
+      "additionalProperties": false,
+      "properties": {
+        "allocated_cpus": {
+          "type": "string"
+        },
+        "elapsed": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "job_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "job_id",
+        "host",
+        "elapsed",
+        "allocated_cpus"
+      ],
+      "type": "object"
+    },
+    "BenchmarkScientificValue": {
+      "anyOf": [
+        {
+          "format": "double",
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_matrix_sha256": {
+      "type": "string"
+    },
+    "observations": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkAdmittedCaseObservationV2"
+      },
+      "type": "array"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.admitted_case_observation_set.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "repository_commit",
+    "case_matrix_sha256",
+    "observations"
+  ],
+  "title": "BenchmarkAdmittedCaseObservationSetV1",
+  "type": "object"
+}

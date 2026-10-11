@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2045",
+  "run": {
+    "run_id": "run-2045",
+    "domain": "fastq",
+    "stage_id": "fastq.remove_duplicates"
+  },
+  "protocol_title": "FASTQ remove duplicates benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "707799960105831b0a1f5efaf3c08f9cd828bfee22d3d576e8cdbbd4ebc64cde",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

@@ -8,6 +8,7 @@ Owner: effectful environment QA, image readiness checks, and QA evidence persist
 - Docker/Apptainer image QA workflows that are explicitly operator-invoked.
 - Container qualification probe planning, declared-output validation, metric evaluation, and
   classified verdicts.
+- Generic checksum-bound qualification specification compilation from canonical stage bindings.
 - QA artifact writing under `artifacts/image-qa/<platform>/`.
 - QA record persistence to JSONL, SQLite, and summary JSON.
 - Offline contract tests for planning, layout, records, and fixture stability.

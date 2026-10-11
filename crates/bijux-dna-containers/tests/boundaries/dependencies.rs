@@ -11,6 +11,7 @@ fn dependency_graph_matches_environment_boundary() {
     let expected_dependencies: BTreeSet<_> = [
         "anyhow",
         "bijux-dna-infra",
+        "chrono",
         "regex",
         "schemars",
         "serde",
@@ -19,6 +20,7 @@ fn dependency_graph_matches_environment_boundary() {
         "sha2",
         "thiserror",
         "toml",
+        "walkdir",
     ]
     .into_iter()
     .map(str::to_string)
@@ -32,7 +34,6 @@ fn dependency_graph_matches_environment_boundary() {
         "bijux-dna-stage-contract",
         "bijux-dna-testkit",
         "tempfile",
-        "walkdir",
     ]
     .into_iter()
     .map(str::to_string)

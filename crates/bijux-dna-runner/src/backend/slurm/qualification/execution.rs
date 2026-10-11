@@ -3,6 +3,7 @@
 
 use std::collections::BTreeMap;
 use std::fs::{self, File};
+use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -20,8 +21,9 @@ use serde_json::{json, Value};
 use super::contracts::{
     ContainerQualificationExecution, ContainerQualificationSlurmSpec,
     CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
+    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
 };
-use super::validation::validate_specification;
+use super::validation::{canonical_directory, validate_specification};
 
 const EXECUTION_EVIDENCE_SCHEMA_V1: &str = "bijux.container.evidence.v1";
 const EXECUTION_EVIDENCE_SCHEMA_V2: &str = "bijux.container.evidence.v2";
@@ -40,7 +42,7 @@ struct NativeExecutionOutcome {
     assessment: ContainerQualificationAssessment,
 }
 
-/// Execute one v3 qualification specification with the pinned Rust operator.
+/// Execute one supported qualification specification with the pinned Rust operator.
 ///
 /// # Errors
 /// Returns an error when immutable authority validation, isolated runtime execution, output
@@ -51,7 +53,9 @@ pub fn execute_container_qualification(
     validate_specification(spec)?;
     if !matches!(
         spec.schema_version.as_str(),
-        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3 | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
+        CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3
+            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
+            | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5
     ) {
         bail!("native qualification execution requires a native scheduler specification");
     }
@@ -73,17 +77,21 @@ fn prepare_execution_workspace(
     }
     validate_container_governance_host(governance, &hostname)?;
     let scratch = governed_scratch(governance)?;
-    let result_parent =
-        spec.result_root.parent().context("qualification result root has no parent")?;
-    fs::create_dir_all(result_parent).with_context(|| {
-        format!("create qualification result parent {}", result_parent.display())
-    })?;
-    fs::create_dir(&spec.result_root).with_context(|| {
-        format!("refuse to replace qualification result root {}", spec.result_root.display())
-    })?;
+    if spec.schema_version != CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5 {
+        let result_parent =
+            spec.result_root.parent().context("qualification result root has no parent")?;
+        fs::create_dir_all(result_parent).with_context(|| {
+            format!("create qualification result parent {}", result_parent.display())
+        })?;
+        fs::create_dir(&spec.result_root).with_context(|| {
+            format!("refuse to replace qualification result root {}", spec.result_root.display())
+        })?;
+    }
     let result_root =
         spec.result_root.canonicalize().context("canonicalize qualification result root")?;
-    let output_root = if contract.pipeline_schema == CONTAINER_PIPELINE_SCHEMA_V2 {
+    let output_root = if spec.schema_version == CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5 {
+        canonical_directory(&result_root.join("outputs"), "qualification output root")?
+    } else if contract.pipeline_schema == CONTAINER_PIPELINE_SCHEMA_V2 {
         let output = result_root.join("outputs");
         fs::create_dir(&output)?;
         output
@@ -326,6 +334,14 @@ fn archive_contract(source: &Path, target: &Path) -> Result<()> {
     if metadata.file_type().is_symlink() || !metadata.is_file() {
         bail!("execution contract is not a regular file: {}", source.display());
     }
+    if let Ok(target_metadata) = fs::symlink_metadata(target) {
+        if target_metadata.file_type().is_symlink() || !target_metadata.is_file() {
+            bail!("archived execution contract is not a regular file: {}", target.display());
+        }
+        if metadata.dev() == target_metadata.dev() && metadata.ino() == target_metadata.ino() {
+            return Ok(());
+        }
+    }
     fs::copy(source, target)
         .with_context(|| format!("archive execution contract {}", source.display()))?;
     Ok(())
@@ -352,4 +368,22 @@ fn apptainer_version() -> String {
 
 fn utc_now() -> String {
     bijux_dna_runtime::run_layout::now_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::archive_contract;
+
+    #[test]
+    fn archive_contract_preserves_an_already_archived_file() -> anyhow::Result<()> {
+        let root = bijux_dna_infra::temp_dir("qualification-contract-self-archive")?;
+        let contract = root.path().join("config-pipeline.yml");
+        let expected = b"schema_version: bijux.container.pipeline.v2\n";
+        std::fs::write(&contract, expected)?;
+
+        archive_contract(&contract, &contract)?;
+
+        assert_eq!(std::fs::read(contract)?, expected);
+        Ok(())
+    }
 }

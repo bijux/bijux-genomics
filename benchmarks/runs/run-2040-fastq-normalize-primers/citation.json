@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2040",
+  "run": {
+    "run_id": "run-2040",
+    "domain": "fastq",
+    "stage_id": "fastq.normalize_primers"
+  },
+  "protocol_title": "FASTQ normalize primers benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "a7ce88d16435dc6525d53447c5ae1bef5342f0171d7188b72ca21e5421fc4a75",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

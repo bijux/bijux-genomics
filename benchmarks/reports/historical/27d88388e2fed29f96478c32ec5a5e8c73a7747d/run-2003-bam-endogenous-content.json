@@ -1,0 +1,179 @@
+{
+  "schema_version": "bijux.benchmark.stage_report.v1",
+  "verdict": "passed",
+  "run_id": "run-2003",
+  "stage_id": "bam.endogenous_content",
+  "catalog_sha256": "26eb025bbbdfe8a60e4f15f0832fb911605064ce1418d57c81d61a94bb66594b",
+  "evidence_tier": "qualification",
+  "benchmark_profile_id": "bam-observational-qc",
+  "scientific_question": "What fraction of primary reads in the governed ancient horse alignment map to the declared EquCab3 reference before duplicate removal?",
+  "comparison_scope": "primary mapped-read fraction from one governed coordinate-sorted EquCab3 BAM",
+  "accuracy_claim": "mapping_derived_fraction_not_endogenous_truth",
+  "design": {
+    "runtime": "apptainer",
+    "scheduler": "slurm",
+    "container_only": true,
+    "threads_by_tool": {
+      "samtools": 4
+    },
+    "cache_policy": "warm",
+    "warmup_repetitions": 1,
+    "measured_repetitions": 3,
+    "tool_closure": [
+      "samtools"
+    ],
+    "corpus_ids": [
+      "ancient-horse-alignment-qualification"
+    ],
+    "corpus_catalog_ids": [
+      "ena-prjeb22390-err2112767-bam"
+    ],
+    "reference_catalog_ids": [
+      "equcab3-gcf-002863925.1"
+    ],
+    "database_catalog_ids": [],
+    "input_size_keys": [
+      "bam_input_bytes",
+      "bam_index_input_bytes"
+    ],
+    "result_artifact": "endogenous-content.tsv"
+  },
+  "tools": [
+    {
+      "tool": "samtools",
+      "verdict": "passed",
+      "repository_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "image": {
+        "name": "samtools-1.20-linux-amd64-21252c2a23f5.sif",
+        "sha256": "21252c2a23f5464381f5602a60eef97ee03394e4376b9c6ab5b643974a949673",
+        "size_bytes": 122384384
+      },
+      "slurm": {
+        "job_id": "3473533",
+        "host": "cn135",
+        "elapsed": "00:00:03",
+        "allocated_cpus": "4"
+      },
+      "source_evidence_sha256": "68031e091ff1bda6c5dd47dcfc47de8b9627e610ffe8b4611e849072b154bba8",
+      "input_locks": [
+        {
+          "id": "bam",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam",
+          "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+        },
+        {
+          "id": "bam_index",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam.bai",
+          "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+        },
+        {
+          "id": "corpus_catalog",
+          "kind": "data",
+          "mount_path": "/input/corpus-catalog.json",
+          "sha256": "0c90b9345d5578b91ba7f64d764dc553e81a818be75cdeee9421e5307c9ff33b"
+        },
+        {
+          "id": "corpus_data_index",
+          "kind": "data",
+          "mount_path": "/input/data-index.json",
+          "sha256": "39dc2ad25c4eb016022b14c879f0d8ff937aa050b1fcae5d84e0c73397def93c"
+        }
+      ],
+      "input_bytes": {
+        "bam": 23312078,
+        "bam_index": 3280144,
+        "total": 26592222
+      },
+      "performance": {
+        "cpu_seconds": {
+          "minimum": 0.53,
+          "maximum": 0.55,
+          "mean": 0.54,
+          "sample_standard_deviation": 0.010000000000000009
+        },
+        "input_bytes": {
+          "minimum": 26592222.0,
+          "maximum": 26592222.0,
+          "mean": 26592222.0,
+          "sample_standard_deviation": 0.0
+        },
+        "output_bytes": {
+          "minimum": 731.0,
+          "maximum": 731.0,
+          "mean": 731.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "minimum": 45948.0,
+          "maximum": 47084.0,
+          "mean": 46661.333333333336,
+          "sample_standard_deviation": 621.2803983173245
+        },
+        "wall_seconds": {
+          "minimum": 0.52,
+          "maximum": 0.62,
+          "mean": 0.5566666666666666,
+          "sample_standard_deviation": 0.05507570547286101
+        }
+      },
+      "scientific_observations": {
+        "mapped_fraction": [
+          0.996518910953,
+          0.996518910953,
+          0.996518910953
+        ],
+        "mapped_nonduplicate_primary_reads": [
+          235311.0,
+          235311.0,
+          235311.0
+        ],
+        "mapped_primary_reads": [
+          235311.0,
+          235311.0,
+          235311.0
+        ],
+        "total_primary_reads": [
+          236133.0,
+          236133.0,
+          236133.0
+        ]
+      },
+      "determinism": {
+        "artifact": "endogenous-content.tsv",
+        "sha256": "217de08cebc5759bf8f216ba15686c4fb748e50adaefcb01edc65ad6fb625d06",
+        "digest_basis": "normalized endogenous-content TSV bytes",
+        "identical_across_repetitions": true
+      }
+    }
+  ],
+  "comparability": {
+    "repository_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+    "input_lock_sha256": "e2c4b15564206e9de17af5678d56a8ad298fdb70a56a1f29f20878cc846fbd80",
+    "parameter_lock_sha256": "0c47a97c87ae62e2b7f588bbdbc4caa8d03c15ecb92dadb3c5ca7c93b3290741",
+    "stage_interface": {
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.endogenous_content.bundle.v1",
+      "normalized_result_contract": "benchmarks/contracts/schemas/bam-endogenous-content-result.schema.json",
+      "downstream_probe": {
+        "stage_id": "benchmark.bam.endogenous_content.consume",
+        "input_contract": "bijux.benchmark.bam.endogenous_content.bundle.v1",
+        "source": "benchmarks/execution/bam_endogenous_content.awk",
+        "artifact": "repetitions/repetition-1.report-qc.json"
+      }
+    }
+  },
+  "cross_tool_comparison": {
+    "status": "not_applicable",
+    "metrics": []
+  },
+  "limitations": [
+    "The result depends on the EquCab3 reference, upstream alignment parameters, and the BAM flag semantics declared by this campaign.",
+    "Mapped-read fraction does not distinguish authentic ancient horse molecules from contamination that also maps to EquCab3.",
+    "The corpus is one low-coverage ancient horse library and does not establish population-wide or protocol-wide behavior."
+  ],
+  "interpretation": "This campaign measures a reproducible primary mapped-read fraction for one BAM and one reference. It is an operational endogenous-content proxy, not biological truth about the library's endogenous DNA fraction."
+}

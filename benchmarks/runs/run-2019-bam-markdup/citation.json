@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2019",
+  "run": {
+    "run_id": "run-2019",
+    "domain": "bam",
+    "stage_id": "bam.markdup"
+  },
+  "protocol_title": "BAM markdup benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "bb33ade8b5ea282a6d879cc521b55598f35e237e44b63e2503dc8a2b98b9d331",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

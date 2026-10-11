@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.benchmark.run_publication_pointer.v1",
+  "run": {
+    "run_id": "run-2055",
+    "domain": "vcf",
+    "stage_id": "vcf.call_gl"
+  },
+  "protocol_sha256": "dbb378bc2d805fa0bc10022a599fd642daa917a9352b01c9f2a22798f03f427e",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

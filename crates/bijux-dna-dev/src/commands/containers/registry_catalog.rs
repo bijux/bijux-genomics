@@ -162,7 +162,11 @@ pub(crate) fn container_support_summary(
         .filter_map(toml::Value::as_table)
     {
         let tool_id = table_string(row, "id");
-        let disposition = table_string(row, "support_disposition");
+        let disposition = match table_string(row, "artifact_delivery").as_str() {
+            "redistributable_image" => "retained".to_string(),
+            "external_artifact" | "private_site_build" | "site_module" => "unsupported".to_string(),
+            _ => String::new(),
+        };
         if !tool_id.is_empty() {
             support.insert(tool_id, (disposition, String::new()));
         }

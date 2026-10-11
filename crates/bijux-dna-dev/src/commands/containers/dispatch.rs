@@ -199,7 +199,11 @@ pub(super) fn run_native_container_command(
             execution_contract::run_credential_reference(workspace, args)
         }
         NativeContainerCommandKey::ExternalArtifact => external_artifact::run(workspace, args),
+        NativeContainerCommandKey::GrypeDatabase => grype_database::run(workspace, args),
+        NativeContainerCommandKey::SecurityEvidence => security_evidence::run(workspace, args),
+        NativeContainerCommandKey::SecurityToolchain => security_toolchain::run(workspace, args),
         NativeContainerCommandKey::ImageActivation => image_activation::run(workspace, args),
+        NativeContainerCommandKey::ImageCampaign => image_campaign::run(workspace, args),
         NativeContainerCommandKey::ImageStorage => storage::run(workspace, args),
         NativeContainerCommandKey::PipelineContract => {
             execution_contract::run_pipeline_contract(workspace, args)
@@ -207,6 +211,10 @@ pub(super) fn run_native_container_command(
         NativeContainerCommandKey::QualificationRegistry => {
             qualification_registry::run(workspace, args)
         }
+        NativeContainerCommandKey::QualificationSpecification => {
+            qualification_specification::run(workspace, args)
+        }
+        NativeContainerCommandKey::QualificationCycle => qualification_cycle::run(workspace, args),
         NativeContainerCommandKey::QualificationSlurm => qualification_slurm::run(workspace, args),
         NativeContainerCommandKey::RepositoryFreeze => {
             site_policy::freeze_repository(workspace, args)

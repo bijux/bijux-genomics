@@ -1,0 +1,1708 @@
+{
+  "schema_version": "bijux.benchmark.run_index.v1",
+  "source_registry": {
+    "uri": "repo://benchmarks/contracts/run-registry.json",
+    "sha256": "dc1dc727b97147de1802b9bb5e616dfd4610117ab0d73504cdbbe3f21ab02630",
+    "size_bytes": 91140
+  },
+  "summary": {
+    "registered_run_count": 71,
+    "active_protocol_count": 12,
+    "reserved_protocol_count": 59,
+    "retired_protocol_count": 0,
+    "citable_publication_count": 0,
+    "unpublished_run_count": 71
+  },
+  "runs": [
+    {
+      "run_id": "run-2001",
+      "citation_key": "bijux-benchmark-run-2001",
+      "protocol_title": "BAM genotyping benchmark protocol",
+      "slug": "bam-genotyping",
+      "stage_id": "bam.genotyping",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "04a15ee8d9e52e043518df99b0f42f0825d361b1a894e6cd985756471442192d",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2001",
+      "tool_ids": [
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "bam_diversity",
+        "population_inference_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2002",
+      "citation_key": "bijux-benchmark-run-2002",
+      "protocol_title": "BAM coverage benchmark protocol",
+      "slug": "bam-coverage",
+      "stage_id": "bam.coverage",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "20491b48583657368803973d3773ad4cdb15201db356d75170538b480e7f390b",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2002",
+      "tool_ids": [
+        "bedtools",
+        "mosdepth",
+        "samtools"
+      ],
+      "corpus_roles": [
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2003",
+      "citation_key": "bijux-benchmark-run-2003",
+      "protocol_title": "BAM endogenous content benchmark protocol",
+      "slug": "bam-endogenous-content",
+      "stage_id": "bam.endogenous_content",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "846580c8637ff3495585410a7d6b38379a45ffc74696c3dc4113505756c38a48",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2003",
+      "tool_ids": [
+        "samtools"
+      ],
+      "corpus_roles": [
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2004",
+      "citation_key": "bijux-benchmark-run-2004",
+      "protocol_title": "BAM mapping summary benchmark protocol",
+      "slug": "bam-mapping-summary",
+      "stage_id": "bam.mapping_summary",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "bc88a25ce32b489f6eb18d2329b9c2a3d0ead1bd3fcd0d6ce4db8cb6be2e1449",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2004",
+      "tool_ids": [
+        "picard",
+        "samtools"
+      ],
+      "corpus_roles": [
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2005",
+      "citation_key": "bijux-benchmark-run-2005",
+      "protocol_title": "BAM align benchmark protocol",
+      "slug": "bam-align",
+      "stage_id": "bam.align",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "1bbabe4f141f0a717ef1333909f0552e7bdd803d8dc725adc6a6cc8ee4e82221",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2005",
+      "tool_ids": [
+        "bowtie2",
+        "bwa"
+      ],
+      "corpus_roles": [
+        "alignment_truth"
+      ],
+      "acceptance_policy_id": "bam-alignment-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2006",
+      "citation_key": "bijux-benchmark-run-2006",
+      "protocol_title": "BAM authenticity benchmark protocol",
+      "slug": "bam-authenticity",
+      "stage_id": "bam.authenticity",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "0e209f17cbe4152c5b80d51ad1b2b3af8adda3d6a3ac498771ff2537628489df",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2006",
+      "tool_ids": [
+        "authenticct",
+        "damageprofiler",
+        "pmdtools"
+      ],
+      "corpus_roles": [
+        "ancient_damage_truth",
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-ancient-authentication-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2007",
+      "citation_key": "bijux-benchmark-run-2007",
+      "protocol_title": "BAM bias mitigation benchmark protocol",
+      "slug": "bam-bias-mitigation",
+      "stage_id": "bam.bias_mitigation",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "2acb689e492c2bb5cbaf078b19903751552a65958f619f712715703a5fe89033",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2007",
+      "tool_ids": [
+        "mapdamage2"
+      ],
+      "corpus_roles": [
+        "alignment_truth",
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2008",
+      "citation_key": "bijux-benchmark-run-2008",
+      "protocol_title": "BAM complexity benchmark protocol",
+      "slug": "bam-complexity",
+      "stage_id": "bam.complexity",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "603acb76c52d18b3a875741a2c1aa86d8879df63fcbc8c548bc68b71be0c9d4f",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2008",
+      "tool_ids": [
+        "preseq"
+      ],
+      "corpus_roles": [
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2009",
+      "citation_key": "bijux-benchmark-run-2009",
+      "protocol_title": "BAM contamination benchmark protocol",
+      "slug": "bam-contamination",
+      "stage_id": "bam.contamination",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "3be6fdaf945f2f212b8c4e676b3d5e8fe91bc095886e01aa6e8c57119564968c",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2009",
+      "tool_ids": [
+        "contammix",
+        "schmutzi",
+        "verifybamid2"
+      ],
+      "corpus_roles": [
+        "bam_diversity",
+        "population_inference_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2010",
+      "citation_key": "bijux-benchmark-run-2010",
+      "protocol_title": "BAM damage benchmark protocol",
+      "slug": "bam-damage",
+      "stage_id": "bam.damage",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "eca6943f570905aacc7c06f79df23e7e9fcd1d6406eb99ab057f850c56048d57",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2010",
+      "tool_ids": [
+        "addeam",
+        "damageprofiler",
+        "mapdamage2",
+        "ngsbriggs",
+        "pmdtools",
+        "pydamage"
+      ],
+      "corpus_roles": [
+        "ancient_damage_truth",
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-ancient-authentication-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2011",
+      "citation_key": "bijux-benchmark-run-2011",
+      "protocol_title": "BAM duplication metrics benchmark protocol",
+      "slug": "bam-duplication-metrics",
+      "stage_id": "bam.duplication_metrics",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "c922130bb6edc53689fc24be471bfa661da232a7f5be9976c919e4a822f56a48",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2011",
+      "tool_ids": [
+        "picard",
+        "samtools"
+      ],
+      "corpus_roles": [
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2012",
+      "citation_key": "bijux-benchmark-run-2012",
+      "protocol_title": "BAM filter benchmark protocol",
+      "slug": "bam-filter",
+      "stage_id": "bam.filter",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "406569e74fbd08d00196ce06796da88d367b26fcc673f65a3c82d2f3fb8fcf33",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2012",
+      "tool_ids": [
+        "bamtools",
+        "bedtools",
+        "samtools"
+      ],
+      "corpus_roles": [
+        "alignment_truth",
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2013",
+      "citation_key": "bijux-benchmark-run-2013",
+      "protocol_title": "BAM gc bias benchmark protocol",
+      "slug": "bam-gc-bias",
+      "stage_id": "bam.gc_bias",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "0683173158b2e47d8dc8268c0aa37bfdbb069948b79455958c0d8ac5c5b3ca2d",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2013",
+      "tool_ids": [
+        "picard"
+      ],
+      "corpus_roles": [
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2014",
+      "citation_key": "bijux-benchmark-run-2014",
+      "protocol_title": "BAM haplogroups benchmark protocol",
+      "slug": "bam-haplogroups",
+      "stage_id": "bam.haplogroups",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "f0d0d8272fd72372b8d1feba0672a7e6e2922ea2422c498294a477e8ae009295",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2014",
+      "tool_ids": [
+        "yleaf"
+      ],
+      "corpus_roles": [
+        "bam_diversity",
+        "population_inference_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2015",
+      "citation_key": "bijux-benchmark-run-2015",
+      "protocol_title": "BAM insert size benchmark protocol",
+      "slug": "bam-insert-size",
+      "stage_id": "bam.insert_size",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "861f3b8e5a161d7ec614769667f517e7ff747f4ee81b6265371c32aefb71d02c",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2015",
+      "tool_ids": [
+        "picard"
+      ],
+      "corpus_roles": [
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2016",
+      "citation_key": "bijux-benchmark-run-2016",
+      "protocol_title": "BAM kinship benchmark protocol",
+      "slug": "bam-kinship",
+      "stage_id": "bam.kinship",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "26de956e8cd4eff30f9b0859f0d47ba32d81832309d983fbdf9aa6c287ef6873",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2016",
+      "tool_ids": [
+        "angsd",
+        "king"
+      ],
+      "corpus_roles": [
+        "bam_diversity",
+        "population_inference_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2017",
+      "citation_key": "bijux-benchmark-run-2017",
+      "protocol_title": "BAM length filter benchmark protocol",
+      "slug": "bam-length-filter",
+      "stage_id": "bam.length_filter",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "fa4985cf3496606faf7a096bac8662f3a97a6b3e4ac905c3b1ff430cf9c35df5",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2017",
+      "tool_ids": [
+        "picard",
+        "samtools"
+      ],
+      "corpus_roles": [
+        "alignment_truth",
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2018",
+      "citation_key": "bijux-benchmark-run-2018",
+      "protocol_title": "BAM mapq filter benchmark protocol",
+      "slug": "bam-mapq-filter",
+      "stage_id": "bam.mapq_filter",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "a4f7fa95a8a9e5612c544dab880331069b888bbf087e40491a98fc2715a5aeae",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2018",
+      "tool_ids": [
+        "bamtools",
+        "samtools"
+      ],
+      "corpus_roles": [
+        "alignment_truth",
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2019",
+      "citation_key": "bijux-benchmark-run-2019",
+      "protocol_title": "BAM markdup benchmark protocol",
+      "slug": "bam-markdup",
+      "stage_id": "bam.markdup",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "bb33ade8b5ea282a6d879cc521b55598f35e237e44b63e2503dc8a2b98b9d331",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2019",
+      "tool_ids": [
+        "picard",
+        "samtools"
+      ],
+      "corpus_roles": [
+        "alignment_truth",
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2020",
+      "citation_key": "bijux-benchmark-run-2020",
+      "protocol_title": "BAM overlap correction benchmark protocol",
+      "slug": "bam-overlap-correction",
+      "stage_id": "bam.overlap_correction",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "799e2dd86d76e4f1b40d9b327dcd7da82b1596ad0d691d444e10a31c44462ed6",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2020",
+      "tool_ids": [
+        "bamutil"
+      ],
+      "corpus_roles": [
+        "alignment_truth",
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2021",
+      "citation_key": "bijux-benchmark-run-2021",
+      "protocol_title": "BAM qc pre benchmark protocol",
+      "slug": "bam-qc-pre",
+      "stage_id": "bam.qc_pre",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "9887bca59201688645dfb5cd9af93810f803880df6690dc611b1c6c913b1162a",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2021",
+      "tool_ids": [
+        "multiqc",
+        "samtools"
+      ],
+      "corpus_roles": [
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2022",
+      "citation_key": "bijux-benchmark-run-2022",
+      "protocol_title": "BAM recalibration benchmark protocol",
+      "slug": "bam-recalibration",
+      "stage_id": "bam.recalibration",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "3eaf587f62722222e069e623cf0d19dc01af55318591cab7831deb2ecdf7eab2",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2022",
+      "tool_ids": [
+        "gatk"
+      ],
+      "corpus_roles": [
+        "alignment_truth",
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2023",
+      "citation_key": "bijux-benchmark-run-2023",
+      "protocol_title": "BAM sex benchmark protocol",
+      "slug": "bam-sex",
+      "stage_id": "bam.sex",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "8916fe6775eb86dbfca1eaa0fef8356650502ffdac370a082e9ca86d08119371",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2023",
+      "tool_ids": [
+        "angsd",
+        "rxy",
+        "yleaf"
+      ],
+      "corpus_roles": [
+        "bam_diversity",
+        "population_inference_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2024",
+      "citation_key": "bijux-benchmark-run-2024",
+      "protocol_title": "BAM validate benchmark protocol",
+      "slug": "bam-validate",
+      "stage_id": "bam.validate",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "ed9227d4b83a50fd5aaad7cd9b31703c5438ae92537d8c94f1ace39f27856307",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2024",
+      "tool_ids": [
+        "bamtools",
+        "bedtools",
+        "samtools"
+      ],
+      "corpus_roles": [
+        "bam_diversity"
+      ],
+      "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2025",
+      "citation_key": "bijux-benchmark-run-2025",
+      "protocol_title": "FASTQ cluster otus benchmark protocol",
+      "slug": "fastq-cluster-otus",
+      "stage_id": "fastq.cluster_otus",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "89990090aa664a645ae92ac47291574686cd8f32b28b72e172f64a76825c4605",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2025",
+      "tool_ids": [
+        "vsearch"
+      ],
+      "corpus_roles": [
+        "amplicon_truth"
+      ],
+      "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2026",
+      "citation_key": "bijux-benchmark-run-2026",
+      "protocol_title": "FASTQ correct errors benchmark protocol",
+      "slug": "fastq-correct-errors",
+      "stage_id": "fastq.correct_errors",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "08149f31f19963e798a7f70f0c6807c650da84f235612c3437012871e5601045",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2026",
+      "tool_ids": [
+        "bayeshammer",
+        "lighter",
+        "musket",
+        "rcorrector"
+      ],
+      "corpus_roles": [
+        "read_processing_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2027",
+      "citation_key": "bijux-benchmark-run-2027",
+      "protocol_title": "FASTQ deplete host benchmark protocol",
+      "slug": "fastq-deplete-host",
+      "stage_id": "fastq.deplete_host",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "410d490164a3030f2f645d6bab9c09be70410c54609bb824a2bff8121424a925",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2027",
+      "tool_ids": [
+        "bowtie2"
+      ],
+      "corpus_roles": [
+        "environmental_taxonomy_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-depletion-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2028",
+      "citation_key": "bijux-benchmark-run-2028",
+      "protocol_title": "FASTQ deplete reference contaminants benchmark protocol",
+      "slug": "fastq-deplete-reference-contaminants",
+      "stage_id": "fastq.deplete_reference_contaminants",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "6e78c7d2a99b793e16c25edc55dbd32afb85f087b3def08ca11ee2d77b897015",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2028",
+      "tool_ids": [
+        "bowtie2"
+      ],
+      "corpus_roles": [
+        "environmental_taxonomy_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-depletion-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2029",
+      "citation_key": "bijux-benchmark-run-2029",
+      "protocol_title": "FASTQ deplete rrna benchmark protocol",
+      "slug": "fastq-deplete-rrna",
+      "stage_id": "fastq.deplete_rrna",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "bdd14bd0b563d656368f2986cb1638470a8b1b085d1c456daa1fa28d6bc2b6c4",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2029",
+      "tool_ids": [
+        "sortmerna"
+      ],
+      "corpus_roles": [
+        "environmental_taxonomy_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-depletion-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2030",
+      "citation_key": "bijux-benchmark-run-2030",
+      "protocol_title": "FASTQ detect adapters benchmark protocol",
+      "slug": "fastq-detect-adapters",
+      "stage_id": "fastq.detect_adapters",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "3d080eb36305a023c3dc9274d9922af968ee524c3583e36f56ab2803d9312de3",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2030",
+      "tool_ids": [
+        "fastqc"
+      ],
+      "corpus_roles": [
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2031",
+      "citation_key": "bijux-benchmark-run-2031",
+      "protocol_title": "FASTQ detect duplicates premerge benchmark protocol",
+      "slug": "fastq-detect-duplicates-premerge",
+      "stage_id": "fastq.detect_duplicates_premerge",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "e835707d6e023e7557cc0f1d668f791e46a3bd3e9f9487ffffb12887fc547597",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2031",
+      "tool_ids": [
+        "bijux_dna"
+      ],
+      "corpus_roles": [
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2032",
+      "citation_key": "bijux-benchmark-run-2032",
+      "protocol_title": "FASTQ estimate library complexity prealign benchmark protocol",
+      "slug": "fastq-estimate-library-complexity-prealign",
+      "stage_id": "fastq.estimate_library_complexity_prealign",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "ee02926496986a2ae8c50741ec1c1cc57f78b121b1be44d01778b22d9fe6a73f",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2032",
+      "tool_ids": [
+        "bijux_dna"
+      ],
+      "corpus_roles": [
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2033",
+      "citation_key": "bijux-benchmark-run-2033",
+      "protocol_title": "FASTQ extract umis benchmark protocol",
+      "slug": "fastq-extract-umis",
+      "stage_id": "fastq.extract_umis",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "d27a63078413838b85928ab8d0f5d16b12294f64f1ff94a01c58cc7658d58c2d",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2033",
+      "tool_ids": [
+        "umi_tools"
+      ],
+      "corpus_roles": [
+        "read_processing_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2034",
+      "citation_key": "bijux-benchmark-run-2034",
+      "protocol_title": "FASTQ filter low complexity benchmark protocol",
+      "slug": "fastq-filter-low-complexity",
+      "stage_id": "fastq.filter_low_complexity",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "6d9efe602e574a79ab44f9a106ed58c3fd3a1d2c472c3d87b0308a3ff55c4c68",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2034",
+      "tool_ids": [
+        "bbduk",
+        "fastp",
+        "prinseq"
+      ],
+      "corpus_roles": [
+        "read_processing_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2035",
+      "citation_key": "bijux-benchmark-run-2035",
+      "protocol_title": "FASTQ filter reads benchmark protocol",
+      "slug": "fastq-filter-reads",
+      "stage_id": "fastq.filter_reads",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "60951e0697144788b3c68dbfa632b87114030d1c075b161500571ed05f554e32",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2035",
+      "tool_ids": [
+        "bbduk",
+        "fastp",
+        "prinseq",
+        "seqkit"
+      ],
+      "corpus_roles": [
+        "read_processing_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2036",
+      "citation_key": "bijux-benchmark-run-2036",
+      "protocol_title": "FASTQ index reference benchmark protocol",
+      "slug": "fastq-index-reference",
+      "stage_id": "fastq.index_reference",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "dd4012dae167fa33c9bb9ff137de36949acf4fd5dd09fa6bf739ee054380539a",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2036",
+      "tool_ids": [
+        "bowtie2_build",
+        "star"
+      ],
+      "corpus_roles": [
+        "alignment_truth"
+      ],
+      "acceptance_policy_id": "reference-index-build-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2037",
+      "citation_key": "bijux-benchmark-run-2037",
+      "protocol_title": "FASTQ infer asvs benchmark protocol",
+      "slug": "fastq-infer-asvs",
+      "stage_id": "fastq.infer_asvs",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "a293b6289faa2428801c3deda52dc68ae710bd6fdda2038ecb1040b3d3601f98",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2037",
+      "tool_ids": [
+        "dada2"
+      ],
+      "corpus_roles": [
+        "amplicon_truth"
+      ],
+      "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2038",
+      "citation_key": "bijux-benchmark-run-2038",
+      "protocol_title": "FASTQ merge pairs benchmark protocol",
+      "slug": "fastq-merge-pairs",
+      "stage_id": "fastq.merge_pairs",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "d141fc4c7e120539841977ebddf272e49c93372732fff0da681d37106c7c67c0",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2038",
+      "tool_ids": [
+        "adapterremoval",
+        "bbmerge",
+        "flash2",
+        "leehom",
+        "pear",
+        "seqprep",
+        "vsearch"
+      ],
+      "corpus_roles": [
+        "read_processing_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2039",
+      "citation_key": "bijux-benchmark-run-2039",
+      "protocol_title": "FASTQ normalize abundance benchmark protocol",
+      "slug": "fastq-normalize-abundance",
+      "stage_id": "fastq.normalize_abundance",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "45c4394304bddf66afe01f1986b8b6d63db28329fedb7322db029bb5c84ca122",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2039",
+      "tool_ids": [
+        "seqkit"
+      ],
+      "corpus_roles": [
+        "amplicon_truth"
+      ],
+      "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2040",
+      "citation_key": "bijux-benchmark-run-2040",
+      "protocol_title": "FASTQ normalize primers benchmark protocol",
+      "slug": "fastq-normalize-primers",
+      "stage_id": "fastq.normalize_primers",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "a7ce88d16435dc6525d53447c5ae1bef5342f0171d7188b72ca21e5421fc4a75",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2040",
+      "tool_ids": [
+        "cutadapt"
+      ],
+      "corpus_roles": [
+        "read_processing_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2041",
+      "citation_key": "bijux-benchmark-run-2041",
+      "protocol_title": "FASTQ profile overrepresented sequences benchmark protocol",
+      "slug": "fastq-profile-overrepresented-sequences",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "49f40518dc0b445178e4f11da02b7525e2fe24150b5273631ebba48fb32e1b9a",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2041",
+      "tool_ids": [
+        "fastq_scan",
+        "fastqc",
+        "seqkit"
+      ],
+      "corpus_roles": [
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2042",
+      "citation_key": "bijux-benchmark-run-2042",
+      "protocol_title": "FASTQ profile read lengths benchmark protocol",
+      "slug": "fastq-profile-read-lengths",
+      "stage_id": "fastq.profile_read_lengths",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "0a26dba2a05494983199517d323be9bad0f6bb56354b2da71f65b202123f53ff",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2042",
+      "tool_ids": [
+        "seqfu",
+        "seqkit"
+      ],
+      "corpus_roles": [
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2043",
+      "citation_key": "bijux-benchmark-run-2043",
+      "protocol_title": "FASTQ profile reads benchmark protocol",
+      "slug": "fastq-profile-reads",
+      "stage_id": "fastq.profile_reads",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "0e8e8e09131f489b2d2058a76db86c2e3f3bc6b70753dafbaed4d9b366a0ff07",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2043",
+      "tool_ids": [
+        "seqfu",
+        "seqkit",
+        "seqkit_stats"
+      ],
+      "corpus_roles": [
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2044",
+      "citation_key": "bijux-benchmark-run-2044",
+      "protocol_title": "FASTQ remove chimeras benchmark protocol",
+      "slug": "fastq-remove-chimeras",
+      "stage_id": "fastq.remove_chimeras",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "efe8ac839c4763b676ca030c82b4b93ec8ff1f89828af4f94b19b8c601ffe03e",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2044",
+      "tool_ids": [
+        "vsearch"
+      ],
+      "corpus_roles": [
+        "amplicon_truth"
+      ],
+      "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2045",
+      "citation_key": "bijux-benchmark-run-2045",
+      "protocol_title": "FASTQ remove duplicates benchmark protocol",
+      "slug": "fastq-remove-duplicates",
+      "stage_id": "fastq.remove_duplicates",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "707799960105831b0a1f5efaf3c08f9cd828bfee22d3d576e8cdbbd4ebc64cde",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2045",
+      "tool_ids": [
+        "clumpify",
+        "fastuniq"
+      ],
+      "corpus_roles": [
+        "read_processing_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2046",
+      "citation_key": "bijux-benchmark-run-2046",
+      "protocol_title": "FASTQ report qc benchmark protocol",
+      "slug": "fastq-report-qc",
+      "stage_id": "fastq.report_qc",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "10b6846e7f0b1fb4d27fb66b15ed7bd953af0ebe9f8f831f1403940bdfebe58d",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2046",
+      "tool_ids": [
+        "multiqc"
+      ],
+      "corpus_roles": [
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2047",
+      "citation_key": "bijux-benchmark-run-2047",
+      "protocol_title": "FASTQ screen taxonomy benchmark protocol",
+      "slug": "fastq-screen-taxonomy",
+      "stage_id": "fastq.screen_taxonomy",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "0e976f6b69fbef89b0f2244a94a805ced2b4068daee9accb5387b3a151151d15",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2047",
+      "tool_ids": [
+        "centrifuge",
+        "kaiju",
+        "kraken2",
+        "krakenuniq"
+      ],
+      "corpus_roles": [
+        "environmental_taxonomy_truth"
+      ],
+      "acceptance_policy_id": "fastq-taxonomy-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2048",
+      "citation_key": "bijux-benchmark-run-2048",
+      "protocol_title": "FASTQ trim polyg tails benchmark protocol",
+      "slug": "fastq-trim-polyg-tails",
+      "stage_id": "fastq.trim_polyg_tails",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "0da0b6ab81d22ec301320808c86a6578441c752e1dea0ffc319d7b2b75402d21",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2048",
+      "tool_ids": [
+        "bbduk",
+        "fastp"
+      ],
+      "corpus_roles": [
+        "read_processing_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2049",
+      "citation_key": "bijux-benchmark-run-2049",
+      "protocol_title": "FASTQ trim reads benchmark protocol",
+      "slug": "fastq-trim-reads",
+      "stage_id": "fastq.trim_reads",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "5c1447ed13d8a506afca87e855c1b111901572ef7a40a0650e690e557fa83726",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2049",
+      "tool_ids": [
+        "adapterremoval",
+        "alientrimmer",
+        "atropos",
+        "bbduk",
+        "cutadapt",
+        "fastp",
+        "fastx_clipper",
+        "leehom",
+        "prinseq",
+        "seqkit",
+        "seqprep",
+        "skewer",
+        "trim_galore",
+        "trimmomatic"
+      ],
+      "corpus_roles": [
+        "read_processing_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2050",
+      "citation_key": "bijux-benchmark-run-2050",
+      "protocol_title": "FASTQ trim terminal damage benchmark protocol",
+      "slug": "fastq-trim-terminal-damage",
+      "stage_id": "fastq.trim_terminal_damage",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "e4d026046fc0c44c47784bc57476614d5c50834b6191aced9a33e1b005103f43",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2050",
+      "tool_ids": [
+        "adapterremoval",
+        "cutadapt",
+        "seqkit"
+      ],
+      "corpus_roles": [
+        "read_processing_truth",
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2051",
+      "citation_key": "bijux-benchmark-run-2051",
+      "protocol_title": "FASTQ validate reads benchmark protocol",
+      "slug": "fastq-validate-reads",
+      "stage_id": "fastq.validate_reads",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "active",
+      "protocol_sha256": "8c7ebd7825e6299a8c30f3c595c88f1ce87c919ebf47904f839ebe8aa3382023",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2051",
+      "tool_ids": [
+        "fastq_scan",
+        "fastqc",
+        "fastqvalidator",
+        "fqtools",
+        "seqtk"
+      ],
+      "corpus_roles": [
+        "short_read_diversity"
+      ],
+      "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
+      "limitations": [
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
+      ]
+    },
+    {
+      "run_id": "run-2052",
+      "citation_key": "bijux-benchmark-run-2052",
+      "protocol_title": "VCF admixture benchmark protocol",
+      "slug": "vcf-admixture",
+      "stage_id": "vcf.admixture",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "e307c02bf6ed7a45f6f67ba16a26505612fb0f1171c77c988f7a301888ff6c90",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2052",
+      "tool_ids": [
+        "plink",
+        "plink2"
+      ],
+      "corpus_roles": [
+        "ancient_population_diversity",
+        "population_inference_truth"
+      ],
+      "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2053",
+      "citation_key": "bijux-benchmark-run-2053",
+      "protocol_title": "VCF call benchmark protocol",
+      "slug": "vcf-call",
+      "stage_id": "vcf.call",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "6b4eb347189319fb803e6ebcac894c43d99097b2f3910e9e34bc5300216a4562",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2053",
+      "tool_ids": [
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "ancient_damage_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-calling-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2054",
+      "citation_key": "bijux-benchmark-run-2054",
+      "protocol_title": "VCF call diploid benchmark protocol",
+      "slug": "vcf-call-diploid",
+      "stage_id": "vcf.call_diploid",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "8eb94ded6686b1bbd9e143335e35117a5b4f3c0a6bfe069c36bb3b1f86549ba7",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2054",
+      "tool_ids": [
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "ancient_damage_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-calling-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2055",
+      "citation_key": "bijux-benchmark-run-2055",
+      "protocol_title": "VCF call gl benchmark protocol",
+      "slug": "vcf-call-gl",
+      "stage_id": "vcf.call_gl",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "dbb378bc2d805fa0bc10022a599fd642daa917a9352b01c9f2a22798f03f427e",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2055",
+      "tool_ids": [
+        "angsd",
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "ancient_damage_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-calling-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2056",
+      "citation_key": "bijux-benchmark-run-2056",
+      "protocol_title": "VCF call pseudohaploid benchmark protocol",
+      "slug": "vcf-call-pseudohaploid",
+      "stage_id": "vcf.call_pseudohaploid",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "2728b101acd34768b60b0788fe06285b5a90b8a154fb08cd936fb6aa928ef04e",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2056",
+      "tool_ids": [
+        "angsd",
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "ancient_damage_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-calling-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2057",
+      "citation_key": "bijux-benchmark-run-2057",
+      "protocol_title": "VCF damage filter benchmark protocol",
+      "slug": "vcf-damage-filter",
+      "stage_id": "vcf.damage_filter",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "4b11e4324d49f343c60c5eaeea1c3ea697c065c494d5297dc1f637c64c3b7dc7",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2057",
+      "tool_ids": [
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "masked_genotype_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2058",
+      "citation_key": "bijux-benchmark-run-2058",
+      "protocol_title": "VCF demography benchmark protocol",
+      "slug": "vcf-demography",
+      "stage_id": "vcf.demography",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "b82b4d7f7c1a8164ec20f7e4a8607e202eed0d3dd96ad5a9be170bf01cc3dc1e",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2058",
+      "tool_ids": [
+        "ibdne"
+      ],
+      "corpus_roles": [
+        "ancient_population_diversity",
+        "population_inference_truth"
+      ],
+      "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2059",
+      "citation_key": "bijux-benchmark-run-2059",
+      "protocol_title": "VCF filter benchmark protocol",
+      "slug": "vcf-filter",
+      "stage_id": "vcf.filter",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "50667a4179fbc8e32ac026f5ab0207235a3146bfdedda535a418de724aef80e6",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2059",
+      "tool_ids": [
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "masked_genotype_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2060",
+      "citation_key": "bijux-benchmark-run-2060",
+      "protocol_title": "VCF gl propagation benchmark protocol",
+      "slug": "vcf-gl-propagation",
+      "stage_id": "vcf.gl_propagation",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "8c0ea185bd91debf9def81eefedffc100a75b88fc9c00316e53089879810b990",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2060",
+      "tool_ids": [
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "masked_genotype_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2061",
+      "citation_key": "bijux-benchmark-run-2061",
+      "protocol_title": "VCF ibd benchmark protocol",
+      "slug": "vcf-ibd",
+      "stage_id": "vcf.ibd",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "6bd6208c8febc80e5551e25315526650a0859b3f81ccb725afa9b4f927979e9f",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2061",
+      "tool_ids": [
+        "germline",
+        "ibdhap",
+        "ibdseq"
+      ],
+      "corpus_roles": [
+        "ancient_population_diversity",
+        "population_inference_truth"
+      ],
+      "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2062",
+      "citation_key": "bijux-benchmark-run-2062",
+      "protocol_title": "VCF imputation metrics benchmark protocol",
+      "slug": "vcf-imputation-metrics",
+      "stage_id": "vcf.imputation_metrics",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "f31fd2dbd4cf879922fa6dda43765131755bf0ba7acd5f1a1e123d490ae4e83c",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2062",
+      "tool_ids": [
+        "beagle",
+        "glimpse",
+        "impute5",
+        "minimac4"
+      ],
+      "corpus_roles": [
+        "masked_genotype_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-phasing-imputation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2063",
+      "citation_key": "bijux-benchmark-run-2063",
+      "protocol_title": "VCF impute benchmark protocol",
+      "slug": "vcf-impute",
+      "stage_id": "vcf.impute",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "681d1b4e432099bb0ae5da266115b978e610fbe0f76357d3f1fac327cf2adce4",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2063",
+      "tool_ids": [
+        "beagle",
+        "glimpse",
+        "impute5",
+        "minimac4"
+      ],
+      "corpus_roles": [
+        "masked_genotype_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-phasing-imputation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2064",
+      "citation_key": "bijux-benchmark-run-2064",
+      "protocol_title": "VCF pca benchmark protocol",
+      "slug": "vcf-pca",
+      "stage_id": "vcf.pca",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "0a615ff830e0b9f0774f781f738ce098859ef82d398861dfc057bea9cffc741c",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2064",
+      "tool_ids": [
+        "eigensoft",
+        "plink2"
+      ],
+      "corpus_roles": [
+        "ancient_population_diversity",
+        "population_inference_truth"
+      ],
+      "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2065",
+      "citation_key": "bijux-benchmark-run-2065",
+      "protocol_title": "VCF phasing benchmark protocol",
+      "slug": "vcf-phasing",
+      "stage_id": "vcf.phasing",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "0f702a1caca43264fe3d922a0a991678ed60d8fb14560e274b2c8f3e72de88af",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2065",
+      "tool_ids": [
+        "beagle",
+        "eagle",
+        "shapeit",
+        "shapeit5"
+      ],
+      "corpus_roles": [
+        "masked_genotype_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-phasing-imputation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2066",
+      "citation_key": "bijux-benchmark-run-2066",
+      "protocol_title": "VCF population structure benchmark protocol",
+      "slug": "vcf-population-structure",
+      "stage_id": "vcf.population_structure",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "9a3534c3124b249454c0cafd42f4d8376b74bde9ee5ff1449ebee0a0e415ba50",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2066",
+      "tool_ids": [
+        "eigensoft",
+        "plink",
+        "plink2"
+      ],
+      "corpus_roles": [
+        "ancient_population_diversity",
+        "population_inference_truth"
+      ],
+      "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2067",
+      "citation_key": "bijux-benchmark-run-2067",
+      "protocol_title": "VCF postprocess benchmark protocol",
+      "slug": "vcf-postprocess",
+      "stage_id": "vcf.postprocess",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "920e55e34eca8f851abf5f4e049755df518312f7d981f400a73cca4c0743d272",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2067",
+      "tool_ids": [
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "masked_genotype_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2068",
+      "citation_key": "bijux-benchmark-run-2068",
+      "protocol_title": "VCF prepare reference panel benchmark protocol",
+      "slug": "vcf-prepare-reference-panel",
+      "stage_id": "vcf.prepare_reference_panel",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "a7c400841c44fe74882125cbfde569aab56d1df6dedc677ecfec04995523d990",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2068",
+      "tool_ids": [
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "masked_genotype_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2069",
+      "citation_key": "bijux-benchmark-run-2069",
+      "protocol_title": "VCF qc benchmark protocol",
+      "slug": "vcf-qc",
+      "stage_id": "vcf.qc",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "03d50b9123ecbedaca70d5f16ea9b4e9234696fddf14f4867f07ff4a210a2fba",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2069",
+      "tool_ids": [
+        "bcftools",
+        "plink",
+        "plink2"
+      ],
+      "corpus_roles": [
+        "masked_genotype_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2070",
+      "citation_key": "bijux-benchmark-run-2070",
+      "protocol_title": "VCF roh benchmark protocol",
+      "slug": "vcf-roh",
+      "stage_id": "vcf.roh",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "33d8cf8477f3b2675257df40c76c730956d20173c7f01bf1b8a0239690f70b89",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2070",
+      "tool_ids": [
+        "plink2"
+      ],
+      "corpus_roles": [
+        "ancient_population_diversity",
+        "population_inference_truth"
+      ],
+      "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    },
+    {
+      "run_id": "run-2071",
+      "citation_key": "bijux-benchmark-run-2071",
+      "protocol_title": "VCF stats benchmark protocol",
+      "slug": "vcf-stats",
+      "stage_id": "vcf.stats",
+      "owner": "bijux-dna-bench",
+      "protocol_state": "reserved",
+      "protocol_sha256": "0bb8df907d17d0e2c701e2036eedad46080790192e414e730c23aaf23b63d985",
+      "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2071",
+      "tool_ids": [
+        "bcftools"
+      ],
+      "corpus_roles": [
+        "masked_genotype_truth",
+        "variant_truth"
+      ],
+      "acceptance_policy_id": "vcf-transformation-acceptance-v1",
+      "limitations": [
+        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+        "The protocol is reserved and has no selected publication."
+      ]
+    }
+  ]
+}

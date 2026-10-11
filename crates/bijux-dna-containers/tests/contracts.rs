@@ -41,5 +41,11 @@ mod mod_contracts_result_layout_rs;
 mod mod_contracts_run_evidence_rs;
 #[path = "contracts/run_shell_capture.rs"]
 mod mod_contracts_run_shell_capture_rs;
+#[path = "contracts/security_database.rs"]
+mod mod_contracts_security_database_rs;
+#[path = "contracts/security_probe.rs"]
+mod mod_contracts_security_probe_rs;
+#[path = "contracts/security_toolchain.rs"]
+mod mod_contracts_security_toolchain_rs;
 #[path = "contracts/tool_contract.rs"]
 mod mod_contracts_tool_contract_rs;

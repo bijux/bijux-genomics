@@ -13,12 +13,12 @@ use super::contracts::{
     ContainerQualificationPreparationRequest, ContainerQualificationSlurmSpec,
     ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
     HistoricalContainerQualificationReplaySource, PreparedContainerQualificationSlurmJob,
-    CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3,
-    CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4,
+    CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1, CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
 };
 use super::validation::{
-    canonical_directory, derive_historical_replay_identity, derive_identity, ensure_json_identity,
-    require_exact_file, require_utc_timestamp, validate_specification, QualificationIdentity,
+    canonical_directory, canonical_governed_directory, derive_historical_replay_identity,
+    derive_identity, ensure_json_identity, require_exact_file, require_utc_timestamp,
+    validate_specification, QualificationIdentity,
 };
 use crate::backend::slurm::{SlurmDependencyCondition, SlurmSubmitRequest};
 
@@ -77,7 +77,8 @@ fn prepare(
     }
     let executor_program_sha256 = bijux_dna_infra::hash_file_sha256(&executor_program_path)?;
     require_exact_file(&executor_program_path, &executor_program_sha256, "executor program")?;
-    let evidence_root = ensure_evidence_root(&identity.evidence_root)?;
+    let governance = load_container_governance(&request.governance_path)?;
+    let evidence_root = ensure_current_attempt_layout(&governance, &identity, &request.attempt_id)?;
     let governance_path = archive_contract(
         &request.governance_path,
         &evidence_root.join("config-governance.yml"),
@@ -100,11 +101,12 @@ fn prepare(
     let credential_reference_sha256 =
         bijux_dna_infra::hash_file_sha256(&credential_reference_path)?;
     let spec = ContainerQualificationSlurmSpec {
-        schema_version: CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4.to_string(),
+        schema_version: CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5.to_string(),
         submission_kind,
         historical_replay_source,
         run_id: identity.run_id,
         tool_id: identity.tool_id,
+        campaign_id: Some(identity.campaign_id),
         attempt_id: Some(request.attempt_id.clone()),
         job_name: identity.job_name,
         hostname: request.hostname.clone(),
@@ -118,8 +120,6 @@ fn prepare(
         credential_reference_sha256,
         executor_program_path,
         executor_program_sha256,
-        executor_script_path: None,
-        executor_script_sha256: None,
         result_root: identity.result_root,
         evidence_root,
         resources: identity.resources,
@@ -167,12 +167,14 @@ fn derive_preparation_identity(
             source,
             &request.pipeline_path,
             Some(&request.attempt_id),
+            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
         ),
         None => derive_identity(
             &request.hostname,
             &request.governance_path,
             &request.pipeline_path,
             Some(&request.attempt_id),
+            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V5,
         ),
     }
 }
@@ -216,17 +218,7 @@ fn render_script(
         .scratch_mb
         .checked_mul(1024)
         .context("qualification scratch requirement overflow")?;
-    let command = qualification_command(spec)?;
-    let executor_script_declaration = spec
-        .executor_script_path
-        .as_ref()
-        .map_or_else(String::new, |path| format!("readonly EXECUTOR_SCRIPT={}", shell_quote(path)));
-    let executor_script_hash_check =
-        match (spec.executor_script_path.as_ref(), spec.executor_script_sha256.as_deref()) {
-            (Some(_), Some(sha256)) => hash_check("${EXECUTOR_SCRIPT}", sha256),
-            (None, None) => String::new(),
-            _ => bail!("qualification executor script identity is incomplete"),
-        };
+    let command = qualification_command(spec);
     Ok([
         "#!/usr/bin/env bash".to_string(),
         format!("#SBATCH --job-name={}", spec.job_name),
@@ -246,7 +238,6 @@ fn render_script(
         format!("readonly REPOSITORY_ROOT={}", shell_quote(&spec.repository_path)),
         format!("readonly SPECIFICATION={}", shell_quote(spec.evidence_root.join("qualification-spec.json"))),
         format!("readonly EXECUTOR_PROGRAM={}", shell_quote(&spec.executor_program_path)),
-        executor_script_declaration,
         scratch_setup,
         "test -d \"${GOVERNED_SCRATCH_ROOT}\" && test ! -L \"${GOVERNED_SCRATCH_ROOT}\"".to_string(),
         "readonly JOB_SCRATCH=$(mktemp -d \"${GOVERNED_SCRATCH_ROOT%/}/bijux-genomics-${SLURM_JOB_ID}-XXXXXX\")".to_string(),
@@ -261,7 +252,6 @@ fn render_script(
         "test -z \"$(git -C \"${REPOSITORY_ROOT}\" status --porcelain --untracked-files=all)\"".to_string(),
         hash_check("${SPECIFICATION}", specification_sha256),
         hash_check("${EXECUTOR_PROGRAM}", &spec.executor_program_sha256),
-        executor_script_hash_check,
         hash_check_path(&spec.governance_path, &spec.governance_sha256),
         hash_check_path(&spec.pipeline_path, &spec.pipeline_sha256),
         hash_check_path(
@@ -274,42 +264,17 @@ fn render_script(
     .join("\n"))
 }
 
-fn qualification_command(spec: &ContainerQualificationSlurmSpec) -> Result<String> {
-    Ok(
-        if matches!(
-            spec.schema_version.as_str(),
-            CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V3
-                | CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V4
-        ) {
-            [
-                shell_quote(&spec.executor_program_path),
-                "'containers'".to_string(),
-                "'run'".to_string(),
-                "'qualification-slurm'".to_string(),
-                "'--'".to_string(),
-                "'execute'".to_string(),
-                shell_quote(spec.evidence_root.join("qualification-spec.json")),
-            ]
-            .join(" ")
-        } else {
-            let executor_script = spec
-                .executor_script_path
-                .as_ref()
-                .context("legacy qualification specification lacks executor script")?;
-            [
-                shell_quote(&spec.executor_program_path),
-                shell_quote(executor_script),
-                "'execute'".to_string(),
-                "'--governance'".to_string(),
-                shell_quote(&spec.governance_path),
-                "'--pipeline'".to_string(),
-                shell_quote(&spec.pipeline_path),
-                "'--credentials'".to_string(),
-                shell_quote(&spec.credential_reference_path),
-            ]
-            .join(" ")
-        },
-    )
+fn qualification_command(spec: &ContainerQualificationSlurmSpec) -> String {
+    [
+        shell_quote(&spec.executor_program_path),
+        "'containers'".to_string(),
+        "'run'".to_string(),
+        "'qualification-slurm'".to_string(),
+        "'--'".to_string(),
+        "'execute'".to_string(),
+        shell_quote(spec.evidence_root.join("qualification-spec.json")),
+    ]
+    .join(" ")
 }
 
 fn hash_check(shell_path: &str, sha256: &str) -> String {
@@ -324,10 +289,36 @@ fn hash_check_path(path: &Path, sha256: &str) -> String {
     )
 }
 
-fn ensure_evidence_root(path: &Path) -> Result<PathBuf> {
-    let parent = path.parent().context("qualification evidence root has no parent")?;
-    fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    ensure_directory(path)
+fn ensure_current_attempt_layout(
+    governance: &bijux_dna_containers::api::ContainerGovernance,
+    identity: &QualificationIdentity,
+    attempt_id: &str,
+) -> Result<PathBuf> {
+    let container_root = canonical_governed_directory(
+        &governance.paths.containers_root,
+        "governed containers root",
+    )?
+    .join("evidence/attempts");
+    let benchmark_root =
+        canonical_governed_directory(&governance.paths.results_root, "governed results root")?
+            .join("benchmarks");
+    bijux_dna_infra::validate_attempt_owner_roots(&container_root, &benchmark_root)
+        .context("validate qualification attempt owner roots")?;
+    let layout = bijux_dna_infra::ensure_attempt_layout(
+        &container_root,
+        bijux_dna_infra::AttemptEvidenceOwner::Containers,
+        &bijux_dna_infra::AttemptLayoutIdentity {
+            run_directory: identity.run_id.clone(),
+            tool_id: identity.tool_id.clone(),
+            campaign_id: identity.campaign_id.clone(),
+            attempt_id: attempt_id.to_string(),
+        },
+    )
+    .context("ensure governed qualification attempt layout")?;
+    if layout.attempt_dir != identity.evidence_root {
+        bail!("governed qualification attempt layout conflicts with admitted identity");
+    }
+    Ok(layout.attempt_dir)
 }
 
 fn ensure_directory(path: &Path) -> Result<PathBuf> {

@@ -9,7 +9,8 @@ use serde::{Deserialize, Serialize};
 
 use super::{
     BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkEvidenceTier,
-    BenchmarkMetricDistribution, BenchmarkScientificValue, BenchmarkStageCampaignSpec,
+    BenchmarkMetricDistribution, BenchmarkReportImage, BenchmarkReportInputLock,
+    BenchmarkReportSlurmJob, BenchmarkScientificValue, BenchmarkStageCampaignSpec,
     BenchmarkStageInterfaceSpec,
 };
 
@@ -18,6 +19,25 @@ use super::{
 pub struct BenchmarkCorpusSnapshotV1 {
     pub corpus_id: String,
     pub snapshot_sha256: String,
+    pub sample_ids: Vec<String>,
+}
+
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkDataSnapshotRoleV1 {
+    Corpus,
+    Reference,
+    Database,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkDataSnapshotV1 {
+    pub catalog_id: String,
+    pub role: BenchmarkDataSnapshotRoleV1,
+    pub catalog_sha256: String,
     pub sample_ids: Vec<String>,
 }
 
@@ -75,12 +95,35 @@ pub struct BenchmarkCaseMatrixV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
+pub struct BenchmarkCaseMatrixV2 {
+    #[schemars(schema_with = "case_matrix_v2_schema_version")]
+    pub schema_version: String,
+    pub repository_commit: String,
+    pub campaign_registry_sha256: String,
+    pub interface_catalog_sha256: String,
+    pub tool_binding_registry_sha256: String,
+    pub data_snapshots: Vec<BenchmarkDataSnapshotV1>,
+    pub cases: Vec<BenchmarkCaseDefinitionV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkCaseRepetitionObservationV1 {
     pub repetition: u32,
     pub allocated_cpus: u32,
     pub performance: BTreeMap<String, f64>,
     pub scientific: BTreeMap<String, BenchmarkScientificValue>,
     pub normalized_result_sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCaseExecutionEvidenceV1 {
+    pub image: BenchmarkReportImage,
+    pub slurm: BenchmarkReportSlurmJob,
+    pub source_evidence_sha256: String,
+    pub input_locks: Vec<BenchmarkReportInputLock>,
+    pub input_bytes: BTreeMap<String, u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -94,6 +137,30 @@ pub struct BenchmarkAdmittedCaseObservationV1 {
     pub input_lock_sha256: String,
     pub parameter_lock_sha256: String,
     pub repetitions: Vec<BenchmarkCaseRepetitionObservationV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkAdmittedCaseObservationV2 {
+    #[schemars(schema_with = "admitted_case_observation_v2_schema_version")]
+    pub schema_version: String,
+    pub case_id: String,
+    pub repository_commit: String,
+    pub admission_sha256: String,
+    pub input_lock_sha256: String,
+    pub parameter_lock_sha256: String,
+    pub execution: BenchmarkCaseExecutionEvidenceV1,
+    pub repetitions: Vec<BenchmarkCaseRepetitionObservationV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkAdmittedCaseObservationSetV1 {
+    #[schemars(schema_with = "admitted_case_observation_set_schema_version")]
+    pub schema_version: String,
+    pub repository_commit: String,
+    pub case_matrix_sha256: String,
+    pub observations: Vec<BenchmarkAdmittedCaseObservationV2>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -117,8 +184,46 @@ pub struct BenchmarkCaseAggregationV1 {
     pub normalized_result_sha256: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCaseAggregationV2 {
+    #[schemars(schema_with = "case_aggregation_v2_schema_version")]
+    pub schema_version: String,
+    pub case_id: String,
+    pub run_id: String,
+    pub domain: String,
+    pub stage_id: String,
+    pub tool_id: String,
+    pub corpus: BenchmarkCorpusSnapshotV1,
+    pub repository_commit: String,
+    pub admission_sha256: String,
+    pub input_lock_sha256: String,
+    pub parameter_lock_sha256: String,
+    pub execution: BenchmarkCaseExecutionEvidenceV1,
+    pub repetition_count: u32,
+    pub performance: BTreeMap<String, BenchmarkMetricDistribution>,
+    pub scientific: BTreeMap<String, Vec<BenchmarkScientificValue>>,
+    pub normalized_result_sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCaseAggregationSetV1 {
+    #[schemars(schema_with = "case_aggregation_set_schema_version")]
+    pub schema_version: String,
+    pub repository_commit: String,
+    pub case_matrix_sha256: String,
+    pub observation_set_sha256: String,
+    pub aggregations: Vec<BenchmarkCaseAggregationV2>,
+}
+
 #[must_use]
 pub fn benchmark_case_matrix_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCaseMatrixV2)
+}
+
+#[must_use]
+pub fn benchmark_case_matrix_v1_schema() -> Schema {
     schemars::schema_for!(BenchmarkCaseMatrixV1)
 }
 
@@ -128,14 +233,41 @@ pub fn benchmark_admitted_case_observation_schema() -> Schema {
 }
 
 #[must_use]
+pub fn benchmark_admitted_case_observation_v2_schema() -> Schema {
+    schemars::schema_for!(BenchmarkAdmittedCaseObservationV2)
+}
+
+#[must_use]
+pub fn benchmark_admitted_case_observation_set_schema() -> Schema {
+    schemars::schema_for!(BenchmarkAdmittedCaseObservationSetV1)
+}
+
+#[must_use]
 pub fn benchmark_case_aggregation_schema() -> Schema {
     schemars::schema_for!(BenchmarkCaseAggregationV1)
+}
+
+#[must_use]
+pub fn benchmark_case_aggregation_v2_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCaseAggregationV2)
+}
+
+#[must_use]
+pub fn benchmark_case_aggregation_set_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCaseAggregationSetV1)
 }
 
 fn case_matrix_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": crate::contract::BENCHMARK_CASE_MATRIX_SCHEMA_V1,
+    })
+}
+
+fn case_matrix_v2_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": crate::contract::BENCHMARK_CASE_MATRIX_SCHEMA_V2,
     })
 }
 
@@ -146,9 +278,37 @@ fn admitted_case_observation_schema_version(_: &mut SchemaGenerator) -> Schema {
     })
 }
 
+fn admitted_case_observation_v2_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": crate::contract::BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    })
+}
+
+fn admitted_case_observation_set_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": crate::contract::BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1,
+    })
+}
+
 fn case_aggregation_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": crate::contract::BENCHMARK_CASE_AGGREGATION_SCHEMA_V1,
+    })
+}
+
+fn case_aggregation_v2_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": crate::contract::BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
+    })
+}
+
+fn case_aggregation_set_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": crate::contract::BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1,
     })
 }

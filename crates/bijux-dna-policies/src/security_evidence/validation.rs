@@ -8,6 +8,7 @@ use super::model::{
     SecuritySourceIdentity, ToolSecurityEvidence, VulnerabilityDatabaseStatus,
     VulnerabilitySeverity, CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
 };
+use super::security_evidence_policy_sha256;
 use crate::qualification::{EvidenceVerdict, SupportDisposition};
 
 /// Validate a complete container security publication and its policy verdicts.
@@ -28,10 +29,18 @@ pub fn validate_security_evidence_publication(
     validate_sha256(&publication.catalog_sha256, "catalog")?;
     validate_sha256(&publication.inventory_sha256, "inventory")?;
     validate_sha256(&publication.policy_sha256, "policy")?;
+    if publication.policy_sha256 != security_evidence_policy_sha256() {
+        bail!("security publication policy identity differs from the implemented policy");
+    }
     validate_artifact_uri(&publication.raw_evidence.uri, "raw evidence")?;
     validate_sha256(&publication.raw_evidence.sha256, "raw evidence")?;
     validate_nonempty(&publication.scanner.name, "scanner name")?;
     validate_nonempty(&publication.scanner.version, "scanner version")?;
+    if publication.scanner.database.maximum_age_days == 0
+        || publication.scanner.database.maximum_age_days > 30
+    {
+        bail!("vulnerability database maximum age is outside policy bounds");
+    }
     match publication.scanner.database.status {
         VulnerabilityDatabaseStatus::Current => {
             let updated_at = parse_database_timestamp(publication)?;
@@ -41,7 +50,8 @@ pub fn validate_security_evidence_publication(
             )?;
             let age = evaluated_at.signed_duration_since(updated_at);
             if age.num_seconds() < 0
-                || age.num_days() > i64::from(publication.scanner.database.maximum_age_days)
+                || age.num_seconds()
+                    > i64::from(publication.scanner.database.maximum_age_days) * 86_400
             {
                 bail!("vulnerability database marked current outside its maximum age");
             }
@@ -54,7 +64,8 @@ pub fn validate_security_evidence_publication(
             )?;
             let age = evaluated_at.signed_duration_since(updated_at);
             if age.num_seconds() < 0
-                || age.num_days() <= i64::from(publication.scanner.database.maximum_age_days)
+                || age.num_seconds()
+                    <= i64::from(publication.scanner.database.maximum_age_days) * 86_400
             {
                 bail!("vulnerability database marked stale while inside its maximum age");
             }
@@ -228,8 +239,22 @@ fn validate_passing_controls(
         anyhow::anyhow!("retained tool {} lacks vulnerability evidence", evidence.tool_id)
     })?;
     for finding in &vulnerabilities.findings {
-        if finding.severity == VulnerabilitySeverity::Critical && finding.waiver_id.is_none() {
-            bail!("tool {} has unwaived critical vulnerability {}", evidence.tool_id, finding.id);
+        if finding.waiver_id.is_none() {
+            match finding.severity {
+                VulnerabilitySeverity::Critical => bail!(
+                    "tool {} has unwaived critical vulnerability {}",
+                    evidence.tool_id,
+                    finding.id
+                ),
+                VulnerabilitySeverity::High => bail!(
+                    "tool {} has unwaived high vulnerability {}",
+                    evidence.tool_id,
+                    finding.id
+                ),
+                VulnerabilitySeverity::Medium
+                | VulnerabilitySeverity::Low
+                | VulnerabilitySeverity::Unknown => {}
+            }
         }
     }
     Ok(())
@@ -259,12 +284,17 @@ fn validate_findings(evidence: &ToolSecurityEvidence, evaluation_date: NaiveDate
         validate_nonempty(&finding.id, "vulnerability id")?;
         validate_nonempty(&finding.package, "vulnerability package")?;
         validate_nonempty(&finding.installed_version, "installed package version")?;
-        if !finding_ids.insert((finding.id.as_str(), finding.package.as_str())) {
+        if !finding_ids.insert((
+            finding.id.as_str(),
+            finding.package.as_str(),
+            finding.installed_version.as_str(),
+        )) {
             bail!(
-                "tool {} has duplicate vulnerability {} for {}",
+                "tool {} has duplicate vulnerability {} for {} version {}",
                 evidence.tool_id,
                 finding.id,
-                finding.package
+                finding.package,
+                finding.installed_version
             );
         }
         observed[severity_index(finding.severity)] += 1;
@@ -417,7 +447,8 @@ mod tests {
     use super::*;
 
     fn valid_publication() -> Result<ContainerSecurityEvidencePublication> {
-        Ok(serde_json::from_value(serde_json::json!({
+        let mut publication: ContainerSecurityEvidencePublication =
+            serde_json::from_value(serde_json::json!({
             "schema_version": "bijux.container.security_evidence.v1",
             "evaluated_at_utc": "2026-08-04T00:00:00Z",
             "repository_commit": "a".repeat(40),
@@ -506,12 +537,57 @@ mod tests {
                     "reasons": []
                 }
             }
-        }))?)
+            }))?;
+        publication.policy_sha256 = security_evidence_policy_sha256();
+        Ok(publication)
     }
 
     #[test]
     fn complete_security_evidence_passes() -> Result<()> {
         validate_security_evidence_publication(&valid_publication()?)
+    }
+
+    #[test]
+    fn publication_cannot_claim_a_different_policy_identity() -> Result<()> {
+        let mut publication = valid_publication()?;
+        publication.policy_sha256 = "d".repeat(64);
+        assert!(validate_security_evidence_publication(&publication)
+            .is_err_and(|error| error.to_string().contains("implemented policy")));
+        Ok(())
+    }
+
+    #[test]
+    fn exact_security_publication_admits_an_image_bound_pass() -> Result<()> {
+        let publication = valid_publication()?;
+        let admitted = super::super::admission::admit_security_evidence(
+            &publication,
+            &"7".repeat(64),
+            &"a".repeat(40),
+            &"b".repeat(64),
+            &"c".repeat(64),
+        )?;
+        let decision = admitted.tool_decision("samtools", &"1".repeat(64));
+        assert_eq!(decision.verdict, EvidenceVerdict::Passed);
+        assert_eq!(decision.evidence_sha256, Some("7".repeat(64)));
+
+        let stale_image = admitted.tool_decision("samtools", &"2".repeat(64));
+        assert_eq!(stale_image.verdict, EvidenceVerdict::Failed);
+        assert!(stale_image.audit.reason.contains("different image"));
+        Ok(())
+    }
+
+    #[test]
+    fn security_admission_rejects_authority_drift() -> Result<()> {
+        let publication = valid_publication()?;
+        let result = super::super::admission::admit_security_evidence(
+            &publication,
+            &"7".repeat(64),
+            &"0".repeat(40),
+            &"b".repeat(64),
+            &"c".repeat(64),
+        );
+        assert!(result.is_err_and(|error| error.to_string().contains("repository commit")));
+        Ok(())
     }
 
     #[test]
@@ -521,6 +597,16 @@ mod tests {
         publication.scanner.database.updated_at_utc = Some("2026-06-01T00:00:00Z".to_string());
         assert!(validate_security_evidence_publication(&publication)
             .is_err_and(|error| error.to_string().contains("stale or missing")));
+        Ok(())
+    }
+
+    #[test]
+    fn database_age_must_not_round_down_to_whole_days() -> Result<()> {
+        let mut publication = valid_publication()?;
+        publication.scanner.database.maximum_age_days = 30;
+        publication.scanner.database.updated_at_utc = Some("2026-07-04T23:59:59Z".to_string());
+        assert!(validate_security_evidence_publication(&publication)
+            .is_err_and(|error| error.to_string().contains("outside its maximum age")));
         Ok(())
     }
 
@@ -548,6 +634,24 @@ mod tests {
         vulnerabilities.findings[0].waiver_id = None;
         assert!(validate_security_evidence_publication(&publication)
             .is_err_and(|error| error.to_string().contains("unwaived critical")));
+        Ok(())
+    }
+
+    #[test]
+    fn unwaived_high_finding_cannot_pass() -> Result<()> {
+        let mut publication = valid_publication()?;
+        let Some(evidence) = publication.tools.get_mut("samtools") else {
+            anyhow::bail!("security fixture lacks samtools evidence");
+        };
+        let Some(vulnerabilities) = evidence.vulnerabilities.as_mut() else {
+            anyhow::bail!("security fixture lacks vulnerability evidence");
+        };
+        vulnerabilities.findings[0].severity = VulnerabilitySeverity::High;
+        vulnerabilities.findings[0].waiver_id = None;
+        vulnerabilities.severity_counts.critical = 0;
+        vulnerabilities.severity_counts.high = 1;
+        assert!(validate_security_evidence_publication(&publication)
+            .is_err_and(|error| error.to_string().contains("unwaived high")));
         Ok(())
     }
 

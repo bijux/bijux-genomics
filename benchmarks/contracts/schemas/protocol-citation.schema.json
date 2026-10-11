@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkProtocolCitation",
+  "type": "object",
+  "properties": {
+    "citation_key": {
+      "type": "string"
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "protocol_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "protocol_title": {
+      "type": "string"
+    },
+    "protocol_version": {
+      "type": "string"
+    },
+    "run": {
+      "$ref": "#/$defs/BenchmarkRunIdentity"
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.protocol_citation.v1"
+    },
+    "selected_publication": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BenchmarkRunIndexPublication"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "status": {
+      "$ref": "#/$defs/BenchmarkProtocolCitationStatus"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "citation_key",
+    "run",
+    "protocol_title",
+    "protocol_version",
+    "protocol_sha256",
+    "status",
+    "limitations"
+  ],
+  "$defs": {
+    "BenchmarkAttemptIdentity": {
+      "type": "object",
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "run": {
+          "$ref": "#/$defs/BenchmarkRunIdentity"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "campaign_id",
+        "run",
+        "attempt_id",
+        "tool_id"
+      ]
+    },
+    "BenchmarkProtocolCitationStatus": {
+      "type": "string",
+      "enum": [
+        "protocol_only",
+        "published"
+      ]
+    },
+    "BenchmarkRunIdentity": {
+      "type": "object",
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ]
+    },
+    "BenchmarkRunIndexFileReference": {
+      "type": "object",
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "uri": {
+          "type": "string",
+          "pattern": "^(repo|study)://[^/].+$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "uri",
+        "sha256",
+        "size_bytes"
+      ]
+    },
+    "BenchmarkRunIndexPublication": {
+      "type": "object",
+      "properties": {
+        "access_statement": {
+          "type": "string"
+        },
+        "citation_record": {
+          "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+        },
+        "evidence_book": {
+          "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publication_id": {
+          "type": "string"
+        },
+        "publication_receipt": {
+          "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+        },
+        "replay_receipt": {
+          "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+        },
+        "report": {
+          "$ref": "#/$defs/BenchmarkRunIndexFileReference"
+        },
+        "repository_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "selected_attempts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/BenchmarkAttemptIdentity"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "publication_id",
+        "selected_attempts",
+        "repository_commit",
+        "report",
+        "evidence_book",
+        "publication_receipt",
+        "citation_record",
+        "replay_receipt",
+        "limitations",
+        "access_statement"
+      ]
+    }
+  }
+}

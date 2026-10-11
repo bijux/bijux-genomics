@@ -1,0 +1,345 @@
+{
+  "schema_version": "bijux.benchmark.stage_report.v1",
+  "verdict": "passed",
+  "run_id": "run-2004",
+  "stage_id": "bam.mapping_summary",
+  "catalog_sha256": "26eb025bbbdfe8a60e4f15f0832fb911605064ce1418d57c81d61a94bb66594b",
+  "evidence_tier": "qualification",
+  "benchmark_profile_id": "bam-observational-qc",
+  "scientific_question": "Do the retained BAM summary tools report the same primary-read and primary-mapped-read counts for a governed ancient horse alignment, and what resources does each implementation consume?",
+  "comparison_scope": "primary mapping counts from one governed coordinate-sorted EquCab3 BAM",
+  "accuracy_claim": "cross_tool_primary_mapping_summary_consistency_not_alignment_truth",
+  "design": {
+    "runtime": "apptainer",
+    "scheduler": "slurm",
+    "container_only": true,
+    "threads_by_tool": {
+      "picard": 1,
+      "samtools": 1
+    },
+    "cache_policy": "warm",
+    "warmup_repetitions": 1,
+    "measured_repetitions": 3,
+    "tool_closure": [
+      "picard",
+      "samtools"
+    ],
+    "corpus_ids": [
+      "ancient-horse-alignment-qualification"
+    ],
+    "corpus_catalog_ids": [
+      "ena-prjeb22390-err2112767-bam"
+    ],
+    "reference_catalog_ids": [],
+    "database_catalog_ids": [],
+    "input_size_keys": [
+      "bam_input_bytes",
+      "bam_index_input_bytes"
+    ],
+    "result_artifact": "mapping-summary.tsv"
+  },
+  "tools": [
+    {
+      "tool": "picard",
+      "verdict": "passed",
+      "repository_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "image": {
+        "name": "picard-3.3.0-linux-amd64-5126331cdaf6.sif",
+        "sha256": "5126331cdaf67eef217e5bee96292a33bf1f80b0922fa2a980e3c8e621471bc1",
+        "size_bytes": 160645120
+      },
+      "slurm": {
+        "job_id": "3473534",
+        "host": "cn135",
+        "elapsed": "00:00:21",
+        "allocated_cpus": "1"
+      },
+      "source_evidence_sha256": "3aa30fdf101e8a89535d953b1f5d879c49abd696ab391543c64314fd0cac93c0",
+      "input_locks": [
+        {
+          "id": "bam",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam",
+          "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+        },
+        {
+          "id": "bam_index",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam.bai",
+          "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+        },
+        {
+          "id": "corpus_catalog",
+          "kind": "data",
+          "mount_path": "/input/corpus-catalog.json",
+          "sha256": "0c90b9345d5578b91ba7f64d764dc553e81a818be75cdeee9421e5307c9ff33b"
+        },
+        {
+          "id": "corpus_data_index",
+          "kind": "data",
+          "mount_path": "/input/data-index.json",
+          "sha256": "39dc2ad25c4eb016022b14c879f0d8ff937aa050b1fcae5d84e0c73397def93c"
+        }
+      ],
+      "input_bytes": {
+        "bam": 23312078,
+        "bam_index": 3280144,
+        "total": 26592222
+      },
+      "performance": {
+        "cpu_seconds": {
+          "minimum": 3.7199999999999998,
+          "maximum": 3.96,
+          "mean": 3.8000000000000003,
+          "sample_standard_deviation": 0.13856406460551018
+        },
+        "input_bytes": {
+          "minimum": 26592222.0,
+          "maximum": 26592222.0,
+          "mean": 26592222.0,
+          "sample_standard_deviation": 0.0
+        },
+        "output_bytes": {
+          "minimum": 5226.0,
+          "maximum": 5226.0,
+          "mean": 5226.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "minimum": 680292.0,
+          "maximum": 688800.0,
+          "mean": 683268.0,
+          "sample_standard_deviation": 4795.452846186688
+        },
+        "wall_seconds": {
+          "minimum": 3.76,
+          "maximum": 4.02,
+          "mean": 3.8466666666666662,
+          "sample_standard_deviation": 0.15011106998930257
+        }
+      },
+      "scientific_observations": {
+        "mapped_primary_fraction": [
+          0.996518910953,
+          0.996518910953,
+          0.996518910953
+        ],
+        "mapped_primary_reads": [
+          235311.0,
+          235311.0,
+          235311.0
+        ],
+        "paired_primary_reads": [
+          234450.0,
+          234450.0,
+          234450.0
+        ],
+        "primary_reads": [
+          236133.0,
+          236133.0,
+          236133.0
+        ]
+      },
+      "determinism": {
+        "artifact": "mapping-summary.tsv",
+        "sha256": "e9271883fe302da8df277f6cb22b65a239d9f9f01a0bb88f13dac7fc5f17e6e0",
+        "digest_basis": "normalized mapping-summary TSV bytes",
+        "identical_across_repetitions": true
+      }
+    },
+    {
+      "tool": "samtools",
+      "verdict": "passed",
+      "repository_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "image": {
+        "name": "samtools-1.20-linux-amd64-21252c2a23f5.sif",
+        "sha256": "21252c2a23f5464381f5602a60eef97ee03394e4376b9c6ab5b643974a949673",
+        "size_bytes": 122384384
+      },
+      "slurm": {
+        "job_id": "3473535",
+        "host": "cn135",
+        "elapsed": "00:00:02",
+        "allocated_cpus": "1"
+      },
+      "source_evidence_sha256": "3a6e6a3253a72ff068040241d1a098ea9062c7245594bdbcdfe547999bf8b233",
+      "input_locks": [
+        {
+          "id": "bam",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam",
+          "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+        },
+        {
+          "id": "bam_index",
+          "kind": "data",
+          "mount_path": "/input/ERR2112767.sorted.bam.bai",
+          "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+        },
+        {
+          "id": "corpus_catalog",
+          "kind": "data",
+          "mount_path": "/input/corpus-catalog.json",
+          "sha256": "0c90b9345d5578b91ba7f64d764dc553e81a818be75cdeee9421e5307c9ff33b"
+        },
+        {
+          "id": "corpus_data_index",
+          "kind": "data",
+          "mount_path": "/input/data-index.json",
+          "sha256": "39dc2ad25c4eb016022b14c879f0d8ff937aa050b1fcae5d84e0c73397def93c"
+        }
+      ],
+      "input_bytes": {
+        "bam": 23312078,
+        "bam_index": 3280144,
+        "total": 26592222
+      },
+      "performance": {
+        "cpu_seconds": {
+          "minimum": 0.29,
+          "maximum": 0.29000000000000004,
+          "mean": 0.29000000000000004,
+          "sample_standard_deviation": 5.551115123125783e-17
+        },
+        "input_bytes": {
+          "minimum": 26592222.0,
+          "maximum": 26592222.0,
+          "mean": 26592222.0,
+          "sample_standard_deviation": 0.0
+        },
+        "output_bytes": {
+          "minimum": 1094.0,
+          "maximum": 1094.0,
+          "mean": 1094.0,
+          "sample_standard_deviation": 0.0
+        },
+        "peak_rss_kib": {
+          "minimum": 46088.0,
+          "maximum": 47856.0,
+          "mean": 47004.0,
+          "sample_standard_deviation": 885.7358522719965
+        },
+        "wall_seconds": {
+          "minimum": 0.3,
+          "maximum": 0.31,
+          "mean": 0.30666666666666664,
+          "sample_standard_deviation": 0.005773502691896262
+        }
+      },
+      "scientific_observations": {
+        "mapped_primary_fraction": [
+          0.996518910953,
+          0.996518910953,
+          0.996518910953
+        ],
+        "mapped_primary_reads": [
+          235311.0,
+          235311.0,
+          235311.0
+        ],
+        "paired_primary_reads": [
+          234450.0,
+          234450.0,
+          234450.0
+        ],
+        "primary_reads": [
+          236133.0,
+          236133.0,
+          236133.0
+        ]
+      },
+      "determinism": {
+        "artifact": "mapping-summary.tsv",
+        "sha256": "e9271883fe302da8df277f6cb22b65a239d9f9f01a0bb88f13dac7fc5f17e6e0",
+        "digest_basis": "normalized mapping-summary TSV bytes",
+        "identical_across_repetitions": true
+      }
+    }
+  ],
+  "comparability": {
+    "repository_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+    "input_lock_sha256": "e2c4b15564206e9de17af5678d56a8ad298fdb70a56a1f29f20878cc846fbd80",
+    "parameter_lock_sha256": "49d84b429b703d2d28158a4c17aabb5a002288e9f51eb7ecda5d54409476122a",
+    "stage_interface": {
+      "accepted_input_contracts": [
+        "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+      ],
+      "output_contract": "bijux.benchmark.bam.mapping_summary.bundle.v1",
+      "normalized_result_contract": "benchmarks/contracts/schemas/bam-mapping-summary-result.schema.json",
+      "downstream_probe": {
+        "stage_id": "benchmark.bam.mapping_summary.compare",
+        "input_contract": "bijux.benchmark.bam.mapping_summary.bundle.v1",
+        "source": "benchmarks/execution/bam_mapping_summary.awk",
+        "artifact": "repetitions/repetition-1.report-qc.json"
+      }
+    }
+  },
+  "cross_tool_comparison": {
+    "status": "within_tolerance",
+    "metrics": [
+      {
+        "metric": "primary_reads",
+        "observations": {
+          "picard": 236133.0,
+          "samtools": 236133.0
+        },
+        "minimum": 236133.0,
+        "maximum": 236133.0,
+        "absolute_range": 0.0,
+        "allowed_range": 0.0,
+        "within_tolerance": true,
+        "absolute_tolerance": 0.0,
+        "relative_tolerance": 0.0
+      },
+      {
+        "metric": "mapped_primary_reads",
+        "observations": {
+          "picard": 235311.0,
+          "samtools": 235311.0
+        },
+        "minimum": 235311.0,
+        "maximum": 235311.0,
+        "absolute_range": 0.0,
+        "allowed_range": 0.0,
+        "within_tolerance": true,
+        "absolute_tolerance": 0.0,
+        "relative_tolerance": 0.0
+      },
+      {
+        "metric": "mapped_primary_fraction",
+        "observations": {
+          "picard": 0.996518910953,
+          "samtools": 0.996518910953
+        },
+        "minimum": 0.996518910953,
+        "maximum": 0.996518910953,
+        "absolute_range": 0.0,
+        "allowed_range": 9.975189109530001e-10,
+        "within_tolerance": true,
+        "absolute_tolerance": 1e-12,
+        "relative_tolerance": 1e-9
+      },
+      {
+        "metric": "paired_primary_reads",
+        "observations": {
+          "picard": 234450.0,
+          "samtools": 234450.0
+        },
+        "minimum": 234450.0,
+        "maximum": 234450.0,
+        "absolute_range": 0.0,
+        "allowed_range": 0.0,
+        "within_tolerance": true,
+        "absolute_tolerance": 0.0,
+        "relative_tolerance": 0.0
+      }
+    ]
+  },
+  "limitations": [
+    "The corpus is one low-coverage ancient horse library and cannot establish agreement across all aligners, sequencing technologies, or BAM flag combinations.",
+    "Picard PAIR and UNPAIRED categories are deliberately aggregated to match Samtools primary-record semantics; FIRST_OF_PAIR and SECOND_OF_PAIR rows are excluded because including them would double-count paired records.",
+    "Exact count agreement checks summary interoperability, not mapping accuracy against an independent alignment truth set.",
+    "Both tools run with one allocated CPU because the measured summary operations do not expose equivalent useful parallelism."
+  ],
+  "interpretation": "This campaign compares Picard and Samtools primary-read accounting under one explicit aggregation contract. Exact agreement establishes interoperable BAM flag interpretation for this corpus; it does not establish that the upstream alignments are biologically correct."
+}

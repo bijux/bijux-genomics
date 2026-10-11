@@ -1,0 +1,17 @@
+{
+  "schema_version": "bijux.benchmark.protocol_citation.v1",
+  "citation_key": "bijux-benchmark-run-2064",
+  "run": {
+    "run_id": "run-2064",
+    "domain": "vcf",
+    "stage_id": "vcf.pca"
+  },
+  "protocol_title": "VCF pca benchmark protocol",
+  "protocol_version": "1.0.0",
+  "protocol_sha256": "0a615ff830e0b9f0774f781f738ce098859ef82d398861dfc057bea9cffc741c",
+  "status": "protocol_only",
+  "limitations": [
+    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+    "The protocol is reserved and has no selected publication."
+  ]
+}

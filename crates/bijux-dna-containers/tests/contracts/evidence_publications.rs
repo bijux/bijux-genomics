@@ -8,6 +8,10 @@ fn repository_root() -> Result<std::path::PathBuf> {
         .context("environment crate is outside the repository workspace")
 }
 
+fn read_json(path: impl AsRef<std::path::Path>) -> Result<serde_json::Value> {
+    Ok(serde_json::from_str(&std::fs::read_to_string(path)?)?)
+}
+
 #[test]
 fn checked_in_container_publications_are_admitted_by_environment_types() -> Result<()> {
     let root = repository_root()?;
@@ -345,19 +349,21 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let root = repository_root()?;
     let inventory_path =
         root.join("containers/contracts/schemas/image-inventory-publication.v2.json");
-    let scan_path = root.join("containers/contracts/schemas/image-inventory-scan.v1.json");
+    let scan_path = root.join("containers/contracts/schemas/image-inventory-scan.v2.json");
     let runtime_path =
         root.join("containers/contracts/schemas/runtime-verification-publication.v2.json");
+    let security_probe_path =
+        root.join("containers/contracts/schemas/security-probe-publication.v1.json");
     let tool_identity_path =
-        root.join("containers/contracts/schemas/tool-image-identity-evidence.v1.json");
+        root.join("containers/contracts/schemas/tool-image-identity-evidence.v2.json");
     let storage_plan_path = root.join("containers/contracts/schemas/image-storage-plan.v1.json");
     let storage_report_path =
         root.join("containers/contracts/schemas/image-storage-report.v1.json");
     let qualification_registry_path =
-        root.join("containers/contracts/schemas/qualification-run-registry.v1.json");
+        root.join("containers/contracts/schemas/qualification-run-registry.v2.json");
     let qualification_audit_path =
         root.join("containers/contracts/schemas/qualification-run-id-audit.v2.json");
-    let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v1.json");
+    let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v2.json");
     let build_evidence_path = root.join("containers/contracts/schemas/build-evidence.v1.json");
     let campaign_plan_path = root.join("containers/contracts/schemas/image-campaign-plan.v1.json");
     let campaign_execution_path =
@@ -369,6 +375,9 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         bijux_dna_containers::evidence::write_image_inventory_scan_schema(&scan_path)?;
         bijux_dna_containers::evidence::write_runtime_verification_publication_schema(
             &runtime_path,
+        )?;
+        bijux_dna_containers::evidence::write_security_probe_publication_schema(
+            &security_probe_path,
         )?;
         bijux_dna_containers::evidence::tool_contract::write_tool_image_identity_evidence_schema(
             &tool_identity_path,
@@ -390,34 +399,25 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
         bijux_dna_containers::api::write_container_catalog_schema(&catalog_path)?;
         bijux_dna_containers::api::write_container_catalog_lock_schema(&catalog_lock_path)?;
     }
-    let inventory: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(inventory_path)?)?;
-    let scan: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(scan_path)?)?;
-    let runtime: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(runtime_path)?)?;
-    let tool_identity: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(tool_identity_path)?)?;
-    let storage_plan: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(storage_plan_path)?)?;
-    let storage_report: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(storage_report_path)?)?;
-    let qualification_registry: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(qualification_registry_path)?)?;
-    let qualification_audit: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(qualification_audit_path)?)?;
-    let tool_contract: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(tool_contract_path)?)?;
-    let build_evidence: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(build_evidence_path)?)?;
-    let campaign_plan: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(campaign_plan_path)?)?;
-    let campaign_execution: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(campaign_execution_path)?)?;
-    let catalog: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(catalog_path)?)?;
-    let catalog_lock: serde_json::Value =
-        serde_json::from_str(&std::fs::read_to_string(catalog_lock_path)?)?;
+    let inventory = read_json(inventory_path)?;
+    let scan = read_json(scan_path)?;
+    let runtime = read_json(runtime_path)?;
+    let security_probe = read_json(security_probe_path)?;
+    let tool_identity = read_json(tool_identity_path)?;
+    let storage_plan = read_json(storage_plan_path)?;
+    let storage_report = read_json(storage_report_path)?;
+    let qualification_registry = read_json(qualification_registry_path)?;
+    let qualification_audit = read_json(qualification_audit_path)?;
+    let tool_contract = read_json(tool_contract_path)?;
+    let build_evidence = read_json(build_evidence_path)?;
+    let campaign_plan = read_json(campaign_plan_path)?;
+    let campaign_execution = read_json(campaign_execution_path)?;
+    let catalog = read_json(catalog_path)?;
+    let catalog_lock = read_json(catalog_lock_path)?;
     assert_eq!(inventory, bijux_dna_containers::evidence::image_inventory_publication_schema());
     assert_eq!(scan, bijux_dna_containers::evidence::image_inventory_scan_schema());
     assert_eq!(runtime, bijux_dna_containers::evidence::runtime_verification_publication_schema());
+    assert_eq!(security_probe, bijux_dna_containers::evidence::security_probe_publication_schema());
     assert_eq!(
         tool_identity,
         bijux_dna_containers::evidence::tool_contract::tool_image_identity_evidence_schema()

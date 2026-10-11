@@ -20,6 +20,7 @@ pub mod publication;
 pub mod publication_registry;
 pub mod replay;
 pub mod report;
+pub mod run_index;
 pub mod source_authority;
 pub mod stage_result;
 pub mod suite;
@@ -32,10 +33,16 @@ pub use admission::{
 };
 #[allow(unused_imports)]
 pub use campaign_engine::{
-    benchmark_admitted_case_observation_schema, benchmark_case_aggregation_schema,
-    benchmark_case_matrix_schema, BenchmarkAdmittedCaseObservationV1, BenchmarkCaseAggregationV1,
-    BenchmarkCaseDefinitionV1, BenchmarkCaseMatrixV1, BenchmarkCaseMeasurementPlanV1,
+    benchmark_admitted_case_observation_schema, benchmark_admitted_case_observation_set_schema,
+    benchmark_admitted_case_observation_v2_schema, benchmark_case_aggregation_schema,
+    benchmark_case_aggregation_set_schema, benchmark_case_aggregation_v2_schema,
+    benchmark_case_matrix_schema, benchmark_case_matrix_v1_schema,
+    BenchmarkAdmittedCaseObservationSetV1, BenchmarkAdmittedCaseObservationV1,
+    BenchmarkAdmittedCaseObservationV2, BenchmarkCaseAggregationSetV1, BenchmarkCaseAggregationV1,
+    BenchmarkCaseAggregationV2, BenchmarkCaseDefinitionV1, BenchmarkCaseExecutionEvidenceV1,
+    BenchmarkCaseMatrixV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
     BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
+    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
 };
 #[allow(unused_imports)]
 pub use corpus::{
@@ -162,6 +169,15 @@ pub use report::{
     BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
     BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
     BenchmarkStageReportDesign, BenchmarkToolReport,
+};
+#[allow(unused_imports)]
+pub use run_index::{
+    benchmark_protocol_citation_schema, benchmark_run_case_index_schema,
+    benchmark_run_index_schema, benchmark_run_publication_pointer_schema,
+    BenchmarkProtocolCitation, BenchmarkProtocolCitationStatus, BenchmarkRunCaseIndex,
+    BenchmarkRunCaseIndexEntry, BenchmarkRunIndex, BenchmarkRunIndexEntry,
+    BenchmarkRunIndexFileReference, BenchmarkRunIndexPublication, BenchmarkRunIndexSummary,
+    BenchmarkRunPublicationPointer,
 };
 #[allow(unused_imports)]
 pub use source_authority::{

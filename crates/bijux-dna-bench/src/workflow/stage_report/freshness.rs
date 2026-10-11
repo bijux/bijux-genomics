@@ -61,7 +61,9 @@ fn is_governed_publication_path(value: &str) -> bool {
     }
     matches!(
         file_name,
-        "scientific-benchmark-readiness.json"
+        "publication-registry.json"
+            | "publication-registry.md"
+            | "scientific-benchmark-readiness.json"
             | "scientific-benchmark-readiness.md"
             | "stage-benchmark-coverage.json"
             | "stage-benchmark-coverage.md"
@@ -96,6 +98,8 @@ mod tests {
         for path in [
             "benchmarks/reports/run-2004-bam-mapping-summary.json",
             "benchmarks/reports/run-2004-bam-mapping-summary.md",
+            "benchmarks/reports/publication-registry.json",
+            "benchmarks/reports/publication-registry.md",
             "benchmarks/reports/stage-benchmark-coverage.json",
             "benchmarks/reports/scientific-benchmark-readiness.md",
         ] {

@@ -30,6 +30,13 @@ evidence only after required-output closure succeeds.
 It returns an existing matching handle without resubmission and refuses an intent with no handle so
 an interrupted scheduler effect cannot silently create a duplicate immutable attempt.
 
+`prepare_image_campaign_slurm_job` binds the permanent `run-1000` protocol, frozen repository and
+operator identities, exact Apptainer executable, canonical retained-tool closure, governed attempt
+root, and bounded resources. Submission persists intent before `sbatch`; observation performs one
+scheduler query; terminal collection binds accounting and logs, then delegates campaign receipt
+admission to `bijux-dna-containers`. Repeated collection returns the original immutable evidence
+when scheduler accounting and log identities remain unchanged.
+
 `load_benchmark_slurm_job_handle` verifies and loads retained submission evidence without requiring
 benchmark outputs to remain empty, allowing later one-shot status and collection operations to stay
 inside runner-owned evidence contracts.
@@ -48,7 +55,8 @@ contracts, binds their hashes plus the exact executor program and script, and pu
 immutable scheduler specification. `submit_prepared_container_qualification_job` persists intent
 before `sbatch`; observe and collect perform one scheduler query per call; terminal collection
 binds accounting, logs, and successful execution evidence. Cancellation uses the retained exact
-job handle. None of these operations poll or wait.
+job handle. Failed current attempts can be archived and rolled back through the shared owner-scoped
+attempt transaction; historical layouts remain read-only. None of these operations poll or wait.
 
 Generated benchmark jobs may invoke `git rev-parse`, `git status`, `sha256sum`, `grep`, and `awk`
 only for source validation, byte-identity checks, and acceptance checks. The Slurm host requires

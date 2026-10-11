@@ -1,0 +1,45 @@
+{
+  "schema_version": "bijux.benchmark.run_definition.v1",
+  "identity": {
+    "run_id": "run-2005",
+    "domain": "bam",
+    "stage_id": "bam.align"
+  },
+  "protocol_version": "1.0.0",
+  "title": "BAM align benchmark protocol",
+  "purpose": "Compare the runnable bam.align tools using mapping_correctness_variant_recovery_and_damage_stratified_error; downstream substitution: run validation, mapping summary, coverage, filtering, and variant calling on every aligner output.",
+  "owner": "bijux-dna-bench",
+  "profile_id": "bam-alignment",
+  "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
+  "state": "active",
+  "tool_ids": [
+    "bowtie2",
+    "bwa"
+  ],
+  "accepted_input_contracts": [
+    "bijux.auxiliary.artifact.index.v1",
+    "bijux.fastq.artifact.paired_end.v1",
+    "bijux.reference.artifact.fasta.v1"
+  ],
+  "output_contract": "bijux.benchmark.bam.align.bundle.v1",
+  "normalized_result_contract": "benchmarks/contracts/schemas/bam-align-result.schema.json",
+  "measurement_policy_id": "benchmark-measurement-v1",
+  "contracts": [
+    {
+      "contract_id": "normalized-result-contract",
+      "repository_path": "benchmarks/contracts/schemas/bam-align-result.schema.json",
+      "sha256": "dc4aa066bdb86e2d8c30196703b22a0ab9039de923a61808c25dd4e78a6e209c"
+    }
+  ],
+  "corpus_roles": [
+    {
+      "role": "alignment_truth",
+      "corpus_ids": [
+        "alignment-truth-panel"
+      ]
+    }
+  ],
+  "acceptance_policy_id": "bam-alignment-acceptance-v1",
+  "citation_key": "bijux-benchmark-run-2005",
+  "supersedes_run_ids": []
+}

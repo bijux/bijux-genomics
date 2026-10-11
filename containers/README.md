@@ -98,7 +98,16 @@ canonical_inventory="${inventory_root}/image-inventory.json"
 The source checkout and all evidence roots are mandatory. This allows a newer
 automation binary to inventory an older exact-commit image campaign without
 misstating the campaign's repository identity or scanning an unrelated active
-image tree.
+image tree. The raw scan persists the ordered portable image/build-evidence
+root pairs, so every composite derivation can be reproduced without recovering
+its command line from scheduler logs.
+
+When a current single-tool campaign supersedes one image from an otherwise
+compatible prior campaign, append its image root and matching build-evidence
+root as an additional pair. The container owner scans every declared pair as
+one evidence set, rejects duplicate roots and image digests, and applies the
+current repository recipes to the combined candidates. Prior campaign roots
+remain immutable; no copied or synthetic build evidence is admitted.
 
 ## Activate a reviewed image campaign
 
@@ -230,11 +239,21 @@ campaign.
 ## Govern qualification run identities
 
 [`contracts/qualification-runs.toml`](contracts/qualification-runs.toml) is the
-stable 89-tool qualification identity registry. It preserves successful
-checked-in run IDs for retained tools, allocates missing retained identities
-strictly above the historical maximum, and records unsupported tools without a
-runnable ID. Catalog stage and input-role drift, cross-tool historical ID
-reuse, duplicate final runs, and non-passing final evidence fail closed.
+stable container run protocol registry. Its tool allocation map preserves
+successful checked-in run IDs, allocates missing runnable identities strictly
+above the historical maximum, and gives licensed external-artifact tools the
+same permanent protocol identity and resource contract as packaged tools.
+External-artifact protocols remain allocated, and execution reports
+`blocked_external` until a checksum-bound binary or SIF admission is available;
+the redistribution disposition never removes them from qualification. Its
+semantic run definitions close every identity from `run-1000` through
+`run-1158`, including the image campaign, historical protocols, current
+protocols, allocated next actions, and permanent `run-1081`/`run-1085`
+tombstones. Every definition carries purpose, ownership,
+operation, tools, contracts, corpus roles, acceptance, supersession, and a
+stable citation record. Catalog stage and input-role drift, cross-tool
+historical ID reuse, duplicate final runs, and non-passing final evidence fail
+closed.
 [`contracts/qualification-run-history.toml`](contracts/qualification-run-history.toml)
 preserves checksummed LUNARC identities that failed before an execution attempt
 could receive a Slurm job ID.
@@ -256,9 +275,10 @@ cargo run -p bijux-dna-dev -- containers run qualification-registry -- \
   containers/reports/qualification-run-id-audit.json
 ```
 
-This registry owns run identity only. It does not make historical evidence
-current, generate execution specifications, submit Slurm jobs, or qualify a
-tool; those actions require the separate specification and lifecycle gates.
+This registry owns protocol identity and citation metadata only. It does not
+make historical evidence current, generate execution specifications, submit
+Slurm jobs, or qualify a tool; those actions require the separate attempt,
+specification, publication, and lifecycle gates.
 
 ## Prepare governed input data
 
@@ -379,22 +399,11 @@ submission and result paths without deleting the failed attempt or allowing it
 into the final run index. A passed result and a benchmark attempt cannot be
 archived by this qualification command.
 
-If a passed attempt later proves scientifically or structurally invalid,
-preserve it with an explicit disposition rather than deleting or relabelling
-it:
-
-```console
-python3 -B containers/contracts/container_validation.py archive-superseded \
-  --manifest "${run_spec}" \
-  --governance containers/contracts/sites/lunarc.yml \
-  --reason "resource measurements did not satisfy the declared TSV evidence format"
-```
-
-This command requires passed terminal evidence, matching accounting, and a
-substantive reason. It applies the same atomic, same-filesystem preservation
-rules under `containers/evidence/superseded/` for qualification attempts and
-`results/benchmark-attempts/superseded/` for benchmark attempts, then frees only
-the canonical paths for a corrected submission.
+If a passed attempt later proves scientifically or structurally invalid, keep
+its submission and result trees immutable. Do not relabel it as failed or
+reuse its attempt identity. Record supersession through the run lifecycle and
+prepare the next `attempt-NNN`; historical import and replay retain the prior
+attempt as evidence rather than executing a legacy worker.
 
 Import one completed run by bounding the identifier. For a full replay, use an
 empty artifact directory so existing tracked evidence is never overwritten:
