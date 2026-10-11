@@ -13,7 +13,14 @@ if [[ "${1:-}" == "audit" ]]; then
   allowlist="${repo_root}/audit-allowlist.toml"
   if [[ -f "${allowlist}" ]]; then
     audit_ignore_args="$(
-      grep -Eo 'RUSTSEC-[0-9]{4}-[0-9]{4}' "${allowlist}" |
+      {
+        grep -Eo 'RUSTSEC-[0-9]{4}-[0-9]{4}' "${allowlist}" || {
+          grep_status=$?
+          if [[ "${grep_status}" -ne 1 ]]; then
+            exit "${grep_status}"
+          fi
+        }
+      } |
         sort -u |
         sed 's/^/--ignore /' |
         paste -sd ' ' -
