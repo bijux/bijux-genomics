@@ -70,7 +70,8 @@ Rust gate artifact layout:
   execution on job-local scratch without writing build products into the source checkout.
 - `make test-all-frozen` runs the complete suite from its immutable source snapshot with no
   fast/slow filter expression and no slow timeout
-- `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
+- `make lint` checks the complete workspace, including `bijux-dna-dev`, with all targets and
+  features, locked dependencies and warnings denied
 - `make lint-workspace` is the CI-sized workspace lane for configuration, documentation, and automation-boundary contracts; Rust formatting and product-crate clippy remain independent CI gates
 - exhaustive workspace governance, domain, container, and Rust lint checks remain available through `make lint-governance`
 - `make test` is the fast Rust lane: it excludes named plus rostered slow tests above the 1-second threshold
