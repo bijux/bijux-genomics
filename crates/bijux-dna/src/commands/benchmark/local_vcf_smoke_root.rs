@@ -249,7 +249,9 @@ mod tests {
     };
 
     fn repo_root() -> PathBuf {
-        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
+        crate::commands::benchmark::scratch_repository::materialize_read_only_repository(
+            "local-vcf-smoke-root",
+        )
     }
 
     #[test]
@@ -322,7 +324,10 @@ mod tests {
         let repo_root = repo_root();
         let error = render_vcf_smoke_root(
             &repo_root,
-            PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/vcf-smoke-root.json"),
+            std::path::Path::new(
+                "artifacts/benchmark-smoke/readiness/local-ready/vcf-smoke-root.json",
+            )
+            .to_path_buf(),
         )
         .expect_err("readiness-root smoke manifests must be refused");
 

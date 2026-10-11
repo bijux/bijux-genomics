@@ -398,7 +398,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.normalize_abundance": "seqkit",
       "fastq.normalize_primers": "cutadapt",
       "fastq.profile_overrepresented_sequences": "fastqc",
-      "fastq.profile_read_lengths": "seqkit_stats",
+      "fastq.profile_read_lengths": "seqkit",
       "fastq.profile_reads": "seqkit_stats",
       "fastq.remove_chimeras": "vsearch",
       "fastq.report_qc": "multiqc",

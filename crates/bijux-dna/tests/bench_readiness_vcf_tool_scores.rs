@@ -54,9 +54,9 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(
         payload.get("insufficient_evidence_row_count").and_then(serde_json::Value::as_u64),
-        Some(3)
+        Some(0)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(4));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let row_count = rows.len() as u64;
@@ -72,16 +72,15 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
         .expect("failure_class_counts");
     assert_eq!(failure_counts.get("none").and_then(serde_json::Value::as_u64), Some(row_count - 4));
     assert_eq!(
-        failure_counts.get("insufficient_data").and_then(serde_json::Value::as_u64),
-        Some(3)
+        failure_counts.get("blocked_external_access").and_then(serde_json::Value::as_u64),
+        Some(4)
     );
-    assert_eq!(failure_counts.get("tool_not_found").and_then(serde_json::Value::as_u64), Some(1));
 
     for (stage_id, tool_id, score_status, failure_class) in [
-        ("vcf.call_gl", "angsd", "blocked", "tool_not_found"),
-        ("vcf.call_pseudohaploid", "angsd", "insufficient_evidence", "insufficient_data"),
-        ("vcf.imputation_metrics", "impute5", "insufficient_evidence", "insufficient_data"),
-        ("vcf.impute", "impute5", "insufficient_evidence", "insufficient_data"),
+        ("vcf.call_gl", "angsd", "blocked", "blocked_external_access"),
+        ("vcf.call_pseudohaploid", "angsd", "blocked", "blocked_external_access"),
+        ("vcf.imputation_metrics", "impute5", "blocked", "blocked_external_access"),
+        ("vcf.impute", "impute5", "blocked", "blocked_external_access"),
     ] {
         let licensed = rows
             .iter()

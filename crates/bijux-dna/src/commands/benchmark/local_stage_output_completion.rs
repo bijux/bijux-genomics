@@ -2,7 +2,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde::Serialize;
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_stage_output_completion, BenchmarkLocalStageMissingOutputEntry,
+    BenchmarkLocalStageOutputCompletionEntry, BenchmarkLocalStageOutputCompletionReport,
+    BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    BenchmarkLocalStageOutputCompletionEntry as BenchLocalStageOutputCompletionEntry,
+    BenchmarkLocalStageOutputCompletionReport as BenchLocalStageOutputCompletionReport,
+};
 
 use crate::commands::benchmark::local_stage_commands::{
     render_local_stage_commands, BenchLocalStageArtifactEntry,
@@ -10,7 +18,6 @@ use crate::commands::benchmark::local_stage_commands::{
 use crate::commands::benchmark::local_stage_fake_runs::{
     path_relative_to_repo, stage_fake_run_output_path, DEFAULT_LOCAL_STAGE_FAKE_RUN_ROOT,
 };
-use crate::commands::benchmark::local_stage_inventory::LocalStageReadinessKind;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -18,43 +25,6 @@ const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh";
 const DEFAULT_OUTPUT_COMPLETION_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/local-ready/output-completion-report.json";
-const LOCAL_STAGE_OUTPUT_COMPLETION_REPORT_SCHEMA_VERSION: &str =
-    "bijux.bench.local_stage_output_completion.v1";
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageMissingOutputEntry {
-    pub(crate) artifact_id: String,
-    pub(crate) declared_path: String,
-    pub(crate) expected_fake_run_path: String,
-    pub(crate) role: String,
-    pub(crate) optional: bool,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageOutputCompletionEntry {
-    pub(crate) stage_id: String,
-    pub(crate) readiness_kind: LocalStageReadinessKind,
-    pub(crate) tool_id: String,
-    pub(crate) declared_output_count: usize,
-    pub(crate) present_output_count: usize,
-    pub(crate) missing_output_count: usize,
-    pub(crate) complete: bool,
-    pub(crate) missing_outputs: Vec<BenchLocalStageMissingOutputEntry>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct BenchLocalStageOutputCompletionReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) fake_run_root: String,
-    pub(crate) report_output_path: String,
-    pub(crate) source_stage_command_manifest_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) complete_stage_count: usize,
-    pub(crate) incomplete_stage_count: usize,
-    pub(crate) complete: bool,
-    pub(crate) stages: Vec<BenchLocalStageOutputCompletionEntry>,
-}
-
 pub(crate) fn run_check_output_completion(
     args: &parse::BenchLocalCheckOutputCompletionArgs,
 ) -> Result<()> {
@@ -78,7 +48,7 @@ pub(crate) fn check_local_stage_output_completion(
     repo_root: &Path,
     fake_run_root: PathBuf,
     report_output_path: PathBuf,
-) -> Result<BenchLocalStageOutputCompletionReport> {
+) -> Result<BenchmarkLocalStageOutputCompletionReport> {
     let source_manifest = render_local_stage_commands(
         repo_root,
         PathBuf::from(DEFAULT_RENDERED_STAGE_COMMANDS_PATH),
@@ -107,7 +77,7 @@ pub(crate) fn check_local_stage_output_completion(
         let declared_output_count = command.outputs.len();
         let missing_output_count = missing_outputs.len();
         let present_output_count = declared_output_count.saturating_sub(missing_output_count);
-        stages.push(BenchLocalStageOutputCompletionEntry {
+        stages.push(BenchmarkLocalStageOutputCompletionEntry {
             stage_id: command.stage_id.clone(),
             readiness_kind: command.readiness_kind,
             tool_id: command.tool_id.clone(),
@@ -121,8 +91,8 @@ pub(crate) fn check_local_stage_output_completion(
 
     let complete_stage_count = stages.iter().filter(|stage| stage.complete).count();
     let incomplete_stage_count = stages.len().saturating_sub(complete_stage_count);
-    let report = BenchLocalStageOutputCompletionReport {
-        schema_version: LOCAL_STAGE_OUTPUT_COMPLETION_REPORT_SCHEMA_VERSION,
+    let report = BenchmarkLocalStageOutputCompletionReport {
+        schema_version: BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1.to_string(),
         fake_run_root: path_relative_to_repo(repo_root, &absolute_fake_run_root),
         report_output_path: path_relative_to_repo(repo_root, &absolute_report_output_path),
         source_stage_command_manifest_path: source_manifest.manifest_output_path,
@@ -132,6 +102,7 @@ pub(crate) fn check_local_stage_output_completion(
         complete: incomplete_stage_count == 0,
         stages,
     };
+    validate_benchmark_local_stage_output_completion(&report)?;
     bijux_dna_infra::atomic_write_json(&absolute_report_output_path, &report)?;
     Ok(report)
 }
@@ -140,9 +111,9 @@ fn missing_output_entry(
     repo_root: &Path,
     stage_root: &Path,
     artifact: &BenchLocalStageArtifactEntry,
-) -> Option<BenchLocalStageMissingOutputEntry> {
+) -> Option<BenchmarkLocalStageMissingOutputEntry> {
     let expected_path = stage_fake_run_output_path(stage_root, &artifact.path);
-    (!expected_path.exists()).then(|| BenchLocalStageMissingOutputEntry {
+    (!expected_path.exists()).then(|| BenchmarkLocalStageMissingOutputEntry {
         artifact_id: artifact.artifact_id.clone(),
         declared_path: artifact.path.clone(),
         expected_fake_run_path: path_relative_to_repo(repo_root, &expected_path),
@@ -157,8 +128,8 @@ mod tests {
 
     #[cfg(feature = "bam_downstream")]
     use super::{
-        check_local_stage_output_completion, DEFAULT_OUTPUT_COMPLETION_REPORT_PATH,
-        LOCAL_STAGE_OUTPUT_COMPLETION_REPORT_SCHEMA_VERSION,
+        check_local_stage_output_completion, BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1,
+        DEFAULT_OUTPUT_COMPLETION_REPORT_PATH,
     };
     #[cfg(feature = "bam_downstream")]
     use crate::commands::benchmark::local_stage_fake_runs::{
@@ -168,7 +139,9 @@ mod tests {
     use std::fs;
 
     fn repo_root() -> PathBuf {
-        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
+        crate::commands::benchmark::scratch_repository::materialize_read_only_repository(
+            "local-stage-output-completion",
+        )
     }
 
     #[cfg(feature = "bam_downstream")]
@@ -184,7 +157,7 @@ mod tests {
         )
         .expect("check local stage output completion");
 
-        assert_eq!(report.schema_version, LOCAL_STAGE_OUTPUT_COMPLETION_REPORT_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1);
         assert_eq!(report.stage_count, 51);
         assert_eq!(report.complete_stage_count, 51);
         assert_eq!(report.incomplete_stage_count, 0);
@@ -200,12 +173,14 @@ mod tests {
     #[test]
     fn output_completion_reports_stage_incomplete_when_declared_output_is_missing() {
         let root = repo_root();
-        let fake_run_root = PathBuf::from(
+        let fake_run_root = std::path::Path::new(
             "artifacts/benchmark-smoke/simulated-runs/stages-output-completion-missing",
-        );
-        let report_output_path = PathBuf::from(
+        )
+        .to_path_buf();
+        let report_output_path = std::path::Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/output-completion-report.missing.json",
-        );
+        )
+        .to_path_buf();
         let fake_runs = fake_run_local_stage_commands(&root, fake_run_root.clone())
             .expect("fake-run local stage commands");
         let missing_path = root.join(

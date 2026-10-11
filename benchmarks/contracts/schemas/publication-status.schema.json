@@ -1,0 +1,215 @@
+{
+  "$defs": {
+    "BenchmarkPublicationAuditIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "issue_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "issue_id",
+        "severity",
+        "detail"
+      ],
+      "type": "object"
+    },
+    "BenchmarkPublicationExcludedStage": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "BenchmarkPublicationStageStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_tool_roster": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "corpus_path": {
+          "type": "string"
+        },
+        "expected_tool_roster": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "issue_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "issues": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkPublicationAuditIssue"
+          },
+          "type": "array"
+        },
+        "method_path": {
+          "type": "string"
+        },
+        "results_issue_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "results_newest_available_run_root": {
+          "type": "string"
+        },
+        "results_selected_run_root": {
+          "type": "string"
+        },
+        "results_selected_run_root_is_newest": {
+          "type": "boolean"
+        },
+        "results_status": {
+          "type": "string"
+        },
+        "sample_scope": {
+          "type": "string"
+        },
+        "scenario_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "scenario_id",
+        "sample_scope",
+        "contract_tool_roster",
+        "expected_tool_roster",
+        "method_path",
+        "corpus_path",
+        "status",
+        "issue_count",
+        "results_status",
+        "results_issue_count",
+        "results_selected_run_root",
+        "results_newest_available_run_root",
+        "results_selected_run_root_is_newest",
+        "issues"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "applicable_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "audit_warning_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "audit_warnings": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "benchmarkable_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "completed_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "docs_root": {
+      "type": "string"
+    },
+    "excluded_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "excluded_stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkPublicationExcludedStage"
+      },
+      "type": "array"
+    },
+    "incomplete_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "issue_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.publication_status.v1",
+      "type": "string"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkPublicationStageStatus"
+      },
+      "type": "array"
+    },
+    "supplemental_findings_generated_at_utc": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "docs_root",
+    "benchmarkable_stage_count",
+    "applicable_stage_count",
+    "completed_stage_count",
+    "incomplete_stage_count",
+    "excluded_stage_count",
+    "issue_count",
+    "audit_warning_count",
+    "audit_warnings",
+    "excluded_stages",
+    "stages"
+  ],
+  "title": "BenchmarkPublicationStatusReport",
+  "type": "object"
+}

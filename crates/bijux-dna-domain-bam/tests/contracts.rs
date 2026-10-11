@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/alignment_contract.rs"]
+mod mod_contracts_alignment_contract_rs;
 #[path = "contracts/benchmark_corpus_assignment.rs"]
 mod mod_contracts_benchmark_corpus_assignment_rs;
 #[path = "contracts/canonical_serialization.rs"]

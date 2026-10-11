@@ -37,6 +37,7 @@ The VCF domain mixes currently supported calling stages with many planned downst
 | minimac4 | `vcf.imputation_metrics`, `vcf.impute` | planned citation closure | https://genome.sph.umich.edu/wiki/Minimac4 |
 | plink | `vcf.qc`, `vcf.admixture`, `vcf.population_structure` | planned citation closure | https://www.cog-genomics.org/plink/ |
 | plink2 | `vcf.qc`, `vcf.pca`, `vcf.admixture`, `vcf.population_structure`, `vcf.roh` | planned citation closure | https://www.cog-genomics.org/plink/2.0/ |
+| shapeit | `vcf.phasing` | governed SHAPEIT4 method locator present | https://odelaneau.github.io/shapeit4/ |
 | shapeit5 | `vcf.phasing` | planned citation closure | https://odelaneau.github.io/shapeit5/ |
 
 ## Failure modes

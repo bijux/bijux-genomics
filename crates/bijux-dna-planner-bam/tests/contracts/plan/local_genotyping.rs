@@ -44,8 +44,8 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
     assert_eq!(plan.resources.threads, 2);
     assert_eq!(plan.resources.mem_gb, 8);
     assert_eq!(
-        plan.out_dir,
-        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping")
+        plan.out_dir.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping")
     );
 
     let bam = plan
@@ -120,10 +120,8 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .find(|artifact| artifact.name.as_str() == "genotyping_bcf")
         .unwrap_or_else(|| panic!("genotyping_bcf output missing from local-ready plan"));
     assert_eq!(
-        bcf.path,
-        PathBuf::from(
-            "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf"
-        )
+        bcf.path.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf")
     );
 
     let vcf = plan
@@ -133,8 +131,8 @@ fn local_genotyping_plan_uses_governed_bam_reference_and_sites_inputs() -> Resul
         .find(|artifact| artifact.name.as_str() == "genotyping_vcf")
         .unwrap_or_else(|| panic!("genotyping_vcf output missing from local-ready plan"));
     assert_eq!(
-        vcf.path,
-        PathBuf::from(
+        vcf.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.vcf.gz"
         )
     );

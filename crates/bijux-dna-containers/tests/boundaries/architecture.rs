@@ -168,6 +168,7 @@ fn execution_policy_tree_matches_architecture_contract() {
         btree_set(&[
             "mod.rs",
             "model.rs",
+            "repository_archive.rs",
             "repository_freeze.rs",
             "repository_tracking.rs",
             "schema.rs",

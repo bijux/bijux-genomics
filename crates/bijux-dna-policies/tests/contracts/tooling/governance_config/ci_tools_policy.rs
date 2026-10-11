@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use std::collections::BTreeSet;
 use std::env;
 use std::path::PathBuf;
 
@@ -61,9 +62,20 @@ fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
 #[test]
 fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
     let root = workspace_root();
-    let allowed =
-        ["bijux-dna", "bijux-dna-domain-compiler", "bijux-dna-infra", "bijux-dna-policies"];
-    let mut offenders = Vec::new();
+    let expected = [
+        "bijux-dna",
+        "bijux-dna-bench",
+        "bijux-dna-containers",
+        "bijux-dna-containers-qa",
+        "bijux-dna-dev",
+        "bijux-dna-domain-compiler",
+        "bijux-dna-infra",
+        "bijux-dna-policies",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect::<BTreeSet<_>>();
+    let mut observed = BTreeSet::new();
     for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if entry.file_name() != "Cargo.toml" {
             continue;
@@ -78,15 +90,13 @@ fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
             .and_then(|path| path.file_name())
             .and_then(|name| name.to_str())
             .unwrap_or("");
-        if !allowed.contains(&name) {
-            offenders.push(entry.path().display().to_string());
-        }
+        observed.insert(name.to_string());
     }
     bijux_dna_policies::policy_assert!(
-        offenders.is_empty(),
-        "serde_yaml must be scoped to {:?}: {:?}",
-        allowed,
-        offenders
+        observed == expected,
+        "serde_yaml owners must match the exact product boundary: expected {:?}, observed {:?}",
+        expected,
+        observed
     );
 }
 

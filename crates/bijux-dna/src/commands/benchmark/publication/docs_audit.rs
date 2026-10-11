@@ -6,17 +6,15 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
-use super::models::{
-    BenchmarkPublicationStatusReport, ExcludedStageEntry, PublicationCorpusSpec,
-    PublicationStageReport, StageAuditIssue,
-};
 use super::{
     append_stage_audit_issue, audit_cohort_runtime_summary, audit_publication_summary,
     audit_sample_results, audit_sample_runtime_outliers, audit_tool_runtime_summary,
     expected_counts_for_scope, publication_method_file_name, relative_to_docs_root,
-    relative_to_repo_root, sorted_strings, value_string, CorpusBenchmarkContract,
-    CorpusBenchmarkExclusion,
+    relative_to_repo_root, sorted_strings, value_string, BenchmarkPublicationStatusReport,
+    CorpusBenchmarkContract, CorpusBenchmarkExclusion, ExcludedStageEntry, PublicationStageReport,
+    StageAuditIssue, BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1,
 };
+use crate::commands::benchmark::corpus_metadata::CorpusSpec;
 
 pub(super) fn audit_publication_docs(
     repo_root: &Path,
@@ -24,7 +22,7 @@ pub(super) fn audit_publication_docs(
     corpus_id: &str,
     contracts: &[CorpusBenchmarkContract],
     exclusions: &[CorpusBenchmarkExclusion],
-    corpus_spec: &PublicationCorpusSpec,
+    corpus_spec: &CorpusSpec,
     supplemental_findings: &BTreeMap<String, Vec<StageAuditIssue>>,
     results_by_stage: &BTreeMap<String, serde_json::Value>,
     audit_warnings: &[String],
@@ -49,6 +47,7 @@ pub(super) fn audit_publication_docs(
         })
         .collect::<Result<Vec<_>>>()?;
     Ok(BenchmarkPublicationStatusReport {
+        schema_version: BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1.to_string(),
         corpus_id: corpus_id.to_string(),
         docs_root: relative_to_repo_root(docs_root, repo_root),
         benchmarkable_stage_count: contracts.len() + exclusions.len(),
@@ -75,7 +74,7 @@ pub(super) fn audit_publication_stage(
     docs_root: &Path,
     contract: &CorpusBenchmarkContract,
     corpus_id: &str,
-    corpus_spec: &PublicationCorpusSpec,
+    corpus_spec: &CorpusSpec,
     supplemental_issues: Vec<StageAuditIssue>,
     results_stage: Option<&serde_json::Value>,
 ) -> Result<PublicationStageReport> {

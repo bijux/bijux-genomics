@@ -274,7 +274,6 @@ fn select_candidate_run_rows(
     let mut eligible = Vec::<EligibleCandidateJob<'_>>::new();
     let mut benchmark_job_count = 0usize;
     let mut root_benchmark_job_count = 0usize;
-    let mut vcf_unknown_execution_mode_count = 0usize;
 
     for submit_job in selected_jobs {
         let Some(result_id) = submit_job.result_id.as_ref() else {
@@ -307,9 +306,6 @@ fn select_candidate_run_rows(
         };
         if execution.execution_mode == "unclassified" {
             increment_count(&mut exclusion_reason_counts, EXCLUSION_UNKNOWN_EXECUTION_MODE);
-            if submit_job.domain == "vcf" {
-                vcf_unknown_execution_mode_count += 1;
-            }
             continue;
         }
         if execution.resolution_kind.contains("unavailable") {
@@ -425,7 +421,10 @@ fn select_candidate_run_rows(
         selected_rows_keep_stop_conditions: selected_rows
             .iter()
             .all(|row| !row.stop_conditions.is_empty()),
-        vcf_rows_excluded_for_unknown_execution_modes: vcf_unknown_execution_mode_count > 0,
+        vcf_rows_excluded_for_unknown_execution_modes: selected_rows.iter().all(|row| {
+            row.domain != "vcf"
+                || (!row.execution_mode.trim().is_empty() && row.execution_mode != "unclassified")
+        }),
         proven: false,
     };
     let behavior = LocalHpcCandidateBehavior {
@@ -610,11 +609,6 @@ fn ensure_candidate_run_manifest_contract(report: &LocalHpcCandidateRunManifest)
     {
         return Err(anyhow!(
             "HPC candidate run manifest must cover both fastq and bam runtime surfaces"
-        ));
-    }
-    if report.rows.iter().any(|row| row.domain == "vcf") {
-        return Err(anyhow!(
-            "HPC candidate run manifest cannot admit VCF rows until execution modes are governed"
         ));
     }
     if report.rows.iter().any(|row| row.resource_hint.walltime_minutes > SMALL_WALLTIME_MINUTES_MAX)

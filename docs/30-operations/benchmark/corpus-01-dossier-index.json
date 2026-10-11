@@ -1,4 +1,5 @@
 {
+  "schema_version": "bijux.bench.dossier_index.v1",
   "corpus_id": "corpus-01",
   "stage_count": 20,
   "published_stage_count": 19,

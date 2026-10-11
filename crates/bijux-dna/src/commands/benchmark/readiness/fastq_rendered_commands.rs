@@ -389,10 +389,10 @@ mod tests {
             report.argv_output_path,
             "artifacts/benchmark-smoke/readiness/fastq/fastq-rendered-commands.argv.jsonl"
         );
-        assert_eq!(report.row_count, 69);
+        assert_eq!(report.row_count, 71);
         assert_eq!(report.stage_count, 27);
-        assert_eq!(report.tool_count, 42);
-        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&69));
+        assert_eq!(report.tool_count, 43);
+        assert_eq!(report.command_source_counts.get("fastq_bam_command_adapter"), Some(&71));
         assert!(report.rows.iter().all(|row| {
             row.benchmark_status == "benchmark_ready"
                 && row.command_source == "fastq_bam_command_adapter"
@@ -418,5 +418,15 @@ mod tests {
                 && row.tool_id == "dada2"
                 && row.command_steps[0].argv.first().map(String::as_str) == Some("dada2")
         }));
+        let seqprep_trim = report
+            .rows
+            .iter()
+            .find(|row| row.stage_id == "fastq.trim_reads" && row.tool_id == "seqprep")
+            .expect("SeqPrep trim command row");
+        let seqprep_script = seqprep_trim.command_steps[0].argv.join(" ");
+        assert!(seqprep_script.contains("'seqprep' '-f'"));
+        assert!(seqprep_script.contains("'-r'"));
+        assert!(seqprep_script.contains("reads_with_trim_signals_R2.fastq"));
+        assert!(seqprep_script.contains("trim_report.seqprep.log"));
     }
 }

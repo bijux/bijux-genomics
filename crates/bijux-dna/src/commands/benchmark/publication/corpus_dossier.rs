@@ -5,10 +5,15 @@ use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
-
-use super::models::{
-    CorpusArtifactSet, CorpusHeadline, CorpusSampleResultRow, CorpusSummary, CorpusToolSummary,
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_corpus_dossier_summary, BenchmarkCorpusDossierHeadline as CorpusHeadline,
+    BenchmarkCorpusDossierSampleResultRow as CorpusSampleResultRow,
+    BenchmarkCorpusDossierSummary as CorpusSummary,
+    BenchmarkCorpusDossierToolSummary as CorpusToolSummary,
+    BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1,
 };
+
+use super::models::CorpusArtifactSet;
 use super::{
     absolutize, configured_stage_run_roots, csv_report_value, load_json_value,
     localize_results_path, select_stage_run_root, sorted_json_string_array, sorted_strings,
@@ -248,7 +253,7 @@ fn build_corpus_artifact_set(
                 sample_id: sample_id.clone(),
                 accession: metadata.accession.clone(),
                 era: metadata.era.clone(),
-                layout: metadata.layout.clone(),
+                layout: metadata.layout.as_str().to_string(),
                 study_accession: metadata.study_accession.clone(),
                 size_band: metadata.size_band.clone(),
                 tool,
@@ -363,7 +368,7 @@ fn build_corpus_artifact_set(
             row.insert("sample_id".to_string(), sample_id.clone());
             row.insert("accession".to_string(), metadata.accession.clone());
             row.insert("era".to_string(), metadata.era.clone());
-            row.insert("layout".to_string(), metadata.layout.clone());
+            row.insert("layout".to_string(), metadata.layout.as_str().to_string());
             row.insert("size_band".to_string(), metadata.size_band.clone());
             row.insert("total_runtime_s".to_string(), format_f64(total_runtime));
             row.insert("slowest_tool".to_string(), slowest.0.clone());
@@ -381,8 +386,9 @@ fn build_corpus_artifact_set(
     let cohort_counts = count_by_cohort(applicable_samples, metadata_by_sample)?;
     let era_counts =
         count_by_key(applicable_samples, metadata_by_sample, |metadata| metadata.era.clone())?;
-    let layout_counts =
-        count_by_key(applicable_samples, metadata_by_sample, |metadata| metadata.layout.clone())?;
+    let layout_counts = count_by_key(applicable_samples, metadata_by_sample, |metadata| {
+        metadata.layout.as_str().to_string()
+    })?;
     let fastest = tool_summary
         .iter()
         .filter_map(|row| row.median_runtime_s.map(|runtime| (row.tool.clone(), runtime)))
@@ -396,7 +402,7 @@ fn build_corpus_artifact_set(
         .and_then(serde_json::Value::as_u64)
         .map_or(Ok(0_usize), usize::try_from)?;
     let summary = CorpusSummary {
-        schema_version: "bijux.corpus_benchmark.summary.v1".to_string(),
+        schema_version: BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1.to_string(),
         corpus_id: corpus_spec.corpus_id.clone(),
         stage_id: contract.stage_id.clone(),
         scenario_id: contract.scenario_id.clone(),
@@ -419,6 +425,7 @@ fn build_corpus_artifact_set(
             highest_pass_rate: highest_pass_rate.map(|row| row.1),
         },
     };
+    validate_benchmark_corpus_dossier_summary(&summary)?;
     let benchmark_markdown =
         render_corpus_benchmark_markdown(&summary, &tool_runtime_rows, &outlier_rows);
 

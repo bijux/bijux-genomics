@@ -3,7 +3,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use serde::{Deserialize, Serialize};
+use bijux_dna_api::v1::api::bench::{
+    validate_benchmark_local_hpc_scratch_layout, BenchmarkLocalHpcScratchCleanupPolicy,
+    BenchmarkLocalHpcScratchInputLink, BenchmarkLocalHpcScratchJobResources,
+    BenchmarkLocalHpcScratchLayout, BenchmarkLocalHpcScratchLayoutJob,
+    BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
+};
+use serde::Deserialize;
 
 use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
 use super::local_hpc_input_discovery::{
@@ -22,7 +28,7 @@ use crate::commands::benchmark::readiness::essential_pipeline_rendered_commands:
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION: &str = "bijux.bench.local_hpc_scratch_layout.v1";
+const LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION: &str = BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_SCRATCH_LAYOUT_PATH: &str =
     "runs/bench/hpc-dry-run/scratch-layout.json";
 const CLEANUP_POLICY_ID: &str = "copy_back_outputs_remove_successful_scratch";
@@ -33,139 +39,11 @@ const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH_FOR_HPC: &str =
 const DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_ARGV_PATH: &str =
     "artifacts/benchmark-smoke/readiness/pipelines/essential-pipelines-rendered-commands.argv.jsonl";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcScratchLayout {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) staging_root: String,
-    pub(crate) scratch_root: String,
-    pub(crate) selected_job_count: usize,
-    pub(crate) benchmark_job_count: usize,
-    pub(crate) essential_pipeline_job_count: usize,
-    pub(crate) input_link_count: usize,
-    pub(crate) jobs: Vec<LocalHpcScratchLayoutJob>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcScratchLayoutJob {
-    pub(crate) job_id_local: String,
-    pub(crate) job_kind: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) pipeline_id: Option<String>,
-    pub(crate) node_id: Option<String>,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) corpus_id: String,
-    pub(crate) asset_profile_id: String,
-    pub(crate) scratch_root: String,
-    pub(crate) input_links_root: String,
-    pub(crate) output_root: String,
-    pub(crate) log_root: String,
-    pub(crate) stdout_path: String,
-    pub(crate) stderr_path: String,
-    pub(crate) resources: LocalHpcScratchJobResources,
-    pub(crate) cleanup_policy: LocalHpcScratchCleanupPolicy,
-    pub(crate) input_links: Vec<LocalHpcScratchInputLink>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcScratchJobResources {
-    pub(crate) cpus_per_task: u32,
-    pub(crate) memory_mb: u32,
-    pub(crate) time_limit: String,
-    pub(crate) scratch_gb: u32,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcScratchCleanupPolicy {
-    pub(crate) policy_id: String,
-    pub(crate) remove_scratch_after_successful_sync: bool,
-    pub(crate) retain_scratch_on_failure: bool,
-    pub(crate) preserve_output_root: bool,
-    pub(crate) preserve_log_root: bool,
-    pub(crate) preserve_staged_inputs: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct LocalHpcScratchInputLink {
-    pub(crate) artifact_id: Option<String>,
-    pub(crate) artifact_role: Option<String>,
-    pub(crate) source_kind: String,
-    pub(crate) source_path: String,
-    pub(crate) staged_path: String,
-    pub(crate) link_path: String,
-    pub(crate) checksum_sha256: String,
-    pub(crate) size_bytes: u64,
-    pub(crate) member_count: usize,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedLocalHpcScratchLayout {
-    schema_version: String,
-    output_path: String,
-    staging_root: String,
-    scratch_root: String,
-    selected_job_count: usize,
-    benchmark_job_count: usize,
-    essential_pipeline_job_count: usize,
-    input_link_count: usize,
-    jobs: Vec<LoadedLocalHpcScratchLayoutJob>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedLocalHpcScratchLayoutJob {
-    job_id_local: String,
-    job_kind: String,
-    result_id: Option<String>,
-    pipeline_id: Option<String>,
-    node_id: Option<String>,
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-    corpus_id: String,
-    asset_profile_id: String,
-    scratch_root: String,
-    input_links_root: String,
-    output_root: String,
-    log_root: String,
-    stdout_path: String,
-    stderr_path: String,
-    resources: LoadedLocalHpcScratchJobResources,
-    cleanup_policy: LoadedLocalHpcScratchCleanupPolicy,
-    input_links: Vec<LoadedLocalHpcScratchInputLink>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedLocalHpcScratchJobResources {
-    cpus_per_task: u32,
-    memory_mb: u32,
-    time_limit: String,
-    scratch_gb: u32,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedLocalHpcScratchCleanupPolicy {
-    policy_id: String,
-    remove_scratch_after_successful_sync: bool,
-    retain_scratch_on_failure: bool,
-    preserve_output_root: bool,
-    preserve_log_root: bool,
-    preserve_staged_inputs: bool,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct LoadedLocalHpcScratchInputLink {
-    artifact_id: Option<String>,
-    artifact_role: Option<String>,
-    source_kind: String,
-    source_path: String,
-    staged_path: String,
-    link_path: String,
-    checksum_sha256: String,
-    size_bytes: u64,
-    member_count: usize,
-}
+pub(crate) type LocalHpcScratchLayout = BenchmarkLocalHpcScratchLayout;
+pub(crate) type LocalHpcScratchLayoutJob = BenchmarkLocalHpcScratchLayoutJob;
+pub(crate) type LocalHpcScratchJobResources = BenchmarkLocalHpcScratchJobResources;
+pub(crate) type LocalHpcScratchCleanupPolicy = BenchmarkLocalHpcScratchCleanupPolicy;
+pub(crate) type LocalHpcScratchInputLink = BenchmarkLocalHpcScratchInputLink;
 
 #[derive(Debug, Clone, Deserialize)]
 struct ScratchLayoutAllDomainCommandStep {
@@ -261,80 +139,9 @@ pub(crate) fn load_validated_hpc_scratch_layout_path(
     };
     let raw = fs::read_to_string(&absolute_manifest_path)
         .with_context(|| format!("read {}", absolute_manifest_path.display()))?;
-    let loaded = serde_json::from_str::<LoadedLocalHpcScratchLayout>(&raw)
+    let manifest = serde_json::from_str::<LocalHpcScratchLayout>(&raw)
         .with_context(|| format!("parse {}", absolute_manifest_path.display()))?;
-    if loaded.schema_version != LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "HPC scratch layout `{}` uses schema `{}` instead of `{}`",
-            absolute_manifest_path.display(),
-            loaded.schema_version,
-            LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION
-        ));
-    }
-    let manifest = LocalHpcScratchLayout {
-        schema_version: LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION,
-        output_path: loaded.output_path,
-        staging_root: loaded.staging_root,
-        scratch_root: loaded.scratch_root,
-        selected_job_count: loaded.selected_job_count,
-        benchmark_job_count: loaded.benchmark_job_count,
-        essential_pipeline_job_count: loaded.essential_pipeline_job_count,
-        input_link_count: loaded.input_link_count,
-        jobs: loaded
-            .jobs
-            .into_iter()
-            .map(|job| LocalHpcScratchLayoutJob {
-                job_id_local: job.job_id_local,
-                job_kind: job.job_kind,
-                result_id: job.result_id,
-                pipeline_id: job.pipeline_id,
-                node_id: job.node_id,
-                domain: job.domain,
-                stage_id: job.stage_id,
-                tool_id: job.tool_id,
-                corpus_id: job.corpus_id,
-                asset_profile_id: job.asset_profile_id,
-                scratch_root: job.scratch_root,
-                input_links_root: job.input_links_root,
-                output_root: job.output_root,
-                log_root: job.log_root,
-                stdout_path: job.stdout_path,
-                stderr_path: job.stderr_path,
-                resources: LocalHpcScratchJobResources {
-                    cpus_per_task: job.resources.cpus_per_task,
-                    memory_mb: job.resources.memory_mb,
-                    time_limit: job.resources.time_limit,
-                    scratch_gb: job.resources.scratch_gb,
-                },
-                cleanup_policy: LocalHpcScratchCleanupPolicy {
-                    policy_id: job.cleanup_policy.policy_id,
-                    remove_scratch_after_successful_sync: job
-                        .cleanup_policy
-                        .remove_scratch_after_successful_sync,
-                    retain_scratch_on_failure: job.cleanup_policy.retain_scratch_on_failure,
-                    preserve_output_root: job.cleanup_policy.preserve_output_root,
-                    preserve_log_root: job.cleanup_policy.preserve_log_root,
-                    preserve_staged_inputs: job.cleanup_policy.preserve_staged_inputs,
-                },
-                input_links: job
-                    .input_links
-                    .into_iter()
-                    .map(|input| LocalHpcScratchInputLink {
-                        artifact_id: input.artifact_id,
-                        artifact_role: input.artifact_role,
-                        source_kind: input.source_kind,
-                        source_path: input.source_path,
-                        staged_path: input.staged_path,
-                        link_path: input.link_path,
-                        checksum_sha256: input.checksum_sha256,
-                        size_bytes: input.size_bytes,
-                        member_count: input.member_count,
-                    })
-                    .collect(),
-            })
-            .collect(),
-    };
-    ensure_scratch_layout_contract(&manifest)?;
+    validate_benchmark_local_hpc_scratch_layout(&manifest)?;
     let expected_output_path = path_relative_to_repo(repo_root, &absolute_manifest_path);
     if manifest.output_path != expected_output_path {
         return Err(anyhow!(
@@ -474,7 +281,7 @@ fn build_hpc_scratch_layout(
     }
 
     let manifest = LocalHpcScratchLayout {
-        schema_version: LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION,
+        schema_version: LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION.to_string(),
         output_path: path_relative_to_repo(repo_root, absolute_output),
         staging_root: path_relative_to_repo(repo_root, &staging_root),
         scratch_root: path_relative_to_repo(repo_root, &scratch_root),
@@ -484,7 +291,7 @@ fn build_hpc_scratch_layout(
         input_link_count,
         jobs,
     };
-    ensure_scratch_layout_contract(&manifest)?;
+    validate_benchmark_local_hpc_scratch_layout(&manifest)?;
     Ok(manifest)
 }
 
@@ -750,76 +557,6 @@ fn default_cleanup_policy() -> LocalHpcScratchCleanupPolicy {
     }
 }
 
-fn ensure_scratch_layout_contract(manifest: &LocalHpcScratchLayout) -> Result<()> {
-    if manifest.selected_job_count != manifest.jobs.len() {
-        return Err(anyhow!("HPC scratch layout must keep selected_job_count aligned with jobs"));
-    }
-    if manifest.input_link_count
-        != manifest.jobs.iter().map(|job| job.input_links.len()).sum::<usize>()
-    {
-        return Err(anyhow!(
-            "HPC scratch layout must keep input_link_count aligned with input links"
-        ));
-    }
-    if manifest.benchmark_job_count + manifest.essential_pipeline_job_count != manifest.jobs.len() {
-        return Err(anyhow!(
-            "HPC scratch layout must keep benchmark and essential pipeline counts aligned with jobs"
-        ));
-    }
-
-    for job in &manifest.jobs {
-        if job.input_links.is_empty() {
-            return Err(anyhow!(
-                "HPC scratch layout job `{}` must keep at least one input link",
-                job.job_id_local
-            ));
-        }
-        if job.scratch_root == manifest.scratch_root {
-            return Err(anyhow!(
-                "HPC scratch layout job `{}` must keep a job-scoped scratch root",
-                job.job_id_local
-            ));
-        }
-        if !job.input_links_root.starts_with(&job.scratch_root) {
-            return Err(anyhow!(
-                "HPC scratch layout job `{}` input_links_root must stay inside scratch_root",
-                job.job_id_local
-            ));
-        }
-        if job.log_root.is_empty() || job.output_root.is_empty() {
-            return Err(anyhow!(
-                "HPC scratch layout job `{}` must keep explicit log and output roots",
-                job.job_id_local
-            ));
-        }
-        for input in &job.input_links {
-            if !input.link_path.starts_with(&job.input_links_root) {
-                return Err(anyhow!(
-                    "HPC scratch layout job `{}` input link `{}` must stay inside input_links_root",
-                    job.job_id_local,
-                    input.source_path
-                ));
-            }
-            if input.source_path == input.link_path {
-                return Err(anyhow!(
-                    "HPC scratch layout job `{}` input link `{}` must not point at the original source path",
-                    job.job_id_local,
-                    input.source_path
-                ));
-            }
-            if input.source_path == input.staged_path {
-                return Err(anyhow!(
-                    "HPC scratch layout job `{}` input `{}` must keep a staged path distinct from the source path",
-                    job.job_id_local,
-                    input.source_path
-                ));
-            }
-        }
-    }
-
-    Ok(())
-}
-
 fn ensure_scratch_layout_matches_expected(
     manifest_path: &Path,
     observed: &LocalHpcScratchLayout,
@@ -848,12 +585,25 @@ mod tests {
     }
 
     fn manifest_path(repo_root: &Path, label: &str) -> (tempfile::TempDir, PathBuf) {
+        let temp_root = repo_root.join("runs/bench/hpc-dry-run");
+        std::fs::create_dir_all(&temp_root).expect("create HPC scratch-layout test root");
         let temp_dir = tempfile::Builder::new()
             .prefix(label)
-            .tempdir_in(repo_root.join("runs/bench/hpc-dry-run"))
+            .tempdir_in(temp_root)
             .expect("temporary HPC dry-run directory");
         let manifest_path = temp_dir.path().join("scratch-layout.json");
         (temp_dir, manifest_path)
+    }
+
+    #[test]
+    fn scratch_layout_test_sandbox_creates_clean_checkout_parent() {
+        let clean_checkout = tempfile::tempdir().expect("clean checkout root");
+        assert!(!clean_checkout.path().join("runs").exists());
+
+        let (_temp_dir, manifest_path) =
+            manifest_path(clean_checkout.path(), "clean-checkout-scratch-layout-");
+
+        assert!(manifest_path.parent().is_some_and(Path::exists));
     }
 
     #[test]

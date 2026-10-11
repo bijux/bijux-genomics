@@ -38,6 +38,7 @@ contracts for v1 callers.
 Allowed normal dependencies are the crates needed to compose API workflows:
 
 - `bijux-dna-core`
+- `bijux-dna-bench-model`
 - `bijux-dna-domain-bam`
 - `bijux-dna-domain-fastq`
 - `bijux-dna-stage-contract`

@@ -457,6 +457,14 @@ mod tests {
             && row.adapter_id == "bam.adapter.coverage"
             && row.parser_id == "bam.parser.coverage"
             && row.benchmark_status == "benchmark_ready"));
+        assert!(report.rows.iter().any(|row| row.domain == "bam"
+            && row.stage_id == "bam.kinship"
+            && row.tool_id == "angsd"
+            && row.corpus_id == "corpus-01-kinship-mini"
+            && row.asset_profile_id == "reference_fasta+reference_panel"
+            && row.adapter_id == "bam.adapter.kinship"
+            && row.parser_id == "bam.parser.kinship"
+            && row.benchmark_status == "benchmark_ready"));
         assert!(report.rows.iter().any(|row| row.domain == "vcf"
             && row.stage_id == "vcf.call"
             && row.tool_id == "bcftools"

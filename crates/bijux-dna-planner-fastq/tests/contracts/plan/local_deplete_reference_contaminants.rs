@@ -1,7 +1,7 @@
 #![allow(clippy::too_many_lines)]
 
 use anyhow::Result;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -22,8 +22,8 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
     assert_eq!(plan.resources.threads, 4);
     assert_eq!(plan.resources.mem_gb, 8);
     assert_eq!(
-        plan.out_dir,
-        PathBuf::from(
+        plan.out_dir.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants"
         )
     );
@@ -63,8 +63,8 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
             panic!("contaminant_screened_reads_r1 output missing from local-ready plan")
         });
     assert_eq!(
-        retained_reads.path,
-        PathBuf::from(
+        retained_reads.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R1.fastq.gz"
         )
     );
@@ -77,8 +77,8 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
             panic!("contaminant_screened_reads_r2 output missing from local-ready plan")
         });
     assert_eq!(
-        retained_reads_r2.path,
-        PathBuf::from(
+        retained_reads_r2.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screened_R2.fastq.gz"
         )
     );
@@ -92,8 +92,8 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
             panic!("removed_contaminant_reads_r1 output missing from local-ready plan")
         });
     assert_eq!(
-        removed_reads.path,
-        PathBuf::from(
+        removed_reads.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R1.fastq.gz"
         )
     );
@@ -106,8 +106,8 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
             panic!("removed_contaminant_reads_r2 output missing from local-ready plan")
         });
     assert_eq!(
-        removed_reads_r2.path,
-        PathBuf::from(
+        removed_reads_r2.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/removed_contaminant_R2.fastq.gz"
         )
     );
@@ -121,8 +121,8 @@ fn local_deplete_reference_contaminants_plan_uses_governed_repo_inputs() -> Resu
             panic!("contaminant_screen_report_json output missing from local-ready plan")
         });
     assert_eq!(
-        report_json.path,
-        PathBuf::from(
+        report_json.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants/contaminant_screen_report.json"
         )
     );

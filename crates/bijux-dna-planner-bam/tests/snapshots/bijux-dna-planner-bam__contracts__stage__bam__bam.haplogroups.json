@@ -22,6 +22,7 @@
   "io": {
     "inputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "bam",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -36,24 +37,28 @@
     ],
     "outputs": [
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "haplogroups",
         "optional": false,
         "path": "out/haplogroups.json",
-        "role": "unknown"
+        "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "summary",
         "optional": false,
         "path": "out/haplogroups.summary.json",
         "role": "report_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",
         "role": "metrics_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "haplogroup_report",
         "optional": false,
         "path": "out/haplogroup_report.json",

@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "ComparableMetricContractStatus": {
+      "enum": [
+        "declared",
+        "missing_shared_metrics"
+      ],
+      "type": "string"
+    },
+    "FastqComparableMetricsRow": {
+      "additionalProperties": false,
+      "properties": {
+        "comparison_contract_status": {
+          "$ref": "#/$defs/ComparableMetricContractStatus"
+        },
+        "corpus_status": {
+          "type": "string"
+        },
+        "default_tool_id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "shared_metric_field_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "shared_metric_fields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "tool_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "stage_id",
+        "comparison_contract_status",
+        "tool_count",
+        "tool_ids",
+        "default_tool_id",
+        "corpus_status",
+        "shared_metric_field_count",
+        "shared_metric_fields",
+        "reason"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "comparable_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "comparable_tool_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "declared_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "missing_shared_metric_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "multi_tool_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/FastqComparableMetricsRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.fastq_comparable_metrics.v1",
+      "type": "string"
+    },
+    "shared_metric_field_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "comparable_stage_count",
+    "multi_tool_stage_count",
+    "comparable_tool_row_count",
+    "row_count",
+    "declared_stage_count",
+    "missing_shared_metric_stage_count",
+    "shared_metric_field_count",
+    "rows"
+  ],
+  "title": "FastqComparableMetricsReport",
+  "type": "object"
+}

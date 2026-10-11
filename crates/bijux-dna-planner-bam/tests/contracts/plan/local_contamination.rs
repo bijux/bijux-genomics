@@ -46,8 +46,8 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
     assert_eq!(plan.resources.threads, 2);
     assert_eq!(plan.resources.mem_gb, 8);
     assert_eq!(
-        plan.out_dir,
-        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/bam.contamination")
+        plan.out_dir.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/bam.contamination")
     );
 
     let bam = plan
@@ -109,8 +109,8 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .find(|artifact| artifact.name.as_str() == "contamination_report")
         .unwrap_or_else(|| panic!("contamination_report output missing from local-ready plan"));
     assert_eq!(
-        contamination_report.path,
-        PathBuf::from(
+        contamination_report.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.json"
         )
     );
@@ -121,8 +121,8 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .find(|artifact| artifact.name.as_str() == "summary")
         .unwrap_or_else(|| panic!("summary output missing from local-ready plan"));
     assert_eq!(
-        contamination_summary.path,
-        PathBuf::from(
+        contamination_summary.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.summary.json"
         )
     );
@@ -133,8 +133,8 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .find(|artifact| artifact.name.as_str() == "stage_metrics")
         .unwrap_or_else(|| panic!("stage_metrics output missing from local-ready plan"));
     assert_eq!(
-        stage_metrics.path,
-        PathBuf::from(
+        stage_metrics.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/stage.metrics.json"
         )
     );
@@ -145,8 +145,8 @@ fn local_contamination_plan_uses_governed_bam_reference_and_panel_inputs() -> Re
         .find(|artifact| artifact.name.as_str() == "contamination_estimate")
         .unwrap_or_else(|| panic!("contamination_estimate output missing from local-ready plan"));
     assert_eq!(
-        contamination_estimate.path,
-        PathBuf::from(
+        contamination_estimate.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.estimate.json"
         )
     );

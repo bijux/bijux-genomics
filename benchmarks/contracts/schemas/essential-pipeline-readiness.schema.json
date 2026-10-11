@@ -1,0 +1,133 @@
+{
+  "$defs": {
+    "BenchmarkEssentialPipelineReadinessGoalCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "goal_id": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "output_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "surface": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "goal_id",
+        "surface",
+        "ok",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "checked_goal_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkEssentialPipelineReadinessGoalCheck"
+      },
+      "type": "array"
+    },
+    "corpus_asset_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "dag_node_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failed_goal_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failing_goal_ids": {
+      "items": {
+        "format": "uint32",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "array"
+    },
+    "fake_run_node_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "fake_run_output_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "passed_goal_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "pipeline_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rendered_command_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "report_map_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.essential_pipelines_ready.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "checked_goal_count",
+    "passed_goal_count",
+    "failed_goal_count",
+    "failing_goal_ids",
+    "pipeline_count",
+    "dag_node_count",
+    "corpus_asset_row_count",
+    "rendered_command_row_count",
+    "fake_run_node_count",
+    "fake_run_output_count",
+    "report_map_row_count",
+    "ok",
+    "checks"
+  ],
+  "title": "BenchmarkEssentialPipelineReadinessReport",
+  "type": "object"
+}

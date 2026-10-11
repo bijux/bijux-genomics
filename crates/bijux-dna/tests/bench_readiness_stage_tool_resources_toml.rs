@@ -109,9 +109,34 @@ fn bench_readiness_stage_tool_resources_writes_governed_toml_file() {
             && row.get("walltime_minutes").and_then(toml::Value::as_integer) == Some(7)
             && row.get("scratch_gb").and_then(toml::Value::as_integer) == Some(2)
     }));
-    assert!(rows.iter().all(|row| {
-        !matches!(row.get("tool_id").and_then(toml::Value::as_str), Some("angsd" | "ngsbriggs"))
-    }));
+    for (stage_id, tool_id) in [
+        ("bam.damage", "ngsbriggs"),
+        ("bam.kinship", "angsd"),
+        ("bam.sex", "angsd"),
+        ("fastq.remove_duplicates", "fastuniq"),
+        ("vcf.call_gl", "angsd"),
+        ("vcf.call_pseudohaploid", "angsd"),
+        ("vcf.imputation_metrics", "impute5"),
+        ("vcf.impute", "impute5"),
+    ] {
+        assert!(
+            rows.iter().any(|row| {
+                row.get("stage_id").and_then(toml::Value::as_str) == Some(stage_id)
+                    && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
+                    && row.get("threads").and_then(toml::Value::as_integer).is_some_and(|v| v > 0)
+                    && row.get("memory_gb").and_then(toml::Value::as_integer).is_some_and(|v| v > 0)
+                    && row
+                        .get("walltime_minutes")
+                        .and_then(toml::Value::as_integer)
+                        .is_some_and(|v| v > 0)
+                    && row
+                        .get("scratch_gb")
+                        .and_then(toml::Value::as_integer)
+                        .is_some_and(|v| v > 0)
+            }),
+            "missing resource contract for {stage_id} / {tool_id}"
+        );
+    }
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.kinship")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("king")

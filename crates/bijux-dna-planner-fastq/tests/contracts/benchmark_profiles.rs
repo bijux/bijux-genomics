@@ -155,6 +155,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             "leehom",
             "prinseq",
             "seqkit",
+            "seqprep",
             "skewer",
             "trim_galore",
             "trimmomatic",
@@ -173,6 +174,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             "leehom",
             "prinseq",
             "seqkit",
+            "seqprep",
             "skewer",
             "trim_galore",
             "trimmomatic",
@@ -222,11 +224,11 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(merge_cohorts[0].scenario_id, "merge_fairness");
     assert_eq!(
         merge_cohorts[0].tool_ids.iter().map(ToolId::as_str).collect::<Vec<_>>(),
-        vec!["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch",]
+        vec!["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "seqprep", "vsearch",]
     );
     assert_eq!(
         merge_cohorts[0].observer_specialized_tools.iter().map(ToolId::as_str).collect::<Vec<_>>(),
-        vec!["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch",]
+        vec!["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "seqprep", "vsearch",]
     );
 
     let low_complexity_stage = StageId::from_static("fastq.filter_low_complexity");

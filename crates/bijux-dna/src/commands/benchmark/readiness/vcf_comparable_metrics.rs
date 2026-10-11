@@ -2,41 +2,22 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    validate_vcf_comparable_metrics_report, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+};
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    ComparableMetricDirection, VcfComparableMetricsReport, VcfComparableMetricsRow,
+};
 use bijux_dna_domain_vcf::{
     comparable_metric_stage_ids, stage_comparable_metric_specs, VcfComparableMetricDirection,
     VcfDomainStage,
 };
-use serde::Serialize;
 
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_COMPARABLE_METRICS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/vcf/vcf-comparable-metrics.tsv";
-const VCF_COMPARABLE_METRICS_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.vcf_comparable_metrics.v1";
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct VcfComparableMetricsRow {
-    pub(crate) stage_id: String,
-    pub(crate) metric_id: String,
-    pub(crate) metric_name: String,
-    pub(crate) unit: String,
-    pub(crate) direction: String,
-    pub(crate) required: bool,
-    pub(crate) tools_covered: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct VcfComparableMetricsReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) multi_tool_stage_count: usize,
-    pub(crate) retained_tool_row_count: usize,
-    pub(crate) row_count: usize,
-    pub(crate) rows: Vec<VcfComparableMetricsRow>,
-}
 
 pub(crate) fn run_render_vcf_comparable_metrics(
     args: &parse::BenchReadinessRenderVcfComparableMetricsArgs,
@@ -72,23 +53,25 @@ pub(crate) fn render_vcf_comparable_metrics(
         ));
     }
 
-    if let Some(parent) = output_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
-    }
     let rendered = render_vcf_comparable_metrics_tsv(&rows);
-    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    Ok(VcfComparableMetricsReport {
-        schema_version: VCF_COMPARABLE_METRICS_SCHEMA_VERSION,
+    let report = VcfComparableMetricsReport {
+        schema_version: VCF_COMPARABLE_METRICS_SCHEMA_V1.to_string(),
         output_path: path_relative_to_repo(repo_root, &output_path),
         stage_count: covered_stages,
         multi_tool_stage_count,
         retained_tool_row_count,
         row_count: rows.len(),
         rows,
-    })
+    };
+    validate_vcf_comparable_metrics_report(&report)
+        .context("validate VCF comparable-metrics report")?;
+    if let Some(parent) = output_path.parent() {
+        bijux_dna_infra::ensure_dir(parent)
+            .with_context(|| format!("create {}", parent.display()))?;
+    }
+    bijux_dna_infra::write_bytes(&output_path, rendered.as_bytes())
+        .with_context(|| format!("write {}", output_path.display()))?;
+    Ok(report)
 }
 
 fn collect_vcf_comparable_metric_rows(
@@ -136,7 +119,7 @@ fn collect_vcf_comparable_metric_rows(
                 metric_id: spec.metric_id.to_string(),
                 metric_name: spec.metric_name.to_string(),
                 unit: spec.unit.to_string(),
-                direction: comparable_metric_direction_label(spec.direction).to_string(),
+                direction: comparable_metric_direction(spec.direction),
                 required: spec.required,
                 tools_covered: tools_covered.clone(),
             });
@@ -295,7 +278,7 @@ fn render_vcf_comparable_metrics_tsv(rows: &[VcfComparableMetricsRow]) -> String
             sanitize_tsv(&row.metric_id),
             sanitize_tsv(&row.metric_name),
             sanitize_tsv(&row.unit),
-            sanitize_tsv(&row.direction),
+            sanitize_tsv(row.direction.as_str()),
             row.required,
             sanitize_tsv(&row.tools_covered.join(",")),
         ));
@@ -303,11 +286,15 @@ fn render_vcf_comparable_metrics_tsv(rows: &[VcfComparableMetricsRow]) -> String
     rendered
 }
 
-fn comparable_metric_direction_label(direction: VcfComparableMetricDirection) -> &'static str {
+fn comparable_metric_direction(
+    direction: VcfComparableMetricDirection,
+) -> ComparableMetricDirection {
     match direction {
-        VcfComparableMetricDirection::ExactMatchPreferred => "exact_match_preferred",
-        VcfComparableMetricDirection::HigherIsBetter => "higher_is_better",
-        VcfComparableMetricDirection::LowerIsBetter => "lower_is_better",
+        VcfComparableMetricDirection::ExactMatchPreferred => {
+            ComparableMetricDirection::ExactMatchPreferred
+        }
+        VcfComparableMetricDirection::HigherIsBetter => ComparableMetricDirection::HigherIsBetter,
+        VcfComparableMetricDirection::LowerIsBetter => ComparableMetricDirection::LowerIsBetter,
     }
 }
 
@@ -332,8 +319,8 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        comparable_metric_direction_label, render_vcf_comparable_metrics,
-        DEFAULT_VCF_COMPARABLE_METRICS_PATH, VCF_COMPARABLE_METRICS_SCHEMA_VERSION,
+        comparable_metric_direction, render_vcf_comparable_metrics,
+        DEFAULT_VCF_COMPARABLE_METRICS_PATH, VCF_COMPARABLE_METRICS_SCHEMA_V1,
     };
     use bijux_dna_domain_vcf::VcfComparableMetricDirection;
 
@@ -350,7 +337,7 @@ mod tests {
         )
         .expect("render VCF comparable metrics");
 
-        assert_eq!(report.schema_version, VCF_COMPARABLE_METRICS_SCHEMA_VERSION);
+        assert_eq!(report.schema_version, VCF_COMPARABLE_METRICS_SCHEMA_V1);
         assert_eq!(report.output_path, DEFAULT_VCF_COMPARABLE_METRICS_PATH);
         assert_eq!(report.stage_count, 10);
         assert_eq!(report.multi_tool_stage_count, 10);
@@ -362,7 +349,7 @@ mod tests {
                 && row.metric_id == "sites_with_likelihoods"
                 && row.metric_name == "sites with likelihoods"
                 && row.unit == "sites"
-                && row.direction == "higher_is_better"
+                && row.direction.as_str() == "higher_is_better"
                 && row.required
                 && row.tools_covered == vec!["angsd".to_string(), "bcftools".to_string()]
         }));
@@ -370,21 +357,21 @@ mod tests {
             row.stage_id == "vcf.qc"
                 && row.metric_id == "concordance"
                 && row.unit == "fraction"
-                && row.direction == "higher_is_better"
+                && row.direction.as_str() == "higher_is_better"
                 && row.tools_covered
                     == vec!["bcftools".to_string(), "plink".to_string(), "plink2".to_string()]
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.phasing"
                 && row.metric_id == "switch_error_proxy"
-                && row.direction == "lower_is_better"
+                && row.direction.as_str() == "lower_is_better"
                 && row.tools_covered
                     == vec!["beagle".to_string(), "eagle".to_string(), "shapeit5".to_string()]
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.impute"
                 && row.metric_id == "masked_truth_match_count"
-                && row.direction == "higher_is_better"
+                && row.direction.as_str() == "higher_is_better"
                 && row.tools_covered
                     == vec![
                         "beagle".to_string(),
@@ -396,7 +383,7 @@ mod tests {
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.ibd"
                 && row.metric_id == "pair_count"
-                && row.direction == "exact_match_preferred"
+                && row.direction.as_str() == "exact_match_preferred"
                 && row.tools_covered
                     == vec!["germline".to_string(), "ibdhap".to_string(), "ibdseq".to_string()]
         }));
@@ -405,16 +392,16 @@ mod tests {
     #[test]
     fn comparable_metric_direction_labels_are_stable() {
         assert_eq!(
-            comparable_metric_direction_label(VcfComparableMetricDirection::ExactMatchPreferred),
-            "exact_match_preferred"
+            comparable_metric_direction(VcfComparableMetricDirection::ExactMatchPreferred).as_str(),
+            "exact_match_preferred",
         );
         assert_eq!(
-            comparable_metric_direction_label(VcfComparableMetricDirection::HigherIsBetter),
-            "higher_is_better"
+            comparable_metric_direction(VcfComparableMetricDirection::HigherIsBetter).as_str(),
+            "higher_is_better",
         );
         assert_eq!(
-            comparable_metric_direction_label(VcfComparableMetricDirection::LowerIsBetter),
-            "lower_is_better"
+            comparable_metric_direction(VcfComparableMetricDirection::LowerIsBetter).as_str(),
+            "lower_is_better",
         );
     }
 }

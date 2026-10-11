@@ -85,6 +85,7 @@ pub enum NativeContainerCommandKey {
     QualificationSpecification,
     QualificationCycle,
     QualificationSlurm,
+    RepositoryArchive,
     RepositoryFreeze,
     RunEvidence,
     RuntimeVerification,

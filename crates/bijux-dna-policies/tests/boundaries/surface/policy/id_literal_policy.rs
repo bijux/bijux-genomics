@@ -26,6 +26,9 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.contains("/crates/bijux-dna-bench/") {
         return true;
     }
+    if path_str.contains("/crates/bijux-dna-bench-model/src/model/normalized_result/") {
+        return true;
+    }
     if path_str.contains("/crates/bijux-dna/") {
         return true;
     }
@@ -36,6 +39,9 @@ fn is_allowed_path(path: &Path) -> bool {
         return true;
     }
     if path_str.contains("/crates/bijux-dna-planner-bam/") {
+        return true;
+    }
+    if path_str.contains("/crates/bijux-dna-planner-vcf/") {
         return true;
     }
     if path_str.ends_with("/crates/bijux-dna-stage-contract/src/executor_registry.rs") {

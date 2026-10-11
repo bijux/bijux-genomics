@@ -1,16 +1,23 @@
+//! Canonical FASTQ execution-metrics envelope, validation, and generated schema.
+
 use std::collections::BTreeSet;
 
 use anyhow::{anyhow, Result};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) struct FastqNormalizedMetricsStageContract {
-    pub(crate) stage_id: &'static str,
-    pub(crate) extension_id: &'static str,
-    pub(crate) required_keys: &'static [&'static str],
+pub struct FastqNormalizedMetricsStageContract {
+    /// Governed stage identity accepted by this extension.
+    pub stage_id: &'static str,
+    /// Stable extension identity embedded in the generated schema.
+    pub extension_id: &'static str,
+    /// Stage-specific keys required in addition to the shared FASTQ envelope.
+    pub required_keys: &'static [&'static str],
 }
 
-pub(crate) const FASTQ_NORMALIZED_METRICS_SCHEMA_VERSION: &str = "bijux.fastq_stage_metrics.v1";
-pub(crate) const FASTQ_NORMALIZED_METRICS_SCHEMA_ID: &str =
+/// Persisted schema version for the FASTQ execution-metrics envelope.
+pub const FASTQ_NORMALIZED_METRICS_SCHEMA_VERSION: &str = "bijux.fastq_stage_metrics.v1";
+/// JSON Schema identity for the FASTQ execution-metrics envelope.
+pub const FASTQ_NORMALIZED_METRICS_SCHEMA_ID: &str =
     "bijux.schemas.bench.fastq-normalized-metrics.v1";
 
 const BASE_REQUIRED_KEYS: &[&str] = &["schema_version", "stage", "report_json"];
@@ -363,25 +370,33 @@ const FASTQ_NORMALIZED_METRICS_STAGE_CONTRACTS: &[FastqNormalizedMetricsStageCon
     },
 ];
 
-#[cfg(test)]
-pub(crate) fn fastq_normalized_metrics_stage_contracts(
-) -> &'static [FastqNormalizedMetricsStageContract] {
+/// Return every governed FASTQ stage extension in deterministic order.
+#[must_use]
+pub fn fastq_normalized_metrics_stage_contracts() -> &'static [FastqNormalizedMetricsStageContract]
+{
     FASTQ_NORMALIZED_METRICS_STAGE_CONTRACTS
 }
 
-pub(crate) fn fastq_normalized_metrics_contract_for_stage(
+/// Resolve the normalized-metrics extension for `stage_id`.
+#[must_use]
+pub fn fastq_normalized_metrics_contract_for_stage(
     stage_id: &str,
 ) -> Option<&'static FastqNormalizedMetricsStageContract> {
     FASTQ_NORMALIZED_METRICS_STAGE_CONTRACTS.iter().find(|contract| contract.stage_id == stage_id)
 }
 
-#[cfg(test)]
-pub(crate) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
+/// Return the stage-specific required keys, or the base envelope keys for an unknown stage.
+#[must_use]
+pub fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
     fastq_normalized_metrics_contract_for_stage(stage_id)
         .map_or(&["schema_version", "stage", "report_json"], |contract| contract.required_keys)
 }
 
-pub(crate) fn validate_fastq_normalized_metrics(
+/// Validate a persisted FASTQ normalized-metrics payload against its stage envelope.
+///
+/// # Errors
+/// Returns an error when the payload or its governed stage extension is invalid.
+pub fn validate_fastq_normalized_metrics(
     metrics: &serde_json::Value,
 ) -> Result<&'static FastqNormalizedMetricsStageContract> {
     let object = metrics
@@ -422,7 +437,9 @@ pub(crate) fn validate_fastq_normalized_metrics(
     Ok(contract)
 }
 
-pub(crate) fn render_fastq_normalized_metrics_schema() -> serde_json::Value {
+/// Render the canonical JSON Schema for all FASTQ normalized-metrics stage extensions.
+#[must_use]
+pub fn render_fastq_normalized_metrics_schema() -> serde_json::Value {
     let stage_ids = FASTQ_NORMALIZED_METRICS_STAGE_CONTRACTS
         .iter()
         .map(|contract| contract.stage_id)

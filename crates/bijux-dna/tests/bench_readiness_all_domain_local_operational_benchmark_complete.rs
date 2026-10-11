@@ -13,6 +13,21 @@ fn run_cli_json() -> serde_json::Value {
         support::RepoSandbox::new("all-domain-operational-benchmark-json-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
 
+    let cleanup = sandbox
+        .bijux_dna_command()
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["bench", "paths", "prove-disposable-root-cleanup"])
+        .output()
+        .expect("produce cleanup proof prerequisite");
+    assert!(
+        cleanup.status.success(),
+        "cleanup proof failed: {}",
+        String::from_utf8_lossy(&cleanup.stderr)
+    );
+
     let output = sandbox
         .bijux_dna_command()
         .env("HOME", home.path())

@@ -6,8 +6,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkCorpusClass, BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkDisposition,
-    BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkMeasurementContract,
-    BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkRunRegistry, BenchmarkRunRegistryRow,
+    BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkLocalHpcJobGraph,
+    BenchmarkLocalHpcJobGraphNode, BenchmarkMeasurementContract, BenchmarkPortfolio,
+    BenchmarkProfileAssignment, BenchmarkRunRegistry, BenchmarkRunRegistryRow,
     BenchmarkRunRegistryState, BenchmarkScientificProfile, BenchmarkScientificReadinessReport,
     BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
     BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
@@ -16,9 +17,10 @@ use crate::model::{
 };
 
 use super::{
-    BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_RUN_REGISTRY_SCHEMA_V1,
-    BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
-    BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
+    BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V2,
+    BENCHMARK_RUN_REGISTRY_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2,
+    BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
+    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1,
 };
 
 const REQUIRED_PERFORMANCE_METRICS: &[&str] =
@@ -48,6 +50,221 @@ const REQUIRED_RESOURCE_METRICS: &[&str] = &[
 const REQUIRED_QUALITY_DIMENSIONS: &[&str] =
     &["scientific_correctness", "repeatability", "robustness", "output_contract"];
 const CANONICAL_RESULT_ROOT_TEMPLATE: &str = "results/benchmarks/{run_id}-{slug}/{tool_id}";
+
+/// Validate a local HPC benchmark job graph.
+///
+/// # Errors
+/// Returns an error when node identity, dependency closure, ordering, roots, or counters drift.
+pub fn validate_benchmark_local_hpc_job_graph(
+    graph: &BenchmarkLocalHpcJobGraph,
+) -> Result<(), BenchError> {
+    if graph.schema_version != BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(format!(
+            "unsupported local HPC job-graph schema `{}`",
+            graph.schema_version
+        )));
+    }
+    require_text(&graph.manifest_path, "local HPC job-graph manifest_path")?;
+    let Some(expected_job_count) =
+        graph.benchmark_job_count.checked_add(graph.essential_pipeline_job_count)
+    else {
+        return Err(BenchError::InvalidPolicy(
+            "local HPC job-graph job count overflowed".to_string(),
+        ));
+    };
+    if graph.job_count == 0
+        || graph.job_count != expected_job_count
+        || graph.job_count != graph.nodes.len()
+        || graph.job_count != graph.topological_order.len()
+    {
+        return Err(BenchError::InvalidPolicy(
+            "local HPC job-graph counters must close over non-empty nodes and ordering".to_string(),
+        ));
+    }
+
+    let mut nodes_by_id = BTreeMap::new();
+    let mut benchmark_job_count = 0usize;
+    let mut essential_pipeline_job_count = 0usize;
+    for node in &graph.nodes {
+        validate_local_hpc_job_graph_node(node)?;
+        if node.job_kind == "benchmark_result" {
+            benchmark_job_count += 1;
+        } else {
+            essential_pipeline_job_count += 1;
+        }
+        if nodes_by_id.insert(node.job_id_local.as_str(), node).is_some() {
+            return Err(BenchError::InvalidPolicy(format!(
+                "local HPC job graph repeats job `{}`",
+                node.job_id_local
+            )));
+        }
+    }
+    if benchmark_job_count != graph.benchmark_job_count
+        || essential_pipeline_job_count != graph.essential_pipeline_job_count
+    {
+        return Err(BenchError::InvalidPolicy(
+            "local HPC job-graph kind counters do not match nodes".to_string(),
+        ));
+    }
+    validate_local_hpc_job_graph_order(graph, &nodes_by_id)?;
+    validate_local_hpc_job_graph_edges(graph, &nodes_by_id)
+}
+
+fn validate_local_hpc_job_graph_node(
+    node: &BenchmarkLocalHpcJobGraphNode,
+) -> Result<(), BenchError> {
+    for (value, label) in [
+        (node.job_id_local.as_str(), "job_id_local"),
+        (node.job_kind.as_str(), "job_kind"),
+        (node.domain.as_str(), "domain"),
+        (node.stage_id.as_str(), "stage_id"),
+        (node.tool_id.as_str(), "tool_id"),
+        (node.corpus_id.as_str(), "corpus_id"),
+        (node.asset_profile_id.as_str(), "asset_profile_id"),
+    ] {
+        require_text(value, label)?;
+    }
+    if !matches!(node.domain.as_str(), "fastq" | "bam" | "vcf")
+        || !node.stage_id.starts_with(&format!("{}.", node.domain))
+    {
+        return Err(BenchError::InvalidPolicy(format!(
+            "local HPC job `{}` has invalid domain/stage closure",
+            node.job_id_local
+        )));
+    }
+    let identity_shape_valid = match node.job_kind.as_str() {
+        "benchmark_result" => {
+            node.result_id.as_deref().is_some_and(|value| !value.trim().is_empty())
+                && node.pipeline_id.is_none()
+                && node.node_id.is_none()
+        }
+        "essential_pipeline_node" => {
+            node.result_id.is_none()
+                && node.pipeline_id.as_deref().is_some_and(|value| !value.trim().is_empty())
+                && node.node_id.as_deref().is_some_and(|value| !value.trim().is_empty())
+        }
+        _ => false,
+    };
+    if !identity_shape_valid {
+        return Err(BenchError::InvalidPolicy(format!(
+            "local HPC job `{}` has invalid job-kind identity",
+            node.job_id_local
+        )));
+    }
+    validate_text_list(&node.dependencies, "local HPC job dependencies", true)?;
+    validate_text_list(&node.dependents, "local HPC job dependents", true)?;
+    if node.dependency_count != node.dependencies.len()
+        || node.dependent_count != node.dependents.len()
+    {
+        return Err(BenchError::InvalidPolicy(format!(
+            "local HPC job `{}` has inconsistent edge counters",
+            node.job_id_local
+        )));
+    }
+    Ok(())
+}
+
+fn validate_local_hpc_job_graph_order(
+    graph: &BenchmarkLocalHpcJobGraph,
+    nodes_by_id: &BTreeMap<&str, &BenchmarkLocalHpcJobGraphNode>,
+) -> Result<(), BenchError> {
+    validate_text_list(&graph.topological_order, "local HPC job-graph topological_order", false)?;
+    let positions = graph
+        .topological_order
+        .iter()
+        .enumerate()
+        .map(|(position, job_id)| (job_id.as_str(), position))
+        .collect::<BTreeMap<_, _>>();
+    if positions.len() != nodes_by_id.len()
+        || positions.keys().copied().collect::<BTreeSet<_>>()
+            != nodes_by_id.keys().copied().collect::<BTreeSet<_>>()
+    {
+        return Err(BenchError::InvalidPolicy(
+            "local HPC job-graph ordering must contain the exact node closure".to_string(),
+        ));
+    }
+    if graph.nodes.iter().map(|node| node.job_id_local.as_str()).collect::<Vec<_>>()
+        != graph.topological_order.iter().map(String::as_str).collect::<Vec<_>>()
+    {
+        return Err(BenchError::InvalidPolicy(
+            "local HPC job-graph nodes must follow topological_order".to_string(),
+        ));
+    }
+    let expected_roots = graph
+        .topological_order
+        .iter()
+        .filter(|job_id| {
+            nodes_by_id.get(job_id.as_str()).is_some_and(|node| node.dependencies.is_empty())
+        })
+        .cloned()
+        .collect::<Vec<_>>();
+    if graph.root_job_ids != expected_roots {
+        return Err(BenchError::InvalidPolicy(
+            "local HPC job-graph roots must be the dependency-free topological nodes".to_string(),
+        ));
+    }
+    for node in &graph.nodes {
+        let node_position = positions[&node.job_id_local.as_str()];
+        if node.dependencies.iter().any(|dependency| {
+            positions.get(dependency.as_str()).is_none_or(|position| *position >= node_position)
+        }) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "local HPC job `{}` violates topological dependency order",
+                node.job_id_local
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn validate_local_hpc_job_graph_edges(
+    graph: &BenchmarkLocalHpcJobGraph,
+    nodes_by_id: &BTreeMap<&str, &BenchmarkLocalHpcJobGraphNode>,
+) -> Result<(), BenchError> {
+    let mut dependency_count = 0usize;
+    for node in &graph.nodes {
+        dependency_count =
+            dependency_count.checked_add(node.dependencies.len()).ok_or_else(|| {
+                BenchError::InvalidPolicy(
+                    "local HPC job-graph dependency count overflowed".to_string(),
+                )
+            })?;
+        for dependency in &node.dependencies {
+            let Some(upstream) = nodes_by_id.get(dependency.as_str()) else {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "local HPC job `{}` references unknown dependency `{dependency}`",
+                    node.job_id_local
+                )));
+            };
+            if !upstream.dependents.contains(&node.job_id_local) {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "local HPC dependency `{dependency}` does not reciprocate `{}`",
+                    node.job_id_local
+                )));
+            }
+        }
+        for dependent in &node.dependents {
+            let Some(downstream) = nodes_by_id.get(dependent.as_str()) else {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "local HPC job `{}` references unknown dependent `{dependent}`",
+                    node.job_id_local
+                )));
+            };
+            if !downstream.dependencies.contains(&node.job_id_local) {
+                return Err(BenchError::InvalidPolicy(format!(
+                    "local HPC dependent `{dependent}` does not reciprocate `{}`",
+                    node.job_id_local
+                )));
+            }
+        }
+    }
+    if dependency_count != graph.dependency_count {
+        return Err(BenchError::InvalidPolicy(
+            "local HPC job-graph dependency_count does not match edges".to_string(),
+        ));
+    }
+    Ok(())
+}
 
 /// # Errors
 /// Returns an error if the campaign registry shape or invariants are invalid.

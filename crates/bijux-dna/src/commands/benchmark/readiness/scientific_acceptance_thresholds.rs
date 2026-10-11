@@ -414,7 +414,7 @@ fn fastq_acceptance_row(
 }
 
 fn vcf_acceptance_row(row: &VcfComparableMetricsRow) -> Result<ScientificAcceptanceThresholdRow> {
-    let direction = scientific_acceptance_direction_from_vcf_label(&row.direction)?;
+    let direction = scientific_acceptance_direction_from_vcf(row.direction);
     let tolerance_kind = match direction {
         ScientificAcceptanceDirection::ExactMatchPreferred => {
             ScientificAcceptanceToleranceKind::ExactMatch
@@ -490,14 +490,19 @@ fn vcf_tolerance_value(
     }
 }
 
-fn scientific_acceptance_direction_from_vcf_label(
-    direction: &str,
-) -> Result<ScientificAcceptanceDirection> {
+fn scientific_acceptance_direction_from_vcf(
+    direction: super::vcf_comparable_metrics::ComparableMetricDirection,
+) -> ScientificAcceptanceDirection {
     match direction {
-        "exact_match_preferred" => Ok(ScientificAcceptanceDirection::ExactMatchPreferred),
-        "higher_is_better" => Ok(ScientificAcceptanceDirection::HigherIsBetter),
-        "lower_is_better" => Ok(ScientificAcceptanceDirection::LowerIsBetter),
-        _ => Err(anyhow!("unknown VCF comparable metric direction `{direction}`")),
+        super::vcf_comparable_metrics::ComparableMetricDirection::ExactMatchPreferred => {
+            ScientificAcceptanceDirection::ExactMatchPreferred
+        }
+        super::vcf_comparable_metrics::ComparableMetricDirection::HigherIsBetter => {
+            ScientificAcceptanceDirection::HigherIsBetter
+        }
+        super::vcf_comparable_metrics::ComparableMetricDirection::LowerIsBetter => {
+            ScientificAcceptanceDirection::LowerIsBetter
+        }
     }
 }
 

@@ -42,6 +42,7 @@ fn crate_tree_matches_domain_boundary() {
         "params/",
         "pipeline_contract.rs",
         "prelude.rs",
+        "reference.rs",
         "stage_specs/",
         "types/",
     ]

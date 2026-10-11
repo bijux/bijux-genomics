@@ -51,7 +51,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&plan_path)?)?;
     assert_eq!(payload["stage_id"], serde_json::json!("bam.genotyping"));
-    assert_eq!(payload["tool_id"], serde_json::json!("angsd"));
+    assert_eq!(payload["tool_id"], serde_json::json!("bcftools"));
     assert_eq!(payload["resources"]["threads"], serde_json::json!(2));
     assert_eq!(payload["resources"]["mem_gb"], serde_json::json!(8));
     assert_eq!(
@@ -88,7 +88,7 @@ fn write_local_genotyping_plan_materializes_governed_target_output() -> Result<(
         payload["params"]["sample_id"],
         serde_json::json!("human_like_genotyping_candidate_panel")
     );
-    assert_eq!(payload["params"]["tool"], serde_json::json!("angsd"));
+    assert_eq!(payload["params"]["tool"], serde_json::json!("bcftools"));
 
     let inputs = payload["io"]["inputs"]
         .as_array()
@@ -258,7 +258,7 @@ fn write_local_genotyping_plan_preserves_governed_command_metadata() -> Result<(
         payload["out_dir"],
         serde_json::json!("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping")
     );
-    assert_eq!(payload["effective_params"]["caller"], serde_json::json!("angsd"));
+    assert_eq!(payload["effective_params"]["caller"], serde_json::json!("bcftools"));
     assert_eq!(payload["effective_params"]["min_posterior"], serde_json::json!(0.9));
     assert_eq!(payload["effective_params"]["min_call_rate"], serde_json::json!(0.5));
 
@@ -268,19 +268,22 @@ fn write_local_genotyping_plan_preserves_governed_command_metadata() -> Result<(
         .and_then(serde_json::Value::as_str)
         .unwrap_or_else(|| panic!("local-ready genotyping plan must serialize a shell command"));
     assert!(
-        command.contains(
-            "angsd -i benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
-        )
+        command.contains("bcftools mpileup")
             && command.contains(
-                "-sites benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
+                "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_genotyping_candidate_panel.sam"
             )
             && command.contains(
-                "-rf benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+                "-T benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/variants/human_like_genotyping_candidate_sites.vcf"
             )
+            && command.contains(
+                "-R benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
+            )
+            && command.contains("bcftools +tag2tag")
+            && command.contains("--PL-to-GP")
             && command.contains("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.summary.json")
-            && command.contains("\"min_posterior\": 0.9")
-            && command.contains("\"min_call_rate\": 0.5")
-            && command.contains("\"bcf_source\": \"artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf\""),
+            && command.contains("\"minimum_posterior\":0.9")
+            && command.contains("\"minimum_call_rate\":0.5")
+            && command.contains("\"bcf_source\":\"artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf\""),
         "local-ready genotyping command must preserve the governed caller, sites, regions, summary, threshold metadata, and BCF source contract"
     );
 

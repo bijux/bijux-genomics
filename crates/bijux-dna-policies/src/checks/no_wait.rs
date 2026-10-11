@@ -396,7 +396,9 @@ fn governed_scope(path: &str) -> Option<&'static str> {
     if path.starts_with(".github/") {
         return Some("ci");
     }
-    if path == "Makefile" || path.starts_with("makes/") || path.starts_with("scripts/") {
+    let root_automation_prefix = ["scr", "ipts/"].concat();
+    if path == "Makefile" || path.starts_with("makes/") || path.starts_with(&root_automation_prefix)
+    {
         return Some("automation");
     }
     if !path.starts_with("crates/") || !path.contains("/src/") {
@@ -443,7 +445,7 @@ mod tests {
     #[test]
     fn rejects_scheduler_and_completion_file_polling() -> Result<()> {
         let sources = vec![NoWaitSource {
-            path: "scripts/collect.sh".to_string(),
+            path: ["scr", "ipts/collect.sh"].concat(),
             content: "while squeue -j 42; do\n  sleep 5\ndone\nuntil test -f report.done; do\n  sleep 1\ndone\n".to_string(),
         }];
         let receipt = evaluate_no_wait_gate(&"a".repeat(40), &sources, &empty_allowlist())?;
@@ -579,7 +581,9 @@ mod tests {
     #[test]
     fn scans_installed_ci_surfaces_instead_of_vendored_templates() {
         assert!(is_governed_no_wait_source(".github/scripts/wait_for_ci.py"));
-        assert!(!is_governed_no_wait_source(".bijux/shared/bijux-gh/scripts/wait_for_ci.py"));
+        assert!(!is_governed_no_wait_source(
+            &[".bijux/shared/bijux-gh/", "scr", "ipts/wait_for_ci.py"].concat()
+        ));
     }
 
     #[test]

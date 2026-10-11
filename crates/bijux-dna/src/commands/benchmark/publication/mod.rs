@@ -13,7 +13,7 @@ mod results_status;
 mod runtime_audit;
 
 use crate::commands::benchmark_workspace::{
-    benchmark_corpus_spec_path, benchmark_publication_contracts, benchmark_publication_exclusions,
+    benchmark_publication_contracts, benchmark_publication_exclusions,
     benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root, load_benchmark_config,
     BenchmarkWorkspaceConfig, CorpusBenchmarkContract, CorpusBenchmarkExclusion,
 };
@@ -33,17 +33,7 @@ pub(crate) use self::entrypoint::{
     run_corpus_fastq_published_dossiers, run_corpus_fastq_report,
 };
 #[cfg(test)]
-use self::models::StageAuditIssue;
-#[cfg(test)]
 use self::models::StageRunRootCandidate;
-#[cfg(test)]
-use self::models::{BenchmarkPublicationStatusReport, ExcludedStageEntry, PublicationStageReport};
-#[cfg(test)]
-use self::models::{PublishedResultsStageReport, PublishedResultsStatusReport, StageResultIssue};
-#[cfg(test)]
-use self::models::{
-    RemediationIssue, RemediationIssueGroup, RemediationQueue, RemediationStageEntry,
-};
 use self::publication_io::{
     absolutize, classify_run_root_source, configured_stage_run_roots, csv_report_value,
     json_string_array, load_json_value, localize_results_path, observed_tools_from_report,
@@ -66,6 +56,21 @@ use self::results_status::{
 };
 use self::runtime_audit::{
     audit_cohort_runtime_summary, audit_sample_runtime_outliers, audit_tool_runtime_summary,
+};
+use bijux_dna_api::v1::api::bench::{
+    BenchmarkPublicationAuditIssue as StageAuditIssue,
+    BenchmarkPublicationExcludedStage as ExcludedStageEntry, BenchmarkPublicationFindings,
+    BenchmarkPublicationStageStatus as PublicationStageReport, BenchmarkPublicationStatusReport,
+    BenchmarkRemediationIssue as RemediationIssue,
+    BenchmarkRemediationIssueGroup as RemediationIssueGroup,
+    BenchmarkRemediationQueue as RemediationQueue,
+    BenchmarkRemediationStageEntry as RemediationStageEntry,
+    BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1, BENCHMARK_REMEDIATION_QUEUE_SCHEMA_V1,
+};
+#[cfg(test)]
+use bijux_dna_api::v1::api::bench::{
+    PublishedResultsStageReport, PublishedResultsStatusReport, StageResultIssue,
+    BENCHMARK_PUBLICATION_FINDINGS_SCHEMA_V1, BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1,
 };
 
 #[cfg(test)]
@@ -139,6 +144,61 @@ mod tests {
             format!("[corpora.\"{corpus_id}\"]\nspec_path = \"{corpus_spec_path}\"\n"),
         )
         .expect("write benchmark config");
+    }
+
+    fn write_publication_corpus_spec(repo_root: &Path, targets: [usize; 4]) {
+        let target_total = targets.into_iter().sum::<usize>();
+        let mut source = format!(
+            concat!(
+                "schema_version = \"bijux.benchmark.fastq_corpus_source.v1\"\n",
+                "corpus_id = \"corpus-01\"\n",
+                "portfolio_id = \"publication-contract-fixture\"\n",
+                "class = \"qualification_real\"\n",
+                "access_classification = \"public\"\n",
+                "redistribution_classification = \"metadata_only\"\n",
+                "access_terms_url = \"https://example.org/access\"\n",
+                "attribution = \"Publication contract fixture\"\n",
+                "projected_storage_bytes = 1\n",
+                "projected_cpu_hours = 1\n",
+                "projection_basis = \"Minimal contract validation fixture\"\n",
+                "truth_roles = [\"contract_validation\"]\n",
+                "truth_strategy = \"observational_only\"\n",
+                "known_limitations = [\"Not publication evidence\"]\n",
+                "species = \"Homo sapiens\"\n",
+                "description = \"Typed publication corpus contract fixture\"\n",
+                "source_authority = \"contract fixture\"\n",
+                "target_total = {}\n",
+                "target_ancient_se = {}\n",
+                "target_ancient_pe = {}\n",
+                "target_modern_se = {}\n",
+                "target_modern_pe = {}\n",
+            ),
+            target_total, targets[0], targets[1], targets[2], targets[3]
+        );
+        for (era, layout, count) in [
+            ("ancient", "se", targets[0]),
+            ("ancient", "pe", targets[1]),
+            ("modern", "se", targets[2]),
+            ("modern", "pe", targets[3]),
+        ] {
+            for index in 0..count {
+                source.push_str(&format!(
+                    concat!(
+                        "\n[[samples]]\n",
+                        "accession = \"RUN-{}-{}-{}\"\n",
+                        "study_accession = \"STUDY-{}\"\n",
+                        "era = \"{}\"\n",
+                        "layout = \"{}\"\n",
+                        "size_band = \"contract_fixture\"\n",
+                        "reason = \"Exercise typed publication cohort accounting\"\n",
+                    ),
+                    era, layout, index, era, era, layout
+                ));
+            }
+        }
+        let path = repo_root.join("benchmarks/corpora/human-short-read-diversity.toml");
+        fs::create_dir_all(path.parent().expect("corpora dir")).expect("corpora dir");
+        fs::write(path, source).expect("write corpus spec");
     }
 
     #[allow(clippy::needless_pass_by_value)]
@@ -265,8 +325,24 @@ tools = ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"]
         .expect("write benchmark config");
         fs::write(
             &corpus_spec_path,
-            r#"schema_version = "bijux.corpus_spec.v1"
+            r#"schema_version = "bijux.benchmark.fastq_corpus_source.v1"
 corpus_id = "corpus-01"
+portfolio_id = "report-rendering-fixture"
+class = "qualification_real"
+access_classification = "public"
+redistribution_classification = "metadata_only"
+access_terms_url = "https://example.org/access"
+attribution = "Report rendering contract fixture"
+projected_storage_bytes = 1
+projected_cpu_hours = 1
+projection_basis = "Minimal report rendering fixture"
+truth_roles = ["contract_validation"]
+truth_strategy = "observational_only"
+known_limitations = ["Not publication evidence"]
+species = "Homo sapiens"
+description = "Typed report rendering corpus fixture"
+source_authority = "contract fixture"
+target_total = 1
 target_ancient_se = 0
 target_ancient_pe = 0
 target_modern_se = 1
@@ -799,6 +875,7 @@ reason = "Compact validation fixture."
     fn results_audit_markdown_lists_selected_and_available_run_roots() {
         let rendered =
             super::render_published_results_markdown(&super::PublishedResultsStatusReport {
+                schema_version: super::BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1.to_string(),
                 corpus_id: "corpus-01".to_string(),
                 applicable_stage_count: 1,
                 published_stage_count: 1,
@@ -863,18 +940,7 @@ reason = "Compact validation fixture."
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
         let docs_root = repo_root.join("docs").join("benchmark");
-        fs::create_dir_all(repo_root.join("benchmarks/corpora")).expect("corpora dir");
-        fs::write(
-            repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
-            concat!(
-                "corpus_id = \"corpus-01\"\n",
-                "target_ancient_se = 1\n",
-                "target_ancient_pe = 1\n",
-                "target_modern_se = 1\n",
-                "target_modern_pe = 1\n",
-            ),
-        )
-        .expect("write corpus spec");
+        write_publication_corpus_spec(repo_root, [1, 1, 1, 1]);
         write_benchmark_config_for_corpus(repo_root, "corpus-01");
         let stage_root = docs_root.join("fastq.validate_reads");
         let corpus_root = stage_root.join("corpus-01");
@@ -913,9 +979,34 @@ reason = "Compact validation fixture."
     }
 
     #[test]
+    fn publication_corpus_loader_rejects_incomplete_source_contract() {
+        let temp = tempdir().expect("tempdir");
+        let repo_root = temp.path();
+        let path = repo_root.join("benchmarks/corpora/human-short-read-diversity.toml");
+        fs::create_dir_all(path.parent().expect("corpora dir")).expect("corpora dir");
+        fs::write(
+            path,
+            concat!(
+                "corpus_id = \"corpus-01\"\n",
+                "target_ancient_se = 1\n",
+                "target_ancient_pe = 1\n",
+                "target_modern_se = 1\n",
+                "target_modern_pe = 1\n",
+            ),
+        )
+        .expect("write incomplete corpus spec");
+        write_benchmark_config_for_corpus(repo_root, "corpus-01");
+
+        let error = super::load_publication_corpus_spec(repo_root, None, "corpus-01")
+            .expect_err("incomplete source contract must fail closed");
+        assert!(error.to_string().contains("parse"));
+    }
+
+    #[test]
     fn publication_docs_markdown_summarizes_completion_and_issue_count() {
         let markdown =
             super::render_publication_docs_markdown(&super::BenchmarkPublicationStatusReport {
+                schema_version: super::BENCHMARK_PUBLICATION_STATUS_SCHEMA_V1.to_string(),
                 corpus_id: "corpus-01".to_string(),
                 docs_root: "/bench/docs/30-operations/benchmark".to_string(),
                 benchmarkable_stage_count: 3,
@@ -1001,18 +1092,7 @@ reason = "Compact validation fixture."
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
         let docs_root = repo_root.join("docs").join("benchmark");
-        fs::create_dir_all(repo_root.join("benchmarks/corpora")).expect("corpora dir");
-        fs::write(
-            repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
-            concat!(
-                "corpus_id = \"corpus-01\"\n",
-                "target_ancient_se = 1\n",
-                "target_ancient_pe = 0\n",
-                "target_modern_se = 1\n",
-                "target_modern_pe = 0\n",
-            ),
-        )
-        .expect("write corpus spec");
+        write_publication_corpus_spec(repo_root, [1, 0, 1, 0]);
         write_benchmark_config_for_corpus(repo_root, "corpus-01");
         let stage_root = docs_root.join("fastq.validate_reads");
         fs::create_dir_all(stage_root.join("corpus-01")).expect("corpus dir");
@@ -1053,7 +1133,7 @@ reason = "Compact validation fixture."
     }
 
     #[test]
-    fn load_supplemental_findings_warns_when_freshness_missing() {
+    fn load_supplemental_findings_rejects_unversioned_input() {
         let temp = tempdir().expect("tempdir");
         let findings_path = temp.path().join("findings.json");
         write_json(
@@ -1066,11 +1146,9 @@ reason = "Compact validation fixture."
                 }],
             }),
         );
-        let (findings, warnings, generated_at_utc) =
-            super::load_supplemental_findings(&findings_path).expect("findings");
-        assert!(findings.contains_key("fastq.validate_reads"));
-        assert_eq!(generated_at_utc, None);
-        assert!(warnings.iter().any(|warning| warning.contains("generated_at_utc")));
+        let error = super::load_supplemental_findings(&findings_path, "corpus-01")
+            .expect_err("unversioned findings must fail closed");
+        assert!(error.to_string().contains("parse typed publication findings"));
     }
 
     #[test]
@@ -1078,18 +1156,7 @@ reason = "Compact validation fixture."
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
         let docs_root = repo_root.join("docs").join("benchmark");
-        fs::create_dir_all(repo_root.join("benchmarks/corpora")).expect("corpora dir");
-        fs::write(
-            repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
-            concat!(
-                "corpus_id = \"corpus-01\"\n",
-                "target_ancient_se = 1\n",
-                "target_ancient_pe = 1\n",
-                "target_modern_se = 1\n",
-                "target_modern_pe = 1\n",
-            ),
-        )
-        .expect("write corpus spec");
+        write_publication_corpus_spec(repo_root, [1, 1, 1, 1]);
         write_benchmark_config_for_corpus(repo_root, "corpus-01");
         let stage_root = docs_root.join("fastq.validate_reads");
         let corpus_root = stage_root.join("corpus-01");
@@ -1198,14 +1265,17 @@ reason = "Compact validation fixture."
                     }],
                 }],
             }),
-            &serde_json::json!({
-                "findings": [{
-                    "stage_id": "fastq.validate_reads",
-                    "issue_id": "publication-gap",
-                    "detail": "supplemental finding",
-                    "severity": "error",
+            &super::BenchmarkPublicationFindings {
+                schema_version: super::BENCHMARK_PUBLICATION_FINDINGS_SCHEMA_V1.to_string(),
+                corpus_id: "corpus-01".to_string(),
+                generated_at_utc: "2026-03-28T00:00:00Z".to_string(),
+                findings: vec![super::StageAuditIssue {
+                    stage_id: "fastq.validate_reads".to_string(),
+                    issue_id: "publication-gap".to_string(),
+                    detail: "supplemental finding".to_string(),
+                    severity: "error".to_string(),
                 }],
-            }),
+            },
             &serde_json::json!({
                 "stages": [{
                     "stage_id": "fastq.validate_reads",
@@ -1228,6 +1298,7 @@ reason = "Compact validation fixture."
     #[test]
     fn remediation_queue_markdown_uses_issue_groups() {
         let rendered = super::render_remediation_queue_markdown(&super::RemediationQueue {
+            schema_version: super::BENCHMARK_REMEDIATION_QUEUE_SCHEMA_V1.to_string(),
             corpus_id: "corpus-01".to_string(),
             stage_count: 1,
             open_stage_count: 1,

@@ -124,6 +124,7 @@ tools = [
   "leehom",
   "prinseq",
   "seqkit",
+  "seqprep",
   "skewer",
   "trim_galore",
   "trimmomatic",
@@ -151,7 +152,7 @@ tools = ["sortmerna"]
 stage_id = "fastq.merge_pairs"
 scenario_id = "merge_fairness"
 sample_scope = "paired"
-tools = ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch"]
+tools = ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "seqprep", "vsearch"]
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.remove_duplicates"

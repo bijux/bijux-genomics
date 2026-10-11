@@ -16,6 +16,7 @@ This crate owns:
 - Checksum-pinned corpus acquisition plans and admitted scientific data catalogs.
 - Permanent benchmark run identities and append-only attempt lifecycle types.
 - Schema ids and validation entrypoints for benchmark model contracts.
+- Canonical normalized-result records and execution-metrics envelope schemas.
 - Deterministic comparison reports for benchmark summaries.
 - Gate policy configuration, overrides, violations, and decision outcomes.
 - Deterministic robust statistics, seeded bootstrap intervals, and outlier
@@ -42,7 +43,8 @@ execution, runner integration, API orchestration, or report persistence.
 
 - `src/lib.rs` exposes the curated public surface and focused namespaces.
 - `src/public_api/` owns stable re-exports.
-- `src/model/` owns benchmark contract data types.
+- `src/model/` owns benchmark contract data types, including normalized-result
+  records and execution-metrics envelopes.
 - `src/contract/` owns schema ids and validation rules.
 - `src/policy/` owns gate configuration and decision records. Scientific gate
   evaluation lives in `bijux-dna-science`.

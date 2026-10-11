@@ -1,0 +1,97 @@
+{
+  "$defs": {
+    "StageRegistryExtraPairRow": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_status": {
+          "type": "string"
+        },
+        "documented_exception_reason": {
+          "type": "string"
+        },
+        "documented_exception_status": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "registered_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "registry_sources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "tool_id",
+        "contract_status",
+        "registry_sources",
+        "registered_stage_ids",
+        "documented_exception_status",
+        "documented_exception_reason",
+        "reason"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "extra_pair_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/StageRegistryExtraPairRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.stage_registry_extra_pairs.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "extra_pair_count",
+    "domain_counts",
+    "ok",
+    "rows"
+  ],
+  "title": "StageRegistryExtraPairsReport",
+  "type": "object"
+}

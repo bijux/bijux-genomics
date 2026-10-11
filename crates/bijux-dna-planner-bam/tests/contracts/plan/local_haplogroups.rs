@@ -44,8 +44,8 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
     assert_eq!(plan.resources.threads, 2);
     assert_eq!(plan.resources.mem_gb, 8);
     assert_eq!(
-        plan.out_dir,
-        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups")
+        plan.out_dir.as_path(),
+        Path::new("artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups")
     );
 
     let bam = plan
@@ -109,8 +109,8 @@ fn local_haplogroups_plan_uses_governed_bam_reference_and_panel_inputs() -> Resu
         .find(|artifact| artifact.name.as_str() == "haplogroups")
         .unwrap_or_else(|| panic!("haplogroups output missing from local-ready plan"));
     assert_eq!(
-        haplogroups_report.path,
-        PathBuf::from(
+        haplogroups_report.path.as_path(),
+        Path::new(
             "artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/haplogroups.json"
         )
     );

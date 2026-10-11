@@ -7,13 +7,14 @@ use anyhow::{bail, Context};
 use super::{path_from_arg, write_utf8, ContainerCommandOutcome, Result, Workspace};
 
 const SCHEMA_PATH: &str = "containers/contracts/schemas/qualification-specification-source.v1.json";
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-specification -- compile <source> <registry> <inventory> <pipeline-output>\n  bijux-dna-dev containers run qualification-specification -- coverage <registry> <inventory> <sources-root> <json-output>\n  bijux-dna-dev containers run qualification-specification -- generate-schema [<output>]\n  bijux-dna-dev containers run qualification-specification -- check-schema";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers run qualification-specification -- bind-frozen-repository <source> <governance> <frozen-repository> <output>\n  bijux-dna-dev containers run qualification-specification -- compile <source> <registry> <inventory> <pipeline-output>\n  bijux-dna-dev containers run qualification-specification -- coverage <registry> <inventory> <sources-root> <json-output>\n  bijux-dna-dev containers run qualification-specification -- generate-schema [<output>]\n  bijux-dna-dev containers run qualification-specification -- check-schema";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
         bail!(USAGE);
     };
     match operation.as_str() {
+        "bind-frozen-repository" => bind_frozen_repository(workspace, options),
         "compile" => compile(workspace, options),
         "coverage" => coverage(workspace, options),
         "generate-schema" => generate_schema(workspace, options),
@@ -21,6 +22,40 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
         "--help" | "-h" => Ok(ContainerCommandOutcome::success(format!("{USAGE}\n"))),
         _ => bail!(USAGE),
     }
+}
+
+fn bind_frozen_repository(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let [source, governance, frozen_repository, output] = args else {
+        bail!(USAGE);
+    };
+    let source_path = path_from_arg(workspace, source);
+    let source: bijux_dna_runner::api::QualificationSpecificationSourceV1 = serde_yaml::from_str(
+        &fs::read_to_string(&source_path)
+            .with_context(|| format!("read {}", source_path.display()))?,
+    )
+    .with_context(|| format!("parse {}", source_path.display()))?;
+    let governance = bijux_dna_containers::api::load_container_governance(&path_from_arg(
+        workspace, governance,
+    ))?;
+    let bound = bijux_dna_runner::api::bind_qualification_source_to_frozen_repository(
+        &source,
+        &governance,
+        &path_from_arg(workspace, frozen_repository),
+    )?;
+    let output = path_from_arg(workspace, output);
+    bijux_dna_infra::atomic_create_json(&output, &bound)?;
+    Ok(ContainerCommandOutcome::success(format!(
+        "{}\n",
+        serde_json::to_string_pretty(&serde_json::json!({
+            "run_id": bound.run_id,
+            "tool_id": bound.tool_id,
+            "repository_path": bound.repository_path,
+            "source_output": output,
+        }))?
+    )))
 }
 
 fn compile(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
@@ -114,6 +149,7 @@ mod tests {
         let output = run(&Workspace { root: PathBuf::from("/workspace") }, &["--help".into()])?;
         assert!(output.stdout.contains("compile"));
         assert!(output.stdout.contains("coverage"));
+        assert!(output.stdout.contains("bind-frozen-repository"));
         assert!(output.stdout.contains("check-schema"));
         Ok(())
     }

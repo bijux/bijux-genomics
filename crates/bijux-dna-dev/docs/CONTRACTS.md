@@ -35,6 +35,10 @@ This crate owns developer automation contracts, not production pipeline contract
 - `containers run external-artifact -- <admit|block|verify|bind> ...` preserves repository and
   active-image roots explicitly while delegating checksum, license-access, version, stage-binding,
   and non-redistribution decisions to `bijux-dna-containers`.
+- `containers run repository-archive -- <archive|verify|retire|restore> ...` is a thin operator
+  surface over the container-owned checksum, restoration, and retirement contract. `archive` and
+  `verify` never remove a snapshot; `retire` is the only removal operation and requires an exact
+  persisted archive receipt; `restore` reconstructs the same read-only, self-contained checkout.
 - `containers run credential-reference -- validate|generate-schema|check-schema` delegates strict
   no-secret credential metadata admission and schema ownership to `bijux-dna-containers`.
 - `containers run pipeline-contract -- validate <pipeline>` delegates strict v1 history and v2

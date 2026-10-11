@@ -6,14 +6,15 @@ mod model;
 mod planning;
 
 pub use compilation::{
-    compile_container_qualification_specification, derive_qualification_specification_coverage,
-    qualification_specification_source_schema, write_qualification_specification_source_schema,
-    QualificationSpecificationCompilationRequest, QualificationSpecificationCoverage,
-    QualificationSpecificationCoverageState, QualificationSpecificationCoverageSummary,
-    QualificationSpecificationCoverageUnit, QualificationSpecificationInputKindV1,
-    QualificationSpecificationInputV1, QualificationSpecificationOutputV1,
-    QualificationSpecificationSiteResourcesV1, QualificationSpecificationSourceV1,
-    QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2, QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1,
+    bind_qualification_source_to_frozen_repository, compile_container_qualification_specification,
+    derive_qualification_specification_coverage, qualification_specification_source_schema,
+    write_qualification_specification_source_schema, QualificationSpecificationCompilationRequest,
+    QualificationSpecificationCoverage, QualificationSpecificationCoverageState,
+    QualificationSpecificationCoverageSummary, QualificationSpecificationCoverageUnit,
+    QualificationSpecificationInputKindV1, QualificationSpecificationInputV1,
+    QualificationSpecificationOutputV1, QualificationSpecificationSiteResourcesV1,
+    QualificationSpecificationSourceV1, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2,
+    QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1,
 };
 pub use evaluation::evaluate_container_qualification;
 pub use model::{

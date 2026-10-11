@@ -1,12 +1,36 @@
 use anyhow::{anyhow, bail, Result};
-use bijux_dna_stages_vcf::stage_specs::{vcf_stage_catalog, VcfStageSpec};
+use bijux_dna_domain_vcf::contracts::{stage_metrics_contract, StageMetricsContract};
+use bijux_dna_domain_vcf::VcfDomainStage;
 use serde::{Deserialize, Serialize};
 
 const JSON_SCHEMA_DRAFT_2020_12: &str = "https://json-schema.org/draft/2020-12/schema";
-pub(crate) const VCF_NORMALIZED_METRICS_SCHEMA_ID: &str =
-    "bijux.schemas.bench.vcf-normalized-metrics.v1";
+/// Stable identifier for the governed aggregate VCF normalized-metrics schema.
+pub const VCF_NORMALIZED_METRICS_SCHEMA_ID: &str = "bijux.schemas.bench.vcf-normalized-metrics.v1";
 
 const BASE_REQUIRED_KEYS: &[&str] = &["schema_version", "stage_id", "tool_id"];
+
+const VCF_NORMALIZED_STAGE_ORDER: &[VcfDomainStage] = &[
+    VcfDomainStage::Call,
+    VcfDomainStage::CallGl,
+    VcfDomainStage::CallDiploid,
+    VcfDomainStage::CallPseudohaploid,
+    VcfDomainStage::DamageFilter,
+    VcfDomainStage::GlPropagation,
+    VcfDomainStage::Qc,
+    VcfDomainStage::Pca,
+    VcfDomainStage::PopulationStructure,
+    VcfDomainStage::Admixture,
+    VcfDomainStage::Roh,
+    VcfDomainStage::Ibd,
+    VcfDomainStage::ImputationMetrics,
+    VcfDomainStage::Impute,
+    VcfDomainStage::Phasing,
+    VcfDomainStage::Postprocess,
+    VcfDomainStage::PrepareReferencePanel,
+    VcfDomainStage::Demography,
+    VcfDomainStage::Filter,
+    VcfDomainStage::Stats,
+];
 
 const CALL_FIELDS: &[VcfNormalizedMetricsFieldContract] = &[
     field("variant_count", FieldKind::Integer),
@@ -206,7 +230,8 @@ pub(crate) struct VcfNormalizedMetricsFieldContract {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub(crate) struct VcfNormalizedMetricsStageSchemaDescriptor {
+/// Identity and publication metadata for one stage-specific VCF metrics schema.
+pub struct VcfNormalizedMetricsStageSchemaDescriptor {
     pub stage_id: String,
     pub schema_version: String,
     pub schema_id: String,
@@ -219,29 +244,37 @@ const fn field(key: &'static str, kind: FieldKind) -> VcfNormalizedMetricsFieldC
     VcfNormalizedMetricsFieldContract { key, kind }
 }
 
-pub(crate) fn vcf_normalized_metrics_stage_descriptors(
+/// Enumerate all governed stage-specific VCF normalized-metrics schemas.
+///
+/// # Errors
+/// Returns an error if a domain stage lacks a normalized field contract.
+pub fn vcf_normalized_metrics_stage_descriptors(
 ) -> Result<Vec<VcfNormalizedMetricsStageSchemaDescriptor>> {
-    let mut descriptors = vcf_stage_catalog()
+    let mut descriptors = normalized_stage_contracts()?
         .iter()
-        .filter(|spec| spec.parser_supported)
-        .map(stage_descriptor_from_spec)
+        .map(stage_descriptor_from_contract)
         .collect::<Result<Vec<_>>>()?;
     descriptors.sort_by(|left, right| left.stage_id.cmp(&right.stage_id));
     Ok(descriptors)
 }
 
-pub(crate) fn render_vcf_normalized_metrics_schema() -> Result<serde_json::Value> {
+/// Render the governed aggregate VCF normalized-metrics schema.
+///
+/// # Errors
+/// Returns an error if a domain stage lacks a normalized field contract.
+pub fn render_vcf_normalized_metrics_schema() -> Result<serde_json::Value> {
     let mut stage_defs = serde_json::Map::new();
     let mut one_of = Vec::new();
     let mut stage_ids = Vec::new();
 
-    for spec in parser_supported_stage_specs()? {
-        let descriptor = stage_descriptor_from_spec(spec)?;
-        let stage_schema = render_stage_extension(spec)?;
-        stage_ids.push(spec.stage_id);
-        stage_defs.insert(spec.stage_id.to_string(), stage_schema);
+    for contract in normalized_stage_contracts()? {
+        let descriptor = stage_descriptor_from_contract(&contract)?;
+        let stage_schema = render_stage_extension(&contract)?;
+        let stage_id = contract.stage.as_str();
+        stage_ids.push(stage_id);
+        stage_defs.insert(stage_id.to_string(), stage_schema);
         one_of.push(serde_json::json!({
-            "$ref": format!("#/$defs/stages/{}", spec.stage_id)
+            "$ref": format!("#/$defs/stages/{stage_id}")
         }));
         if descriptor.required_key_count == 0 {
             bail!(
@@ -274,27 +307,33 @@ pub(crate) fn render_vcf_normalized_metrics_schema() -> Result<serde_json::Value
     }))
 }
 
-pub(crate) fn render_vcf_normalized_metrics_stage_schema(
-    stage_id: &str,
-) -> Result<serde_json::Value> {
-    let spec = parser_supported_stage_specs()?
+/// Render the governed normalized-metrics schema for `stage_id`.
+///
+/// # Errors
+/// Returns an error when `stage_id` is unknown or lacks a normalized field contract.
+pub fn render_vcf_normalized_metrics_stage_schema(stage_id: &str) -> Result<serde_json::Value> {
+    let contract = normalized_stage_contracts()?
         .into_iter()
-        .find(|spec| spec.stage_id == stage_id)
-        .ok_or_else(|| anyhow!("unknown parser-supported VCF stage `{stage_id}`"))?;
-    let descriptor = stage_descriptor_from_spec(spec)?;
+        .find(|contract| contract.stage.as_str() == stage_id)
+        .ok_or_else(|| anyhow!("unknown normalized VCF stage `{stage_id}`"))?;
+    let descriptor = stage_descriptor_from_contract(&contract)?;
     Ok(serde_json::json!({
         "$schema": JSON_SCHEMA_DRAFT_2020_12,
         "$id": descriptor.schema_id,
-        "title": format!("VCF normalized benchmark metrics: {}", spec.stage_id),
-        "description": format!("Governed normalized parser output for `{}`.", spec.stage_id),
+        "title": format!("VCF normalized benchmark metrics: {}", contract.stage.as_str()),
+        "description": format!("Governed normalized parser output for `{}`.", contract.stage.as_str()),
         "allOf": [
             { "$ref": "../vcf-normalized-metrics.v1.json#/$defs/base" },
-            render_stage_extension(spec)?
+            render_stage_extension(&contract)?
         ]
     }))
 }
 
-pub(crate) fn validate_vcf_normalized_metrics(
+/// Validate one VCF normalized-metrics payload and return its schema descriptor.
+///
+/// # Errors
+/// Returns an error when the payload identity, required fields, or field types are invalid.
+pub fn validate_vcf_normalized_metrics(
     metrics: &serde_json::Value,
 ) -> Result<VcfNormalizedMetricsStageSchemaDescriptor> {
     let object = metrics
@@ -333,22 +372,24 @@ pub(crate) fn validate_vcf_normalized_metrics(
     Ok(descriptor)
 }
 
-fn parser_supported_stage_specs() -> Result<Vec<&'static VcfStageSpec>> {
-    let specs = vcf_stage_catalog().iter().filter(|spec| spec.parser_supported).collect::<Vec<_>>();
-    if specs.is_empty() {
-        bail!("VCF normalized metrics contract requires at least one parser-supported stage");
+fn normalized_stage_contracts() -> Result<Vec<StageMetricsContract>> {
+    let contracts =
+        VCF_NORMALIZED_STAGE_ORDER.iter().copied().map(stage_metrics_contract).collect::<Vec<_>>();
+    if contracts.is_empty() {
+        bail!("VCF normalized metrics contract requires at least one domain stage");
     }
-    Ok(specs)
+    Ok(contracts)
 }
 
-fn stage_descriptor_from_spec(
-    spec: &VcfStageSpec,
+fn stage_descriptor_from_contract(
+    contract: &StageMetricsContract,
 ) -> Result<VcfNormalizedMetricsStageSchemaDescriptor> {
-    let stage_suffix = stage_suffix(spec.stage_id)?;
-    let required_key_count = BASE_REQUIRED_KEYS.len() + fields_for_stage(spec.stage_id)?.len();
+    let stage_id = contract.stage.as_str();
+    let stage_suffix = stage_suffix(stage_id)?;
+    let required_key_count = BASE_REQUIRED_KEYS.len() + fields_for_stage(stage_id)?.len();
     Ok(VcfNormalizedMetricsStageSchemaDescriptor {
-        stage_id: spec.stage_id.to_string(),
-        schema_version: spec.metrics_schema.to_string(),
+        stage_id: stage_id.to_string(),
+        schema_version: contract.metrics_schema_id.to_string(),
         schema_id: format!("bijux.schemas.bench.vcf-normalized-metrics.{stage_suffix}.v1"),
         file_name: format!("{stage_suffix}.v1.json"),
         extension_id: format!("vcf_{}_normalized_v1", stage_suffix.replace('-', "_")),
@@ -356,15 +397,18 @@ fn stage_descriptor_from_spec(
     })
 }
 
-fn render_stage_extension(spec: &VcfStageSpec) -> Result<serde_json::Value> {
-    let descriptor = stage_descriptor_from_spec(spec)?;
+fn render_stage_extension(contract: &StageMetricsContract) -> Result<serde_json::Value> {
+    let stage_id = contract.stage.as_str();
+    let descriptor = stage_descriptor_from_contract(contract)?;
     let mut properties = serde_json::Map::new();
-    properties
-        .insert("schema_version".to_string(), serde_json::json!({ "const": spec.metrics_schema }));
-    properties.insert("stage_id".to_string(), serde_json::json!({ "const": spec.stage_id }));
+    properties.insert(
+        "schema_version".to_string(),
+        serde_json::json!({ "const": contract.metrics_schema_id }),
+    );
+    properties.insert("stage_id".to_string(), serde_json::json!({ "const": stage_id }));
     properties.insert("tool_id".to_string(), serde_json::json!({ "type": "string" }));
     let mut required = BASE_REQUIRED_KEYS.iter().map(|key| (*key).to_string()).collect::<Vec<_>>();
-    for field in fields_for_stage(spec.stage_id)? {
+    for field in fields_for_stage(stage_id)? {
         properties.insert(field.key.to_string(), field_kind_schema(field.kind));
         required.push(field.key.to_string());
     }
@@ -476,20 +520,39 @@ mod tests {
     use super::*;
 
     #[test]
-    fn vcf_normalized_metrics_contract_tracks_parser_supported_stage_specs() {
+    fn vcf_normalized_metrics_contract_tracks_domain_stage_metrics_contracts() {
         let descriptors =
             vcf_normalized_metrics_stage_descriptors().expect("descriptors must render");
-        let parser_supported_specs =
-            vcf_stage_catalog().iter().filter(|spec| spec.parser_supported).collect::<Vec<_>>();
+        let domain_contracts =
+            VcfDomainStage::all().iter().copied().map(stage_metrics_contract).collect::<Vec<_>>();
 
-        assert_eq!(descriptors.len(), parser_supported_specs.len());
-        for spec in parser_supported_specs {
+        assert_eq!(descriptors.len(), domain_contracts.len());
+        assert_eq!(VCF_NORMALIZED_STAGE_ORDER.len(), domain_contracts.len());
+        assert_eq!(
+            VCF_NORMALIZED_STAGE_ORDER
+                .iter()
+                .map(|stage| stage.as_str())
+                .collect::<std::collections::BTreeSet<_>>(),
+            VcfDomainStage::all()
+                .iter()
+                .map(|stage| stage.as_str())
+                .collect::<std::collections::BTreeSet<_>>()
+        );
+        for contract in domain_contracts {
+            let stage_id = contract.stage.as_str();
             let descriptor = descriptors
                 .iter()
-                .find(|descriptor| descriptor.stage_id == spec.stage_id)
-                .unwrap_or_else(|| panic!("missing descriptor for {}", spec.stage_id));
-            assert_eq!(descriptor.schema_version, spec.metrics_schema);
+                .find(|descriptor| descriptor.stage_id == stage_id)
+                .unwrap_or_else(|| panic!("missing descriptor for {stage_id}"));
+            assert_eq!(descriptor.schema_version, contract.metrics_schema_id);
             assert!(descriptor.required_key_count > BASE_REQUIRED_KEYS.len());
+            for field in fields_for_stage(stage_id).expect("stage fields") {
+                assert!(
+                    contract.required_metrics.contains(&field.key),
+                    "{stage_id} normalized field {} is absent from its domain metrics contract",
+                    field.key
+                );
+            }
         }
     }
 

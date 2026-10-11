@@ -50,7 +50,7 @@ fn bench_readiness_all_domain_stage_tool_table_writes_governed_tsv_file() {
     let rows = lines.collect::<Vec<_>>();
     assert!(!rows.is_empty());
     assert!(rows.iter().any(|row| {
-        row == &"bam\tbam.kinship\tangsd\tcorpus-01-kinship-mini\tcorpus_only\tbam.adapter.kinship\tbam.parser.kinship\tbenchmark_ready"
+        row == &"bam\tbam.kinship\tangsd\tcorpus-01-kinship-mini\treference_fasta+reference_panel\tbam.adapter.kinship\tbam.parser.kinship\tbenchmark_ready"
     }));
     assert!(rows.iter().any(|row| {
         row == &"bam\tbam.damage\tngsbriggs\tcorpus-01-adna-damage-mini\tcorpus_only\tbam.adapter.damage\tbam.parser.damage\tbenchmark_ready"

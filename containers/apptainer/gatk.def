@@ -55,7 +55,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     gatk --version 2>&1 | grep -F "The Genome Analysis Toolkit (GATK) v${VERSION_GATK}"
     gatk --help | grep -F 'Usage template for all tools'
     rm -f /tmp/gatk.zip
-    apt-get purge -y --auto-remove curl unzip
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then

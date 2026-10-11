@@ -32,6 +32,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "params",
         "prelude",
         "pipeline_contract",
+        "reference",
         "stage_specs",
         "types",
     ];
@@ -68,6 +69,7 @@ fn public_api_doc_names_exported_surface() -> anyhow::Result<()> {
         "params",
         "pipeline_contract",
         "prelude",
+        "reference",
         "stage_specs",
         "types",
     ] {

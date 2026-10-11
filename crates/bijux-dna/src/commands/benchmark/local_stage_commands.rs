@@ -1053,7 +1053,9 @@ mod tests {
     use crate::commands::benchmark::local_stage_inventory::load_local_stage_inventory;
 
     fn repo_root() -> PathBuf {
-        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
+        crate::commands::benchmark::scratch_repository::materialize_read_only_repository(
+            "local-stage-commands",
+        )
     }
 
     #[cfg(feature = "bam_downstream")]
@@ -1129,9 +1131,10 @@ mod tests {
         let root = repo_root();
         let error = render_local_stage_commands(
             &root,
-            PathBuf::from(
+            std::path::Path::new(
                 "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh",
-            ),
+            )
+            .to_path_buf(),
         )
         .expect_err("render without bam_downstream should explain the missing feature");
 

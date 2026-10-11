@@ -1,0 +1,213 @@
+{
+  "$defs": {
+    "ToolCentricStageRow": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_status": {
+          "type": "string"
+        },
+        "asset_status": {
+          "type": "string"
+        },
+        "benchmark_status": {
+          "type": "string"
+        },
+        "corpus_status": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "parser_status": {
+          "type": "string"
+        },
+        "readiness_gap": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "report_section_id": {
+          "type": "string"
+        },
+        "report_section_title": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "summary_table_id": {
+          "type": "string"
+        },
+        "summary_table_title": {
+          "type": "string"
+        },
+        "support_status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "domain",
+        "stage_id",
+        "report_section_id",
+        "report_section_title",
+        "summary_table_id",
+        "summary_table_title",
+        "benchmark_status",
+        "readiness_gap",
+        "support_status",
+        "adapter_status",
+        "parser_status",
+        "corpus_status",
+        "asset_status",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "ToolCentricToolReport": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_ready_stage_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "blocked_stage_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "blocked_stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "domains": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "readiness_gap_counts": {
+          "additionalProperties": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "report_section_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "stage_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stages": {
+          "items": {
+            "$ref": "#/$defs/ToolCentricStageRow"
+          },
+          "type": "array"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool_id",
+        "domains",
+        "stage_count",
+        "benchmark_ready_stage_count",
+        "blocked_stage_count",
+        "report_section_ids",
+        "readiness_gap_counts",
+        "blocked_stage_ids",
+        "stages"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_ready_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "blocked_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "blocked_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "readiness_gap_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.tool_centric_report.v1",
+      "type": "string"
+    },
+    "tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "tools": {
+      "items": {
+        "$ref": "#/$defs/ToolCentricToolReport"
+      },
+      "type": "array"
+    },
+    "unique_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "tool_count",
+    "unique_stage_count",
+    "row_count",
+    "benchmark_ready_row_count",
+    "blocked_row_count",
+    "blocked_tool_count",
+    "domain_counts",
+    "readiness_gap_counts",
+    "tools"
+  ],
+  "title": "ToolCentricReport",
+  "type": "object"
+}

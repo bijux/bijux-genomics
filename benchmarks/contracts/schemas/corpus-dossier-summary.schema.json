@@ -1,0 +1,184 @@
+{
+  "$defs": {
+    "BenchmarkCorpusDossierHeadline": {
+      "additionalProperties": false,
+      "properties": {
+        "fastest_runtime_s": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "fastest_tool": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "highest_pass_rate": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "highest_pass_rate_tool": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "type": "object"
+    },
+    "BenchmarkCorpusDossierToolSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "max_runtime_s": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "mean_runtime_s": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "median_runtime_s": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "pass_rate": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "records": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "records"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cohort_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "corpus_root": {
+      "type": "string"
+    },
+    "era_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "headline": {
+      "$ref": "#/$defs/BenchmarkCorpusDossierHeadline"
+    },
+    "layout_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "run_root": {
+      "type": "string"
+    },
+    "sample_scope": {
+      "type": "string"
+    },
+    "samples_failed": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "samples_total": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "scenario_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.corpus_benchmark.summary.v1",
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "tool_summary": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkCorpusDossierToolSummary"
+      },
+      "type": "array"
+    },
+    "tools": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "stage_id",
+    "scenario_id",
+    "generated_at_utc",
+    "platform",
+    "corpus_root",
+    "run_root",
+    "sample_scope",
+    "samples_total",
+    "samples_failed",
+    "tools",
+    "cohort_counts",
+    "era_counts",
+    "layout_counts",
+    "tool_summary",
+    "headline"
+  ],
+  "title": "BenchmarkCorpusDossierSummary",
+  "type": "object"
+}

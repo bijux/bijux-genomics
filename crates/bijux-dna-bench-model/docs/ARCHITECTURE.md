@@ -8,7 +8,8 @@ and decision records, and statistical helpers.
 
 - `src/public_api/` exposes the curated stable surface.
 - `src/model/` owns observations, suites, decisions, summaries, graph nodes, stage-profile data
-  fitness, persisted container report-portfolio identities, and suite support records.
+  fitness, persisted container report-portfolio identities, normalized-result records and
+  execution-metrics envelopes, and suite support records.
 - `src/contract/` validates records, suite shape, stage governance, graph edges, data-fitness and
   portfolio closure, parameter bindings, container report freshness, diversity requirements, and
   analysis requirements.
@@ -37,8 +38,8 @@ downstream crates.
 ## Dependency Direction
 
 Normal dependencies are pure model support: core ids/contracts, stage contracts,
-FASTQ domain identifiers, analysis metric semantics, serialization, validation
-errors, and seeded sampling.
+FASTQ and VCF domain identifiers and metrics contracts, analysis metric semantics,
+serialization, validation errors, and seeded sampling.
 
 ## Command Inventory
 

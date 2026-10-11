@@ -81,6 +81,7 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 | `fastqc` | `paper.fastq.fastqc.software-citation` | homepage/repository snapshot archived | https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ |
 | `fastqvalidator` | `paper.fastq.fastqvalidator.software-citation` | homepage/repository snapshot archived | https://github.com/statgen/fastQValidator |
 | `fastx_clipper` | `paper.fastq.fastx-toolkit.software-citation` | homepage/repository snapshot archived | https://github.com/agordon/fastx_toolkit |
+| `seqprep` | `paper.fastq.seqprep.software-citation` | repository snapshot pending | https://github.com/jstjohn/SeqPrep |
 | `seqtk` | `paper.fastq.seqtk.software-citation` | homepage/repository snapshot archived | https://github.com/lh3/seqtk |
 | `trim_galore` | `paper.fastq.trim-galore.software-citation` | homepage/repository snapshot archived | https://doi.org/10.5281/zenodo.7598955 |
 
@@ -96,7 +97,7 @@ paper root with `archive_status = missing`.
 - [science/generated/current/evidence/fastq_paper_archive_matrix.tsv](../../generated/current/evidence/fastq_paper_archive_matrix.tsv)
   is the compiled review surface for current FASTQ paper roots and archive
   status.
-- Trim Galore, seqtk, fastx_clipper, and fastqvalidator are treated as
+- Trim Galore, SeqPrep, seqtk, fastx_clipper, and fastqvalidator are treated as
   software-citation roots because the governed evidence does not identify a
   dedicated peer-reviewed methods paper for those tool surfaces.
 - Seqtk keeps the FastQDesign Nature paper as supporting citation context for

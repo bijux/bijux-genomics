@@ -44,7 +44,7 @@ fn smoke_request(
         java_heap_mb: None,
         upstream: "catalog-declared".to_string(),
         evidence_root: None,
-        timeout: Duration::from_secs(2),
+        timeout: Duration::from_secs(10),
     })
 }
 

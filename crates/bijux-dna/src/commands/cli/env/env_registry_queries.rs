@@ -563,6 +563,7 @@ mod env_registry_query_tests {
                 "leehom",
                 "prinseq",
                 "seqkit",
+                "seqprep",
                 "skewer",
                 "trim_galore",
                 "trimmomatic",

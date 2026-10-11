@@ -35,7 +35,7 @@ const STAGE_SCORING_CONFIG_HEADER: &str = "# schema_version = 1\n\
 # purpose = Governed scoring policy for active benchmark stage comparisons.\n\
 # authority = bijux-dna-bench\n\
 # stability = evolving\n\
-# last_updated = 2026-08-10\n\n";
+# last_updated = 2026-08-12\n\n";
 const STAGE_SCORING_FULL_BENCHMARK_SOURCE: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
 const STAGE_SCORING_MICRO_SOURCE: &str =
@@ -555,6 +555,9 @@ fn build_failure_class_catalog() -> Vec<StageScoringFailureClassCatalogEntry> {
                 "missing_input" => {
                     "required benchmark inputs are absent, so the tool cannot be compared honestly"
                 }
+                "blocked_external_access" => {
+                    "the supported tool requires a checksum-admitted operator artifact before recommendation"
+                }
                 "tool_not_found" => {
                     "the executable is unresolved, so the tool must be excluded from recommendation"
                 }
@@ -920,7 +923,7 @@ mod tests {
                 })
                 .count()
         );
-        assert_eq!(report.failure_class_count, 7);
+        assert_eq!(report.failure_class_count, 8);
         assert_eq!(report.domain_counts.get("fastq"), Some(&27));
         assert_eq!(report.domain_counts.get("bam"), Some(&24));
         assert_eq!(report.domain_counts.get("vcf"), Some(&20));

@@ -6,6 +6,7 @@ use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::{
+    validate_container_governance, verify_frozen_repository, ContainerGovernance,
     ContainerImageState, ContainerPipelineContract, ContainerPipelineV2, ImageCandidateDisposition,
     QualificationRunState, CONTAINER_PIPELINE_SCHEMA_V2,
 };
@@ -150,6 +151,79 @@ pub fn qualification_specification_source_schema() -> Schema {
 pub fn write_qualification_specification_source_schema(path: &Path) -> Result<()> {
     bijux_dna_infra::atomic_write_json(path, &qualification_specification_source_schema())
         .context("write qualification specification source schema")
+}
+
+/// Bind one declarative qualification source to its governed, commit-addressed repository freeze.
+///
+/// # Errors
+/// Returns an error when governance and source roots differ, the target is outside the governed
+/// frozen-repository root, or the snapshot is not commit-exact, self-contained, clean, and
+/// read-only.
+pub fn bind_qualification_source_to_frozen_repository(
+    source: &QualificationSpecificationSourceV1,
+    governance: &ContainerGovernance,
+    frozen_repository: &Path,
+) -> Result<QualificationSpecificationSourceV1> {
+    validate_container_governance(governance)?;
+    if source.schema_version != QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1 {
+        bail!("unsupported qualification specification source schema");
+    }
+    let study_root = source
+        .governed_study_root
+        .canonicalize()
+        .context("canonicalize qualification source STUDY root")?;
+    let governed_study_root =
+        governance.paths.study_root.canonicalize().context("canonicalize governed STUDY root")?;
+    if study_root != governed_study_root {
+        bail!("qualification source STUDY root differs from site governance");
+    }
+    let declared_result_relative = source
+        .result_root
+        .strip_prefix(&source.governed_study_root)
+        .context("qualification result root is outside its declared STUDY root")?;
+    require_safe_relative(declared_result_relative, "qualification result root")?;
+    let input_relatives = source
+        .inputs
+        .iter()
+        .map(|input| {
+            let relative = input
+                .path
+                .strip_prefix(&source.governed_study_root)
+                .context("qualification input is outside its declared STUDY root")?;
+            require_safe_relative(relative, "qualification input")?;
+            Ok(relative.to_path_buf())
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let frozen_root = governance
+        .paths
+        .frozen_repositories
+        .canonicalize()
+        .context("canonicalize governed frozen-repository root")?;
+    let governed_results_root = governance
+        .paths
+        .results_root
+        .canonicalize()
+        .context("canonicalize governed qualification results root")?;
+    let result_name = format!("{}-{}", source.run_id, source.tool_id);
+    require_safe_component(&result_name, "qualification result identity")?;
+    let repository =
+        frozen_repository.canonicalize().context("canonicalize qualification frozen repository")?;
+    if repository.parent() != Some(frozen_root.as_path())
+        || repository.file_name().and_then(|name| name.to_str())
+            != Some(source.repository_commit.as_str())
+    {
+        bail!("qualification source repository is not frozen by commit identity");
+    }
+    verify_frozen_repository(&repository, &source.repository_commit)
+        .context("verify qualification source frozen repository")?;
+    let mut bound = source.clone();
+    bound.governed_study_root.clone_from(&governed_study_root);
+    bound.repository_path = repository;
+    bound.result_root = governed_results_root.join("container-validation").join(result_name);
+    for (input, relative) in bound.inputs.iter_mut().zip(input_relatives) {
+        input.path = governed_study_root.join(relative);
+    }
+    Ok(bound)
 }
 
 /// Compile one checksum-bound, stage-bound qualification source into the current pipeline model.
@@ -717,6 +791,14 @@ fn require_safe_relative(path: &Path, label: &str) -> Result<()> {
     Ok(())
 }
 
+fn require_safe_component(value: &str, label: &str) -> Result<()> {
+    let mut components = Path::new(value).components();
+    if !matches!(components.next(), Some(Component::Normal(_))) || components.next().is_some() {
+        bail!("{label} must be a safe path component");
+    }
+    Ok(())
+}
+
 fn require_path_under(path: &Path, root: &Path, label: &str) -> Result<()> {
     if !path.starts_with(root)
         || path
@@ -877,32 +959,50 @@ mod tests {
         let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
-        assert_eq!(coverage.summary.binding_ready_count, 34);
+        assert_eq!(coverage.summary.binding_ready_count, 52);
         for tool_id in [
+            "addeam",
             "angsd",
             "adapterremoval",
+            "alientrimmer",
+            "atropos",
+            "authenticct",
+            "bayeshammer",
             "bbduk",
             "bbmerge",
             "bowtie2_build",
             "centrifuge",
             "dada2",
+            "damageprofiler",
             "fastp",
             "fastqc",
             "fastqvalidator",
             "fastuniq",
+            "fastx_clipper",
             "flash2",
             "fqtools",
             "impute5",
             "kaiju",
             "kraken2",
             "krakenuniq",
+            "leehom",
+            "lighter",
+            "mapdamage2",
             "ngsbriggs",
+            "musket",
+            "pear",
+            "pmdtools",
             "prinseq",
+            "pydamage",
             "seqfu",
             "seqkit",
             "seqkit_stats",
+            "seqprep",
             "seqtk",
+            "skewer",
             "star",
+            "trim_galore",
+            "trimmomatic",
             "vsearch",
         ] {
             let unit = coverage

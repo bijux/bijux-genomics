@@ -1,0 +1,107 @@
+{
+  "$defs": {
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    },
+    "BenchmarkLocalStageRuntimeMetric": {
+      "additionalProperties": false,
+      "properties": {
+        "elapsed_seconds": {
+          "format": "double",
+          "type": "number"
+        },
+        "exit_code": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "finished_at": {
+          "type": "string"
+        },
+        "manifest_path": {
+          "type": "string"
+        },
+        "readiness_kind": {
+          "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+        },
+        "runtime_mode": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "started_at": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/BenchmarkStageResultStatus"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind",
+        "tool_id",
+        "manifest_path",
+        "runtime_mode",
+        "started_at",
+        "finished_at",
+        "elapsed_seconds",
+        "exit_code",
+        "status"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStageResultStatus": {
+      "enum": [
+        "succeeded",
+        "failed"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "fake_run_root": {
+      "type": "string"
+    },
+    "report_output_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_runtime_metrics.v1",
+      "type": "string"
+    },
+    "source_stage_command_manifest_path": {
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalStageRuntimeMetric"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "fake_run_root",
+    "report_output_path",
+    "source_stage_command_manifest_path",
+    "stage_count",
+    "stages"
+  ],
+  "title": "BenchmarkLocalStageRuntimeMetricsReport",
+  "type": "object"
+}

@@ -54,7 +54,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     bamutil --version | grep -Fx 'bamutil 1.0.15'
     bamutil --help >/dev/null
     rm -rf /opt/bamutil.tar.gz /opt/libstatgen.tar.gz /opt/bamUtil-1.0.15 /opt/libStatGen-1.0.15
-    apt-get purge -y --auto-remove curl g++ make zlib1g-dev
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

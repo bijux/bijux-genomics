@@ -2,6 +2,11 @@
 
 This crate owns the environment contracts consumed by API, runner, and environment QA layers.
 
+`RepositoryFreezeArchiveReceipt` binds the governed snapshot-relative path, full commit, Git-bundle
+path and checksum, tracked-index checksum, sparse-checkout paths, and successful self-contained
+restoration proof. Retirement requires the receipt to revalidate; restoration publishes through a
+private staging checkout and re-applies read-only permissions before the original path is visible.
+
 ## Container Run Protocols
 
 `QualificationRunRegistry` owns the permanent container namespace independently of attempts and

@@ -110,20 +110,27 @@ fn bench_local_render_hpc_candidate_run_manifest_selects_small_representatives()
             .and_then(serde_json::Value::as_u64),
         Some(3)
     );
+    assert_eq!(
+        report
+            .get("behavior")
+            .and_then(|value| value.get("vcf_rows_excluded_for_unknown_execution_modes"))
+            .and_then(serde_json::Value::as_bool),
+        Some(true),
+        "governing every VCF execution mode must preserve the candidate proof"
+    );
     assert!(
         report
             .get("exclusion_reason_counts")
             .and_then(|value| value.get("unknown_execution_mode"))
-            .and_then(serde_json::Value::as_u64)
-            .is_some_and(|count| count > 0),
-        "VCF rows should remain excluded until execution modes are governed"
+            .is_none(),
+        "the governed roster should not fabricate unknown-mode exclusions"
     );
 
     let rows = report.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(rows.len(), 6);
-    assert!(rows
-        .iter()
-        .all(|row| { row.get("domain").and_then(serde_json::Value::as_str) != Some("vcf") }));
+    assert!(rows.iter().all(|row| {
+        row.get("execution_mode").and_then(serde_json::Value::as_str) != Some("unclassified")
+    }));
     assert_eq!(
         row_by_group(rows, "bam:containerized")
             .get("result_id")

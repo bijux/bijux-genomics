@@ -99,6 +99,10 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() -
         ("bam.kinship", "angsd"),
         ("bam.sex", "angsd"),
         ("fastq.remove_duplicates", "fastuniq"),
+        ("vcf.call_gl", "angsd"),
+        ("vcf.call_pseudohaploid", "angsd"),
+        ("vcf.imputation_metrics", "impute5"),
+        ("vcf.impute", "impute5"),
     ] {
         assert!(rows.iter().any(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)

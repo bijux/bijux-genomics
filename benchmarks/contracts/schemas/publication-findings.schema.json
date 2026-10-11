@@ -1,0 +1,56 @@
+{
+  "$defs": {
+    "BenchmarkPublicationAuditIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "issue_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "issue_id",
+        "severity",
+        "detail"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "corpus_id": {
+      "type": "string"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkPublicationAuditIssue"
+      },
+      "type": "array"
+    },
+    "generated_at_utc": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.publication_findings.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "generated_at_utc",
+    "findings"
+  ],
+  "title": "BenchmarkPublicationFindings",
+  "type": "object"
+}

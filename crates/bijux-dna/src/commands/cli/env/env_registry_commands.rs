@@ -1043,10 +1043,8 @@ containers_root = "/remote/.cache/bijux-dna-container"
 
     #[test]
     fn apptainer_build_identity_requires_a_clean_tracked_repository() {
-        let workspace = std::env::current_dir().expect("current workspace");
-        let root = workspace.join("artifacts/tests/apptainer-build-identity");
-        bijux_dna_infra::ensure_dir(&root).expect("create test artifact root");
-        let repository = bijux_dna_infra::temp_dir_in(&root, "repository-")
+        let scratch = TempDir::new().expect("test scratch directory");
+        let repository = bijux_dna_infra::temp_dir_in(scratch.path(), "repository-")
             .expect("create test repository");
         for args in [
             vec!["init"],

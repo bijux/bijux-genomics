@@ -9,6 +9,9 @@ stable names and use namespaces only when they need grouped operations such as
 
 Model contracts:
 
+- `AllDomainParserCollectorSourceKind`
+- `AllDomainParserCollectorRow`
+- `AllDomainParserCollectorReport`
 - `BenchmarkSuiteSpec`
 - `BenchmarkObservation`
 - `BenchmarkSummary`
@@ -33,11 +36,62 @@ Model contracts:
 - `BenchmarkStageReport`
 - `BenchmarkStageReportDesign`
 - `BenchmarkToolReport`
+- `BenchmarkStageResultManifest`
+- `BenchmarkStageResultValidationReport`
+- `BenchmarkLocalStageRuntimeMetricsReport`
+- `BenchmarkLocalStageRuntimeMetric`
+- `BenchmarkLocalStageReadinessKind`
+- `BenchmarkLocalStageInventory`
+- `BenchmarkLocalStageInventoryEntry`
+- `BenchmarkLocalAllDomainStageInventory`
+- `BenchmarkLocalCorpusSkipReport`
+- `BenchmarkLocalCorpusFixture`
+- `BenchmarkLocalCorpusSkip`
+- `BenchmarkLocalAssetBackedStage`
+- `BenchmarkLocalPlannerOnlyStage`
+- `BenchmarkLocalHpcJobGraph`
+- `BenchmarkLocalHpcJobGraphNode`
+- `BenchmarkLocalStageManifestCompletionReport`
+- `BenchmarkLocalStageManifestCompletionEntry`
+- `BenchmarkLocalStageOutputCompletionReport`
+- `BenchmarkLocalStageOutputCompletionEntry`
+- `BenchmarkLocalStageMissingOutputEntry`
+- `BenchmarkLocalSummaryReport`
+- `BenchmarkLocalSummaryStage`
+- `BenchmarkLocalReadinessStatus`
+- `derive_benchmark_local_readiness_status`
 - `BenchmarkMeasurementContract`
 - `BenchmarkCorpusContract`
 - `BenchmarkCorpusClass`
 - `FastqCorpusSourceSpec`
 - `FastqCorpusSourceSample`
+- `ComparableMetricContractStatus`
+- `ComparableMetricDirection`
+- `FastqComparableMetricsReport`
+- `FastqComparableMetricsRow`
+- `BamComparableMetricsReport`
+- `BamComparableMetricsRow`
+- `VcfComparableMetricsReport`
+- `VcfComparableMetricsRow`
+- `StageCentricReport`
+- `StageCentricStageReport`
+- `StageCentricToolRow`
+- `ToolCentricReport`
+- `ToolCentricToolReport`
+- `ToolCentricStageRow`
+- `CorpusCentricReport`
+- `CorpusCentricCorpusReport`
+- `CorpusCentricStageRow`
+- `ReadinessComparisonContractStatus`
+- `AllDomainActiveStageToolMatrixReport`
+- `AllDomainActiveStageToolMatrixRow`
+- `AllDomainRetainedToolsReport`
+- `AllDomainRetainedToolRow`
+- `StageRegistryExtraPairsReport`
+- `StageRegistryExtraPairRow`
+- `BenchmarkLocalVcfSmokeGoalContract`
+- `BenchmarkLocalVcfSmokeGoalCheck`
+- `BenchmarkLocalVcfSmokeSuiteReport`
 - `BenchmarkScientificProfile`
 - `BenchmarkProfileAssignment`
 - `BenchmarkComparisonMetricTolerance`
@@ -173,6 +227,16 @@ Policy and diagnostics:
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
 - `BENCHMARK_STAGE_REPORT_SCHEMA_V1`
+- `BENCHMARK_STAGE_RESULT_SCHEMA_V2`
+- `BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1`
+- `BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1`
+- `BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1`
+- `BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1`
+- `BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1`
+- `BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1`
+- `BENCHMARK_LOCAL_STAGE_MANIFEST_COMPLETION_SCHEMA_V1`
+- `BENCHMARK_LOCAL_STAGE_OUTPUT_COMPLETION_SCHEMA_V1`
+- `BENCHMARK_LOCAL_SUMMARY_SCHEMA_V1`
 - `ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_V1`
 - `APPRAISAL_REPORT_SCHEMA_V1`
 - `HARDENING_QUEUE_REPORT_SCHEMA_V1`
@@ -181,6 +245,15 @@ Policy and diagnostics:
 - `CORPUS_ACQUISITION_SCHEMA_V1`
 - `CORPUS_ACQUISITION_SCHEMA_V2`
 - `FASTQ_CORPUS_SOURCE_SCHEMA_V1`
+- `FASTQ_COMPARABLE_METRICS_SCHEMA_V1`
+- `BAM_COMPARABLE_METRICS_SCHEMA_V1`
+- `VCF_COMPARABLE_METRICS_SCHEMA_V1`
+- `STAGE_CENTRIC_REPORT_SCHEMA_V1`
+- `TOOL_CENTRIC_REPORT_SCHEMA_V1`
+- `CORPUS_CENTRIC_REPORT_SCHEMA_V1`
+- `ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1`
+- `ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1`
+- `STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1`
@@ -211,6 +284,8 @@ Schema derivation:
 - `gate_decision_schema`
 - `benchmark_execution_spec_schema`
 - `benchmark_scheduler_observation_schema`
+- `benchmark_local_hpc_job_graph_schema`
+- `benchmark_local_corpus_skip_report_schema`
 - `active_scope_fast_validation_report_schema`
 - `appraisal_report_schema`
 - `hardening_queue_report_schema`
@@ -218,10 +293,23 @@ Schema derivation:
 - `benchmark_matrix_report_schema`
 - `corpus_acquisition_plan_schema`
 - `fastq_corpus_source_spec_schema`
+- `fastq_comparable_metrics_schema`
+- `bam_comparable_metrics_schema`
+- `vcf_comparable_metrics_schema`
+- `stage_centric_report_schema`
+- `tool_centric_report_schema`
+- `corpus_centric_report_schema`
+- `all_domain_parser_collector_schema`
+- `all_domain_active_stage_tool_matrix_schema`
+- `all_domain_retained_tools_schema`
+- `stage_registry_extra_pairs_schema`
+- `benchmark_local_vcf_smoke_suite_schema`
 - `governed_data_catalog_schema`
 - `governed_data_catalog_registry_schema`
 - `benchmark_data_index_schema`
 - `validate_scheduler_observation`
+- `validate_benchmark_local_hpc_job_graph`
+- `validate_benchmark_local_corpus_skip_report`
 - `validate_active_scope_fast_validation_report`
 - `validate_appraisal_report`
 - `validate_hardening_queue_report`
@@ -230,15 +318,55 @@ Schema derivation:
 - `validate_execution_spec`
 - `validate_corpus_acquisition_plan`
 - `validate_fastq_corpus_source_spec`
+- `validate_fastq_comparable_metrics_report`
+- `validate_bam_comparable_metrics_report`
+- `validate_vcf_comparable_metrics_report`
+- `validate_stage_centric_report`
+- `validate_tool_centric_report`
+- `validate_corpus_centric_report`
+- `validate_all_domain_parser_collector`
+- `validate_all_domain_active_stage_tool_matrix`
+- `validate_all_domain_retained_tools`
+- `validate_stage_registry_extra_pairs`
+- `validate_benchmark_local_vcf_smoke_suite`
 - `validate_governed_data_catalog`
 - `validate_governed_data_catalog_registry`
 - `validate_benchmark_data_index`
 - `validate_utc_timestamp`
 
+Normalized BAM execution metrics:
+
+- `normalized_result::bam_envelope::bam_normalized_metrics_stage_contracts`
+- `normalized_result::bam_envelope::bam_normalized_metrics_contract_for_stage`
+- `normalized_result::bam_envelope::validate_bam_normalized_metrics`
+- `normalized_result::bam_envelope::render_bam_normalized_metrics_schema`
+- `normalized_result::bam_envelope::BAM_NORMALIZED_METRICS_SCHEMA_VERSION`
+- `normalized_result::bam_envelope::BAM_NORMALIZED_METRICS_SCHEMA_ID`
+
+Normalized FASTQ execution metrics:
+
+- `normalized_result::fastq_envelope::fastq_normalized_metrics_stage_contracts`
+- `normalized_result::fastq_envelope::fastq_normalized_metrics_contract_for_stage`
+- `normalized_result::fastq_envelope::required_metrics_keys`
+- `normalized_result::fastq_envelope::validate_fastq_normalized_metrics`
+- `normalized_result::fastq_envelope::render_fastq_normalized_metrics_schema`
+- `normalized_result::fastq_envelope::FASTQ_NORMALIZED_METRICS_SCHEMA_VERSION`
+- `normalized_result::fastq_envelope::FASTQ_NORMALIZED_METRICS_SCHEMA_ID`
+
+Normalized VCF execution metrics:
+
+- `normalized_result::vcf_envelope::vcf_normalized_metrics_stage_descriptors`
+- `normalized_result::vcf_envelope::validate_vcf_normalized_metrics`
+- `normalized_result::vcf_envelope::render_vcf_normalized_metrics_schema`
+- `normalized_result::vcf_envelope::render_vcf_normalized_metrics_stage_schema`
+- `normalized_result::vcf_envelope::VcfNormalizedMetricsStageSchemaDescriptor`
+- `normalized_result::vcf_envelope::VCF_NORMALIZED_METRICS_SCHEMA_ID`
+
 Namespaces:
 
 - `compare`
 - `contract`
+- `normalized_result`
 
 ## Managed Operations
 

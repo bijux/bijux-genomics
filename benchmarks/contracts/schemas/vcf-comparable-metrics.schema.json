@@ -1,0 +1,99 @@
+{
+  "$defs": {
+    "ComparableMetricDirection": {
+      "enum": [
+        "exact_match_preferred",
+        "higher_is_better",
+        "lower_is_better"
+      ],
+      "type": "string"
+    },
+    "VcfComparableMetricsRow": {
+      "additionalProperties": false,
+      "properties": {
+        "direction": {
+          "$ref": "#/$defs/ComparableMetricDirection"
+        },
+        "metric_id": {
+          "type": "string"
+        },
+        "metric_name": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tools_covered": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "metric_id",
+        "metric_name",
+        "unit",
+        "direction",
+        "required",
+        "tools_covered"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "multi_tool_stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "output_path": {
+      "type": "string"
+    },
+    "retained_tool_row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/VcfComparableMetricsRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.readiness.vcf_comparable_metrics.v1",
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "output_path",
+    "stage_count",
+    "multi_tool_stage_count",
+    "retained_tool_row_count",
+    "row_count",
+    "rows"
+  ],
+  "title": "VcfComparableMetricsReport",
+  "type": "object"
+}

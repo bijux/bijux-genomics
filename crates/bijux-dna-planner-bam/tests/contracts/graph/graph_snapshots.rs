@@ -1,7 +1,7 @@
 #[cfg(feature = "bam_downstream")]
 use std::collections::BTreeMap;
 #[cfg(feature = "bam_downstream")]
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[cfg(feature = "bam_downstream")]
 use bijux_dna_core::contract::PlanPolicy;
@@ -36,10 +36,16 @@ fn dummy_tool(tool_id: &str) -> ToolExecutionSpecV1 {
 }
 
 #[cfg(feature = "bam_downstream")]
-fn normalize_graph_snapshot_paths(value: serde_json::Value) -> serde_json::Value {
+fn normalize_graph_snapshot_paths(
+    value: serde_json::Value,
+    transient_root: &Path,
+) -> serde_json::Value {
     match value {
         serde_json::Value::Array(items) => serde_json::Value::Array(
-            items.into_iter().map(normalize_graph_snapshot_paths).collect(),
+            items
+                .into_iter()
+                .map(|item| normalize_graph_snapshot_paths(item, transient_root))
+                .collect(),
         ),
         serde_json::Value::Object(map) => {
             let normalized = map
@@ -52,12 +58,22 @@ fn normalize_graph_snapshot_paths(value: serde_json::Value) -> serde_json::Value
                         ("out_dir", serde_json::Value::String(path)) => {
                             serde_json::Value::String(snapshot_leaf(&path))
                         }
-                        (_, nested) => normalize_graph_snapshot_paths(nested),
+                        (_, nested) => normalize_graph_snapshot_paths(nested, transient_root),
                     };
                     (key, value)
                 })
                 .collect();
             serde_json::Value::Object(normalized)
+        }
+        serde_json::Value::String(value) => {
+            let transient_root = transient_root.to_string_lossy();
+            if !value.contains(transient_root.as_ref()) {
+                serde_json::Value::String(value)
+            } else if value.chars().any(char::is_whitespace) {
+                serde_json::Value::String(value.replace(transient_root.as_ref(), "<TMPDIR>/<TMP>"))
+            } else {
+                serde_json::Value::String(snapshot_leaf(&value))
+            }
         }
         other => other,
     }
@@ -103,15 +119,44 @@ fn bam_adna_shotgun_graph_is_pure() -> anyhow::Result<()> {
 
     let graph = plan_bam_to_bam__adna_shotgun__v1(&inputs)?;
     let json = serde_json::to_value(&graph)?;
-    let json = normalize_graph_snapshot_paths(json);
+    let json = normalize_graph_snapshot_paths(json, temp.path());
     let json = bijux_dna_core::contract::canonical::canonicalize_truth_json(&json);
     let mut settings = insta::Settings::clone_current();
     settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));
     settings.set_prepend_module_to_snapshot(false);
-    settings.add_filter(temp.path().to_str().unwrap_or_default(), "<temp>");
     settings.bind(|| {
         let name = snapshot_name("contracts", "bam_adna_shotgun_graph");
         insta::assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
     });
     Ok(())
+}
+
+#[test]
+#[cfg(feature = "bam_downstream")]
+fn graph_snapshot_path_normalization_covers_command_templates() {
+    let transient_root = Path::new("/archive/build/bam-graph-snapshot");
+    let input = serde_json::json!({
+        "command": {
+            "template": [
+                "mapdamage2",
+                "/archive/build/bam-graph-snapshot/sample.bam",
+                "run --input /archive/build/bam-graph-snapshot/sample.bam",
+            ],
+        },
+        "path": "/archive/build/bam-graph-snapshot/sample.bam",
+    });
+
+    assert_eq!(
+        normalize_graph_snapshot_paths(input, transient_root),
+        serde_json::json!({
+            "command": {
+                "template": [
+                    "mapdamage2",
+                    "sample.bam",
+                    "run --input <TMPDIR>/<TMP>/sample.bam",
+                ],
+            },
+            "path": "sample.bam",
+        })
+    );
 }

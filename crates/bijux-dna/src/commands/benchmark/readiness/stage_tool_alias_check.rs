@@ -15,12 +15,12 @@ use super::all_domain_expected_benchmark_results::{
 use super::all_domain_rendered_commands::{
     collect_all_domain_rendered_command_rows, AllDomainRenderedCommandRow,
 };
-use crate::commands::benchmark::alias_inventory::{
+use crate::commands::cli::parse;
+use crate::commands::cli::render;
+use bijux_dna_api::v1::api::bench::{
     choose_canonical_tool_id, legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases,
     normalize_tool_id,
 };
-use crate::commands::cli::parse;
-use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_TOOL_ALIAS_CHECK_PATH: &str =
     "artifacts/benchmark-smoke/readiness/all-domains/stage-tool-alias-check.json";
@@ -396,7 +396,9 @@ fn collect_tool_alias_clusters(
             continue;
         }
         let cluster_tool_ids = cluster.into_iter().collect::<Vec<_>>();
-        let canonical_tool_id = choose_canonical_tool_id(&cluster_tool_ids);
+        let Some(canonical_tool_id) = choose_canonical_tool_id(&cluster_tool_ids) else {
+            continue;
+        };
         let alias_tool_ids = cluster_tool_ids
             .into_iter()
             .filter(|tool_id| tool_id != &canonical_tool_id)

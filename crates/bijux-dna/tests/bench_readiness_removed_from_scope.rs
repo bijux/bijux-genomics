@@ -47,7 +47,7 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     );
     assert_eq!(
         payload.get("full_benchmark_report_check_source").and_then(serde_json::Value::as_str),
-        Some("tracked_report_json")
+        Some("expected_result_contract")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     let candidate_rows = payload

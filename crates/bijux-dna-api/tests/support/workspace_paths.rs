@@ -4,9 +4,10 @@ use anyhow::{anyhow, Result};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::OnceLock;
+use std::sync::{Mutex, MutexGuard, OnceLock};
 
 static REPO_SANDBOX: OnceLock<std::result::Result<PathBuf, String>> = OnceLock::new();
+static REPO_PROCESS_LOCK: Mutex<()> = Mutex::new(());
 
 fn looks_like_repo_root(path: &Path) -> bool {
     path.join("Cargo.lock").is_file()
@@ -48,7 +49,13 @@ pub fn repo_root() -> Result<PathBuf> {
 
         Ok(root.keep())
     }) {
-        Ok(path) => Ok(path.clone()),
+        Ok(path) => {
+            // Contract tests share one process-global repository override. Pin it
+            // before any test-specific guard is installed so overlapping guards
+            // always restore the same sandbox instead of clearing each other.
+            std::env::set_var("BIJUX_REPO_ROOT", path);
+            Ok(path.clone())
+        }
         Err(error) => Err(anyhow!(error.clone())),
     }
 }
@@ -105,19 +112,62 @@ pub fn crate_snapshots(crate_name: &str) -> Result<PathBuf> {
 const TEST_LOCK_ROOT: &str = "artifacts/test-locks";
 
 pub struct RepoProcessLock {
+    _process_lock: MutexGuard<'static, ()>,
     _file_lock: bijux_dna_infra::FileLock,
 }
 
 impl RepoProcessLock {
     pub fn acquire(name: &str) -> Result<Self> {
+        let process_lock = REPO_PROCESS_LOCK
+            .lock()
+            .map_err(|error| anyhow!("acquire repository test process lock: {error}"))?;
         let repo_root = source_repo_root()?;
         let path = repo_root.join(TEST_LOCK_ROOT).join(format!("{name}.lock"));
         let file_lock = bijux_dna_infra::FileLock::try_acquire(&path)
             .map_err(|error| anyhow!("acquire repo test lock `{}`: {error}", path.display()))?;
-        Ok(Self { _file_lock: file_lock })
+        Ok(Self { _process_lock: process_lock, _file_lock: file_lock })
     }
 }
 
 pub fn bench_output_lock() -> Result<RepoProcessLock> {
     RepoProcessLock::acquire("bijux-dna-api-bench-output")
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::mpsc;
+    use std::time::Duration;
+
+    use super::{bench_output_lock, repo_root};
+
+    #[test]
+    fn repository_override_stays_pinned_to_the_contract_sandbox() -> anyhow::Result<()> {
+        let root = repo_root()?;
+        assert_eq!(std::env::var_os("BIJUX_REPO_ROOT"), Some(root.into_os_string()));
+        Ok(())
+    }
+
+    #[test]
+    fn repository_process_lock_queues_parallel_contract_writers() -> anyhow::Result<()> {
+        let _root = repo_root()?;
+        let first = bench_output_lock()?;
+        let (attempting_tx, attempting_rx) = mpsc::channel();
+        let (acquired_tx, acquired_rx) = mpsc::channel();
+        let writer = std::thread::spawn(move || -> anyhow::Result<()> {
+            attempting_tx.send(())?;
+            let result = bench_output_lock().map(drop).map_err(|error| format!("{error:#}"));
+            acquired_tx.send(result)?;
+            Ok(())
+        });
+
+        attempting_rx.recv_timeout(Duration::from_secs(1))?;
+        assert!(matches!(
+            acquired_rx.recv_timeout(Duration::from_millis(50)),
+            Err(mpsc::RecvTimeoutError::Timeout)
+        ));
+        drop(first);
+        acquired_rx.recv_timeout(Duration::from_secs(2))?.map_err(anyhow::Error::msg)?;
+        writer.join().map_err(|_| anyhow::anyhow!("repository lock writer panicked"))??;
+        Ok(())
+    }
 }

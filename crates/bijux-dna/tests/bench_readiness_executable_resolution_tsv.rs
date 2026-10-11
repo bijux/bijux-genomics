@@ -48,7 +48,7 @@ fn bench_readiness_executable_resolution_writes_governed_tsv_file() {
     );
 
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 75);
+    assert_eq!(rows.len(), 76);
     assert!(rows.iter().any(|row| {
         row == &"bijux_dna\tfastq\tfastq.detect_duplicates_premerge,fastq.estimate_library_complexity_prealign\tworkspace_binary\thost_binary\tbijux-dna\tbijux-dna\tdomain/fastq/tools/bijux_dna.yaml"
     }));

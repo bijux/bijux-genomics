@@ -37,9 +37,9 @@ pub(crate) struct BenchmarkCommandRow {
 }
 
 #[derive(Debug, Clone)]
-struct CanonicalStagePlan {
+struct CanonicalStagePlanCandidates {
     readiness_kind: LocalStageReadinessKind,
-    plan: StagePlanV1,
+    plans: Vec<StagePlanV1>,
 }
 
 pub(crate) fn collect_benchmark_command_rows(repo_root: &Path) -> Result<Vec<BenchmarkCommandRow>> {
@@ -59,8 +59,12 @@ pub(crate) fn collect_benchmark_command_rows(repo_root: &Path) -> Result<Vec<Ben
                 row.tool_id
             )
         })?;
-        let argv =
-            render_fastq_stage_tool_argv(repo_root, &row.stage_id, &row.tool_id, &base.plan)?;
+        let argv = render_fastq_stage_tool_argv_from_candidates(
+            repo_root,
+            &row.stage_id,
+            &row.tool_id,
+            &base.plans,
+        )?;
         rows.push(BenchmarkCommandRow {
             stage_id: row.stage_id,
             tool_id: row.tool_id,
@@ -173,22 +177,44 @@ pub(crate) fn render_shell_command(argv: &[String]) -> String {
 fn canonical_stage_plan_map(
     repo_root: &Path,
     domain: BenchLocalDomain,
-) -> Result<BTreeMap<String, CanonicalStagePlan>> {
+) -> Result<BTreeMap<String, CanonicalStagePlanCandidates>> {
     collect_local_stage_plan_bundles(repo_root, Some(domain))?
         .into_iter()
         .map(|bundle| {
-            let plan = bundle.plans.into_iter().next().ok_or_else(|| {
-                anyhow!(
-                    "local stage bundle `{}` did not include a canonical governed plan",
+            if bundle.plans.is_empty() {
+                return Err(anyhow!(
+                    "local stage bundle `{}` did not include any governed plans",
                     bundle.stage_id
-                )
-            })?;
+                ));
+            }
             Ok((
                 bundle.stage_id,
-                CanonicalStagePlan { readiness_kind: bundle.readiness_kind, plan },
+                CanonicalStagePlanCandidates {
+                    readiness_kind: bundle.readiness_kind,
+                    plans: bundle.plans,
+                },
             ))
         })
         .collect()
+}
+
+fn render_fastq_stage_tool_argv_from_candidates(
+    repo_root: &Path,
+    stage_id: &str,
+    tool_id: &str,
+    candidates: &[StagePlanV1],
+) -> Result<Vec<String>> {
+    let mut failures = Vec::new();
+    for candidate in candidates {
+        match render_fastq_stage_tool_argv(repo_root, stage_id, tool_id, candidate) {
+            Ok(argv) => return Ok(argv),
+            Err(error) => failures.push(error.to_string()),
+        }
+    }
+    Err(anyhow!(
+        "no governed `{stage_id}` case is compatible with tool `{tool_id}`: {}",
+        failures.join("; ")
+    ))
 }
 
 fn collect_selected_domain_command_rows(
@@ -798,6 +824,7 @@ fn project_trim_benchmark_params_for_tool(
             | "fastx_clipper"
             | "skewer"
             | "leehom"
+            | "seqprep"
     );
     let supports_polyx_bank = tool_id == "fastp";
     let supports_contaminant_bank = tool_id == "bbduk";
@@ -814,7 +841,7 @@ fn project_trim_benchmark_params_for_tool(
             | "skewer"
             | "prinseq"
     );
-    let supports_length_without_quality = matches!(tool_id, "seqkit" | "seqpurge");
+    let supports_length_without_quality = matches!(tool_id, "seqkit" | "seqprep" | "seqpurge");
 
     if matches!(params.adapter_policy.as_str(), "bank" | "ancient_strict") && !supports_adapter_bank
     {
@@ -892,7 +919,7 @@ fn project_merge_pairs_benchmark_params_for_tool(
     if !matches!(tool_id, "adapterremoval" | "pear" | "vsearch" | "bbmerge") {
         params.min_len = None;
     }
-    if tool_id == "leehom" {
+    if matches!(tool_id, "leehom" | "seqprep") {
         params.merge_overlap = None;
     }
     bijux_dna_planner_fastq::FastqStageParameters::MergePairs(params)

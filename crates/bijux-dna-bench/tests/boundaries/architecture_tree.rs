@@ -88,8 +88,9 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("src/workflow")),
         entries([
-            "attempt_migration.rs",
+            "alias_resolution.rs",
             "appraisal.rs",
+            "attempt_migration.rs",
             "bam_alignment/",
             "bam_campaign.rs",
             "bam_coverage/",
@@ -135,6 +136,7 @@ fn bench_tree_matches_architecture_contract() {
             "stage_families.rs",
             "stage_universe.rs",
             "stage_report/",
+            "stage_result.rs",
             "stage_tool_closure.rs",
             "summary/",
             "suite_load.rs",

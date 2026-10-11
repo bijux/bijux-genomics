@@ -65,7 +65,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     fastx_clipper --version | grep -Fx 'fastx_clipper 0.0.14'
     fastx_clipper --help >/dev/null
     rm -rf /opt/libgtextutils.tar.gz /opt/fastx-toolkit.tar.bz2 /opt/fastx-clipper-wrapper /opt/libgtextutils-0.7 /opt/fastx_toolkit-0.0.14
-    apt-get purge -y --auto-remove autoconf automake bzip2 curl g++ libtool make perl pkg-config zlib1g-dev
     apt-get clean
     rm -rf /var/lib/apt/lists/*
 

@@ -1,19 +1,13 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli(args: &[&str]) -> std::process::Output {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
+fn run_cli(sandbox: &support::RepoSandbox, args: &[&str]) -> std::process::Output {
     let home = tempfile::tempdir().expect("tempdir");
 
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
+    sandbox
+        .bijux_dna_command()
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -24,7 +18,10 @@ fn run_cli(args: &[&str]) -> std::process::Output {
 }
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
-    let output = run_cli(args);
+    let sandbox = support::RepoSandbox::new("bam-tool-score-readiness-").expect("repo sandbox");
+    let home = tempfile::tempdir().expect("tempdir");
+    sandbox.materialize_bam_score_evidence(home.path()).expect("materialize BAM score evidence");
+    let output = run_cli(&sandbox, args);
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",
@@ -56,7 +53,7 @@ fn bench_readiness_bam_tool_scores_report_governs_real_bam_evidence() {
         payload.get("row_count").and_then(serde_json::Value::as_u64),
         Some(rows.len() as u64)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(3));
 
     let failure_counts = payload
         .get("failure_class_counts")
@@ -66,12 +63,26 @@ fn bench_readiness_bam_tool_scores_report_governs_real_bam_evidence() {
         failure_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>(),
         rows.len() as u64
     );
-    assert!(rows.iter().all(|row| {
-        !matches!(
-            row.get("tool_id").and_then(serde_json::Value::as_str),
-            Some("angsd" | "ngsbriggs")
-        )
-    }));
+    assert_eq!(
+        failure_counts.get("blocked_external_access").and_then(serde_json::Value::as_u64),
+        Some(3)
+    );
+    for (stage_id, tool_id) in
+        [("bam.damage", "ngsbriggs"), ("bam.kinship", "angsd"), ("bam.sex", "angsd")]
+    {
+        let row = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .expect("licensed BAM score row");
+        assert_eq!(row.get("score_status").and_then(serde_json::Value::as_str), Some("blocked"));
+        assert_eq!(
+            row.get("failure_class").and_then(serde_json::Value::as_str),
+            Some("blocked_external_access")
+        );
+    }
 
     let coverage_samtools = rows
         .iter()
@@ -116,7 +127,7 @@ fn bench_readiness_bam_tool_scores_report_governs_real_bam_evidence() {
         contamination_verifybamid2
             .get("micro_execution_status")
             .and_then(serde_json::Value::as_str),
-        Some("unavailable")
+        None
     );
     assert_eq!(
         contamination_verifybamid2
@@ -142,7 +153,7 @@ fn bench_readiness_bam_tool_scores_report_governs_real_bam_evidence() {
     );
     assert_eq!(
         align_bowtie2.get("micro_execution_status").and_then(serde_json::Value::as_str),
-        Some("succeeded")
+        None
     );
 
     let gc_bias_picard = rows

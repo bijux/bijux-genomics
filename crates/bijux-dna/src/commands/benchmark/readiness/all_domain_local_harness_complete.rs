@@ -280,9 +280,10 @@ pub(crate) fn render_all_domain_local_harness_complete(
                 || report.command_source_counts.get("fastq_bam_command_adapter").copied()
                     != Some(expected_fastq_bam_command_count)
                 || report.command_source_counts.get("vcf_bcftools_adapter").copied() != Some(11)
+                || report.command_source_counts.get("vcf_angsd_adapter").copied() != Some(2)
                 || report.command_source_counts.get("vcf_eigensoft_adapter").copied() != Some(1)
                 || report.command_source_counts.get("vcf_imputation_family_adapter").copied()
-                    != Some(2)
+                    != Some(4)
                 || report.command_source_counts.get("vcf_phasing_family_adapter").copied()
                     != Some(1)
                 || report.command_source_counts.get("vcf_plink_family_adapter").copied() != Some(5)
@@ -498,17 +499,17 @@ pub(crate) fn render_all_domain_local_harness_complete(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH),
             )?;
-            if report.row_count != 7
-                || report.triggered_row_count != 7
-                || report.required_class_count != 7
-                || report.triggered_class_count != 7
+            if report.row_count != 8
+                || report.triggered_row_count != 8
+                || report.required_class_count != 8
+                || report.triggered_class_count != 8
                 || report.missing_class_count != 0
                 || !report.passes_behavior_test
             {
                 bail!("all-domain failure classification drifted from the governed class set");
             }
             failure_class_count = report.triggered_class_count;
-            Ok("validated all 7 required all-domain failure classes".to_string())
+            Ok("validated all 8 required all-domain failure classes".to_string())
         },
     );
 

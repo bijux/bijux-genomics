@@ -12,6 +12,21 @@ fn run_cli_json() -> serde_json::Value {
     let sandbox = support::RepoSandbox::new("operational-benchmark-ready-").expect("repo sandbox");
     let home = tempfile::tempdir().expect("tempdir");
 
+    let cleanup = sandbox
+        .bijux_dna_command()
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["bench", "paths", "prove-disposable-root-cleanup"])
+        .output()
+        .expect("produce cleanup proof prerequisite");
+    assert!(
+        cleanup.status.success(),
+        "cleanup proof failed: {}",
+        String::from_utf8_lossy(&cleanup.stderr)
+    );
+
     let output = sandbox
         .bijux_dna_command()
         .env("HOME", home.path())
@@ -59,7 +74,7 @@ fn bench_readiness_operational_benchmark_ready_reports_green_surface() {
     );
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(142)
+        Some(148)
     );
     assert_eq!(payload.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(

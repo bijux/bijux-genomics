@@ -7,6 +7,8 @@ use anyhow::{anyhow, bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use super::all_domain_expected_benchmark_results::collect_all_domain_expected_benchmark_result_rows;
+use super::catalog::load_external_artifact_binding_keys;
 use super::stage_scoring::{
     StageScoringConfig, StageScoringCorrectnessSignal, StageScoringDecisionMode,
     DEFAULT_STAGE_SCORING_PATH,
@@ -20,8 +22,6 @@ pub(crate) const DEFAULT_FASTQ_TOOL_SCORES_PATH: &str =
     "artifacts/benchmark-smoke/micro/fastq/FASTQ_TOOL_SCORES.tsv";
 
 const FASTQ_TOOL_SCORES_SCHEMA_VERSION: &str = "bijux.bench.readiness.fastq_tool_scores.v1";
-const DEFAULT_FULL_BENCHMARK_REPORT_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
 const DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH: &str =
     "benchmarks/tests/fixtures/science/amplicon-truth/expected.json";
 const DEFAULT_AMPLICON_NORMALIZE_PRIMERS_MANIFEST_PATH: &str =
@@ -86,12 +86,12 @@ pub(crate) struct FastqToolScoresReport {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-struct FullBenchmarkReportView {
-    rows: Vec<FullBenchmarkReportRowView>,
+struct ExpectedBenchmarkReportView {
+    rows: Vec<ExpectedBenchmarkReportRowView>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-struct FullBenchmarkReportRowView {
+struct ExpectedBenchmarkReportRowView {
     report_row_id: String,
     result_id: Option<String>,
     domain: String,
@@ -100,11 +100,9 @@ struct FullBenchmarkReportRowView {
     corpus_id: String,
     report_section: String,
     row_status: String,
-    evidence_path: Option<String>,
-    detail: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize)]
 struct MicroBenchmarkReportView {
     runtime_rows: Vec<MicroBenchmarkRuntimeRowView>,
     memory_source_rows: Vec<MicroBenchmarkMemoryRowView>,
@@ -251,13 +249,14 @@ fn collect_fastq_tool_score_rows(repo_root: &Path) -> Result<(PathBuf, Vec<Fastq
         .iter()
         .map(|row| (row.class_id.clone(), row.detail.clone()))
         .collect::<BTreeMap<_, _>>();
-    let full_report = load_full_benchmark_report(repo_root)?;
+    let expected_report = collect_expected_benchmark_report(repo_root)?;
     let micro_report = load_micro_benchmark_report(repo_root)?;
     let evidence = load_fastq_evidence(repo_root)?;
+    let external_artifact_bindings = load_external_artifact_binding_keys(repo_root)?;
 
     let full_rows_by_binding =
-        full_report.rows.into_iter().filter(|row| row.domain == "fastq").fold(
-            BTreeMap::<(String, String), Vec<FullBenchmarkReportRowView>>::new(),
+        expected_report.rows.into_iter().filter(|row| row.domain == "fastq").fold(
+            BTreeMap::<(String, String), Vec<ExpectedBenchmarkReportRowView>>::new(),
             |mut map, row| {
                 map.entry((row.stage_id.clone(), row.tool_id.clone())).or_default().push(row);
                 map
@@ -305,8 +304,7 @@ fn collect_fastq_tool_score_rows(repo_root: &Path) -> Result<(PathBuf, Vec<Fastq
                 &binding_rows,
                 evidence_row,
                 runtime_row.as_ref(),
-                stage_row,
-                tool_id.as_str(),
+                external_artifact_bindings.contains(&binding_key),
             );
             let reason = describe_row_reason(
                 &failure_class,
@@ -334,9 +332,7 @@ fn collect_fastq_tool_score_rows(repo_root: &Path) -> Result<(PathBuf, Vec<Fastq
                 report_sections: unique_strings(
                     binding_rows.iter().map(|row| row.report_section.clone()),
                 ),
-                row_statuses: unique_strings(
-                    binding_rows.iter().map(normalized_row_status_for_scoring),
-                ),
+                row_statuses: unique_strings(binding_rows.iter().map(|row| row.row_status.clone())),
                 truth_correctness_score: evidence_row.and_then(|row| row.truth_correctness_score),
                 truth_correctness_basis: evidence_row
                     .and_then(|row| row.truth_correctness_basis.clone()),
@@ -445,15 +441,33 @@ fn load_stage_scoring_config(path: &Path) -> Result<StageScoringConfig> {
     toml::from_str(&raw).context("parse stage-scoring TOML")
 }
 
-fn load_full_benchmark_report(repo_root: &Path) -> Result<FullBenchmarkReportView> {
-    let path = repo_root.join(DEFAULT_FULL_BENCHMARK_REPORT_PATH);
-    let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    serde_json::from_str(&raw).context("parse full benchmark report JSON")
+fn collect_expected_benchmark_report(repo_root: &Path) -> Result<ExpectedBenchmarkReportView> {
+    Ok(ExpectedBenchmarkReportView {
+        rows: collect_all_domain_expected_benchmark_result_rows(repo_root)?
+            .into_iter()
+            .map(|row| ExpectedBenchmarkReportRowView {
+                report_row_id: row.result_id.clone(),
+                result_id: Some(row.result_id),
+                domain: row.domain,
+                stage_id: row.stage_id,
+                tool_id: row.tool_id,
+                corpus_id: row.corpus_id,
+                report_section: row.report_section,
+                row_status: "present".to_string(),
+            })
+            .collect(),
+    })
 }
 
 fn load_micro_benchmark_report(repo_root: &Path) -> Result<MicroBenchmarkReportView> {
     let path = repo_root.join(DEFAULT_MICRO_BENCHMARK_REPORT_JSON_PATH);
-    let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let raw = match fs::read_to_string(&path) {
+        Ok(raw) => raw,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(MicroBenchmarkReportView::default());
+        }
+        Err(error) => return Err(error).with_context(|| format!("read {}", path.display())),
+    };
     serde_json::from_str(&raw).context("parse micro benchmark report JSON")
 }
 
@@ -1297,20 +1311,22 @@ fn score_row(
 }
 
 fn classify_failure_class(
-    binding_rows: &[FullBenchmarkReportRowView],
+    binding_rows: &[ExpectedBenchmarkReportRowView],
     evidence: Option<&FastqEvidenceAggregate>,
     runtime_row: Option<&MicroBenchmarkRuntimeRowView>,
-    _stage_row: &super::stage_scoring::StageScoringRow,
-    _tool_id: &str,
+    external_artifact_binding: bool,
 ) -> String {
     if binding_rows.is_empty() {
         return "missing_output".to_string();
     }
-    if binding_rows.iter().any(|row| normalized_row_status_for_scoring(row) == "unsupported_pair") {
+    if binding_rows.iter().any(|row| row.row_status == "unsupported_pair") {
         return "unsupported_pair".to_string();
     }
-    if binding_rows.iter().any(|row| normalized_row_status_for_scoring(row) == "missing_result") {
+    if binding_rows.iter().any(|row| row.row_status == "missing_result") {
         return "missing_output".to_string();
+    }
+    if external_artifact_binding {
+        return "blocked_external_access".to_string();
     }
     if let Some(runtime_row) = runtime_row {
         match runtime_row.execution_status.as_str() {
@@ -1323,18 +1339,6 @@ fn classify_failure_class(
         return "insufficient_data".to_string();
     }
     "none".to_string()
-}
-
-fn normalized_row_status_for_scoring(row: &FullBenchmarkReportRowView) -> String {
-    if row.row_status == "missing_result" && is_missing_result_probe_row(row) {
-        return "present".to_string();
-    }
-    row.row_status.clone()
-}
-
-fn is_missing_result_probe_row(row: &FullBenchmarkReportRowView) -> bool {
-    row.evidence_path.as_deref().is_some_and(|path| path.contains("/missing-result-test/"))
-        || row.detail.as_deref().is_some_and(|detail| detail.contains("fake-run manifest"))
 }
 
 fn describe_row_reason(
