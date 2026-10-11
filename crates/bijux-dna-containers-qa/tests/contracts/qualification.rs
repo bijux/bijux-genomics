@@ -37,6 +37,77 @@ fn plans_and_accepts_complete_pipeline_evidence() -> Result<()> {
 }
 
 #[test]
+fn accepts_checksum_bound_directory_output_evidence() -> Result<()> {
+    let temporary = bijux_dna_testkit::tempdir_for("qualification-directory-output");
+    let result_root = temporary.path().join("result");
+    let output_root = result_root.join("outputs");
+    let evidence_dir = output_root.join("fastqc/sample_fastqc");
+    let evidence_payload = b">>Basic Statistics\tpass\n";
+    fs::create_dir_all(&evidence_dir)?;
+    fs::write(output_root.join("result.json"), b"{\"records\":2}\n")?;
+    fs::write(evidence_dir.join("fastqc_data.txt"), evidence_payload)?;
+    let plan = plan_container_qualification(current_pipeline_with_required_files(
+        &result_root,
+        false,
+        &["result.json", "fastqc"],
+    )?)?;
+
+    let assessment = evaluate_container_qualification(
+        &plan,
+        &passing_observations(),
+        &result_root,
+        &output_root,
+    )?;
+
+    assert!(assessment.passed());
+    let evidence = assessment
+        .outputs
+        .iter()
+        .find(|output| output.path == "outputs/fastqc")
+        .ok_or_else(|| anyhow::anyhow!("directory output evidence is missing"))?;
+    assert_eq!(evidence.size_bytes, evidence_payload.len() as u64);
+    assert_eq!(evidence.sha256, bijux_dna_infra::hash_path_sha256(&output_root.join("fastqc"))?);
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn rejects_symlinks_nested_in_directory_output_evidence() -> Result<()> {
+    use std::os::unix::fs::symlink;
+
+    let temporary = bijux_dna_testkit::tempdir_for("qualification-directory-output-symlink");
+    let result_root = temporary.path().join("result");
+    let output_root = result_root.join("outputs");
+    let evidence_dir = output_root.join("fastqc/sample_fastqc");
+    fs::create_dir_all(&evidence_dir)?;
+    fs::write(output_root.join("result.json"), b"{\"records\":2}\n")?;
+    fs::write(evidence_dir.join("fastqc_data.txt"), b">>Basic Statistics\tpass\n")?;
+    let outside = temporary.path().join("outside.txt");
+    fs::write(&outside, b"outside\n")?;
+    symlink(&outside, evidence_dir.join("escaped.txt"))?;
+    let plan = plan_container_qualification(current_pipeline_with_required_files(
+        &result_root,
+        false,
+        &["result.json", "fastqc"],
+    )?)?;
+
+    let assessment = evaluate_container_qualification(
+        &plan,
+        &passing_observations(),
+        &result_root,
+        &output_root,
+    )?;
+
+    assert!(!assessment.passed());
+    assert!(assessment.outputs.iter().all(|output| output.path != "outputs/fastqc"));
+    assert!(assessment.failures.iter().any(|failure| {
+        failure.class == QualificationFailureClass::RequiredOutput
+            && failure.detail.contains("contains a symlink")
+    }));
+    Ok(())
+}
+
+#[test]
 fn classifies_probe_output_and_metric_failures() -> Result<()> {
     let temporary = bijux_dna_testkit::tempdir_for("qualification-assessment-failures");
     let result_root = temporary.path().join("result");
@@ -73,6 +144,14 @@ fn qualification_planning_rejects_benchmark_measurement_authority() -> Result<()
 fn current_pipeline(
     result_root: &std::path::Path,
     measurement: bool,
+) -> Result<ContainerPipelineContract> {
+    current_pipeline_with_required_files(result_root, measurement, &["result.json"])
+}
+
+fn current_pipeline_with_required_files(
+    result_root: &std::path::Path,
+    measurement: bool,
+    required_files: &[&str],
 ) -> Result<ContainerPipelineContract> {
     let measurement = measurement.then(|| {
         json!({
@@ -115,7 +194,7 @@ fn current_pipeline(
         "outputs": {
             "result_root": result_root,
             "mount_path": "/result",
-            "required_files": ["result.json"],
+            "required_files": required_files,
             "collection_rule": "required_files_and_metrics"
         },
         "resources": {

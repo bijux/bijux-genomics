@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Aggregate metrics emitted for one measured alignment-cohort repetition.",
+  "properties": {
+    "alignment_rate": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "exact_placement_reads": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "expected_mapped_reads": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "input_bytes": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "mapped_reads": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "output_bytes": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "placement_precision": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "placement_recall": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "sample_count": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "total_reads": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    }
+  },
+  "required": [
+    "sample_count",
+    "total_reads",
+    "mapped_reads",
+    "alignment_rate",
+    "expected_mapped_reads",
+    "exact_placement_reads",
+    "placement_precision",
+    "placement_recall",
+    "input_bytes",
+    "output_bytes"
+  ],
+  "title": "BenchmarkBamAlignCohortMetrics",
+  "type": "object"
+}

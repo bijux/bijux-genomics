@@ -2,6 +2,7 @@
 //! Typed models for bench (suite, observation, summary, decision).
 //! Must not perform IO or depend on repo/policy/compare logic.
 
+pub mod active_scope;
 pub mod admission;
 pub mod appraisal;
 pub mod benchmark_matrix;
@@ -30,9 +31,15 @@ pub mod report;
 pub mod run_index;
 pub mod source_authority;
 pub mod stage_result;
+pub mod stage_tool_closure;
 pub mod suite;
 pub mod summary;
 
+#[allow(unused_imports)]
+pub use active_scope::{
+    active_scope_fast_validation_report_schema, ActiveScopeFastValidationCheck,
+    ActiveScopeFastValidationReport, ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_V1,
+};
 #[allow(unused_imports)]
 pub use admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
@@ -72,8 +79,10 @@ pub use container_report_portfolio::{
 #[allow(unused_imports)]
 pub use corpus::{
     benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema,
-    benchmark_data_index_schema, fastq_profile_reads_expectations_schema, AdmittedBamCorpus,
-    AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
+    benchmark_data_index_schema, fastq_profile_reads_expectations_schema,
+    AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet, AdmittedBamCohort,
+    AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
+    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedReferenceBundle,
     BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex,
     BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
     BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusDatasetSpec,
@@ -230,8 +239,8 @@ pub use report::{
     BenchmarkCrossToolComparison, BenchmarkMetricDistribution, BenchmarkReportComparability,
     BenchmarkReportDeterminism, BenchmarkReportDownstreamProbe, BenchmarkReportImage,
     BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
-    BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
-    BenchmarkStageReportDesign, BenchmarkToolReport,
+    BenchmarkReportVerdict, BenchmarkScientificStratum, BenchmarkScientificValue,
+    BenchmarkStageReport, BenchmarkStageReportDesign, BenchmarkToolReport,
 };
 #[allow(unused_imports)]
 pub use run_index::{
@@ -254,8 +263,18 @@ pub use stage_result::{
     BenchmarkStageResultTool,
 };
 #[allow(unused_imports)]
+pub use stage_tool_closure::{
+    benchmark_stage_tool_closure_schema, BenchmarkStageToolClosureDisposition,
+    BenchmarkStageToolClosureReport, BenchmarkStageToolClosureRow, BenchmarkStageToolClosureSource,
+    BenchmarkStageToolClosureSummary, BenchmarkStageToolProtocolDisposition,
+    BENCHMARK_STAGE_TOOL_CLOSURE_SCHEMA_V1,
+};
+#[allow(unused_imports)]
 pub use suite::{
-    benchmark_suite_spec_schema, BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec,
+    benchmark_suite_run_manifest_schema, benchmark_suite_spec_schema, BenchmarkParamBinding,
+    BenchmarkStageSpec, BenchmarkSuiteSpec, ColdWarmContract, DecisionTraceRow,
+    EnvironmentSnapshot, FairnessContract, MetricsArtifactRow, PostconditionRow, RunRecordRow,
+    ScientificDefaultsStatus, SuiteRunManifest, ToolInvocationRow,
 };
 #[allow(unused_imports)]
 pub use summary::{BenchmarkSummary, MetricSummary, SummaryRow, SummaryStratum};

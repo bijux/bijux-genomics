@@ -5,7 +5,8 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use bijux_dna_bench::{AdmittedBenchmarkStageReport, BenchmarkReportVerdict};
 use bijux_dna_containers::evidence::{
-    ContainerCatalogTool, ContainerEvidenceChain, ContainerImageInventoryTool,
+    load_run_evidence_index, AttemptExecutionStatus, ContainerCatalogTool, ContainerEvidenceChain,
+    ContainerImageInventoryTool, RunEvidenceRecord, ScientificAcceptanceStatus,
 };
 use bijux_dna_policies::{
     admit_release_evidence, evaluate_benchmark_evidence, evaluate_execution_evidence,
@@ -18,9 +19,6 @@ use bijux_dna_policies::{
     ToolSecurityEvidence, BUILD_EVIDENCE_RULE_V1, CATALOG_EVIDENCE_RULE_V1,
     FRESHNESS_EVIDENCE_RULE_V1, RELEASE_EVIDENCE_RULE_V1, REQUIRED_EVIDENCE_DIMENSIONS,
     RUNTIME_EVIDENCE_RULE_V1, SECURITY_EVIDENCE_RULE_V1, SUPPORT_DIMENSIONS_RULE_V2,
-};
-use bijux_dna_runtime::{
-    load_run_evidence_index, AttemptExecutionStatus, RunEvidenceRecord, ScientificAcceptanceStatus,
 };
 use bijux_dna_science::decision::{
     evaluate_scientific_acceptance, ScientificAcceptanceObservation,

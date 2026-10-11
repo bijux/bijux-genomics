@@ -18,10 +18,12 @@ pub const VCF_DOMAIN_TOOL_CATALOG: &[&str] = &[
     "glimpse",
     "ibdhap",
     "ibdne",
+    "ibdseq",
     "impute5",
     "minimac4",
     "plink",
     "plink2",
+    "shapeit",
     "shapeit5",
 ];
 

@@ -1,9 +1,9 @@
 # schema_version = 1
 # owner = bijux-dna-bench
-# purpose = Governed execution-mode classification for local FASTQ and BAM benchmark tools.
+# purpose = Governed execution-mode classification for local FASTQ, BAM, and VCF benchmark tools.
 # authority = bijux-dna-bench
 # stability = evolving
-# last_updated = 2026-06-02
+# last_updated = 2026-08-11
 
 schema_version = "bijux.bench.local_tool_execution_modes.v1"
 classification_scope = "primary_operator_runtime"
@@ -39,12 +39,14 @@ tool_ids = [
   "clumpify",
   "contammix",
   "damageprofiler",
+  "eigensoft",
   "fastp",
   "fastq_scan",
   "fastqvalidator",
   "fastx_clipper",
   "flash2",
   "fqtools",
+  "germline",
   "kaiju",
   "king",
   "kraken2",
@@ -55,6 +57,8 @@ tool_ids = [
   "mosdepth",
   "musket",
   "pear",
+  "plink",
+  "plink2",
   "preseq",
   "prinseq",
   "pydamage",
@@ -66,6 +70,7 @@ tool_ids = [
   "seqkit",
   "seqkit_stats",
   "seqtk",
+  "shapeit5",
   "skewer",
   "sortmerna",
   "star",
@@ -79,7 +84,7 @@ execution_mode = "external"
 expected_install_kind = "external"
 required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
 summary = "Non-redistributable tools executed only from checksum-admitted operator-provided artifacts."
-tool_ids = ["angsd", "fastuniq", "ngsbriggs"]
+tool_ids = ["angsd", "fastuniq", "impute5", "ngsbriggs"]
 
 [[modes]]
 execution_mode = "python"
@@ -100,7 +105,7 @@ execution_mode = "java"
 expected_install_kind = "container"
 required_runtime_fields = ["help_cmd", "install_kind", "version_cmd"]
 summary = "Benchmarked tools whose governed operator surface is a Java application or Java-backed launcher inside a managed container."
-tool_ids = ["fastqc", "gatk", "picard", "trimmomatic"]
+tool_ids = ["beagle", "fastqc", "gatk", "ibdne", "ibdseq", "picard", "trimmomatic"]
 
 [[modes]]
 execution_mode = "mixed"

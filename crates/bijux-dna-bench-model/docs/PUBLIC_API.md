@@ -80,6 +80,8 @@ Model contracts:
 - `BenchmarkExecutionResources`
 - `BenchmarkExecutionRuntimePolicy`
 - `BenchmarkExecutionAcceptance`
+- `ActiveScopeFastValidationReport`
+- `ActiveScopeFastValidationCheck`
 - `AppraisalReport`
 - `AppraisalFinding`
 - `AppraisalSummary`
@@ -171,6 +173,7 @@ Policy and diagnostics:
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
 - `BENCHMARK_STAGE_REPORT_SCHEMA_V1`
+- `ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_V1`
 - `APPRAISAL_REPORT_SCHEMA_V1`
 - `HARDENING_QUEUE_REPORT_SCHEMA_V1`
 - `CROSS_BENCHMARK_CAMPAIGN_SCHEMA_V1`
@@ -208,6 +211,7 @@ Schema derivation:
 - `gate_decision_schema`
 - `benchmark_execution_spec_schema`
 - `benchmark_scheduler_observation_schema`
+- `active_scope_fast_validation_report_schema`
 - `appraisal_report_schema`
 - `hardening_queue_report_schema`
 - `cross_benchmark_campaign_report_schema`
@@ -218,6 +222,7 @@ Schema derivation:
 - `governed_data_catalog_registry_schema`
 - `benchmark_data_index_schema`
 - `validate_scheduler_observation`
+- `validate_active_scope_fast_validation_report`
 - `validate_appraisal_report`
 - `validate_hardening_queue_report`
 - `validate_cross_benchmark_campaign_report`

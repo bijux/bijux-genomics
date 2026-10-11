@@ -520,12 +520,11 @@ fn inspect_structure(root: &Path) -> Result<SecurityStructuralReport> {
             };
             let observation =
                 SecurityFilesystemObservation { path: relative, mode: mode & 0o7777, kind };
-            if mode & 0o6000 != 0 {
-                suid_sgid_observations.push(observation.clone());
-            }
-            if mode & 0o002 != 0 {
-                world_writable_observations.push(observation);
-            }
+            record_structure_observation(
+                observation,
+                &mut suid_sgid_observations,
+                &mut world_writable_observations,
+            );
         }
     }
     suid_sgid_observations.sort_by(|left, right| left.path.cmp(&right.path));
@@ -540,6 +539,19 @@ fn inspect_structure(root: &Path) -> Result<SecurityStructuralReport> {
         suid_sgid_observations,
         world_writable_observations,
     })
+}
+
+fn record_structure_observation(
+    observation: SecurityFilesystemObservation,
+    suid_sgid_observations: &mut Vec<SecurityFilesystemObservation>,
+    world_writable_observations: &mut Vec<SecurityFilesystemObservation>,
+) {
+    if observation.mode & 0o6000 != 0 {
+        suid_sgid_observations.push(observation.clone());
+    }
+    if observation.mode & 0o002 != 0 {
+        world_writable_observations.push(observation);
+    }
 }
 
 fn run_bounded(
@@ -695,8 +707,9 @@ mod tests {
     use bijux_dna_containers::api::{ContainerArtifactDelivery, ContainerProductSupport};
 
     use super::{
-        baseline_identity_matches, ensure_immutable_json, inspect_structure, run_bounded,
-        validate_request, ContainerToolContract, SecurityFilesystemKind, SecurityProbeArtifact,
+        baseline_identity_matches, ensure_immutable_json, inspect_structure,
+        record_structure_observation, run_bounded, validate_request, ContainerToolContract,
+        SecurityFilesystemKind, SecurityFilesystemObservation, SecurityProbeArtifact,
         SecurityProbeStatus, SecurityVerificationRequest, ToolSecurityProbe, ToolTask,
         NON_ROOT_PROBE_SCRIPT,
     };
@@ -788,30 +801,66 @@ mod tests {
     }
 
     #[test]
-    fn structural_probe_records_privileged_and_world_writable_paths() -> Result<()> {
+    fn structural_probe_records_host_world_writable_paths() -> Result<()> {
         use std::os::unix::fs::PermissionsExt as _;
 
         let root = bijux_dna_testkit::tempdir_for("security-structural-probe");
-        let privileged = root.path().join("privileged");
         let sticky = root.path().join("sticky");
         let writable = root.path().join("writable");
-        fs::write(&privileged, b"fixture")?;
         fs::create_dir(&sticky)?;
         fs::write(&writable, b"fixture")?;
-        fs::set_permissions(&privileged, fs::Permissions::from_mode(0o4755))?;
         fs::set_permissions(&sticky, fs::Permissions::from_mode(0o1777))?;
         fs::set_permissions(&writable, fs::Permissions::from_mode(0o666))?;
 
         let report = inspect_structure(root.path())?;
 
-        assert_eq!(report.suid_sgid_paths, ["/privileged"]);
-        assert_eq!(report.suid_sgid_observations[0].mode, 0o4755);
+        assert!(report.suid_sgid_paths.is_empty());
         assert_eq!(report.world_writable_paths, ["/sticky", "/writable"]);
         assert_eq!(report.world_writable_observations[0].mode, 0o1777);
         assert_eq!(report.world_writable_observations[0].kind, SecurityFilesystemKind::Directory);
         assert_eq!(report.world_writable_observations[1].mode, 0o666);
         assert_eq!(report.world_writable_observations[1].kind, SecurityFilesystemKind::File);
         Ok(())
+    }
+
+    #[test]
+    fn structural_probe_classifies_privileged_and_world_writable_modes() {
+        let mut privileged = Vec::new();
+        let mut world_writable = Vec::new();
+        let observations = [
+            SecurityFilesystemObservation {
+                path: "/setuid".to_string(),
+                mode: 0o4755,
+                kind: SecurityFilesystemKind::File,
+            },
+            SecurityFilesystemObservation {
+                path: "/setgid".to_string(),
+                mode: 0o2755,
+                kind: SecurityFilesystemKind::File,
+            },
+            SecurityFilesystemObservation {
+                path: "/sticky".to_string(),
+                mode: 0o1777,
+                kind: SecurityFilesystemKind::Directory,
+            },
+            SecurityFilesystemObservation {
+                path: "/ordinary".to_string(),
+                mode: 0o644,
+                kind: SecurityFilesystemKind::File,
+            },
+        ];
+        for observation in observations {
+            record_structure_observation(observation, &mut privileged, &mut world_writable);
+        }
+
+        assert_eq!(
+            privileged.iter().map(|observation| observation.path.as_str()).collect::<Vec<_>>(),
+            ["/setuid", "/setgid"]
+        );
+        assert_eq!(
+            world_writable.iter().map(|observation| observation.path.as_str()).collect::<Vec<_>>(),
+            ["/sticky"]
+        );
     }
 
     #[test]

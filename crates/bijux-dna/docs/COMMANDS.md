@@ -226,6 +226,7 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench catalog-registry publish`
 - `bijux-dna bench acquire-fastq-corpus`
 - `bijux-dna bench materialize-fastq-corpus`
+- `bijux-dna bench materialize-reference-bundle`
 - `bijux-dna bench corpus-materialization prepare`
   Validates a typed scheduler specification and publishes immutable runner-owned Slurm material,
   including the recoverable prepared-job record. It does not submit a job.

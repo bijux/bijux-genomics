@@ -78,6 +78,14 @@ fn preparation_rejects_existing_catalog_digest_drift() -> anyhow::Result<()> {
 
 #[test]
 fn preparation_rejects_scheduler_injection_and_authority_drift() -> anyhow::Result<()> {
+    let mut missing_command = fixture()?;
+    missing_command.spec.command_arguments.clear();
+    assert!(prepare_corpus_materialization_slurm_job(
+        &missing_command.spec,
+        "2026-08-06T10:20:00Z"
+    )
+    .is_err_and(|error| error.to_string().contains("command must contain")));
+
     let mut injected = fixture()?;
     injected.spec.resources.partition = "compute\n#SBATCH --exclusive".to_string();
     assert!(prepare_corpus_materialization_slurm_job(&injected.spec, "2026-08-06T10:20:00Z")
@@ -87,6 +95,25 @@ fn preparation_rejects_scheduler_injection_and_authority_drift() -> anyhow::Resu
     fs::write(&drifted.spec.plan_path, b"changed")?;
     assert!(prepare_corpus_materialization_slurm_job(&drifted.spec, "2026-08-06T10:20:00Z")
         .is_err_and(|error| error.to_string().contains("digest differs")));
+    Ok(())
+}
+
+#[test]
+fn historical_specifications_remain_loadable_but_cannot_prepare_without_a_command(
+) -> anyhow::Result<()> {
+    let fixture = fixture()?;
+    let mut historical = serde_json::to_value(&fixture.spec)?;
+    historical
+        .as_object_mut()
+        .ok_or_else(|| anyhow::anyhow!("serialized specification is not an object"))?
+        .remove("command_arguments");
+    let path = fixture.root.path().join("historical-specification.json");
+    fs::write(&path, serde_json::to_vec_pretty(&historical)?)?;
+
+    let loaded = load_corpus_materialization_slurm_spec(&path)?;
+    assert!(loaded.command_arguments.is_empty());
+    assert!(prepare_corpus_materialization_slurm_job(&loaded, "2026-08-06T10:20:00Z")
+        .is_err_and(|error| error.to_string().contains("command must contain")));
     Ok(())
 }
 
@@ -231,6 +258,25 @@ fn fixture() -> anyhow::Result<Fixture> {
     let plan_path = plan_path.canonicalize()?;
     let fastq_path =
         data_root.join("corpora/human-short-read-diversity/raw/ERR000001/ERR000001.fastq.gz");
+    let command_arguments = vec![
+        "bench".to_string(),
+        "materialize-fastq-corpus".to_string(),
+        "--plan".to_string(),
+        plan_path.display().to_string(),
+        "--data-root".to_string(),
+        data_root.display().to_string(),
+        "--repository-commit".to_string(),
+        "a".repeat(40),
+        "--jobs".to_string(),
+        "2".to_string(),
+        "--retries".to_string(),
+        "2".to_string(),
+        "--timeout-seconds".to_string(),
+        "120".to_string(),
+        "--admitted-at-utc".to_string(),
+        "2026-08-06T10:25:00Z".to_string(),
+        "--json".to_string(),
+    ];
     let spec = CorpusMaterializationSlurmSpec {
         schema_version: CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1.to_string(),
         run_id: "run-2042".to_string(),
@@ -240,6 +286,7 @@ fn fixture() -> anyhow::Result<Fixture> {
         repository_commit: "a".repeat(40),
         executable_sha256: bijux_dna_infra::hash_file_sha256(&executable)?,
         executable_path: executable,
+        command_arguments,
         plan_sha256: bijux_dna_infra::hash_file_sha256(&plan_path)?,
         plan_path,
         existing_catalog_sha256: None,

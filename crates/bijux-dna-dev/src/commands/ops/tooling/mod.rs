@@ -30,6 +30,7 @@ mod benchmark_run_index;
 mod benchmark_run_registry;
 mod benchmark_scientific_readiness;
 mod benchmark_stage_coverage;
+mod benchmark_stage_tool_closure;
 mod benchmark_stage_universe;
 mod cargo_targets;
 mod certification;
@@ -53,6 +54,7 @@ pub(super) use self::benchmark_run_index::tooling_benchmark_run_index;
 pub(super) use self::benchmark_run_registry::tooling_benchmark_run_registry;
 pub(super) use self::benchmark_scientific_readiness::tooling_benchmark_scientific_readiness;
 pub(super) use self::benchmark_stage_coverage::tooling_benchmark_stage_coverage;
+pub(super) use self::benchmark_stage_tool_closure::tooling_benchmark_stage_tool_closure;
 pub(super) use self::benchmark_stage_universe::tooling_benchmark_stage_universe;
 pub(super) use self::cargo_targets::tooling_cargo_targets;
 pub(super) use self::certification::{

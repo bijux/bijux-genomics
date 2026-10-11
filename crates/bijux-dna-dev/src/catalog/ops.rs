@@ -137,6 +137,11 @@ pub fn hpc_registry() -> Vec<OpsCommandDefinition> {
             "Plan, apply, verify, or roll back benchmark attempt ownership migration.",
             NativeOpsCommandKey::HpcBenchmarkAttemptMigration,
         ),
+        native(
+            "managed-slurm-job",
+            "Prepare, submit, observe, or collect one immutable external worker without waiting.",
+            NativeOpsCommandKey::HpcManagedSlurmJob,
+        ),
     ]
 }
 
@@ -180,7 +185,7 @@ pub fn test_registry() -> Vec<OpsCommandDefinition> {
         ),
         native(
             "reproduce-failure",
-            "Render reproduction commands from a nextest JSONL log.",
+            "Render binary-qualified exact reproduction commands from a nextest JSONL log.",
             NativeOpsCommandKey::TestReproduceFailure,
         ),
         native(
@@ -389,6 +394,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             "benchmark-stage-coverage",
             "Generate or check benchmark stage coverage through the crate-owned workflow.",
             NativeOpsCommandKey::ToolingBenchmarkStageCoverage,
+        ),
+        native(
+            "benchmark-stage-tool-closure",
+            "Generate or check complete catalog, domain, and benchmark protocol pair closure.",
+            NativeOpsCommandKey::ToolingBenchmarkStageToolClosure,
         ),
         native(
             "benchmark-stage-universe",

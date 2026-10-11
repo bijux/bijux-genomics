@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -128,12 +129,29 @@ fn command_runner(workspace: &Workspace) -> ProcessRunner<'_> {
 }
 
 fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
-    let artifact_root = workspace.path("artifacts");
+    let default_artifact_root = workspace.path("artifacts");
+    let artifact_root = resolve_authority_path(
+        workspace,
+        std::env::var_os("ARTIFACT_ROOT").as_deref(),
+        &default_artifact_root,
+    );
     bijux_dna_infra::ensure_dir(&artifact_root)
         .with_context(|| format!("create {}", artifact_root.display()))?;
-    let cargo_target_dir = artifact_root.join("target");
-    let cargo_home = artifact_root.join("cargo/home");
-    let tmpdir = artifact_root.join("tmp");
+    let default_cargo_target_dir = artifact_root.join("target");
+    let cargo_target_dir = resolve_authority_path(
+        workspace,
+        std::env::var_os("CARGO_TARGET_DIR").as_deref(),
+        &default_cargo_target_dir,
+    );
+    let default_cargo_home = artifact_root.join("cargo/home");
+    let cargo_home = resolve_authority_path(
+        workspace,
+        std::env::var_os("CARGO_HOME").as_deref(),
+        &default_cargo_home,
+    );
+    let default_tmpdir = artifact_root.join("tmp");
+    let tmpdir =
+        resolve_authority_path(workspace, std::env::var_os("TMPDIR").as_deref(), &default_tmpdir);
     bijux_dna_infra::ensure_dir(&cargo_target_dir)
         .with_context(|| format!("create {}", cargo_target_dir.display()))?;
     bijux_dna_infra::ensure_dir(&cargo_home)
@@ -150,6 +168,19 @@ fn artifact_env(workspace: &Workspace) -> Result<Vec<(String, String)>> {
         ("TZ".to_string(), "UTC".to_string()),
         ("LC_ALL".to_string(), "C".to_string()),
     ])
+}
+
+fn resolve_authority_path(
+    workspace: &Workspace,
+    configured: Option<&OsStr>,
+    fallback: &Path,
+) -> PathBuf {
+    let configured = configured.filter(|value| !value.is_empty()).map(PathBuf::from);
+    match configured {
+        Some(path) if path.is_absolute() => path,
+        Some(path) => workspace.root.join(path),
+        None => fallback.to_path_buf(),
+    }
 }
 
 fn load_toml(path: &Path) -> Result<TomlValue> {
@@ -503,6 +534,21 @@ fn domain_layout_patterns() -> Result<Vec<regex::Regex>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn domain_authority_resolution_preserves_declared_paths() -> Result<()> {
+        let temporary = tempfile::tempdir()?;
+        let workspace = Workspace { root: temporary.path().to_path_buf() };
+        let shared = temporary.path().join("shared-cargo-home");
+        let fallback = temporary.path().join("artifacts/cargo/home");
+        assert_eq!(resolve_authority_path(&workspace, Some(shared.as_os_str()), &fallback), shared);
+        assert_eq!(
+            resolve_authority_path(&workspace, Some(OsStr::new("shared-cargo-home")), &fallback,),
+            temporary.path().join("shared-cargo-home")
+        );
+        assert_eq!(resolve_authority_path(&workspace, None, &fallback), fallback);
+        Ok(())
+    }
 
     #[test]
     fn domain_layout_patterns_admit_contract_publications_without_opening_the_root() -> Result<()> {

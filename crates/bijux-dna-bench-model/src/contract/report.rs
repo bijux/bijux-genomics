@@ -209,6 +209,26 @@ fn validate_tool_report(tool: &BenchmarkToolReport, repetitions: u32) -> Result<
             return Err(invalid(format!("benchmark scientific observations are invalid: {}", tool.tool)));
         }
     }
+    let mut sample_ids = BTreeSet::new();
+    for stratum in &tool.scientific_strata {
+        require_text(&stratum.sample_id, "benchmark scientific stratum sample id")?;
+        if !sample_ids.insert(stratum.sample_id.as_str()) || stratum.observations.is_empty() {
+            return Err(invalid(format!("benchmark scientific strata are invalid: {}", tool.tool)));
+        }
+        for observations in stratum.observations.values() {
+            if observations.len() != repetitions as usize
+                || observations.iter().any(|value| {
+                    matches!(value, BenchmarkScientificValue::Number(number) if !number.is_finite() || *number < 0.0)
+                        || matches!(value, BenchmarkScientificValue::Text(text) if text.trim().is_empty())
+                })
+            {
+                return Err(invalid(format!(
+                    "benchmark scientific stratum observations are invalid: {}",
+                    tool.tool
+                )));
+            }
+        }
+    }
     for lock in &tool.input_locks {
         require_text(&lock.id, "benchmark input lock id")?;
         require_text(&lock.kind, "benchmark input lock kind")?;

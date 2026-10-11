@@ -91,8 +91,10 @@ For a queued materialization, author one
 `bijux.runner.corpus_materialization_slurm_spec.v1` JSON specification. The
 typed contract binds the permanent run and attempt identities, clean frozen
 repository path and commit, Linux `bijux-dna` executable path and SHA-256,
-acquisition plan path and SHA-256, governed data and evidence roots, scheduler
-resources, transfer limits, and admission timestamp. For an idempotent replay
+the exact product-owned `command_arguments`, acquisition plan path and SHA-256,
+governed data and evidence roots, scheduler resources, transfer limits, and
+admission timestamp. The runner shell-quotes and executes those arguments but
+does not construct a domain command. For an idempotent replay
 of an admitted corpus, `existing_catalog_sha256` binds the exact governed
 `data/catalog/snapshots/<repository-commit>/<portfolio-id>.json` catalog that
 must already exist; omit it only for first admission. Legacy flat catalog

@@ -4,8 +4,8 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
-use bijux_dna_bench_model::validate_benchmark_stage_result_manifest;
-pub(crate) use bijux_dna_bench_model::{
+use bijux_dna_api::v1::api::bench::validate_benchmark_stage_result_manifest;
+pub(crate) use bijux_dna_api::v1::api::bench::{
     BenchmarkStageResultCommand as BenchStageResultCommandV1,
     BenchmarkStageResultManifest as BenchStageResultManifestV1,
     BenchmarkStageResultOutput as BenchStageResultOutputV1,

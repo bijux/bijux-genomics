@@ -633,7 +633,7 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
         cli::ConfigCommand::BenchmarkMatrix(args) => {
             let report = hpc::benchmark_matrix(args)?;
             if let Some(out_path) = &args.out {
-                bijux_dna_bench::publish_benchmark_matrix(out_path, &report)?;
+                bijux_dna_api::v1::api::bench::publish_benchmark_matrix(out_path, &report)?;
             }
             if args.json {
                 cli::render::json::print_pretty(&report)?;

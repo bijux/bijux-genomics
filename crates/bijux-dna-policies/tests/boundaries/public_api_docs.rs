@@ -18,6 +18,7 @@ fn policy__boundaries__public_api_docs__public_api_docs_match_curated_exports() 
             "qualification",
             "release_evidence",
             "security_evidence",
+            "tool_eligibility",
         ]),
         "PUBLIC_API.md must document the public modules exported from src/lib.rs"
     );
@@ -29,6 +30,7 @@ fn policy__boundaries__public_api_docs__public_api_docs_match_curated_exports() 
             "qualification contracts",
             "release evidence contracts",
             "security evidence contracts",
+            "tool eligibility decision contracts",
             "CI dependency graph and change-impact planning contracts",
             "CI build authority contracts",
             "policy_assert!",

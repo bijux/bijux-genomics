@@ -98,6 +98,7 @@ stage_tool_compatibility:
   - bcftools
   vcf.ibd:
   - germline
+  - ibdhap
   - ibdseq
   vcf.imputation_metrics:
   - beagle
@@ -157,6 +158,7 @@ stage_tool_integration:
     bcftools: governed_contract
   vcf.ibd:
     germline: governed_contract
+    ibdhap: governed_contract
     ibdseq: governed_contract
   vcf.imputation_metrics:
     beagle: governed_contract

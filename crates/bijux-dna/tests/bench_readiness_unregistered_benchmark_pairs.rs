@@ -66,8 +66,9 @@ fn bench_readiness_unregistered_benchmark_pairs_reports_registry_drift() {
         !rows.iter().any(|row| {
             row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
                 && row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
         }),
-        "bam.genotyping must leave the registry-drift slice once angsd is registered as the governed runtime row"
+        "bam.genotyping / bcftools must leave the registry-drift slice once it is registered as the governed runtime row"
     );
     assert!(
         !rows.iter().any(|row| {

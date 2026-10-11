@@ -31,6 +31,7 @@ fn assert_root_and_source_layout(root: &Path) {
             "release_evidence/",
             "security_evidence/",
             "source_scan/",
+            "tool_eligibility/",
         ]),
         "src tree must match the documented policy engine layout"
     );
@@ -145,6 +146,12 @@ fn assert_evidence_and_test_trees(root: &Path) {
         dir_entries(&root.join("src/source_scan")),
         entries(["OWNER.toml", "mod.rs", "rust_sources.rs", "stable_surface.rs"]),
         "source scan tree must stay focused on deterministic Rust source discovery"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/tool_eligibility")),
+        entries(["OWNER.toml", "decision.rs", "mod.rs", "model.rs"]),
+        "tool eligibility must separate pure policy inputs from admission decisions"
     );
 
     assert_eq!(

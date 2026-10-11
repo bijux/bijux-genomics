@@ -349,6 +349,12 @@ pub(crate) const ENTRIES: &[StageExecutorEntry] = &[
         readiness: ReadinessBadge::Experimental,
     },
     StageExecutorEntry {
+        stage_id: id_catalog::VCF_DEMOGRAPHY,
+        executor: VCF_EXECUTOR,
+        domain: StageDomain::Vcf,
+        readiness: ReadinessBadge::Experimental,
+    },
+    StageExecutorEntry {
         stage_id: id_catalog::VCF_FILTER,
         executor: VCF_EXECUTOR,
         domain: StageDomain::Vcf,
@@ -356,6 +362,12 @@ pub(crate) const ENTRIES: &[StageExecutorEntry] = &[
     },
     StageExecutorEntry {
         stage_id: id_catalog::VCF_GL_PROPAGATION,
+        executor: VCF_EXECUTOR,
+        domain: StageDomain::Vcf,
+        readiness: ReadinessBadge::Experimental,
+    },
+    StageExecutorEntry {
+        stage_id: id_catalog::VCF_IBD,
         executor: VCF_EXECUTOR,
         domain: StageDomain::Vcf,
         readiness: ReadinessBadge::Experimental,

@@ -30,6 +30,18 @@ The `public_api` module itself is private. Stable exports are owned by
 - `derive_cross_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected cross-domain goal closure.
 - `load_cross_benchmark_campaign_report(path)` parses and admits a persisted cross-domain campaign report.
 - `publish_cross_benchmark_campaign_report(path, report)` validates before atomic publication.
+- `derive_bam_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected BAM goal closure.
+- `load_bam_benchmark_campaign_report(path)` parses and admits a persisted BAM campaign report.
+- `publish_bam_benchmark_campaign_report(path, report)` validates before atomic publication.
+- `derive_fastq_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected FASTQ goal closure.
+- `load_fastq_benchmark_campaign_report(path)` parses and admits a persisted FASTQ campaign report.
+- `publish_fastq_benchmark_campaign_report(path, report)` validates before atomic publication.
+- `derive_vcf_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected VCF goal closure.
+- `load_vcf_benchmark_campaign_report(path)` parses and admits a persisted VCF campaign report.
+- `publish_vcf_benchmark_campaign_report(path, report)` validates before atomic publication.
+- `derive_hardening_benchmark_campaign(matrix, appraisal, queue, requested_goals)` validates source identities and derives the selected portfolio hardening closure.
+- `load_hardening_benchmark_campaign_report(path)` parses and admits a persisted hardening campaign report.
+- `publish_hardening_benchmark_campaign_report(path, report)` validates before atomic publication.
 - `derive_stage_universe(repository_root, portfolio)` derives the complete domain-stage registry and enforces exact benchmark run-reservation closure.
 - `publish_checked_in_stage_universe(repository_root, mode)` writes or checks the generated canonical registry, review index, and JSON Schema.
 - `load_stage_report(path)` returns a typed admission envelope binding the exact source bytes and canonical parsed report to separate SHA-256 identities.
@@ -51,6 +63,7 @@ The `public_api` module itself is private. Stable exports are owned by
 - `plan_stage_campaign_retry_attempts(registry, repository_commit, campaign_registry_sha256, prior_attempts, attempt_id, observed_at_utc)` derives linked retry origins from one complete terminal lineage.
 - `verify_campaign_plan_source(plan, repository_commit, campaign_registry_sha256)` rejects stale source or campaign declaration identity before execution state is created.
 - `ensure_stage_campaign_attempts(root, plan)` validates source locks, then preflights and crash-safely initializes every immutable planned attempt in a campaign cycle.
+- `resolve_benchmark_runtime(platform, runtime_override)` applies the benchmark-owned container-runtime policy before execution is allocated.
 - `plan_benchmark_cases(request)` selects one permanent run, closes its governed data and tool bindings, and immutably publishes its generic case matrix.
 - `admit_benchmark_cases(request)` validates normalized observations against their exact case matrix and publishes an immutable admitted set.
 - `aggregate_benchmark_cases(request)` validates an admitted observation set and publishes deterministic case aggregations.

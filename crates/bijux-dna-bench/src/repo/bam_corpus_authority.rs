@@ -6,10 +6,11 @@ use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_benchmark_data_index, validate_governed_data_catalog_document, AdmittedBamCorpus,
-    AdmittedBamCorpusFile, BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkDataIndexRecord,
-    BenchmarkEligibility, DataIntegrityStatus, GovernedDataCatalogDocument,
-    GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    validate_benchmark_data_index, validate_governed_data_catalog_document, AdmittedBamCohort,
+    AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedReferenceBundle,
+    BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkEligibility,
+    DataIntegrityStatus, GovernedDataCatalogDocument, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use serde::Deserialize;
 
@@ -45,6 +46,28 @@ struct DataCatalog {
 
 #[derive(Debug, Deserialize)]
 struct CatalogFile {
+    path: String,
+    kind: String,
+    sha256: String,
+    size_bytes: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct BamCohortCatalog {
+    schema_version: String,
+    id: String,
+    samples: Vec<BamCohortCatalogSample>,
+    files: Vec<BamCohortCatalogFile>,
+}
+
+#[derive(Debug, Deserialize)]
+struct BamCohortCatalogSample {
+    accession: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct BamCohortCatalogFile {
+    accession: String,
     path: String,
     kind: String,
     sha256: String,
@@ -159,6 +182,217 @@ pub fn admit_bam_benchmark_corpus(
     })
 }
 
+/// Admit a deterministic cohort of coordinate-sorted BAM/index pairs from governed STUDY
+/// authorities.
+///
+/// # Errors
+/// Returns an error when the cohort is incomplete, ineligible, ambiguous, or differs across the
+/// data index, catalog, and materialized file identities.
+pub fn admit_bam_benchmark_cohort(
+    study_root: &Path,
+    data_index_path: &Path,
+    corpus_id: &str,
+    expected_sample_count: usize,
+) -> Result<AdmittedBamCohort> {
+    validate_identifier(corpus_id, "corpus")?;
+    if expected_sample_count == 0 {
+        bail!("BAM cohort expected sample count must be positive");
+    }
+    let study_root = std::fs::canonicalize(study_root)
+        .with_context(|| format!("resolve STUDY root {}", study_root.display()))?;
+    if !study_root.is_dir() {
+        bail!("STUDY root is not a directory: {}", study_root.display());
+    }
+    let data_index_path = governed_regular_file(&study_root, data_index_path, "data index")?;
+    let data_index_bytes = read_authority(&data_index_path, "data index")?;
+    let data_index_sha256 = bijux_dna_infra::hash_bytes_sha256(&data_index_bytes);
+    let index: BenchmarkDataIndex = serde_json::from_slice(&data_index_bytes)
+        .with_context(|| format!("parse data index {}", data_index_path.display()))?;
+    validate_benchmark_data_index(&index).context("validate benchmark data index")?;
+    let record = unique_record(&index, corpus_id)?;
+    if record.benchmark_eligibility != BenchmarkEligibility::Eligible
+        || record.integrity_status != DataIntegrityStatus::Verified
+    {
+        bail!("BAM cohort is not eligible with verified integrity: {corpus_id}");
+    }
+    validate_sha256(&record.catalog_sha256, "catalog")?;
+
+    let catalog_path = governed_regular_file(
+        &study_root,
+        &resolve_study_uri(&study_root, &record.catalog_path, "catalog")?,
+        "catalog",
+    )?;
+    let catalog_bytes = read_authority(&catalog_path, "catalog")?;
+    let catalog_sha256 = bijux_dna_infra::hash_bytes_sha256(&catalog_bytes);
+    if catalog_sha256 != record.catalog_sha256 {
+        bail!("BAM cohort catalog digest differs from the data index");
+    }
+    let catalog = parse_bam_cohort_catalog(&catalog_bytes, &catalog_path)?;
+    if !matches!(
+        catalog.schema_version.as_str(),
+        GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
+    ) || catalog.id != corpus_id
+    {
+        bail!("BAM cohort catalog identity differs from the requested corpus");
+    }
+
+    let expected_file_count =
+        expected_sample_count.checked_mul(2).context("BAM cohort expected file count overflow")?;
+    if catalog.samples.len() != expected_sample_count
+        || catalog.files.len() != expected_file_count
+        || record.files.len() != expected_file_count
+    {
+        bail!("BAM cohort sample or file count differs from the governed contract");
+    }
+    let catalog_sample_ids = catalog
+        .samples
+        .iter()
+        .map(|sample| {
+            validate_identifier(&sample.accession, "BAM cohort sample")?;
+            Ok(sample.accession.as_str())
+        })
+        .collect::<Result<BTreeSet<_>>>()?;
+    if catalog_sample_ids.len() != expected_sample_count {
+        bail!("BAM cohort catalog contains duplicate sample identities");
+    }
+
+    let mut matched_index_positions = BTreeSet::new();
+    let mut admitted_by_sample =
+        BTreeMap::<String, (Option<AdmittedBamCorpusFile>, Option<AdmittedBamCorpusFile>)>::new();
+    for catalog_file in &catalog.files {
+        validate_identifier(&catalog_file.accession, "BAM cohort file accession")?;
+        validate_sha256(&catalog_file.sha256, "BAM cohort catalog file")?;
+        if !catalog_sample_ids.contains(catalog_file.accession.as_str()) {
+            bail!("BAM cohort file names an undeclared sample: {}", catalog_file.accession);
+        }
+        if !matches!(catalog_file.kind.as_str(), BAM_ROLE | BAI_ROLE) {
+            bail!("BAM cohort catalog contains unsupported file role: {}", catalog_file.kind);
+        }
+        let catalog_name = file_name(&catalog_file.path, "BAM cohort catalog file")?;
+        let mut matches = record.files.iter().enumerate().filter(|(_, index_file)| {
+            file_name(&index_file.path, "BAM cohort data index file").is_ok_and(|name| {
+                name == catalog_name
+                    && index_file.role == catalog_file.kind
+                    && index_file.sha256 == catalog_file.sha256
+                    && index_file.size_bytes == catalog_file.size_bytes
+            })
+        });
+        let (position, index_file) = matches.next().with_context(|| {
+            format!(
+                "BAM cohort catalog and data index disagree for {}/{}",
+                catalog_file.accession, catalog_file.kind
+            )
+        })?;
+        if matches.next().is_some() || !matched_index_positions.insert(position) {
+            bail!(
+                "BAM cohort catalog file identity is ambiguous for {}/{}",
+                catalog_file.accession,
+                catalog_file.kind
+            );
+        }
+        let admitted = admit_materialized_file(&study_root, index_file, &catalog_file.kind)?;
+        let entry =
+            admitted_by_sample.entry(catalog_file.accession.clone()).or_insert((None, None));
+        let slot = if catalog_file.kind == BAM_ROLE { &mut entry.0 } else { &mut entry.1 };
+        if slot.replace(admitted).is_some() {
+            bail!(
+                "BAM cohort sample contains duplicate role {}/{}",
+                catalog_file.accession,
+                catalog_file.kind
+            );
+        }
+    }
+    if matched_index_positions.len() != record.files.len()
+        || admitted_by_sample.keys().map(String::as_str).collect::<BTreeSet<_>>()
+            != catalog_sample_ids
+    {
+        bail!("BAM cohort catalog and data index file closures differ");
+    }
+
+    let mut input_bytes = 0_u64;
+    let mut samples = Vec::with_capacity(expected_sample_count);
+    for (sample_id, (bam, bam_index)) in admitted_by_sample {
+        let bam = bam.with_context(|| format!("BAM cohort sample lacks BAM: {sample_id}"))?;
+        let bam_index =
+            bam_index.with_context(|| format!("BAM cohort sample lacks BAM index: {sample_id}"))?;
+        validate_bam_pair(&bam, &bam_index, &sample_id)?;
+        let sample_input_bytes = bam
+            .size_bytes
+            .checked_add(bam_index.size_bytes)
+            .context("BAM cohort sample size overflow")?;
+        input_bytes = input_bytes
+            .checked_add(sample_input_bytes)
+            .context("BAM cohort input size overflow")?;
+        samples.push(AdmittedBamCohortSample {
+            sample_id,
+            bam,
+            bam_index,
+            input_bytes: sample_input_bytes,
+        });
+    }
+    Ok(AdmittedBamCohort {
+        corpus_id: corpus_id.to_string(),
+        data_index_path: path_string(&data_index_path)?,
+        data_index_sha256,
+        catalog_path: path_string(&catalog_path)?,
+        catalog_sha256,
+        sample_count: u64::try_from(samples.len()).context("BAM cohort sample count overflow")?,
+        file_count: u64::try_from(expected_file_count).context("BAM cohort file count overflow")?,
+        input_bytes,
+        samples,
+    })
+}
+
+/// Admit one FASTA, its FAI, and its sequence dictionary as a single reference identity.
+///
+/// # Errors
+/// Returns an error when the reference is ineligible, incomplete, ambiguous, or differs across
+/// the data index, catalog, and materialized bytes.
+pub fn admit_benchmark_reference(
+    study_root: &Path,
+    data_index_path: &Path,
+    reference_id: &str,
+) -> Result<AdmittedReferenceBundle> {
+    validate_identifier(reference_id, "reference")?;
+    let study_root = std::fs::canonicalize(study_root)
+        .with_context(|| format!("resolve STUDY root {}", study_root.display()))?;
+    if !study_root.is_dir() {
+        bail!("STUDY root is not a directory: {}", study_root.display());
+    }
+    let data_index_path = governed_regular_file(&study_root, data_index_path, "data index")?;
+    let data_index_bytes = read_authority(&data_index_path, "data index")?;
+    let data_index_sha256 = bijux_dna_infra::hash_bytes_sha256(&data_index_bytes);
+    let index: BenchmarkDataIndex = serde_json::from_slice(&data_index_bytes)
+        .with_context(|| format!("parse data index {}", data_index_path.display()))?;
+    validate_benchmark_data_index(&index).context("validate benchmark data index")?;
+    let record = unique_record(&index, reference_id)?;
+    if record.benchmark_eligibility != BenchmarkEligibility::Eligible
+        || record.integrity_status != DataIntegrityStatus::Verified
+    {
+        bail!("reference is not eligible with verified integrity: {reference_id}");
+    }
+
+    let catalog = admit_record_catalog(&study_root, record)?;
+    let fasta = admit_record_role(&study_root, record, "reference-fasta")?;
+    let fasta_index = admit_record_role(&study_root, record, "reference-fasta-index")?;
+    let sequence_dictionary =
+        admit_record_role(&study_root, record, "reference-sequence-dictionary")?;
+    validate_reference_file_names(&fasta, &fasta_index, &sequence_dictionary)?;
+    let input_bytes =
+        checked_sum(&[fasta.size_bytes, fasta_index.size_bytes, sequence_dictionary.size_bytes])?;
+    Ok(AdmittedReferenceBundle {
+        reference_id: reference_id.to_string(),
+        data_index_path: path_string(&data_index_path)?,
+        data_index_sha256,
+        catalog_path: catalog.path,
+        catalog_sha256: catalog.sha256,
+        fasta,
+        fasta_index,
+        sequence_dictionary,
+        input_bytes,
+    })
+}
+
 fn parse_bam_catalog(bytes: &[u8], path: &Path) -> Result<DataCatalog> {
     let value: serde_json::Value = serde_json::from_slice(bytes)
         .with_context(|| format!("parse BAM corpus catalog {}", path.display()))?;
@@ -199,6 +433,49 @@ fn parse_bam_catalog(bytes: &[u8], path: &Path) -> Result<DataCatalog> {
             }
         }
         _ => bail!("BAM corpus catalog schema is unsupported"),
+    }
+}
+
+fn parse_bam_cohort_catalog(bytes: &[u8], path: &Path) -> Result<BamCohortCatalog> {
+    let value: serde_json::Value = serde_json::from_slice(bytes)
+        .with_context(|| format!("parse BAM cohort catalog {}", path.display()))?;
+    match value.get("schema_version").and_then(serde_json::Value::as_str) {
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V1) => serde_json::from_value(value)
+            .with_context(|| format!("parse legacy BAM cohort catalog {}", path.display())),
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V2) => {
+            let document: GovernedDataCatalogDocument = serde_json::from_value(value)
+                .with_context(|| format!("parse governed BAM cohort catalog {}", path.display()))?;
+            validate_governed_data_catalog_document(&document)
+                .context("validate governed BAM cohort catalog")?;
+            match document {
+                GovernedDataCatalogDocument::Preserved(catalog) => {
+                    serde_json::from_value(catalog.preserved_catalog).with_context(|| {
+                        format!("parse preserved BAM cohort catalog {}", path.display())
+                    })
+                }
+                GovernedDataCatalogDocument::Materialized(catalog) => Ok(BamCohortCatalog {
+                    schema_version: catalog.schema_version,
+                    id: catalog.id,
+                    samples: catalog
+                        .samples
+                        .into_iter()
+                        .map(|sample| BamCohortCatalogSample { accession: sample.accession })
+                        .collect(),
+                    files: catalog
+                        .files
+                        .into_iter()
+                        .map(|file| BamCohortCatalogFile {
+                            accession: file.accession,
+                            path: file.path,
+                            kind: file.kind,
+                            sha256: file.sha256,
+                            size_bytes: file.size_bytes,
+                        })
+                        .collect(),
+                }),
+            }
+        }
+        _ => bail!("BAM cohort catalog schema is unsupported"),
     }
 }
 
@@ -294,7 +571,7 @@ fn admit_record_catalog(
     if sha256 != record.catalog_sha256 {
         bail!("genotyping catalog digest differs from the data index: {}", record.id);
     }
-    let catalog: GenericDataCatalog = serde_json::from_slice(&bytes).context("parse catalog")?;
+    let catalog = parse_generic_data_catalog(&bytes, &path)?;
     if !matches!(
         catalog.schema_version.as_str(),
         GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
@@ -308,6 +585,46 @@ fn admit_record_catalog(
         sha256,
         size_bytes: u64::try_from(bytes.len()).context("catalog size does not fit u64")?,
     })
+}
+
+fn parse_generic_data_catalog(bytes: &[u8], path: &Path) -> Result<GenericDataCatalog> {
+    let value: serde_json::Value = serde_json::from_slice(bytes)
+        .with_context(|| format!("parse governed catalog {}", path.display()))?;
+    match value.get("schema_version").and_then(serde_json::Value::as_str) {
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V1) => serde_json::from_value(value)
+            .with_context(|| format!("parse legacy governed catalog {}", path.display())),
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V2) => {
+            let document: GovernedDataCatalogDocument = serde_json::from_value(value)
+                .with_context(|| format!("parse v2 governed catalog {}", path.display()))?;
+            validate_governed_data_catalog_document(&document)
+                .with_context(|| format!("validate v2 governed catalog {}", path.display()))?;
+            match document {
+                GovernedDataCatalogDocument::Preserved(catalog) => {
+                    serde_json::from_value(catalog.preserved_catalog).with_context(|| {
+                        format!("parse preserved governed catalog {}", path.display())
+                    })
+                }
+                GovernedDataCatalogDocument::Materialized(catalog) => Ok(GenericDataCatalog {
+                    schema_version: catalog.schema_version,
+                    id: catalog.id,
+                    files: catalog
+                        .files
+                        .into_iter()
+                        .map(|file| GenericCatalogFile {
+                            path: Some(file.path),
+                            kind: Some(file.kind),
+                            sha256: Some(file.sha256),
+                            size_bytes: Some(file.size_bytes),
+                            governed_path: None,
+                            governed_sha256: None,
+                            governed_size_bytes: None,
+                        })
+                        .collect(),
+                }),
+            }
+        }
+        _ => bail!("governed catalog schema is unsupported: {}", path.display()),
+    }
 }
 
 fn validate_record_catalog_closure(
@@ -400,7 +717,7 @@ fn checked_sum(values: &[u64]) -> Result<u64> {
     values
         .iter()
         .try_fold(0_u64, |sum, value| sum.checked_add(*value))
-        .context("genotyping input size overflow")
+        .context("governed input size overflow")
 }
 
 fn files_by_role(
@@ -467,6 +784,33 @@ fn validate_bam_pair(
         || file_name(&bam_index.path, BAI_ROLE)? != expected_bai
     {
         bail!("BAM and BAI names do not close over sample {sample_id}");
+    }
+    Ok(())
+}
+
+fn validate_reference_file_names(
+    fasta: &AdmittedBamCorpusFile,
+    fasta_index: &AdmittedBamCorpusFile,
+    sequence_dictionary: &AdmittedBamCorpusFile,
+) -> Result<()> {
+    let fasta_name = file_name(&fasta.path, "reference FASTA")?;
+    let fasta_extension = Path::new(&fasta_name)
+        .extension()
+        .and_then(|value| value.to_str())
+        .context("reference FASTA lacks a UTF-8 extension")?;
+    if !matches!(fasta_extension, "fa" | "fasta" | "fna")
+        || file_name(&fasta_index.path, "reference FASTA index")? != format!("{fasta_name}.fai")
+    {
+        bail!("reference FASTA and FAI names do not close over one identity");
+    }
+    let stem = Path::new(&fasta_name)
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .context("reference FASTA lacks a UTF-8 stem")?;
+    if file_name(&sequence_dictionary.path, "reference sequence dictionary")?
+        != format!("{stem}.dict")
+    {
+        bail!("reference sequence dictionary name differs from its FASTA");
     }
     Ok(())
 }

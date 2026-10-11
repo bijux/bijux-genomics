@@ -7,7 +7,8 @@ invokes them. It must stay offline by default and must not gain process or netwo
 
 - Caller-provided files and directories.
 - Config-compatible JSON, TOML, and optional YAML payloads.
-- Existing files when hashing, copying, removing, locking, or preserving atomic-write permissions.
+- Existing files and directory trees when hashing, copying, removing, locking, or preserving
+  atomic-write permissions.
 
 ## Allowed Writes
 

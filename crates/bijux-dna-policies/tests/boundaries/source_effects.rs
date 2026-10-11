@@ -74,8 +74,14 @@ fn collect_source_files(path: &Path, files: &mut Vec<PathBuf>) {
 }
 
 fn findings_in_file(path: &Path, forbidden_tokens: &[&str]) -> Vec<String> {
-    let content = std::fs::read_to_string(path)
-        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
+        &std::fs::read_to_string(path)
+            .unwrap_or_else(|err| panic!("read {}: {err}", path.display())),
+    );
+    findings_in_content(path, &content, forbidden_tokens)
+}
+
+fn findings_in_content(path: &Path, content: &str, forbidden_tokens: &[&str]) -> Vec<String> {
     content
         .lines()
         .enumerate()
@@ -85,4 +91,23 @@ fn findings_in_file(path: &Path, forbidden_tokens: &[&str]) -> Vec<String> {
             })
         })
         .collect()
+}
+
+#[test]
+fn policy__boundaries__source_effects__inline_tests_do_not_count_as_production_effects() {
+    let source = r#"
+pub fn policy() {}
+
+#[cfg(test)]
+mod tests {
+    fn exercises_fixture() {
+        std::fs::write("fixture", "value").unwrap();
+    }
+}
+"#;
+    let production = bijux_dna_testkit::workspace_support::strip_rust_test_modules(source);
+    assert!(
+        findings_in_content(Path::new("policy.rs"), &production, &["std::fs::write"]).is_empty()
+    );
+    assert_eq!(findings_in_content(Path::new("policy.rs"), source, &["std::fs::write"]).len(), 1);
 }

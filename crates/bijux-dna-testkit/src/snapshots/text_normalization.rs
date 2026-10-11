@@ -9,15 +9,13 @@ pub fn sanitize_snapshot_text(input: &str) -> String {
     if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
         out = replace_nonempty(out, &manifest_dir, "<ROOT>");
     }
-    if let Ok(tmpdir) = env::var("TMPDIR") {
-        out = replace_nonempty(out, &tmpdir, "<TMPDIR>");
-    }
-    if let Ok(tmp) = env::var("TMP") {
-        out = replace_nonempty(out, &tmp, "<TMPDIR>");
-    }
-    if let Ok(temp) = env::var("TEMP") {
-        out = replace_nonempty(out, &temp, "<TMPDIR>");
-    }
+    out = replace_temp_roots(
+        out,
+        env::var("TEST_TMP_DIR").ok().as_deref(),
+        env::var("TMPDIR").ok().as_deref(),
+        env::var("TMP").ok().as_deref(),
+        env::var("TEMP").ok().as_deref(),
+    );
     out = normalize_tmp_subdir(&out);
     if let Ok(home) = env::var("HOME") {
         out = replace_nonempty(out, &home, "<HOME>");
@@ -35,6 +33,19 @@ pub fn sanitize_snapshot_text(input: &str) -> String {
         out = replace_nonempty(out, &hostname, "<HOSTNAME>");
     }
     normalize_windows_path_separators(&out)
+}
+
+fn replace_temp_roots(
+    mut input: String,
+    test_tmp_dir: Option<&str>,
+    tmpdir: Option<&str>,
+    short_tmp_root: Option<&str>,
+    platform_temp_root: Option<&str>,
+) -> String {
+    for root in [test_tmp_dir, tmpdir, short_tmp_root, platform_temp_root].into_iter().flatten() {
+        input = replace_nonempty(input, root, "<TMPDIR>");
+    }
+    input
 }
 
 fn normalize_windows_path_separators(input: &str) -> String {
@@ -102,4 +113,20 @@ fn normalize_tmp_subdir(input: &str) -> String {
     }
     out.push_str(&input[idx..]);
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{normalize_tmp_subdir, replace_temp_roots};
+
+    #[test]
+    fn test_tmp_root_is_replaced_before_its_parent_scheduler_tmp_root() {
+        let scheduler_tmp = "/local/slurmtmp.123";
+        let test_tmp = "/local/slurmtmp.123/artifacts/ci/shards/one/tmp/test";
+        let raw = format!("{test_tmp}/bam-plan-abc/out/result.json");
+
+        let replaced = replace_temp_roots(raw, Some(test_tmp), Some(scheduler_tmp), None, None);
+
+        assert_eq!(normalize_tmp_subdir(&replaced), "<TMPDIR>/<TMP>/out/result.json");
+    }
 }

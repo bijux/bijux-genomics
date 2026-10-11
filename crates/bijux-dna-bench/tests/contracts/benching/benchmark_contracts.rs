@@ -68,7 +68,7 @@ fn checked_in_stage_reports_exclude_historical_evidence() -> Result<()> {
     let repository_root = repository_root()?;
     let registry = bijux_dna_bench::derive_benchmark_publication_registry(&repository_root)?;
     assert_eq!(registry.summary.active_stage_report_count, 0);
-    assert_eq!(registry.summary.historical_stage_report_count, 10);
+    assert_eq!(registry.summary.historical_stage_report_count, 11);
     assert!(registry.stage_reports.iter().all(|report| {
         report.disposition == bijux_dna_bench::BenchmarkStagePublicationDisposition::Historical
             && report.json_path.contains("/historical/")
@@ -292,9 +292,9 @@ fn checked_in_publication_registry_has_no_drift() -> Result<()> {
         &repository_root,
         bijux_dna_bench::BenchmarkPublicationRegistryWriteMode::Check,
     )?;
-    assert_eq!(registry.summary.current_product_count, 5);
+    assert_eq!(registry.summary.current_product_count, 6);
     assert_eq!(registry.summary.active_stage_report_count, 0);
-    assert_eq!(registry.summary.historical_stage_report_count, 10);
+    assert_eq!(registry.summary.historical_stage_report_count, 11);
     assert_eq!(registry.summary.quarantined_surface_count, 0);
     assert_eq!(registry.summary.quarantined_file_count, 0);
     assert!(registry.quarantined_surfaces.is_empty());

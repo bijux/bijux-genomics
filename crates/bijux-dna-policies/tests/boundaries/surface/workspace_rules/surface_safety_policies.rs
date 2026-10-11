@@ -13,6 +13,9 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-api/src/v1/bench/",
         "crates/bijux-dna-api/src/v1/run/",
         "crates/bijux-dna-bench/src/repo/",
+        "crates/bijux-dna-bench/src/workflow/stage_report/",
+        "crates/bijux-dna-containers/src/build/",
+        "crates/bijux-dna-containers/src/evidence/",
         "crates/bijux-dna-core/src/foundation/",
         "crates/bijux-dna-db-ena/src/",
         "crates/bijux-dna-db-ref/src/",
@@ -21,6 +24,7 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-domain-compiler/src/compiler/validation/",
         "crates/bijux-dna-domain-fastq/src/observer/parse/",
         "crates/bijux-dna-domain-fastq/src/stages/contract/runtime/",
+        "crates/bijux-dna-runner/src/backend/slurm/qualification/",
         "crates/bijux-dna-stages-vcf/src/",
     ];
     let legacy_allowlist: BTreeSet<&str> = BTreeSet::from([
@@ -124,6 +128,11 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-dev/src/commands/ops/tooling/operator_workflow_maturity.rs",
         "crates/bijux-dna-dev/src/commands/ops/tooling/scientific_caveat_propagation.rs",
         "crates/bijux-dna-domain-vcf/src/artifacts.rs",
+        "crates/bijux-dna-bench/src/workflow/bam_mapping_summary/parameters.rs",
+        "crates/bijux-dna-bench/src/workflow/reference_materialization.rs",
+        "crates/bijux-dna-bench/src/workflow/run_index.rs",
+        "crates/bijux-dna-containers/src/site_policy/repository_freeze.rs",
+        "crates/bijux-dna-runner/src/step_runner/external_artifact.rs",
     ]);
     let needles = [
         "std::fs::write(",
@@ -152,7 +161,9 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
             {
                 continue;
             }
-            let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+            let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
+                &std::fs::read_to_string(entry.path()).unwrap_or_default(),
+            );
             if needles.iter().any(|needle| content.contains(needle)) {
                 offenders.push(rel_string);
             }

@@ -104,13 +104,11 @@ fn dna_tree_matches_architecture_contract() {
     let expected_benchmark: BTreeSet<_> = [
         "active_scope.rs",
         "alias_inventory.rs",
-        "bam_stage_families.rs",
         "benchmark_result_ids.rs",
         "config.rs",
         "corpus_fastq/",
         "corpus_metadata.rs",
         "fastq_bench/",
-        "fastq_stage_families.rs",
         "local_adna_micro_pipeline.rs",
         "local_all_domain_fake_failures.rs",
         "local_all_domain_fake_runs.rs",
@@ -216,7 +214,6 @@ fn dna_tree_matches_architecture_contract() {
         "taxonomy_database.rs",
         "repo_locking.rs",
         "vcf_benchmark_bindings.rs",
-        "vcf_stage_families.rs",
         "workspace/",
         "workspace.rs",
     ]

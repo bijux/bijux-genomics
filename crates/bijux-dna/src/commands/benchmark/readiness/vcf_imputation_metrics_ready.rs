@@ -600,8 +600,7 @@ mod tests {
     use crate::commands::benchmark::readiness::vcf_stage_readiness_support::collect_vcf_stage_readiness_bindings;
 
     fn repo_root() -> std::path::PathBuf {
-        let crate_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-        crate_root.parent().and_then(std::path::Path::parent).expect("repo root").to_path_buf()
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]
@@ -650,7 +649,7 @@ mod tests {
         }
 
         let impute5 = report.rows.iter().find(|row| row.tool_id == "impute5").expect("IMPUTE5 row");
-        assert_eq!(impute5.tool_status, "production");
+        assert_eq!(impute5.tool_status, "supported");
         assert!(impute5.command_ready);
         assert!(impute5.output_ready);
         assert!(impute5.parser_ready);

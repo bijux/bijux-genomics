@@ -31,6 +31,16 @@ fn stage_tools_from_matrix(stage: &toml::Value) -> Vec<String> {
     out
 }
 
+fn supported_declared_stage_ids(
+    tool: &toml::Value,
+    stage_status: &BTreeMap<String, String>,
+) -> BTreeSet<String> {
+    list(tool, "stage_ids")
+        .into_iter()
+        .filter(|stage_id| stage_status.get(stage_id).is_some_and(|status| status == "supported"))
+        .collect()
+}
+
 #[test]
 #[allow(clippy::too_many_lines)]
 fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_tools_are_complete() {
@@ -78,6 +88,14 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
             .collect::<BTreeMap<_, _>>();
 
         let mut tool_to_stages = BTreeMap::<String, BTreeSet<String>>::new();
+        for tool_row in &tool_rows {
+            let Some(tool_id) = tool_row.get("id").and_then(toml::Value::as_str) else {
+                continue;
+            };
+            for stage_id in supported_declared_stage_ids(tool_row, &stage_status) {
+                tool_to_stages.entry(tool_id.to_string()).or_default().insert(stage_id);
+            }
+        }
 
         for stage in &stage_rows {
             let Some(stage_id) = stage.get("id").and_then(toml::Value::as_str) else {
@@ -194,5 +212,26 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
         offenders.is_empty(),
         "registry ssot completeness drift:\n{}\n\nactionable summary:\n- Sync generated SSOT files via `make generate-configs`.\n- Then verify with `make domain-gates`.\n- Core files: configs/ci/stages/stages.toml, configs/ci/stages/stages_vcf.toml, configs/ci/registry/tool_registry.toml, configs/ci/registry/tool_registry_vcf.toml, configs/ci/tools/images.toml, configs/ci/params/param_registry.toml, configs/ci/tools/required_tools.toml.",
         offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__registry_ssot_completeness_policy__specialized_declared_binding_counts_without_generic_stage_matrix_membership(
+) {
+    let tool = toml::from_str::<toml::Value>(
+        r#"
+id = "ibdhap"
+stage_ids = ["vcf.ibd"]
+"#,
+    )
+    .expect("parse specialized tool fixture");
+    let stage_status = BTreeMap::from([
+        ("vcf.ibd".to_string(), "supported".to_string()),
+        ("vcf.retired".to_string(), "retired".to_string()),
+    ]);
+
+    assert_eq!(
+        supported_declared_stage_ids(&tool, &stage_status),
+        BTreeSet::from(["vcf.ibd".to_string()])
     );
 }

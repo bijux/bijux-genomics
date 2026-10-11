@@ -8,9 +8,7 @@ use std::process::Command;
 mod support;
 
 fn render_manifest_path(repo_root: &Path, label: &str) -> PathBuf {
-    tempfile::Builder::new()
-        .prefix(label)
-        .tempdir_in(repo_root.join("runs/bench/hpc-dry-run"))
+    support::hpc_dry_run_test_directory(repo_root, label)
         .expect("temporary HPC dry-run directory")
         .keep()
         .join("asset-staging-manifest.json")

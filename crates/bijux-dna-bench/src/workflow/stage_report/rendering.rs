@@ -146,6 +146,21 @@ fn render_science(
             let values = values.iter().map(scientific_value).collect::<Vec<_>>().join(", ");
             lines.push(format!("| `{metric}` | {values} |"));
         }
+        if !tool.scientific_strata.is_empty() {
+            lines.extend([
+                String::new(),
+                "#### Retained sample strata".to_string(),
+                String::new(),
+                "| Sample | Metric | Measured repetitions |".to_string(),
+                "|---|---|---|".to_string(),
+            ]);
+            for stratum in &tool.scientific_strata {
+                for (metric, values) in &stratum.observations {
+                    let values = values.iter().map(scientific_value).collect::<Vec<_>>().join(", ");
+                    lines.push(format!("| `{}` | `{metric}` | {values} |", stratum.sample_id));
+                }
+            }
+        }
         match presentation.determinism {
             BenchmarkReportDeterminismPresentation::DetailedEvidence => lines.extend([
                 String::new(),

@@ -131,6 +131,7 @@ compatible_tools:
   - prinseq
   - seqkit
   - skewer
+  - seqprep
 planned_out_of_scope:
   - seqpurge
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"

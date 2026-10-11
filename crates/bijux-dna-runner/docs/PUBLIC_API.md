@@ -22,6 +22,14 @@
 - `invocation_hash`
 - `run_command`
 - `run_command_with_context`
+- `ExecutionBindingManifestV1`
+- `CommandExecutionBindingV1`
+- `ExecutionBindingManifestV2`
+- `CommandExecutionBindingV2`
+- `BoundFileIdentityV1`
+- `RUNNER_EXECUTION_BINDINGS_ENV`
+- `RUNNER_EXECUTION_BINDINGS_SCHEMA_V1`
+- `RUNNER_EXECUTION_BINDINGS_SCHEMA_V2`
 - `CommandOutputV1`
 - `execute_observer_command`
 - `execute_external_artifact_step`
@@ -32,6 +40,18 @@
 - `prepare_benchmark_slurm_job`
 - `submit_prepared_benchmark_job`
 - `load_benchmark_slurm_job_handle`
+- `prepare_managed_slurm_job`
+- `submit_prepared_managed_slurm_job`
+- `load_managed_slurm_job_handle`
+- `load_managed_slurm_job_spec`
+- `load_prepared_managed_slurm_job`
+- `observe_managed_slurm_job`
+- `collect_managed_slurm_job`
+- `ManagedSlurmJobSpec`
+- `ManagedSlurmJobResources`
+- `PreparedManagedSlurmJob`
+- `ManagedSlurmJobCollection`
+- `ManagedSlurmJobEvidence`
 - `observe_slurm_job`
 - `collect_slurm_job`
 - `cancel_slurm_job`
@@ -118,3 +138,10 @@
 - Stable: `api`, `ApptainerRunner`, `DockerRunner`, `LocalRunner`, and the documented facade exports above.
 - Experimental: backend-specific additions are experimental until they are listed under Facade Exports or Root Exports in this file.
 - Internal: support modules and any runner/backend helper not re-exported through the documented stable surfaces.
+
+## Managed Slurm Workers
+
+`ManagedSlurmJobSpec` and its prepare, submit, observe, and collect functions expose the generic
+runner-owned lifecycle for an exact external worker. The API binds source, worker, resources,
+dependencies, attempt layout, scheduler identity, accounting, and log hashes while leaving product
+semantics to the worker's owning crate.

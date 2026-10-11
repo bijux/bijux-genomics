@@ -31,6 +31,7 @@ pub use self::cycle::{
 };
 pub use self::data_index::{
     BenchCatalogRegistryCommand, BenchCatalogRegistryPublishArgs, BenchDataIndexArgs,
+    BenchMaterializeReferenceBundleArgs,
 };
 pub use self::fastq::BenchFastqCommand;
 pub use self::fastq::{
@@ -259,6 +260,8 @@ pub enum BenchCommand {
     AcquireFastqCorpus(BenchAcquireFastqCorpusArgs),
     #[command(name = "materialize-fastq-corpus")]
     MaterializeFastqCorpus(BenchMaterializeFastqCorpusArgs),
+    #[command(name = "materialize-reference-bundle")]
+    MaterializeReferenceBundle(BenchMaterializeReferenceBundleArgs),
     #[command(name = "corpus-materialization")]
     CorpusMaterialization {
         #[command(subcommand)]

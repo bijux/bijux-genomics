@@ -84,7 +84,6 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         }
         bijux_dna_policies::policy_assert!(
             dep == "bijux-dna-bench-model"
-                || dep == "bijux-dna-containers"
                 || dep == "bijux-dna-core"
                 || dep == "bijux-dna-infra",
             "bijux-dna-runtime must not depend on workspace crate {dep}"
@@ -211,6 +210,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
                 || dep == "bijux-dna-bench-model"
                 || dep == "bijux-dna-containers"
                 || dep == "bijux-dna-db-ena"
+                || dep == "bijux-dna-db-ref"
                 || dep == "bijux-dna-domain-bam"
                 || dep == "bijux-dna-domain-fastq"
                 || dep == "bijux-dna-infra"
@@ -404,15 +404,27 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
 }
 
 #[test]
-fn policy__boundaries__workspace__foundation_policy_crates_are_dev_only() {
+fn policy__boundaries__workspace__policy_dependencies_match_product_and_test_boundaries() {
     let crates = collect_workspace_crates();
     let known: BTreeSet<String> = crates.keys().cloned().collect();
+    for product_surface in ["bijux-dna-api", "bijux-dna-dev"] {
+        let path = crates.get(product_surface).unwrap_or_else(|| {
+            bijux_dna_policies::policy_panic!("missing crate {product_surface}")
+        });
+        let normal_deps = parse_dependency_section(&path.join("Cargo.toml"), &known, "dependencies");
+        bijux_dna_policies::policy_assert!(
+            normal_deps.contains("bijux-dna-policies"),
+            "{product_surface} must compose the policy verdict owner"
+        );
+        bijux_dna_policies::policy_assert!(
+            !normal_deps.contains("bijux-dna-testkit"),
+            "{product_surface} must keep bijux-dna-testkit out of normal dependencies"
+        );
+    }
 
     for crate_name in [
         "bijux-dna",
-        "bijux-dna-api",
         "bijux-dna-core",
-        "bijux-dna-dev",
         "bijux-dna-engine",
         "bijux-dna-infra",
         "bijux-dna-runner",

@@ -23,13 +23,11 @@
 )]
 pub(crate) mod active_scope;
 pub(crate) mod alias_inventory;
-pub(crate) mod bam_stage_families;
 pub(crate) mod benchmark_result_ids;
 pub(crate) mod config;
 pub(crate) mod corpus_fastq;
 pub(crate) mod corpus_metadata;
 pub(crate) mod fastq_bench;
-pub(crate) mod fastq_stage_families;
 pub(crate) mod local_adna_micro_pipeline;
 pub(crate) mod local_all_domain_fake_failures;
 pub(crate) mod local_all_domain_fake_runs;
@@ -135,5 +133,4 @@ pub(crate) mod stage_catalog;
 pub(crate) mod suite;
 pub(crate) mod taxonomy_database;
 pub(crate) mod vcf_benchmark_bindings;
-pub(crate) mod vcf_stage_families;
 pub(crate) mod workspace;

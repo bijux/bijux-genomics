@@ -327,10 +327,7 @@ mod tests {
     use crate::commands::benchmark::local_vcf_call_bam_smoke_support::GOVERNED_VCF_CALL_TOOL_ID;
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]

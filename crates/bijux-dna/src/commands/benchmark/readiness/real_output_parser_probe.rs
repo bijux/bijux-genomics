@@ -1945,11 +1945,7 @@ mod tests {
     #[test]
     fn build_real_output_parser_smoke_report_covers_active_families() -> Result<()> {
         let _guard = cwd_lock().lock().expect("cwd lock");
-        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .and_then(|path| path.parent())
-            .map(std::path::Path::to_path_buf)
-            .expect("resolve workspace root from crate manifest dir");
+        let repo_root = crate::commands::support::workspace_root::resolve_repo_root()?;
         let _cwd = CurrentDirGuard::switch_to(&repo_root)?;
         let output_path = repo_root.join(DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH);
         let probe_root =

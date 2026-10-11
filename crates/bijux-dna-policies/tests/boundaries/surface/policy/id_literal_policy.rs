@@ -41,6 +41,9 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.ends_with("/crates/bijux-dna-stage-contract/src/executor_registry.rs") {
         return true;
     }
+    if path_str.ends_with("/crates/bijux-dna-stage-contract/src/tool_binding/catalog.rs") {
+        return true;
+    }
     if path_str.ends_with("/crates/bijux-dna-core/src/metrics/registry.rs") {
         return true;
     }
@@ -79,11 +82,47 @@ fn is_allowed_path(path: &Path) -> bool {
     false
 }
 
+fn canonical_stage_ids(root: &Path) -> Vec<String> {
+    let mut ids = Vec::new();
+    let stage_catalog = root.join("crates/bijux-dna-core/src/id_catalog/stage");
+    for entry in WalkDir::new(stage_catalog).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file()
+            || entry.path().extension().and_then(|suffix| suffix.to_str()) != Some("rs")
+        {
+            continue;
+        }
+        let content = std::fs::read_to_string(entry.path()).expect("read stage catalog");
+        ids.extend(
+            content
+                .split('"')
+                .skip(1)
+                .step_by(2)
+                .filter(|literal| {
+                    ["fastq.", "bam.", "cross.", "core."]
+                        .iter()
+                        .any(|prefix| literal.starts_with(prefix))
+                })
+                .map(str::to_owned),
+        );
+    }
+    ids.sort_unstable();
+    ids.dedup();
+    ids
+}
+
+fn raw_stage_ids(content: &str, canonical_ids: &[String]) -> Vec<String> {
+    canonical_ids
+        .iter()
+        .filter(|stage_id| content.contains(&format!("\"{stage_id}\"")))
+        .cloned()
+        .collect()
+}
+
 #[test]
 fn policy__boundaries__id_literal_policy__raw_id_catalog_are_confined_to_registries() {
     let root = repo_root();
     let mut offenders = Vec::new();
-    let patterns = ["\"fastq.", "\"bam.", "\"cross.", "\"core."];
+    let canonical_ids = canonical_stage_ids(&root);
     for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
@@ -94,12 +133,14 @@ fn policy__boundaries__id_literal_policy__raw_id_catalog_are_confined_to_registr
         if is_allowed_path(entry.path()) {
             continue;
         }
-        let content = std::fs::read_to_string(entry.path()).expect("read source");
-        for pattern in patterns {
-            if content.contains(pattern) {
-                offenders
-                    .push(format!("{} contains raw id literal {pattern}", entry.path().display()));
-            }
+        let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
+            &std::fs::read_to_string(entry.path()).expect("read source"),
+        );
+        for stage_id in raw_stage_ids(&content, &canonical_ids) {
+            offenders.push(format!(
+                "{} contains raw stage id literal {stage_id:?}",
+                entry.path().display()
+            ));
         }
     }
     bijux_dna_policies::policy_assert!(
@@ -107,4 +148,11 @@ fn policy__boundaries__id_literal_policy__raw_id_catalog_are_confined_to_registr
         "raw stage ids must be confined to registries/stage crates:\n{}",
         offenders.join("\n")
     );
+}
+
+#[test]
+fn policy__boundaries__id_literal_policy__file_extensions_are_not_stage_ids() {
+    let ids = vec!["fastq.validate_reads".to_owned()];
+    assert!(raw_stage_ids("let suffix = \"fastq.gz\";", &ids).is_empty());
+    assert_eq!(raw_stage_ids("let stage = \"fastq.validate_reads\";", &ids), ids);
 }

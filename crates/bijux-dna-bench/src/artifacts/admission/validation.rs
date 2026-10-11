@@ -127,6 +127,31 @@ pub fn admit_benchmark_execution_outputs(
     })
 }
 
+/// Revalidate one retained immutable acceptance publication without assigning a new identity.
+///
+/// # Errors
+/// Returns an error when the retained publication is missing, malformed, or differs from a fresh
+/// validation of the completed output closure.
+pub fn revalidate_benchmark_execution_outputs(
+    study_root: &Path,
+    spec: &BenchmarkExecutionSpec,
+) -> Result<BenchmarkExecutionAdmissionPublication> {
+    validate_execution_spec(spec).context("validate benchmark execution specification")?;
+    let study_root = canonical_directory(study_root, "STUDY root")?;
+    let result_root =
+        canonical_directory(Path::new(&spec.outputs.result_root), "benchmark result root")?;
+    if !result_root.starts_with(&study_root) {
+        bail!("benchmark result root is outside STUDY");
+    }
+    let retained_path = result_root.join("admission/acceptance.json");
+    let retained: BenchmarkExecutionAdmission = read_json(&retained_path)?;
+    let replay = admit_benchmark_execution_outputs(&study_root, spec, &retained.admitted_at_utc)?;
+    if replay.report != retained {
+        bail!("replayed benchmark admission differs from retained acceptance evidence");
+    }
+    Ok(replay)
+}
+
 fn validate_output_manifest(
     result_root: &Path,
     spec: &BenchmarkExecutionSpec,
@@ -359,7 +384,9 @@ mod tests {
         BenchmarkRunIdentity, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1,
     };
 
-    use super::{admit_benchmark_execution_outputs, VALIDATION_FILES};
+    use super::{
+        admit_benchmark_execution_outputs, revalidate_benchmark_execution_outputs, VALIDATION_FILES,
+    };
 
     #[test]
     fn admission_is_restart_safe_and_rejects_output_mutation() -> anyhow::Result<()> {
@@ -385,6 +412,28 @@ mod tests {
             "2026-08-05T04:00:00Z"
         )
         .is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn retained_admission_replays_with_its_original_timestamp() -> anyhow::Result<()> {
+        let fixture = fixture()?;
+        let admitted = admit_benchmark_execution_outputs(
+            &fixture.study_root,
+            &fixture.spec,
+            "2026-08-05T04:00:00Z",
+        )?;
+
+        assert!(admit_benchmark_execution_outputs(
+            &fixture.study_root,
+            &fixture.spec,
+            "2026-08-05T05:00:00Z",
+        )
+        .is_err_and(|error| error.to_string().contains("conflicts with immutable evidence")));
+        assert_eq!(
+            revalidate_benchmark_execution_outputs(&fixture.study_root, &fixture.spec)?,
+            admitted
+        );
         Ok(())
     }
 

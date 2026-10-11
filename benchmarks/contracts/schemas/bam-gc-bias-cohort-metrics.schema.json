@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Aggregate metrics emitted for one measured GC-bias cohort repetition.",
+  "properties": {
+    "aligned_reads": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "at_dropout": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "gc_bias_score": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "gc_dropout": {
+      "maximum": 100,
+      "minimum": 0,
+      "type": "number"
+    },
+    "input_bytes": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "output_bytes": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "read_starts": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "sample_count": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "total_clusters": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "windows": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    }
+  },
+  "required": [
+    "sample_count",
+    "gc_bias_score",
+    "at_dropout",
+    "gc_dropout",
+    "total_clusters",
+    "aligned_reads",
+    "windows",
+    "read_starts",
+    "input_bytes",
+    "output_bytes"
+  ],
+  "title": "BenchmarkBamGcBiasCohortMetrics",
+  "type": "object"
+}

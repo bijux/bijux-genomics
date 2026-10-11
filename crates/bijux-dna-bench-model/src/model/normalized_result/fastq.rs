@@ -10,7 +10,7 @@ pub const FASTQ_DETECT_ADAPTERS_METRICS_SCHEMA_V1: &str =
 pub const FASTQ_DETECT_ADAPTERS_PROBE_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.detect_adapters.probe.v1";
 pub const FASTQ_DETECT_ADAPTERS_PROBE_STAGE_ID: &str = "benchmark.fastq.detect_adapters.compare";
-pub const FASTQ_DETECT_ADAPTERS_STAGE_ID: &str = "fastq.detect_adapters";
+pub const FASTQ_DETECT_ADAPTERS_STAGE_ID: &str = bijux_dna_core::id_catalog::FASTQ_DETECT_ADAPTERS;
 pub const FASTQ_PROFILE_READ_LENGTHS_RESULT_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.profile_read_lengths.bundle.v1";
 pub const FASTQ_PROFILE_READ_LENGTHS_METRICS_SCHEMA_V1: &str =
@@ -19,14 +19,15 @@ pub const FASTQ_PROFILE_READ_LENGTHS_PROBE_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.read_length_qc.probe.v1";
 pub const FASTQ_PROFILE_READ_LENGTHS_PROBE_STAGE_ID: &str =
     "benchmark.fastq.profile_read_lengths.compare";
-pub const FASTQ_PROFILE_READ_LENGTHS_STAGE_ID: &str = "fastq.profile_read_lengths";
+pub const FASTQ_PROFILE_READ_LENGTHS_STAGE_ID: &str =
+    bijux_dna_core::id_catalog::FASTQ_PROFILE_READ_LENGTHS;
 pub const FASTQ_PROFILE_READS_RESULT_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.profile_reads.bundle.v1";
 pub const FASTQ_PROFILE_READS_METRICS_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.profile_reads.metrics.v1";
 pub const FASTQ_PROFILE_READS_PROBE_SCHEMA_V1: &str = "bijux.benchmark.fastq.report_qc.probe.v1";
 pub const FASTQ_PROFILE_READS_PROBE_STAGE_ID: &str = "benchmark.fastq.profile_reads.compare";
-pub const FASTQ_PROFILE_READS_STAGE_ID: &str = "fastq.profile_reads";
+pub const FASTQ_PROFILE_READS_STAGE_ID: &str = bijux_dna_core::id_catalog::FASTQ_STATS_NEUTRAL;
 pub const FASTQ_VALIDATE_READS_RESULT_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.validate_reads.bundle.v1";
 pub const FASTQ_VALIDATE_READS_METRICS_SCHEMA_V1: &str =
@@ -34,7 +35,7 @@ pub const FASTQ_VALIDATE_READS_METRICS_SCHEMA_V1: &str =
 pub const FASTQ_VALIDATE_READS_PROBE_SCHEMA_V1: &str =
     "bijux.benchmark.fastq.report_qc.validation_probe.v1";
 pub const FASTQ_VALIDATE_READS_PROBE_STAGE_ID: &str = "benchmark.fastq.validate_reads.compare";
-pub const FASTQ_VALIDATE_READS_STAGE_ID: &str = "fastq.validate_reads";
+pub const FASTQ_VALIDATE_READS_STAGE_ID: &str = bijux_dna_core::id_catalog::FASTQ_VALIDATE_READS;
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]

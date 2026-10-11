@@ -30,6 +30,12 @@ evidence only after required-output closure succeeds.
 It returns an existing matching handle without resubmission and refuses an intent with no handle so
 an interrupted scheduler effect cannot silently create a duplicate immutable attempt.
 
+`prepare_managed_slurm_job` binds a clean repository commit, exact executable worker, attempt root,
+resource request, dependency condition, and submission timestamp into immutable scheduler material.
+`submit_prepared_managed_slurm_job` persists intent before `sbatch`; observation is one-shot, and
+terminal collection admits scheduler accounting plus exact stdout and stderr identities. The worker
+owns no scheduler calls, and the runner does not interpret its product outputs.
+
 `prepare_image_campaign_slurm_job` binds the permanent `run-1000` protocol, frozen repository and
 operator identities, exact Apptainer executable, canonical retained-tool closure, governed attempt
 root, and bounded resources. Submission persists intent before `sbatch`; observation performs one

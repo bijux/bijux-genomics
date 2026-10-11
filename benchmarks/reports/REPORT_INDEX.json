@@ -1,9 +1,9 @@
 {
   "schema_version": "bijux.benchmark.publication_registry.v1",
   "summary": {
-    "current_product_count": 5,
-    "active_stage_report_count": 1,
-    "historical_stage_report_count": 10,
+    "current_product_count": 6,
+    "active_stage_report_count": 0,
+    "historical_stage_report_count": 11,
     "quarantined_surface_count": 0,
     "quarantined_file_count": 0
   },
@@ -11,14 +11,14 @@
     {
       "product_id": "permanent-run-registry",
       "json_path": "benchmarks/contracts/run-registry.json",
-      "json_sha256": "dc1dc727b97147de1802b9bb5e616dfd4610117ab0d73504cdbbe3f21ab02630",
+      "json_sha256": "507909788bcb3cf0ff666ee131440d7b2e89b0dbb9bf57c85a22747cca77eea5",
       "markdown_path": "benchmarks/reports/run-registry.md",
-      "markdown_sha256": "92747b17caf35dca18812f29eb3f70951e9a9e145991108851b22836ef9d700a"
+      "markdown_sha256": "2a83d1bab6e0e1552c09585e1b423f441501d4cff39f4ac23c6c0c89706ef2b8"
     },
     {
       "product_id": "paper-run-index",
       "json_path": "benchmarks/runs/RUN_INDEX.json",
-      "json_sha256": "2ad1be07c7a483c335859fc4cce64bbfec94f5db277a50d131f96835f7bdcc31",
+      "json_sha256": "fb30323bb0008458f956394fbaeb6e01eb855ae2c9e65a0e334dade4f6498a57",
       "markdown_path": "benchmarks/runs/RUN_INDEX.md",
       "markdown_sha256": "2e67175e321329027c0a2584b9918481b85b1386668b9592a679846a2c245d86"
     },
@@ -35,6 +35,13 @@
       "json_sha256": "bcee2885fafc2059f10f0ec8bb17830e7384054babf5a33949f3c930bbaf5796",
       "markdown_path": "benchmarks/reports/stage-benchmark-coverage.md",
       "markdown_sha256": "e6ebf41f5b334e15e54fd8f7a06af3314b511715be9b1cbef0ab74f74c4e8bc9"
+    },
+    {
+      "product_id": "stage-tool-closure",
+      "json_path": "benchmarks/reports/STAGE_TOOL_CLOSURE.json",
+      "json_sha256": "a75a3b9f8a15855000d4f7340a08ad81f749a63d076eaf31cf4ff4ebe183cbea",
+      "markdown_path": "benchmarks/reports/STAGE_TOOL_CLOSURE.md",
+      "markdown_sha256": "98440128195721bffdb5f56f1214c85ef992c855137f1bee1a26042052623eaf"
     },
     {
       "product_id": "scientific-benchmark-readiness",
@@ -59,10 +66,10 @@
       "run_id": "run-2002",
       "stage_id": "bam.coverage",
       "source_commit": "8282c2232d021ce60f07edb1ddc65d85598836ed",
-      "disposition": "active",
-      "json_path": "benchmarks/reports/run-2002-bam-coverage.json",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/8282c2232d021ce60f07edb1ddc65d85598836ed/run-2002-bam-coverage.json",
       "json_sha256": "b299fd3d9559390e646fd32deaedc2432821baccfaf01a74d45aef2ca69b8c78",
-      "markdown_path": "benchmarks/reports/run-2002-bam-coverage.md",
+      "markdown_path": "benchmarks/reports/historical/8282c2232d021ce60f07edb1ddc65d85598836ed/run-2002-bam-coverage.md",
       "markdown_sha256": "7697a4cabdd44339caa59455013573961202c048ca4c64c456ad9ebae7d60968"
     },
     {

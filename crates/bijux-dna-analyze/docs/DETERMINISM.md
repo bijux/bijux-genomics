@@ -16,6 +16,8 @@ For identical inputs, feature flags, schema versions, and dependency versions,
 - Values read from input artifacts may vary when the upstream run varied.
 - Wall-clock timestamps and durations may vary when they are upstream input data.
 - Domain snapshot hashes are expected to change when governed domain inputs or docs change.
+- The absolute runtime repository path itself does not enter provenance; only the governed snapshot
+  identity read below that root does. Relative runtime roots are not admitted.
 
 ## Forbidden Variance
 - Hash-map iteration order must not leak into reports.

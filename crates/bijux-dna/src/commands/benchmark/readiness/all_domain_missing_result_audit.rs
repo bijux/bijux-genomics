@@ -452,10 +452,7 @@ mod tests {
     use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     struct CurrentDirGuard {
@@ -478,8 +475,8 @@ mod tests {
 
     #[test]
     fn all_domain_missing_result_audit_tracks_removed_rows_per_domain() {
-        let root = repo_root();
         let _cwd_lock = acquire_cwd_lock();
+        let root = repo_root();
         let _repo_lock =
             RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
         let _cwd_guard = CurrentDirGuard::change_to(&root);

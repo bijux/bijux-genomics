@@ -507,10 +507,7 @@ mod tests {
     use super::{render_fastq_corpus_assignment, DEFAULT_FASTQ_CORPUS_ASSIGNMENT_PATH};
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]

@@ -87,6 +87,7 @@ pub fn build_benchmark_stage_report_from_case_aggregations(
                 input_bytes,
                 performance: aggregation.performance.clone(),
                 scientific_observations: aggregation.scientific.clone(),
+                scientific_strata: Vec::new(),
                 determinism: BenchmarkReportDeterminism {
                     artifact: first.campaign.result_artifact.clone(),
                     sha256: aggregation.normalized_result_sha256.clone(),

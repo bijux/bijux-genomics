@@ -52,7 +52,9 @@ fn policy__boundaries__effect_boundary_map__effect_boundary_map() {
         if ALLOWLIST.iter().any(|(allowed, _reason)| path_str.contains(allowed)) {
             continue;
         }
-        let content = support::read_to_string(entry.path());
+        let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
+            &support::read_to_string(entry.path()),
+        );
         if EFFECT_PATTERNS.iter().any(|pattern| content.contains(pattern)) {
             offenders.push(entry.path().display().to_string());
         }
@@ -66,4 +68,20 @@ See docs/40-policies/STYLE.md for boundary rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );
+}
+
+#[test]
+fn policy__boundaries__effect_boundary_map__inline_tests_are_not_production_effects() {
+    let source = r#"
+pub fn contract() {}
+
+#[cfg(test)]
+mod tests {
+    fn exercises_adapter() {
+        std::process::Command::new("true");
+    }
+}
+"#;
+    let production = bijux_dna_testkit::workspace_support::strip_rust_test_modules(source);
+    assert!(!EFFECT_PATTERNS.iter().any(|pattern| production.contains(pattern)));
 }

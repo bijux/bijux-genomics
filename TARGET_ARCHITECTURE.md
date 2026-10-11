@@ -15,6 +15,8 @@ engines.
 Dependency edges remain governed by
 [the boundary map](docs/10-architecture/BOUNDARY_MAP.md). Authored domain truth and generated
 configuration remain governed by [the SSOT contract](docs/10-architecture/SSOT.md).
+Production corpus, truth, materialization, and scientific claim eligibility remain governed by
+[the data portfolio and truth contract](DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md).
 
 ## Product Boundary
 

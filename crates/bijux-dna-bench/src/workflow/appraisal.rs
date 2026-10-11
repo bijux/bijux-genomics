@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Benchmark-matrix appraisal and hardening-queue workflow ownership.
 
 use std::collections::BTreeMap;

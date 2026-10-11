@@ -4,7 +4,6 @@
 //! - Only write under the run layout.
 //! - No heavy dependencies; keep this module lightweight and stable.
 
-mod attempts;
 mod benchmark_attempts;
 mod envelope;
 mod io;

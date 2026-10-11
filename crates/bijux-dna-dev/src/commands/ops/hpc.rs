@@ -11,6 +11,43 @@ use super::{
     Utc, Workspace,
 };
 
+pub(super) fn hpc_managed_slurm_job(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    const USAGE: &str = "Usage:\n  bijux-dna-dev hpc run managed-slurm-job -- prepare <specification>\n  bijux-dna-dev hpc run managed-slurm-job -- submit <specification>\n  bijux-dna-dev hpc run managed-slurm-job -- observe <specification> <observed-at-utc>\n  bijux-dna-dev hpc run managed-slurm-job -- collect <specification> <collected-at-utc>";
+    let Some((operation, options)) = args.split_first() else {
+        return Err(anyhow!(USAGE));
+    };
+    if matches!(operation.as_str(), "--help" | "-h") {
+        return Ok(OpsCommandOutcome::success(format!("{USAGE}\n")));
+    }
+    let specification = options.first().ok_or_else(|| anyhow!(USAGE))?;
+    let specification = if Path::new(specification).is_absolute() {
+        PathBuf::from(specification)
+    } else {
+        workspace.path(specification)
+    };
+    let spec = bijux_dna_runner::api::load_managed_slurm_job_spec(&specification)?;
+    let paths = bijux_dna_runner::api::SlurmClientPaths::default();
+    let value = match (operation.as_str(), options) {
+        ("prepare", [_]) => {
+            serde_json::to_value(bijux_dna_runner::api::prepare_managed_slurm_job(&spec)?)?
+        }
+        ("submit", [_]) => serde_json::to_value(
+            bijux_dna_runner::api::submit_prepared_managed_slurm_job(&paths, &spec)?,
+        )?,
+        ("observe", [_, observed_at_utc]) => serde_json::to_value(
+            bijux_dna_runner::api::observe_managed_slurm_job(&paths, &spec, observed_at_utc)?,
+        )?,
+        ("collect", [_, collected_at_utc]) => serde_json::to_value(
+            bijux_dna_runner::api::collect_managed_slurm_job(&paths, &spec, collected_at_utc)?,
+        )?,
+        _ => return Err(anyhow!(USAGE)),
+    };
+    Ok(OpsCommandOutcome::success(format!("{}\n", serde_json::to_string_pretty(&value)?)))
+}
+
 pub(super) fn hpc_benchmark_attempt_migration(
     workspace: &Workspace,
     args: &[String],

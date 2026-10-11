@@ -26,7 +26,7 @@ mod contracts {
             VCF_REFERENCE_CONTEXT_CONTRACT, VCF_REPORT_COVERAGE_CONTRACT,
             VCF_SCIENTIFIC_DRIFT_CONTRACT, VCF_STATS_REPORT_CONTRACT, VCF_VALIDATION_CONTRACT,
         },
-        coverage::domain_coverage_report,
+        coverage::{domain_coverage_report, VCF_DOMAIN_TOOL_CATALOG},
         param_registry_toml, required_tools_toml, required_vcf_bench_corpus_scenarios,
         validate_downstream_transition, vcf_bench_corpus_manifest, CoverageRegime,
         VcfBenchCorpusId, VcfDomainStage, VcfScientificDriftSnapshotV1, VcfStage,
@@ -949,6 +949,31 @@ mod contracts {
             .iter()
             .any(|row| row.stage_id == "vcf.imputation_metrics" && row.domain_only));
         assert!(report.tools.iter().any(|row| row.tool_id == "bcftools"));
+    }
+
+    #[test]
+    fn domain_coverage_catalog_contains_every_supported_vcf_tool() {
+        assert_eq!(
+            VCF_DOMAIN_TOOL_CATALOG,
+            [
+                "angsd",
+                "bcftools",
+                "beagle",
+                "eagle",
+                "eigensoft",
+                "germline",
+                "glimpse",
+                "ibdhap",
+                "ibdne",
+                "ibdseq",
+                "impute5",
+                "minimac4",
+                "plink",
+                "plink2",
+                "shapeit",
+                "shapeit5",
+            ]
+        );
     }
 
     #[test]

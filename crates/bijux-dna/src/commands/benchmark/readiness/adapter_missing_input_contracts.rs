@@ -7,10 +7,7 @@ fn render_adapter_missing_input_audit_reports_governed_probe_rows() {
         render_adapter_missing_input_audit, DEFAULT_ADAPTER_MISSING_INPUT_TESTS_PATH,
     };
 
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .expect("canonicalize repo root");
+    let root = crate::commands::support::workspace_root::resolve_repo_root().expect("repo root");
     let report = render_adapter_missing_input_audit(
         &root,
         PathBuf::from(DEFAULT_ADAPTER_MISSING_INPUT_TESTS_PATH),

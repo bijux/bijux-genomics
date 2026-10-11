@@ -54,7 +54,7 @@ fn infra_tree_matches_architecture_contract() {
     );
     assert_dir_entries(
         &root.join("src/hashing"),
-        ["file_digest.rs", "mod.rs"],
+        ["file_digest.rs", "mod.rs", "path_digest.rs"],
         "hashing support must keep digest logic isolated",
     );
     assert_dir_entries(

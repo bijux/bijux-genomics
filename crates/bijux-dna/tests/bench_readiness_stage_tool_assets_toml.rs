@@ -152,7 +152,7 @@ fn bench_readiness_stage_tool_assets_writes_governed_toml_file() {
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.genotyping")
-            && row.get("tool_id").and_then(toml::Value::as_str) == Some("angsd")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("bcftools")
             && row.get("asset_role").and_then(toml::Value::as_str) == Some("regions")
             && row.get("asset_id").and_then(toml::Value::as_str)
                 == Some("human_like_genotyping_target_regions")

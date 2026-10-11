@@ -25,7 +25,7 @@ platform
 image-qa
 replay
 compare
-bench
+benchmark
 policies
 ci
 dev

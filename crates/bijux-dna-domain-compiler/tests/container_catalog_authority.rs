@@ -2,10 +2,59 @@ use anyhow::{Context, Result};
 use bijux_dna_domain_compiler::{
     compile_domain_configs, CompileOptions, DEFAULT_COMPILE_SCOPE, DEFAULT_DOMAIN_DIR,
 };
-use std::collections::BTreeMap;
+use serde::Deserialize;
+use std::collections::{BTreeMap, BTreeSet};
 
 #[path = "support/mod.rs"]
 mod support;
+
+#[derive(Debug, Deserialize)]
+struct DomainPairIndex {
+    stage_tool_compatibility: BTreeMap<String, Vec<String>>,
+}
+
+#[test]
+fn authored_domain_pairs_close_over_the_supported_container_catalog() -> Result<()> {
+    let root = support::repo_root();
+    let catalog = read_toml(&root.join("containers/contracts/catalog.toml"))?;
+    let expected = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .context("catalog has no tools")?
+        .iter()
+        .filter(|tool| {
+            tool.get("product_support").and_then(toml::Value::as_str) == Some("supported")
+        })
+        .flat_map(|tool| {
+            let tool_id = tool.get("id").and_then(toml::Value::as_str).unwrap_or_default();
+            tool.get("stage_ids")
+                .and_then(toml::Value::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(toml::Value::as_str)
+                .map(move |stage_id| (stage_id.to_string(), tool_id.to_string()))
+        })
+        .collect::<BTreeSet<_>>();
+
+    let mut actual = BTreeSet::new();
+    for domain in ["fastq", "bam", "vcf"] {
+        let path = root.join("domain").join(domain).join("index.yaml");
+        let raw =
+            std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+        let index: DomainPairIndex =
+            serde_yaml::from_str(&raw).with_context(|| format!("parse {}", path.display()))?;
+        actual.extend(index.stage_tool_compatibility.into_iter().flat_map(
+            |(stage_id, tool_ids)| {
+                tool_ids.into_iter().map(move |tool_id| (stage_id.clone(), tool_id))
+            },
+        ));
+    }
+
+    assert_eq!(expected.len(), 159);
+    assert_eq!(actual.len(), 159);
+    assert_eq!(actual, expected);
+    Ok(())
+}
 
 #[test]
 fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {
@@ -101,6 +150,39 @@ fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {
             assert_production_stage_bindings(&registry, &contracts)?;
         }
     }
+    Ok(())
+}
+
+#[test]
+fn supported_external_delivery_remains_in_the_governed_registry() -> Result<()> {
+    let root = support::repo_root();
+    let out_dir = support::artifact_output_dir("supported-external-delivery-")?;
+    compile_domain_configs(&CompileOptions {
+        domain_dir: root.join(DEFAULT_DOMAIN_DIR),
+        configs_dir: out_dir.path().to_path_buf(),
+        scope: DEFAULT_COMPILE_SCOPE.to_string(),
+    })?;
+
+    let governed = read_toml(&out_dir.path().join("ci/registry/tool_registry.toml"))?;
+    let experimental =
+        read_toml(&out_dir.path().join("ci/registry/tool_registry_experimental.toml"))?;
+    let governed_tools = rows_by_id(&governed, "tools")?;
+    let experimental_tools = rows_by_id(&experimental, "tools")?;
+
+    for tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+        let row = governed_tools
+            .get(tool_id)
+            .with_context(|| format!("governed registry omits supported tool {tool_id}"))?;
+        assert_eq!(text(row, "product_support")?, "supported");
+        assert_eq!(text(row, "artifact_delivery")?, "external_artifact");
+        assert_eq!(text(row, "status")?, "supported");
+        assert_eq!(row.get("redistribution_permitted").and_then(toml::Value::as_bool), Some(false));
+        assert!(
+            !experimental_tools.contains_key(tool_id),
+            "supported external-delivery tool {tool_id} must not be demoted to the experimental registry"
+        );
+    }
+
     Ok(())
 }
 

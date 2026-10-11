@@ -69,6 +69,20 @@ fn domain_campaigns_reject_nonexecuting_rows_and_foreign_queue_references() {
 }
 
 #[test]
+fn domain_campaigns_preserve_refused_rows_without_execution_repetitions() {
+    let mut refused = fastq_report();
+    refused.entries[0].matched_rows[0].readiness_class = "refuse".to_string();
+    refused.entries[0].matched_rows[0].repetitions = 0;
+    refused.entries[0].status = "requires-hardening".to_string();
+    refused.summary.status_counts = BTreeMap::from([("requires-hardening".to_string(), 1)]);
+    assert!(validate_fastq_benchmark_campaign_report(&refused).is_ok());
+
+    refused.entries[0].matched_rows[0].repetitions = 1;
+    assert!(validate_fastq_benchmark_campaign_report(&refused)
+        .is_err_and(|error| error.to_string().contains("matrix row reference is invalid")));
+}
+
+#[test]
 fn domain_campaign_schemas_match_models_and_versions_fail_closed() -> anyhow::Result<()> {
     let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()

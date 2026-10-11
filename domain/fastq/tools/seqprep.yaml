@@ -1,0 +1,118 @@
+schema_version: "bijux.tool.v1"
+tool_id: "seqprep"
+status: "supported"
+scope: "pre_hpc_pre_vcf"
+capabilities:
+  - "PE"
+  - "adapters"
+container:
+  image: "bijuxdna/seqprep"
+  digest: "sha256:c6ba7d2dc6016316cd112f24f64e275f31f09c4add1d88762ccd162192a5efc4"
+command_template:
+  - "seqprep"
+  - "-f"
+  - "{{reads_r1}}"
+  - "-r"
+  - "{{reads_r2}}"
+  - "-1"
+  - "{{unmerged_reads_r1}}"
+  - "-2"
+  - "{{unmerged_reads_r2}}"
+  - "-s"
+  - "{{merged_reads}}"
+outputs:
+  - name: "trimmed_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "trimmed_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "merged_reads"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "unmerged_reads_r1"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "unmerged_reads_r2"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "report_json"
+    data_type: "json"
+    cardinality: "One"
+  - name: "raw_backend_report_txt"
+    data_type: "text"
+    cardinality: "One"
+metrics_parser: "fastq_trim_v1"
+constraints:
+  runtime: "local"
+  mem_gb: 2
+  tmp_gb: 1
+  threads: 1
+execution_contract:
+  required_inputs:
+    - "reads_r1"
+    - "reads_r2"
+  expected_outputs:
+    - "trimmed_reads_r1"
+    - "trimmed_reads_r2"
+    - "merged_reads"
+    - "unmerged_reads_r1"
+    - "unmerged_reads_r2"
+    - "report_json"
+    - "raw_backend_report_txt"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
+upstream: "https://github.com/jstjohn/SeqPrep"
+versioning_strategy: "pinned"
+pin_strategy: "source_sha256"
+default_version: "1.3.2"
+install_kind: "container"
+license: "MIT"
+citation: "software:https://github.com/jstjohn/SeqPrep/tree/575507b0b9c94701bdf67bb592da8ba91ba9639c"
+stage_ids:
+  - "fastq.merge_pairs"
+  - "fastq.trim_reads"
+stage_contracts:
+  fastq.merge_pairs:
+    required_inputs:
+      - "reads_r1"
+      - "reads_r2"
+    expected_artifacts:
+      - "merged_reads"
+      - "unmerged_reads_r1"
+      - "unmerged_reads_r2"
+      - "report_json"
+      - "raw_backend_report_txt"
+    notes: "SeqPrep merge mode emits governed merged and adapter-trimmed unmerged mates, the canonical merge report, and retained native stderr statistics."
+  fastq.trim_reads:
+    required_inputs:
+      - "reads_r1"
+      - "reads_r2"
+    expected_artifacts:
+      - "trimmed_reads_r1"
+      - "trimmed_reads_r2"
+      - "report_json"
+      - "raw_backend_report_txt"
+    notes: "SeqPrep adapter-trim mode normalizes its unmerged paired outputs as governed trimmed mates and retains native stderr statistics."
+expected_artifacts:
+  - "trimmed_reads_r1"
+  - "trimmed_reads_r2"
+  - "merged_reads"
+  - "unmerged_reads_r1"
+  - "unmerged_reads_r2"
+  - "report_json"
+  - "raw_backend_report_txt"
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
+version_cmd: "seqprep --version"
+help_cmd: "seqprep --help"
+comparability:
+  comparable_with:
+    - "adapterremoval"
+    - "bbmerge"
+    - "flash2"
+    - "leehom"
+    - "pear"
+    - "vsearch"
+  non_comparable_with: []
+comparability_notes: "Comparable within the same paired-end merge or adapter-trim stage contract when overlap policy, adapter policy, and retained mate handling are matched."

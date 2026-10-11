@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use super::tool_serving_map::{
     collect_bam_tool_serving_map_rows, collect_fastq_tool_serving_map_rows, ToolServingMapRow,
 };
+use super::vcf_tool_serving_map::{collect_vcf_tool_serving_map_rows, VcfToolServingMapRow};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -88,7 +89,8 @@ pub(crate) fn validate_tool_execution_modes_path(
 
     let (_, _, fastq_rows) = collect_fastq_tool_serving_map_rows(repo_root)?;
     let (_, _, bam_rows) = collect_bam_tool_serving_map_rows(repo_root)?;
-    let benchmark_tool_index = build_benchmark_tool_index(&fastq_rows, &bam_rows);
+    let vcf_rows = collect_vcf_tool_serving_map_rows()?;
+    let benchmark_tool_index = build_benchmark_tool_index(&fastq_rows, &bam_rows, &vcf_rows);
     let assignments = build_mode_assignment_index(&config)?;
 
     let configured_tool_ids = assignments.keys().cloned().collect::<BTreeSet<_>>();
@@ -484,6 +486,7 @@ struct BenchmarkToolEntry {
 fn build_benchmark_tool_index(
     fastq_rows: &[ToolServingMapRow],
     bam_rows: &[ToolServingMapRow],
+    vcf_rows: &[VcfToolServingMapRow],
 ) -> BTreeMap<String, BenchmarkToolEntry> {
     let mut domains_by_tool = BTreeMap::<String, BTreeSet<String>>::new();
     let mut stages_by_tool = BTreeMap::<String, BTreeSet<String>>::new();
@@ -494,6 +497,10 @@ fn build_benchmark_tool_index(
     }
     for row in bam_rows {
         domains_by_tool.entry(row.tool_id.clone()).or_default().insert("bam".to_string());
+        stages_by_tool.entry(row.tool_id.clone()).or_default().insert(row.stage_id.clone());
+    }
+    for row in vcf_rows {
+        domains_by_tool.entry(row.tool_id.clone()).or_default().insert("vcf".to_string());
         stages_by_tool.entry(row.tool_id.clone()).or_default().insert(row.stage_id.clone());
     }
 
@@ -524,10 +531,7 @@ mod tests {
     };
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]
@@ -581,7 +585,7 @@ mod tests {
             report.rows.iter().find(|row| row.tool_id == "trim_galore").expect("trim_galore row");
         assert_eq!(trim_galore.execution_mode, "mixed");
 
-        for external_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+        for external_tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
             let row = report
                 .rows
                 .iter()
@@ -590,6 +594,11 @@ mod tests {
             assert_eq!(row.execution_mode, "external");
             assert_eq!(row.expected_install_kind, "external");
         }
+
+        let germline =
+            report.rows.iter().find(|row| row.tool_id == "germline").expect("germline row");
+        assert_eq!(germline.execution_mode, "containerized");
+        assert_eq!(germline.domains, vec!["vcf".to_string()]);
 
         let yleaf = report.rows.iter().find(|row| row.tool_id == "yleaf").expect("yleaf row");
         assert_eq!(yleaf.execution_mode, "containerized");

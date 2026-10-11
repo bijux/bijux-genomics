@@ -147,7 +147,7 @@ pub(super) fn build_tool_registries_toml(
             benchmark_integrated_tool_ids.insert(tool.id.clone());
         }
 
-        let out = if is_external_delivery || is_planned || is_experimental {
+        let out = if is_planned || is_experimental {
             experimental_tool_count += 1;
             &mut experimental_toml
         } else {

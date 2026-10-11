@@ -31,9 +31,9 @@ use super::readiness::tool_probe_support::{path_relative_to_repo, repo_relative_
 use super::readiness::vcf_local_container_probe::{
     collect_vcf_local_container_smoke_rows, VcfLocalContainerSmokeRow,
 };
-use super::vcf_stage_families::{VcfStageFamily, VCF_STAGE_FAMILIES};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use bijux_dna_api::v1::api::bench::{BenchmarkStageFamily, VCF_STAGE_FAMILIES};
 
 pub(crate) const DEFAULT_VCF_MICRO_SMOKE_SUMMARY_PATH: &str =
     "artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json";
@@ -140,7 +140,7 @@ pub(crate) fn render_vcf_micro_smoke_subset(
 }
 
 fn select_family_representative<'a>(
-    family: &VcfStageFamily,
+    family: &BenchmarkStageFamily,
     smoke_rows: &'a [VcfLocalContainerSmokeRow],
 ) -> Result<&'a VcfLocalContainerSmokeRow> {
     let mut matching_rows = smoke_rows
@@ -174,7 +174,7 @@ fn select_family_representative<'a>(
 
 fn materialize_family_row(
     repo_root: &Path,
-    family: &VcfStageFamily,
+    family: &BenchmarkStageFamily,
     representative: &VcfLocalContainerSmokeRow,
 ) -> Result<VcfMicroSmokeFamilyRow> {
     let support_path = normalize_optional_string(&representative.smoke_support_path);
@@ -407,7 +407,7 @@ fn default_tool_id(stage_id: &str) -> Option<String> {
         .map(|row| row.tool_id)
 }
 
-fn family_stage_order(family: &VcfStageFamily, stage_id: &str) -> usize {
+fn family_stage_order(family: &BenchmarkStageFamily, stage_id: &str) -> usize {
     family
         .stage_ids
         .iter()

@@ -534,10 +534,7 @@ mod tests {
     use super::{load_benchmark_integrated_container_tool_ids, load_registry_tool_matrix};
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]

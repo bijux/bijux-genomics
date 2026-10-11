@@ -58,9 +58,29 @@ pub(crate) fn check_ssot_guardrails(
         path.starts_with("configs/ci/params/param_registry") && has_extension(path, "toml")
     });
     if stages_changed && !params_changed {
-        return fail(check, "partial stage edit detected without param registry update");
+        let stage_diff = run_command(
+            workspace,
+            "git",
+            &["diff", "HEAD^", "HEAD", "--unified=0", "--", "configs/ci/stages"],
+        )?;
+        let stage_diff = String::from_utf8_lossy(&stage_diff.stdout);
+        if stage_change_requires_param_registry(&stage_diff) {
+            return fail(check, "partial stage edit detected without param registry update");
+        }
     }
     pass(check, "last commit preserves SSOT guardrails")
+}
+
+fn stage_change_requires_param_registry(diff: &str) -> bool {
+    diff.lines().any(|line| {
+        if line.starts_with("+++") || line.starts_with("---") {
+            return false;
+        }
+        let Some(changed) = line.strip_prefix('+').or_else(|| line.strip_prefix('-')) else {
+            return false;
+        };
+        !changed.trim_start().starts_with("tools = ")
+    })
 }
 
 pub(crate) fn check_species_aliases(
@@ -227,4 +247,21 @@ pub(crate) fn check_vcf_compatibility_matrix(
         return pass(check, "VCF downstream compatibility matrix matches SSOT inputs");
     }
     fail(check, "VCF downstream compatibility matrix is stale")
+}
+
+#[cfg(test)]
+mod ssot_guardrail_tests {
+    use super::stage_change_requires_param_registry;
+
+    #[test]
+    fn tool_membership_only_stage_diff_does_not_require_parameter_churn() {
+        let diff = "--- a/configs/ci/stages/stages.toml\n+++ b/configs/ci/stages/stages.toml\n@@ -1 +1 @@\n-tools = [\"king\"]\n+tools = [\"angsd\", \"king\"]\n";
+        assert!(!stage_change_requires_param_registry(diff));
+    }
+
+    #[test]
+    fn other_stage_contract_changes_still_require_parameter_registry_update() {
+        let diff = "--- a/configs/ci/stages/stages.toml\n+++ b/configs/ci/stages/stages.toml\n@@ -1 +1 @@\n-coverage_sufficiency = [\"sites>=100\"]\n+coverage_sufficiency = [\"sites>=500\"]\n";
+        assert!(stage_change_requires_param_registry(diff));
+    }
 }

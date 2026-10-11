@@ -8,6 +8,7 @@
 - `qualification`
 - `release_evidence`
 - `security_evidence`
+- `tool_eligibility`
 
 ## Root Exports
 - `check`
@@ -15,6 +16,7 @@
 - `qualification contracts`
 - `release evidence contracts`
 - `security evidence contracts`
+- `tool eligibility decision contracts`
 - `CI dependency graph and change-impact planning contracts`
 - `CI build authority contracts`
 - `policy_assert!`
@@ -36,3 +38,5 @@
   structural, and runtime observations into a validated policy publication.
 - `release_evidence::derive_release_evidence`: derives immutable release decisions from exact,
   non-self-referential qualification evidence sets.
+- `tool_eligibility::select_eligible_tools`: applies an explicit role policy to ordered tool
+  candidates without loading registries or reading process state.

@@ -126,7 +126,7 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_unadmitted_impute5_evide
         .iter()
         .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("impute5"))
         .expect("IMPUTE5 row");
-    assert_eq!(impute5.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
+    assert_eq!(impute5.get("tool_status").and_then(serde_json::Value::as_str), Some("supported"));
     for field in
         ["command_ready", "output_ready", "parser_ready", "expected_result_ready", "report_ready"]
     {

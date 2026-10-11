@@ -57,6 +57,6 @@ If an embedded mirror is discovered, record its inventory and checksums, move it
 ## Validation
 
 - `CARGO_TARGET_DIR=artifacts/cargo-target cargo run -q -p bijux-dna-dev -- checks run check-root-layout`
-- `make _ci-fast`
+- `make ci-fast`
 
 The root-layout check is part of `ci-fast` and fails before longer checks when the governed tree drifts.

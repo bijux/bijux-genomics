@@ -6,19 +6,20 @@ pub use crate::contract;
 pub use crate::contract::{
     append_attempt_transition, benchmark_attempt_identity_sha256, benchmark_run_definition_sha256,
     benchmark_run_directory_name, migrate_benchmark_attempt_v1, parse_benchmark_attempt_document,
-    parse_benchmark_cycle_document, validate_appraisal_report, validate_attempt_archive,
-    validate_attempt_identity, validate_attempt_record_v1, validate_attempt_record_v2,
-    validate_attempt_transition, validate_bam_benchmark_campaign_report,
-    validate_benchmark_campaign_report_publication, validate_benchmark_case_definition,
-    validate_benchmark_citation_record, validate_benchmark_data_index,
-    validate_benchmark_data_portfolio_audit, validate_benchmark_data_source_spec,
-    validate_benchmark_evidence_book, validate_benchmark_matrix_report,
-    validate_benchmark_protocol_citation, validate_benchmark_publication_receipt,
-    validate_benchmark_publication_registry, validate_benchmark_replay_receipt,
-    validate_benchmark_run_case_index, validate_benchmark_run_definition,
-    validate_benchmark_run_definition_revision, validate_benchmark_run_index,
-    validate_benchmark_run_publication_pointer, validate_benchmark_run_registry,
-    validate_benchmark_stage_result_manifest, validate_campaign_plan,
+    parse_benchmark_cycle_document, validate_active_scope_fast_validation_report,
+    validate_appraisal_report, validate_attempt_archive, validate_attempt_identity,
+    validate_attempt_record_v1, validate_attempt_record_v2, validate_attempt_transition,
+    validate_bam_benchmark_campaign_report, validate_benchmark_campaign_report_publication,
+    validate_benchmark_case_definition, validate_benchmark_citation_record,
+    validate_benchmark_data_index, validate_benchmark_data_portfolio_audit,
+    validate_benchmark_data_source_spec, validate_benchmark_evidence_book,
+    validate_benchmark_matrix_report, validate_benchmark_protocol_citation,
+    validate_benchmark_publication_receipt, validate_benchmark_publication_registry,
+    validate_benchmark_replay_receipt, validate_benchmark_run_case_index,
+    validate_benchmark_run_definition, validate_benchmark_run_definition_revision,
+    validate_benchmark_run_index, validate_benchmark_run_publication_pointer,
+    validate_benchmark_run_registry, validate_benchmark_stage_result_manifest,
+    validate_benchmark_stage_tool_closure, validate_campaign_plan,
     validate_container_report_portfolio_index, validate_corpus_acquisition_plan,
     validate_cross_benchmark_campaign_report, validate_cycle_admission, validate_cycle_preparation,
     validate_cycle_status_v1, validate_cycle_status_v2, validate_data_fitness_portfolio_alignment,
@@ -58,9 +59,9 @@ pub use crate::contract::{
     BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
     BENCHMARK_STAGE_REPORT_SCHEMA_V1, BENCHMARK_STAGE_RESULT_SCHEMA_V2,
-    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
-    FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
+    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BENCHMARK_SUITE_RUN_MANIFEST_SCHEMA_V2, BUNDLE_SCHEMA_V1,
+    CORPUS_ACQUISITION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_SCHEMA_V1,
+    DECISION_SCHEMA_V1, FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
     FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
@@ -68,6 +69,10 @@ pub use crate::contract::{
     SUMMARY_SCHEMA_V1,
 };
 pub use crate::diagnostics::BenchError;
+pub use crate::model::active_scope::{
+    active_scope_fast_validation_report_schema, ActiveScopeFastValidationCheck,
+    ActiveScopeFastValidationReport, ACTIVE_SCOPE_FAST_VALIDATION_SCHEMA_V1,
+};
 pub use crate::model::admission::{
     benchmark_execution_admission_schema, BenchmarkExecutionAdmission,
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
@@ -235,8 +240,8 @@ pub use crate::model::report::{
     BenchmarkCrossToolComparison, BenchmarkMetricDistribution, BenchmarkReportComparability,
     BenchmarkReportDeterminism, BenchmarkReportDownstreamProbe, BenchmarkReportImage,
     BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
-    BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
-    BenchmarkStageReportDesign, BenchmarkToolReport,
+    BenchmarkReportVerdict, BenchmarkScientificStratum, BenchmarkScientificValue,
+    BenchmarkStageReport, BenchmarkStageReportDesign, BenchmarkToolReport,
 };
 pub use crate::model::run_index::{
     benchmark_protocol_citation_schema, benchmark_run_case_index_schema,
@@ -255,17 +260,28 @@ pub use crate::model::stage_result::{
     BenchmarkStageResultResourceMetrics, BenchmarkStageResultRuntime, BenchmarkStageResultStatus,
     BenchmarkStageResultTool,
 };
+pub use crate::model::stage_tool_closure::{
+    benchmark_stage_tool_closure_schema, BenchmarkStageToolClosureDisposition,
+    BenchmarkStageToolClosureReport, BenchmarkStageToolClosureRow, BenchmarkStageToolClosureSource,
+    BenchmarkStageToolClosureSummary, BenchmarkStageToolProtocolDisposition,
+    BENCHMARK_STAGE_TOOL_CLOSURE_SCHEMA_V1,
+};
 pub use crate::model::suite::{
-    benchmark_suite_spec_schema, AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec,
-    DatasetSpec, DiversityRequirements, ReplicatePolicy, StratificationRequirement,
+    benchmark_suite_run_manifest_schema, benchmark_suite_spec_schema, AnalysisRequirements,
+    BenchmarkParamBinding, BenchmarkStageSpec, ColdWarmContract, DatasetSpec, DecisionTraceRow,
+    DiversityRequirements, EnvironmentSnapshot, FairnessContract, MetricsArtifactRow,
+    PostconditionRow, ReplicatePolicy, RunRecordRow, ScientificDefaultsStatus,
+    StratificationRequirement, SuiteRunManifest, ToolInvocationRow,
 };
 pub use crate::model::summary::{
     benchmark_summary_schema, MetricSummary, SummaryRow, SummaryStratum,
 };
 pub use crate::model::{
     benchmark_bundle_manifest_schema, benchmark_corpus_manifest_schema,
-    benchmark_data_index_schema, fastq_profile_reads_expectations_schema, AdmittedBamCorpus,
-    AdmittedBamCorpusFile, AdmittedFastqCorpus, AdmittedFastqCorpusFile, AdmittedFastqCorpusSample,
+    benchmark_data_index_schema, fastq_profile_reads_expectations_schema,
+    AdmittedAlignmentTruthSample, AdmittedAlignmentTruthSet, AdmittedBamCohort,
+    AdmittedBamCohortSample, AdmittedBamCorpus, AdmittedBamCorpusFile, AdmittedFastqCorpus,
+    AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedReferenceBundle,
     BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataIndex,
     BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
     BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance, CorpusAcquisitionFile,

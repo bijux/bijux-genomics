@@ -31,7 +31,7 @@ mod toy_support;
 mod verification;
 
 use self::artifact_support::{
-    artifact_env, artifact_env_with_common_test_env, artifact_root_path,
+    artifact_env, artifact_env_with_common_test_env, artifact_root_path, compiler_wrapper_env,
     ensure_artifact_root_inside_artifacts, materialize_controlled_file, path_from_arg,
     resolve_workspace_path, run_make_target, sha256_hex_bytes,
 };
@@ -110,15 +110,8 @@ fn ci_test_env(workspace: &Workspace, slow: bool) -> Result<Vec<(String, String)
         artifact_root.join("coverage/profraw-coverage").display().to_string(),
     ));
     if slow {
-        if let Ok(output) = std::process::Command::new("sh")
-            .args(["-c", "command -v sccache || true"])
-            .current_dir(&workspace.root)
-            .output()
-        {
-            let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            if !path.is_empty() {
-                envs.push(("RUSTC_WRAPPER".to_string(), path));
-            }
+        if let Some(wrapper) = compiler_wrapper_env(workspace)? {
+            envs.push(wrapper);
         }
     }
     Ok(envs)

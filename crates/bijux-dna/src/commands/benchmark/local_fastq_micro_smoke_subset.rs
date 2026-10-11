@@ -8,7 +8,6 @@ use bijux_dna_domain_fastq::default_execution_tool_for_stage;
 use serde::Serialize;
 use serde_json::Value;
 
-use super::fastq_stage_families::{FastqStageFamily, FASTQ_STAGE_FAMILIES};
 use super::local_stage_commands::materialize_local_stage;
 use super::readiness::fastq_local_container_probe::{
     collect_fastq_local_container_smoke_rows, FastqLocalContainerSmokeRow,
@@ -16,6 +15,7 @@ use super::readiness::fastq_local_container_probe::{
 use super::readiness::tool_probe_support::{path_relative_to_repo, repo_relative_path};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use bijux_dna_api::v1::api::bench::{BenchmarkStageFamily, FASTQ_STAGE_FAMILIES};
 
 pub(crate) const DEFAULT_FASTQ_MICRO_SMOKE_SUMMARY_PATH: &str =
     "artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json";
@@ -128,7 +128,7 @@ pub(crate) fn render_fastq_micro_smoke_subset(
 }
 
 fn select_family_representative<'a>(
-    family: &FastqStageFamily,
+    family: &BenchmarkStageFamily,
     smoke_rows: &'a [FastqLocalContainerSmokeRow],
 ) -> Result<&'a FastqLocalContainerSmokeRow> {
     let mut matching_rows = smoke_rows
@@ -162,7 +162,7 @@ fn select_family_representative<'a>(
 
 fn materialize_family_row(
     repo_root: &Path,
-    family: &FastqStageFamily,
+    family: &BenchmarkStageFamily,
     representative: &FastqLocalContainerSmokeRow,
 ) -> Result<FastqMicroSmokeFamilyRow> {
     let support_path = normalize_optional_string(&representative.smoke_support_path);
@@ -420,7 +420,7 @@ fn smoke_priority(smoke_path_kind: &str) -> usize {
     }
 }
 
-fn family_stage_order(family: &FastqStageFamily, stage_id: &str) -> usize {
+fn family_stage_order(family: &BenchmarkStageFamily, stage_id: &str) -> usize {
     family
         .stage_ids
         .iter()

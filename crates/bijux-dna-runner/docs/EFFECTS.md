@@ -8,12 +8,17 @@
   current checksum, catalog, stage, and command binding verification.
 - Spawn declared observer commands through `execute_observer_command`.
 - Spawn declared low-level commands through `run_command` and `run_command_with_context`.
+- Resolve low-level command invocations through a caller-declared execution-binding manifest and
+  verify every bound file identity before spawning the resolved program.
 - Spawn `sbatch`, `squeue`, `sacct`, and `scancel` only through typed Slurm contracts.
 - Read declared inputs and execution manifests.
 - Write runner-owned records, stdout/stderr captures, and artifacts under declared run/output roots.
-- Materialize source-locked benchmark batch scripts under their declared immutable attempt roots.
+- Admit a source-locked, self-contained, read-only benchmark repository before materializing batch
+  scripts under their declared immutable attempt roots.
 - Persist benchmark submission intent before `sbatch` and scheduler handles immediately after a
   successful submission effect.
+- Persist managed-worker specifications, generated wrapper scripts, submission intent, scheduler
+  handles, and terminal scheduler/log evidence beneath the declared immutable attempt root.
 - Create temporary paths through `bijux-dna-infra` helpers.
 
 ## Effect Codes
@@ -27,6 +32,7 @@ Runner errors use these source-level effect codes:
 ## Forbidden Effects
 - No CLI parsing or command discovery.
 - No planner, engine, analyzer, or report effects.
+- Managed-worker collection must not interpret, admit, aggregate, or publish worker product output.
 - No writes outside declared runtime roots.
 - Generated benchmark jobs mount repository and input authorities read-only and write only to the
   declared result and scratch mounts.
@@ -41,6 +47,10 @@ Runner errors use these source-level effect codes:
 - Inject only environment variables declared in the execution spec.
 - `BIJUX_ALLOW_NETWORK` is the explicit opt-in for backend network access.
 - Do not mutate process-wide environment state for callers.
+- `BIJUX_DNA_RUNNER_BINDINGS`, when present, must be an absolute path to the typed site binding
+  manifest; relative paths and symlink manifests fail before process effects.
+- Version 2 binding manifests may declare runtime-root environment names. Their values are read
+  without mutation at invocation time and must resolve to existing absolute non-root directories.
 - Treat runtime policy as input; this crate does not invent policy.
 
 ## Validation

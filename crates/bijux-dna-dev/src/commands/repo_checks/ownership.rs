@@ -16,7 +16,7 @@ const OUTPUT_MARKDOWN: &str = "artifacts/architecture/benchmark-container-owners
 const OUTPUT_SCHEMA: &str =
     "artifacts/architecture/benchmark-container-ownership-audit.schema.json";
 const OWNERSHIP_AUDIT_SOURCE: &str = "crates/bijux-dna-dev/src/commands/repo_checks/ownership.rs";
-const BENCH_PRODUCT_CONSUMERS: [&str; 3] = ["bijux-dna", "bijux-dna-api", "bijux-dna-dev"];
+const DIRECT_BENCH_PRODUCT_CONSUMERS: [&str; 2] = ["bijux-dna-api", "bijux-dna-dev"];
 const ROOT_PYTHON_AUTHORITIES: [&str; 8] = [
     "benchmarks/corpus_acquisition.py",
     "benchmarks/corpus_catalog_enrichment.py",
@@ -217,7 +217,7 @@ fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
         .context("missing bijux-dna-bench dependency inventory")?;
     ensure!(
         bench_consumers
-            == &BENCH_PRODUCT_CONSUMERS.into_iter().map(str::to_string).collect::<Vec<_>>(),
+            == &DIRECT_BENCH_PRODUCT_CONSUMERS.into_iter().map(str::to_string).collect::<Vec<_>>(),
         "unexpected bijux-dna-bench consumers: {bench_consumers:?}"
     );
     Ok(())
@@ -728,7 +728,7 @@ mod tests {
     use super::{
         classify, dependency_consumers, legacy_authorities, legacy_callers, render_markdown,
         validate_audit, AuditSummary, OwnershipAudit, OwnershipRow, SourceFile,
-        BENCH_PRODUCT_CONSUMERS, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
+        DIRECT_BENCH_PRODUCT_CONSUMERS, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
     };
 
     #[test]
@@ -747,13 +747,26 @@ mod tests {
     }
 
     #[test]
-    fn benchmark_product_consumers_are_the_declared_thin_surfaces() {
-        let files = BENCH_PRODUCT_CONSUMERS.map(|consumer| SourceFile {
-            path: format!("crates/{consumer}/Cargo.toml"),
-            content: "bijux-dna-bench.workspace = true".to_string(),
-        });
+    fn benchmark_product_direct_consumers_are_declared_composition_surfaces() {
+        let files = [
+            SourceFile {
+                path: "crates/bijux-dna-api/Cargo.toml".to_string(),
+                content: "bijux-dna-bench.workspace = true".to_string(),
+            },
+            SourceFile {
+                path: "crates/bijux-dna-dev/Cargo.toml".to_string(),
+                content: "bijux-dna-bench.workspace = true".to_string(),
+            },
+            SourceFile {
+                path: "crates/bijux-dna/Cargo.toml".to_string(),
+                content: "bijux-dna-api.workspace = true".to_string(),
+            },
+        ];
         let consumers = dependency_consumers(&files);
-        assert_eq!(consumers["bijux-dna-bench"], BENCH_PRODUCT_CONSUMERS);
+        assert_eq!(
+            consumers["bijux-dna-bench"], DIRECT_BENCH_PRODUCT_CONSUMERS,
+            "the user CLI must consume benchmark services through the API composition surface",
+        );
     }
 
     #[test]

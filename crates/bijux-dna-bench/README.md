@@ -36,6 +36,7 @@ The SSOT for callable operations is `docs/COMMANDS.md`.
 - `load-bundle-manifest`
 - `load-bundle-catalog`
 - `materialize-fastq-corpus`
+- `materialize-reference-bundle`
 - `summarize`
 - `compare`
 - `gate`

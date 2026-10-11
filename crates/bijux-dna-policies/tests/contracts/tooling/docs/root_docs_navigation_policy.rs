@@ -504,6 +504,7 @@ fn policy__contracts__root_docs_navigation_policy__target_architecture_links_gov
     let expected = BTreeSet::from([
         "docs/10-architecture/BOUNDARY_MAP.md".to_string(),
         "docs/10-architecture/SSOT.md".to_string(),
+        "DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md".to_string(),
         "containers/".to_string(),
         "benchmarks/".to_string(),
         "docs/10-architecture/ROOT_TREE_CONTRACT.md".to_string(),
@@ -582,6 +583,7 @@ fn policy__contracts__root_docs_navigation_policy__contract_index_links_governed
         "CRATE_BOUNDARY_CONTRACTS.md".to_string(),
         "BOUNDARY_MAP.md".to_string(),
         "../../TARGET_ARCHITECTURE.md".to_string(),
+        "../../DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md".to_string(),
         "CONTRACT_SPINE.md".to_string(),
         "SSOT.md".to_string(),
         "GENERATED_FILES_CONTRACT.md".to_string(),

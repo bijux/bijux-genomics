@@ -9,7 +9,7 @@ pub use model::{
     ContainerSitePolicy, ContainerSlurmPolicy, RepositoryFreezeRequest, RepositoryFreezeScope,
     CONTAINER_GOVERNANCE_SCHEMA_V1,
 };
-pub use repository_freeze::freeze_repository;
+pub use repository_freeze::{freeze_repository, verify_frozen_repository};
 pub use repository_tracking::tracked_repository_files_under;
 pub use schema::{container_governance_schema, write_container_governance_schema};
 pub use validation::{

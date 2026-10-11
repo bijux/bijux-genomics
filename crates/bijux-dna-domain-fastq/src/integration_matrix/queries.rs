@@ -84,6 +84,7 @@ fn planned_stage_tool_bindings() -> Vec<StageToolBinding> {
                 include_str!("../../../../domain/fastq/tools/seqfu.yaml"),
                 include_str!("../../../../domain/fastq/tools/seqkit.yaml"),
                 include_str!("../../../../domain/fastq/tools/seqkit_stats.yaml"),
+                include_str!("../../../../domain/fastq/tools/seqprep.yaml"),
                 include_str!("../../../../domain/fastq/tools/seqpurge.yaml"),
                 include_str!("../../../../domain/fastq/tools/seqtk.yaml"),
                 include_str!("../../../../domain/fastq/tools/skewer.yaml"),
