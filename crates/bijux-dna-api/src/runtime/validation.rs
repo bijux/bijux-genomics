@@ -222,14 +222,15 @@ mod tests {
             ArtifactId::new("reads"),
             bam,
             ArtifactRole::Reads,
-        )]);
+        )
+        .with_artifact_contract("bijux.bam.artifact.coordinate_sorted_indexed.v1")]);
 
         let err = match validate_stage_inputs(&step) {
             Ok(()) => panic!("typed handoff mismatch should fail"),
             Err(err) => err,
         };
 
-        assert!(err.to_string().contains("typed artifact handoff expected FASTQ"), "{err}");
+        assert!(err.to_string().contains("fastq stages cannot consume bam"), "{err}");
         Ok(())
     }
 }

@@ -56,7 +56,11 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
     assert_eq!(resolution_counts.get("host_binary").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
         resolution_counts.get("apptainer_image").and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(5)
+    );
+    assert_eq!(
+        resolution_counts.get("external_artifact").and_then(serde_json::Value::as_u64),
+        Some(4)
     );
     assert_eq!(
         resolution_counts.get("unavailable_with_reason").and_then(serde_json::Value::as_u64),
@@ -88,6 +92,35 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
                 == Some(
                     "containers/apptainer/lunarc/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
                 )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("external_artifact")
+            && row.get("resolution_target").and_then(serde_json::Value::as_str)
+                == Some("external-artifact://angsd")
+            && row.get("unavailable_reason").is_none_or(serde_json::Value::is_null)
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastuniq")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("external_artifact")
+            && row.get("resolution_target").and_then(serde_json::Value::as_str)
+                == Some("external-artifact://fastuniq")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("impute5")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("external_artifact")
+            && row.get("resolution_target").and_then(serde_json::Value::as_str)
+                == Some("external-artifact://impute5")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("external_artifact")
+            && row.get("resolution_target").and_then(serde_json::Value::as_str)
+                == Some("external-artifact://ngsbriggs")
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5")

@@ -39,6 +39,10 @@ pub struct ContainerCatalogTool {
     pub support_disposition: String,
     #[serde(default)]
     pub support_reason: String,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub external_artifact_supported: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub external_artifact_kinds: Vec<String>,
     pub upstream: String,
     pub documentation: String,
     pub license: String,
@@ -62,6 +66,11 @@ pub struct ContainerCatalogTool {
     pub runtime_network: bool,
     pub real_test_stage: String,
     pub real_test_input_kind: String,
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn is_false(value: &bool) -> bool {
+    !value
 }
 
 pub(super) struct CatalogToolSource {

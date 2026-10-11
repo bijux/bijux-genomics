@@ -3,6 +3,8 @@ stage_id: "vcf.ibd"
 status: "supported"
 scope: "post_vcf"
 domain: "vcf"
+benchmark_disposition: "benchmark_required"
+benchmark_disposition_reason: "The stage has a permanent run reservation in the governed benchmark portfolio."
 description: "VCF stage contract for vcf.ibd in the governed domain registry."
 inputs:
   - name: "filtered_vcf"

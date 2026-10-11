@@ -5,9 +5,17 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, bail, ensure, Context, Result};
 use chrono::{SecondsFormat, Utc};
-use regex::Regex;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sha2::{Digest, Sha256};
+
+use bijux_dna_containers::api::{
+    ContainerGovernance as SiteCyclePolicy, ContainerPathPolicy as PathPolicy,
+};
+#[cfg(test)]
+use bijux_dna_containers::api::{
+    ContainerPreflightPolicy as PreflightPolicy, ContainerRuntimePolicy as RuntimePolicy,
+    ContainerSitePolicy as SitePolicy, ContainerSlurmPolicy as SlurmPolicy,
+};
 
 use crate::model::container::NativeContainerCommandKey;
 use crate::model::ops::OpsCommandOutcome;
@@ -15,7 +23,6 @@ use crate::runtime::process::ProcessRunner;
 use crate::runtime::workspace::Workspace;
 
 const PREFLIGHT_SCHEMA_V1: &str = "bijux.site_cycle_preflight.v1";
-const SITE_POLICY_SCHEMA_V1: &str = "bijux.container.governance.v1";
 const USAGE: &str = "Usage: cargo run -p bijux-dna-dev -- hpc run site-cycle-preflight -- --cycle <container-build|container-qualification|benchmark> --expected-commit <sha> --expected-catalog-sha256 <sha256> [--policy <path>] [--output-dir <path>] [--data-index <path> --data-index-sha256 <sha256>] [--image-inventory <path> --image-inventory-sha256 <sha256>]";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -60,62 +67,6 @@ struct PreflightRequest {
     output_dir: Option<PathBuf>,
     data_index: Option<AuthorityInput>,
     image_inventory: Option<AuthorityInput>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct SiteCyclePolicy {
-    schema_version: String,
-    site: SitePolicy,
-    paths: PathPolicy,
-    runtime: RuntimePolicy,
-    slurm: SlurmPolicy,
-    preflight: PreflightPolicy,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct SitePolicy {
-    id: String,
-    hostname_regex: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct PathPolicy {
-    study_root: PathBuf,
-    containers_root: PathBuf,
-    data_root: PathBuf,
-    results_root: PathBuf,
-    finalization_root: PathBuf,
-    active_repository: PathBuf,
-    frozen_repositories: PathBuf,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct RuntimePolicy {
-    apptainer_architecture: String,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct SlurmPolicy {
-    account: String,
-    scratch_environment: Option<String>,
-    scratch_root: Option<PathBuf>,
-    partitions: Vec<String>,
-    quota_command: Vec<String>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct PreflightPolicy {
-    minimum_available_bytes: u64,
-    minimum_available_inodes: u64,
-    maximum_clock_skew_seconds: i64,
-    required_commands: Vec<String>,
-    required_contracts: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -339,36 +290,7 @@ fn resolve_path(workspace: &Workspace, value: &str) -> PathBuf {
 }
 
 fn validate_policy(policy: &SiteCyclePolicy) -> Result<()> {
-    ensure!(policy.schema_version == SITE_POLICY_SCHEMA_V1, "unsupported site policy schema");
-    ensure!(!policy.site.id.trim().is_empty(), "site id is empty");
-    Regex::new(&policy.site.hostname_regex).context("compile site hostname policy")?;
-    ensure!(policy.paths.study_root.is_absolute(), "STUDY root must be absolute");
-    for (label, path) in governed_study_paths(&policy.paths) {
-        ensure!(path.starts_with(&policy.paths.study_root), "{label} must be contained by STUDY");
-    }
-    ensure!(policy.paths.active_repository.is_absolute(), "repository root must be absolute");
-    ensure!(policy.paths.frozen_repositories.is_absolute(), "frozen root must be absolute");
-    ensure!(!policy.slurm.account.trim().is_empty(), "Slurm account is empty");
-    ensure!(!policy.slurm.partitions.is_empty(), "Slurm partitions are empty");
-    ensure!(!policy.slurm.quota_command.is_empty(), "quota command is empty");
-    ensure!(
-        policy.slurm.scratch_environment.is_some() ^ policy.slurm.scratch_root.is_some(),
-        "exactly one Slurm scratch authority must be configured"
-    );
-    ensure!(policy.preflight.minimum_available_bytes > 0, "minimum bytes must be positive");
-    ensure!(policy.preflight.minimum_available_inodes > 0, "minimum inodes must be positive");
-    ensure!(policy.preflight.maximum_clock_skew_seconds >= 0, "clock skew must not be negative");
-    ensure_sorted_unique(&policy.preflight.required_commands, "required commands")?;
-    ensure_sorted_unique(&policy.preflight.required_contracts, "required contracts")?;
-    Ok(())
-}
-
-fn ensure_sorted_unique(values: &[String], label: &str) -> Result<()> {
-    let mut normalized = values.to_vec();
-    normalized.sort();
-    normalized.dedup();
-    ensure!(values == normalized, "{label} must be sorted and unique");
-    Ok(())
+    bijux_dna_containers::api::validate_container_governance(policy)
 }
 
 mod observation;

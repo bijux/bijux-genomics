@@ -312,6 +312,16 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::GenerateImageInventoryScanSchema,
         ),
         native(
+            "credential-reference",
+            "Validate credential declarations and manage their Rust-owned schema.",
+            NativeContainerCommandKey::CredentialReference,
+        ),
+        native(
+            "external-artifact",
+            "Admit, block, verify, or bind operator-provided restricted tool artifacts.",
+            NativeContainerCommandKey::ExternalArtifact,
+        ),
+        native(
             "image-activation",
             "Plan, apply, verify, or roll back canonical image activation.",
             NativeContainerCommandKey::ImageActivation,
@@ -322,9 +332,29 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ImageStorage,
         ),
         native(
+            "pipeline-contract",
+            "Validate, currentize, or admit pipelines against governed execution-site identities.",
+            NativeContainerCommandKey::PipelineContract,
+        ),
+        native(
             "qualification-registry",
             "Derive and audit stable qualification-run identities from catalog and history.",
             NativeContainerCommandKey::QualificationRegistry,
+        ),
+        native(
+            "qualification-slurm",
+            "Prepare, submit, observe, collect, or cancel governed qualification jobs.",
+            NativeContainerCommandKey::QualificationSlurm,
+        ),
+        native(
+            "repository-freeze",
+            "Materialize immutable repository snapshots under the governed site policy.",
+            NativeContainerCommandKey::RepositoryFreeze,
+        ),
+        native(
+            "run-evidence",
+            "Import, select, validate, and publish immutable container run evidence.",
+            NativeContainerCommandKey::RunEvidence,
         ),
         native(
             "runtime-verification",

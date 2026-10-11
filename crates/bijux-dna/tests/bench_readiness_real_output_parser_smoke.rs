@@ -98,13 +98,6 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
             .and_then(serde_json::Value::as_u64),
         Some(1)
     );
-    assert_eq!(
-        parser_surface_counts
-            .get("serde_json::<Value> + governed keys")
-            .and_then(serde_json::Value::as_u64),
-        Some(1)
-    );
-
     assert!(rows.iter().all(|row| {
         row.get("representative_tool_id").and_then(serde_json::Value::as_str) != Some("angsd")
     }));
@@ -117,6 +110,34 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
                 == Some("serde_json::<BamAlignmentProvenanceV1>")
             && row.get("parsed_schema_version").and_then(serde_json::Value::as_str)
                 == Some("bijux.bam.alignment_provenance.v1")
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
+
+    assert!(rows.iter().any(|row| {
+        row.get("family_id").and_then(serde_json::Value::as_str) == Some("vcf_demographic_history")
+            && row.get("representative_tool_id").and_then(serde_json::Value::as_str)
+                == Some("ibdne")
+            && row.get("parser_surface").and_then(serde_json::Value::as_str)
+                == Some("serde_json::<Value> + governed vcf demographic-history keys")
+            && row
+                .get("normalized_snapshot")
+                .and_then(|value| value.get("inference_status"))
+                .and_then(serde_json::Value::as_str)
+                == Some("fallback_estimate")
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+    }));
+
+    assert!(rows.iter().any(|row| {
+        row.get("family_id").and_then(serde_json::Value::as_str) == Some("vcf_identity_by_descent")
+            && row.get("representative_tool_id").and_then(serde_json::Value::as_str)
+                == Some("germline")
+            && row.get("parser_surface").and_then(serde_json::Value::as_str)
+                == Some("serde_json::<Value> + governed vcf identity-by-descent keys")
+            && row
+                .get("normalized_snapshot")
+                .and_then(|value| value.get("execution_mode"))
+                .and_then(serde_json::Value::as_str)
+                == Some("fallback_proxy")
             && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
     }));
 

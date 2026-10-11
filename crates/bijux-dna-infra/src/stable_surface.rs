@@ -13,8 +13,11 @@ pub use super::paths::{
 };
 pub use super::retry::{backoff_delay, retry_with, Clock, RetryPolicy, SystemClock};
 pub use super::run_directories::{
-    lock_run, normalize_run_base_dir, pipeline_run_dir, publish_run, run_layout_paths,
-    run_stage_dir, RunLayoutContract, RunLayoutPaths, PIPELINE_RUN_DIR_TEMPLATE,
-    RUN_LAYOUT_CONTRACT,
+    attempt_layout_paths, attempt_layout_schema, ensure_attempt_layout, lock_run,
+    normalize_run_base_dir, pipeline_run_dir, publish_run, run_layout_paths, run_stage_dir,
+    validate_attempt_owner_roots, AttemptEvidenceOwner, AttemptLayoutContract,
+    AttemptLayoutDirectoriesV1, AttemptLayoutIdentity, AttemptLayoutManifestV1, AttemptLayoutPaths,
+    RunLayoutContract, RunLayoutPaths, ATTEMPT_LAYOUT_CONTRACT, ATTEMPT_LAYOUT_SCHEMA_V1,
+    PIPELINE_RUN_DIR_TEMPLATE, RUN_LAYOUT_CONTRACT,
 };
 pub use super::temp::{temp_dir, temp_dir_in};

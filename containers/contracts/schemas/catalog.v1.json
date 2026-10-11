@@ -40,6 +40,15 @@
         "expected_version_regex": {
           "type": "string"
         },
+        "external_artifact_kinds": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "external_artifact_supported": {
+          "type": "boolean"
+        },
         "help_command": {
           "type": "string"
         },

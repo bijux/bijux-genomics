@@ -1,0 +1,48 @@
+{
+  "$defs": {
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "attempt_id": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "run": {
+      "$ref": "#/$defs/BenchmarkRunIdentity"
+    },
+    "tool_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "campaign_id",
+    "run",
+    "attempt_id",
+    "tool_id"
+  ],
+  "title": "BenchmarkAttemptIdentity",
+  "type": "object"
+}

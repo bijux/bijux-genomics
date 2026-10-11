@@ -1,12 +1,14 @@
 # bijux-dna-core Boundary Contract
 
-Owner: core contracts, identifiers, metrics, canonicalization, hashing, and
-foundation model helpers.
+Owner: low-level contract primitives, identifiers, metrics, canonicalization,
+hashing, and foundation model helpers. `bijux-dna-stage-contract` owns the
+public stage and artifact contract product surface.
 
 ## Owns
 
-- Public contract types for execution graphs, execution records, run records,
-  run metadata, provenance, tooling, and stage selection.
+- Low-level contract types for execution graphs, canonical artifact compatibility,
+  execution records, run records, run metadata, provenance, tooling, and stage
+  selection.
 - Canonical JSON rules and canonical byte serialization.
 - Hashing helpers for parameters, inputs, files, and reproducibility identity.
 - Typed identifiers and parsing/validation for pipeline, stage, tool, artifact,

@@ -6,6 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::ids::ToolId;
 use bijux_dna_planner_bam::stage_api::load_bam_domain_tool_contract_metadata;
 use bijux_dna_planner_fastq::stage_api::load_fastq_domain_tool_contract_metadata;
+use serde::Deserialize;
 
 use crate::commands::benchmark::local_stage_inventory::{
     load_local_stage_inventory, BenchLocalDomain,
@@ -13,6 +14,39 @@ use crate::commands::benchmark::local_stage_inventory::{
 
 const CONTAINER_CATALOG_PATH: &str = "containers/contracts/catalog.toml";
 const CONTAINER_CATALOG_SCHEMA_VERSION: &str = "bijux.container.catalog.v1";
+
+#[derive(Debug, Deserialize)]
+struct ReadinessContainerCatalog {
+    schema_version: String,
+    tools: Vec<ReadinessContainerCatalogTool>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReadinessContainerCatalogTool {
+    id: String,
+    version: String,
+    support_disposition: String,
+    #[serde(default)]
+    external_artifact_supported: bool,
+    domains: Vec<String>,
+    stage_ids: Vec<String>,
+    expected_bin: String,
+    version_command: String,
+    help_command: String,
+    expected_version_regex: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct ExternalArtifactToolContract {
+    pub(crate) tool_id: String,
+    pub(crate) domains: Vec<String>,
+    pub(crate) stage_ids: Vec<String>,
+    pub(crate) expected_bin: String,
+    pub(crate) version_command: String,
+    pub(crate) help_command: String,
+    pub(crate) expected_version_regex: String,
+    pub(crate) declared_version: String,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum ReadinessDomain {
@@ -134,43 +168,127 @@ pub(crate) fn load_benchmark_stage_ids(
 }
 
 pub(crate) fn load_retained_container_tool_ids(repo_root: &Path) -> Result<BTreeSet<String>> {
-    let catalog_path = repo_root.join(CONTAINER_CATALOG_PATH);
-    let raw = fs::read_to_string(&catalog_path)
-        .with_context(|| format!("read {}", catalog_path.display()))?;
-    let parsed: toml::Value =
-        toml::from_str(&raw).with_context(|| format!("parse {}", catalog_path.display()))?;
-    let schema_version = required_string(&parsed, "schema_version", &catalog_path)?;
-    if schema_version != CONTAINER_CATALOG_SCHEMA_VERSION {
-        return Err(anyhow!(
-            "unsupported container catalog schema `{schema_version}` in {}",
-            catalog_path.display()
-        ));
-    }
-
-    let mut retained_tool_ids = BTreeSet::new();
-    let mut known_tool_ids = BTreeSet::new();
-    for tool in value_array(&parsed, "tools", &catalog_path)? {
-        let tool_id = required_string(tool, "id", &catalog_path)?;
-        if !known_tool_ids.insert(tool_id.clone()) {
-            return Err(anyhow!(
-                "container catalog repeats tool id `{tool_id}` in {}",
-                catalog_path.display()
-            ));
-        }
-        let disposition = required_string(tool, "support_disposition", &catalog_path)?;
-        if !matches!(disposition.as_str(), "retained" | "unsupported" | "retired" | "excluded") {
-            return Err(anyhow!(
-                "container catalog tool `{tool_id}` has unsupported disposition `{disposition}`"
-            ));
-        }
-        if disposition == "retained" {
-            retained_tool_ids.insert(tool_id);
-        }
-    }
+    let retained_tool_ids = load_readiness_container_catalog(repo_root)?
+        .tools
+        .into_iter()
+        .filter(|tool| tool.support_disposition == "retained")
+        .map(|tool| tool.id)
+        .collect::<BTreeSet<_>>();
     if retained_tool_ids.is_empty() {
         return Err(anyhow!("container catalog does not retain any executable tools"));
     }
     Ok(retained_tool_ids)
+}
+
+pub(crate) fn load_external_artifact_tool_contracts(
+    repo_root: &Path,
+) -> Result<Vec<ExternalArtifactToolContract>> {
+    let mut contracts = load_readiness_container_catalog(repo_root)?
+        .tools
+        .into_iter()
+        .filter(|tool| tool.external_artifact_supported)
+        .map(|mut tool| {
+            if tool.support_disposition != "unsupported" {
+                return Err(anyhow!(
+                    "external artifact tool `{}` must use the unsupported redistribution disposition",
+                    tool.id
+                ));
+            }
+            tool.domains.sort();
+            tool.domains.dedup();
+            tool.stage_ids.sort();
+            tool.stage_ids.dedup();
+            if tool.domains.is_empty() || tool.stage_ids.is_empty() {
+                return Err(anyhow!(
+                    "external artifact tool `{}` must declare domains and stage ids",
+                    tool.id
+                ));
+            }
+            if [
+                tool.expected_bin.as_str(),
+                tool.version_command.as_str(),
+                tool.help_command.as_str(),
+                tool.expected_version_regex.as_str(),
+                tool.version.as_str(),
+            ]
+            .iter()
+            .any(|value| value.trim().is_empty())
+            {
+                return Err(anyhow!(
+                    "external artifact tool `{}` must declare complete runtime verification metadata",
+                    tool.id
+                ));
+            }
+            for stage_id in &tool.stage_ids {
+                let domain = stage_id.split_once('.').map(|(domain, _)| domain).ok_or_else(|| {
+                    anyhow!(
+                        "external artifact tool `{}` has malformed stage id `{stage_id}`",
+                        tool.id
+                    )
+                })?;
+                if !tool.domains.iter().any(|candidate| candidate == domain) {
+                    return Err(anyhow!(
+                        "external artifact tool `{}` stage `{stage_id}` is outside its declared domains",
+                        tool.id
+                    ));
+                }
+            }
+            Ok(ExternalArtifactToolContract {
+                tool_id: tool.id,
+                domains: tool.domains,
+                stage_ids: tool.stage_ids,
+                expected_bin: tool.expected_bin,
+                version_command: tool.version_command,
+                help_command: tool.help_command,
+                expected_version_regex: tool.expected_version_regex,
+                declared_version: tool.version,
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    contracts.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
+    if contracts.is_empty() {
+        return Err(anyhow!(
+            "container catalog does not declare any operator-provided external artifacts"
+        ));
+    }
+    Ok(contracts)
+}
+
+fn load_readiness_container_catalog(repo_root: &Path) -> Result<ReadinessContainerCatalog> {
+    let catalog_path = repo_root.join(CONTAINER_CATALOG_PATH);
+    let raw = fs::read_to_string(&catalog_path)
+        .with_context(|| format!("read {}", catalog_path.display()))?;
+    let catalog: ReadinessContainerCatalog =
+        toml::from_str(&raw).with_context(|| format!("parse {}", catalog_path.display()))?;
+    if catalog.schema_version != CONTAINER_CATALOG_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "unsupported container catalog schema `{}` in {}",
+            catalog.schema_version,
+            catalog_path.display()
+        ));
+    }
+
+    let mut known_tool_ids = BTreeSet::new();
+    for tool in &catalog.tools {
+        if !known_tool_ids.insert(tool.id.as_str()) {
+            return Err(anyhow!(
+                "container catalog repeats tool id `{}` in {}",
+                tool.id,
+                catalog_path.display()
+            ));
+        }
+        if !matches!(
+            tool.support_disposition.as_str(),
+            "retained" | "unsupported" | "retired" | "excluded"
+        ) {
+            return Err(anyhow!(
+                "container catalog tool `{}` has unsupported disposition `{}`",
+                tool.id,
+                tool.support_disposition
+            ));
+        }
+    }
+    Ok(catalog)
 }
 
 pub(crate) fn load_tool_contracts(

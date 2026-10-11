@@ -52,6 +52,7 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -60,18 +61,21 @@
               "name": "report_json",
               "path": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
               "name": "length_distribution_tsv",
               "path": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
               "role": "summary_tsv",
+              "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
               "optional": false
             },
             {
               "name": "length_distribution_json",
               "path": "__BIJUX_RESULT_ROOT__/length_distribution.json",
               "role": "metrics_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             }
           ]
@@ -132,12 +136,14 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             },
             {
               "name": "reads_r2",
               "path": "__BIJUX_READS_R2__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -146,18 +152,21 @@
               "name": "report_json",
               "path": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
               "name": "length_distribution_tsv",
               "path": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
               "role": "summary_tsv",
+              "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
               "optional": false
             },
             {
               "name": "length_distribution_json",
               "path": "__BIJUX_RESULT_ROOT__/length_distribution.json",
               "role": "metrics_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             }
           ]
@@ -226,6 +235,7 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -234,18 +244,21 @@
               "name": "report_json",
               "path": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
               "name": "length_distribution_tsv",
               "path": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
               "role": "summary_tsv",
+              "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
               "optional": false
             },
             {
               "name": "length_distribution_json",
               "path": "__BIJUX_RESULT_ROOT__/length_distribution.json",
               "role": "metrics_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             }
           ]
@@ -312,12 +325,14 @@
               "name": "reads_r1",
               "path": "__BIJUX_READS_R1__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             },
             {
               "name": "reads_r2",
               "path": "__BIJUX_READS_R2__",
               "role": "reads",
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "optional": false
             }
           ],
@@ -326,18 +341,21 @@
               "name": "report_json",
               "path": "__BIJUX_RESULT_ROOT__/profile_read_lengths_report.json",
               "role": "report_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             },
             {
               "name": "length_distribution_tsv",
               "path": "__BIJUX_RESULT_ROOT__/length_distribution.tsv",
               "role": "summary_tsv",
+              "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
               "optional": false
             },
             {
               "name": "length_distribution_json",
               "path": "__BIJUX_RESULT_ROOT__/length_distribution.json",
               "role": "metrics_json",
+              "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
               "optional": false
             }
           ]

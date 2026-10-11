@@ -15,6 +15,7 @@ fn dependency_graph_matches_environment_boundary() {
         "schemars",
         "serde",
         "serde_json",
+        "serde_yaml",
         "sha2",
         "thiserror",
         "toml",

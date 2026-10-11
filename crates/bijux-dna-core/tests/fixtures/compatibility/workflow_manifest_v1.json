@@ -5,6 +5,7 @@
   "inputs": [
     {
       "artifact_id": "reads",
+      "artifact_contract_id": "bijux.fastq.artifact.single_end.v1",
       "role": "reads",
       "path": "inputs/sample.fastq.gz",
       "layout": "single_end",

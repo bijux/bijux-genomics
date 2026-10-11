@@ -105,6 +105,7 @@ pub fn plan_stage_campaign_retry_attempts(
                 Some(
                     BenchmarkLifecycleStatus::Passed
                         | BenchmarkLifecycleStatus::Failed
+                        | BenchmarkLifecycleStatus::Cancelled
                         | BenchmarkLifecycleStatus::Superseded
                         | BenchmarkLifecycleStatus::BlockedExternal
                 )

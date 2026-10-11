@@ -30,6 +30,13 @@ Non-breaking changes may use a minor bump when callers can safely ignore them:
 - **Canonical stage contract**: the typed stage/backend agreement that binds
   semantic stage ID, backend tool ID, artifact roles, capability claims,
   report contracts, refusal codes, and operating mode before execution.
+- **Tool binding**: a registry record that binds one tool to one semantic stage
+  through canonical projections, generic argv rendering, resource requirements,
+  normalization, and downstream-probe identities. A tool may own several
+  explicit stage bindings.
+- **External artifact binding**: the same tool-binding interface with
+  operator-supplied artifact admission metadata instead of a distributable
+  catalog image.
 
 ## No execution detail
 This crate defines planning contracts only; execution belongs in core/runtime.

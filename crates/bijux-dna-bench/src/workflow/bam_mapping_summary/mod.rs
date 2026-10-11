@@ -21,6 +21,7 @@ use self::inputs::execution_inputs;
 use self::parameters::ensure_parameter_evidence;
 use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
 
+pub(crate) use report::publish_bam_mapping_summary_stage_report_with_presentation_authority;
 pub use report::{
     publish_bam_mapping_summary_stage_report, render_bam_mapping_summary_markdown,
     BamMappingSummaryStageReportPublication,

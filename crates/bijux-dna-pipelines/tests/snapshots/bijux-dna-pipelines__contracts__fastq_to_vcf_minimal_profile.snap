@@ -201,7 +201,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "threads": 1
       },
       "bam.genotyping": {
-        "caller": "angsd",
+        "caller": "bcftools",
         "min_call_rate": 0.7,
         "min_posterior": 0.8
       },

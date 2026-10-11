@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "d6b352cec629b12396c93e67968a42b43f576550038cda25d16cc88db2639250",
+  "source_sha256": "592459bcb0367f8a518e322917e869a6d2c951a86f6b489a4cbad547f41cf11c",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -84,7 +84,7 @@
       "pinned_commit": "b3099ed756e7aff87d2d1dd4fd30cdf36998380b",
       "apptainer_definition": "",
       "dockerfile": "",
-      "contract_sha256": "aeb6b4f306007ea4a9073fcf36f6a8712636d5a56c463788231219fc0160b6da"
+      "contract_sha256": "6efad778e60ad88588683eb4f1806608a4d54bb542ef7ed2eaf85c0f87171101"
     },
     {
       "id": "atropos",
@@ -518,7 +518,7 @@
       "pinned_commit": "",
       "apptainer_definition": "",
       "dockerfile": "",
-      "contract_sha256": "635fa1f207c32247c623038d46e106584375edd75b27cfa4e05473080c4c7656"
+      "contract_sha256": "3f895f20f4797882e520e5e5ae067551fbcd23431cbe4425bac6f3c6fbff46d7"
     },
     {
       "id": "fastx_clipper",
@@ -658,7 +658,7 @@
       "pinned_commit": "",
       "apptainer_definition": "",
       "dockerfile": "",
-      "contract_sha256": "62445ea7a742f71d3155d5d43ee99c96511925583bd05743a46ca673c660093e"
+      "contract_sha256": "f1edfe18c07ac1db17f6a5a424c15bc70d29b82dfd884732f406843fe76bfc77"
     },
     {
       "id": "kaiju",
@@ -840,7 +840,7 @@
       "pinned_commit": "ab3b5ae8a388b9b1874dd2854fdec32bd9195f22",
       "apptainer_definition": "",
       "dockerfile": "",
-      "contract_sha256": "bacfd284206e45a9390cc7302b9776fb34c45aa3afa38b9cfaaf99e27f3ce121"
+      "contract_sha256": "7ebffaf6110caade824e7907bfef6c0fac8eebdeeaa79aefc23b331b6634aaac"
     },
     {
       "id": "pear",

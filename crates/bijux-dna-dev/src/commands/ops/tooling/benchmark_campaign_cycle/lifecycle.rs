@@ -1,6 +1,8 @@
 //! Benchmark campaign lifecycle planning and persistent state operations.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
+use std::io::ErrorKind;
 
 use anyhow::{bail, Context};
 
@@ -208,14 +210,42 @@ fn require_recovered_lineage_source_ancestry(
 ) -> Result<()> {
     let mut commits = BTreeSet::new();
     for attempt in attempts {
-        let spec = bijux_dna_bench::load_execution_spec(benchmark_root, &attempt.identity)
-            .context("load recovered benchmark lineage source lock")?;
-        commits.insert(spec.source.repository_commit);
+        if let Some(commit) = recovered_lineage_source_commit(benchmark_root, attempt)? {
+            commits.insert(commit);
+        }
     }
     for commit in commits {
         require_retry_source_ancestry(repository_root, &commit)?;
     }
     Ok(())
+}
+
+fn recovered_lineage_source_commit(
+    benchmark_root: &std::path::Path,
+    attempt: &bijux_dna_bench::BenchmarkAttemptRecordV2,
+) -> Result<Option<String>> {
+    let directory =
+        bijux_dna_bench::benchmark_attempt_directory(benchmark_root, &attempt.identity)?;
+    let spec_path = directory.join("execution-spec.json");
+    match fs::symlink_metadata(&spec_path) {
+        Ok(_) => {
+            let spec = bijux_dna_bench::load_execution_spec(benchmark_root, &attempt.identity)
+                .context("load recovered benchmark lineage source lock")?;
+            Ok(Some(spec.source.repository_commit))
+        }
+        Err(error)
+            if error.kind() == ErrorKind::NotFound
+                && attempt.transitions.len() == 2
+                && attempt.transitions[0].to_status
+                    == bijux_dna_bench::BenchmarkLifecycleStatus::Planned
+                && attempt.transitions[1].to_status
+                    == bijux_dna_bench::BenchmarkLifecycleStatus::Superseded =>
+        {
+            Ok(None)
+        }
+        Err(error) => Err(error)
+            .with_context(|| format!("inspect recovered execution spec {}", spec_path.display())),
+    }
 }
 
 fn require_retry_source_ancestry(
@@ -323,7 +353,46 @@ mod tests {
     use std::path::Path;
     use std::process::Command;
 
-    use super::require_retry_source_ancestry;
+    use super::{recovered_lineage_source_commit, require_retry_source_ancestry};
+
+    #[test]
+    fn retry_source_allows_missing_spec_only_before_execution_preparation() -> anyhow::Result<()> {
+        let (registry, _, _) = bijux_dna_bench::load_checked_in_benchmark_planning_contracts()?;
+        let plan = bijux_dna_bench::plan_stage_campaign_attempts(
+            &registry,
+            &"a".repeat(40),
+            &"b".repeat(64),
+            "run-2042",
+            "current-source-campaign",
+            "attempt-001",
+            "2026-08-05T00:00:00Z",
+        )?;
+
+        let pre_execution = bijux_dna_infra::temp_dir("benchmark-retry-pre-execution")?;
+        bijux_dna_bench::ensure_stage_campaign_attempts(pre_execution.path(), &plan)?;
+        let identity = &plan.cycle.attempts[0].identity;
+        bijux_dna_runtime::record_attempt_superseded(
+            pre_execution.path(),
+            identity,
+            "2026-08-05T00:01:00Z",
+            "execution preparation was intentionally replaced",
+        )?;
+        let superseded = bijux_dna_bench::load_attempt_lifecycle(pre_execution.path(), identity)?;
+        assert_eq!(recovered_lineage_source_commit(pre_execution.path(), &superseded)?, None);
+
+        let prepared = bijux_dna_infra::temp_dir("benchmark-retry-prepared")?;
+        bijux_dna_bench::ensure_stage_campaign_attempts(prepared.path(), &plan)?;
+        bijux_dna_runtime::record_attempt_ready(prepared.path(), identity, "2026-08-05T00:01:00Z")?;
+        bijux_dna_runtime::record_attempt_superseded(
+            prepared.path(),
+            identity,
+            "2026-08-05T00:02:00Z",
+            "prepared execution evidence was intentionally replaced",
+        )?;
+        let superseded = bijux_dna_bench::load_attempt_lifecycle(prepared.path(), identity)?;
+        assert!(recovered_lineage_source_commit(prepared.path(), &superseded).is_err());
+        Ok(())
+    }
 
     #[test]
     fn retry_source_accepts_descendants_and_rejects_unrelated_history() -> anyhow::Result<()> {

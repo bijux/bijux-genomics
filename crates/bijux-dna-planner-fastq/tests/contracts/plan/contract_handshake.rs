@@ -375,13 +375,13 @@ fn compose_rejects_non_governed_index_bound_as_qc_input() -> anyhow::Result<()> 
 #[test]
 fn compose_rejects_single_end_input_for_paired_only_tool() -> anyhow::Result<()> {
     let bindings = vec![FastqStageBinding {
-        stage_id: "fastq.remove_duplicates".to_string(),
+        stage_id: "fastq.merge_pairs".to_string(),
         stage_instance_id: None,
         tool: ToolExecutionSpecV1 {
-            tool_id: ToolId::new("fastuniq"),
+            tool_id: ToolId::new("flash2"),
             tool_version: "99.99.99+fixture".to_string(),
             image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
-            command: CommandSpecV1 { template: vec!["fastuniq".to_string()] },
+            command: CommandSpecV1 { template: vec!["flash2".to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -413,6 +413,8 @@ fn compose_rejects_single_end_input_for_paired_only_tool() -> anyhow::Result<()>
     )
     .expect_err("paired-only tools must reject single-end inputs");
 
-    assert!(error.to_string().contains("does not support single-end inputs"));
+    assert!(error
+        .to_string()
+        .contains("does not admit SingleEnd inputs under the governed FASTQ layout contract"));
     Ok(())
 }

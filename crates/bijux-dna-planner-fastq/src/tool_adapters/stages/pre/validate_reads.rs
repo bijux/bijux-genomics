@@ -375,7 +375,7 @@ fn validation_lineage_command(
     );
     Ok(format!(
         "printf '{}' {} {} {} \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > {}",
-        escape_printf_format(&lineage_format),
+        lineage_format,
         shell_quote_str(&json_path_token(r1)?),
         shell_quote_str(&json_optional_path_token(r2)?),
         shell_quote_str(&json_path_token(report_path)?),
@@ -405,7 +405,7 @@ fn validation_report_command(
     );
     Ok(format!(
         "printf '{}' {} {} {} {} \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > {}",
-        escape_printf_format(&report_format),
+        report_format,
         shell_quote_str(&json_path_token(r1)?),
         shell_quote_str(&json_optional_path_token(r2)?),
         shell_quote_str(&json_path_token(r1_log)?),
@@ -583,10 +583,6 @@ fn json_optional_path_token(path: Option<&Path>) -> Result<String> {
         .map_err(|error| anyhow!("serialize optional path token for validation report: {error}"))
 }
 
-fn escape_printf_format(value: &str) -> String {
-    value.replace('%', "%%")
-}
-
 fn shell_quote(path: &Path) -> String {
     shell_quote_str(&path.display().to_string())
 }
@@ -726,19 +722,20 @@ mod tests {
         assert!(script.contains("out/validated_reads_manifest.json"));
         assert!(script.contains("\"tool_id\":\"seqtk\""));
         assert!(script.contains("\"validated_inputs\":1"));
-        assert!(script.contains("\"validated_reads_r1\":%%s"));
+        assert!(script.contains("\"validated_reads_r1\":%s"));
         assert!(script.contains("unsupported_compression"));
         assert!(script.contains("empty_input"));
         assert!(script.contains("malformed_record"));
         assert!(script.contains("invalid_quality_encoding"));
-        assert!(script.contains("\"status_r1\":%%s"));
-        assert!(script.contains("\"status_r2\":%%s"));
+        assert!(script.contains("\"status_r1\":%s"));
+        assert!(script.contains("\"status_r2\":%s"));
         assert!(script.contains("pair_sync_checked=false"));
         assert!(script.contains("pair_sync_pass=null"));
         assert!(script.contains("\"validation_mode\":\"strict\""));
         assert!(script.contains("\"pair_sync_policy\":\"not_applicable\""));
-        assert!(script.contains("\"pair_sync_checked\":%%s"));
-        assert!(script.contains("\"pair_sync_pass\":%%s"));
+        assert!(script.contains("\"pair_sync_checked\":%s"));
+        assert!(script.contains("\"pair_sync_pass\":%s"));
+        assert!(!script.contains("%%s"));
         assert!(script.contains("\"stage\":\"fastq.validate_reads\""));
         assert!(script.contains("\"$strict_pass\""));
         assert!(script.contains("\"$exit_code\""));
@@ -843,7 +840,7 @@ mod tests {
         assert!(script.contains("validated_reads_r2"));
         assert!(script.contains("pair_count_match"));
         assert!(script.contains("exit_code=96"));
-        assert!(script.contains("\"status_r1\":%%s"));
+        assert!(script.contains("\"status_r1\":%s"));
         Ok(())
     }
 

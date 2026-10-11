@@ -18,12 +18,14 @@
   "io": {
     "inputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "bam",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
         "role": "bam"
       },
       {
+        "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
         "name": "reference",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/reference.fasta",
@@ -38,6 +40,7 @@
     ],
     "outputs": [
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "validation_report",
         "optional": false,
         "path": "out/validation.json",
@@ -47,9 +50,10 @@
         "name": "flagstat",
         "optional": false,
         "path": "out/flagstat.txt",
-        "role": "report_json"
+        "role": "report"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",

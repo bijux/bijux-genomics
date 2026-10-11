@@ -15,8 +15,8 @@ serialization, metric contracts, and the curated prelude surface.
 
 ## Source Map
 
-- `src/contract/` owns execution graphs, run records, tooling contracts, and
-  canonical JSON helpers.
+- `src/contract/` owns execution graphs, canonical artifact compatibility, run
+  records, tooling contracts, and canonical JSON and schema helpers.
 - `src/foundation/` owns low-level shared models and deterministic helpers used
   by core contracts.
 - `src/id_catalog/` owns canonical pipeline, stage, and tool identifiers.

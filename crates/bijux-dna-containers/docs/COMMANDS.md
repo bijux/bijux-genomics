@@ -34,8 +34,14 @@ library can manage when callers invoke the matching API.
 - `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
   bijux-runtime --net --network none` probes, persists immutable streams when requested, and
   admits version output against the catalog contract regex.
-- `execute_runtime_verification()`: resolves canonical inventory images and runs independent
-  version/help smoke workers before publishing manifest-bound portable evidence.
+- `freeze_repository()`: runs bounded Git inspection and worktree commands to materialize an
+  immutable commit-addressed checkout under site-governed roots.
+- `import_run_evidence()`, `plan_final_run_evidence()`, and
+  `apply_final_run_evidence_plan()`: import immutable run locks, select the latest passing run per
+  tool, and preserve superseded attempt lineage behind an explicit non-mutating plan boundary.
+- `admit_external_artifact()`: runs the cataloged version probe against an operator-provided
+  binary or through `apptainer exec`, verifies the declared checksum, and publishes a no-copy
+  admission record. Restricted artifacts must remain outside the repository and active image root.
 - `catalog_identity_at_commit()`: runs `git show --no-ext-diff <commit>:containers/contracts/catalog.toml`
   after strict commit validation and hashes the exact historical catalog bytes.
 - `derive_container_catalog_lock()` and `load_container_catalog_lock()`: derive and admit the
@@ -49,12 +55,17 @@ library can manage when callers invoke the matching API.
   malformed identities.
 - `clean_repository_head_commit()`: runs `git status --porcelain=v1 --untracked-files=normal`
   before resolving `HEAD` and rejects uncommitted build inputs.
+- `admit_container_pipeline_site()`: runs bounded `git rev-parse --verify HEAD^{commit}` and
+  `git status --porcelain=v1 --untracked-files=normal` inspections before admitting a pipeline's
+  repository, immutable files, governed result layout, and Slurm resource selection.
 
 ## Non-Commands
 
 - Image resolution and platform loading do not run containers.
 - Catalog digest hydration reads the local registry file only; it does not contact a registry.
 - Cache path functions compute paths; they do not pull, build, or delete images.
+- Catalog-wide runtime verification is composed and published by `bijux-dna-containers-qa`; this
+  crate supplies the typed admission, identity, and bounded single-image probe primitives.
 
 ## Boundary Rules
 
@@ -75,6 +86,12 @@ library can manage when callers invoke the matching API.
 - `src/evidence/tool_contract/smoke.rs`: offline contract smoke execution and evidence admission.
 - `src/evidence/tool_contract/version_lock.rs`: committed version-source timestamp derivation for
   deterministic immutable lock publication.
+- `src/evidence/external_artifact/workflow.rs`: operator-artifact version probing and immutable
+  external admission; it never copies or publishes the restricted artifact.
+- `src/site_policy/repository_freeze.rs`: clean-source verification and commit-addressed Git
+  worktree materialization under site-governed roots.
+- `src/execution_contract/pipeline/admission.rs`: execution-site repository identity and clean-state
+  inspection before immutable pipeline inputs are admitted.
 - `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
 - `src/build/publication.rs`: builder host, Apptainer version, pinned base, embedded identity, and
   canonical image publication.

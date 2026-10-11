@@ -16,6 +16,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&payload)"
     },
     "inputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "artifact_id": "bam",
         "format_id": "bam",
         "path": "sample.bam",
@@ -29,6 +30,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&payload)"
     "profile_id": "bam-to-bam__default__v1",
     "reference_assets": [
       {
+        "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
         "asset_id": "reference",
         "build_id": "GRCh38",
         "checksum_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",

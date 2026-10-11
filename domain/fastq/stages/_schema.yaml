@@ -4,6 +4,8 @@ required_fields:
   - status
   - scope
   - domain
+  - benchmark_disposition
+  - benchmark_disposition_reason
   - inputs
   - outputs
   - description
@@ -21,5 +23,12 @@ allowed_status:
   - supported
   - planned
   - out_of_scope
+allowed_benchmark_disposition:
+  - benchmark_required
+  - qualification_only
+  - orchestration_only
+  - test_only
+  - retired
+  - excluded
 required_scope: "pre_hpc_pre_vcf"
 domain: "fastq"

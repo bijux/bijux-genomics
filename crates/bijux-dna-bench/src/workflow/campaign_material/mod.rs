@@ -24,7 +24,11 @@ use crate::repo::{
     admit_bam_benchmark_corpus, admit_bam_genotyping_corpus, AdmittedBamGenotypingCorpus,
 };
 
-pub use report::{publish_benchmark_campaign_report, BenchmarkCampaignReportPublication};
+pub use report::{
+    publish_benchmark_campaign_report,
+    publish_benchmark_campaign_report_with_presentation_authority,
+    BenchmarkCampaignReportPublication,
+};
 
 const BAM_CORPUS_ID: &str = "ena-prjeb22390-err2112767-bam";
 const FASTQ_CORPUS_ID: &str = "human-short-read-diversity";

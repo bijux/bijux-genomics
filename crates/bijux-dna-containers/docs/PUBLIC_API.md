@@ -4,30 +4,43 @@
 
 - `build`
 - `evidence`
+- `execution_contract`
 - `public_api`
 - `resolve`
 - `runtime_spec`
+- `site_policy`
 
 ## Major Export Groups
 
 - `build`: Docker metadata helpers plus Apptainer build requests, reports, append-only attempt paths,
   failure classification, bounded build execution, and canonical study image/evidence publication.
-- `evidence`: typed container image-inventory and runtime-verification publications; strict embedded
-  tool contracts; the complete canonical `ContainerCatalog` and `ContainerCatalogTool` model;
+- `evidence`: typed container image-inventory, selected-run, and runtime-verification publications;
+  owner-separated immutable attempt layouts with shared manifests and required evidence directories;
+  strict embedded tool contracts; the complete canonical `ContainerCatalog` and
+  `ContainerCatalogTool` model;
   `validate_container_catalog` roster and recipe closure; model-owned `ContainerCatalogLock`
   derivation and admission; catalog-derived Apptainer build
   preparation; `load_container_evidence_chain` cross-publication admission; offline contract smoke
-  execution with bounded immutable streams; catalog-wide parallel runtime verification and
-  portable report publication; exact-commit catalog and Apptainer recipe identity;
+  execution with bounded immutable streams; deterministic runtime-verification report rendering;
+  exact-commit catalog and Apptainer recipe identity;
   `resolve_current_apptainer_image` selection with on-disk size and digest verification;
   no-clobber canonical image activation; reversible historical, obsolete, and interrupted image
-  quarantine; focused catalog/image-inventory closure validation for execution planning; runtime
-  inspection; deterministic image-inventory report rendering; validation, loading, JSON Schema
-  rendering, and atomic schema writing.
+  quarantine; no-copy external binary/SIF admission, access blockers, checksum/version replay, and
+  stage command binding for licensing-restricted tools; focused catalog/image-inventory closure
+  validation for execution planning; runtime inspection; deterministic image-inventory report
+  rendering; validation, loading, JSON Schema rendering, and atomic schema writing.
+- `execution_contract`: strict credential-reference loading, validation, and generated schema
+  ownership; dual-version pipeline declaration and execution-site admission; and resumable
+  inventory-bound repository/image currentization without execution or scheduler submission.
 - `resolve`: environment errors, image and platform models, catalog loading, image resolution,
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: pure compatibility checks between a platform and selected runtime.
+- `site_policy`: typed site governance, hostname admission, and commit-addressed repository
+  freezing under governed roots.
 - `public_api::api`: facade re-export for consumers that prefer one stable import path.
+
+Catalog-wide runtime probe orchestration is intentionally owned by `bijux-dna-containers-qa` and
+is not exported by this production crate.
 
 ## Stability Rules
 

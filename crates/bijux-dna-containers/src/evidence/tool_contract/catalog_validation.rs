@@ -177,6 +177,7 @@ fn validate_tools(repository_root: &Path, catalog: &ContainerCatalog, errors: &m
                 tool.id
             ));
         }
+        validate_external_artifact_support(tool, errors);
         if !tool.upstream.starts_with("https://") {
             errors.push(format!("{}: upstream must be an https URL", tool.id));
         }
@@ -217,6 +218,51 @@ fn validate_tools(repository_root: &Path, catalog: &ContainerCatalog, errors: &m
     sorted.sort_unstable();
     if order != sorted {
         errors.push("tools must be sorted by canonical id".to_string());
+    }
+}
+
+fn validate_external_artifact_support(
+    tool: &super::ContainerCatalogTool,
+    errors: &mut Vec<String>,
+) {
+    if tool.external_artifact_supported {
+        if tool.support_disposition != "unsupported"
+            || tool.apptainer_supported
+            || tool.docker_arm64_supported
+        {
+            errors.push(format!(
+                "{}: external artifact support requires an unsupported, non-distributed tool",
+                tool.id
+            ));
+        }
+        validate_sorted_unique(
+            &tool.external_artifact_kinds,
+            "external_artifact_kinds",
+            &tool.id,
+            errors,
+        );
+        if tool.external_artifact_kinds.is_empty()
+            || tool
+                .external_artifact_kinds
+                .iter()
+                .any(|kind| !matches!(kind.as_str(), "binary" | "apptainer_sif"))
+        {
+            errors.push(format!(
+                "{}: external artifact kinds must select binary and/or apptainer_sif",
+                tool.id
+            ));
+        }
+    } else if !tool.external_artifact_kinds.is_empty() {
+        errors.push(format!(
+            "{}: external artifact kinds require external artifact support",
+            tool.id
+        ));
+    }
+    if tool.support_disposition == "unsupported" && !tool.external_artifact_supported {
+        errors.push(format!(
+            "{}: unsupported tool must expose a governed external artifact path",
+            tool.id
+        ));
     }
 }
 

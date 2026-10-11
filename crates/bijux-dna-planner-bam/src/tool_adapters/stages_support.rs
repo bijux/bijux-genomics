@@ -11,7 +11,7 @@ pub fn audit_outputs(stage: bijux_dna_domain_bam::BamStage, out_dir: &Path) -> V
     bijux_dna_domain_bam::required_audit_artifacts(stage)
         .iter()
         .map(|artifact| {
-            let role = role_for_artifact_name(artifact.name);
+            let role = role_for_artifact(artifact.name, artifact.filename);
             ArtifactRef::required(
                 ArtifactId::new(artifact.name.to_string()),
                 out_dir.join(artifact.filename),
@@ -21,7 +21,7 @@ pub fn audit_outputs(stage: bijux_dna_domain_bam::BamStage, out_dir: &Path) -> V
         .collect()
 }
 
-fn role_for_artifact_name(name: &str) -> ArtifactRole {
+fn role_for_artifact(name: &str, filename: &str) -> ArtifactRole {
     let name = name.to_ascii_lowercase();
     if name.contains("bam") {
         return ArtifactRole::Bam;
@@ -29,11 +29,27 @@ fn role_for_artifact_name(name: &str) -> ArtifactRole {
     if name.contains("bai") || name.contains("index") || name.ends_with("_idx") {
         return ArtifactRole::Index;
     }
-    if name.contains("metrics") {
+    if filename.ends_with(".json") && name.contains("metrics") {
         return ArtifactRole::MetricsJson;
     }
-    if name.contains("report") || name.contains("summary") || name.contains("flagstat") {
+    if filename.ends_with(".json") {
         return ArtifactRole::ReportJson;
+    }
+    if filename.ends_with(".tsv") {
+        return ArtifactRole::SummaryTsv;
+    }
+    if name.contains("metrics") {
+        return ArtifactRole::Metrics;
+    }
+    if name.contains("report")
+        || name.contains("summary")
+        || name.contains("flagstat")
+        || name.contains("idxstats")
+        || name.contains("stats")
+        || name.contains("depth")
+        || name.contains("histogram")
+    {
+        return ArtifactRole::Report;
     }
     ArtifactRole::Unknown
 }

@@ -195,6 +195,32 @@ pub(super) fn check_domain_schema(workspace: &Workspace) -> Result<DomainCommand
                     declared_domain.unwrap_or_default()
                 ));
             }
+            let benchmark_disposition = scalar_from_text(&text, "benchmark_disposition")?;
+            if !benchmark_disposition.as_deref().is_some_and(|value| {
+                matches!(
+                    value,
+                    "benchmark_required"
+                        | "qualification_only"
+                        | "orchestration_only"
+                        | "test_only"
+                        | "retired"
+                        | "excluded"
+                )
+            }) {
+                errors.push(format!(
+                    "{}: invalid benchmark_disposition '{}'",
+                    stage_file.display(),
+                    benchmark_disposition.unwrap_or_default()
+                ));
+            }
+            let benchmark_disposition_reason =
+                scalar_from_text(&text, "benchmark_disposition_reason")?;
+            if benchmark_disposition_reason.as_deref().is_none_or(str::is_empty) {
+                errors.push(format!(
+                    "{}: benchmark_disposition_reason must be non-empty",
+                    stage_file.display()
+                ));
+            }
             let defaults_source = scalar_from_text(&text, "defaults_source")?;
             match defaults_source {
                 Some(value) if value.starts_with("citation:") || value.starts_with("doc_ref:") => {}

@@ -73,11 +73,6 @@ pub(super) fn load_validation_planner_contract(
     Ok(contract)
 }
 
-pub(super) fn validation_planner_contract_sha256(repository_root: &Path) -> Result<String> {
-    bijux_dna_infra::hash_file_sha256(&repository_root.join(CONTRACT_PATH))
-        .context("hash FASTQ validation planner contract")
-}
-
 impl ValidationPlannerContract {
     pub(super) fn tool(&self, tool_id: &str) -> Result<&PlannerToolContract> {
         self.tools

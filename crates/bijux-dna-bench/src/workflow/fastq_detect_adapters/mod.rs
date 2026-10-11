@@ -22,6 +22,7 @@ use super::{
     BenchmarkExecutionMaterial, FastqProfileReadsExpectationPublication,
 };
 
+pub(crate) use report::publish_fastq_detect_adapters_stage_report_with_presentation_authority;
 pub use report::{
     publish_fastq_detect_adapters_stage_report, render_fastq_detect_adapters_markdown,
     FastqDetectAdaptersStageReportPublication,

@@ -61,9 +61,10 @@ completion counter.
 Resolve the public ENA identities in `corpus-01` before downloading any bytes:
 
 ```console
-python3 -B benchmarks/corpus_acquisition.py \
+bijux-dna bench acquire-fastq-corpus \
   --spec benchmarks/corpora/human-short-read-diversity.toml \
-  --output "$STUDY/data/evidence/acquisition-plans/corpus-01.json"
+  --output "$STUDY/data/evidence/acquisition-plans/corpus-01.json" \
+  --retrieved-at-utc "$retrieved_at_utc"
 ```
 
 The resolver uses ENA's run file report and records the exact HTTPS location,

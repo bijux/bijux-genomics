@@ -233,6 +233,10 @@ fn checked_lifecycle_schemas_match_model_authority() -> anyhow::Result<()> {
             "cycle-status-v2.schema.json",
             serde_json::to_value(bijux_dna_bench_model::benchmark_cycle_status_v2_schema())?,
         ),
+        (
+            "campaign-plan.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_campaign_plan_schema())?,
+        ),
     ];
     let schema_root = repository_root.join("benchmarks/contracts/schemas");
     for (name, generated) in schemas {
@@ -356,6 +360,24 @@ fn failed_scheduler_attempt_retains_exact_terminal_accounting() {
     let duplicate = failed.transitions[4].accounting[0].clone();
     failed.transitions[4].accounting.push(duplicate);
     assert!(validate_attempt_record_v2(&failed).is_err());
+}
+
+#[test]
+fn cancelled_scheduler_attempt_retains_distinct_terminal_accounting() {
+    let mut cancelled = passed_attempt("attempt-001", "seqkit");
+    cancelled.transitions.truncate(5);
+    let terminal = &mut cancelled.transitions[4];
+    terminal.to_status = BenchmarkLifecycleStatus::Cancelled;
+    terminal.reason = Some("scheduler cancelled the benchmark job on operator request".to_string());
+    terminal.accounting[0].state = BenchmarkSchedulerTerminalState::Cancelled;
+    terminal.accounting[0].raw_state = "CANCELLED".to_string();
+    terminal.accounting[0].exit_code = 1;
+    terminal.accounting[0].reason = Some("operator requested cancellation".to_string());
+
+    assert!(validate_attempt_record_v2(&cancelled).is_ok());
+
+    cancelled.transitions[4].to_status = BenchmarkLifecycleStatus::Failed;
+    assert!(validate_attempt_record_v2(&cancelled).is_err());
 }
 
 #[test]

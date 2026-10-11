@@ -8,9 +8,16 @@ CLI, runner, planner, stage, and domain crates.
 
 - `src/lib.rs`: crate root and stable module exports.
 - `src/public_api/`: facade re-export surface for consumers that need one stable import path.
-- `src/evidence/`: typed image-inventory and runtime-verification execution/publication,
-  cross-publication evidence-chain validation, complete catalog and recipe-closure validation,
-  catalog-derived embedded tool identity contracts, and parallel immutable smoke evidence.
+- `src/execution_contract/`: strict typed admission for container execution declarations that
+  describe credentials and dual-version pipeline inputs without owning runner effects. Pipeline
+  wire models, structural validation, execution-site admission, and inventory-bound currentization
+  remain separate.
+- `src/site_policy/`: site-governance declarations, host admission, and immutable repository
+  freezing under policy-owned roots.
+- `src/evidence/`: typed image-inventory, selected-run, and runtime-verification
+  execution/publication, cross-publication evidence-chain validation, complete catalog and
+  recipe-closure validation, catalog-derived embedded tool identity contracts, and parallel
+  immutable smoke evidence.
 - `src/build/`: Docker metadata, bounded Apptainer attempts, and canonical no-clobber image and
   build-evidence publication under governed study roots.
 - `src/resolve/types/`: serialized models, runtime enum, platform records, and environment errors.
@@ -41,6 +48,8 @@ CLI, runner, planner, stage, and domain crates.
    identity to the externally computed immutable SIF digest.
 8. Runtime verification resolves only canonical inventory selections, executes bounded offline
    probes in parallel, and binds immutable logs and manifests into the portable publication.
+9. Credential-reference admission deserializes only declared metadata fields, rejects embedded
+   values and inconsistent requirement flags, and supplies the generated checked schema.
 
 ## Boundaries
 

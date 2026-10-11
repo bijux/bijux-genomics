@@ -1,10 +1,11 @@
 //! Owner: bijux-dna-bench
 //! Repository-backed loading for benchmark observations.
 
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 
 use crate::repo::RunRepository;
 use crate::repo::{
@@ -22,6 +23,23 @@ use bijux_dna_bench_model::{
     BenchmarkPipelineParameterConfig, BenchmarkPortfolio, BenchmarkStageCampaignRegistry,
     BenchmarkStageInterfaceCatalog,
 };
+
+const STAGE_INTERFACE_REGISTRY_PATH: &str = "benchmarks/contracts/stage-interfaces.toml";
+
+/// Exact render-only authority used while publishing a benchmark report.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkReportPresentationAuthority {
+    pub repository_commit: String,
+    pub catalog_sha256: String,
+    pub overlaid_stage_ids: Vec<String>,
+}
+
+/// Validated stage interfaces and the render-only authority that completed them.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BenchmarkPublicationInterfaceCatalog {
+    pub catalog: BenchmarkStageInterfaceCatalog,
+    pub presentation: BenchmarkReportPresentationAuthority,
+}
 
 /// Load observations for a suite from a repository.
 ///
@@ -160,6 +178,114 @@ pub fn load_stage_interface_catalog_from_repo(
     validate_stage_interface_repository_contracts(&catalog, repo_root)
         .with_context(|| format!("validate stage interface repository paths {}", path.display()))?;
     Ok(catalog)
+}
+
+/// Load source-locked interfaces for report publication with an explicit render-only authority.
+///
+/// Current catalogs remain entirely source-owned. Historical v1 catalogs that predate required
+/// `report_presentation` tables receive only those absent tables from the presentation repository;
+/// every scientific, execution, parameter, adapter, and downstream-probe field remains sourced
+/// from and validated against the historical repository.
+///
+/// # Errors
+/// Returns an error when either authority is invalid, a historical interface is malformed, or the
+/// presentation authority does not define exactly one matching stage.
+pub fn load_stage_interface_catalog_for_publication(
+    source_path: &Path,
+    source_repo_root: &Path,
+    presentation_repo_root: &Path,
+) -> Result<BenchmarkPublicationInterfaceCatalog> {
+    let source_raw = fs::read_to_string(source_path)
+        .with_context(|| format!("read stage interface catalog {}", source_path.display()))?;
+    let source_sha256 = bijux_dna_infra::hash_file_sha256(source_path)?;
+    if let Ok(catalog) = toml::from_str::<BenchmarkStageInterfaceCatalog>(&source_raw) {
+        validate_stage_interface_catalog(&catalog).with_context(|| {
+            format!("validate stage interface catalog {}", source_path.display())
+        })?;
+        validate_stage_interface_repository_contracts(&catalog, source_repo_root).with_context(
+            || format!("validate stage interface repository paths {}", source_path.display()),
+        )?;
+        return Ok(BenchmarkPublicationInterfaceCatalog {
+            catalog,
+            presentation: BenchmarkReportPresentationAuthority {
+                repository_commit: bijux_dna_containers::api::repository_head_commit(
+                    source_repo_root,
+                )?,
+                catalog_sha256: source_sha256,
+                overlaid_stage_ids: Vec::new(),
+            },
+        });
+    }
+
+    let presentation_repo_root = presentation_repo_root
+        .canonicalize()
+        .context("canonicalize benchmark report presentation repository")?;
+    let presentation_path = presentation_repo_root.join(STAGE_INTERFACE_REGISTRY_PATH);
+    let presentation_catalog =
+        load_stage_interface_catalog_from_repo(&presentation_path, &presentation_repo_root)
+            .context("load benchmark report presentation authority")?;
+    let presentations = presentation_catalog
+        .interfaces
+        .iter()
+        .map(|interface| (interface.stage_id.as_str(), &interface.report_presentation))
+        .collect::<BTreeMap<_, _>>();
+
+    let mut source_value: toml::Value = toml::from_str(&source_raw).with_context(|| {
+        format!("parse historical stage interface catalog {}", source_path.display())
+    })?;
+    let interfaces = source_value
+        .get_mut("interfaces")
+        .and_then(toml::Value::as_array_mut)
+        .context("historical stage interface catalog omits its interface array")?;
+    let mut overlaid_stage_ids = Vec::new();
+    for interface in interfaces {
+        let table =
+            interface.as_table_mut().context("historical stage interface entry is not a table")?;
+        if table.contains_key("report_presentation") {
+            continue;
+        }
+        let stage_id = table
+            .get("stage_id")
+            .and_then(toml::Value::as_str)
+            .context("historical stage interface omits its stage ID")?
+            .to_string();
+        let presentation = presentations.get(stage_id.as_str()).with_context(|| {
+            format!("presentation authority omits historical benchmark stage {stage_id}")
+        })?;
+        let value = toml::Value::try_from(*presentation)
+            .with_context(|| format!("encode report presentation for stage {stage_id}"))?;
+        table.insert("report_presentation".to_string(), value);
+        overlaid_stage_ids.push(stage_id);
+    }
+    if overlaid_stage_ids.is_empty() {
+        bail!("stage interface catalog is invalid for reasons other than absent presentation metadata");
+    }
+
+    let catalog: BenchmarkStageInterfaceCatalog = source_value.try_into().with_context(|| {
+        format!("parse completed stage interface catalog {}", source_path.display())
+    })?;
+    validate_stage_interface_catalog(&catalog).with_context(|| {
+        format!("validate completed stage interface catalog {}", source_path.display())
+    })?;
+    validate_stage_interface_repository_contracts(&catalog, source_repo_root).with_context(
+        || {
+            format!(
+                "validate historical stage interface repository paths {}",
+                source_path.display()
+            )
+        },
+    )?;
+    overlaid_stage_ids.sort();
+    Ok(BenchmarkPublicationInterfaceCatalog {
+        catalog,
+        presentation: BenchmarkReportPresentationAuthority {
+            repository_commit: bijux_dna_containers::api::repository_head_commit(
+                &presentation_repo_root,
+            )?,
+            catalog_sha256: bijux_dna_infra::hash_file_sha256(&presentation_path)?,
+            overlaid_stage_ids,
+        },
+    })
 }
 
 /// Load the checked-in campaign and portfolio contracts and validate all planning inputs.

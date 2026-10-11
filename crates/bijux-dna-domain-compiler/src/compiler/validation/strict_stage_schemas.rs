@@ -7,6 +7,8 @@ struct StageSchemaDoc {
     #[serde(default)]
     allowed_status: Vec<String>,
     #[serde(default)]
+    allowed_benchmark_disposition: Vec<String>,
+    #[serde(default)]
     required_scope: String,
     #[serde(default)]
     domain: String,
@@ -73,6 +75,23 @@ fn validate_single_stage_schema(
             path.display(),
             status,
             schema.allowed_status
+        );
+    }
+
+    let benchmark_disposition = mapping
+        .get(serde_yaml::Value::String("benchmark_disposition".to_string()))
+        .and_then(serde_yaml::Value::as_str)
+        .unwrap_or_default();
+    if schema.allowed_benchmark_disposition.is_empty() {
+        bail!("{} must declare allowed_benchmark_disposition", schema_path.display());
+    }
+    if !schema.allowed_benchmark_disposition.iter().any(|allowed| allowed == benchmark_disposition)
+    {
+        bail!(
+            "{} benchmark_disposition `{}` is outside schema-allowed values {:?}",
+            path.display(),
+            benchmark_disposition,
+            schema.allowed_benchmark_disposition
         );
     }
 
@@ -191,6 +210,8 @@ required_fields:
   - status
   - scope
   - domain
+  - benchmark_disposition
+  - benchmark_disposition_reason
   - inputs
   - outputs
   - description
@@ -206,6 +227,13 @@ required_fields:
   - allowed_missingness
 allowed_status:
   - supported
+allowed_benchmark_disposition:
+  - benchmark_required
+  - qualification_only
+  - orchestration_only
+  - test_only
+  - retired
+  - excluded
 required_scope: "pre_hpc_pre_vcf"
 domain: "fastq"
 "#,
@@ -217,6 +245,8 @@ stage_id: "fastq.example"
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
+benchmark_disposition: "benchmark_required"
+benchmark_disposition_reason: "The stage is reserved by the benchmark portfolio."
 inputs:
   - name: "reads"
     data_type: "fastq"

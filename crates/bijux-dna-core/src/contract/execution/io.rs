@@ -147,6 +147,8 @@ pub struct ArtifactSpec {
     pub name: ArtifactId,
     pub path: PathBuf,
     pub role: ArtifactRole,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub artifact_contract_id: Option<String>,
     #[serde(default)]
     pub optional: bool,
 }
@@ -154,12 +156,56 @@ pub struct ArtifactSpec {
 impl ArtifactSpec {
     #[must_use]
     pub fn required(name: ArtifactId, path: PathBuf, role: ArtifactRole) -> Self {
-        Self { name, path, role, optional: false }
+        Self {
+            name,
+            path,
+            role,
+            artifact_contract_id: canonical_contract_id_for_role(role).map(str::to_string),
+            optional: false,
+        }
     }
 
     #[must_use]
     pub fn optional(name: ArtifactId, path: PathBuf, role: ArtifactRole) -> Self {
-        Self { name, path, role, optional: true }
+        Self {
+            name,
+            path,
+            role,
+            artifact_contract_id: canonical_contract_id_for_role(role).map(str::to_string),
+            optional: true,
+        }
+    }
+
+    #[must_use]
+    pub fn with_artifact_contract(mut self, contract_id: impl Into<String>) -> Self {
+        self.artifact_contract_id = Some(contract_id.into());
+        self
+    }
+}
+
+#[must_use]
+pub const fn canonical_contract_id_for_role(role: ArtifactRole) -> Option<&'static str> {
+    match role {
+        ArtifactRole::Reads | ArtifactRole::TrimmedReads => Some("bijux.fastq.artifact.reads.v1"),
+        ArtifactRole::Bam | ArtifactRole::DedupBam | ArtifactRole::Alignment => {
+            Some("bijux.bam.artifact.coordinate_sorted_indexed.v1")
+        }
+        ArtifactRole::Variant => Some("bijux.vcf.artifact.coordinate_sorted_indexed.v1"),
+        ArtifactRole::Reference => Some("bijux.reference.artifact.fasta.v1"),
+        ArtifactRole::SummaryTsv => Some("bijux.auxiliary.artifact.table.v1"),
+        ArtifactRole::ReportJson
+        | ArtifactRole::MetricsJson
+        | ArtifactRole::MetricsEnvelope
+        | ArtifactRole::SummaryJson => Some("bijux.auxiliary.artifact.json.v1"),
+        ArtifactRole::Index
+        | ArtifactRole::Report
+        | ArtifactRole::Log
+        | ArtifactRole::Metrics
+        | ArtifactRole::StageReport
+        | ArtifactRole::Provenance
+        | ArtifactRole::Evidence
+        | ArtifactRole::ReportHtml
+        | ArtifactRole::Unknown => None,
     }
 }
 

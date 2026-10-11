@@ -18,12 +18,12 @@ use bijux_dna_bench_model::{
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
 use self::parameters::ensure_parameter_evidence;
-use self::planner_contract::validation_planner_contract_sha256;
 use super::{
     fastq_profile_reads::campaign_execution_inputs, load_attempt_lifecycle,
     BenchmarkExecutionMaterial, FastqProfileReadsExpectationPublication,
 };
 
+pub(crate) use report::publish_fastq_validate_reads_stage_report_with_presentation_authority;
 pub use report::{
     publish_fastq_validate_reads_stage_report, render_fastq_validate_reads_markdown,
     FastqValidateReadsStageReportPublication,
@@ -82,17 +82,12 @@ pub fn prepare_fastq_validate_reads_material_from_expectations(
     let (inputs, samples) = campaign_execution_inputs(expectations)?;
     let parameters = ensure_parameter_evidence(repository_root, &attempt_directory, &samples)?;
     let measured_repetitions = 3;
-    let mut source_contract_sha256 = source_contract_sha256.clone();
-    source_contract_sha256.insert(
-        "planner_contract".to_string(),
-        validation_planner_contract_sha256(repository_root)?,
-    );
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),
         prepared_at_utc: prepared_at_utc.to_string(),
         repository_path: PathBuf::from(repository_root),
         benchmark_root: PathBuf::from(benchmark_root),
-        source_contract_sha256,
+        source_contract_sha256: source_contract_sha256.clone(),
         inputs,
         warmup_command: warmup_command(repository_root, &identity.tool_id, &samples)?,
         measured_command: measured_command(

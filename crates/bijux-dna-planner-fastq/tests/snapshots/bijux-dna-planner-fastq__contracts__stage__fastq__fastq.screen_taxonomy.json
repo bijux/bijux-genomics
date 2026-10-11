@@ -27,12 +27,14 @@
         "name": "reads_r1",
         "path": "reads_R1.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "reads_r2",
         "path": "reads_R2.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       }
     ],
@@ -41,24 +43,28 @@
         "name": "screen_report_tsv",
         "path": "out/kraken2.report.tsv",
         "role": "summary_tsv",
+        "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
         "optional": false
       },
       {
         "name": "classification_report_json",
         "path": "out/kraken2.classifications.json",
         "role": "report_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       },
       {
         "name": "unclassified_reads_r1",
         "path": "out/kraken2.unclassified_reads_1.fastq",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": true
       },
       {
         "name": "unclassified_reads_r2",
         "path": "out/kraken2.unclassified_reads_2.fastq",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": true
       }
     ]

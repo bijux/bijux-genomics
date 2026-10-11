@@ -33,6 +33,22 @@ assertions = [
   "the normalized genotype table is deterministic across measured repetitions",
 ]
 
+[interfaces.report_presentation]
+report_file_stem = "run-2001-bam-genotyping"
+generated_source = "bijux-dna-bench::workflow::bam_observation::report"
+title_class = "qualification"
+separate_accuracy_claim = true
+include_comparison_closure = true
+determinism = "detailed_evidence"
+comparison = "tool_means"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "input_bytes", heading = "Input bytes", format = "number0" },
+  { metric = "output_bytes", heading = "Output mean, bytes", format = "number1" },
+]
+
 [[interfaces]]
 stage_id = "bam.coverage"
 accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
@@ -66,6 +82,22 @@ assertions = [
   "every retained tool normalizes to reference bases, covered bases, coverage fraction, and mean depth",
   "covered bases cannot exceed the declared reference span",
   "cross-tool comparison consumes one tool-independent bundle",
+]
+
+[interfaces.report_presentation]
+report_file_stem = "run-2002-bam-coverage"
+generated_source = "bijux-dna-bench::workflow::bam_observation::report"
+title_class = "qualification"
+separate_accuracy_claim = true
+include_comparison_closure = true
+determinism = "detailed_evidence"
+comparison = "tool_means"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "input_bytes", heading = "Input bytes", format = "number0" },
+  { metric = "output_bytes", heading = "Output mean, bytes", format = "number1" },
 ]
 
 [[interfaces]]
@@ -102,6 +134,22 @@ assertions = [
   "the normalized duplication fraction is derived from the normalized counts",
 ]
 
+[interfaces.report_presentation]
+report_file_stem = "run-2011-bam-duplication-metrics"
+generated_source = "bijux-dna-bench::workflow::bam_observation::report"
+title_class = "qualification"
+separate_accuracy_claim = true
+include_comparison_closure = true
+determinism = "detailed_evidence"
+comparison = "tool_means"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "input_bytes", heading = "Input bytes", format = "number0" },
+  { metric = "output_bytes", heading = "Output mean, bytes", format = "number1" },
+]
+
 [[interfaces]]
 stage_id = "bam.endogenous_content"
 accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
@@ -133,6 +181,22 @@ assertions = [
   "primary read counts exclude secondary and supplementary records",
   "mapped primary counts additionally exclude unmapped records",
   "mapped nonduplicate primary counts additionally exclude duplicate records",
+]
+
+[interfaces.report_presentation]
+report_file_stem = "run-2003-bam-endogenous-content"
+generated_source = "bijux-dna-bench::workflow::bam_observation::report"
+title_class = "qualification"
+separate_accuracy_claim = true
+include_comparison_closure = true
+determinism = "detailed_evidence"
+comparison = "tool_means"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "input_bytes", heading = "Input bytes", format = "number0" },
+  { metric = "output_bytes", heading = "Output mean, bytes", format = "number1" },
 ]
 
 [[interfaces]]
@@ -168,6 +232,22 @@ assertions = [
   "every retained tool normalizes to the same primary-read accounting fields",
   "Picard PAIR and UNPAIRED categories aggregate without double-counting paired records",
   "every normalized bundle can be compared without tool-specific downstream parsing",
+]
+
+[interfaces.report_presentation]
+report_file_stem = "run-2004-bam-mapping-summary"
+generated_source = "bijux-dna-bench::workflow::bam_mapping_summary::report"
+title_class = "qualification"
+separate_accuracy_claim = true
+include_comparison_closure = true
+determinism = "detailed_evidence"
+comparison = "tool_means"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "input_bytes", heading = "Input bytes", format = "number0" },
+  { metric = "output_bytes", heading = "Output mean, bytes", format = "number1" },
 ]
 
 [[interfaces]]
@@ -218,6 +298,23 @@ assertions = [
   "every normalized bundle satisfies one result schema and preserves a deterministic histogram artifact",
 ]
 
+[interfaces.report_presentation]
+report_file_stem = "run-2042-fastq-profile-read-lengths"
+generated_source = "bijux-dna-bench::workflow::fastq_profile_read_lengths::report"
+title_class = "comparative"
+separate_accuracy_claim = true
+include_comparison_closure = true
+determinism = "detailed_evidence"
+comparison = "tool_means"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "throughput_input_bytes_per_second", heading = "Throughput, MiB/s", format = "mebibytes_per_second2" },
+  { metric = "throughput_reads_per_second", heading = "Reads/s", format = "number1" },
+  { metric = "output_bytes", heading = "Output mean, bytes", format = "number1" },
+]
+
 [[interfaces]]
 stage_id = "fastq.detect_adapters"
 accepted_input_contracts = [
@@ -265,6 +362,22 @@ assertions = [
   "the resulting report_json artifacts remain consumable by governed QC aggregation without backend-specific branching",
 ]
 
+[interfaces.report_presentation]
+report_file_stem = "run-2030-fastq-detect-adapters"
+generated_source = "bijux-dna-bench::workflow::fastq_detect_adapters::report"
+title_class = "qualification"
+separate_accuracy_claim = true
+include_comparison_closure = true
+determinism = "detailed_evidence"
+comparison = "status_only"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "throughput_input_bytes_per_second", heading = "Throughput, MiB/s", format = "mebibytes_per_second2" },
+  { metric = "output_bytes", heading = "Output mean, bytes", format = "number1" },
+]
+
 [[interfaces]]
 stage_id = "fastq.profile_reads"
 accepted_input_contracts = [
@@ -304,6 +417,23 @@ assertions = [
   "every retained tool output normalizes to the same benchmark bundle schema",
   "every normalized bundle contributes the same required comparison fields",
   "the comparison consumer accepts each tool result without tool-specific branching",
+]
+
+[interfaces.report_presentation]
+report_file_stem = "run-2043-fastq-profile-reads"
+generated_source = "bijux-dna-bench::workflow::fastq_profile_reads::report"
+title_class = "comparative"
+separate_accuracy_claim = true
+include_comparison_closure = true
+determinism = "detailed_evidence"
+comparison = "tool_means"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "cpu_utilization_percent", heading = "CPU use, %", format = "percent1" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "throughput_input_bytes_per_second", heading = "Throughput, MiB/s", format = "mebibytes_per_second2" },
+  { metric = "output_bytes", heading = "Output mean, bytes", format = "number1" },
 ]
 
 [[interfaces]]
@@ -347,4 +477,19 @@ assertions = [
   "every retained backend completes the same strict validation and lineage contract",
   "validated read counts exactly equal independently admitted read counts",
   "paired samples complete canonical normalized-header synchronization without failure",
+]
+
+[interfaces.report_presentation]
+report_file_stem = "run-2051-fastq-validate-reads"
+generated_source = "bijux-dna-bench::workflow::fastq_validate_reads::report"
+title_class = "comparative"
+separate_accuracy_claim = false
+include_comparison_closure = false
+determinism = "compact_evidence"
+comparison = "range_only"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "throughput_input_bytes_per_second", heading = "Throughput, MiB/s", format = "mebibytes_per_second2" },
 ]

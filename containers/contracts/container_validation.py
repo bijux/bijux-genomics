@@ -9,7 +9,6 @@ import hashlib
 import json
 import os
 import re
-import shlex
 import socket
 import subprocess
 import sys
@@ -40,20 +39,6 @@ REPEATED_MEASUREMENT_SCHEMA = "bijux.benchmark.repeated_measurement.v1"
 BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA = "bijux.benchmark.attempt_archive.v1"
 RUN_ID_PATTERN = re.compile(r"run-[1-9][0-9]{3,}")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
-ACTIVE_SLURM_STATES = {
-    "CONFIGURING",
-    "COMPLETING",
-    "PENDING",
-    "REQUEUED",
-    "RESIZING",
-    "RUNNING",
-    "SUSPENDED",
-}
-FROZEN_CHECKOUT_PATHS = (
-    "benchmarks/contracts",
-    "benchmarks/execution",
-    "containers/contracts",
-)
 
 
 class ContractError(RuntimeError):
@@ -363,25 +348,6 @@ def git_output(repo: Path, *args: str) -> str:
     return completed.stdout.strip()
 
 
-def remove_incomplete_worktree(active_repository: Path, target: Path) -> bool:
-    completed = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(active_repository),
-            "worktree",
-            "remove",
-            "--force",
-            "--force",
-            str(target),
-        ],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    return completed.returncode == 0 or not target.exists()
-
-
 def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
     require_keys(
         config,
@@ -526,127 +492,6 @@ def load_governance(path: Path) -> dict[str, Any]:
     governance["config"] = config
     governance["path"] = path.resolve()
     return governance
-
-
-def freeze_repository(
-    commit: str,
-    governance_path: Path,
-    checkout_scope: str = "contracts",
-    checkout_paths: tuple[str, ...] = (),
-    source_namespace: str = "source-freezes",
-) -> Path:
-    if not re.fullmatch(r"[0-9a-f]{40}", commit):
-        raise ContractError("frozen repository commit must be a full Git commit")
-    if checkout_scope not in {"contracts", "sources", "complete"}:
-        raise ContractError(
-            "frozen repository scope must be contracts, sources, or complete"
-        )
-    if checkout_scope == "sources":
-        if re.fullmatch(r"[a-z][a-z0-9-]*", source_namespace) is None:
-            raise ContractError(
-                "source freeze namespace must be a durable path identity"
-            )
-        if not checkout_paths:
-            raise ContractError("source freeze requires at least one checkout path")
-        for value in checkout_paths:
-            path = Path(value)
-            if path.is_absolute() or ".." in path.parts or not path.parts:
-                raise ContractError(f"source freeze path is unsafe: {value}")
-    elif checkout_paths:
-        raise ContractError("checkout paths are valid only for a source freeze")
-    elif source_namespace != "source-freezes":
-        raise ContractError("source freeze namespace is valid only for a source freeze")
-    governance = load_governance(governance_path)
-    active_repository: Path = governance["active_repository"]
-    frozen_repositories: Path = governance["frozen_repositories"]
-    if git_output(active_repository, "status", "--porcelain"):
-        raise ContractError(
-            "active LUNARC repository must be clean before freezing a run"
-        )
-    git_output(active_repository, "cat-file", "-e", f"{commit}^{{commit}}")
-    if checkout_scope == "contracts":
-        target = frozen_repositories / commit
-    elif checkout_scope == "sources":
-        source_identity = hashlib.sha256(
-            "\0".join(sorted(set(checkout_paths))).encode("utf-8")
-        ).hexdigest()[:12]
-        target = frozen_repositories / source_namespace / f"{commit}-{source_identity}"
-    else:
-        target = frozen_repositories / "image-builds" / commit
-    if target.exists():
-        if git_output(target, "rev-parse", "HEAD") != commit:
-            raise ContractError(
-                f"existing frozen worktree has the wrong commit: {target}"
-            )
-        if git_output(target, "status", "--porcelain"):
-            raise ContractError(f"existing frozen worktree is dirty: {target}")
-        return target
-    target.parent.mkdir(parents=True, exist_ok=True)
-    worktree_arguments = [
-        "git",
-        "-C",
-        str(active_repository),
-        "worktree",
-        "add",
-        "--detach",
-    ]
-    if checkout_scope in {"contracts", "sources"}:
-        worktree_arguments.append("--no-checkout")
-    worktree_arguments.extend([str(target), commit])
-    completed = subprocess.run(
-        worktree_arguments,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if completed.returncode != 0:
-        cleanup_succeeded = remove_incomplete_worktree(active_repository, target)
-        cleanup_note = ""
-        if not cleanup_succeeded:
-            cleanup_note = f"; incomplete worktree remains for inspection: {target}"
-        raise ContractError(
-            f"cannot create frozen worktree: {completed.stderr.strip()}{cleanup_note}"
-        )
-    sparse_paths = (
-        FROZEN_CHECKOUT_PATHS
-        if checkout_scope == "contracts"
-        else tuple(sorted(set(checkout_paths)))
-    )
-    checkout_commands = (
-        (
-            (
-                ("sparse-checkout", "set", "--cone", *sparse_paths),
-                "configure frozen sparse checkout",
-            ),
-            (("read-tree", "-mu", "HEAD"), "populate frozen sparse checkout"),
-        )
-        if checkout_scope in {"contracts", "sources"}
-        else ()
-    )
-    for arguments, label in checkout_commands:
-        configured = subprocess.run(
-            ["git", "-C", str(target), *arguments],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-        if configured.returncode != 0:
-            cleanup_succeeded = remove_incomplete_worktree(active_repository, target)
-            cleanup_note = ""
-            if not cleanup_succeeded:
-                cleanup_note = f"; incomplete worktree remains for inspection: {target}"
-            raise ContractError(
-                f"cannot {label}: {configured.stderr.strip()}{cleanup_note}"
-            )
-    try:
-        if git_output(target, "rev-parse", "HEAD") != commit:
-            raise ContractError("new frozen worktree has the wrong commit")
-        if git_output(target, "status", "--porcelain"):
-            raise ContractError("new frozen worktree is not clean")
-    except ContractError as exc:
-        remove_incomplete_worktree(active_repository, target)
-        raise ContractError(f"cannot verify frozen worktree: {exc}") from exc
-    return target
 
 
 def validate_credentials(config: dict[str, Any]) -> None:
@@ -1725,102 +1570,6 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
     return 0 if not failures else 1
 
 
-def render_slurm(
-    governance_path: Path,
-    pipeline_path: Path,
-    credential_path: Path,
-    output_path: Path,
-    validated_contract: dict[str, Any] | None = None,
-) -> None:
-    contract = validated_contract or validate_contracts(
-        governance_path,
-        pipeline_path,
-        credential_path,
-    )
-    resources = contract["resources"]
-    run = contract["pipeline"]["run"]
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    job_name = (
-        f"{run['domain']}-{run['stage'].split('.')[-1]}-{run['tool']}-{run['sample']}"
-    )
-    stdout_path = output_path.parent / "slurm-%j.stdout.log"
-    stderr_path = output_path.parent / "slurm-%j.stderr.log"
-    scratch_preflight = ""
-    if contract["pipeline_schema"] == PIPELINE_SCHEMA_V2:
-        required_scratch_kib = resources["scratch_mb"] * 1024
-        scratch_environment = contract["governance"]["slurm_scratch_environment"]
-        if scratch_environment is None:
-            scratch_root = contract["governance"]["slurm_scratch_root"]
-            scratch_setup = "readonly GOVERNED_SCRATCH_ROOT=" + shlex.quote(
-                str(scratch_root)
-            )
-        else:
-            scratch_setup = (
-                f'if [[ -z "${{{scratch_environment}:-}}" ]]; then\n'
-                f'  echo "{scratch_environment} is unavailable on the allocated node" >&2\n'
-                "  exit 72\n"
-                "fi\n"
-                f'readonly GOVERNED_SCRATCH_ROOT="${{{scratch_environment}}}"'
-            )
-        scratch_preflight = f"""if [[ ! "${{SLURM_JOB_ID:-}}" =~ ^[0-9]+$ ]]; then
-  echo "Slurm job identity is unavailable" >&2
-  exit 72
-fi
-{scratch_setup}
-if [[ "$GOVERNED_SCRATCH_ROOT" != /* || ! -d "$GOVERNED_SCRATCH_ROOT" ]]; then
-  echo "governed Slurm scratch is not an existing absolute directory" >&2
-  exit 72
-fi
-readonly JOB_SCRATCH=$(mktemp -d "${{GOVERNED_SCRATCH_ROOT%/}}/bijux-genomics-${{SLURM_JOB_ID}}-XXXXXX")
-cleanup_scratch() {{
-  if [[ "$JOB_SCRATCH" != "${{GOVERNED_SCRATCH_ROOT%/}}"/bijux-genomics-"${{SLURM_JOB_ID}}"-* ]]; then
-    echo "refusing to remove unexpected scratch path: $JOB_SCRATCH" >&2
-    return 73
-  fi
-  rm -rf -- "$JOB_SCRATCH"
-}}
-trap cleanup_scratch EXIT
-export TMPDIR="$JOB_SCRATCH"
-available_scratch_kib=$(df -Pk "$TMPDIR" | awk 'NR == 2 {{print $4}}')
-if (( available_scratch_kib < {required_scratch_kib} )); then
-  echo "insufficient Slurm scratch: ${{available_scratch_kib}} KiB" >&2
-  exit 72
-fi
-"""
-    script = f"""#!/usr/bin/env bash
-#SBATCH --job-name={job_name}
-#SBATCH --account={resources["account"]}
-#SBATCH --partition={resources["partition"]}
-#SBATCH --cpus-per-task={resources["cpus"]}
-#SBATCH --mem={resources["memory_mb"]}M
-#SBATCH --time={resources["walltime"]}
-#SBATCH --output={stdout_path}
-#SBATCH --error={stderr_path}
-#SBATCH --no-requeue
-
-set -euo pipefail
-umask 027
-export LANG=C
-export LC_ALL=C
-export TZ=UTC
-{scratch_preflight}python3 {contract["repository_path"] / "containers/contracts/container_validation.py"} execute \\
-  --governance {governance_path.resolve()} \\
-  --pipeline {pipeline_path.resolve()} \\
-  --credentials {credential_path.resolve()}
-"""
-    output_path.write_text(script, encoding="utf-8")
-    output_path.chmod(0o750)
-
-
-def parse_sbatch_job_id(value: str) -> str:
-    job_id = value.strip().split(";", 1)[0]
-    if not job_id.isdigit():
-        raise ContractError(
-            f"sbatch did not return a numeric job id: {value.strip()!r}"
-        )
-    return job_id
-
-
 def operational_submission_root(
     manifest_path: Path,
     contract: dict[str, Any],
@@ -1890,292 +1639,6 @@ def archived_contract_paths(
     return core + parameters
 
 
-def submit_manifest(
-    manifest_path: Path,
-    governance_override: Path | None = None,
-) -> str:
-    manifest_path = manifest_path.resolve()
-    governance_path, pipeline_path, credential_path = manifest_contract_paths(
-        manifest_path, governance_override
-    )
-    governance = load_governance(governance_path)
-    contract = validate_contracts(governance_path, pipeline_path, credential_path)
-    if contract["pipeline_schema"] == PIPELINE_SCHEMA_V1:
-        require_under(
-            manifest_path,
-            governance["containers_root"] / "manifests",
-            "historical manifest",
-        )
-        expected_name = contract["run_id"]
-    else:
-        require_current_manifest_path(
-            manifest_path,
-            governance["active_repository"],
-            governance["containers_root"],
-            governance["results_root"],
-        )
-        expected_name = f"{contract['run_id']}-{contract['pipeline']['run']['tool']}"
-    if manifest_path.name != expected_name:
-        raise ContractError(f"manifest directory must end with {expected_name!r}")
-    submission_root = operational_submission_root(manifest_path, contract)
-    if submission_root != manifest_path:
-        if submission_root.exists():
-            raise ContractError(
-                f"refusing to overwrite an existing submission record: {submission_root}"
-            )
-        submission_root.mkdir(parents=True, mode=0o750)
-        for source, archived_name in archived_contract_paths(
-            governance_path,
-            pipeline_path,
-            credential_path,
-            (
-                contract["parameters"]["files"]
-                if contract["parameters"] is not None
-                else None
-            ),
-        ):
-            (submission_root / archived_name).write_bytes(source.read_bytes())
-        governance_path = submission_root / "config-governance.yml"
-        pipeline_path = submission_root / "config-pipeline.yml"
-        credential_path = submission_root / "config-credential.yml"
-    submit_path = submission_root / "submit.sh"
-    job_id_path = submission_root / "slurm-job-id.txt"
-    if submit_path.exists() or job_id_path.exists():
-        raise ContractError("refusing to overwrite an existing submission record")
-    render_slurm(
-        governance_path,
-        pipeline_path,
-        credential_path,
-        submit_path,
-        validated_contract=contract,
-    )
-    syntax = subprocess.run(
-        ["bash", "-n", str(submit_path)],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if syntax.returncode != 0:
-        submit_path.unlink()
-        raise ContractError(
-            f"rendered Slurm script is invalid: {syntax.stderr.strip()}"
-        )
-    submitted = subprocess.run(
-        ["sbatch", "--parsable", str(submit_path)],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if submitted.returncode != 0:
-        write_json(
-            submission_root / "submission-failure.json",
-            {
-                "schema_version": "bijux.slurm.submission_failure.v1",
-                "run_id": contract["run_id"],
-                "recorded_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
-                "failure_class": "slurm_submission",
-                "exit_code": submitted.returncode,
-                "stdout": submitted.stdout,
-                "stderr": submitted.stderr,
-                "submit_script_sha256": sha256_file(submit_path),
-            },
-        )
-        raise ContractError(f"Slurm submission failed: {submitted.stderr.strip()}")
-    job_id = parse_sbatch_job_id(submitted.stdout)
-    job_id_path.write_text(job_id + "\n", encoding="utf-8")
-    return job_id
-
-
-def collect_accounting(
-    manifest_path: Path,
-    governance_override: Path | None = None,
-) -> Path:
-    manifest_path = manifest_path.resolve()
-    governance_path, pipeline_path, credential_path = manifest_contract_paths(
-        manifest_path, governance_override
-    )
-    contract = validate_contracts(governance_path, pipeline_path, credential_path)
-    submission_root = operational_submission_root(manifest_path, contract)
-    job_id = (submission_root / "slurm-job-id.txt").read_text(encoding="utf-8").strip()
-    if not job_id.isdigit():
-        raise ContractError("manifest Slurm job id must be numeric")
-    fields = [
-        "JobID",
-        "JobName",
-        "State",
-        "ExitCode",
-        "Elapsed",
-        "ElapsedRaw",
-        "AllocCPUS",
-        "ReqMem",
-        "MaxRSS",
-        "AveRSS",
-        "TotalCPU",
-        "CPUTimeRAW",
-        "NodeList",
-    ]
-    completed = subprocess.run(
-        ["sacct", "-X", "-n", "-P", "-j", job_id, "-o", ",".join(fields)],
-        check=False,
-        capture_output=True,
-        text=True,
-    )
-    if completed.returncode != 0:
-        raise ContractError(
-            f"cannot collect accounting for {job_id}: {completed.stderr.strip()}"
-        )
-    rows = []
-    for line in completed.stdout.splitlines():
-        if not line.strip():
-            continue
-        values = line.split("|")
-        if len(values) != len(fields):
-            raise ContractError(f"unexpected sacct row for {job_id}: {line}")
-        rows.append(dict(zip(fields, values)))
-    if not rows:
-        raise ContractError(f"Slurm accounting is unavailable for job {job_id}")
-    active_states = {
-        row["State"].split("+", 1)[0]
-        for row in rows
-        if row["State"].split("+", 1)[0] in ACTIVE_SLURM_STATES
-    }
-    if active_states:
-        raise ContractError(
-            f"Slurm job {job_id} is not terminal: {sorted(active_states)}"
-        )
-    result_root: Path = contract["result_root"]
-    result_root_existed = result_root.is_dir()
-    if result_root.exists() and not result_root_existed:
-        raise ContractError(f"run result root is not a directory: {result_root}")
-    if not result_root_existed:
-        result_root.mkdir(parents=True, mode=0o750)
-    accounting_path = result_root / "slurm-accounting.json"
-    if accounting_path.exists():
-        raise ContractError(
-            f"refusing to overwrite accounting evidence: {accounting_path}"
-        )
-    submit_path = submission_root / "submit.sh"
-    record = {
-        "schema_version": "bijux.slurm.accounting.v1",
-        "run_id": contract["run_id"],
-        "slurm_job_id": job_id,
-        "collected_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
-        "rows": rows,
-        "submit_script_sha256": sha256_file(submit_path),
-        "governance_sha256": sha256_file(governance_path),
-        "pipeline_sha256": sha256_file(pipeline_path),
-        "credential_reference_sha256": sha256_file(credential_path),
-        "parameters": (
-            contract["parameters"]["evidence"]
-            if contract["parameters"] is not None
-            else None
-        ),
-    }
-    (result_root / "submit.sh").write_bytes(submit_path.read_bytes())
-    (result_root / "slurm-job-id.txt").write_text(job_id + "\n", encoding="utf-8")
-    for source, archived_name in archived_contract_paths(
-        governance_path,
-        pipeline_path,
-        credential_path,
-        (
-            contract["parameters"]["files"]
-            if contract["parameters"] is not None
-            else None
-        ),
-    ):
-        archived = result_root / archived_name
-        if not archived.exists():
-            archived.write_bytes(source.read_bytes())
-    evidence_path = result_root / "evidence.json"
-    if not evidence_path.exists():
-        primary_row = next(
-            (row for row in rows if row["JobID"] == job_id),
-            rows[0],
-        )
-        scheduler_logs = []
-        for stream in ("stdout", "stderr"):
-            source = submission_root / f"slurm-{job_id}.{stream}.log"
-            if not source.is_file():
-                continue
-            destination = result_root / source.name
-            destination.write_bytes(source.read_bytes())
-            scheduler_logs.append(
-                {
-                    "path": destination.name,
-                    "size_bytes": destination.stat().st_size,
-                    "sha256": sha256_file(destination),
-                }
-            )
-        state = primary_row["State"].split("+", 1)[0]
-        failure_class = (
-            "execution_evidence_missing"
-            if result_root_existed
-            else "slurm_pre_execution"
-        )
-        failure = (
-            f"Slurm job ended in {state} with exit code {primary_row['ExitCode']} "
-            + (
-                "without completing execution evidence"
-                if result_root_existed
-                else "before the executor created the run result"
-            )
-        )
-        evidence = {
-            "schema_version": (
-                EVIDENCE_SCHEMA_V2
-                if contract["pipeline_schema"] == PIPELINE_SCHEMA_V2
-                else EVIDENCE_SCHEMA_V1
-            ),
-            "pipeline_schema_version": contract["pipeline_schema"],
-            "run_id": contract["run_id"],
-            "evidence_kind": contract["evidence_kind"],
-            "status": "failed",
-            "failure_class": failure_class,
-            "failures": [failure],
-            "repository_commit": contract["repository_commit"],
-            "repository_path": str(contract["repository_path"]),
-            "repository_clean": True,
-            "governance_sha256": sha256_file(governance_path),
-            "site": {
-                "id": contract["governance"]["site_id"],
-                "host": contract["governance"]["hostname"],
-            },
-            "pipeline_sha256": sha256_file(pipeline_path),
-            "credential_reference_sha256": sha256_file(credential_path),
-            "parameters": (
-                contract["parameters"]["evidence"]
-                if contract["parameters"] is not None
-                else None
-            ),
-            "image": {
-                "path": str(contract["image_path"]),
-                "sha256": contract["image_sha256"],
-                "size_bytes": contract["image_path"].stat().st_size,
-            },
-            "inputs": contract["inputs"],
-            "dependencies": contract["dependencies"],
-            "checks": {},
-            "outputs": [],
-            "metrics": [],
-            "execution": contract["execution"],
-            "runtime": {
-                "host": "",
-                "slurm_job_id": job_id,
-                "cpus": primary_row["AllocCPUS"],
-                "started_at_utc": "",
-                "finished_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
-                "apptainer_version": "",
-                "scratch_path": "",
-                "scheduler_state": state,
-                "scheduler_exit_code": primary_row["ExitCode"],
-            },
-            "scheduler_logs": scheduler_logs,
-        }
-        write_json(evidence_path, evidence)
-    write_json(accounting_path, record)
-    return accounting_path
-
-
 def archive_file_records(root: Path, scope: str) -> list[dict[str, Any]]:
     records = []
     for path in sorted(root.rglob("*")):
@@ -2207,8 +1670,10 @@ def archive_terminal_run(
     )
     contract = validate_contracts(governance_path, pipeline_path, credential_path)
     run_kind = str(contract["pipeline"]["run"].get("kind", "qualification"))
-    archive_scope = disposition if run_kind == "benchmark" else (
-        "failures" if disposition == "failed" else disposition
+    archive_scope = (
+        disposition
+        if run_kind == "benchmark"
+        else ("failures" if disposition == "failed" else disposition)
     )
     submission_root = operational_submission_root(manifest_path, contract)
     result_root: Path = contract["result_root"]
@@ -2374,34 +1839,10 @@ def parser() -> argparse.ArgumentParser:
         command.add_argument("--governance", type=Path, required=True)
         command.add_argument("--pipeline", type=Path, required=True)
         command.add_argument("--credentials", type=Path, required=True)
-    render = commands.add_parser("render-slurm")
-    render.add_argument("--governance", type=Path, required=True)
-    render.add_argument("--pipeline", type=Path, required=True)
-    render.add_argument("--credentials", type=Path, required=True)
-    render.add_argument("--output", type=Path, required=True)
-    freeze = commands.add_parser("freeze-repository")
-    freeze.add_argument("--governance", type=Path, required=True)
-    freeze.add_argument("--commit", required=True)
-    freeze.add_argument(
-        "--scope",
-        choices=("contracts", "sources", "complete"),
-        default="contracts",
-    )
-    freeze.add_argument("--path", action="append", default=[])
-    freeze.add_argument("--namespace", default="source-freezes")
-    collect = commands.add_parser("collect-accounting")
-    collect.add_argument("--manifest", type=Path, required=True)
-    collect.add_argument("--governance", type=Path)
-    archive = commands.add_parser("archive-failure")
-    archive.add_argument("--manifest", type=Path, required=True)
-    archive.add_argument("--governance", type=Path)
     supersede = commands.add_parser("archive-superseded")
     supersede.add_argument("--manifest", type=Path, required=True)
     supersede.add_argument("--governance", type=Path)
     supersede.add_argument("--reason", required=True)
-    submit = commands.add_parser("submit")
-    submit.add_argument("--manifest", type=Path, required=True)
-    submit.add_argument("--governance", type=Path)
     return root
 
 
@@ -2414,23 +1855,6 @@ def main() -> int:
             return 0
         if args.command == "execute":
             return execute(args.governance, args.pipeline, args.credentials)
-        if args.command == "freeze-repository":
-            print(
-                freeze_repository(
-                    args.commit,
-                    args.governance,
-                    checkout_scope=args.scope,
-                    checkout_paths=tuple(args.path),
-                    source_namespace=args.namespace,
-                )
-            )
-            return 0
-        if args.command == "collect-accounting":
-            print(collect_accounting(args.manifest, args.governance))
-            return 0
-        if args.command == "archive-failure":
-            print(archive_failed_run(args.manifest, args.governance))
-            return 0
         if args.command == "archive-superseded":
             print(
                 archive_superseded_run(
@@ -2440,12 +1864,7 @@ def main() -> int:
                 )
             )
             return 0
-        if args.command == "submit":
-            print(submit_manifest(args.manifest, args.governance))
-            return 0
-        render_slurm(args.governance, args.pipeline, args.credentials, args.output)
-        print(args.output)
-        return 0
+        raise ContractError(f"unsupported container worker command: {args.command}")
     except ContractError as exc:
         print(f"container validation contract failed: {exc}", file=sys.stderr)
         return 2

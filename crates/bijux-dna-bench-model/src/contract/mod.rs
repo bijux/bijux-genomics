@@ -32,9 +32,10 @@ pub use interfaces::{
     validate_pipeline_parameter_config, validate_stage_interface_catalog,
 };
 pub use lifecycle::{
-    append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
-    validate_attempt_identity, validate_attempt_record_v2, validate_attempt_transition,
-    validate_campaign_plan, validate_cycle_status_v2, validate_scheduler_observation,
+    append_attempt_transition, benchmark_attempt_identity_sha256, benchmark_run_directory_name,
+    validate_attempt_archive, validate_attempt_identity, validate_attempt_record_v2,
+    validate_attempt_transition, validate_campaign_plan, validate_cycle_status_v2,
+    validate_scheduler_observation,
 };
 pub use materialization::{
     validate_corpus_acquisition_plan, validate_governed_data_catalog, validate_utc_timestamp,
@@ -42,9 +43,12 @@ pub use materialization::{
 pub use planning::{
     validate_benchmark_portfolio, validate_defined_campaign_portfolio_alignment,
     validate_portfolio_campaign_alignment, validate_scientific_readiness,
-    validate_stage_campaign_registry, validate_stage_coverage,
+    validate_stage_campaign_registry, validate_stage_coverage, validate_stage_universe,
 };
-pub use protocol::{validate_benchmark_case_definition, validate_benchmark_run_definition};
+pub use protocol::{
+    benchmark_run_definition_sha256, validate_benchmark_case_definition,
+    validate_benchmark_run_definition, validate_benchmark_run_definition_revision,
+};
 pub use publication::{
     validate_benchmark_citation_record, validate_benchmark_evidence_book,
     validate_benchmark_publication_receipt,
@@ -58,10 +62,12 @@ pub use report::{
     validate_report_admission, validate_stage_report, validate_stage_report_alignment,
 };
 pub use schema_versions::{
-    BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
-    BENCHMARK_CASE_DEFINITION_SCHEMA_V1, BENCHMARK_CITATION_RECORD_SCHEMA_V1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
+    BENCHMARK_CASE_AGGREGATION_SCHEMA_V1, BENCHMARK_CASE_DEFINITION_SCHEMA_V1,
+    BENCHMARK_CASE_MATRIX_SCHEMA_V1, BENCHMARK_CITATION_RECORD_SCHEMA_V1,
     BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V2, BENCHMARK_DATA_INDEX_SCHEMA_V1,
     BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1, BENCHMARK_EVIDENCE_BOOK_SCHEMA_V1,
@@ -72,10 +78,11 @@ pub use schema_versions::{
     BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
     BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1, BENCHMARK_STAGE_COVERAGE_SCHEMA_V1,
     BENCHMARK_STAGE_INTERFACES_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
-    BENCHMARK_STAGE_RESULT_SCHEMA_V2, BUNDLE_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
-    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
-    GOVERNED_DATA_CATALOG_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    BENCHMARK_STAGE_RESULT_SCHEMA_V2, BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BUNDLE_SCHEMA_V1,
+    CORPUS_ACQUISITION_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
+    FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1,
+    FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
 };
 pub use stage_result::validate_benchmark_stage_result_manifest;
 pub use suite::validate_suite;

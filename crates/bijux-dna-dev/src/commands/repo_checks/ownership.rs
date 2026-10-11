@@ -15,12 +15,16 @@ const OUTPUT_JSON: &str = "artifacts/architecture/benchmark-container-ownership-
 const OUTPUT_MARKDOWN: &str = "artifacts/architecture/benchmark-container-ownership-audit.md";
 const OUTPUT_SCHEMA: &str =
     "artifacts/architecture/benchmark-container-ownership-audit.schema.json";
-const LEGACY_AUTHORITIES: [&str; 5] = [
-    "containers/contracts/qualification_report.py",
+const OWNERSHIP_AUDIT_SOURCE: &str = "crates/bijux-dna-dev/src/commands/repo_checks/ownership.rs";
+const ROOT_PYTHON_AUTHORITIES: [&str; 8] = [
+    "benchmarks/corpus_acquisition.py",
+    "benchmarks/corpus_catalog_enrichment.py",
+    "benchmarks/corpus_materialization.py",
+    "benchmarks/corpus_materialization_spec.py",
+    "benchmarks/data_catalog.py",
     "containers/contracts/container_validation.py",
-    "benchmarks/scripts/benchmark_evidence.py",
-    "benchmarks/scripts/benchmark_portfolio.py",
-    "benchmarks/scripts/benchmark_registry.py",
+    "containers/runs/manage.py",
+    "containers/runs/result_layout.py",
 ];
 const CRATE_SCOPES: [&str; 11] = [
     "crates/bijux-dna-bench-model/",
@@ -140,8 +144,15 @@ fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
         ensure!(!row.replacement.is_empty(), "{} has no replacement contract", row.path);
         ensure!(!row.removal_gate.is_empty(), "{} has no removal gate", row.path);
         ensure!(!row.reasons.is_empty(), "{} has no classification reason", row.path);
+        if is_live_root_python_authority(row) {
+            ensure!(
+                ROOT_PYTHON_AUTHORITIES.contains(&row.path.as_str()),
+                "root Python authority is missing from the caller inventory: {}",
+                row.path
+            );
+        }
     }
-    for authority in LEGACY_AUTHORITIES {
+    for authority in ROOT_PYTHON_AUTHORITIES {
         ensure!(
             audit.summary.legacy_authority_callers.contains_key(authority),
             "legacy authority caller inventory missing {authority}"
@@ -266,7 +277,7 @@ fn classify(
     let current_owner = current_owner(&file.path);
     let target_owner = target_owner(&file.path, classification);
     let authority_callers = callers.get(&file.path).cloned().unwrap_or_default();
-    let bridges_legacy_control_plane = LEGACY_AUTHORITIES.iter().any(|authority| {
+    let bridges_legacy_control_plane = ROOT_PYTHON_AUTHORITIES.iter().any(|authority| {
         file.path == *authority || references_legacy_authority(&file.path, &file.content, authority)
     });
     let schema_refs = schema_pattern
@@ -367,10 +378,7 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
         );
     }
     if path.ends_with(".py") {
-        if path == "benchmarks/data_catalog.py"
-            || path.starts_with("benchmarks/runs/")
-            || path.contains("/adapters/")
-        {
+        if path.starts_with("benchmarks/runs/") || path.contains("/adapters/") {
             return (
                 "thin external adapter",
                 "the file only translates an external process invocation to a crate-owned command",
@@ -388,7 +396,7 @@ fn classification_for(path: &str, content: &str) -> (&'static str, &'static str)
         );
     }
     if path.starts_with(".github/workflows/") || path == "Makefile" || path.starts_with("makes/") {
-        if LEGACY_AUTHORITIES
+        if ROOT_PYTHON_AUTHORITIES
             .iter()
             .any(|authority| references_legacy_authority(path, content, authority))
         {
@@ -477,11 +485,12 @@ fn scope_for(path: &str) -> String {
 }
 
 fn legacy_callers(files: &[SourceFile]) -> BTreeMap<String, Vec<String>> {
-    LEGACY_AUTHORITIES
+    ROOT_PYTHON_AUTHORITIES
         .iter()
         .map(|authority| {
             let mut matches = files
                 .iter()
+                .filter(|file| file.path != OWNERSHIP_AUDIT_SOURCE)
                 .filter(|file| is_executable_reference(&file.path))
                 .filter(|file| references_legacy_authority(&file.path, &file.content, authority))
                 .map(|file| file.path.clone())
@@ -512,8 +521,15 @@ fn is_executable_reference(path: &str) -> bool {
         || path.starts_with(".github/workflows/")
         || matches!(
             Path::new(path).extension().and_then(|value| value.to_str()),
-            Some("mk" | "py" | "rs" | "sh" | "yaml" | "yml")
+            Some("md" | "mk" | "py" | "rs" | "sh" | "yaml" | "yml")
         )
+}
+
+fn is_live_root_python_authority(row: &OwnershipRow) -> bool {
+    (row.path.starts_with("benchmarks/") || row.path.starts_with("containers/"))
+        && row.file_type == ".py"
+        && row.classification == "duplicate legacy logic"
+        && !row.path.contains("/tests/")
 }
 
 fn dependency_consumers(files: &[SourceFile]) -> BTreeMap<String, Vec<String>> {
@@ -585,7 +601,7 @@ mod tests {
 
     use super::{
         classify, legacy_callers, render_markdown, validate_audit, AuditSummary, OwnershipAudit,
-        SourceFile, LEGACY_AUTHORITIES,
+        SourceFile, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
     };
 
     #[test]
@@ -606,7 +622,7 @@ mod tests {
     #[test]
     fn legacy_authorities_have_explicit_removal_contracts() -> anyhow::Result<()> {
         let schema_pattern = Regex::new(r"bijux(?:\.[A-Za-z0-9_-]+)+\.v[0-9]+")?;
-        for authority in LEGACY_AUTHORITIES {
+        for authority in ROOT_PYTHON_AUTHORITIES {
             let row = classify(
                 &SourceFile {
                     path: authority.to_string(),
@@ -652,16 +668,28 @@ mod tests {
 
     #[test]
     fn legacy_inventory_retains_removed_authorities_and_self_callers() {
-        let callers = legacy_callers(&[SourceFile {
-            path: "containers/contracts/container_validation.py".to_string(),
-            content: "python3 containers/contracts/container_validation.py execute".to_string(),
-        }]);
-        assert_eq!(callers.len(), LEGACY_AUTHORITIES.len());
+        let callers = legacy_callers(&[
+            SourceFile {
+                path: "containers/contracts/container_validation.py".to_string(),
+                content: "python3 containers/contracts/container_validation.py execute".to_string(),
+            },
+            SourceFile {
+                path: "containers/README.md".to_string(),
+                content: "python3 containers/runs/manage.py validate".to_string(),
+            },
+            SourceFile {
+                path: OWNERSHIP_AUDIT_SOURCE.to_string(),
+                content: "containers/runs/result_layout.py".to_string(),
+            },
+        ]);
+        assert_eq!(callers.len(), ROOT_PYTHON_AUTHORITIES.len());
         assert_eq!(
             callers["containers/contracts/container_validation.py"],
             ["containers/contracts/container_validation.py"]
         );
-        assert!(callers["benchmarks/scripts/benchmark_registry.py"].is_empty());
+        assert!(callers["benchmarks/data_catalog.py"].is_empty());
+        assert!(callers["containers/runs/result_layout.py"].is_empty());
+        assert_eq!(callers["containers/runs/manage.py"], ["containers/README.md"]);
     }
 
     #[test]

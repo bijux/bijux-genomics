@@ -358,7 +358,7 @@ fn scheduler_client(root: &std::path::Path, sbatch_body: &str) -> anyhow::Result
         sacct: root.join("sacct"),
         scancel: root.join("scancel"),
     };
-    write_executable(&paths.sbatch, sbatch_body)?;
+    write_executable(&paths.sbatch, &format!("#!/bin/sh\n{sbatch_body}"))?;
     Ok(paths)
 }
 

@@ -8,6 +8,7 @@ mod labels;
 mod model;
 mod preparation;
 mod recipe_identity;
+mod registry_projection;
 mod schema;
 mod smoke;
 mod validation;
@@ -37,6 +38,10 @@ pub use recipe_identity::{
     apptainer_recipe_identity_at_commit, clean_repository_head_commit,
     container_build_evidence_matches_recipe, repository_changed_paths_since,
     repository_commit_is_ancestor_of_head, repository_head_commit, ApptainerRecipeIdentity,
+};
+pub use registry_projection::{
+    derive_container_registry_projection_report, ContainerRegistryProjectionReport,
+    ContainerRegistryProjectionSource, CONTAINER_REGISTRY_PROJECTION_SCHEMA_V1,
 };
 pub use schema::{
     container_catalog_lock_schema, container_catalog_schema, container_version_lock_schema,

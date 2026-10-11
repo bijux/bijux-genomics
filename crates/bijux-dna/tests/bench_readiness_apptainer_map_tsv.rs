@@ -49,12 +49,11 @@ fn bench_readiness_apptainer_map_writes_governed_tsv_file() {
     assert!(rows.iter().all(|row| {
         !row.starts_with("angsd\t")
             && !row.starts_with("fastuniq\t")
+            && !row.starts_with("impute5\t")
             && !row.starts_with("ngsbriggs\t")
     }));
     assert!(rows.iter().any(|row| {
-        row == &"adapterremoval\tfastq\tfastq.merge_pairs,fastq.trim_reads,fastq.trim_terminal_damage\tdocker-arm64\tdocker-daemon://bijuxdna/adapterremoval:2.3.3-arm64\tbijuxdna/adapterremoval:2.3.3-arm64\tcontainers/docker/Dockerfile.arm64.adapterremoval\tcontainers/apptainer/adapterremoval.def\t5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d\t${BIJUX_HPC_ROOT}/.cache\t${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/adapterremoval/5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d.sif\tapptainer build --force '${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/adapterremoval/5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d.sif' 'docker-daemon://bijuxdna/adapterremoval:2.3.3-arm64'\tdomain/fastq/tools/adapterremoval.yaml\tconfigs/ci/registry/tool_registry.toml"
+        row == &"adapterremoval\tfastq\tfastq.merge_pairs,fastq.trim_reads,fastq.trim_terminal_damage\tdocker-arm64\tdocker-daemon://bijuxdna/adapterremoval:2.3.4-arm64\tbijuxdna/adapterremoval:2.3.4-arm64\tcontainers/docker/Dockerfile.arm64.adapterremoval\tcontainers/apptainer/adapterremoval.def\t47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20\t${BIJUX_HPC_ROOT}/.cache\t${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/adapterremoval/47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20.sif\tapptainer build --force '${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/adapterremoval/47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20.sif' 'docker-daemon://bijuxdna/adapterremoval:2.3.4-arm64'\tdomain/fastq/tools/adapterremoval.yaml\tconfigs/ci/registry/tool_registry.toml"
     }));
-    assert!(rows.iter().any(|row| {
-        row == &"shapeit5\tvcf\tvcf.phasing\tdocker-arm64\tdocker-daemon://bijuxdna/shapeit5:5.1.1-arm64\tbijuxdna/shapeit5:5.1.1-arm64\tcontainers/docker/Dockerfile.arm64.shapeit5\tcontainers/apptainer/shapeit5.def\t6c2e2eb0becbcb11bbc83523fcf826adf79cf63b65993a12c660e7d19e64ff61\t${BIJUX_HPC_ROOT}/.cache\t${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/shapeit5/6c2e2eb0becbcb11bbc83523fcf826adf79cf63b65993a12c660e7d19e64ff61.sif\tapptainer build --force '${BIJUX_HPC_ROOT}/.cache/bijux-dna-container/shapeit5/6c2e2eb0becbcb11bbc83523fcf826adf79cf63b65993a12c660e7d19e64ff61.sif' 'docker-daemon://bijuxdna/shapeit5:5.1.1-arm64'\tdomain/vcf/tools/shapeit5.yaml\tconfigs/ci/registry/tool_registry_vcf.toml"
-    }));
+    assert!(rows.iter().all(|row| !row.starts_with("shapeit5\t")));
 }

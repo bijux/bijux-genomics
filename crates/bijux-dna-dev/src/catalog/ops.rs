@@ -341,6 +341,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingArchitectureReport,
         ),
         native(
+            "artifact-contracts",
+            "Generate or check canonical cross-domain artifact contracts and schemas.",
+            NativeOpsCommandKey::ToolingArtifactContracts,
+        ),
+        native(
             "benchmark-campaign-cycle",
             "Plan, initialize, or prepare immutable benchmark campaign attempts through crate-owned workflows.",
             NativeOpsCommandKey::ToolingBenchmarkCampaignCycle,
@@ -354,6 +359,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             "benchmark-stage-coverage",
             "Generate or check benchmark stage coverage through the crate-owned workflow.",
             NativeOpsCommandKey::ToolingBenchmarkStageCoverage,
+        ),
+        native(
+            "benchmark-stage-universe",
+            "Generate or check the canonical domain-stage benchmark disposition registry.",
+            NativeOpsCommandKey::ToolingBenchmarkStageUniverse,
         ),
         native(
             "benchmark-smoke-level1",

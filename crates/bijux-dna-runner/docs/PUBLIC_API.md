@@ -24,6 +24,7 @@
 - `run_command_with_context`
 - `CommandOutputV1`
 - `execute_observer_command`
+- `execute_external_artifact_step`
 - `execute_step`
 - `StageResultV1`
 - `submit_slurm_job`
@@ -36,6 +37,9 @@
 - `cancel_slurm_job`
 - `SlurmClientPaths`
 - `SlurmSubmitRequest`
+- `SlurmDependencyCondition`
+- `SlurmArraySpec`
+- `SlurmArrayTaskAccounting`
 - `SlurmJobHandle`
 - `SlurmBatchSubmission`
 - `SlurmSubmissionFailure`
@@ -61,6 +65,26 @@
 - `CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1`
 - `CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1`
 - `CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1`
+- `prepare_container_qualification_slurm_job`
+- `submit_prepared_container_qualification_job`
+- `load_container_qualification_slurm_job_handle`
+- `load_container_qualification_slurm_spec`
+- `load_prepared_container_qualification_slurm_job`
+- `observe_container_qualification_slurm_job`
+- `collect_container_qualification_slurm_job`
+- `cancel_container_qualification_slurm_job`
+- `ContainerQualificationPreparationRequest`
+- `ContainerQualificationSlurmSpec`
+- `ContainerQualificationSlurmResources`
+- `PreparedContainerQualificationSlurmJob`
+- `ContainerQualificationCollection`
+- `ContainerQualificationAccountingRecord`
+- `ContainerQualificationSchedulerEvidence`
+- `ContainerQualificationSchedulerStatus`
+- `CONTAINER_QUALIFICATION_SLURM_SPEC_SCHEMA_V1`
+- `CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1`
+- `CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1`
+- `CONTAINER_QUALIFICATION_PREPARED_JOB_SCHEMA_V1`
 
 ## Stability Rules
 - Prefer `bijux_dna_runner::api::*` for consumer-facing use.

@@ -1,19 +1,21 @@
 {
   "stage_id": "fastq.profile_read_lengths",
-  "stage_instance_id": "fastq.profile_read_lengths.tool.seqkit_stats",
+  "stage_instance_id": "fastq.profile_read_lengths.tool.seqkit",
   "stage_version": 1,
-  "tool_id": "seqkit_stats",
+  "tool_id": "seqkit",
   "tool_version": "domain-manifest",
   "image": {
-    "image": "bijuxdna/seqkit_stats",
+    "image": "bijuxdna/seqkit",
     "digest": null
   },
   "command": {
     "template": [
-      "seqkit_stats",
-      "-a",
-      "-T",
-      "-j",
+      "seqkit",
+      "fx2tab",
+      "--name",
+      "--only-id",
+      "--length",
+      "--threads",
       "2",
       "reads_R1.fastq.gz",
       "reads_R2.fastq.gz"
@@ -21,7 +23,7 @@
   },
   "resources": {
     "runtime": "local",
-    "mem_gb": 2,
+    "mem_gb": 4,
     "tmp_gb": 2,
     "threads": 2
   },
@@ -31,12 +33,14 @@
         "name": "reads_r1",
         "path": "reads_R1.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       },
       {
         "name": "reads_r2",
         "path": "reads_R2.fastq.gz",
         "role": "reads",
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "optional": false
       }
     ],
@@ -45,18 +49,21 @@
         "name": "report_json",
         "path": "out/profile_read_lengths_report.json",
         "role": "report_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       },
       {
         "name": "length_distribution_tsv",
         "path": "out/length_distribution.tsv",
         "role": "summary_tsv",
+        "artifact_contract_id": "bijux.auxiliary.artifact.table.v1",
         "optional": false
       },
       {
         "name": "length_distribution_json",
         "path": "out/length_distribution.json",
         "role": "metrics_json",
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "optional": false
       }
     ]
@@ -70,7 +77,7 @@
     "output_tsv": "out/length_distribution.tsv",
     "report_json": "out/profile_read_lengths_report.json",
     "threads": 2,
-    "tool": "seqkit_stats"
+    "tool": "seqkit"
   },
   "effective_params": {
     "histogram_bins": 100,

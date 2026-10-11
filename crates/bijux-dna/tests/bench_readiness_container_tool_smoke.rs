@@ -71,3 +71,31 @@ fn bench_readiness_container_tool_smoke_reports_structured_unavailable_tool() {
                 == Some("runs/bench/tool-smoke/container/shapeit5/manifest.json")
     }));
 }
+
+#[test]
+fn bench_readiness_container_tool_smoke_requires_external_artifact_admission() {
+    let payload = run_cli_json(&[
+        "bench",
+        "readiness",
+        "run-container-tool-smoke",
+        "--tools",
+        "angsd",
+        "--json",
+    ]);
+
+    assert_eq!(payload.get("success_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(1));
+    let row = payload
+        .get("rows")
+        .and_then(serde_json::Value::as_array)
+        .and_then(|rows| rows.first())
+        .expect("external artifact smoke row");
+    assert_eq!(
+        row.get("status").and_then(serde_json::Value::as_str),
+        Some("unavailable_with_reason")
+    );
+    assert!(row
+        .get("unavailable_reason")
+        .and_then(serde_json::Value::as_str)
+        .is_some_and(|reason| reason.contains("external artifact admission")));
+}

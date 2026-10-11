@@ -22,6 +22,24 @@ pub(super) fn validate_stage_files(
         if stage.stage_id.is_empty() {
             bail!("{} missing stage_id", path.display());
         }
+        let allowed_benchmark_dispositions = BTreeSet::from([
+            "benchmark_required",
+            "qualification_only",
+            "orchestration_only",
+            "test_only",
+            "retired",
+            "excluded",
+        ]);
+        if !allowed_benchmark_dispositions.contains(stage.benchmark_disposition.as_str()) {
+            bail!(
+                "{} has invalid benchmark_disposition `{}`",
+                path.display(),
+                stage.benchmark_disposition
+            );
+        }
+        if stage.benchmark_disposition_reason.trim().is_empty() {
+            bail!("{} missing benchmark_disposition_reason", path.display());
+        }
         if is_umbrella_stage(&stage.stage_id) {
             bail!(
                 "{} stage_id {} is an umbrella stage and must be split into concrete stage IDs",

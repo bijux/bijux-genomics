@@ -2,17 +2,24 @@
 
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::Path;
+use std::{fs, io::Write as _};
 
 use bijux_dna_runner::api::{
     cancel_slurm_job, collect_slurm_job, observe_slurm_job, submit_slurm_batch, submit_slurm_job,
-    SlurmClientPaths, SlurmEvidenceSource, SlurmJobState, SlurmSubmitRequest,
+    SlurmArraySpec, SlurmClientPaths, SlurmDependencyCondition, SlurmEvidenceSource, SlurmJobState,
+    SlurmSubmitRequest,
 };
 
 fn write_executable(path: &Path, body: &str) -> anyhow::Result<()> {
-    std::fs::write(path, body)?;
-    let mut permissions = std::fs::metadata(path)?.permissions();
+    let staging = path.with_extension("staging");
+    let mut file = fs::OpenOptions::new().write(true).create_new(true).open(&staging)?;
+    file.write_all(body.as_bytes())?;
+    let mut permissions = file.metadata()?.permissions();
     permissions.set_mode(0o755);
-    std::fs::set_permissions(path, permissions)?;
+    file.set_permissions(permissions)?;
+    file.sync_all()?;
+    drop(file);
+    fs::rename(staging, path)?;
     Ok(())
 }
 
@@ -38,6 +45,9 @@ fn request(temp: &tempfile::TempDir, run_id: &str) -> anyhow::Result<SlurmSubmit
     std::fs::write(&script_path, "#!/bin/sh\nexit 0\n")?;
     Ok(SlurmSubmitRequest {
         run_id: run_id.to_string(),
+        dependencies: Vec::new(),
+        dependency_condition: SlurmDependencyCondition::AfterOk,
+        array: None,
         script_path,
         working_directory: temp.path().to_path_buf(),
         stdout_path: temp.path().join(format!("{run_id}.stdout.log")),
@@ -75,6 +85,119 @@ fn submission_returns_identity_without_scheduler_polling() -> anyhow::Result<()>
     assert!(arguments.contains("--chdir"));
     assert!(arguments.contains("--output"));
     assert!(arguments.contains("--error"));
+    Ok(())
+}
+
+#[test]
+fn submission_binds_afterok_dependencies_to_arguments_and_handle() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let argument_log = temp.path().join("sbatch.args");
+    write_executable(
+        &paths.sbatch,
+        &format!(
+            "#!/bin/sh\nprintf '%s\\n' \"$*\" > {}\nprintf '3459974\\n'\n",
+            shell_literal(&argument_log)
+        ),
+    )?;
+    let mut request = request(&temp, "run-2042")?;
+    request.dependencies = vec!["3459901".to_string(), "3459902".to_string()];
+
+    let handle = submit_slurm_job(&paths, &request)?;
+
+    assert_eq!(handle.dependencies, request.dependencies);
+    assert!(std::fs::read_to_string(argument_log)?.contains("--dependency afterok:3459901:3459902"));
+    Ok(())
+}
+
+#[test]
+fn submission_binds_afterany_array_to_arguments_and_handle() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let argument_log = temp.path().join("sbatch.args");
+    write_executable(
+        &paths.sbatch,
+        &format!(
+            "#!/bin/sh\nprintf '%s\\n' \"$*\" > {}\nprintf '3459974\\n'\n",
+            shell_literal(&argument_log)
+        ),
+    )?;
+    let mut request = request(&temp, "run-2042")?;
+    request.dependencies = vec!["3459901".to_string()];
+    request.dependency_condition = SlurmDependencyCondition::AfterAny;
+    request.array = Some(SlurmArraySpec {
+        first_task_id: 3,
+        last_task_id: 11,
+        maximum_parallel_tasks: Some(4),
+    });
+    request.stdout_path = temp.path().join("array-%A_%a.stdout.log");
+    request.stderr_path = temp.path().join("array-%A_%a.stderr.log");
+
+    let handle = submit_slurm_job(&paths, &request)?;
+
+    assert_eq!(handle.dependency_condition, SlurmDependencyCondition::AfterAny);
+    assert_eq!(handle.array, request.array);
+    let arguments = std::fs::read_to_string(argument_log)?;
+    assert!(arguments.contains("--dependency afterany:3459901"));
+    assert!(arguments.contains("--array 3-11%4"));
+    Ok(())
+}
+
+#[test]
+fn submission_rejects_malformed_or_duplicate_dependencies() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    write_executable(&paths.sbatch, "#!/bin/sh\nprintf '3459974\\n'\n")?;
+    for dependencies in [
+        vec!["3459901".to_string(), "3459901".to_string()],
+        vec!["job-3459901".to_string()],
+        vec![String::new()],
+    ] {
+        let mut request = request(&temp, "run-2042")?;
+        request.dependencies = dependencies;
+        assert!(submit_slurm_job(&paths, &request).is_err());
+    }
+    let mut condition_without_dependency = request(&temp, "run-2042")?;
+    condition_without_dependency.dependency_condition = SlurmDependencyCondition::AfterAny;
+    assert!(submit_slurm_job(&paths, &condition_without_dependency).is_err());
+    Ok(())
+}
+
+#[test]
+fn submission_rejects_invalid_array_bounds() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    write_executable(&paths.sbatch, "#!/bin/sh\nprintf '3459974\\n'\n")?;
+    for array in [
+        SlurmArraySpec { first_task_id: 4, last_task_id: 3, maximum_parallel_tasks: None },
+        SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: Some(0) },
+        SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: Some(3) },
+    ] {
+        let mut request = request(&temp, "run-2042")?;
+        request.array = Some(array);
+        assert!(submit_slurm_job(&paths, &request).is_err());
+    }
+    let mut shared_logs = request(&temp, "run-2042")?;
+    shared_logs.array =
+        Some(SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: None });
+    assert!(submit_slurm_job(&paths, &shared_logs).is_err());
+    Ok(())
+}
+
+#[test]
+fn request_deserialization_defaults_additive_scheduler_fields() -> anyhow::Result<()> {
+    let request = request(&tempfile::tempdir()?, "run-2042")?;
+    let mut value = serde_json::to_value(&request)?;
+    let object = value
+        .as_object_mut()
+        .ok_or_else(|| anyhow::anyhow!("request did not serialize as an object"))?;
+    object.remove("dependency_condition");
+    object.remove("array");
+
+    let decoded: SlurmSubmitRequest = serde_json::from_value(value)?;
+
+    assert_eq!(decoded.dependency_condition, SlurmDependencyCondition::AfterOk);
+    assert!(decoded.array.is_none());
     Ok(())
 }
 
@@ -223,6 +346,59 @@ fn accounting_uses_allocation_state_and_peak_step_memory() -> anyhow::Result<()>
 }
 
 #[test]
+fn array_accounting_retains_every_exact_task_and_peak_step_memory() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let mut handle = submitted_handle(&temp, &paths)?;
+    handle.array =
+        Some(SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: Some(2) });
+    write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
+    write_executable(
+        &paths.sacct,
+        "#!/bin/sh\nprintf '%s\n' \
+'3459974|COMPLETED|0:0|60|00:01:58||n001|None' \
+'3459974_3|COMPLETED|0:0|31|00:00:30||n001|None' \
+'3459974_3.batch|COMPLETED|0:0|31|00:00:30|128M|n001|None' \
+'3459974_4|FAILED|2:0|29|00:00:28|64M|n002|bad input'\n",
+    )?;
+
+    let observed = collect_slurm_job(&paths, &handle, "2026-08-04T20:30:00Z")?;
+    let accounting = observed.accounting.ok_or_else(|| anyhow::anyhow!("missing accounting"))?;
+
+    assert_eq!(accounting.array_tasks.len(), 2);
+    assert_eq!(accounting.array_tasks[0].task_id, 3);
+    assert_eq!(accounting.array_tasks[0].job_id, "3459974_3");
+    assert_eq!(accounting.array_tasks[0].max_rss_bytes, Some(128 * 1024 * 1024));
+    assert_eq!(accounting.array_tasks[1].task_id, 4);
+    assert_eq!(accounting.array_tasks[1].state, SlurmJobState::Failed);
+    assert_eq!(accounting.array_tasks[1].reason.as_deref(), Some("bad input"));
+    Ok(())
+}
+
+#[test]
+fn terminal_array_accounting_requires_exact_declared_task_coverage() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp)?;
+    let mut handle = submitted_handle(&temp, &paths)?;
+    handle.array =
+        Some(SlurmArraySpec { first_task_id: 3, last_task_id: 4, maximum_parallel_tasks: None });
+    write_executable(&paths.squeue, "#!/bin/sh\nexit 0\n")?;
+    write_executable(
+        &paths.sacct,
+        "#!/bin/sh\nprintf '%s\n' \
+'3459974|COMPLETED|0:0|60|00:00:58||n001|None' \
+'3459974_3|COMPLETED|0:0|60|00:00:58|1G|n001|None'\n",
+    )?;
+
+    let error = collect_slurm_job(&paths, &handle, "2026-08-04T20:30:00Z")
+        .err()
+        .ok_or_else(|| anyhow::anyhow!("incomplete array accounting was accepted"))?;
+
+    assert!(format!("{error:#}").contains("has 1 tasks instead of 2"));
+    Ok(())
+}
+
+#[test]
 fn accounting_accepts_fractional_total_cpu_reported_by_slurm() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
     let paths = client(&temp)?;
@@ -238,6 +414,24 @@ fn accounting_accepts_fractional_total_cpu_reported_by_slurm() -> anyhow::Result
 
     assert_eq!(accounting.total_cpu_seconds, 1);
     assert_eq!(accounting.max_rss_bytes, Some(32 * 1024));
+    Ok(())
+}
+
+#[test]
+fn accounting_deserialization_defaults_additive_array_tasks() -> anyhow::Result<()> {
+    let accounting: bijux_dna_runner::api::SlurmAccounting =
+        serde_json::from_value(serde_json::json!({
+            "job_id": "3459974",
+            "state": "completed",
+            "raw_state": "COMPLETED",
+            "exit_code": 0,
+            "signal": 0,
+            "elapsed_seconds": 60,
+            "total_cpu_seconds": 58,
+            "node_list": "n001"
+        }))?;
+
+    assert!(accounting.array_tasks.is_empty());
     Ok(())
 }
 

@@ -25,6 +25,10 @@ TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo te
 - `tests/contracts/tool_contract.rs`: complete catalog loading, embedded image identity,
   retained-roster closure, label binding, and runtime inspection.
 - `tests/contracts/build_dockerfile.rs`: Dockerfile version ARG parsing.
+- `tests/contracts/credential_reference.rs`: all tracked credential declarations, generated schema
+  parity, embedded-value rejection, and requirement consistency.
+- `tests/contracts/pipeline.rs`: exact v1/v2 admission across all tracked pipelines and
+  cross-version field rejection.
 - `tests/contracts/run_shell_capture.rs`: merged stdout/stderr behavior.
 - `tests/contracts/resolve_runtime.rs`: runtime parsing, platform loading, catalog hydration, image
   resolution, cache paths, and shell capture.

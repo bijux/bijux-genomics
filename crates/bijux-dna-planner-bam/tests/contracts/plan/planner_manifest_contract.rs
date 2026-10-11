@@ -60,6 +60,7 @@ fn workflow_manifest(advisory_coverage: bool) -> WorkflowManifestV1 {
     let mut manifest = WorkflowManifestV1::new("bam", "bam-to-bam__default__v1");
     manifest.inputs = vec![WorkflowInputArtifactV1 {
         artifact_id: "bam".to_string(),
+        artifact_contract_id: Some("bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string()),
         role: ArtifactRole::Bam,
         path: PathBuf::from("sample.bam"),
         layout: None,
@@ -68,6 +69,7 @@ fn workflow_manifest(advisory_coverage: bool) -> WorkflowManifestV1 {
     }];
     manifest.reference_assets = vec![WorkflowReferenceAssetV1 {
         asset_id: "reference".to_string(),
+        artifact_contract_id: Some("bijux.reference.artifact.fasta.v1".to_string()),
         role: ArtifactRole::Reference,
         path: PathBuf::from("reference.fasta"),
         checksum_sha256: Some("c".repeat(64)),

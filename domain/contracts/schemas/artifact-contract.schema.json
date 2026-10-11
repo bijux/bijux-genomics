@@ -1,0 +1,219 @@
+{
+  "$defs": {
+    "ArtifactCardinalityV1": {
+      "enum": [
+        "one",
+        "many"
+      ],
+      "type": "string"
+    },
+    "ArtifactClassV1": {
+      "enum": [
+        "fastq",
+        "alignment",
+        "variant",
+        "reference",
+        "auxiliary"
+      ],
+      "type": "string"
+    },
+    "ArtifactCompressionV1": {
+      "enum": [
+        "none",
+        "gzip",
+        "bgzf"
+      ],
+      "type": "string"
+    },
+    "ArtifactFormatV1": {
+      "enum": [
+        "fastq",
+        "bam",
+        "cram",
+        "vcf",
+        "bcf",
+        "fasta",
+        "tabular",
+        "json",
+        "html",
+        "text",
+        "directory",
+        "database",
+        "index",
+        "file"
+      ],
+      "type": "string"
+    },
+    "ArtifactLineageContractV1": {
+      "additionalProperties": false,
+      "properties": {
+        "minimum_parent_count": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "presence": {
+          "$ref": "#/$defs/ArtifactPresenceV1"
+        }
+      },
+      "required": [
+        "presence",
+        "minimum_parent_count"
+      ],
+      "type": "object"
+    },
+    "ArtifactPairingV1": {
+      "enum": [
+        "not_applicable",
+        "single_end",
+        "paired_end",
+        "interleaved",
+        "merged"
+      ],
+      "type": "string"
+    },
+    "ArtifactPresenceV1": {
+      "enum": [
+        "forbidden",
+        "optional",
+        "required"
+      ],
+      "type": "string"
+    },
+    "ArtifactSidecarContractV1": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "$ref": "#/$defs/ArtifactFormatV1"
+        },
+        "presence": {
+          "$ref": "#/$defs/ArtifactPresenceV1"
+        },
+        "role": {
+          "$ref": "#/$defs/ArtifactSidecarRoleV1"
+        }
+      },
+      "required": [
+        "role",
+        "format",
+        "presence"
+      ],
+      "type": "object"
+    },
+    "ArtifactSidecarRoleV1": {
+      "enum": [
+        "index",
+        "checksum",
+        "reference_dictionary",
+        "metadata",
+        "provenance"
+      ],
+      "type": "string"
+    },
+    "ArtifactSortOrderV1": {
+      "enum": [
+        "not_applicable",
+        "unsorted",
+        "query_name",
+        "coordinate"
+      ],
+      "type": "string"
+    },
+    "ArtifactValidationInvariantV1": {
+      "enum": [
+        "non_empty",
+        "fastq_record_structure",
+        "paired_record_synchronization",
+        "coordinate_sorted",
+        "index_readable",
+        "sample_identity_present",
+        "reference_identity_present",
+        "header_reference_consistent",
+        "lineage_recorded"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cardinality": {
+      "$ref": "#/$defs/ArtifactCardinalityV1"
+    },
+    "class": {
+      "$ref": "#/$defs/ArtifactClassV1"
+    },
+    "compressions": {
+      "items": {
+        "$ref": "#/$defs/ArtifactCompressionV1"
+      },
+      "type": "array"
+    },
+    "contract_id": {
+      "type": "string"
+    },
+    "formats": {
+      "items": {
+        "$ref": "#/$defs/ArtifactFormatV1"
+      },
+      "type": "array"
+    },
+    "index": {
+      "$ref": "#/$defs/ArtifactPresenceV1"
+    },
+    "lineage": {
+      "$ref": "#/$defs/ArtifactLineageContractV1"
+    },
+    "pairing": {
+      "items": {
+        "$ref": "#/$defs/ArtifactPairingV1"
+      },
+      "type": "array"
+    },
+    "reference_identity": {
+      "$ref": "#/$defs/ArtifactPresenceV1"
+    },
+    "sample_identity": {
+      "$ref": "#/$defs/ArtifactPresenceV1"
+    },
+    "schema_version": {
+      "const": "bijux.artifact_contract.v1",
+      "type": "string"
+    },
+    "sidecars": {
+      "items": {
+        "$ref": "#/$defs/ArtifactSidecarContractV1"
+      },
+      "type": "array"
+    },
+    "sort_orders": {
+      "items": {
+        "$ref": "#/$defs/ArtifactSortOrderV1"
+      },
+      "type": "array"
+    },
+    "validation_invariants": {
+      "items": {
+        "$ref": "#/$defs/ArtifactValidationInvariantV1"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "contract_id",
+    "class",
+    "formats",
+    "compressions",
+    "cardinality",
+    "pairing",
+    "sort_orders",
+    "index",
+    "sample_identity",
+    "reference_identity",
+    "lineage",
+    "validation_invariants"
+  ],
+  "title": "ArtifactContractV1",
+  "type": "object"
+}

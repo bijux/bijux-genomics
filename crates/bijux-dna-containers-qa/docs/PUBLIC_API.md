@@ -5,13 +5,18 @@
 - `image_qa`
 - `public_api`
 - `qa_docker_images`
+- `qualification`
+- `runtime_verification`
 
 ## Major Export Groups
 
-- `public_api::api`: facade re-export of `bijux-dna-containers::api` for QA consumers.
+- `public_api::api`: facade over declarative container contracts plus QA-owned runtime execution.
 - `image_qa`: image QA runner, artifact paths, record helpers, validation helpers, and support
   functions used by QA workflows.
 - `qa_docker_images`: Docker image catalog probe command implementation.
+- `qualification`: typed pipeline-derived probe plans plus classified output and metric verdicts.
+- `runtime_verification`: bounded catalog-wide Apptainer probe execution and immutable evidence
+  publication.
 
 ## Stability Rules
 

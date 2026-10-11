@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: python3 containers/runs/manage.py render-report -->
+<!-- source: bijux-dna-dev containers run run-evidence -- generate -->
 # LUNARC container run evidence
 
 This report indexes the final successful immutable execution admitted for each

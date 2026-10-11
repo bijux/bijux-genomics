@@ -6,7 +6,7 @@ pin_strategy: "external_tool"
 default_version: "0.941"
 install_kind: "external"
 container:
-  image: "external"
+  image: "external-artifact://angsd"
 license: "NOASSERTION"
 citation: "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
 outputs:
@@ -38,7 +38,7 @@ execution_contract:
   forbid_unexpected_outputs: true
 stage_ids: ["bam.sex","bam.kinship"]
 planned_stage_ids: []
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 stage_contracts:
   bam.sex:

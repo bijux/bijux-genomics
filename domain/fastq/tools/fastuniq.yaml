@@ -1,12 +1,11 @@
 schema_version: "bijux.tool.v1"
 tool_id: "fastuniq"
-status: "planned"
+status: "supported"
 scope: "pre_hpc_pre_vcf"
 capabilities:
   - "PE"
 container:
-  image: "external"
-  digest: "external"
+  image: "external-artifact://fastuniq"
 command_template:
   - "bash"
   - "-lc"
@@ -73,4 +72,4 @@ help_cmd: "fastuniq -h"
 comparability:
   comparable_with: []
   non_comparable_with: []
-comparability_notes: "Upstream does not publish a software license grant, so FastUniq remains an external planned option and is excluded from governed execution and comparison."
+comparability_notes: "Execution and comparison require a governed operator-provided artifact because upstream does not publish a software license grant."

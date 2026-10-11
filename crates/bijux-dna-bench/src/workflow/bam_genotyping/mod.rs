@@ -21,6 +21,7 @@ use super::bam_observation::{ensure_parameter_evidence, BamParameterPolicy};
 use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
 use crate::AdmittedBamGenotypingCorpus;
 
+pub(crate) use self::report::publish_bam_genotyping_stage_report_with_presentation_authority;
 pub use self::report::{
     publish_bam_genotyping_stage_report, render_bam_genotyping_markdown,
     BamGenotypingStageReportPublication,

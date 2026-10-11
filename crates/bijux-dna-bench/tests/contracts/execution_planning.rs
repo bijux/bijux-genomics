@@ -115,13 +115,27 @@ fn source_locked_plan(
     repository_commit: &str,
     campaign_registry_sha256: &str,
 ) -> anyhow::Result<bijux_dna_bench::BenchmarkCampaignPlan> {
+    source_locked_plan_for(
+        repository_commit,
+        campaign_registry_sha256,
+        "run-2042",
+        "human-short-read-length-comparison",
+    )
+}
+
+fn source_locked_plan_for(
+    repository_commit: &str,
+    campaign_registry_sha256: &str,
+    run_id: &str,
+    campaign_id: &str,
+) -> anyhow::Result<bijux_dna_bench::BenchmarkCampaignPlan> {
     let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
     plan_stage_campaign_attempts(
         &registry,
         repository_commit,
         campaign_registry_sha256,
-        "run-2042",
-        "human-short-read-length-comparison",
+        run_id,
+        campaign_id,
         "attempt-001",
         "2026-08-05T00:00:00Z",
     )
@@ -155,12 +169,54 @@ fn execution_authorities_bind_exact_source_files_and_reject_stale_inventory() ->
         authorities.source_contract_sha256()["image_inventory"],
         bijux_dna_infra::hash_file_sha256(&inventory_path)?
     );
+    assert_eq!(
+        authorities.source_contract_sha256()["planner_contract"],
+        bijux_dna_infra::hash_file_sha256(&repository_root.join(
+            "benchmarks/contracts/planner/fastq-profile-read-lengths.planner-contract.json"
+        ))?
+    );
 
     inventory.repository_commit = "9".repeat(40);
     let stale_path = temporary.path().join("stale-image-inventory.json");
     std::fs::write(&stale_path, serde_json::to_vec_pretty(&inventory)?)?;
     assert!(load_execution_authorities(&repository_root, &stale_path, &repository_commit, &plan,)
         .is_err_and(|error| error.to_string().contains("repository commit differs")));
+    Ok(())
+}
+
+#[test]
+fn execution_authorities_own_validation_planner_contract_lock() -> anyhow::Result<()> {
+    let repository_root = super::support::repo_root()?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-validation-authorities");
+    let inventory_path = temporary.path().join("image-inventory.json");
+    let mut inventory = load_image_inventory_publication(
+        &repository_root.join("containers/reports/image-inventory.json"),
+    )?;
+    let repository_commit = "a".repeat(40);
+    let campaign_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("benchmarks/contracts/stage-campaigns.toml"),
+    )?;
+    inventory.repository_commit.clone_from(&repository_commit);
+    inventory.catalog_sha256 = bijux_dna_infra::hash_file_sha256(
+        &repository_root.join("containers/contracts/catalog.toml"),
+    )?;
+    std::fs::write(&inventory_path, serde_json::to_vec_pretty(&inventory)?)?;
+    let plan = source_locked_plan_for(
+        &repository_commit,
+        &campaign_sha256,
+        "run-2051",
+        "human-short-read-validation-comparison",
+    )?;
+
+    let authorities =
+        load_execution_authorities(&repository_root, &inventory_path, &repository_commit, &plan)?;
+    assert_eq!(
+        authorities.source_contract_sha256()["planner_contract"],
+        bijux_dna_infra::hash_file_sha256(
+            &repository_root
+                .join("benchmarks/contracts/planner/fastq-validate-reads.planner-contract.json")
+        )?
+    );
     Ok(())
 }
 

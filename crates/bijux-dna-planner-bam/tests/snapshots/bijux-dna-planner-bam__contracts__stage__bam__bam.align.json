@@ -38,18 +38,21 @@
   "io": {
     "inputs": [
       {
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "name": "fastq_r1",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/reads_R1.fastq.gz",
         "role": "reads"
       },
       {
+        "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
         "name": "reference",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/reference.fasta",
         "role": "reference"
       },
       {
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "name": "fastq_r2",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/reads_R2.fastq.gz",
@@ -58,6 +61,7 @@
     ],
     "outputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "align_bam",
         "optional": false,
         "path": "out/align.bam",
@@ -73,27 +77,29 @@
         "name": "flagstat",
         "optional": false,
         "path": "out/flagstat.txt",
-        "role": "report_json"
+        "role": "report"
       },
       {
         "name": "idxstats",
         "optional": false,
         "path": "out/idxstats.txt",
-        "role": "unknown"
+        "role": "report"
       },
       {
         "name": "stats",
         "optional": false,
         "path": "out/samtools_stats.txt",
-        "role": "unknown"
+        "role": "report"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "align_metrics",
         "optional": false,
         "path": "out/align.metrics.json",
         "role": "metrics_json"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",

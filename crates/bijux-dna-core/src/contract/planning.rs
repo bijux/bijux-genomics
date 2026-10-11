@@ -10,8 +10,10 @@ use sha2::Digest;
 
 use crate::contract::canonical::to_canonical_json_bytes;
 use crate::contract::{
-    ArtifactRef, ArtifactRole, ArtifactRoleFamily, CompressionSupport, ExecutionGraph,
-    ExecutionStep, PlanPolicy, ReadLayoutMode, ToolConstraints,
+    canonical_artifact_contract_catalog, ArtifactClassV1, ArtifactCompressionV1,
+    ArtifactContractV1, ArtifactFormatV1, ArtifactPairingV1, ArtifactRef, ArtifactRole,
+    ArtifactRoleFamily, CompressionSupport, ExecutionGraph, ExecutionStep, PlanPolicy,
+    ReadLayoutMode, ToolConstraints,
 };
 use crate::foundation::{BijuxError, Result};
 
@@ -61,6 +63,8 @@ pub enum WorkflowStageDecisionKindV1 {
 #[serde(deny_unknown_fields)]
 pub struct WorkflowInputArtifactV1 {
     pub artifact_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub artifact_contract_id: Option<String>,
     pub role: ArtifactRole,
     pub path: PathBuf,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -75,6 +79,8 @@ pub struct WorkflowInputArtifactV1 {
 #[serde(deny_unknown_fields)]
 pub struct WorkflowReferenceAssetV1 {
     pub asset_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub artifact_contract_id: Option<String>,
     pub role: ArtifactRole,
     pub path: PathBuf,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -200,6 +206,7 @@ impl WorkflowManifestV1 {
             self.requested_stages.iter().map(|stage| stage.stage_id.as_str()),
             "workflow requested stage_id",
         )?;
+        validate_workflow_artifact_contracts(self)?;
         Ok(())
     }
 
@@ -253,6 +260,147 @@ impl WorkflowManifestV1 {
         normalized.notes = None;
         semantic_hash(&normalized)
     }
+}
+
+fn validate_workflow_artifact_contracts(manifest: &WorkflowManifestV1) -> Result<()> {
+    let catalog = canonical_artifact_contract_catalog();
+    catalog.validate()?;
+    for input in &manifest.inputs {
+        let contract_id = input.artifact_contract_id.as_deref().ok_or_else(|| {
+            BijuxError::validation(format!(
+                "workflow input {} must declare artifact_contract_id",
+                input.artifact_id
+            ))
+        })?;
+        let contract = catalog.contract(contract_id).ok_or_else(|| {
+            BijuxError::validation(format!(
+                "workflow input {} references unknown artifact contract {contract_id}",
+                input.artifact_id
+            ))
+        })?;
+        if !role_accepts_contract_class(input.role, contract.class) {
+            return Err(BijuxError::validation(format!(
+                "workflow input {} role {} is incompatible with artifact contract {contract_id}",
+                input.artifact_id,
+                input.role.as_str()
+            )));
+        }
+        validate_workflow_input_contract_metadata(input, contract)?;
+    }
+    for asset in &manifest.reference_assets {
+        let contract_id = asset.artifact_contract_id.as_deref().ok_or_else(|| {
+            BijuxError::validation(format!(
+                "workflow reference asset {} must declare artifact_contract_id",
+                asset.asset_id
+            ))
+        })?;
+        let contract = catalog.contract(contract_id).ok_or_else(|| {
+            BijuxError::validation(format!(
+                "workflow reference asset {} references unknown artifact contract {contract_id}",
+                asset.asset_id
+            ))
+        })?;
+        if contract.class != ArtifactClassV1::Reference {
+            return Err(BijuxError::validation(format!(
+                "workflow reference asset {} requires a reference artifact contract, got {contract_id}",
+                asset.asset_id
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn validate_workflow_input_contract_metadata(
+    input: &WorkflowInputArtifactV1,
+    contract: &ArtifactContractV1,
+) -> Result<()> {
+    if let Some(format_id) = input.format_id.as_deref() {
+        let format = artifact_format_from_id(format_id).ok_or_else(|| {
+            BijuxError::validation(format!(
+                "workflow input {} uses unknown format_id {format_id}",
+                input.artifact_id
+            ))
+        })?;
+        if !contract.formats.contains(&format) {
+            return Err(BijuxError::validation(format!(
+                "workflow input {} format_id {format_id} is incompatible with artifact contract {}",
+                input.artifact_id, contract.contract_id
+            )));
+        }
+    }
+
+    let pairing = match input.layout {
+        Some(ReadLayoutMode::SingleEnd) => Some(ArtifactPairingV1::SingleEnd),
+        Some(ReadLayoutMode::PairedEnd | ReadLayoutMode::Deinterleaved) => {
+            Some(ArtifactPairingV1::PairedEnd)
+        }
+        Some(ReadLayoutMode::Interleaved) => Some(ArtifactPairingV1::Interleaved),
+        Some(ReadLayoutMode::Merged) => Some(ArtifactPairingV1::Merged),
+        Some(ReadLayoutMode::Unknown) | None => None,
+    };
+    if let Some(pairing) = pairing {
+        if !contract.pairing.contains(&pairing) {
+            return Err(BijuxError::validation(format!(
+                "workflow input {} layout {:?} is incompatible with artifact contract {}",
+                input.artifact_id, input.layout, contract.contract_id
+            )));
+        }
+    }
+
+    let compression = match input.compression {
+        Some(CompressionSupport::None) => Some(ArtifactCompressionV1::None),
+        Some(CompressionSupport::Gzip) => Some(ArtifactCompressionV1::Gzip),
+        Some(CompressionSupport::Bgzf) => Some(ArtifactCompressionV1::Bgzf),
+        Some(CompressionSupport::Unknown) | None => None,
+    };
+    if let Some(compression) = compression {
+        if !contract.compressions.contains(&compression) {
+            return Err(BijuxError::validation(format!(
+                "workflow input {} compression {:?} is incompatible with artifact contract {}",
+                input.artifact_id, input.compression, contract.contract_id
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn artifact_format_from_id(format_id: &str) -> Option<ArtifactFormatV1> {
+    match format_id.to_ascii_lowercase().as_str() {
+        "fastq" | "fastq.gz" | "fq" | "fq.gz" => Some(ArtifactFormatV1::Fastq),
+        "bam" => Some(ArtifactFormatV1::Bam),
+        "cram" => Some(ArtifactFormatV1::Cram),
+        "vcf" | "vcf.gz" | "vcf.bgz" => Some(ArtifactFormatV1::Vcf),
+        "bcf" => Some(ArtifactFormatV1::Bcf),
+        "fasta" | "fasta.gz" | "fa" | "fa.gz" => Some(ArtifactFormatV1::Fasta),
+        "tsv" | "tsv.gz" | "csv" | "csv.gz" | "bed" | "bed.gz" => Some(ArtifactFormatV1::Tabular),
+        "json" => Some(ArtifactFormatV1::Json),
+        "html" => Some(ArtifactFormatV1::Html),
+        "text" | "txt" => Some(ArtifactFormatV1::Text),
+        "directory" => Some(ArtifactFormatV1::Directory),
+        "database" => Some(ArtifactFormatV1::Database),
+        "index" => Some(ArtifactFormatV1::Index),
+        "file" => Some(ArtifactFormatV1::File),
+        _ => None,
+    }
+}
+
+const fn role_accepts_contract_class(role: ArtifactRole, class: ArtifactClassV1) -> bool {
+    matches!(
+        (role.family(), class),
+        (ArtifactRoleFamily::Reads, ArtifactClassV1::Fastq)
+            | (ArtifactRoleFamily::Alignment, ArtifactClassV1::Alignment)
+            | (ArtifactRoleFamily::Variant, ArtifactClassV1::Variant)
+            | (ArtifactRoleFamily::Reference, ArtifactClassV1::Reference)
+            | (
+                ArtifactRoleFamily::Report
+                    | ArtifactRoleFamily::Metrics
+                    | ArtifactRoleFamily::Provenance
+                    | ArtifactRoleFamily::Evidence
+                    | ArtifactRoleFamily::Log
+                    | ArtifactRoleFamily::Other,
+                ArtifactClassV1::Auxiliary,
+            )
+    )
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

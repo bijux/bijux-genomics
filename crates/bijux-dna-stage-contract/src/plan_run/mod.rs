@@ -139,13 +139,16 @@ pub fn build_run_execution_plan(
         .iter()
         .map(|artifact| {
             let role = artifact.role.as_str().to_string();
-            let (kind, schema) = artifact_kind_schema(&role);
+            let (kind, fallback_contract) = artifact_kind_schema(&role);
             PlannedArtifactV1 {
                 artifact_id: artifact.name.0.to_string(),
                 role,
                 path: artifact.path.to_string_lossy().to_string(),
                 kind: kind.to_string(),
-                schema: schema.to_string(),
+                schema: artifact
+                    .artifact_contract_id
+                    .clone()
+                    .unwrap_or_else(|| fallback_contract.to_string()),
             }
         })
         .collect();

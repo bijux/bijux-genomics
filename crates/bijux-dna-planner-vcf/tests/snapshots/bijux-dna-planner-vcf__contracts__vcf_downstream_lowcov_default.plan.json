@@ -98,6 +98,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "reference_panel_vcf",
             "optional": false,
             "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
@@ -106,12 +107,14 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "prepared_panel",
             "optional": false,
             "path": "out/prepared_panel.vcf.gz",
             "role": "variant"
           },
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "chunks_json",
             "optional": false,
             "path": "out/chunks.json",
@@ -241,11 +244,12 @@
       },
       "image": {
         "digest": null,
-        "image": "quay.io/biocontainers/angsd:0.940--h2e03b76_2"
+        "image": "external-artifact://angsd"
       },
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
             "name": "input_bam",
             "optional": false,
             "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
@@ -258,6 +262,7 @@
             "role": "index"
           },
           {
+            "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
             "name": "reference_fasta",
             "optional": false,
             "path": "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta",
@@ -266,6 +271,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "gl_sites_vcf",
             "optional": false,
             "path": "out/gl_sites_vcf.vcf.gz",
@@ -384,6 +390,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/gl_sites_vcf.vcf.gz",
@@ -392,6 +399,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "damage_filtered_vcf",
             "optional": false,
             "path": "out/damage_filtered_vcf.vcf.gz",
@@ -494,6 +502,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/damage_filtered_vcf.vcf.gz",
@@ -502,6 +511,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "filtered_vcf",
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
@@ -606,6 +616,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/filtered_vcf.vcf.gz",
@@ -614,6 +625,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "gl_propagated_vcf",
             "optional": false,
             "path": "out/gl_propagated_vcf.vcf.gz",
@@ -1369,18 +1381,21 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/gl_propagated_vcf.vcf.gz",
             "role": "variant"
           },
           {
+            "artifact_contract_id": "bijux.reference.artifact.fasta.v1",
             "name": "genetic_map_tsv",
             "optional": false,
             "path": "artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_chr_map/recombination_map.tsv.gz",
             "role": "reference"
           },
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "reference_panel_vcf",
             "optional": false,
             "path": "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf",
@@ -1389,6 +1404,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "imputed_vcf",
             "optional": false,
             "path": "out/imputed_vcf.vcf.gz",
@@ -2141,6 +2157,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/imputed_vcf.vcf.gz",
@@ -2149,6 +2166,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "postprocess_vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
@@ -2267,6 +2285,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
@@ -2275,6 +2294,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "population_structure_report",
             "optional": false,
             "path": "out/population_structure_report.json",
@@ -2393,6 +2413,7 @@
       "io": {
         "inputs": [
           {
+            "artifact_contract_id": "bijux.vcf.artifact.coordinate_sorted_indexed.v1",
             "name": "vcf",
             "optional": false,
             "path": "out/postprocess_vcf.vcf.gz",
@@ -2401,6 +2422,7 @@
         ],
         "outputs": [
           {
+            "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
             "name": "stats_json",
             "optional": false,
             "path": "out/stats_json.json",

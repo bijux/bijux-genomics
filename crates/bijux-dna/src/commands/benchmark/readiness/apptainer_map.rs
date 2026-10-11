@@ -9,6 +9,9 @@ use serde::{Deserialize, Serialize};
 use super::all_domain_retained_tools::{
     collect_all_domain_retained_tool_rows, AllDomainRetainedToolRow,
 };
+use super::executable_resolution::{
+    resolve_runtime_probe_signature, RESOLUTION_KIND_EXTERNAL_ARTIFACT,
+};
 use super::tool_execution_modes::load_runtime_probe_with_source;
 use crate::commands::cli::env::expected_registry_digest_from_parts;
 use crate::commands::cli::parse;
@@ -194,11 +197,14 @@ pub(crate) fn collect_apptainer_map_rows(repo_root: &Path) -> Result<Vec<Apptain
     }
     let docker_runtime = format!("docker-{}", platform.arch);
 
-    let expected_tool_ids = retained_by_tool
-        .keys()
-        .filter(|tool_id| registry_by_tool.get(*tool_id).is_some_and(is_docker_backed))
-        .cloned()
-        .collect::<BTreeSet<_>>();
+    let mut expected_tool_ids = BTreeSet::new();
+    for (tool_id, retained_row) in &retained_by_tool {
+        if registry_by_tool.get(tool_id).is_some_and(is_docker_backed)
+            && !retained_tool_uses_external_artifact(repo_root, retained_row)?
+        {
+            expected_tool_ids.insert(tool_id.clone());
+        }
+    }
     if expected_tool_ids.is_empty() {
         return Err(anyhow!(
             "apptainer readiness map expected at least one retained docker-backed tool"
@@ -206,7 +212,7 @@ pub(crate) fn collect_apptainer_map_rows(repo_root: &Path) -> Result<Vec<Apptain
     }
 
     let mut rows = Vec::with_capacity(expected_tool_ids.len());
-    for tool_id in expected_tool_ids {
+    for tool_id in &expected_tool_ids {
         let retained_row = retained_by_tool
             .get(tool_id.as_str())
             .ok_or_else(|| anyhow!("missing retained-scope row for `{tool_id}`"))?;
@@ -225,7 +231,7 @@ pub(crate) fn collect_apptainer_map_rows(repo_root: &Path) -> Result<Vec<Apptain
     }
 
     rows.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
-    ensure_apptainer_map_contract(&rows, &registry_by_tool, &retained_by_tool)?;
+    ensure_apptainer_map_contract(&rows, &expected_tool_ids)?;
     Ok(rows)
 }
 
@@ -408,18 +414,33 @@ fn is_docker_backed(row: &ApptainerRegistryRow) -> bool {
     row.runtimes.iter().any(|runtime| runtime == "docker") && !row.dockerfile.trim().is_empty()
 }
 
+fn retained_tool_uses_external_artifact(
+    repo_root: &Path,
+    retained_row: &AllDomainRetainedToolRow,
+) -> Result<bool> {
+    for domain in &retained_row.domains {
+        let loaded = load_runtime_probe_with_source(repo_root, domain, &retained_row.tool_id)
+            .with_context(|| {
+                format!(
+                    "load runtime probe for retained Apptainer candidate `{}` in domain `{domain}`",
+                    retained_row.tool_id
+                )
+            })?;
+        if resolve_runtime_probe_signature(&retained_row.tool_id, &loaded.probe).resolution_kind
+            == RESOLUTION_KIND_EXTERNAL_ARTIFACT
+        {
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
 fn ensure_apptainer_map_contract(
     rows: &[ApptainerMapRow],
-    registry_by_tool: &BTreeMap<String, ApptainerRegistryRow>,
-    retained_by_tool: &BTreeMap<String, AllDomainRetainedToolRow>,
+    expected_tool_ids: &BTreeSet<String>,
 ) -> Result<()> {
-    let expected_tool_ids = retained_by_tool
-        .keys()
-        .filter(|tool_id| registry_by_tool.get(*tool_id).is_some_and(is_docker_backed))
-        .cloned()
-        .collect::<BTreeSet<_>>();
     let actual_tool_ids = rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>();
-    if actual_tool_ids != expected_tool_ids {
+    if &actual_tool_ids != expected_tool_ids {
         return Err(anyhow!(
             "apptainer readiness map drifted from the retained docker-backed tool scope"
         ));

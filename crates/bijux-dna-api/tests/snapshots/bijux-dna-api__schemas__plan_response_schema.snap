@@ -36,6 +36,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "io": {
           "inputs": [
             {
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "name": "input",
               "optional": false,
               "path": "input",
@@ -44,6 +45,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "outputs": [
             {
+              "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
               "name": "output",
               "optional": false,
               "path": "output",
@@ -64,7 +66,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       }
     ]
   },
-  "graph_hash": "934c4ac4579c0d17d2b467b1c1fd777757f6c050fa34f40c71aac13fbce0b37b",
+  "graph_hash": "90cec304df259d72b9769309bf53b82674b70e4d5f8c63ecf87bc0d9c80e23f9",
   "manifest": {
     "cache_key": null,
     "contract_version": {
@@ -73,7 +75,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "dataset_fingerprints": [],
     "failures": [],
-    "graph_hash": "934c4ac4579c0d17d2b467b1c1fd777757f6c050fa34f40c71aac13fbce0b37b",
+    "graph_hash": "90cec304df259d72b9769309bf53b82674b70e4d5f8c63ecf87bc0d9c80e23f9",
     "output_artifacts": [
       {
         "kind": "graph",
@@ -167,7 +169,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       }
     ],
     "pipeline_id": "fastq-to-fastq__default__v1",
-    "plan_fingerprint": "de66b507315b69b914c7fc72ac2bcc11308b726b91e30c5d94d9c276cd04bb75",
+    "plan_fingerprint": "aad107211863fea8ec4bb70338fb7d961785bd0666565eb18f577d2cbb1dcb96",
     "planner_version": "planner.test",
     "policy": "PreferAccuracy",
     "profile_id": "default",
@@ -179,7 +181,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "stage_id": "core.test"
       }
     ],
-    "workflow_fingerprint": "1d39042acf550d0c30177d3556bbcfaf7ea887a7f46da658322c12cdb13b6f65"
+    "workflow_fingerprint": "a726648ee33a5e98bf5acfb81c90d43df1f89c2fb1d824eeb9f2bfcc62a64470"
   },
   "workflow_manifest": {
     "domain": "core",
@@ -188,6 +190,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "inputs": [
       {
+        "artifact_contract_id": "bijux.fastq.artifact.reads.v1",
         "artifact_id": "input",
         "path": "input",
         "role": "reads"

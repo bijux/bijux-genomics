@@ -19,6 +19,64 @@ pub struct BenchmarkStageDownstreamProbe {
     pub assertions: Vec<String>,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkReportMetricFormat {
+    Seconds3,
+    Mebibytes1,
+    MebibytesPerSecond2,
+    Number0,
+    Number1,
+    Percent1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkReportPerformanceColumn {
+    pub metric: String,
+    pub heading: String,
+    pub format: BenchmarkReportMetricFormat,
+    #[serde(default)]
+    pub include_range: bool,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkReportDeterminismPresentation {
+    DetailedEvidence,
+    CompactEvidence,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkReportTitleClass {
+    Qualification,
+    Comparative,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkReportComparisonPresentation {
+    StatusOnly,
+    RangeOnly,
+    ToolMeans,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkReportPresentation {
+    pub report_file_stem: String,
+    pub generated_source: String,
+    pub title_class: BenchmarkReportTitleClass,
+    #[serde(default)]
+    pub separate_accuracy_claim: bool,
+    #[serde(default)]
+    pub include_comparison_closure: bool,
+    pub determinism: BenchmarkReportDeterminismPresentation,
+    pub comparison: BenchmarkReportComparisonPresentation,
+    pub performance_columns: Vec<BenchmarkReportPerformanceColumn>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkStageInterfaceSpec {
@@ -42,6 +100,7 @@ pub struct BenchmarkStageInterfaceSpec {
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub parameter_projections: BTreeMap<String, BTreeMap<String, String>>,
     pub downstream_probe: BenchmarkStageDownstreamProbe,
+    pub report_presentation: BenchmarkReportPresentation,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]

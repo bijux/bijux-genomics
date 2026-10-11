@@ -219,7 +219,8 @@ fn migrate_after_ready(
         | BenchmarkLifecycleStatus::Running
         | BenchmarkLifecycleStatus::Collecting
         | BenchmarkLifecycleStatus::Passed
-        | BenchmarkLifecycleStatus::Failed => {
+        | BenchmarkLifecycleStatus::Failed
+        | BenchmarkLifecycleStatus::Cancelled => {
             if record.jobs.is_empty() {
                 return Err(invalid(
                     "benchmark attempt v1 submitted or terminal state cannot migrate without a Slurm job",
@@ -235,10 +236,13 @@ fn migrate_after_ready(
             if record.status == BenchmarkLifecycleStatus::Submitted {
                 require_unused_terminal_context(context)?;
                 attach_evidence_to_last(migrated, context)?;
-            } else if record.status == BenchmarkLifecycleStatus::Failed {
+            } else if matches!(
+                record.status,
+                BenchmarkLifecycleStatus::Failed | BenchmarkLifecycleStatus::Cancelled
+            ) {
                 push_transition(
                     migrated,
-                    BenchmarkLifecycleStatus::Failed,
+                    record.status,
                     context,
                     context.terminal_reason.clone(),
                     true,

@@ -19,8 +19,24 @@ This crate owns developer automation contracts, not production pipeline contract
 - `containers run generate-image-inventory-report -- [<publication> <output>]` loads a validated
   publication, delegates Markdown rendering to `bijux-dna-containers`, and writes atomically;
   `check-image-inventory-report` rejects governed report drift.
-- `containers run runtime-verification -- execute <repository-root> ...` requires the exact clean
-  source checkout explicitly; the automation checkout never substitutes its own repository identity.
+- `containers run runtime-verification -- check-report|generate-schema|check-schema` owns only
+  deterministic report and schema operations; effectful catalog execution belongs to the
+  `bijux-dna-containers-qa` `runtime_verification` binary.
+- `containers run run-evidence -- import|validate|publish|generate|check` delegates immutable run
+  lock admission, final selection, attempt lineage, and publication derivation to
+  `bijux-dna-containers`; `publish` is non-mutating unless `--apply` is explicit.
+- `containers run external-artifact -- <admit|block|verify|bind> ...` preserves repository and
+  active-image roots explicitly while delegating checksum, license-access, version, stage-binding,
+  and non-redistribution decisions to `bijux-dna-containers`.
+- `containers run credential-reference -- validate|generate-schema|check-schema` delegates strict
+  no-secret credential metadata admission and schema ownership to `bijux-dna-containers`.
+- `containers run pipeline-contract -- validate <pipeline>` delegates strict v1 history and v2
+  current declaration validation to `bijux-dna-containers` without running site effects;
+  `admit --governance <governance> <pipeline>` additionally verifies the current host, Git state,
+  immutable image and inputs, governed result layout, and Slurm account and partition without
+  submitting work. `currentize --governance <governance> --inventory <inventory> --commit <sha>
+  [--apply] <pipelines-root>` plans or atomically applies inventory-bound repository and image
+  identities while preserving all other declaration content.
 
 ## Artifact contract
 - Generated reports, logs, run products, and local command outputs default to the repository root `artifacts/` tree.

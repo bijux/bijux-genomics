@@ -24,6 +24,7 @@
   "io": {
     "inputs": [
       {
+        "artifact_contract_id": "bijux.bam.artifact.coordinate_sorted_indexed.v1",
         "name": "bam",
         "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -35,15 +36,16 @@
         "name": "coverage_summary",
         "optional": false,
         "path": "out/coverage.mosdepth.summary.txt",
-        "role": "report_json"
+        "role": "report"
       },
       {
         "name": "coverage_depth",
         "optional": false,
         "path": "out/coverage.depth.txt",
-        "role": "unknown"
+        "role": "report"
       },
       {
+        "artifact_contract_id": "bijux.auxiliary.artifact.json.v1",
         "name": "stage_metrics",
         "optional": false,
         "path": "out/stage.metrics.json",

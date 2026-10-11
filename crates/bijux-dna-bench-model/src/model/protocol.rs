@@ -37,6 +37,8 @@ pub struct BenchmarkRunDefinition {
     #[schemars(schema_with = "benchmark_run_definition_schema_version")]
     pub schema_version: String,
     pub identity: BenchmarkRunIdentity,
+    #[schemars(schema_with = "protocol_version_schema")]
+    pub protocol_version: String,
     pub title: String,
     pub purpose: String,
     pub owner: String,
@@ -116,6 +118,13 @@ fn benchmark_case_definition_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_CASE_DEFINITION_SCHEMA_V1,
+    })
+}
+
+fn protocol_version_schema(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)$",
     })
 }
 

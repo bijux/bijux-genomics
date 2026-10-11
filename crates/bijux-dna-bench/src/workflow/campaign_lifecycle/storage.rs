@@ -132,18 +132,51 @@ fn is_untouched_planned_sibling(
     {
         return Ok(false);
     }
-    let mut names = Vec::new();
+    let mut entries = BTreeMap::new();
     for entry in fs::read_dir(directory)
         .with_context(|| format!("read detached benchmark attempt {}", directory.display()))?
     {
         let entry = entry.context("read detached benchmark attempt entry")?;
         let file_type = entry.file_type().context("inspect detached benchmark attempt entry")?;
-        if file_type.is_symlink() || !file_type.is_file() {
+        if file_type.is_symlink() || entries.insert(entry.file_name(), file_type).is_some() {
             return Ok(false);
         }
-        names.push(entry.file_name());
     }
-    Ok(names == [std::ffi::OsString::from("attempt.json")])
+    let expected = [
+        "accounting",
+        "attempt.json",
+        "logs",
+        "manifests",
+        "outputs",
+        "receipts",
+        "science",
+        "validation",
+    ]
+    .into_iter()
+    .map(std::ffi::OsString::from)
+    .collect::<BTreeSet<_>>();
+    if entries.keys().cloned().collect::<BTreeSet<_>>() != expected
+        || !entries
+            .get(&std::ffi::OsString::from("attempt.json"))
+            .is_some_and(std::fs::FileType::is_file)
+    {
+        return Ok(false);
+    }
+    for name in ["accounting", "logs", "outputs", "receipts", "science", "validation"] {
+        if !entries.get(&std::ffi::OsString::from(name)).is_some_and(std::fs::FileType::is_dir)
+            || fs::read_dir(directory.join(name))?.next().is_some()
+        {
+            return Ok(false);
+        }
+    }
+    let manifests = directory.join("manifests");
+    if !entries.get(&std::ffi::OsString::from("manifests")).is_some_and(std::fs::FileType::is_dir) {
+        return Ok(false);
+    }
+    let manifest_entries = fs::read_dir(manifests)?.collect::<std::io::Result<Vec<_>>>()?;
+    Ok(manifest_entries.len() == 1
+        && manifest_entries[0].file_name() == "attempt-layout.json"
+        && manifest_entries[0].file_type()?.is_file())
 }
 
 /// Persist every planned campaign attempt under its immutable run/tool/campaign/attempt identity.
@@ -213,6 +246,7 @@ fn is_terminal_history(attempt: &BenchmarkAttemptRecordV2) -> bool {
         Some(
             BenchmarkLifecycleStatus::Passed
                 | BenchmarkLifecycleStatus::Failed
+                | BenchmarkLifecycleStatus::Cancelled
                 | BenchmarkLifecycleStatus::Superseded
                 | BenchmarkLifecycleStatus::BlockedExternal
         )

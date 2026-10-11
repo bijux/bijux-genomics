@@ -13,6 +13,7 @@ bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-containers = { path = "../bijux-dna-containers" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
+bijux-dna-stage-contract.workspace = true
 bijux-dna-science.workspace = true
 bijux-dna-bench-model = { path = "../bijux-dna-bench-model" }
 chrono.workspace = true

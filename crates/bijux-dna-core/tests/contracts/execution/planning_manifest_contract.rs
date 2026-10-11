@@ -3,10 +3,11 @@ use std::path::PathBuf;
 
 use bijux_dna_core::contract::{
     build_plan_manifest, diff_plan_manifests, validate_cross_domain_handoffs, ArtifactRef,
-    ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep, ParameterResolutionTraceV1,
-    PlanManifestBuildInputV1, PlanPolicy, PlannerParameterSourceV1, PlannerRefusalCodeV1,
-    PlannerRefusalRecordV1, PlannerWarningCodeV1, PlannerWarningRecordV1, StageIO, ToolConstraints,
-    WorkflowInputArtifactV1, WorkflowManifestV1, WorkflowReferenceAssetV1, WorkflowStageRequestV1,
+    ArtifactRole, CompressionSupport, ExecutionEdge, ExecutionGraph, ExecutionStep,
+    ParameterResolutionTraceV1, PlanManifestBuildInputV1, PlanPolicy, PlannerParameterSourceV1,
+    PlannerRefusalCodeV1, PlannerRefusalRecordV1, PlannerWarningCodeV1, PlannerWarningRecordV1,
+    ReadLayoutMode, StageIO, ToolConstraints, WorkflowInputArtifactV1, WorkflowManifestV1,
+    WorkflowReferenceAssetV1, WorkflowStageRequestV1,
 };
 use bijux_dna_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 
@@ -53,6 +54,7 @@ fn fastq_workflow_manifest() -> WorkflowManifestV1 {
     let mut manifest = WorkflowManifestV1::new("fastq", "fastq-to-fastq__default__v1");
     manifest.inputs = vec![WorkflowInputArtifactV1 {
         artifact_id: "reads".to_string(),
+        artifact_contract_id: Some("bijux.fastq.artifact.single_end.v1".to_string()),
         role: ArtifactRole::Reads,
         path: "reads.fastq.gz".into(),
         layout: None,
@@ -61,6 +63,7 @@ fn fastq_workflow_manifest() -> WorkflowManifestV1 {
     }];
     manifest.reference_assets = vec![WorkflowReferenceAssetV1 {
         asset_id: "reference".to_string(),
+        artifact_contract_id: Some("bijux.reference.artifact.fasta.v1".to_string()),
         role: ArtifactRole::Reference,
         path: "reference.fa".into(),
         checksum_sha256: Some("a".repeat(64)),
@@ -91,6 +94,40 @@ fn workflow_manifest_fingerprint_ignores_authoring_noise() -> anyhow::Result<()>
 
     assert_eq!(manifest.fingerprint()?, reordered.fingerprint()?);
     Ok(())
+}
+
+#[test]
+fn workflow_manifest_rejects_missing_or_role_incompatible_artifact_contracts() {
+    let mut missing = fastq_workflow_manifest();
+    missing.inputs[0].artifact_contract_id = None;
+    assert!(missing
+        .validate()
+        .is_err_and(|error| error.to_string().contains("must declare artifact_contract_id")));
+
+    let mut incompatible = fastq_workflow_manifest();
+    incompatible.inputs[0].artifact_contract_id =
+        Some("bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string());
+    assert!(incompatible
+        .validate()
+        .is_err_and(|error| error.to_string().contains("role reads is incompatible")));
+
+    let mut incompatible_layout = fastq_workflow_manifest();
+    incompatible_layout.inputs[0].layout = Some(ReadLayoutMode::PairedEnd);
+    assert!(incompatible_layout
+        .validate()
+        .is_err_and(|error| error.to_string().contains("layout Some(PairedEnd) is incompatible")));
+
+    let mut incompatible_compression = fastq_workflow_manifest();
+    incompatible_compression.inputs[0].compression = Some(CompressionSupport::Bgzf);
+    assert!(incompatible_compression
+        .validate()
+        .is_err_and(|error| error.to_string().contains("compression Some(Bgzf) is incompatible")));
+
+    let mut incompatible_format = fastq_workflow_manifest();
+    incompatible_format.inputs[0].format_id = Some("bam".to_string());
+    assert!(incompatible_format
+        .validate()
+        .is_err_and(|error| error.to_string().contains("format_id bam is incompatible")));
 }
 
 #[test]
@@ -260,6 +297,9 @@ fn build_plan_manifest_ignores_temp_root_path_noise() -> anyhow::Result<()> {
         let mut manifest = WorkflowManifestV1::new("bam", "bam-to-bam__default__v1");
         manifest.inputs = vec![WorkflowInputArtifactV1 {
             artifact_id: "bam".to_string(),
+            artifact_contract_id: Some(
+                "bijux.bam.artifact.coordinate_sorted_indexed.v1".to_string(),
+            ),
             role: ArtifactRole::Bam,
             path: root.join("sample.bam"),
             layout: None,

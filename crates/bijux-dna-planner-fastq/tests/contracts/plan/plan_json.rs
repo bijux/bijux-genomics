@@ -98,7 +98,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.detect_adapters", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan(
-        &domain_tool("fastq.profile_read_lengths", "seqkit_stats"),
+        &domain_tool("fastq.profile_read_lengths", "seqkit"),
         r1,
         Some(r2),
         out_dir,
