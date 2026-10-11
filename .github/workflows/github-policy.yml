@@ -4,11 +4,6 @@
 
 "name": "repository policy"
 "on":
-  "push":
-    "branches":
-      - "main"
-    "tags":
-      - "v*"
   "pull_request":
     "branches":
       - "main"
@@ -21,7 +16,7 @@
   "pull-requests": "read"
 "jobs":
   "policy":
-    "name": "policy / github"
+    "name": "${{ (github.event.pull_request.user.login == 'dependabot[bot]' || (github.event.pull_request.user.login == 'github-actions[bot]' && github.event.pull_request.head.ref == 'automation/dependency-lock-refresh')) && 'unverified dependency / ' || '' }}policy / github"
     "runs-on": "ubuntu-latest"
     "timeout-minutes": 10
     "steps":
@@ -64,3 +59,4 @@
       - "name": "Verify pinned action references"
         "shell": "bash"
         "run": "set -euo pipefail\npython3 .github/scripts/check_pinned_actions.py \\\n  --manifest-managed .github/standards/repo-config.manifest.json \\\n  .github/workflows\n"
+    "if": "${{ (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.event_name != 'pull_request_review') || (github.event.pull_request.user.login != 'dependabot[bot]' && (github.event.pull_request.user.login != 'github-actions[bot]' || github.event.pull_request.head.ref != 'automation/dependency-lock-refresh')) }}"

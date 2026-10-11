@@ -2,90 +2,90 @@
 # Source of truth: bijux-std/.github/standards/repo-config.manifest.json and bijux-std/shared/bijux-gh/workflows/.
 # Do not edit this generated copy directly.
 
-name: "continuous integration"
-on:
-  pull_request:
-    branches:
-      - main
-  merge_group:
-    branches:
-      - main
-  workflow_dispatch:
-concurrency:
-  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
-  cancel-in-progress: true
-permissions:
-  contents: read
-env:
-  RUST_TOOLCHAIN_VERSION: 1.95.0
-  CARGO_DENY_VERSION: 0.18.3
-  CARGO_AUDIT_VERSION: 0.22.0
-  SCCACHE_GHA_ENABLED: true
-  RUSTC_WRAPPER: sccache
-jobs:
-  fmt:
-    name: format
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - name: "Check out the repository"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
-        with:
-          toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
-          components: rustfmt
-      - name: "Set up sccache"
-        uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
-        with:
-          shared-key: ci-fmt
-      - name: "Run repository formatting gate"
-        run: "make fmt"
-    if: "${{ github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]' }}"
-  lint:
-    name: lint
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - name: "Check out the repository"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - name: "Install Linux build dependencies"
-        run: "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev"
-      - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
-        with:
-          toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
-          components: clippy
-      - name: "Set up sccache"
-        uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
-        with:
-          shared-key: ci-lint
-      - name: "Run repository lint gate"
-        run: "make lint"
-    if: "${{ github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]' }}"
-  audit:
-    name: "dependency audit"
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - name: "Check out the repository"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - name: "Set up Rust"
-        uses: dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f
-        with:
-          toolchain: "${{ env.RUST_TOOLCHAIN_VERSION }}"
-      - name: "Set up sccache"
-        uses: mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad
-      - name: "Restore the Rust cache"
-        uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
-        with:
-          shared-key: ci-audit
-      - name: "Install Rust audit tools"
-        run: "cargo install --locked cargo-deny --version \"${{ env.CARGO_DENY_VERSION }}\" && cargo install --locked cargo-audit --version \"${{ env.CARGO_AUDIT_VERSION }}\""
-      - name: "Run repository audit gate"
-        run: "make audit"
-    if: "${{ github.event_name != 'pull_request' || github.event.pull_request.user.login != 'dependabot[bot]' }}"
+"name": "continuous integration"
+"on":
+  "pull_request":
+    "branches":
+      - "main"
+  "merge_group":
+    "branches":
+      - "main"
+  "workflow_dispatch": {}
+"concurrency":
+  "group": "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  "cancel-in-progress": true
+"permissions":
+  "contents": "read"
+"env":
+  "RUST_TOOLCHAIN_VERSION": "1.95.0"
+  "CARGO_DENY_VERSION": "0.18.3"
+  "CARGO_AUDIT_VERSION": "0.22.0"
+  "SCCACHE_GHA_ENABLED": "true"
+  "RUSTC_WRAPPER": "sccache"
+"jobs":
+  "fmt":
+    "name": "${{ (github.event.pull_request.user.login == 'dependabot[bot]' || (github.event.pull_request.user.login == 'github-actions[bot]' && github.event.pull_request.head.ref == 'automation/dependency-lock-refresh')) && 'unverified dependency / ' || '' }}format"
+    "runs-on": "ubuntu-24.04"
+    "timeout-minutes": 20
+    "steps":
+      - "name": "Check out the repository"
+        "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+      - "name": "Set up Rust"
+        "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f"
+        "with":
+          "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+          "components": "rustfmt"
+      - "name": "Set up sccache"
+        "uses": "mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad"
+      - "name": "Restore the Rust cache"
+        "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6"
+        "with":
+          "shared-key": "ci-fmt"
+      - "name": "Run repository formatting gate"
+        "run": "make fmt"
+    "if": "${{ (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.event_name != 'pull_request_review') || (github.event.pull_request.user.login != 'dependabot[bot]' && (github.event.pull_request.user.login != 'github-actions[bot]' || github.event.pull_request.head.ref != 'automation/dependency-lock-refresh')) }}"
+  "lint":
+    "name": "${{ (github.event.pull_request.user.login == 'dependabot[bot]' || (github.event.pull_request.user.login == 'github-actions[bot]' && github.event.pull_request.head.ref == 'automation/dependency-lock-refresh')) && 'unverified dependency / ' || '' }}lint"
+    "runs-on": "ubuntu-24.04"
+    "timeout-minutes": 30
+    "steps":
+      - "name": "Check out the repository"
+        "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+      - "name": "Install Linux build dependencies"
+        "run": "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev"
+      - "name": "Set up Rust"
+        "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f"
+        "with":
+          "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+          "components": "clippy"
+      - "name": "Set up sccache"
+        "uses": "mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad"
+      - "name": "Restore the Rust cache"
+        "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6"
+        "with":
+          "shared-key": "ci-lint"
+      - "name": "Run repository lint gate"
+        "run": "make lint"
+    "if": "${{ (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.event_name != 'pull_request_review') || (github.event.pull_request.user.login != 'dependabot[bot]' && (github.event.pull_request.user.login != 'github-actions[bot]' || github.event.pull_request.head.ref != 'automation/dependency-lock-refresh')) }}"
+  "audit":
+    "name": "${{ (github.event.pull_request.user.login == 'dependabot[bot]' || (github.event.pull_request.user.login == 'github-actions[bot]' && github.event.pull_request.head.ref == 'automation/dependency-lock-refresh')) && 'unverified dependency / ' || '' }}dependency audit"
+    "runs-on": "ubuntu-24.04"
+    "timeout-minutes": 30
+    "steps":
+      - "name": "Check out the repository"
+        "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+      - "name": "Set up Rust"
+        "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f"
+        "with":
+          "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+      - "name": "Set up sccache"
+        "uses": "mozilla/sccache-action@7d986dd989559c6ecdb630a3fd2557667be217ad"
+      - "name": "Restore the Rust cache"
+        "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6"
+        "with":
+          "shared-key": "ci-audit"
+      - "name": "Install Rust audit tools"
+        "run": "cargo install --locked cargo-deny --version \"${{ env.CARGO_DENY_VERSION }}\" && cargo install --locked cargo-audit --version \"${{ env.CARGO_AUDIT_VERSION }}\""
+      - "name": "Run repository audit gate"
+        "run": "make audit"
+    "if": "${{ (github.event_name != 'pull_request' && github.event_name != 'pull_request_target' && github.event_name != 'pull_request_review') || (github.event.pull_request.user.login != 'dependabot[bot]' && (github.event.pull_request.user.login != 'github-actions[bot]' || github.event.pull_request.head.ref != 'automation/dependency-lock-refresh')) }}"
